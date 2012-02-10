@@ -44,13 +44,15 @@ namespace Chiptune
   {
     using namespace SoundTrackerPro;
 
+    //size and offsets are taken from ~3400 modules analyzing
+
     const std::size_t MAX_MODULE_SIZE = 0x2800;
 
     /*
-      Typical module structure
+      Typical module structure. Order is not changed according to different tests
 
       Header
-      Optional Id
+      Id (optional)
       PatternsData
       Ornaments
       Samples
@@ -58,7 +60,7 @@ namespace Chiptune
       <possible gap due to invalid length>
       PatternsOffsets
       OrnamentsOffsets
-      SamplesOffsets
+      SamplesOffsets (may be trunkated)
     */
 
 #ifdef USE_PRAGMA_PACK
@@ -263,6 +265,11 @@ namespace Chiptune
       return static_cast<uint_t>(firstData - hdrSize);
     }
 
+    std::size_t GetMaxSize(const RawHeader& hdr)
+    {
+      return fromLE(hdr.SamplesOffset) + sizeof(RawSamples);
+    }
+
     class RangesMap
     {
     public:
@@ -309,12 +316,11 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& data)
-        : Limit(std::min(data.Size(), MAX_MODULE_SIZE))
-        , Delegate(data, Limit)
-        , Ranges(Limit)
-        , Source(GetServiceObject<RawHeader>(0))
-        , Id(GetObject<RawId>(0, sizeof(Source)))
+      explicit Format(const Binary::TypedContainer& data)
+        : Delegate(data)
+        , Ranges(Delegate.GetSize())
+        , Source(GetServiceObject<RawHeader>(0, 0))
+        , Id(GetObject<RawId>(sizeof(Source)))
         , UnfixDelta(GetUnfixDelta(Source, Id, GetPattern(0)))
       {
         if (Id.Check())
@@ -380,30 +386,31 @@ namespace Chiptune
       {
         Require(!samples.empty());
         Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
-        const RawSamples& samPtrs = GetServiceObject<RawSamples>(fromLE(Source.SamplesOffset));
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
           Require(in_range<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
-          const RawSample& src = GetSample(fromLE(samPtrs.Offsets[samIdx]));
+          const RawSample& src = GetSample(samIdx);
           Sample result;
           ParseSample(src, result);
           builder.SetSample(samIdx, result);
         }
+        //mark possible samples offsets as used
+        const std::size_t samplesOffsets = fromLE(Source.SamplesOffset);
+        Ranges.Add(samplesOffsets, std::min(sizeof(RawSamples), Delegate.GetSize() - samplesOffsets));
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
         Require(!ornaments.empty() && 0 == *ornaments.begin());
         Log::Debug(THIS_MODULE, "Ornaments: %1% to parse", ornaments.size());
-        const RawOrnaments& ornPtrs = GetServiceObject<RawOrnaments>(fromLE(Source.OrnamentsOffset));
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
           Require(in_range<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
           Log::Debug(THIS_MODULE, "Parse ornament %1%", ornIdx);
-          const RawOrnament& src = GetOrnament(fromLE(ornPtrs.Offsets[ornIdx]));
+          const RawOrnament& src = GetOrnament(ornIdx);
           Ornament result;
           ParseOrnament(src, result);
           builder.SetOrnament(ornIdx, result);
@@ -437,11 +444,12 @@ namespace Chiptune
 
       const RawPattern& GetPattern(uint_t index) const
       {
-        return GetServiceObject<RawPattern>(fromLE(Source.PatternsOffset) + index * sizeof(RawPattern));
+        return GetServiceObject<RawPattern>(index, fromLE(Source.PatternsOffset));
       }
 
-      const RawSample& GetSample(uint_t offset) const
+      const RawSample& GetSample(uint_t index) const
       {
+        const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.SamplesOffset)));
         const RawObject* const obj = Delegate.GetField<RawObject>(offset);
         Require(obj != 0);
         const RawSample* const res = safe_ptr_cast<const RawSample*>(obj);
@@ -449,8 +457,9 @@ namespace Chiptune
         return *res;
       }
 
-      const RawOrnament& GetOrnament(uint_t offset) const
+      const RawOrnament& GetOrnament(uint_t index) const
       {
+        const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.OrnamentsOffset)));
         const RawObject* const obj = Delegate.GetField<RawObject>(offset);
         Require(obj != 0);
         const RawOrnament* const res = safe_ptr_cast<const RawOrnament*>(obj);
@@ -459,9 +468,8 @@ namespace Chiptune
       }
 
       template<class T>
-      const T& GetObject(uint_t index, std::size_t baseOffset) const
+      const T& GetObject(uint_t offset) const
       {
-        const std::size_t offset = baseOffset + index * sizeof(T);
         const T* const src = Delegate.GetField<T>(offset);
         Require(src != 0);
         Ranges.Add(offset, sizeof(T));
@@ -469,8 +477,9 @@ namespace Chiptune
       }
 
       template<class T>
-      const T& GetServiceObject(std::size_t offset) const
+      const T& GetServiceObject(std::size_t index, std::size_t baseOffset) const
       {
+        const std::size_t offset = baseOffset + index * sizeof(T);
         const T* const src = Delegate.GetField<T>(offset);
         Require(src != 0);
         Ranges.AddService(offset, sizeof(T));
@@ -543,7 +552,7 @@ namespace Chiptune
         {
           const std::size_t start = rangesStarts[chanNum];
           //TODO: improve size detection
-          const std::size_t stop = std::min(Limit, state.Offsets[chanNum] + 1);
+          const std::size_t stop = std::min(Delegate.GetSize(), state.Offsets[chanNum] + 1);
           Ranges.AddFixed(start, stop - start);
         }
         return lineIdx >= MIN_PATTERN_SIZE;
@@ -558,7 +567,7 @@ namespace Chiptune
             continue;
           }
           std::size_t& offset = src.Offsets[chan];
-          if (offset >= Limit)
+          if (offset >= Delegate.GetSize())
           {
             return false;
           }
@@ -589,7 +598,7 @@ namespace Chiptune
 
       void ParseChannel(std::size_t& offset, uint_t& period, Builder& builder) const
       {
-        while (offset < Limit)
+        while (offset < Delegate.GetSize())
         {
           const uint_t cmd = PeekByte(offset++);
           if (cmd == 0)
@@ -677,7 +686,6 @@ namespace Chiptune
         dst.Loop = std::min<int_t>(src.Loop, size);
       }
     private:
-      const std::size_t Limit;
       const Binary::TypedContainer Delegate;
       RangesMap Ranges;
       const RawHeader& Source;
@@ -784,8 +792,8 @@ namespace Chiptune
         {
           return false;
         }
-        const std::size_t requiredSize = sizeof(RawSamples);
-        return requiredSize == size;
+        //samples offsets should be the last region
+        return IsLast(SAMPLES);
       }
 
       bool CheckOrnaments() const
@@ -798,6 +806,14 @@ namespace Chiptune
         const std::size_t requiredSize = sizeof(RawOrnaments);
         return requiredSize == size;
       }
+    private:
+      bool IsLast(AreaTypes area) const
+      {
+        const std::size_t addr = GetAreaAddress(area);
+        const std::size_t size = GetAreaSize(area);
+        const std::size_t limit = GetAreaAddress(END);
+        return addr + size == limit;
+      }
     };
 
     Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
@@ -806,15 +822,14 @@ namespace Chiptune
       return Binary::TypedContainer(rawData, size);
     }
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(const Binary::TypedContainer& data)
     {
-      const Binary::TypedContainer data(CreateContainer(rawData));
       const RawHeader* const hdr = data.GetField<RawHeader>(0);
       if (0 == hdr)
       {
         return false;
       }
-      const Areas areas(*hdr, data.GetSize());
+      const Areas areas(*hdr, std::min(data.GetSize(), GetMaxSize(*hdr)));
       if (!areas.CheckHeader())
       {
         return false;
@@ -838,20 +853,18 @@ namespace Chiptune
       {
         return false;
       }
-      if (0 == data.GetField<RawOrnament>(areas.GetAreaAddress(ORNAMENTS)))
-      {
-        return false;
-      }
-      if (0 == data.GetField<RawPattern>(areas.GetAreaAddress(PATTERNS)))
-      {
-        return false;
-      }
       return true;
+    }
+
+    bool FastCheck(const Binary::Container& rawData)
+    {
+      const Binary::TypedContainer data(CreateContainer(rawData));
+      return FastCheck(data);
     }
 
     const std::string FORMAT(
       "03-0f"  // uint8_t Tempo; 3..15
-      "?00-27" // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
+      "?00-26" // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
       "?00-27" // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
       "?00-27" // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
       "?00-27" // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
@@ -894,7 +907,10 @@ namespace Chiptune
         }
         try
         {
-          const Format format(rawData);
+          const Binary::TypedContainer totalData(rawData);
+          const std::size_t maxSize = GetMaxSize(*totalData.GetField<RawHeader>(0));
+          const Binary::TypedContainer data(rawData, std::min(rawData.Size(), maxSize));
+          const Format format(data);
 
           format.ParseCommonProperties(target);
 
