@@ -424,7 +424,7 @@ namespace
         if (bankEnd <= DMM::SAMPLES_ADDR)
         {
           Log::Debug(THIS_MODULE, "Skipping bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
-          break;
+          continue;
         }
         const std::size_t bankSize = bankEnd - DMM::SAMPLES_ADDR;
         const std::size_t alignedBankSize = align<std::size_t>(bankSize, 256);
