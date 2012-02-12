@@ -952,10 +952,10 @@ namespace Chiptune
           {
             patch->InsertData(headerSize, info);
             const int_t delta = static_cast<int_t>(infoSize);
-            patch->AddLEWordToFix(offsetof(RawHeader, PositionsOffset), delta);
-            patch->AddLEWordToFix(offsetof(RawHeader, PatternsOffset), delta);
-            patch->AddLEWordToFix(offsetof(RawHeader, OrnamentsOffset), delta);
-            patch->AddLEWordToFix(offsetof(RawHeader, SamplesOffset), delta);
+            patch->FixLEWord(offsetof(RawHeader, PositionsOffset), delta);
+            patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
+            patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);
+            patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
             const std::size_t patternsStart = fromLE(header.PatternsOffset);
             Indices usedPatterns = statistic.GetUsedPatterns();
             //first pattern is used to detect fixdelta
@@ -963,9 +963,9 @@ namespace Chiptune
             for (Indices::const_iterator it = usedPatterns.begin(), lim = usedPatterns.end(); it != lim; ++it)
             {
               const std::size_t patOffsets = patternsStart + *it * sizeof(RawPattern);
-              patch->AddLEWordToFix(patOffsets + 0, delta);
-              patch->AddLEWordToFix(patOffsets + 2, delta);
-              patch->AddLEWordToFix(patOffsets + 4, delta);
+              patch->FixLEWord(patOffsets + 0, delta);
+              patch->FixLEWord(patOffsets + 2, delta);
+              patch->FixLEWord(patOffsets + 4, delta);
             }
             const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
             Indices usedOrnaments = statistic.GetUsedOrnaments();
@@ -974,14 +974,14 @@ namespace Chiptune
             for (Indices::const_iterator it = usedOrnaments.begin(), lim = usedOrnaments.end(); it != lim; ++it)
             {
               const std::size_t ornOffset = ornamentsStart + *it * sizeof(uint16_t);
-              patch->AddLEWordToFix(ornOffset, delta);
+              patch->FixLEWord(ornOffset, delta);
             }
             const std::size_t samplesStart = fromLE(header.SamplesOffset);
             const Indices& usedSamples = statistic.GetUsedSamples();
             for (Indices::const_iterator it = usedSamples.begin(), lim = usedSamples.end(); it != lim; ++it)
             {
               const std::size_t samOffset = samplesStart + *it * sizeof(uint16_t);
-              patch->AddLEWordToFix(samOffset, delta);
+              patch->FixLEWord(samOffset, delta);
             }
           }
           return patch->GetResult();

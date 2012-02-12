@@ -17,6 +17,8 @@
 //library includes
 #include <async/activity.h>
 #include <async/queue.h>
+//std includes
+#include <list>
 
 namespace Async
 {

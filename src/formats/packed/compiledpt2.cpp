@@ -157,12 +157,12 @@ namespace Formats
         //fix samples/ornaments offsets
         for (uint_t idx = offsetof(CompiledPT24::RawHeader, SamplesOffsets); idx != offsetof(CompiledPT24::RawHeader, PatternsOffset); idx += 2)
         {
-          builder->AddLEWordToFix(idx, -dataAddr);
+          builder->FixLEWord(idx, -dataAddr);
         }
         //fix patterns offsets
         for (uint_t idx = fromLE(rawHeader.PatternsOffset), lim = idx + 6 * patternsCount; idx != lim; idx += 2)
         {
-          builder->AddLEWordToFix(idx, -dataAddr);
+          builder->FixLEWord(idx, -dataAddr);
         }
         const Binary::Container::Ptr fixedModule = builder->GetResult();
         if (Formats::Chiptune::Container::Ptr fixedParsed = Decoder->Decode(*fixedModule))

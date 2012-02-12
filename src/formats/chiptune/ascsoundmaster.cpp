@@ -1312,9 +1312,9 @@ namespace Chiptune
           else
           {
             patch->InsertData(headerSize, info);
-            patch->AddLEWordToFix(offsetof(typename Version::RawHeader, PatternsOffset), infoSize);
-            patch->AddLEWordToFix(offsetof(typename Version::RawHeader, SamplesOffset), infoSize);
-            patch->AddLEWordToFix(offsetof(typename Version::RawHeader, OrnamentsOffset), infoSize);
+            patch->FixLEWord(offsetof(typename Version::RawHeader, PatternsOffset), infoSize);
+            patch->FixLEWord(offsetof(typename Version::RawHeader, SamplesOffset), infoSize);
+            patch->FixLEWord(offsetof(typename Version::RawHeader, OrnamentsOffset), infoSize);
           }
           return patch->GetResult();
         }

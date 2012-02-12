@@ -50,7 +50,7 @@ namespace
       Require(Overwrites.insert(BlobsMap::value_type(offset, data)).second);
     }
 
-    virtual void AddLEWordToFix(std::size_t offset, int_t delta)
+    virtual void FixLEWord(std::size_t offset, int_t delta)
     {
       Require(offset + sizeof(uint16_t) <= Source.Size());
       Require(LEWordFixes.insert(FixesMap::value_type(offset, delta)).second);
