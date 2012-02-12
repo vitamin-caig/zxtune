@@ -69,6 +69,7 @@ namespace
       receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected()));
       receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
       receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected()));
+      receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected()));
     }
   };
 
@@ -92,6 +93,7 @@ namespace
       receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
       receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected()));
       receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected()));
+      receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected()));
     }
   };
 
@@ -237,6 +239,16 @@ namespace
       {
         const Playlist::Item::PromisedTextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(SelectedItems, FromQString(nameTemplate));
         ShowResult(QString::fromUtf8("Export"), GetResult(op));
+      }
+    }
+
+    virtual void ConvertSelected() const
+    {
+      QString nameTemplate;
+      if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
+      {
+        const Playlist::Item::PromisedTextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, FromQString(nameTemplate));
+        ShowResult(QString::fromUtf8("Convert"), GetResult(op));
       }
     }
   private:

@@ -62,6 +62,7 @@ namespace Playlist
     PromisedTextResultOperation::Ptr CreateCollectStatisticOperation(const Playlist::Model::IndexSet& items);
     PromisedTextResultOperation::Ptr CreateExportOperation(const String& nameTemplate);
     PromisedTextResultOperation::Ptr CreateExportOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate);
+    PromisedTextResultOperation::Ptr CreateConvertOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate);
   }
 }
 

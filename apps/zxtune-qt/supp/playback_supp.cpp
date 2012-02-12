@@ -23,6 +23,7 @@ Author:
 #include <sound/backend.h>
 //boost inlcudes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QMutex>
 
@@ -112,7 +113,7 @@ namespace
   {
     using namespace ZXTune;
     //create backend
-    const Sound::CreateBackendParameters::Ptr createParams(new BackendParams(params, module));
+    const Sound::CreateBackendParameters::Ptr createParams = CreateBackendParameters(params, module);
     Sound::Backend::Ptr result;
     std::list<Error> errors;
     for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
@@ -274,4 +275,9 @@ PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::
 {
   REGISTER_METATYPE(ZXTune::Sound::Backend::Ptr);
   return new PlaybackSupportImpl(parent, sndOptions);
+}
+
+ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
+{
+  return boost::make_shared<BackendParams>(params, module);
 }

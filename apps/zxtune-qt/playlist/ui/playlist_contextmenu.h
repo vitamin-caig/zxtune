@@ -52,6 +52,7 @@ namespace Playlist
       virtual void ShowStatisticOfSelected() const = 0;
       virtual void ExportAll() const = 0;
       virtual void ExportSelected() const = 0;
+      virtual void ConvertSelected() const = 0;
     };
   }
 }
