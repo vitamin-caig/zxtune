@@ -7,6 +7,15 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Improved STP detection
+[*] Fixes in PT3 parsing
+[*] Improved STC detection
+[*] Fix for CPC AY playback
+[*] Fixed DMM modules size detection
+[+] zxtune-qt: support for wav conversion
+
+--- Rev1533 from 07.02.2012
+
 [*] Reworked PT3 detection
 [*] All modules without samples are ignored
 [*] Improved PT2 detection
@@ -16,8 +25,7 @@ Annotation:
 [*] zxtune123: asynchronous rip/conversion result saving
 [*] zxtune-qt: improved .ayl playlists support
 
-
---- Rev1504 from 25.01.2012
+--- Rev1514 from 25.01.2012
 
 [*] Scan speedup for 10%
 [*] Improved TRUSH detection
