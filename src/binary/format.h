@@ -28,6 +28,23 @@ namespace Binary
   //  \{[0-9]+\}   - quantor
   //  \(.*\)       - group subpatterns (useful with quantors), may be nested
 
+  /* Pattern grammar
+
+  pattern      ::= sequence | 0
+  sequence     ::= multi_match | sequence multi_match | sequence space | space sequence | group | group '{' quantor '}' | '+' quantor '+'
+  group        ::= '(' sequence ')'
+  multi_match  ::= single_match | single_match '-' single_match | '?' | any_nibble any_nibble | '%' any_bit x 8
+  single_match ::= nibble nibble | '%' bit x 8 | ''' any_char
+  any_nibble   ::= nibble | 'x'
+  any_bit      ::= bit | 'x'
+  nibble       ::= digit | 'a'..'f' | 'A'..'F'
+  bit          ::= '0' | '1'
+  digit        ::= '0'..'9'
+  quantor      ::= digit | quantor digit
+  space        ::= space_char | space space_char
+  space_char   ::= ' ' | '\t' | '\n' | '\r'
+  */
+
   //! Data format description
   class Format
   {
