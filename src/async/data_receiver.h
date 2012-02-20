@@ -19,16 +19,45 @@
 #include <async/queue.h>
 //std includes
 #include <list>
+//boost includes
+#include <boost/thread/locks.hpp>
+#include <boost/thread/shared_mutex.hpp>
 
 namespace Async
 {
   template<class T>
+  class MultithreadReceiver : public ::DataReceiver<T>
+  {
+  public:
+    explicit MultithreadReceiver(typename ::DataReceiver<T>::Ptr delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual void ApplyData(const T& data)
+    {
+      const boost::shared_lock<boost::shared_mutex> locker(Lock);
+      Delegate->ApplyData(data);
+    }
+
+    virtual void Flush()
+    {
+      boost::upgrade_lock<boost::shared_mutex> upgradable(Lock);
+      const boost::upgrade_to_unique_lock<boost::shared_mutex> unique(upgradable);
+      Delegate->Flush();
+    }
+  private:
+    const typename ::DataReceiver<T>::Ptr Delegate;
+    boost::shared_mutex Lock;
+  };
+
+  template<class T>
   class DataReceiver : public ::DataReceiver<T>
   {
   public:
-    explicit DataReceiver(std::size_t workersCount, typename ::DataReceiver<T>::Ptr delegate)
-      : QueueObject(UnlimitedQueue<T>::Create())
-      , Delegate(delegate)
+    DataReceiver(std::size_t workersCount, std::size_t queueSize, typename ::DataReceiver<T>::Ptr delegate)
+      : QueueObject(SizedQueue<T>::Create(queueSize))
+      , Delegate(boost::make_shared<MultithreadReceiver<T> >(delegate))
     {
       StartAll(workersCount);
     }
@@ -47,12 +76,13 @@ namespace Async
     virtual void Flush()
     {
       QueueObject->Flush();
+      Delegate->Flush();
     }
 
-    static typename ::DataReceiver<T>::Ptr Create(std::size_t workersCount, typename ::DataReceiver<T>::Ptr delegate)
+    static typename ::DataReceiver<T>::Ptr Create(std::size_t workersCount, std::size_t queueSize, typename ::DataReceiver<T>::Ptr delegate)
     {
       return workersCount
-        ? boost::make_shared<DataReceiver>(workersCount, delegate)
+        ? boost::make_shared<DataReceiver>(workersCount, queueSize, delegate)
         : delegate;
     }
   private:
@@ -99,7 +129,6 @@ namespace Async
           {
             Target->ApplyData(val);
           }
-          Target->Flush();
           return Error();
         }
         catch (const Error& err)
