@@ -5,6 +5,8 @@
 
 namespace Text
 {
+extern const Char ANALYSIS_QUEUE_SIZE_DESC[];
+extern const Char ANALYSIS_QUEUE_SIZE_KEY[];
 extern const Char ANALYSIS_THREADS_DESC[];
 extern const Char ANALYSIS_THREADS_KEY[];
 extern const Char DEFAULT_RESULT_FOLDER[];
@@ -21,6 +23,8 @@ extern const Char INPUT_KEY[];
 extern const Char MINIMAL_SIZE_DESC[];
 extern const Char MINIMAL_SIZE_KEY[];
 extern const Char PROGRAM_NAME[];
+extern const Char SAVE_QUEUE_SIZE_DESC[];
+extern const Char SAVE_QUEUE_SIZE_KEY[];
 extern const Char SAVE_THREADS_DESC[];
 extern const Char SAVE_THREADS_KEY[];
 extern const Char TARGET_DIR_DESC[];

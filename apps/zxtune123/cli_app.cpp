@@ -187,7 +187,7 @@ namespace
       }
 
       const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, param, mask, StringTemplate::Create(nameTemplate)));
-      Pipe = Async::DataReceiver<ZXTune::Module::Holder::Ptr>::Create(1, target);
+      Pipe = Async::DataReceiver<ZXTune::Module::Holder::Ptr>::Create(1, 1000, target);
     }
 
     ~Convertor()

@@ -5,10 +5,19 @@
 
 namespace Text
 {
+extern const Char ANALYSIS_QUEUE_SIZE_DESC[] = {
+  'q','u','e','u','e',' ','s','i','z','e',' ','f','o','r',' ','p','a','r','a','l','l','e','l',' ','a','n','a',
+  'l','y','s','i','s','.',' ','V','a','l','u','a','b','l','e',' ','o','n','l','y',' ','w','h','e','n',' ','-',
+  '-','a','n','a','l','y','s','i','s','_','t','h','r','e','a','d','s',' ','>',' ','0','.',' ','D','e','f','a',
+  'u','l','t',' ','i','s',' ','1','0',0
+};
+extern const Char ANALYSIS_QUEUE_SIZE_KEY[] = {
+  'a','n','a','l','y','s','i','s','_','q','u','e','u','e','_','s','i','z','e',0
+};
 extern const Char ANALYSIS_THREADS_DESC[] = {
   't','h','r','e','a','d','s',' ','c','o','u','n','t',' ','f','o','r',' ','p','a','r','a','l','l','e','l',' ',
   'a','n','a','l','y','s','i','s','.',' ','0',' ','t','o',' ','d','i','s','a','b','l','e',' ','p','a','r','a',
-  'l','l','e','l','i','n','g','.',' ','D','e','f','a','u','l','t',' ','i','s',' ','1','.',0
+  'l','l','e','l','i','n','g','.',' ','D','e','f','a','u','l','t',' ','i','s',' ','1',0
 };
 extern const Char ANALYSIS_THREADS_KEY[] = {
   'a','n','a','l','y','s','i','s','_','t','h','r','e','a','d','s',0
@@ -61,6 +70,15 @@ extern const Char MINIMAL_SIZE_KEY[] = {
 };
 extern const Char PROGRAM_NAME[] = {
   'x','t','r','a','c','t','o','r',0
+};
+extern const Char SAVE_QUEUE_SIZE_DESC[] = {
+  'q','u','e','u','e',' ','s','i','z','e',' ','f','o','r',' ','p','a','r','a','l','l','e','l',' ','d','a','t',
+  'a',' ','s','a','v','i','n','g','.',' ','V','a','l','u','a','b','l','e',' ','o','n','l','y',' ','w','h','e',
+  'n',' ','-','-','s','a','v','e','_','t','h','r','e','a','d','s',' ','>',' ','0','.',' ','D','e','f','a','u',
+  'l','t',' ','i','s',' ','5','0','0',0
+};
+extern const Char SAVE_QUEUE_SIZE_KEY[] = {
+  's','a','v','e','_','q','u','e','u','e','_','s','i','z','e',0
 };
 extern const Char SAVE_THREADS_DESC[] = {
   't','h','r','e','a','d','s',' ','c','o','u','n','t',' ','f','o','r',' ','p','a','r','a','l','l','e','l',' ',

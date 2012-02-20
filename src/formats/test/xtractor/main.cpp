@@ -919,9 +919,9 @@ namespace
   };
 
   template<class Object>
-  typename DataReceiver<Object>::Ptr AsyncWrap(std::size_t threads, typename DataReceiver<Object>::Ptr target)
+  typename DataReceiver<Object>::Ptr AsyncWrap(std::size_t threads, std::size_t queueSize, typename DataReceiver<Object>::Ptr target)
   {
-    return Async::DataReceiver<Object>::Create(threads, target);
+    return Async::DataReceiver<Object>::Create(threads, queueSize, target);
   }
 
   class TargetOptions
@@ -935,6 +935,7 @@ namespace
     virtual bool IgnoreEmptyData() const = 0;
     virtual std::size_t MinDataSize() const = 0;
     virtual std::size_t SaveThreadsCount() const = 0;
+    virtual std::size_t SaveDataQueueSize() const = 0;
   };
 
   class AnalysisOptions
@@ -943,6 +944,7 @@ namespace
     virtual ~AnalysisOptions() {}
 
     virtual std::size_t AnalysisThreads() const = 0;
+    virtual std::size_t AnalysisDataQueueSize() const = 0;
   };
 
   Parsing::Target::Ptr CreateTarget(const TargetOptions& opts)
@@ -962,7 +964,7 @@ namespace
       ? Parsing::Target::Ptr(boost::make_shared<SizeFilterTarget>(minSize, storeNoEmpty))
       : storeNoEmpty;
     const Parsing::Target::Ptr result = storeEnoughSize;
-    return AsyncWrap<Analysis::Point::Ptr>(opts.SaveThreadsCount(), result);;
+    return AsyncWrap<Analysis::Point::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), result);;
   }
 
   template<class InType, class OutType = InType>
@@ -1006,7 +1008,7 @@ namespace
     unknownData->SetTarget(filterUnresolved);
     unarchive->SetTarget(unknownData);
     depack->SetTarget(unknownData);
-    const Parsing::Target::Ptr input = AsyncWrap<Analysis::Point::Ptr>(opts.AnalysisThreads(), unknownData);
+    const Parsing::Target::Ptr input = AsyncWrap<Analysis::Point::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), unknownData);
     return boost::make_shared<TransceivePipe<Analysis::Point::Ptr> >(input, filterUnresolved);
   }
 
@@ -1027,30 +1029,39 @@ namespace
   public:
     Options()
       : AnalysisThreadsValue(1)
+      , AnalysisDataQueueSizeValue(10)
       , TargetDirValue(Text::DEFAULT_RESULT_FOLDER)
       , FullSourcePathValue(false)
       , FlatSubpathValue(false)
       , IgnoreEmptyDataValue(false)
       , MinDataSizeValue(0)
       , SaveThreadsCountValue(1)
+      , SaveDataQueueSizeValue(500)
       //cmdline
       , OptionsDescription(Text::TARGET_SECTION)
     {
       using namespace boost::program_options;
       OptionsDescription.add_options()
         (Text::ANALYSIS_THREADS_KEY, value<std::size_t>(&AnalysisThreadsValue), Text::ANALYSIS_THREADS_DESC)
+        (Text::ANALYSIS_QUEUE_SIZE_KEY, value<std::size_t>(&AnalysisDataQueueSizeValue), Text::ANALYSIS_QUEUE_SIZE_DESC)
         (Text::TARGET_DIR_KEY, value<String>(&TargetDirValue), Text::TARGET_DIR_DESC)
         (Text::FULL_SOURCE_PATH_KEY, bool_switch(&FullSourcePathValue), Text::FULL_SOURCE_PATH_DESC)
         (Text::FLAT_SUBPATH_KEY, bool_switch(&FlatSubpathValue), Text::FLAT_SUBPATH_DESC)
         (Text::IGNORE_EMPTY_KEY, bool_switch(&IgnoreEmptyDataValue), Text::IGNORE_EMPTY_DESC)
         (Text::MINIMAL_SIZE_KEY, value<std::size_t>(&MinDataSizeValue), Text::MINIMAL_SIZE_DESC)
         (Text::SAVE_THREADS_KEY, value<std::size_t>(&SaveThreadsCountValue), Text::SAVE_THREADS_DESC)
+        (Text::SAVE_QUEUE_SIZE_KEY, value<std::size_t>(&SaveDataQueueSizeValue), Text::SAVE_QUEUE_SIZE_DESC)
        ;
     }
 
     virtual std::size_t AnalysisThreads() const
     {
       return AnalysisThreadsValue;
+    }
+
+    virtual std::size_t AnalysisDataQueueSize() const
+    {
+      return AnalysisDataQueueSizeValue;
     }
 
     virtual String TargetDir() const
@@ -1083,18 +1094,25 @@ namespace
       return SaveThreadsCountValue;
     }
 
+    virtual std::size_t SaveDataQueueSize() const
+    {
+      return SaveDataQueueSizeValue;
+    }
+
     const boost::program_options::options_description& GetOptionsDescription() const
     {
       return OptionsDescription;
     }
   private:
     std::size_t AnalysisThreadsValue;
+    std::size_t AnalysisDataQueueSizeValue;
     String TargetDirValue;
     bool FullSourcePathValue;
     bool FlatSubpathValue;
     bool IgnoreEmptyDataValue;
     std::size_t MinDataSizeValue;
     std::size_t SaveThreadsCountValue;
+    std::size_t SaveDataQueueSizeValue;
     boost::program_options::options_description OptionsDescription;
   };
 }

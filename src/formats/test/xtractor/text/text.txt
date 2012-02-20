@@ -47,7 +47,13 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 > "analysis_threads"
 
 < ANALYSIS_THREADS_DESC
-> "threads count for parallel analysis. 0 to disable paralleling. Default is 1."
+> "threads count for parallel analysis. 0 to disable paralleling. Default is 1"
+
+< ANALYSIS_QUEUE_SIZE_KEY
+> "analysis_queue_size"
+
+< ANALYSIS_QUEUE_SIZE_DESC
+> "queue size for parallel analysis. Valuable only when --" ANALYSIS_THREADS_KEY " > 0. Default is 10"
 
 < TARGET_DIR_KEY
 > "target_dir"
@@ -84,3 +90,9 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < SAVE_THREADS_DESC
 > "threads count for parallel data saving. 0 to disable paralleling. Default is 1"
+
+< SAVE_QUEUE_SIZE_KEY
+> "save_queue_size"
+
+< SAVE_QUEUE_SIZE_DESC
+> "queue size for parallel data saving. Valuable only when --" SAVE_THREADS_KEY " > 0. Default is 500"
