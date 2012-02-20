@@ -22,14 +22,6 @@ std::basic_ostream<Char>& StdOut = std::wcout;
 std::basic_ostream<Char>& StdOut = std::cout;
 #endif
 
-//fix for new boost versions
-#ifdef BOOST_THREAD_USE_LIB
-namespace boost
-{
-  void tss_cleanup_implemented() { }
-}
-#endif
-
 int main(int argc, char* argv[])
 {
   std::locale::global(std::locale(""));

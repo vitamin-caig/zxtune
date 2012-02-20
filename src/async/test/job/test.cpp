@@ -6,12 +6,6 @@
 
 #define FILE_TAG 8D106607
 
-//fix for new boost versions
-namespace boost
-{
-  void tss_cleanup_implemented() { }
-}
-
 namespace
 {
 	void ShowError(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
