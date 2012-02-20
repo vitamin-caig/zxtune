@@ -15,3 +15,72 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < PROGRAM_NAME
 > "xtractor"
 
+< USAGE_SECTION
+> "Usage:\n"
+> "%1% [options] [--" INPUT_KEY "] <input paths>"
+
+< HELP_KEY
+> "help"
+
+< HELP_DESC
+> "show this message"
+
+< VERSION_KEY
+> "version"
+
+< VERSION_DESC
+> "show application version"
+
+< INPUT_KEY
+> "input"
+
+< INPUT_DESC
+> "source files and directories to be processed"
+
+< DEFAULT_RESULT_FOLDER
+> "XTractor"
+
+< TARGET_SECTION
+> "Target options"
+
+< ANALYSIS_THREADS_KEY
+> "analysis_threads"
+
+< ANALYSIS_THREADS_DESC
+> "threads count for parallel analysis. 0 to disable paralleling. Default is 1."
+
+< TARGET_DIR_KEY
+> "target_dir"
+
+< TARGET_DIR_DESC
+> "target directory to store data. Default is " DEFAULT_RESULT_FOLDER
+
+< FULL_SOURCE_PATH_KEY
+> "full_source_path"
+
+< FULL_SOURCE_PATH_DESC
+> "use full input file path as a target directory name instead of filename"
+
+< FLAT_SUBPATH_KEY
+> "flat_subpath"
+
+< FLAT_SUBPATH_DESC
+> "store result in flat files list instead of directory structure"
+
+< IGNORE_EMPTY_KEY
+> "ignore_empty"
+
+< IGNORE_EMPTY_DESC
+> "do not store files filled with single byte"
+
+< MINIMAL_SIZE_KEY
+> "minimal_size"
+
+< MINIMAL_SIZE_DESC
+> "do not store files with lesser size. Default is 0"
+
+< SAVE_THREADS_KEY
+> "save_threads"
+
+< SAVE_THREADS_DESC
+> "threads count for parallel data saving. 0 to disable paralleling. Default is 1"

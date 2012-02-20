@@ -21,6 +21,8 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
+//text includes
+#include "text/text.h"
 
 //fix for new boost versions
 namespace boost
@@ -1031,30 +1033,24 @@ namespace
   public:
     Options()
       : AnalysisThreadsValue(1)
-      , TargetDirValue("XTractor")
+      , TargetDirValue(Text::DEFAULT_RESULT_FOLDER)
       , FullSourcePathValue(false)
       , FlatSubpathValue(false)
       , IgnoreEmptyDataValue(false)
       , MinDataSizeValue(0)
       , SaveThreadsCountValue(1)
       //cmdline
-      , OptionsDescription("Target options")
+      , OptionsDescription(Text::TARGET_SECTION)
     {
+      using namespace boost::program_options;
       OptionsDescription.add_options()
-        ("analysis_threads", boost::program_options::value<std::size_t>(&AnalysisThreadsValue),
-          "threads count for parallel analysis. 0 to disable paralleling. Default is 1")
-        ("target_dir", boost::program_options::value<String>(&TargetDirValue),
-          "target directory to store data. Default is XTractor")
-        ("full_source_path", boost::program_options::bool_switch(&FullSourcePathValue),
-          "use full input file path as a target directory name instead of filename")
-        ("flat_subpath", boost::program_options::bool_switch(&FlatSubpathValue),
-          "store result in flat files list instead of directory structure")
-        ("ignore_empty", boost::program_options::bool_switch(&IgnoreEmptyDataValue),
-          "do not store files filled with single byte")
-        ("minimal_size", boost::program_options::value<std::size_t>(&MinDataSizeValue),
-          "do not store files with lesser size. Default is 0")
-        ("save_threads", boost::program_options::value<std::size_t>(&SaveThreadsCountValue),
-          "threads count for parallel data saving. 0 to disable paralleling. Default is 1")
+        (Text::ANALYSIS_THREADS_KEY, value<std::size_t>(&AnalysisThreadsValue), Text::ANALYSIS_THREADS_DESC)
+        (Text::TARGET_DIR_KEY, value<String>(&TargetDirValue), Text::TARGET_DIR_DESC)
+        (Text::FULL_SOURCE_PATH_KEY, bool_switch(&FullSourcePathValue), Text::FULL_SOURCE_PATH_DESC)
+        (Text::FLAT_SUBPATH_KEY, bool_switch(&FlatSubpathValue), Text::FLAT_SUBPATH_DESC)
+        (Text::IGNORE_EMPTY_KEY, bool_switch(&IgnoreEmptyDataValue), Text::IGNORE_EMPTY_DESC)
+        (Text::MINIMAL_SIZE_KEY, value<std::size_t>(&MinDataSizeValue), Text::MINIMAL_SIZE_DESC)
+        (Text::SAVE_THREADS_KEY, value<std::size_t>(&SaveThreadsCountValue), Text::SAVE_THREADS_DESC)
        ;
     }
 
@@ -1131,27 +1127,27 @@ int main(int argc, char* argv[])
     StringArray paths;
     {
       using namespace boost::program_options;
-      options_description options(Strings::Format("Usage: %1% [options] <input paths>", *argv));
+      options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
       options.add_options()
-          ("help",    "brief options help")
-          ("version", "show build version")
+        (Text::HELP_KEY, Text::HELP_DESC)
+        (Text::VERSION_KEY, Text::VERSION_DESC)
       ;
       options.add(opts.GetOptionsDescription());
       options.add_options()
-          ("input", value<StringArray>(&paths), "path to be processed. Can be files or directories")
+        (Text::INPUT_KEY, value<StringArray>(&paths), Text::INPUT_DESC)
       ;
       positional_options_description inputPositional;
-      inputPositional.add("input", -1);
+      inputPositional.add(Text::INPUT_KEY, -1);
 
       variables_map vars;
       store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
       notify(vars);
-      if (vars.count("help"))
+      if (vars.count(Text::HELP_KEY))
       {
         std::cout << options << std::endl;
         return true;
       }
-      else if (vars.count("version"))
+      else if (vars.count(Text::VERSION_KEY))
       {
         std::cout << GetProgramVersionString() << std::endl;
         return true;
