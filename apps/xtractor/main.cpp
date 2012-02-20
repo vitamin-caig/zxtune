@@ -906,16 +906,13 @@ namespace
     virtual void ApplyData(const String& filename)
     {
       const boost::filesystem::path path(filename);
-      for (boost::filesystem::recursive_directory_iterator iter(path, boost::filesystem::symlink_option::recurse), lim = boost::filesystem::recursive_directory_iterator();
-           iter != lim; ++iter)
+      if (boost::filesystem::is_directory(path))
       {
-        const boost::filesystem::path subpath = iter->path();
-        const String subPathString = subpath.string<String>();
-        const boost::filesystem::file_type type = iter->status().type();
-        if (type == boost::filesystem::regular_file)
-        {
-          Target->ApplyData(subPathString);
-        }
+        ApplyRecursive(path);
+      }
+      else
+      {
+        Target->ApplyData(filename);
       }
     }
 
@@ -928,7 +925,20 @@ namespace
     {
       Target = target;
     }
-
+  private:
+    void ApplyRecursive(const boost::filesystem::path& path) const
+    {
+      for (boost::filesystem::recursive_directory_iterator iter(path, boost::filesystem::symlink_option::recurse), lim = boost::filesystem::recursive_directory_iterator();
+           iter != lim; ++iter)
+      {
+        const boost::filesystem::path subpath = iter->path();
+        if (!boost::filesystem::is_directory(iter->status()))
+        {
+          const String subPathString = subpath.string<String>();
+          Target->ApplyData(subPathString);
+        }
+      }
+    }
   private:
     StringsReceiver::Ptr Target;
   };
