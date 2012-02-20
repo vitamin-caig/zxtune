@@ -128,6 +128,8 @@ namespace SCL
       builder->AddFile(newOne);
       offset = nextOffset;
     }
+    //use checksum
+    offset += sizeof(uint32_t);
     builder->SetRawData(data.GetSubcontainer(0, offset));
     return builder->GetResult();
   }
