@@ -1,3 +1,14 @@
+/*
+Abstract:
+  XTractor tool main file
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
 //local includes
 #include <apps/version/api.h>
 //common includes
@@ -26,12 +37,12 @@
 
 namespace
 {
-	void ShowError(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
-	{
-		std::cout << Error::AttributesToString(loc, code, text);
-	}
+  void ShowError(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
+  {
+    std::cout << Error::AttributesToString(loc, code, text);
+  }
 
-	const std::string THIS_MODULE("XTractor");
+  const std::string THIS_MODULE("XTractor");
 }
 
 template<class ObjType>
