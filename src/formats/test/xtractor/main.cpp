@@ -895,12 +895,16 @@ namespace
     virtual void ApplyData(const String& filename)
     {
       const boost::filesystem::path path(filename);
-      for (boost::filesystem::recursive_directory_iterator iter(path), lim = boost::filesystem::recursive_directory_iterator();
+      for (boost::filesystem::recursive_directory_iterator iter(path, boost::filesystem::symlink_option::recurse), lim = boost::filesystem::recursive_directory_iterator();
            iter != lim; ++iter)
       {
         const boost::filesystem::path subpath = iter->path();
         const String subPathString = subpath.string<String>();
-        Target->ApplyData(subPathString);
+        const boost::filesystem::file_type type = iter->status().type();
+        if (type == boost::filesystem::regular_file)
+        {
+          Target->ApplyData(subPathString);
+        }
       }
     }
 
