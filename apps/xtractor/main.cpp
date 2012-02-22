@@ -28,8 +28,7 @@ Author:
 #include <map>
 #include <set>
 //boost includes
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
 //text includes
@@ -928,7 +927,7 @@ namespace
   private:
     void ApplyRecursive(const boost::filesystem::path& path) const
     {
-      for (boost::filesystem::recursive_directory_iterator iter(path, boost::filesystem::symlink_option::recurse), lim = boost::filesystem::recursive_directory_iterator();
+      for (boost::filesystem::recursive_directory_iterator iter(path/*, boost::filesystem::symlink_option::recurse*/), lim = boost::filesystem::recursive_directory_iterator();
            iter != lim; ++iter)
       {
         const boost::filesystem::path subpath = iter->path();

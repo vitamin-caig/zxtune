@@ -12,3 +12,15 @@ boost_libraries := filesystem program_options thread system
 windows_libraries := advapi32
 
 include $(path_step)/makefile.mak
+include $(path_step)/make/package.mak
+
+install_linux:
+	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
+
+install_windows install_mingw:
+	$(call copyfile_cmd,$(target),$(DESTDIR))
+
+dingux_dir = local/apps/$(binary_name)
+
+install_dingux:
+	install -D $(target) $(DESTDIR)/$(dingux_dir)/$(notdir $(target))
