@@ -933,7 +933,7 @@ namespace
         const boost::filesystem::path subpath = iter->path();
         if (!boost::filesystem::is_directory(iter->status()))
         {
-          const String subPathString = subpath.string<String>();
+          const String subPathString = subpath.string();
           Target->ApplyData(subPathString);
         }
       }
