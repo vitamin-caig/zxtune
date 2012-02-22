@@ -8,7 +8,7 @@ makeres_cmd = windres -O coff $(addprefix -D, $(DEFINITIONS)) $(1) $(2)
 host=windows
 compiler=gcc
 CXX_PLATFORM_FLAGS = -mthreads -march=i686 -mtune=generic -m32 -mmmx
-LD_PLATFORM_FLAGS = -mthreads -static 
+LD_PLATFORM_FLAGS = -mthreads -static -Wl,--allow-multiple-definition
 ifdef release
 CXX_PLATFORM_FLAGS += -minline-all-stringops
 ifndef profile
@@ -22,7 +22,7 @@ else
 LD_PLATFORM_FLAGS += -Wl,-subsystem,console
 endif
 
-mingw_definitions += BOOST_THREAD_USE_LIB
+mingw_definitions += BOOST_THREAD_USE_LIB BOOST_FILESYSTEM_VERSION=3
 
 #built-in features
 support_waveout = 1

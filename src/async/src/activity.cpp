@@ -17,14 +17,6 @@ Author:
 #include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
 
-//fix for new boost versions
-#ifdef BOOST_THREAD_USE_LIB
-namespace boost
-{
-  void tss_cleanup_implemented() { }
-}
-#endif
-
 namespace
 {
   using namespace Async;
