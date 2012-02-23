@@ -428,6 +428,30 @@ namespace
     boost::mutex DirCacheLock;
     std::set<String> DirCache;
   };
+
+  class StatisticTarget : public Parsing::Target
+  {
+  public:
+    StatisticTarget()
+      : Total(0)
+      , TotalSize(0)
+    {
+    }
+
+    virtual void ApplyData(const Parsing::Result::Ptr& data)
+    {
+      ++Total;
+      TotalSize += data->Data()->Size();
+    }
+
+    virtual void Flush()
+    {
+      std::cout << Strings::Format(Text::STATISTIC_OUTPUT, Total, TotalSize) << std::endl;
+    }
+  private:
+    std::size_t Total;
+    uint64_t TotalSize;
+  };
 }
 
 namespace Parsing
@@ -440,6 +464,11 @@ namespace Parsing
   Parsing::Target::Ptr CreateBuildDirsTarget(Parsing::Target::Ptr target)
   {
     return boost::make_shared<BuildDirsTarget>(target);
+  }
+
+  Parsing::Target::Ptr CreateStatisticTarget()
+  {
+    return boost::make_shared<StatisticTarget>();
   }
 }
 
@@ -1159,6 +1188,7 @@ namespace
     virtual std::size_t MinDataSize() const = 0;
     virtual std::size_t SaveThreadsCount() const = 0;
     virtual std::size_t SaveDataQueueSize() const = 0;
+    virtual bool StatisticOutput() const = 0;
   };
 
   class AnalysisOptions
@@ -1172,9 +1202,10 @@ namespace
 
   Analysis::NodeReceiver::Ptr CreateTarget(const TargetOptions& opts)
   {
-    const Parsing::Target::Ptr save = Parsing::CreateSaveTarget();
-    const Parsing::Target::Ptr makeDirs = Parsing::CreateBuildDirsTarget(save);
-    const Analysis::NodeReceiver::Ptr makeName = boost::make_shared<TargetNamePoint>(opts.TargetNameTemplate(), makeDirs);
+    const Parsing::Target::Ptr save = opts.StatisticOutput()
+      ? Parsing::CreateStatisticTarget()
+      : Parsing::CreateBuildDirsTarget(Parsing::CreateSaveTarget());
+    const Analysis::NodeReceiver::Ptr makeName = boost::make_shared<TargetNamePoint>(opts.TargetNameTemplate(), save);
     const Analysis::NodeReceiver::Ptr storeAll = makeName;
     const Analysis::NodeReceiver::Ptr storeNoEmpty = opts.IgnoreEmptyData()
       ? Analysis::CreateEmptyDataFilter(storeAll)
@@ -1252,6 +1283,7 @@ namespace
       , MinDataSizeValue(0)
       , SaveThreadsCountValue(1)
       , SaveDataQueueSizeValue(500)
+      , StatisticOutputValue(false)
       //cmdline
       , OptionsDescription(Text::TARGET_SECTION)
     {
@@ -1264,6 +1296,7 @@ namespace
         (Text::MINIMAL_SIZE_KEY, value<std::size_t>(&MinDataSizeValue), Text::MINIMAL_SIZE_DESC)
         (Text::SAVE_THREADS_KEY, value<std::size_t>(&SaveThreadsCountValue), Text::SAVE_THREADS_DESC)
         (Text::SAVE_QUEUE_SIZE_KEY, value<std::size_t>(&SaveDataQueueSizeValue), Text::SAVE_QUEUE_SIZE_DESC)
+        (Text::OUTPUT_STATISTIC_KEY, bool_switch(&StatisticOutputValue), Text::OUTPUT_STATISTIC_DESC)
        ;
     }
 
@@ -1302,6 +1335,11 @@ namespace
       return SaveDataQueueSizeValue;
     }
 
+    virtual bool StatisticOutput() const
+    {
+      return StatisticOutputValue;
+    }
+
     const boost::program_options::options_description& GetOptionsDescription() const
     {
       return OptionsDescription;
@@ -1314,6 +1352,7 @@ namespace
     std::size_t MinDataSizeValue;
     std::size_t SaveThreadsCountValue;
     std::size_t SaveDataQueueSizeValue;
+    bool StatisticOutputValue;
     boost::program_options::options_description OptionsDescription;
   };
 }

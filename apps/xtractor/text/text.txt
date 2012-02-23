@@ -87,6 +87,12 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < SAVE_QUEUE_SIZE_DESC
 > "queue size for parallel data saving. Valuable only when --" SAVE_THREADS_KEY " > 0. Default is 500"
 
+< OUTPUT_STATISTIC_KEY
+> "statistic"
+
+< OUTPUT_STATISTIC_DESC
+> "do not save any data, just collect summary statistic"
+
 < TEMPLATE_FIELD_FILENAME
 > "Filename"
 
@@ -101,3 +107,6 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < TEMPLATE_FIELD_FLATSUBPATH
 > "FlatSubpath"
+
+< STATISTIC_OUTPUT
+> "%1% files output. Total size is %2% bytes"

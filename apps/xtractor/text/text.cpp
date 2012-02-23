@@ -53,6 +53,13 @@ extern const Char MINIMAL_SIZE_DESC[] = {
 extern const Char MINIMAL_SIZE_KEY[] = {
   'm','i','n','i','m','a','l','-','s','i','z','e',0
 };
+extern const Char OUTPUT_STATISTIC_DESC[] = {
+  'd','o',' ','n','o','t',' ','s','a','v','e',' ','a','n','y',' ','d','a','t','a',',',' ','j','u','s','t',' ',
+  'c','o','l','l','e','c','t',' ','s','u','m','m','a','r','y',' ','s','t','a','t','i','s','t','i','c',0
+};
+extern const Char OUTPUT_STATISTIC_KEY[] = {
+  's','t','a','t','i','s','t','i','c',0
+};
 extern const Char PROGRAM_NAME[] = {
   'x','t','r','a','c','t','o','r',0
 };
@@ -72,6 +79,10 @@ extern const Char SAVE_THREADS_DESC[] = {
 };
 extern const Char SAVE_THREADS_KEY[] = {
   's','a','v','e','-','t','h','r','e','a','d','s',0
+};
+extern const Char STATISTIC_OUTPUT[] = {
+  '%','1','%',' ','f','i','l','e','s',' ','o','u','t','p','u','t','.',' ','T','o','t','a','l',' ','s','i','z',
+  'e',' ','i','s',' ','%','2','%',' ','b','y','t','e','s',0
 };
 extern const Char TARGET_NAME_TEMPLATE_DESC[] = {
   't','a','r','g','e','t',' ','n','a','m','e',' ','t','e','m','p','l','a','t','e','.',' ','D','e','f','a','u',
