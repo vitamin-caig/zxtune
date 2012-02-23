@@ -224,37 +224,44 @@ namespace
   class PackedDecodersStorage : public Formats::Packed::DecodersStorage
   {
   public:
-    virtual bool ForEach(Formats::Packed::DecodersStorage::Visitor& visitor) const
+    PackedDecodersStorage()
     {
       using namespace Formats::Packed;
-      return visitor.Accept(CreateCodeCruncher3Decoder())
-          || visitor.Accept(CreateCompressorCode4Decoder())
-          || visitor.Accept(CreateCompressorCode4PlusDecoder())
-          || visitor.Accept(CreateDataSquieezerDecoder())
-          || visitor.Accept(CreateESVCruncherDecoder())
-          || visitor.Accept(CreateHrumDecoder())
-          || visitor.Accept(CreateHrust1Decoder())
-          || visitor.Accept(CreateHrust21Decoder())
-          || visitor.Accept(CreateHrust23Decoder())
-          || visitor.Accept(CreateLZSDecoder())
-          || visitor.Accept(CreateMSPackDecoder())
-          || visitor.Accept(CreatePowerfullCodeDecreaser61Decoder())
-          || visitor.Accept(CreatePowerfullCodeDecreaser62Decoder())
-          || visitor.Accept(CreateTRUSHDecoder())
-          || visitor.Accept(CreateGamePackerDecoder())
-          || visitor.Accept(CreateGamePackerPlusDecoder())
-          || visitor.Accept(CreateTurboLZDecoder())
-          || visitor.Accept(CreateTurboLZProtectedDecoder())
-          || visitor.Accept(CreateCharPresDecoder())
-          || visitor.Accept(CreatePack2Decoder())
-          || visitor.Accept(CreateLZH1Decoder())
-          || visitor.Accept(CreateLZH2Decoder())
-          || visitor.Accept(CreateFullDiskImageDecoder())
-          || visitor.Accept(CreateHobetaDecoder())
-          || visitor.Accept(CreateSna128Decoder())
-          || visitor.Accept(CreateTeleDiskImageDecoder())
-      ;
+      Decoders.push_back(CreateCodeCruncher3Decoder());
+      Decoders.push_back(CreateCompressorCode4Decoder());
+      Decoders.push_back(CreateCompressorCode4PlusDecoder());
+      Decoders.push_back(CreateDataSquieezerDecoder());
+      Decoders.push_back(CreateESVCruncherDecoder());
+      Decoders.push_back(CreateHrumDecoder());
+      Decoders.push_back(CreateHrust1Decoder());
+      Decoders.push_back(CreateHrust21Decoder());
+      Decoders.push_back(CreateHrust23Decoder());
+      Decoders.push_back(CreateLZSDecoder());
+      Decoders.push_back(CreateMSPackDecoder());
+      Decoders.push_back(CreatePowerfullCodeDecreaser61Decoder());
+      Decoders.push_back(CreatePowerfullCodeDecreaser62Decoder());
+      Decoders.push_back(CreateTRUSHDecoder());
+      Decoders.push_back(CreateGamePackerDecoder());
+      Decoders.push_back(CreateGamePackerPlusDecoder());
+      Decoders.push_back(CreateTurboLZDecoder());
+      Decoders.push_back(CreateTurboLZProtectedDecoder());
+      Decoders.push_back(CreateCharPresDecoder());
+      Decoders.push_back(CreatePack2Decoder());
+      Decoders.push_back(CreateLZH1Decoder());
+      Decoders.push_back(CreateLZH2Decoder());
+      Decoders.push_back(CreateFullDiskImageDecoder());
+      Decoders.push_back(CreateHobetaDecoder());
+      Decoders.push_back(CreateSna128Decoder());
+      Decoders.push_back(CreateTeleDiskImageDecoder());
     }
+
+    virtual bool ForEach(Formats::Packed::DecodersStorage::Visitor& visitor) const
+    {
+      return Decoders.end() != std::find_if(Decoders.begin(), Decoders.end(),
+        boost::bind(&Formats::Packed::DecodersStorage::Visitor::Accept, &visitor, _1));
+    }
+  private:
+    std::vector<Formats::Packed::Decoder::Ptr> Decoders;
   };
 }
 
@@ -274,18 +281,25 @@ namespace
   class ArchivedDecodersStorage : public Formats::Archived::DecodersStorage
   {
   public:
-    virtual bool ForEach(Formats::Archived::DecodersStorage::Visitor& visitor) const
+    ArchivedDecodersStorage()
     {
       using namespace Formats::Archived;
-      return visitor.Accept(CreateZipDecoder())
-          || visitor.Accept(CreateRarDecoder())
-          || visitor.Accept(CreateZXZipDecoder())
-          || visitor.Accept(CreateSCLDecoder())
-          || visitor.Accept(CreateTRDDecoder())
-          || visitor.Accept(CreateHripDecoder())
-      //  || visitor.Accept(CreateAYDecoder())
-      ;
+      Decoders.push_back(CreateZipDecoder());
+      Decoders.push_back(CreateRarDecoder());
+      Decoders.push_back(CreateZXZipDecoder());
+      Decoders.push_back(CreateSCLDecoder());
+      Decoders.push_back(CreateTRDDecoder());
+      Decoders.push_back(CreateHripDecoder());
+      //Decoders.push_back(CreateAYDecoder());
     }
+
+    virtual bool ForEach(Formats::Archived::DecodersStorage::Visitor& visitor) const
+    {
+      return Decoders.end() != std::find_if(Decoders.begin(), Decoders.end(),
+        boost::bind(&Formats::Archived::DecodersStorage::Visitor::Accept, &visitor, _1));
+    }
+  private:
+    std::vector<Formats::Archived::Decoder::Ptr> Decoders;
   };
 }
 
@@ -567,15 +581,15 @@ namespace
   {
   public:
     PackedDataAnalysersStorage()
-      : Unpacked(Analysis::NodeReceiver::CreateStub())
+      : Decoders(Formats::Packed::GetAvailableDecoders())
+      , Unpacked(Analysis::NodeReceiver::CreateStub())
     {
     }
 
     virtual bool ForEach(AnalyseServicesStorage::Visitor& visitor) const
     {
-      const Formats::Packed::DecodersStorage::Ptr decoders = Formats::Packed::GetAvailableDecoders();
       PackedDataAdapter adapter(visitor, Unpacked);
-      return decoders->ForEach(adapter);
+      return Decoders->ForEach(adapter);
     }
     
     virtual void SetTarget(Analysis::NodeReceiver::Ptr unpacked)
@@ -584,6 +598,7 @@ namespace
       Unpacked = unpacked;
     }
   private:
+    const Formats::Packed::DecodersStorage::Ptr Decoders;
     Analysis::NodeReceiver::Ptr Unpacked;
   };
 
@@ -668,15 +683,15 @@ namespace
   {
   public:
     ArchivedDataAnalysersStorage()
-      : Unarchived(Analysis::NodeReceiver::CreateStub())
+      : Decoders(Formats::Archived::GetAvailableDecoders())
+      , Unarchived(Analysis::NodeReceiver::CreateStub())
     {
     }
 
     virtual bool ForEach(AnalyseServicesStorage::Visitor& visitor) const
     {
-      const Formats::Archived::DecodersStorage::Ptr decoders = Formats::Archived::GetAvailableDecoders();
       ArchivedDataAdapter adapter(visitor, Unarchived);
-      return decoders->ForEach(adapter);
+      return Decoders->ForEach(adapter);
     }
 
     virtual void SetTarget(Analysis::NodeReceiver::Ptr unarchived)
@@ -685,6 +700,7 @@ namespace
       Unarchived = unarchived;
     }
   private:
+    const Formats::Archived::DecodersStorage::Ptr Decoders;
     Analysis::NodeReceiver::Ptr Unarchived;
   };
 
