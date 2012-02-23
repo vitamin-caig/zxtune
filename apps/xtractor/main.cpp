@@ -15,6 +15,7 @@ Author:
 #include <format.h>
 #include <logging.h>
 #include <parameters.h>
+#include <template.h>
 //library includes
 #include <analysis/path.h>
 #include <analysis/result.h>
@@ -26,6 +27,7 @@ Author:
 //std includes
 #include <iostream>
 #include <map>
+#include <numeric>
 #include <set>
 //boost includes
 #include <boost/filesystem.hpp>
@@ -65,51 +67,124 @@ public:
 
 namespace Analysis
 {
-  class Point
+  class Node
   {
   public:
-    typedef boost::shared_ptr<const Point> Ptr;
-    virtual ~Point() {}
+    typedef boost::shared_ptr<const Node> Ptr;
+    virtual ~Node() {}
 
-    virtual Path::Ptr GetPath() const = 0;
-    virtual Binary::Container::Ptr GetData() const = 0;
+    //! Name to distinguish. Can be empty
+    virtual String Name() const = 0;
+    //! Data associated with. Cannot be empty
+    virtual Binary::Container::Ptr Data() const = 0;
+    //! Provider identifier in any form. Can be empty
+    virtual String Provider() const = 0;
+    //! Parent node. Ptr() if root node
+    virtual Ptr Parent() const = 0;
   };
 
-  Point::Ptr CreatePoint(Path::Ptr path, Binary::Container::Ptr data);
+  Node::Ptr CreateRootNode(Binary::Container::Ptr data, const String& name);
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, const String& provider);
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name);
 }
 
 namespace
 {
-  class StaticPoint : public Analysis::Point
+  class RootNode : public Analysis::Node
   {
   public:
-    StaticPoint(Analysis::Path::Ptr path, Binary::Container::Ptr data)
-      : Path(path)
-      , Data(data)
+    RootNode(Binary::Container::Ptr data, const String& name)
+      : DataVal(data)
+      , NameVal(name)
     {
     }
 
-    virtual Analysis::Path::Ptr GetPath() const
+    virtual String Name() const
     {
-      return Path;
+      return NameVal;
     }
 
-    virtual Binary::Container::Ptr GetData() const
+    virtual Binary::Container::Ptr Data() const
     {
-      return Data;
+      return DataVal;
+    }
+
+    virtual String Provider() const
+    {
+      return String();
+    }
+
+    virtual Analysis::Node::Ptr Parent() const
+    {
+      return Analysis::Node::Ptr();
     }
   private:
-    const Analysis::Path::Ptr Path;
-    const Binary::Container::Ptr Data;
+    const Binary::Container::Ptr DataVal;
+    const String NameVal;
+  };
+
+  class SubNode : public Analysis::Node
+  {
+  public:
+    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, const String& name, const String& provider)
+      : ParentVal(parent)
+      , DataVal(data)
+      , NameVal(name)
+      , ProviderVal(provider)
+    {
+    }
+
+    virtual String Name() const
+    {
+      return NameVal;
+    }
+
+    virtual Binary::Container::Ptr Data() const
+    {
+      return DataVal;
+    }
+
+    virtual String Provider() const
+    {
+      return ProviderVal;
+    }
+
+    virtual Analysis::Node::Ptr Parent() const
+    {
+      return ParentVal;
+    }
+  private:
+    const Analysis::Node::Ptr ParentVal;
+    const Binary::Container::Ptr DataVal;
+    const String NameVal;
+    const String ProviderVal;
   };
 }
 
 namespace Analysis
 {
-  Point::Ptr CreatePoint(Path::Ptr path, Binary::Container::Ptr data)
+  //since data is required, place it first
+  Node::Ptr CreateRootNode(Binary::Container::Ptr data, const String& name)
   {
-    return boost::make_shared<StaticPoint>(path, data);
+    return boost::make_shared<RootNode>(data, name);
   }
+
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, const String& provider)
+  {
+    return boost::make_shared<SubNode>(parent, data, name, provider);
+  }
+
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name)
+  {
+    return CreateSubnode(parent, data, name, parent->Provider());
+  }
+}
+
+namespace Analysis
+{
+  typedef DataReceiver<Node::Ptr> NodeReceiver;
+  typedef DataTransmitter<Node::Ptr> NodeTransmitter;
+  typedef DataTransceiver<Node::Ptr> NodeTransceiver;
 }
 
 namespace Analysis
@@ -120,7 +195,7 @@ namespace Analysis
     typedef boost::shared_ptr<const Service> Ptr;
     virtual ~Service() {}
 
-    virtual Result::Ptr Analyse(Point::Ptr point) const = 0;
+    virtual Result::Ptr Analyse(Node::Ptr node) const = 0;
   };
 }
 
@@ -227,9 +302,56 @@ namespace Formats
 
 namespace Parsing
 {
-  typedef DataReceiver<Analysis::Point::Ptr> Target;
-  typedef DataTransmitter<Analysis::Point::Ptr> Source;
-  typedef DataTransceiver<Analysis::Point::Ptr> Pipe;
+  class Result
+  {
+  public:
+    typedef boost::shared_ptr<const Result> Ptr;
+    virtual ~Result() {}
+
+    virtual String Name() const = 0;
+    virtual Binary::Container::Ptr Data() const = 0;
+  };
+
+  Result::Ptr CreateResult(const String& name, Binary::Container::Ptr data);
+
+  typedef DataReceiver<Result::Ptr> Target;
+
+  typedef DataTransmitter<Result::Ptr> Source;
+  typedef DataTransceiver<Result::Ptr> Pipe;
+}
+
+namespace
+{
+  class StaticResult : public Parsing::Result
+  {
+  public:
+    StaticResult(const String& name, Binary::Container::Ptr data)
+      : NameVal(name)
+      , DataVal(data)
+    {
+    }
+
+    virtual String Name() const
+    {
+      return NameVal;
+    }
+
+    virtual Binary::Container::Ptr Data() const
+    {
+      return DataVal;
+    }
+  private:
+    const String NameVal;
+    const Binary::Container::Ptr DataVal;
+  };
+}
+
+namespace Parsing
+{
+  Result::Ptr CreateResult(const String& name, Binary::Container::Ptr data)
+  {
+    return boost::make_shared<StaticResult>(name, data);
+  }
 }
 
 namespace
@@ -237,11 +359,10 @@ namespace
   class SaveTarget : public Parsing::Target
   {
   public:
-    virtual void ApplyData(const Analysis::Point::Ptr& point)
+    virtual void ApplyData(const Parsing::Result::Ptr& result)
     {
-      const Analysis::Path::Ptr path = point->GetPath();
-      const String filePath = path->AsString();
-      const Binary::Container::Ptr data = point->GetData();
+      const String filePath = result->Name();
+      const Binary::Container::Ptr data = result->Data();
       const std::auto_ptr<std::ofstream> target = ZXTune::IO::CreateFile(filePath, true);
       target->write(static_cast<const char*>(data->Data()), data->Size());
     }
@@ -251,85 +372,20 @@ namespace
     }
   };
 
-  class SizeFilterTarget : public Parsing::Target
+  class BuildDirsTarget : public Parsing::Target
   {
   public:
-    SizeFilterTarget(std::size_t minSize, Parsing::Target::Ptr target)
-      : MinSize(minSize)
-      , Target(target)
-    {
-    }
-
-    virtual void ApplyData(const Analysis::Point::Ptr& point)
-    {
-      const Binary::Container::Ptr data = point->GetData();
-      if (data->Size() >= MinSize)
-      {
-        Target->ApplyData(point);
-      }
-    }
-
-    virtual void Flush()
-    {
-      Target->Flush();
-    }
-  private:
-    const std::size_t MinSize;
-    const Parsing::Target::Ptr Target;
-  };
-
-  class SkipEmptyDataTarget : public Parsing::Target
-  {
-  public:
-    explicit SkipEmptyDataTarget(Parsing::Target::Ptr target)
+    explicit BuildDirsTarget(Parsing::Target::Ptr target)
       : Target(target)
     {
     }
 
-    virtual void ApplyData(const Analysis::Point::Ptr& point)
+    virtual void ApplyData(const Parsing::Result::Ptr& result)
     {
-      const Binary::Container::Ptr data = point->GetData();
-      const uint8_t* const begin = static_cast<const uint8_t*>(data->Data());
-      const uint8_t* const end = begin + data->Size();
-      if (end != std::find_if(begin, end, std::bind1st(std::not_equal_to<uint8_t>(), *begin)))
-      {
-        Target->ApplyData(point);
-      }
-    }
-
-    virtual void Flush()
-    {
-      Target->Flush();
-    }
-  private:
-    const Parsing::Target::Ptr Target;
-  };
-
-  class BuildDirsTarget : public Parsing::Target
-  {
-  public:
-    BuildDirsTarget(const String& dir, Parsing::Target::Ptr target)
-      : Dir(dir)
-      , Target(target)
-    {
-      CreateDir(Dir);
-    }
-
-    virtual void ApplyData(const Analysis::Point::Ptr& point)
-    {
-      const Analysis::Path::Ptr oldPath = point->GetPath();
-      Analysis::Path::Ptr newPath = Analysis::ParsePath(Dir);
-      for (Analysis::Path::Iterator::Ptr iter = oldPath->GetIterator(); iter->IsValid();)
-      {
-        const String component = ZXTune::IO::MakePathFromString(iter->Get(), '_');
-        iter->Next();
-        newPath = newPath->Append(component);
-        if (iter->IsValid())
-        {
-          CreateDir(newPath->AsString());
-        }
-      }
-      const Analysis::Point::Ptr result = Analysis::CreatePoint(newPath, point->GetData());
+      const String path = result->Name();
+      String dir;
+      const String filename = ZXTune::IO::ExtractLastPathComponent(path, dir);
+      CreateDir(dir);
       Target->ApplyData(result);
     }
 
@@ -354,7 +410,6 @@ namespace
       }
     }
   private:
-    const String Dir;
     const Parsing::Target::Ptr Target;
     boost::mutex DirCacheLock;
     std::set<String> DirCache;
@@ -368,61 +423,88 @@ namespace Parsing
     return boost::make_shared<SaveTarget>();
   }
 
-  Parsing::Target::Ptr CreateSizeFilterTarget(std::size_t minSize, Parsing::Target::Ptr target)
+  Parsing::Target::Ptr CreateBuildDirsTarget(Parsing::Target::Ptr target)
   {
-    return boost::make_shared<SizeFilterTarget>(minSize, target);
-  }
-
-  Parsing::Target::Ptr CreateBuildDirsTarget(const String& dir, Parsing::Target::Ptr target)
-  {
-    return boost::make_shared<BuildDirsTarget>(dir, target);
+    return boost::make_shared<BuildDirsTarget>(target);
   }
 }
 
 namespace
 {
-  typedef boost::shared_ptr<const std::size_t> OffsetPtr;
-  typedef boost::shared_ptr<std::size_t> OffsetRWPtr;
-
-  class ScanningPoint : public Analysis::Point
+  class SizeFilter : public Analysis::NodeReceiver
   {
   public:
-    ScanningPoint(Analysis::Path::Ptr path, Binary::Container::Ptr data, OffsetPtr offset)
-      : Path(path)
-      , Data(data)
-      , Offset(offset)
+    SizeFilter(std::size_t minSize, Analysis::NodeReceiver::Ptr target)
+      : MinSize(minSize)
+      , Target(target)
     {
     }
 
-    virtual Analysis::Path::Ptr GetPath() const
+    virtual void ApplyData(const Analysis::Node::Ptr& result)
     {
-      const String subpath = Strings::Format("+%1%", *Offset);
-      return Path->Append(subpath);
-    }
-
-    virtual Binary::Container::Ptr GetData() const
-    {
-      if (const std::size_t offset = *Offset)
+      const Binary::Container::Ptr data = result->Data();
+      if (data->Size() >= MinSize)
       {
-        const std::size_t available = Data->Size();
-        if (available > offset)
-        {
-          return Data->GetSubcontainer(offset, available - offset);
-        }
-        return Binary::Container::Ptr();
+        Target->ApplyData(result);
       }
-      return Data;
+    }
+
+    virtual void Flush()
+    {
+      Target->Flush();
     }
   private:
-    const Analysis::Path::Ptr Path;
-    const Binary::Container::Ptr Data;
-    const OffsetPtr Offset;
+    const std::size_t MinSize;
+    const Analysis::NodeReceiver::Ptr Target;
   };
 
+  class EmptyDataFilter : public Analysis::NodeReceiver
+  {
+  public:
+    explicit EmptyDataFilter(Analysis::NodeReceiver::Ptr target)
+      : Target(target)
+    {
+    }
+
+    virtual void ApplyData(const Analysis::Node::Ptr& result)
+    {
+      const Binary::Container::Ptr data = result->Data();
+      const uint8_t* const begin = static_cast<const uint8_t*>(data->Data());
+      const uint8_t* const end = begin + data->Size();
+      if (end != std::find_if(begin, end, std::bind1st(std::not_equal_to<uint8_t>(), *begin)))
+      {
+        Target->ApplyData(result);
+      }
+    }
+
+    virtual void Flush()
+    {
+      Target->Flush();
+    }
+  private:
+    const Analysis::NodeReceiver::Ptr Target;
+  };
+}
+
+namespace Analysis
+{
+  NodeReceiver::Ptr CreateSizeFilter(std::size_t minSize, NodeReceiver::Ptr target)
+  {
+    return boost::make_shared<SizeFilter>(minSize, target);
+  }
+
+  NodeReceiver::Ptr CreateEmptyDataFilter(NodeReceiver::Ptr target)
+  {
+    return boost::make_shared<EmptyDataFilter>(target);
+  }
+}
+
+namespace
+{
   typedef ObjectsStorage<Analysis::Service::Ptr> AnalyseServicesStorage;
 
   class AnalysedDataDispatcher : public AnalyseServicesStorage
-                               , public Parsing::Source
+                               , public Analysis::NodeTransmitter
   {
   public:
     typedef boost::shared_ptr<AnalysedDataDispatcher> Ptr;
@@ -431,26 +513,24 @@ namespace
   class PackedDataAnalyseService : public Analysis::Service
   {
   public:
-    PackedDataAnalyseService(Formats::Packed::Decoder::Ptr decoder, Parsing::Target::Ptr target)
+    PackedDataAnalyseService(Formats::Packed::Decoder::Ptr decoder, Analysis::NodeReceiver::Ptr unpacked)
       : Decoder(decoder)
-      , Target(target)
+      , Unpacked(unpacked)
     {
     }
 
-    virtual Analysis::Result::Ptr Analyse(Analysis::Point::Ptr point) const
+    virtual Analysis::Result::Ptr Analyse(Analysis::Node::Ptr node) const
     {
-      const Binary::Container::Ptr rawData = point->GetData();
+      const Binary::Container::Ptr rawData = node->Data();
       const String descr = Decoder->GetDescription();
       Log::Debug(THIS_MODULE, "Trying '%1%'", descr);
       if (Formats::Packed::Container::Ptr depacked = Decoder->Decode(*rawData))
       {
         const std::size_t matched = depacked->PackedSize();
         Log::Debug(THIS_MODULE, "Found in %1% bytes", matched);
-        const Analysis::Path::Ptr curPath = point->GetPath();
-        //TODO: parametrize
-        const Analysis::Path::Ptr subPath = true ? curPath->Append(descr) : curPath;
-        const Analysis::Point::Ptr resolved = Analysis::CreatePoint(subPath, depacked);
-        Target->ApplyData(resolved);
+        const String name = descr;//TODO
+        const Analysis::Node::Ptr subNode = Analysis::CreateSubnode(node, depacked, name, descr);
+        Unpacked->ApplyData(subNode);
         return Analysis::CreateMatchedResult(matched);
       }
       else
@@ -461,74 +541,73 @@ namespace
     }
   private:
     const Formats::Packed::Decoder::Ptr Decoder;
-    const Parsing::Target::Ptr Target;
+    const Analysis::NodeReceiver::Ptr Unpacked;
   };
 
   class PackedDataAdapter : public Formats::Packed::DecodersStorage::Visitor
   {
   public:
-    PackedDataAdapter(AnalyseServicesStorage::Visitor& delegate, Parsing::Target::Ptr target)
+    PackedDataAdapter(AnalyseServicesStorage::Visitor& delegate, Analysis::NodeReceiver::Ptr unpacked)
       : Delegate(delegate)
-      , Target(target)
+      , Unpacked(unpacked)
     {
     }
 
     virtual bool Accept(Formats::Packed::Decoder::Ptr decoder)
     {
-      const Analysis::Service::Ptr service = boost::make_shared<PackedDataAnalyseService>(decoder, Target);
+      const Analysis::Service::Ptr service = boost::make_shared<PackedDataAnalyseService>(decoder, Unpacked);
       return Delegate.Accept(service);
     }
   private:
     AnalyseServicesStorage::Visitor& Delegate;
-    const Parsing::Target::Ptr Target;
+    const Analysis::NodeReceiver::Ptr Unpacked;
   };
 
   class PackedDataAnalysersStorage : public AnalysedDataDispatcher
   {
   public:
     PackedDataAnalysersStorage()
-      : Target(Parsing::Target::CreateStub())
+      : Unpacked(Analysis::NodeReceiver::CreateStub())
     {
     }
 
     virtual bool ForEach(AnalyseServicesStorage::Visitor& visitor) const
     {
       const Formats::Packed::DecodersStorage::Ptr decoders = Formats::Packed::GetAvailableDecoders();
-      PackedDataAdapter adapter(visitor, Target);
+      PackedDataAdapter adapter(visitor, Unpacked);
       return decoders->ForEach(adapter);
     }
     
-    virtual void SetTarget(Parsing::Target::Ptr target)
+    virtual void SetTarget(Analysis::NodeReceiver::Ptr unpacked)
     {
-      assert(target);
-      Target = target;
+      assert(unpacked);
+      Unpacked = unpacked;
     }
   private:
-    Parsing::Target::Ptr Target;
+    Analysis::NodeReceiver::Ptr Unpacked;
   };
 
   class ArchivedDataAnalyseService : public Analysis::Service
   {
   public:
-    ArchivedDataAnalyseService(Formats::Archived::Decoder::Ptr decoder, Parsing::Target::Ptr target)
+    ArchivedDataAnalyseService(Formats::Archived::Decoder::Ptr decoder, Analysis::NodeReceiver::Ptr unarchived)
       : Decoder(decoder)
-      , Target(target)
+      , Unarchived(unarchived)
     {
     }
 
-    virtual Analysis::Result::Ptr Analyse(Analysis::Point::Ptr point) const
+    virtual Analysis::Result::Ptr Analyse(Analysis::Node::Ptr node) const
     {
-      const Binary::Container::Ptr rawData = point->GetData();
+      const Binary::Container::Ptr rawData = node->Data();
       const String descr = Decoder->GetDescription();
       Log::Debug(THIS_MODULE, "Trying '%1%'", descr);
       if (Formats::Archived::Container::Ptr depacked = Decoder->Decode(*rawData))
       {
         const std::size_t matched = depacked->Size();
         Log::Debug(THIS_MODULE, "Found in %1% bytes", matched);
-        const Analysis::Path::Ptr curPath = point->GetPath();
-        //TODO: parametrize
-        const Analysis::Path::Ptr subPath = true ? curPath->Append(descr) : curPath;
-        const DepackFiles walker(subPath, Target);
+        const String name = descr;//TODO
+        const Analysis::Node::Ptr subNode = Analysis::CreateSubnode(node, depacked, name, descr);
+        const DepackFiles walker(subNode, Unarchived);
         depacked->ExploreFiles(walker);
         return Analysis::CreateMatchedResult(matched);
       }
@@ -542,9 +621,9 @@ namespace
     class DepackFiles : public Formats::Archived::Container::Walker
     {
     public:
-      DepackFiles(Analysis::Path::Ptr path, Parsing::Target::Ptr target)
-        : Path(path)
-        , Target(target)
+      DepackFiles(Analysis::Node::Ptr node, Analysis::NodeReceiver::Ptr unarchived)
+        : ArchiveNode(node)
+        , Unarchived(unarchived)
       {
       }
 
@@ -552,61 +631,61 @@ namespace
       {
         if (Binary::Container::Ptr data = file.GetData())
         {
-          const Analysis::Path::Ptr subpath = Path->Append(file.GetName());
-          const Analysis::Point::Ptr point = Analysis::CreatePoint(subpath, data);
-          Target->ApplyData(point);
+          const String name = file.GetName();
+          const Analysis::Node::Ptr subNode = Analysis::CreateSubnode(ArchiveNode, data, name);
+          Unarchived->ApplyData(subNode);
         }
       }
     private:
-      const Analysis::Path::Ptr Path;
-      const Parsing::Target::Ptr Target;
+      const Analysis::Node::Ptr ArchiveNode;
+      const Analysis::NodeReceiver::Ptr Unarchived;
     };
   private:
     const Formats::Archived::Decoder::Ptr Decoder;
-    const Parsing::Target::Ptr Target;
+    const Analysis::NodeReceiver::Ptr Unarchived;
   };
 
   class ArchivedDataAdapter : public Formats::Archived::DecodersStorage::Visitor
   {
   public:
-    ArchivedDataAdapter(AnalyseServicesStorage::Visitor& delegate, Parsing::Target::Ptr target)
+    ArchivedDataAdapter(AnalyseServicesStorage::Visitor& delegate, Analysis::NodeReceiver::Ptr unarchived)
       : Delegate(delegate)
-      , Target(target)
+      , Unarchived(unarchived)
     {
     }
 
     virtual bool Accept(Formats::Archived::Decoder::Ptr decoder)
     {
-      const Analysis::Service::Ptr service = boost::make_shared<ArchivedDataAnalyseService>(decoder, Target);
+      const Analysis::Service::Ptr service = boost::make_shared<ArchivedDataAnalyseService>(decoder, Unarchived);
       return Delegate.Accept(service);
     }
   private:
     AnalyseServicesStorage::Visitor& Delegate;
-    const Parsing::Target::Ptr Target;
+    const Analysis::NodeReceiver::Ptr Unarchived;
   };
 
   class ArchivedDataAnalysersStorage : public AnalysedDataDispatcher
   {
   public:
     ArchivedDataAnalysersStorage()
-      : Target(Parsing::Target::CreateStub())
+      : Unarchived(Analysis::NodeReceiver::CreateStub())
     {
     }
 
     virtual bool ForEach(AnalyseServicesStorage::Visitor& visitor) const
     {
       const Formats::Archived::DecodersStorage::Ptr decoders = Formats::Archived::GetAvailableDecoders();
-      ArchivedDataAdapter adapter(visitor, Target);
+      ArchivedDataAdapter adapter(visitor, Unarchived);
       return decoders->ForEach(adapter);
     }
 
-    virtual void SetTarget(Parsing::Target::Ptr target)
+    virtual void SetTarget(Analysis::NodeReceiver::Ptr unarchived)
     {
-      assert(target);
-      Target = target;
+      assert(unarchived);
+      Unarchived = unarchived;
     }
   private:
-    Parsing::Target::Ptr Target;
+    Analysis::NodeReceiver::Ptr Unarchived;
   };
 
   class CompositeAnalyseServicesStorage : public AnalyseServicesStorage
@@ -627,25 +706,68 @@ namespace
     const AnalyseServicesStorage::Ptr Second;
   };
 
+  typedef boost::shared_ptr<const std::size_t> OffsetPtr;
+  typedef boost::shared_ptr<std::size_t> OffsetRWPtr;
+
+  class ScanningNode : public Analysis::Node
+  {
+  public:
+    ScanningNode(Analysis::Node::Ptr parent, OffsetPtr offset, OffsetPtr limit)
+      : ParentVal(parent)
+      , DataVal(parent->Data())
+      , Offset(offset)
+      , Limit(limit)
+    {
+    }
+
+    virtual String Name() const
+    {
+      //TODO
+      return Strings::Format("+%1%", *Offset);
+    }
+
+    virtual Binary::Container::Ptr Data() const
+    {
+      const std::size_t offset = *Offset;
+      const std::size_t available = *Limit;
+      Require(available > offset);
+      return DataVal->GetSubcontainer(offset, available - offset);
+    }
+
+    virtual String Provider() const
+    {
+      //TODO
+      return String();
+    }
+
+    virtual Analysis::Node::Ptr Parent() const
+    {
+      return ParentVal;
+    }
+  private:
+    const Analysis::Node::Ptr ParentVal;
+    const Binary::Container::Ptr DataVal;
+    const OffsetPtr Offset;
+    const OffsetPtr Limit;
+  };
+
   class ScanningDataAnalyser : private AnalyseServicesStorage::Visitor
   {
   public:
-    ScanningDataAnalyser(Analysis::Point::Ptr source, AnalyseServicesStorage::Ptr services, Parsing::Target::Ptr unresolved)
-      : Services(services)
-      , ScanOffset(boost::make_shared<std::size_t>(0))
-      , ScanSource(boost::make_shared<ScanningPoint>(source->GetPath(), source->GetData(), ScanOffset))
+    ScanningDataAnalyser(Analysis::Node::Ptr source, AnalyseServicesStorage::Ptr services, Analysis::NodeReceiver::Ptr unresolved)
+      : Source(source)
+      , Services(services)
       , Unresolved(unresolved)
-      , Limit(source->GetData()->Size())
-      , LastUnresolvedOffset(boost::make_shared<std::size_t>())
-      , LastUnresolvedSource(boost::make_shared<ScanningPoint>(source->GetPath(), source->GetData(), LastUnresolvedOffset))
+      , Limit(source->Data()->Size())
     {
     }
 
     void Analyse()
     {
-      *ScanOffset = *LastUnresolvedOffset = 0;
+      UnresolvedOffset = boost::make_shared<std::size_t>(0);
+      ResetScaner(0);
       Services->ForEach(*this);
-      while (Binary::Container::Ptr data = ScanSource->GetData())
+      while (*ScanOffset < *ScanLimit)
       {
         const std::size_t minOffset = Analysers.empty() ? Limit : Analysers.begin()->first;
         if (minOffset > *ScanOffset)
@@ -668,23 +790,27 @@ namespace
           }
         }
       }
-      ProcessUnresolvedTill(Limit);
+      ProcessUnresolved();
     }
   private:
     virtual bool Accept(Analysis::Service::Ptr service)
     {
-      const Analysis::Result::Ptr result = service->Analyse(ScanSource);
+      const Analysis::Result::Ptr result = service->Analyse(ScanNode);
       if (const std::size_t matched = result->GetMatchedDataSize())
       {
         const std::size_t nextOffset = *ScanOffset + matched;
-        ProcessUnresolvedTill(*ScanOffset);
-        *ScanOffset = *LastUnresolvedOffset = nextOffset;
+        Log::Debug(THIS_MODULE, "Matched at %1%..%2%", *ScanOffset, nextOffset);
+        //limit result for captured ScanNode
+        *ScanLimit = nextOffset;
+
+        ProcessUnresolved();
+        ResetScaner(nextOffset);
         if (nextOffset == Limit)
         {
           Log::Debug(THIS_MODULE, "No more data to analyze. Stop.");
           return true;
         }
-        Analysers.insert(std::make_pair(*ScanOffset, service));
+        Analysers.insert(std::make_pair(nextOffset, service));
       }
       else
       {
@@ -703,107 +829,79 @@ namespace
       return false;
     }
 
-    void ProcessUnresolvedTill(std::size_t offset) const
+    void ProcessUnresolved()
     {
-      if (*LastUnresolvedOffset < offset)
+      if (*UnresolvedOffset < *ScanOffset)
       {
-        const std::size_t unresolvedSize = offset - *LastUnresolvedOffset;
-        const Analysis::Point::Ptr unresolved = Analysis::CreatePoint(LastUnresolvedSource->GetPath(), LastUnresolvedSource->GetData()->GetSubcontainer(0, unresolvedSize));
-        Unresolved->ApplyData(unresolved);
-        *LastUnresolvedOffset = offset;
+        Log::Debug(THIS_MODULE, "Unresolved %1%..%2%", *UnresolvedOffset, *ScanOffset);
+        const Analysis::Node::Ptr unresolvedNode = boost::make_shared<ScanningNode>(Source, UnresolvedOffset, ScanOffset);
+        Unresolved->ApplyData(unresolvedNode);
+        //recreate
+        UnresolvedOffset = boost::make_shared<std::size_t>(*ScanOffset);
       }
     }
+
+    void ResetScaner(std::size_t offset)
+    {
+      //recreate
+      ScanOffset = boost::make_shared<std::size_t>(offset);
+      ScanLimit = boost::make_shared<std::size_t>(Limit);
+      ScanNode = boost::make_shared<ScanningNode>(Source, ScanOffset, ScanLimit);
+      *UnresolvedOffset = offset;
+    }
   private:
+    const Analysis::Node::Ptr Source;
     const AnalyseServicesStorage::Ptr Services;
-    const OffsetRWPtr ScanOffset;
-    const Analysis::Point::Ptr ScanSource;
-    const Parsing::Target::Ptr Unresolved;
+    const Analysis::NodeReceiver::Ptr Unresolved;
     const std::size_t Limit;
-    const OffsetRWPtr LastUnresolvedOffset;
-    const Analysis::Point::Ptr LastUnresolvedSource;
+    OffsetRWPtr UnresolvedOffset;
+    OffsetRWPtr ScanOffset;
+    OffsetRWPtr ScanLimit;
+    Analysis::Node::Ptr ScanNode;
+
     typedef std::multimap<std::size_t, Analysis::Service::Ptr> AnalysersCache;
     AnalysersCache Analysers;
   };
 
-  class UnresolvedData : public Parsing::Pipe
+  class UnresolvedData : public Analysis::NodeTransceiver
   {
   public:
     explicit UnresolvedData(AnalyseServicesStorage::Ptr services)
       : Services(services)
-      , Target(Parsing::Target::CreateStub())
+      , Unresolved(Analysis::NodeReceiver::CreateStub())
     {
     }
 
-    virtual void ApplyData(const Analysis::Point::Ptr& point)
+    virtual void ApplyData(const Analysis::Node::Ptr& node)
     {
-      ScanningDataAnalyser analyser(point, Services, Target);
+      ScanningDataAnalyser analyser(node, Services, Unresolved);
       analyser.Analyse();
     }
 
     virtual void Flush()
     {
-      Target->Flush();
+      Unresolved->Flush();
     }
 
-    virtual void SetTarget(Parsing::Target::Ptr target)
+    virtual void SetTarget(Analysis::NodeReceiver::Ptr unresolved)
     {
-      assert(target);
-      Target = target;
+      assert(unresolved);
+      Unresolved = unresolved;
     }
   private:
     const AnalyseServicesStorage::Ptr Services;
-    Parsing::Target::Ptr Target;
+    Analysis::NodeReceiver::Ptr Unresolved;
   };
 
   typedef DataReceiver<String> StringsReceiver;
 
-  typedef DataTransceiver<String, Analysis::Point::Ptr> OpenPoint;
-
-  class PathFactory
-  {
-  public:
-    typedef boost::shared_ptr<const PathFactory> Ptr;
-    virtual ~PathFactory() {}
-
-    virtual Analysis::Path::Ptr CreatePath(const String& filename) const = 0;
-  };
-
-  class FilenamePathFactory : public PathFactory
-  {
-  public:
-    virtual Analysis::Path::Ptr CreatePath(const String& filename) const
-    {
-      String dir;
-      const String name = ZXTune::IO::ExtractLastPathComponent(filename, dir);
-      return Analysis::ParsePath(name);
-    }
-  };
-
-  class FlatPathFactory : public PathFactory
-  {
-  public:
-    virtual Analysis::Path::Ptr CreatePath(const String& filename) const
-    {
-      const String fullPath = ZXTune::IO::MakePathFromString(filename, '_');
-      return Analysis::ParsePath(fullPath);
-    }
-  };
-
-  class FullPathFactory : public PathFactory
-  {
-  public:
-    virtual Analysis::Path::Ptr CreatePath(const String& filename) const
-    {
-      return Analysis::ParsePath(filename);
-    }
-  };
+  typedef DataTransceiver<String, Analysis::Node::Ptr> OpenPoint;
 
   class OpenPointImpl : public OpenPoint
   {
   public:
-    explicit OpenPointImpl(PathFactory::Ptr factory)
-      : Factory(factory)
-      , Target(Parsing::Target::CreateStub())
+    OpenPointImpl()
+      : Analyse(Analysis::NodeReceiver::CreateStub())
       , Params(Parameters::Container::Create())
     {
     }
@@ -813,42 +911,129 @@ namespace
       Log::Debug(THIS_MODULE, "Opening '%1%'", filename);
       Binary::Container::Ptr data;
       ThrowIfError(ZXTune::IO::OpenData(filename, *Params, ZXTune::IO::ProgressCallback(), data));
-      const Analysis::Path::Ptr path = Factory->CreatePath(filename);
-      const Analysis::Point::Ptr point = Analysis::CreatePoint(path, data);
-      Target->ApplyData(point);
+      const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);
+      Analyse->ApplyData(root);
     }
 
     virtual void Flush()
     {
-      Target->Flush();
+      Analyse->Flush();
     }
 
-    virtual void SetTarget(Parsing::Target::Ptr target)
+    virtual void SetTarget(Analysis::NodeReceiver::Ptr analyse)
     {
-      assert(target);
-      Target = target;
+      assert(analyse);
+      Analyse = analyse;
     }
   private:
-    const PathFactory::Ptr Factory;
-    Parsing::Target::Ptr Target;
+    Analysis::NodeReceiver::Ptr Analyse;
     const Parameters::Accessor::Ptr Params;
   };
 
-  class TargetNamePoint : public Parsing::Target
+  class PathTemplate : public FieldsSource
   {
   public:
-    TargetNamePoint(PathFactory::Ptr factory, Parsing::Target::Ptr target)
-      : Factory(factory)
+    explicit PathTemplate(Analysis::Node::Ptr node)
+      : Node(node)
+    {
+    }
+
+    virtual String GetFieldValue(const String& fieldName) const
+    {
+      if (fieldName == Text::TEMPLATE_FIELD_FILENAME)
+      {
+        const Analysis::Node& rootNode = GetRootNode();
+        const String path = rootNode.Name();
+        String dir;
+        return ZXTune::IO::ExtractLastPathComponent(path, dir);
+      }
+      else if (fieldName == Text::TEMPLATE_FIELD_PATH)
+      {
+        const Analysis::Node& rootNode = GetRootNode();
+        return rootNode.Name();
+      }
+      else if (fieldName == Text::TEMPLATE_FIELD_FLATPATH)
+      {
+        const Analysis::Node& rootNode = GetRootNode();
+        return ZXTune::IO::MakePathFromString(rootNode.Name(), '_');
+      }
+      else if (fieldName == Text::TEMPLATE_FIELD_SUBPATH)
+      {
+        StringArray subPath = GetSubpath();
+        std::transform(subPath.begin(), subPath.end(), subPath.begin(),
+          boost::bind(&ZXTune::IO::MakePathFromString, _1, '_'));
+        return std::accumulate(subPath.begin(), subPath.end(), String(), std::ptr_fun(&ZXTune::IO::AppendPath));
+      }
+      else if (fieldName == Text::TEMPLATE_FIELD_FLATSUBPATH)
+      {
+        const StringArray& subPath = GetSubpath();
+        const String& subPathStr = std::accumulate(subPath.begin(), subPath.end(), String(), std::ptr_fun(&ZXTune::IO::AppendPath));
+        return ZXTune::IO::MakePathFromString(subPathStr, '_');
+      }
+      else
+      {
+        return String();
+      }
+    }
+  private:
+    const Analysis::Node& GetRootNode() const
+    {
+      if (!RootNode)
+      {
+        FillCache();
+      }
+      return *RootNode;
+    }
+
+    const StringArray& GetSubpath() const
+    {
+      if (!Subpath.get())
+      {
+        FillCache();
+      }
+      return *Subpath;
+    }
+
+    void FillCache() const
+    {
+      assert(!RootNode && !Subpath.get());
+      StringArray subpath;
+      for (Analysis::Node::Ptr node = Node; node;)
+      {
+        if (const Analysis::Node::Ptr prevNode = node->Parent())
+        {
+          subpath.push_back(node->Name());
+          node = prevNode;
+        }
+        else
+        {
+          RootNode = node;
+          Subpath.reset(new StringArray(subpath.rbegin(), subpath.rend()));
+          break;
+        }
+      }
+    }
+
+  private:
+    const Analysis::Node::Ptr Node;
+    mutable Analysis::Node::Ptr RootNode;
+    mutable std::auto_ptr<StringArray> Subpath;
+  };
+
+  class TargetNamePoint : public Analysis::NodeReceiver
+  {
+  public:
+    TargetNamePoint(const String& nameTemplate, Parsing::Target::Ptr target)
+      : Template(StringTemplate::Create(nameTemplate))
       , Target(target)
     {
     }
 
-    virtual void ApplyData(const Analysis::Point::Ptr& point)
+    virtual void ApplyData(const Analysis::Node::Ptr& node)
     {
-      const Analysis::Path::Ptr oldPath = point->GetPath();
-      const String oldPathString = oldPath->AsString();
-      const Analysis::Path::Ptr newPath = Factory->CreatePath(oldPathString);
-      const Analysis::Point::Ptr result = Analysis::CreatePoint(newPath, point->GetData());
+      const PathTemplate fields(node);
+      const String filename = Template->Instantiate(fields);
+      const Parsing::Result::Ptr result = Parsing::CreateResult(filename, node->Data());
       Target->ApplyData(result);
     }
 
@@ -857,14 +1042,14 @@ namespace
       Target->Flush();
     }
   private:
-    const PathFactory::Ptr Factory;
+    const StringTemplate::Ptr Template;
     const Parsing::Target::Ptr Target;
   };
 
-  class Valve : public Parsing::Pipe
+  class Valve : public Analysis::NodeTransceiver
   {
   public:
-    explicit Valve(Parsing::Target::Ptr target = Parsing::Target::CreateStub())
+    explicit Valve(Analysis::NodeReceiver::Ptr target = Analysis::NodeReceiver::CreateStub())
       : Target(target)
     {
     }
@@ -872,10 +1057,10 @@ namespace
     virtual ~Valve()
     {
       //break possible cycles
-      Target = Parsing::Target::CreateStub();
+      Target = Analysis::NodeReceiver::CreateStub();
     }
 
-    virtual void ApplyData(const Analysis::Point::Ptr& data)
+    virtual void ApplyData(const Analysis::Node::Ptr& data)
     {
       Target->ApplyData(data);
     }
@@ -885,13 +1070,13 @@ namespace
       Target->Flush();
     }
 
-    virtual void SetTarget(Parsing::Target::Ptr target)
+    virtual void SetTarget(Analysis::NodeReceiver::Ptr target)
     {
       assert(target);
       Target = target;
     }
   private:
-    Parsing::Target::Ptr Target;
+    Analysis::NodeReceiver::Ptr Target;
   };
 
   class ResolveDirsPoint : public DataTransceiver<String>
@@ -953,9 +1138,7 @@ namespace
   public:
     virtual ~TargetOptions() {}
 
-    virtual String TargetDir() const = 0;
-    virtual bool FullSourcePath() const = 0;
-    virtual bool FlatSubpath() const = 0;
+    virtual String TargetNameTemplate() const = 0;
     virtual bool IgnoreEmptyData() const = 0;
     virtual std::size_t MinDataSize() const = 0;
     virtual std::size_t SaveThreadsCount() const = 0;
@@ -971,24 +1154,21 @@ namespace
     virtual std::size_t AnalysisDataQueueSize() const = 0;
   };
 
-  Parsing::Target::Ptr CreateTarget(const TargetOptions& opts)
+  Analysis::NodeReceiver::Ptr CreateTarget(const TargetOptions& opts)
   {
-    const PathFactory::Ptr dstFactory = opts.FlatSubpath()
-      ? PathFactory::Ptr(boost::make_shared<FlatPathFactory>())
-      : PathFactory::Ptr(boost::make_shared<FullPathFactory>());
     const Parsing::Target::Ptr save = Parsing::CreateSaveTarget();
-    const Parsing::Target::Ptr makeDirs = Parsing::CreateBuildDirsTarget(opts.TargetDir(), save);
-    const Parsing::Target::Ptr makeName = boost::make_shared<TargetNamePoint>(dstFactory, makeDirs);
-    const Parsing::Target::Ptr storeAll = makeName;
-    const Parsing::Target::Ptr storeNoEmpty = opts.IgnoreEmptyData()
-      ? Parsing::Target::Ptr(boost::make_shared<SkipEmptyDataTarget>(storeAll))
+    const Parsing::Target::Ptr makeDirs = Parsing::CreateBuildDirsTarget(save);
+    const Analysis::NodeReceiver::Ptr makeName = boost::make_shared<TargetNamePoint>(opts.TargetNameTemplate(), makeDirs);
+    const Analysis::NodeReceiver::Ptr storeAll = makeName;
+    const Analysis::NodeReceiver::Ptr storeNoEmpty = opts.IgnoreEmptyData()
+      ? Analysis::CreateEmptyDataFilter(storeAll)
       : storeAll;
     const std::size_t minSize = opts.MinDataSize();
-    const Parsing::Target::Ptr storeEnoughSize = minSize
-      ? Parsing::Target::Ptr(boost::make_shared<SizeFilterTarget>(minSize, storeNoEmpty))
+    const Analysis::NodeReceiver::Ptr storeEnoughSize = minSize
+      ? Analysis::CreateSizeFilter(minSize, storeNoEmpty)
       : storeNoEmpty;
-    const Parsing::Target::Ptr result = storeEnoughSize;
-    return AsyncWrap<Analysis::Point::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), result);;
+    const Analysis::NodeReceiver::Ptr result = storeEnoughSize;
+    return AsyncWrap<Analysis::Node::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), result);
   }
 
   template<class InType, class OutType = InType>
@@ -1020,31 +1200,28 @@ namespace
     const typename DataTransmitter<OutType>::Ptr Output;
   };
 
-  Parsing::Pipe::Ptr CreateAnalyser(const AnalysisOptions& opts)
+  Analysis::NodeTransceiver::Ptr CreateAnalyser(const AnalysisOptions& opts)
   {
     //form analysers
     const AnalysedDataDispatcher::Ptr unarchive = boost::make_shared<ArchivedDataAnalysersStorage>();
     const AnalysedDataDispatcher::Ptr depack = boost::make_shared<PackedDataAnalysersStorage>();
     const AnalyseServicesStorage::Ptr anyConversion = boost::make_shared<CompositeAnalyseServicesStorage>(unarchive, depack);
-    const Parsing::Pipe::Ptr filterUnresolved = boost::make_shared<UnresolvedData>(anyConversion);
+    const Analysis::NodeTransceiver::Ptr filterUnresolved = boost::make_shared<UnresolvedData>(anyConversion);
 
-    const Parsing::Pipe::Ptr unknownData = boost::make_shared<Valve>();
+    const Analysis::NodeTransceiver::Ptr unknownData = boost::make_shared<Valve>();
     unknownData->SetTarget(filterUnresolved);
     unarchive->SetTarget(unknownData);
     depack->SetTarget(unknownData);
-    const Parsing::Target::Ptr input = AsyncWrap<Analysis::Point::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), unknownData);
-    return boost::make_shared<TransceivePipe<Analysis::Point::Ptr> >(input, filterUnresolved);
+    const Analysis::NodeReceiver::Ptr input = AsyncWrap<Analysis::Node::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), unknownData);
+    return boost::make_shared<TransceivePipe<Analysis::Node::Ptr> >(input, filterUnresolved);
   }
 
-  OpenPoint::Ptr CreateSource(const TargetOptions& opts)
+  OpenPoint::Ptr CreateSource()
   {
-    const PathFactory::Ptr srcFactory = opts.FullSourcePath()
-      ? PathFactory::Ptr(boost::make_shared<FullPathFactory>())
-      : PathFactory::Ptr(boost::make_shared<FilenamePathFactory>());
-    const OpenPoint::Ptr open = boost::make_shared<OpenPointImpl>(srcFactory);
+    const OpenPoint::Ptr open = boost::make_shared<OpenPointImpl>();
     const boost::shared_ptr<ResolveDirsPoint> resolve = boost::make_shared<ResolveDirsPoint>();
     resolve->SetTarget(open);
-    return boost::make_shared<TransceivePipe<String, Analysis::Point::Ptr> >(resolve, open);
+    return boost::make_shared<TransceivePipe<String, Analysis::Node::Ptr> >(resolve, open);
   }
 
   class Options : public AnalysisOptions
@@ -1054,9 +1231,7 @@ namespace
     Options()
       : AnalysisThreadsValue(1)
       , AnalysisDataQueueSizeValue(10)
-      , TargetDirValue(Text::DEFAULT_RESULT_FOLDER)
-      , FullSourcePathValue(false)
-      , FlatSubpathValue(false)
+      , TargetNameTemplateValue(Text::DEFAULT_TARGET_NAME_TEMPLATE)
       , IgnoreEmptyDataValue(false)
       , MinDataSizeValue(0)
       , SaveThreadsCountValue(1)
@@ -1068,9 +1243,7 @@ namespace
       OptionsDescription.add_options()
         (Text::ANALYSIS_THREADS_KEY, value<std::size_t>(&AnalysisThreadsValue), Text::ANALYSIS_THREADS_DESC)
         (Text::ANALYSIS_QUEUE_SIZE_KEY, value<std::size_t>(&AnalysisDataQueueSizeValue), Text::ANALYSIS_QUEUE_SIZE_DESC)
-        (Text::TARGET_DIR_KEY, value<String>(&TargetDirValue), Text::TARGET_DIR_DESC)
-        (Text::FULL_SOURCE_PATH_KEY, bool_switch(&FullSourcePathValue), Text::FULL_SOURCE_PATH_DESC)
-        (Text::FLAT_SUBPATH_KEY, bool_switch(&FlatSubpathValue), Text::FLAT_SUBPATH_DESC)
+        (Text::TARGET_NAME_TEMPLATE_KEY, value<String>(&TargetNameTemplateValue), Text::TARGET_NAME_TEMPLATE_DESC)
         (Text::IGNORE_EMPTY_KEY, bool_switch(&IgnoreEmptyDataValue), Text::IGNORE_EMPTY_DESC)
         (Text::MINIMAL_SIZE_KEY, value<std::size_t>(&MinDataSizeValue), Text::MINIMAL_SIZE_DESC)
         (Text::SAVE_THREADS_KEY, value<std::size_t>(&SaveThreadsCountValue), Text::SAVE_THREADS_DESC)
@@ -1088,19 +1261,9 @@ namespace
       return AnalysisDataQueueSizeValue;
     }
 
-    virtual String TargetDir() const
+    virtual String TargetNameTemplate() const
     {
-      return TargetDirValue;
-    }
-
-    virtual bool FullSourcePath() const
-    {
-      return FullSourcePathValue;
-    }
-
-    virtual bool FlatSubpath() const
-    {
-      return FlatSubpathValue;
+      return TargetNameTemplateValue;
     }
 
     virtual bool IgnoreEmptyData() const
@@ -1130,9 +1293,7 @@ namespace
   private:
     std::size_t AnalysisThreadsValue;
     std::size_t AnalysisDataQueueSizeValue;
-    String TargetDirValue;
-    bool FullSourcePathValue;
-    bool FlatSubpathValue;
+    String TargetNameTemplateValue;
     bool IgnoreEmptyDataValue;
     std::size_t MinDataSizeValue;
     std::size_t SaveThreadsCountValue;
@@ -1178,7 +1339,7 @@ int main(int argc, char* argv[])
       variables_map vars;
       store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
       notify(vars);
-      if (vars.count(Text::HELP_KEY))
+      if (vars.count(Text::HELP_KEY) || paths.empty())
       {
         std::cout << options << std::endl;
         return true;
@@ -1190,9 +1351,9 @@ int main(int argc, char* argv[])
       }
     }
 
-    const Parsing::Target::Ptr result = CreateTarget(opts);
-    const Parsing::Pipe::Ptr analyse = CreateAnalyser(opts);
-    const OpenPoint::Ptr input = CreateSource(opts);
+    const Analysis::NodeReceiver::Ptr result = CreateTarget(opts);
+    const Analysis::NodeTransceiver::Ptr analyse = CreateAnalyser(opts);
+    const OpenPoint::Ptr input = CreateSource();
 
     input->SetTarget(analyse);
     analyse->SetTarget(result);

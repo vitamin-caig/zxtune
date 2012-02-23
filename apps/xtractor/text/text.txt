@@ -37,62 +37,67 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < INPUT_DESC
 > "source files and directories to be processed"
 
-< DEFAULT_RESULT_FOLDER
-> "XTractor"
+< DEFAULT_TARGET_NAME_TEMPLATE
+> "XTractor/[" TEMPLATE_FIELD_FILENAME "]/[" TEMPLATE_FIELD_SUBPATH "]"
 
 < TARGET_SECTION
 > "Target options"
 
 < ANALYSIS_THREADS_KEY
-> "analysis_threads"
+> "analysis-threads"
 
 < ANALYSIS_THREADS_DESC
 > "threads count for parallel analysis. 0 to disable paralleling. Default is 1"
 
 < ANALYSIS_QUEUE_SIZE_KEY
-> "analysis_queue_size"
+> "analysis-queue-size"
 
 < ANALYSIS_QUEUE_SIZE_DESC
 > "queue size for parallel analysis. Valuable only when --" ANALYSIS_THREADS_KEY " > 0. Default is 10"
 
-< TARGET_DIR_KEY
-> "target_dir"
+< TARGET_NAME_TEMPLATE_KEY
+> "target-name-template"
 
-< TARGET_DIR_DESC
-> "target directory to store data. Default is " DEFAULT_RESULT_FOLDER
-
-< FULL_SOURCE_PATH_KEY
-> "full_source_path"
-
-< FULL_SOURCE_PATH_DESC
-> "use full input file path as a target directory name instead of filename"
-
-< FLAT_SUBPATH_KEY
-> "flat_subpath"
-
-< FLAT_SUBPATH_DESC
-> "store result in flat files list instead of directory structure"
+< TARGET_NAME_TEMPLATE_DESC
+> "target name template. Default is " DEFAULT_TARGET_NAME_TEMPLATE ". "
+> "Applicable fields: [" TEMPLATE_FIELD_FILENAME "],[" TEMPLATE_FIELD_PATH "],[" TEMPLATE_FIELD_FLATPATH "],"
+> "[" TEMPLATE_FIELD_SUBPATH "],[" TEMPLATE_FIELD_FLATSUBPATH "]"
 
 < IGNORE_EMPTY_KEY
-> "ignore_empty"
+> "ignore-empty"
 
 < IGNORE_EMPTY_DESC
 > "do not store files filled with single byte"
 
 < MINIMAL_SIZE_KEY
-> "minimal_size"
+> "minimal-size"
 
 < MINIMAL_SIZE_DESC
 > "do not store files with lesser size. Default is 0"
 
 < SAVE_THREADS_KEY
-> "save_threads"
+> "save-threads"
 
 < SAVE_THREADS_DESC
 > "threads count for parallel data saving. 0 to disable paralleling. Default is 1"
 
 < SAVE_QUEUE_SIZE_KEY
-> "save_queue_size"
+> "save-queue-size"
 
 < SAVE_QUEUE_SIZE_DESC
 > "queue size for parallel data saving. Valuable only when --" SAVE_THREADS_KEY " > 0. Default is 500"
+
+< TEMPLATE_FIELD_FILENAME
+> "Filename"
+
+< TEMPLATE_FIELD_PATH
+> "Path"
+
+< TEMPLATE_FIELD_FLATPATH
+> "FlatPath"
+
+< TEMPLATE_FIELD_SUBPATH
+> "Subpath"
+
+< TEMPLATE_FIELD_FLATSUBPATH
+> "FlatSubpath"
