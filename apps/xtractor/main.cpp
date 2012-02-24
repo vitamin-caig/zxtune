@@ -1255,9 +1255,11 @@ namespace
     const AnalyseServicesStorage::Ptr anyConversion = boost::make_shared<CompositeAnalyseServicesStorage>(unarchive, depack);
     const Analysis::NodeTransceiver::Ptr filterUnresolved = boost::make_shared<UnresolvedData>(anyConversion);
 
-    const Analysis::NodeReceiver::Ptr input = AsyncWrap<Analysis::Node::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), filterUnresolved);
-    unarchive->SetTarget(input);
-    depack->SetTarget(input);
+    const Analysis::NodeTransceiver::Ptr unknownData = boost::make_shared<Valve>();
+    unknownData->SetTarget(filterUnresolved);
+    unarchive->SetTarget(unknownData);
+    depack->SetTarget(unknownData);
+    const Analysis::NodeReceiver::Ptr input = AsyncWrap<Analysis::Node::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), unknownData);
     return boost::make_shared<TransceivePipe<Analysis::Node::Ptr> >(input, filterUnresolved);
   }
 

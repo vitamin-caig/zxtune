@@ -11,6 +11,7 @@ Author:
 
 //common includes
 #include <error_tools.h>
+#include <tools.h>
 //library includes
 #include <io/error_codes.h>
 #include <io/fs_tools.h>
@@ -45,6 +46,30 @@ namespace
   {
     return !IsNotFSSymbol(sym);
   }
+
+#ifdef _WIN32
+  String ApplyOSFilenamesRestrictions(const String& in)
+  {
+    static const std::string DEPRECATED_NAMES[] =
+    {
+      "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+      "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    };
+    const String::size_type dotPos = in.find('.');
+    const String filename = in.substr(0, dotPos);
+    if (ArrayEnd(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, ArrayEnd(DEPRECATED_NAMES), ZXTune::IO::ConvertToFilename(filename)))
+    {
+      const String restPart = dotPos != String::npos ? in.substr(dotPos) : String();
+      return filename + '~' + restPart;
+    }
+    return in;
+  }
+#else
+  String ApplyOSFilenamesRestrictions(const String& in)
+  {
+    return in;
+  }
+#endif
 }
 
 namespace ZXTune
@@ -103,7 +128,8 @@ namespace ZXTune
           result += replacing;
         }
       }
-      return replacing != '\0' ? result.substr(0, 1 + result.find_last_not_of(replacing)) : result;
+      const String res = replacing != '\0' ? result.substr(0, 1 + result.find_last_not_of(replacing)) : result;
+      return ApplyOSFilenamesRestrictions(res);
     }
 
     std::auto_ptr<std::ofstream> CreateFile(const String& path, bool overwrite)
