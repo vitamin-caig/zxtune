@@ -139,4 +139,20 @@ private:
   const uint_t Size;
 };
 
+inline std::size_t MatchedSize(const uint8_t* dataBegin, const uint8_t* dataEnd, const uint8_t* patBegin, const uint8_t* patEnd)
+{
+  const std::size_t dataSize = dataEnd - dataBegin;
+  const std::size_t patSize = patEnd - patBegin;
+  if (dataSize >= patSize)
+  {
+    const std::pair<const uint8_t*, const uint8_t*> mismatch = std::mismatch(patBegin, patEnd, dataBegin);
+    return mismatch.first - patBegin;
+  }
+  else
+  {
+    const std::pair<const uint8_t*, const uint8_t*> mismatch = std::mismatch(dataBegin, dataEnd, patBegin);
+    return mismatch.first - dataBegin;
+  }
+}
+
 #endif //__CORE_PLUGINS_ARCHIVES_PACK_UTILS_H_DEFINED__
