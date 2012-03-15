@@ -35,12 +35,31 @@ namespace
     const std::size_t lookahead = format->Search(SAMPLE, ArraySize(SAMPLE));
     Test("Check for " + test + " lookahead", lookahead, lookAhead);
   }
+
+  void TestInvalid(const std::string& test, const std::string& pattern)
+  {
+    bool res = false;
+    try
+    {
+      Binary::Format::Create(pattern);
+    }
+    catch (const std::exception&)
+    {
+      res = true;
+    }
+    Test("Check for " + test, res);
+  }
 }
 
 int main()
 {
   try
   {
+    TestInvalid("bad nibble", "0g");
+    TestInvalid("incomplete nibble", "?0");
+    TestInvalid("invalid range", "0x-x0");
+    TestInvalid("empty range", "05-05");
+    TestInvalid("invalid multiple range", "01-02-03");
     TestDetector("whole any match", "?", true, 0);
     TestDetector("whole explicit match", "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f", true, 0);
     TestDetector("partial explicit match", "000102030405", true, 0);
@@ -67,6 +86,8 @@ int main()
     TestDetector("quantor unmatched", "1x{15}", false, 16);
     TestDetector("quanted group matched", "(%xxxxxxx0%xxxxxxx1){3}", true, 0);
     TestDetector("quanted group unmatched", "(%xxxxxxx1%xxxxxxx0){5}", false, 1);
+    TestDetector("multiplicity matched", "00010203 *2 05 *3", true, 0);
+    TestDetector("multiplicity unmatched", "*2*3*4", false, 2);
   }
   catch (int code)
   {

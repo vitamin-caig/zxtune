@@ -37,6 +37,8 @@ namespace
   const char SKIP_BYTES_TEXT = '+';
   const char BINARY_MASK_TEXT = '%';
   const char SYMBOL_TEXT = '\'';
+  const char MULTIPLICITY_TEXT = '*';
+
   const char RANGE_TEXT = '-';
   const char QUANTOR_BEGIN = '{';
   const char QUANTOR_END = '}';
@@ -88,7 +90,9 @@ namespace
     static Ptr Create(PatternIterator& it)
     {
       Require(it && SYMBOL_TEXT == *it && ++it);
-      return boost::make_shared<MatchValueToken>(*it);
+      const Char val = *it;
+      ++it;
+      return boost::make_shared<MatchValueToken>(val);
     }
   private:
     const uint_t Value;
@@ -116,9 +120,10 @@ namespace
       uint_t value = 0;
       if (BINARY_MASK_TEXT == *it)
       {
-        for (uint_t bitmask = 128; bitmask; bitmask >>= 1)
+        ++it;
+        for (uint_t bitmask = 128; bitmask; bitmask >>= 1, ++it)
         {
-          Require(++it);
+          Require(it);
           Require(*it == ONE_BIT_TEXT || *it == ZERO_BIT_TEXT || *it == ANY_BIT_TEXT);
           switch (*it)
           {
@@ -137,6 +142,7 @@ namespace
         const char hiNibble(*it);
         Require(++it);
         const char loNibble(*it);
+        ++it;
         mask = NibbleToMask(hiNibble) * 16 + NibbleToMask(loNibble);
         value = NibbleToValue(hiNibble) * 16 + NibbleToValue(loNibble);
       }
@@ -167,6 +173,41 @@ namespace
   private:
     const uint_t Mask;
     const uint_t Value;
+  };
+
+  inline uint_t ParseNumber(PatternIterator& it)
+  {
+    uint_t res = 0;
+    while (it && std::isdigit(*it))
+    {
+      res = res * 10 + (*it - '0');
+      ++it;
+    }
+    return res;
+  }
+
+  class MatchMultiplicityToken : public Token
+  {
+  public:
+    MatchMultiplicityToken(uint_t mult)
+      : Mult(mult)
+    {
+      Require(Mult > 0 && Mult < 128);
+    }
+
+    virtual bool Match(uint_t val) const
+    {
+      return 0 == (val % Mult);
+    }
+
+    static Ptr Create(PatternIterator& it)
+    {
+      Require(it && MULTIPLICITY_TEXT == *it && ++it);
+      const uint_t val = ParseNumber(it);
+      return boost::make_shared<MatchMultiplicityToken>(val);
+    }
+  private:
+    const uint_t Mult;
   };
 
   uint_t GetSingleMatchedValue(const Token& tok)
@@ -211,11 +252,10 @@ namespace
       return in_range(val, From, To);
     }
 
-    static Ptr Create(Ptr prev, PatternIterator& it)
+    static Ptr Create(Ptr lh, Ptr rh)
     {
-      Require(it && RANGE_TEXT == *it);
-      const uint_t left = GetSingleMatchedValue(*prev);
-      const uint_t right = GetSingleMatchedValue(*MatchMaskToken::Create(++it));
+      const uint_t left = GetSingleMatchedValue(*lh);
+      const uint_t right = GetSingleMatchedValue(*rh);
       Require(left < right);
       return boost::make_shared<MatchRangeToken>(left, right);
     }
@@ -226,24 +266,49 @@ namespace
 
   inline std::size_t ParseSkipBytes(PatternIterator& it)
   {
-    std::size_t skip = 0;
-    while (SKIP_BYTES_TEXT != *++it)
-    {
-      Require(it && 0 != std::isdigit(*it));
-      skip = skip * 10 + (*it - '0');
-    }
+    Require(it && SKIP_BYTES_TEXT == *it);
+    const std::size_t skip = ParseNumber(++it);
+    Require(it && SKIP_BYTES_TEXT == *it);
+    ++it;
     return skip;
   }
 
   inline std::size_t ParseQuantor(PatternIterator& it)
   {
-    std::size_t mult = 0;
-    while (QUANTOR_END != *++it)
-    {
-      Require(it && 0 != std::isdigit(*it));
-      mult = mult * 10 + (*it - '0');
-    }
+    Require(it && QUANTOR_BEGIN == *it);
+    const std::size_t mult = ParseNumber(++it);
+    Require(it && QUANTOR_END == *it);
+    ++it;
     return mult;
+  }
+
+  Token::Ptr ParseSingleToken(PatternIterator& it)
+  {
+    Require(it);
+    switch (*it)
+    {
+    case ANY_BYTE_TEXT:
+      ++it;
+      return AnyValueToken::Create();
+    case SYMBOL_TEXT:
+      return MatchValueToken::Create(it);
+    case MULTIPLICITY_TEXT:
+      return MatchMultiplicityToken::Create(it);
+    case BINARY_MASK_TEXT:
+    default:
+      return MatchMaskToken::Create(it);
+    }
+  }
+
+  Token::Ptr ParseComplexToken(PatternIterator& it)
+  {
+    const Token::Ptr res = ParseSingleToken(it);
+    if (it && RANGE_TEXT == *it)
+    {
+      const Token::Ptr rh = ParseSingleToken(++it);
+      return MatchRangeToken::Create(res, rh);
+    }
+    return res;
   }
 
   typedef std::vector<Token::Ptr> Pattern;
@@ -253,30 +318,14 @@ namespace
     std::stack<std::size_t> groupBegins;
     std::stack<std::pair<std::size_t, std::size_t> > groups;
     Pattern result;
-    for (PatternIterator it(textPattern.begin(), textPattern.end()); it; ++it)
+    for (PatternIterator it(textPattern.begin(), textPattern.end()); it;)
     {
       switch (*it)
       {
-      case ANY_BYTE_TEXT:
-        result.push_back(AnyValueToken::Create());
-        break;
       case SKIP_BYTES_TEXT:
         {
           const std::size_t skip = ParseSkipBytes(it);
           std::fill_n(std::back_inserter(result), skip, AnyValueToken::Create());
-        }
-        break;
-      case BINARY_MASK_TEXT:
-        result.push_back(MatchMaskToken::Create(it));
-        break;
-      case SYMBOL_TEXT:
-        result.push_back(MatchValueToken::Create(it));
-        break;
-      case RANGE_TEXT:
-        {
-          Require(!result.empty());
-          const Token::Ptr last = result.back();
-          result.back() = MatchRangeToken::Create(last, it);
         }
         break;
       case QUANTOR_BEGIN:
@@ -303,6 +352,7 @@ namespace
         break;
       case GROUP_BEGIN:
         groupBegins.push(result.size());
+        ++it;
         break;
       case GROUP_END:
         {
@@ -310,14 +360,17 @@ namespace
           const std::pair<std::size_t, std::size_t> newGroup = std::make_pair(groupBegins.top(), result.size());
           groupBegins.pop();
           groups.push(newGroup);
+          ++it;
         }
+        break;
       case ' ':
       case '\n':
       case '\r':
       case '\t':
+        ++it;
         break;
       default:
-        result.push_back(MatchMaskToken::Create(it));
+        result.push_back(ParseComplexToken(it));
       }
     }
     compiled.swap(result);
