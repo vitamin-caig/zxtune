@@ -59,7 +59,10 @@ int main()
     TestInvalid("incomplete nibble", "?0");
     TestInvalid("invalid range", "0x-x0");
     TestInvalid("empty range", "05-05");
+    TestInvalid("full range", "00-ff");
     TestInvalid("invalid multiple range", "01-02-03");
+    TestInvalid("empty conjunction", "01&10");
+    TestInvalid("full disjunction", "00-80|80-ff");
     TestDetector("whole any match", "?", true, 0);
     TestDetector("whole explicit match", "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f", true, 0);
     TestDetector("partial explicit match", "000102030405", true, 0);
@@ -88,6 +91,10 @@ int main()
     TestDetector("quanted group unmatched", "(%xxxxxxx1%xxxxxxx0){5}", false, 1);
     TestDetector("multiplicity matched", "00010203 *2 05 *3", true, 0);
     TestDetector("multiplicity unmatched", "*2*3*4", false, 2);
+    TestDetector("conjunction matched", "00 0x&x1", true, 0);
+    TestDetector("conjunction unmatched", "(1x&%xxxx11xx){4}", false, 0x1c);
+    TestDetector("disjunction matched", "00|01 00|01", true, 0);
+    TestDetector("disjunction unmatched", "(1x|%xxxx11xx){6}", false, 12);
   }
   catch (int code)
   {

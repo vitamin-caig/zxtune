@@ -40,6 +40,9 @@ namespace
   const char MULTIPLICITY_TEXT = '*';
 
   const char RANGE_TEXT = '-';
+  const char CONJUNCTION_TEXT = '&';
+  const char DISJUNCTION_TEXT = '|';
+
   const char QUANTOR_BEGIN = '{';
   const char QUANTOR_END = '}';
   const char GROUP_BEGIN = '(';
@@ -238,6 +241,18 @@ namespace
     return true;
   }
 
+  bool IsNoByte(Token::Ptr tok)
+  {
+    for (uint_t idx = 0; idx != 256; ++idx)
+    {
+      if (tok->Match(idx))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   class MatchRangeToken : public Token
   {
   public:
@@ -262,6 +277,48 @@ namespace
   private:
     const uint_t From;
     const uint_t To;
+  };
+
+  struct Conjunction
+  {
+    bool operator() (bool lh, bool rh) const
+    {
+      return lh && rh;
+    }
+  };
+
+  struct Disjunction
+  {
+    bool operator() (bool lh, bool rh) const
+    {
+      return lh || rh;
+    }
+  };
+
+  template<class BinOp>
+  class BinaryOperationToken : public Token
+  {
+  public:
+    BinaryOperationToken(Ptr lh, Ptr rh)
+      : Lh(lh)
+      , Rh(rh)
+      , Op()
+    {
+    }
+
+    virtual bool Match(uint_t val) const
+    {
+      return Op(Lh->Match(val), Rh->Match(val));
+    }
+
+    static Ptr Create(Ptr lh, Ptr rh)
+    {
+      return Ptr(new BinaryOperationToken(lh, rh));
+    }
+  private:
+    const Ptr Lh;
+    const Ptr Rh;
+    const BinOp Op;
   };
 
   inline std::size_t ParseSkipBytes(PatternIterator& it)
@@ -302,13 +359,38 @@ namespace
 
   Token::Ptr ParseComplexToken(PatternIterator& it)
   {
-    const Token::Ptr res = ParseSingleToken(it);
-    if (it && RANGE_TEXT == *it)
+    const Token::Ptr lh = ParseSingleToken(it);
+    if (!it)
     {
-      const Token::Ptr rh = ParseSingleToken(++it);
-      return MatchRangeToken::Create(res, rh);
+      return lh;
     }
-    return res;
+    switch (*it)
+    {
+    case RANGE_TEXT:
+      {
+        const Token::Ptr rh = ParseSingleToken(++it);
+        const Token::Ptr res = MatchRangeToken::Create(lh, rh);
+        Require(!IsAnyByte(res));
+        return res;
+      }
+      break;
+    case CONJUNCTION_TEXT:
+      {
+        const Token::Ptr rh = ParseComplexToken(++it);
+        const Token::Ptr res = BinaryOperationToken<Conjunction>::Create(lh, rh);
+        return res;
+      }
+      break;
+    case DISJUNCTION_TEXT:
+      {
+        const Token::Ptr rh = ParseComplexToken(++it);
+        const Token::Ptr res = BinaryOperationToken<Disjunction>::Create(lh, rh);
+        Require(!IsAnyByte(res));
+        return res;
+      }
+      break;
+    }
+    return lh;
   }
 
   typedef std::vector<Token::Ptr> Pattern;
@@ -370,7 +452,11 @@ namespace
         ++it;
         break;
       default:
-        result.push_back(ParseComplexToken(it));
+        {
+          const Token::Ptr tok = ParseComplexToken(it);
+          Require(!IsNoByte(tok));
+          result.push_back(tok);
+        }
       }
     }
     compiled.swap(result);

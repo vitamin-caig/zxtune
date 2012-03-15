@@ -28,6 +28,8 @@ namespace Binary
   //  \{[0-9]+\}   - quantor
   //  \(.*\)       - group subpatterns (useful with quantors), may be nested
   //  \*[0-9]+     - match multiplicity (dec)
+  //  smth & smth  - conjunction
+  //  smth | smth  - disjunction
 
   /* Pattern grammar
 
@@ -35,6 +37,7 @@ namespace Binary
   sequence     ::= multi_match | sequence multi_match | sequence space | space sequence | group | group '{' quantor '}' | '+' quantor '+'
   group        ::= '(' sequence ')'
   multi_match  ::= single_match | single_match '-' single_match | '?' | any_nibble any_nibble | '%' any_bit x 8 | '*' quantor
+  multi_match  ::= multi_match '|' multi_match | multi_match '&' multi_match
   single_match ::= nibble nibble | '%' bit x 8 | ''' any_char
   any_nibble   ::= nibble | 'x'
   any_bit      ::= bit | 'x'
