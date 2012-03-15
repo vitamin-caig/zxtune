@@ -476,8 +476,8 @@ namespace Chiptune
       "("
         //levels
         "00-0f{32}"
-        //noises. Bit 5 should be empty, but due to detector performance lack keep only ranges
-        "?{32}"
+        //noises. Bit 5 should be empty
+        "%xx0xxxxx{32}"
         //additions
         "(?00-1f){32}"
         //loop, loop limit

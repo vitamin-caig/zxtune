@@ -913,12 +913,13 @@ namespace Chiptune
       "?"          // uint8_t FreqTableNum;
       "01-ff"      // uint8_t Tempo;
       "?"          // uint8_t Length;
-      "00-ff"      // uint8_t Loop;
+      "?"          // uint8_t Loop;
       "?00-01"     // uint16_t PatternsOffset;
       "(?00-bf){32}" //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
       //some of the modules has invalid offsets
       "(?00-d9){16}" //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      "00-fe"      // at least one position
+      "*3&00-fe"     // at least one position
+      "*3"      // next position or limiter (255 % 3 == 0)
     );
 
     class Decoder : public Formats::Chiptune::Decoder
