@@ -261,9 +261,9 @@ namespace
     {
     }
 
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    virtual void OnBufferReady(Chunk& buffer)
     {
-      std::vector<MultiSample>& buf(*CurrentBuffer);
+      Chunk& buf(*CurrentBuffer);
       buf.swap(buffer);
       assert(-1 != DevHandle.Get());
       std::size_t toWrite(buf.size() * sizeof(buf.front()));
@@ -306,8 +306,8 @@ namespace
     boost::mutex StateMutex;
     AutoDescriptor MixHandle;
     AutoDescriptor DevHandle;
-    boost::array<std::vector<MultiSample>, 2> Buffers;
-    CycledIterator<std::vector<MultiSample>*> CurrentBuffer;
+    boost::array<Chunk, 2> Buffers;
+    CycledIterator<Chunk*> CurrentBuffer;
     const VolumeControl::Ptr VolumeController;
   };
 

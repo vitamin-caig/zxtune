@@ -84,7 +84,7 @@ namespace
   class BufferRenderer : public Receiver
   {
   public:
-    explicit BufferRenderer(std::vector<MultiSample>& buf) : Buffer(buf)
+    explicit BufferRenderer(Chunk& buf) : Buffer(buf)
     {
     }
 
@@ -97,7 +97,7 @@ namespace
     {
     }
   private:
-    std::vector<MultiSample>& Buffer;
+    Chunk& Buffer;
   };
 
   class MixerWithFilter : public Mixer
@@ -171,7 +171,7 @@ namespace
       return res;
     }
 
-    std::vector<MultiSample>& GetBuffer()
+    Chunk& GetBuffer()
     {
       return Buffer;
     }
@@ -184,7 +184,7 @@ namespace
     const Module::Renderer::Ptr Source;
     const Module::TrackState::Ptr State;
     const Mixer::Ptr Mix;
-    std::vector<MultiSample> Buffer;
+    Chunk Buffer;
   };
 
   class AsyncWrapper : public Async::Job::Worker

@@ -58,7 +58,7 @@ namespace
     {
     }
 
-    virtual void OnBufferReady(std::vector<MultiSample>& /*buffer*/)
+    virtual void OnBufferReady(Chunk& /*buffer*/)
     {
     }
 

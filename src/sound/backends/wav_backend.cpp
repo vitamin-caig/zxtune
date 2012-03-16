@@ -82,7 +82,7 @@ namespace
     virtual ~TrackProcessor() {}
 
     virtual void BeginFrame(const Module::TrackState& state) = 0;
-    virtual void FinishFrame(const std::vector<MultiSample>& data) = 0;
+    virtual void FinishFrame(const Chunk& data) = 0;
   };
 
   class WavBackendParameters
@@ -192,7 +192,7 @@ namespace
       }
     }
 
-    void FinishFrame(const std::vector<MultiSample>& data)
+    void FinishFrame(const Chunk& data)
     {
       const std::size_t sizeInBytes = data.size() * sizeof(data.front());
       File->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(sizeInBytes));
@@ -272,7 +272,7 @@ namespace
       Writer->BeginFrame(state);
     }
 
-    void FinishFrame(const std::vector<MultiSample>& data)
+    void FinishFrame(const Chunk& data)
     {
       Writer->FinishFrame(data);
     }
@@ -333,7 +333,7 @@ namespace
       Processor->BeginFrame(state);
     }
 
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    virtual void OnBufferReady(Chunk& buffer)
     {
 #ifdef BOOST_BIG_ENDIAN
       // in case of big endian, required to swap values
@@ -349,7 +349,7 @@ namespace
     const RenderParameters::Ptr RenderingParameters;
     TrackProcessor::Ptr Processor;
 #ifdef BOOST_BIG_ENDIAN
-    std::vector<MultiSample> Buffer;
+    Chunk Buffer;
 #endif
   };
 

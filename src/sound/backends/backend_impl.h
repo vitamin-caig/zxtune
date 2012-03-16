@@ -32,7 +32,7 @@ namespace ZXTune
       virtual void OnPause() = 0;
       virtual void OnResume() = 0;
       virtual void OnFrame(const Module::TrackState& state) = 0;
-      virtual void OnBufferReady(std::vector<MultiSample>& buffer) = 0;
+      virtual void OnBufferReady(Chunk& buffer) = 0;
       virtual VolumeControl::Ptr GetVolumeControl() const = 0;
     };
 

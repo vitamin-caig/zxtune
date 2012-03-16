@@ -117,7 +117,7 @@ namespace
     {
     }
 
-    void AddData(std::vector<MultiSample>& buffer)
+    void AddData(Chunk& buffer)
     {
       boost::mutex::scoped_lock locker(BufferMutex);
       while (FillIter->BytesToPlay)
@@ -177,7 +177,7 @@ namespace
       {
       }
       uint_t BytesToPlay;
-      std::vector<MultiSample> Data;
+      Chunk Data;
     };
     std::vector<Buffer> Buffers;
     CycledIterator<Buffer*> FillIter, PlayIter;
@@ -291,7 +291,7 @@ namespace
     }
 
 
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    virtual void OnBufferReady(Chunk& buffer)
     {
       Queue.AddData(buffer);
     }

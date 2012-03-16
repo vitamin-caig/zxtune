@@ -172,7 +172,7 @@ namespace
       CheckWin32Error(Buff->Play(0, 0, DSBPLAY_LOOPING), THIS_LINE);
     }
 
-    void Add(const std::vector<MultiSample>& buffer)
+    void Add(const Chunk& buffer)
     {
       const std::size_t srcSize = buffer.size() * sizeof(buffer.front());
 
@@ -467,7 +467,7 @@ namespace
     {
     }
 
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    virtual void OnBufferReady(Chunk& buffer)
     {
       Objects.Stream->Add(buffer);
     }

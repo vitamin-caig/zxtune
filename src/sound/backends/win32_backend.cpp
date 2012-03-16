@@ -132,12 +132,12 @@ namespace
     {
       Wait();
       CheckMMResult(::waveOutUnprepareHeader(Handle, &Header, sizeof(Header)), THIS_LINE);
-      std::vector<MultiSample>().swap(Buffer);
+      Chunk().swap(Buffer);
       Handle = 0;
       Event = INVALID_HANDLE_VALUE;
     }
 
-    void Process(const std::vector<MultiSample>& buf)
+    void Process(const Chunk& buf)
     {
       Wait();
       assert(Header.dwFlags & WHDR_DONE);
@@ -157,7 +157,7 @@ namespace
     }
   private:
     ::WAVEHDR Header;
-    std::vector<MultiSample> Buffer;
+    Chunk Buffer;
     ::HWAVEOUT Handle;
     ::HANDLE Event;
   };
@@ -327,7 +327,7 @@ namespace
     {
     }
 
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    virtual void OnBufferReady(Chunk& buffer)
     {
       // buffer is just sent to playback, so we can safely lock here
       CurrentBuffer->Process(buffer);

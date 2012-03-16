@@ -467,7 +467,7 @@ namespace
     {
     }
 
-    virtual void OnBufferReady(std::vector<MultiSample>& buffer)
+    virtual void OnBufferReady(Chunk& buffer)
     {
       assert(0 != DevHandle.Get());
       const MultiSample* data = &buffer[0];

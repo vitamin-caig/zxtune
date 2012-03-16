@@ -13,6 +13,8 @@
 
 //common includes
 #include <types.h>
+//std includes
+#include <vector>
 //boost includes
 #include <boost/array.hpp>
 
@@ -37,6 +39,9 @@ namespace ZXTune
     typedef double Gain;
     //! @brief All-channels gain type
     typedef boost::array<Gain, OUTPUT_CHANNELS> MultiGain;
+
+    //! @brief Block of sound data
+    typedef std::vector<MultiSample> Chunk;
   }
 }
 
