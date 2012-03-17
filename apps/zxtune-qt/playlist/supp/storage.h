@@ -49,8 +49,17 @@ namespace Playlist
       //read
       virtual std::size_t CountItems() const = 0;
       virtual Data::Ptr GetItem(Model::IndexType idx) const = 0;
-      virtual void ForAllItems(Model::Visitor& visitor) const = 0;
-      virtual void ForSpecifiedItems(const Model::IndexSet& indices, Model::Visitor& visitor) const = 0;
+
+      class Visitor
+      {
+      public:
+        virtual ~Visitor() {}
+
+        virtual void OnItem(Model::IndexType index, Item::Data::Ptr data) = 0;
+      };
+
+      virtual void ForAllItems(Visitor& visitor) const = 0;
+      virtual void ForSpecifiedItems(const Model::IndexSet& indices, Visitor& visitor) const = 0;
       //update
       virtual void MoveItems(const Model::IndexSet& indices, Model::IndexType destination) = 0;
       virtual void Sort(const Comparer& cmp) = 0;

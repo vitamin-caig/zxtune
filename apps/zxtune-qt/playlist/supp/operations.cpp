@@ -63,7 +63,7 @@ namespace
   }; 
 
   template<class T>
-  class VisitorAdapter : public Playlist::Model::Visitor
+  class VisitorAdapter : public Playlist::Item::Storage::Visitor
   {
   public:
     typedef T (Playlist::Item::Data::*GetFunctionType)() const;
@@ -512,17 +512,17 @@ namespace
     Promise<Playlist::Item::SelectionPtr> Result;
   };
 
-  class CollectingVisitor : public Playlist::Model::Visitor
+  class CollectingVisitor : public Playlist::Item::Storage::Visitor
                           , public Playlist::Item::TextOperationResult
   {
   public:
     typedef boost::shared_ptr<CollectingVisitor> Ptr;
   };
 
-  class ProgressModelVisitor : public Playlist::Model::Visitor
+  class ProgressModelVisitor : public Playlist::Item::Storage::Visitor
   {
   public:
-    ProgressModelVisitor(Playlist::Model::Visitor& delegate, Log::ProgressCallback& cb)
+    ProgressModelVisitor(Playlist::Item::Storage::Visitor& delegate, Log::ProgressCallback& cb)
       : Delegate(delegate)
       , Callback(cb)
       , Done(0)
@@ -535,7 +535,7 @@ namespace
       Callback.OnProgress(++Done);
     }
   private:
-    Playlist::Model::Visitor& Delegate;
+    Playlist::Item::Storage::Visitor& Delegate;
     Log::ProgressCallback& Callback;
     uint_t Done;
   };

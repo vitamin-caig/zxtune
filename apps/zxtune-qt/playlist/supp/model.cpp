@@ -292,18 +292,6 @@ namespace
       return Container->GetVersion();
     }
 
-    virtual void ForAllItems(Visitor& visitor) const
-    {
-      QMutexLocker locker(&SyncAccess);
-      return Container->ForAllItems(visitor);
-    }
-
-    virtual void ForSpecifiedItems(const IndexSet& items, Visitor& visitor) const
-    {
-      QMutexLocker locker(&SyncAccess);
-      return Container->ForSpecifiedItems(items, visitor);
-    }
-
     virtual void Clear()
     {
       QMutexLocker locker(&SyncModification);

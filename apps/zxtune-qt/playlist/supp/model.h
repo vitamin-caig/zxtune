@@ -89,16 +89,6 @@ namespace Playlist
     virtual Item::Data::Ptr GetItem(IndexType index) const = 0;
     virtual unsigned GetVersion() const = 0;
 
-    class Visitor
-    {
-    public:
-      virtual ~Visitor() {}
-
-      virtual void OnItem(IndexType index, Item::Data::Ptr data) = 0;
-    };
-    virtual void ForAllItems(Visitor& visitor) const = 0;
-    virtual void ForSpecifiedItems(const IndexSet& items, Visitor& visitor) const = 0;
-
     //modifiers
     virtual void Clear() = 0;
     virtual void RemoveItems(const IndexSet& items) = 0;
