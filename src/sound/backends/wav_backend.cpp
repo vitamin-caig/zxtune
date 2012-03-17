@@ -10,26 +10,21 @@ Author:
 */
 
 //local includes
-#include "backend_impl.h"
+#include "file_backend.h"
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
-#include <logging.h>
-#include <template_parameters.h>
 #include <tools.h>
 //library includes
-#include <core/module_attrs.h>
 #include <io/fs_tools.h>
 #include <sound/backend_attrs.h>
-#include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
-#include <fstream>
 //boost includes
-#include <boost/noncopyable.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
@@ -73,89 +68,12 @@ namespace
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
 
-  const Char FILE_WAVE_EXT[] = {'.', 'w', 'a', 'v', '\0'};
-
-  class TrackProcessor
+  class WavStream : public FileStream
   {
   public:
-    typedef std::auto_ptr<TrackProcessor> Ptr;
-    virtual ~TrackProcessor() {}
-
-    virtual void BeginFrame(const Module::TrackState& state) = 0;
-    virtual void FinishFrame(const Chunk& data) = 0;
-  };
-
-  class WavBackendParameters
-  {
-  public:
-    explicit WavBackendParameters(const Parameters::Accessor& accessor)
-      : Accessor(accessor)
-    {
-    }
-
-    String GetFilenameTemplate() const
-    {
-      Parameters::StringType nameTemplate;
-      if (!Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::Wav::FILENAME, nameTemplate) ||
-          nameTemplate.empty())
-      {
-        // Filename parameter is required
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_WAV_BACKEND_NO_FILENAME);
-      }
-      // check if required to add extension
-      const String extension = FILE_WAVE_EXT;
-      const String::size_type extPos = nameTemplate.find(extension);
-      if (String::npos == extPos || extPos + extension.size() != nameTemplate.size())
-      {
-        nameTemplate += extension;
-      }
-      return nameTemplate;
-    }
-
-    bool CheckIfRewrite() const
-    {
-      Parameters::IntType intParam = 0;
-      return Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE, intParam) &&
-        intParam != 0;
-    }
-
-  private:
-    const Parameters::Accessor& Accessor;
-  };
-
-  class StateFieldsSource : public SkipFieldsSource
-  {
-  public:
-    explicit StateFieldsSource(const Module::TrackState& state)
-      : State(state)
-    {
-    }
-
-    String GetFieldValue(const String& fieldName) const
-    {
-      if (fieldName == Module::ATTR_CURRENT_POSITION)
-      {
-        return Parameters::ConvertToString(State.Position());
-      }
-      else if (fieldName == Module::ATTR_CURRENT_PATTERN)
-      {
-        return Parameters::ConvertToString(State.Pattern());
-      }
-      else if (fieldName == Module::ATTR_CURRENT_LINE)
-      {
-        return Parameters::ConvertToString(State.Line());
-      }
-      return SkipFieldsSource::GetFieldValue(fieldName);
-    }
-  private:
-    const Module::TrackState& State;
-  };
-
-  class FileWriter : public TrackProcessor
-  {
-  public:
-    FileWriter(uint_t soundFreq, const String& fileNameTemplate, bool doRewrite)
-      : DoRewrite(doRewrite)
+    WavStream(uint_t soundFreq, std::auto_ptr<std::ofstream> stream)
+      : Stream(stream)
+      , DoneBytes(0)
     {
       //init struct
       std::memcpy(Format.Id, RIFF, sizeof(RIFF));
@@ -168,189 +86,73 @@ namespace
       Format.BytesPerSec = fromLE(static_cast<uint32_t>(soundFreq * sizeof(MultiSample)));
       Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
       Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
-      //init generator
-      NameGenerator = StringTemplate::Create(fileNameTemplate);
-      //check if generator is required
-      if (NameGenerator->Instantiate(SkipFieldsSource()) == fileNameTemplate)
-      {
-        StartFile(fileNameTemplate);
-        NameGenerator.reset();
-      }
+      Flush();
     }
 
-    virtual ~FileWriter()
+    virtual ~WavStream()
     {
-      StopFile();
+      Flush();
     }
 
-    void BeginFrame(const Module::TrackState& state)
-    {
-      if (NameGenerator.get())
-      {
-        const StateFieldsSource fields(state);
-        StartFile(NameGenerator->Instantiate(fields));
-      }
-    }
-
-    void FinishFrame(const Chunk& data)
-    {
-      const std::size_t sizeInBytes = data.size() * sizeof(data.front());
-      File->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(sizeInBytes));
-      Format.Size += static_cast<uint32_t>(sizeInBytes);
-      Format.DataSize += static_cast<uint32_t>(sizeInBytes);
-    }
-  private:
-    void StartFile(const String& filename)
-    {
-      if (filename != Filename)
-      {
-        StopFile();
-        Log::Debug(THIS_MODULE, "Opening file '%1%'", filename);
-        File = IO::CreateFile(filename, DoRewrite);
-        //swap on final
-        Format.Size = sizeof(Format) - 8;
-        Format.DataSize = 0;
-        //skip header
-        File->seekp(sizeof(Format));
-        Filename = filename;
-      }
-    }
-
-    void StopFile()
-    {
-      if (File.get())
-      {
-        Log::Debug(THIS_MODULE, "Closing file '%1%'", Filename);
-        // write header
-        File->seekp(0);
-        Format.Size = fromLE(Format.Size);
-        Format.DataSize = fromLE(Format.DataSize);
-        File->write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
-        File.reset();
-      }
-    }
-  private:
-    const bool DoRewrite;
-    StringTemplate::Ptr NameGenerator;
-    String Filename;
-    std::auto_ptr<std::ofstream> File;
-    WaveFormat Format;
-  };
-
-  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<KeepFieldsSource<'[', ']'> >
-  {
-  public:
-    typedef Parameters::FieldsSourceAdapter<KeepFieldsSource<'[', ']'> > Parent;
-    explicit ModuleFieldsSource(const Parameters::Accessor& params)
-      : Parent(params)
+    virtual void SetTitle(const String& /*title*/)
     {
     }
 
-    String GetFieldValue(const String& fieldName) const
-    {
-      return IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
-    }
-  };
-
-  class ComplexTrackProcessor : public TrackProcessor
-  {
-  public:
-    ComplexTrackProcessor(const RenderParameters& soundParams, const WavBackendParameters& backendParameters, const Parameters::Accessor& props)
-    {
-      //acquire name template
-      const String nameTemplate = backendParameters.GetFilenameTemplate();
-      Log::Debug(THIS_MODULE, "Original filename template: '%1%'", nameTemplate);
-      const ModuleFieldsSource moduleFields(props);
-      const String fileName = InstantiateTemplate(nameTemplate, moduleFields);
-      Log::Debug(THIS_MODULE, "Fixed filename template: '%1%'", fileName);
-      const bool doRewrite = backendParameters.CheckIfRewrite();
-      Writer.reset(new FileWriter(soundParams.SoundFreq(), fileName, doRewrite));
-    }
-
-    void BeginFrame(const Module::TrackState& state)
-    {
-      Writer->BeginFrame(state);
-    }
-
-    void FinishFrame(const Chunk& data)
-    {
-      Writer->FinishFrame(data);
-    }
-  private:
-    TrackProcessor::Ptr Writer;
-  };
-
-  class WAVBackendWorker : public BackendWorker
-                         , private boost::noncopyable
-  {
-  public:
-    explicit WAVBackendWorker(Parameters::Accessor::Ptr params)
-      : BackendParams(params)
-      , RenderingParameters(RenderParameters::Create(BackendParams))
+    virtual void SetAuthor(const String& /*author*/)
     {
     }
 
-    virtual ~WAVBackendWorker()
-    {
-      assert(!Processor.get() || !"FileBackend::Stop should be called before exit");
-    }
-
-    VolumeControl::Ptr GetVolumeControl() const
-    {
-      // Does not support volume control
-      return VolumeControl::Ptr();
-    }
-
-    virtual void Test()
-    {
-      //TODO: check for write permissions
-    }
-
-    virtual void OnStartup(const Module::Holder& module)
-    {
-      assert(!Processor.get());
-
-      const Parameters::Accessor::Ptr props = module.GetModuleProperties();
-      const WavBackendParameters backendParameters(*BackendParams);
-      Processor.reset(new ComplexTrackProcessor(*RenderingParameters, backendParameters, *props));
-    }
-
-    virtual void OnShutdown()
-    {
-      Processor.reset();
-    }
-
-    virtual void OnPause()
+    virtual void SetComment(const String& /*comment*/)
     {
     }
 
-    virtual void OnResume()
-    {
-    }
-
-    virtual void OnFrame(const Module::TrackState& state)
-    {
-      Processor->BeginFrame(state);
-    }
-
-    virtual void OnBufferReady(Chunk& buffer)
+    virtual void StoreData(Chunk& data)
     {
 #ifdef BOOST_BIG_ENDIAN
       // in case of big endian, required to swap values
-      Buffer.resize(buffer.size());
-      std::transform(buffer.front().begin(), buffer.back().end(), Buffer.front().begin(), &swapBytes<Sample>);
-      Processor->FinishFrame(Buffer);
-#else
-      Processor->FinishFrame(buffer);
+      std::transform(data.front().begin(), data.back().end(), data.front().begin(), &swapBytes<Sample>);
 #endif
+      const std::size_t sizeInBytes = data.size() * sizeof(data.front());
+      Stream->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(sizeInBytes));
+      DoneBytes += static_cast<uint32_t>(sizeInBytes);
     }
   private:
-    const Parameters::Accessor::Ptr BackendParams;
+    void Flush()
+    {
+      const std::streampos oldPos = Stream->tellp();
+      // write header
+      Stream->seekp(0);
+      Format.Size = fromLE<uint32_t>(sizeof(Format) - 8 + DoneBytes);
+      Format.DataSize = fromLE<uint32_t>(DoneBytes);
+      Stream->write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
+      Stream->seekp(oldPos);
+    }
+  private:
+    const std::auto_ptr<std::ofstream> Stream;
+    uint32_t DoneBytes;
+    WaveFormat Format;
+  };
+
+  class WavFileFactory : public FileStreamFactory
+  {
+  public:
+    explicit WavFileFactory(Parameters::Accessor::Ptr params)
+      : RenderingParameters(RenderParameters::Create(params))
+    {
+    }
+
+    virtual String GetId() const
+    {
+      return WAV_BACKEND_ID;
+    }
+
+    virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
+    {
+      std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
+      return FileStream::Ptr(new WavStream(RenderingParameters->SoundFreq(), rawFile));
+    }
+  private:
     const RenderParameters::Ptr RenderingParameters;
-    TrackProcessor::Ptr Processor;
-#ifdef BOOST_BIG_ENDIAN
-    Chunk Buffer;
-#endif
   };
 
   class WAVBackendCreator : public BackendCreator
@@ -376,7 +178,8 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new WAVBackendWorker(allParams));
+        const FileStreamFactory::Ptr factory = boost::make_shared<WavFileFactory>(allParams);
+        const BackendWorker::Ptr worker = CreateFileBackendWorker(allParams, factory);
         result = Sound::CreateBackend(params, worker);
         return Error();
       }

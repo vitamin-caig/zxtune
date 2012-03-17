@@ -16,12 +16,16 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < NULL_BACKEND_DESCRIPTION
 > "Null output backend"
 
+#file-based backends
+< SOUND_ERROR_FILE_BACKEND_NO_FILENAME
+> "Output filename template is not specified."
+
+< FILE_BACKEND_DEFAULT_COMMENT
+> "Created using ZXTune toolkit"
+
 #wav backend
 < WAV_BACKEND_DESCRIPTION
 > "WAV-output backend"
-
-< SOUND_ERROR_WAV_BACKEND_NO_FILENAME
-> "Output filename template is not specified."
 
 #alsa backend
 < ALSA_BACKEND_DESCRIPTION
