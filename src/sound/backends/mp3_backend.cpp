@@ -22,6 +22,7 @@ Author:
 //library includes
 #include <io/fs_tools.h>
 #include <sound/backend_attrs.h>
+#include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
 //platform-specific includes
@@ -67,22 +68,24 @@ namespace
 
   typedef boost::shared_ptr<lame_global_flags> LameContextPtr;
 
+  void CheckLameCall(int res, Error::LocationRef loc)
+  {
+    if (res < 0)
+    {
+      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_MP3_BACKEND_ERROR, res);
+    }
+  }
+
   const std::size_t INITIAL_ENCODED_BUFFER_SIZE = 1048576;
 
   class Mp3Stream : public FileStream
   {
   public:
-    Mp3Stream(uint_t soundFreq, LameContextPtr context, std::auto_ptr<std::ofstream> stream)
+    Mp3Stream(LameContextPtr context, std::auto_ptr<std::ofstream> stream)
       : Stream(stream)
       , Context(context)
       , Encoded(INITIAL_ENCODED_BUFFER_SIZE)
     {
-      ::lame_set_in_samplerate(Context.get(), soundFreq);
-      ::lame_set_num_channels(Context.get(), OUTPUT_CHANNELS);
-      ::lame_set_quality(Context.get(), 6);//TODO
-      ::lame_init_params(Context.get());
-      ::id3tag_init(Context.get());
-      ::id3tag_add_v2(Context.get());
     }
 
     virtual ~Mp3Stream()
@@ -128,7 +131,7 @@ namespace
         }
         else
         {
-          throw Error(THIS_LINE, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
+          CheckLameCall(res, THIS_LINE);
         }
       }
     }
@@ -137,6 +140,7 @@ namespace
     {
       if (const int res = ::lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
       {
+        CheckLameCall(res, THIS_LINE);
         Stream->write(safe_ptr_cast<const char*>(&Encoded[0]), static_cast<std::streamsize>(res));
       }
     }
@@ -146,11 +150,48 @@ namespace
     Dump Encoded;
   };
 
+  class Mp3Parameters
+  {
+  public:
+    explicit Mp3Parameters(Parameters::Accessor::Ptr params)
+      : Params(params)
+    {
+    }
+
+    boost::optional<uint_t> GetBitrate() const
+    {
+      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE);
+    }
+
+    boost::optional<uint_t> GetVBRQuality() const
+    {
+      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Mp3::VBR);
+    }
+
+    boost::optional<uint_t> GetABR() const
+    {
+      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Mp3::ABR);
+    }
+  private:
+    boost::optional<uint_t> GetOptionalParameter(const Parameters::NameType& name) const
+    {
+      Parameters::IntType val = 0;
+      if (Params->FindIntValue(name, val))
+      {
+        return val;
+      }
+      return boost::optional<uint_t>();
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+  };
+
   class Mp3FileFactory : public FileStreamFactory
   {
   public:
     explicit Mp3FileFactory(Parameters::Accessor::Ptr params)
-      : RenderingParameters(RenderParameters::Create(params))
+      : Params(params)
+      , RenderingParameters(RenderParameters::Create(params))
     {
     }
 
@@ -163,9 +204,41 @@ namespace
     {
       std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
       const LameContextPtr context = LameContextPtr(::lame_init(), &::lame_close);
-      return FileStream::Ptr(new Mp3Stream(RenderingParameters->SoundFreq(), context, rawFile));
+      SetupContext(*context);
+      return FileStream::Ptr(new Mp3Stream(context, rawFile));
     }
   private:
+    void SetupContext(lame_global_flags& ctx) const
+    {
+      const uint_t samplerate = RenderingParameters->SoundFreq();
+      Log::Debug(THIS_MODULE, "Setting samplerate to %1%Hz", samplerate);
+      CheckLameCall(::lame_set_in_samplerate(&ctx, samplerate), THIS_LINE);
+      CheckLameCall(::lame_set_out_samplerate(&ctx, samplerate), THIS_LINE);
+      CheckLameCall(::lame_set_num_channels(&ctx, OUTPUT_CHANNELS), THIS_LINE);
+      CheckLameCall(::lame_set_bWriteVbrTag(&ctx, true), THIS_LINE);
+      if (const boost::optional<uint_t> bitrate = Params.GetBitrate())
+      {
+        Log::Debug(THIS_MODULE, "Setting bitrate to %1%kbps", *bitrate);
+        CheckLameCall(::lame_set_VBR(&ctx, vbr_off), THIS_LINE);
+        CheckLameCall(::lame_set_brate(&ctx, *bitrate), THIS_LINE);
+      }
+      else if (const boost::optional<uint_t> vbr = Params.GetVBRQuality())
+      {
+        Log::Debug(THIS_MODULE, "Setting VBR quality to %1%", *vbr);
+        CheckLameCall(::lame_set_VBR(&ctx, vbr_mtrh), THIS_LINE);
+        CheckLameCall(::lame_set_VBR_q(&ctx, *vbr), THIS_LINE);
+      }
+      else if (const boost::optional<uint_t> abr = Params.GetABR())
+      {
+        Log::Debug(THIS_MODULE, "Setting ABR to %1%kbps", *abr);
+        CheckLameCall(::lame_set_preset(&ctx, *abr), THIS_LINE);
+      }
+      CheckLameCall(::lame_init_params(&ctx), THIS_LINE);
+      ::id3tag_init(&ctx);
+      ::id3tag_add_v2(&ctx);
+    }
+  private:
+    const Mp3Parameters Params;
     const RenderParameters::Ptr RenderingParameters;
   };
 
@@ -250,14 +323,39 @@ int lame_set_in_samplerate(lame_t ctx, int rate)
   return LAME_CALL(lame_set_in_samplerate, ctx, rate);
 }
 
+int lame_set_out_samplerate(lame_t ctx, int rate)
+{
+  return LAME_CALL(lame_set_out_samplerate, ctx, rate);
+}
+
+int lame_set_bWriteVbrTag(lame_t ctx, int flag)
+{
+  return LAME_CALL(lame_set_bWriteVbrTag, ctx, flag);
+}
+
 int lame_set_num_channels(lame_t ctx, int chans)
 {
   return LAME_CALL(lame_set_num_channels, ctx, chans);
 }
 
-int lame_set_quality(lame_t ctx, int quality)
+int lame_set_brate(lame_t ctx, int brate)
 {
-  return LAME_CALL(lame_set_quality, ctx, quality);
+  return LAME_CALL(lame_set_brate, ctx, brate);
+}
+
+int lame_set_VBR(lame_t ctx, vbr_mode mode)
+{
+  return LAME_CALL(lame_set_VBR, ctx, mode);
+}
+
+int lame_set_VBR_q(lame_t ctx, int quality)
+{
+  return LAME_CALL(lame_set_VBR_q, ctx, quality);
+}
+
+int lame_set_preset(lame_t ctx, int preset)
+{
+  return LAME_CALL(lame_set_preset, ctx, preset);
 }
 
 int lame_init_params(lame_t ctx)

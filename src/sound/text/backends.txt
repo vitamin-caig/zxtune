@@ -93,3 +93,6 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 #mp3 backend
 < MP3_BACKEND_DESCRIPTION
 > "Mp3 support backend."
+
+< SOUND_ERROR_MP3_BACKEND_ERROR
+> "Error in Mp3 backend: %1%."

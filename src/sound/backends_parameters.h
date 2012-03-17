@@ -160,6 +160,32 @@ namespace Parameters
           };
           //@}
         }
+
+        //! @brief %Mp3 backend parameters
+        namespace Mp3
+        {
+          //@{
+          //! @name Mp3 backend parameters
+
+          //! Constant bitrate in kbps. Highest priority
+          const Char BITRATE[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','m','p','3','.','b','i','t','r','a','t','e','\0'
+          };
+
+          //! VBR quality. Middle priority
+          const Char VBR[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','m','p','3','.','v','b','r','\0'
+          };
+
+          //! ABR bitrate. Lowest priority
+          const Char ABR[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','m','p','3','.','a','b','r','\0'
+          };
+          //@}
+        }
       }
     }
   }
