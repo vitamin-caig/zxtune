@@ -26,9 +26,7 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 //qt includes
-#include <QtGui/QClipboard>
 #include <QtGui/QMenu>
-#include <QtGui/QMessageBox>
 //text includes
 #include "text/text.h"
 
@@ -109,22 +107,22 @@ namespace
 
     virtual void Exec(const QPoint& pos)
     {
-      View.GetSelectedItems().swap(SelectedItems);
+      SelectedItems = View.GetSelectedItems();
       const std::auto_ptr<QMenu> delegate = CreateMenu();
       delegate->exec(pos);
     }
 
     virtual void PlaySelected() const
     {
-      assert(SelectedItems.size() == 1);
+      assert(SelectedItems->size() == 1);
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      iter->Reset(*SelectedItems.begin());
+      iter->Reset(*SelectedItems->begin());
     }
 
     virtual void RemoveSelected() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      model->RemoveItems(SelectedItems);
+      model->RemoveItems(*SelectedItems);
     }
 
     virtual void CropSelected() const
@@ -133,7 +131,7 @@ namespace
       Playlist::Model::IndexSet unselected;
       for (unsigned idx = 0, total = model->CountItems(); idx < total; ++idx)
       {
-        if (!SelectedItems.count(idx))
+        if (!SelectedItems->count(idx))
         {
           unselected.insert(idx);
         }
@@ -144,10 +142,10 @@ namespace
     virtual void GroupSelected() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      const unsigned moveTo = *SelectedItems.begin();
-      model->MoveItems(SelectedItems, moveTo);
+      const unsigned moveTo = *SelectedItems->begin();
+      model->MoveItems(*SelectedItems, moveTo);
       Playlist::Model::IndexSet toSelect;
-      for (unsigned idx = 0; idx != SelectedItems.size(); ++idx)
+      for (unsigned idx = 0, lim = SelectedItems->size(); idx != lim; ++idx)
       {
         toSelect.insert(moveTo + idx);
       }
@@ -156,70 +154,82 @@ namespace
 
     virtual void RemoveAllDuplicates() const
     {
-      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectAllDuplicatesOperation();
-      const Playlist::Item::SelectionPtr result = GetResult(op);
       const Playlist::Model::Ptr model = Controller->GetModel();
-      model->RemoveItems(*result);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllDuplicatesOperation(*model);
+      model->connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr)));
+      model->PerformOperation(op);
     }
 
     virtual void RemoveDuplicatesOfSelected() const
     {
-      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesOfSelectedOperation(SelectedItems);
-      const Playlist::Item::SelectionPtr result = GetResult(op);
       const Playlist::Model::Ptr model = Controller->GetModel();
-      model->RemoveItems(*result);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesOfSelectedOperation(*model, SelectedItems);
+      model->connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr)));
+      model->PerformOperation(op);
     }
 
     virtual void RemoveDuplicatesInSelected() const
     {
-      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesInSelectedOperation(SelectedItems);
-      const Playlist::Item::SelectionPtr result = GetResult(op);
       const Playlist::Model::Ptr model = Controller->GetModel();
-      model->RemoveItems(*result);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesInSelectedOperation(*model, SelectedItems);
+      model->connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr)));
+      model->PerformOperation(op);
     }
 
     virtual void SelectAllRipOffs() const
     {
-      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectAllRipOffsOperation();
-      View.SelectItems(*GetResult(op));
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllRipOffsOperation(*model);
+      View.connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr)));
+      model->PerformOperation(op);
     }
 
     virtual void SelectRipOffsOfSelected() const
     {
-      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsOfSelectedOperation(SelectedItems);
-      View.SelectItems(*GetResult(op));
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsOfSelectedOperation(*model, SelectedItems);
+      View.connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr)));
+      model->PerformOperation(op);
     }
 
     virtual void SelectRipOffsInSelected() const
     {
-      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsInSelectedOperation(SelectedItems);
-      View.SelectItems(*GetResult(op));
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsInSelectedOperation(*model, SelectedItems);
+      View.connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr)));
+      model->PerformOperation(op);
     }
 
     virtual void SelectSameTypesOfSelected() const
     {
-      const Playlist::Item::PromisedSelectionOperation::Ptr op = Playlist::Item::CreateSelectTypesOfSelectedOperation(SelectedItems);
-      View.SelectItems(*GetResult(op));
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectTypesOfSelectedOperation(*model, SelectedItems);
+      View.connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr)));
+      model->PerformOperation(op);
     }
 
     virtual void CopyPathToClipboard() const
     {
-      const Playlist::Item::PromisedTextResultOperation::Ptr op = Playlist::Item::CreateCollectPathsOperation(SelectedItems);
-      const Playlist::Item::TextOperationResult::Ptr res = GetResult(op);
-      //TODO: show msgbox
-      QApplication::clipboard()->setText(ToQString(res->GetDetailedResult()));
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectPathsOperation(*model, SelectedItems);
+      Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(CopyDetailToClipboard(Playlist::TextNotification::Ptr)));
+      model->PerformOperation(op);
     }
 
     virtual void ShowAllStatistic() const
     {
-      const Playlist::Item::PromisedTextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation();
-      ShowResult(QString::fromUtf8("Statistic:"), GetResult(op));
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model);
+      Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+      model->PerformOperation(op);
     }
 
     virtual void ShowStatisticOfSelected() const
     {
-      const Playlist::Item::PromisedTextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(SelectedItems);
-      ShowResult(QString::fromUtf8("Statistic:"), GetResult(op));
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model, SelectedItems);
+      Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+      model->PerformOperation(op);
     }
 
     virtual void ExportAll() const
@@ -227,8 +237,10 @@ namespace
       QString nameTemplate;
       if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
       {
-        const Playlist::Item::PromisedTextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(FromQString(nameTemplate));
-        ShowResult(QString::fromUtf8("Export"), GetResult(op));
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, FromQString(nameTemplate));
+        Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+        model->PerformOperation(op);
       }
     }
 
@@ -237,8 +249,10 @@ namespace
       QString nameTemplate;
       if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
       {
-        const Playlist::Item::PromisedTextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(SelectedItems, FromQString(nameTemplate));
-        ShowResult(QString::fromUtf8("Export"), GetResult(op));
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, SelectedItems, FromQString(nameTemplate));
+        Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+        model->PerformOperation(op);
       }
     }
 
@@ -247,14 +261,16 @@ namespace
       QString nameTemplate;
       if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
       {
-        const Playlist::Item::PromisedTextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, FromQString(nameTemplate));
-        ShowResult(QString::fromUtf8("Convert"), GetResult(op));
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, FromQString(nameTemplate));
+        Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+        model->PerformOperation(op);
       }
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()
     {
-      switch (const std::size_t items = SelectedItems.size())
+      switch (const std::size_t items = SelectedItems->size())
       {
       case 0:
         return std::auto_ptr<QMenu>(new NoItemsContextMenu(View, *this));
@@ -264,33 +280,11 @@ namespace
         return std::auto_ptr<QMenu>(new MultipleItemsContextMenu(View, *this, items));
       }
     }
-
-    void ShowResult(const QString& title, Playlist::Item::TextOperationResult::Ptr res) const
-    {
-      QMessageBox msgBox(QMessageBox::Information, title, ToQString(res->GetBasicResult()),
-        QMessageBox::Ok, &View);
-      msgBox.setDetailedText(ToQString(res->GetDetailedResult()));
-      msgBox.exec();
-    }
-
-    Playlist::Item::SelectionPtr GetResult(Playlist::Item::PromisedSelectionOperation::Ptr op) const
-    {
-      const Playlist::Model::Ptr model = Controller->GetModel();
-      model->PerformOperation(op);
-      return op->GetResult();
-    }
-
-    Playlist::Item::TextOperationResult::Ptr GetResult(Playlist::Item::PromisedTextResultOperation::Ptr op) const
-    {
-      const Playlist::Model::Ptr model = Controller->GetModel();
-      model->PerformOperation(op);
-      return op->GetResult();
-    }
   private:
     Playlist::UI::TableView& View;
     const Playlist::Controller::Ptr Controller;
     //data
-    Playlist::Model::IndexSet SelectedItems;
+    Playlist::Model::IndexSetPtr SelectedItems;
   };
 }
 

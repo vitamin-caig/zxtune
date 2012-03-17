@@ -33,9 +33,6 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
 #include <boost/make_shared.hpp>
-//qt includes
-//TODO: remove
-#include <QtCore/QCoreApplication>
 //text includes
 #include "text/text.h"
 
@@ -241,10 +238,10 @@ namespace
   };
 
   template<class T>
-  class RipOffsCollector : public PropertyModel<T>::Visitor
+  class ItemsWithDuplicatesCollector : public PropertyModel<T>::Visitor
   {
   public:
-    RipOffsCollector()
+    ItemsWithDuplicatesCollector()
       : Result(boost::make_shared<Playlist::Model::IndexSet>())
     {
     }
@@ -300,40 +297,15 @@ namespace
     modelWrapper.ForSpecifiedItems(selectedItems, visitor);
   }
 
-  template<class ResultType>
-  class Promise
-  {
-  public:
-    Promise()
-      : Signals(Async::Signals::Dispatcher::Create())
-    {
-    }
-
-    void Set(ResultType res)
-    {
-      Result = res;
-      Signals->Notify(1);
-    }
-
-    ResultType Get() const
-    {
-      //TODO: remove dependency from QT
-      const Async::Signals::Collector::Ptr collector = Signals->CreateCollector(1);
-      while (!collector->WaitForSignals(100))
-      {
-        QCoreApplication::processEvents();
-      }
-      return Result;
-    }
-  private:
-    const Async::Signals::Dispatcher::Ptr Signals;
-    ResultType Result;
-  };
-
   // Remove dups
-  class SelectAllDupsOperation : public Playlist::Item::PromisedSelectionOperation
+  class SelectAllDupsOperation : public Playlist::Item::SelectionOperation
   {
   public:
+    explicit SelectAllDupsOperation(QObject& parent)
+      : Playlist::Item::SelectionOperation(parent)
+    {
+    }
+
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
       DuplicatesCollector<uint32_t> dups;
@@ -341,52 +313,41 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
         VisitAllItems(propertyModel, cb, dups);
       }
-      Result.Set(dups.GetResult());
+      OnResult(dups.GetResult());
     }
-
-    virtual Playlist::Item::SelectionPtr GetResult() const
-    {
-      return Result.Get();
-    }
-  private:
-    Promise<Playlist::Item::SelectionPtr> Result;
   };
 
-  class SelectDupsOfSelectedOperation : public Playlist::Item::PromisedSelectionOperation
+  class SelectDupsOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectDupsOfSelectedOperation(const Playlist::Model::IndexSet& items)
-      : SelectedItems(items)
+    SelectDupsOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : Playlist::Item::SelectionOperation(parent)
+      , SelectedItems(items)
     {
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      RipOffsCollector<uint32_t> dups;
+      ItemsWithDuplicatesCollector<uint32_t> dups;
       {
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
-        VisitAsSelectedItems(propertyModel, SelectedItems, cb, dups);
+        VisitAsSelectedItems(propertyModel, *SelectedItems, cb, dups);
       }
       //select all rips but delete only nonselected
       const boost::shared_ptr<Playlist::Model::IndexSet> toRemove = dups.GetResult();
-      std::for_each(SelectedItems.begin(), SelectedItems.end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, toRemove.get(), _1));
-      Result.Set(toRemove);
-    }
-
-    virtual Playlist::Item::SelectionPtr GetResult() const
-    {
-      return Result.Get();
+      std::for_each(SelectedItems->begin(), SelectedItems->end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, toRemove.get(), _1));
+      OnResult(toRemove);
     }
   private:
-    const Playlist::Model::IndexSet& SelectedItems;
-    Promise<Playlist::Item::SelectionPtr> Result;
+    const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
-  class SelectDupsInSelectedOperation : public Playlist::Item::PromisedSelectionOperation
+  class SelectDupsInSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectDupsInSelectedOperation(const Playlist::Model::IndexSet& items)
-      : SelectedItems(items)
+    SelectDupsInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : Playlist::Item::SelectionOperation(parent)
+      , SelectedItems(items)
     {
     }
 
@@ -395,125 +356,103 @@ namespace
       DuplicatesCollector<uint32_t> dups;
       {
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
-        VisitOnlySelectedItems(propertyModel, SelectedItems, cb, dups);
+        VisitOnlySelectedItems(propertyModel, *SelectedItems, cb, dups);
       }
-      Result.Set(dups.GetResult());
-    }
-
-    virtual Playlist::Item::SelectionPtr GetResult() const
-    {
-      return Result.Get();
+      OnResult(dups.GetResult());
     }
   private:
-    const Playlist::Model::IndexSet& SelectedItems;
-    Promise<Playlist::Item::SelectionPtr> Result;
+    const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
   // Select  ripoffs
-  class SelectAllRipOffsOperation : public Playlist::Item::PromisedSelectionOperation
+  class SelectAllRipOffsOperation : public Playlist::Item::SelectionOperation
   {
   public:
+    explicit SelectAllRipOffsOperation(QObject& parent)
+      : Playlist::Item::SelectionOperation(parent)
+    {
+    }
+
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      RipOffsCollector<uint32_t> rips;
+      ItemsWithDuplicatesCollector<uint32_t> rips;
       {
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
         VisitAllItems(propertyModel, cb, rips);
       }
-      Result.Set(rips.GetResult());
+      OnResult(rips.GetResult());
     }
-
-    virtual Playlist::Item::SelectionPtr GetResult() const
-    {
-      return Result.Get();
-    }
-  private:
-    Promise<Playlist::Item::SelectionPtr> Result;
   };
 
-  class SelectRipOffsOfSelectedOperation : public Playlist::Item::PromisedSelectionOperation
+  class SelectRipOffsOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectRipOffsOfSelectedOperation(const Playlist::Model::IndexSet& items)
-      : SelectedItems(items)
+    SelectRipOffsOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : Playlist::Item::SelectionOperation(parent)
+      , SelectedItems(items)
     {
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      RipOffsCollector<uint32_t> rips;
+      ItemsWithDuplicatesCollector<uint32_t> rips;
       {
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
-        VisitAsSelectedItems(propertyModel, SelectedItems, cb, rips);
+        VisitAsSelectedItems(propertyModel, *SelectedItems, cb, rips);
       }
-      Result.Set(rips.GetResult());
-    }
-
-    virtual Playlist::Item::SelectionPtr GetResult() const
-    {
-      return Result.Get();
+      OnResult(rips.GetResult());
     }
   private:
-    const Playlist::Model::IndexSet& SelectedItems;
-    Promise<Playlist::Item::SelectionPtr> Result;
+    const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
-  class SelectRipOffsInSelectedOperation : public Playlist::Item::PromisedSelectionOperation
+  class SelectRipOffsInSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectRipOffsInSelectedOperation(const Playlist::Model::IndexSet& items)
-      : SelectedItems(items)
+    SelectRipOffsInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : Playlist::Item::SelectionOperation(parent)
+      , SelectedItems(items)
     {
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      RipOffsCollector<uint32_t> rips;
+      ItemsWithDuplicatesCollector<uint32_t> rips;
       {
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
-        VisitOnlySelectedItems(propertyModel, SelectedItems, cb, rips);
+        VisitOnlySelectedItems(propertyModel, *SelectedItems, cb, rips);
       }
-      Result.Set(rips.GetResult());
-    }
-
-    virtual Playlist::Item::SelectionPtr GetResult() const
-    {
-      return Result.Get();
+      OnResult(rips.GetResult());
     }
   private:
-    const Playlist::Model::IndexSet& SelectedItems;
-    Promise<Playlist::Item::SelectionPtr> Result;
+    const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
-  class SelectTypesOfSelectedOperation : public Playlist::Item::PromisedSelectionOperation
+  //other
+  class SelectTypesOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectTypesOfSelectedOperation(const Playlist::Model::IndexSet& items)
-      : SelectedItems(items)
+    SelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : Playlist::Item::SelectionOperation(parent)
+      , SelectedItems(items)
     {
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      RipOffsCollector<String> types;
+      ItemsWithDuplicatesCollector<String> types;
       {
         const TypedPropertyModel<String> propertyModel(stor, &Playlist::Item::Data::GetType);
-        VisitAsSelectedItems(propertyModel, SelectedItems, cb, types);
+        VisitAsSelectedItems(propertyModel, *SelectedItems, cb, types);
       }
-      Result.Set(types.GetResult());
-    }
-
-    virtual Playlist::Item::SelectionPtr GetResult() const
-    {
-      return Result.Get();
+      OnResult(types.GetResult());
     }
   private:
-    const Playlist::Model::IndexSet& SelectedItems;
-    Promise<Playlist::Item::SelectionPtr> Result;
+    const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
   class CollectingVisitor : public Playlist::Item::Storage::Visitor
-                          , public Playlist::Item::TextOperationResult
+                          , public Playlist::TextNotification
   {
   public:
     typedef boost::shared_ptr<CollectingVisitor> Ptr;
@@ -540,22 +479,24 @@ namespace
     uint_t Done;
   };
 
-  class PromisedTextResultOperationBase : public Playlist::Item::PromisedTextResultOperation
+  class TextResultOperationBase : public Playlist::Item::TextResultOperation
   {
   public:
-    PromisedTextResultOperationBase()
-      : SelectedItems()
+    explicit TextResultOperationBase(QObject& parent)
+      : Playlist::Item::TextResultOperation(parent)
+      , SelectedItems()
     {
     }
 
-    explicit PromisedTextResultOperationBase(const Playlist::Model::IndexSet& items)
-      : SelectedItems(&items)
+    TextResultOperationBase(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : Playlist::Item::TextResultOperation(parent)
+      , SelectedItems(items)
     {
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      CollectingVisitor::Ptr tmp = CreateCollector();
+      const CollectingVisitor::Ptr tmp = CreateCollector();
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
       const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
       ProgressModelVisitor progressed(*tmp, *progress);
@@ -567,21 +508,14 @@ namespace
       {
         stor.ForAllItems(progressed);
       }
-      Result.Set(tmp);
-    }
-
-    virtual Playlist::Item::TextOperationResult::Ptr GetResult() const
-    {
-      return Result.Get();
+      OnResult(tmp);
     }
   protected:
     virtual CollectingVisitor::Ptr CreateCollector() const = 0;
   private:
-    const Playlist::Model::IndexSet* const SelectedItems;
-    Promise<Playlist::Item::TextOperationResult::Ptr> Result;
+    const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
-  // Collect paths
   class PathesCollector : public CollectingVisitor
   {
   public:
@@ -600,12 +534,17 @@ namespace
       Messages->AddMessage(path);
     }
 
-    virtual String GetBasicResult() const
+    virtual String Category() const
+    {
+      return FromStdString("Paths");
+    }
+
+    virtual String Text() const
     {
       return Strings::Format(Text::PATHS_COLLECTING_STATUS, Messages->CountMessages());
     }
 
-    virtual String GetDetailedResult() const
+    virtual String Details() const
     {
       return Messages->GetMessages('\n');
     }
@@ -613,11 +552,11 @@ namespace
     const Log::MessagesCollector::Ptr Messages;
   };
 
-  class CollectPathsOperation : public PromisedTextResultOperationBase
+  class CollectPathsOperation : public TextResultOperationBase
   {
   public:
-    explicit CollectPathsOperation(const Playlist::Model::IndexSet& items)
-      : PromisedTextResultOperationBase(items)
+    CollectPathsOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : TextResultOperationBase(parent, items)
     {
     }
   protected:
@@ -655,7 +594,12 @@ namespace
       ++Types[type];
     }
 
-    virtual String GetBasicResult() const
+    virtual String Category() const
+    {
+      return FromStdString("Statistic:");
+    }
+
+    virtual String Text() const
     {
       const String duration = Strings::FormatTime(Duration.Get(), 1000);
       return Strings::Format(Text::BASIC_STATISTIC_TEMPLATE,
@@ -666,7 +610,7 @@ namespace
         );
     }
 
-    virtual String GetDetailedResult() const
+    virtual String Details() const
     {
       return std::accumulate(Types.begin(), Types.end(), String(), &TypeStatisticToString);
     }
@@ -686,16 +630,16 @@ namespace
     std::map<String, std::size_t> Types;
   };
 
-  class CollectStatisticOperation : public PromisedTextResultOperationBase
+  class CollectStatisticOperation : public TextResultOperationBase
   {
   public:
-    CollectStatisticOperation()
-      : PromisedTextResultOperationBase()
+    explicit CollectStatisticOperation(QObject& parent)
+      : TextResultOperationBase(parent)
     {
     }
 
-    explicit CollectStatisticOperation(const Playlist::Model::IndexSet& items)
-      : PromisedTextResultOperationBase(items)
+    CollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : TextResultOperationBase(parent, items)
     {
     }
   protected:
@@ -731,12 +675,17 @@ namespace
       }
     }
 
-    virtual String GetBasicResult() const
+    virtual String Category() const
+    {
+      return FromStdString("Export");
+    }
+
+    virtual String Text() const
     {
       return Strings::Format(Text::CONVERT_STATUS, SucceedConvertions, FailedConvertions);
     }
 
-    virtual String GetDetailedResult() const
+    virtual String Details() const
     {
       return Messages->GetMessages('\n');
     }
@@ -801,17 +750,17 @@ namespace
     std::size_t FailedConvertions;
   };
 
-  class ExportOperation : public PromisedTextResultOperationBase
+  class ExportOperation : public TextResultOperationBase
   {
   public:
-    explicit ExportOperation(const String& nameTemplate)
-      : PromisedTextResultOperationBase()
+    ExportOperation(QObject& parent, const String& nameTemplate)
+      : TextResultOperationBase(parent)
       , NameTemplate(nameTemplate)
     {
     }
 
-    ExportOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate)
-      : PromisedTextResultOperationBase(items)
+    ExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
+      : TextResultOperationBase(parent, items)
       , NameTemplate(nameTemplate)
     {
     }
@@ -911,12 +860,17 @@ namespace
       }
     }
 
-    virtual String GetBasicResult() const
+    virtual String Category() const
+    {
+      return FromStdString("Convert");
+    }
+
+    virtual String Text() const
     {
       return Strings::Format(Text::CONVERT_STATUS, SucceedConvertions, FailedConvertions);
     }
 
-    virtual String GetDetailedResult() const
+    virtual String Details() const
     {
       return Messages->GetMessages('\n');
     }
@@ -965,11 +919,11 @@ namespace
     std::size_t FailedConvertions;
   };
 
-  class ConvertOperation : public PromisedTextResultOperationBase
+  class ConvertOperation : public TextResultOperationBase
   {
   public:
-    ConvertOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate)
-      : PromisedTextResultOperationBase(items)
+    ConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
+      : TextResultOperationBase(parent, items)
       , NameTemplate(nameTemplate)
     {
     }
@@ -987,69 +941,85 @@ namespace Playlist
 {
   namespace Item
   {
-    PromisedSelectionOperation::Ptr CreateSelectAllRipOffsOperation()
+    SelectionOperation::SelectionOperation(QObject &parent)
+      : QObject(&parent)
     {
-      return boost::make_shared<SelectAllRipOffsOperation>();
     }
 
-    PromisedSelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(const Playlist::Model::IndexSet& items)
+    TextResultOperation::TextResultOperation(QObject &parent)
+      : QObject(&parent)
     {
-      return boost::make_shared<SelectRipOffsOfSelectedOperation>(boost::cref(items));
+    }
+  }
+}
+
+namespace Playlist
+{
+  namespace Item
+  {
+    SelectionOperation::Ptr CreateSelectAllRipOffsOperation(QObject& parent)
+    {
+      return boost::make_shared<SelectAllRipOffsOperation>(boost::ref(parent));
     }
 
-    PromisedSelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(const Playlist::Model::IndexSet& items)
+    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<SelectRipOffsInSelectedOperation>(boost::cref(items));
+      return boost::make_shared<SelectRipOffsOfSelectedOperation>(boost::ref(parent), items);
     }
 
-    PromisedSelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(const Playlist::Model::IndexSet& items)
+    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<SelectTypesOfSelectedOperation>(boost::cref(items));
+      return boost::make_shared<SelectRipOffsInSelectedOperation>(boost::ref(parent), items);
     }
 
-    PromisedSelectionOperation::Ptr CreateSelectAllDuplicatesOperation()
+    SelectionOperation::Ptr CreateSelectAllDuplicatesOperation(QObject& parent)
     {
-      return boost::make_shared<SelectAllDupsOperation>();
+      return boost::make_shared<SelectAllDupsOperation>(boost::ref(parent));
     }
 
-    PromisedSelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(const Playlist::Model::IndexSet& items)
+    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<SelectDupsOfSelectedOperation>(boost::cref(items));
+      return boost::make_shared<SelectDupsOfSelectedOperation>(boost::ref(parent), items);
     }
 
-    PromisedSelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(const Playlist::Model::IndexSet& items)
+    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<SelectDupsInSelectedOperation>(boost::cref(items));
+      return boost::make_shared<SelectDupsInSelectedOperation>(boost::ref(parent), items);
     }
 
-    PromisedTextResultOperation::Ptr CreateCollectPathsOperation(const Playlist::Model::IndexSet& items)
+    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<CollectPathsOperation>(boost::cref(items));
+      return boost::make_shared<SelectTypesOfSelectedOperation>(boost::ref(parent), items);
     }
 
-    PromisedTextResultOperation::Ptr CreateCollectStatisticOperation()
+    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent)
     {
-      return boost::make_shared<CollectStatisticOperation>();
+      return boost::make_shared<CollectStatisticOperation>(boost::ref(parent));
     }
 
-    PromisedTextResultOperation::Ptr CreateCollectStatisticOperation(const Playlist::Model::IndexSet& items)
+    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<CollectStatisticOperation>(boost::cref(items));
+      return boost::make_shared<CollectStatisticOperation>(boost::ref(parent), items);
     }
 
-    PromisedTextResultOperation::Ptr CreateExportOperation(const String& nameTemplate)
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate)
     {
-      return boost::make_shared<ExportOperation>(nameTemplate);
+      return boost::make_shared<ExportOperation>(boost::ref(parent), nameTemplate);
     }
 
-    PromisedTextResultOperation::Ptr CreateExportOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate)
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
     {
-      return boost::make_shared<ExportOperation>(boost::cref(items), nameTemplate);
+      return boost::make_shared<ExportOperation>(boost::ref(parent), items, nameTemplate);
     }
 
-    PromisedTextResultOperation::Ptr CreateConvertOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate)
+    TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
     {
-      return boost::make_shared<ConvertOperation>(boost::cref(items), nameTemplate);
+      return boost::make_shared<ConvertOperation>(boost::ref(parent), items, nameTemplate);
+    }
+
+    TextResultOperation::Ptr CreateCollectPathsOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+    {
+      return boost::make_shared<CollectPathsOperation>(boost::ref(parent), items);
     }
   }
 }

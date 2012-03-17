@@ -21,6 +21,10 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
+//qt includes
+#include <QtGui/QApplication>
+#include <QtGui/QClipboard>
+#include <QtGui/QMessageBox>
 
 namespace
 {
@@ -214,6 +218,20 @@ namespace
     {
       return Iterator;
     }
+
+    virtual void ShowNotification(Playlist::TextNotification::Ptr notification)
+    {
+      QMessageBox msgBox(QMessageBox::Information,
+        ToQString(notification->Category()), ToQString(notification->Text()),
+        QMessageBox::Ok);
+      msgBox.setDetailedText(ToQString(notification->Details()));
+      msgBox.exec();
+    }
+
+    virtual void CopyDetailToClipboard(Playlist::TextNotification::Ptr notification)
+    {
+      QApplication::clipboard()->setText(ToQString(notification->Details()));
+    }
   private:
     QString Name;
     Playlist::Item::DataProvider::Ptr Provider;
@@ -238,6 +256,7 @@ namespace Playlist
 
   Controller::Ptr Controller::Create(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
+    REGISTER_METATYPE(Playlist::TextNotification::Ptr);
     return boost::make_shared<ControllerImpl>(boost::ref(parent), name, provider);
   }
 }

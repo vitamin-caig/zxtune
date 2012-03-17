@@ -384,12 +384,12 @@ namespace
         const Playlist::Model::Ptr model = Controller->GetModel();
         if (const std::size_t itemsCount = model->CountItems())
         {
-          const Playlist::Model::IndexSet& items = View->GetSelectedItems();
-          model->RemoveItems(items);
-          if (1 == items.size())
+          const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
+          model->RemoveItems(*items);
+          if (1 == items->size())
           {
             View->SelectItems(items);
-            const Playlist::Model::IndexType itemToSelect = *items.begin();
+            const Playlist::Model::IndexType itemToSelect = *items->begin();
             //not last
             if (itemToSelect != itemsCount - 1)
             {

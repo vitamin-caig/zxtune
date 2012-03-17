@@ -16,53 +16,59 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_SUPP_OPERATIONS_H_DEFINED
 
 //local includes
+#include "controller.h"
 #include "model.h"
+//qt includes
+#include <QtCore/QObject>
 
 namespace Playlist
 {
   namespace Item
   {
-    typedef boost::shared_ptr<const Playlist::Model::IndexSet> SelectionPtr;
-
-    class PromisedSelectionOperation : public Playlist::Item::StorageAccessOperation
+    class SelectionOperation : public QObject
+                             , public Playlist::Item::StorageAccessOperation
     {
+      Q_OBJECT
+    protected:
+      explicit SelectionOperation(QObject& parent);
     public:
-      typedef boost::shared_ptr<PromisedSelectionOperation> Ptr;
-
-      virtual SelectionPtr GetResult() const = 0;
+      typedef boost::shared_ptr<SelectionOperation> Ptr;
+    signals:
+      void OnResult(Playlist::Model::IndexSetPtr selection);
     };
 
-    class TextOperationResult
+    class TextResultOperation : public QObject
+                              , public Playlist::Item::StorageAccessOperation
     {
+      Q_OBJECT
+    protected:
+      explicit TextResultOperation(QObject& parent);
     public:
-      typedef boost::shared_ptr<const TextOperationResult> Ptr;
-      virtual ~TextOperationResult() {}
-
-      virtual String GetBasicResult() const = 0;
-      virtual String GetDetailedResult() const = 0;
+      typedef boost::shared_ptr<TextResultOperation> Ptr;
+    signals:
+      void OnResult(Playlist::TextNotification::Ptr result);
     };
 
-    class PromisedTextResultOperation : public Playlist::Item::StorageAccessOperation
-    {
-    public:
-      typedef boost::shared_ptr<PromisedTextResultOperation> Ptr;
-
-      virtual TextOperationResult::Ptr GetResult() const = 0;
-    };
-
-    PromisedSelectionOperation::Ptr CreateSelectAllRipOffsOperation();
-    PromisedSelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(const Playlist::Model::IndexSet& items);
-    PromisedSelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(const Playlist::Model::IndexSet& items);
-    PromisedSelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(const Playlist::Model::IndexSet& items);
-    PromisedSelectionOperation::Ptr CreateSelectAllDuplicatesOperation();
-    PromisedSelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(const Playlist::Model::IndexSet& items);
-    PromisedSelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(const Playlist::Model::IndexSet& items);
-    PromisedTextResultOperation::Ptr CreateCollectPathsOperation(const Playlist::Model::IndexSet& items);
-    PromisedTextResultOperation::Ptr CreateCollectStatisticOperation();
-    PromisedTextResultOperation::Ptr CreateCollectStatisticOperation(const Playlist::Model::IndexSet& items);
-    PromisedTextResultOperation::Ptr CreateExportOperation(const String& nameTemplate);
-    PromisedTextResultOperation::Ptr CreateExportOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate);
-    PromisedTextResultOperation::Ptr CreateConvertOperation(const Playlist::Model::IndexSet& items, const String& nameTemplate);
+    //rip-offs
+    SelectionOperation::Ptr CreateSelectAllRipOffsOperation(QObject& parent);
+    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    //duplicates
+    SelectionOperation::Ptr CreateSelectAllDuplicatesOperation(QObject& parent);
+    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    //other
+    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    //statistic
+    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent);
+    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    //export
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate);
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate);
+    //convert
+    TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate);
+    //other
+    TextResultOperation::Ptr CreateCollectPathsOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
   }
 }
 

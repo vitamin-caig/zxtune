@@ -78,7 +78,7 @@
   </widget>
   <action name="SelRipOffsAction">
    <property name="text">
-    <string>Rip-offs of this items</string>
+    <string>Rip-offs in this items</string>
    </property>
   </action>
   <action name="SelSameTypesAction">

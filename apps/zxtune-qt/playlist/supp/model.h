@@ -68,6 +68,7 @@ namespace Playlist
     typedef Model* Ptr;
     typedef unsigned IndexType;
     typedef std::set<IndexType> IndexSet;
+    typedef boost::shared_ptr<const IndexSet> IndexSetPtr;
 
     class OldToNewIndexMap : public std::map<IndexType, IndexType>
     {
@@ -95,6 +96,7 @@ namespace Playlist
     virtual void MoveItems(const IndexSet& items, IndexType target) = 0;
   public slots:
     virtual void AddItem(Playlist::Item::Data::Ptr item) = 0;
+    virtual void RemoveItems(Playlist::Model::IndexSetPtr items) = 0;
     virtual void CancelLongOperation() = 0;
   signals:
     void OnIndexesChanged(const Playlist::Model::OldToNewIndexMap& map);

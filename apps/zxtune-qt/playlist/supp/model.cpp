@@ -310,6 +310,11 @@ namespace
       NotifyAboutIndexChanged();
     }
 
+    virtual void RemoveItems(IndexSetPtr items)
+    {
+      return RemoveItems(*items);
+    }
+
     virtual void MoveItems(const IndexSet& items, IndexType target)
     {
       Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", items.size(), target);

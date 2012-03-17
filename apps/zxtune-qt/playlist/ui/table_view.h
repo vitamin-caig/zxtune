@@ -52,9 +52,11 @@ namespace Playlist
       //creator
       static TableView* Create(QWidget& parent, const Item::StateCallback& callback, Playlist::Model::Ptr model);
 
-      virtual Model::IndexSet GetSelectedItems() const = 0;
+      virtual Model::IndexSetPtr GetSelectedItems() const = 0;
       virtual void SelectItems(const Playlist::Model::IndexSet& indices) = 0;
       virtual void ActivateTableRow(unsigned index) = 0;
+    public slots:
+      virtual void SelectItems(Playlist::Model::IndexSetPtr indices) = 0;
     private slots:
       virtual void ActivateItem(const QModelIndex&) = 0;
     signals:
