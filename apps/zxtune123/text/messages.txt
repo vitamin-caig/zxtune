@@ -173,6 +173,15 @@
 < INFO_OPTIONS_SOUND_BACKENDS_DIRECTSOUND_LATENCY
 > "latency in ms for DirectSound backend"
 
+< INFO_OPTIONS_SOUND_BACKENDS_MP3_BITRATE
+> "specify constant bitrate in kbps for Mp3 backend"
+
+< INFO_OPTIONS_SOUND_BACKENDS_MP3_VBR
+> "specify VBR quality for Mp3 backend (0- highest, 9- lowest)"
+
+< INFO_OPTIONS_SOUND_BACKENDS_MP3_ABR
+> "specify average bitrate in kbps for Mp3 backend"
+
 < INFO_OPTIONS_CORE_TITLE
 > " Core options:"
 
