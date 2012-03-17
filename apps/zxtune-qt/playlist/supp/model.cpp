@@ -253,6 +253,7 @@ namespace
       , SyncModification(QMutex::Recursive)
       , FetchedItemsCount()
       , Container(Playlist::Item::Storage::Create())
+      , Canceled(false)
     {
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
@@ -264,11 +265,13 @@ namespace
 
     virtual void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
     {
+      Canceled = false;
       AsyncExecution = boost::thread(&ModelImpl::PerformAccessOperation, this, operation);
     }
 
     virtual void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
     {
+      Canceled = false;
       AsyncExecution = boost::thread(&ModelImpl::PerformModifyOperation, this, operation);
     }
 
@@ -331,6 +334,11 @@ namespace
     {
       QMutexLocker locker(&SyncModification);
       Container->AddItem(item);
+    }
+
+    virtual void CancelLongOperation()
+    {
+      Canceled = true;
     }
 
     //base model virtuals
@@ -514,7 +522,13 @@ namespace
     {
       QMutexLocker rwLock(&SyncModification);
       OnLongOperationStart();
-      operation->Execute(*Container, *this);
+      try
+      {
+        operation->Execute(*Container, *this);
+      }
+      catch (const std::exception&)
+      {
+      }
       OnLongOperationStop();
     }
 
@@ -527,12 +541,18 @@ namespace
         QMutexLocker roLock(&SyncAccess);
         tmpStorage = Container->Clone();
       }
-      operation->Execute(*tmpStorage, *this);
+      try
       {
-        QMutexLocker roLock(&SyncAccess);
-        Container = tmpStorage;
+        operation->Execute(*tmpStorage, *this);
+        {
+          QMutexLocker roLock(&SyncAccess);
+          Container = tmpStorage;
+        }
+        NotifyAboutIndexChanged();
       }
-      NotifyAboutIndexChanged();
+      catch (const std::exception&)
+      {
+      }
       OnLongOperationStop();
     }
 
@@ -549,11 +569,19 @@ namespace
     virtual void OnProgress(uint_t current)
     {
       OnLongOperationProgress(current);
+      if (Canceled)
+      {
+        throw std::exception();
+      }
     }
 
     virtual void OnProgress(uint_t current, const String& /*message*/)
     {
       OnLongOperationProgress(current);
+      if (Canceled)
+      {
+        throw std::exception();
+      }
     }
   private:
     const DataProvidersSet Providers;
@@ -562,6 +590,7 @@ namespace
     std::size_t FetchedItemsCount;
     Playlist::Item::Storage::Ptr Container;
     mutable boost::thread AsyncExecution;
+    volatile bool Canceled;
   };
 }
 

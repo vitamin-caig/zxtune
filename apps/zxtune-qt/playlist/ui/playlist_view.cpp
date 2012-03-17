@@ -234,6 +234,7 @@ namespace
       this->connect(model, SIGNAL(OnLongOperationStart()), SLOT(LongOperationStart()));
       OperationProgress->connect(model, SIGNAL(OnLongOperationProgress(int)), SLOT(UpdateProgress(int)));
       this->connect(model, SIGNAL(OnLongOperationStop()), SLOT(LongOperationStop()));
+      this->connect(OperationProgress, SIGNAL(Canceled()), SLOT(LongOperationCancel()));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
@@ -357,14 +358,21 @@ namespace
 
     virtual void LongOperationStart()
     {
-      setEnabled(false);
+      View->setEnabled(false);
       OperationProgress->setVisible(true);
+      OperationProgress->setEnabled(true);
     }
 
     virtual void LongOperationStop()
     {
       OperationProgress->setVisible(false);
-      setEnabled(true);
+      View->setEnabled(true);
+    }
+
+    virtual void LongOperationCancel()
+    {
+      OperationProgress->setEnabled(false);
+      Controller->GetModel()->CancelLongOperation();
     }
 
     //qwidget virtuals

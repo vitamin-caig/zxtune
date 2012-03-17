@@ -28,6 +28,8 @@ public:
   static OverlayProgress* Create(QWidget& parent);
 public slots:
   virtual void UpdateProgress(int progress) = 0;
+signals:
+  void Canceled();
 };
 
 #endif //ZXTUNE_QT_OVERLAY_PROGRESS_H_DEFINED

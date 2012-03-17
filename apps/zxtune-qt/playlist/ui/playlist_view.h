@@ -54,6 +54,7 @@ namespace Playlist
       virtual void ListItemActivated(unsigned idx, Playlist::Item::Data::Ptr data) = 0;
       virtual void LongOperationStart() = 0;
       virtual void LongOperationStop() = 0;
+      virtual void LongOperationCancel() = 0;
     signals:
       void OnItemActivated(Playlist::Item::Data::Ptr);
     };

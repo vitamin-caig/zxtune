@@ -19,6 +19,7 @@ Author:
 //boost includes
 #include <boost/array.hpp>
 //qt includes
+#include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 
 namespace
@@ -39,9 +40,9 @@ namespace
       , Value()
     {
       setPalette(Qt::transparent);
-      setAttribute(Qt::WA_TransparentForMouseEvents);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 64);
+      setToolTip(tr("Click to cancel"));
     }
 
     virtual void UpdateProgress(int progress)
@@ -58,8 +59,9 @@ namespace
     {
       FillGeometry();
 
-      const QBrush& mask = Palette.toolTipText();
-      const QBrush& brush = Palette.toolTipBase();
+      const QPalette::ColorGroup group = isEnabled() ? QPalette::Normal : QPalette::Disabled;
+      const QBrush& mask = Palette.brush(group, QPalette::Text);
+      const QBrush& brush = Palette.brush(group, QPalette::Base);
 
       const int maxRadius = std::min(Center.x(), Center.y());
       const int smallRadius = static_cast<int>(maxRadius * INNER_RATIO);
@@ -77,6 +79,14 @@ namespace
 
       const int totalSteps = std::min(STEPS_MAX, Value * STEPS_MAX / 100 + 1);
       painter.drawLines(Lines.begin(), totalSteps);
+    }
+
+    virtual void mouseReleaseEvent(QMouseEvent* event)
+    {
+      if (event->button() == Qt::LeftButton)
+      {
+        Canceled();
+      }
     }
   private:
     void DoRepaint()
