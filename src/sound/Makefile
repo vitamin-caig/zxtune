@@ -29,3 +29,7 @@ endif
 ifdef support_directsound
 $(platform)_definitions += DIRECTSOUND_SUPPORT
 endif
+
+ifdef support_mp3
+$(platform)_definitions += MP3_SUPPORT
+endif

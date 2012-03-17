@@ -17,6 +17,7 @@ support_oss = 1
 support_alsa = 1
 support_sdl = 1
 support_zlib = 1
+support_mp3 = 1
 
 $(platform)_libraries += dl rt
 

@@ -19,6 +19,9 @@ extern const Char FILE_BACKEND_DEFAULT_COMMENT[] = {
   'C','r','e','a','t','e','d',' ','u','s','i','n','g',' ','Z','X','T','u','n','e',' ','t','o','o','l','k','i',
   't',0
 };
+extern const Char MP3_BACKEND_DESCRIPTION[] = {
+  'M','p','3',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d','.',0
+};
 extern const Char NULL_BACKEND_DESCRIPTION[] = {
   'N','u','l','l',' ','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
 };

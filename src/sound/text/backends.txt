@@ -89,3 +89,7 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 < SOUND_ERROR_DSOUND_BACKEND_INVALID_LATENCY
 > "DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."
+
+#mp3 backend
+< MP3_BACKEND_DESCRIPTION
+> "Mp3 support backend."
