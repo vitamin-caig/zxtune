@@ -29,24 +29,35 @@ namespace Parameters
           'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','\0'
         };
 
-        //! @brief %Wav backend parameters namespace
-        namespace Wav
+        //! @brief Any file-based backend parameters namespace
+        namespace File
         {
+          //! @brief Short parameters names
+          const Char FILENAME_PARAMETER[] =
+          {
+            'f','i','l','e','n','a','m','e','\0'
+          };
+
+          const Char OVERWRITE_PARAMETER[] =
+          {
+            'o','v','e','r','w','r','i','t','e','\0'
+          };
+
           //@{
-          //! @name Wav backend parameters
+          //! @name Any file-based backend basic parameters
 
           //! @brief Output filename template
           //! @see core/module_attrs.h for possibly supported field names
           const Char FILENAME[] =
           {
-            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','a','v','.','f','i','l','e','n','a','m','e','\0'
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','f','i','l','e','.','f','i','l','e','n','a','m','e','\0'
           };
 
           //! @brief Rewrite output files if exist
           //! @note != 0 if yes
           const Char OVERWRITE[] =
           {
-            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','w','a','v','.','o','v','e','r','w','r','i','t','e','\0'
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','f','i','l','e','.','o','v','e','r','w','r','i','t','e','\0'
           };
           //@}
         }

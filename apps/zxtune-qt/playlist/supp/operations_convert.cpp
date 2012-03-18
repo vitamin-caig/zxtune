@@ -46,7 +46,7 @@ namespace
 
     virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
-      if (name == Parameters::ZXTune::Sound::Backends::Wav::OVERWRITE)
+      if (name == Parameters::ZXTune::Sound::Backends::File::OVERWRITE)
       {
         val = Overwrite;
         return true;
@@ -56,7 +56,7 @@ namespace
 
     virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
-      if (name == Parameters::ZXTune::Sound::Backends::Wav::FILENAME)
+      if (name == Parameters::ZXTune::Sound::Backends::File::FILENAME)
       {
         val = Filename;
         return true;
@@ -71,8 +71,8 @@ namespace
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
-      visitor.SetIntValue(Parameters::ZXTune::Sound::Backends::Wav::FILENAME, Overwrite);
-      visitor.SetStringValue(Parameters::ZXTune::Sound::Backends::Wav::FILENAME, Filename);
+      visitor.SetIntValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, Overwrite);
+      visitor.SetStringValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, Filename);
     }
   private:
     const String Filename;

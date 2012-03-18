@@ -141,7 +141,8 @@ namespace
 
     String GetFilenameTemplate() const
     {
-      Parameters::StringType nameTemplate = GetProperty(&Parameters::Accessor::FindStringValue, FILENAME_PARAM);
+      Parameters::StringType nameTemplate = GetProperty(&Parameters::Accessor::FindStringValue,
+        Parameters::ZXTune::Sound::Backends::File::FILENAME_PARAMETER);
       if (nameTemplate.empty())
       {
         // Filename parameter is required
@@ -159,7 +160,8 @@ namespace
 
     bool CheckIfRewrite() const
     {
-      const Parameters::IntType intParam = GetProperty(&Parameters::Accessor::FindIntValue, OVERWRITE_PARAM);
+      const Parameters::IntType intParam = GetProperty(&Parameters::Accessor::FindIntValue,
+        Parameters::ZXTune::Sound::Backends::File::OVERWRITE_PARAMETER);
       return intParam != 0;
     }
   private:

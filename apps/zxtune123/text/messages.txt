@@ -140,11 +140,11 @@
 < INFO_OPTIONS_SOUND_BACKENDS_TITLE
 > " Sound backends options:"
 
-< INFO_OPTIONS_SOUND_BACKENDS_WAV_FILENAME
-> "filename template to save wav file (see --" INFO_LIST_ATTRIBUTES_KEY " command)"
+< INFO_OPTIONS_SOUND_BACKENDS_FILE_FILENAME
+> "filename template for file-based backends (see --" INFO_LIST_ATTRIBUTES_KEY " command). Also duplicated in backend-specific namespace"
 
-< INFO_OPTIONS_SOUND_BACKENDS_WAV_OVERWRITE
-> "overwrite target wav file if already exists"
+< INFO_OPTIONS_SOUND_BACKENDS_FILE_OVERWRITE
+> "overwrite target file if already exists for file-based backends. Also duplicated in backend-specific namespace"
 
 < INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE
 > "device index for win32 backend"
