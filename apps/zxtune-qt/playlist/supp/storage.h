@@ -31,6 +31,14 @@ namespace Playlist
       virtual bool CompareItems(const Data& lh, const Data& rh) const = 0;
     };
 
+    class Visitor
+    {
+    public:
+      virtual ~Visitor() {}
+
+      virtual void OnItem(Model::IndexType index, Item::Data::Ptr data) = 0;
+    };
+
     class Storage
     {
     public:
@@ -49,14 +57,6 @@ namespace Playlist
       //read
       virtual std::size_t CountItems() const = 0;
       virtual Data::Ptr GetItem(Model::IndexType idx) const = 0;
-
-      class Visitor
-      {
-      public:
-        virtual ~Visitor() {}
-
-        virtual void OnItem(Model::IndexType index, Item::Data::Ptr data) = 0;
-      };
 
       virtual void ForAllItems(Visitor& visitor) const = 0;
       virtual void ForSpecifiedItems(const Model::IndexSet& indices, Visitor& visitor) const = 0;

@@ -73,7 +73,7 @@ namespace
       Storage.ForAllItems(adapter);
     }
   private:
-    class ItemCallbackAdapter : public Playlist::Item::Storage::Visitor
+    class ItemCallbackAdapter : public Playlist::Item::Visitor
     {
     public:
       explicit ItemCallbackAdapter(Playlist::Item::Callback& delegate)

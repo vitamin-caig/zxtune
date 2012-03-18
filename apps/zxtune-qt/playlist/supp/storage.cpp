@@ -193,7 +193,7 @@ namespace
       return it->first;
     }
 
-    virtual void ForAllItems(Visitor& visitor) const
+    virtual void ForAllItems(Playlist::Item::Visitor& visitor) const
     {
       for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
@@ -201,7 +201,7 @@ namespace
       }
     }
 
-    virtual void ForSpecifiedItems(const Model::IndexSet& indices, Visitor& visitor) const
+    virtual void ForSpecifiedItems(const Model::IndexSet& indices, Playlist::Item::Visitor& visitor) const
     {
       std::vector<ItemsContainer::const_iterator> choosenIterators;
       GetChoosenItems(Items, indices, choosenIterators);
