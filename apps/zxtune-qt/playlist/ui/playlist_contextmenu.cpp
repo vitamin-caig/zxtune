@@ -25,6 +25,7 @@ Author:
 #include <format.h>
 //library includes
 #include <core/module_attrs.h>
+#include <sound/backends_parameters.h>
 //qt includes
 #include <QtGui/QMenu>
 //text includes
@@ -258,11 +259,15 @@ namespace
 
     virtual void ConvertSelected() const
     {
+      static const Char TYPE[] = {'w', 'a', 'v', '\0'};
       QString nameTemplate;
       if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
       {
+        const Parameters::Container::Ptr params = Parameters::Container::Create();
+        params->SetStringValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, FromQString(nameTemplate));
+        params->SetIntValue(Parameters::ZXTune::Sound::Backends::File::OVERWRITE, 1/*TODO*/);
         const Playlist::Model::Ptr model = Controller->GetModel();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, FromQString(nameTemplate));
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, TYPE, params);
         Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
         model->PerformOperation(op);
       }

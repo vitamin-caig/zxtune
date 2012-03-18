@@ -66,7 +66,8 @@ namespace Playlist
     TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate);
     TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate);
     //convert
-    TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate);
+    TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
+      const String& type, Parameters::Accessor::Ptr params);
     //other
     TextResultOperation::Ptr CreateCollectPathsOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
   }

@@ -16,13 +16,13 @@ Author:
 #include "storage.h"
 #include <apps/zxtune-qt/supp/playback_supp.h>
 //common includes
+#include <contract.h>
 #include <error_tools.h>
 #include <format.h>
 #include <messages_collector.h>
 //library includes
 #include <async/signals_collector.h>
 #include <sound/backend.h>
-#include <sound/backends_parameters.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -34,77 +34,15 @@ Author:
 
 namespace
 {
-  // Converting
-  class BackendParams : public Parameters::Accessor
-  {
-  public:
-    BackendParams(const String& filename, bool overwrite)
-      : Filename(filename)
-      , Overwrite(overwrite)
-    {
-    }
-
-    virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
-    {
-      if (name == Parameters::ZXTune::Sound::Backends::File::OVERWRITE)
-      {
-        val = Overwrite;
-        return true;
-      }
-      return false;
-    }
-
-    virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
-    {
-      if (name == Parameters::ZXTune::Sound::Backends::File::FILENAME)
-      {
-        val = Filename;
-        return true;
-      }
-      return false;
-    }
-
-    virtual bool FindDataValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
-    {
-      return false;
-    }
-
-    virtual void Process(Parameters::Visitor& visitor) const
-    {
-      visitor.SetIntValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, Overwrite);
-      visitor.SetStringValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, Filename);
-    }
-  private:
-    const String Filename;
-    const bool Overwrite;
-  };
-
-  ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Sound::CreateBackendParameters::Ptr params, const String& id)
-  {
-    using namespace ZXTune::Sound;
-    for (BackendCreator::Iterator::Ptr backends = EnumerateBackends(); backends->IsValid(); backends->Next())
-    {
-      const BackendCreator::Ptr creator = backends->Get();
-      if (creator->Id() != id)
-      {
-        continue;
-      }
-      Backend::Ptr result;
-      ThrowIfError(creator->CreateBackend(params, result));
-      return result;
-    }
-    //TODO:
-    return Backend::Ptr();
-  }
-
   class ConvertVisitor : public Playlist::Item::Visitor
                        , public Playlist::TextNotification
   {
   public:
-    ConvertVisitor(uint_t totalItems, const String& nameTemplate, bool overwrite, Log::ProgressCallback& cb)
+    ConvertVisitor(uint_t totalItems, ZXTune::Sound::BackendCreator::Ptr creator, Parameters::Accessor::Ptr params, Log::ProgressCallback& cb)
       : TotalItems(totalItems)
       , Callback(cb)
-      , BackendParameters(boost::make_shared<BackendParams>(nameTemplate, overwrite))
+      , Creator(creator)
+      , BackendParameters(params)
       , Messages(Log::MessagesCollector::Create())
       , SucceedConvertions(0)
       , FailedConvertions(0)
@@ -141,14 +79,14 @@ namespace
   private:
     void ConvertItem(const String& path, ZXTune::Module::Holder::Ptr item)
     {
-      static const Char WAVE_BACKEND_ID[] = {'w', 'a', 'v', '\0'};
       try
       {
         const Log::ProgressCallback::Ptr curItemProgress = Log::CreateNestedPercentProgressCallback(TotalItems, SucceedConvertions + FailedConvertions, Callback);
         const ZXTune::Module::Information::Ptr info = item->GetModuleInformation();
         const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
         const ZXTune::Sound::CreateBackendParameters::Ptr params = CreateBackendParameters(BackendParameters, item);
-        const ZXTune::Sound::Backend::Ptr backend = CreateBackend(params, WAVE_BACKEND_ID);
+        ZXTune::Sound::Backend::Ptr backend;
+        ThrowIfError(Creator->CreateBackend(params, backend));
         Convert(*backend, *framesProgress);
         curItemProgress->OnProgress(100);
         Succeed();
@@ -187,26 +125,46 @@ namespace
   private:
     const uint_t TotalItems;
     Log::ProgressCallback& Callback;
+    const ZXTune::Sound::BackendCreator::Ptr Creator;
     const Parameters::Accessor::Ptr BackendParameters;
     const Log::MessagesCollector::Ptr Messages;
     std::size_t SucceedConvertions;
     std::size_t FailedConvertions;
   };
 
+  ZXTune::Sound::BackendCreator::Ptr FindBackendCreator(const String& id)
+  {
+    using namespace ZXTune::Sound;
+    for (BackendCreator::Iterator::Ptr backends = EnumerateBackends(); backends->IsValid(); backends->Next())
+    {
+      const BackendCreator::Ptr creator = backends->Get();
+      if (creator->Id() != id)
+      {
+        continue;
+      }
+      return creator;
+    }
+    return BackendCreator::Ptr();
+  }
+
+
   class ConvertOperation : public Playlist::Item::TextResultOperation
   {
   public:
-    ConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
+    ConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
+      const String& type, Parameters::Accessor::Ptr params)
       : Playlist::Item::TextResultOperation(parent)
       , SelectedItems(items)
-      , NameTemplate(nameTemplate)
+      , Creator(FindBackendCreator(type))
+      , Params(params)
     {
+      Require(Creator);
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
-      const boost::shared_ptr<ConvertVisitor> tmp = boost::make_shared<ConvertVisitor>(totalItems, NameTemplate, true, boost::ref(cb));
+      const boost::shared_ptr<ConvertVisitor> tmp = boost::make_shared<ConvertVisitor>(totalItems, Creator, Params, boost::ref(cb));
       if (SelectedItems)
       {
         stor.ForSpecifiedItems(*SelectedItems, *tmp);
@@ -219,7 +177,8 @@ namespace
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
-    const String NameTemplate;
+    const ZXTune::Sound::BackendCreator::Ptr Creator;
+    const Parameters::Accessor::Ptr Params;
   };
 }
 
@@ -227,9 +186,10 @@ namespace Playlist
 {
   namespace Item
   {
-    TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
+    TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
+      const String& type, Parameters::Accessor::Ptr params)
     {
-      return boost::make_shared<ConvertOperation>(boost::ref(parent), items, nameTemplate);
+      return boost::make_shared<ConvertOperation>(boost::ref(parent), items, type, params);
     }
   }
 }
