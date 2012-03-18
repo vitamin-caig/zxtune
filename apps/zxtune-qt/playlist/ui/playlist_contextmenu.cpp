@@ -15,7 +15,7 @@ Author:
 #include "playlist_contextmenu.h"
 #include "table_view.h"
 #include "ui/utils.h"
-#include "filename_template.h"
+#include "ui/conversion/filename_template.h"
 #include "no_items_contextmenu.ui.h"
 #include "single_item_contextmenu.ui.h"
 #include "multiple_items_contextmenu.ui.h"
@@ -236,7 +236,7 @@ namespace
     virtual void ExportAll() const
     {
       QString nameTemplate;
-      if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
+      if (UI::GetFilenameTemplate(View, nameTemplate))
       {
         const Playlist::Model::Ptr model = Controller->GetModel();
         const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, FromQString(nameTemplate));
@@ -248,7 +248,7 @@ namespace
     virtual void ExportSelected() const
     {
       QString nameTemplate;
-      if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
+      if (UI::GetFilenameTemplate(View, nameTemplate))
       {
         const Playlist::Model::Ptr model = Controller->GetModel();
         const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, SelectedItems, FromQString(nameTemplate));
@@ -261,7 +261,7 @@ namespace
     {
       static const Char TYPE[] = {'w', 'a', 'v', '\0'};
       QString nameTemplate;
-      if (Playlist::UI::GetFilenameTemplate(View, nameTemplate))
+      if (UI::GetFilenameTemplate(View, nameTemplate))
       {
         const Parameters::Container::Ptr params = Parameters::Container::Create();
         params->SetStringValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, FromQString(nameTemplate));

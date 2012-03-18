@@ -21,6 +21,9 @@ ui_files += informational/aboutdialog \
 #other
 moc_files += tools/parameters_helpers
 
+#conversion
+ui_files += conversion/filename_template
+
 include_dirs = ..
 
 include $(path_step)/makefile.mak

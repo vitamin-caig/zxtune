@@ -22,12 +22,12 @@ Author:
 
 namespace
 {
-  class FilenameTemplateWidgetImpl : public Playlist::UI::FilenameTemplateWidget
+  class FilenameTemplateWidgetImpl : public UI::FilenameTemplateWidget
                                    , private Ui::FilenameTemplate
   {
   public:
     explicit FilenameTemplateWidgetImpl(QWidget& parent)
-      : Playlist::UI::FilenameTemplateWidget(parent)
+      : UI::FilenameTemplateWidget(parent)
     {
       //setup self
       setupUi(this);
@@ -73,7 +73,7 @@ namespace
       : QDialog(&parent)
       , TemplateBuilder(0)
     {
-      TemplateBuilder = Playlist::UI::FilenameTemplateWidget::Create(*this);
+      TemplateBuilder = UI::FilenameTemplateWidget::Create(*this);
       QDialogButtonBox* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
       this->connect(buttons, SIGNAL(accepted()), this, SLOT(accept()));
       this->connect(buttons, SIGNAL(rejected()), this, SLOT(reject()));
@@ -88,39 +88,36 @@ namespace
       return TemplateBuilder->GetFilenameTemplate();
     }
   private:
-    Playlist::UI::FilenameTemplateWidget* TemplateBuilder;
+    UI::FilenameTemplateWidget* TemplateBuilder;
   };
 }
 
-namespace Playlist
+namespace UI
 {
-  namespace UI
+  FilenameTemplateWidget::FilenameTemplateWidget(QWidget& parent) : QWidget(&parent)
   {
-    FilenameTemplateWidget::FilenameTemplateWidget(QWidget& parent) : QWidget(&parent)
-    {
-    }
+  }
 
-    FilenameTemplateWidget* FilenameTemplateWidget::Create(QWidget& parent)
-    {
-      return new FilenameTemplateWidgetImpl(parent);
-    }
+  FilenameTemplateWidget* FilenameTemplateWidget::Create(QWidget& parent)
+  {
+    return new FilenameTemplateWidgetImpl(parent);
+  }
 
-    bool GetFilenameTemplate(QWidget& parent, QString& result)
+  bool GetFilenameTemplate(QWidget& parent, QString& result)
+  {
+    FilenameTemplateDialog dialog(parent);
+    if (dialog.exec())
     {
-      FilenameTemplateDialog dialog(parent);
-      if (dialog.exec())
+      const QString res = dialog.GetResult();
+      if (res.size())
       {
-        const QString res = dialog.GetResult();
-        if (res.size())
-        {
-          result = res;
-          return true;
-        }
-        QMessageBox warning(QMessageBox::Critical, QString::fromUtf8("Failed to export"),
-          QString::fromUtf8("Filename template is empty"), QMessageBox::Ok);
-        warning.exec();
+        result = res;
+        return true;
       }
-      return false;
+      QMessageBox warning(QMessageBox::Critical, QString::fromUtf8("Failed to export"),
+        QString::fromUtf8("Filename template is empty"), QMessageBox::Ok);
+      warning.exec();
     }
+    return false;
   }
 }
