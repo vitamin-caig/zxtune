@@ -359,6 +359,7 @@ namespace
     virtual void LongOperationStart()
     {
       View->setEnabled(false);
+      OperationProgress->UpdateProgress(0);
       OperationProgress->setVisible(true);
       OperationProgress->setEnabled(true);
     }
