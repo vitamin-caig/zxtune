@@ -31,6 +31,9 @@ namespace
     {
       //setup self
       setupUi(this);
+
+      connect(directoryName, SIGNAL(textChanged(const QString&)), SIGNAL(SettingsChanged()));
+      connect(fileTemplate, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged()));
     }
 
     virtual QString GetFilenameTemplate() const
@@ -53,7 +56,7 @@ namespace
     virtual void OnBrowseDirectory()
     {
       QString dir = directoryName->text();
-      if (FileDialog::Instance().OpenFolder(QString::fromUtf8("Select target directory"), dir))
+      if (FileDialog::Instance().OpenFolder(tr("Select target directory"), dir))
       {
         directoryName->setText(dir);
       }
@@ -80,7 +83,7 @@ namespace
       QVBoxLayout* const layout = new QVBoxLayout(this);
       layout->addWidget(TemplateBuilder);
       layout->addWidget(buttons);
-      setWindowTitle(QString::fromUtf8("Setup filename template"));
+      setWindowTitle(tr("Setup filename template"));
     }
 
     QString GetResult() const

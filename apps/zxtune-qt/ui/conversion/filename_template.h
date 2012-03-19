@@ -32,6 +32,8 @@ namespace UI
   private slots:
     virtual void OnBrowseDirectory() = 0;
     virtual void OnClickHint(const QString& hint) = 0;
+  signals:
+    void SettingsChanged();
   };
 
   bool GetFilenameTemplate(QWidget& parent, QString& result);
