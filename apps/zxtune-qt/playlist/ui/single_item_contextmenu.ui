@@ -96,7 +96,7 @@
     </iconset>
    </property>
    <property name="text">
-    <string>Convert to wav</string>
+    <string>Convert</string>
    </property>
   </action>
  </widget>

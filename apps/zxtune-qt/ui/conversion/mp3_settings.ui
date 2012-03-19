@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>320</width>
-    <height>140</height>
+    <height>158</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
            <bool>false</bool>
           </property>
           <property name="minimum">
-           <number>16</number>
+           <number>32</number>
           </property>
           <property name="maximum">
            <number>320</number>
@@ -60,7 +60,7 @@
            </sizepolicy>
           </property>
           <property name="minimum">
-           <number>16</number>
+           <number>32</number>
           </property>
           <property name="maximum">
            <number>320</number>
@@ -89,15 +89,9 @@
       <item row="3" column="1">
        <layout class="QHBoxLayout" name="vbrLayout">
         <item>
-         <widget class="QLabel" name="minVBR">
-          <property name="layoutDirection">
-           <enum>Qt::LeftToRight</enum>
-          </property>
+         <widget class="QLabel" name="maxVBR">
           <property name="text">
-           <string>Min</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           <string>Max</string>
           </property>
          </widget>
         </item>
@@ -124,9 +118,15 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="maxVBR">
+         <widget class="QLabel" name="minVBR">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
           <property name="text">
-           <string>Max</string>
+           <string>Min</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>

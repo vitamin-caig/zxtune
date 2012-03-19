@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>361</width>
-    <height>168</height>
+    <width>371</width>
+    <height>183</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -315,6 +315,19 @@
      </layout>
     </widget>
    </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
  </widget>
  <resources/>
@@ -324,90 +337,240 @@
    <signal>clicked()</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnBrowseDirectory()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintFullPath</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintPath</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintFilename</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintSubpath</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintContainer</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintType</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintSize</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintCRC</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintFixedCRC</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintTitle</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintAuthor</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintComment</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintProgram</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>hintVersion</sender>
    <signal>linkActivated(QString)</signal>
    <receiver>FilenameTemplate</receiver>
    <slot>OnClickHint(QString)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
  </connections>
  <slots>

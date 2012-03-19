@@ -118,7 +118,7 @@
     </iconset>
    </property>
    <property name="text">
-    <string>Convert selected to wav</string>
+    <string>Convert selected</string>
    </property>
   </action>
  </widget>

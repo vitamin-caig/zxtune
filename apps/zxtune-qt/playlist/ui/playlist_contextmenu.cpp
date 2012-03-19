@@ -16,6 +16,7 @@ Author:
 #include "table_view.h"
 #include "ui/utils.h"
 #include "ui/conversion/filename_template.h"
+#include "ui/conversion/setup_conversion.h"
 #include "no_items_contextmenu.ui.h"
 #include "single_item_contextmenu.ui.h"
 #include "multiple_items_contextmenu.ui.h"
@@ -259,15 +260,11 @@ namespace
 
     virtual void ConvertSelected() const
     {
-      static const Char TYPE[] = {'w', 'a', 'v', '\0'};
-      QString nameTemplate;
-      if (UI::GetFilenameTemplate(View, nameTemplate))
+      String type;
+      if (Parameters::Accessor::Ptr params = UI::GetConversionParameters(View, type))
       {
-        const Parameters::Container::Ptr params = Parameters::Container::Create();
-        params->SetStringValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, FromQString(nameTemplate));
-        params->SetIntValue(Parameters::ZXTune::Sound::Backends::File::OVERWRITE, 1/*TODO*/);
         const Playlist::Model::Ptr model = Controller->GetModel();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, TYPE, params);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, type, params);
         Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
         model->PerformOperation(op);
       }
