@@ -86,11 +86,18 @@ namespace
       , Context(context)
       , Encoded(INITIAL_ENCODED_BUFFER_SIZE)
     {
+      Log::Debug(THIS_MODULE, "Stream initialized");
     }
 
     virtual ~Mp3Stream()
     {
-      Flush();
+      try
+      {
+        Flush();
+      }
+      catch (const Error&)
+      {
+      }
     }
 
     virtual void SetTitle(const String& title)
@@ -124,6 +131,7 @@ namespace
         else if (-1 == res)//buffer too small
         {
           Encoded.resize(Encoded.size() * 2);
+          Log::Debug(THIS_MODULE, "Increase buffer to %1% bytes", Encoded.size());
         }
         else if (-2 == res)//malloc problem
         {
@@ -138,11 +146,28 @@ namespace
   private:
     void Flush()
     {
-      if (const int res = ::lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
+      while (const int res = ::lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
       {
-        CheckLameCall(res, THIS_LINE);
-        Stream->write(safe_ptr_cast<const char*>(&Encoded[0]), static_cast<std::streamsize>(res));
+        if (res > 0)
+        {
+          Stream->write(safe_ptr_cast<const char*>(&Encoded[0]), static_cast<std::streamsize>(res));
+          break;
+        }
+        else if (-1 == res)//buffer too small
+        {
+          Encoded.resize(Encoded.size() * 2);
+          Log::Debug(THIS_MODULE, "Increase buffer to %1% bytes", Encoded.size());
+        }
+        else if (-2 == res)//malloc problem
+        {
+          throw Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        }
+        else
+        {
+          CheckLameCall(res, THIS_LINE);
+        }
       }
+      Log::Debug(THIS_MODULE, "Stream flushed");
     }
   private:
     const std::auto_ptr<std::ofstream> Stream;
@@ -225,17 +250,17 @@ namespace
       else if (const boost::optional<uint_t> vbr = Params.GetVBRQuality())
       {
         Log::Debug(THIS_MODULE, "Setting VBR quality to %1%", *vbr);
-        CheckLameCall(::lame_set_VBR(&ctx, vbr_mtrh), THIS_LINE);
+        CheckLameCall(::lame_set_VBR(&ctx, vbr_default), THIS_LINE);
         CheckLameCall(::lame_set_VBR_q(&ctx, *vbr), THIS_LINE);
       }
       else if (const boost::optional<uint_t> abr = Params.GetABR())
       {
         Log::Debug(THIS_MODULE, "Setting ABR to %1%kbps", *abr);
-        CheckLameCall(::lame_set_preset(&ctx, *abr), THIS_LINE);
+        CheckLameCall(::lame_set_VBR(&ctx, vbr_abr), THIS_LINE);
+        CheckLameCall(::lame_set_VBR_mean_bitrate_kbps(&ctx, *abr), THIS_LINE);
       }
       CheckLameCall(::lame_init_params(&ctx), THIS_LINE);
       ::id3tag_init(&ctx);
-      ::id3tag_add_v2(&ctx);
     }
   private:
     const Mp3Parameters Params;
@@ -353,9 +378,9 @@ int lame_set_VBR_q(lame_t ctx, int quality)
   return LAME_CALL(lame_set_VBR_q, ctx, quality);
 }
 
-int lame_set_preset(lame_t ctx, int preset)
+int lame_set_VBR_mean_bitrate_kbps(lame_t ctx, int brate)
 {
-  return LAME_CALL(lame_set_preset, ctx, preset);
+  return LAME_CALL(lame_set_VBR_mean_bitrate_kbps, ctx, brate);
 }
 
 int lame_init_params(lame_t ctx)
