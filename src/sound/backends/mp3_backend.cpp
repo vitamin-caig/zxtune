@@ -326,7 +326,12 @@ namespace ZXTune
 
 //global namespace
 #define STR(a) #a
-#define LAME_CALL(func, ...) LameLibrary::Instance().GetSymbol(&func, STR(func))(__VA_ARGS__)
+//MSVS2003 does not support variadic macros
+#define LAME_CALL(func) LameLibrary::Instance().GetSymbol(&func, STR(func))()
+#define LAME_CALL1(func, p1) LameLibrary::Instance().GetSymbol(&func, STR(func))(p1)
+#define LAME_CALL2(func, p1, p2) LameLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2)
+#define LAME_CALL3(func, p1, p2, p3) LameLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3)
+#define LAME_CALL5(func, p1, p2, p3, p4, p5) LameLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3, p4, p5)
 
 const char* get_lame_version()
 {
@@ -340,87 +345,87 @@ lame_t lame_init()
 
 int lame_close(lame_t ctx)
 {
-  return LAME_CALL(lame_close, ctx);
+  return LAME_CALL1(lame_close, ctx);
 }
 
 int lame_set_in_samplerate(lame_t ctx, int rate)
 {
-  return LAME_CALL(lame_set_in_samplerate, ctx, rate);
+  return LAME_CALL2(lame_set_in_samplerate, ctx, rate);
 }
 
 int lame_set_out_samplerate(lame_t ctx, int rate)
 {
-  return LAME_CALL(lame_set_out_samplerate, ctx, rate);
+  return LAME_CALL2(lame_set_out_samplerate, ctx, rate);
 }
 
 int lame_set_bWriteVbrTag(lame_t ctx, int flag)
 {
-  return LAME_CALL(lame_set_bWriteVbrTag, ctx, flag);
+  return LAME_CALL2(lame_set_bWriteVbrTag, ctx, flag);
 }
 
 int lame_set_num_channels(lame_t ctx, int chans)
 {
-  return LAME_CALL(lame_set_num_channels, ctx, chans);
+  return LAME_CALL2(lame_set_num_channels, ctx, chans);
 }
 
 int lame_set_brate(lame_t ctx, int brate)
 {
-  return LAME_CALL(lame_set_brate, ctx, brate);
+  return LAME_CALL2(lame_set_brate, ctx, brate);
 }
 
 int lame_set_VBR(lame_t ctx, vbr_mode mode)
 {
-  return LAME_CALL(lame_set_VBR, ctx, mode);
+  return LAME_CALL2(lame_set_VBR, ctx, mode);
 }
 
 int lame_set_VBR_q(lame_t ctx, int quality)
 {
-  return LAME_CALL(lame_set_VBR_q, ctx, quality);
+  return LAME_CALL2(lame_set_VBR_q, ctx, quality);
 }
 
 int lame_set_VBR_mean_bitrate_kbps(lame_t ctx, int brate)
 {
-  return LAME_CALL(lame_set_VBR_mean_bitrate_kbps, ctx, brate);
+  return LAME_CALL2(lame_set_VBR_mean_bitrate_kbps, ctx, brate);
 }
 
 int lame_init_params(lame_t ctx)
 {
-  return LAME_CALL(lame_init_params, ctx);
+  return LAME_CALL1(lame_init_params, ctx);
 }
 
 int lame_encode_buffer_interleaved(lame_t ctx, short int* pcm, int samples, unsigned char* dst, int dstSize)
 {
-  return LAME_CALL(lame_encode_buffer_interleaved, ctx, pcm, samples, dst, dstSize);
+  return LAME_CALL5(lame_encode_buffer_interleaved, ctx, pcm, samples, dst, dstSize);
 }
 
 int lame_encode_flush(lame_t ctx, unsigned char* dst, int dstSize)
 {
-  return LAME_CALL(lame_encode_flush, ctx, dst, dstSize);
+  return LAME_CALL3(lame_encode_flush, ctx, dst, dstSize);
 }
 
 void id3tag_init(lame_t ctx)
 {
-  return LAME_CALL(id3tag_init, ctx);
+  return LAME_CALL1(id3tag_init, ctx);
 }
 
 void id3tag_add_v2(lame_t ctx)
 {
-  return LAME_CALL(id3tag_add_v2, ctx);
+  return LAME_CALL1(id3tag_add_v2, ctx);
 }
 
 void id3tag_set_title(lame_t ctx, const char* title)
 {
-  return LAME_CALL(id3tag_set_title, ctx, title);
+  return LAME_CALL2(id3tag_set_title, ctx, title);
 }
 
 void id3tag_set_artist(lame_t ctx, const char* artist)
 {
-  return LAME_CALL(id3tag_set_artist, ctx, artist);
+  return LAME_CALL2(id3tag_set_artist, ctx, artist);
 }
 
 void id3tag_set_comment(lame_t ctx, const char* comment)
 {
-  return LAME_CALL(id3tag_set_comment, ctx, comment);
+  return LAME_CALL2(id3tag_set_comment, ctx, comment);
 }
 
 #else //not supported

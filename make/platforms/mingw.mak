@@ -30,6 +30,7 @@ support_aylpt_dlportio = 1
 support_directsound = 1
 support_sdl = 1
 support_zlib = 1
+support_mp3 = 1
 
 #simple library naming convention used
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))

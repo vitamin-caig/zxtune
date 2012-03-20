@@ -32,4 +32,6 @@ endif
 
 ifdef support_mp3
 $(platform)_definitions += MP3_SUPPORT
+windows_include_dirs += $(path_step)/3rdparty
+mingw_include_dirs += $(path_step)/3rdparty
 endif
