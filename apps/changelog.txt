@@ -7,6 +7,21 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Render to MP3
+[*] Fixed SCL containers used size
+[*] Hrust/Hrum paddings are not analysed
+[*] Improved ST1 detection
+[*] Fixed prohibited filenames creating on windows systems
+[*] Slight speedup due to more precised detectors
+[*] zxtune123: fixed last files saving while converting
+[*] zxtune-qt: cancelation support for async operations
+[*] zxtune-qt: new conversion dialog
+[*] zxtune-qt: much more smooth conversion progress
+[*] zxtune-qt: fixed slow UI while async operations perform
+[*] zxtune-qt: reference to online manual
+
+--- Rev1545 from 12.02.2012
+
 [*] Improved STP detection
 [*] Fixes in PT3 parsing
 [*] Improved STC detection
