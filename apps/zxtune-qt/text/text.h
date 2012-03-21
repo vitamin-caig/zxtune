@@ -12,6 +12,7 @@ extern const Char CONVERT_FAILED_OPEN[];
 extern const Char CONVERT_STATUS[];
 extern const Char FAQ_URL[];
 extern const Char FEEDBACK_TEXT[];
+extern const Char HELP_URL[];
 extern const Char HOMEPAGE_URL[];
 extern const Char MODULE_PLAYLIST_FORMAT[];
 extern const Char MODULE_TITLE_FORMAT[];

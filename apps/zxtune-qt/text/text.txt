@@ -21,6 +21,9 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < HOMEPAGE_URL
 > "http://code.google.com/p/zxtune"
 
+< HELP_URL
+> HOMEPAGE_URL "/wiki/ZXTuneQTManual"
+
 < FAQ_URL
 > HOMEPAGE_URL "/wiki/FAQ"
 

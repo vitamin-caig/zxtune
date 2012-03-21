@@ -71,6 +71,7 @@
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
     <addaction name="separator"/>
+    <addaction name="actionOnlineHelp"/>
     <addaction name="actionWebSite"/>
     <addaction name="actionOnlineFAQ"/>
     <addaction name="actionReportBug"/>
@@ -106,6 +107,16 @@
    </property>
    <property name="text">
     <string>Quit</string>
+   </property>
+  </action>
+  <action name="actionOnlineHelp">
+   <property name="icon">
+    <iconset>
+     <normalon>:/application/help.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Online help</string>
    </property>
   </action>
   <action name="actionWebSite">

@@ -77,6 +77,7 @@ namespace
       //connect root actions
       Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
       About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
+      this->connect(actionOnlineHelp, SIGNAL(triggered()), SLOT(VisitHelp()));
       this->connect(actionWebSite, SIGNAL(triggered()), SLOT(VisitSite()));
       this->connect(actionOnlineFAQ, SIGNAL(triggered()), SLOT(VisitFAQ()));
       this->connect(actionReportBug, SIGNAL(triggered()), SLOT(ReportIssue()));
@@ -117,6 +118,12 @@ namespace
     virtual void StopModule()
     {
       setWindowTitle(ToQString(GetProgramTitle()));
+    }
+
+    virtual void VisitHelp()
+    {
+      const QString siteUrl(Text::HELP_URL);
+      QDesktopServices::openUrl(QUrl(siteUrl));
     }
 
     virtual void VisitSite()
