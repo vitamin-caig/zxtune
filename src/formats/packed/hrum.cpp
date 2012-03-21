@@ -135,7 +135,7 @@ namespace Hrum
       const std::size_t sizeOnDisk = align<std::size_t>(usefulSize, 256);
       const std::size_t resultSize = std::min(sizeOnDisk, Size);
       const std::size_t paddingSize = resultSize - usefulSize;
-      const std::size_t MIN_SIGNATURE_MATCH = 1;
+      const std::size_t MIN_SIGNATURE_MATCH = 9;
       if (paddingSize < MIN_SIGNATURE_MATCH)
       {
         return usefulSize;
@@ -166,12 +166,12 @@ namespace Hrum
       const uint8_t* const paddingEnd = Data + resultSize;
       if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, ArrayEnd(HRUM3_5_PADDING)))
       {
-        return usefulSize + pad;
+        if (pad >= MIN_SIGNATURE_MATCH)
+        {
+          return usefulSize + pad;
+        }
       }
-      else
-      {
-        return usefulSize;
-      }
+      return usefulSize;
     }
 
     const RawHeader& GetHeader() const
