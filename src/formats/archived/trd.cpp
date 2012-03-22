@@ -29,6 +29,22 @@ namespace TRD
 {
   using namespace Formats;
 
+  const std::string FORMAT(
+    "(00|01|20-7f??????? ??? ?? ? 0x 00-a0){128}"
+    //service sector
+    "00"     //zero
+    "+224+"  //reserved
+    "00-0f"  //free sector
+    "01-9f"  //free track
+    "16"     //type DS_DD
+    "01-7f"  //files
+    "?00-09" //free sectors
+    "10"     //ID
+    "+12+"   //reserved2
+    "?"      //deleted files
+    "20-7f{8}"//title
+  );
+
   const std::string THIS_MODULE("Formats::Archived::TRD");
 
   //hints
@@ -83,14 +99,21 @@ namespace TRD
     uint8_t Reserved3[3];
   } PACK_POST;
 
+  PACK_PRE struct Catalog
+  {
+    CatEntry Entries[MAX_FILES_COUNT];
+    ServiceSector Meta;
+    uint8_t Empty[0x700];
+  } PACK_POST;
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
   BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
+  BOOST_STATIC_ASSERT(sizeof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK);
 
-  const Char TRACK0_FILENAME[] = {'$', 'T', 'r', 'a', 'c', 'k', '0', 0};
   const Char HIDDEN_FILENAME[] = {'$', 'H', 'i', 'd', 'd', 'e', 'n', 0};
   const Char UNALLOCATED_FILENAME[] = {'$', 'U', 'n', 'a', 'l', 'l', 'o', 'c', 'a', 't', 'e', 'd', 0};
 
@@ -102,34 +125,22 @@ namespace TRD
     virtual void OnFile(const String& name, std::size_t offset, std::size_t size) = 0;
   };
 
-  const ServiceSector* Check(const void* data, std::size_t size)
+  std::size_t Parse(const Binary::Container& data, Visitor& visitor)
   {
-    if (size != MODULE_SIZE)
+    const std::size_t dataSize = data.Size();
+    if (dataSize < sizeof(Catalog) + BYTES_PER_SECTOR)//first track + 1 sector for file at least
     {
       return 0;
     }
-    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data) + SERVICE_SECTOR_NUM;
-    if (sector->ID != TRDOS_ID || sector->Type != DS_DD || 0 != sector->Zero)
-    {
-      return 0;
-    }
-    return sector;
-  }
+    const std::size_t trackSize = SECTORS_IN_TRACK * BYTES_PER_SECTOR;
+    const bool validSize = dataSize == MODULE_SIZE;
+    const Catalog* const catalog = safe_ptr_cast<const Catalog*>(data.Data());
 
-  bool Parse(const Binary::Container& data, Visitor& visitor)
-  {
-    const ServiceSector* const sector = Check(data.Data(), data.Size());
-    if (!sector)
-    {
-      return false;
-    }
-    const CatEntry* catEntry = safe_ptr_cast<const CatEntry*>(data.Data());
-
-    const std::size_t totalSectors = MODULE_SIZE / BYTES_PER_SECTOR;
+    const std::size_t totalSectors = std::min(dataSize, MODULE_SIZE) / BYTES_PER_SECTOR;
     std::vector<bool> usedSectors(totalSectors);
     std::fill_n(usedSectors.begin(), SECTORS_IN_TRACK, true);
-    uint_t idx = 0;
-    for (; idx != MAX_FILES_COUNT && NOENTRY != catEntry->Name[0]; ++idx, ++catEntry)
+    uint_t files = 0;
+    for (const CatEntry* catEntry = catalog->Entries; catEntry != ArrayEnd(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
     {
       if (!catEntry->SizeInSectors)
       {
@@ -139,13 +150,13 @@ namespace TRD
       const uint_t size = catEntry->SizeInSectors;
       if (offset + size > totalSectors)
       {
-        return false;//out of bounds
+        return 0;//out of bounds
       }
       const std::vector<bool>::iterator begin = usedSectors.begin() + offset;
       const std::vector<bool>::iterator end = begin + size;
       if (end != std::find(begin, end, true))
       {
-        return false;//overlap
+        return 0;//overlap
       }
       std::fill(begin, end, true);
       String entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
@@ -154,23 +165,31 @@ namespace TRD
         entryName.insert(0, 1, '~');
       }
       visitor.OnFile(entryName, offset * BYTES_PER_SECTOR, size * BYTES_PER_SECTOR);
+      ++files;
     }
-    if (!idx)
+    if (!files)
     {
-      return false;
+      //no files
+      return 0;
     }
-    visitor.OnFile(TRACK0_FILENAME, 0, SECTORS_IN_TRACK * BYTES_PER_SECTOR);
+    if (ArrayEnd(catalog->Empty) != std::find_if(catalog->Empty, ArrayEnd(catalog->Empty), std::bind1st(std::not_equal_to<uint8_t>(), 0)))
+    {
+      return 0;//not empty
+    }
 
     const std::vector<bool>::iterator begin = usedSectors.begin();
-    const std::vector<bool>::iterator limit = usedSectors.end();
-    const std::size_t freeArea = (SECTORS_IN_TRACK * sector->FreeSpaceTrack + sector->FreeSpaceSect);
-    if (freeArea > SECTORS_IN_TRACK && freeArea < totalSectors)
+    const std::vector<bool>::iterator limit = validSize ? usedSectors.end() : std::find(usedSectors.rbegin(), usedSectors.rend(), true).base();
+    if (validSize)
     {
-      const std::vector<bool>::iterator freeBegin = usedSectors.begin() + freeArea;
-      if (usedSectors.end() == std::find(freeBegin, limit, true))
+      const std::size_t freeArea = (SECTORS_IN_TRACK * catalog->Meta.FreeSpaceTrack + catalog->Meta.FreeSpaceSect);
+      if (freeArea > SECTORS_IN_TRACK && freeArea < totalSectors)
       {
-        std::fill(freeBegin, limit, true);
-        visitor.OnFile(UNALLOCATED_FILENAME, freeArea * BYTES_PER_SECTOR, (totalSectors - freeArea) * BYTES_PER_SECTOR);
+        const std::vector<bool>::iterator freeBegin = usedSectors.begin() + freeArea;
+        if (limit == std::find(freeBegin, limit, true))
+        {
+          std::fill(freeBegin, limit, true);
+          visitor.OnFile(UNALLOCATED_FILENAME, freeArea * BYTES_PER_SECTOR, (totalSectors - freeArea) * BYTES_PER_SECTOR);
+        }
       }
     }
     for (std::vector<bool>::iterator empty = std::find(begin, limit, false); 
@@ -183,7 +202,7 @@ namespace TRD
       visitor.OnFile(HIDDEN_FILENAME, offset, size);
       empty = std::find(emptyEnd, limit, false);
     }
-    return true;
+    return std::distance(begin, limit) * BYTES_PER_SECTOR;
   }
 
   class StubVisitor : public Visitor
@@ -208,24 +227,6 @@ namespace TRD
   private:
     TRDos::CatalogueBuilder& Builder;
   };
-
-  //Do not search TRDs in data, only match
-  //This is because of weak internal structure- dangerous data splitting
-  class Format : public Binary::Format
-  {
-  public:
-    virtual bool Match(const void* data, std::size_t size) const
-    {
-      return Check(data, size) != 0;
-    }
-
-    virtual std::size_t Search(const void* data, std::size_t size) const
-    {
-      return Check(data, size) != 0
-        ? 0
-        : size;
-    }
-  };
 }
 
 namespace Formats
@@ -236,7 +237,7 @@ namespace Formats
     {
     public:
       TRDDecoder()
-        : Format(boost::make_shared<TRD::Format>())
+        : Format(Binary::Format::Create(TRD::FORMAT))
       {
       }
 
@@ -252,11 +253,15 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
+        if (!Format->Match(data.Data(), data.Size()))
+        {
+          return Container::Ptr();
+        }
         const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();
         TRD::BuildVisitorAdapter visitor(*builder);
-        if (TRD::Parse(data, visitor))
+        if (const std::size_t size = TRD::Parse(data, visitor))
         {
-          builder->SetRawData(data.GetSubcontainer(0, TRD::MODULE_SIZE));
+          builder->SetRawData(data.GetSubcontainer(0, size));
           return builder->GetResult();
         }
         return Container::Ptr();

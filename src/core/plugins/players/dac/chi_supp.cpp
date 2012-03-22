@@ -546,8 +546,14 @@ namespace
 
 
   const std::string CHI_FORMAT(
-    "4348495076"    // uint8_t Signature[5];
+    "'C'H'I'P'v"    // uint8_t Signature[5];
     "3x2e3x"        // char Version[3];
+    "20-7f{32}"     // char Name[32];
+    "01-0f"         // uint8_t Tempo;
+    "??"            // len,loop
+    "(?00-bb?00-bb){16}"//samples descriptions
+    "+21+"          // uint8_t Reserved[21];
+    "(20-7f{8}){16}"// sample names
   );
 
   class CHIModulesFactory : public ModulesFactory
@@ -560,7 +566,7 @@ namespace
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return CheckCHI(inputData);
+      return Format->Match(inputData.Data(), inputData.Size()) && CheckCHI(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
@@ -570,9 +576,12 @@ namespace
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
+      if (!Check(*data))
+      {
+        return Holder::Ptr();
+      }
       try
       {
-        assert(Check(*data));
         const Holder::Ptr holder(new CHIHolder(properties, data, usedSize));
         return holder;
       }
