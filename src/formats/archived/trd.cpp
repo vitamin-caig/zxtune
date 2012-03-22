@@ -29,15 +29,6 @@ namespace TRD
 {
   using namespace Formats;
 
-  const std::string FORMAT(
-    "+2048+"//skip to service sector
-    "+227+"//skip zeroes in service sector
-    "16"            //type DS_DD
-    "?"             //files
-    "?%00000xxx"    //free sectors
-    "10"            //ID
-  );
-
   const std::string THIS_MODULE("Formats::Archived::TRD");
 
   //hints
@@ -111,14 +102,24 @@ namespace TRD
     virtual void OnFile(const String& name, std::size_t offset, std::size_t size) = 0;
   };
 
+  const ServiceSector* Check(const void* data, std::size_t size)
+  {
+    if (size != MODULE_SIZE)
+    {
+      return 0;
+    }
+    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data) + SERVICE_SECTOR_NUM;
+    if (sector->ID != TRDOS_ID || sector->Type != DS_DD || 0 != sector->Zero)
+    {
+      return 0;
+    }
+    return sector;
+  }
+
   bool Parse(const Binary::Container& data, Visitor& visitor)
   {
-    if (data.Size() < MODULE_SIZE)
-    {
-      return false;
-    }
-    const ServiceSector* const sector = safe_ptr_cast<const ServiceSector*>(data.Data()) + SERVICE_SECTOR_NUM;
-    if (sector->ID != TRDOS_ID || sector->Type != DS_DD || 0 != sector->Zero)
+    const ServiceSector* const sector = Check(data.Data(), data.Size());
+    if (!sector)
     {
       return false;
     }
@@ -207,6 +208,24 @@ namespace TRD
   private:
     TRDos::CatalogueBuilder& Builder;
   };
+
+  //Do not search TRDs in data, only match
+  //This is because of weak internal structure- dangerous data splitting
+  class Format : public Binary::Format
+  {
+  public:
+    virtual bool Match(const void* data, std::size_t size) const
+    {
+      return Check(data, size) != 0;
+    }
+
+    virtual std::size_t Search(const void* data, std::size_t size) const
+    {
+      return Check(data, size) != 0
+        ? 0
+        : size;
+    }
+  };
 }
 
 namespace Formats
@@ -217,7 +236,7 @@ namespace Formats
     {
     public:
       TRDDecoder()
-        : Format(Binary::Format::Create(TRD::FORMAT))
+        : Format(boost::make_shared<TRD::Format>())
       {
       }
 
