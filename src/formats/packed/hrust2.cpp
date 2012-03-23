@@ -313,6 +313,52 @@ namespace Hrust2
         return sizeof(header) + fromLE(header.PackedSize) - sizeof(header.Stream);
       }
 
+      std::size_t GetUsedSizeWithPadding() const
+      {
+        const std::size_t usefulSize = GetUsedSize();
+        const std::size_t sizeOnDisk = align<std::size_t>(usefulSize, 256);
+        const std::size_t resultSize = std::min(sizeOnDisk, Size);
+        const std::size_t paddingSize = resultSize - usefulSize;
+        const std::size_t MIN_SIGNATURE_MATCH = 10;
+        if (paddingSize < MIN_SIGNATURE_MATCH)
+        {
+          return usefulSize;
+        }
+        //max padding size is 255 bytes
+        //text is 2+29 bytes
+        static const uint8_t HRUST2_1_PADDING[] =
+        {
+          0xd, 0xa, 'H', 'R', 'U', 'S', 'T', ' ', 'v', '2', '.', '1', ' ', 'b', 'y', ' ',
+          'D', 'm', 'i', 't', 'r', 'y', ' ', 'P', 'y', 'a', 'n', 'k', 'o', 'v', '.', 0,
+          //32
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        };
+        BOOST_STATIC_ASSERT(sizeof(HRUST2_1_PADDING) == 255);
+        const uint8_t* const paddingStart = Data + usefulSize;
+        const uint8_t* const paddingEnd = Data + resultSize;
+        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, ArrayEnd(HRUST2_1_PADDING)))
+        {
+          if (pad >= MIN_SIGNATURE_MATCH)
+          {
+            return usefulSize + pad;
+          }
+        }
+        return usefulSize;
+      }
+
       const FormatHeader& GetHeader() const
       {
         assert(Size >= sizeof(FormatHeader));
@@ -546,7 +592,7 @@ namespace Formats
           return Container::Ptr();
         }
         Hrust2::Version1::DataDecoder decoder(container);
-        return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
+        return CreatePackedContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
       }
     private:
       const Binary::Format::Ptr Format;

@@ -85,6 +85,7 @@ namespace Hrust1
       const std::size_t TRDOS_ENTRY_SIZE = 16;
       const std::size_t TRDOS_SHORT_ENTRY_SIZE = 14;
       const std::size_t MIN_SIGNATURE_MATCH = 6;
+      const std::size_t EXACT_SIGNATURE_MATCH = 17;//to capture version
       if (paddingSize < TRDOS_ENTRY_SIZE + MIN_SIGNATURE_MATCH)
       {
         return usefulSize;
@@ -168,33 +169,35 @@ namespace Hrust1
       BOOST_STATIC_ASSERT(sizeof(HRUST1_3_PADDING) == 255 - TRDOS_ENTRY_SIZE);
       const uint8_t* const paddingStart = Data + usefulSize;
       const uint8_t* const paddingEnd = Data + resultSize;
-      if (const std::size_t padv0 = MatchedSize(paddingStart + TRDOS_SHORT_ENTRY_SIZE, paddingEnd, HRUST1_0_PADDING, ArrayEnd(HRUST1_0_PADDING)))
+      //special case due to distinct offset
+      const std::size_t padv0 = MatchedSize(paddingStart + TRDOS_SHORT_ENTRY_SIZE, paddingEnd, HRUST1_0_PADDING, ArrayEnd(HRUST1_0_PADDING));
+      if (padv0 >= MIN_SIGNATURE_MATCH)
       {
-        if (padv0 >= MIN_SIGNATURE_MATCH)
-        {
-          return usefulSize + TRDOS_SHORT_ENTRY_SIZE + padv0;
-        }
+        //version 1.0 match
+        return usefulSize + TRDOS_SHORT_ENTRY_SIZE + padv0;
       }
-      else if (const std::size_t padv1 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_1_PADDING, ArrayEnd(HRUST1_1_PADDING)))
+      const std::size_t padv1 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_1_PADDING, ArrayEnd(HRUST1_1_PADDING));
+      if (padv1 >= EXACT_SIGNATURE_MATCH)
       {
-        if (padv1 >= MIN_SIGNATURE_MATCH)
-        {
-          return usefulSize + TRDOS_ENTRY_SIZE + padv1;
-        }
+        //version 1.1 match
+        return usefulSize + TRDOS_ENTRY_SIZE + padv1;
       }
-      else if (const std::size_t padv2 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_2_PADDING, ArrayEnd(HRUST1_2_PADDING)))
+      const std::size_t padv2 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_2_PADDING, ArrayEnd(HRUST1_2_PADDING));
+      if (padv2 >= EXACT_SIGNATURE_MATCH)
       {
-        if (padv2 >= MIN_SIGNATURE_MATCH)
-        {
-          return usefulSize + TRDOS_ENTRY_SIZE + padv2;
-        }
+        //version 1.2 match
+        return usefulSize + TRDOS_ENTRY_SIZE + padv2;
       }
-      else if (const std::size_t padv3 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_3_PADDING, ArrayEnd(HRUST1_3_PADDING)))
+      const std::size_t padv3 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_3_PADDING, ArrayEnd(HRUST1_3_PADDING));
+      if (padv3 >= EXACT_SIGNATURE_MATCH)
       {
-        if (padv3 >= MIN_SIGNATURE_MATCH)
-        {
-          return usefulSize + TRDOS_ENTRY_SIZE + padv3;
-        }
+        //version 1.3 match
+        return usefulSize + TRDOS_ENTRY_SIZE + padv3;
+      }
+      const std::size_t pad = std::min(padv1, std::min(padv2, padv3));
+      if (pad >= MIN_SIGNATURE_MATCH)
+      {
+        return usefulSize + TRDOS_ENTRY_SIZE + pad;
       }
       return usefulSize;
     }
