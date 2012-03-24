@@ -43,6 +43,8 @@ namespace Formats
       public:
         explicit StatisticCollectingBuilder(Builder& delegate)
           : Delegate(delegate)
+          , NonEmptyPatterns(false)
+          , NonEmptySamples(false)
         {
         }
 
@@ -59,6 +61,10 @@ namespace Formats
         virtual void SetSample(uint_t index, const Sample& sample)
         {
           assert(UsedSamples.count(index));
+          if (IsSampleSounds(sample))
+          {
+            NonEmptySamples = true;
+          }
           return Delegate.SetSample(index, sample);
         }
 
@@ -103,11 +109,16 @@ namespace Formats
 
         virtual void SetNote(uint_t note)
         {
+          NonEmptyPatterns = true;
           return Delegate.SetNote(note);
         }
 
         virtual void SetSample(uint_t sample)
         {
+          if (0 != sample)
+          {
+            NonEmptyPatterns = true;
+          }
           UsedSamples.insert(sample);
           return Delegate.SetSample(sample);
         }
@@ -120,11 +131,13 @@ namespace Formats
 
         virtual void SetEnvelope(uint_t type, uint_t value)
         {
+          NonEmptyPatterns = true;
           return Delegate.SetEnvelope(type, value);
         }
 
         virtual void SetNoEnvelope()
         {
+          NonEmptyPatterns = true;
           return Delegate.SetNoEnvelope();
         }
 
@@ -142,11 +155,40 @@ namespace Formats
         {
           return UsedOrnaments;
         }
+
+        bool HasNonEmptyPatterns() const
+        {
+          return NonEmptyPatterns;
+        }
+
+        bool HasNonEmptySamples() const
+        {
+          return NonEmptySamples;
+        }
+      private:
+        static bool IsSampleSounds(const Sample& smp)
+        {
+          if (smp.Lines.empty())
+          {
+            return false;
+          }
+          for (uint_t idx = 0; idx != SAMPLE_SIZE; ++idx)
+          {
+            const Sample::Line& line = smp.Lines[idx];
+            if (line.EnvelopeMask || line.Level)
+            {
+              return true;//has envelope or tone with volume
+            }
+          }
+          return false;
+        }
       private:
         Builder& Delegate;
         Indices UsedPatterns;
         Indices UsedSamples;
         Indices UsedOrnaments;
+        bool NonEmptyPatterns;
+        bool NonEmptySamples;
       };
     }
   }

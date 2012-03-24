@@ -231,7 +231,6 @@ namespace Chiptune
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
         Require(!pats.empty());
-        bool hasValidPatterns = false;
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
@@ -242,7 +241,6 @@ namespace Chiptune
             const RawPattern& src = GetPattern(patIndex);
             builder.StartPattern(patIndex);
             ParsePattern(src, Source.PatternsSize, builder);
-            hasValidPatterns = true;
           }
           else
           {
@@ -251,7 +249,6 @@ namespace Chiptune
             builder.FinishPattern(Source.PatternsSize);
           }
         }
-        Require(hasValidPatterns);
       }
 
       void ParseSamples(const Indices& samples, Builder& builder) const
@@ -497,8 +494,7 @@ namespace Chiptune
       "20-40"
     );
 
-    //addon for ZXAYST11 header
-    const std::size_t MAX_SEARCH_WINDOW = 48 + sizeof(RawHeader) + (MAX_PATTERNS_COUNT - 1) * sizeof(RawPattern);
+    const std::size_t MAX_SEARCH_WINDOW = 1048576;
 
     class OptimizedFormat : public Binary::Format
     {
@@ -572,8 +568,10 @@ namespace Chiptune
         format.ParsePositions(statistic);
         const Indices& usedPatterns = statistic.GetUsedPatterns();
         format.ParsePatterns(usedPatterns, statistic);
+        Require(statistic.HasNonEmptyPatterns());
         const Indices& usedSamples = statistic.GetUsedSamples();
-        format.ParseSamples(usedSamples, target);
+        format.ParseSamples(usedSamples, statistic);
+        Require(statistic.HasNonEmptySamples());
         const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 

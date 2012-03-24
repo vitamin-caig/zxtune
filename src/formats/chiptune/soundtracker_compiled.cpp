@@ -184,7 +184,6 @@ namespace Chiptune
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
         Require(!pats.empty());
-        bool hasValidPatterns = false;
         Indices restPats(pats);
         for (uint_t patEntryIdx = 0; patEntryIdx < MAX_PATTERNS_COUNT && !restPats.empty(); ++patEntryIdx)
         {
@@ -198,14 +197,10 @@ namespace Chiptune
           {
             Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
             builder.StartPattern(patIndex);
-            if (ParsePattern(src, builder))
-            {
-              hasValidPatterns = true;
-            }
+            ParsePattern(src, builder);
             restPats.erase(patIndex);
           }
         }
-        Require(hasValidPatterns);
         Require(restPats.size() != pats.size());
         while (!restPats.empty())
         {
@@ -361,7 +356,7 @@ namespace Chiptune
         }
       };
 
-      bool ParsePattern(const RawPattern& src, Builder& builder) const
+      void ParsePattern(const RawPattern& src, Builder& builder) const
       {
         const DataCursors rangesStarts(src);
 
@@ -386,12 +381,17 @@ namespace Chiptune
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
           const std::size_t start = rangesStarts[chanNum];
-          //TODO: improve size detection
-          const std::size_t stop = std::min(Limit, state.Offsets[chanNum] + 1);
-          Log::Debug(THIS_MODULE, "Affected ranges %1%..%2%", start, stop);
-          AddFixedRange(start, stop - start);
+          if (start >= Limit)
+          {
+            Log::Debug(THIS_MODULE, "Invalid offset (%1%)", start);
+          }
+          else
+          {
+            const std::size_t stop = std::min(Limit, state.Offsets[chanNum] + 1);
+            Log::Debug(THIS_MODULE, "Affected ranges %1%..%2%", start, stop);
+            AddFixedRange(start, stop - start);
+          }
         }
-        return lineIdx >= MIN_PATTERN_SIZE;
       }
 
       bool HasLine(ParserState& src) const
@@ -726,8 +726,10 @@ namespace Chiptune
         format.ParsePositions(statistic);
         const Indices& usedPatterns = statistic.GetUsedPatterns();
         format.ParsePatterns(usedPatterns, statistic);
+        Require(statistic.HasNonEmptyPatterns());
         const Indices& usedSamples = statistic.GetUsedSamples();
-        format.ParseSamples(usedSamples, target);
+        format.ParseSamples(usedSamples, statistic);
+        Require(statistic.HasNonEmptySamples());
         const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 

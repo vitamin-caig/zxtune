@@ -651,9 +651,15 @@ namespace Chiptune
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
           const std::size_t start = rangesStarts[chanNum];
-          //TODO: improve size detection
-          const std::size_t stop = std::min(Delegate.GetSize(), state.Offsets[chanNum] + 1);
-          Ranges.AddFixed(start, stop - start);
+          if (start >= Delegate.GetSize())
+          {
+            Log::Debug(THIS_MODULE, "Invalid offset (%1%)", start);
+          }
+          else
+          {
+            const std::size_t stop = std::min(Delegate.GetSize(), state.Offsets[chanNum] + 1);
+            Ranges.AddFixed(start, stop - start);
+          }
         }
         return lineIdx >= MIN_PATTERN_SIZE;
       }
