@@ -40,9 +40,10 @@ namespace TRD
     "01-7f"  //files
     "?00-09" //free sectors
     "10"     //ID
-    "+12+"   //reserved2
+    "000020{9}00"//reserved
     "?"      //deleted files
     "20-7f{8}"//title
+    "000000"  //reserved
   );
 
   const std::string THIS_MODULE("Formats::Archived::TRD");
@@ -99,11 +100,27 @@ namespace TRD
     uint8_t Reserved3[3];
   } PACK_POST;
 
+  struct Sector
+  {
+    uint8_t Content[BYTES_PER_SECTOR];
+
+    bool IsEmpty() const
+    {
+      return ArrayEnd(Content) == std::find_if(Content, ArrayEnd(Content), std::bind2nd(std::not_equal_to<uint8_t>(), 0));
+    }
+  };
+
   PACK_PRE struct Catalog
   {
     CatEntry Entries[MAX_FILES_COUNT];
+    //8
     ServiceSector Meta;
-    uint8_t Empty[0x700];
+    //9
+    Sector Empty;
+    //10,11
+    Sector CorruptedByMagic[2];
+    //12..15
+    Sector Empty1[4];
   } PACK_POST;
 
 #ifdef USE_PRAGMA_PACK
@@ -111,7 +128,8 @@ namespace TRD
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(CatEntry) == 16);
-  BOOST_STATIC_ASSERT(sizeof(ServiceSector) == 256);
+  BOOST_STATIC_ASSERT(sizeof(ServiceSector) == BYTES_PER_SECTOR);
+  BOOST_STATIC_ASSERT(sizeof(Sector) == BYTES_PER_SECTOR);
   BOOST_STATIC_ASSERT(sizeof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK);
 
   const Char HIDDEN_FILENAME[] = {'$', 'H', 'i', 'd', 'd', 'e', 'n', 0};
@@ -132,9 +150,17 @@ namespace TRD
     {
       return 0;
     }
+    const Catalog* const catalog = safe_ptr_cast<const Catalog*>(data.Data());
+    if (!(catalog->Empty.IsEmpty() && 
+          catalog->Empty1[0].IsEmpty() &&
+          catalog->Empty1[1].IsEmpty() &&
+          catalog->Empty1[2].IsEmpty() && 
+          catalog->Empty1[3].IsEmpty()))
+    {
+      return 0;
+    }
     const std::size_t trackSize = SECTORS_IN_TRACK * BYTES_PER_SECTOR;
     const bool validSize = dataSize == MODULE_SIZE;
-    const Catalog* const catalog = safe_ptr_cast<const Catalog*>(data.Data());
 
     const std::size_t totalSectors = std::min(dataSize, MODULE_SIZE) / BYTES_PER_SECTOR;
     std::vector<bool> usedSectors(totalSectors);
@@ -171,10 +197,6 @@ namespace TRD
     {
       //no files
       return 0;
-    }
-    if (ArrayEnd(catalog->Empty) != std::find_if(catalog->Empty, ArrayEnd(catalog->Empty), std::bind1st(std::not_equal_to<uint8_t>(), 0)))
-    {
-      return 0;//not empty
     }
 
     const std::vector<bool>::iterator begin = usedSectors.begin();
