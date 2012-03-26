@@ -179,7 +179,8 @@ namespace
       , Iterator(new ItemIteratorImpl(*this, Model))
     {
       //setup connections
-      Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)));
+      //use direct connection due to possible model locking
+      Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection);
       Iterator->connect(Model, SIGNAL(OnIndexesChanged(const Playlist::Model::OldToNewIndexMap&)), 
         SLOT(IndexesChanged(const Playlist::Model::OldToNewIndexMap&)));
 

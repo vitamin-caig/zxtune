@@ -25,7 +25,6 @@ Author:
 #include <boost/thread.hpp>
 //qt includes
 #include <QtCore/QMimeData>
-#include <QtCore/QMutex>
 #include <QtCore/QSet>
 #include <QtGui/QIcon>
 //text includes
@@ -249,8 +248,6 @@ namespace
     explicit ModelImpl(QObject& parent)
       : Playlist::Model(parent)
       , Providers()
-      , SyncAccess(QMutex::Recursive)
-      , SyncModification(QMutex::Recursive)
       , FetchedItemsCount()
       , Container(Playlist::Item::Storage::Create())
       , Canceled(false)
@@ -283,7 +280,7 @@ namespace
 
     virtual Playlist::Item::Data::Ptr GetItem(IndexType index) const
     {
-      QMutexLocker locker(&SyncAccess);
+      const boost::shared_lock<boost::shared_mutex> locker(SyncAccess);
       return Container->GetItem(index);
     }
 
@@ -294,7 +291,8 @@ namespace
 
     virtual void Clear()
     {
-      QMutexLocker locker(&SyncModification);
+      boost::upgrade_lock<boost::shared_mutex> upgradable(SyncAccess);
+      const boost::upgrade_to_unique_lock<boost::shared_mutex> blockReaders(upgradable);
       Container = Playlist::Item::Storage::Create();
       NotifyAboutIndexChanged();
     }
@@ -305,7 +303,8 @@ namespace
       {
         return;
       }
-      QMutexLocker locker(&SyncModification);
+      boost::upgrade_lock<boost::shared_mutex> upgradable(SyncAccess);
+      const boost::upgrade_to_unique_lock<boost::shared_mutex> blockReaders(upgradable);
       Container->RemoveItems(items);
       NotifyAboutIndexChanged();
     }
@@ -318,14 +317,16 @@ namespace
     virtual void MoveItems(const IndexSet& items, IndexType target)
     {
       Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", items.size(), target);
-      QMutexLocker locker(&SyncModification);
+      boost::upgrade_lock<boost::shared_mutex> upgradable(SyncAccess);
+      const boost::upgrade_to_unique_lock<boost::shared_mutex> blockReaders(upgradable);
       Container->MoveItems(items, target);
       NotifyAboutIndexChanged();
     }
 
     virtual void AddItem(Playlist::Item::Data::Ptr item)
     {
-      QMutexLocker locker(&SyncModification);
+      boost::upgrade_lock<boost::shared_mutex> upgradable(SyncAccess);
+      const boost::upgrade_to_unique_lock<boost::shared_mutex> blockReaders(upgradable);
       Container->AddItem(item);
     }
 
@@ -420,13 +421,13 @@ namespace
 
     virtual bool canFetchMore(const QModelIndex& /*index*/) const
     {
-      QMutexLocker locker(&SyncAccess);
+      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
       return FetchedItemsCount < Container->CountItems();
     }
 
     virtual void fetchMore(const QModelIndex& /*index*/)
     {
-      QMutexLocker locker(&SyncAccess);
+      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
       const std::size_t nextCount = Container->CountItems();
       beginInsertRows(EMPTY_INDEX, static_cast<int>(FetchedItemsCount), nextCount - 1);
       FetchedItemsCount = nextCount;
@@ -439,7 +440,7 @@ namespace
       {
         return EMPTY_INDEX;
       }
-      QMutexLocker locker(&SyncAccess);
+      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
       if (row < static_cast<int>(Container->CountItems()))
       {
         return createIndex(row, column, Container->GetVersion());
@@ -454,7 +455,7 @@ namespace
 
     virtual int rowCount(const QModelIndex& index) const
     {
-      QMutexLocker locker(&SyncAccess);
+      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
       return index.isValid()
         ? 0
         : static_cast<int>(FetchedItemsCount);
@@ -490,7 +491,7 @@ namespace
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
-      QMutexLocker locker(&SyncAccess);
+      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
       if (const Playlist::Item::Data::Ptr item = Container->GetItem(itemNum))
       {
         const RowDataProvider& provider = Providers.GetProvider(role);
@@ -513,7 +514,7 @@ namespace
   private:
     void PerformAccessOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
     {
-      QMutexLocker rwLock(&SyncModification);
+      const boost::shared_lock<boost::shared_mutex> sharedReaders(SyncAccess);
       OnLongOperationStart();
       try
       {
@@ -527,18 +528,14 @@ namespace
 
     void PerformModifyOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
     {
-      QMutexLocker rwLock(&SyncModification);
+      boost::upgrade_lock<boost::shared_mutex> upgradable(SyncAccess);
       OnLongOperationStart();
-      Playlist::Item::Storage::Ptr tmpStorage;
-      {
-        QMutexLocker roLock(&SyncAccess);
-        tmpStorage = Container->Clone();
-      }
+      Playlist::Item::Storage::Ptr tmpStorage = Container->Clone();
       try
       {
         operation->Execute(*tmpStorage, *this);
         {
-          QMutexLocker roLock(&SyncAccess);
+          const boost::upgrade_to_unique_lock<boost::shared_mutex> blockReaders(upgradable);
           Container = tmpStorage;
         }
         NotifyAboutIndexChanged();
@@ -578,8 +575,7 @@ namespace
     }
   private:
     const DataProvidersSet Providers;
-    mutable QMutex SyncAccess;
-    mutable QMutex SyncModification;
+    mutable boost::shared_mutex SyncAccess;
     std::size_t FetchedItemsCount;
     Playlist::Item::Storage::Ptr Container;
     mutable boost::thread AsyncExecution;
