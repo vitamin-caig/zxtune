@@ -68,6 +68,13 @@ namespace
       --Size;
     }
 
+    void erase(iterator first, iterator last)
+    {
+      const std::size_t count = std::distance(first, last);
+      Parent::erase(first, last);
+      Size -= count;
+    }
+
     void splice(iterator position, ItemsContainer& x, iterator i)
     {
       Parent::splice(position, x, i);
@@ -93,23 +100,31 @@ namespace
     std::size_t Size;
   };
 
+  template<class IteratorType>
+  class IteratorContainerWalker
+  {
+  public:
+    virtual ~IteratorContainerWalker() {}
+
+    virtual void OnItem(IteratorType it) = 0;
+  };
+
   template<class Container, class IteratorType>
-  void GetChoosenItems(Container& items, const Playlist::Model::IndexSet& indices, std::vector<IteratorType>& result)
+  void ForChoosenItems(Container& items, const Playlist::Model::IndexSet& indices, IteratorContainerWalker<IteratorType>& walker)
   {
     if (items.empty() || indices.empty())
     {
-      result.clear();
       return;
     }
     assert(*indices.rbegin() < items.size());
-    std::vector<IteratorType> choosenItems;
-    choosenItems.reserve(indices.size());
     if (indices.size() == items.size())
     {
       //all items
-      for (IteratorType it = items.begin(), lim = items.end(); it != lim; ++it)
+      for (IteratorType it = items.begin(), lim = items.end(); it != lim; )
       {
-        choosenItems.push_back(it);
+        const IteratorType op = it;
+        ++it;
+        walker.OnItem(op);
       }
     }
     else
@@ -124,12 +139,101 @@ namespace
         {
           std::advance(lastIterator, delta);
         }
-        choosenItems.push_back(lastIterator);
-        lastIndex = curIndex;
+        const IteratorType op = lastIterator;
+        ++lastIterator;
+        lastIndex = curIndex + 1;
+        walker.OnItem(op);
       }
     }
-    choosenItems.swap(result);
   }
+
+  class PlaylistItemVisitorAdapter : public IteratorContainerWalker<ItemsContainer::const_iterator>
+  {
+  public:
+    explicit PlaylistItemVisitorAdapter(Playlist::Item::Visitor& delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual void OnItem(ItemsContainer::const_iterator it)
+    {
+      Delegate.OnItem(it->second, it->first);
+    }
+  private:
+    Playlist::Item::Visitor& Delegate;
+  };
+
+  class RemoveItemsWalker : public IteratorContainerWalker<ItemsContainer::iterator>
+  {
+  public:
+    explicit RemoveItemsWalker(ItemsContainer& container)
+      : Container(container)
+      , LastRangeStart(Container.end())
+      , LastRangeEnd(Container.end())
+    {
+    }
+
+    virtual ~RemoveItemsWalker()
+    {
+      Erase();
+    }
+
+    virtual void OnItem(ItemsContainer::iterator it)
+    {
+      if (it != LastRangeEnd)
+      {
+        Erase();
+        LastRangeStart = it;
+      }
+      LastRangeEnd = ++it;
+    }
+  private:
+    void Erase()
+    {
+      Container.erase(LastRangeStart, LastRangeEnd);
+    }
+  private:
+    ItemsContainer& Container;
+    ItemsContainer::iterator LastRangeStart;
+    ItemsContainer::iterator LastRangeEnd;
+  };
+
+  class MoveItemsWalker : public IteratorContainerWalker<ItemsContainer::iterator>
+  {
+  public:
+    MoveItemsWalker(ItemsContainer& src, ItemsContainer& dst)
+      : Src(src)
+      , Dst(dst)
+      , LastRangeStart(Src.end())
+      , LastRangeEnd(Src.end())
+    {
+    }
+
+    virtual ~MoveItemsWalker()
+    {
+      Splice();
+    }
+
+    virtual void OnItem(ItemsContainer::iterator it)
+    {
+      if (it != LastRangeEnd)
+      {
+        Splice();
+        LastRangeStart = it;
+      }
+      LastRangeEnd = ++it;
+    }
+  private:
+    void Splice()
+    {
+      Dst.splice(Dst.end(), Src, LastRangeStart, LastRangeEnd);
+    }
+  private:
+    ItemsContainer& Src;
+    ItemsContainer& Dst;
+    ItemsContainer::iterator LastRangeStart;
+    ItemsContainer::iterator LastRangeEnd;
+  };
 
   using namespace Playlist;
 
@@ -199,13 +303,8 @@ namespace
 
     virtual void ForSpecifiedItems(const Model::IndexSet& indices, Playlist::Item::Visitor& visitor) const
     {
-      std::vector<ItemsContainer::const_iterator> choosenIterators;
-      GetChoosenItems(Items, indices, choosenIterators);
-      for (std::vector<ItemsContainer::const_iterator>::const_iterator it = choosenIterators.begin(), lim = choosenIterators.end(); it != lim; ++it)
-      {
-        const IndexedItem& item = **it;
-        visitor.OnItem(item.second, item.first);
-      }
+      PlaylistItemVisitorAdapter walker(visitor);
+      ForChoosenItems(Items, indices, walker);
     }
 
     virtual void MoveItems(const Model::IndexSet& indices, Model::IndexType destination)
@@ -241,11 +340,10 @@ namespace
       {
         return;
       }
-      std::vector<ItemsContainer::iterator> itersToRemove;
-      GetChoosenItems(Items, indices, itersToRemove);
-      assert(indices.size() == itersToRemove.size());
-      std::for_each(itersToRemove.begin(), itersToRemove.end(),
-        boost::bind(&ItemsContainer::erase, &Items, _1));
+      {
+        RemoveItemsWalker walker(Items);
+        ForChoosenItems(Items, indices, walker);
+      }
       Modify();
     }
   private:
@@ -298,14 +396,13 @@ namespace
       assert(!indices.count(destination));
       ItemsContainer::iterator delimiter = GetIteratorByIndex(destination);
 
-      std::vector<ItemsContainer::iterator> movedIters;
-      GetChoosenItems(Items, indices, movedIters);
-      assert(indices.size() == movedIters.size());
-
       ItemsContainer movedItems;
-      std::for_each(movedIters.begin(), movedIters.end(), 
-        boost::bind(&ItemsContainer::splice, &movedItems, movedItems.end(), boost::ref(Items), _1));
-      
+      {
+        MoveItemsWalker walker(Items, movedItems);
+        ForChoosenItems(Items, indices, walker);
+      }
+      assert(indices.size() == movedItems.size());
+
       ItemsContainer afterItems;
       afterItems.splice(afterItems.begin(), Items, delimiter, Items.end());
 
