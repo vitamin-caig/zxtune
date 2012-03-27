@@ -118,10 +118,10 @@ namespace
       ::id3tag_set_comment(Context.get(), commentC.c_str());
     }
 
-    virtual void StoreData(Chunk& data)
+    virtual void ApplyData(const ChunkPtr& data)
     {
       while (const int res = ::lame_encode_buffer_interleaved(Context.get(),
-        safe_ptr_cast<short int*>(&data[0]), data.size(), &Encoded[0], Encoded.size()))
+        safe_ptr_cast<short int*>(&data->front()), data->size(), &Encoded[0], Encoded.size()))
       {
         if (res > 0) //encoded
         {
@@ -143,8 +143,8 @@ namespace
         }
       }
     }
-  private:
-    void Flush()
+
+    virtual void Flush()
     {
       while (const int res = ::lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
       {

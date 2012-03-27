@@ -43,6 +43,11 @@ namespace Parameters
             'o','v','e','r','w','r','i','t','e','\0'
           };
 
+          const Char BUFFERS_PARAMETER[] =
+          {
+            'b','u','f','f','e','r','s','\0'
+          };
+
           //@{
           //! @name Any file-based backend basic parameters
 
@@ -54,10 +59,17 @@ namespace Parameters
           };
 
           //! @brief Rewrite output files if exist
-          //! @note != 0 if yes
+          //! @note Not zero if rewrite
           const Char OVERWRITE[] =
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','f','i','l','e','.','o','v','e','r','w','r','i','t','e','\0'
+          };
+
+          //! @brief Buffers count to asynchronous saving
+          //! @note Not zero if use asynchronous saving
+          const Char BUFFERS[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','f','i','l','e','.','b','u','f','f','e','r','s','\0'
           };
           //@}
         }

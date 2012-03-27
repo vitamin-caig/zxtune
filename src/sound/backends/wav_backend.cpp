@@ -106,18 +106,18 @@ namespace
     {
     }
 
-    virtual void StoreData(Chunk& data)
+    virtual void ApplyData(const ChunkPtr& data)
     {
 #ifdef BOOST_BIG_ENDIAN
       // in case of big endian, required to swap values
-      std::transform(data.front().begin(), data.back().end(), data.front().begin(), &swapBytes<Sample>);
+      std::transform(data->front().begin(), data->back().end(), data->front().begin(), &swapBytes<Sample>);
 #endif
-      const std::size_t sizeInBytes = data.size() * sizeof(data.front());
-      Stream->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(sizeInBytes));
+      const std::size_t sizeInBytes = data->size() * sizeof(data->front());
+      Stream->write(safe_ptr_cast<const char*>(&data->front()), static_cast<std::streamsize>(sizeInBytes));
       DoneBytes += static_cast<uint32_t>(sizeInBytes);
     }
-  private:
-    void Flush()
+
+    virtual void Flush()
     {
       const std::streampos oldPos = Stream->tellp();
       // write header

@@ -20,7 +20,11 @@ namespace ZXTune
 {
   namespace Sound
   {
-    class FileStream
+    typedef boost::shared_ptr<Chunk> ChunkPtr;
+
+    typedef DataReceiver<ChunkPtr> ChunkStream;
+
+    class FileStream : public ChunkStream
     {
     public:
       typedef boost::shared_ptr<FileStream> Ptr;
@@ -28,7 +32,6 @@ namespace ZXTune
       virtual void SetTitle(const String& title) = 0;
       virtual void SetAuthor(const String& author) = 0;
       virtual void SetComment(const String& comment) = 0;
-      virtual void StoreData(Chunk& data) = 0;
     };
 
     class FileStreamFactory

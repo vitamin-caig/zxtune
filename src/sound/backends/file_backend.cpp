@@ -16,6 +16,7 @@ Author:
 #include <template_parameters.h>
 #include <template_tools.h>
 //library includes
+#include <async/data_receiver.h>
 #include <core/module_attrs.h>
 #include <io/fs_tools.h>
 #include <sound/backends_parameters.h>
@@ -164,6 +165,13 @@ namespace
         Parameters::ZXTune::Sound::Backends::File::OVERWRITE_PARAMETER);
       return intParam != 0;
     }
+
+    uint_t GetBuffersCount() const
+    {
+      const Parameters::IntType intParam = GetProperty(&Parameters::Accessor::FindIntValue,
+        Parameters::ZXTune::Sound::Backends::File::BUFFERS_PARAMETER);
+      return static_cast<uint_t>(intParam);
+    }
   private:
     template<class T>
     T GetProperty(bool (Parameters::Accessor::*getFunc)(const Parameters::NameType&, T&) const, const Parameters::NameType& name) const
@@ -226,7 +234,7 @@ namespace
     {
     }
 
-    FileStream::Ptr GetStream(const Module::TrackState& state) const
+    ChunkStream::Ptr GetStream(const Module::TrackState& state) const
     {
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
@@ -234,9 +242,16 @@ namespace
         Filename = newFilename;
         const FileStream::Ptr result = Factory->OpenStream(Filename, Params.CheckIfRewrite());
         SetProperties(*result);
-        return result;
+        if (const uint_t buffers = Params.GetBuffersCount())
+        {
+          return Async::DataReceiver<ChunkPtr>::Create(1, buffers, result);
+        }
+        else
+        {
+          return result;
+        }
       }
-      return FileStream::Ptr();
+      return ChunkStream::Ptr();
     }
   private:
     void SetProperties(FileStream& stream) const
@@ -273,6 +288,7 @@ namespace
     FileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
       : Params(params)
       , Factory(factory)
+      , Stream(ChunkStream::CreateStub())
     {
     }
 
@@ -289,14 +305,13 @@ namespace
 
     virtual void OnStartup(const Module::Holder& module)
     {
-      assert(!Stream);
       const Parameters::Accessor::Ptr props = module.GetModuleProperties();
       Source.reset(new StreamSource(Params, Factory, props));
     }
 
     virtual void OnShutdown()
     {
-      Stream.reset();
+      SetStream(ChunkStream::CreateStub());
       Source.reset();
     }
 
@@ -310,22 +325,30 @@ namespace
 
     virtual void OnFrame(const Module::TrackState& state)
     {
-      if (FileStream::Ptr newStream = Source->GetStream(state))
+      if (ChunkStream::Ptr newStream = Source->GetStream(state))
       {
-        Stream = newStream;
+        SetStream(newStream);
       }
     }
 
     virtual void OnBufferReady(Chunk& buffer)
     {
       assert(Stream);
-      Stream->StoreData(buffer);
+      const ChunkPtr chunk = boost::make_shared<Chunk>();
+      chunk->swap(buffer);
+      Stream->ApplyData(chunk);
+    }
+  private:
+    void SetStream(ChunkStream::Ptr str)
+    {
+      Stream->Flush();
+      Stream = str;
     }
   private:
     const Parameters::Accessor::Ptr Params;
     const FileStreamFactory::Ptr Factory;
     std::auto_ptr<StreamSource> Source;
-    FileStream::Ptr Stream;
+    ChunkStream::Ptr Stream;
   };
 }
 
