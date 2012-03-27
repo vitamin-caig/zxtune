@@ -21,6 +21,7 @@ Author:
 //library includes
 #include <sound/backends_parameters.h>
 //qt includes
+#include <QtCore/QThread>
 #include <QtGui/QPushButton>
 
 namespace
@@ -31,6 +32,13 @@ namespace
     FORMAT_PAGE = 1,
     SETTINGS_PAGE = 2
   };
+
+  const uint_t MULTITHREAD_BUFFERS_COUNT = 1000;//20 sec usually
+
+  bool HasMultithreadEnvironment()
+  {
+    return QThread::idealThreadCount() >= 1;
+  }
 
   class SetupConversionDialogImpl : public UI::SetupConversionDialog
                                   , private Ui::SetupConversion
@@ -55,6 +63,7 @@ namespace
       connect(buttonBox, SIGNAL(rejected()), SLOT(reject()));
 
       toolBox->setCurrentIndex(TEMPLATE_PAGE);
+      useMultithreading->setEnabled(HasMultithreadEnvironment());
       UpdateDescriptions();
     }
 
@@ -66,7 +75,11 @@ namespace
         const Parameters::Container::Ptr options = GetBackendSettings(type);
         const QString filename = TargetTemplate->GetFilenameTemplate();
         options->SetStringValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, FromQString(filename));
-        options->SetIntValue(Parameters::ZXTune::Sound::Backends::File::OVERWRITE, true);//TODO
+        options->SetIntValue(Parameters::ZXTune::Sound::Backends::File::OVERWRITE, overwriteTarget->isChecked());
+        if (useMultithreading->isChecked())
+        {
+          options->SetIntValue(Parameters::ZXTune::Sound::Backends::File::BUFFERS, MULTITHREAD_BUFFERS_COUNT);
+        }
         return options;
       }
       else
