@@ -152,18 +152,14 @@ namespace
       return Item::Storage::Ptr(new LinearStorage(*this));
     }
    
-    virtual void GetIndexRemapping(Model::OldToNewIndexMap& idxMap) const
+    virtual Model::OldToNewIndexMap::Ptr ResetIndices()
     {
-      Model::OldToNewIndexMap result;
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), std::inserter(result, result.end()),
+      const boost::shared_ptr<Model::OldToNewIndexMap> result = boost::make_shared<Model::OldToNewIndexMap>();
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), std::inserter(*result, result->end()),
         boost::bind(&MakeIndexPair, _1, _2));
-      idxMap.swap(result);
-    }
-
-    virtual void ResetIndices()
-    {
       std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), Items.begin(),
         boost::bind(&UpdateItemIndex, _1, _2));
+      return result;
     }
 
     virtual unsigned GetVersion() const

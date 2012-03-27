@@ -89,7 +89,7 @@ namespace
       SelectItem(idx);
     }
 
-    virtual void IndexesChanged(const Playlist::Model::OldToNewIndexMap& remapping)
+    virtual void IndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr remapping)
     {
       Log::Debug(THIS_MODULE, "Iterator: index changed.");
       if (NO_INDEX == Index)
@@ -97,13 +97,13 @@ namespace
         Log::Debug(THIS_MODULE, "Iterator: nothing to update");
         return;
       }
-      if (const Playlist::Model::IndexType* moved = remapping.FindNewIndex(Index))
+      if (const Playlist::Model::IndexType* moved = remapping->FindNewIndex(Index))
       {
         Log::Debug(THIS_MODULE, "Iterator: index updated %1% -> %2%", Index, *moved);
         Index = *moved;
         return;
       }
-      if (const Playlist::Model::IndexType* newOne = remapping.FindNewSuitableIndex(Index))
+      if (const Playlist::Model::IndexType* newOne = remapping->FindNewSuitableIndex(Index))
       {
         if (SelectItem(*newOne))
         {
@@ -181,8 +181,8 @@ namespace
       //setup connections
       //use direct connection due to possible model locking
       Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection);
-      Iterator->connect(Model, SIGNAL(OnIndexesChanged(const Playlist::Model::OldToNewIndexMap&)), 
-        SLOT(IndexesChanged(const Playlist::Model::OldToNewIndexMap&)));
+      Iterator->connect(Model, SIGNAL(OnIndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr)), 
+        SLOT(IndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr)));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }

@@ -73,6 +73,7 @@ namespace Playlist
     class OldToNewIndexMap : public std::map<IndexType, IndexType>
     {
     public:
+      typedef boost::shared_ptr<const OldToNewIndexMap> Ptr;
       //! Finds new index after remapping
       const IndexType* FindNewIndex(IndexType oldIdx) const;
       //! Tryes to search any suitable mapping
@@ -99,7 +100,7 @@ namespace Playlist
     virtual void RemoveItems(Playlist::Model::IndexSetPtr items) = 0;
     virtual void CancelLongOperation() = 0;
   signals:
-    void OnIndexesChanged(const Playlist::Model::OldToNewIndexMap& map);
+    void OnIndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr map);
     void OnLongOperationStart();
     void OnLongOperationProgress(int progress);
     void OnLongOperationStop();

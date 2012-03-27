@@ -71,7 +71,7 @@ namespace Playlist
       //navigate
       virtual void Reset(unsigned idx) = 0;
       //updates
-      virtual void IndexesChanged(const Playlist::Model::OldToNewIndexMap& remapping) = 0;
+      virtual void IndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr remapping) = 0;
     signals:
       void OnListItemActivated(unsigned idx, Playlist::Item::Data::Ptr data);
     };

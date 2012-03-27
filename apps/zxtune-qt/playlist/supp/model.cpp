@@ -336,10 +336,14 @@ namespace
 
     virtual void Clear()
     {
-      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-      const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
-      Container = Playlist::Item::Storage::Create();
-      NotifyAboutIndexChanged();
+      Playlist::Model::OldToNewIndexMap::Ptr remapping;
+      {
+        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        Container = Playlist::Item::Storage::Create();
+        remapping = GetIndicesChanges();
+      }
+      NotifyAboutIndexChanged(remapping);
     }
 
     virtual void RemoveItems(const Playlist::Model::IndexSet& items)
@@ -348,9 +352,14 @@ namespace
       {
         return;
       }
-      const boost::unique_lock<boost::shared_mutex> lock(SyncAccess);
-      Container->RemoveItems(items);
-      NotifyAboutIndexChanged();
+      Playlist::Model::OldToNewIndexMap::Ptr remapping;
+      {
+        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        Container->RemoveItems(items);
+        remapping = GetIndicesChanges();
+      }
+      NotifyAboutIndexChanged(remapping);
     }
 
     virtual void RemoveItems(IndexSetPtr items)
@@ -361,10 +370,14 @@ namespace
     virtual void MoveItems(const IndexSet& items, IndexType target)
     {
       Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", items.size(), target);
-      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-      const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
-      Container->MoveItems(items, target);
-      NotifyAboutIndexChanged();
+      Playlist::Model::OldToNewIndexMap::Ptr remapping;
+      {
+        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        Container->MoveItems(items, target);
+        remapping = GetIndicesChanges();
+      }
+      NotifyAboutIndexChanged(remapping);
     }
 
     virtual void AddItem(Playlist::Item::Data::Ptr item)
@@ -573,30 +586,39 @@ namespace
 
     virtual void ExecuteOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
     {
-      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-      OnLongOperationStart();
-      Playlist::Item::Storage::Ptr tmpStorage = Container->Clone();
-      try
+      Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
-        operation->Execute(*tmpStorage, *this);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
-        Container = tmpStorage;
-        NotifyAboutIndexChanged();
+        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+        OnLongOperationStart();
+        Playlist::Item::Storage::Ptr tmpStorage = Container->Clone();
+        try
+        {
+          operation->Execute(*tmpStorage, *this);
+          const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+          Container = tmpStorage;
+          remapping = GetIndicesChanges();
+        }
+        catch (const std::exception&)
+        {
+        }
+        OnLongOperationStop();
       }
-      catch (const std::exception&)
-      {
-      }
-      OnLongOperationStop();
+      NotifyAboutIndexChanged(remapping);
     }
 
-    void NotifyAboutIndexChanged()
+    Playlist::Model::OldToNewIndexMap::Ptr GetIndicesChanges()
     {
       FetchedItemsCount = Container->CountItems();
-      Playlist::Model::OldToNewIndexMap remapping;
-      Container->GetIndexRemapping(remapping);
-      Container->ResetIndices();
-      OnIndexesChanged(remapping);
-      reset();
+      return Container->ResetIndices();
+    }
+
+    void NotifyAboutIndexChanged(Playlist::Model::OldToNewIndexMap::Ptr changes)
+    {
+      if (changes)
+      {
+        OnIndexesChanged(changes);
+        reset();
+      }
     }
 
     virtual void OnProgress(uint_t current)
@@ -634,7 +656,7 @@ namespace Playlist
 
   Model::Ptr Model::Create(QObject& parent)
   {
-    REGISTER_METATYPE(Playlist::Model::OldToNewIndexMap);
+    REGISTER_METATYPE(Playlist::Model::OldToNewIndexMap::Ptr);
     return new ModelImpl(parent);
   }
 

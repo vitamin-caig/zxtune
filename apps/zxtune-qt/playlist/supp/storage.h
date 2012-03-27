@@ -48,8 +48,7 @@ namespace Playlist
 
       //meta
       virtual Ptr Clone() const = 0;
-      virtual void GetIndexRemapping(Model::OldToNewIndexMap& idxMap) const = 0;
-      virtual void ResetIndices() = 0;
+      virtual Model::OldToNewIndexMap::Ptr ResetIndices() = 0;
       virtual unsigned GetVersion() const = 0;
 
       //create
