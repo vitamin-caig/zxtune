@@ -34,13 +34,13 @@ namespace TRD
     //service sector
     "00"     //zero
     "+224+"  //reserved
-    "00-0f"  //free sector
-    "01-9f"  //free track
+    "?"      //free sector
+    "?"      //free track
     "16"     //type DS_DD
     "01-7f"  //files
     "?00-09" //free sectors
     "10"     //ID
-    "000020{9}00"//reserved
+    "0000+9+00"//reserved
     "?"      //deleted files
     "20-7f{8}"//title
     "000000"  //reserved
@@ -132,7 +132,6 @@ namespace TRD
   BOOST_STATIC_ASSERT(sizeof(Sector) == BYTES_PER_SECTOR);
   BOOST_STATIC_ASSERT(sizeof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK);
 
-  const Char HIDDEN_FILENAME[] = {'$', 'H', 'i', 'd', 'd', 'e', 'n', 0};
   const Char UNALLOCATED_FILENAME[] = {'$', 'U', 'n', 'a', 'l', 'l', 'o', 'c', 'a', 't', 'e', 'd', 0};
 
   class Visitor
@@ -157,6 +156,7 @@ namespace TRD
           catalog->Empty1[2].IsEmpty() && 
           catalog->Empty1[3].IsEmpty()))
     {
+      Log::Debug(THIS_MODULE, "Invalid track 0 reserved blocks content");
       return 0;
     }
     const std::size_t trackSize = SECTORS_IN_TRACK * BYTES_PER_SECTOR;
@@ -172,57 +172,50 @@ namespace TRD
       {
         continue;
       }
+      String entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
+      if (DELETED == catEntry->Name[0])
+      {
+        entryName.insert(0, 1, '~');
+      }
       const uint_t offset = SECTORS_IN_TRACK * catEntry->Track + catEntry->Sector;
       const uint_t size = catEntry->SizeInSectors;
       if (offset + size > totalSectors)
       {
+        Log::Debug(THIS_MODULE, "File '%1%' is out of bounds", entryName);
         return 0;//out of bounds
       }
       const std::vector<bool>::iterator begin = usedSectors.begin() + offset;
       const std::vector<bool>::iterator end = begin + size;
       if (end != std::find(begin, end, true))
       {
+        Log::Debug(THIS_MODULE, "File '%1%' is overlapped with some other", entryName);
         return 0;//overlap
       }
-      std::fill(begin, end, true);
-      String entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
-      if (DELETED == catEntry->Name[0])
+      if (!*(begin - 1))
       {
-        entryName.insert(0, 1, '~');
+        Log::Debug(THIS_MODULE, "File '%1%' has a gap before", entryName);
+        return 0;//gap
       }
+      std::fill(begin, end, true);
       visitor.OnFile(entryName, offset * BYTES_PER_SECTOR, size * BYTES_PER_SECTOR);
       ++files;
     }
     if (!files)
     {
+      Log::Debug(THIS_MODULE, "No files in image");
       //no files
       return 0;
     }
 
     const std::vector<bool>::iterator begin = usedSectors.begin();
-    const std::vector<bool>::iterator limit = validSize ? usedSectors.end() : std::find(usedSectors.rbegin(), usedSectors.rend(), true).base();
-    if (validSize)
+    const std::vector<bool>::iterator firstFree = std::find(usedSectors.rbegin(), usedSectors.rend(), true).base();
+    const std::vector<bool>::iterator limit = validSize ? usedSectors.end() : firstFree;
+    if (validSize && firstFree != limit)
     {
-      const std::size_t freeArea = (SECTORS_IN_TRACK * catalog->Meta.FreeSpaceTrack + catalog->Meta.FreeSpaceSect);
-      if (freeArea > SECTORS_IN_TRACK && freeArea < totalSectors)
-      {
-        const std::vector<bool>::iterator freeBegin = usedSectors.begin() + freeArea;
-        if (limit == std::find(freeBegin, limit, true))
-        {
-          std::fill(freeBegin, limit, true);
-          visitor.OnFile(UNALLOCATED_FILENAME, freeArea * BYTES_PER_SECTOR, (totalSectors - freeArea) * BYTES_PER_SECTOR);
-        }
-      }
-    }
-    for (std::vector<bool>::iterator empty = std::find(begin, limit, false); 
-         empty != limit;
-         )
-    {
-      const std::vector<bool>::iterator emptyEnd = std::find(empty, limit, true);
-      const std::size_t offset = BYTES_PER_SECTOR * (empty - begin);
-      const std::size_t size = BYTES_PER_SECTOR * (emptyEnd - empty);
-      visitor.OnFile(HIDDEN_FILENAME, offset, size);
-      empty = std::find(emptyEnd, limit, false);
+      //do not pay attention to free sector info in service sector
+      //std::fill(firstFree, limit, true);
+      const std::size_t freeArea = std::distance(begin, firstFree);
+      visitor.OnFile(UNALLOCATED_FILENAME, freeArea * BYTES_PER_SECTOR, (totalSectors - freeArea) * BYTES_PER_SECTOR);
     }
     return std::distance(begin, limit) * BYTES_PER_SECTOR;
   }
