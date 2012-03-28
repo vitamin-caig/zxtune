@@ -494,36 +494,11 @@ namespace Chiptune
       "20-40"
     );
 
-    const std::size_t MAX_SEARCH_WINDOW = 1048576;
-
-    class OptimizedFormat : public Binary::Format
-    {
-    public:
-      OptimizedFormat()
-        : Delegate(Binary::Format::Create(FORMAT))
-      {
-      }
-      
-      virtual bool Match(const void* data, std::size_t size) const
-      {
-        return Delegate->Match(data, size);
-      }
-      
-      virtual std::size_t Search(const void* data, std::size_t size) const
-      {
-        return size > MAX_SEARCH_WINDOW
-          ? size
-          : Delegate->Search(data, size);
-      }
-    private:
-      const Binary::Format::Ptr Delegate;
-    };
-
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
-        : Format(boost::make_shared<OptimizedFormat>())
+        : Format(Binary::Format::Create(FORMAT))
       {
       }
 
