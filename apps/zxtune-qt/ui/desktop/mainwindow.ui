@@ -88,6 +88,9 @@
    <property name="text">
     <string>Add files</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionAddFolder">
    <property name="icon">
@@ -117,6 +120,9 @@
    </property>
    <property name="text">
     <string>Online help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
    </property>
   </action>
   <action name="actionWebSite">
