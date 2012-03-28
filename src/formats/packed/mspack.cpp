@@ -46,9 +46,9 @@ namespace MSPack
     //+4
     uint16_t LastSrcRestBytes;
     //+6
-    uint16_t LastSrcPacked;
+    uint16_t SrcPacked;
     //+8
-    uint16_t LastDstPacked;
+    uint16_t DstPacked;
     //+a
     uint16_t SizeOfPacked;
     //+c
@@ -61,6 +61,8 @@ namespace MSPack
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10);
+
+  const std::size_t LAST_BYTES_COUNT = 5;
 
   class Container
   {
@@ -78,12 +80,20 @@ namespace MSPack
         return false;
       }
       const RawHeader& header = GetHeader();
-      if (fromLE(header.LastSrcRestBytes) <= fromLE(header.LastSrcPacked) ||
-          fromLE(header.LastDstPacked) <= fromLE(header.DstAddress))
+      const uint_t endOfBlock = fromLE(header.LastSrcRestBytes) + 1;
+      const uint_t lastBytesAddr = endOfBlock - LAST_BYTES_COUNT;
+      const uint_t bitStreamAddr = lastBytesAddr - fromLE(header.SizeOfPacked);
+
+      const uint_t srcPacked = fromLE(header.SrcPacked);
+      if (bitStreamAddr == srcPacked)
       {
-        return false;
+        //move forward
       }
-      if (fromLE(header.LastSrcRestBytes) <= fromLE(header.LastSrcPacked))
+      else if (lastBytesAddr == srcPacked + 1)
+      {
+        //move backward
+      }
+      else
       {
         return false;
       }
@@ -94,8 +104,7 @@ namespace MSPack
     uint_t GetUsedSize() const
     {
       const RawHeader& header = GetHeader();
-      const uint_t lastBytesCount = fromLE(header.LastSrcRestBytes) - fromLE(header.LastSrcPacked);
-      return sizeof(header) + fromLE(header.SizeOfPacked) + lastBytesCount - 4;
+      return offsetof(RawHeader, DstAddress) + fromLE(header.SizeOfPacked) + LAST_BYTES_COUNT;
     }
 
     const RawHeader& GetHeader() const
@@ -133,11 +142,9 @@ namespace MSPack
   private:
     bool DecodeData()
     {
-      const uint_t lastBytesCount = fromLE(Header.LastSrcRestBytes) - fromLE(Header.LastSrcPacked);
       const uint_t packedSize = fromLE(Header.SizeOfPacked);
-      const uint_t unpackedSize = fromLE(Header.LastDstPacked) - fromLE(Header.DstAddress) + 1;
 
-      Decoded.reserve(unpackedSize);
+      Decoded.reserve(MAX_DECODED_SIZE);
 
       while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
       {
@@ -184,8 +191,8 @@ namespace MSPack
           return false;
         }
       }
-      const uint8_t* const lastBytes = Header.BitStream + packedSize - sizeof(Header.BitStream);
-      std::copy(lastBytes, lastBytes + lastBytesCount, std::back_inserter(Decoded));
+      const uint8_t* const lastBytes = Header.BitStream + Stream.GetProcessedBytes();
+      std::copy(lastBytes, lastBytes + LAST_BYTES_COUNT, std::back_inserter(Decoded));
       return true;
     }
 
