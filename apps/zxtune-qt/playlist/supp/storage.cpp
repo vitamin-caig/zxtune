@@ -13,6 +13,8 @@ Author:
 
 //local includes
 #include "storage.h"
+//common includes
+#include <logging.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -20,6 +22,8 @@ Author:
 
 namespace
 {
+  const std::string THIS_MODULE("Playlist::Storage");
+
   typedef std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType> IndexedItem;
 
   //simple std::list wrapper that guarantees contstant complexivity of size() method
@@ -108,44 +112,6 @@ namespace
 
     virtual void OnItem(IteratorType it) = 0;
   };
-
-  template<class Container, class IteratorType>
-  void ForChoosenItems(Container& items, const Playlist::Model::IndexSet& indices, IteratorContainerWalker<IteratorType>& walker)
-  {
-    if (items.empty() || indices.empty())
-    {
-      return;
-    }
-    assert(*indices.rbegin() < items.size());
-    if (indices.size() == items.size())
-    {
-      //all items
-      for (IteratorType it = items.begin(), lim = items.end(); it != lim; )
-      {
-        const IteratorType op = it;
-        ++it;
-        walker.OnItem(op);
-      }
-    }
-    else
-    {
-      Playlist::Model::IndexType lastIndex = 0;
-      IteratorType lastIterator = items.begin();
-      for (Playlist::Model::IndexSet::const_iterator idxIt = indices.begin(), idxLim = indices.end(); idxIt != idxLim; ++idxIt)
-      {
-        const Playlist::Model::IndexType curIndex = *idxIt;
-        assert(curIndex >= lastIndex);
-        if (const Playlist::Model::IndexType delta = curIndex - lastIndex)
-        {
-          std::advance(lastIterator, delta);
-        }
-        const IteratorType op = lastIterator;
-        ++lastIterator;
-        lastIndex = curIndex + 1;
-        walker.OnItem(op);
-      }
-    }
-  }
 
   class PlaylistItemVisitorAdapter : public IteratorContainerWalker<ItemsContainer::const_iterator>
   {
@@ -237,6 +203,8 @@ namespace
 
   using namespace Playlist;
 
+  const std::size_t CACHE_THRESHOLD = 200;
+
   class LinearStorage : public Item::Storage
   {
   public:
@@ -304,7 +272,7 @@ namespace
     virtual void ForSpecifiedItems(const Model::IndexSet& indices, Playlist::Item::Visitor& visitor) const
     {
       PlaylistItemVisitorAdapter walker(visitor);
-      ForChoosenItems(Items, indices, walker);
+      ForChoosenItems(indices, walker);
     }
 
     virtual void MoveItems(const Model::IndexSet& indices, Model::IndexType destination)
@@ -331,6 +299,7 @@ namespace
     virtual void Sort(const Item::Comparer& cmp)
     {
       Items.sort(ComparerWrapper(cmp));
+      ClearCache();
       Modify();
     }
 
@@ -342,8 +311,9 @@ namespace
       }
       {
         RemoveItemsWalker walker(Items);
-        ForChoosenItems(Items, indices, walker);
+        ForChoosenItems(indices, walker);
       }
+      ClearCache();
       Modify();
     }
   private:
@@ -373,18 +343,77 @@ namespace
       const Item::Comparer& Cmp;
     };
 
-    ItemsContainer::const_iterator GetIteratorByIndex(Model::IndexType idx) const
+    typedef std::map<Model::IndexType, ItemsContainer::iterator> IndexToIterator;
+
+    ItemsContainer::iterator GetIteratorByIndex(Model::IndexType idx) const
     {
-      ItemsContainer::const_iterator it = Items.begin();
-      std::advance(it, idx);
-      return it;
+      std::pair<Model::IndexType, ItemsContainer::iterator> entry = GetNearestIterator(idx);
+      if (const std::ptrdiff_t delta = std::ptrdiff_t(idx) - entry.first)
+      {
+        std::advance(entry.second, delta);
+        if (absolute(delta) > CACHE_THRESHOLD)
+        {
+          Log::Debug(THIS_MODULE, "Cached iterator for idx=%1%. Nearest idx=%2%, delta=%3%", idx, entry.first, delta);
+          entry.first += delta;
+          IteratorsCache.insert(entry);
+        }
+      }
+      return entry.second;
     }
 
-    ItemsContainer::iterator GetIteratorByIndex(Model::IndexType idx)
+    IndexToIterator::value_type GetNearestIterator(Model::IndexType idx) const
     {
-      ItemsContainer::iterator it = Items.begin();
-      std::advance(it, idx);
-      return it;
+      const IndexToIterator::value_type predefinedEntry = GetNearestPredefinedIterator(idx);
+      const std::size_t predefinedDelta = absolute(std::ptrdiff_t(idx) - predefinedEntry.first);
+      if (predefinedDelta <= CACHE_THRESHOLD || IteratorsCache.empty())
+      {
+        return predefinedEntry;
+      }
+      const IndexToIterator::value_type cachedEntry = GetNearestCachedIterator(idx);
+      const std::size_t cachedDelta = absolute(std::ptrdiff_t(idx) - cachedEntry.first);
+      if (cachedDelta <= CACHE_THRESHOLD)
+      {
+        return cachedEntry;
+      }
+      return predefinedDelta <= cachedDelta
+        ? predefinedEntry
+        : cachedEntry;
+    }
+
+    IndexToIterator::value_type GetNearestPredefinedIterator(Model::IndexType idx) const
+    {
+      const Model::IndexType firstIndex = 0;
+      const Model::IndexType lastIndex = Model::IndexType(Items.size() - 1);
+      const std::size_t toFirst = idx - firstIndex;
+      const std::size_t toLast = lastIndex - idx;
+      if (toFirst <= toLast)
+      {
+        return IndexToIterator::value_type(firstIndex, Items.begin());
+      }
+      else
+      {
+        return IndexToIterator::value_type(lastIndex, --Items.end());
+      }
+    }
+
+    IndexToIterator::value_type GetNearestCachedIterator(Model::IndexType idx) const
+    {
+      assert(!IteratorsCache.empty());
+      const IndexToIterator::const_iterator upper = IteratorsCache.upper_bound(idx);
+      if (upper == IteratorsCache.begin())
+      {
+        return *upper;
+      }
+      IndexToIterator::const_iterator lower = upper;
+      --lower;
+      if (upper == IteratorsCache.end())
+      {
+        return *lower;
+      }
+      //upper->first > idx
+      const std::size_t toLower = idx - lower->first;
+      const std::size_t toUpper = upper->first - idx;
+      return *(toLower <= toUpper ? lower : upper);
     }
 
     void MoveItemsInternal(const Model::IndexSet& indices, Model::IndexType destination)
@@ -399,7 +428,7 @@ namespace
       ItemsContainer movedItems;
       {
         MoveItemsWalker walker(Items, movedItems);
-        ForChoosenItems(Items, indices, walker);
+        ForChoosenItems(indices, walker);
       }
       assert(indices.size() == movedItems.size());
 
@@ -409,17 +438,62 @@ namespace
       //gathering back
       Items.splice(Items.end(), movedItems);
       Items.splice(Items.end(), afterItems);
+      ClearCache();
       Modify();
+    }
+
+    template<class IteratorType>
+    void ForChoosenItems(const Playlist::Model::IndexSet& indices, IteratorContainerWalker<IteratorType>& walker) const
+    {
+      if (Items.empty() || indices.empty())
+      {
+        return;
+      }
+      assert(*indices.rbegin() < Items.size());
+      if (indices.size() == Items.size())
+      {
+        //all items
+        for (IteratorType it = Items.begin(), lim = Items.end(); it != lim; )
+        {
+          const IteratorType op = it;
+          ++it;
+          walker.OnItem(op);
+        }
+      }
+      else
+      {
+        Playlist::Model::IndexType lastIndex = *indices.begin();
+        IteratorType lastIterator = GetIteratorByIndex(lastIndex);
+        for (Playlist::Model::IndexSet::const_iterator idxIt = indices.begin(), idxLim = indices.end(); idxIt != idxLim; ++idxIt)
+        {
+          const Playlist::Model::IndexType curIndex = *idxIt;
+          assert(curIndex >= lastIndex);
+          if (const Playlist::Model::IndexType delta = curIndex - lastIndex)
+          {
+            std::advance(lastIterator, delta);
+          }
+          const IteratorType op = lastIterator;
+          ++lastIterator;
+          lastIndex = curIndex + 1;
+          walker.OnItem(op);
+        }
+      }
+    }
+
+    void ClearCache()
+    {
+      Log::Debug(THIS_MODULE, "Cleared iterators cache");
+      IteratorsCache.clear();
     }
 
     void Modify()
     {
       ++Version;
     }
-
   private:
-    ItemsContainer Items;
     unsigned Version;
+    mutable ItemsContainer Items;
+    mutable IndexToIterator IteratorsCache;
   };
 }
 
