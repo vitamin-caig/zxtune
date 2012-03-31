@@ -92,7 +92,23 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 #mp3 backend
 < MP3_BACKEND_DESCRIPTION
-> "Mp3 support backend."
+> "MP3 support backend."
 
 < SOUND_ERROR_MP3_BACKEND_ERROR
-> "Error in Mp3 backend: %1%."
+> "Error in mp3 backend: %1%."
+
+#ogg backend
+< OGG_BACKEND_DESCRIPTION
+> "OGG support backend."
+
+< SOUND_ERROR_OGG_BACKEND_ERROR
+> "Error in ogg backend: %1%."
+
+< OGG_BACKEND_TITLE_TAG
+> "TITLE"
+
+< OGG_BACKEND_AUTHOR_TAG
+> "ARTIST"
+
+< OGG_BACKEND_COMMENT_TAG
+> "COMMENT"

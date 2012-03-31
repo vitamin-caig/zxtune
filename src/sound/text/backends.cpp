@@ -20,10 +20,22 @@ extern const Char FILE_BACKEND_DEFAULT_COMMENT[] = {
   't',0
 };
 extern const Char MP3_BACKEND_DESCRIPTION[] = {
-  'M','p','3',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d','.',0
+  'M','P','3',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d','.',0
 };
 extern const Char NULL_BACKEND_DESCRIPTION[] = {
   'N','u','l','l',' ','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
+};
+extern const Char OGG_BACKEND_AUTHOR_TAG[] = {
+  'A','R','T','I','S','T',0
+};
+extern const Char OGG_BACKEND_COMMENT_TAG[] = {
+  'C','O','M','M','E','N','T',0
+};
+extern const Char OGG_BACKEND_DESCRIPTION[] = {
+  'O','G','G',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d','.',0
+};
+extern const Char OGG_BACKEND_TITLE_TAG[] = {
+  'T','I','T','L','E',0
 };
 extern const Char OSS_BACKEND_DESCRIPTION[] = {
   'O','S','S',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
@@ -67,7 +79,10 @@ extern const Char SOUND_ERROR_FILE_BACKEND_NO_FILENAME[] = {
   ' ','n','o','t',' ','s','p','e','c','i','f','i','e','d','.',0
 };
 extern const Char SOUND_ERROR_MP3_BACKEND_ERROR[] = {
-  'E','r','r','o','r',' ','i','n',' ','M','p','3',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+  'E','r','r','o','r',' ','i','n',' ','m','p','3',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+};
+extern const Char SOUND_ERROR_OGG_BACKEND_ERROR[] = {
+  'E','r','r','o','r',' ','i','n',' ','o','g','g',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
 };
 extern const Char SOUND_ERROR_OSS_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',' ',

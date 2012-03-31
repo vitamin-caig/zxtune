@@ -209,6 +209,28 @@ namespace Parameters
           };
           //@}
         }
+
+        //! @brief %Ogg backend parameters
+        namespace Ogg
+        {
+          //@{
+          //! @name Ogg backend parameters
+
+          //! Default value
+          const IntType QUALITY_DEFAULT = 6;
+          //! VBR quality 1..10
+          const Char QUALITY[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','o','g','g','.','q','u','a','l','i','t','y','\0'
+          };
+
+          //! ABR bitrate in kbps
+          const Char ABR[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','o','g','g','.','a','b','r','\0'
+          };
+          //@}
+        }
       }
     }
   }
