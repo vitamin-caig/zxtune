@@ -17,9 +17,12 @@ Author:
 #include "filename_template.h"
 #include "supported_formats.h"
 #include "mp3_settings.h"
+#include "ogg_settings.h"
 #include "ui/utils.h"
 //library includes
 #include <sound/backends_parameters.h>
+//boost includes
+#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QThread>
 #include <QtGui/QPushButton>
@@ -55,6 +58,7 @@ namespace
       toolBox->insertItem(FORMAT_PAGE, TargetFormat, QString());
 
       AddBackendSettingsWidget(&UI::CreateMP3SettingsWidget);
+      AddBackendSettingsWidget(&UI::CreateOGGSettingsWidget);
 
       connect(TargetTemplate, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
       connect(TargetFormat, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
@@ -131,9 +135,12 @@ namespace
     void UpdateSettingsDescription()
     {
       const String type = TargetFormat->GetSelectedId();
+      std::for_each(BackendSettings.begin(), BackendSettings.end(),
+        boost::bind(&QWidget::setVisible, boost::bind(&BackendIdToSettings::value_type::second, _1), false));
       const BackendIdToSettings::const_iterator it = BackendSettings.find(type);
       if (it != BackendSettings.end())
       {
+        it->second->setVisible(true);
         toolBox->setItemText(SETTINGS_PAGE, it->second->GetDescription());
         toolBox->setItemEnabled(SETTINGS_PAGE, true);
       }

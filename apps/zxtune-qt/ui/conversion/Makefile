@@ -6,7 +6,7 @@ ui_files = filename_template \
             setup_conversion \
             supported_formats
 
-ui_headeronly = mp3_settings
+ui_headeronly = mp3_settings ogg_settings
 source_files += $(ui_headeronly)
 
 include_dirs = ../..

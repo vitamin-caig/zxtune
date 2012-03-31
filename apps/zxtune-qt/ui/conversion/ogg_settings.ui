@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OggSettings</class>
+ <widget class="QWidget" name="OggSettings">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>310</width>
+    <height>104</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QGroupBox" name="bitrateSetup">
+     <property name="title">
+      <string>Setup bitrate type and value</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="3" column="1">
+       <layout class="QHBoxLayout" name="abrLayout">
+        <item>
+         <widget class="QSlider" name="abrBitrate">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <number>48</number>
+          </property>
+          <property name="maximum">
+           <number>500</number>
+          </property>
+          <property name="value">
+           <number>128</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="abrValue">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimum">
+           <number>48</number>
+          </property>
+          <property name="maximum">
+           <number>500</number>
+          </property>
+          <property name="value">
+           <number>128</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="0">
+       <widget class="QRadioButton" name="selectABR">
+        <property name="text">
+         <string>Average bitrate</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QRadioButton" name="selectQuality">
+        <property name="text">
+         <string>Quality</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="vbrLayout">
+        <item>
+         <widget class="QLabel" name="minQuality">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>Min</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSlider" name="qualityValue">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>10</number>
+          </property>
+          <property name="value">
+           <number>6</number>
+          </property>
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="tickPosition">
+           <enum>QSlider::TicksBelow</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="maxQuality">
+          <property name="text">
+           <string>Max</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>abrBitrate</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>abrValue</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>181</x>
+     <y>205</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>382</x>
+     <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>abrValue</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>abrBitrate</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>382</x>
+     <y>205</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>181</x>
+     <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectQuality</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>qualityValue</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>76</x>
+     <y>74</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>222</x>
+     <y>74</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectABR</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>abrBitrate</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>76</x>
+     <y>109</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>194</x>
+     <y>109</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectABR</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>abrValue</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>76</x>
+     <y>109</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>277</x>
+     <y>109</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
