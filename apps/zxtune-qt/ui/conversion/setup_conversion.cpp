@@ -18,6 +18,7 @@ Author:
 #include "supported_formats.h"
 #include "mp3_settings.h"
 #include "ogg_settings.h"
+#include "flac_settings.h"
 #include "ui/utils.h"
 //library includes
 #include <sound/backends_parameters.h>
@@ -59,6 +60,7 @@ namespace
 
       AddBackendSettingsWidget(&UI::CreateMP3SettingsWidget);
       AddBackendSettingsWidget(&UI::CreateOGGSettingsWidget);
+      AddBackendSettingsWidget(&UI::CreateFLACSettingsWidget);
 
       connect(TargetTemplate, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
       connect(TargetFormat, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
