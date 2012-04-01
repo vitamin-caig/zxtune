@@ -39,3 +39,7 @@ endif
 ifdef support_ogg
 $(platform)_definitions += OGG_SUPPORT
 endif
+
+ifdef support_flac
+$(platform)_definitions += FLAC_SUPPORT
+endif

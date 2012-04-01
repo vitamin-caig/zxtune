@@ -231,6 +231,26 @@ namespace Parameters
           };
           //@}
         }
+
+        //! @brief %Flac backend parameters
+        namespace Flac
+        {
+          //@{
+          //! @name Flac backend parameters
+
+          //! Compression level 0..8
+          const Char COMPRESSION[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','f','l','a','c','.','c','o','m','p','r','e','s','s','i','o','n','\0'
+          };
+
+          //! Block size in samples
+          const Char BLOCKSIZE[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','f','l','a','c','.','b','l','o','c','k','s','i','z','e','\0'
+          };
+          //@}
+        }
       }
     }
   }

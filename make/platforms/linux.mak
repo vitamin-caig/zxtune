@@ -19,6 +19,7 @@ support_sdl = 1
 support_zlib = 1
 support_mp3 = 1
 support_ogg = 1
+support_flac = 1
 
 $(platform)_libraries += dl rt
 

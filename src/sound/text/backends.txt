@@ -112,3 +112,11 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 
 < OGG_BACKEND_COMMENT_TAG
 > "COMMENT"
+
+#flac backend
+< FLAC_BACKEND_DESCRIPTION
+> "FLAC support backend."
+
+< SOUND_ERROR_FLAC_BACKEND_ERROR
+> "Error in flac backend."
+
