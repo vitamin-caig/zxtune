@@ -89,11 +89,6 @@ namespace
       Flush();
     }
 
-    virtual ~WavStream()
-    {
-      Flush();
-    }
-
     virtual void SetTitle(const String& /*title*/)
     {
     }
@@ -103,6 +98,10 @@ namespace
     }
 
     virtual void SetComment(const String& /*comment*/)
+    {
+    }
+
+    virtual void FlushMetadata()
     {
     }
 

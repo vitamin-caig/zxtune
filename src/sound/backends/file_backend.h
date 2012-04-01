@@ -32,6 +32,7 @@ namespace ZXTune
       virtual void SetTitle(const String& title) = 0;
       virtual void SetAuthor(const String& author) = 0;
       virtual void SetComment(const String& comment) = 0;
+      virtual void FlushMetadata() = 0;
     };
 
     class FileStreamFactory

@@ -317,9 +317,18 @@ namespace
       Meta->AddTag(Text::OGG_BACKEND_COMMENT_TAG, comment);
     }
 
+    virtual void FlushMetadata()
+    {
+      ogg_packet id, meta, code;
+      CheckVorbisCall(::vorbis_analysis_headerout(State->Get(), Meta->Get(), &id, &meta, &code), THIS_LINE);
+      Stream->AddPacket(&id);
+      Stream->AddPacket(&meta);
+      Stream->AddPacket(&code);
+      Stream->Flush();
+    }
+
     virtual void ApplyData(const ChunkPtr& data)
     {
-      FlushMeta();
       State->Encode(*data);
       State->Save(*Stream);
     }
@@ -330,22 +339,8 @@ namespace
       State->Save(*Stream);
     }
   private:
-    void FlushMeta()
-    {
-      if (Meta)
-      {
-        ogg_packet id, meta, code;
-        CheckVorbisCall(::vorbis_analysis_headerout(State->Get(), Meta->Get(), &id, &meta, &code), THIS_LINE);
-        Stream->AddPacket(&id);
-        Stream->AddPacket(&meta);
-        Stream->AddPacket(&code);
-        Stream->Flush();
-        Meta = VorbisMeta::Ptr();
-      }
-    }
-  private:
     const VorbisInfo::Ptr Info;
-    VorbisMeta::Ptr Meta;
+    const VorbisMeta::Ptr Meta;
     const VorbisState::Ptr State;
     const OggBitStream::Ptr Stream;
   };

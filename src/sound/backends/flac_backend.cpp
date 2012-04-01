@@ -109,20 +109,8 @@ namespace
   public:
     FlacStream(FlacEncoderPtr encoder, std::auto_ptr<std::ofstream> stream)
       : Encoder(encoder)
-      , MetaFlushed(false)
       , Stream(stream)
     {
-    }
-
-    virtual ~FlacStream()
-    {
-      try
-      {
-        Flush();
-      }
-      catch (const Error&)
-      {
-      }
     }
 
     virtual void SetTitle(const String& title)
@@ -140,9 +128,17 @@ namespace
       Meta.AddTag(Text::OGG_BACKEND_COMMENT_TAG, comment);
     }
 
+    virtual void FlushMetadata()
+    {
+      Meta.Encode(*Encoder);
+      //real stream initializing should be performed after all set functions
+      CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
+        ::FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, Stream.get()), THIS_LINE);
+      Log::Debug(THIS_MODULE, "Stream initialized");
+    }
+
     virtual void ApplyData(const ChunkPtr& data)
     {
-      FlushMeta();
       if (const std::size_t samples = data->size())
       {
         Buffer.resize(samples * OUTPUT_CHANNELS);
@@ -180,22 +176,9 @@ namespace
       *absolute_byte_offset = stream->tellp();
       return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
     }
-
-    void FlushMeta()
-    {
-      if (!MetaFlushed)
-      {
-        Meta.Encode(*Encoder);
-        CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
-          ::FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, Stream.get()), THIS_LINE);
-        Log::Debug(THIS_MODULE, "Stream initialized");
-        MetaFlushed = true;
-      }
-    }
   private:
     const FlacEncoderPtr Encoder;
     FlacMetadata Meta;
-    bool MetaFlushed;
     const std::auto_ptr<std::ofstream> Stream;
     std::vector<FLAC__int32> Buffer;
   };

@@ -89,17 +89,6 @@ namespace
       Log::Debug(THIS_MODULE, "Stream initialized");
     }
 
-    virtual ~Mp3Stream()
-    {
-      try
-      {
-        Flush();
-      }
-      catch (const Error&)
-      {
-      }
-    }
-
     virtual void SetTitle(const String& title)
     {
       const std::string titleC = IO::ConvertToFilename(title);
@@ -116,6 +105,10 @@ namespace
     {
       const std::string commentC = IO::ConvertToFilename(comment);
       ::id3tag_set_comment(Context.get(), commentC.c_str());
+    }
+
+    virtual void FlushMetadata()
+    {
     }
 
     virtual void ApplyData(const ChunkPtr& data)

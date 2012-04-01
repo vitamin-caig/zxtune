@@ -273,6 +273,7 @@ namespace
       {
         stream.SetComment(Text::FILE_BACKEND_DEFAULT_COMMENT);
       }
+      stream.FlushMetadata();
     }
   private:
     const FileParameters Params;
