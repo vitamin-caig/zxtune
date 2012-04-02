@@ -1,0 +1,20 @@
+161,174c161,164
+< 	__asm {
+< 		mov edx, start
+< 		mov ecx, len
+< 		test ecx, ecx
+< loop1:
+< 		jz done1
+< 		mov eax, [edx]
+< 		bswap eax
+< 		mov [edx], eax
+< 		add edx, 4
+< 		dec ecx
+< 		jmp short loop1
+< done1:
+< 	}
+---
+>   for (; len != 0; --len, ++start)
+>   {
+>     *start = local_swap32_(*start);
+>   }

@@ -26,7 +26,7 @@ Author:
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
 //platform-specific includes
-#include <FLAC++/metadata.h>
+#include <FLAC/metadata.h>
 #include <FLAC/stream_encoder.h>
 //std includes
 #include <algorithm>
