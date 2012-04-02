@@ -36,6 +36,12 @@ windows_include_dirs += $(path_step)/3rdparty
 mingw_include_dirs += $(path_step)/3rdparty
 endif
 
+ifdef support_ogg
+$(platform)_definitions += OGG_SUPPORT
+windows_include_dirs += $(path_step)/3rdparty
+mingw_include_dirs += $(path_step)/3rdparty
+endif
+
 ifdef support_flac
 $(platform)_definitions += FLAC_SUPPORT
 windows_include_dirs += $(path_step)/3rdparty

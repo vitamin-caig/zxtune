@@ -43,6 +43,9 @@ install_windows install_mingw: dist/$(manual_file) install_samples
 	$(call copyfile_cmd,../changelog.txt,$(DESTDIR))
 	$(call copyfile_cmd,$(path_step)/3rdparty/lame/$(arch)/libmp3lame.dll,$(DESTDIR)/mp3lame.dll)
 	$(call copyfile_cmd,$(path_step)/3rdparty/FLAC/$(arch)/FLAC.dll,$(DESTDIR))
+	$(call copyfile_cmd,$(path_step)/3rdparty/ogg/$(arch)/ogg.dll,$(DESTDIR))
+	$(call copyfile_cmd,$(path_step)/3rdparty/vorbis/$(arch)/vorbis.dll,$(DESTDIR))
+	$(call copyfile_cmd,$(path_step)/3rdparty/vorbis/$(arch)/vorbisenc.dll,$(DESTDIR))
 
 dingux_dir = local/apps/$(binary_name)
 
