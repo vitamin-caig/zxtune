@@ -146,6 +146,9 @@
 < INFO_OPTIONS_SOUND_BACKENDS_FILE_OVERWRITE
 > "overwrite target file if already exists for file-based backends. Also duplicated in backend-specific namespace"
 
+< INFO_OPTIONS_SOUND_BACKENDS_FILE_BUFFERS
+> "use asynchronous conversing with specified queue size for file-based backends. Also duplicated in backend-specific namespace"
+
 < INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE
 > "device index for win32 backend"
 
@@ -181,6 +184,18 @@
 
 < INFO_OPTIONS_SOUND_BACKENDS_MP3_ABR
 > "specify average bitrate in kbps for Mp3 backend"
+
+< INFO_OPTIONS_SOUND_BACKENDS_OGG_QUALITY
+> "specify quality for Ogg backend (0- lowest, 6- highest)"
+
+< INFO_OPTIONS_SOUND_BACKENDS_OGG_ABR
+> "specify averate bitrate in kbps for Ogg backend"
+
+< INFO_OPTIONS_SOUND_BACKENDS_FLAC_COMPRESSION
+> "specify compression level for Flac backend (0- lowest, 8- highest)"
+
+< INFO_OPTIONS_SOUND_BACKENDS_FLAC_BLOCKSIZE
+> "specyfy blocksize in samples for Flac backend"
 
 < INFO_OPTIONS_CORE_TITLE
 > " Core options:"

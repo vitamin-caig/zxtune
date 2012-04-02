@@ -458,6 +458,13 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_DIRECTSOUND_LATENCY[] = {
   'l','a','t','e','n','c','y',' ','i','n',' ','m','s',' ','f','o','r',' ','D','i','r','e','c','t','S','o','u',
   'n','d',' ','b','a','c','k','e','n','d',0
 };
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_FILE_BUFFERS[] = {
+  'u','s','e',' ','a','s','y','n','c','h','r','o','n','o','u','s',' ','c','o','n','v','e','r','s','i','n','g',
+  ' ','w','i','t','h',' ','s','p','e','c','i','f','i','e','d',' ','q','u','e','u','e',' ','s','i','z','e',' ',
+  'f','o','r',' ','f','i','l','e','-','b','a','s','e','d',' ','b','a','c','k','e','n','d','s','.',' ','A','l',
+  's','o',' ','d','u','p','l','i','c','a','t','e','d',' ','i','n',' ','b','a','c','k','e','n','d','-','s','p',
+  'e','c','i','f','i','c',' ','n','a','m','e','s','p','a','c','e',0
+};
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_FILE_FILENAME[] = {
   'f','i','l','e','n','a','m','e',' ','t','e','m','p','l','a','t','e',' ','f','o','r',' ','f','i','l','e','-',
   'b','a','s','e','d',' ','b','a','c','k','e','n','d','s',' ','(','s','e','e',' ','-','-','l','i','s','t','-',
@@ -472,6 +479,15 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_FILE_OVERWRITE[] = {
   'i','n',' ','b','a','c','k','e','n','d','-','s','p','e','c','i','f','i','c',' ','n','a','m','e','s','p','a',
   'c','e',0
 };
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_FLAC_BLOCKSIZE[] = {
+  's','p','e','c','y','f','y',' ','b','l','o','c','k','s','i','z','e',' ','i','n',' ','s','a','m','p','l','e',
+  's',' ','f','o','r',' ','F','l','a','c',' ','b','a','c','k','e','n','d',0
+};
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_FLAC_COMPRESSION[] = {
+  's','p','e','c','i','f','y',' ','c','o','m','p','r','e','s','s','i','o','n',' ','l','e','v','e','l',' ','f',
+  'o','r',' ','F','l','a','c',' ','b','a','c','k','e','n','d',' ','(','0','-',' ','l','o','w','e','s','t',',',
+  ' ','8','-',' ','h','i','g','h','e','s','t',')',0
+};
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_ABR[] = {
   's','p','e','c','i','f','y',' ','a','v','e','r','a','g','e',' ','b','i','t','r','a','t','e',' ','i','n',' ',
   'k','b','p','s',' ','f','o','r',' ','M','p','3',' ','b','a','c','k','e','n','d',0
@@ -484,6 +500,15 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_VBR[] = {
   's','p','e','c','i','f','y',' ','V','B','R',' ','q','u','a','l','i','t','y',' ','f','o','r',' ','M','p','3',
   ' ','b','a','c','k','e','n','d',' ','(','0','-',' ','h','i','g','h','e','s','t',',',' ','9','-',' ','l','o',
   'w','e','s','t',')',0
+};
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_OGG_ABR[] = {
+  's','p','e','c','i','f','y',' ','a','v','e','r','a','t','e',' ','b','i','t','r','a','t','e',' ','i','n',' ',
+  'k','b','p','s',' ','f','o','r',' ','O','g','g',' ','b','a','c','k','e','n','d',0
+};
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_OGG_QUALITY[] = {
+  's','p','e','c','i','f','y',' ','q','u','a','l','i','t','y',' ','f','o','r',' ','O','g','g',' ','b','a','c',
+  'k','e','n','d',' ','(','0','-',' ','l','o','w','e','s','t',',',' ','6','-',' ','h','i','g','h','e','s','t',
+  ')',0
 };
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE[] = {
   'p','l','a','y','b','a','c','k',' ','d','e','v','i','c','e',' ','f','o','r',' ','O','S','S',' ','b','a','c',
