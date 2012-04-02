@@ -7,6 +7,21 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Render to OGG
+[+] Render to FLAC
+[*] Improved MSPack detection
+[*] Strict TRD check
+[*] Relaxed ST1 detection
+[*] Asynchronous conversion to file-based format
+[*] Fixed Hrust padding skip
+[*] Hrust21 padding skip
+[*] Fixed size detection for all chiptune formats
+[*] zxtune-qt: large playlist navigation speedup
+[*] zxtune-qt: shortcut to online help
+[*] zxtune-qt: updated UI for conversion
+
+--- Rev1594 from 21.03.2012
+
 [+] Render to MP3
 [*] Fixed SCL containers used size
 [*] Hrust/Hrum paddings are not analysed
