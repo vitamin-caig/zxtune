@@ -1,21 +1,30 @@
 <RCC>
   <qresource prefix="/types">
-    <file alias="AY">type_ay.png</file>
-    <file alias="AS0">type_as0.png</file>
-    <file alias="ASC">type_asc.png</file>
-    <file alias="CHI">type_chi.png</file>
-    <file alias="DMM">type_dmm.png</file>
-    <file alias="DST">type_dst.png</file>
-    <file alias="PDT">type_pdt.png</file>
-    <file alias="PSG">type_psg.png</file>
-    <file alias="PT2">type_pt2.png</file>
-    <file alias="PT3">type_pt3.png</file>
-    <file alias="SQD">type_sqd.png</file>
-    <file alias="ST1">type_st1.png</file>
-    <file alias="STC">type_stc.png</file>
-    <file alias="STP">type_stp.png</file>
-    <file alias="STR">type_str.png</file>
-    <file alias="TS">type_ts.png</file>
-    <file alias="TXT">type_txt.png</file>
+    <file alias="AY">types/ay.png</file>
+    <file alias="AS0">types/as0.png</file>
+    <file alias="ASC">types/asc.png</file>
+    <file alias="CHI">types/chi.png</file>
+    <file alias="DMM">types/dmm.png</file>
+    <file alias="DST">types/dst.png</file>
+    <file alias="FLS">types/fls.png</file>
+    <file alias="FTC">types/ftc.png</file>
+    <file alias="FXM">types/fxm.png</file>
+    <file alias="GTR">types/gtr.png</file>
+    <file alias="PDT">types/pdt.png</file>
+    <file alias="PSC">types/psc.png</file>
+    <file alias="PSG">types/psg.png</file>
+    <file alias="PSM">types/psm.png</file>
+    <file alias="PT1">types/pt1.png</file>
+    <file alias="PT2">types/pt2.png</file>
+    <file alias="PT3">types/pt3.png</file>
+    <file alias="SQD">types/sqd.png</file>
+    <file alias="SQT">types/sqt.png</file>
+    <file alias="ST1">types/st1.png</file>
+    <file alias="STC">types/stc.png</file>
+    <file alias="STP">types/stp.png</file>
+    <file alias="STR">types/str.png</file>
+    <file alias="TS">types/ts.png</file>
+    <file alias="TXT">types/txt.png</file>
+    <file alias="VTX">types/vtx.png</file>
   </qresource>
 </RCC>
