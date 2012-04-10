@@ -449,8 +449,8 @@ namespace ProSoundMaker
       }
       if (src.OrnamentNum)
       {
-        if (*src.OrnamentNum != 0x21 &&
-            *src.OrnamentNum != 0x22)
+        if (*src.OrnamentNum != 0x20 &&
+            *src.OrnamentNum != 0x21)
         {
           dst.Orn.Current = &Data->Ornaments[*src.OrnamentNum];
           dst.Orn.Position = 0;

@@ -57,6 +57,12 @@ namespace Chiptune
       Header
       Id1 ("psm1,\x0", optional)
       Id2 (title, optional)
+      Positions
+      SamplesOffsets
+      Samples
+      OrnamentsOffsets (optional)
+      Ornaments (optional)
+      Patterns
     */
 
 #ifdef USE_PRAGMA_PACK
@@ -508,6 +514,7 @@ namespace Chiptune
               break;
             }
             loop = pos.TranspositionOrLoop;
+            Require(loop < positions.size());
             break;
           }
           Require(in_range<uint_t>(patNum, 0, MAX_PATTERNS_COUNT - 1));
@@ -550,48 +557,34 @@ namespace Chiptune
       {
         Require(!samples.empty());
         Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
-        bool hasValidSamples = false, hasPartialSamples = false;
+        const std::size_t minOffset = fromLE(Source.SamplesOffset) + *samples.rbegin() * sizeof(uint16_t);
+        const std::size_t maxOffset = Delegate.GetSize();
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
           Require(in_range<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           Sample result;
-          if (const std::size_t samOffset = GetSampleOffset(samIdx))
+          const std::size_t samOffset = GetSampleOffset(samIdx);
+          Require(in_range(samOffset, minOffset, maxOffset));
+          const std::size_t availSize = maxOffset - samOffset;
+          const RawSample* const src = Delegate.GetField<RawSample>(samOffset);
+          Require(src != 0);
+          const std::size_t usedSize = src->GetUsedSize();
+          if (usedSize <= availSize)
           {
-            const std::size_t availSize = Delegate.GetSize() - samOffset;
-            if (const RawSample* src = Delegate.GetField<RawSample>(samOffset))
-            {
-              const std::size_t usedSize = src->GetUsedSize();
-              if (usedSize <= availSize)
-              {
-                Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
-                Ranges.Add(samOffset, usedSize);
-                ParseSample(*src, src->GetSize(), result);
-                hasValidSamples = true;
-              }
-              else
-              {
-                Log::Debug(THIS_MODULE, "Parse partial sample %1%", samIdx);
-                Ranges.Add(samOffset, availSize);
-                const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawSample::Line);
-                ParseSample(*src, availLines, result);
-                hasPartialSamples = true;
-              }
-            }
-            else
-            {
-              Log::Debug(THIS_MODULE, "Stub sample %1%", samIdx);
-            }
+            Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
+            Ranges.Add(samOffset, usedSize);
+            ParseSample(*src, src->GetSize(), result);
           }
           else
           {
-            Log::Debug(THIS_MODULE, "Parse invalid sample %1%", samIdx);
-            const RawSample::Line& invalidLine = *Delegate.GetField<RawSample::Line>(0);
-            result.Lines.push_back(ParseSampleLine(invalidLine));
+            Log::Debug(THIS_MODULE, "Parse partial sample %1%", samIdx);
+            Ranges.Add(samOffset, availSize);
+            const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawSample::Line);
+            ParseSample(*src, availLines, result);
           }
           builder.SetSample(samIdx, result);
         }
-        Require(hasValidSamples || hasPartialSamples);
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
@@ -605,40 +598,31 @@ namespace Chiptune
           builder.SetOrnament(0, Ornament());
           return;
         }
+        const std::size_t minOffset = fromLE(Source.OrnamentsOffset) + *ornaments.rbegin() * sizeof(uint16_t);
+        const std::size_t maxOffset = Delegate.GetSize();
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
           Require(in_range<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
           Ornament result;
-          if (const std::size_t ornOffset = GetOrnamentOffset(ornIdx))
+          const std::size_t ornOffset = GetOrnamentOffset(ornIdx);
+          Require(in_range(ornOffset, minOffset, maxOffset));
+          const std::size_t availSize = Delegate.GetSize() - ornOffset;
+          const RawOrnament* src = Delegate.GetField<RawOrnament>(ornOffset);
+          Require(src != 0);
+          const std::size_t usedSize = src->GetUsedSize();
+          if (usedSize <= availSize)
           {
-            const std::size_t availSize = Delegate.GetSize() - ornOffset;
-            if (const RawOrnament* src = Delegate.GetField<RawOrnament>(ornOffset))
-            {
-              const std::size_t usedSize = src->GetUsedSize();
-              if (usedSize <= availSize)
-              {
-                Log::Debug(THIS_MODULE, "Parse ornament %1%", ornIdx);
-                Ranges.Add(ornOffset, usedSize);
-                ParseOrnament(*src, src->GetSize(), result);
-              }
-              else
-              {
-                Log::Debug(THIS_MODULE, "Parse partial ornament %1%", ornIdx);
-                Ranges.Add(ornOffset, availSize);
-                const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawOrnament::Line);
-                ParseOrnament(*src, availLines, result);
-              }
-            }
-            else
-            {
-              Log::Debug(THIS_MODULE, "Stub ornament %1%", ornIdx);
-            }
+            Log::Debug(THIS_MODULE, "Parse ornament %1%", ornIdx);
+            Ranges.Add(ornOffset, usedSize);
+            ParseOrnament(*src, src->GetSize(), result);
           }
           else
           {
-            Log::Debug(THIS_MODULE, "Parse invalid ornament %1%", ornIdx);
-            result.Lines.push_back(*Delegate.GetField<RawOrnament::Line>(0));
+            Log::Debug(THIS_MODULE, "Parse partial ornament %1%", ornIdx);
+            Ranges.Add(ornOffset, availSize);
+            const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawOrnament::Line);
+            ParseOrnament(*src, availLines, result);
           }
           builder.SetOrnament(ornIdx, result);
         }
@@ -1022,8 +1006,8 @@ namespace Chiptune
       std::size_t GetPositionsCount() const
       {
         const std::size_t positionsSize = GetAreaSize(POSITIONS);
-        return Undefined != positionsSize && positionsSize > sizeof(RawPosition) && 0 == positionsSize % sizeof(RawPosition)
-          ? positionsSize / sizeof(RawPosition)
+        return Undefined != positionsSize && 0 == positionsSize % sizeof(RawPosition)
+          ? positionsSize / sizeof(RawPosition) - 1
           : 0;
       }
 
@@ -1049,8 +1033,13 @@ namespace Chiptune
       }
       if (const std::size_t posCount = areas.GetPositionsCount())
       {
-        const RawPosition& lastPos = *data.GetField<RawPosition>(areas.GetAreaAddress(POSITIONS) + (posCount - 1) * sizeof(RawPosition));
+        const RawPosition& lastPos = *data.GetField<RawPosition>(areas.GetAreaAddress(POSITIONS) + posCount * sizeof(RawPosition));
         if (lastPos.PatternIndex != POS_END_MARKER)
+        {
+          return false;
+        }
+        if (lastPos.TranspositionOrLoop != POS_END_MARKER &&
+            lastPos.TranspositionOrLoop >= posCount)
         {
           return false;
         }
