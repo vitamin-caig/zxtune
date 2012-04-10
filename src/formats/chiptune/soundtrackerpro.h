@@ -28,7 +28,7 @@ namespace Formats
       {
         struct Line
         {
-          Line() : Level(), Noise(), ToneMask(), NoiseMask(), EnvelopeMask(), Vibrato()
+          Line() : Level(), Noise(), ToneMask(true), NoiseMask(true), EnvelopeMask(true), Vibrato()
           {
           }
 

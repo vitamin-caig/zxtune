@@ -29,7 +29,7 @@ namespace Formats
         struct Line
         {
           Line()
-            : Level(), ToneDeviation(), ToneMask(), NoiseMask(), Adding()
+            : Level(), ToneDeviation(), ToneMask(true), NoiseMask(true), Adding()
             , EnableEnvelope(), VolSlide()
           {
           }

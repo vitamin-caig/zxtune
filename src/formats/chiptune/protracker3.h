@@ -30,8 +30,8 @@ namespace Formats
         {
           Line()
            : Level(), VolumeSlideAddon()
-           , ToneMask(), ToneOffset(), KeepToneOffset()
-           , NoiseMask(), EnvMask(), NoiseOrEnvelopeOffset(), KeepNoiseOrEnvelopeOffset()
+           , ToneMask(true), ToneOffset(), KeepToneOffset()
+           , NoiseMask(true), EnvMask(true), NoiseOrEnvelopeOffset(), KeepNoiseOrEnvelopeOffset()
           {
           }
 

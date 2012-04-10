@@ -30,7 +30,7 @@ namespace Formats
       {
         struct Line
         {
-          Line() : Level(), Noise(), ToneMask(), NoiseMask(), Gliss()
+          Line() : Level(), Noise(), ToneMask(true), NoiseMask(true), Gliss()
           {
           }
 
