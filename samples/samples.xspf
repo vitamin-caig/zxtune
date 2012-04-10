@@ -27,6 +27,9 @@
     <location>Samples/TechCent.M</location>
   </track>
   <track>
+    <location>Samples/Calamba.psm</location>
+  </track>
+  <track>
     <location>Samples/Illusion.pt2</location>
   </track>
   <track>
