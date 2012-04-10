@@ -272,7 +272,11 @@ namespace ZXTune
       {
         const int_t halftone = clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
         const uint_t tone = (Table[halftone] + offset) & 0xfff;
+        SetTone(tone);
+      }
 
+      void ChannelBuilder::SetTone(uint_t tone)
+      {
         const uint_t reg = Devices::AYM::DataChunk::REG_TONEA_L + 2 * Channel;
         Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
         Chunk.Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
@@ -322,6 +326,11 @@ namespace ZXTune
         Chunk.Data[Devices::AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
         Chunk.Data[Devices::AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
         Chunk.Mask |= (1 << Devices::AYM::DataChunk::REG_TONEE_L) | (1 << Devices::AYM::DataChunk::REG_TONEE_H);
+      }
+
+      uint_t TrackBuilder::GetFrequency(int_t halfTone) const
+      {
+        return Table[halfTone];
       }
 
       int_t TrackBuilder::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const

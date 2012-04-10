@@ -40,6 +40,7 @@ namespace ZXTune
         }
 
         void SetTone(int_t halfTones, int_t offset);
+        void SetTone(uint_t tone);
         void SetLevel(int_t level);
         void DisableTone();
         void EnableEnvelope();
@@ -63,6 +64,7 @@ namespace ZXTune
         void SetEnvelopeType(uint_t type);
         void SetEnvelopeTone(uint_t tone);
 
+        uint_t GetFrequency(int_t halfTone) const;
         int_t GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const;
 
         ChannelBuilder GetChannel(uint_t chan)
