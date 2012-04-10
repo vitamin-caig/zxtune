@@ -10,6 +10,8 @@ extern const Char ANALYSIS_QUEUE_SIZE_KEY[];
 extern const Char ANALYSIS_THREADS_DESC[];
 extern const Char ANALYSIS_THREADS_KEY[];
 extern const Char DEFAULT_TARGET_NAME_TEMPLATE[];
+extern const Char FORMAT_FILTER_DESC[];
+extern const Char FORMAT_FILTER_KEY[];
 extern const Char HELP_DESC[];
 extern const Char HELP_KEY[];
 extern const Char IGNORE_EMPTY_DESC[];

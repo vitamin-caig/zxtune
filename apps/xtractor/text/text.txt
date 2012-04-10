@@ -75,6 +75,12 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < MINIMAL_SIZE_DESC
 > "do not store files with lesser size. Default is 0"
 
+< FORMAT_FILTER_KEY
+> "format"
+
+< FORMAT_FILTER_DESC
+> "specify fuzzy data format to save"
+
 < SAVE_THREADS_KEY
 > "save-threads"
 

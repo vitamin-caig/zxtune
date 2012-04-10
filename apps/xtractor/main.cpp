@@ -26,6 +26,7 @@ Author:
 #include <io/provider.h>
 //std includes
 #include <iostream>
+#include <locale>
 #include <map>
 #include <numeric>
 #include <set>
@@ -375,10 +376,17 @@ namespace
   public:
     virtual void ApplyData(const Parsing::Result::Ptr& result)
     {
-      const String filePath = result->Name();
-      const Binary::Container::Ptr data = result->Data();
-      const std::auto_ptr<std::ofstream> target = ZXTune::IO::CreateFile(filePath, true);
-      target->write(static_cast<const char*>(data->Data()), data->Size());
+      try
+      {
+        const String filePath = result->Name();
+        const Binary::Container::Ptr data = result->Data();
+        const std::auto_ptr<std::ofstream> target = ZXTune::IO::CreateFile(filePath, true);
+        target->write(static_cast<const char*>(data->Data()), data->Size());
+      }
+      catch (const Error& e)
+      {
+        e.WalkSuberrors(&ShowError);
+      }
     }
 
     virtual void Flush()
@@ -527,6 +535,35 @@ namespace
   private:
     const Analysis::NodeReceiver::Ptr Target;
   };
+
+  class MatchedDataFilter : public Analysis::NodeReceiver
+  {
+  public:
+    MatchedDataFilter(const std::string& format, Analysis::NodeReceiver::Ptr target)
+      : Format(Binary::Format::Create(format))
+      , Target(target)
+    {
+    }
+
+    virtual void ApplyData(const Analysis::Node::Ptr& result)
+    {
+      const Binary::Container::Ptr data = result->Data();
+      const uint8_t* const begin = static_cast<const uint8_t*>(data->Data());
+      const std::size_t size = data->Size();
+      if (size != Format->Search(begin, size))
+      {
+        Target->ApplyData(result);
+      }
+    }
+
+    virtual void Flush()
+    {
+      Target->Flush();
+    }
+  private:
+    const Binary::Format::Ptr Format;
+    const Analysis::NodeReceiver::Ptr Target;
+  };
 }
 
 namespace Analysis
@@ -539,6 +576,11 @@ namespace Analysis
   NodeReceiver::Ptr CreateEmptyDataFilter(NodeReceiver::Ptr target)
   {
     return boost::make_shared<EmptyDataFilter>(target);
+  }
+
+  NodeReceiver::Ptr CreateMatchFilter(const std::string& filter, NodeReceiver::Ptr target)
+  {
+    return boost::make_shared<MatchedDataFilter>(filter, target);
   }
 }
 
@@ -953,11 +995,18 @@ namespace
 
     virtual void ApplyData(const String& filename)
     {
-      Log::Debug(THIS_MODULE, "Opening '%1%'", filename);
-      Binary::Container::Ptr data;
-      ThrowIfError(ZXTune::IO::OpenData(filename, *Params, ZXTune::IO::ProgressCallback(), data));
-      const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);
-      Analyse->ApplyData(root);
+      try
+      {
+        Log::Debug(THIS_MODULE, "Opening '%1%'", filename);
+        Binary::Container::Ptr data;
+        ThrowIfError(ZXTune::IO::OpenData(filename, *Params, ZXTune::IO::ProgressCallback(), data));
+        const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);
+        Analyse->ApplyData(root);
+      }
+      catch (const Error& e)
+      {
+        e.WalkSuberrors(&ShowError);
+      }
     }
 
     virtual void Flush()
@@ -1186,6 +1235,7 @@ namespace
     virtual String TargetNameTemplate() const = 0;
     virtual bool IgnoreEmptyData() const = 0;
     virtual std::size_t MinDataSize() const = 0;
+    virtual std::string FormatFilter() const = 0;
     virtual std::size_t SaveThreadsCount() const = 0;
     virtual std::size_t SaveDataQueueSize() const = 0;
     virtual bool StatisticOutput() const = 0;
@@ -1214,7 +1264,11 @@ namespace
     const Analysis::NodeReceiver::Ptr storeEnoughSize = minSize
       ? Analysis::CreateSizeFilter(minSize, storeNoEmpty)
       : storeNoEmpty;
-    const Analysis::NodeReceiver::Ptr result = storeEnoughSize;
+    const std::string filter = opts.FormatFilter();
+    const Analysis::NodeReceiver::Ptr storeMatchedFilter = !filter.empty()
+      ? Analysis::CreateMatchFilter(filter, storeEnoughSize)
+      : storeEnoughSize;
+    const Analysis::NodeReceiver::Ptr result = storeMatchedFilter;
     return AsyncWrap<Analysis::Node::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), result);
   }
 
@@ -1281,6 +1335,7 @@ namespace
       , TargetNameTemplateValue(Text::DEFAULT_TARGET_NAME_TEMPLATE)
       , IgnoreEmptyDataValue(false)
       , MinDataSizeValue(0)
+      , FormatFilterValue()
       , SaveThreadsCountValue(1)
       , SaveDataQueueSizeValue(500)
       , StatisticOutputValue(false)
@@ -1294,6 +1349,7 @@ namespace
         (Text::TARGET_NAME_TEMPLATE_KEY, value<String>(&TargetNameTemplateValue), Text::TARGET_NAME_TEMPLATE_DESC)
         (Text::IGNORE_EMPTY_KEY, bool_switch(&IgnoreEmptyDataValue), Text::IGNORE_EMPTY_DESC)
         (Text::MINIMAL_SIZE_KEY, value<std::size_t>(&MinDataSizeValue), Text::MINIMAL_SIZE_DESC)
+        (Text::FORMAT_FILTER_KEY, value<std::string>(&FormatFilterValue), Text::FORMAT_FILTER_DESC)
         (Text::SAVE_THREADS_KEY, value<std::size_t>(&SaveThreadsCountValue), Text::SAVE_THREADS_DESC)
         (Text::SAVE_QUEUE_SIZE_KEY, value<std::size_t>(&SaveDataQueueSizeValue), Text::SAVE_QUEUE_SIZE_DESC)
         (Text::OUTPUT_STATISTIC_KEY, bool_switch(&StatisticOutputValue), Text::OUTPUT_STATISTIC_DESC)
@@ -1325,6 +1381,11 @@ namespace
       return MinDataSizeValue;
     }
 
+    virtual std::string FormatFilter() const
+    {
+      return FormatFilterValue;
+    }
+
     virtual std::size_t SaveThreadsCount() const
     {
       return SaveThreadsCountValue;
@@ -1350,6 +1411,7 @@ namespace
     String TargetNameTemplateValue;
     bool IgnoreEmptyDataValue;
     std::size_t MinDataSizeValue;
+    std::string FormatFilterValue;
     std::size_t SaveThreadsCountValue;
     std::size_t SaveDataQueueSizeValue;
     bool StatisticOutputValue;
@@ -1365,6 +1427,7 @@ int main(int argc, char* argv[])
   }
   try
   {
+    std::locale::global(std::locale(""));
     /*
 
                                            analyseThreads                 saveThreads

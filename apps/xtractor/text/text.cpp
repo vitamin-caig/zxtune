@@ -26,6 +26,13 @@ extern const Char DEFAULT_TARGET_NAME_TEMPLATE[] = {
   'X','T','r','a','c','t','o','r','/','[','F','i','l','e','n','a','m','e',']','/','[','S','u','b','p','a','t',
   'h',']',0
 };
+extern const Char FORMAT_FILTER_DESC[] = {
+  's','p','e','c','i','f','y',' ','f','u','z','z','y',' ','d','a','t','a',' ','f','o','r','m','a','t',' ','t',
+  'o',' ','s','a','v','e',0
+};
+extern const Char FORMAT_FILTER_KEY[] = {
+  'f','o','r','m','a','t',0
+};
 extern const Char HELP_DESC[] = {
   's','h','o','w',' ','t','h','i','s',' ','m','e','s','s','a','g','e',0
 };
