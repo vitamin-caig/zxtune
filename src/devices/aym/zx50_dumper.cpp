@@ -51,7 +51,7 @@ namespace
       std::fill_n(inserter, sizeof(uint16_t) * (framesPassed - 1), 0);
       *inserter = static_cast<Dump::value_type>(update.Mask & 0xff);
       *inserter = static_cast<Dump::value_type>(update.Mask >> 8);
-      for (uint_t reg = 0, mask = update.Mask; mask; ++reg, mask >>= 1)
+      for (uint_t reg = 0, mask = update.Mask; mask && reg < DataChunk::REG_BEEPER; ++reg, mask >>= 1)
       {
         if (mask & 1)
         {
@@ -69,10 +69,10 @@ namespace Devices
 {
   namespace AYM
   {
-    Dumper::Ptr CreateZX50Dumper(const Time::Microseconds& frameDuration)
+    Dumper::Ptr CreateZX50Dumper(DumperParameters::Ptr params)
     {
       const FramedDumpBuilder::Ptr builder = boost::make_shared<ZX50DumpBuilder>();
-      return CreateDumper(frameDuration, builder);
+      return CreateDumper(params, builder);
     }
   }
 }

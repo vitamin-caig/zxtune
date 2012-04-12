@@ -40,3 +40,6 @@
 
 < CONVERSION_PARAM_FILENAME
 > "filename"
+
+< CONVERSION_PARAM_OPTIMIZATION
+> "optimization"

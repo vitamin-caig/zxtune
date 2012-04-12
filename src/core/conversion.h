@@ -27,6 +27,11 @@ namespace ZXTune
         explicit Parameter(uint64_t id) : ID(id)
         {
         }
+
+        virtual ~Parameter() //to use polymorphic ptr
+        {
+        }
+
         //! Conversion target id
         const uint64_t ID;
       };

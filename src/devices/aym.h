@@ -51,6 +51,7 @@ namespace Devices
         //Register is like a volume registers. If it's not zero, it overrides all channels output
         REG_BEEPER,
         //limiter
+        REG_LAST_AY = REG_ENV + 1,
         REG_LAST,
       };
 
@@ -184,11 +185,40 @@ namespace Devices
 
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
-    Dumper::Ptr CreatePSGDumper(const Time::Microseconds& frameDuration);
-    Dumper::Ptr CreateZX50Dumper(const Time::Microseconds& frameDuration);
-    Dumper::Ptr CreateDebugDumper(const Time::Microseconds& frameDuration);
-    Dumper::Ptr CreateRawStreamDumper(const Time::Microseconds& frameDuration);
-    Dumper::Ptr CreateFYMDumper(const Time::Microseconds& frameDuration, uint64_t clockFreq, const String& title, const String& author, uint_t loopFrame);
+
+    class DumperParameters
+    {
+    public:
+      typedef boost::shared_ptr<const DumperParameters> Ptr;
+      virtual ~DumperParameters() {}
+
+      enum Optimization
+      {
+        NONE,
+        NORMAL,
+        MAXIMUM
+      };
+
+      virtual Time::Microseconds FrameDuration() const = 0;
+      virtual Optimization OptimizationLevel() const = 0;
+    };
+
+    Dumper::Ptr CreatePSGDumper(DumperParameters::Ptr params);
+    Dumper::Ptr CreateZX50Dumper(DumperParameters::Ptr params);
+    Dumper::Ptr CreateDebugDumper(DumperParameters::Ptr params);
+    Dumper::Ptr CreateRawStreamDumper(DumperParameters::Ptr params);
+
+    class FYMDumperParameters : public DumperParameters
+    {
+    public:
+      typedef boost::shared_ptr<const FYMDumperParameters> Ptr;
+
+      virtual uint64_t ClockFreq() const = 0;
+      virtual String Title() const = 0;
+      virtual String Author() const = 0;
+      virtual uint_t LoopFrame() const = 0;
+    };
+    Dumper::Ptr CreateFYMDumper(FYMDumperParameters::Ptr params);
   }
 }
 

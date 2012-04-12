@@ -45,13 +45,13 @@ namespace
       for (uint_t skips = 0; skips < framesPassed - 1; ++skips)
       {
         Dump dup;
-        if (Data.size() >= DataChunk::REG_LAST)
+        if (Data.size() >= DataChunk::REG_LAST_AY)
         {
-          dup.assign(Data.end() - DataChunk::REG_LAST, Data.end());
+          dup.assign(Data.end() - DataChunk::REG_LAST_AY, Data.end());
         }
         else
         {
-          dup.resize(DataChunk::REG_LAST);
+          dup.resize(DataChunk::REG_LAST_AY);
         }
         std::copy(dup.begin(), dup.end(), inserter);
       }
@@ -60,7 +60,7 @@ namespace
       {
         fixedState.Data[DataChunk::REG_ENV] = NO_R13;
       }
-      std::copy(fixedState.Data.begin(), fixedState.Data.begin() + DataChunk::REG_LAST, inserter);
+      std::copy(fixedState.Data.begin(), fixedState.Data.begin() + DataChunk::REG_LAST_AY, inserter);
     }
   private:
     Dump Data;
@@ -76,10 +76,10 @@ namespace Devices
       return boost::make_shared<RawDumpBuilder>();
     }
 
-    Dumper::Ptr CreateRawStreamDumper(const Time::Microseconds& frameDuration)
+    Dumper::Ptr CreateRawStreamDumper(DumperParameters::Ptr params)
     {
       const FramedDumpBuilder::Ptr builder = CreateRawDumpBuilder();
-      return CreateDumper(frameDuration, builder);
+      return CreateDumper(params, builder);
     }
   }
 }

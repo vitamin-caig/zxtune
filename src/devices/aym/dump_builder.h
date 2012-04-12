@@ -38,7 +38,7 @@ namespace Devices
       virtual void WriteFrame(uint_t framesPassed, const DataChunk& state, const DataChunk& update) = 0;
     };
 
-    Dumper::Ptr CreateDumper(const Time::Microseconds& frameDuration, FramedDumpBuilder::Ptr builder);
+    Dumper::Ptr CreateDumper(DumperParameters::Ptr params, FramedDumpBuilder::Ptr builder);
 
     //internal factories
     FramedDumpBuilder::Ptr CreateRawDumpBuilder();

@@ -57,6 +57,9 @@ extern const Char CONVERSION_PARAM_FILENAME[] = {
 extern const Char CONVERSION_PARAM_MODE[] = {
   'm','o','d','e',0
 };
+extern const Char CONVERSION_PARAM_OPTIMIZATION[] = {
+  'o','p','t','i','m','i','z','a','t','i','o','n',0
+};
 extern const Char CONVERT_DESC[] = {
   'P','e','r','f','o','r','m',' ','c','o','n','v','e','r','s','i','o','n',' ','i','n','s','t','e','a','d',' ',
   'o','f',' ','p','l','a','y','b','a','c','k','.','\n',

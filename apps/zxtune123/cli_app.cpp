@@ -144,6 +144,8 @@ namespace
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_FILENAME);
       }
+      Parameters::IntType optimization = ZXTune::Module::Conversion::DEFAULT_OPTIMIZATION;
+      params.FindIntValue(Text::CONVERSION_PARAM_OPTIMIZATION, optimization);
       std::auto_ptr<ZXTune::Module::Conversion::Parameter> param;
       uint_t mask = 0;
       if (mode == Text::CONVERSION_MODE_RAW)
@@ -153,12 +155,12 @@ namespace
       }
       else if (mode == Text::CONVERSION_MODE_PSG)
       {
-        param.reset(new ZXTune::Module::Conversion::PSGConvertParam());
+        param.reset(new ZXTune::Module::Conversion::PSGConvertParam(optimization));
         mask = ZXTune::CAP_CONV_PSG;
       }
       else if (mode == Text::CONVERSION_MODE_ZX50)
       {
-        param.reset(new ZXTune::Module::Conversion::ZX50ConvertParam());
+        param.reset(new ZXTune::Module::Conversion::ZX50ConvertParam(optimization));
         mask = ZXTune::CAP_CONV_ZX50;
       }
       else if (mode == Text::CONVERSION_MODE_TXT)
@@ -168,17 +170,17 @@ namespace
       }
       else if (mode == Text::CONVERSION_MODE_DEBUGAY)
       {
-        param.reset(new ZXTune::Module::Conversion::DebugAYConvertParam());
+        param.reset(new ZXTune::Module::Conversion::DebugAYConvertParam(optimization));
         mask = ZXTune::CAP_CONV_AYDUMP;
       }
       else if (mode == Text::CONVERSION_MODE_AYDUMP)
       {
-        param.reset(new ZXTune::Module::Conversion::AYDumpConvertParam());
+        param.reset(new ZXTune::Module::Conversion::AYDumpConvertParam(optimization));
         mask = ZXTune::CAP_CONV_AYDUMP;
       }
       else if (mode == Text::CONVERSION_MODE_FYM)
       {
-        param.reset(new ZXTune::Module::Conversion::FYMConvertParam());
+        param.reset(new ZXTune::Module::Conversion::FYMConvertParam(optimization));
         mask = ZXTune::CAP_CONV_FYM;
       }
       else

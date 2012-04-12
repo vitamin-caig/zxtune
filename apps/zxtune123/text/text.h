@@ -22,6 +22,7 @@ extern const Char CONVERSION_MODE_TXT[];
 extern const Char CONVERSION_MODE_ZX50[];
 extern const Char CONVERSION_PARAM_FILENAME[];
 extern const Char CONVERSION_PARAM_MODE[];
+extern const Char CONVERSION_PARAM_OPTIMIZATION[];
 extern const Char CONVERT_DESC[];
 extern const Char CONVERT_DONE[];
 extern const Char CONVERT_ERROR_INVALID_MODE[];

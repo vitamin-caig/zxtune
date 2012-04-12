@@ -59,7 +59,7 @@ namespace
         AddNochangesMessage();
       }
       AddFrameNumber();
-      for (uint_t reg = 0, mask = update.Mask; mask; ++reg, mask >>= 1)
+      for (uint_t reg = 0, mask = update.Mask; mask && reg < DataChunk::REG_LAST_AY; ++reg, mask >>= 1)
       {
         if (mask & 1)
         {
@@ -116,10 +116,10 @@ namespace Devices
 {
   namespace AYM
   {
-    Dumper::Ptr CreateDebugDumper(const Time::Microseconds& frameDuration)
+    Dumper::Ptr CreateDebugDumper(DumperParameters::Ptr params)
     {
       const FramedDumpBuilder::Ptr builder = boost::make_shared<DebugDumpBuilder>();
-      return CreateDumper(frameDuration, builder);
+      return CreateDumper(params, builder);
     }
   }
 }

@@ -24,6 +24,85 @@ Author:
 
 #define FILE_TAG ED36600C
 
+namespace
+{
+  using namespace ZXTune;
+
+  class BaseDumperParameters : public Devices::AYM::DumperParameters
+  {
+  public:
+    BaseDumperParameters(Parameters::Accessor::Ptr params, uint_t opt)
+      : SndParams(Sound::RenderParameters::Create(params))
+      , Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
+    {
+    }
+
+    virtual Time::Microseconds FrameDuration() const
+    {
+      return Time::Microseconds(SndParams->FrameDurationMicrosec());
+    }
+
+    virtual Devices::AYM::DumperParameters::Optimization OptimizationLevel() const
+    {
+      return Optimization;
+    }
+  private:
+    const Sound::RenderParameters::Ptr SndParams;
+    const Devices::AYM::DumperParameters::Optimization Optimization;
+  };
+
+  class FYMDumperParameters : public Devices::AYM::FYMDumperParameters
+  {
+  public:
+    FYMDumperParameters(Parameters::Accessor::Ptr params, const Module::AYM::Chiptune& chiptune, uint_t opt)
+      : SndParams(Sound::RenderParameters::Create(params))
+      , Info(chiptune.GetInformation())
+      , Properties(chiptune.GetProperties())
+      , Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
+    {
+    }
+
+    virtual Time::Microseconds FrameDuration() const
+    {
+      return Time::Microseconds(SndParams->FrameDurationMicrosec());
+    }
+
+    virtual Devices::AYM::DumperParameters::Optimization OptimizationLevel() const
+    {
+      return Optimization;
+    }
+
+    virtual uint64_t ClockFreq() const
+    {
+      return SndParams->ClockFreq();
+    }
+
+    virtual String Title() const
+    {
+      String title;
+      Properties->FindStringValue(Module::ATTR_TITLE, title);
+      return title;
+    }
+
+    virtual String Author() const
+    {
+      String author;
+      Properties->FindStringValue(Module::ATTR_AUTHOR, author);
+      return author;
+    }
+
+    virtual uint_t LoopFrame() const
+    {
+      return Info->LoopFrame();
+    }
+  private:
+    const Sound::RenderParameters::Ptr SndParams;
+    const Module::Information::Ptr Info;
+    const Parameters::Accessor::Ptr Properties;
+    const Devices::AYM::DumperParameters::Optimization Optimization;
+  };
+}
+
 namespace ZXTune
 {
   namespace Module
@@ -37,41 +116,39 @@ namespace ZXTune
       Devices::AYM::Dumper::Ptr dumper;
       String errMessage;
 
-      const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
-      const Time::Microseconds frameDuration(sndParams->FrameDurationMicrosec());
       //convert to PSG
-      if (parameter_cast<PSGConvertParam>(&spec))
+      if (const PSGConvertParam* psg = parameter_cast<PSGConvertParam>(&spec))
       {
-        dumper = Devices::AYM::CreatePSGDumper(frameDuration);
+        const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, psg->Optimization);
+        dumper = Devices::AYM::CreatePSGDumper(dumpParams);
         errMessage = Text::MODULE_ERROR_CONVERT_PSG;
       }
       //convert to ZX50
-      else if (parameter_cast<ZX50ConvertParam>(&spec))
+      else if (const ZX50ConvertParam* zx50 = parameter_cast<ZX50ConvertParam>(&spec))
       {
-        dumper = Devices::AYM::CreateZX50Dumper(frameDuration);
+        const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, zx50->Optimization);
+        dumper = Devices::AYM::CreateZX50Dumper(dumpParams);
         errMessage = Text::MODULE_ERROR_CONVERT_ZX50;
       }
       //convert to debugay
-      else if (parameter_cast<DebugAYConvertParam>(&spec))
+      else if (const DebugAYConvertParam* dbg = parameter_cast<DebugAYConvertParam>(&spec))
       {
-        dumper = Devices::AYM::CreateDebugDumper(frameDuration);
+        const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, dbg->Optimization);
+        dumper = Devices::AYM::CreateDebugDumper(dumpParams);
         errMessage = Text::MODULE_ERROR_CONVERT_DEBUGAY;
       }
       //convert to aydump
-      else if (parameter_cast<AYDumpConvertParam>(&spec))
+      else if (const AYDumpConvertParam* aydump = parameter_cast<AYDumpConvertParam>(&spec))
       {
-        dumper = Devices::AYM::CreateRawStreamDumper(frameDuration);
+        const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, aydump->Optimization);
+        dumper = Devices::AYM::CreateRawStreamDumper(dumpParams);
         errMessage = Text::MODULE_ERROR_CONVERT_AYDUMP;
       }
       //convert to fym
-      else if (parameter_cast<FYMConvertParam>(&spec))
+      else if (const FYMConvertParam* fym = parameter_cast<FYMConvertParam>(&spec))
       {
-        const Information::Ptr info = chiptune.GetInformation();
-        const Parameters::Accessor::Ptr props = chiptune.GetProperties();
-        String title, author;
-        props->FindStringValue(ATTR_TITLE, title);
-        props->FindStringValue(ATTR_AUTHOR, author);
-        dumper = Devices::AYM::CreateFYMDumper(frameDuration, sndParams->ClockFreq(), title, author, info->LoopFrame());
+        const Devices::AYM::FYMDumperParameters::Ptr dumpParams = boost::make_shared<FYMDumperParameters>(params, boost::cref(chiptune), fym->Optimization);
+        dumper = Devices::AYM::CreateFYMDumper(dumpParams);
         errMessage = Text::MODULE_ERROR_CONVERT_PSG;
       }
 

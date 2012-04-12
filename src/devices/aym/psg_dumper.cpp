@@ -71,7 +71,7 @@ namespace
       }
       std::fill_n(inserter, remainInts, INTERRUPT);
       //store data
-      for (uint_t reg = 0, mask = update.Mask; mask; ++reg, mask >>= 1)
+      for (uint_t reg = 0, mask = update.Mask; mask && reg < DataChunk::REG_BEEPER; ++reg, mask >>= 1)
       {
         if (mask & 1)
         {
@@ -93,10 +93,10 @@ namespace Devices
 {
   namespace AYM
   {
-    Dumper::Ptr CreatePSGDumper(const Time::Microseconds& frameDuration)
+    Dumper::Ptr CreatePSGDumper(DumperParameters::Ptr params)
     {
       const FramedDumpBuilder::Ptr builder = boost::make_shared<PSGDumpBuilder>();
-      return CreateDumper(frameDuration, builder);
+      return CreateDumper(params, builder);
     }
   }
 }
