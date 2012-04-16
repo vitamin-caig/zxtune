@@ -28,6 +28,7 @@ namespace Formats
     Decoder::Ptr CreateProTracker2Decoder();
     Decoder::Ptr CreateProTracker3Decoder();
     Decoder::Ptr CreateProSoundMakerCompiledDecoder();
+    Decoder::Ptr CreateGlobalTrackerDecoder();
   }
 }
 

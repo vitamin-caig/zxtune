@@ -17,6 +17,12 @@ extern const Char ASCSOUNDMASTER2_DECODER_DESCRIPTION[] = {
 extern const Char DIGITALSTUDIO_DECODER_DESCRIPTION[] = {
   'D','i','g','i','t','a','l',' ','S','t','u','d','i','o',0
 };
+extern const Char GLOBALTRACKER1_EDITOR[] = {
+  'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','%','1','%',0
+};
+extern const Char GLOBALTRACKER_DECODER_DESCRIPTION[] = {
+  'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
+};
 extern const Char PROSOUNDMAKER_DECODER_DESCRIPTION[] = {
   'P','r','o',' ','S','o','u','n','d',' ','M','a','k','e','r',0
 };

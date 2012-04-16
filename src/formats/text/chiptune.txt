@@ -28,6 +28,13 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < DIGITALSTUDIO_DECODER_DESCRIPTION
 > "Digital Studio"
 
+#GlobalTracker
+< GLOBALTRACKER_DECODER_DESCRIPTION
+> "Global Tracker v1.x"
+
+< GLOBALTRACKER1_EDITOR
+> "Global Tracker v1.%1%"
+
 #ProTracker2
 < PROTRACKER2_DECODER_DESCRIPTION
 > "Pro Tracker v2.x"
