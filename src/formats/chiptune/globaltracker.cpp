@@ -432,6 +432,7 @@ namespace Chiptune
         : Delegate(data)
         , Ranges(Delegate.GetSize())
         , Source(*Delegate.GetField<RawHeader>(0))
+        , HeaderSize(sizeof(Source) - 1 + Source.Length)
         , UnfixDelta(fromLE(Source.Address))
       {
         Ranges.AddService(0, sizeof(Source) - sizeof(Source.Positions));
@@ -463,7 +464,7 @@ namespace Chiptune
         Require(!pats.empty());
         Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
         bool hasValidPatterns = false;
-        const uint_t minPatternsOffset = sizeof(Source);
+        const uint_t minPatternsOffset = HeaderSize;
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
@@ -483,43 +484,33 @@ namespace Chiptune
         Require(!samples.empty());
         bool hasValidSamples = false, hasPartialSamples = false;
         Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
+        const std::size_t minOffset = HeaderSize;
+        const std::size_t maxOffset = Delegate.GetSize();
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
           Require(in_range<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
+          const std::size_t samOffset = GetSampleOffset(samIdx);
+          Require(in_range(samOffset, minOffset, maxOffset));
+          const std::size_t availSize = Delegate.GetSize() - samOffset;
+          const RawSample* const src = Delegate.GetField<RawSample>(samOffset);
+          Require(src != 0);
           Sample result;
-          if (const std::size_t samOffset = GetSampleOffset(samIdx))
+          const std::size_t usedSize = src->GetUsedSize();
+          if (usedSize <= availSize)
           {
-            const std::size_t availSize = Delegate.GetSize() - samOffset;
-            if (const RawSample* src = Delegate.GetField<RawSample>(samOffset))
-            {
-              const std::size_t usedSize = src->GetUsedSize();
-              if (usedSize <= availSize)
-              {
-                Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
-                Ranges.Add(samOffset, usedSize);
-                ParseSample(*src, src->GetSize(), result);
-                hasValidSamples = true;
-              }
-              else
-              {
-                Log::Debug(THIS_MODULE, "Parse partial sample %1%", samIdx);
-                Ranges.Add(samOffset, availSize);
-                const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawSample::Line);
-                ParseSample(*src, availLines, result);
-                hasPartialSamples = true;
-              }
-            }
-            else
-            {
-              Log::Debug(THIS_MODULE, "Stub sample %1%", samIdx);
-            }
+            Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
+            Ranges.Add(samOffset, usedSize);
+            ParseSample(*src, src->GetSize(), result);
+            hasValidSamples = true;
           }
           else
           {
-            Log::Debug(THIS_MODULE, "Parse invalid sample %1%", samIdx);
-            const RawSample::Line& invalidLine = *Delegate.GetField<RawSample::Line>(0);
-            result.Lines.push_back(ParseSampleLine(invalidLine));
+            Log::Debug(THIS_MODULE, "Parse partial sample %1%", samIdx);
+            Ranges.Add(samOffset, availSize);
+            const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawSample::Line);
+            ParseSample(*src, availLines, result);
+            hasPartialSamples = true;
           }
           builder.SetSample(samIdx, result);
         }
@@ -537,6 +528,7 @@ namespace Chiptune
           Ornament result;
           if (const std::size_t ornOffset = GetOrnamentOffset(ornIdx))
           {
+            Require(ornOffset >= HeaderSize);
             const std::size_t availSize = Delegate.GetSize() - ornOffset;
             if (const RawOrnament* src = Delegate.GetField<RawOrnament>(ornOffset))
             {
@@ -817,6 +809,7 @@ namespace Chiptune
       const Binary::TypedContainer Delegate;
       RangesMap Ranges;
       const RawHeader& Source;
+      const std::size_t HeaderSize;
       const uint_t UnfixDelta;
     };
 
@@ -914,6 +907,21 @@ namespace Chiptune
             && GetAreaSize(HEADER) >= headerSize
             && Undefined == GetAreaSize(END);
       }
+
+      bool CheckPatterns() const
+      {
+        return GetAreaSize(PATTERNS) != 0;
+      }
+
+      bool CheckSamples() const
+      {
+        return GetAreaSize(SAMPLES) != 0;
+      }
+
+      bool CheckOrnaments() const
+      {
+        return GetAreaSize(ORNAMENTS) != 0;
+      }
     private:
       const std::size_t StartAddr;
     };
@@ -928,6 +936,18 @@ namespace Chiptune
       const RawHeader& hdr = *data.GetField<RawHeader>(0);
       const Areas areas(hdr, data.GetSize());
       if (!areas.CheckHeader(hdrSize))
+      {
+        return false;
+      }
+      if (!areas.CheckPatterns())
+      {
+        return false;
+      }
+      if (!areas.CheckSamples())
+      {
+        return false;
+      }
+      if (!areas.CheckOrnaments())
       {
         return false;
       }
