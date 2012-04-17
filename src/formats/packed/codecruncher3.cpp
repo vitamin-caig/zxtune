@@ -369,8 +369,12 @@ namespace Formats
       {
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
+        if (!Depacker->Match(data, availSize))
+        {
+          return Container::Ptr();
+        }
         const CodeCruncher3::Container container(data, availSize);
-        if (!container.FastCheck() || !Depacker->Match(data, availSize))
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }
