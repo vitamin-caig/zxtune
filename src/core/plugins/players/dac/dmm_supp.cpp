@@ -126,6 +126,8 @@ namespace DMM
 #pragma pack(pop)
 #endif
 
+  BOOST_STATIC_ASSERT(sizeof(MixedLine) == 4);
+  BOOST_STATIC_ASSERT(sizeof(SampleInfo) == 16);
   BOOST_STATIC_ASSERT(sizeof(Header) == 0x15e);
   BOOST_STATIC_ASSERT(sizeof(Pattern::Line) == 9);
 

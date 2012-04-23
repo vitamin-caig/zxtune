@@ -416,18 +416,18 @@ namespace Chiptune
       {
         static const uint_t HALFTONES[] = 
         {
-          -1, //invalid
-          -1, //invalid#
+          ~uint_t(0), //invalid
+          ~uint_t(0), //invalid#
           9,  //A
           10, //A#
           11, //B
-          -1, //B#,invalid
+          ~uint_t(0), //B#,invalid
           0,  //C
           1,  //C#
           2,  //D
           3,  //D#
           4,  //E
-          -1, //E#,invalid
+          ~uint_t(0), //E#,invalid
           5,  //F
           6,  //F#
           7,  //G

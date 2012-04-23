@@ -35,10 +35,10 @@ namespace Rar
 
   const Packed::Rar::BlockHeader MARKER = 
   {
-    fromLE(0x6152),
+    fromLE<uint16_t>(0x6152),
     0x72,
-    fromLE(0x1a21),
-    fromLE(0x0007)
+    fromLE<uint16_t>(0x1a21),
+    fromLE<uint16_t>(0x0007)
   };
 
   class StubFile : public Archived::File
