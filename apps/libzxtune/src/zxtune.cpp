@@ -143,6 +143,42 @@ namespace
     std::size_t DoneSamples;
   };
 
+  const ZXTune::Sound::MultiGain MIXER3[] =
+  {
+    { {1.0, 0.0} },
+    { {0.5, 0.5} },
+    { {0.0, 1.0} }
+  };
+  const ZXTune::Sound::MultiGain MIXER4[] =
+  {
+    { {1.0, 0.0} },
+    { {0.7, 0.3} },
+    { {0.3, 0.7} },
+    { {0.0, 1.0} }
+  };
+
+  ZXTune::Sound::Mixer::Ptr CreateMixer(const ZXTune::Sound::MultiGain* matrix, uint_t chans)
+  {
+    ZXTune::Sound::Mixer::Ptr res;
+    ThrowIfError(ZXTune::Sound::CreateMixer(chans, res));
+    std::vector<ZXTune::Sound::MultiGain> mtx(matrix, matrix + chans);
+    ThrowIfError(res->SetMatrix(mtx));
+    return res;
+  }
+
+  ZXTune::Sound::Mixer::Ptr CreateMixer(uint_t chans)
+  {
+    switch (chans)
+    {
+    case 3:
+      return CreateMixer(MIXER3, chans);
+    case 4:
+      return CreateMixer(MIXER4, chans);
+    default:
+      Require(!"Unsupported channels count");
+    }
+  }
+
   class PlayerWrapper
   {
   public:
@@ -206,8 +242,9 @@ namespace
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const uint_t channels = info->PhysicalChannels();
       const Parameters::Container::Ptr params = Parameters::Container::Create();
-      ZXTune::Sound::Mixer::Ptr mixer;
-      ThrowIfError(ZXTune::Sound::CreateMixer(channels, mixer));
+      //copy initial properties
+      holder->GetModuleProperties()->Process(*params);
+      const ZXTune::Sound::Mixer::Ptr mixer = CreateMixer(channels);
       const ZXTune::Module::Renderer::Ptr renderer = holder->CreateRenderer(params, mixer);
       const BufferRender::Ptr buffer = boost::make_shared<BufferRender>();
       mixer->SetTarget(buffer);
