@@ -35,6 +35,10 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < GLOBALTRACKER1_EDITOR
 > "Global Tracker v1.%1%"
 
+#ProTracker1
+< PROTRACKER1_DECODER_DESCRIPTION
+> "Pro Tracker v1.x"
+
 #ProTracker2
 < PROTRACKER2_DECODER_DESCRIPTION
 > "Pro Tracker v2.x"
