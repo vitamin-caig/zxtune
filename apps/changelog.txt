@@ -7,6 +7,10 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] ProTracker v1.xx support (PT1)
+
+--- Rev1649 from 17.04.2012
+
 [+] GlobalTracker support (GTR)
 [*] zxtune123: optimization support while converting to dump formats
 
