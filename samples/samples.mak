@@ -9,6 +9,7 @@ install_samples:
 	$(call copyfile_cmd,$(path_step)/samples/gtr/L.Boy.gtr,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/pdt/TechCent.M,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/psm/Calamba.psm,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(path_step)/samples/pt1/twins.pt1,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/pt2/Illusion.pt2,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/pt3/Speccy2.pt3,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/sqd/Maskarad.sqd,$(DESTDIR)/Samples)
