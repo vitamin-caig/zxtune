@@ -648,7 +648,7 @@ namespace
     //uint8_t Length;
     "01-f0"
     //uint8_t Padding2[16];
-    "00000000000000000000000000000000"
+    "00{16}"
     //boost::array<PDTSample, SAMPLES_COUNT> Samples;
     /*
     uint8_t Name[8];
@@ -657,26 +657,13 @@ namespace
     uint16_t Loop;
     uint8_t Page;
     uint8_t Padding;
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
-    "+8+ ?5b-ff ?00-40 ?5b-ff 00-07 00"
     */
+    "(+8+ ?5x|3x|c0-ff ?00-40 ?5x|3x|c0-ff 00|01|03|04|06|07 00){16}"
+    //boost::array<uint8_t, POSITIONS_COUNT> Positions;
+    "(00-1f){240}"
+    //uint16_t LastDatas[PAGES_COUNT];
+    "(?c0-ff){5}"
     /*
-    boost::array<uint8_t, POSITIONS_COUNT> Positions;
-    uint16_t LastDatas[PAGES_COUNT];
     uint8_t FreeRAM;
     uint8_t Padding3[5];
     */

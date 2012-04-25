@@ -39,7 +39,7 @@ namespace Chiptune
 {
   namespace ProTracker1
   {
-    const std::size_t MAX_MODULE_SIZE = 0x3600;
+    const std::size_t MAX_MODULE_SIZE = 0x2800;
     const std::size_t MAX_POSITIONS_COUNT = 255;
     const std::size_t MIN_PATTERN_SIZE = 5;
     const std::size_t MAX_PATTERN_SIZE = 64;
@@ -858,13 +858,13 @@ namespace Chiptune
     }
 
     const std::string FORMAT(
-      "02-ff"      // uint8_t Tempo; 2..15
+      "02-0f"      // uint8_t Tempo; 2..15
       "?"          // uint8_t Length;
       "00-fe"      // uint8_t Loop;
       //boost::array<uint16_t, 16> SamplesOffsets;
-      "(?00-36){16}"
+      "(?00-28){16}"
       //boost::array<uint16_t, 16> OrnamentsOffsets;
-      "(?00-36){16}"
+      "(?00-28){16}"
       "?00-01" // uint16_t PatternsOffset;
       "+30+"   // char Name[30];
       "00-1f"  // uint8_t Positions[1]; at least one
