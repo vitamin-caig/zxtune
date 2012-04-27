@@ -61,6 +61,9 @@ extern const Char PROGRAM_SITE[] = {
   'h','t','t','p',':','/','/','z','x','t','u','n','e','.','g','o','o','g','l','e','c','o','d','e','.','c','o',
   'm',0
 };
+extern const Char PROJECT_NAME[] = {
+  'Z','X','T','u','n','e',0
+};
 extern const Char REPORT_BUG_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e','/','i','s','s','u','e','s','/','e','n','t','r','y',0

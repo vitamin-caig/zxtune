@@ -19,6 +19,7 @@ extern const Char MODULE_TITLE_FORMAT[];
 extern const Char PATHS_COLLECTING_STATUS[];
 extern const Char PROGRAM_NAME[];
 extern const Char PROGRAM_SITE[];
+extern const Char PROJECT_NAME[];
 extern const Char REPORT_BUG_URL[];
 extern const Char TITLE_FORMAT[];
 extern const Char TOOLTIP_TEMPLATE[];

@@ -23,7 +23,6 @@ class GlobalOptions
 public:
   virtual ~GlobalOptions() {}
 
-  virtual void LoadDefault() = 0;
   virtual Parameters::Container::Ptr Get() const = 0;
 
   static GlobalOptions& Instance();
