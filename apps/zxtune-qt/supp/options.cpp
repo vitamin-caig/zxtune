@@ -31,10 +31,15 @@ namespace
   public:
     virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
-      const QVariant value = FindValue(name);
-      if (value.type() == QVariant::LongLong)
+      const Value value(Storage, name);
+      if (!value.IsValid())
       {
-        val = value.toLongLong();
+        return false;
+      }
+      const QVariant& var = value.Get();
+      if (var.type() == QVariant::LongLong)
+      {
+        val = var.toLongLong();
         return true;
       }
       return false;
@@ -42,10 +47,15 @@ namespace
 
     virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
-      const QVariant value = FindValue(name);
-      if (value.type() == QVariant::String)
+      const Value value(Storage, name);
+      if (!value.IsValid())
       {
-        val = FromQString(value.toString());
+        return false;
+      }
+      const QVariant& var = value.Get();
+      if (var.type() == QVariant::String)
+      {
+        val = FromQString(var.toString());
         return true;
       }
       return false;
@@ -53,10 +63,15 @@ namespace
 
     virtual bool FindDataValue(const Parameters::NameType& name, Parameters::DataType& val) const
     {
-      const QVariant value = FindValue(name);
-      if (value.type() == QVariant::ByteArray)
+      const Value value(Storage, name);
+      if (!value.IsValid())
       {
-        const QByteArray& arr = value.toByteArray();
+        return false;
+      }
+      const QVariant& var = value.Get();
+      if (var.type() == QVariant::ByteArray)
+      {
+        const QByteArray& arr = var.toByteArray();
         val.assign(arr.data(), arr.data() + arr.size());
         return true;
       }
@@ -70,80 +85,118 @@ namespace
 
     virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
     {
-      SetValue(name, QVariant(val));
+      Value value(Storage, name);
+      value.Set(QVariant(val));
     }
 
     virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
-      SetValue(name, QVariant(ToQString(val)));
+      Value value(Storage, name);
+      value.Set(QVariant(ToQString(val)));
     }
 
     virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
     {
+      Value value(Storage, name);
       const QByteArray arr(val.empty() ? QByteArray() : QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size()));
-      SetValue(name, QVariant(arr));
+      value.Set(QVariant(arr));
     }
 
     virtual void RemoveIntValue(const Parameters::NameType& name)
     {
-      RemoveValue(name);
+      Value val(Storage, name);
+      val.Remove();
     }
 
     virtual void RemoveStringValue(const Parameters::NameType& name)
     {
-      RemoveValue(name);
+      Value val(Storage, name);
+      val.Remove();
     }
 
     virtual void RemoveDataValue(const Parameters::NameType& name)
     {
-      RemoveValue(name);
+      Value val(Storage, name);
+      val.Remove();
     }
   private:
-    static QString GetKeyName(const Parameters::NameType& name)
-    {
-      QString res(ToQString(name));
-      res.replace('.', '/');
-      return res;
-    }
-
     typedef boost::shared_ptr<QSettings> SettingsPtr;
-
-    std::pair<SettingsPtr, QString> GetStorageAndName(const Parameters::NameType& name) const
-    {
-      const Parameters::NameType::size_type delimPos = name.find(Parameters::NAMESPACE_DELIMITER);
-      Require(delimPos != Parameters::NameType::npos);
-      const Parameters::NameType rootNamespace = name.substr(0, delimPos);
-      const QString paramName = GetKeyName(name.substr(delimPos + 1));
-      const SettingsStorage::const_iterator it = Settings.find(rootNamespace);
-      if (it != Settings.end())
-      {
-        return std::make_pair(it->second, paramName);
-      }
-      const SettingsPtr settings = boost::make_shared<QSettings>(Text::PROJECT_NAME, ToQString(rootNamespace));
-      Settings.insert(SettingsStorage::value_type(rootNamespace, settings));
-      return std::make_pair(settings, paramName);
-    }
-
-    QVariant FindValue(const Parameters::NameType& name) const
-    {
-      const std::pair<SettingsPtr, QString> setEntry = GetStorageAndName(name);
-      return setEntry.first->value(setEntry.second);
-    }
-
-    void SetValue(const Parameters::NameType& name, const QVariant& value)
-    {
-      const std::pair<SettingsPtr, QString> setEntry = GetStorageAndName(name);
-      setEntry.first->setValue(setEntry.second, value);
-    }
-
-    void RemoveValue(const Parameters::NameType& name)
-    {
-      const std::pair<SettingsPtr, QString> setEntry = GetStorageAndName(name);
-      setEntry.first->remove(setEntry.second);
-    }
-  private:
     typedef std::map<Parameters::NameType, SettingsPtr> SettingsStorage;
-    mutable SettingsStorage Settings;
+
+    class Value
+    {
+    public:
+      Value(SettingsStorage& storage, const Parameters::NameType& name)
+        : Storage(storage)
+        , FullName(name)
+      {
+      }
+
+      bool IsValid() const
+      {
+        return FullName.npos != FullName.find(Parameters::NAMESPACE_DELIMITER);
+      }
+
+      QVariant Get() const
+      {
+        const QString& name = GetName();
+        return Setup->value(name);
+      }
+
+      void Set(const QVariant& val)
+      {
+        const QString& name = GetName();
+        return Setup->setValue(name, val);
+      }
+
+      void Remove()
+      {
+        const QString& name = GetName();
+        return Setup->remove(name);
+      }
+    private:
+      static QString GetKeyName(const Parameters::NameType& name)
+      {
+        QString res(ToQString(name));
+        res.replace('.', '/');
+        return res;
+      }
+
+      const QString& GetName() const
+      {
+        Require(IsValid());
+        if (!Setup)
+        {
+          FillCache();
+        }
+        return ParamName;
+      }
+
+      void FillCache() const
+      {
+        Require(!Setup);
+        const Parameters::NameType::size_type delimPos = FullName.find(Parameters::NAMESPACE_DELIMITER);
+        const Parameters::NameType rootNamespace = FullName.substr(0, delimPos);
+        ParamName = GetKeyName(FullName.substr(delimPos + 1));
+        const SettingsStorage::const_iterator it = Storage.find(rootNamespace);
+        if (it != Storage.end())
+        {
+          Setup = it->second;
+        }
+        else
+        {
+          Setup = boost::make_shared<QSettings>(QString(Text::PROJECT_NAME), ToQString(rootNamespace));
+          Storage.insert(SettingsStorage::value_type(rootNamespace, Setup));
+        }
+      }
+    private:
+      SettingsStorage& Storage;
+      const Parameters::NameType FullName;
+      mutable SettingsPtr Setup;
+      mutable QString ParamName;
+    };
+  private:
+    mutable SettingsStorage Storage;
   };
 
   class GlobalOptionsStorage : public GlobalOptions

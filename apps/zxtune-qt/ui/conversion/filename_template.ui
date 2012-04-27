@@ -33,7 +33,14 @@
        <number>4</number>
       </property>
       <item>
-       <widget class="QLineEdit" name="directoryName"/>
+       <widget class="QComboBox" name="directoryName">
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="maxCount">
+         <number>10</number>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QToolButton" name="browseDirButton">
@@ -59,26 +66,9 @@
         <property name="editable">
          <bool>true</bool>
         </property>
-        <item>
-         <property name="text">
-          <string notr="true"/>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">[Fullpath].[Type]</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">[Filename]_[Subpath].[Type]</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string notr="true">[CRC].[Type]</string>
-         </property>
-        </item>
+        <property name="maxCount">
+         <number>10</number>
+        </property>
        </widget>
       </item>
       <item>

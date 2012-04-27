@@ -14,51 +14,115 @@ Author:
 //local includes
 #include "filename_template.h"
 #include "filename_template.ui.h"
+#include "supp/options.h"
+#include "ui/utils.h"
 #include "ui/tools/filedialog.h"
 //qt includes
+#include <QtGui/QCloseEvent>
 #include <QtGui/QDialogButtonBox>
+#include <QtGui/QLineEdit>
 #include <QtGui/QMessageBox>
 #include <QtGui/QVBoxLayout>
 
+namespace Parameters
+{
+  namespace ZXTuneQT
+  {
+    namespace UI
+    {
+      namespace Export
+      {
+        const Char RECENT_DIRECTORIES[] =
+        {
+          'z','x','t','u','n','e','-','q','t','.','u','i','.','e','x','p','o','r','t','.','r','e','c','e','n','t','_','d','i','r','e','c','t','o','r','i','e','s','\0'
+        };
+
+        const Char RECENT_TEMPLATES[] =
+        {
+          'z','x','t','u','n','e','-','q','t','.','u','i','.','e','x','p','o','r','t','.','r','e','c','e','n','t','_','t','e','m','p','l','a','t','e','s','\0'
+        };
+      }
+    }
+  }
+}
+
 namespace
 {
+  const Char STRINGS_DELIMITER = '\n';
+
+  const Char DEFAULT_TEMPLATES[] = {
+    '[','F','u','l','l','p','a','t','h',']','.','[','T','y','p','e',']','\n',
+    '[','F','i','l','e','n','a','m','e',']','_','[','S','u','b','p','a','t','h',']','.','[','T','y','p','e',']','\n',
+    '[','C','R','C',']','.','[','T','y','p','e',']'
+  };
+
+  QStringList GetAllItems(const QComboBox& box)
+  {
+    QStringList result;
+    for (int idx = 0; idx < box.count(); ++idx)
+    {
+      result.push_back(box.itemText(idx));
+    }
+    return result;
+  }
+
+  void UpdateRecent(QComboBox& box)
+  {
+    //emulate QComboBox::returnPressed
+    const QString txt = box.currentText();
+    const int idx = box.findText(txt);
+    if (-1 != idx)
+    { 
+      box.removeItem(idx);
+    }
+    box.insertItem(0, txt);
+  }
+
   class FilenameTemplateWidgetImpl : public UI::FilenameTemplateWidget
                                    , private Ui::FilenameTemplate
   {
   public:
     explicit FilenameTemplateWidgetImpl(QWidget& parent)
       : UI::FilenameTemplateWidget(parent)
+      , Options(GlobalOptions::Instance().Get())
     {
       //setup self
       setupUi(this);
 
-      connect(directoryName, SIGNAL(textChanged(const QString&)), SIGNAL(SettingsChanged()));
+      connect(directoryName, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged()));
       connect(fileTemplate, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged()));
+
+      LoadSettings();
+    }
+
+    virtual ~FilenameTemplateWidgetImpl()
+    {
+      UpdateRecentItemsLists();
+      SaveSettings();
     }
 
     virtual QString GetFilenameTemplate() const
     {
-      const QString dir = directoryName->text();
       const QString name = fileTemplate->currentText();
-      const bool hasDir = 0 != dir.size();
-      const bool hasName = 0 != name.size();
-      if (hasName)
+      if (0 == name.size())
       {
-        if (hasDir)
-        {
-          return dir + '/' + name;
-        }
         return name;
       }
-      return QString();
+      const QString dir = directoryName->currentText();
+      if (dir.size() != 0)
+      {
+        return dir + '/' + name;
+      }
+      return name;
     }
 
     virtual void OnBrowseDirectory()
     {
-      QString dir = directoryName->text();
+      QString dir = directoryName->currentText();
       if (FileDialog::Instance().OpenFolder(tr("Select target directory"), dir))
       {
-        directoryName->setText(dir);
+        QLineEdit* const editor = directoryName->lineEdit();
+        editor->setText(dir);
       }
     }
 
@@ -67,6 +131,42 @@ namespace
       QLineEdit* const editor = fileTemplate->lineEdit();
       editor->setText(editor->text() + hint);
     }
+  private:
+    void UpdateRecentItemsLists() const
+    {
+      UpdateRecent(*fileTemplate);
+      UpdateRecent(*directoryName);
+    }
+
+    void LoadSettings()
+    {
+      LoadComboboxStrings(Parameters::ZXTuneQT::UI::Export::RECENT_DIRECTORIES, *directoryName, String());
+      LoadComboboxStrings(Parameters::ZXTuneQT::UI::Export::RECENT_TEMPLATES, *fileTemplate, DEFAULT_TEMPLATES);
+    }
+
+    void LoadComboboxStrings(const Parameters::NameType& name, QComboBox& box, const Parameters::StringType& defaultValue)
+    {
+      Parameters::StringType str = defaultValue;
+      Options->FindStringValue(name, str);
+      const QStringList& items = ToQString(str).split(STRINGS_DELIMITER, QString::SkipEmptyParts);
+      box.clear();
+      box.addItems(items);
+    }
+
+    void SaveSettings() const
+    {
+      SaveComboboxStrings(Parameters::ZXTuneQT::UI::Export::RECENT_DIRECTORIES, *directoryName);
+      SaveComboboxStrings(Parameters::ZXTuneQT::UI::Export::RECENT_TEMPLATES, *fileTemplate);
+    }
+
+    void SaveComboboxStrings(const Parameters::NameType& name, const QComboBox& box) const
+    {
+      const QStringList& items = GetAllItems(box);
+      const QString& str = items.join(QString(STRINGS_DELIMITER));
+      Options->SetStringValue(name, FromQString(str));
+    }
+  private:
+    const Parameters::Container::Ptr Options;
   };
 
   class FilenameTemplateDialog : public QDialog
