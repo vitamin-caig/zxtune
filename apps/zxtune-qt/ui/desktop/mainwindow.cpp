@@ -16,6 +16,7 @@ Author:
 #include "mainwindow.ui.h"
 #include "ui/format.h"
 #include "ui/utils.h"
+#include "ui/parameters.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "ui/controls/playback_options.h"
@@ -32,9 +33,12 @@ Author:
 #include <logging.h>
 //library includes
 #include <core/module_attrs.h>
+//boost includes
+#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QApplication>
+#include <QtGui/QCloseEvent>
 #include <QtGui/QDesktopServices>
 #include <QtGui/QMessageBox>
 #include <QtGui/QToolBar>
@@ -43,6 +47,9 @@ Author:
 
 namespace
 {
+  //ver0 - initial version
+  const int PARAMETERS_VERSION = 0;
+
   class MainWindowImpl : public MainWindow
                        , public Ui::MainWindow
   {
@@ -66,13 +73,21 @@ namespace
       menubar->addMenu(MultiPlaylist->GetActionsMenu());
       menubar->addMenu(menuHelp);
       //fill toolbar and layout menu
-      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Controls, false));
-      AddWidgetWithLayoutControl(AddWidgetOnToolbar(FastOptions, false));
-      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Volume, true));
-      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Status, false));
-      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Seeking, true));
-      AddWidgetWithLayoutControl(AddWidgetOnToolbar(Analyzer, false));
-      AddWidgetWithLayoutControl(AddWidgetOnLayout(MultiPlaylist));
+      {
+        QWidget* const ALL_WIDGETS[] =
+        {
+          AddWidgetOnToolbar(Controls, false),
+          AddWidgetOnToolbar(FastOptions, false),
+          AddWidgetOnToolbar(Volume, true),
+          AddWidgetOnToolbar(Status, false),
+          AddWidgetOnToolbar(Seeking, true),
+          AddWidgetOnToolbar(Analyzer, false)
+        };
+        //playlist is mandatory and cannot be hidden
+        AddWidgetOnLayout(MultiPlaylist);
+        RestoreUI();
+        std::for_each(ALL_WIDGETS, ArrayEnd(ALL_WIDGETS), boost::bind(&MainWindowImpl::AddWidgetLayoutControl, this, _1));
+      }
 
       //connect root actions
       Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
@@ -148,10 +163,19 @@ namespace
     {
       QMessageBox::aboutQt(this);
     }
+
+    //QWidgets virtuals
+    virtual void closeEvent(QCloseEvent* event)
+    {
+      SaveUI();
+      event->accept();
+    }
   private:
     QToolBar* AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
     {
-      QToolBar* const toolBar = new QToolBar(this);
+      const QString widgetId = widget->windowTitle();
+      QToolBar* const toolBar = new QToolBar(widgetId, this);
+      toolBar->setObjectName(widgetId);
       QSizePolicy sizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
       sizePolicy.setHorizontalStretch(0);
       sizePolicy.setVerticalStretch(0);
@@ -161,7 +185,6 @@ namespace
       toolBar->setFloatable(false);
       toolBar->setContextMenuPolicy(Qt::PreventContextMenu);
       toolBar->addWidget(widget);
-      toolBar->setWindowTitle(widget->windowTitle());
 
       addToolBar(Qt::TopToolBarArea, toolBar);
       if (lastInRow)
@@ -171,12 +194,11 @@ namespace
       return toolBar;
     }
 
-    void AddWidgetWithLayoutControl(QWidget* widget)
+    void AddWidgetLayoutControl(QWidget* widget)
     {
-      QAction* const action = new QAction(widget);
+      QAction* const action = new QAction(widget->windowTitle(), widget);
       action->setCheckable(true);
-      action->setChecked(true);//TODO
-      action->setText(widget->windowTitle());
+      action->setChecked(widget->isVisibleTo(this));
       //integrate
       menuLayout->addAction(action);
       widget->connect(action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
@@ -186,6 +208,42 @@ namespace
     {
       centralWidget()->layout()->addWidget(widget);
       return widget;
+    }
+
+    void RestoreUI()
+    {
+      restoreGeometry(LoadBlob(Parameters::ZXTuneQT::UI::GEOMETRY));
+      restoreState(LoadBlob(Parameters::ZXTuneQT::UI::LAYOUT), PARAMETERS_VERSION);
+    }
+
+    void SaveUI()
+    {
+      SaveBlob(Parameters::ZXTuneQT::UI::GEOMETRY, saveGeometry());
+      SaveBlob(Parameters::ZXTuneQT::UI::LAYOUT, saveState(PARAMETERS_VERSION));
+    }
+
+    void SaveBlob(const Parameters::NameType& name, const QByteArray& blob)
+    {
+      if (const int size = blob.size())
+      {
+        const uint8_t* const rawData = safe_ptr_cast<const uint8_t*>(blob.data());
+        const Parameters::DataType data(rawData, rawData + size);
+        Options->SetDataValue(name, data);
+      }
+      else
+      {
+        Options->RemoveDataValue(name);
+      }
+    }
+
+    QByteArray LoadBlob(const Parameters::NameType& name) const
+    {
+      Dump val;
+      if (Options->FindDataValue(name, val) && !val.empty())
+      {
+        return QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size());
+      }
+      return QByteArray();
     }
   private:
     const Parameters::Container::Ptr Options;
