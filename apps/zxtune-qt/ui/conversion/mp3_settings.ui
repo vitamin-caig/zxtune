@@ -131,16 +131,28 @@
  <resources/>
  <connections>
   <connection>
-   <sender>selectQuality</sender>
+   <sender>selectCBR</sender>
    <signal>toggled(bool)</signal>
    <receiver>bitrateValue</receiver>
-   <slot>setDisabled(bool)</slot>
+   <slot>setEnabled(bool)</slot>
   </connection>
   <connection>
-   <sender>selectQuality</sender>
+   <sender>selectCBR</sender>
    <signal>toggled(bool)</signal>
    <receiver>bitratePrecise</receiver>
-   <slot>setDisabled(bool)</slot>
+   <slot>setEnabled(bool)</slot>
+  </connection>
+  <connection>
+   <sender>selectABR</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>bitrateValue</receiver>
+   <slot>setEnabled(bool)</slot>
+  </connection>
+  <connection>
+   <sender>selectABR</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>bitratePrecise</receiver>
+   <slot>setEnabled(bool)</slot>
   </connection>
   <connection>
    <sender>selectQuality</sender>
