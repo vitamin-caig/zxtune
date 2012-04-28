@@ -29,6 +29,8 @@ namespace Playlist
 {
   namespace UI
   {
+    class View;
+
     class ContainerView : public QWidget
     {
       Q_OBJECT
@@ -38,7 +40,11 @@ namespace Playlist
       //creator
       static ContainerView* Create(QWidget& parent, Parameters::Container::Ptr parameters);
 
-      virtual void CreatePlaylist(const QStringList& items) = 0;
+      virtual void Setup(const QStringList& items) = 0;
+      virtual void Teardown() = 0;
+
+      virtual View* LoadPlaylist(const QString& filename) = 0;
+      virtual View* GetPlaylist(uint_t idx) = 0;
       virtual QMenu* GetActionsMenu() const = 0;
 
     public slots:

@@ -85,6 +85,7 @@ namespace Playlist
 
     virtual void PerformOperation(Item::StorageAccessOperation::Ptr operation) = 0;
     virtual void PerformOperation(Item::StorageModifyOperation::Ptr operation) = 0;
+    virtual void WaitOperationFinish() = 0;
 
     //accessors
     virtual unsigned CountItems() const = 0;

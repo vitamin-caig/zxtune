@@ -249,6 +249,13 @@ namespace
       return *Controller;
     }
 
+    virtual void Save(const QString& filename, uint_t flags) const
+    {
+      const QString name = Controller->GetName();
+      const Playlist::Item::StorageAccessOperation::Ptr op = boost::make_shared<SavePlaylistOperation>(name, filename, flags);
+      Controller->GetModel()->PerformOperation(op);
+    }
+
     //modifiers
     virtual void AddItems(const QStringList& items)
     {
@@ -330,12 +337,11 @@ namespace
 
     virtual void Save()
     {
-      const QString name = Controller->GetName();
       QStringList filters;
       filters << "Simple playlist (*.xspf)";
       filters << "Playlist with module's attributes (*.xspf)";
 
-      QString filename = name;
+      QString filename = Controller->GetName();
       int usedFilter = 0;
       if (FileDialog::Instance().SaveFile(QString::fromUtf8("Save playlist"),
         QString::fromUtf8("xspf"), filters, filename, &usedFilter))
@@ -345,8 +351,7 @@ namespace
         {
           flags |= Playlist::IO::SAVE_ATTRIBUTES;
         }
-        const Playlist::Item::StorageAccessOperation::Ptr op = boost::make_shared<SavePlaylistOperation>(name, filename, flags);
-        Controller->GetModel()->PerformOperation(op);
+        Save(filename, flags);
       }
     }
 

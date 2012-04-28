@@ -302,18 +302,22 @@ namespace
 
     virtual void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
     {
-      AsyncExecution->Wait();
-      Canceled = false;
+      WaitOperationFinish();
       const Async::Operation::Ptr wrapper = boost::make_shared<AsyncOperation<Playlist::Item::StorageAccessOperation> >(operation, boost::ref(*this));
       AsyncExecution = Async::Activity::Create(wrapper);
     }
 
     virtual void PerformOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
     {
-      AsyncExecution->Wait();
-      Canceled = false;
+      WaitOperationFinish();
       const Async::Operation::Ptr wrapper = boost::make_shared<AsyncOperation<Playlist::Item::StorageModifyOperation> >(operation, boost::ref(*this));
       AsyncExecution = Async::Activity::Create(wrapper);
+    }
+
+    virtual void WaitOperationFinish()
+    {
+      AsyncExecution->Wait();
+      Canceled = false;
     }
 
     //new virtuals

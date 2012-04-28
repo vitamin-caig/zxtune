@@ -119,7 +119,7 @@ namespace
         QStringList items;
         std::transform(cmdline.begin(), cmdline.end(),
           std::back_inserter(items), &ToQString);
-        MultiPlaylist->CreatePlaylist(items);
+        MultiPlaylist->Setup(items);
       }
     }
 
@@ -168,6 +168,7 @@ namespace
     virtual void closeEvent(QCloseEvent* event)
     {
       SaveUI();
+      MultiPlaylist->Teardown();
       event->accept();
     }
   private:

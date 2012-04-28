@@ -24,17 +24,128 @@ Author:
 #include "ui/tools/filedialog.h"
 #include "ui/tools/parameters_helpers.h"
 //common includes
+#include <contract.h>
 #include <error.h>
 #include <logging.h>
 //std includes
 #include <cassert>
 //qt includes
+#include <QtCore/QDir>
 #include <QtGui/QContextMenuEvent>
+#include <QtGui/QDesktopServices>
 #include <QtGui/QMenu>
 
 namespace
 {
   const std::string THIS_MODULE("Playlist::UI::ContainerView");
+
+  class StoredPlaylists
+  {
+  public:
+    StoredPlaylists()
+      : ListsDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
+    {
+      Require(ListsDir.mkpath("ZXTune/Playlists"));
+      Require(ListsDir.cd("ZXTune/Playlists"));
+      Files = ListsDir.entryList(QStringList("*.xspf"), QDir::Files | QDir::Readable, QDir::Name);
+      Log::Debug(THIS_MODULE, "%1% stored playlists", Files.size());
+    }
+
+    void LoadAll(Playlist::UI::ContainerView& view)
+    {
+      for (QStringList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      {
+        const QString fileName = *it;
+        const QString fullName = ListsDir.absoluteFilePath(fileName);
+        if (Playlist::UI::View* plView = view.LoadPlaylist(fullName))
+        {
+          Log::Debug(THIS_MODULE, "Loaded stored playlist '%1%'", FromQString(fullName));
+          Lists[plView] = fileName;
+        }
+      }
+    }
+
+    void Add(Playlist::UI::View* view)
+    {
+      Lists[view] = QString();
+    }
+
+    void Remove(Playlist::UI::View* view)
+    {
+      const QString& filename = GetFilename(view);
+      if (filename.size() != 0)
+      {
+        Require(ListsDir.remove(filename));
+        Files.removeAll(filename);
+        Lists.remove(view);
+      }
+    }
+
+    void SaveAll(Playlist::UI::ContainerView& view)
+    {
+      const QStringList& newFiles = SaveFiles(view);
+      Log::Debug(THIS_MODULE, "Saved %1% playlists", newFiles.size());
+      RemovePrevious();
+      Files = newFiles;
+    }
+  private:
+    QStringList SaveFiles(Playlist::UI::ContainerView& view)
+    {
+      QStringList newFiles;
+      std::list<Playlist::Model::Ptr> models;
+      for (uint_t idx = 0; ; ++idx)
+      {
+        if (Playlist::UI::View* plView = view.GetPlaylist(idx))
+        {
+          Remove(plView);
+          const QString& fileName = QString("%1.xspf").arg(idx);
+          const QString fullName = ListsDir.absoluteFilePath(fileName);
+          plView->Save(fullName, 0);
+          models.push_back(plView->GetPlaylist().GetModel());
+          MarkAsUsed(fileName);
+          Lists[plView] = fileName;
+          newFiles.push_back(fileName);
+        }
+        else
+        {
+          break;
+        }
+      }
+      while (!models.empty())
+      {
+        models.front()->WaitOperationFinish();
+        models.pop_front();
+      }
+      return newFiles;
+    }
+
+    void MarkAsUsed(const QString& filename)
+    {
+      if (Playlist::UI::View* view = Lists.key(filename))
+      {
+        Lists[view] = QString();
+      }
+      Files.removeAll(filename);
+    }
+
+    void RemovePrevious()
+    {
+      for (; !Files.empty(); Files.pop_back())
+      {
+        const QString name = Files.back();
+        Require(ListsDir.remove(name));
+      }
+    }
+
+    QString GetFilename(Playlist::UI::View* view) const
+    {
+      return Lists.value(view);
+    }
+  private:
+    QDir ListsDir;
+    QStringList Files;
+    QMap<Playlist::UI::View*, QString> Lists;
+  };
 
   class ContainerViewImpl : public Playlist::UI::ContainerView
                           , public Ui::PlaylistContainerView
@@ -73,10 +184,40 @@ namespace
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
-    virtual void CreatePlaylist(const QStringList& items)
+    virtual void Setup(const QStringList& items)
     {
-      Playlist::UI::View& pl = CreateAnonymousPlaylist();
-      pl.AddItems(items);
+      if (items.empty())
+      {
+        Storage.LoadAll(*this);
+        if (widgetsContainer->count() == 0)
+        {
+          CreateAnonymousPlaylist();
+        }
+      }
+      else
+      {
+        Playlist::UI::View& pl = CreateAnonymousPlaylist();
+        pl.AddItems(items);
+      }
+    }
+
+    virtual void Teardown()
+    {
+      Storage.SaveAll(*this);
+    }
+
+    virtual Playlist::UI::View* LoadPlaylist(const QString& filename)
+    {
+      if (Playlist::Controller::Ptr pl = Container->OpenPlaylist(filename))
+      {
+        return &RegisterPlaylist(pl);
+      }
+      return 0;
+    }
+
+    virtual Playlist::UI::View* GetPlaylist(uint_t index)
+    {
+      return static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
     }
 
     virtual QMenu* GetActionsMenu() const
@@ -157,10 +298,7 @@ namespace
       if (FileDialog::Instance().OpenSingleFile(actionLoadPlaylist->text(),
          tr("Playlist files (*.xspf *.ayl)"), file))
       {
-        if (Playlist::Controller::Ptr pl = Container->OpenPlaylist(file))
-        {
-          RegisterPlaylist(pl);
-        }
+        LoadPlaylist(file);
       }
     }
 
@@ -194,6 +332,7 @@ namespace
         ActivePlaylistView = 0;
         SwitchToLastPlaylist();
       }
+      Storage.Remove(view);
       view->deleteLater();
     }
 
@@ -255,6 +394,7 @@ namespace
         ActivePlaylistView = plView;
       }
       widgetsContainer->setCurrentWidget(plView);
+      Storage.Add(plView);
       return *plView;
     }
 
@@ -306,6 +446,7 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
     const Playlist::Container::Ptr Container;
+    StoredPlaylists Storage;
     QMenu* const ActionsMenu;
     //state context
     Playlist::UI::View* ActivePlaylistView;
