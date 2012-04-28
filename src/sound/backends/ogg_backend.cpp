@@ -47,6 +47,11 @@ namespace
 
   const Char OGG_BACKEND_ID[] = {'o', 'g', 'g', 0};
 
+  const uint_t BITRATE_MIN = 48;
+  const uint_t BITRATE_MAX = 500;
+  const uint_t QUALITY_MIN = 0;
+  const uint_t QUALITY_MAX = 10;
+
   struct VorbisEncLibraryTraits
   {
     static std::string GetName()
@@ -353,26 +358,47 @@ namespace
     {
     }
 
-    boost::optional<uint_t> GetABR() const
+    bool IsABRMode() const
     {
-      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Ogg::ABR);
+      Parameters::StringType mode = Parameters::ZXTune::Sound::Backends::Ogg::MODE_DEFAULT;
+      Params->FindStringValue(Parameters::ZXTune::Sound::Backends::Ogg::MODE, mode);
+      if (mode == Parameters::ZXTune::Sound::Backends::Ogg::MODE_ABR)
+      {
+        return true;
+      }
+      else if (mode == Parameters::ZXTune::Sound::Backends::Ogg::MODE_QUALITY)
+      {
+        return false;
+      }
+      else
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_OGG_BACKEND_INVALID_MODE, mode);
+      }
+    }
+
+    uint_t GetBitrate() const
+    {
+      Parameters::IntType bitrate = Parameters::ZXTune::Sound::Backends::Ogg::BITRATE_DEFAULT;
+      if (Params->FindIntValue(Parameters::ZXTune::Sound::Backends::Ogg::BITRATE, bitrate) &&
+        !in_range<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_OGG_BACKEND_INVALID_BITRATE, static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
+      }
+      return static_cast<uint_t>(bitrate);
     }
 
     uint_t GetQuality() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT;
-      Params->FindIntValue(Parameters::ZXTune::Sound::Backends::Ogg::QUALITY, val);
-      return val;
-    }
-  private:
-    boost::optional<uint_t> GetOptionalParameter(const Parameters::NameType& name) const
-    {
-      Parameters::IntType val = 0;
-      if (Params->FindIntValue(name, val))
+      Parameters::IntType quality = Parameters::ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT;
+      if (Params->FindIntValue(Parameters::ZXTune::Sound::Backends::Ogg::QUALITY, quality) &&
+        !in_range<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
       {
-        return val;
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_OGG_BACKEND_INVALID_QUALITY, static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
       }
-      return boost::optional<uint_t>();
+      return static_cast<uint_t>(quality);
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -405,10 +431,11 @@ namespace
     {
       const uint_t samplerate = RenderingParameters->SoundFreq();
       Log::Debug(THIS_MODULE, "Samplerate is %1%", samplerate);
-      if (const boost::optional<uint_t> abr = Params.GetABR())
+      if (Params.IsABRMode())
       {
-        Log::Debug(THIS_MODULE, "Setting ABR to %1%kbps", *abr);
-        info.SetABR(*abr, samplerate);
+        const uint_t bitrate = Params.GetBitrate();
+        Log::Debug(THIS_MODULE, "Setting ABR to %1%kbps", bitrate);
+        info.SetABR(bitrate, samplerate);
       }
       else
       {
@@ -484,143 +511,134 @@ namespace ZXTune
 
 //global namespace
 #define STR(a) #a
-//MSVS2003 does not support variadic macros
 
-#define VORBISENCODE_CALL4(func, p1, p2, p3, p4) VorbisEncLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3, p4)
-#define VORBISENCODE_CALL6(func, p1, p2, p3, p4, p5, p6) VorbisEncLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3, p4, p5, p6)
-
-#define VORBIS_CALL(func)  VorbisLibrary::Instance().GetSymbol(&func, STR(func))()
-#define VORBIS_CALL1(func, p1) VorbisLibrary::Instance().GetSymbol(&func, STR(func))(p1)
-#define VORBIS_CALL2(func, p1, p2) VorbisLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2)
-#define VORBIS_CALL3(func, p1, p2, p3) VorbisLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3)
-#define VORBIS_CALL5(func, p1, p2, p3, p4, p5) VorbisLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3, p4, p5)
-
-#define OGG_CALL1(func, p1) OggLibrary::Instance().GetSymbol(&func, STR(func))(p1)
-#define OGG_CALL2(func, p1, p2) OggLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2)
+#define VORBISENCODE_FUNC(func) VorbisEncLibrary::Instance().GetSymbol(&func, STR(func))
+#define VORBIS_FUNC(func)  VorbisLibrary::Instance().GetSymbol(&func, STR(func))
+#define OGG_FUNC(func) OggLibrary::Instance().GetSymbol(&func, STR(func))
 
 int vorbis_encode_init(vorbis_info *vi, long channels, long rate, long max_bitrate, long nominal_bitrate, long min_bitrate)
 {
-  return VORBISENCODE_CALL6(vorbis_encode_init, vi, channels, rate, max_bitrate, nominal_bitrate, min_bitrate);
+  return VORBISENCODE_FUNC(vorbis_encode_init)(vi, channels, rate, max_bitrate, nominal_bitrate, min_bitrate);
 }
 
 int vorbis_encode_init_vbr(vorbis_info *vi, long channels, long rate, float base_quality)
 {
-  return VORBISENCODE_CALL4(vorbis_encode_init_vbr, vi, channels, rate, base_quality);
+  return VORBISENCODE_FUNC(vorbis_encode_init_vbr)(vi, channels, rate, base_quality);
 }
 
 int vorbis_block_clear(vorbis_block *vb)
 {
-  return VORBIS_CALL1(vorbis_block_clear, vb);
+  return VORBIS_FUNC(vorbis_block_clear)(vb);
 }
 
 int vorbis_block_init(vorbis_dsp_state *v, vorbis_block *vb)
 {
-  return VORBIS_CALL2(vorbis_block_init, v, vb);
+  return VORBIS_FUNC(vorbis_block_init)(v, vb);
 }
 
 void vorbis_dsp_clear(vorbis_dsp_state *v)
 {
-  return VORBIS_CALL1(vorbis_dsp_clear, v);
+  return VORBIS_FUNC(vorbis_dsp_clear)(v);
 }
 
 void vorbis_info_clear(vorbis_info *vi)
 {
-  return VORBIS_CALL1(vorbis_info_clear, vi);
+  return VORBIS_FUNC(vorbis_info_clear)(vi);
 }
 
 void vorbis_info_init(vorbis_info *vi)
 {
-  return VORBIS_CALL1(vorbis_info_init, vi);
+  return VORBIS_FUNC(vorbis_info_init)(vi);
 }
 
 const char *vorbis_version_string(void)
 {
-  return VORBIS_CALL(vorbis_version_string);
+  return VORBIS_FUNC(vorbis_version_string)();
 }
 
 int vorbis_analysis(vorbis_block *vb, ogg_packet *op)
 {
-  return VORBIS_CALL2(vorbis_analysis, vb, op);
+  return VORBIS_FUNC(vorbis_analysis)(vb, op);
 }
 
 int vorbis_analysis_blockout(vorbis_dsp_state *v, vorbis_block *vb)
 {
-  return VORBIS_CALL2(vorbis_analysis_blockout, v, vb);
+  return VORBIS_FUNC(vorbis_analysis_blockout)(v, vb);
 }
 
 float** vorbis_analysis_buffer(vorbis_dsp_state *v, int vals)
 {
-  return VORBIS_CALL2(vorbis_analysis_buffer, v, vals);
+  return VORBIS_FUNC(vorbis_analysis_buffer)(v, vals);
 }
 
 int vorbis_analysis_headerout(vorbis_dsp_state *v, vorbis_comment *vc, ogg_packet *op, ogg_packet *op_comm, ogg_packet *op_code)
 {
-  return VORBIS_CALL5(vorbis_analysis_headerout, v, vc, op, op_comm, op_code);
+  return VORBIS_FUNC(vorbis_analysis_headerout)(v, vc, op, op_comm, op_code);
 }
 
 int vorbis_analysis_init(vorbis_dsp_state *v, vorbis_info *vi)
 {
-  return VORBIS_CALL2(vorbis_analysis_init, v, vi);
+  return VORBIS_FUNC(vorbis_analysis_init)(v, vi);
 }
 
 int vorbis_analysis_wrote(vorbis_dsp_state *v,int vals)
 {
-  return VORBIS_CALL2(vorbis_analysis_wrote, v, vals);
+  return VORBIS_FUNC(vorbis_analysis_wrote)(v, vals);
 }
 
 int vorbis_bitrate_addblock(vorbis_block *vb)
 {
-  return VORBIS_CALL1(vorbis_bitrate_addblock, vb);
+  return VORBIS_FUNC(vorbis_bitrate_addblock)(vb);
 }
 
 int vorbis_bitrate_flushpacket(vorbis_dsp_state *vd, ogg_packet *op)
 {
-  return VORBIS_CALL2(vorbis_bitrate_flushpacket, vd, op);
+  return VORBIS_FUNC(vorbis_bitrate_flushpacket)(vd, op);
 }
 
 void vorbis_comment_add_tag(vorbis_comment *vc, const char *tag, const char *contents)
 {
-  return VORBIS_CALL3(vorbis_comment_add_tag, vc, tag, contents);
+  return VORBIS_FUNC(vorbis_comment_add_tag)(vc, tag, contents);
 }
 
 void vorbis_comment_clear(vorbis_comment *vc)
 {
-  return VORBIS_CALL1(vorbis_comment_clear, vc);
+  return VORBIS_FUNC(vorbis_comment_clear)(vc);
 }
 
 void vorbis_comment_init(vorbis_comment *vc)
 {
-  return VORBIS_CALL1(vorbis_comment_init, vc);
+  return VORBIS_FUNC(vorbis_comment_init)(vc);
 }
 
 int ogg_stream_init(ogg_stream_state *os, int serialno)
 {
-  return OGG_CALL2(ogg_stream_init, os, serialno);
+  return OGG_FUNC(ogg_stream_init)(os, serialno);
 }
 
 int ogg_stream_clear(ogg_stream_state *os)
 {
-  return OGG_CALL1(ogg_stream_clear, os);
+  return OGG_FUNC(ogg_stream_clear)(os);
 }
 
 int ogg_stream_packetin(ogg_stream_state *os, ogg_packet *op)
 {
-  return OGG_CALL2(ogg_stream_packetin, os, op);
+  return OGG_FUNC(ogg_stream_packetin)(os, op);
 }
 
 int ogg_stream_pageout(ogg_stream_state *os, ogg_page *og)
 {
-  return OGG_CALL2(ogg_stream_pageout, os, og);
+  return OGG_FUNC(ogg_stream_pageout)(os, og);
 }
 
 int ogg_stream_flush(ogg_stream_state *os, ogg_page *og)
 {
-  return OGG_CALL2(ogg_stream_flush, os, og);
+  return OGG_FUNC(ogg_stream_flush)(os, og);
 }
 
 int ogg_page_eos(const ogg_page *og)
 {
-  return OGG_CALL1(ogg_page_eos, og);
+  return OGG_FUNC(ogg_page_eos)(og);
 }
 
 #else //not supported

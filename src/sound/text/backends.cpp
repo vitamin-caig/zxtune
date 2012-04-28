@@ -85,10 +85,38 @@ extern const Char SOUND_ERROR_FLAC_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','f','l','a','c',' ','b','a','c','k','e','n','d','.',0
 };
 extern const Char SOUND_ERROR_MP3_BACKEND_ERROR[] = {
-  'E','r','r','o','r',' ','i','n',' ','m','p','3',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+  'E','r','r','o','r',' ','i','n',' ','M','P','3',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+};
+extern const Char SOUND_ERROR_MP3_BACKEND_INVALID_BITRATE[] = {
+  'M','P','3',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','b','i','t','r','a','t','e',' ',
+  '(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',' ','(','%','2','%','.',
+  '.','%','3','%',')','.',0
+};
+extern const Char SOUND_ERROR_MP3_BACKEND_INVALID_MODE[] = {
+  'M','P','3',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','i','n','v','a','l','i','d',' ',
+  'm','o','d','e',' ','\'','%','1','%','\'','.',0
+};
+extern const Char SOUND_ERROR_MP3_BACKEND_INVALID_QUALITY[] = {
+  'M','P','3',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','q','u','a','l','i','t','y',' ',
+  '(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',' ','(','%','2','%','.',
+  '.','%','3','%',')','.',0
 };
 extern const Char SOUND_ERROR_OGG_BACKEND_ERROR[] = {
-  'E','r','r','o','r',' ','i','n',' ','o','g','g',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+  'E','r','r','o','r',' ','i','n',' ','M','P','3',' ','b','a','c','k','e','n','d',':',' ','%','1','%','.',0
+};
+extern const Char SOUND_ERROR_OGG_BACKEND_INVALID_BITRATE[] = {
+  'O','G','G',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','b','i','t','r','a','t','e',' ',
+  '(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',' ','(','%','2','%','.',
+  '.','%','3','%',')','.',0
+};
+extern const Char SOUND_ERROR_OGG_BACKEND_INVALID_MODE[] = {
+  'O','G','G',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','i','n','v','a','l','i','d',' ',
+  'm','o','d','e',' ','\'','%','1','%','\'','.',0
+};
+extern const Char SOUND_ERROR_OGG_BACKEND_INVALID_QUALITY[] = {
+  'O','G','G',' ','b','a','c','k','e','n','d',' ','e','r','r','o','r',':',' ','q','u','a','l','i','t','y',' ',
+  '(','%','1','%',')',' ','i','s',' ','o','u','t',' ','o','f',' ','r','a','n','g','e',' ','(','%','2','%','.',
+  '.','%','3','%',')','.',0
 };
 extern const Char SOUND_ERROR_OSS_BACKEND_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','O','S','S',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',' ',

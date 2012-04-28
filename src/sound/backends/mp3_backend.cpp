@@ -46,6 +46,11 @@ namespace
 
   const Char MP3_BACKEND_ID[] = {'m', 'p', '3', 0};
 
+  const uint_t BITRATE_MIN = 32;
+  const uint_t BITRATE_MAX = 320;
+  const uint_t QUALITY_MIN = 0;
+  const uint_t QUALITY_MAX = 9;
+
   struct LameLibraryTraits
   {
     static std::string GetName()
@@ -168,6 +173,13 @@ namespace
     Dump Encoded;
   };
 
+  enum Mode
+  {
+    MODE_CBR,
+    MODE_VBR,
+    MODE_ABR
+  };
+
   class Mp3Parameters
   {
   public:
@@ -176,29 +188,51 @@ namespace
     {
     }
 
-    boost::optional<uint_t> GetBitrate() const
+    Mode GetMode() const
     {
-      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE);
-    }
-
-    boost::optional<uint_t> GetVBRQuality() const
-    {
-      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Mp3::VBR);
-    }
-
-    boost::optional<uint_t> GetABR() const
-    {
-      return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Mp3::ABR);
-    }
-  private:
-    boost::optional<uint_t> GetOptionalParameter(const Parameters::NameType& name) const
-    {
-      Parameters::IntType val = 0;
-      if (Params->FindIntValue(name, val))
+      Parameters::StringType mode = Parameters::ZXTune::Sound::Backends::Mp3::MODE_DEFAULT;
+      Params->FindStringValue(Parameters::ZXTune::Sound::Backends::Mp3::MODE, mode);
+      if (mode == Parameters::ZXTune::Sound::Backends::Mp3::MODE_CBR)
       {
-        return val;
+        return MODE_CBR;
       }
-      return boost::optional<uint_t>();
+      else if (mode == Parameters::ZXTune::Sound::Backends::Mp3::MODE_VBR)
+      {
+        return MODE_VBR;
+      }
+      else if (mode == Parameters::ZXTune::Sound::Backends::Mp3::MODE_ABR)
+      {
+        return MODE_ABR;
+      }
+      else
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_MP3_BACKEND_INVALID_MODE, mode);
+      }
+    }
+
+    uint_t GetBitrate() const
+    {
+      Parameters::IntType bitrate = Parameters::ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT;
+      if (Params->FindIntValue(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE, bitrate) &&
+        !in_range<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_MP3_BACKEND_INVALID_BITRATE, static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
+      }
+      return static_cast<uint_t>(bitrate);
+    }
+
+    uint_t GetQuality() const
+    {
+      Parameters::IntType quality = Parameters::ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT;
+      if (Params->FindIntValue(Parameters::ZXTune::Sound::Backends::Mp3::QUALITY, quality) &&
+        !in_range<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_MP3_BACKEND_INVALID_QUALITY, static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
+      }
+      return static_cast<uint_t>(quality);
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -234,23 +268,34 @@ namespace
       CheckLameCall(::lame_set_out_samplerate(&ctx, samplerate), THIS_LINE);
       CheckLameCall(::lame_set_num_channels(&ctx, OUTPUT_CHANNELS), THIS_LINE);
       CheckLameCall(::lame_set_bWriteVbrTag(&ctx, true), THIS_LINE);
-      if (const boost::optional<uint_t> bitrate = Params.GetBitrate())
+      switch (Params.GetMode())
       {
-        Log::Debug(THIS_MODULE, "Setting bitrate to %1%kbps", *bitrate);
-        CheckLameCall(::lame_set_VBR(&ctx, vbr_off), THIS_LINE);
-        CheckLameCall(::lame_set_brate(&ctx, *bitrate), THIS_LINE);
-      }
-      else if (const boost::optional<uint_t> vbr = Params.GetVBRQuality())
-      {
-        Log::Debug(THIS_MODULE, "Setting VBR quality to %1%", *vbr);
-        CheckLameCall(::lame_set_VBR(&ctx, vbr_default), THIS_LINE);
-        CheckLameCall(::lame_set_VBR_q(&ctx, *vbr), THIS_LINE);
-      }
-      else if (const boost::optional<uint_t> abr = Params.GetABR())
-      {
-        Log::Debug(THIS_MODULE, "Setting ABR to %1%kbps", *abr);
-        CheckLameCall(::lame_set_VBR(&ctx, vbr_abr), THIS_LINE);
-        CheckLameCall(::lame_set_VBR_mean_bitrate_kbps(&ctx, *abr), THIS_LINE);
+      case MODE_CBR:
+        {
+          const uint_t bitrate = Params.GetBitrate();
+          Log::Debug(THIS_MODULE, "Setting bitrate to %1%kbps", bitrate);
+          CheckLameCall(::lame_set_VBR(&ctx, vbr_off), THIS_LINE);
+          CheckLameCall(::lame_set_brate(&ctx, bitrate), THIS_LINE);
+        }
+        break;
+      case MODE_ABR:
+        {
+          const uint_t bitrate = Params.GetBitrate();
+          Log::Debug(THIS_MODULE, "Setting average bitrate to %1%kbps", bitrate);
+          CheckLameCall(::lame_set_VBR(&ctx, vbr_abr), THIS_LINE);
+          CheckLameCall(::lame_set_VBR_mean_bitrate_kbps(&ctx, bitrate), THIS_LINE);
+        }
+        break;
+      case MODE_VBR:
+        {
+          const uint_t quality = Params.GetQuality();
+          Log::Debug(THIS_MODULE, "Setting VBR quality to %1%", quality);
+          CheckLameCall(::lame_set_VBR(&ctx, vbr_default), THIS_LINE);
+          CheckLameCall(::lame_set_VBR_q(&ctx, quality), THIS_LINE);
+        }
+        break;
+      default:
+        assert(!"Invalid mode");
       }
       CheckLameCall(::lame_init_params(&ctx), THIS_LINE);
       ::id3tag_init(&ctx);
@@ -319,106 +364,101 @@ namespace ZXTune
 
 //global namespace
 #define STR(a) #a
-//MSVS2003 does not support variadic macros
-#define LAME_CALL(func) LameLibrary::Instance().GetSymbol(&func, STR(func))()
-#define LAME_CALL1(func, p1) LameLibrary::Instance().GetSymbol(&func, STR(func))(p1)
-#define LAME_CALL2(func, p1, p2) LameLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2)
-#define LAME_CALL3(func, p1, p2, p3) LameLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3)
-#define LAME_CALL5(func, p1, p2, p3, p4, p5) LameLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3, p4, p5)
+#define LAME_FUNC(func) LameLibrary::Instance().GetSymbol(&func, STR(func))
 
 const char* get_lame_version()
 {
-  return LAME_CALL(get_lame_version);
+  return LAME_FUNC(get_lame_version)();
 }
 
 lame_t lame_init()
 {
-  return LAME_CALL(lame_init);
+  return LAME_FUNC(lame_init)();
 }
 
 int lame_close(lame_t ctx)
 {
-  return LAME_CALL1(lame_close, ctx);
+  return LAME_FUNC(lame_close)(ctx);
 }
 
 int lame_set_in_samplerate(lame_t ctx, int rate)
 {
-  return LAME_CALL2(lame_set_in_samplerate, ctx, rate);
+  return LAME_FUNC(lame_set_in_samplerate)(ctx, rate);
 }
 
 int lame_set_out_samplerate(lame_t ctx, int rate)
 {
-  return LAME_CALL2(lame_set_out_samplerate, ctx, rate);
+  return LAME_FUNC(lame_set_out_samplerate)(ctx, rate);
 }
 
 int lame_set_bWriteVbrTag(lame_t ctx, int flag)
 {
-  return LAME_CALL2(lame_set_bWriteVbrTag, ctx, flag);
+  return LAME_FUNC(lame_set_bWriteVbrTag)(ctx, flag);
 }
 
 int lame_set_num_channels(lame_t ctx, int chans)
 {
-  return LAME_CALL2(lame_set_num_channels, ctx, chans);
+  return LAME_FUNC(lame_set_num_channels)(ctx, chans);
 }
 
 int lame_set_brate(lame_t ctx, int brate)
 {
-  return LAME_CALL2(lame_set_brate, ctx, brate);
+  return LAME_FUNC(lame_set_brate)(ctx, brate);
 }
 
 int lame_set_VBR(lame_t ctx, vbr_mode mode)
 {
-  return LAME_CALL2(lame_set_VBR, ctx, mode);
+  return LAME_FUNC(lame_set_VBR)(ctx, mode);
 }
 
 int lame_set_VBR_q(lame_t ctx, int quality)
 {
-  return LAME_CALL2(lame_set_VBR_q, ctx, quality);
+  return LAME_FUNC(lame_set_VBR_q)(ctx, quality);
 }
 
 int lame_set_VBR_mean_bitrate_kbps(lame_t ctx, int brate)
 {
-  return LAME_CALL2(lame_set_VBR_mean_bitrate_kbps, ctx, brate);
+  return LAME_FUNC(lame_set_VBR_mean_bitrate_kbps)(ctx, brate);
 }
 
 int lame_init_params(lame_t ctx)
 {
-  return LAME_CALL1(lame_init_params, ctx);
+  return LAME_FUNC(lame_init_params)(ctx);
 }
 
 int lame_encode_buffer_interleaved(lame_t ctx, short int* pcm, int samples, unsigned char* dst, int dstSize)
 {
-  return LAME_CALL5(lame_encode_buffer_interleaved, ctx, pcm, samples, dst, dstSize);
+  return LAME_FUNC(lame_encode_buffer_interleaved)(ctx, pcm, samples, dst, dstSize);
 }
 
 int lame_encode_flush(lame_t ctx, unsigned char* dst, int dstSize)
 {
-  return LAME_CALL3(lame_encode_flush, ctx, dst, dstSize);
+  return LAME_FUNC(lame_encode_flush)(ctx, dst, dstSize);
 }
 
 void id3tag_init(lame_t ctx)
 {
-  return LAME_CALL1(id3tag_init, ctx);
+  return LAME_FUNC(id3tag_init)(ctx);
 }
 
 void id3tag_add_v2(lame_t ctx)
 {
-  return LAME_CALL1(id3tag_add_v2, ctx);
+  return LAME_FUNC(id3tag_add_v2)(ctx);
 }
 
 void id3tag_set_title(lame_t ctx, const char* title)
 {
-  return LAME_CALL2(id3tag_set_title, ctx, title);
+  return LAME_FUNC(id3tag_set_title)(ctx, title);
 }
 
 void id3tag_set_artist(lame_t ctx, const char* artist)
 {
-  return LAME_CALL2(id3tag_set_artist, ctx, artist);
+  return LAME_FUNC(id3tag_set_artist)(ctx, artist);
 }
 
 void id3tag_set_comment(lame_t ctx, const char* comment)
 {
-  return LAME_CALL2(id3tag_set_comment, ctx, comment);
+  return LAME_FUNC(id3tag_set_comment)(ctx, comment);
 }
 
 #else //not supported

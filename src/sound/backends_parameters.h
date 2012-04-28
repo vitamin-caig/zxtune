@@ -190,22 +190,31 @@ namespace Parameters
           //@{
           //! @name Mp3 backend parameters
 
-          //! Constant bitrate in kbps. Highest priority
+          const Char MODE_CBR[] = {'c','b','r',0};
+          const Char MODE_VBR[] = {'v','b','r',0};
+          const Char MODE_ABR[] = {'a','b','r',0};
+          //! Default
+          const Char* MODE_DEFAULT = MODE_CBR; 
+          //! Operational mode
+          const Char MODE[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','m','p','3','.','m','o','d','e','\0'
+          };
+
+          //! Default value
+          const IntType BITRATE_DEFAULT = 128;
+          //! Bitrate in kbps
           const Char BITRATE[] =
           {
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','m','p','3','.','b','i','t','r','a','t','e','\0'
           };
 
-          //! VBR quality. Middle priority
-          const Char VBR[] =
+          //! Default value
+          const IntType QUALITY_DEFAULT = 5;
+          //! VBR quality 9..0
+          const Char QUALITY[] =
           {
-            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','m','p','3','.','v','b','r','\0'
-          };
-
-          //! ABR bitrate. Lowest priority
-          const Char ABR[] =
-          {
-            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','m','p','3','.','a','b','r','\0'
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','m','p','3','.','q','u','a','l','i','t','y','\0'
           };
           //@}
         }
@@ -216,6 +225,16 @@ namespace Parameters
           //@{
           //! @name Ogg backend parameters
 
+          const Char MODE_QUALITY[] = {'q','u','a','l','i','t','y',0};
+          const Char MODE_ABR[] = {'a','b','r',0};
+          //! Default value
+          const Char* MODE_DEFAULT = MODE_QUALITY;
+          // Working mode
+          const Char MODE[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','o','g','g','.','m','o','d','e','\0'
+          };
+
           //! Default value
           const IntType QUALITY_DEFAULT = 6;
           //! VBR quality 1..10
@@ -224,10 +243,12 @@ namespace Parameters
             'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','o','g','g','.','q','u','a','l','i','t','y','\0'
           };
 
+          //! Default value
+          const IntType BITRATE_DEFAULT = 128;
           //! ABR bitrate in kbps
-          const Char ABR[] =
+          const Char BITRATE[] =
           {
-            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','o','g','g','.','a','b','r','\0'
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','o','g','g','.','b','i','t','r','a','t','e','\0'
           };
           //@}
         }
@@ -238,6 +259,8 @@ namespace Parameters
           //@{
           //! @name Flac backend parameters
 
+          //! Default value
+          const IntType COMPRESSION_DEFAULT = 5;
           //! Compression level 0..8
           const Char COMPRESSION[] =
           {
