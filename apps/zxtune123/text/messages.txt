@@ -176,20 +176,23 @@
 < INFO_OPTIONS_SOUND_BACKENDS_DIRECTSOUND_LATENCY
 > "latency in ms for DirectSound backend"
 
+< INFO_OPTIONS_SOUND_BACKENDS_MP3_MODE
+> "specify mode for Mp3 backend (cbr/abr/vbr)"
+
 < INFO_OPTIONS_SOUND_BACKENDS_MP3_BITRATE
-> "specify constant bitrate in kbps for Mp3 backend"
+> "specify bitrate in kbps for Mp3 backend in mode=cbr or mode=abr"
 
-< INFO_OPTIONS_SOUND_BACKENDS_MP3_VBR
-> "specify VBR quality for Mp3 backend (0- highest, 9- lowest)"
+< INFO_OPTIONS_SOUND_BACKENDS_MP3_QUALITY
+> "specify quality for Mp3 backend (0- highest, 9- lowest) in mode=vbr"
 
-< INFO_OPTIONS_SOUND_BACKENDS_MP3_ABR
-> "specify average bitrate in kbps for Mp3 backend"
+< INFO_OPTIONS_SOUND_BACKENDS_OGG_MODE
+> "specify mode for Ogg backend (quality/abr)"
 
 < INFO_OPTIONS_SOUND_BACKENDS_OGG_QUALITY
-> "specify quality for Ogg backend (0- lowest, 6- highest)"
+> "specify quality for Ogg backend (0- lowest, 10- highest) in mode=quality"
 
 < INFO_OPTIONS_SOUND_BACKENDS_OGG_ABR
-> "specify averate bitrate in kbps for Ogg backend"
+> "specify averate bitrate in kbps for Ogg backend in mode=abr"
 
 < INFO_OPTIONS_SOUND_BACKENDS_FLAC_COMPRESSION
 > "specify compression level for Flac backend (0- lowest, 8- highest)"

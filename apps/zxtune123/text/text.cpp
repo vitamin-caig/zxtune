@@ -491,27 +491,33 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_FLAC_COMPRESSION[] = {
   'o','r',' ','F','l','a','c',' ','b','a','c','k','e','n','d',' ','(','0','-',' ','l','o','w','e','s','t',',',
   ' ','8','-',' ','h','i','g','h','e','s','t',')',0
 };
-extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_ABR[] = {
-  's','p','e','c','i','f','y',' ','a','v','e','r','a','g','e',' ','b','i','t','r','a','t','e',' ','i','n',' ',
-  'k','b','p','s',' ','f','o','r',' ','M','p','3',' ','b','a','c','k','e','n','d',0
-};
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_BITRATE[] = {
-  's','p','e','c','i','f','y',' ','c','o','n','s','t','a','n','t',' ','b','i','t','r','a','t','e',' ','i','n',
-  ' ','k','b','p','s',' ','f','o','r',' ','M','p','3',' ','b','a','c','k','e','n','d',0
+  's','p','e','c','i','f','y',' ','b','i','t','r','a','t','e',' ','i','n',' ','k','b','p','s',' ','f','o','r',
+  ' ','M','p','3',' ','b','a','c','k','e','n','d',' ','i','n',' ','m','o','d','e','=','c','b','r',' ','o','r',
+  ' ','m','o','d','e','=','a','b','r',0
 };
-extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_VBR[] = {
-  's','p','e','c','i','f','y',' ','V','B','R',' ','q','u','a','l','i','t','y',' ','f','o','r',' ','M','p','3',
-  ' ','b','a','c','k','e','n','d',' ','(','0','-',' ','h','i','g','h','e','s','t',',',' ','9','-',' ','l','o',
-  'w','e','s','t',')',0
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_MODE[] = {
+  's','p','e','c','i','f','y',' ','m','o','d','e',' ','f','o','r',' ','M','p','3',' ','b','a','c','k','e','n',
+  'd',' ','(','c','b','r','/','a','b','r','/','v','b','r',')',0
+};
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_QUALITY[] = {
+  's','p','e','c','i','f','y',' ','q','u','a','l','i','t','y',' ','f','o','r',' ','M','p','3',' ','b','a','c',
+  'k','e','n','d',' ','(','0','-',' ','h','i','g','h','e','s','t',',',' ','9','-',' ','l','o','w','e','s','t',
+  ')',' ','i','n',' ','m','o','d','e','=','v','b','r',0
 };
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_OGG_ABR[] = {
   's','p','e','c','i','f','y',' ','a','v','e','r','a','t','e',' ','b','i','t','r','a','t','e',' ','i','n',' ',
-  'k','b','p','s',' ','f','o','r',' ','O','g','g',' ','b','a','c','k','e','n','d',0
+  'k','b','p','s',' ','f','o','r',' ','O','g','g',' ','b','a','c','k','e','n','d',' ','i','n',' ','m','o','d',
+  'e','=','a','b','r',0
+};
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_OGG_MODE[] = {
+  's','p','e','c','i','f','y',' ','m','o','d','e',' ','f','o','r',' ','O','g','g',' ','b','a','c','k','e','n',
+  'd',' ','(','q','u','a','l','i','t','y','/','a','b','r',')',0
 };
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_OGG_QUALITY[] = {
   's','p','e','c','i','f','y',' ','q','u','a','l','i','t','y',' ','f','o','r',' ','O','g','g',' ','b','a','c',
-  'k','e','n','d',' ','(','0','-',' ','l','o','w','e','s','t',',',' ','6','-',' ','h','i','g','h','e','s','t',
-  ')',0
+  'k','e','n','d',' ','(','0','-',' ','l','o','w','e','s','t',',',' ','1','0','-',' ','h','i','g','h','e','s',
+  't',')',' ','i','n',' ','m','o','d','e','=','q','u','a','l','i','t','y',0
 };
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE[] = {
   'p','l','a','y','b','a','c','k',' ','d','e','v','i','c','e',' ','f','o','r',' ','O','S','S',' ','b','a','c',
