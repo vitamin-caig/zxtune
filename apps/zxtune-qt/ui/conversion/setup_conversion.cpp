@@ -19,7 +19,9 @@ Author:
 #include "mp3_settings.h"
 #include "ogg_settings.h"
 #include "flac_settings.h"
+#include "supp/options.h"
 #include "ui/utils.h"
+#include "ui/tools/parameters_helpers.h"
 //library includes
 #include <sound/backends_parameters.h>
 //boost includes
@@ -41,7 +43,7 @@ namespace
 
   bool HasMultithreadEnvironment()
   {
-    return QThread::idealThreadCount() >= 1;
+    return QThread::idealThreadCount() > 1;
   }
 
   class SetupConversionDialogImpl : public UI::SetupConversionDialog
@@ -50,6 +52,7 @@ namespace
   public:
     explicit SetupConversionDialogImpl(QWidget& parent)
       : UI::SetupConversionDialog(parent)
+      , Options(GlobalOptions::Instance().Get())
       , TargetTemplate(UI::FilenameTemplateWidget::Create(*this))
       , TargetFormat(UI::SupportedFormatsWidget::Create(*this))
     {
@@ -70,6 +73,10 @@ namespace
 
       toolBox->setCurrentIndex(TEMPLATE_PAGE);
       useMultithreading->setEnabled(HasMultithreadEnvironment());
+      using namespace Parameters;
+      BooleanValue::Bind(*useMultithreading, *Options, ZXTune::Sound::Backends::File::BUFFERS, false, MULTITHREAD_BUFFERS_COUNT);
+      BooleanValue::Bind(*overwriteTarget, *Options, ZXTune::Sound::Backends::File::OVERWRITE, false);
+
       UpdateDescriptions();
     }
 
@@ -78,14 +85,12 @@ namespace
       if (exec())
       {
         type = TargetFormat->GetSelectedId();
-        const Parameters::Container::Ptr options = GetBackendSettings(type);
+        using namespace Parameters;
+        const Container::Ptr options = GetBackendSettings(type);
         const QString filename = TargetTemplate->GetFilenameTemplate();
-        options->SetStringValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, FromQString(filename));
-        options->SetIntValue(Parameters::ZXTune::Sound::Backends::File::OVERWRITE, overwriteTarget->isChecked());
-        if (useMultithreading->isChecked())
-        {
-          options->SetIntValue(Parameters::ZXTune::Sound::Backends::File::BUFFERS, MULTITHREAD_BUFFERS_COUNT);
-        }
+        options->SetStringValue(ZXTune::Sound::Backends::File::FILENAME, FromQString(filename));
+        CopyExistingValue<IntType>(*Options, *options, ZXTune::Sound::Backends::File::BUFFERS);
+        CopyExistingValue<IntType>(*Options, *options, ZXTune::Sound::Backends::File::OVERWRITE);
         return options;
       }
       else
@@ -153,6 +158,7 @@ namespace
       }
     }
   private:
+    const Parameters::Container::Ptr Options;
     UI::FilenameTemplateWidget* const TargetTemplate;
     UI::SupportedFormatsWidget* const TargetFormat;
     typedef std::map<String, UI::BackendSettingsWidget*> BackendIdToSettings;

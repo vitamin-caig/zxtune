@@ -20,17 +20,17 @@
       <string>Setup bitrate type and value</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="1" column="0">
+      <item row="0" column="0">
        <widget class="QRadioButton" name="selectCBR">
         <property name="text">
          <string>Fixed bitrate</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <layout class="QHBoxLayout" name="abrLayout">
+      <item row="0" column="1">
+       <layout class="QHBoxLayout" name="bitrateLayout">
         <item>
-         <widget class="QSlider" name="abrBitrate">
+         <widget class="QSlider" name="bitrateValue">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -39,9 +39,6 @@
           </property>
           <property name="maximum">
            <number>320</number>
-          </property>
-          <property name="value">
-           <number>128</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -49,15 +46,15 @@
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="abrValue">
-          <property name="enabled">
-           <bool>false</bool>
-          </property>
+         <widget class="QSpinBox" name="bitratePrecise">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
+          </property>
+          <property name="enabled">
+           <bool>false</bool>
           </property>
           <property name="minimum">
            <number>32</number>
@@ -65,38 +62,35 @@
           <property name="maximum">
            <number>320</number>
           </property>
-          <property name="value">
-           <number>128</number>
-          </property>
          </widget>
         </item>
        </layout>
       </item>
-      <item row="5" column="0">
+      <item row="1" column="0">
        <widget class="QRadioButton" name="selectABR">
         <property name="text">
          <string>Average bitrate</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QRadioButton" name="selectVBR">
+      <item row="2" column="0">
+       <widget class="QRadioButton" name="selectQuality">
         <property name="text">
-         <string>VBR quality</string>
+         <string>Quality</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
-       <layout class="QHBoxLayout" name="vbrLayout">
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="qualityLayout">
         <item>
-         <widget class="QLabel" name="maxVBR">
+         <widget class="QLabel" name="maxQuality">
           <property name="text">
            <string>Max</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSlider" name="vbrQuality">
+         <widget class="QSlider" name="qualityValue">
           <property name="enabled">
            <bool>false</bool>
           </property>
@@ -105,9 +99,6 @@
           </property>
           <property name="maximum">
            <number>9</number>
-          </property>
-          <property name="value">
-           <number>5</number>
           </property>
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -118,7 +109,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QLabel" name="minVBR">
+         <widget class="QLabel" name="minQuality">
           <property name="layoutDirection">
            <enum>Qt::LeftToRight</enum>
           </property>
@@ -132,23 +123,6 @@
         </item>
        </layout>
       </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="bitrateValue">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="currentIndex">
-         <number>-1</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QRadioButton" name="selectDefault">
-        <property name="text">
-         <string>Default settings</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
@@ -157,100 +131,34 @@
  <resources/>
  <connections>
   <connection>
-   <sender>abrBitrate</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>abrValue</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>181</x>
-     <y>205</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>382</x>
-     <y>205</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>abrValue</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>abrBitrate</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>382</x>
-     <y>205</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>181</x>
-     <y>205</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>selectCBR</sender>
+   <sender>selectQuality</sender>
    <signal>toggled(bool)</signal>
    <receiver>bitrateValue</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>76</x>
-     <y>41</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>225</x>
-     <y>41</y>
-    </hint>
-   </hints>
+   <slot>setDisabled(bool)</slot>
   </connection>
   <connection>
-   <sender>selectVBR</sender>
+   <sender>selectQuality</sender>
    <signal>toggled(bool)</signal>
-   <receiver>vbrQuality</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>76</x>
-     <y>74</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>222</x>
-     <y>74</y>
-    </hint>
-   </hints>
+   <receiver>bitratePrecise</receiver>
+   <slot>setDisabled(bool)</slot>
   </connection>
   <connection>
-   <sender>selectABR</sender>
+   <sender>selectQuality</sender>
    <signal>toggled(bool)</signal>
-   <receiver>abrBitrate</receiver>
+   <receiver>qualityValue</receiver>
    <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>76</x>
-     <y>109</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>194</x>
-     <y>109</y>
-    </hint>
-   </hints>
   </connection>
   <connection>
-   <sender>selectABR</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>abrValue</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>76</x>
-     <y>109</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>277</x>
-     <y>109</y>
-    </hint>
-   </hints>
+   <sender>bitrateValue</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>bitratePrecise</receiver>
+   <slot>setValue(int)</slot>
+  </connection>
+  <connection>
+   <sender>bitratePrecise</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>bitrateValue</receiver>
+   <slot>setValue(int)</slot>
   </connection>
  </connections>
 </ui>

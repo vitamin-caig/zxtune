@@ -14,6 +14,9 @@ Author:
 //local includes
 #include "mp3_settings.h"
 #include "mp3_settings.ui.h"
+#include "supp/options.h"
+#include "ui/utils.h"
+#include "ui/tools/parameters_helpers.h"
 //common includes
 #include <tools.h>
 //library includes
@@ -21,91 +24,48 @@ Author:
 
 namespace
 {
-  const uint_t BITRATES[] =
-  {
-    32,
-    64,
-    96,
-    112,
-    128,
-    160,
-    192,
-    256,
-    320
-  };
-
   class MP3SettingsWidget : public UI::BackendSettingsWidget
-                    , private Ui::Mp3Settings
+                          , private Ui::Mp3Settings
   {
   public:
     explicit MP3SettingsWidget(QWidget& parent)
       : UI::BackendSettingsWidget(parent)
+      , Options(GlobalOptions::Instance().Get())
     {
       //setup self
       setupUi(this);
-      std::for_each(BITRATES, ArrayEnd(BITRATES), std::bind1st(std::mem_fun(&MP3SettingsWidget::AddBitrate), this));
 
-      connect(selectDefault, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
       connect(selectCBR, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
-      connect(bitrateValue, SIGNAL(currentIndexChanged(int)), SIGNAL(SettingsChanged()));
-      connect(selectVBR, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
-      connect(vbrQuality, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged()));
       connect(selectABR, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
-      connect(abrBitrate, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged()));
+      connect(bitrateValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged()));
+      connect(selectQuality, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
+      connect(qualityValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged()));
 
-      selectDefault->setChecked(true);
-    }
-
-    virtual void SetSettings(const Parameters::Accessor& params)
-    {
-      selectDefault->setChecked(true);
-      Parameters::IntType val = 0;
-      if (params.FindIntValue(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE, val))
+      using namespace Parameters;
+      ExclusiveValue::Bind(*selectCBR, *Options, ZXTune::Sound::Backends::Mp3::MODE,
+        ZXTune::Sound::Backends::Mp3::MODE_CBR);
+      ExclusiveValue::Bind(*selectABR, *Options, ZXTune::Sound::Backends::Mp3::MODE,
+        ZXTune::Sound::Backends::Mp3::MODE_ABR);
+      ExclusiveValue::Bind(*selectQuality, *Options, ZXTune::Sound::Backends::Mp3::MODE,
+        ZXTune::Sound::Backends::Mp3::MODE_VBR);
+      IntegerValue::Bind(*bitrateValue, *Options, ZXTune::Sound::Backends::Mp3::BITRATE,
+        ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT);
+      IntegerValue::Bind(*qualityValue, *Options, ZXTune::Sound::Backends::Mp3::QUALITY,
+        ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT);
+      //fixup
+      if (!selectCBR->isChecked() && !selectABR->isChecked() && !selectQuality->isChecked())
       {
-        const uint_t* const tableBitrate = std::upper_bound(BITRATES, ArrayEnd(BITRATES), val);
-        if (tableBitrate != ArrayEnd(BITRATES))
-        {
-          selectCBR->setChecked(true);
-          const uint_t idx = tableBitrate - BITRATES;
-          bitrateValue->setCurrentIndex(idx);
-        }
-      }
-      else if (params.FindIntValue(Parameters::ZXTune::Sound::Backends::Mp3::VBR, val))
-      {
-        if (in_range<uint_t>(val, vbrQuality->minimum(), vbrQuality->maximum()))
-        {
-          selectVBR->setChecked(true);
-          vbrQuality->setValue(val);
-        }
-      }
-      else if (params.FindIntValue(Parameters::ZXTune::Sound::Backends::Mp3::ABR, val))
-      {
-        if (in_range<uint_t>(val, abrBitrate->minimum(), abrBitrate->maximum()))
-        {
-          selectABR->setChecked(true);
-          abrBitrate->setValue(val);
-        }
+        selectCBR->setChecked(true);
       }
     }
 
     virtual Parameters::Container::Ptr GetSettings() const
     {
-      const Parameters::Container::Ptr result = Parameters::Container::Create();
-      if (selectCBR->isChecked())
-      {
-        const uint_t brate = BITRATES[bitrateValue->currentIndex()];
-        result->SetIntValue(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE, brate);
-      }
-      else if (selectVBR->isChecked())
-      {
-        const uint_t vbr = vbrQuality->value();
-        result->SetIntValue(Parameters::ZXTune::Sound::Backends::Mp3::VBR, vbr);
-      }
-      else if (selectABR->isChecked())
-      {
-        const uint_t abr = abrBitrate->value();
-        result->SetIntValue(Parameters::ZXTune::Sound::Backends::Mp3::ABR, abr);
-      }
+      using namespace Parameters;
+      const Container::Ptr result = Container::Create();
+      CopyExistingValue<StringType>(*Options, *result, ZXTune::Sound::Backends::Mp3::MODE);
+      CopyExistingValue<IntType>(*Options, *result, ZXTune::Sound::Backends::Mp3::BITRATE);
+      CopyExistingValue<IntType>(*Options, *result, ZXTune::Sound::Backends::Mp3::QUALITY);
       return result;
     }
 
@@ -117,21 +77,13 @@ namespace
 
     virtual QString GetDescription() const
     {
-      if (selectDefault->isChecked())
+      if (selectCBR->isChecked() || selectABR->isChecked())
       {
-        return selectDefault->text();
+        return QString(selectCBR->isChecked() ? "%1 kbps" : "~%1 kbps").arg(bitrateValue->value());
       }
-      else if (selectCBR->isChecked())
+      else if (selectQuality->isChecked())
       {
-        return bitrateValue->currentText();
-      }
-      else if (selectVBR->isChecked())
-      {
-        return QString("VBR %1").arg(vbrQuality->value());
-      }
-      else if (selectABR->isChecked())
-      {
-        return QString("ABR %1 kbps").arg(abrBitrate->value());
+        return QString("VBR quality %1").arg(qualityValue->value());
       }
       else
       {
@@ -139,10 +91,7 @@ namespace
       }
     }
   private:
-    void AddBitrate(uint_t brate) const
-    {
-      bitrateValue->addItem(QString("%1 kbps").arg(brate));
-    }
+    const Parameters::Container::Ptr Options;
   };
 }
 

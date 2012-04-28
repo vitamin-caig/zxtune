@@ -29,7 +29,6 @@ namespace UI
   protected:
     explicit BackendSettingsWidget(QWidget& parent);
   public:
-    virtual void SetSettings(const Parameters::Accessor& params) = 0;
     virtual Parameters::Container::Ptr GetSettings() const = 0;
 
     virtual String GetBackendId() const = 0;

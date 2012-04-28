@@ -14,6 +14,9 @@ Author:
 //local includes
 #include "flac_settings.h"
 #include "flac_settings.ui.h"
+#include "supp/options.h"
+#include "ui/utils.h"
+#include "ui/tools/parameters_helpers.h"
 //common includes
 #include <tools.h>
 //library includes
@@ -27,30 +30,23 @@ namespace
   public:
     explicit FLACSettingsWidget(QWidget& parent)
       : UI::BackendSettingsWidget(parent)
+      , Options(GlobalOptions::Instance().Get())
     {
       //setup self
       setupUi(this);
 
       connect(compressionValue, SIGNAL(valueChanged(int)), SIGNAL(SettingsChanged()));
-    }
 
-    virtual void SetSettings(const Parameters::Accessor& params)
-    {
-      Parameters::IntType val = 0;
-      if (params.FindIntValue(Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION, val))
-      {
-        if (in_range<uint_t>(val, compressionValue->minimum(), compressionValue->maximum()))
-        {
-          compressionValue->setValue(val);
-        }
-      }
+      using namespace Parameters;
+      IntegerValue::Bind(*compressionValue, *Options, ZXTune::Sound::Backends::Flac::COMPRESSION,
+        ZXTune::Sound::Backends::Flac::COMPRESSION_DEFAULT);
     }
 
     virtual Parameters::Container::Ptr GetSettings() const
     {
-      const Parameters::Container::Ptr result = Parameters::Container::Create();
-      const uint_t compression = compressionValue->value();
-      result->SetIntValue(Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION, compression);
+      using namespace Parameters;
+      const Container::Ptr result = Container::Create();
+      CopyExistingValue<IntType>(*Options, *result, ZXTune::Sound::Backends::Flac::COMPRESSION);
       return result;
     }
 
@@ -64,6 +60,8 @@ namespace
     {
       return QString("Compression %1").arg(compressionValue->value());
     }
+  private:
+    const Parameters::Container::Ptr Options;
   };
 }
 

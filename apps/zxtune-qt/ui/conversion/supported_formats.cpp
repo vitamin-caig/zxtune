@@ -14,7 +14,9 @@ Author:
 //local includes
 #include "supported_formats.h"
 #include "supported_formats.ui.h"
+#include "supp/options.h"
 #include "ui/utils.h"
+#include "ui/tools/parameters_helpers.h"
 //common includes
 #include <string_helpers.h>
 #include <tools.h>
@@ -28,6 +30,23 @@ Author:
 #include <boost/bind.hpp>
 //qt includes
 #include <QtGui/QRadioButton>
+
+namespace Parameters
+{
+  namespace ZXTuneQT
+  {
+    namespace UI
+    {
+      namespace Export
+      {
+        const Char TYPE[] =
+        {
+          'z','x','t','u','n','e','-','q','t','.','u','i','.','e','x','p','o','r','t','.','t','y','p','e','\0'
+        };
+      }
+    }
+  }
+}
 
 namespace
 {
@@ -55,27 +74,36 @@ namespace
     std::set<String> Ids;
   };
 
+  const Char TYPE_WAV[] = {'w', 'a', 'v', 0};
+  const Char TYPE_MP3[] = {'m', 'p', '3', 0};
+  const Char TYPE_OGG[] = {'o', 'g', 'g', 0};
+  const Char TYPE_FLAC[] = {'f', 'l', 'a', 'c', 0};
+
   class SupportedFormats : public UI::SupportedFormatsWidget
                          , private Ui::SupportedFormats
   {
   public:
     explicit SupportedFormats(QWidget& parent)
       : UI::SupportedFormatsWidget(parent)
-      , Backends()
+      , Options(GlobalOptions::Instance().Get())
     {
       //setup self
       setupUi(this);
 
-      Buttons["wav"] = selectWAV;
-      Buttons["mp3"] = selectMP3;
-      Buttons["ogg"] = selectOGG;
-      Buttons["flac"] = selectFLAC;
+      Buttons[TYPE_WAV] = selectWAV;
+      Buttons[TYPE_MP3] = selectMP3;
+      Buttons[TYPE_OGG] = selectOGG;
+      Buttons[TYPE_FLAC] = selectFLAC;
 
       std::for_each(Buttons.begin(), Buttons.end(),
         std::bind1st(std::mem_fun(&SupportedFormats::SetupButton), this));
-
-      //TODO
-      selectWAV->setChecked(true);
+      //fixup
+      const IdToButton::const_iterator butIt = std::find_if(Buttons.begin(), Buttons.end(),
+        boost::bind(&QRadioButton::isChecked, boost::bind(&IdToButton::value_type::second, _1)));
+      if (butIt == Buttons.end() || !butIt->second->isEnabled())
+      {
+        selectWAV->setChecked(true);
+      }
     }
 
     virtual String GetSelectedId() const
@@ -85,7 +113,7 @@ namespace
           boost::bind(&QRadioButton::isChecked, boost::bind(&IdToButton::value_type::second, _1)));
       if (it != Buttons.end())
       {
-        return FromStdString(it->first);
+        return it->first;
       }
       else
       {
@@ -108,14 +136,16 @@ namespace
       }
     }
   private:
-    typedef std::map<std::string, QRadioButton*> IdToButton;
+    typedef std::map<String, QRadioButton*> IdToButton;
 
     void SetupButton(IdToButton::value_type but)
     {
       connect(but.second, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
-      but.second->setEnabled(Backends.IsAvailable(FromStdString(but.first)));
+      but.second->setEnabled(Backends.IsAvailable(but.first));
+      Parameters::ExclusiveValue::Bind(*but.second, *Options, Parameters::ZXTuneQT::UI::Export::TYPE, but.first);
     }
   private:
+    const Parameters::Container::Ptr Options;
     const FileBackendsSet Backends;
     IdToButton Buttons;
   };
