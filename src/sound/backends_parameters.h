@@ -194,7 +194,7 @@ namespace Parameters
           const Char MODE_VBR[] = {'v','b','r',0};
           const Char MODE_ABR[] = {'a','b','r',0};
           //! Default
-          const Char* MODE_DEFAULT = MODE_CBR; 
+          const Char MODE_DEFAULT[] = {'c','b','r',0};
           //! Operational mode
           const Char MODE[] =
           {
@@ -228,7 +228,7 @@ namespace Parameters
           const Char MODE_QUALITY[] = {'q','u','a','l','i','t','y',0};
           const Char MODE_ABR[] = {'a','b','r',0};
           //! Default value
-          const Char* MODE_DEFAULT = MODE_QUALITY;
+          const Char MODE_DEFAULT[] = {'q','u','a','l','i','t','y',0};;
           // Working mode
           const Char MODE[] =
           {

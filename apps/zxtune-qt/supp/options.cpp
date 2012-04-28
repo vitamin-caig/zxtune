@@ -86,7 +86,7 @@ namespace
     virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
     {
       Value value(Storage, name);
-      value.Set(QVariant(val));
+      value.Set(QVariant(qlonglong(val)));
     }
 
     virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
