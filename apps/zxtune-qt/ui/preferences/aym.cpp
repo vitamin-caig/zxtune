@@ -75,21 +75,19 @@ namespace
       
       connect(clockRateValue, SIGNAL(textChanged(const QString&)), SLOT(OnClockRateChanged(const QString&)));
       connect(clockRatePresets, SIGNAL(currentIndexChanged(int)), SLOT(OnClockRatePresetChanged(int)));
+
       using namespace Parameters;
-      IntType clockRate = ZXTune::Sound::CLOCKRATE_DEFAULT;
-      Options->FindIntValue(ZXTune::Sound::CLOCKRATE, clockRate);
-      clockRateValue->setText(QString::number(clockRate));
+      BigIntegerValue::Bind(*clockRateValue, *Options, ZXTune::Sound::CLOCKRATE, ZXTune::Sound::CLOCKRATE_DEFAULT);
       MixerValue::Bind(*mixers[0], *Options, ZXTuneQT::Mixers::AYM::A, 100, 0);
       MixerValue::Bind(*mixers[1], *Options, ZXTuneQT::Mixers::AYM::A, 50, 50);
       MixerValue::Bind(*mixers[2], *Options, ZXTuneQT::Mixers::AYM::A, 0, 100);
       BooleanValue::Bind(*dutyCycleGroup, *Options, ZXTune::Core::AYM::DUTY_CYCLE_MASK, false, 0x1f);
       IntegerValue::Bind(*dutyCycleValue, *Options, ZXTune::Core::AYM::DUTY_CYCLE, 50);
     }
-    
+
     virtual void OnClockRateChanged(const QString& val)
     {
       const qlonglong num = val.toLongLong();
-      Options->SetIntValue(Parameters::ZXTune::Sound::CLOCKRATE, num);
       const uint64_t* const preset = std::find(PRESETS, ArrayEnd(PRESETS), num);
       if (preset == ArrayEnd(PRESETS))
       {

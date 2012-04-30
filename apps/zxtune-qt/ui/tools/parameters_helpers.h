@@ -24,6 +24,7 @@ class QAction;
 class QAbstractButton;
 class QComboBox;
 class QGroupBox;
+class QLineEdit;
 class QSlider;
 class QSpinBox;
 
@@ -64,6 +65,17 @@ namespace Parameters
     static void Bind(QSpinBox& spinbox, Container& ctr, const NameType& name, int defValue);
   private slots:
     virtual void SetValue(int value) = 0;
+  };
+  
+  class BigIntegerValue : public QObject
+  {
+    Q_OBJECT
+  protected:
+    explicit BigIntegerValue(QObject& parent);
+  public:
+    static void Bind(QLineEdit& line, Container& ctr, const NameType& name, IntType defValue);
+  private slots:
+    virtual void SetValue(const QString& value) = 0;
   };
 
   //TODO: move to common code

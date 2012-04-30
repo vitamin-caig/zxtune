@@ -20,6 +20,7 @@ Author:
 #include <QtGui/QAction>
 #include <QtGui/QComboBox>
 #include <QtGui/QGroupBox>
+#include <QtGui/QLineEdit>
 #include <QtGui/QSlider>
 #include <QtGui/QSpinBox>
 
@@ -130,6 +131,32 @@ namespace
     const Parameters::NameType Name;
     const int DefValue;
   };
+  
+  class BigIntegerValueImpl : public BigIntegerValue
+  {
+  public:
+    BigIntegerValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::IntType defValue)
+      : BigIntegerValue(parent)
+      , Container(ctr)
+      , Name(name)
+    {
+      Parameters::IntType value = defValue;
+      Container.FindIntValue(Name, value);
+      parent.setText(QString::number(value));
+      this->connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(SetValue(const QString&)));
+    }
+
+
+    virtual void SetValue(const QString& value)
+    {
+      const Parameters::IntType val = value.toLongLong();
+      Log::Debug("Parameters::Helper", "%1%=%2%", Name, val);
+      Container.SetIntValue(Name, val);
+    }
+  private:
+    Parameters::Container& Container;
+    const Parameters::NameType Name;
+  };
 }
 
 namespace Parameters
@@ -143,6 +170,10 @@ namespace Parameters
   }
 
   IntegerValue::IntegerValue(QObject& parent) : QObject(&parent)
+  {
+  }
+
+  BigIntegerValue::BigIntegerValue(QObject &parent) : QObject(&parent)
   {
   }
 
@@ -179,5 +210,10 @@ namespace Parameters
   void IntegerValue::Bind(QSpinBox& spinbox, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
   {
     new IntegerValueImpl(spinbox, ctr, name, defValue);
+  }
+
+  void BigIntegerValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::IntType defValue)
+  {
+    new BigIntegerValueImpl(edit, ctr, name, defValue);
   }
 }

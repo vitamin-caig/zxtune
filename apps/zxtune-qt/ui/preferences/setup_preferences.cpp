@@ -14,6 +14,13 @@ Author:
 //local includes
 #include "setup_preferences.h"
 #include "aym.h"
+#include "z80.h"
+//common includes
+#include <tools.h>
+//std includes
+#include <algorithm>
+//boost includes
+#include <boost/bind.hpp>
 //qt includes
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QTabWidget>
@@ -34,10 +41,13 @@ namespace
       layout->addWidget(tabs);
       layout->addWidget(buttons);
       //fill
-      if (QWidget* aym = UI::AYMSettingsWidget::Create(*tabs))
+      QWidget* const pages[] =
       {
-        tabs->addTab(aym, aym->windowTitle());
-      }
+        UI::AYMSettingsWidget::Create(*tabs),
+        UI::Z80SettingsWidget::Create(*tabs)
+      };
+      std::for_each(pages, ArrayEnd(pages),
+        boost::bind(&QTabWidget::addTab, tabs, _1, boost::bind(&QWidget::windowTitle, _1)));
       setWindowTitle(tr("Preferences"));
     }
   };
