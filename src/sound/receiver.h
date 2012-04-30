@@ -24,6 +24,8 @@ namespace ZXTune
   {
     //! @brief Simple sound stream endpoint receiver
     typedef DataReceiver<MultiSample> Receiver;
+    //! @brief Simple sound stream source
+    typedef DataTransmitter<MultiSample> Transmitter;
     //! @brief Simle sound stream converter
     typedef DataTransceiver<MultiSample> Converter;
     //! @brief Multichannel stream receiver

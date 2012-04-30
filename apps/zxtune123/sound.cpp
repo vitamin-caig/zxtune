@@ -210,10 +210,10 @@ namespace
 
     ZXTune::Sound::Mixer::Ptr GetMixer(uint_t channels) const
     {
-      ZXTune::Sound::Mixer::Ptr& mixer = Mixers[channels];
+      ZXTune::Sound::MatrixMixer::Ptr& mixer = Mixers[channels];
       if (!mixer)
       {
-        ThrowIfError(ZXTune::Sound::CreateMixer(channels, mixer));
+        mixer = ZXTune::Sound::CreateMatrixMixer(channels);
       }
       return mixer;
     }
@@ -234,13 +234,13 @@ namespace
     {
       const std::vector<ZXTune::Sound::MultiGain>& matrix = ParseMixerMatrix(txt);
       const uint_t chans = matrix.size();
-      ZXTune::Sound::Mixer::Ptr& newMixer = Mixers[chans];
-      ThrowIfError(ZXTune::Sound::CreateMixer(chans, newMixer));
-      ThrowIfError(newMixer->SetMatrix(matrix));
+      ZXTune::Sound::MatrixMixer::Ptr& newMixer = Mixers[chans];
+      newMixer = ZXTune::Sound::CreateMatrixMixer(chans);
+      newMixer->SetMatrix(matrix);
     }
   private:
     const Parameters::Container::Ptr Params;
-    mutable std::map<uint_t, ZXTune::Sound::Mixer::Ptr> Mixers;
+    mutable std::map<uint_t, ZXTune::Sound::MatrixMixer::Ptr> Mixers;
     ZXTune::Sound::Converter::Ptr Filter;
   };
 

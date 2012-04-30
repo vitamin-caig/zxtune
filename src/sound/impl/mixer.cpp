@@ -22,6 +22,7 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/integer/static_log2.hpp>
 #include <boost/mpl/if.hpp>
@@ -47,7 +48,7 @@ namespace
   }
    
   template<uint_t InChannels>
-  class FastMixer : public Mixer, private boost::noncopyable
+  class FastMixer : public MatrixMixer, private boost::noncopyable
   {
     //determine type for intermediate value
     static const uint_t INTERMEDIATE_BITS_MIN =
@@ -122,25 +123,26 @@ namespace
       Endpoint = rcv ? rcv : Receiver::CreateStub();
     }
     
-    virtual Error SetMatrix(const std::vector<MultiGain>& data)
+    virtual void SetMatrix(const std::vector<MultiGain>& data)
     {
       if (data.size() != InChannels)
       {
-        return Error(THIS_LINE, MIXER_INVALID_PARAMETER, Text::SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS);
+        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, Text::SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS);
       }
       const std::vector<MultiGain>::const_iterator it = std::find_if(data.begin(), data.end(),
         FindOverloadedGain);
       if (it != data.end())
       {
-        return Error(THIS_LINE, MIXER_INVALID_PARAMETER, Text::SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN);
+        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, Text::SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN);
       }
-      std::transform(data.begin(), data.end(), Matrix.begin(), MultiGain2MultiFixed<NativeType>);
-      Dividers = std::accumulate(Matrix.begin(), Matrix.end(), MultiBigSample(), AddBigsamples);
+      boost::array<MultiFixed, InChannels> tmpMatrix;
+      std::transform(data.begin(), data.end(), tmpMatrix.begin(), MultiGain2MultiFixed<NativeType>);
+      MultiBigSample tmpDividers = std::accumulate(tmpMatrix.begin(), tmpMatrix.end(), MultiBigSample(), AddBigsamples);
       // prevent empty dividers
-      std::transform(Dividers.begin(), Dividers.end(), Dividers.begin(), FixDivider);
-      return Error();
+      std::transform(tmpDividers.begin(), tmpDividers.end(), tmpDividers.begin(), FixDivider);
+      Matrix.swap(tmpMatrix);
+      Dividers.swap(tmpDividers);
     }
-    
   private:
     Receiver::Ptr Endpoint;
     boost::array<MultiFixed, InChannels> Matrix;
@@ -152,27 +154,22 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Error CreateMixer(uint_t channels, Mixer::Ptr& ptr)
+    MatrixMixer::Ptr CreateMatrixMixer(uint_t channels)
     {
       switch (channels)
       {
       case 1:
-        ptr.reset(new FastMixer<1>());
-        break;
+        return boost::make_shared<FastMixer<1> >();
       case 2:
-        ptr.reset(new FastMixer<2>());
-        break;
+        return boost::make_shared<FastMixer<2> >();
       case 3:
-        ptr.reset(new FastMixer<3>());
-        break;
+        return boost::make_shared<FastMixer<3> >();
       case 4:
-        ptr.reset(new FastMixer<4>());
-        break;
+        return boost::make_shared<FastMixer<4> >();
       default:
         assert(!"Mixer: invalid channels count specified");
-        return MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, Text::SOUND_ERROR_MIXER_UNSUPPORTED, channels);
+        throw MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, Text::SOUND_ERROR_MIXER_UNSUPPORTED, channels);
       }
-      return Error();
     }
   }
 }

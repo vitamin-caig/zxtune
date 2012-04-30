@@ -159,10 +159,9 @@ namespace
 
   ZXTune::Sound::Mixer::Ptr CreateMixer(const ZXTune::Sound::MultiGain* matrix, uint_t chans)
   {
-    ZXTune::Sound::Mixer::Ptr res;
-    ThrowIfError(ZXTune::Sound::CreateMixer(chans, res));
+    const ZXTune::Sound::MatrixMixer::Ptr res = ZXTune::Sound::CreateMatrixMixer(chans);
     std::vector<ZXTune::Sound::MultiGain> mtx(matrix, matrix + chans);
-    ThrowIfError(res->SetMatrix(mtx));
+    res->SetMatrix(mtx);
     return res;
   }
 

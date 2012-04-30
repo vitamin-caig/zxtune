@@ -20,25 +20,28 @@ namespace ZXTune
 {
   namespace Sound
   {
-    //! @brief %Mixer interface
-    class Mixer : public DataTransceiver<std::vector<Sample>, MultiSample>
+    //! @brief Abstract mixer interface
+    typedef DataTransceiver<std::vector<Sample>, MultiSample> Mixer;
+
+    //! @brief Matrix-based mixer interface
+    class MatrixMixer : public Mixer
     {
     public:
       //! @brief Pointer type
-      typedef boost::shared_ptr<Mixer> Ptr;
+      typedef boost::shared_ptr<MatrixMixer> Ptr;
+      //! @brief Matrix type
+      typedef std::vector<MultiGain> Matrix;
 
       //! @brief Setting up the mixing matrix
       //! @param data Mixing matrix
       //! @return Error() in case of success
-      virtual Error SetMatrix(const std::vector<MultiGain>& data) = 0;
+      virtual void SetMatrix(const Matrix& data) = 0;
     };
 
     //! @brief Creating mixer instance
     //! @param channels Input channels count
-    //! @param result Reference to result value
-    //! @return Error() in case of success
     //! @note For any of the created mixers, SetMatrix parameter size should be equal to channels parameter while creating
-    Error CreateMixer(uint_t channels, Mixer::Ptr& result);
+    MatrixMixer::Ptr CreateMatrixMixer(uint_t channels);
   }
 }
 

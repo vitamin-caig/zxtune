@@ -124,11 +124,6 @@ namespace
     {
       Filter->SetTarget(target);
     }
-
-    virtual Error SetMatrix(const std::vector<MultiGain>& data)
-    {
-      return Delegate->SetMatrix(data);
-    }
   private:
     const Mixer::Ptr Delegate;
     const Converter::Ptr Filter;

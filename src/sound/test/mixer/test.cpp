@@ -1,5 +1,5 @@
 #include <tools.h>
-#include <formatter.h>
+#include <format.h>
 #include <src/sound/mixer.h>
 #include <src/sound/error_codes.h>
 
@@ -65,8 +65,7 @@ namespace
 
   void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
   {
-    const String txt = (Formatter("\t%1%\n\tCode: %2%\n\tAt: %3%\n\t--------\n") % text % Error::CodeToString(code) % Error::LocationToString(loc)).str();
-    std::cerr << txt << std::endl;
+    std::cerr << Error::AttributesToString(loc, code, text) << std::endl;
   }
   
   bool ShowIfError(const Error& e)
@@ -93,8 +92,8 @@ namespace
       }
       else
       {
-        const String txt = (Formatter("Failed. Value=<%1%,%2%> while expected=<%3%,%4%>") % 
-          data[0] % data[1] % ToCompare[0] % ToCompare[1]).str();
+        const String txt = Strings::Format("Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
+          data[0], data[1], ToCompare[0], ToCompare[1]);
         throw Error(THIS_LINE, 1, txt);
       }
     }
@@ -124,20 +123,24 @@ int main()
       Target* tgt = 0;
       Receiver::Ptr receiver(tgt = new Target);
     
-      Mixer::Ptr mixer;
-      ThrowIfError(CreateMixer(chans, mixer));
+      const MatrixMixer::Ptr mixer = CreateMatrixMixer(chans);
       
       mixer->SetTarget(receiver);
     
       std::cout << "--- Test for invalid matrix---\n";
-      if (const Error& e = mixer->SetMatrix(MakeMatrix(chans, INVALID_GAIN)))
+      try
+      {
+        mixer->SetMatrix(MakeMatrix(chans, INVALID_GAIN));
+        throw "Failed";
+      }
+      catch (const Error& e)
       {
         std::cout << " Passed\n";
         e.WalkSuberrors(ErrOuter);
       }
-      else
+      catch (const std::string& str)
       {
-        throw Error(THIS_LINE, 1, "Failed");
+        throw Error(THIS_LINE, 1, str);
       }
       
       assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
@@ -148,7 +151,7 @@ int main()
       for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
       {
         std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
-        ThrowIfError(mixer->SetMatrix(MakeMatrix(chans, GAINS[matrix])));
+        mixer->SetMatrix(MakeMatrix(chans, GAINS[matrix]));
         for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
         {
           tgt->SetData(*result);
