@@ -16,11 +16,11 @@ include_dirs = .
 text_files := text/text
 
 libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io sound tools z80ex \
-             playlist_ui playlist_supp playlist_io ui_common ui_conversion
+             playlist_ui playlist_supp playlist_io ui_common ui_conversion ui_preferences
 
 depends = 3rdparty/z80ex apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/sound src/tools \
            apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io \
-           apps/zxtune-qt/ui apps/zxtune-qt/ui/conversion
+           apps/zxtune-qt/ui apps/zxtune-qt/ui/conversion apps/zxtune-qt/ui/preferences
 
 boost_libraries = thread
 

@@ -19,7 +19,9 @@ Author:
 #include <QtGui/QAbstractButton>
 #include <QtGui/QAction>
 #include <QtGui/QComboBox>
+#include <QtGui/QGroupBox>
 #include <QtGui/QSlider>
+#include <QtGui/QSpinBox>
 
 namespace
 {
@@ -100,7 +102,8 @@ namespace
       this->connect(&parent, SIGNAL(currentIndexChanged(int)), SLOT(SetValue(int)));
     }
 
-    IntegerValueImpl(QSlider& parent, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
+    template<class Holder>
+    IntegerValueImpl(Holder& parent, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
       : IntegerValue(parent)
       , Container(ctr)
       , Name(name)
@@ -153,6 +156,11 @@ namespace Parameters
     new BooleanValueImpl(button, ctr, name, defValue, oneValue);
   }
 
+  void BooleanValue::Bind(QGroupBox& box, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue, const Parameters::IntType& oneValue)
+  {
+    new BooleanValueImpl(box, ctr, name, defValue, oneValue);
+  }
+
   void ExclusiveValue::Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name, const Parameters::StringType& value)
   {
     new StringSetValue(button, ctr, name, value);
@@ -166,5 +174,10 @@ namespace Parameters
   void IntegerValue::Bind(QSlider& slider, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
   {
     new IntegerValueImpl(slider, ctr, name, defValue);
+  }
+
+  void IntegerValue::Bind(QSpinBox& spinbox, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
+  {
+    new IntegerValueImpl(spinbox, ctr, name, defValue);
   }
 }

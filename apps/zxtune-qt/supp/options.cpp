@@ -41,11 +41,9 @@ namespace
         return false;
       }
       const QVariant& var = value.Get();
-      const QVariant::Type type = var.type();
-      if (type == QVariant::LongLong || type == QVariant::Int)
+      if (var.type() == QVariant::String)
       {
-        val = var.toLongLong();
-        return true;
+        return ConvertFromString(FromQString(var.toString()), val);
       }
       return false;
     }
@@ -60,8 +58,7 @@ namespace
       const QVariant& var = value.Get();
       if (var.type() == QVariant::String)
       {
-        val = FromQString(var.toString());
-        return true;
+        return ConvertFromString(FromQString(var.toString()), val);
       }
       return false;
     }
@@ -97,7 +94,7 @@ namespace
     virtual void SetStringValue(const NameType& name, const StringType& val)
     {
       Value value(Storage, name);
-      value.Set(QVariant(ToQString(val)));
+      value.Set(QVariant(ToQString(ConvertToString(val))));
     }
 
     virtual void SetDataValue(const NameType& name, const DataType& val)

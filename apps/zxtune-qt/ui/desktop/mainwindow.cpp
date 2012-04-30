@@ -25,6 +25,7 @@ Author:
 #include "ui/controls/volume_control.h"
 #include "ui/informational/aboutdialog.h"
 #include "ui/informational/componentsdialog.h"
+#include "ui/preferences/setup_preferences.h"
 #include "playlist/ui/container_view.h"
 #include "supp/playback_supp.h"
 #include <apps/version/api.h>
@@ -97,6 +98,7 @@ namespace
       this->connect(actionOnlineFAQ, SIGNAL(triggered()), SLOT(VisitFAQ()));
       this->connect(actionReportBug, SIGNAL(triggered()), SLOT(ReportIssue()));
       this->connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt()));
+      this->connect(actionPreferences, SIGNAL(triggered()), SLOT(ShowPreferences()));
 
       MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
       MultiPlaylist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
@@ -133,6 +135,11 @@ namespace
     virtual void StopModule()
     {
       setWindowTitle(ToQString(GetProgramTitle()));
+    }
+    
+    virtual void ShowPreferences()
+    {
+      UI::ShowPreferencesDialog(*this);
     }
 
     virtual void VisitHelp()

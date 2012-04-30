@@ -61,6 +61,8 @@
     <addaction name="actionAddFiles"/>
     <addaction name="actionAddFolder"/>
     <addaction name="separator"/>
+    <addaction name="actionPreferences"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -100,6 +102,16 @@
    </property>
    <property name="text">
     <string>Add folder</string>
+   </property>
+  </action>
+  <action name="actionPreferences">
+   <property name="icon">
+    <iconset>
+     <normalon>:/application/preferences.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Preferences</string>
    </property>
   </action>
   <action name="actionQuit">

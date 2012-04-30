@@ -23,7 +23,9 @@ Author:
 class QAction;
 class QAbstractButton;
 class QComboBox;
+class QGroupBox;
 class QSlider;
+class QSpinBox;
 
 namespace Parameters
 {
@@ -35,6 +37,7 @@ namespace Parameters
   public:
     static void Bind(QAction& action, Container& ctr, const NameType& name, bool defValue);
     static void Bind(QAbstractButton& button, Container& ctr, const NameType& name, bool defValue, const Parameters::IntType& oneValue = 1);
+    static void Bind(QGroupBox& button, Container& ctr, const NameType& name, bool defValue, const Parameters::IntType& oneValue = 1);
   private slots:
     virtual void SetValue(bool value) = 0;
   };
@@ -58,6 +61,7 @@ namespace Parameters
   public:
     static void Bind(QComboBox& combo, Container& ctr, const NameType& name, int defValue);
     static void Bind(QSlider& slider, Container& ctr, const NameType& name, int defValue);
+    static void Bind(QSpinBox& spinbox, Container& ctr, const NameType& name, int defValue);
   private slots:
     virtual void SetValue(int value) = 0;
   };

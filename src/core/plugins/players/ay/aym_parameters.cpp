@@ -141,23 +141,21 @@ namespace
 
     virtual uint_t DutyCycleMask() const
     {
+      Parameters::IntType intVal = 0;
+      if (Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal))
+      {
+        return static_cast<uint_t>(intVal);
+      }
       Parameters::StringType strVal;
       if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strVal))
       {
         return String2Mask(strVal);
       }
-      Parameters::IntType intVal = 0;
-      Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal);
-      return static_cast<uint_t>(intVal);
+      return 0;
     }
 
     virtual Devices::AYM::LayoutType Layout() const
     {
-      Parameters::StringType strVal;
-      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
-      {
-        return String2Layout(strVal);
-      }
       Parameters::IntType intVal = Devices::AYM::LAYOUT_ABC;
       if (Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
       {
@@ -167,6 +165,11 @@ namespace
           throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
             Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
         }
+      }
+      Parameters::StringType strVal;
+      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
+      {
+        return String2Layout(strVal);
       }
       return static_cast<Devices::AYM::LayoutType>(intVal);
     }
