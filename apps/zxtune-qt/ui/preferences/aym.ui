@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>320</width>
-    <height>200</height>
+    <height>108</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -67,43 +67,6 @@
          </property>
         </item>
        </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox">
-     <property name="title">
-      <string>Mixer</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="margin">
-       <number>2</number>
-      </property>
-      <item>
-       <layout class="QGridLayout" name="mixersLayout">
-        <item row="0" column="0">
-         <widget class="QLabel" name="labelA">
-          <property name="text">
-           <string notr="true">A</string>
-          </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="labelB">
-          <property name="text">
-           <string notr="true">B</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="labelC">
-          <property name="text">
-           <string notr="true">C</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </item>
      </layout>
     </widget>
