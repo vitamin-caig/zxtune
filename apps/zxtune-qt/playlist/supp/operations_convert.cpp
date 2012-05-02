@@ -173,7 +173,7 @@ namespace
       {
         stor.ForAllItems(*tmp);
       }
-      OnResult(tmp);
+      emit ResultAcquired(tmp);
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;

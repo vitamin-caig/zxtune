@@ -25,18 +25,16 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
+//text includes
+#include "text/text.h"
 
 namespace
 {
   QString GetPlaylistName(const Parameters::Accessor& params)
   {
-    Parameters::StringType name;
-    if (params.FindStringValue(Playlist::ATTRIBUTE_NAME, name))
-    {
-      return ToQString(name);
-    }
-    assert(!"No playlist name");
-    return QString::fromUtf8("NoName");
+    Parameters::StringType name(Text::DEFAULT_PLAYLIST_NAME);
+    params.FindStringValue(Playlist::ATTRIBUTE_NAME, name);
+    return ToQString(name);
   }
 
   class ContainerImpl : public Playlist::IO::Container
@@ -153,6 +151,10 @@ namespace
         CallbackWrapper callback(storage);
         container->ForAllItems(callback);
       }
+      else
+      {
+        //TODO: handle error
+      }
     }
   private:
     class CallbackWrapper : public Playlist::Item::Callback
@@ -189,18 +191,16 @@ namespace
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
       const Playlist::Controller::Ptr ctrl = Playlist::Controller::Create(*this, name, provider);
-      //PlaylistCreated(ctrl);
       return ctrl;
     }
 
-    virtual Playlist::Controller::Ptr OpenPlaylist(const QString& filename)
+    virtual void OpenPlaylist(const QString& filename)
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
-      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(*this, tr("Loading..."), provider);
+      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(*this, QString(Text::PLAYLIST_LOADING_HEADER), provider);
       const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<LoadPlaylistOperation>(provider, filename, boost::ref(*playlist));
       playlist->GetModel()->PerformOperation(op);
-      PlaylistCreated(playlist);
-      return playlist;
+      emit PlaylistCreated(playlist);
     }
   private:
     const Parameters::Accessor::Ptr Params;

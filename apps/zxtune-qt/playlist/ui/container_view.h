@@ -67,11 +67,11 @@ namespace Playlist
       virtual void CloseCurrentPlaylist() = 0;
       virtual void ClosePlaylist(int index) = 0;
     private slots:
-      virtual void OnPlaylistCreated(Playlist::Controller::Ptr) = 0;
-      virtual void OnPlaylistRenamed(const QString& name) = 0;
-      virtual void PlaylistItemActivated(Playlist::Item::Data::Ptr) = 0;
+      virtual void CreatePlaylist(Playlist::Controller::Ptr) = 0;
+      virtual void RenamePlaylist(const QString& name) = 0;
+      virtual void ActivateItem(Playlist::Item::Data::Ptr) = 0;
     signals:
-      void OnItemActivated(Playlist::Item::Data::Ptr);
+      void ItemActivated(Playlist::Item::Data::Ptr);
     };
   }
 }

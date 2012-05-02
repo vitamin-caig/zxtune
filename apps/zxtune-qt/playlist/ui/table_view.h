@@ -60,7 +60,7 @@ namespace Playlist
     private slots:
       virtual void ActivateItem(const QModelIndex&) = 0;
     signals:
-      void OnTableRowActivated(unsigned index);
+      void TableRowActivated(unsigned index);
     };
   }
 }

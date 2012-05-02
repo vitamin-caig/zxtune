@@ -17,6 +17,7 @@ Author:
 #include "playlist/supp/model.h"
 #include "ui/utils.h"
 //common includes
+#include <contract.h>
 #include <logging.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -85,7 +86,7 @@ namespace
       }
 
       //signals
-      this->connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&)));
+      Require(connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&))));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
@@ -143,7 +144,7 @@ namespace
       if (index.isValid())
       {
         const unsigned number = index.row();
-        OnTableRowActivated(number);
+        emit TableRowActivated(number);
       }
     }
   private:

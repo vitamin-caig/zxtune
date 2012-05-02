@@ -577,7 +577,7 @@ namespace
     virtual void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
     {
       const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
-      OnLongOperationStart();
+      emit OperationStarted();
       try
       {
         operation->Execute(*Container, *this);
@@ -585,7 +585,7 @@ namespace
       catch (const std::exception&)
       {
       }
-      OnLongOperationStop();
+      emit OperationStopped();
     }
 
     virtual void ExecuteOperation(Playlist::Item::StorageModifyOperation::Ptr operation)
@@ -593,7 +593,7 @@ namespace
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
         boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        OnLongOperationStart();
+        emit OperationStarted();
         Playlist::Item::Storage::Ptr tmpStorage = Container->Clone();
         try
         {
@@ -605,7 +605,7 @@ namespace
         catch (const std::exception&)
         {
         }
-        OnLongOperationStop();
+        emit OperationStopped();
       }
       NotifyAboutIndexChanged(remapping);
     }
@@ -620,14 +620,14 @@ namespace
     {
       if (changes)
       {
-        OnIndexesChanged(changes);
+        emit IndicesChanged(changes);
         reset();
       }
     }
 
     virtual void OnProgress(uint_t current)
     {
-      OnLongOperationProgress(current);
+      emit OperationProgressChanged(current);
       if (Canceled)
       {
         throw std::exception();
@@ -636,11 +636,7 @@ namespace
 
     virtual void OnProgress(uint_t current, const String& /*message*/)
     {
-      OnLongOperationProgress(current);
-      if (Canceled)
-      {
-        throw std::exception();
-      }
+      OnProgress(current);
     }
   private:
     const DataProvidersSet Providers;

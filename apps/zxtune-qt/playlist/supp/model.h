@@ -101,10 +101,10 @@ namespace Playlist
     virtual void RemoveItems(Playlist::Model::IndexSetPtr items) = 0;
     virtual void CancelLongOperation() = 0;
   signals:
-    void OnIndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr map);
-    void OnLongOperationStart();
-    void OnLongOperationProgress(int progress);
-    void OnLongOperationStop();
+    void IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr);
+    void OperationStarted();
+    void OperationProgressChanged(int);
+    void OperationStopped();
   };
 }
 

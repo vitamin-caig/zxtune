@@ -26,6 +26,9 @@ extern const Char CONVERT_FAILED_OPEN[] = {
 extern const Char CONVERT_STATUS[] = {
   'C','o','n','v','e','r','t','e','d',':',' ','%','1','%',' ','F','a','i','l','e','d',':',' ','%','2','%',0
 };
+extern const Char DEFAULT_PLAYLIST_NAME[] = {
+  'D','e','f','a','u','l','t',0
+};
 extern const Char FAQ_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e','/','w','i','k','i','/','F','A','Q',0
@@ -56,6 +59,9 @@ extern const Char PATHS_COLLECTING_STATUS[] = {
 };
 extern const Char PLAYLISTS_DIR[] = {
   'Z','X','T','u','n','e','/','P','l','a','y','l','i','s','t','s',0
+};
+extern const Char PLAYLIST_LOADING_HEADER[] = {
+  'L','o','a','d','i','n','g','.','.','.',0
 };
 extern const Char PROGRAM_NAME[] = {
   'z','x','t','u','n','e','-','q','t',0

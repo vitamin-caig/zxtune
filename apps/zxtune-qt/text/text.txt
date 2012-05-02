@@ -88,3 +88,9 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < PLAYLISTS_DIR
 > PROJECT_NAME "/Playlists"
+
+< DEFAULT_PLAYLIST_NAME
+> "Default"
+
+< PLAYLIST_LOADING_HEADER
+> "Loading..."

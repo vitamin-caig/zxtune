@@ -88,19 +88,6 @@ namespace
       this->start();
     }
 
-    virtual void AddItems(Playlist::IO::Container::Ptr container)
-    {
-      QMutexLocker lock(&QueueLock);
-      if (Canceled)
-      {
-        this->wait();
-      }
-      const Playlist::ScannerSource::Ptr scanner = 
-        Playlist::ScannerSource::CreateContainerSource(*this, container);
-      Queue.append(scanner);
-      this->start();
-    }
-
     virtual void Cancel()
     {
       QMutexLocker lock(&QueueLock);

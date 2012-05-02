@@ -28,6 +28,7 @@ Author:
 #include "ui/controls/overlay_progress.h"
 #include "ui/tools/filedialog.h"
 //local includes
+#include <contract.h>
 #include <error.h>
 #include <logging.h>
 //boost includes
@@ -132,17 +133,17 @@ namespace
       Layout->addWidget(ScannerView);
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
-      iter->connect(View, SIGNAL(OnTableRowActivated(unsigned)), SLOT(Reset(unsigned)));
-      connect(Controller.get(), SIGNAL(Renamed(const QString&)), SIGNAL(Renamed(const QString&)));
-      this->connect(iter, SIGNAL(OnListItemActivated(unsigned, Playlist::Item::Data::Ptr)),
-        SLOT(ListItemActivated(unsigned, Playlist::Item::Data::Ptr)));
-      View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
+      Require(iter->connect(View, SIGNAL(TableRowActivated(unsigned)), SLOT(Reset(unsigned))));
+      Require(connect(Controller.get(), SIGNAL(Renamed(const QString&)), SIGNAL(Renamed(const QString&))));
+      Require(connect(iter, SIGNAL(ItemActivated(unsigned, Playlist::Item::Data::Ptr)),
+        SLOT(ActivateItem(unsigned, Playlist::Item::Data::Ptr))));
+      Require(View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries())));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
-      this->connect(model, SIGNAL(OnLongOperationStart()), SLOT(LongOperationStart()));
-      OperationProgress->connect(model, SIGNAL(OnLongOperationProgress(int)), SLOT(UpdateProgress(int)));
-      this->connect(model, SIGNAL(OnLongOperationStop()), SLOT(LongOperationStop()));
-      this->connect(OperationProgress, SIGNAL(Canceled()), SLOT(LongOperationCancel()));
+      Require(connect(model, SIGNAL(OperationStarted()), SLOT(LongOperationStart())));
+      Require(OperationProgress->connect(model, SIGNAL(OperationProgressChanged(int)), SLOT(UpdateProgress(int))));
+      Require(connect(model, SIGNAL(OperationStopped()), SLOT(LongOperationStop())));
+      Require(connect(OperationProgress, SIGNAL(Canceled()), SLOT(LongOperationCancel())));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
@@ -256,10 +257,10 @@ namespace
       }
     }
 
-    virtual void ListItemActivated(unsigned idx, Playlist::Item::Data::Ptr data)
+    virtual void ActivateItem(unsigned idx, Playlist::Item::Data::Ptr data)
     {
       View->ActivateTableRow(idx);
-      OnItemActivated(data);
+      emit ItemActivated(data);
     }
 
     virtual void LongOperationStart()

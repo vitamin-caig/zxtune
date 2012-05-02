@@ -308,7 +308,7 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
         VisitAllItems(propertyModel, cb, dups);
       }
-      OnResult(dups.GetResult());
+      emit ResultAcquired(dups.GetResult());
     }
   };
 
@@ -331,7 +331,7 @@ namespace
       //select all rips but delete only nonselected
       const boost::shared_ptr<Playlist::Model::IndexSet> toRemove = dups.GetResult();
       std::for_each(SelectedItems->begin(), SelectedItems->end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, toRemove.get(), _1));
-      OnResult(toRemove);
+      emit ResultAcquired(toRemove);
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
@@ -353,7 +353,7 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetChecksum);
         VisitOnlySelectedItems(propertyModel, *SelectedItems, cb, dups);
       }
-      OnResult(dups.GetResult());
+      emit ResultAcquired(dups.GetResult());
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
@@ -375,7 +375,7 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
         VisitAllItems(propertyModel, cb, rips);
       }
-      OnResult(rips.GetResult());
+      emit ResultAcquired(rips.GetResult());
     }
   };
 
@@ -395,7 +395,7 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
         VisitAsSelectedItems(propertyModel, *SelectedItems, cb, rips);
       }
-      OnResult(rips.GetResult());
+      emit ResultAcquired(rips.GetResult());
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
@@ -417,7 +417,7 @@ namespace
         const TypedPropertyModel<uint32_t> propertyModel(stor, &Playlist::Item::Data::GetCoreChecksum);
         VisitOnlySelectedItems(propertyModel, *SelectedItems, cb, rips);
       }
-      OnResult(rips.GetResult());
+      emit ResultAcquired(rips.GetResult());
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
@@ -440,7 +440,7 @@ namespace
         const TypedPropertyModel<String> propertyModel(stor, &Playlist::Item::Data::GetType);
         VisitAsSelectedItems(propertyModel, *SelectedItems, cb, types);
       }
-      OnResult(types.GetResult());
+      emit ResultAcquired(types.GetResult());
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
@@ -503,7 +503,7 @@ namespace
       {
         stor.ForAllItems(progressed);
       }
-      OnResult(tmp);
+      emit ResultAcquired(tmp);
     }
   protected:
     virtual CollectingVisitor::Ptr CreateCollector() const = 0;

@@ -17,6 +17,7 @@ Author:
 #include "scanner.h"
 #include "ui/utils.h"
 //common includes
+#include <contract.h>
 #include <logging.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -89,7 +90,7 @@ namespace
       SelectItem(idx);
     }
 
-    virtual void IndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr remapping)
+    virtual void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping)
     {
       Log::Debug(THIS_MODULE, "Iterator: index changed.");
       if (NO_INDEX == Index)
@@ -125,7 +126,7 @@ namespace
         if (Item->IsValid())
         {
           State = Playlist::Item::STOPPED;
-          OnListItemActivated(Index, item);
+          emit ItemActivated(Index, item);
         }
         else
         {
@@ -180,9 +181,9 @@ namespace
     {
       //setup connections
       //use direct connection due to possible model locking
-      Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection);
-      Iterator->connect(Model, SIGNAL(OnIndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr)), 
-        SLOT(IndexesChanged(Playlist::Model::OldToNewIndexMap::Ptr)));
+      Require(Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
+      Require(Iterator->connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
+        SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
@@ -205,7 +206,7 @@ namespace
       if (name != Name)
       {
         Name = name;
-        Renamed(Name);
+        emit Renamed(Name);
       }
     }
 

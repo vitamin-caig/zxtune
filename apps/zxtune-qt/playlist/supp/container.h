@@ -36,7 +36,7 @@ namespace Playlist
     static Ptr Create(QObject& parent, Parameters::Accessor::Ptr parameters);
 
     virtual Controller::Ptr CreatePlaylist(const QString& name) = 0;
-    virtual Controller::Ptr OpenPlaylist(const QString& filename) = 0;
+    virtual void OpenPlaylist(const QString& filename) = 0;
   signals:
     void PlaylistCreated(Playlist::Controller::Ptr);
   };

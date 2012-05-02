@@ -99,16 +99,17 @@ namespace
       SetupMenu();
 
       //playlist actions
-      connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist()));
-      connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist()));
-      connect(actionSavePlaylist, SIGNAL(triggered()), SLOT(SavePlaylist()));
-      connect(actionRenamePlaylist, SIGNAL(triggered()), SLOT(RenamePlaylist()));
-      connect(actionClosePlaylist, SIGNAL(triggered()), SLOT(CloseCurrentPlaylist()));
-      connect(actionClearPlaylist, SIGNAL(triggered()), SLOT(Clear()));
+      Require(connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist())));
+      Require(connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist())));
+      Require(connect(actionSavePlaylist, SIGNAL(triggered()), SLOT(SavePlaylist())));
+      Require(connect(actionRenamePlaylist, SIGNAL(triggered()), SLOT(RenamePlaylist())));
+      Require(connect(actionClosePlaylist, SIGNAL(triggered()), SLOT(CloseCurrentPlaylist())));
+      Require(connect(actionClearPlaylist, SIGNAL(triggered()), SLOT(Clear())));
 
-      connect(Container.get(), SIGNAL(PlaylistCreated(Playlist::Controller::Ptr)), SLOT(OnPlaylistCreated(Playlist::Controller::Ptr)));
+      Require(connect(Container.get(), SIGNAL(PlaylistCreated(Playlist::Controller::Ptr)),
+        SLOT(CreatePlaylist(Playlist::Controller::Ptr))));
 
-      connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int)));
+      Require(connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int))));
 
       Parameters::BooleanValue::Bind(*actionDeepScan, *Options, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT);
       Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED, Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
@@ -269,12 +270,12 @@ namespace
       CreatePlaylist();
     }
   private:
-    virtual void OnPlaylistCreated(Playlist::Controller::Ptr ctrl)
+    virtual void CreatePlaylist(Playlist::Controller::Ptr ctrl)
     {
       RegisterPlaylist(ctrl);
     }
 
-    virtual void OnPlaylistRenamed(const QString& name)
+    virtual void RenamePlaylist(const QString& name)
     {
       if (QObject* sender = this->sender())
       {
@@ -288,7 +289,7 @@ namespace
       }
     }
 
-    virtual void PlaylistItemActivated(Playlist::Item::Data::Ptr item)
+    virtual void ActivateItem(Playlist::Item::Data::Ptr item)
     {
       if (QObject* sender = this->sender())
       {
@@ -301,7 +302,7 @@ namespace
           ActivePlaylistView = newView;
         }
       }
-      OnItemActivated(item);
+      emit ItemActivated(item);
     }
   private:
     void SetupMenu()
@@ -329,8 +330,8 @@ namespace
     {
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist, Options);
       widgetsContainer->addTab(plView, playlist->GetName());
-      connect(plView, SIGNAL(Renamed(const QString&)), SLOT(OnPlaylistRenamed(const QString&)));
-      connect(plView, SIGNAL(OnItemActivated(Playlist::Item::Data::Ptr)), SLOT(PlaylistItemActivated(Playlist::Item::Data::Ptr)));
+      Require(connect(plView, SIGNAL(Renamed(const QString&)), SLOT(RenamePlaylist(const QString&))));
+      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
       if (!ActivePlaylistView)
       {
         ActivePlaylistView = plView;

@@ -47,7 +47,6 @@ namespace Playlist
 
     static Ptr CreateOpenFileSource(Item::DataProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
     static Ptr CreateDetectFileSource(Item::DataProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
-    static Ptr CreateContainerSource(ScannerCallback& callback, IO::Container::Ptr container);
   };
 }
 

@@ -34,7 +34,7 @@ namespace Playlist
     public:
       typedef boost::shared_ptr<SelectionOperation> Ptr;
     signals:
-      void OnResult(Playlist::Model::IndexSetPtr selection);
+      void ResultAcquired(Playlist::Model::IndexSetPtr);
     };
 
     class TextResultOperation : public QObject
@@ -46,7 +46,7 @@ namespace Playlist
     public:
       typedef boost::shared_ptr<TextResultOperation> Ptr;
     signals:
-      void OnResult(Playlist::TextNotification::Ptr result);
+      void ResultAcquired(Playlist::TextNotification::Ptr);
     };
 
     //rip-offs

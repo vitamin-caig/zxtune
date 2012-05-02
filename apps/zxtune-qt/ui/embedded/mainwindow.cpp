@@ -57,7 +57,7 @@ namespace
       Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
       Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
       Playlist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
-      Playback->connect(Playlist, SIGNAL(OnItemActivated(Playlist::Item::Data::Ptr)), SLOT(SetItem(Playlist::Item::Data::Ptr)));
+      Require(Playback->connect(Playlist, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(SetItem(Playlist::Item::Data::Ptr))));
       this->connect(actionAddFiles, SIGNAL(triggered()), Playlist, SLOT(AddFiles()));
       this->connect(actionAddFolder, SIGNAL(triggered()), Playlist, SLOT(AddFolder()));
     }

@@ -23,6 +23,7 @@ Author:
 #include "playlist/supp/operations.h"
 #include "playlist/supp/storage.h"
 //common includes
+#include <contract.h>
 #include <format.h>
 //library includes
 #include <core/module_attrs.h>
@@ -44,10 +45,10 @@ namespace
       //setup self
       setupUi(this);
 
-      receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates()));
-      receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs()));
-      receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic()));
-      receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportAll()));
+      Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates())));
+      Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs())));
+      Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic())));
+      Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportAll())));
     }
   };
 
@@ -61,15 +62,15 @@ namespace
       //setup self
       setupUi(this);
 
-      receiver.connect(PlayAction, SIGNAL(triggered()), SLOT(PlaySelected()));
-      receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
-      receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
-      receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected()));
-      receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected()));
-      receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected()));
-      receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
-      receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected()));
-      receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected()));
+      Require(receiver.connect(PlayAction, SIGNAL(triggered()), SLOT(PlaySelected())));
+      Require(receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected())));
+      Require(receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected())));
+      Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected())));
+      Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected())));
+      Require(receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected())));
+      Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
+      Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected())));
+      Require(receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected())));
     }
   };
 
@@ -84,16 +85,16 @@ namespace
       setupUi(this);
       InfoAction->setText(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count)));
 
-      receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected()));
-      receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected()));
-      receiver.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected()));
-      receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected()));
-      receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected()));
-      receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected()));
-      receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard()));
-      receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected()));
-      receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected()));
-      receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected()));
+      Require(receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected())));
+      Require(receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected())));
+      Require(receiver.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected())));
+      Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected())));
+      Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected())));
+      Require(receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected())));
+      Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
+      Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected())));
+      Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected())));
+      Require(receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected())));
     }
   };
 
@@ -158,7 +159,7 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllDuplicatesOperation(*model);
-      model->connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr)));
+      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
 
@@ -166,7 +167,7 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesOfSelectedOperation(*model, SelectedItems);
-      model->connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr)));
+      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
 
@@ -174,7 +175,7 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesInSelectedOperation(*model, SelectedItems);
-      model->connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr)));
+      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
 
@@ -182,7 +183,7 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllRipOffsOperation(*model);
-      View.connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr)));
+      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
 
@@ -190,7 +191,7 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsOfSelectedOperation(*model, SelectedItems);
-      View.connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr)));
+      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
 
@@ -198,7 +199,7 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsInSelectedOperation(*model, SelectedItems);
-      View.connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr)));
+      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
 
@@ -206,7 +207,7 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectTypesOfSelectedOperation(*model, SelectedItems);
-      View.connect(op.get(), SIGNAL(OnResult(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr)));
+      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
 
@@ -214,7 +215,8 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectPathsOperation(*model, SelectedItems);
-      Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(CopyDetailToClipboard(Playlist::TextNotification::Ptr)));
+      Require(Controller->connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
+        SLOT(CopyDetailToClipboard(Playlist::TextNotification::Ptr))));
       model->PerformOperation(op);
     }
 
@@ -222,7 +224,8 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model);
-      Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+      Require(Controller->connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
+        SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
       model->PerformOperation(op);
     }
 
@@ -230,7 +233,8 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
       const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model, SelectedItems);
-      Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+      Require(Controller->connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
+        SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
       model->PerformOperation(op);
     }
 
@@ -241,7 +245,8 @@ namespace
       {
         const Playlist::Model::Ptr model = Controller->GetModel();
         const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, FromQString(nameTemplate));
-        Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+        Require(Controller->connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
+          SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);
       }
     }
@@ -253,7 +258,8 @@ namespace
       {
         const Playlist::Model::Ptr model = Controller->GetModel();
         const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, SelectedItems, FromQString(nameTemplate));
-        Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+        Require(Controller->connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
+          SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);
       }
     }
@@ -265,7 +271,8 @@ namespace
       {
         const Playlist::Model::Ptr model = Controller->GetModel();
         const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, type, params);
-        Controller->connect(op.get(), SIGNAL(OnResult(Playlist::TextNotification::Ptr)), SLOT(ShowNotification(Playlist::TextNotification::Ptr)));
+        Require(Controller->connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
+          SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);
       }
     }

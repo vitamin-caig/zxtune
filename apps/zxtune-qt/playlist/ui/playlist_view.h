@@ -51,13 +51,13 @@ namespace Playlist
       virtual void Rename() = 0;
       virtual void Save() = 0;
     private slots:
-      virtual void ListItemActivated(unsigned idx, Playlist::Item::Data::Ptr data) = 0;
+      virtual void ActivateItem(unsigned idx, Playlist::Item::Data::Ptr data) = 0;
       virtual void LongOperationStart() = 0;
       virtual void LongOperationStop() = 0;
       virtual void LongOperationCancel() = 0;
     signals:
-      void Renamed(const QString& name);
-      void OnItemActivated(Playlist::Item::Data::Ptr);
+      void Renamed(const QString&);
+      void ItemActivated(Playlist::Item::Data::Ptr);
     };
   }
 }
