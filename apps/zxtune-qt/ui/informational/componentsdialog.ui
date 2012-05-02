@@ -19,6 +19,9 @@
    </iconset>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>2</number>
+   </property>
    <item>
     <widget class="QTabWidget" name="componentsTabs">
      <property name="currentIndex">
@@ -29,6 +32,9 @@
        <string>Plugins</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="margin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QTreeWidget" name="pluginsTree">
          <attribute name="headerVisible">
@@ -48,6 +54,12 @@
        <string>Sound backends</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="margin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QTreeWidget" name="backendsTree">
          <attribute name="headerVisible">
@@ -67,6 +79,9 @@
        <string>IO providers</string>
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <property name="margin">
+        <number>2</number>
+       </property>
        <item>
         <widget class="QTreeWidget" name="providersTree">
          <attribute name="headerVisible">

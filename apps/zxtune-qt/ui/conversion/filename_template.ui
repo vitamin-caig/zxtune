@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="margin">
-    <number>4</number>
+    <number>2</number>
    </property>
    <item>
     <widget class="QGroupBox" name="dirSelectionGroup">
@@ -30,7 +30,7 @@
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="margin">
-       <number>4</number>
+       <number>2</number>
       </property>
       <item>
        <widget class="QComboBox" name="directoryName">
@@ -59,7 +59,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="margin">
-       <number>4</number>
+       <number>2</number>
       </property>
       <item>
        <widget class="QComboBox" name="fileTemplate">

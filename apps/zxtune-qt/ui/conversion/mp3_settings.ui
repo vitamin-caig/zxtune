@@ -7,19 +7,25 @@
     <x>0</x>
     <y>0</y>
     <width>320</width>
-    <height>158</height>
+    <height>140</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string/>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>2</number>
+   </property>
    <item>
     <widget class="QGroupBox" name="bitrateSetup">
      <property name="title">
       <string>Setup bitrate type and value</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <property name="margin">
+       <number>2</number>
+      </property>
       <item row="0" column="0">
        <widget class="QRadioButton" name="selectCBR">
         <property name="text">
@@ -47,14 +53,14 @@
         </item>
         <item>
          <widget class="QSpinBox" name="bitratePrecise">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="enabled">
-           <bool>false</bool>
           </property>
           <property name="minimum">
            <number>32</number>
@@ -126,6 +132,19 @@
      </layout>
     </widget>
    </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
  </widget>
  <resources/>
@@ -135,42 +154,112 @@
    <signal>toggled(bool)</signal>
    <receiver>bitrateValue</receiver>
    <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>selectCBR</sender>
    <signal>toggled(bool)</signal>
    <receiver>bitratePrecise</receiver>
    <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>selectABR</sender>
    <signal>toggled(bool)</signal>
    <receiver>bitrateValue</receiver>
    <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>selectABR</sender>
    <signal>toggled(bool)</signal>
    <receiver>bitratePrecise</receiver>
    <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>selectQuality</sender>
    <signal>toggled(bool)</signal>
    <receiver>qualityValue</receiver>
    <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>bitrateValue</sender>
    <signal>valueChanged(int)</signal>
    <receiver>bitratePrecise</receiver>
    <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>bitratePrecise</sender>
    <signal>valueChanged(int)</signal>
    <receiver>bitrateValue</receiver>
    <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
  </connections>
 </ui>

@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>422</width>
-    <height>371</height>
+    <height>383</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,6 +28,9 @@
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>2</number>
+   </property>
    <item>
     <widget class="QLabel" name="logo">
      <property name="text">
