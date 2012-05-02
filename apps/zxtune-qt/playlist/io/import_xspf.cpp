@@ -313,7 +313,9 @@ namespace
       const QString decoded = Version >= VERSION_WITH_TEXT_FIELDS_ESCAPING
         ? QUrl::fromPercentEncoding(input.toUtf8())
         : input;
-      return FromQString(decoded);
+      String result;
+      Parameters::ConvertFromString(FromQString(decoded), result);
+      return result;
     }
   private:
     const QDir BaseDir;
