@@ -16,6 +16,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_UI_CONTAINER_VIEW_H_DEFINED
 
 //local includes
+#include "playlist/supp/controller.h"
 #include "playlist/supp/data.h"
 //common includes
 #include <parameters.h>
@@ -43,8 +44,6 @@ namespace Playlist
       virtual void Setup(const QStringList& items) = 0;
       virtual void Teardown() = 0;
 
-      virtual View* LoadPlaylist(const QString& filename) = 0;
-      virtual View* GetPlaylist(uint_t idx) = 0;
       virtual QMenu* GetActionsMenu() const = 0;
 
     public slots:
@@ -68,6 +67,8 @@ namespace Playlist
       virtual void CloseCurrentPlaylist() = 0;
       virtual void ClosePlaylist(int index) = 0;
     private slots:
+      virtual void OnPlaylistCreated(Playlist::Controller::Ptr) = 0;
+      virtual void OnPlaylistRenamed(const QString& name) = 0;
       virtual void PlaylistItemActivated(Playlist::Item::Data::Ptr) = 0;
     signals:
       void OnItemActivated(Playlist::Item::Data::Ptr);

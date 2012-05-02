@@ -15,11 +15,11 @@ Author:
 #include "scanner_view.h"
 #include "table_view.h"
 #include "apps/base/app.h"
-#include "apps/version/api.h"
 #include "playlist_contextmenu.h"
 #include "playlist_view.h"
 #include "playlist/playlist_parameters.h"
 #include "playlist/io/export.h"
+#include "playlist/supp/container.h"
 #include "playlist/supp/controller.h"
 #include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
@@ -45,99 +45,6 @@ Author:
 namespace
 {
   const std::string THIS_MODULE("Playlist::UI::View");
-
-  class ContainerImpl : public Playlist::IO::Container
-  {
-  public:
-    ContainerImpl(const String& name, const Playlist::Item::Storage& storage)
-      : Properties(Parameters::Container::Create())
-      , Storage(storage)
-    {
-      Properties->SetStringValue(Playlist::ATTRIBUTE_NAME, name);
-      Properties->SetStringValue(Playlist::ATTRIBUTE_CREATOR, GetProgramVersionString());
-    }
-
-    virtual Parameters::Accessor::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual unsigned GetItemsCount() const
-    {
-      return Storage.CountItems();
-    }
-
-    virtual void ForAllItems(Playlist::Item::Callback& callback) const
-    {
-      ItemCallbackAdapter adapter(callback);
-      Storage.ForAllItems(adapter);
-    }
-  private:
-    class ItemCallbackAdapter : public Playlist::Item::Visitor
-    {
-    public:
-      explicit ItemCallbackAdapter(Playlist::Item::Callback& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
-      {
-        return Delegate.OnItem(data);
-      }
-    private:
-      Playlist::Item::Callback& Delegate;
-    };
-  private:
-    const Parameters::Container::Ptr Properties;
-    const Playlist::Item::Storage& Storage;
-  };
-
-  class CallbackWrapper : public Playlist::IO::ExportCallback
-  {
-  public:
-    explicit CallbackWrapper(Log::ProgressCallback& cb)
-      : Delegate(cb)
-    {
-    }
-
-    virtual void Progress(unsigned current)
-    {
-      Delegate.OnProgress(current);
-    }
-
-    virtual bool IsCanceled() const
-    {
-      return false;
-    }
-  private:
-    Log::ProgressCallback& Delegate;
-  };
-
-  class SavePlaylistOperation : public Playlist::Item::StorageAccessOperation
-  {
-  public:
-    SavePlaylistOperation(const QString& name, const QString& filename, Playlist::IO::ExportFlags flags)
-      : Name(FromQString(name))
-      , Filename(filename)
-      , Flags(flags)
-    {
-    }
-
-    virtual void Execute(const Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
-    {
-      const Playlist::IO::Container::Ptr container = boost::make_shared<ContainerImpl>(Name, storage);
-      CallbackWrapper callback(cb);
-      if (const Error& err = Playlist::IO::SaveXSPF(container, Filename, callback, Flags))
-      {
-        //TODO: handle error
-      }
-    }
-  private:
-    const String Name;
-    const QString Filename;
-    const Playlist::IO::ExportFlags Flags;
-  };
 
   class PlayitemStateCallbackImpl : public Playlist::Item::StateCallback
   {
@@ -226,6 +133,7 @@ namespace
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       iter->connect(View, SIGNAL(OnTableRowActivated(unsigned)), SLOT(Reset(unsigned)));
+      connect(Controller.get(), SIGNAL(Renamed(const QString&)), SIGNAL(Renamed(const QString&)));
       this->connect(iter, SIGNAL(OnListItemActivated(unsigned, Playlist::Item::Data::Ptr)),
         SLOT(ListItemActivated(unsigned, Playlist::Item::Data::Ptr)));
       View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries()));
@@ -244,16 +152,9 @@ namespace
       Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
     }
 
-    virtual const Playlist::Controller& GetPlaylist() const
+    virtual Playlist::Controller::Ptr GetPlaylist() const
     {
-      return *Controller;
-    }
-
-    virtual void Save(const QString& filename, uint_t flags) const
-    {
-      const QString name = Controller->GetName();
-      const Playlist::Item::StorageAccessOperation::Ptr op = boost::make_shared<SavePlaylistOperation>(name, filename, flags);
-      Controller->GetModel()->PerformOperation(op);
+      return Controller;
     }
 
     //modifiers
@@ -351,7 +252,7 @@ namespace
         {
           flags |= Playlist::IO::SAVE_ATTRIBUTES;
         }
-        Save(filename, flags);
+        Playlist::Save(Controller, filename, flags);
       }
     }
 

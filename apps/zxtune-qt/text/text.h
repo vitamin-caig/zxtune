@@ -17,6 +17,7 @@ extern const Char HOMEPAGE_URL[];
 extern const Char MODULE_PLAYLIST_FORMAT[];
 extern const Char MODULE_TITLE_FORMAT[];
 extern const Char PATHS_COLLECTING_STATUS[];
+extern const Char PLAYLISTS_DIR[];
 extern const Char PROGRAM_NAME[];
 extern const Char PROGRAM_SITE[];
 extern const Char PROJECT_NAME[];

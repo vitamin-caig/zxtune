@@ -37,7 +37,11 @@ namespace Playlist
 
     virtual Controller::Ptr CreatePlaylist(const QString& name) = 0;
     virtual Controller::Ptr OpenPlaylist(const QString& filename) = 0;
+  signals:
+    void PlaylistCreated(Playlist::Controller::Ptr);
   };
+
+  void Save(Controller::Ptr ctrl, const QString& filename, uint_t flags);
 }
 
 #endif //ZXTUNE_QT_PLAYLIST_SUPP_CONTAINER_H_DEFINED

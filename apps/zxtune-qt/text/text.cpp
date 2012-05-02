@@ -54,6 +54,9 @@ extern const Char PATHS_COLLECTING_STATUS[] = {
   'C','o','p','i','e','d',' ','%','1','%',' ','p','a','t','h','s',' ','t','o',' ','c','l','i','p','b','o','a',
   'r','d','.',0
 };
+extern const Char PLAYLISTS_DIR[] = {
+  'Z','X','T','u','n','e','/','P','l','a','y','l','i','s','t','s',0
+};
 extern const Char PROGRAM_NAME[] = {
   'z','x','t','u','n','e','-','q','t',0
 };

@@ -20,6 +20,8 @@ Author:
 #include "playlist/io/container.h"
 #include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
+//common includes
+#include <iterator.h>
 //qt includes
 #include <QtCore/QObject>
 
@@ -95,6 +97,7 @@ namespace Playlist
     explicit Controller(QObject& parent);
   public:
     typedef boost::shared_ptr<Controller> Ptr;
+    typedef ObjectIterator<Ptr> Iterator;
 
     static Ptr Create(QObject& parent, const QString& name, Item::DataProvider::Ptr provider);
 
@@ -106,6 +109,8 @@ namespace Playlist
   public slots:
     virtual void ShowNotification(Playlist::TextNotification::Ptr notification) = 0;
     virtual void CopyDetailToClipboard(Playlist::TextNotification::Ptr notification) = 0;
+  signals:
+    void Renamed(const QString& name);
   };
 }
 

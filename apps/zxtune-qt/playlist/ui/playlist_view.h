@@ -37,8 +37,7 @@ namespace Playlist
     public:
       static View* Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params);
 
-      virtual const Playlist::Controller& GetPlaylist() const = 0;
-      virtual void Save(const QString& filename, uint_t flags) const = 0;
+      virtual Playlist::Controller::Ptr GetPlaylist() const = 0;
     public slots:
       virtual void AddItems(const QStringList& items) = 0;
 
@@ -57,6 +56,7 @@ namespace Playlist
       virtual void LongOperationStop() = 0;
       virtual void LongOperationCancel() = 0;
     signals:
+      void Renamed(const QString& name);
       void OnItemActivated(Playlist::Item::Data::Ptr);
     };
   }

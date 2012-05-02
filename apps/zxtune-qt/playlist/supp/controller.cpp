@@ -202,7 +202,11 @@ namespace
 
     virtual void SetName(const QString& name)
     {
-      Name = name;
+      if (name != Name)
+      {
+        Name = name;
+        Renamed(Name);
+      }
     }
 
     virtual Playlist::Scanner::Ptr GetScanner() const

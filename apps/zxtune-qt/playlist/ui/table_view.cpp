@@ -46,6 +46,7 @@ namespace
       , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
     {
       //setup self
+      setSortingEnabled(true);
       setModel(model);
       setItemDelegate(Playlist::UI::TableViewItem::Create(*this, callback));
       setFont(Font);
@@ -62,7 +63,6 @@ namespace
       setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
       setShowGrid(false);
       setGridStyle(Qt::NoPen);
-      setSortingEnabled(true);
       setWordWrap(false);
       setCornerButtonEnabled(false);
       //setup dynamic ui

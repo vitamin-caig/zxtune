@@ -85,3 +85,6 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < CONVERT_STATUS
 > "Converted: %1% Failed: %2%"
+
+< PLAYLISTS_DIR
+> PROJECT_NAME "/Playlists"

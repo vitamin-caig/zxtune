@@ -20,6 +20,7 @@ Author:
 #include "playlist/supp/controller.h"
 #include "playlist/supp/container.h"
 #include "playlist/supp/scanner.h"
+#include "playlist/supp/session.h"
 #include "ui/utils.h"
 #include "ui/tools/filedialog.h"
 #include "ui/tools/parameters_helpers.h"
@@ -30,121 +31,55 @@ Author:
 //std includes
 #include <cassert>
 //qt includes
-#include <QtCore/QDir>
 #include <QtGui/QContextMenuEvent>
-#include <QtGui/QDesktopServices>
 #include <QtGui/QMenu>
 
 namespace
 {
   const std::string THIS_MODULE("Playlist::UI::ContainerView");
 
-  class StoredPlaylists
+  class PlaylistsIterator : public Playlist::Controller::Iterator
   {
   public:
-    StoredPlaylists()
-      : ListsDir(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
+    explicit PlaylistsIterator(QTabWidget& ctr)
+      : Container(ctr)
+      , Index(-1)
     {
-      Require(ListsDir.mkpath("ZXTune/Playlists"));
-      Require(ListsDir.cd("ZXTune/Playlists"));
-      Files = ListsDir.entryList(QStringList("*.xspf"), QDir::Files | QDir::Readable, QDir::Name);
-      Log::Debug(THIS_MODULE, "%1% stored playlists", Files.size());
+      GetNext();
     }
 
-    void LoadAll(Playlist::UI::ContainerView& view)
+    virtual bool IsValid() const
     {
-      for (QStringList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
-      {
-        const QString fileName = *it;
-        const QString fullName = ListsDir.absoluteFilePath(fileName);
-        if (Playlist::UI::View* plView = view.LoadPlaylist(fullName))
-        {
-          Log::Debug(THIS_MODULE, "Loaded stored playlist '%1%'", FromQString(fullName));
-          Lists[plView] = fileName;
-        }
-      }
+      return Current.get() != 0;
     }
 
-    void Add(Playlist::UI::View* view)
+    virtual Playlist::Controller::Ptr Get() const
     {
-      Lists[view] = QString();
+      assert(IsValid());
+      return Current;
     }
 
-    void Remove(Playlist::UI::View* view)
+    virtual void Next()
     {
-      const QString& filename = GetFilename(view);
-      if (filename.size() != 0)
-      {
-        Require(ListsDir.remove(filename));
-        Files.removeAll(filename);
-        Lists.remove(view);
-      }
-    }
-
-    void SaveAll(Playlist::UI::ContainerView& view)
-    {
-      const QStringList& newFiles = SaveFiles(view);
-      Log::Debug(THIS_MODULE, "Saved %1% playlists", newFiles.size());
-      RemovePrevious();
-      Files = newFiles;
+      assert(IsValid());
+      GetNext();
     }
   private:
-    QStringList SaveFiles(Playlist::UI::ContainerView& view)
+    void GetNext()
     {
-      QStringList newFiles;
-      std::list<Playlist::Model::Ptr> models;
-      for (uint_t idx = 0; ; ++idx)
+      if (Playlist::UI::View* view = static_cast<Playlist::UI::View*>(Container.widget(++Index)))
       {
-        if (Playlist::UI::View* plView = view.GetPlaylist(idx))
-        {
-          Remove(plView);
-          const QString& fileName = QString("%1.xspf").arg(idx);
-          const QString fullName = ListsDir.absoluteFilePath(fileName);
-          plView->Save(fullName, 0);
-          models.push_back(plView->GetPlaylist().GetModel());
-          MarkAsUsed(fileName);
-          Lists[plView] = fileName;
-          newFiles.push_back(fileName);
-        }
-        else
-        {
-          break;
-        }
+        Current = view->GetPlaylist();
       }
-      while (!models.empty())
+      else
       {
-        models.front()->WaitOperationFinish();
-        models.pop_front();
+        Current = Playlist::Controller::Ptr();
       }
-      return newFiles;
-    }
-
-    void MarkAsUsed(const QString& filename)
-    {
-      if (Playlist::UI::View* view = Lists.key(filename))
-      {
-        Lists[view] = QString();
-      }
-      Files.removeAll(filename);
-    }
-
-    void RemovePrevious()
-    {
-      for (; !Files.empty(); Files.pop_back())
-      {
-        const QString name = Files.back();
-        Require(ListsDir.remove(name));
-      }
-    }
-
-    QString GetFilename(Playlist::UI::View* view) const
-    {
-      return Lists.value(view);
     }
   private:
-    QDir ListsDir;
-    QStringList Files;
-    QMap<Playlist::UI::View*, QString> Lists;
+    QTabWidget& Container;
+    int Index;
+    Playlist::Controller::Ptr Current;
   };
 
   class ContainerViewImpl : public Playlist::UI::ContainerView
@@ -155,6 +90,7 @@ namespace
       : Playlist::UI::ContainerView(parent)
       , Options(parameters)
       , Container(Playlist::Container::Create(*this, parameters))
+      , Session(Playlist::Session::Create(Container))
       , ActionsMenu(new QMenu(tr("Playlist"), this))
       , ActivePlaylistView(0)
     {
@@ -163,14 +99,16 @@ namespace
       SetupMenu();
 
       //playlist actions
-      this->connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist()));
-      this->connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist()));
-      this->connect(actionSavePlaylist, SIGNAL(triggered()), SLOT(SavePlaylist()));
-      this->connect(actionRenamePlaylist, SIGNAL(triggered()), SLOT(RenamePlaylist()));
-      this->connect(actionClosePlaylist, SIGNAL(triggered()), SLOT(CloseCurrentPlaylist()));
-      this->connect(actionClearPlaylist, SIGNAL(triggered()), SLOT(Clear()));
+      connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist()));
+      connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist()));
+      connect(actionSavePlaylist, SIGNAL(triggered()), SLOT(SavePlaylist()));
+      connect(actionRenamePlaylist, SIGNAL(triggered()), SLOT(RenamePlaylist()));
+      connect(actionClosePlaylist, SIGNAL(triggered()), SLOT(CloseCurrentPlaylist()));
+      connect(actionClearPlaylist, SIGNAL(triggered()), SLOT(Clear()));
 
-      this->connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int)));
+      connect(Container.get(), SIGNAL(PlaylistCreated(Playlist::Controller::Ptr)), SLOT(OnPlaylistCreated(Playlist::Controller::Ptr)));
+
+      connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int)));
 
       Parameters::BooleanValue::Bind(*actionDeepScan, *Options, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT);
       Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED, Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
@@ -188,7 +126,7 @@ namespace
     {
       if (items.empty())
       {
-        Storage.LoadAll(*this);
+        Session->Load();
         if (widgetsContainer->count() == 0)
         {
           CreateAnonymousPlaylist();
@@ -203,21 +141,8 @@ namespace
 
     virtual void Teardown()
     {
-      Storage.SaveAll(*this);
-    }
-
-    virtual Playlist::UI::View* LoadPlaylist(const QString& filename)
-    {
-      if (Playlist::Controller::Ptr pl = Container->OpenPlaylist(filename))
-      {
-        return &RegisterPlaylist(pl);
-      }
-      return 0;
-    }
-
-    virtual Playlist::UI::View* GetPlaylist(uint_t index)
-    {
-      return static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
+      Playlist::Controller::Iterator::Ptr iter(new PlaylistsIterator(*widgetsContainer));
+      Session->Save(iter);
     }
 
     virtual QMenu* GetActionsMenu() const
@@ -298,7 +223,7 @@ namespace
       if (FileDialog::Instance().OpenSingleFile(actionLoadPlaylist->text(),
          tr("Playlist files (*.xspf *.ayl)"), file))
       {
-        LoadPlaylist(file);
+        Container->OpenPlaylist(file);
       }
     }
 
@@ -312,8 +237,6 @@ namespace
     {
       Playlist::UI::View& pl = GetVisiblePlaylist();
       pl.Rename();
-      const Playlist::Controller& controller = pl.GetPlaylist();
-      widgetsContainer->setTabText(widgetsContainer->currentIndex(), controller.GetName());
     }
 
     virtual void CloseCurrentPlaylist()
@@ -332,7 +255,6 @@ namespace
         ActivePlaylistView = 0;
         SwitchToLastPlaylist();
       }
-      Storage.Remove(view);
       view->deleteLater();
     }
 
@@ -347,7 +269,26 @@ namespace
       CreatePlaylist();
     }
   private:
-    void PlaylistItemActivated(Playlist::Item::Data::Ptr item)
+    virtual void OnPlaylistCreated(Playlist::Controller::Ptr ctrl)
+    {
+      RegisterPlaylist(ctrl);
+    }
+
+    virtual void OnPlaylistRenamed(const QString& name)
+    {
+      if (QObject* sender = this->sender())
+      {
+        //assert(dynamic_cast<QWidget*>(sender));
+        QWidget* const widget = static_cast<QWidget*>(sender);
+        const int idx = widgetsContainer->indexOf(widget);
+        if (idx != -1)
+        {
+          widgetsContainer->setTabText(idx, name);
+        }
+      }
+    }
+
+    virtual void PlaylistItemActivated(Playlist::Item::Data::Ptr item)
     {
       if (QObject* sender = this->sender())
       {
@@ -388,13 +329,13 @@ namespace
     {
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist, Options);
       widgetsContainer->addTab(plView, playlist->GetName());
-      this->connect(plView, SIGNAL(OnItemActivated(Playlist::Item::Data::Ptr)), SLOT(PlaylistItemActivated(Playlist::Item::Data::Ptr)));
+      connect(plView, SIGNAL(Renamed(const QString&)), SLOT(OnPlaylistRenamed(const QString&)));
+      connect(plView, SIGNAL(OnItemActivated(Playlist::Item::Data::Ptr)), SLOT(PlaylistItemActivated(Playlist::Item::Data::Ptr)));
       if (!ActivePlaylistView)
       {
         ActivePlaylistView = plView;
       }
       widgetsContainer->setCurrentWidget(plView);
-      Storage.Add(plView);
       return *plView;
     }
 
@@ -446,7 +387,7 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
     const Playlist::Container::Ptr Container;
-    StoredPlaylists Storage;
+    const Playlist::Session::Ptr Session;
     QMenu* const ActionsMenu;
     //state context
     Playlist::UI::View* ActivePlaylistView;
@@ -463,6 +404,7 @@ namespace Playlist
 
     ContainerView* ContainerView::Create(QWidget& parent, Parameters::Container::Ptr parameters)
     {
+      REGISTER_METATYPE(Playlist::Controller::Ptr);
       return new ContainerViewImpl(parent, parameters);
     }
   }
