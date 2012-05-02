@@ -20,9 +20,7 @@ Author:
 
 namespace UI
 {
-  QDialog* CreatePreferencesDialog(QWidget& parent);
-  
-  void ShowPreferencesDialog(QWidget& parent);
+  void ShowPreferencesDialog(QWidget& parent, bool playing);
 }
 
 #endif //ZXTUNE_QT_UI_SETUP_PREFERENCES_H_DEFINED

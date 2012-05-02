@@ -15,6 +15,7 @@ Author:
 #include "setup_preferences.h"
 #include "aym.h"
 #include "z80.h"
+#include "sound.h"
 //common includes
 #include <tools.h>
 //std includes
@@ -31,7 +32,7 @@ namespace
   class PreferencesDialog : public QDialog
   {
   public:
-    explicit PreferencesDialog(QWidget& parent)
+    PreferencesDialog(QWidget& parent, bool playing)
       : QDialog(&parent)
     {
       QDialogButtonBox* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok, Qt::Horizontal, this);
@@ -44,7 +45,8 @@ namespace
       QWidget* const pages[] =
       {
         UI::AYMSettingsWidget::Create(*tabs),
-        UI::Z80SettingsWidget::Create(*tabs)
+        UI::Z80SettingsWidget::Create(*tabs),
+        UI::SoundSettingsWidget::Create(*tabs, playing)
       };
       std::for_each(pages, ArrayEnd(pages),
         boost::bind(&QTabWidget::addTab, tabs, _1, boost::bind(&QWidget::windowTitle, _1)));
@@ -55,14 +57,9 @@ namespace
 
 namespace UI
 {
-  QDialog* CreatePreferencesDialog(QWidget& parent)
+  void ShowPreferencesDialog(QWidget& parent, bool playing)
   {
-    return new PreferencesDialog(parent);
-  }
-
-  void ShowPreferencesDialog(QWidget& parent)
-  {
-    PreferencesDialog dialog(parent);
+    PreferencesDialog dialog(parent, playing);
     dialog.exec();
   }
 }

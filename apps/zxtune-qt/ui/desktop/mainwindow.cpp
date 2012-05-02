@@ -66,6 +66,7 @@ namespace
       , Seeking(SeekControls::Create(*this, *Playback))
       , Analyzer(AnalyzerControl::Create(*this, *Playback))
       , MultiPlaylist(Playlist::UI::ContainerView::Create(*this, Options))
+      , Playing(false)
     {
       setupUi(this);
       //fill menu
@@ -124,21 +125,23 @@ namespace
       }
     }
 
-    virtual void StartModule(ZXTune::Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
+    virtual void StartModule(ZXTune::Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item)
     {
       setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
         GetProgramTitle(),
         item->GetTitle())));
+      Playing = true;
     }
 
     virtual void StopModule()
     {
+      Playing = false;
       setWindowTitle(ToQString(GetProgramTitle()));
     }
     
     virtual void ShowPreferences()
     {
-      UI::ShowPreferencesDialog(*this);
+      UI::ShowPreferencesDialog(*this, Playing);
     }
 
     virtual void ShowComponentsInformation()
@@ -272,6 +275,7 @@ namespace
     SeekControls* const Seeking;
     AnalyzerControl* const Analyzer;
     Playlist::UI::ContainerView* const MultiPlaylist;
+    bool Playing;
   };
 }
 
