@@ -15,19 +15,10 @@ Author:
 #ifndef ZXTUNE_QT_ABOUTDIALOG_H_DEFINED
 #define ZXTUNE_QT_ABOUTDIALOG_H_DEFINED
 
-//qt includes
-#include <QtGui/QDialog>
-
-class AboutDialog : public QDialog
+class QWidget;
+namespace UI
 {
-  Q_OBJECT
-protected:
-  explicit AboutDialog(QWidget& parent);
-public:
-  static AboutDialog* Create(QWidget& parent);
-
-public slots:
-  virtual void Show() = 0;
-};
+  void ShowProgramInformation(QWidget& parent);
+}
 
 #endif //ZXTUNE_QT_ABOUTDIALOG_H_DEFINED

@@ -2,6 +2,8 @@ library_name := ui_common
 path_step := ../../..
 
 source_files = format \
+               informational/aboutdialog \
+               informational/componentsdialog \
                tools/filedialog \
                tools/errordialog
 
@@ -12,11 +14,9 @@ ui_files += controls/playback_controls \
             controls/volume_control \
             controls/playback_options
 
-moc_files += controls/analyzer_control controls/overlay_progress
+ui_headeronly := informational/aboutdialog informational/componentsdialog
 
-#informational
-ui_files += informational/aboutdialog \
-            informational/componentsdialog
+moc_files += controls/analyzer_control controls/overlay_progress
 
 #other
 moc_files += tools/parameters_helpers

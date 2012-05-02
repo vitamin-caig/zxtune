@@ -21,6 +21,8 @@ Author:
 #include <io/provider.h>
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
+//qt includes
+#include <QtGui/QDialog>
 //text includes
 #include "text/text.h"
 
@@ -59,7 +61,7 @@ namespace
   {
     if (mask == (caps & mask))
     {
-      const QString& title = ComponentsDialog::tr(notation);
+      const QString& title(notation);
       new QTreeWidgetItem(&root, QStringList(title));
     }
   }
@@ -69,12 +71,12 @@ namespace
   public:
     explicit PluginsTreeHelper(QTreeWidget& widget)
       : Widget(widget)
-      , Players(new QTreeWidgetItem(&Widget, QStringList(ComponentsDialog::tr("Player plugins"))))
-      , Containers(new QTreeWidgetItem(&Widget, QStringList(ComponentsDialog::tr("Container plugins"))))
-      , Ayms(new QTreeWidgetItem(Players, QStringList(ComponentsDialog::tr("AY/YM"))))
-      , Dacs(new QTreeWidgetItem(Players, QStringList(ComponentsDialog::tr("DAC"))))
-      , Multitracks(new QTreeWidgetItem(Containers, QStringList(ComponentsDialog::tr("Multitrack"))))
-      , Archives(new QTreeWidgetItem(Containers, QStringList(ComponentsDialog::tr("Archive"))))
+      , Players(new QTreeWidgetItem(&Widget, QStringList("Player plugins")))
+      , Containers(new QTreeWidgetItem(&Widget, QStringList("Container plugins")))
+      , Ayms(new QTreeWidgetItem(Players, QStringList("AY/YM")))
+      , Dacs(new QTreeWidgetItem(Players, QStringList("DAC")))
+      , Multitracks(new QTreeWidgetItem(Containers, QStringList("Multitrack")))
+      , Archives(new QTreeWidgetItem(Containers, QStringList("Archive")))
     {
     }
 
@@ -111,7 +113,7 @@ namespace
       assert(IsPlayerPlugin(plugin));
       const String& description = plugin.Description();
       const String& id = plugin.Id();
-      const QString& conversionTitle = ComponentsDialog::tr("Conversion targets");
+      const QString& conversionTitle("Conversion targets");
 
       //root
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
@@ -158,7 +160,7 @@ namespace
     {
       assert(!IsPlayerPlugin(plugin));
       const String& description = plugin.Description();
-      const QString& capabilitiesTitle = ComponentsDialog::tr("Capabilities");
+      const QString& capabilitiesTitle("Capabilities");
 
       //root
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
@@ -209,10 +211,10 @@ namespace
   public:
     explicit BackendsTreeHelper(QTreeWidget& widget)
       : Widget(widget)
-      , Playbacks(new QTreeWidgetItem(&Widget, QStringList(ComponentsDialog::tr("Playback backends"))))
-      , Filesaves(new QTreeWidgetItem(&Widget, QStringList(ComponentsDialog::tr("File backends"))))
-      , Hardwares(new QTreeWidgetItem(&Widget, QStringList(ComponentsDialog::tr("Hardware backends"))))
-      , Others(new QTreeWidgetItem(&Widget, QStringList(ComponentsDialog::tr("Other backends"))))
+      , Playbacks(new QTreeWidgetItem(&Widget, QStringList("Playback backends")))
+      , Filesaves(new QTreeWidgetItem(&Widget, QStringList("File backends")))
+      , Hardwares(new QTreeWidgetItem(&Widget, QStringList("Hardware backends")))
+      , Others(new QTreeWidgetItem(&Widget, QStringList("Other backends")))
     {
     }
 
@@ -242,7 +244,7 @@ namespace
     void AddBackend(QTreeWidgetItem& root, const ZXTune::Sound::BackendInformation& backend)
     {
       const String& description = backend.Description();
-      const QString& featuresTitle = ComponentsDialog::tr("Features");
+      const QString& featuresTitle("Features");
 
       //root
       QTreeWidgetItem* const backendItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
@@ -286,22 +288,17 @@ namespace
     QTreeWidget& Widget;
   };
 
-  class ComponentsDialogImpl : public ComponentsDialog
-                             , private Ui::ComponentsDialog
+  class ComponentsDialog : public QDialog
+                         , private Ui::ComponentsDialog
   {
   public:
-    explicit ComponentsDialogImpl(QWidget& parent)
-      : ::ComponentsDialog(parent)
+    explicit ComponentsDialog(QWidget& parent)
+      : QDialog(&parent)
     {
       setupUi(this);
       FillPluginsTree();
       FillBackendsTree();
       FillProvidersTree();
-    }
-
-    virtual void Show()
-    {
-      exec();
     }
   private:
     void FillPluginsTree()
@@ -339,11 +336,11 @@ namespace
   };
 }
 
-ComponentsDialog::ComponentsDialog(QWidget& parent) : QDialog(&parent)
+namespace UI
 {
-}
-
-ComponentsDialog* ComponentsDialog::Create(QWidget& parent)
-{
-  return new ComponentsDialogImpl(parent);
+  void ShowComponentsInformation(QWidget& parent)
+  {
+    ComponentsDialog dialog(parent);
+    dialog.exec();
+  }
 }

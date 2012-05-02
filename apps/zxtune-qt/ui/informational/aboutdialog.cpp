@@ -18,17 +18,19 @@ Author:
 #include <apps/version/api.h>
 //common includes
 #include <format.h>
+//qt includes
+#include <QtGui/QDialog>
 //text includes
 #include "text/text.h"
 
 namespace
 {
-  class AboutDialogImpl : public AboutDialog
-                        , private Ui::AboutDialog
+  class AboutDialog : public QDialog
+                    , private Ui::AboutDialog
   {
   public:
-    explicit AboutDialogImpl(QWidget& parent)
-      : ::AboutDialog(parent)
+    explicit AboutDialog(QWidget& parent)
+      : QDialog(&parent)
     {
       //do not set parent
       setupUi(this);
@@ -37,19 +39,14 @@ namespace
       const String feedbackText = Strings::Format(Text::FEEDBACK_TEXT, appVersion);
       feedbackLabel->setText(ToQString(feedbackText));
     }
-
-    virtual void Show()
-    {
-      exec();
-    }
   };
 }
 
-AboutDialog::AboutDialog(QWidget& parent) : QDialog(&parent)
+namespace UI
 {
-}
-
-AboutDialog* AboutDialog::Create(QWidget& parent)
-{
-  return new AboutDialogImpl(parent);
+  void ShowProgramInformation(QWidget& parent)
+  {
+    AboutDialog dialog(parent);
+    dialog.exec();
+  }
 }

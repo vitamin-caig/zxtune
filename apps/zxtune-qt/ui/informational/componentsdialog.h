@@ -15,19 +15,10 @@ Author:
 #ifndef ZXTUNE_QT_COMPONENTSDIALOG_H_DEFINED
 #define ZXTUNE_QT_COMPONENTSDIALOG_H_DEFINED
 
-//qt includes
-#include <QtGui/QDialog>
-
-class ComponentsDialog : public QDialog
+class QWidget;
+namespace UI
 {
-  Q_OBJECT
-protected:
-  explicit ComponentsDialog(QWidget& parent);
-public:
-  static ComponentsDialog* Create(QWidget& parent);
-
-public slots:
-  virtual void Show() = 0;
-};
+  void ShowComponentsInformation(QWidget& parent);
+}
 
 #endif //ZXTUNE_QT_COMPONENTSDIALOG_H_DEFINED

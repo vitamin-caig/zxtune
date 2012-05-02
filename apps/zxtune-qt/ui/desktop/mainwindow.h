@@ -33,12 +33,16 @@ public slots:
   virtual void StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
   virtual void StopModule() = 0;
 
+  //File menu
   virtual void ShowPreferences() = 0;
+  //Help menu
+  virtual void ShowComponentsInformation() = 0;
+  virtual void ShowAboutProgram() = 0;
+  virtual void ShowAboutQt() = 0;
   virtual void VisitHelp() = 0;
   virtual void VisitSite() = 0;
   virtual void VisitFAQ() = 0;
   virtual void ReportIssue() = 0;
-  virtual void ShowAboutQt() = 0;
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

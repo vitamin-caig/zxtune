@@ -59,8 +59,6 @@ namespace
     MainWindowImpl(Parameters::Container::Ptr options, const StringArray& cmdline)
       : Options(options)
       , Playback(PlaybackSupport::Create(*this, Options))
-      , About(AboutDialog::Create(*this))
-      , Components(ComponentsDialog::Create(*this))
       , Controls(PlaybackControls::Create(*this, *Playback))
       , FastOptions(PlaybackOptions::Create(*this, *Playback, Options))
       , Volume(VolumeControl::Create(*this, *Playback))
@@ -92,8 +90,8 @@ namespace
       }
 
       //connect root actions
-      Components->connect(actionComponents, SIGNAL(triggered()), SLOT(Show()));
-      About->connect(actionAbout, SIGNAL(triggered()), SLOT(Show()));
+      Require(connect(actionComponents, SIGNAL(triggered()), SLOT(ShowComponentsInformation())));
+      Require(connect(actionAbout, SIGNAL(triggered()), SLOT(ShowAboutProgram())));
       this->connect(actionOnlineHelp, SIGNAL(triggered()), SLOT(VisitHelp()));
       this->connect(actionWebSite, SIGNAL(triggered()), SLOT(VisitSite()));
       this->connect(actionOnlineFAQ, SIGNAL(triggered()), SLOT(VisitFAQ()));
@@ -143,6 +141,21 @@ namespace
       UI::ShowPreferencesDialog(*this);
     }
 
+    virtual void ShowComponentsInformation()
+    {
+      UI::ShowComponentsInformation(*this);
+    }
+
+    virtual void ShowAboutProgram()
+    {
+      UI::ShowProgramInformation(*this);
+    }
+
+    virtual void ShowAboutQt()
+    {
+      QMessageBox::aboutQt(this);
+    }
+
     virtual void VisitHelp()
     {
       const QString siteUrl(Text::HELP_URL);
@@ -165,11 +178,6 @@ namespace
     {
       const QString faqUrl(Text::REPORT_BUG_URL);
       QDesktopServices::openUrl(QUrl(faqUrl));
-    }
-
-    virtual void ShowAboutQt()
-    {
-      QMessageBox::aboutQt(this);
     }
 
     //QWidgets virtuals
@@ -257,8 +265,6 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
     PlaybackSupport* const Playback;
-    AboutDialog* const About;
-    ComponentsDialog* const Components;
     PlaybackControls* const Controls;
     PlaybackOptions* const FastOptions;
     VolumeControl* const Volume;
