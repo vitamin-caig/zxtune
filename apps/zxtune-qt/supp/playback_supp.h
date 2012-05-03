@@ -48,5 +48,6 @@ signals:
 };
 
 ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module);
+ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(PlaybackSupport& supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module);
 
 #endif //ZXTUNE_PLAYBACK_SUPP_H_DEFINED

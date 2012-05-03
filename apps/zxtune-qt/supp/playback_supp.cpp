@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "playback_supp.h"
+#include "mixer.h"
 #include "playlist/supp/data.h"
 #include "ui/utils.h"
 #include "ui/tools/errordialog.h"
@@ -41,33 +42,12 @@ namespace
     std::for_each(errors.begin(), errors.end(), boost::bind(&ShowErrorMessage, title, _1));
   }
 
-  const ZXTune::Sound::MultiGain MIXER3[] =
-  {
-    { {1.0, 0.0} },
-    { {0.5, 0.5} },
-    { {0.0, 1.0} }
-  };
-  const ZXTune::Sound::MultiGain MIXER4[] =
-  {
-    { {1.0, 0.0} },
-    { {0.7, 0.3} },
-    { {0.3, 0.7} },
-    { {0.0, 1.0} }
-  };
-
-  ZXTune::Sound::Mixer::Ptr CreateMixer(const ZXTune::Sound::MultiGain* matrix, uint_t chans)
-  {
-    const ZXTune::Sound::MatrixMixer::Ptr res = ZXTune::Sound::CreateMatrixMixer(chans);
-    std::vector<ZXTune::Sound::MultiGain> mtx(matrix, matrix + chans);
-    res->SetMatrix(mtx);
-    return res;
-  }
-
   class BackendParams : public ZXTune::Sound::CreateBackendParameters
   {
   public:
-    BackendParams(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
-      : Params(params)
+    BackendParams(PlaybackSupport* supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
+      : Supp(supp)
+      , Params(params)
       , Module(module)
       , Info(Module->GetModuleInformation())
       , Properties(Module->GetModuleProperties())
@@ -86,15 +66,9 @@ namespace
 
     virtual ZXTune::Sound::Mixer::Ptr GetMixer() const
     {
-      switch (Info->PhysicalChannels())
-      {
-      case 3:
-        return CreateMixer(MIXER3, 3);
-      case 4:
-        return CreateMixer(MIXER4, 4);
-      default:
-        return ZXTune::Sound::Mixer::Ptr();
-      }
+      return Supp
+        ? CreateMixer(*Supp, Params, Info->PhysicalChannels())
+        : CreateMixer(Params, Info->PhysicalChannels());
     }
 
     virtual ZXTune::Sound::Converter::Ptr GetFilter() const
@@ -102,17 +76,18 @@ namespace
       return ZXTune::Sound::Converter::Ptr();
     }
   private:
+    PlaybackSupport* const Supp;
     const Parameters::Accessor::Ptr Params;
     const ZXTune::Module::Holder::Ptr Module;
     const ZXTune::Module::Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
 
-  ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
+  ZXTune::Sound::Backend::Ptr CreateBackend(PlaybackSupport& supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
   {
     using namespace ZXTune;
     //create backend
-    const Sound::CreateBackendParameters::Ptr createParams = CreateBackendParameters(params, module);
+    const Sound::CreateBackendParameters::Ptr createParams = CreateBackendParameters(supp, params, module);
     Sound::Backend::Ptr result;
     std::list<Error> errors;
     for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
@@ -159,7 +134,7 @@ namespace
       }
       Stop();
       Backend.reset();
-      Backend = CreateBackend(Params, module);
+      Backend = CreateBackend(*this, Params, module);
       if (Backend)
       {
         Item = item;
@@ -276,7 +251,12 @@ PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::
   return new PlaybackSupportImpl(parent, sndOptions);
 }
 
+ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(PlaybackSupport& supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
+{
+  return boost::make_shared<BackendParams>(&supp, params, module);
+}
+
 ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
 {
-  return boost::make_shared<BackendParams>(params, module);
+  return boost::make_shared<BackendParams>(static_cast<PlaybackSupport*>(0), params, module);
 }

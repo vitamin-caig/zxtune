@@ -41,9 +41,15 @@ namespace
         return false;
       }
       const QVariant& var = value.Get();
-      if (var.type() == QVariant::String)
+      const QVariant::Type type = var.type();
+      if (type == QVariant::String)
       {
         return ConvertFromString(FromQString(var.toString()), val);
+      }
+      else if (type == QVariant::LongLong || type == QVariant::Int)
+      {
+        val = var.toLongLong();
+        return true;
       }
       return false;
     }

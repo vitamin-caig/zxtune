@@ -9,7 +9,7 @@ source_files = qt_app supp/options
 gui_theme ?= restorer
 
 #other
-moc_files += supp/playback_supp
+moc_files += supp/playback_supp supp/mixer
 
 include_dirs = .
 

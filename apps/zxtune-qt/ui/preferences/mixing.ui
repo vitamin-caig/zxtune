@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MixingOptions</class>
+ <widget class="QWidget" name="MixingOptions">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>320</width>
+    <height>108</height>
+   </rect>
+  </property>
+  <layout class="QHBoxLayout">
+   <property name="margin">
+    <number>2</number>
+   </property>
+   <item>
+    <layout class="QVBoxLayout" name="channelNames">
+     <property name="margin">
+      <number>2</number>
+     </property>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="channelValues">
+     <property name="margin">
+      <number>2</number>
+     </property>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+</ui>

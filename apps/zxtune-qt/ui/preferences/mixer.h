@@ -28,10 +28,11 @@ namespace UI
   protected:
     explicit MixerWidget(QWidget& parent);
   public:
-    static MixerWidget* Create(QWidget& parent);
+    static MixerWidget* Create(QWidget& parent, const QString& name);
+  public slots:
+    virtual void setValue(int val) = 0;
   signals:
-    void ValueLeft(int val);
-    void ValueRight(int val);
+    void valueChanged(int val);
   };
 }
 
@@ -43,10 +44,9 @@ namespace Parameters
   protected:
     explicit MixerValue(QObject& parent);
   public:
-    static void Bind(UI::MixerWidget& mix, Container& ctr, const NameType& name, int defL, int defR);
+    static void Bind(UI::MixerWidget& mix, Container& ctr, const NameType& name, int defValue);
   private slots:
-    virtual void SetL(int value) = 0;
-    virtual void SetR(int value) = 0;
+    virtual void SetValue(int value) = 0;
   };
 }
 

@@ -94,3 +94,9 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < PLAYLIST_LOADING_HEADER
 > "Loading..."
+
+< MIXER_WINDOW_TITLE_TEMPLATE
+> "%1%-channel mixer"
+
+< INPUT_CHANNEL_NAMES
+> "ABCD"

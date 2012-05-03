@@ -14,6 +14,8 @@ Author:
 //local includes
 #include "mixer.h"
 #include "mixer.ui.h"
+//common includes
+#include <contract.h>
 
 namespace
 {
@@ -21,14 +23,19 @@ namespace
                         , private Ui::Mixer
   {
   public:
-    explicit MixerWidgetImpl(QWidget& parent)
+    MixerWidgetImpl(QWidget& parent, const QString& name)
       : UI::MixerWidget(parent)
     {
       //setup self
       setupUi(this);
+      channelName->setText(name);
 
-      connect(valueL, SIGNAL(valueChanged(int)), SIGNAL(ValueLeft(int)));
-      connect(valueR, SIGNAL(valueChanged(int)), SIGNAL(ValueRight(int)));
+      Require(connect(channelValue, SIGNAL(valueChanged(int)), SIGNAL(valueChanged(int))));
+    }
+
+    virtual void setValue(int val)
+    {
+      channelValue->setValue(val);
     }
   };
 }
@@ -40,9 +47,9 @@ namespace UI
   {
   }
   
-  MixerWidget* MixerWidget::Create(QWidget& parent)
+  MixerWidget* MixerWidget::Create(QWidget& parent, const QString& name)
   {
-    return new MixerWidgetImpl(parent);
+    return new MixerWidgetImpl(parent, name);
   }
 }
 
@@ -50,38 +57,27 @@ namespace
 {
   using namespace Parameters;
   
-  const Char SUFFIX_L[] = {'.','l','e','f','t',0};
-  const Char SUFFIX_R[] = {'.','r','i','g','h','t',0};
-
   class MixerValueImpl : public MixerValue
   {
   public:
-    MixerValueImpl(UI::MixerWidget& parent, Parameters::Container& ctr, const Parameters::NameType& name, int defL, int defR)
+    MixerValueImpl(UI::MixerWidget& parent, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
       : MixerValue(parent)
       , Container(ctr)
-      , NameL(name + SUFFIX_L)
-      , NameR(name + SUFFIX_R)
+      , Name(name)
     {
-      Parameters::IntType valL = defL, valR = defR;
-      Container.FindIntValue(NameL, valL);
-      Container.FindIntValue(NameR, valR);
-      connect(&parent, SIGNAL(ValueLeft(int)), SLOT(SetL(int)));
-      connect(&parent, SIGNAL(ValueRight(int)), SLOT(SetR(int)));
+      Parameters::IntType value = defValue;
+      Container.FindIntValue(Name, value);
+      parent.setValue(value);
+      Require(connect(&parent, SIGNAL(valueChanged(int)), SLOT(SetValue(int))));
     }
 
-    virtual void SetL(int value)
+    virtual void SetValue(int value)
     {
-      Container.SetIntValue(NameL, value);
-    }
-
-    virtual void SetR(int value)
-    {
-      Container.SetIntValue(NameR, value);
+      Container.SetIntValue(Name, value);
     }
   private:
     Parameters::Container& Container;
-    const Parameters::NameType NameL;
-    const Parameters::NameType NameR;
+    const Parameters::NameType Name;
   };
 }
 
@@ -91,8 +87,8 @@ namespace Parameters
   {
   }
 
-  void MixerValue::Bind(UI::MixerWidget& mix, Container& ctr, const NameType& name, int defL, int defR)
+  void MixerValue::Bind(UI::MixerWidget& mix, Container& ctr, const NameType& name, int defValue)
   {
-    new MixerValueImpl(mix, ctr, name, defL, defR);
+    new MixerValueImpl(mix, ctr, name, defValue);
   }
 }

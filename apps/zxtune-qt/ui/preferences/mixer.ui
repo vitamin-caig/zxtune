@@ -10,19 +10,22 @@
     <height>64</height>
    </rect>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QHBoxLayout" name="mainLayout">
    <property name="margin">
     <number>2</number>
    </property>
-   <item row="0" column="0">
-    <widget class="QLabel" name="labelL">
-     <property name="text">
-      <string>Left</string>
+   <item>
+    <widget class="QLabel" name="channelName">
+     <property name="minimumSize">
+      <size>
+       <width>32</width>
+       <height>0</height>
+      </size>
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QSlider" name="valueL">
+   <item>
+    <widget class="QSlider" name="channelValue">
      <property name="maximum">
       <number>100</number>
      </property>
@@ -31,35 +34,8 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="QSpinBox" name="valueLPrecise">
-     <property name="suffix">
-      <string>%</string>
-     </property>
-     <property name="maximum">
-      <number>100</number>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="labelR">
-     <property name="text">
-      <string>Right</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QSlider" name="valueR">
-     <property name="maximum">
-      <number>100</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2">
-    <widget class="QSpinBox" name="valueRPrecise">
+   <item>
+    <widget class="QSpinBox" name="channelValuePrecise">
      <property name="suffix">
       <string>%</string>
      </property>
@@ -73,68 +49,16 @@
  <resources/>
  <connections>
   <connection>
-   <sender>valueL</sender>
+   <sender>channelValue</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>valueLPrecise</receiver>
+   <receiver>channelValuePrecise</receiver>
    <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>149</x>
-     <y>17</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>293</x>
-     <y>17</y>
-    </hint>
-   </hints>
   </connection>
   <connection>
-   <sender>valueLPrecise</sender>
+   <sender>channelValuePrecise</sender>
    <signal>valueChanged(int)</signal>
-   <receiver>valueL</receiver>
+   <receiver>channelValue</receiver>
    <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>293</x>
-     <y>17</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>149</x>
-     <y>17</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>valueR</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>valueRPrecise</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>149</x>
-     <y>46</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>293</x>
-     <y>46</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>valueRPrecise</sender>
-   <signal>valueChanged(int)</signal>
-   <receiver>valueR</receiver>
-   <slot>setValue(int)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>293</x>
-     <y>46</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>149</x>
-     <y>46</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>

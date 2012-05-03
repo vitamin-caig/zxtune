@@ -47,6 +47,12 @@ extern const Char HOMEPAGE_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e',0
 };
+extern const Char INPUT_CHANNEL_NAMES[] = {
+  'A','B','C','D',0
+};
+extern const Char MIXER_WINDOW_TITLE_TEMPLATE[] = {
+  '%','1','%','-','c','h','a','n','n','e','l',' ','m','i','x','e','r',0
+};
 extern const Char MODULE_PLAYLIST_FORMAT[] = {
   '[','A','u','t','h','o','r',']',' ','-',' ','[','T','i','t','l','e',']',0
 };

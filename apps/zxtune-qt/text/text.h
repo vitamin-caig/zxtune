@@ -15,6 +15,8 @@ extern const Char FAQ_URL[];
 extern const Char FEEDBACK_TEXT[];
 extern const Char HELP_URL[];
 extern const Char HOMEPAGE_URL[];
+extern const Char INPUT_CHANNEL_NAMES[];
+extern const Char MIXER_WINDOW_TITLE_TEMPLATE[];
 extern const Char MODULE_PLAYLIST_FORMAT[];
 extern const Char MODULE_TITLE_FORMAT[];
 extern const Char PATHS_COLLECTING_STATUS[];
