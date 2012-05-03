@@ -15,8 +15,18 @@ Author:
 //std includes
 #include <cctype>
 #include <iomanip>
+//boost includes
+#include <boost/bind.hpp>
 //text includes
 #include <tools/text/tools.h>
+
+namespace
+{
+  void CollectErrorDetails(Error::LocationRef location, Error::CodeType code, const String& text, String& resultStr)
+  {
+    resultStr += Error::AttributesToString(location, code, text);
+  }
+}
 
 // implementation of error's core used to keep data
 struct Error::Meta
@@ -162,4 +172,11 @@ String Error::LocationToString(Error::LocationRef loc)
 #else
   return Strings::Format(Text::ERROR_LOCATION_FORMAT_DEBUG, loc.Tag, loc.File, loc.Line, loc.Function);
 #endif
+}
+
+String Error::ToString(const Error& err)
+{
+  String details;
+  err.WalkSuberrors(boost::bind(&CollectErrorDetails, _2, _3, _4, boost::ref(details)));
+  return details;
 }

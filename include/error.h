@@ -159,6 +159,9 @@ public:
   //! ------
   //! @endcode
   static String AttributesToString(LocationRef loc, CodeType code, const String& text);
+
+  //! @brief Convert error and all suberrors to single string using AttributesToString function
+  static String ToString(const Error& err);
   //@}
 private:
   Error(MetaPtr ptr) : ErrorMeta(ptr)
