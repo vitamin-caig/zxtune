@@ -15,7 +15,6 @@ Author:
 #include "scanner.h"
 #include "source.h"
 #include "ui/utils.h"
-#include "ui/tools/errordialog.h"
 //common includes
 #include <error.h>
 #include <logging.h>
@@ -117,6 +116,7 @@ namespace
       catch (const Error& err)
       {
         OnScanStop();
+        emit ErrorOccurred(err);
       }
     }
   private:
@@ -166,7 +166,10 @@ namespace
 
     virtual void OnError(const Error& err)
     {
-      //TODO
+      if (err.GetCode() != ZXTune::Module::ERROR_DETECT_CANCELED)
+      {
+        emit ErrorOccurred(err);
+      }
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;

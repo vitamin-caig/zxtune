@@ -26,6 +26,7 @@ Author:
 #include "ui/informational/aboutdialog.h"
 #include "ui/informational/componentsdialog.h"
 #include "ui/preferences/setup_preferences.h"
+#include "ui/tools/errordialog.h"
 #include "playlist/ui/container_view.h"
 #include "supp/playback_supp.h"
 #include <apps/version/api.h>
@@ -111,6 +112,7 @@ namespace
       this->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
         SLOT(StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
       this->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule()));
+      Require(connect(Playback, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
       this->connect(actionAddFiles, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFiles()));
       this->connect(actionAddFolder, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFolder()));
 
@@ -125,7 +127,7 @@ namespace
       }
     }
 
-    virtual void StartModule(ZXTune::Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item)
+    virtual void StartModule(ZXTune::Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
       setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
         GetProgramTitle(),
@@ -181,6 +183,11 @@ namespace
     {
       const QString faqUrl(Text::REPORT_BUG_URL);
       QDesktopServices::openUrl(QUrl(faqUrl));
+    }
+
+    virtual void ShowError(const Error& err)
+    {
+      ShowErrorMessage(QString(), err);
     }
 
     //QWidgets virtuals

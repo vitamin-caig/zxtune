@@ -26,6 +26,7 @@ Author:
 #include "playlist/supp/storage.h"
 #include "ui/utils.h"
 #include "ui/controls/overlay_progress.h"
+#include "ui/tools/errorswidget.h"
 #include "ui/tools/filedialog.h"
 //local includes
 #include <contract.h>
@@ -130,6 +131,11 @@ namespace
       Layout->setMargin(0);
       Layout->addWidget(View);
       OperationProgress->setVisible(false);
+      if (UI::ErrorsWidget* const errors = UI::ErrorsWidget::Create(*this))
+      {
+        Layout->addWidget(errors);
+        Require(errors->connect(Controller->GetScanner(), SIGNAL(ErrorOccurred(const Error&)), SLOT(AddError(const Error&))));
+      }
       Layout->addWidget(ScannerView);
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();

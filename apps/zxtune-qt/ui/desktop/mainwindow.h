@@ -43,6 +43,8 @@ public slots:
   virtual void VisitSite() = 0;
   virtual void VisitFAQ() = 0;
   virtual void ReportIssue() = 0;
+private slots:
+  virtual void ShowError(const Error&) = 0;
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

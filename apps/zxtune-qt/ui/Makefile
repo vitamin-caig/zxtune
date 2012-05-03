@@ -7,7 +7,8 @@ source_files = format \
 
 #informational
 ui_files += informational/aboutdialog \
-            informational/componentsdialog
+            informational/componentsdialog \
+            tools/errorswidget
 #controls
 ui_files += controls/playback_controls \
             controls/seek_controls \

@@ -16,7 +16,6 @@ Author:
 #include "mixer.h"
 #include "playlist/supp/data.h"
 #include "ui/utils.h"
-#include "ui/tools/errordialog.h"
 //common includes
 #include <error.h>
 #include <tools.h>
@@ -34,12 +33,6 @@ namespace
   {
     static const Char NULL_BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
     return creator.Id() == NULL_BACKEND_ID;
-  }
-
-  void ShowErrors(const std::list<Error>& errors)
-  {
-    const QString title(PlaybackSupport::tr("<b>Error while initializing sound subsystem</b>"));
-    std::for_each(errors.begin(), errors.end(), boost::bind(&ShowErrorMessage, title, _1));
   }
 
   class BackendParams : public ZXTune::Sound::CreateBackendParameters
@@ -83,34 +76,6 @@ namespace
     const Parameters::Accessor::Ptr Properties;
   };
 
-  ZXTune::Sound::Backend::Ptr CreateBackend(PlaybackSupport& supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
-  {
-    using namespace ZXTune;
-    //create backend
-    const Sound::CreateBackendParameters::Ptr createParams = CreateBackendParameters(supp, params, module);
-    Sound::Backend::Ptr result;
-    std::list<Error> errors;
-    for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
-      backends->IsValid(); backends->Next())
-    {
-      const Sound::BackendCreator::Ptr creator = backends->Get();
-      if (IsNullBackend(*creator))
-      {
-        ShowErrors(errors);
-        return Sound::Backend::Ptr();
-      }
-      if (const Error& err = creator->CreateBackend(createParams, result))
-      {
-        errors.push_back(err);
-      }
-      else
-      {
-        break;
-      }
-    }
-    return result;
-  }
-
   class PlaybackSupportImpl : public PlaybackSupport
   {
   public:
@@ -132,35 +97,58 @@ namespace
       {
         return;
       }
-      Stop();
-      Backend.reset();
-      Backend = CreateBackend(*this, Params, module);
-      if (Backend)
+      try
       {
-        Item = item;
-        OnSetBackend(Backend);
-        this->wait();
-        Backend->Play();
-        this->start();
+        Stop();
+        Backend.reset();
+        Backend = CreateBackend(Params, module);
+        if (Backend)
+        {
+          Item = item;
+          OnSetBackend(Backend);
+          this->wait();
+          ThrowIfError(Backend->Play());
+          this->start();
+        }
+      }
+      catch (const Error& e)
+      {
+        emit ErrorOccurred(e);
       }
     }
 
     virtual void Play()
     {
       //play only if any module selected or set
-      if (Backend)
+      if (!Backend)
       {
-        Backend->Play();
+        return;
+      }
+      try
+      {
+        ThrowIfError(Backend->Play());
         this->start();
+      }
+      catch (const Error& e)
+      {
+        emit ErrorOccurred(e);
       }
     }
 
     virtual void Stop()
     {
-      if (Backend)
+      if (!Backend)
       {
-        Backend->Stop();
+        return;
+      }
+      try
+      {
+        ThrowIfError(Backend->Stop());
         this->wait();
+      }
+      catch (const Error& e)
+      {
+        emit ErrorOccurred(e);
       }
     }
 
@@ -170,69 +158,127 @@ namespace
       {
         return;
       }
-      const ZXTune::Sound::Backend::State curState = Backend->GetCurrentState();
-      if (ZXTune::Sound::Backend::STARTED == curState)
+      try
       {
-        Backend->Pause();
+        const ZXTune::Sound::Backend::State curState = Backend->GetCurrentState();
+        if (ZXTune::Sound::Backend::STARTED == curState)
+        {
+          ThrowIfError(Backend->Pause());
+        }
+        else if (ZXTune::Sound::Backend::PAUSED == curState)
+        {
+          ThrowIfError(Backend->Play());
+        }
       }
-      else if (ZXTune::Sound::Backend::PAUSED == curState)
+      catch (const Error& e)
       {
-        Backend->Play();
+        emit ErrorOccurred(e);
       }
     }
 
     virtual void Seek(int frame)
     {
-      if (Backend)
+      if (!Backend)
       {
-        Backend->SetPosition(frame);
+        return;
+      }
+      try
+      {
+        ThrowIfError(Backend->SetPosition(frame));
+      }
+      catch (const Error& e)
+      {
+        emit ErrorOccurred(e);
       }
     }
 
     virtual void run()
     {
-      using namespace ZXTune;
-
-      //notify about start
-      OnStartModule(Backend, Item);
-
-      const Async::Signals::Collector::Ptr signaller = Backend->CreateSignalsCollector(
-        Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
-        Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
-      for (;;)
+      try
       {
-        if (uint_t sigmask = signaller->WaitForSignals(100/*10fps*/))
+        using namespace ZXTune;
+
+        //notify about start
+        OnStartModule(Backend, Item);
+
+        const Async::Signals::Collector::Ptr signaller = Backend->CreateSignalsCollector(
+          Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
+          Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
+        for (;;)
         {
-          if (sigmask & (Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH))
+          if (uint_t sigmask = signaller->WaitForSignals(100/*10fps*/))
           {
-            if (sigmask & Sound::Backend::MODULE_FINISH)
+            if (sigmask & (Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH))
             {
-              OnFinishModule();
+              if (sigmask & Sound::Backend::MODULE_FINISH)
+              {
+                OnFinishModule();
+              }
+              break;
             }
-            break;
+            else if (sigmask & Sound::Backend::MODULE_RESUME)
+            {
+              OnResumeModule();
+            }
+            else if (sigmask & Sound::Backend::MODULE_PAUSE)
+            {
+              OnPauseModule();
+            }
+            else
+            {
+              assert(!"Invalid signal");
+            }
           }
-          else if (sigmask & Sound::Backend::MODULE_RESUME)
+          const Sound::Backend::State curState = Backend->GetCurrentState();
+          if (Sound::Backend::STARTED != curState)
           {
-            OnResumeModule();
+            continue;
           }
-          else if (sigmask & Sound::Backend::MODULE_PAUSE)
-          {
-            OnPauseModule();
-          }
-          else
-          {
-            assert(!"Invalid signal");
-          }
+          OnUpdateState();
         }
-        const Sound::Backend::State curState = Backend->GetCurrentState();
-        if (Sound::Backend::STARTED != curState)
-        {
-          continue;
-        }
-        OnUpdateState();
+        //notify about stop
+        OnStopModule();
       }
-      //notify about stop
-      OnStopModule();
+      catch (const Error& e)
+      {
+        emit ErrorOccurred(e);
+      }
+    }
+  private:
+    ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
+    {
+      using namespace ZXTune;
+      //create backend
+      const Sound::CreateBackendParameters::Ptr createParams = CreateBackendParameters(*this, params, module);
+      Sound::Backend::Ptr result;
+      std::list<Error> errors;
+      for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
+        backends->IsValid(); backends->Next())
+      {
+        const Sound::BackendCreator::Ptr creator = backends->Get();
+        if (IsNullBackend(*creator))
+        {
+          ReportErrors(errors);
+          return Sound::Backend::Ptr();
+        }
+        if (const Error& err = creator->CreateBackend(createParams, result))
+        {
+          errors.push_back(err);
+        }
+        else
+        {
+          break;
+        }
+      }
+      return result;
+    }
+
+    void ReportErrors(const std::list<Error>& errors)
+    {
+      for (std::list<Error>::const_iterator it = errors.begin(), lim = errors.end(); it != lim; ++it)
+      {
+        emit ErrorOccurred(*it);
+      }
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -248,6 +294,7 @@ PlaybackSupport::PlaybackSupport(QObject& parent) : QThread(&parent)
 PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::Ptr sndOptions)
 {
   REGISTER_METATYPE(ZXTune::Sound::Backend::Ptr);
+  REGISTER_METATYPE(Error);
   return new PlaybackSupportImpl(parent, sndOptions);
 }
 

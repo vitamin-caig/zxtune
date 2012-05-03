@@ -45,6 +45,7 @@ signals:
   void OnResumeModule();
   void OnStopModule();
   void OnFinishModule();
+  void ErrorOccurred(const Error&);
 };
 
 ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module);

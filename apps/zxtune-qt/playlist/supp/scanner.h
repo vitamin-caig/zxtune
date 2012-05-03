@@ -47,6 +47,7 @@ namespace Playlist
     void OnResolvingStop();
     //for BL
     void OnGetItem(Playlist::Item::Data::Ptr);
+    void ErrorOccurred(const Error& e);
   };
 }
 
