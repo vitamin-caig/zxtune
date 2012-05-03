@@ -109,11 +109,16 @@ namespace
   class MixerWithFeedback : public ZXTune::Sound::Mixer
   {
   public:
-    MixerWithFeedback(ZXTune::Sound::MatrixMixer::Ptr mixer, Mixer::Ptr feedback)
+    MixerWithFeedback(ZXTune::Sound::MatrixMixer::Ptr mixer, Mixer* feedback)
       : Delegate(mixer)
       , Feedback(feedback)
     {
       Feedback->Update();
+    }
+
+    virtual ~MixerWithFeedback()
+    {
+      Feedback->deleteLater();
     }
 
     virtual void ApplyData(const std::vector<ZXTune::Sound::Sample>& data)
@@ -132,7 +137,7 @@ namespace
     }
   private:
     const ZXTune::Sound::MatrixMixer::Ptr Delegate;
-    const Mixer::Ptr Feedback;
+    Mixer* const Feedback;
   };
 
   const Char MIXER_PARAMETER_TEMPLATE[] =
@@ -176,7 +181,7 @@ ZXTune::Sound::Mixer::Ptr CreateMixer(PlaybackSupport& supp, Parameters::Accesso
 {
   const ZXTune::Sound::MatrixMixer::Ptr mixer = ZXTune::Sound::CreateMatrixMixer(channels);
   const MixerMatrix matrix = CreateMatrix(params, channels);
-  Mixer::Ptr feedback(new MixerFeedback(supp, matrix, *mixer));
+  Mixer* const feedback(new MixerFeedback(supp, matrix, *mixer));
   Require(feedback->connect(&supp, SIGNAL(OnUpdateState()), SLOT(Update())));
   return boost::make_shared<MixerWithFeedback>(mixer, feedback);
 }

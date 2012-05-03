@@ -28,9 +28,6 @@ class Mixer : public QObject
   Q_OBJECT
 protected:
   explicit Mixer(QObject& parent);
-public:
-  typedef QPointer<Mixer> Ptr;
-
 public slots:
   virtual void Update() = 0;
 };
