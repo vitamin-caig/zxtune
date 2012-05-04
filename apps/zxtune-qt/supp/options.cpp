@@ -88,7 +88,7 @@ namespace
 
     virtual void Process(Visitor& visitor) const
     {
-      Require(!"Should not be called");
+      //TODO: implement later
     }
 
     virtual void SetValue(const NameType& name, IntType val)
