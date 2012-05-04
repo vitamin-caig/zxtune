@@ -17,6 +17,7 @@ Author:
 #include "z80.h"
 #include "sound.h"
 #include "mixing.h"
+#include "plugins.h"
 //common includes
 #include <tools.h>
 //std includes
@@ -50,6 +51,7 @@ namespace
         UI::SoundSettingsWidget::Create(*tabs, playing),
         UI::MixingSettingsWidget::Create(*tabs, 3),
         UI::MixingSettingsWidget::Create(*tabs, 4),
+        UI::PluginsSettingsWidget::Create(*tabs)
       };
       std::for_each(pages, ArrayEnd(pages),
         boost::bind(&QTabWidget::addTab, tabs, _1, boost::bind(&QWidget::windowTitle, _1)));
