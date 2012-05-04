@@ -66,14 +66,14 @@ namespace
       , Name(name)
     {
       Parameters::IntType value = defValue;
-      Container.FindIntValue(Name, value);
+      Container.FindValue(Name, value);
       parent.setValue(value);
       Require(connect(&parent, SIGNAL(valueChanged(int)), SLOT(SetValue(int))));
     }
 
     virtual void SetValue(int value)
     {
-      Container.SetIntValue(Name, value);
+      Container.SetValue(Name, value);
     }
   private:
     Parameters::Container& Container;

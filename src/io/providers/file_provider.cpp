@@ -45,7 +45,7 @@ namespace
     std::streampos GetMMapThreshold() const
     {
       Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT;
-      Accessor.FindIntValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, intVal);
+      Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, intVal);
       return static_cast<std::streampos>(intVal);
     }
   private:

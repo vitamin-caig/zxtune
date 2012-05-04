@@ -55,7 +55,7 @@ namespace
     {
       const ZXTuneHandle result = ObjectTraits<PtrType>::GetHandle(val);
       Require(result != ZXTuneHandle());
-      Require(Handles.insert(Handle2Object::value_type(result, val)).second);
+      Require(Handles.insert(typename Handle2Object::value_type(result, val)).second);
       return result;
     }
 
@@ -66,7 +66,7 @@ namespace
 
     PtrType Get(ZXTuneHandle handle) const
     {
-      const Handle2Object::const_iterator it = Handles.find(handle);
+      const typename Handle2Object::const_iterator it = Handles.find(handle);
       Require(it != Handles.end());
       return it->second;
     }
@@ -257,7 +257,7 @@ namespace
 
   typedef HandlesCache<PlayerWrapper::Ptr> PlayersCache;
 
-  bool FindDefaultIntValue(const char* name, Parameters::IntType& value)
+  bool FindDefaultValue(const char* name, Parameters::IntType& value)
   {
     typedef std::pair<Parameters::NameType, Parameters::IntType> Name2Val;
     static const Name2Val DEFAULTS[] =
@@ -494,7 +494,7 @@ bool ZXTune_GetPlayerParameterInt(ZXTuneHandle player, const char* paramName, in
     const PlayerWrapper::Ptr wrapper = PlayersCache::Instance().Get(player);
     const Parameters::Accessor::Ptr props = wrapper->GetParameters();
     Parameters::IntType value;
-    if (!props->FindIntValue(paramName, value) && !FindDefaultIntValue(paramName, value))
+    if (!props->FindValue(paramName, value) && !FindDefaultValue(paramName, value))
     {
       return false;
     }
@@ -517,7 +517,7 @@ bool ZXTune_SetPlayerParameterInt(ZXTuneHandle player, const char* paramName, in
   {
     const PlayerWrapper::Ptr wrapper = PlayersCache::Instance().Get(player);
     const Parameters::Modifier::Ptr props = wrapper->GetParameters();
-    props->SetIntValue(paramName, paramValue);
+    props->SetValue(paramName, paramValue);
     return true;
   }
   catch (const Error&)

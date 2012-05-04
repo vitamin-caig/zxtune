@@ -92,16 +92,16 @@ namespace
     bool IsDeepScanning() const
     {
       Parameters::IntType val = Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT;
-      Params->FindIntValue(Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, val);
+      Params->FindValue(Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, val);
       return val != 0;
     }
 
     unsigned GetPlayorderMode() const
     {
       Parameters::IntType isLooped = Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT;
-      Params->FindIntValue(Parameters::ZXTuneQT::Playlist::LOOPED, isLooped);
+      Params->FindValue(Parameters::ZXTuneQT::Playlist::LOOPED, isLooped);
       Parameters::IntType isRandom = Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT;
-      Params->FindIntValue(Parameters::ZXTuneQT::Playlist::RANDOMIZED, isRandom);
+      Params->FindValue(Parameters::ZXTuneQT::Playlist::RANDOMIZED, isRandom);
       return
         (isLooped ? Playlist::Item::LOOPED : 0) |
         (isRandom ? Playlist::Item::RANDOMIZED: 0)

@@ -320,7 +320,7 @@ namespace
     {
       using namespace Parameters::ZXTune::Core::Z80;
       Parameters::IntType intTicks = INT_TICKS_DEFAULT;
-      Params->FindIntValue(INT_TICKS, intTicks);
+      Params->FindValue(INT_TICKS, intTicks);
       return static_cast<uint_t>(intTicks);
     }
 
@@ -328,7 +328,7 @@ namespace
     {
       using namespace Parameters::ZXTune::Core;
       Parameters::IntType cpuClock = Z80::CLOCKRATE_DEFAULT;
-      Params->FindIntValue(Z80::CLOCKRATE, cpuClock);
+      Params->FindValue(Z80::CLOCKRATE, cpuClock);
       return static_cast<uint_t>(cpuClock); 
     }
   private:
@@ -628,7 +628,7 @@ namespace AYModule
         assert(Formats::Chiptune::AY::GetModulesCount(*rawData) > 0);
 
         Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
-        //parameters->FindIntValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
+        //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
         const boost::shared_ptr<AYData> result = boost::make_shared<AYData>(properties, static_cast<uint_t>(defaultDuration));
         if (Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, *result))

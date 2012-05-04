@@ -372,21 +372,21 @@ namespace
     String GetDeviceName() const
     {
       Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT;
-      Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE, strVal);
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE, strVal);
       return strVal;
     }
 
     String GetMixerName() const
     {
       Parameters::StringType strVal;
-      Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::ALSA::MIXER, strVal);
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::ALSA::MIXER, strVal);
       return strVal;
     }
 
     uint_t GetBuffersCount() const
     {
       Parameters::IntType val = Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT;
-      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS, val) &&
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,

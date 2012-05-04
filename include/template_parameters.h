@@ -31,11 +31,11 @@ namespace Parameters
     {
       IntType intVal = 0;
       StringType strVal;
-      if (Params.FindIntValue(fieldName, intVal))
+      if (Params.FindValue(fieldName, intVal))
       {
         return ConvertToString(intVal);
       }
-      else if (Params.FindStringValue(fieldName, strVal))
+      else if (Params.FindValue(fieldName, strVal))
       {
         return strVal;
       }

@@ -99,15 +99,15 @@ namespace
       {
       }
 
-      virtual void SetIntValue(const NameType& name, IntType val)
+      virtual void SetValue(const NameType& name, IntType val)
       {
         if (DoneIntegers.insert(name).second)
         {
-          return Delegate.SetIntValue(name, val);
+          return Delegate.SetValue(name, val);
         }
       }
 
-      virtual void SetStringValue(const NameType& name, const StringType& val)
+      virtual void SetValue(const NameType& name, const StringType& val)
       {
         const StringMap::iterator it = Strings.find(name);
         if (it == Strings.end())
@@ -120,18 +120,20 @@ namespace
         }
       }
 
-      virtual void SetDataValue(const NameType& name, const DataType& val)
+      virtual void SetValue(const NameType& name, const DataType& val)
       {
         if (DoneDatas.insert(name).second)
         {
-          return Delegate.SetDataValue(name, val);
+          return Delegate.SetValue(name, val);
         }
       }
 
       void ProcessRestStrings() const
       {
-        std::for_each(Strings.begin(), Strings.end(), boost::bind(&Visitor::SetStringValue, &Delegate,
-          boost::bind(&StringMap::value_type::first, _1), boost::bind(&StringMap::value_type::second, _1)));
+        for (StringMap::const_iterator it = Strings.begin(), lim = Strings.end(); it != lim; ++it)
+        {
+          Delegate.SetValue(it->first, it->second);
+        }
       }
     private:
       Visitor& Delegate;
@@ -146,16 +148,16 @@ namespace
     {
     }
 
-    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    virtual bool FindValue(const NameType& name, IntType& val) const
     {
-      return First->FindIntValue(name, val) || Second->FindIntValue(name, val);
+      return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const NameType& name, StringType& val) const
     {
       String val1, val2;
-      const bool res1 = First->FindStringValue(name, val1);
-      const bool res2 = Second->FindStringValue(name, val2);
+      const bool res1 = First->FindValue(name, val1);
+      const bool res2 = Second->FindValue(name, val2);
       if (res1 && res2)
       {
         MergeStringProperty(name, val1, val2);
@@ -168,9 +170,9 @@ namespace
       return res1 || res2;
     }
 
-    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    virtual bool FindValue(const NameType& name, DataType& val) const
     {
-      return First->FindDataValue(name, val) || Second->FindDataValue(name, val);
+      return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
     virtual void Process(Visitor& visitor) const
@@ -188,12 +190,12 @@ namespace
   class TSModuleProperties : public Accessor
   {
   public:
-    virtual bool FindIntValue(const NameType& /*name*/, IntType& /*val*/) const
+    virtual bool FindValue(const NameType& /*name*/, IntType& /*val*/) const
     {
       return false;
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const NameType& name, StringType& val) const
     {
       if (name == ATTR_TYPE)
       {
@@ -203,14 +205,14 @@ namespace
       return false;
     }
 
-    virtual bool FindDataValue(const NameType& /*name*/, DataType& /*val*/) const
+    virtual bool FindValue(const NameType& /*name*/, DataType& /*val*/) const
     {
       return false;
     }
 
     virtual void Process(Visitor& visitor) const
     {
-      visitor.SetStringValue(ATTR_TYPE, TS_PLUGIN_ID);
+      visitor.SetValue(ATTR_TYPE, TS_PLUGIN_ID);
     }
   };
 

@@ -54,7 +54,7 @@ namespace
       
       Parameters::IntegerValue::Bind(*frameDurationValue, *Options, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT);
       Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
-      Options->FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
+      Options->FindValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
       FillFrequences();
       SetFrequency(freq);
       connect(soundFrequency, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int)));
@@ -63,7 +63,7 @@ namespace
     virtual void ChangeSoundFrequency(int idx)
     {
       const qlonglong val = FREQUENCES[idx];
-      Options->SetIntValue(Parameters::ZXTune::Sound::FREQUENCY, val);
+      Options->SetValue(Parameters::ZXTune::Sound::FREQUENCY, val);
     }
   private:
     void FillFrequences()

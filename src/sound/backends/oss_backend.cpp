@@ -191,14 +191,14 @@ namespace
     String GetDeviceName() const
     {
       Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT;
-      Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::OSS::DEVICE, strVal);
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::OSS::DEVICE, strVal);
       return strVal;
     }
 
     String GetMixerName() const
     {
       Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT;
-      Accessor.FindStringValue(Parameters::ZXTune::Sound::Backends::OSS::MIXER, strVal);
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::OSS::MIXER, strVal);
       return strVal;
     }
   private:

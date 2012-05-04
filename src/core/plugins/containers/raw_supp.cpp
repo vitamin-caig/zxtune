@@ -128,7 +128,7 @@ namespace
     std::size_t GetMinimalSize() const
     {
       Parameters::IntType minRawSize = Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT;
-      if (Accessor.FindIntValue(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, minRawSize) &&
+      if (Accessor.FindValue(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, minRawSize) &&
           minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
       {
         throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
@@ -140,7 +140,7 @@ namespace
     std::size_t GetScanStep() const
     {
       Parameters::IntType scanStep = Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT;
-      if (Accessor.FindIntValue(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP, scanStep) &&
+      if (Accessor.FindValue(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP, scanStep) &&
           (scanStep < Parameters::IntType(MIN_SCAN_STEP) ||
            scanStep > Parameters::IntType(MAX_SCAN_STEP)))
       {

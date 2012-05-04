@@ -36,7 +36,7 @@ namespace
     {
       if (!title.empty())
       {
-        Container->SetStringValue(ATTR_TITLE, title);
+        Container->SetValue(ATTR_TITLE, title);
       }
     }
 
@@ -44,7 +44,7 @@ namespace
     {
       if (!author.empty())
       {
-        Container->SetStringValue(ATTR_AUTHOR, author);
+        Container->SetValue(ATTR_AUTHOR, author);
       }
     }
 
@@ -52,7 +52,7 @@ namespace
     {
       if (!comment.empty())
       {
-        Container->SetStringValue(ATTR_COMMENT, comment);
+        Container->SetValue(ATTR_COMMENT, comment);
       }
     }
 
@@ -60,7 +60,7 @@ namespace
     {
       if (!program.empty())
       {
-        Container->SetStringValue(ATTR_PROGRAM, program);
+        Container->SetValue(ATTR_PROGRAM, program);
       }
     }
 
@@ -72,14 +72,14 @@ namespace
     virtual void SetFreqtable(const String& table)
     {
       assert(!table.empty());
-      Container->SetStringValue(Parameters::ZXTune::Core::AYM::TABLE, table);
+      Container->SetValue(Parameters::ZXTune::Core::AYM::TABLE, table);
     }
 
     virtual void SetVersion(uint_t major, uint_t minor)
     {
       assert(minor < 10);
       const uint_t version = 10 * major + minor;
-      Container->SetIntValue(ATTR_VERSION, version);
+      Container->SetValue(ATTR_VERSION, version);
     }
 
     virtual void SetSource(std::size_t usedSize, const ModuleRegion& fixedRegion)
@@ -109,7 +109,7 @@ namespace
     }
 
     // accessor virtuals
-    virtual bool FindIntValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
       if (name == ATTR_SIZE)
       {
@@ -118,10 +118,10 @@ namespace
       }
       CheckWarningsProperties(name);
       CheckLocationProperties(name);
-      return Container->FindIntValue(name, val);
+      return Container->FindValue(name, val);
     }
 
-    virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
       if (name == ATTR_TYPE)
       {
@@ -130,18 +130,18 @@ namespace
       }
       CheckWarningsProperties(name);
       CheckLocationProperties(name);
-      return Container->FindStringValue(name, val);
+      return Container->FindValue(name, val);
     }
 
-    virtual bool FindDataValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
     {
-      return Container->FindDataValue(name, val);
+      return Container->FindValue(name, val);
     }
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
-      visitor.SetIntValue(ATTR_SIZE, UsedRegion.Size);
-      visitor.SetStringValue(ATTR_TYPE, Plug->Id());
+      visitor.SetValue(ATTR_SIZE, UsedRegion.Size);
+      visitor.SetValue(ATTR_TYPE, Plug->Id());
       FillWarningsProperties();
       FillLocationProperties();
       Container->Process(visitor);
@@ -166,8 +166,8 @@ namespace
       }
       if (const uint_t msgs = Warnings->CountMessages())
       {
-        Container->SetIntValue(ATTR_WARNINGS_COUNT, msgs);
-        Container->SetStringValue(ATTR_WARNINGS, Warnings->GetMessages('\n'));
+        Container->SetValue(ATTR_WARNINGS_COUNT, msgs);
+        Container->SetValue(ATTR_WARNINGS, Warnings->GetMessages('\n'));
       }
       Warnings.reset();
     }
@@ -200,28 +200,28 @@ namespace
       //data
       const Binary::Container::Ptr allData = Location->GetData();
       Data = UsedRegion.Extract(*allData);
-      Container->SetIntValue(ATTR_CRC, UsedRegion.Checksum(*allData)); 
+      Container->SetValue(ATTR_CRC, UsedRegion.Checksum(*allData)); 
       if (Source)
       {
-        Container->SetIntValue(ATTR_FIXEDCRC, Source->FixedChecksum());
+        Container->SetValue(ATTR_FIXEDCRC, Source->FixedChecksum());
         Source.reset();
       }
       else
       {
-        Container->SetIntValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
+        Container->SetValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
       }
       //plugins
       const PluginsChain::Ptr plugins = Location->GetPlugins();
       const String& container = plugins->AsString();
       if (!container.empty())
       {
-        Container->SetStringValue(ATTR_CONTAINER, container);
+        Container->SetValue(ATTR_CONTAINER, container);
       }
       //path
       const String& subpath = Location->GetPath()->AsString();
       if (!subpath.empty())
       {
-        Container->SetStringValue(ATTR_SUBPATH, subpath);
+        Container->SetValue(ATTR_SUBPATH, subpath);
       }
       Location.reset();
     }

@@ -204,7 +204,7 @@ namespace
     boost::optional<uint_t> GetOptionalParameter(const Parameters::NameType& name) const
     {
       Parameters::IntType val = 0;
-      if (Params->FindIntValue(name, val))
+      if (Params->FindValue(name, val))
       {
         return val;
       }

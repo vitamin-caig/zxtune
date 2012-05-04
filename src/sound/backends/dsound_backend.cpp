@@ -411,7 +411,7 @@ namespace
     uint_t GetLatency() const
     {
       Parameters::IntType latency = Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT;
-      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, latency) &&
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, latency) &&
           !in_range<Parameters::IntType>(latency, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,

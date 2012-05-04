@@ -233,7 +233,7 @@ namespace
         }
         if (YM)
         {
-          coreParams->SetIntValue(Parameters::ZXTune::Core::AYM::TYPE, 1);
+          coreParams->SetValue(Parameters::ZXTune::Core::AYM::TYPE, 1);
         }
         coreParams->Process(*Params);
       }

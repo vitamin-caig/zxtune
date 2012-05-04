@@ -165,63 +165,66 @@ namespace
     }
 
     //accessor virtuals
-    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    virtual bool FindValue(const NameType& name, IntType& val) const
     {
       return FindByName(Integers, name, val);
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const NameType& name, StringType& val) const
     {
       return FindByName(Strings, name, val);
     }
 
-    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    virtual bool FindValue(const NameType& name, DataType& val) const
     {
       return FindByName(Datas, name, val);
     }
 
     virtual void Process(Visitor& visitor) const
     {
-      std::for_each(Integers.begin(), Integers.end(), boost::bind(&Visitor::SetIntValue, &visitor,
-        boost::bind(&IntegerMap::value_type::first, _1), boost::bind(&IntegerMap::value_type::second, _1)));
-      std::for_each(Strings.begin(), Strings.end(), boost::bind(&Visitor::SetStringValue, &visitor,
-        boost::bind(&StringMap::value_type::first, _1), boost::bind(&StringMap::value_type::second, _1)));
-      std::for_each(Datas.begin(), Datas.end(), boost::bind(&Visitor::SetDataValue, &visitor,
-        boost::bind(&DataMap::value_type::first, _1), boost::bind(&DataMap::value_type::second, _1)));
+      for (IntegerMap::const_iterator it = Integers.begin(), lim = Integers.end(); it != lim; ++it)
+      {
+        visitor.SetValue(it->first, it->second);
+      }
+      for (StringMap::const_iterator it = Strings.begin(), lim = Strings.end(); it != lim; ++it)
+      {
+        visitor.SetValue(it->first, it->second);
+      }
+      for (DataMap::const_iterator it = Datas.begin(), lim = Datas.end(); it != lim; ++it)
+      {
+        visitor.SetValue(it->first, it->second);
+      }
     }
 
     //visitor virtuals
-    virtual void SetIntValue(const NameType& name, IntType val)
+    virtual void SetValue(const NameType& name, IntType val)
     {
       Integers[name] = val;
+      Strings.erase(name);
+      Datas.erase(name);
     }
 
-    virtual void SetStringValue(const NameType& name, const StringType& val)
+    virtual void SetValue(const NameType& name, const StringType& val)
     {
+      Integers.erase(name);
       Strings[name] = val;
+      Datas.erase(name);
     }
 
-    virtual void SetDataValue(const NameType& name, const DataType& val)
+    virtual void SetValue(const NameType& name, const DataType& val)
     {
+      Integers.erase(name);
+      Strings.erase(name);
       Datas[name] = val;
     }
 
     //modifier virtuals
-    virtual void RemoveIntValue(const NameType& name)
+    virtual void RemoveValue(const NameType& name)
     {
       Integers.erase(name);
-    }
-
-    virtual void RemoveStringValue(const NameType& name)
-    {
       Strings.erase(name);
-    }
-
-    virtual void RemoveDataValue(const NameType& name)
-    {
       Datas.erase(name);
     }
-
   private:
     typedef std::map<NameType, IntType> IntegerMap;
     typedef std::map<NameType, StringType> StringMap;
@@ -239,27 +242,27 @@ namespace
     {
     }
 
-    virtual void SetIntValue(const NameType& name, IntType val)
+    virtual void SetValue(const NameType& name, IntType val)
     {
       if (DoneIntegers.insert(name).second)
       {
-        return Delegate.SetIntValue(name, val);
+        return Delegate.SetValue(name, val);
       }
     }
 
-    virtual void SetStringValue(const NameType& name, const StringType& val)
+    virtual void SetValue(const NameType& name, const StringType& val)
     {
       if (DoneStrings.insert(name).second)
       {
-        return Delegate.SetStringValue(name, val);
+        return Delegate.SetValue(name, val);
       }
     }
 
-    virtual void SetDataValue(const NameType& name, const DataType& val)
+    virtual void SetValue(const NameType& name, const DataType& val)
     {
       if (DoneDatas.insert(name).second)
       {
-        return Delegate.SetDataValue(name, val);
+        return Delegate.SetValue(name, val);
       }
     }
   private:
@@ -278,22 +281,22 @@ namespace
     {
     }
 
-    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    virtual bool FindValue(const NameType& name, IntType& val) const
     {
-      return First->FindIntValue(name, val) || 
-             Second->FindIntValue(name, val);
+      return First->FindValue(name, val) || 
+             Second->FindValue(name, val);
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const NameType& name, StringType& val) const
     {
-      return First->FindStringValue(name, val) || 
-             Second->FindStringValue(name, val);
+      return First->FindValue(name, val) || 
+             Second->FindValue(name, val);
     }
 
-    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    virtual bool FindValue(const NameType& name, DataType& val) const
     {
-      return First->FindDataValue(name, val) || 
-             Second->FindDataValue(name, val);
+      return First->FindValue(name, val) || 
+             Second->FindValue(name, val);
     }
 
     virtual void Process(Visitor& visitor) const
@@ -317,25 +320,25 @@ namespace
     {
     }
 
-    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    virtual bool FindValue(const NameType& name, IntType& val) const
     {
-      return First->FindIntValue(name, val) || 
-             Second->FindIntValue(name, val) ||
-             Third->FindIntValue(name, val);
+      return First->FindValue(name, val) || 
+             Second->FindValue(name, val) ||
+             Third->FindValue(name, val);
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const NameType& name, StringType& val) const
     {
-      return First->FindStringValue(name, val) || 
-             Second->FindStringValue(name, val) ||
-             Third->FindStringValue(name, val);
+      return First->FindValue(name, val) || 
+             Second->FindValue(name, val) ||
+             Third->FindValue(name, val);
     }
 
-    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    virtual bool FindValue(const NameType& name, DataType& val) const
     {
-      return First->FindDataValue(name, val) || 
-             Second->FindDataValue(name, val) ||
-             Third->FindDataValue(name, val);
+      return First->FindValue(name, val) || 
+             Second->FindValue(name, val) ||
+             Third->FindValue(name, val);
     }
 
     virtual void Process(Visitor& visitor) const
@@ -355,17 +358,17 @@ namespace
                         , public Visitor
   {
   public:
-    virtual void SetIntValue(const NameType& name, IntType val)
+    virtual void SetValue(const NameType& name, IntType val)
     {
       insert(value_type(name, IntegerToString(val)));
     }
 
-    virtual void SetStringValue(const NameType& name, const StringType& val)
+    virtual void SetValue(const NameType& name, const StringType& val)
     {
       insert(value_type(name, StringToString(val)));
     }
 
-    virtual void SetDataValue(const NameType& name, const DataType& val)
+    virtual void SetValue(const NameType& name, const DataType& val)
     {
       insert(value_type(name, DataToString(val)));
     }
@@ -379,16 +382,16 @@ namespace
     {
       DataType res;
       DataFromString(val, res);
-      visitor.SetDataValue(name, res);
+      visitor.SetValue(name, res);
     }
     else if (IsInteger(val))
     {
       const IntType res = IntegerFromString(val);
-      visitor.SetIntValue(name, res);
+      visitor.SetValue(name, res);
     }
     else
     {
-      visitor.SetStringValue(name, StringFromString(val));
+      visitor.SetValue(name, StringFromString(val));
     }
   }
 
@@ -401,19 +404,19 @@ namespace
     {
     }
 
-    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    virtual bool FindValue(const NameType& name, IntType& val) const
     {
-      return Delegate->FindIntValue(name, val);
+      return Delegate->FindValue(name, val);
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const NameType& name, StringType& val) const
     {
-      return Delegate->FindStringValue(name, val);
+      return Delegate->FindValue(name, val);
     }
 
-    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    virtual bool FindValue(const NameType& name, DataType& val) const
     {
-      return Delegate->FindDataValue(name, val);
+      return Delegate->FindValue(name, val);
     }
 
     virtual void Process(Visitor& visitor) const
@@ -421,39 +424,27 @@ namespace
       Delegate->Process(visitor);
     }
 
-    virtual void SetIntValue(const NameType& name, IntType val)
+    virtual void SetValue(const NameType& name, IntType val)
     {
-      Delegate->SetIntValue(name, val);
+      Delegate->SetValue(name, val);
       Callback.OnPropertyChanged(name);
     }
 
-    virtual void SetStringValue(const NameType& name, const StringType& val)
+    virtual void SetValue(const NameType& name, const StringType& val)
     {
-      Delegate->SetStringValue(name, val);
+      Delegate->SetValue(name, val);
       Callback.OnPropertyChanged(name);
     }
 
-    virtual void SetDataValue(const NameType& name, const DataType& val)
+    virtual void SetValue(const NameType& name, const DataType& val)
     {
-      Delegate->SetDataValue(name, val);
+      Delegate->SetValue(name, val);
       Callback.OnPropertyChanged(name);
     }
 
-    virtual void RemoveIntValue(const NameType& name)
+    virtual void RemoveValue(const NameType& name)
     {
-      Delegate->RemoveIntValue(name);
-      Callback.OnPropertyChanged(name);
-    }
-
-    virtual void RemoveStringValue(const NameType& name)
-    {
-      Delegate->RemoveStringValue(name);
-      Callback.OnPropertyChanged(name);
-    }
-
-    virtual void RemoveDataValue(const NameType& name)
-    {
-      Delegate->RemoveDataValue(name);
+      Delegate->RemoveValue(name);
       Callback.OnPropertyChanged(name);
     }
   private:

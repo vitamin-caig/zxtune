@@ -147,7 +147,7 @@ namespace
     void LoadComboboxStrings(const Parameters::NameType& name, QComboBox& box, const Parameters::StringType& defaultValue)
     {
       Parameters::StringType str = defaultValue;
-      Options->FindStringValue(name, str);
+      Options->FindValue(name, str);
       const QStringList& items = ToQString(str).split(STRINGS_DELIMITER, QString::SkipEmptyParts);
       box.clear();
       box.addItems(items);
@@ -163,7 +163,7 @@ namespace
     {
       const QStringList& items = GetAllItems(box);
       const QString& str = items.join(QString(STRINGS_DELIMITER));
-      Options->SetStringValue(name, FromQString(str));
+      Options->SetValue(name, FromQString(str));
     }
   private:
     const Parameters::Container::Ptr Options;

@@ -48,7 +48,7 @@ namespace
     ZXTune::Sound::Gain ReadValue(const Parameters::NameType& name, ZXTune::Sound::Gain def) const
     {
       Parameters::IntType val = 0;
-      if (Params->FindIntValue(name, val))
+      if (Params->FindValue(name, val))
       {
         return ZXTune::Sound::Gain(val) / 100;
       }

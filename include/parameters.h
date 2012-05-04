@@ -64,11 +64,11 @@ namespace Parameters
     virtual ~Visitor() {}
 
     //! Add/modify integer parameter
-    virtual void SetIntValue(const NameType& name, IntType val) = 0;
+    virtual void SetValue(const NameType& name, IntType val) = 0;
     //! Add/modify string parameter
-    virtual void SetStringValue(const NameType& name, const StringType& val) = 0;
+    virtual void SetValue(const NameType& name, const StringType& val) = 0;
     //! Add/modify data parameter
-    virtual void SetDataValue(const NameType& name, const DataType& val) = 0;
+    virtual void SetValue(const NameType& name, const DataType& val) = 0;
   };
 
   void ParseStringMap(const StringMap& map, Visitor& visitor);
@@ -79,12 +79,8 @@ namespace Parameters
     //! Pointer type
     typedef boost::shared_ptr<Modifier> Ptr;
 
-    //! Remove integer parameter
-    virtual void RemoveIntValue(const NameType& name) = 0;
-    //! Remove string parameter
-    virtual void RemoveStringValue(const NameType& name) = 0;
-    //! Remove data parameter
-    virtual void RemoveDataValue(const NameType& name) = 0;
+    //! Remove parameter
+    virtual void RemoveValue(const NameType& name) = 0;
   };
 
   //! @brief Interface to give access to properties and parameters
@@ -98,11 +94,11 @@ namespace Parameters
     virtual ~Accessor() {}
 
     //! Accessing integer parameters
-    virtual bool FindIntValue(const NameType& name, IntType& val) const = 0;
+    virtual bool FindValue(const NameType& name, IntType& val) const = 0;
     //! Accessing string parameters
-    virtual bool FindStringValue(const NameType& name, StringType& val) const = 0;
+    virtual bool FindValue(const NameType& name, StringType& val) const = 0;
     //! Accessing data parameters
-    virtual bool FindDataValue(const NameType& name, DataType& val) const = 0;
+    virtual bool FindValue(const NameType& name, DataType& val) const = 0;
 
     //! Valk along the stored values
     virtual void Process(Visitor& visitor) const = 0;
@@ -137,6 +133,17 @@ namespace Parameters
   };
 
   Container::Ptr CreatePropertyTrackedContainer(Container::Ptr delegate, const PropertyChangedCallback& callback);
+
+
+  template<class T>
+  void CopyExistingValue(const Accessor& src, Visitor& dst, const NameType& name)
+  {
+    T val = T();
+    if (src.FindValue(name, val))
+    {
+      dst.SetValue(name, val);
+    }
+  }
 }
 
 #endif //__PARAMETERS_TYPES_H_DEFINED__

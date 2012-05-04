@@ -227,14 +227,14 @@ namespace
     int_t GetDevice() const
     {
       Parameters::IntType device = Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT;
-      Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Win32::DEVICE, device);
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Win32::DEVICE, device);
       return static_cast<int_t>(device);
     }
 
     std::size_t GetBuffers() const
     {
       Parameters::IntType buffers = Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT;
-      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers) &&
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers) &&
           !in_range<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,

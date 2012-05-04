@@ -83,7 +83,7 @@ namespace
     {
     }
 
-    virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
+    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
     {
       if (Filter && !Filter(name))
       {
@@ -93,7 +93,7 @@ namespace
       SaveProperty(name, val);
     }
 
-    virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
       if (Filter && !Filter(name))
       {
@@ -103,7 +103,7 @@ namespace
       SaveProperty(name, val);
     }
 
-    virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
     {
       if (Filter && !Filter(name))
       {
@@ -175,11 +175,11 @@ namespace
       params.Process(saver);
     }
   private:
-    virtual void SetIntValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
+    virtual void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
     {
     }
 
-    virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
       const String value = Parameters::ConvertToString(val);
       const QString valStr = ConvertString(value);
@@ -200,14 +200,14 @@ namespace
       }
     }
 
-    virtual void SetDataValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/)
+    virtual void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/)
     {
     }
   private:
     void SaveDuration(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
     {
       Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      props.FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
+      props.FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
       const uint64_t msecDuration = info.FramesCount() * frameDuration / 1000;
       Log::Debug(THIS_MODULE, "  saving item attribute Duration=%1%", msecDuration);
       XML.writeTextElement(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
@@ -298,8 +298,8 @@ namespace
     {
       ExtendedPropertiesSaver saver(XML);
       props.Process(saver);
-      saver.SetIntValue(Playlist::ATTRIBUTE_VERSION, XSPF_VERSION);
-      saver.SetIntValue(Playlist::ATTRIBUTE_ITEMS, items);
+      saver.SetValue(Playlist::ATTRIBUTE_VERSION, XSPF_VERSION);
+      saver.SetValue(Playlist::ATTRIBUTE_ITEMS, items);
     }
 
     void WriteItems(const Playlist::IO::Container& container, Playlist::IO::ExportCallback& cb)

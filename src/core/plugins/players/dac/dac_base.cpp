@@ -93,7 +93,7 @@ namespace
     virtual bool Interpolate() const
     {
       Parameters::IntType intVal = 0;
-      Params->FindIntValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal);
+      Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal);
       return intVal != 0;
     }
   private:

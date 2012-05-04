@@ -33,7 +33,7 @@ namespace
   class SettingsContainer : public Container
   {
   public:
-    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    virtual bool FindValue(const NameType& name, IntType& val) const
     {
       const Value value(Storage, name);
       if (!value.IsValid())
@@ -54,7 +54,7 @@ namespace
       return false;
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const NameType& name, StringType& val) const
     {
       const Value value(Storage, name);
       if (!value.IsValid())
@@ -69,7 +69,7 @@ namespace
       return false;
     }
 
-    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    virtual bool FindValue(const NameType& name, DataType& val) const
     {
       const Value value(Storage, name);
       if (!value.IsValid())
@@ -91,38 +91,26 @@ namespace
       Require(!"Should not be called");
     }
 
-    virtual void SetIntValue(const NameType& name, IntType val)
+    virtual void SetValue(const NameType& name, IntType val)
     {
       Value value(Storage, name);
       value.Set(QVariant(qlonglong(val)));
     }
 
-    virtual void SetStringValue(const NameType& name, const StringType& val)
+    virtual void SetValue(const NameType& name, const StringType& val)
     {
       Value value(Storage, name);
       value.Set(QVariant(ToQString(ConvertToString(val))));
     }
 
-    virtual void SetDataValue(const NameType& name, const DataType& val)
+    virtual void SetValue(const NameType& name, const DataType& val)
     {
       Value value(Storage, name);
       const QByteArray arr(val.empty() ? QByteArray() : QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size()));
       value.Set(QVariant(arr));
     }
 
-    virtual void RemoveIntValue(const NameType& name)
-    {
-      Value val(Storage, name);
-      val.Remove();
-    }
-
-    virtual void RemoveStringValue(const NameType& name)
-    {
-      Value val(Storage, name);
-      val.Remove();
-    }
-
-    virtual void RemoveDataValue(const NameType& name)
+    virtual void RemoveValue(const NameType& name)
     {
       Value val(Storage, name);
       val.Remove();
@@ -216,55 +204,55 @@ namespace
     {
     }
 
-    virtual bool FindIntValue(const NameType& name, IntType& val) const
+    virtual bool FindValue(const NameType& name, IntType& val) const
     {
-      if (Temporary->FindIntValue(name, val))
+      if (Temporary->FindValue(name, val))
       {
         return true;
       }
-      else if (RemovedInts.count(name))
+      else if (Removed.count(name))
       {
         return false;
       }
-      else if (Persistent->FindIntValue(name, val))
+      else if (Persistent->FindValue(name, val))
       {
-        Temporary->SetIntValue(name, val);
+        Temporary->SetValue(name, val);
         return true;
       }
       return false;
     }
 
-    virtual bool FindStringValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const NameType& name, StringType& val) const
     {
-      if (Temporary->FindStringValue(name, val))
+      if (Temporary->FindValue(name, val))
       {
         return true;
       }
-      else if (RemovedStrings.count(name))
+      else if (Removed.count(name))
       {
         return false;
       }
-      else if (Persistent->FindStringValue(name, val))
+      else if (Persistent->FindValue(name, val))
       {
-        Temporary->SetStringValue(name, val);
+        Temporary->SetValue(name, val);
         return true;
       }
       return false;
     }
 
-    virtual bool FindDataValue(const NameType& name, DataType& val) const
+    virtual bool FindValue(const NameType& name, DataType& val) const
     {
-      if (Temporary->FindDataValue(name, val))
+      if (Temporary->FindValue(name, val))
       {
         return true;
       }
-      else if (RemovedDatas.count(name))
+      else if (Removed.count(name))
       {
         return false;
       }
-      else if (Persistent->FindDataValue(name, val))
+      else if (Persistent->FindValue(name, val))
       {
-        Temporary->SetDataValue(name, val);
+        Temporary->SetValue(name, val);
         return true;
       }
       return false;
@@ -275,51 +263,37 @@ namespace
       Persistent->Process(visitor);
     }
 
-    virtual void SetIntValue(const NameType& name, IntType val)
+    virtual void SetValue(const NameType& name, IntType val)
     {
-      RemovedInts.erase(name);
-      Temporary->SetIntValue(name, val);
-      Persistent->SetIntValue(name, val);
+      Removed.erase(name);
+      Temporary->SetValue(name, val);
+      Persistent->SetValue(name, val);
     }
 
-    virtual void SetStringValue(const NameType& name, const StringType& val)
+    virtual void SetValue(const NameType& name, const StringType& val)
     {
-      RemovedStrings.erase(name);
-      Temporary->SetStringValue(name, val);
-      Persistent->SetStringValue(name, val);
+      Removed.erase(name);
+      Temporary->SetValue(name, val);
+      Persistent->SetValue(name, val);
     }
 
-    virtual void SetDataValue(const NameType& name, const DataType& val)
+    virtual void SetValue(const NameType& name, const DataType& val)
     {
-      RemovedDatas.erase(name);
-      Temporary->SetDataValue(name, val);
-      Persistent->SetDataValue(name, val);
+      Removed.erase(name);
+      Temporary->SetValue(name, val);
+      Persistent->SetValue(name, val);
     }
 
-    virtual void RemoveIntValue(const NameType& name)
+    virtual void RemoveValue(const NameType& name)
     {
-      RemovedInts.insert(name);
-      Temporary->RemoveIntValue(name);
-      Persistent->RemoveIntValue(name);
-    }
-
-    virtual void RemoveStringValue(const NameType& name)
-    {
-      RemovedStrings.insert(name);
-      Temporary->RemoveStringValue(name);
-      Persistent->RemoveStringValue(name);
-    }
-
-    virtual void RemoveDataValue(const NameType& name)
-    {
-      RemovedDatas.insert(name);
-      Temporary->RemoveDataValue(name);
-      Persistent->RemoveDataValue(name);
+      Removed.insert(name);
+      Temporary->RemoveValue(name);
+      Persistent->RemoveValue(name);
     }
   private:
     const Container::Ptr Persistent;
     const Container::Ptr Temporary;
-    std::set<NameType> RemovedInts, RemovedStrings, RemovedDatas;
+    std::set<NameType> Removed;
   };
 
   class GlobalOptionsStorage : public GlobalOptions

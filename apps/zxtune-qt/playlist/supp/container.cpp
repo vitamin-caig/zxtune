@@ -33,7 +33,7 @@ namespace
   QString GetPlaylistName(const Parameters::Accessor& params)
   {
     Parameters::StringType name(Text::DEFAULT_PLAYLIST_NAME);
-    params.FindStringValue(Playlist::ATTRIBUTE_NAME, name);
+    params.FindValue(Playlist::ATTRIBUTE_NAME, name);
     return ToQString(name);
   }
 
@@ -44,8 +44,8 @@ namespace
       : Properties(Parameters::Container::Create())
       , Storage(storage)
     {
-      Properties->SetStringValue(Playlist::ATTRIBUTE_NAME, name);
-      Properties->SetStringValue(Playlist::ATTRIBUTE_CREATOR, GetProgramVersionString());
+      Properties->SetValue(Playlist::ATTRIBUTE_NAME, name);
+      Properties->SetValue(Playlist::ATTRIBUTE_CREATOR, GetProgramVersionString());
     }
 
     virtual Parameters::Accessor::Ptr GetProperties() const

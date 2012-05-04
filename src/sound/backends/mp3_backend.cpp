@@ -191,7 +191,7 @@ namespace
     Mode GetMode() const
     {
       Parameters::StringType mode = Parameters::ZXTune::Sound::Backends::Mp3::MODE_DEFAULT;
-      Params->FindStringValue(Parameters::ZXTune::Sound::Backends::Mp3::MODE, mode);
+      Params->FindValue(Parameters::ZXTune::Sound::Backends::Mp3::MODE, mode);
       if (mode == Parameters::ZXTune::Sound::Backends::Mp3::MODE_CBR)
       {
         return MODE_CBR;
@@ -214,7 +214,7 @@ namespace
     uint_t GetBitrate() const
     {
       Parameters::IntType bitrate = Parameters::ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT;
-      if (Params->FindIntValue(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE, bitrate) &&
+      if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE, bitrate) &&
         !in_range<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
@@ -226,7 +226,7 @@ namespace
     uint_t GetQuality() const
     {
       Parameters::IntType quality = Parameters::ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT;
-      if (Params->FindIntValue(Parameters::ZXTune::Sound::Backends::Mp3::QUALITY, quality) &&
+      if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Mp3::QUALITY, quality) &&
         !in_range<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,

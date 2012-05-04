@@ -148,7 +148,7 @@ namespace
     QString RestoreDir() const
     {
       String dir;
-      if (Params->FindStringValue(CURRENT_DIR_PARAMETER, dir))
+      if (Params->FindValue(CURRENT_DIR_PARAMETER, dir))
       {
         return ToQString(dir);
       }
@@ -157,7 +157,7 @@ namespace
 
     void StoreDir(const QString& dir)
     {
-      Params->SetStringValue(CURRENT_DIR_PARAMETER, FromQString(dir));
+      Params->SetValue(CURRENT_DIR_PARAMETER, FromQString(dir));
     }
   private:
     const Parameters::Container::Ptr Params;

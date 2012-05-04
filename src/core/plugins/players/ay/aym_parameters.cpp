@@ -115,21 +115,21 @@ namespace
     virtual bool IsYM() const
     {
       Parameters::IntType intVal = 0;
-      Params->FindIntValue(Parameters::ZXTune::Core::AYM::TYPE, intVal);
+      Params->FindValue(Parameters::ZXTune::Core::AYM::TYPE, intVal);
       return intVal != 0;
     }
 
     virtual bool Interpolate() const
     {
       Parameters::IntType intVal = 0;
-      Params->FindIntValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intVal);
+      Params->FindValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intVal);
       return intVal != 0;
     }
 
     virtual uint_t DutyCycleValue() const
     {
       Parameters::IntType intVal = 50;
-      const bool found = Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intVal);
+      const bool found = Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intVal);
       //duty cycle in percents should be in range 1..99 inc
       if (found && (intVal < 1 || intVal > 99))
       {
@@ -142,12 +142,12 @@ namespace
     virtual uint_t DutyCycleMask() const
     {
       Parameters::IntType intVal = 0;
-      if (Params->FindIntValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal))
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal))
       {
         return static_cast<uint_t>(intVal);
       }
       Parameters::StringType strVal;
-      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strVal))
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, strVal))
       {
         return String2Mask(strVal);
       }
@@ -157,7 +157,7 @@ namespace
     virtual Devices::AYM::LayoutType Layout() const
     {
       Parameters::IntType intVal = Devices::AYM::LAYOUT_ABC;
-      if (Params->FindIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
       {
         if (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||
             intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST))
@@ -167,7 +167,7 @@ namespace
         }
       }
       Parameters::StringType strVal;
-      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
       {
         return String2Layout(strVal);
       }
@@ -213,7 +213,7 @@ namespace
     void UpdateTable() const
     {
       Parameters::StringType newName;
-      if (Params->FindStringValue(Parameters::ZXTune::Core::AYM::TABLE, newName))
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newName))
       {
         if (newName != TableName)
         {
@@ -222,7 +222,7 @@ namespace
         return;
       }
       Parameters::DataType newData;
-      if (Params->FindDataValue(Parameters::ZXTune::Core::AYM::TABLE, newData))
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newData))
       {
         // as dump
         if (newData.size() != Table.size() * sizeof(Table.front()))

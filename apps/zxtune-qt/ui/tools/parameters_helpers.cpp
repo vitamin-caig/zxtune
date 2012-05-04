@@ -39,7 +39,7 @@ namespace
       , OneValue(oneValue)
     {
       Parameters::IntType val = defValue ? oneValue : 0;
-      Container.FindIntValue(Name, val);
+      Container.FindValue(Name, val);
       parent.setChecked(val != 0);
       this->connect(&parent, SIGNAL(toggled(bool)), SLOT(SetValue(bool)));
     }
@@ -48,7 +48,7 @@ namespace
     {
       const Parameters::IntType val = value ? OneValue : 0;
       Log::Debug("Parameters::Helper", "%1%=%2%", Name, val);
-      Container.SetIntValue(Name, val);
+      Container.SetValue(Name, val);
     }
   private:
     Parameters::Container& Container;
@@ -74,14 +74,14 @@ namespace
       if (value)
       {
         Log::Debug("Parameters::Helper", "%1%=%2%", Name, Value);
-        Container.SetStringValue(Name, Value);
+        Container.SetValue(Name, Value);
       }
     }
   private:
     Parameters::StringType GetValue() const
     {
       Parameters::StringType value;
-      Container.FindStringValue(Name, value);
+      Container.FindValue(Name, value);
       return value;
     }
   private:
@@ -117,13 +117,13 @@ namespace
     virtual void SetValue(int value)
     {
       Log::Debug("Parameters::Helper", "%1%=%2%", Name, value);
-      Container.SetIntValue(Name, value);
+      Container.SetValue(Name, value);
     }
   private:
     int GetValue() const
     {
       Parameters::IntType value = DefValue;
-      Container.FindIntValue(Name, value);
+      Container.FindValue(Name, value);
       return value;
     }
   private:
@@ -141,7 +141,7 @@ namespace
       , Name(name)
     {
       Parameters::IntType value = defValue;
-      Container.FindIntValue(Name, value);
+      Container.FindValue(Name, value);
       parent.setText(QString::number(value));
       this->connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(SetValue(const QString&)));
     }
@@ -151,7 +151,7 @@ namespace
     {
       const Parameters::IntType val = value.toLongLong();
       Log::Debug("Parameters::Helper", "%1%=%2%", Name, val);
-      Container.SetIntValue(Name, val);
+      Container.SetValue(Name, val);
     }
   private:
     Parameters::Container& Container;

@@ -142,8 +142,7 @@ namespace
 
     String GetFilenameTemplate() const
     {
-      Parameters::StringType nameTemplate = GetProperty(&Parameters::Accessor::FindStringValue,
-        Parameters::ZXTune::Sound::Backends::File::FILENAME_PARAMETER);
+      Parameters::StringType nameTemplate = GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::FILENAME_PARAMETER);
       if (nameTemplate.empty())
       {
         // Filename parameter is required
@@ -161,25 +160,23 @@ namespace
 
     bool CheckIfRewrite() const
     {
-      const Parameters::IntType intParam = GetProperty(&Parameters::Accessor::FindIntValue,
-        Parameters::ZXTune::Sound::Backends::File::OVERWRITE_PARAMETER);
+      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::OVERWRITE_PARAMETER);
       return intParam != 0;
     }
 
     uint_t GetBuffersCount() const
     {
-      const Parameters::IntType intParam = GetProperty(&Parameters::Accessor::FindIntValue,
-        Parameters::ZXTune::Sound::Backends::File::BUFFERS_PARAMETER);
+      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS_PARAMETER);
       return static_cast<uint_t>(intParam);
     }
   private:
     template<class T>
-    T GetProperty(bool (Parameters::Accessor::*getFunc)(const Parameters::NameType&, T&) const, const Parameters::NameType& name) const
+    T GetProperty(const Parameters::NameType& name) const
     {
       T result = T();
-      if (!((*Params).*getFunc)(GetBackendPropertyName(name), result))
+      if (!Params->FindValue(GetBackendPropertyName(name), result))
       {
-        ((*Params).*getFunc)(GetComonPropertyName(name), result);
+        Params->FindValue(GetComonPropertyName(name), result);
       }
       return result;
     }
@@ -257,15 +254,15 @@ namespace
     void SetProperties(FileStream& stream) const
     {
       Parameters::StringType str;
-      if (Properties->FindStringValue(Module::ATTR_TITLE, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_TITLE, str) && !str.empty())
       {
         stream.SetTitle(str);
       }
-      if (Properties->FindStringValue(Module::ATTR_AUTHOR, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_AUTHOR, str) && !str.empty())
       {
         stream.SetAuthor(str);
       }
-      if (Properties->FindStringValue(Module::ATTR_COMMENT, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_COMMENT, str) && !str.empty())
       {
         stream.SetComment(str);
       }

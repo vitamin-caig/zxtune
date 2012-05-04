@@ -73,27 +73,27 @@ namespace
     {
     }
 
-    virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
+    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
     {
       if (Pass(name))
       {
-        Delegate.SetIntValue(name, val);
+        Delegate.SetValue(name, val);
       }
     }
 
-    virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
       if (Pass(name))
       {
-        Delegate.SetStringValue(name, val);
+        Delegate.SetValue(name, val);
       }
     }
 
-    virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
     {
       if (Pass(name))
       {
-        Delegate.SetDataValue(name, val);
+        Delegate.SetValue(name, val);
       }
     }
   private:
@@ -117,7 +117,7 @@ namespace
       , Properties(Parameters::Container::Create())
       , Items(boost::make_shared<Playlist::IO::ContainerItems>())
     {
-      Properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(autoName));
+      Properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(autoName));
     }
 
     bool Parse()
@@ -160,7 +160,7 @@ namespace
           Log::Debug(THIS_MODULE, " Parsing playlist extension");
           PropertiesFilter filter(*Properties, PLAYLIST_ENABLED_PROPERTIES, ArrayEnd(PLAYLIST_ENABLED_PROPERTIES), true);
           ParseExtension(filter);
-          Properties->FindIntValue(Playlist::ATTRIBUTE_VERSION, Version);
+          Properties->FindValue(Playlist::ATTRIBUTE_VERSION, Version);
         }
         else if (tagName == XSPF::TRACKLIST_TAG)
         {
@@ -244,19 +244,19 @@ namespace
       if (attr == XSPF::ITEM_CREATOR_TAG)
       {
         const String author = ConvertString(XML.readElementText());
-        props.SetStringValue(ZXTune::Module::ATTR_AUTHOR, author);
+        props.SetValue(ZXTune::Module::ATTR_AUTHOR, author);
         Log::Debug(THIS_MODULE, "  parsed author %1%", author);
      }
       else if (attr == XSPF::ITEM_TITLE_TAG)
       {
         const String title = ConvertString(XML.readElementText());
-        props.SetStringValue(ZXTune::Module::ATTR_TITLE, title);
+        props.SetValue(ZXTune::Module::ATTR_TITLE, title);
         Log::Debug(THIS_MODULE, "  parsed title %1%", title);
       }
       else if (attr == XSPF::ITEM_ANNOTATION_TAG)
       {
         const String annotation = ConvertString(XML.readElementText());
-        props.SetStringValue(ZXTune::Module::ATTR_COMMENT, annotation);
+        props.SetValue(ZXTune::Module::ATTR_COMMENT, annotation);
         Log::Debug(THIS_MODULE, "  parsed comment %1%", annotation);
       }
       else if (attr == XSPF::EXTENSION_TAG)

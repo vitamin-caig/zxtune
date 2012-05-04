@@ -80,14 +80,14 @@ namespace
     virtual String Title() const
     {
       String title;
-      Properties->FindStringValue(Module::ATTR_TITLE, title);
+      Properties->FindValue(Module::ATTR_TITLE, title);
       return title;
     }
 
     virtual String Author() const
     {
       String author;
-      Properties->FindStringValue(Module::ATTR_AUTHOR, author);
+      Properties->FindValue(Module::ATTR_AUTHOR, author);
       return author;
     }
 

@@ -59,7 +59,7 @@ namespace
     Parameters::IntType FoundProperty(const Parameters::NameType& name, Parameters::IntType defVal) const
     {
       Parameters::IntType ret = defVal;
-      Params->FindIntValue(name, ret);
+      Params->FindValue(name, ret);
       return ret;
     }
   private:

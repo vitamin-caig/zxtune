@@ -95,7 +95,7 @@ namespace
     uint_t GetBuffersCount() const
     {
       Parameters::IntType val = Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT;
-      if (Accessor.FindIntValue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS, val) &&
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,

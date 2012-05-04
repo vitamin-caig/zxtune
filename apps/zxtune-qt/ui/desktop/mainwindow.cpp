@@ -255,18 +255,18 @@ namespace
       {
         const uint8_t* const rawData = safe_ptr_cast<const uint8_t*>(blob.data());
         const Parameters::DataType data(rawData, rawData + size);
-        Options->SetDataValue(name, data);
+        Options->SetValue(name, data);
       }
       else
       {
-        Options->RemoveDataValue(name);
+        Options->RemoveValue(name);
       }
     }
 
     QByteArray LoadBlob(const Parameters::NameType& name) const
     {
       Dump val;
-      if (Options->FindDataValue(name, val) && !val.empty())
+      if (Options->FindValue(name, val) && !val.empty())
       {
         return QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size());
       }

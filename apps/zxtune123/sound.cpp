@@ -184,7 +184,7 @@ namespace
     {
       if (looped)
       {
-        Params->SetIntValue(Parameters::ZXTune::Sound::LOOPED, true);
+        Params->SetValue(Parameters::ZXTune::Sound::LOOPED, true);
       }
     }
 
@@ -198,7 +198,7 @@ namespace
       if (!filter.empty())
       {
         Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
-        Params->FindIntValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
+        Params->FindValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
         Filter = CreateFilter(static_cast<uint_t>(freq), filter);
       }
     }
@@ -226,7 +226,7 @@ namespace
     uint_t GetFrameDuration() const
     {
       Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      Params->FindIntValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
+      Params->FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
       return static_cast<uint_t>(frameDuration);
     }
   private:

@@ -957,7 +957,7 @@ namespace ZXTune
         //process version info
         const uint_t version = ExtractVersion(props);
         String freqTable = TABLE_PROTRACKER3_3;
-        props.FindStringValue(Parameters::ZXTune::Core::AYM::TABLE, freqTable);
+        props.FindValue(Parameters::ZXTune::Core::AYM::TABLE, freqTable);
         {
           const uint_t resVersion = 30 + (in_range<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
           *iter = MODULE_VERSION + MODULE_DELIMITER +
@@ -965,12 +965,12 @@ namespace ZXTune
         }
         //process title info
         String strVal;
-        if (props.FindStringValue(Module::ATTR_TITLE, strVal))
+        if (props.FindValue(Module::ATTR_TITLE, strVal))
         {
           *iter = MODULE_TITLE + MODULE_DELIMITER + ToStdString(strVal);
         }
         //process author info
-        if (props.FindStringValue(Module::ATTR_AUTHOR, strVal))
+        if (props.FindValue(Module::ATTR_AUTHOR, strVal))
         {
           *iter = MODULE_AUTHOR + MODULE_DELIMITER + ToStdString(strVal);
         }

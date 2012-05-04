@@ -35,12 +35,12 @@ namespace
       ThrowIfError(IO::CombineUri(Path, Subpath, Uri));
     }
 
-    virtual bool FindIntValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
+    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
     {
       return false;
     }
 
-    virtual bool FindStringValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
       if (name == Module::ATTR_SUBPATH)
       {
@@ -65,17 +65,17 @@ namespace
       return false;
     }
 
-    virtual bool FindDataValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
+    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
     {
       return false;
     }
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
-      visitor.SetStringValue(Module::ATTR_SUBPATH, Subpath);
-      visitor.SetStringValue(Module::ATTR_FILENAME, Filename);
-      visitor.SetStringValue(Module::ATTR_PATH, Path);
-      visitor.SetStringValue(Module::ATTR_FULLPATH, Uri);
+      visitor.SetValue(Module::ATTR_SUBPATH, Subpath);
+      visitor.SetValue(Module::ATTR_FILENAME, Filename);
+      visitor.SetValue(Module::ATTR_PATH, Path);
+      visitor.SetValue(Module::ATTR_FULLPATH, Uri);
     }
   private:
     const String Path;

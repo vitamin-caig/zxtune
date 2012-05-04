@@ -88,7 +88,7 @@ namespace
         using namespace Parameters;
         const Container::Ptr options = GetBackendSettings(type);
         const QString filename = TargetTemplate->GetFilenameTemplate();
-        options->SetStringValue(ZXTune::Sound::Backends::File::FILENAME, FromQString(filename));
+        options->SetValue(ZXTune::Sound::Backends::File::FILENAME, FromQString(filename));
         CopyExistingValue<IntType>(*Options, *options, ZXTune::Sound::Backends::File::BUFFERS);
         CopyExistingValue<IntType>(*Options, *options, ZXTune::Sound::Backends::File::OVERWRITE);
         return options;

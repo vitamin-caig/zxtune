@@ -77,64 +77,6 @@ namespace Parameters
   private slots:
     virtual void SetValue(const QString& value) = 0;
   };
-
-  //TODO: move to common code
-
-  template<class T>
-  struct TypeTraits;
-
-  template<>
-  struct TypeTraits<IntType>
-  {
-    static bool Find(const Accessor& src, const NameType& name, IntType& val)
-    {
-      return src.FindIntValue(name, val);
-    }
-
-    static void Set(const NameType& name, const IntType& val, Visitor& dst)
-    {
-      dst.SetIntValue(name, val);
-    }
-  };
-
-  template<>
-  struct TypeTraits<StringType>
-  {
-    static bool Find(const Accessor& src, const NameType& name, StringType& val)
-    {
-      return src.FindStringValue(name, val);
-    }
-
-    static void Set(const NameType& name, const StringType& val, Visitor& dst)
-    {
-      dst.SetStringValue(name, val);
-    }
-  };
-
-  template<>
-  struct TypeTraits<DataType>
-  {
-    static bool Find(const Accessor& src, const NameType& name, DataType& val)
-    {
-      return src.FindDataValue(name, val);
-    }
-
-    static void Set(const NameType& name, const DataType& val, Visitor& dst)
-    {
-      dst.SetDataValue(name, val);
-    }
-  };
-
-  template<class T>
-  void CopyExistingValue(const Accessor& src, Visitor& dst, const NameType& name)
-  {
-    typedef TypeTraits<T> Traits;
-    T val;
-    if (Traits::Find(src, name, val))
-    {
-      Traits::Set(name, val, dst);
-    }
-  }
 }
 
 #endif //ZXTUNE_QT_PARAMETERS_HELPERS_H_DEFINED

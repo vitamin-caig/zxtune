@@ -237,16 +237,16 @@ namespace
       return Offset;
     }
 
-    virtual void SetIntValue(const Parameters::NameType& name, Parameters::IntType val)
+    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
     {
       Log::Debug(THIS_MODULE, "  property %1%=%2%", name, val);
       if (name == AYL::CHIP_FREQUENCY)
       {
-        Delegate.SetIntValue(Parameters::ZXTune::Sound::CLOCKRATE, val);
+        Delegate.SetValue(Parameters::ZXTune::Sound::CLOCKRATE, val);
       }
       else if (name == AYL::PLAYER_FREQUENCY)
       {
-        Delegate.SetIntValue(Parameters::ZXTune::Sound::FRAMEDURATION,
+        Delegate.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION,
           Version.DecodeFrameduration(val));
       }
       else if (name == AYL::FORMAT_SPECIFIC)
@@ -260,51 +260,51 @@ namespace
       //ignore "Loop", "Length", "Time"
     }
 
-    virtual void SetStringValue(const Parameters::NameType& name, const Parameters::StringType& val)
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
       Log::Debug(THIS_MODULE, "  property %1%='%2%'", name, val);
       if (name == AYL::CHIP_TYPE)
       {
-        Delegate.SetIntValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
+        Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
       }
       //ignore "Channels"
       else if (name == AYL::CHANNELS_ALLOCATION)
       {
-        Delegate.SetIntValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
+        Delegate.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
       }
       //ignore "Length", "Address", "Loop", "Time", "Original"
       else if (name == AYL::NAME)
       {
-        Delegate.SetStringValue(ZXTune::Module::ATTR_TITLE, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_TITLE, Version.DecodeString(val));
       }
       else if (name == AYL::AUTHOR)
       {
-        Delegate.SetStringValue(ZXTune::Module::ATTR_AUTHOR, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_AUTHOR, Version.DecodeString(val));
       }
       else if (name == AYL::PROGRAM || name == AYL::TRACKER)
       {
-        Delegate.SetStringValue(ZXTune::Module::ATTR_PROGRAM, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_PROGRAM, Version.DecodeString(val));
       }
       else if (name == AYL::COMPUTER)
       {
-        Delegate.SetStringValue(ZXTune::Module::ATTR_COMPUTER, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_COMPUTER, Version.DecodeString(val));
       }
       else if (name == AYL::DATE)
       {
-        Delegate.SetStringValue(ZXTune::Module::ATTR_DATE, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_DATE, Version.DecodeString(val));
       }
       else if (name == AYL::COMMENT)
       {
         //TODO: process escape sequence
-        Delegate.SetStringValue(ZXTune::Module::ATTR_COMMENT, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_COMMENT, Version.DecodeString(val));
       }
       //ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }
 
-    virtual void SetDataValue(const Parameters::NameType& name, const Parameters::DataType& val)
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
     {
       //try to process as string
-      Delegate.SetStringValue(name, Parameters::ConvertToString(val));
+      Delegate.SetValue(name, Parameters::ConvertToString(val));
     }
   private:
     static Parameters::IntType DecodeChipType(const String& value)
@@ -446,7 +446,7 @@ namespace Playlist
       const AYLContainer aylItems(lines);
       const ContainerItemsPtr items = CreateItems(basePath, version, aylItems);
       const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
-      properties->SetStringValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
+      properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
       return Playlist::IO::CreateContainer(provider, properties, items);
     }
   }

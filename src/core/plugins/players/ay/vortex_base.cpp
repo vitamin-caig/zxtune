@@ -517,7 +517,7 @@ namespace ZXTune
       uint_t ExtractVersion(const Parameters::Accessor& props)
       {
         Parameters::IntType version = 6;
-        if (props.FindIntValue(ATTR_VERSION, version))
+        if (props.FindValue(ATTR_VERSION, version))
         {
           version %= 10;
         }

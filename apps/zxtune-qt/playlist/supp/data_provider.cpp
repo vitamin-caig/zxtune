@@ -294,7 +294,7 @@ namespace
   String GetModuleType(const Parameters::Accessor& props)
   {
     Parameters::StringType typeStr;
-    if (props.FindStringValue(ZXTune::Module::ATTR_TYPE, typeStr))
+    if (props.FindValue(ZXTune::Module::ATTR_TYPE, typeStr))
     {
       return typeStr;
     }
@@ -305,7 +305,7 @@ namespace
   Parameters::IntType GetIntProperty(const Parameters::Accessor& props, const Parameters::NameType& propName)
   {
     Parameters::IntType val = 0;
-    if (props.FindIntValue(propName, val))
+    if (props.FindValue(propName, val))
     {
       return val;
     }
@@ -353,7 +353,7 @@ namespace
       String result = TitleTemplate->Instantiate(adapter);
       if (result == DummyTitle)
       {
-        if (!properties.FindStringValue(ZXTune::Module::ATTR_FULLPATH, result))
+        if (!properties.FindValue(ZXTune::Module::ATTR_FULLPATH, result))
         {
           result.clear();
         }
