@@ -27,14 +27,13 @@ namespace Parameters
         namespace Raw
         {
           //@{
-          //! @name Scanning step parameter
+          //! @name Perform double analysis of plain data containers
 
-          //! Default value
-          const IntType SCAN_STEP_DEFAULT = 1;
           //! Parameter name
-          const Char SCAN_STEP[] =
+          const Char PLAIN_DOUBLE_ANALYSIS[] =
           {
-            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','r','a','w','.','s','c','a','n','_','s','t','e','p','\0'
+            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','r','a','w','.',
+            'p','l','a','i','n','_','d','o','u','b','l','e','_','a','n','a','l','y','s','i','s','\0'
           };
           //@}
 

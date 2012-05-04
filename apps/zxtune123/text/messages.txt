@@ -233,8 +233,8 @@
 < INFO_OPTIONS_CORE_PLUGINS_TITLE
 > " Core plugins options:"
 
-< INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP
-> "scanning step in bytes"
+< INFO_OPTIONS_CORE_PLUGINS_RAW_PLAIN_DOUBLE_ANALYSIS
+> "analyze " INFO_CAP_PLAIN " plugins twice"
 
 < INFO_OPTIONS_CORE_PLUGINS_RAW_MIN_SIZE
 > "minimum data size to use raw scaner"

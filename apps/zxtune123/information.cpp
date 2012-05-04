@@ -305,9 +305,9 @@ namespace
                  Parameters::ZXTune::Core::Z80::CLOCKRATE_DEFAULT),
       //Core plugins options
       OptionDesc(Text::INFO_OPTIONS_CORE_PLUGINS_TITLE, EMPTY,0),
-      OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP,
-                 Text::INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP,
-                 Parameters::ZXTune::Core::Plugins::Raw::SCAN_STEP_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS,
+                 Text::INFO_OPTIONS_CORE_PLUGINS_RAW_PLAIN_DOUBLE_ANALYSIS,
+                 EMPTY),
       OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE,
                  Text::INFO_OPTIONS_CORE_PLUGINS_RAW_MIN_SIZE,
                  Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT),

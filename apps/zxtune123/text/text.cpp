@@ -417,8 +417,9 @@ extern const Char INFO_OPTIONS_CORE_PLUGINS_RAW_MIN_SIZE[] = {
   'm','i','n','i','m','u','m',' ','d','a','t','a',' ','s','i','z','e',' ','t','o',' ','u','s','e',' ','r','a',
   'w',' ','s','c','a','n','e','r',0
 };
-extern const Char INFO_OPTIONS_CORE_PLUGINS_RAW_SCAN_STEP[] = {
-  's','c','a','n','n','i','n','g',' ','s','t','e','p',' ','i','n',' ','b','y','t','e','s',0
+extern const Char INFO_OPTIONS_CORE_PLUGINS_RAW_PLAIN_DOUBLE_ANALYSIS[] = {
+  'a','n','a','l','y','z','e',' ','s','t','o','r','_','p','l','a','i','n',' ','p','l','u','g','i','n','s',' ',
+  't','w','i','c','e',0
 };
 extern const Char INFO_OPTIONS_CORE_PLUGINS_TITLE[] = {
   ' ','C','o','r','e',' ','p','l','u','g','i','n','s',' ','o','p','t','i','o','n','s',':',0
