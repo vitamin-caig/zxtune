@@ -55,14 +55,12 @@ include $(path_step)/make/package.mak
 
 install_linux:
 	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
-	install -m644 -D ../zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
 	install -m644 -D ../changelog.txt $(DESTDIR)/usr/share/zxtune/changelog.txt
 	install -m644 -D dist/linux/zxTune.desktop $(DESTDIR)/usr/share/applications/zxTune.desktop
 	install -m644 -D $(theme_resources)/zxtune.png $(DESTDIR)/usr/share/icons/zxtune.png
 
 install_windows install_mingw: install_samples install_samples_playlist
 	$(call copyfile_cmd,$(target),$(DESTDIR))
-	$(call copyfile_cmd,../zxtune.conf,$(DESTDIR))
 	$(call copyfile_cmd,../changelog.txt,$(DESTDIR))
 	$(call copyfile_cmd,$(path_step)/3rdparty/lame/$(arch)/libmp3lame.dll,$(DESTDIR)/mp3lame.dll)
 	$(call copyfile_cmd,$(path_step)/3rdparty/FLAC/$(arch)/FLAC.dll,$(DESTDIR))
@@ -78,7 +76,6 @@ install_dingux: dist/$(manual_file) install_samples install_samples_playlist $(p
 	install -m644 -D $(pkg_root)/dmenu.cfg $(DESTDIR)/$(dingux_dir)/dmenu.cfg
 	install -m644 -D $(pkg_root)/gmenu.cfg $(DESTDIR)/local/gmenu2x/sections/applications/$(binary_name)
 	install -m644 -D dist/dingux/fonts/fixed_70_50.qpf $(DESTDIR)/local/share/fonts/fixed_70_50.qpf
-	install -m644 -D ../zxtune.conf $(DESTDIR)/$(dingux_dir)/zxtune.conf
 	install -m644 -D ../changelog.txt $(DESTDIR)/changelog.txt
 	install -m644 -D $(theme_resources)/zxtune32.png $(DESTDIR)/$(dingux_dir)/zxtune32.png
 	install -m644 -D dist/dingux/readme.txt $(DESTDIR)/readme.txt
