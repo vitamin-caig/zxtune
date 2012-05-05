@@ -23,8 +23,6 @@ Author:
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 //qt includes
-#include <QtGui/QApplication>
-#include <QtGui/QClipboard>
 #include <QtGui/QMessageBox>
 
 namespace
@@ -232,11 +230,6 @@ namespace
         QMessageBox::Ok);
       msgBox.setDetailedText(ToQString(notification->Details()));
       msgBox.exec();
-    }
-
-    virtual void CopyDetailToClipboard(Playlist::TextNotification::Ptr notification)
-    {
-      QApplication::clipboard()->setText(ToQString(notification->Details()));
     }
   private:
     QString Name;

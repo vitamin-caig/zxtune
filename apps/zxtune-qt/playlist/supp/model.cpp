@@ -242,7 +242,7 @@ namespace
     const Playlist::Item::Comparer::Ptr Comparer;
   };
 
-  const char ITEMS_MIMETYPE[] = "application/playlist.indices";
+  const char INDICES_MIMETYPE[] = "application/playlist.indices";
 
   template<class OpType>
   class OperationTarget
@@ -276,6 +276,25 @@ namespace
   private:
     const typename OpType::Ptr Op;
     OperationTarget<OpType>& Delegate;
+  };
+
+  class PathsVisitor : public Playlist::Item::Visitor
+  {
+  public:
+    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    {
+      if (data->IsValid())
+      {
+        Paths.push_back(ToQString(data->GetFullPath()));
+      }
+    }
+
+    QStringList GetResult()
+    {
+      return Paths;
+    }
+  private:
+    QStringList Paths;
   };
 
   class ModelImpl : public Playlist::Model
@@ -331,6 +350,16 @@ namespace
     {
       const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
       return Container->GetItem(index);
+    }
+
+    virtual QStringList GetItemsPaths(const IndexSet& items) const
+    {
+      PathsVisitor visitor;
+      {
+        const boost::shared_lock<boost::shared_mutex> lock(SyncAccess);
+        Container->ForSpecifiedItems(items, visitor);
+      }
+      return visitor.GetResult();
     }
 
     virtual unsigned GetVersion() const
@@ -424,7 +453,7 @@ namespace
     virtual QStringList mimeTypes() const
     {
       QStringList types;
-      types << ITEMS_MIMETYPE;
+      types << INDICES_MIMETYPE;
       return types;
     }
 
@@ -432,17 +461,18 @@ namespace
     {
       QMimeData* const mimeData = new QMimeData();
       QByteArray encodedData;
-      QDataStream stream(&encodedData, QIODevice::WriteOnly);
-
-      foreach (const QModelIndex& index, indices)
       {
-        if (index.isValid())
+        QDataStream stream(&encodedData, QIODevice::WriteOnly);
+        foreach (const QModelIndex& index, indices)
         {
-          stream << index.row();
+          if (index.isValid())
+          {
+            stream << index.row();
+          }
         }
       }
 
-      mimeData->setData(ITEMS_MIMETYPE, encodedData);
+      mimeData->setData(INDICES_MIMETYPE, encodedData);
       return mimeData;
     }
 
@@ -453,23 +483,24 @@ namespace
         return true;
       }
 
-      if (!data->hasFormat(ITEMS_MIMETYPE))
+      if (!data->hasFormat(INDICES_MIMETYPE))
       {
         return false;
       }
-
       const unsigned beginRow = parent.isValid()
         ? parent.row()
         : rowCount(EMPTY_INDEX);
 
-      QByteArray encodedData = data->data(ITEMS_MIMETYPE);
-      QDataStream stream(&encodedData, QIODevice::ReadOnly);
+      const QByteArray& encodedData = data->data(INDICES_MIMETYPE);
       Playlist::Model::IndexSet movedItems;
-      while (!stream.atEnd())
       {
-        IndexType idx;
-        stream >> idx;
-        movedItems.insert(idx);
+        QDataStream stream(encodedData);
+        while (!stream.atEnd())
+        {
+          IndexType idx;
+          stream >> idx;
+          movedItems.insert(idx);
+        }
       }
       if (movedItems.empty())
       {

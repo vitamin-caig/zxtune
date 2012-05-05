@@ -511,56 +511,6 @@ namespace
     const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
-  class PathesCollector : public CollectingVisitor
-  {
-  public:
-    PathesCollector()
-      : Messages(Log::MessagesCollector::Create())
-    {
-    }
-
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
-    {
-      if (!data->IsValid())
-      {
-        return;
-      }
-      const String path = data->GetFullPath();
-      Messages->AddMessage(path);
-    }
-
-    virtual String Category() const
-    {
-      return FromStdString("Paths");
-    }
-
-    virtual String Text() const
-    {
-      return Strings::Format(Text::PATHS_COLLECTING_STATUS, Messages->CountMessages());
-    }
-
-    virtual String Details() const
-    {
-      return Messages->GetMessages('\n');
-    }
-  private:
-    const Log::MessagesCollector::Ptr Messages;
-  };
-
-  class CollectPathsOperation : public TextResultOperationBase
-  {
-  public:
-    CollectPathsOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
-      : TextResultOperationBase(parent, items)
-    {
-    }
-  protected:
-    virtual CollectingVisitor::Ptr CreateCollector() const
-    {
-      return boost::make_shared<PathesCollector>();
-    }
-  };
-
   // Statistic
   class StatisticCollector : public CollectingVisitor
   {
@@ -843,11 +793,6 @@ namespace Playlist
     TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
     {
       return boost::make_shared<ExportOperation>(boost::ref(parent), items, nameTemplate);
-    }
-
-    TextResultOperation::Ptr CreateCollectPathsOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
-    {
-      return boost::make_shared<CollectPathsOperation>(boost::ref(parent), items);
     }
   }
 }

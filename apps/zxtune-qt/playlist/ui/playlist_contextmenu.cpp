@@ -29,6 +29,8 @@ Author:
 #include <core/module_attrs.h>
 #include <sound/backends_parameters.h>
 //qt includes
+#include <QtGui/QApplication>
+#include <QtGui/QClipboard>
 #include <QtGui/QMenu>
 //text includes
 #include "text/text.h"
@@ -214,10 +216,8 @@ namespace
     virtual void CopyPathToClipboard() const
     {
       const Playlist::Model::Ptr model = Controller->GetModel();
-      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectPathsOperation(*model, SelectedItems);
-      Require(Controller->connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
-        SLOT(CopyDetailToClipboard(Playlist::TextNotification::Ptr))));
-      model->PerformOperation(op);
+      const QStringList paths =  model->GetItemsPaths(*SelectedItems);
+      QApplication::clipboard()->setText(paths.join(QString('\n')));
     }
 
     virtual void ShowAllStatistic() const

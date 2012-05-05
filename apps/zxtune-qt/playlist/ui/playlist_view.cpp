@@ -37,6 +37,8 @@ Author:
 #include <boost/make_shared.hpp>
 //qt includes
 #include <QtCore/QUrl>
+#include <QtGui/QApplication>
+#include <QtGui/QClipboard>
 #include <QtGui/QDragEnterEvent>
 #include <QtGui/QHeaderView>
 #include <QtGui/QInputDialog>
@@ -110,6 +112,8 @@ namespace
   private:
     const Parameters::Accessor::Ptr Params;
   };
+
+  const char ITEMS_MIMETYPE[] = "application/playlist.items";
 
   class ViewImpl : public Playlist::UI::View
   {
@@ -290,35 +294,28 @@ namespace
     }
 
     //qwidget virtuals
-    virtual void keyReleaseEvent(QKeyEvent* event)
+    virtual void keyPressEvent(QKeyEvent* event)
     {
-      const int curKey = event->key();
-      if (curKey == Qt::Key_Delete || curKey == Qt::Key_Backspace)
+      if (event->matches(QKeySequence::Delete))
       {
-        const Playlist::Model::Ptr model = Controller->GetModel();
-        if (const std::size_t itemsCount = model->CountItems())
-        {
-          const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
-          model->RemoveItems(*items);
-          if (1 == items->size())
-          {
-            View->SelectItems(items);
-            const Playlist::Model::IndexType itemToSelect = *items->begin();
-            //not last
-            if (itemToSelect != itemsCount - 1)
-            {
-              View->selectRow(itemToSelect);
-            }
-            else if (itemToSelect)
-            {
-              View->selectRow(itemToSelect - 1);
-            }
-          }
-        }
+        RemoveSelectedItems();
+      }
+      else if (event->matches(QKeySequence::Cut))
+      {
+        CopySelectedItems();
+        RemoveSelectedItems();
+      }
+      else if (event->matches(QKeySequence::Copy))
+      {
+        CopySelectedItems();
+      }
+      else if (event->matches(QKeySequence::Paste))
+      {
+        PasteItems();
       }
       else
       {
-        QWidget::keyReleaseEvent(event);
+        QWidget::keyPressEvent(event);
       }
     }
 
@@ -334,15 +331,9 @@ namespace
 
     virtual void dropEvent(QDropEvent* event)
     {
-      const QMimeData* const mimeData = event->mimeData();
-      if (mimeData && mimeData->hasUrls())
+      if (const QMimeData* mimeData = event->mimeData())
       {
-        const QList<QUrl>& urls = mimeData->urls();
-        QStringList files;
-        std::for_each(urls.begin(), urls.end(),
-          boost::bind(&QStringList::push_back, &files,
-            boost::bind(&QUrl::toLocalFile, _1)));
-        AddItems(files);
+        PasteData(*mimeData);
       }
     }
 
@@ -365,6 +356,80 @@ namespace
     void Update()
     {
       View->viewport()->update();
+    }
+
+    void RemoveSelectedItems()
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      if (const std::size_t itemsCount = model->CountItems())
+      {
+        const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
+        model->RemoveItems(*items);
+        if (1 == items->size())
+        {
+          View->SelectItems(items);
+          const Playlist::Model::IndexType itemToSelect = *items->begin();
+          //not last
+          if (itemToSelect != itemsCount - 1)
+          {
+            View->selectRow(itemToSelect);
+          }
+          else if (itemToSelect)
+          {
+            View->selectRow(itemToSelect - 1);
+          }
+        }
+      }
+    }
+
+    void CopySelectedItems()
+    {
+      const Playlist::Model::Ptr model = Controller->GetModel();
+      if (const std::size_t itemsCount = model->CountItems())
+      {
+        const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
+        const QStringList& paths = model->GetItemsPaths(*items);
+        QByteArray data;
+        {
+          QDataStream stream(&data, QIODevice::WriteOnly);
+          stream << paths;
+        }
+        std::auto_ptr<QMimeData> mimeData(new QMimeData());
+        mimeData->setData(ITEMS_MIMETYPE, data);
+        QApplication::clipboard()->setMimeData(mimeData.release());
+      }
+    }
+
+    void PasteItems()
+    {
+      QClipboard* const cb = QApplication::clipboard();
+      if (const QMimeData* mimeData = cb->mimeData())
+      {
+        PasteData(*mimeData);
+      }
+    }
+
+    void PasteData(const QMimeData& data)
+    {
+      if (data.hasUrls())
+      {
+        const QList<QUrl>& urls = data.urls();
+        QStringList files;
+        std::for_each(urls.begin(), urls.end(),
+          boost::bind(&QStringList::push_back, &files,
+            boost::bind(&QUrl::toLocalFile, _1)));
+        AddItems(files);
+      }
+      else if (data.hasFormat(ITEMS_MIMETYPE))
+      {
+        const QByteArray& encodedData = data.data(ITEMS_MIMETYPE);
+        QStringList files;
+        {
+          QDataStream stream(encodedData);
+          stream >> files;
+        }
+        AddItems(files);
+      }
     }
   private:
     const Playlist::Controller::Ptr Controller;

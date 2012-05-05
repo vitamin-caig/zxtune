@@ -68,8 +68,6 @@ namespace Playlist
     //convert
     TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
       const String& type, Parameters::Accessor::Ptr params);
-    //other
-    TextResultOperation::Ptr CreateCollectPathsOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
   }
 }
 

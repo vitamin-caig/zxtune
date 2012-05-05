@@ -90,6 +90,7 @@ namespace Playlist
     //accessors
     virtual unsigned CountItems() const = 0;
     virtual Item::Data::Ptr GetItem(IndexType index) const = 0;
+    virtual QStringList GetItemsPaths(const IndexSet& items) const = 0;
     virtual unsigned GetVersion() const = 0;
 
     //modifiers

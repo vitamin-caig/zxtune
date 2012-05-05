@@ -108,7 +108,6 @@ namespace Playlist
     virtual Item::Iterator::Ptr GetIterator() const = 0;
   public slots:
     virtual void ShowNotification(Playlist::TextNotification::Ptr notification) = 0;
-    virtual void CopyDetailToClipboard(Playlist::TextNotification::Ptr notification) = 0;
   signals:
     void Renamed(const QString& name);
   };
