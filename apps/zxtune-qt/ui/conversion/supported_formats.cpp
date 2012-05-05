@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "supported_formats.h"
 #include "supported_formats.ui.h"
+#include "parameters.h"
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
@@ -30,23 +31,6 @@ Author:
 #include <boost/bind.hpp>
 //qt includes
 #include <QtGui/QRadioButton>
-
-namespace Parameters
-{
-  namespace ZXTuneQT
-  {
-    namespace UI
-    {
-      namespace Export
-      {
-        const Char TYPE[] =
-        {
-          'z','x','t','u','n','e','-','q','t','.','u','i','.','e','x','p','o','r','t','.','t','y','p','e','\0'
-        };
-      }
-    }
-  }
-}
 
 namespace
 {

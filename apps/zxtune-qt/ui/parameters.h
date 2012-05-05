@@ -15,8 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_UI_PARAMETERS_H_DEFINED
 #define ZXTUNE_QT_UI_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//local includes
+#include "app_parameters.h"
 
 namespace Parameters
 {
@@ -24,23 +24,27 @@ namespace Parameters
   {
     namespace UI
     {
-      //@{
-      //! @name Geometry blob
+      const Char NAMESPACE_NAME[] = {'U','I','\0'};
+      const NameType PREFIX = NameType(Parameters::ZXTuneQT::PREFIX) + NAMESPACE_NAME + NAMESPACE_DELIMITER;
 
-      //! Parameter name
-      const Char GEOMETRY[] =
+      const Char PARAM_GEOMETRY[] =
       {
-        'z','x','t','u','n','e','-','q','t','.','u','i','.','g','e','o','m','e','t','r','y','\0'
+        'G','e','o','m','e','t','r','y','\0'
       };
-      //@}
 
-      //@{
-      //! @name Layout blob
-
-      //! Parameter name
-      const Char LAYOUT[] =
+      const Char PARAM_LAYOUT[] =
       {
-        'z','x','t','u','n','e','-','q','t','.','u','i','.','l','a','y','o','u','t','\0'
+        'L','a','y','o','u','t','\0'
+      };
+
+      const Char PARAM_INDEX[] =
+      {
+        'I','n','d','e','x','\0'
+      };
+
+      const Char PARAM_SIZE[] =
+      {
+        'S','i','z','e','\0'
       };
     }
   }

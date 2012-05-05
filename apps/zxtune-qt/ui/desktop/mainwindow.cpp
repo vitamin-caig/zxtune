@@ -16,7 +16,7 @@ Author:
 #include "mainwindow.ui.h"
 #include "ui/format.h"
 #include "ui/utils.h"
-#include "ui/parameters.h"
+#include "ui/state.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "ui/controls/playback_options.h"
@@ -25,7 +25,7 @@ Author:
 #include "ui/controls/volume_control.h"
 #include "ui/informational/aboutdialog.h"
 #include "ui/informational/componentsdialog.h"
-#include "ui/preferences/setup_preferences.h"
+#include "ui/preferences/preferencesdialog.h"
 #include "ui/tools/errordialog.h"
 #include "playlist/ui/container_view.h"
 #include "supp/playback_supp.h"
@@ -50,9 +50,6 @@ Author:
 
 namespace
 {
-  //ver0 - initial version
-  const int PARAMETERS_VERSION = 0;
-
   class MainWindowImpl : public MainWindow
                        , public Ui::MainWindow
   {
@@ -70,6 +67,7 @@ namespace
       , Playing(false)
     {
       setupUi(this);
+      State = UI::State::Create(*this);
       //fill menu
       menubar->addMenu(Controls->GetActionsMenu());
       menubar->addMenu(MultiPlaylist->GetActionsMenu());
@@ -87,7 +85,7 @@ namespace
         };
         //playlist is mandatory and cannot be hidden
         AddWidgetOnLayout(MultiPlaylist);
-        RestoreUI();
+        State->Load();
         std::for_each(ALL_WIDGETS, ArrayEnd(ALL_WIDGETS), boost::bind(&MainWindowImpl::AddWidgetLayoutControl, this, _1));
       }
 
@@ -193,7 +191,7 @@ namespace
     //QWidgets virtuals
     virtual void closeEvent(QCloseEvent* event)
     {
-      SaveUI();
+      State->Save();
       MultiPlaylist->Teardown();
       event->accept();
     }
@@ -236,44 +234,9 @@ namespace
       centralWidget()->layout()->addWidget(widget);
       return widget;
     }
-
-    void RestoreUI()
-    {
-      restoreGeometry(LoadBlob(Parameters::ZXTuneQT::UI::GEOMETRY));
-      restoreState(LoadBlob(Parameters::ZXTuneQT::UI::LAYOUT), PARAMETERS_VERSION);
-    }
-
-    void SaveUI()
-    {
-      SaveBlob(Parameters::ZXTuneQT::UI::GEOMETRY, saveGeometry());
-      SaveBlob(Parameters::ZXTuneQT::UI::LAYOUT, saveState(PARAMETERS_VERSION));
-    }
-
-    void SaveBlob(const Parameters::NameType& name, const QByteArray& blob)
-    {
-      if (const int size = blob.size())
-      {
-        const uint8_t* const rawData = safe_ptr_cast<const uint8_t*>(blob.data());
-        const Parameters::DataType data(rawData, rawData + size);
-        Options->SetValue(name, data);
-      }
-      else
-      {
-        Options->RemoveValue(name);
-      }
-    }
-
-    QByteArray LoadBlob(const Parameters::NameType& name) const
-    {
-      Dump val;
-      if (Options->FindValue(name, val) && !val.empty())
-      {
-        return QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size());
-      }
-      return QByteArray();
-    }
   private:
     const Parameters::Container::Ptr Options;
+    UI::State::Ptr State;
     PlaybackSupport* const Playback;
     PlaybackControls* const Controls;
     PlaybackOptions* const FastOptions;

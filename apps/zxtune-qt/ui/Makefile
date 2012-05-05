@@ -2,6 +2,7 @@ library_name := ui_common
 path_step := ../../..
 
 source_files = format \
+               state \
                tools/filedialog \
                tools/errordialog
 

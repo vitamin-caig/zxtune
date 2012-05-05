@@ -17,7 +17,7 @@ Author:
 #include "apps/base/app.h"
 #include "playlist_contextmenu.h"
 #include "playlist_view.h"
-#include "playlist/playlist_parameters.h"
+#include "playlist/parameters.h"
 #include "playlist/io/export.h"
 #include "playlist/supp/container.h"
 #include "playlist/supp/controller.h"

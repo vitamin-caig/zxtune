@@ -1,9 +1,7 @@
 library_name := ui_preferences
 path_step := ../../../..
 
-ui_files = aym mixer mixing plugins sound z80
-
-source_files = setup_preferences
+ui_files = aym mixer mixing plugins sound z80 preferencesdialog
 
 include_dirs = ../..
 

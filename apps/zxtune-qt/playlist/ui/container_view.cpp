@@ -16,7 +16,7 @@ Author:
 #include "container_view.ui.h"
 #include "playlist_view.h"
 #include "playlist/io/export.h"
-#include "playlist/playlist_parameters.h"
+#include "playlist/parameters.h"
 #include "playlist/supp/controller.h"
 #include "playlist/supp/container.h"
 #include "playlist/supp/scanner.h"

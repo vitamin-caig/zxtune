@@ -15,8 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_PARAMETERS_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//local includes
+#include "app_parameters.h"
 
 namespace Parameters
 {
@@ -24,41 +24,37 @@ namespace Parameters
   {
     namespace Playlist
     {
+      const Char NAMESPACE_NAME[] = {'P','l','a','y','l','i','s','t','\0'};
+
+      const NameType PREFIX = NameType(Parameters::ZXTuneQT::PREFIX) + NAMESPACE_NAME + NAMESPACE_DELIMITER;
+
       //@{
       //! @name Use deep scanning while processing input files
+      const Char DEEP_SCANNING_PARAMETER[] = {'D','e','e','p','S','c','a','n','n','i','n','g','\0'};
 
       //! Parameter name
-      const Char DEEP_SCANNING[] =
-      {
-        'z','x','t','u','n','e','-','q','t','.','p','l','a','y','l','i','s','t','.','d','e','e','p','_','s','c','a','n','n','i','n','g','\0'
-      };
-
+      const NameType DEEP_SCANNING = PREFIX + DEEP_SCANNING_PARAMETER;
       //! Default value
       const IntType DEEP_SCANNING_DEFAULT = 1;
       //@}
 
       //@{
       //! @name Loop playlist playback
+      const Char LOOPED_PARAMETER[] = {'L','o','o','p','\0'};
 
       //! Parameter name
-      const Char LOOPED[] =
-      {
-        'z','x','t','u','n','e','-','q','t','.','p','l','a','y','l','i','s','t','.','l','o','o','p','e','d','\0'
-      };
-
+      const NameType LOOPED = PREFIX + LOOPED_PARAMETER;
       //! Default value
       const IntType LOOPED_DEFAULT = 0;
       //@}
 
       //@{
       //! @name Randomize playlist playback
+      const Char RANDOMIZED_PARAMETER[] = {'R','a','n','d','o','m','\0'};
 
       //! Parameter name
-      const Char RANDOMIZED[] =
-      {
-        'z','x','t','u','n','e','-','q','t','.','p','l','a','y','l','i','s','t','.','r','a','n','d','o','m','i','z','e','d','\0'
-      };
-
+      const NameType RANDOMIZED = PREFIX + RANDOMIZED_PARAMETER;
+      //! Default value
       const IntType RANDOMIZED_DEFAULT = 0;
       //@}
     }

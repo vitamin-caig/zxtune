@@ -20,6 +20,7 @@ Author:
 #include "ogg_settings.h"
 #include "flac_settings.h"
 #include "supp/options.h"
+#include "ui/state.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
 //library includes
@@ -28,6 +29,7 @@ Author:
 #include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QThread>
+#include <QtGui/QCloseEvent>
 #include <QtGui/QPushButton>
 
 namespace
@@ -47,7 +49,7 @@ namespace
   }
 
   class SetupConversionDialogImpl : public UI::SetupConversionDialog
-                                  , private Ui::SetupConversion
+                                  , private Ui::ConversionDialog
   {
   public:
     explicit SetupConversionDialogImpl(QWidget& parent)
@@ -58,6 +60,7 @@ namespace
     {
       //setup self
       setupUi(this);
+      State = UI::State::Create(*this);
       toolBox->insertItem(TEMPLATE_PAGE, TargetTemplate, QString());
       toolBox->insertItem(FORMAT_PAGE, TargetFormat, QString());
 
@@ -78,6 +81,7 @@ namespace
       BooleanValue::Bind(*overwriteTarget, *Options, ZXTune::Sound::Backends::File::OVERWRITE, false);
 
       UpdateDescriptions();
+      State->Load();
     }
 
     virtual Parameters::Accessor::Ptr Execute(String& type)
@@ -104,6 +108,13 @@ namespace
       UpdateTargetDescription();
       UpdateFormatDescription();
       UpdateSettingsDescription();
+    }
+
+    //QWidgets virtuals
+    virtual void closeEvent(QCloseEvent* event)
+    {
+      State->Save();
+      event->accept();
     }
   private:
     void AddBackendSettingsWidget(UI::BackendSettingsWidget* factory(QWidget&))
@@ -159,6 +170,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
+    UI::State::Ptr State;
     UI::FilenameTemplateWidget* const TargetTemplate;
     UI::SupportedFormatsWidget* const TargetFormat;
     typedef std::map<String, UI::BackendSettingsWidget*> BackendIdToSettings;

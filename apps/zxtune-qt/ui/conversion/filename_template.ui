@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Build filename template</string>
+   <string>Setup filename template</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="margin">
@@ -33,7 +33,7 @@
        <number>2</number>
       </property>
       <item>
-       <widget class="QComboBox" name="directoryName">
+       <widget class="QComboBox" name="DirectoryName">
         <property name="editable">
          <bool>true</bool>
         </property>
@@ -62,13 +62,28 @@
        <number>2</number>
       </property>
       <item>
-       <widget class="QComboBox" name="fileTemplate">
+       <widget class="QComboBox" name="FileTemplate">
         <property name="editable">
          <bool>true</bool>
         </property>
         <property name="maxCount">
          <number>10</number>
         </property>
+        <item>
+         <property name="text">
+          <string>[Fullpath].[Type]</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>[Filename]_[Subpath].[Type]</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>[CRC].[Type]</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>
