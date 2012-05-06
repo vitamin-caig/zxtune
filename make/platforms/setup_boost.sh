@@ -1,7 +1,9 @@
 #!/bin/sh
 
 BUILD_DIR=${BUILD_DIR-`pwd`/../Build}
-BOOST_VERSION=${BOOST_VERSION-1.45.0}
+if [ "z${BOOST_VERSION}" = "z" ]; then
+  BOOST_VERSION=`cat ${BUILD_DIR}/boost-${Platform}-${Arch}`
+fi
 BOOST_DIR=${BUILD_DIR}/boost-${BOOST_VERSION}-${Platform}-${Arch}
 
 # Detect boost

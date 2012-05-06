@@ -7,8 +7,14 @@ arch=('i686' 'x86_64')
 url="http://zxtune.googlecode.com"
 license=('GPL3')
 depends=('boost-libs>=1.40' 'qt>=4.7.0')
-optdepends=('alsa-lib: for ALSA output support' 'sdl: for SDL output support')
-makedepends=('subversion' 'textator')
+optdepends=(
+'alsa-lib: for ALSA output support'
+'sdl: for SDL output support'
+'lame: for conversion to .mp3 format'
+'libvorbis: for conversion to .ogg format'
+'flac: for conversion to .flac format'
+)
+makedepends=('subversion' 'textator' 'zlib')
 provides=('zxtune')
 options=(!strip !docs !libtool !emptydirs !zipman makeflags)
 _svntrunk="http://zxtune.googlecode.com/svn/tags/ver3"

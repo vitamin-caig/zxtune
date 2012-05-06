@@ -1,7 +1,9 @@
 #!/bin/sh
 
 BUILD_DIR=${BUILD_DIR-`pwd`/../Build}
-QT_VERSION=${QT_VERSION-4.7.1}
+if [ "z${QT_VERSION}" = "z" ]; then
+  QT_VERSION=`cat ${BUILD_DIR}/qt-${Platform}-${Arch}`
+fi
 QT_DIR=${BUILD_DIR}/qt-${QT_VERSION}-${Platform}-${Arch}
 QT_BINARIES=${QT_DIR}/bin
 
