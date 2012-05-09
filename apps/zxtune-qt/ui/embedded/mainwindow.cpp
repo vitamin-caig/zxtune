@@ -21,14 +21,54 @@ Author:
 //common includes
 #include <contract.h>
 #include <logging.h>
+//std includes
+#include <fstream>
 //qt includes
 #include <QtGui/QApplication>
+#include <QtGui/QKeyEvent>
 #include <QtGui/QLabel>
 #include <QtGui/QStatusBar>
 #include <QtGui/QToolBar>
 
 namespace
 {
+  const char BACKLIGHT_CONTROL_DEVICE[] = "/proc/jz/lcd_backlight";
+
+  class BacklightControl
+  {
+  public:
+    BacklightControl()
+      : PrevLevel(100)
+      , Enabled(true)
+    {
+      if (!(std::ifstream(BACKLIGHT_CONTROL_DEVICE) >> PrevLevel))
+      {
+        PrevLevel = -1;
+      }
+    }
+    
+    void Enable()
+    {
+      if (!Enabled)
+      {
+        std::ofstream(BACKLIGHT_CONTROL_DEVICE) << PrevLevel << '\n';
+        Enabled = true;
+      }
+    }
+    
+    void Disable()
+    {
+      if (Enabled)
+      {
+        std::ofstream(BACKLIGHT_CONTROL_DEVICE) << "0\n";
+        Enabled = false;
+      }
+    }
+  private:
+    int PrevLevel;
+    bool Enabled;
+  };
+  
   class EmbeddedMainWindowImpl : public EmbeddedMainWindow
                                , private Ui::MainWindowEmbedded
   {
@@ -51,16 +91,44 @@ namespace
       AddWidgetWithLayoutControl(AddWidgetOnLayout(Playlist));
 
       //connect root actions
-      Playlist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
-      Playlist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
-      Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play()));
-      Playlist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
-      Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
-      Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
-      Playlist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
+      Require(Playlist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev())));
+      Require(Playlist->connect(Controls, SIGNAL(OnNext()), SLOT(Next())));
+      Require(Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play())));
+      Require(Playlist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play())));
+      Require(Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause())));
+      Require(Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop())));
+      Require(Playlist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish())));
       Require(Playback->connect(Playlist, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(SetItem(Playlist::Item::Data::Ptr))));
-      this->connect(actionAddFiles, SIGNAL(triggered()), Playlist, SLOT(AddFiles()));
-      this->connect(actionAddFolder, SIGNAL(triggered()), Playlist, SLOT(AddFolder()));
+      Require(connect(actionAddFiles, SIGNAL(triggered()), Playlist, SLOT(AddFiles())));
+      Require(connect(actionAddFolder, SIGNAL(triggered()), Playlist, SLOT(AddFolder())));
+      
+      Playlist->Setup(QStringList());
+    }
+
+    //qwidget virtuals
+    virtual void keyPressEvent(QKeyEvent* event)
+    {
+      if (event->key() == Qt::Key_Pause)
+      {
+        Backlight.Disable();
+      }
+      QWidget::keyPressEvent(event);
+    }
+
+    virtual void keyReleaseEvent(QKeyEvent* event)
+    {
+      if (event->key() == Qt::Key_Pause)
+      {
+        Backlight.Enable();
+      }
+      QWidget::keyPressEvent(event);
+    }
+
+    virtual void closeEvent(QCloseEvent* event)
+    {
+      Backlight.Enable();
+      Playlist->Teardown();
+      event->accept();
     }
   private:
     void AddWidgetWithLayoutControl(QWidget* widget)
@@ -81,6 +149,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
+    BacklightControl Backlight;
     PlaybackSupport* const Playback;
     PlaybackControls* const Controls;
     AnalyzerControl* const Analyzer;
