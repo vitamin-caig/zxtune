@@ -19,6 +19,7 @@ Author:
 #include "playlist/ui/container_view.h"
 #include "supp/playback_supp.h"
 //common includes
+#include <contract.h>
 #include <logging.h>
 //qt includes
 #include <QtGui/QApplication>

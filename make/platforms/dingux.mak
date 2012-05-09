@@ -18,7 +18,7 @@ OBJCOPY = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-objcopy
 STRIP = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-strip
 
 #defines without spaces
-dingux_definitions += 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)'
+dingux_definitions += 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' 'BOOST_FILESYSTEM_VERSION=2'
 dingux_libraries += stdc++ gcc c m dl pthread
 dingux_libraries_dirs += ${TOOLCHAIN_PATH}/usr/mipsel-linux/lib
 
