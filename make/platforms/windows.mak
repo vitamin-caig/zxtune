@@ -19,13 +19,11 @@ support_ogg = 1
 support_flac = 1
 
 # installable boost names convention used
-# [prefix]boost_[lib]-[msvs]-mt[-gd]-[version].lib
+# [prefix]boost_[lib]-mt[-gd].lib
 # prefix - 'lib' for static libraries
 # lib - library name
-# msvs - version of MSVS used to compile and link
 # -gd - used for debug libraries
-# version - boost version major_minor
-windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-$(MSVS_VERSION)-mt$(if $(release),,-gd)-$(BOOST_VERSION))
+windows_libraries += $(foreach lib,$(boost_libraries),$(if $(boost_dynamic),,lib)boost_$(lib)-mt$(if $(release),,-gd))
 
 # buildable qt names convention used
 # Qt[lib][d][4].lib

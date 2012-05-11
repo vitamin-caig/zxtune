@@ -5,6 +5,6 @@ endif
 ifdef support_zlib
 $(platform)_definitions += ZLIB_SUPPORT
 $(platform)_libraries += z
-windows_include_dirs += $(path_step)/3rdparty/zlib
-windows_depends += 3rdparty/zlib
+$(platform)_include_dirs += $(path_step)/3rdparty/zlib
+$(platform)_depends += 3rdparty/zlib
 endif

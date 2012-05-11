@@ -580,23 +580,16 @@ namespace ZXTune
 
 //global namespace
 #define STR(a) #a
-//MSVS2003 does not support variadic macros
-#define DIRECTSOUND_CALL2(func, p1, p2) DirectSoundLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2)
-#define DIRECTSOUND_CALL3(func, p1, p2, p3) DirectSoundLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3)
+#define DIRECTSOUND_FUNC(func) DirectSoundLibrary::Instance().GetSymbol(&func, STR(func))
 
 HRESULT WINAPI DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param)
 {
-  return DIRECTSOUND_CALL2(DirectSoundEnumerateA, cb, param);
+  return DIRECTSOUND_FUNC(DirectSoundEnumerateA)(cb, param);
 }
 
-//MSVS has different prototype comparing to mingw one
-#ifdef _MSC_VER
 HRESULT WINAPI DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
-#else
-HRESULT WINAPI DirectSoundCreate(LPGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
-#endif
 {
-  return DIRECTSOUND_CALL3(DirectSoundCreate, pcGuidDevice, ppDS, pUnkOuter);
+  return DIRECTSOUND_FUNC(DirectSoundCreate)(pcGuidDevice, ppDS, pUnkOuter);
 }
 
 #else //not supported
