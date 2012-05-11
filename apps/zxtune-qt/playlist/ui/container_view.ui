@@ -15,16 +15,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
-    <number>2</number>
+    <number>1</number>
    </property>
    <property name="margin">
-    <number>2</number>
+    <number>1</number>
    </property>
    <item>
     <widget class="QTabWidget" name="widgetsContainer">
-     <property name="currentIndex">
-      <number>-1</number>
-     </property>
      <property name="tabsClosable">
       <bool>true</bool>
      </property>

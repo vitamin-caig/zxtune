@@ -32,7 +32,7 @@ namespace Playlist
     public:
       static ScannerView* Create(QWidget& parent, Playlist::Scanner::Ptr scanner);
 
-    public slots:
+    private slots:
       virtual void ScanStart() = 0;
       virtual void ScanCancel() = 0;
       virtual void ScanStop() = 0;

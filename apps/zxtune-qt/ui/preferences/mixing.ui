@@ -11,24 +11,34 @@
    </rect>
   </property>
   <layout class="QHBoxLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
    <property name="margin">
-    <number>2</number>
+    <number>4</number>
    </property>
    <item>
     <layout class="QVBoxLayout" name="channelNames">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <property name="margin">
-      <number>2</number>
+      <number>0</number>
      </property>
     </layout>
    </item>
    <item>
     <layout class="QVBoxLayout" name="channelValues">
+     <property name="spacing">
+      <number>4</number>
+     </property>
      <property name="margin">
-      <number>2</number>
+      <number>0</number>
      </property>
     </layout>
    </item>
   </layout>
  </widget>
  <resources/>
+ <connections/>
 </ui>

@@ -305,9 +305,9 @@ namespace Playlist
     {
     }
 
-    ItemsContextMenu* ItemsContextMenu::Create(TableView& view, Playlist::Controller::Ptr playlist)
+    ItemsContextMenu::Ptr ItemsContextMenu::Create(TableView& view, Playlist::Controller::Ptr playlist)
     {
-      return new ItemsContextMenuImpl(view, playlist);
+      return ItemsContextMenu::Ptr(new ItemsContextMenuImpl(view, playlist));
     }
   }
 }

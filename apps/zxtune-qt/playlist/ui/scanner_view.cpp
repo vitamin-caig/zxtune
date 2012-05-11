@@ -16,6 +16,7 @@ Author:
 #include "scanner_view.ui.h"
 #include "playlist/supp/scanner.h"
 //common includes
+#include <contract.h>
 #include <logging.h>
 
 namespace
@@ -34,13 +35,13 @@ namespace
       setupUi(this);
       hide();
       //make connections with scanner
-      this->connect(Scanner, SIGNAL(OnScanStart()), this, SLOT(ScanStart()));
-      this->connect(Scanner, SIGNAL(OnScanStop()), this, SLOT(ScanStop()));
-      this->connect(Scanner, SIGNAL(OnProgressStatus(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned, unsigned, unsigned)));
-      this->connect(Scanner, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&)));
-      this->connect(Scanner, SIGNAL(OnResolvingStart()), this, SLOT(ShowResolving()));
-      this->connect(Scanner, SIGNAL(OnResolvingStop()), this, SLOT(HideResolving()));
-      this->connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel()));
+      Require(connect(Scanner, SIGNAL(OnScanStart()), this, SLOT(ScanStart())));
+      Require(connect(Scanner, SIGNAL(OnScanStop()), this, SLOT(ScanStop())));
+      Require(connect(Scanner, SIGNAL(OnProgressStatus(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned, unsigned, unsigned))));
+      Require(connect(Scanner, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&))));
+      Require(connect(Scanner, SIGNAL(OnResolvingStart()), this, SLOT(ShowResolving())));
+      Require(connect(Scanner, SIGNAL(OnResolvingStop()), this, SLOT(HideResolving())));
+      Require(connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel())));
 
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }

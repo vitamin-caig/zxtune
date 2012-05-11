@@ -27,7 +27,10 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="margin">
-     <number>2</number>
+     <number>1</number>
+    </property>
+    <property name="spacing">
+     <number>1</number>
     </property>
    </layout>
   </widget>

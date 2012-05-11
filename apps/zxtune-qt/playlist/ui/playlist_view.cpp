@@ -124,15 +124,13 @@ namespace
       , Options(PlaylistOptionsWrapper(params))
       , State(*Controller->GetModel(), *Controller->GetIterator())
       , Layout(new QVBoxLayout(this))
-      , ScannerView(Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
       , OperationProgress(OverlayProgress::Create(*this))
-      , ItemsMenu(Playlist::UI::ItemsContextMenu::Create(*View, playlist))
     {
       //setup ui
       setAcceptDrops(true);
-      Layout->setSpacing(0);
-      Layout->setMargin(0);
+      Layout->setSpacing(1);
+      Layout->setMargin(1);
       Layout->addWidget(View);
       OperationProgress->setVisible(false);
       if (UI::ErrorsWidget* const errors = UI::ErrorsWidget::Create(*this))
@@ -140,7 +138,10 @@ namespace
         Layout->addWidget(errors);
         Require(errors->connect(Controller->GetScanner(), SIGNAL(ErrorOccurred(const Error&)), SLOT(AddError(const Error&))));
       }
-      Layout->addWidget(ScannerView);
+      if (Playlist::UI::ScannerView* const scannerView = Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
+      {
+        Layout->addWidget(scannerView);
+      }
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       Require(iter->connect(View, SIGNAL(TableRowActivated(unsigned)), SLOT(Reset(unsigned))));
@@ -321,7 +322,10 @@ namespace
 
     virtual void contextMenuEvent(QContextMenuEvent* event)
     {
-      ItemsMenu->Exec(event->globalPos());
+      if (Playlist::UI::ItemsContextMenu::Ptr itemsMenu = Playlist::UI::ItemsContextMenu::Create(*View, Controller))
+      {
+        itemsMenu->Exec(event->globalPos());
+      }
     }
 
     virtual void dragEnterEvent(QDragEnterEvent* event)
@@ -437,10 +441,8 @@ namespace
     //state
     PlayitemStateCallbackImpl State;
     QVBoxLayout* const Layout;
-    Playlist::UI::ScannerView* const ScannerView;
     Playlist::UI::TableView* const View;
     OverlayProgress* const OperationProgress;
-    Playlist::UI::ItemsContextMenu* const ItemsMenu;
   };
 }
 

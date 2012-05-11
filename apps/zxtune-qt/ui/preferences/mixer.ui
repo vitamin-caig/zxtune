@@ -6,13 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>320</width>
-    <height>64</height>
+    <width>299</width>
+    <height>20</height>
    </rect>
   </property>
-  <layout class="QHBoxLayout" name="mainLayout">
+  <layout class="QHBoxLayout">
+   <property name="spacing">
+    <number>4</number>
+   </property>
    <property name="margin">
-    <number>2</number>
+    <number>0</number>
    </property>
    <item>
     <widget class="QLabel" name="channelName">
@@ -53,12 +56,32 @@
    <signal>valueChanged(int)</signal>
    <receiver>channelValuePrecise</receiver>
    <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
   <connection>
    <sender>channelValuePrecise</sender>
    <signal>valueChanged(int)</signal>
    <receiver>channelValue</receiver>
    <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>20</x>
+     <y>20</y>
+    </hint>
+   </hints>
   </connection>
  </connections>
 </ui>

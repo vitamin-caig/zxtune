@@ -32,7 +32,9 @@ namespace Playlist
     protected:
       explicit ItemsContextMenu(QObject& parent);
     public:
-      static ItemsContextMenu* Create(TableView& view, Playlist::Controller::Ptr playlist);
+      typedef boost::shared_ptr<ItemsContextMenu> Ptr;
+
+      static Ptr Create(TableView& view, Playlist::Controller::Ptr playlist);
 
       virtual void Exec(const QPoint& pos) = 0;
     private slots:
