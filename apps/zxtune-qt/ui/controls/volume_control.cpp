@@ -15,7 +15,9 @@ Author:
 #include "volume_control.h"
 #include "volume_control.ui.h"
 #include "supp/playback_supp.h"
+#include "ui/styles.h"
 //common includes
+#include <contract.h>
 #include <error.h>
 //std includes
 #include <ctime>
@@ -33,17 +35,18 @@ namespace
     {
       //setup self
       setupUi(this);
-      this->setEnabled(false);
-      this->connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int)));
+      setEnabled(false);
+      Require(connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int))));
 
-      this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
-      this->connect(&supp, SIGNAL(OnSetBackend(ZXTune::Sound::Backend::Ptr)), SLOT(SetBackend(ZXTune::Sound::Backend::Ptr)));
+      Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
+      Require(connect(&supp, SIGNAL(OnSetBackend(ZXTune::Sound::Backend::Ptr)), SLOT(SetBackend(ZXTune::Sound::Backend::Ptr))));
+      volumeLevel->setStyle(new UI::ClickNGoSliderStyle(*volumeLevel));
     }
 
     virtual void SetBackend(ZXTune::Sound::Backend::Ptr backend)
     {
       Controller = backend->GetVolumeControl();
-      this->setEnabled(Controller != 0);
+      setEnabled(Controller != 0);
     }
 
     virtual void UpdateState()

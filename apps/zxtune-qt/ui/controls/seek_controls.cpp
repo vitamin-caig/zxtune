@@ -15,6 +15,7 @@ Author:
 #include "seek_controls.h"
 #include "seek_controls.ui.h"
 #include "supp/playback_supp.h"
+#include "ui/styles.h"
 #include "ui/utils.h"
 //common includes
 #include <format.h>
@@ -38,6 +39,7 @@ namespace
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
       supp.connect(this, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
+      timePosition->setStyle(new UI::ClickNGoSliderStyle(*timePosition));
     }
 
     virtual void InitState(ZXTune::Sound::Backend::Ptr player)
