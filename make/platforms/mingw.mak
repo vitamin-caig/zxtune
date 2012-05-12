@@ -1,12 +1,15 @@
-ifeq ($(BUILD_ARCH),x86_64)
-arch64 := 1
-endif
 makebin_name = $(1).exe
 makelib_name = lib$(1).a
 makedyn_name = $(1).dll
 makeobj_name = $(1).o
 makeres_name = $(1).res
-makeres_cmd = windres -F pe$(if $(pic),i,)-$(if $(arch64),x86-64,i386) -O coff $(addprefix -D, $(DEFINITIONS)) $(1) $(2)
+makeres_cmd = windres -O coff --input $(1) --output $(2) $(addprefix -D,$(DEFINITIONS))
+ifeq ($(BUILD_ARCH),x86_64)
+arch64 := 1
+makeres_cmd += -F pe$(if $(pic),i,)-x86-64 -O coff -DMANIFEST_NAME=$(platform)_$(BUILD_ARCH).manifest
+else
+makeres_cmd += -F pe$(if $(pic),i,)-i386
+endif
 
 host=windows
 compiler=gcc

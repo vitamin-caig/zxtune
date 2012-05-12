@@ -52,3 +52,7 @@ BLOCK "StringFileInfo"
     VALUE "Translation", 0x409, 1200
   END
 END
+
+#ifdef MANIFEST_NAME
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST STR(DIRPATH(../../make/resources,MANIFEST_NAME))
+#endif

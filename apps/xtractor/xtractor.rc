@@ -1,5 +1,5 @@
-#ifndef ZXTUNE_VERSION
-#define ZXTUNE_VERSION develop
+#ifndef XTRACTOR_VERSION
+#define XTRACTOR_VERSION develop
 #endif
 #ifndef BUILD_PLATFORM
 #define BUILD_PLATFORM unknown
@@ -30,12 +30,12 @@ BLOCK "StringFileInfo"
   BEGIN
   BLOCK "040904b0"
     BEGIN
-      VALUE "ProductName", "ZXTune library\0"
-      VALUE "ProductVersion", STR(ZXTUNE_VERSION) " " STR(BUILD_PLATFORM) "-" STR(BUILD_ARCH) "\0"
+      VALUE "ProductName", "Xtractor tool\0"
+      VALUE "ProductVersion", STR(XTRACTOR_VERSION) " " STR(BUILD_PLATFORM) "-" STR(BUILD_ARCH) "\0"
       VALUE "LegalCopyright", "(C) Vitamin/CAIG\0"
-      VALUE "OriginalFilename", "zxtune123.exe\0"
-      VALUE "FileDescription", "Commandline chiptunes player application\0"
-      VALUE "Comments", "zxtune123 application\0"
+      VALUE "OriginalFilename", "xtractor.exe\0"
+      VALUE "FileDescription", "Commandline tool to process different data content\0"
+      VALUE "Comments", "xtractor application\0"
     END
   END
   BLOCK "VarFileInfo"

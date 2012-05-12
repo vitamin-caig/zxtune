@@ -11,6 +11,10 @@ boost_libraries := filesystem program_options thread system
 
 windows_libraries := advapi32
 
+#platform-specific resources
+windows_resources := xtractor
+mingw_resources := xtractor
+
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
 
