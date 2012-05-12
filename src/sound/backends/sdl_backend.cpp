@@ -361,62 +361,66 @@ namespace ZXTune
         const BackendCreator::Ptr creator(new SDLBackendCreator());
         enumerator.RegisterCreator(creator);
       }
+      else
+      {
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(SDLLibrary::Instance().GetLoadError()));
+      }
     }
   }
 }
 
 //global namespace
 #define STR(a) #a
-#define SDL_CALL(func, ...) SDLLibrary::Instance().GetSymbol(&func, STR(func))(__VA_ARGS__)
+#define SDL_FUNC(func) SDLLibrary::Instance().GetSymbol(&func, STR(func))
 
 char* SDL_GetError(void)
 {
-  return SDL_CALL(SDL_GetError);
+  return SDL_FUNC(SDL_GetError)();
 }
 
 const SDL_version* SDL_Linked_Version(void)
 {
-  return SDL_CALL(SDL_Linked_Version);
+  return SDL_FUNC(SDL_Linked_Version)();
 }
 
 int SDL_Init(Uint32 flags)
 {
-  return SDL_CALL(SDL_Init, flags);
+  return SDL_FUNC(SDL_Init)(flags);
 }
 
 int SDL_InitSubSystem(Uint32 flags)
 {
-  return SDL_CALL(SDL_InitSubSystem, flags);
+  return SDL_FUNC(SDL_InitSubSystem)(flags);
 }
 
 void SDL_QuitSubSystem(Uint32 flags)
 {
-  return SDL_CALL(SDL_QuitSubSystem, flags);
+  return SDL_FUNC(SDL_QuitSubSystem)(flags);
 }
 
 Uint32 SDL_WasInit(Uint32 flags)
 {
-  return SDL_CALL(SDL_WasInit, flags);
+  return SDL_FUNC(SDL_WasInit)(flags);
 }
 
 void SDL_Quit(void)
 {
-  return SDL_CALL(SDL_Quit);
+  return SDL_FUNC(SDL_Quit)();
 }
 
 int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
 {
-  return SDL_CALL(SDL_OpenAudio, desired, obtained);
+  return SDL_FUNC(SDL_OpenAudio)(desired, obtained);
 }
 
 void SDL_PauseAudio(int pause_on)
 {
-  return SDL_CALL(SDL_PauseAudio, pause_on);
+  return SDL_FUNC(SDL_PauseAudio)(pause_on);
 }
 
 void SDL_CloseAudio(void)
 {
-  return SDL_CALL(SDL_CloseAudio);
+  return SDL_FUNC(SDL_CloseAudio)();
 }
 
 #else //not supported

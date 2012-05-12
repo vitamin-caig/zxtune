@@ -313,102 +313,101 @@ namespace ZXTune
         const BackendCreator::Ptr creator(new FLACBackendCreator());
         enumerator.RegisterCreator(creator);
       }
+      else
+      {
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(FlacLibrary::Instance().GetLoadError()));
+      }
     }
   }
 }
 
 //global namespace
 #define STR(a) #a
-//MSVS2003 does not support variadic macros
-#define FLAC_CALL(func) FlacLibrary::Instance().GetSymbol(&func, STR(func))()
-#define FLAC_CALL1(func, p1) FlacLibrary::Instance().GetSymbol(&func, STR(func))(p1)
-#define FLAC_CALL2(func, p1, p2) FlacLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2)
-#define FLAC_CALL3(func, p1, p2, p3) FlacLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3)
-#define FLAC_CALL6(func, p1, p2, p3, p4, p5, p6) FlacLibrary::Instance().GetSymbol(&func, STR(func))(p1, p2, p3, p4, p5, p6)
+#define FLAC_FUNC(func) FlacLibrary::Instance().GetSymbol(&func, STR(func))
 
 FLAC__StreamEncoder* FLAC__stream_encoder_new(void)
 {
-  return FLAC_CALL(FLAC__stream_encoder_new);
+  return FLAC_FUNC(FLAC__stream_encoder_new)();
 }
 
 void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 {
-  return FLAC_CALL1(FLAC__stream_encoder_delete, encoder);
+  return FLAC_FUNC(FLAC__stream_encoder_delete)(encoder);
 }
 
 FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
-  return FLAC_CALL2(FLAC__stream_encoder_set_verify, encoder, value);
+  return FLAC_FUNC(FLAC__stream_encoder_set_verify)(encoder, value);
 }
 
 FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encoder, unsigned value)
 {
-  return FLAC_CALL2(FLAC__stream_encoder_set_channels, encoder, value);
+  return FLAC_FUNC(FLAC__stream_encoder_set_channels)(encoder, value);
 }
 
 FLAC__bool FLAC__stream_encoder_set_bits_per_sample(FLAC__StreamEncoder *encoder, unsigned value)
 {
-  return FLAC_CALL2(FLAC__stream_encoder_set_bits_per_sample, encoder, value);
+  return FLAC_FUNC(FLAC__stream_encoder_set_bits_per_sample)(encoder, value);
 }
 
 FLAC__bool FLAC__stream_encoder_set_sample_rate(FLAC__StreamEncoder *encoder, unsigned value)
 {
-  return FLAC_CALL2(FLAC__stream_encoder_set_sample_rate, encoder, value);
+  return FLAC_FUNC(FLAC__stream_encoder_set_sample_rate)(encoder, value);
 }
 
 FLAC__bool FLAC__stream_encoder_set_compression_level(FLAC__StreamEncoder *encoder, unsigned value)
 {
-  return FLAC_CALL2(FLAC__stream_encoder_set_compression_level, encoder, value);
+  return FLAC_FUNC(FLAC__stream_encoder_set_compression_level)(encoder, value);
 }
 
 FLAC__bool FLAC__stream_encoder_set_blocksize(FLAC__StreamEncoder *encoder, unsigned value)
 {
-  return FLAC_CALL2(FLAC__stream_encoder_set_blocksize, encoder, value);
+  return FLAC_FUNC(FLAC__stream_encoder_set_blocksize)(encoder, value);
 }
 
 FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, unsigned num_blocks)
 {
-  return FLAC_CALL3(FLAC__stream_encoder_set_metadata, encoder, metadata, num_blocks);
+  return FLAC_FUNC(FLAC__stream_encoder_set_metadata)(encoder, metadata, num_blocks);
 }
 
 FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__StreamEncoder *encoder,
   FLAC__StreamEncoderWriteCallback write_callback, FLAC__StreamEncoderSeekCallback seek_callback,
   FLAC__StreamEncoderTellCallback tell_callback, FLAC__StreamEncoderMetadataCallback metadata_callback, void *client_data)
 {
-  return FLAC_CALL6(FLAC__stream_encoder_init_stream, encoder, write_callback, seek_callback, tell_callback, metadata_callback, client_data);
+  return FLAC_FUNC(FLAC__stream_encoder_init_stream)(encoder, write_callback, seek_callback, tell_callback, metadata_callback, client_data);
 }
 
 FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 {
-  return FLAC_CALL1(FLAC__stream_encoder_finish, encoder);
+  return FLAC_FUNC(FLAC__stream_encoder_finish)(encoder);
 }
 
 FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buffer[],
   unsigned samples)
 {
-  return FLAC_CALL3(FLAC__stream_encoder_process_interleaved, encoder, buffer, samples);
+  return FLAC_FUNC(FLAC__stream_encoder_process_interleaved)(encoder, buffer, samples);
 }
 
 FLAC__StreamMetadata* FLAC__metadata_object_new(FLAC__MetadataType type)
 {
-  return FLAC_CALL1(FLAC__metadata_object_new, type);
+  return FLAC_FUNC(FLAC__metadata_object_new)(type);
 }
 
 void FLAC__metadata_object_delete(FLAC__StreamMetadata *object)
 {
-  return FLAC_CALL1(FLAC__metadata_object_delete, object);
+  return FLAC_FUNC(FLAC__metadata_object_delete)(object);
 }
 
 FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(FLAC__StreamMetadata_VorbisComment_Entry *entry,
   const char *field_name, const char *field_value)
 {
-  return FLAC_CALL3(FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair, entry, field_name, field_value);
+  return FLAC_FUNC(FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair)(entry, field_name, field_value);
 }
 
 FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__StreamMetadata *object,
   FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
 {
-  return FLAC_CALL3(FLAC__metadata_object_vorbiscomment_append_comment, object, entry, copy);
+  return FLAC_FUNC(FLAC__metadata_object_vorbiscomment_append_comment)(object, entry, copy);
 }
 
 #else //not supported

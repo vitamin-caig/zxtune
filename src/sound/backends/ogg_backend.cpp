@@ -497,14 +497,24 @@ namespace ZXTune
   {
     void RegisterOGGBackend(BackendsEnumerator& enumerator)
     {
-      if (VorbisEncLibrary::Instance().IsAccessible() &&
-          VorbisLibrary::Instance().IsAccessible() &&
-          OggLibrary::Instance().IsAccessible())
+      if (!VorbisEncLibrary::Instance().IsAccessible())
       {
-        Log::Debug(THIS_MODULE, "Detected Vorbis library %1%", ::vorbis_version_string());
-        const BackendCreator::Ptr creator(new OGGBackendCreator());
-        enumerator.RegisterCreator(creator);
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(VorbisEncLibrary::Instance().GetLoadError()));
+        return;
       }
+      if (!VorbisLibrary::Instance().IsAccessible())
+      {
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(VorbisLibrary::Instance().GetLoadError()));
+        return;
+      }
+      if (!OggLibrary::Instance().IsAccessible())
+      {
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(OggLibrary::Instance().GetLoadError()));
+        return;
+      }
+      Log::Debug(THIS_MODULE, "Detected Vorbis library %1%", ::vorbis_version_string());
+      const BackendCreator::Ptr creator(new OGGBackendCreator());
+      enumerator.RegisterCreator(creator);
     }
   }
 }

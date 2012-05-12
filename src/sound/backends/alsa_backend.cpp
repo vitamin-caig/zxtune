@@ -606,202 +606,206 @@ namespace ZXTune
         const BackendCreator::Ptr creator(new AlsaBackendCreator());
         enumerator.RegisterCreator(creator);
       }
+      else
+      {
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(AlsaLibrary::Instance().GetLoadError()));
+      }
     }
   }
 }
 
 //global namespace
 #define STR(a) #a
-#define ASOUND_CALL(func, ...) AlsaLibrary::Instance().GetSymbol(&func, STR(func))(__VA_ARGS__)
+#define ASOUND_FUNC(func) AlsaLibrary::Instance().GetSymbol(&func, STR(func))
 
 const char *snd_asoundlib_version(void)
 {
-  return ASOUND_CALL(snd_asoundlib_version);
+  return ASOUND_FUNC(snd_asoundlib_version)();
 }
 
 const char* snd_strerror(int err)
 {
-  return ASOUND_CALL(snd_strerror, err);
+  return ASOUND_FUNC(snd_strerror)(err);
 }
 
 int snd_config_update_free_global(void)
 {
-  return ASOUND_CALL(snd_config_update_free_global);
+  return ASOUND_FUNC(snd_config_update_free_global)();
 }
 
 int snd_config_delete(snd_config_t *config)
 {
-  return ASOUND_CALL(snd_config_delete, config);
+  return ASOUND_FUNC(snd_config_delete)(config);
 }
 
 int snd_pcm_open(snd_pcm_t **pcm, const char *name, snd_pcm_stream_t stream, int mode)
 {
-  return ASOUND_CALL(snd_pcm_open, pcm, name, stream, mode);
+  return ASOUND_FUNC(snd_pcm_open)(pcm, name, stream, mode);
 }
 
 int snd_pcm_close(snd_pcm_t *pcm)
 {
-  return ASOUND_CALL(snd_pcm_close, pcm);
+  return ASOUND_FUNC(snd_pcm_close)(pcm);
 }
 
 int snd_pcm_hw_free(snd_pcm_t *pcm)
 {
-  return ASOUND_CALL(snd_pcm_hw_free, pcm);
+  return ASOUND_FUNC(snd_pcm_hw_free)(pcm);
 }
 
 int snd_pcm_prepare(snd_pcm_t *pcm)
 {
-  return ASOUND_CALL(snd_pcm_prepare, pcm);
+  return ASOUND_FUNC(snd_pcm_prepare)(pcm);
 }
 
 int snd_pcm_drain(snd_pcm_t *pcm)
 {
-  return ASOUND_CALL(snd_pcm_drain, pcm);
+  return ASOUND_FUNC(snd_pcm_drain)(pcm);
 }
 
 int snd_pcm_pause(snd_pcm_t *pcm, int enable)
 {
-  return ASOUND_CALL(snd_pcm_pause, pcm, enable);
+  return ASOUND_FUNC(snd_pcm_pause)(pcm, enable);
 }
 
 snd_pcm_sframes_t snd_pcm_writei(snd_pcm_t *pcm, const void *buffer, snd_pcm_uframes_t size)
 {
-  return ASOUND_CALL(snd_pcm_writei, pcm, buffer, size);
+  return ASOUND_FUNC(snd_pcm_writei)(pcm, buffer, size);
 }
 
 size_t snd_pcm_hw_params_sizeof(void)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_sizeof);
+  return ASOUND_FUNC(snd_pcm_hw_params_sizeof)();
 }
 
 int snd_pcm_hw_params(snd_pcm_t *pcm, snd_pcm_hw_params_t *params)
 {
-  return ASOUND_CALL(snd_pcm_hw_params, pcm, params);
+  return ASOUND_FUNC(snd_pcm_hw_params)(pcm, params);
 }
 
 int snd_pcm_hw_params_any(snd_pcm_t *pcm, snd_pcm_hw_params_t *params)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_any, pcm, params);
+  return ASOUND_FUNC(snd_pcm_hw_params_any)(pcm, params);
 }
 
 int snd_pcm_hw_params_can_pause(const snd_pcm_hw_params_t *params)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_can_pause, params);
+  return ASOUND_FUNC(snd_pcm_hw_params_can_pause)(params);
 }
 
 int snd_pcm_hw_params_set_access(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_access_t _access)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_set_access, pcm, params, _access);
+  return ASOUND_FUNC(snd_pcm_hw_params_set_access)(pcm, params, _access);
 }
 
 int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_format_t val)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_set_format, pcm, params, val);
+  return ASOUND_FUNC(snd_pcm_hw_params_set_format)(pcm, params, val);
 }
 
 int snd_pcm_hw_params_set_channels(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_set_channels, pcm, params, val);
+  return ASOUND_FUNC(snd_pcm_hw_params_set_channels)(pcm, params, val);
 }
 
 int snd_pcm_hw_params_set_rate(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val, int dir)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_set_rate, pcm, params, val, dir);
+  return ASOUND_FUNC(snd_pcm_hw_params_set_rate)(pcm, params, val, dir);
 }
 
 int snd_pcm_hw_params_set_rate_resample(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_set_rate_resample, pcm, params, val);
+  return ASOUND_FUNC(snd_pcm_hw_params_set_rate_resample)(pcm, params, val);
 }
 
 int snd_pcm_hw_params_set_periods_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_set_periods_near, pcm, params, val, dir);
+  return ASOUND_FUNC(snd_pcm_hw_params_set_periods_near)(pcm, params, val, dir);
 }
 
 int snd_pcm_hw_params_set_buffer_size_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val)
 {
-  return ASOUND_CALL(snd_pcm_hw_params_set_buffer_size_near, pcm, params, val);
+  return ASOUND_FUNC(snd_pcm_hw_params_set_buffer_size_near)(pcm, params, val);
 }
 
 int snd_mixer_open(snd_mixer_t **mixer, int mode)
 {
-  return ASOUND_CALL(snd_mixer_open, mixer, mode);
+  return ASOUND_FUNC(snd_mixer_open)(mixer, mode);
 }
 
 int snd_mixer_close(snd_mixer_t *mixer)
 {
-  return ASOUND_CALL(snd_mixer_close, mixer);
+  return ASOUND_FUNC(snd_mixer_close)(mixer);
 }
 
 snd_mixer_elem_t *snd_mixer_first_elem(snd_mixer_t *mixer)
 {
-  return ASOUND_CALL(snd_mixer_first_elem, mixer);
+  return ASOUND_FUNC(snd_mixer_first_elem)(mixer);
 }
 
 snd_mixer_elem_t *snd_mixer_elem_next(snd_mixer_elem_t *elem)
 {
-  return ASOUND_CALL(snd_mixer_elem_next, elem);
+  return ASOUND_FUNC(snd_mixer_elem_next)(elem);
 }
 
 snd_mixer_elem_type_t snd_mixer_elem_get_type(const snd_mixer_elem_t *obj)
 {
-  return ASOUND_CALL(snd_mixer_elem_get_type, obj);
+  return ASOUND_FUNC(snd_mixer_elem_get_type)(obj);
 }
 
 int snd_mixer_attach(snd_mixer_t *mixer, const char *name)
 {
-  return ASOUND_CALL(snd_mixer_attach, mixer, name);
+  return ASOUND_FUNC(snd_mixer_attach)(mixer, name);
 }
 
 int snd_mixer_detach(snd_mixer_t *mixer, const char *name)
 {
-  return ASOUND_CALL(snd_mixer_detach, mixer, name);
+  return ASOUND_FUNC(snd_mixer_detach)(mixer, name);
 }
 
 int snd_mixer_load(snd_mixer_t *mixer)
 {
-  return ASOUND_CALL(snd_mixer_load, mixer);
+  return ASOUND_FUNC(snd_mixer_load)(mixer);
 }
 
 int snd_mixer_selem_register(snd_mixer_t *mixer, struct snd_mixer_selem_regopt *options, snd_mixer_class_t **classp)
 {
-  return ASOUND_CALL(snd_mixer_selem_register, mixer, options, classp);
+  return ASOUND_FUNC(snd_mixer_selem_register)(mixer, options, classp);
 }
 
 void snd_mixer_selem_get_id(snd_mixer_elem_t *element, snd_mixer_selem_id_t *id)
 {
-  return ASOUND_CALL(snd_mixer_selem_get_id, element, id);
+  return ASOUND_FUNC(snd_mixer_selem_get_id)(element, id);
 }
 
 size_t snd_mixer_selem_id_sizeof(void)
 {
-  return ASOUND_CALL(snd_mixer_selem_id_sizeof);
+  return ASOUND_FUNC(snd_mixer_selem_id_sizeof)();
 }
 
 const char *snd_mixer_selem_id_get_name(const snd_mixer_selem_id_t *obj)
 {
-  return ASOUND_CALL(snd_mixer_selem_id_get_name, obj);
+  return ASOUND_FUNC(snd_mixer_selem_id_get_name)(obj);
 }
 
 int snd_mixer_selem_has_playback_volume(snd_mixer_elem_t *elem)
 {
-  return ASOUND_CALL(snd_mixer_selem_has_playback_volume, elem);
+  return ASOUND_FUNC(snd_mixer_selem_has_playback_volume)(elem);
 }
 
 int snd_mixer_selem_get_playback_volume_range(snd_mixer_elem_t *elem, long *min, long *max)
 {
-  return ASOUND_CALL(snd_mixer_selem_get_playback_volume_range, elem, min, max);
+  return ASOUND_FUNC(snd_mixer_selem_get_playback_volume_range)(elem, min, max);
 }
 
 int snd_mixer_selem_get_playback_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t channel, long *value)
 {
-  return ASOUND_CALL(snd_mixer_selem_get_playback_volume, elem, channel, value);
+  return ASOUND_FUNC(snd_mixer_selem_get_playback_volume)(elem, channel, value);
 }
 
 int snd_mixer_selem_set_playback_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t channel, long value)
 {
-  return ASOUND_CALL(snd_mixer_selem_set_playback_volume, elem, channel, value);
+  return ASOUND_FUNC(snd_mixer_selem_set_playback_volume)(elem, channel, value);
 }
 
 #else //not supported

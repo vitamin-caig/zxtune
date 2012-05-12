@@ -43,6 +43,11 @@ public:
   {
     return Library;
   }
+
+  Error GetLoadError() const
+  {
+    return LoadError;
+  }
 private:
   SharedLibraryGate()
   {
@@ -51,8 +56,9 @@ private:
       Library = SharedLibrary::Load(Traits::GetName());
       Traits::Startup();
     }
-    catch (const Error&)
+    catch (const Error& e)
     {
+      LoadError = e;
     }
   }
 
@@ -81,6 +87,7 @@ private:
   }
 private:
   SharedLibrary::Ptr Library;
+  Error LoadError;
   typedef std::map<void*, void*> GateToSymbol;
   mutable GateToSymbol Symbols;
 };

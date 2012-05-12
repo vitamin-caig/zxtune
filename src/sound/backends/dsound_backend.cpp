@@ -574,6 +574,10 @@ namespace ZXTune
         const BackendCreator::Ptr creator(new DirectSoundBackendCreator());
         enumerator.RegisterCreator(creator);
       }
+      else
+      {
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(DirectSoundLibrary::Instance().GetLoadError()));
+      }
     }
   }
 }
