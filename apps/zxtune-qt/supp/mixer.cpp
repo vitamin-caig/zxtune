@@ -89,7 +89,7 @@ namespace
   class MixerFeedback : public Mixer
   {
   public:
-    MixerFeedback(QObject& parent, const MixerMatrix& mtx, ZXTune::Sound::MatrixMixer& mixer)
+    MixerFeedback(QObject& parent, const MixerMatrix& mtx, ZXTune::Sound::MatrixMixer::Ptr mixer)
       : Mixer(parent)
       , Matrix(mtx)
       , Delegate(mixer)
@@ -99,11 +99,11 @@ namespace
     virtual void Update()
     {
       Matrix.Update();
-      Delegate.SetMatrix(Matrix);
+      Delegate->SetMatrix(Matrix);
     }
   private:
     MixerMatrix Matrix;
-    ZXTune::Sound::MatrixMixer& Delegate;
+    const ZXTune::Sound::MatrixMixer::Ptr Delegate;
   };
 
   class MixerWithFeedback : public ZXTune::Sound::Mixer
@@ -181,7 +181,7 @@ ZXTune::Sound::Mixer::Ptr CreateMixer(PlaybackSupport& supp, Parameters::Accesso
 {
   const ZXTune::Sound::MatrixMixer::Ptr mixer = ZXTune::Sound::CreateMatrixMixer(channels);
   const MixerMatrix matrix = CreateMatrix(params, channels);
-  Mixer* const feedback(new MixerFeedback(supp, matrix, *mixer));
+  Mixer* const feedback(new MixerFeedback(supp, matrix, mixer));
   Require(feedback->connect(&supp, SIGNAL(OnUpdateState()), SLOT(Update())));
   return boost::make_shared<MixerWithFeedback>(mixer, feedback);
 }

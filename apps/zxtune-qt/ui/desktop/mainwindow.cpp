@@ -191,6 +191,7 @@ namespace
     //QWidgets virtuals
     virtual void closeEvent(QCloseEvent* event)
     {
+      Playback->Stop();
       State->Save();
       MultiPlaylist->Teardown();
       event->accept();

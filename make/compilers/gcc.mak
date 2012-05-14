@@ -1,6 +1,6 @@
 #basic definitions for tools
-CXX = g++
-CC = gcc
+CXX ?= g++
+CC ?= gcc
 LDD ?= g++
 AR ?= ar
 OBJCOPY ?= objcopy

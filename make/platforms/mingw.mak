@@ -13,6 +13,8 @@ endif
 
 host=windows
 compiler=gcc
+CXX = g++
+CC = gcc
 CXX_PLATFORM_FLAGS = -mthreads -mwin32 -mno-ms-bitfields $(if $(arch64),-m64,-m32) -mmmx -msse -msse2
 LD_PLATFORM_FLAGS = -mthreads -static -Wl,--allow-multiple-definition $(if $(arch64),-m64,-m32)
 ifdef release
