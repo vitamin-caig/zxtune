@@ -99,7 +99,7 @@ namespace
       return String();
     }
 
-    virtual String GetTitle() const
+    virtual String GetDisplayName() const
     {
       return Path;
     }
@@ -219,10 +219,10 @@ namespace
       return Delegate->GetType();
     }
 
-    virtual String GetTitle() const
+    virtual String GetDisplayName() const
     {
       AcquireDelegate();
-      return Delegate->GetTitle();
+      return Delegate->GetDisplayName();
     }
 
     virtual Time::Milliseconds GetDuration() const

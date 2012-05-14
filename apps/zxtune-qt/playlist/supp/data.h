@@ -41,7 +41,7 @@ namespace Playlist
       virtual bool IsValid() const = 0;
       virtual String GetFullPath() const = 0;
       virtual String GetType() const = 0;
-      virtual String GetTitle() const = 0;
+      virtual String GetDisplayName() const = 0;
       virtual Time::Milliseconds GetDuration() const = 0;
       virtual String GetDurationString() const = 0;
       virtual String GetTooltip() const = 0;

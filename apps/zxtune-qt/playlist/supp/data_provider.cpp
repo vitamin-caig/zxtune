@@ -341,17 +341,17 @@ namespace
     typedef boost::shared_ptr<const DynamicAttributesProvider> Ptr;
 
     DynamicAttributesProvider()
-      : TitleTemplate(StringTemplate::Create(Text::MODULE_PLAYLIST_FORMAT))
-      , DummyTitle(TitleTemplate->Instantiate(SkipFieldsSource()))
+      : DisplayNameTemplate(StringTemplate::Create(Text::MODULE_PLAYLIST_FORMAT))
+      , DummyDisplayName(DisplayNameTemplate->Instantiate(SkipFieldsSource()))
       , TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
     {
     }
 
-    String GetTitle(const Parameters::Accessor& properties) const
+    String GetDisplayName(const Parameters::Accessor& properties) const
     {
       const Parameters::FieldsSourceAdapter<SkipFieldsSource> adapter(properties);
-      String result = TitleTemplate->Instantiate(adapter);
-      if (result == DummyTitle)
+      String result = DisplayNameTemplate->Instantiate(adapter);
+      if (result == DummyDisplayName)
       {
         if (!properties.FindValue(ZXTune::Module::ATTR_FULLPATH, result))
         {
@@ -367,8 +367,8 @@ namespace
       return TooltipTemplate->Instantiate(adapter);
     }
   private:
-    const StringTemplate::Ptr TitleTemplate;
-    const String DummyTitle;
+    const StringTemplate::Ptr DisplayNameTemplate;
+    const String DummyDisplayName;
     const StringTemplate::Ptr TooltipTemplate;
   };
 
@@ -384,7 +384,7 @@ namespace
       , Source(source)
       , AdjustedParams(adjustedParams)
       , Type(GetModuleType(moduleProps))
-      , Title(Attributes->GetTitle(moduleProps))
+      , DisplayName(Attributes->GetDisplayName(moduleProps))
       , DurationInFrames(duration)
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_FIXEDCRC)))
@@ -422,13 +422,13 @@ namespace
       return Type;
     }
 
-    virtual String GetTitle() const
+    virtual String GetDisplayName() const
     {
-      if (Title.empty())
+      if (DisplayName.empty())
       {
-        AcquireTitle();
+        AcquireDisplayName();
       }
-      return Title;
+      return DisplayName;
     }
 
     virtual Time::Milliseconds GetDuration() const
@@ -467,11 +467,11 @@ namespace
       return Size;
     }
   private:
-    void AcquireTitle() const
+    void AcquireDisplayName() const
     {
       if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
       {
-        Title = Attributes->GetTitle(*properties);
+        DisplayName = Attributes->GetDisplayName(*properties);
       }
     }
 
@@ -486,14 +486,14 @@ namespace
   private:
     virtual void OnPropertyChanged(const Parameters::NameType& /*name*/) const
     {
-      Title.clear();
+      DisplayName.clear();
     }
   private:
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
     const String Type;
-    mutable String Title;
+    mutable String DisplayName;
     const unsigned DurationInFrames;
     const uint32_t Checksum;
     const uint32_t CoreChecksum;

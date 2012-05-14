@@ -74,7 +74,7 @@ namespace
     {
       switch (column)
       {
-      case Playlist::Model::COLUMN_TYPEICON:
+      case Playlist::Model::COLUMN_TYPE:
         {
           const QString iconPath = ToQString(
             Text::TYPEICONS_RESOURCE_PREFIX + item.GetType());
@@ -93,7 +93,7 @@ namespace
     {
       switch (column)
       {
-      case Playlist::Model::COLUMN_TITLE:
+      case Playlist::Model::COLUMN_DISPLAY_NAME:
         return Playlist::Model::tr("Author - Title");
       case Playlist::Model::COLUMN_DURATION:
         return Playlist::Model::tr("Duration");
@@ -106,8 +106,8 @@ namespace
     {
       switch (column)
       {
-      case Playlist::Model::COLUMN_TITLE:
-        return ToQString(item.GetTitle());
+      case Playlist::Model::COLUMN_DISPLAY_NAME:
+        return ToQString(item.GetDisplayName());
       case Playlist::Model::COLUMN_DURATION:
         return ToQString(item.GetDurationString());
       default:
@@ -190,10 +190,10 @@ namespace
   {
     switch (column)
     {
-    case Playlist::Model::COLUMN_TYPEICON:
+    case Playlist::Model::COLUMN_TYPE:
       return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetType, ascending));
-    case Playlist::Model::COLUMN_TITLE:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetTitle, ascending));
+    case Playlist::Model::COLUMN_DISPLAY_NAME:
+      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetDisplayName, ascending));
     case Playlist::Model::COLUMN_DURATION:
       return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<Time::Milliseconds>(&Playlist::Item::Data::GetDuration, ascending));
     default:

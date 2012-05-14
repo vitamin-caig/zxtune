@@ -129,7 +129,7 @@ namespace
     {
       setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
         GetProgramTitle(),
-        item->GetTitle())));
+        item->GetDisplayName())));
       Playing = true;
     }
 

@@ -35,7 +35,7 @@ namespace
   const int_t FONT_SIZE = 8;
   const int_t ROW_HEIGTH = 16;
   const int_t ICON_WIDTH = 24;
-  const int_t TITLE_WIDTH = 320;
+  const int_t DISPLAYNAME_WIDTH = 320;
   const int_t DURATION_WIDTH = 60;
 
   class TableViewImpl : public Playlist::UI::TableView
@@ -73,8 +73,8 @@ namespace
         horHeader->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         horHeader->setHighlightSections(false);
         horHeader->setTextElideMode(Qt::ElideRight);
-        horHeader->resizeSection(Playlist::Model::COLUMN_TYPEICON, ICON_WIDTH);
-        horHeader->resizeSection(Playlist::Model::COLUMN_TITLE, TITLE_WIDTH);
+        horHeader->resizeSection(Playlist::Model::COLUMN_TYPE, ICON_WIDTH);
+        horHeader->resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
         horHeader->resizeSection(Playlist::Model::COLUMN_DURATION, DURATION_WIDTH);
       }
       if (QHeaderView* const verHeader = verticalHeader())

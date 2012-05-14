@@ -58,8 +58,8 @@ namespace Playlist
   public:
     enum Columns
     {
-      COLUMN_TYPEICON,
-      COLUMN_TITLE,
+      COLUMN_TYPE,
+      COLUMN_DISPLAY_NAME,
       COLUMN_DURATION,
 
       COLUMNS_COUNT
