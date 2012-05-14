@@ -61,6 +61,12 @@ namespace Playlist
       COLUMN_TYPE,
       COLUMN_DISPLAY_NAME,
       COLUMN_DURATION,
+      COLUMN_AUTHOR,
+      COLUMN_TITLE,
+      COLUMN_PATH,
+      COLUMN_SIZE,
+      COLUMN_CRC,
+      COLUMN_FIXEDCRC,
 
       COLUMNS_COUNT
     };

@@ -93,10 +93,24 @@ namespace
     {
       switch (column)
       {
+      case Playlist::Model::COLUMN_TYPE:
+        return Playlist::Model::tr("Type");
       case Playlist::Model::COLUMN_DISPLAY_NAME:
         return Playlist::Model::tr("Author - Title");
       case Playlist::Model::COLUMN_DURATION:
         return Playlist::Model::tr("Duration");
+      case Playlist::Model::COLUMN_AUTHOR:
+        return Playlist::Model::tr("Author");
+      case Playlist::Model::COLUMN_TITLE:
+        return Playlist::Model::tr("Title");
+      case Playlist::Model::COLUMN_PATH:
+        return Playlist::Model::tr("Path");
+      case Playlist::Model::COLUMN_SIZE:
+        return Playlist::Model::tr("Size");
+      case Playlist::Model::COLUMN_CRC:
+        return Playlist::Model::tr("CRC");
+      case Playlist::Model::COLUMN_FIXEDCRC:
+        return Playlist::Model::tr("FixedCRC");
       default:
         return QVariant();
       };
@@ -110,6 +124,18 @@ namespace
         return ToQString(item.GetDisplayName());
       case Playlist::Model::COLUMN_DURATION:
         return ToQString(item.GetDurationString());
+      case Playlist::Model::COLUMN_AUTHOR:
+        return ToQString(item.GetAuthor());
+      case Playlist::Model::COLUMN_TITLE:
+        return ToQString(item.GetTitle());
+      case Playlist::Model::COLUMN_PATH:
+        return ToQString(item.GetFullPath());
+      case Playlist::Model::COLUMN_SIZE:
+        return QString::number(item.GetSize());
+      case Playlist::Model::COLUMN_CRC:
+        return QString::number(item.GetChecksum(), 16);
+      case Playlist::Model::COLUMN_FIXEDCRC:
+        return QString::number(item.GetCoreChecksum(), 16);
       default:
         return QVariant();
       };
@@ -196,6 +222,18 @@ namespace
       return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetDisplayName, ascending));
     case Playlist::Model::COLUMN_DURATION:
       return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<Time::Milliseconds>(&Playlist::Item::Data::GetDuration, ascending));
+    case Playlist::Model::COLUMN_AUTHOR:
+      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetAuthor, ascending));
+    case Playlist::Model::COLUMN_TITLE:
+      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetTitle, ascending));
+    case Playlist::Model::COLUMN_PATH:
+      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetFullPath, ascending));
+    case Playlist::Model::COLUMN_SIZE:
+      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<std::size_t>(&Playlist::Item::Data::GetSize, ascending));
+    case Playlist::Model::COLUMN_CRC:
+      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<uint32_t>(&Playlist::Item::Data::GetChecksum, ascending));
+    case Playlist::Model::COLUMN_FIXEDCRC:
+      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<uint32_t>(&Playlist::Item::Data::GetCoreChecksum, ascending));
     default:
       return Playlist::Item::Comparer::Ptr();
     }

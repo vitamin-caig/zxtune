@@ -291,14 +291,13 @@ namespace
     const String SubPath;
   };
 
-  String GetModuleType(const Parameters::Accessor& props)
+  String GetStringProperty(const Parameters::Accessor& props, const Parameters::NameType& propName)
   {
-    Parameters::StringType typeStr;
-    if (props.FindValue(ZXTune::Module::ATTR_TYPE, typeStr))
+    Parameters::StringType val;
+    if (props.FindValue(propName, val))
     {
-      return typeStr;
+      return val;
     }
-    assert(!"Invalid module type");
     return String();
   }
 
@@ -383,8 +382,10 @@ namespace
       : Attributes(attributes)
       , Source(source)
       , AdjustedParams(adjustedParams)
-      , Type(GetModuleType(moduleProps))
+      , Type(GetStringProperty(moduleProps, ZXTune::Module::ATTR_TYPE))
       , DisplayName(Attributes->GetDisplayName(moduleProps))
+      , Author(GetStringProperty(moduleProps, ZXTune::Module::ATTR_AUTHOR))
+      , Title(GetStringProperty(moduleProps, ZXTune::Module::ATTR_TITLE))
       , DurationInFrames(duration)
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_FIXEDCRC)))
@@ -452,6 +453,16 @@ namespace
       return String();
     }
 
+    virtual String GetAuthor() const
+    {
+      return Author;
+    }
+
+    virtual String GetTitle() const
+    {
+      return Title;
+    }
+
     virtual uint32_t GetChecksum() const
     {
       return Checksum;
@@ -487,6 +498,16 @@ namespace
     virtual void OnPropertyChanged(const Parameters::NameType& /*name*/) const
     {
       DisplayName.clear();
+      if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
+      {
+        Author = GetStringProperty(*properties, ZXTune::Module::ATTR_AUTHOR);
+        Title = GetStringProperty(*properties, ZXTune::Module::ATTR_TITLE);
+      }
+      else
+      {
+        Author.clear();
+        Title.clear();
+      }
     }
   private:
     const DynamicAttributesProvider::Ptr Attributes;
@@ -494,6 +515,8 @@ namespace
     const Parameters::Container::Ptr AdjustedParams;
     const String Type;
     mutable String DisplayName;
+    mutable String Author;
+    mutable String Title;
     const unsigned DurationInFrames;
     const uint32_t Checksum;
     const uint32_t CoreChecksum;

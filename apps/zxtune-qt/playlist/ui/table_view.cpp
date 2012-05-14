@@ -23,8 +23,9 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 //qt includes
-#include <QtCore/QUrl>
+#include <QtGui/QContextMenuEvent>
 #include <QtGui/QHeaderView>
+#include <QtGui/QMenu>
 
 namespace
 {
@@ -37,6 +38,72 @@ namespace
   const int_t ICON_WIDTH = 24;
   const int_t DISPLAYNAME_WIDTH = 320;
   const int_t DURATION_WIDTH = 60;
+  const int_t AUTHOR_WIDTH = 160;
+  const int_t TITLE_WIDTH = 160;
+  const int_t PATH_WIDTH = 320;
+  const int_t SIZE_WIDTH = 60;
+  const int_t CRC_WIDTH = 60;
+  const int_t FIXEDCRC_WIDTH = 60;
+
+  class TableHeader : public QHeaderView
+  {
+  public:
+    TableHeader(Playlist::Model::Ptr model, const QFont& font)
+      : QHeaderView(Qt::Horizontal)
+    {
+      setModel(model);
+      setObjectName("Columns");
+      setFont(font);
+      setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+      setHighlightSections(false);
+      setTextElideMode(Qt::ElideRight);
+      setMovable(true);
+      setClickable(true);
+      resizeSection(Playlist::Model::COLUMN_TYPE, ICON_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_DURATION, DURATION_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_AUTHOR, AUTHOR_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_TITLE, TITLE_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_PATH, PATH_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_SIZE, SIZE_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_CRC, CRC_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_FIXEDCRC, FIXEDCRC_WIDTH);
+
+      //default view
+      for (int idx = Playlist::Model::COLUMN_AUTHOR; idx != Playlist::Model::COLUMNS_COUNT; ++idx)
+      {
+        hideSection(idx);
+      }
+    }
+
+    //QWidget's virtuals
+    virtual void contextMenuEvent(QContextMenuEvent* event)
+    {
+      const std::auto_ptr<QMenu> menu = CreateMenu();
+      if (QAction* res = menu->exec(event->globalPos()))
+      {
+        const QVariant data = res->data();
+        const int section = data.toInt();
+        setSectionHidden(section, !isSectionHidden(section));
+      }
+      event->accept();
+    }
+  private:
+    std::auto_ptr<QMenu> CreateMenu()
+    {
+      std::auto_ptr<QMenu> result(new QMenu(this));
+      QAbstractItemModel* const md = model();
+      for (int idx = 0, lim = count(); idx != lim; ++idx)
+      {
+        const QVariant text = md->headerData(idx, Qt::Horizontal);
+        QAction* const action = result->addAction(text.toString());
+        action->setCheckable(true);
+        action->setChecked(!isSectionHidden(idx));
+        action->setData(QVariant(idx));
+      }
+      return result;
+    }
+  };
 
   class TableViewImpl : public Playlist::UI::TableView
   {
@@ -67,18 +134,7 @@ namespace
       setWordWrap(false);
       setCornerButtonEnabled(false);
       //setup dynamic ui
-      if (QHeaderView* const horHeader = horizontalHeader())
-      {
-        horHeader->setObjectName("Columns");
-        horHeader->setFont(Font);
-        horHeader->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-        horHeader->setHighlightSections(false);
-        horHeader->setTextElideMode(Qt::ElideRight);
-        horHeader->setMovable(true);
-        horHeader->resizeSection(Playlist::Model::COLUMN_TYPE, ICON_WIDTH);
-        horHeader->resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
-        horHeader->resizeSection(Playlist::Model::COLUMN_DURATION, DURATION_WIDTH);
-      }
+      setHorizontalHeader(new TableHeader(model, Font));
       if (QHeaderView* const verHeader = verticalHeader())
       {
         verHeader->setFont(Font);

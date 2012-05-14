@@ -119,6 +119,16 @@ namespace
       return Path;
     }
 
+    virtual String GetAuthor() const
+    {
+      return String();
+    }
+
+    virtual String GetTitle() const
+    {
+      return String();
+    }
+
     virtual uint32_t GetChecksum() const
     {
       return 0;
@@ -241,6 +251,18 @@ namespace
     {
       AcquireDelegate();
       return Delegate->GetTooltip();
+    }
+
+    virtual String GetAuthor() const
+    {
+      AcquireDelegate();
+      return Delegate->GetAuthor();
+    }
+
+    virtual String GetTitle() const
+    {
+      AcquireDelegate();
+      return Delegate->GetTitle();
     }
 
     virtual uint32_t GetChecksum() const
