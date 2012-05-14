@@ -115,7 +115,6 @@ namespace
     {
       //setup self
       setSortingEnabled(true);
-      setModel(model);
       setItemDelegate(Playlist::UI::TableViewItem::Create(*this, callback));
       setFont(Font);
       setMinimumSize(256, 128);
@@ -135,6 +134,7 @@ namespace
       setCornerButtonEnabled(false);
       //setup dynamic ui
       setHorizontalHeader(new TableHeader(model, Font));
+      setModel(model);
       if (QHeaderView* const verHeader = verticalHeader())
       {
         verHeader->setFont(Font);

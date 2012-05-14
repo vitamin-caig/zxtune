@@ -301,6 +301,47 @@ namespace
     const Parameters::Container::Ptr Container;
   };
 
+  class AutoBlockSignal
+  {
+  public:
+    explicit AutoBlockSignal(QObject& obj)
+      : Obj(obj)
+      , Previous(Obj.blockSignals(true))
+    {
+    }
+
+    ~AutoBlockSignal()
+    {
+      Obj.blockSignals(Previous);
+    }
+  private:
+    QObject& Obj;
+    const bool Previous;
+  };
+
+  class SortState
+  {
+  public:
+    explicit SortState(QHeaderView& view)
+      : View(view)
+      , IsShown(View.isSortIndicatorShown())
+      , Order(View.sortIndicatorOrder())
+      , Column(View.sortIndicatorSection())
+    {
+    }
+
+    ~SortState()
+    {
+      View.setSortIndicatorShown(IsShown);
+      View.setSortIndicator(Column, Order);
+    }
+  private:
+    QHeaderView& View;
+    const bool IsShown;
+    const Qt::SortOrder Order;
+    const int Column;
+  };
+
   class HeaderViewState : public WidgetState
   {
   public:
@@ -312,6 +353,9 @@ namespace
 
     virtual void Load() const
     {
+      //do not load sorting-related data
+      const AutoBlockSignal blockstate(View);
+      const SortState sortstate(View);
       if (!View.restoreState(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT)))
       {
         Log::Debug(THIS_MODULE, "Failed to restore state of QHeaderView(%1%)", FromQString(View.objectName()));
