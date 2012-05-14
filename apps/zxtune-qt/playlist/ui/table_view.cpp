@@ -69,10 +69,12 @@ namespace
       //setup dynamic ui
       if (QHeaderView* const horHeader = horizontalHeader())
       {
+        horHeader->setObjectName("Columns");
         horHeader->setFont(Font);
         horHeader->setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
         horHeader->setHighlightSections(false);
         horHeader->setTextElideMode(Qt::ElideRight);
+        horHeader->setMovable(true);
         horHeader->resizeSection(Playlist::Model::COLUMN_TYPE, ICON_WIDTH);
         horHeader->resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
         horHeader->resizeSection(Playlist::Model::COLUMN_DURATION, DURATION_WIDTH);

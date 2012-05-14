@@ -17,6 +17,7 @@ Author:
 #include "supp/options.h"
 #include "ui/utils.h"
 //common includes
+#include <logging.h>
 #include <tools.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -25,11 +26,14 @@ Author:
 #include <QtCore/QByteArray>
 #include <QtGui/QComboBox>
 #include <QtGui/QDialog>
+#include <QtGui/QHeaderView>
 #include <QtGui/QMainWindow>
 #include <QtGui/QTabWidget>
 
 namespace
 {
+  const std::string THIS_MODULE("UI::State");
+
   class WidgetState
   {
   public:
@@ -297,6 +301,32 @@ namespace
     const Parameters::Container::Ptr Container;
   };
 
+  class HeaderViewState : public WidgetState
+  {
+  public:
+    HeaderViewState(QHeaderView* view, Parameters::Container::Ptr ctr)
+      : View(*view)
+      , Container(CreateSubcontainer(ctr, View))
+    {
+    }
+
+    virtual void Load() const
+    {
+      if (!View.restoreState(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT)))
+      {
+        Log::Debug(THIS_MODULE, "Failed to restore state of QHeaderView(%1%)", FromQString(View.objectName()));
+      }
+    }
+
+    virtual void Save() const
+    {
+      SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT, View.saveState());
+    }
+  private:
+    QHeaderView& View;
+    const Parameters::Container::Ptr Container;
+  };
+
   class AnyWidgetState : public WidgetState
   {
   public:
@@ -308,7 +338,10 @@ namespace
 
     virtual void Load() const
     {
-      Wid.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY));
+      if (!Wid.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY)))
+      {
+        Log::Debug(THIS_MODULE, "Failed to restore geometry of QWidget(%1%)", FromQString(Wid.objectName()));
+      }
     }
 
     virtual void Save() const
@@ -345,6 +378,10 @@ namespace
       else if (QComboBox* combo = dynamic_cast<QComboBox*>(&wid))
       {
         Substates.push_back(boost::make_shared<ComboBoxState>(combo, Options));
+      }
+      else if (QHeaderView* view = dynamic_cast<QHeaderView*>(&wid))
+      {
+        Substates.push_back(boost::make_shared<HeaderViewState>(view, Options));
       }
       else
       {

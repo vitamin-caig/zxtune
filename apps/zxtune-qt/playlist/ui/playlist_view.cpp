@@ -24,6 +24,7 @@ Author:
 #include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
 #include "playlist/supp/storage.h"
+#include "ui/state.h"
 #include "ui/utils.h"
 #include "ui/controls/overlay_progress.h"
 #include "ui/tools/errorswidget.h"
@@ -120,27 +121,30 @@ namespace
   public:
     ViewImpl(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
       : Playlist::UI::View(parent)
+      , LayoutState(UI::State::Create(Parameters::ZXTuneQT::Playlist::NAMESPACE_NAME))
       , Controller(playlist)
       , Options(PlaylistOptionsWrapper(params))
       , State(*Controller->GetModel(), *Controller->GetIterator())
-      , Layout(new QVBoxLayout(this))
       , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
       , OperationProgress(OverlayProgress::Create(*this))
     {
       //setup ui
       setAcceptDrops(true);
-      Layout->setSpacing(1);
-      Layout->setMargin(1);
-      Layout->addWidget(View);
-      OperationProgress->setVisible(false);
-      if (UI::ErrorsWidget* const errors = UI::ErrorsWidget::Create(*this))
+      if (QVBoxLayout* const layout = new QVBoxLayout(this))
       {
-        Layout->addWidget(errors);
-        Require(errors->connect(Controller->GetScanner(), SIGNAL(ErrorOccurred(const Error&)), SLOT(AddError(const Error&))));
-      }
-      if (Playlist::UI::ScannerView* const scannerView = Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
-      {
-        Layout->addWidget(scannerView);
+        layout->setSpacing(1);
+        layout->setMargin(1);
+        layout->addWidget(View);
+        OperationProgress->setVisible(false);
+        if (UI::ErrorsWidget* const errors = UI::ErrorsWidget::Create(*this))
+        {
+          layout->addWidget(errors);
+          Require(errors->connect(Controller->GetScanner(), SIGNAL(ErrorOccurred(const Error&)), SLOT(AddError(const Error&))));
+        }
+        if (Playlist::UI::ScannerView* const scannerView = Playlist::UI::ScannerView::Create(*this, Controller->GetScanner()))
+        {
+          layout->addWidget(scannerView);
+        }
       }
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
@@ -156,6 +160,7 @@ namespace
       Require(connect(model, SIGNAL(OperationStopped()), SLOT(LongOperationStop())));
       Require(connect(OperationProgress, SIGNAL(Canceled()), SLOT(LongOperationCancel())));
 
+      LayoutState->AddWidget(*View->horizontalHeader());
       Log::Debug(THIS_MODULE, "Created at %1%", this);
     }
 
@@ -349,6 +354,20 @@ namespace
       OperationProgress->move(newPos.width(), newPos.height());
       event->accept();
     }
+
+    virtual void showEvent(QShowEvent* event)
+    {
+      Log::Debug(THIS_MODULE, "Layout load for %1%", this);
+      LayoutState->Load();
+      event->accept();
+    }
+
+    virtual void hideEvent(QHideEvent* event)
+    {
+      Log::Debug(THIS_MODULE, "Layout save for %1%", this);
+      LayoutState->Save();
+      event->accept();
+    }
   private:
     void UpdateState(Playlist::Item::State state)
     {
@@ -436,11 +455,11 @@ namespace
       }
     }
   private:
+    const UI::State::Ptr LayoutState;
     const Playlist::Controller::Ptr Controller;
     const PlaylistOptionsWrapper Options;
     //state
     PlayitemStateCallbackImpl State;
-    QVBoxLayout* const Layout;
     Playlist::UI::TableView* const View;
     OverlayProgress* const OperationProgress;
   };
