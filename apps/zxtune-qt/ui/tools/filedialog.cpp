@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "filedialog.h"
 #include "supp/options.h"
+#include "ui/state.h"
 #include "ui/utils.h"
 //common includes
 #include <parameters.h>
@@ -24,7 +25,7 @@ Author:
 
 namespace
 {
-  const Char CURRENT_DIR_PARAMETER[] = {'z', 'x', 't', 'u', 'n', 'e', '-', 'q', 't', '.', 'u', 'i', '.', 'b', 'r', 'o', 'w', 's', 'e', '_', 'd', 'i', 'r', '\0'};
+  const Char FILEDIALOG_NAMESPACE[] = {'F','i','l','e','D','i','a','l','o','g','\0'};
 
   int GetFilterIndex(const QStringList& filters, const QString& filter)
   {
@@ -38,18 +39,20 @@ namespace
     return -1;
   }
 
-  class GuiFileDialog : public FileDialog
+  class FileDialog
   {
   public:
-    explicit GuiFileDialog(Parameters::Container::Ptr params)
-      : Params(params)
+    FileDialog()
+      : State(UI::State::Create(FILEDIALOG_NAMESPACE))
     {
+      State->AddWidget(Dialog);
+      State->Load();
       Dialog.setViewMode(QFileDialog::Detail);
       Dialog.setOption(QFileDialog::DontUseNativeDialog, true);
       Dialog.setOption(QFileDialog::HideNameFilterDetails, true);
     }
 
-    virtual bool OpenSingleFile(const QString& title, const QString& filters, QString& file)
+    bool OpenSingleFile(const QString& title, const QString& filters, QString& file)
     {
       Dialog.setWindowTitle(title);
       Dialog.setNameFilter(filters);
@@ -66,7 +69,7 @@ namespace
       return false;
     }
 
-    virtual bool OpenMultipleFiles(const QString& title, const QString& filters, QStringList& files)
+    bool OpenMultipleFiles(const QString& title, const QString& filters, QStringList& files)
     {
       Dialog.setWindowTitle(title);
       Dialog.setNameFilter(filters);
@@ -82,7 +85,7 @@ namespace
       return false;
     }
 
-    virtual bool OpenFolder(const QString& title, QString& folder)
+    bool OpenFolder(const QString& title, QString& folder)
     {
       Dialog.setWindowTitle(title);
       Dialog.setFileMode(QFileDialog::Directory);
@@ -98,7 +101,7 @@ namespace
       return false;
     }
 
-    virtual bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter)
+    bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter)
     {
       Dialog.setWindowTitle(title);
       Dialog.setDefaultSuffix(suffix);
@@ -124,10 +127,9 @@ namespace
   private:
     bool ProcessDialog()
     {
-      Dialog.setDirectory(RestoreDir());
       if (QDialog::Accepted == Dialog.exec())
       {
-        StoreDir(Dialog.directory().absolutePath());
+        State->Save();
         return true;
       }
       return false;
@@ -144,59 +146,31 @@ namespace
       Dialog.setOption(QFileDialog::ReadOnly, false);
       Dialog.setAcceptMode(QFileDialog::AcceptSave);
     }
-
-    QString RestoreDir() const
-    {
-      String dir;
-      if (Params->FindValue(CURRENT_DIR_PARAMETER, dir))
-      {
-        return ToQString(dir);
-      }
-      return QDir::currentPath();
-    }
-
-    void StoreDir(const QString& dir)
-    {
-      Params->SetValue(CURRENT_DIR_PARAMETER, FromQString(dir));
-    }
   private:
-    const Parameters::Container::Ptr Params;
+    const UI::State::Ptr State;
     QFileDialog Dialog;
-  };
-
-  //TODO: temporary workaround
-  class DynamicFileDialog : public FileDialog
-  {
-  public:
-    virtual bool OpenSingleFile(const QString& title, const QString& filters, QString& file)
-    {
-      return GetDelegate()->OpenSingleFile(title, filters, file);
-    }
-
-    virtual bool OpenMultipleFiles(const QString& title, const QString& filters, QStringList& files)
-    {
-      return GetDelegate()->OpenMultipleFiles(title, filters, files);
-    }
-
-    virtual bool OpenFolder(const QString& title, QString& folder)
-    {
-      return GetDelegate()->OpenFolder(title, folder);
-    }
-
-    virtual bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter)
-    {
-      return GetDelegate()->SaveFile(title, suffix, filters, filename, usedFilter);
-    }
-  private:
-    boost::shared_ptr<FileDialog> GetDelegate()
-    {
-      return boost::make_shared<GuiFileDialog>(GlobalOptions::Instance().Get());
-    }
   };
 }
 
-FileDialog& FileDialog::Instance()
+namespace UI
 {
-  static DynamicFileDialog instance;
-  return instance;
+  bool OpenSingleFileDialog(const QString& title, const QString& filters, QString& file)
+  {
+    return FileDialog().OpenSingleFile(title, filters, file);
+  }
+
+  bool OpenMultipleFilesDialog(const QString& title, const QString& filters, QStringList& files)
+  {
+    return FileDialog().OpenMultipleFiles(title, filters, files);
+  }
+
+  bool OpenFolderDialog(const QString& title, QString& folder)
+  {
+    return FileDialog().OpenFolder(title, folder);
+  }
+
+  bool SaveFileDialog(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter)
+  {
+    return FileDialog().SaveFile(title, suffix, filters, filename, usedFilter);
+  }
 }

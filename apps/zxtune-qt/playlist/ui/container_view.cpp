@@ -196,7 +196,7 @@ namespace
     virtual void AddFiles()
     {
       QStringList files;
-      if (FileDialog::Instance().OpenMultipleFiles(tr("Add files"),
+      if (UI::OpenMultipleFilesDialog(tr("Add files"),
         tr("All files (*.*)"), files))
       {
         AddItemsToVisiblePlaylist(files);
@@ -207,7 +207,7 @@ namespace
     {
       QStringList folders;
       folders += QString();
-      if (FileDialog::Instance().OpenFolder(tr("Add folder"), folders.front()))
+      if (UI::OpenFolderDialog(tr("Add folder"), folders.front()))
       {
         AddItemsToVisiblePlaylist(folders);
       }
@@ -221,7 +221,7 @@ namespace
     virtual void LoadPlaylist()
     {
       QString file;
-      if (FileDialog::Instance().OpenSingleFile(actionLoadPlaylist->text(),
+      if (UI::OpenSingleFileDialog(actionLoadPlaylist->text(),
          tr("Playlist files (*.xspf *.ayl)"), file))
       {
         Container->OpenPlaylist(file);

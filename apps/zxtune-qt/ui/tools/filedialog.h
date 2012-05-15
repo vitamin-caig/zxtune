@@ -18,19 +18,12 @@ Author:
 //qt includes
 #include <QtCore/QStringList>
 
-class QWidget;
-
-class FileDialog
+namespace UI
 {
-public:
-  virtual ~FileDialog() {}
-
-  virtual bool OpenSingleFile(const QString& title, const QString& filters, QString& file) = 0;
-  virtual bool OpenMultipleFiles(const QString& title, const QString& filters, QStringList& files) = 0;
-  virtual bool OpenFolder(const QString& title, QString& folder) = 0;
-  virtual bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter = 0) = 0;
-
-  static FileDialog& Instance();
+  bool OpenSingleFileDialog(const QString& title, const QString& filters, QString& file);
+  bool OpenMultipleFilesDialog(const QString& title, const QString& filters, QStringList& files);
+  bool OpenFolderDialog(const QString& title, QString& folder);
+  bool SaveFileDialog(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter = 0);
 };
 
 #endif //ZXTUNE_QT_FILEDIALOG_DEFINED

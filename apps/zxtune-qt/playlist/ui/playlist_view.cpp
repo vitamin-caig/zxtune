@@ -261,7 +261,7 @@ namespace
 
       QString filename = Controller->GetName();
       int usedFilter = 0;
-      if (FileDialog::Instance().SaveFile(QString::fromUtf8("Save playlist"),
+      if (UI::SaveFileDialog(QString::fromUtf8("Save playlist"),
         QString::fromUtf8("xspf"), filters, filename, &usedFilter))
       {
         Playlist::IO::ExportFlags flags = 0;

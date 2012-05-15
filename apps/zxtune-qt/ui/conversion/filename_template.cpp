@@ -84,7 +84,7 @@ namespace
     virtual void OnBrowseDirectory()
     {
       QString dir = DirectoryName->currentText();
-      if (FileDialog::Instance().OpenFolder(dirSelectionGroup->title(), dir))
+      if (UI::OpenFolderDialog(dirSelectionGroup->title(), dir))
       {
         QLineEdit* const editor = DirectoryName->lineEdit();
         editor->setText(dir);

@@ -26,6 +26,7 @@ Author:
 #include <QtCore/QByteArray>
 #include <QtGui/QComboBox>
 #include <QtGui/QDialog>
+#include <QtGui/QFileDialog>
 #include <QtGui/QHeaderView>
 #include <QtGui/QMainWindow>
 #include <QtGui/QTabWidget>
@@ -220,6 +221,30 @@ namespace
     const Parameters::Container::Ptr Container;
   };
 
+  class FileDialogState : public WidgetState
+  {
+  public:
+    FileDialogState(QFileDialog* wnd, Parameters::Container::Ptr ctr)
+      : Wnd(*wnd)
+      //store in 'main' namespace
+      , Container(ctr)
+    {
+    }
+
+    virtual void Load() const
+    {
+      Wnd.restoreState(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT));
+    }
+
+    virtual void Save() const
+    {
+      SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT, Wnd.saveState());
+    }
+  private:
+    QFileDialog& Wnd;
+    const Parameters::Container::Ptr Container;
+  };
+
   class TabWidgetState : public WidgetState
   {
   public:
@@ -410,6 +435,10 @@ namespace
       if (QMainWindow* mainWnd = dynamic_cast<QMainWindow*>(&wid))
       {
         Substates.push_back(boost::make_shared<MainWindowState>(mainWnd, Options));
+      }
+      else if (QFileDialog* dialog = dynamic_cast<QFileDialog*>(&wid))
+      {
+        Substates.push_back(boost::make_shared<FileDialogState>(dialog, Options));
       }
       else if (QDialog* dialog = dynamic_cast<QDialog*>(&wid))
       {
