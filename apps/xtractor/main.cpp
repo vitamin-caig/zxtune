@@ -1457,14 +1457,15 @@ int main(int argc, char* argv[])
       variables_map vars;
       store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
       notify(vars);
-      if (vars.count(Text::HELP_KEY) || paths.empty())
-      {
-        std::cout << options << std::endl;
-        return true;
-      }
-      else if (vars.count(Text::VERSION_KEY))
+
+      if (vars.count(Text::VERSION_KEY))
       {
         std::cout << GetProgramVersionString() << std::endl;
+        return true;
+      }
+      else if (vars.count(Text::HELP_KEY) || paths.empty())
+      {
+        std::cout << options << std::endl;
         return true;
       }
     }
