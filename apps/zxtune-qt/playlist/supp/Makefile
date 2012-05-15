@@ -1,7 +1,7 @@
 library_name := playlist_supp
 path_step := ../../../..
 
-source_files := data_provider operations_convert session source_file storage
+source_files := data_provider operations_convert operations_search session source_file storage
 moc_files := container controller operations model scanner
 
 include_dirs = ../..

@@ -17,6 +17,7 @@ Author:
 #include "apps/base/app.h"
 #include "playlist_contextmenu.h"
 #include "playlist_view.h"
+#include "search_dialog.h"
 #include "playlist/parameters.h"
 #include "playlist/io/export.h"
 #include "playlist/supp/container.h"
@@ -319,6 +320,10 @@ namespace
       {
         PasteItems();
       }
+      else if (event->matches(QKeySequence::Find))
+      {
+        SearchItems();
+      }
       else
       {
         QWidget::keyPressEvent(event);
@@ -446,12 +451,26 @@ namespace
       else if (data.hasFormat(ITEMS_MIMETYPE))
       {
         const QByteArray& encodedData = data.data(ITEMS_MIMETYPE);
-        QStringList files;
+        QStringList items;
         {
           QDataStream stream(encodedData);
-          stream >> files;
+          stream >> items;
         }
-        AddItems(files);
+        const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
+        scanner->AddItems(items, false);
+      }
+    }
+
+    void SearchItems()
+    {
+      Playlist::Item::Search::Data data;
+      if (Playlist::UI::ShowSearchDialog(*this, data))
+      {
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        //search in all playlist when called via hotkey
+        const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSearchOperation(*model, data);
+        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+        model->PerformOperation(op);
       }
     }
   private:

@@ -24,6 +24,7 @@ Author:
 #include <boost/mem_fn.hpp>
 //qt includes
 #include <QtCore/QByteArray>
+#include <QtGui/QAbstractButton>
 #include <QtGui/QComboBox>
 #include <QtGui/QDialog>
 #include <QtGui/QFileDialog>
@@ -396,6 +397,35 @@ namespace
     const Parameters::Container::Ptr Container;
   };
 
+  class ButtonState : public WidgetState
+  {
+  public:
+    ButtonState(QAbstractButton* wid, Parameters::Container::Ptr ctr)
+      : Wid(*wid)
+      , Container(ctr)
+      , Name(FromQString(Wid.objectName()))
+    {
+    }
+
+    virtual void Load() const
+    {
+      Parameters::IntType val = 0;
+      if (Container->FindValue(Name, val))
+      {
+        Wid.setChecked(val != 0);
+      }
+    }
+
+    virtual void Save() const
+    {
+      Container->SetValue(Name, Wid.isChecked());
+    }
+  private:
+    QAbstractButton& Wid;
+    const Parameters::Container::Ptr Container;
+    const Parameters::NameType Name;
+  };
+
   class AnyWidgetState : public WidgetState
   {
   public:
@@ -455,6 +485,10 @@ namespace
       else if (QHeaderView* view = dynamic_cast<QHeaderView*>(&wid))
       {
         Substates.push_back(boost::make_shared<HeaderViewState>(view, Options));
+      }
+      else if (QAbstractButton* view = dynamic_cast<QAbstractButton*>(&wid))
+      {
+        Substates.push_back(boost::make_shared<ButtonState>(view, Options));
       }
       else
       {
