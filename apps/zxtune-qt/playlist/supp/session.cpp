@@ -64,9 +64,8 @@ namespace
   class FiledSession : public Playlist::Session
   {
   public:
-    explicit FiledSession(const Playlist::Container::Ptr ctr)
-      : Container(ctr)
-      , Directory(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
+    FiledSession()
+      : Directory(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
     {
       const QString dirPath(Text::PLAYLISTS_DIR);
       Require(Directory.mkpath(dirPath));
@@ -75,14 +74,14 @@ namespace
       Log::Debug(THIS_MODULE, "%1% stored playlists", Files.size());
     }
 
-    virtual void Load()
+    virtual void Load(Playlist::Container::Ptr container)
     {
       for (QStringList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
         const QString& fileName = *it;
         const QString& fullPath = Directory.absoluteFilePath(fileName);
         Log::Debug(THIS_MODULE, "Loading stored playlist '%1%'", FromQString(fullPath));
-        Container->OpenPlaylist(fullPath);
+        container->OpenPlaylist(fullPath);
       }
     }
 
@@ -117,7 +116,6 @@ namespace
       std::for_each(files.begin(), files.end(), boost::bind(&QDir::remove, &Directory, _1));
     }
   private:
-    const Playlist::Container::Ptr Container;
     QDir Directory;
     QStringList Files;
   };
@@ -125,8 +123,8 @@ namespace
 
 namespace Playlist
 {
-  Session::Ptr Session::Create(Container::Ptr ctr)
+  Session::Ptr Session::Create()
   {
-    return boost::make_shared<FiledSession>(ctr);
+    return boost::make_shared<FiledSession>();
   }
 }

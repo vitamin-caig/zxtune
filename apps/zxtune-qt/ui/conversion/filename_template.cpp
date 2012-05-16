@@ -46,7 +46,6 @@ namespace
   public:
     explicit FilenameTemplateWidgetImpl(QWidget& parent)
       : UI::FilenameTemplateWidget(parent)
-      , Options(GlobalOptions::Instance().Get())
       , State(UI::State::Create(Parameters::ZXTuneQT::UI::Export::NAMESPACE_NAME))
     {
       //setup self
@@ -103,8 +102,7 @@ namespace
       UpdateRecent(*DirectoryName);
     }
   private:
-    const Parameters::Container::Ptr Options;
-    UI::State::Ptr State;
+    const UI::State::Ptr State;
   };
 
   class FilenameTemplateDialog : public QDialog
@@ -119,6 +117,8 @@ namespace
       this->connect(buttons, SIGNAL(accepted()), this, SLOT(accept()));
       this->connect(buttons, SIGNAL(rejected()), this, SLOT(reject()));
       QVBoxLayout* const layout = new QVBoxLayout(this);
+      layout->setContentsMargins(4, 4, 4, 4);
+      layout->setSpacing(4);
       layout->addWidget(TemplateBuilder);
       layout->addWidget(buttons);
       setWindowTitle(TemplateBuilder->windowTitle());

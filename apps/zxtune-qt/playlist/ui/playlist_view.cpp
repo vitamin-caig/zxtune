@@ -243,6 +243,26 @@ namespace
       Update();
     }
 
+    virtual void AddFiles()
+    {
+      QStringList files;
+      if (UI::OpenMultipleFilesDialog(tr("Add files"),
+        tr("All files (*.*)"), files))
+      {
+        AddItems(files);
+      }
+    }
+
+    virtual void AddFolder()
+    {
+      QStringList folders;
+      folders += QString();
+      if (UI::OpenFolderDialog(tr("Add folder"), folders.front()))
+      {
+        AddItems(folders);
+      }
+    }
+
     virtual void Rename()
     {
       const QString oldName = Controller->GetName();

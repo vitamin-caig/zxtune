@@ -27,11 +27,11 @@ namespace Playlist
 
     virtual ~Session() {}
 
-    virtual void Load() = 0;
+    virtual void Load(Container::Ptr container) = 0;
     virtual void Save(Controller::Iterator::Ptr it) = 0;
 
     //creator
-    static Ptr Create(Container::Ptr container);
+    static Ptr Create();
   };
 }
 

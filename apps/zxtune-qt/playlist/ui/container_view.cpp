@@ -90,7 +90,7 @@ namespace
       : Playlist::UI::ContainerView(parent)
       , Options(parameters)
       , Container(Playlist::Container::Create(*this, parameters))
-      , Session(Playlist::Session::Create(Container))
+      , Session(Playlist::Session::Create())
       , ActionsMenu(new QMenu(tr("Playlist"), this))
       , ActivePlaylistView(0)
     {
@@ -127,7 +127,7 @@ namespace
     {
       if (items.empty())
       {
-        Session->Load();
+        Session->Load(Container);
         if (widgetsContainer->count() == 0)
         {
           CreateAnonymousPlaylist();
@@ -195,22 +195,14 @@ namespace
 
     virtual void AddFiles()
     {
-      QStringList files;
-      if (UI::OpenMultipleFilesDialog(tr("Add files"),
-        tr("All files (*.*)"), files))
-      {
-        AddItemsToVisiblePlaylist(files);
-      }
+      Playlist::UI::View& pl = GetVisiblePlaylist();
+      pl.AddFiles();
     }
 
     virtual void AddFolder()
     {
-      QStringList folders;
-      folders += QString();
-      if (UI::OpenFolderDialog(tr("Add folder"), folders.front()))
-      {
-        AddItemsToVisiblePlaylist(folders);
-      }
+      Playlist::UI::View& pl = GetVisiblePlaylist();
+      pl.AddFolder();
     }
 
     virtual void CreatePlaylist()
@@ -356,12 +348,6 @@ namespace
         return *view;
       }
       return GetActivePlaylist();
-    }
-
-    void AddItemsToVisiblePlaylist(const QStringList& items)
-    {
-      Playlist::UI::View& pl = GetVisiblePlaylist();
-      pl.AddItems(items);
     }
 
     void SwitchToLastPlaylist()

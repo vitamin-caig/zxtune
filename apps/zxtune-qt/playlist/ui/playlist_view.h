@@ -41,6 +41,7 @@ namespace Playlist
     public slots:
       virtual void AddItems(const QStringList& items) = 0;
 
+      //navigate
       virtual void Play() = 0;
       virtual void Pause() = 0;
       virtual void Stop() = 0;
@@ -48,8 +49,11 @@ namespace Playlist
       virtual void Next() = 0;
       virtual void Prev() = 0;
       virtual void Clear() = 0;
-      virtual void Rename() = 0;
+      virtual void AddFiles() = 0;
+      virtual void AddFolder() = 0;
+      //actions
       virtual void Save() = 0;
+      virtual void Rename() = 0;
     private slots:
       virtual void ActivateItem(unsigned idx, Playlist::Item::Data::Ptr data) = 0;
       virtual void LongOperationStart() = 0;
