@@ -75,6 +75,7 @@
    </property>
    <addaction name="SelRipOffsAction"/>
    <addaction name="SelSameTypesAction"/>
+   <addaction name="SelFoundAction"/>
   </widget>
   <action name="SelRipOffsAction">
    <property name="text">
@@ -84,6 +85,11 @@
   <action name="SelSameTypesAction">
    <property name="text">
     <string>Items with the same types</string>
+   </property>
+  </action>
+  <action name="SelFoundAction">
+   <property name="text">
+    <string>Found in this items</string>
    </property>
   </action>
   <action name="CopyToClipboardAction">

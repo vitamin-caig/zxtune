@@ -122,7 +122,7 @@ namespace Playlist
       return new SearchWidgetImpl(parent);
     }
 
-    bool ShowSearchDialog(QWidget& parent, Playlist::Item::Search::Data& data)
+    bool GetSearchParameters(QWidget& parent, Playlist::Item::Search::Data& data)
     {
       SearchDialog dialog(parent);
       if (dialog.exec())

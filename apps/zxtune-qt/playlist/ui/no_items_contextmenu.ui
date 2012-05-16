@@ -3,7 +3,9 @@
  <class>NoItemsContextMenu</class>
  <widget class="QMenu" name="NoItemsContextMenu">
   <addaction name="DelDupsAction"/>
-  <addaction name="SelRipOffsAction"/>
+  <addaction name="separator"/>
+  <addaction name="SelectionSubmenu"/>
+  <addaction name="separator"/>
   <addaction name="ShowStatisticAction"/>
   <addaction name="ExportAction"/>
   <action name="DelDupsAction">
@@ -16,14 +18,26 @@
     <string>Remove all duplicates</string>
    </property>
   </action>
-  <action name="SelRipOffsAction">
+  <widget class="QMenu" name="SelectionSubmenu">
+   <property name="title">
+    <string>Select</string>
+   </property>
    <property name="icon">
     <iconset>
      <normalon>:/playlist/select.png</normalon>
     </iconset>
    </property>
+   <addaction name="SelRipOffsAction"/>
+   <addaction name="SelFoundAction"/>
+  </widget>
+  <action name="SelRipOffsAction">
    <property name="text">
-    <string>Select all rip-offs</string>
+    <string>All rip-offs</string>
+   </property>
+  </action>
+  <action name="SelFoundAction">
+   <property name="text">
+    <string>All found items</string>
    </property>
   </action>
   <action name="ShowStatisticAction">

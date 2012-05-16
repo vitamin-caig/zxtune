@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "playlist_contextmenu.h"
+#include "search_dialog.h"
 #include "table_view.h"
 #include "ui/utils.h"
 #include "ui/conversion/filename_template.h"
@@ -49,6 +50,7 @@ namespace
 
       Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates())));
       Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs())));
+      Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFound())));
       Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic())));
       Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportAll())));
     }
@@ -93,6 +95,7 @@ namespace
       Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected())));
       Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected())));
       Require(receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected())));
+      Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFoundInSelected())));
       Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
       Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected())));
       Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected())));
@@ -273,6 +276,30 @@ namespace
         const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, type, params);
         Require(Controller->connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
           SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
+        model->PerformOperation(op);
+      }
+    }
+
+    virtual void SelectFound() const
+    {
+      Playlist::Item::Search::Data data;
+      if (Playlist::UI::GetSearchParameters(View, data))
+      {
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSearchOperation(*model, data);
+        Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+        model->PerformOperation(op);
+      }
+    }
+
+    virtual void SelectFoundInSelected() const
+    {
+      Playlist::Item::Search::Data data;
+      if (Playlist::UI::GetSearchParameters(View, data))
+      {
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSearchOperation(*model, SelectedItems, data);
+        Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
         model->PerformOperation(op);
       }
     }

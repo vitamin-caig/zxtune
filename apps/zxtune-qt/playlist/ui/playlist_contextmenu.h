@@ -37,7 +37,7 @@ namespace Playlist
       static Ptr Create(TableView& view, Playlist::Controller::Ptr playlist);
 
       virtual void Exec(const QPoint& pos) = 0;
-    private slots:
+    public slots:
       virtual void PlaySelected() const = 0;
       virtual void RemoveSelected() const = 0;
       virtual void CropSelected() const = 0;
@@ -55,6 +55,8 @@ namespace Playlist
       virtual void ExportAll() const = 0;
       virtual void ExportSelected() const = 0;
       virtual void ConvertSelected() const = 0;
+      virtual void SelectFound() const = 0;
+      virtual void SelectFoundInSelected() const = 0;
     };
   }
 }

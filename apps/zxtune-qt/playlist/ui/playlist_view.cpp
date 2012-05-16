@@ -484,7 +484,7 @@ namespace
     void SearchItems()
     {
       Playlist::Item::Search::Data data;
-      if (Playlist::UI::ShowSearchDialog(*this, data))
+      if (Playlist::UI::GetSearchParameters(*this, data))
       {
         const Playlist::Model::Ptr model = Controller->GetModel();
         //search in all playlist when called via hotkey

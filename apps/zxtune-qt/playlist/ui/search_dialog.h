@@ -35,7 +35,7 @@ namespace Playlist
       virtual Playlist::Item::Search::Data GetData() const = 0;
     };
 
-    bool ShowSearchDialog(QWidget& parent, Playlist::Item::Search::Data& data);
+    bool GetSearchParameters(QWidget& parent, Playlist::Item::Search::Data& data);
   }
 }
 
