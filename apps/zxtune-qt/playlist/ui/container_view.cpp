@@ -240,6 +240,7 @@ namespace
     virtual void ClosePlaylist(int index)
     {
       Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
+      view->hide();//to save layout
       widgetsContainer->removeTab(index);
       Log::Debug(THIS_MODULE, "Closed playlist idx=%1% val=%2%, active=%3%",
         index, view, ActivePlaylistView);
