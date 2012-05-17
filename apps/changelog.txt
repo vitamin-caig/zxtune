@@ -7,6 +7,26 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] zxtune-qt: persistent storage for settings and UI state
+[+] zxtune-qt: options dialog
+[+] zxtune-qt: current playlists store/restore between sessions
+[+] zxtune-qt: Copy&Paste of playlist items
+[+] zxtune-qt: playlist columns moving and visibility setting up
+[+] zxtune-qt: search functionality
+[+] zxtune-qt for dingux: lcd switching off by 'hold' key
+[*] zxtune-qt: fixed forced sorting on playlist load
+[*] zxtune-qt: updated icons
+[*] zxtune-qt: fixed single quote unescaping on playlist load
+[*] zxtune-qt: improved errors reporting
+[*] zxtune-qt: click'n'go sliders style- single click to change position
+[*] zxtune-qt: new playlists columns
+[+] optional twice analysis of plain data containers
+[+] mingw x86_64 builds
+[*] boost 1.49.0 and qt 4.8.1 (qt4.7.1 for dingux)
+[*] mingw builds are optimized for MMX/SSE/SSE2
+
+--- Rev1659 from 25.04.2012
+
 [+] ProTracker v1.xx support (PT1)
 
 --- Rev1649 from 17.04.2012
