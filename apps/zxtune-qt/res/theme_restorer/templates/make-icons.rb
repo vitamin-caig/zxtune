@@ -1,10 +1,16 @@
 #!/usr/bin/ruby
 
-require 'RMagick'
+require 'rubygems'
+require 'rmagick'
 
 def save_icon(img, offset_y, size, position, name)
 	img.crop((size + 1) * position + 1, offset_y, size, size).write("icons/#{name}")
 	puts "#{name} saved"
+end
+
+if ARGV.empty?
+	puts "Usage: ruby make-icons.rb <icon-file.png>"
+	Thread.exit
 end
 
 img = Magick::ImageList.new(ARGV[0])
@@ -13,6 +19,11 @@ save_icon(img, 1, 16, 0, 'app_about.png')
 save_icon(img, 1, 16, 1, 'app_aboutqt.png')
 save_icon(img, 1, 16, 2, 'app_components.png')
 save_icon(img, 1, 16, 3, 'app_exit.png')
+save_icon(img, 1, 16, 4, 'app_help.png')
+save_icon(img, 1, 16, 5, 'app_preferences.png')
+save_icon(img, 1, 16, 6, 'app_reportbug.png')
+save_icon(img, 1, 16, 7, 'app_webfaq.png')
+save_icon(img, 1, 16, 8, 'app_website.png')
 
 save_icon(img, 18, 24, 0, 'ctrl_next.png')
 save_icon(img, 18, 24, 1, 'ctrl_pause.png')
@@ -47,4 +58,5 @@ save_icon(img, 60, 16, 6, 'list_rename.png')
 save_icon(img, 60, 16, 7, 'list_export.png')
 save_icon(img, 60, 16, 8, 'list_statistic.png')
 save_icon(img, 60, 16, 9, 'list_group.png')
-save_icon(img, 60, 16, 10, 'list_select.png')
+save_icon(img, 60, 16, 10, 'list_selripoffs.png')
+save_icon(img, 60, 16, 11, 'list_convert.png')

@@ -15,6 +15,11 @@
     <file alias="about.png">app_about.png</file>
     <file alias="aboutqt.png">app_aboutqt.png</file>
     <file alias="exit.png">app_exit.png</file>
+    <file alias="help.png">app_help.png</file>
+    <file alias="preferences.png">app_preferences.png</file>
+    <file alias="reportbug.png">app_reportbug.png</file>
+    <file alias="webfaq.png">app_webfaq.png</file>
+    <file alias="website.png">app_website.png</file>
   </qresource>
   <qresource prefix="/playback">
     <file alias="prev.png">pb_prev.png</file>
@@ -44,6 +49,7 @@
     <file alias="info.png">app_about.png</file>
     <file alias="statistic.png">list_statistic.png</file>
     <file alias="export.png">list_export.png</file>
+    <file alias="convert.png">list_convert.png</file>
   </qresource>
   <qresource prefix="/setup">
     <file alias="loop_off.png">list_looped.png</file>
