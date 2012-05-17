@@ -40,6 +40,9 @@
    <property name="text">
     <string>Create playlist</string>
    </property>
+   <property name="shortcut">
+    <enum>QKeySequence::New</enum>
+   </property>
   </action>
   <action name="actionLoadPlaylist">
    <property name="icon">
@@ -60,6 +63,9 @@
    <property name="text">
     <string>Save playlist</string>
    </property>
+   <property name="shortcut">
+    <enum>QKeySequence::Save</enum>
+   </property>
   </action>
   <action name="actionRenamePlaylist">
    <property name="icon">
@@ -79,6 +85,9 @@
    </property>
    <property name="text">
     <string>Close playlist</string>
+   </property>
+   <property name="shortcut">
+    <enum>QKeySequence::Close</enum>
    </property>
   </action>
   <action name="actionClearPlaylist">

@@ -38,7 +38,7 @@
    <sender>dialogButtons</sender>
    <signal>accepted()</signal>
    <receiver>PreferencesDialog</receiver>
-   <slot>accept()</slot>
+   <slot>close()</slot>
   </connection>
  </connections>
 </ui>
