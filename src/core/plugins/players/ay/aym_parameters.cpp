@@ -165,13 +165,14 @@ namespace
           throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
             Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
         }
+        return intVal;
       }
       Parameters::StringType strVal;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
       {
         return String2Layout(strVal);
       }
-      return static_cast<Devices::AYM::LayoutType>(intVal);
+      return Devices::AYM::LAYOUT_ABC;
     }
   private:
     const Parameters::Accessor::Ptr Params;

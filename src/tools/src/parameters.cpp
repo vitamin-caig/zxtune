@@ -482,8 +482,12 @@ namespace Parameters
 
   bool ConvertFromString(const String& str, StringType& res)
   {
-    res = StringFromString(str);
-    return true;
+    if (!IsInteger(str) && !IsData(str))
+    {
+      res = StringFromString(str);
+      return true;
+    }
+    return false;
   }
 
   bool ConvertFromString(const String& str, DataType& res)
