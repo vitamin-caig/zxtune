@@ -165,7 +165,7 @@ namespace
           throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
             Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
         }
-        return intVal;
+        return static_cast<Devices::AYM::LayoutType>(intVal);
       }
       Parameters::StringType strVal;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, strVal))
