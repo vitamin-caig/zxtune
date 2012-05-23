@@ -1,4 +1,5 @@
 #include <byteorder.h>
+#include <iterator.h>
 #include <template.h>
 #include <template_tools.h>
 #include <parameters.h>
@@ -294,6 +295,18 @@ int main()
       Test<uint64_t>("S => Ms", oms.Get(), s.Get() * 1000);
     }
     */
+  }
+  std::cout << "---- Test for iterators ----" << std::endl;
+  {
+    const uint8_t DATA[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    CycledIterator<const uint8_t*> it(DATA, ArrayEnd(DATA));
+    Test<uint_t>("Cycled iterator init", *it, 0);
+    Test<uint_t>("Cycled iterator forward", *++it, 1);
+    Test<uint_t>("Cycled iterator backward", *--it, 0);
+    Test<uint_t>("Cycled iterator underrun", *--it, 9);
+    Test<uint_t>("Cycled iterator overrun", *++it, 0);
+    Test<uint_t>("Cycled iterator positive delta", *(it + 15), 5);
+    Test<uint_t>("Cycled iterator negative delta", *(it - 11), 9);
   }
   }
   catch (int code)

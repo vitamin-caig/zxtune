@@ -78,6 +78,26 @@ public:
   {
     return &*Cur;
   }
+
+  CycledIterator<C> operator + (std::size_t dist) const
+  {
+    const std::size_t len = std::distance(Begin, End);
+    const std::size_t pos = std::distance(Begin, Cur);
+    CycledIterator<C> res(Begin, End);
+    const std::size_t newPos = (pos + dist) % len;
+    std::advance(res.Cur, newPos);
+    return res;
+  }
+
+  CycledIterator<C> operator - (std::size_t dist) const
+  {
+    const std::size_t len = std::distance(Begin, End);
+    const std::size_t pos = std::distance(Begin, Cur);
+    CycledIterator<C> res(Begin, End);
+    const std::size_t newPos = len + (std::ptrdiff_t(pos) - dist % len);
+    std::advance(res.Cur, newPos);
+    return res;
+  }
 private:
   C Begin;
   C End;
