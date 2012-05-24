@@ -26,6 +26,10 @@ __cpp> "#endif //__TEXT_ARCHIVED_H_DEFINED__\n"
 < HRIP_DECODER_DESCRIPTION
 > "Hrip archive"
 
+#LHA
+< LHA_DECODER_DESCRIPTION
+> "LHA archive"
+
 #SCL
 < SCL_DECODER_DESCRIPTION
 > "SCL files container"

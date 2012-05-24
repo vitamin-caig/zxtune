@@ -25,6 +25,7 @@ namespace Formats
     Decoder::Ptr CreateTRDDecoder();
     Decoder::Ptr CreateHripDecoder();
     Decoder::Ptr CreateAYDecoder();
+    Decoder::Ptr CreateLhaDecoder();
   }
 }
 

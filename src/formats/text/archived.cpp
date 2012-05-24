@@ -17,6 +17,9 @@ extern const Char AY_RAW_FILENAME_PREFIX[] = {
 extern const Char HRIP_DECODER_DESCRIPTION[] = {
   'H','r','i','p',' ','a','r','c','h','i','v','e',0
 };
+extern const Char LHA_DECODER_DESCRIPTION[] = {
+  'L','H','A',' ','a','r','c','h','i','v','e',0
+};
 extern const Char SCL_DECODER_DESCRIPTION[] = {
   'S','C','L',' ','f','i','l','e','s',' ','c','o','n','t','a','i','n','e','r',0
 };
