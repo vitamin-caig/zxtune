@@ -1,0 +1,7 @@
+test-basic-reader
+test-crc16
+test-decoder
+fuzzer
+build-arch
+dump-headers
+decompress-crc

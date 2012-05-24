@@ -1,0 +1,722 @@
+#!/bin/bash
+#
+# Copyright (c) 2011, 2012, Simon Howard
+#
+# Permission to use, copy, modify, and/or distribute this software
+# for any purpose with or without fee is hereby granted, provided
+# that the above copyright notice and this permission notice appear
+# in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+# WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+# AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+# CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+# NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+# CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+#
+# Test script that tests the extract functionality.
+#
+
+. test_common.sh
+
+run_sandbox=/tmp/extract1
+w_sandbox=/tmp/extract2
+gather_sandbox=/tmp/extract3
+
+remove_sandboxes() {
+	if [ -e "$run_sandbox" ]; then
+		chmod -R +wx "$run_sandbox"
+		rm -rf "$run_sandbox"
+	fi
+	if [ -e "$w_sandbox" ]; then
+		chmod -R +wx "$w_sandbox"
+		rm -rf "$w_sandbox"
+	fi
+	if [ -e "$gather_sandbox" ]; then
+		chmod -R +wx "$gather_sandbox"
+		rm -rf "$gather_sandbox"
+	fi
+}
+
+make_sandboxes() {
+	remove_sandboxes
+	mkdir "$run_sandbox"
+	mkdir "$w_sandbox"
+	mkdir "$gather_sandbox"
+}
+
+# "Simplify" a filename - on Windows, filenames ending in a period
+# have that period removed - ie. "gpl-2." becomes "gpl-2". So we
+# must check for the latter rather than the former.
+
+simplify_filename() {
+	local filename=$1
+	if [ "$build_arch" = "windows" ]; then
+		echo "$filename" | sed 's/\.$//'
+	else
+		echo "$filename"
+	fi
+}
+
+file_to_overwrite() {
+	local filename="$1"
+	filename=$(simplify_filename "$filename")
+	local tmpfile="$run_sandbox/$filename"
+	mkdir -p $(dirname "$tmpfile")
+	echo "__OW_FILE__" > "$tmpfile"
+}
+
+check_exists() {
+	local archive_file=$1
+	local filename=$2
+	x_filename=$(simplify_filename "$filename")
+	if [ ! -e "$run_sandbox/$x_filename" ] && \
+	   [ ! -L "$run_sandbox/$x_filename" ]; then
+		fail "File was not extracted as expected:"  \
+		     "  archive: $archive_file"             \
+		     "  filename: $filename"
+	fi
+}
+
+check_not_exists() {
+	local archive_file=$1
+	local filename=$2
+	x_filename=$(simplify_filename "$filename")
+	if [ -e "$run_sandbox/$x_filename" ] || \
+	   [ -L "$run_sandbox/$x_filename" ]; then
+		fail "File was extracted, not as expected:"  \
+		     "  archive: $archive_file"              \
+		     "  filename: $filename"
+	fi
+}
+
+check_overwritten() {
+	local archive_file=$1
+	local filename=$2
+	x_filename=$(simplify_filename "$filename")
+	if grep -q __OW_FILE__ "$run_sandbox/$x_filename" 2>/dev/null; then
+		fail "File was not overwritten as expected:" \
+		     "  archive: $archive_file"              \
+		     "  filename: $filename"
+	fi
+}
+
+check_not_overwritten() {
+	local archive_file=$1
+	local filename=$2
+	x_filename=$(simplify_filename "$filename")
+	if ! grep -q __OW_FILE__ "$run_sandbox/$x_filename" 2>/dev/null; then
+		fail "File was overwritten, not as expected:"   \
+		     "  archive: $archive_file"                 \
+		     "  filename: $filename"
+	fi
+}
+
+check_extracted_file() {
+	local archive_file=$1
+	local filename=$2
+	local timestamp=$3
+	local unix_perms=$4
+	local symlink_target=$5
+
+	#echo "check_extracted_file: $@"
+
+	check_exists "$archive_file" "$filename"
+
+	# Symbolic links are treated specially. Just check where the
+	# link points to. If this isn't Unix, don't expect anything.
+
+	if [ "$symlink_target" != "" ]; then
+		local link_value=$(readlink "$run_sandbox/$filename")
+
+		if [ "$link_value" != "$symlink_target" ]; then
+			fail "Symlink mismatch for $archive_file" \
+			     "'$link_value' != '$symlink_target'"
+		fi
+
+		return
+	fi
+
+	if [ "$timestamp" != "" ]; then
+		local file_ts=$(file_mod_time "$run_sandbox/$filename")
+
+		if [ "$file_ts" != "$timestamp" ]; then
+			fail "Timestamp mismatch for $archive_file" \
+			     "$filename: $file_ts != $timestamp"
+		fi
+	fi
+
+	# Check file permissions. The permissions in the -hdr files
+	# look like "0100644" - strip these down to just the last
+	# three numbers.
+
+	if [ "$build_arch" = "unix" ] && [ "$unix_perms" != "" ]; then
+		local file_perms=$(file_perms "$run_sandbox/$filename" \
+		                   | sed 's/.*\(...\)/\1/')
+		unix_perms=$(echo $unix_perms | sed 's/.*\(...\)/\1/')
+
+		if [ "$file_perms" != "$unix_perms" ]; then
+			fail "Permission mismatch for $archive_file" \
+			     "$filename: $file_perms != $unix_perms"
+		fi
+	fi
+}
+
+check_extracted_files() {
+	local archive_file=$1
+	local path=""
+	local filename=""
+	local timestamp=""
+	local unix_perms=""
+	local symlink_target=""
+
+	while read; do
+		if [ "$REPLY" = "--" ]; then
+			check_extracted_file "$archive_file"            \
+			    "$path$filename" "$timestamp" "$unix_perms" \
+			    "$symlink_target"
+			path=""
+			filename=""
+			timestamp=""
+			unix_perms=""
+			symlink_target=""
+			continue
+		fi
+
+		case "$REPLY" in
+		path:*) path=${REPLY/path: /} ;;
+		filename:*) filename=${REPLY/filename: /} ;;
+		timestamp:*) timestamp=${REPLY/timestamp: /} ;;
+		unix_perms:*) unix_perms=${REPLY/unix_perms: /} ;;
+		symlink_target:*) symlink_target=${REPLY/symlink_target: /} ;;
+		*) ;;
+		esac
+	done < "output/$archive_file-hdr.txt"
+}
+
+# Run the program under test, comparing the output to the contents
+# of the specified file.
+
+lha_check_output() {
+	#echo "lha_check_output: $@"
+	local expected_output="$1"
+	shift
+
+	cd "$run_sandbox"
+	test_lha "$@" >/tmp/output.txt 2>&1
+	cd "$test_base"
+
+	if $GATHER && [ ! -e "$expected_output" ]; then
+		cd "$gather_sandbox"
+		$LHA_TOOL "$@" > $expected_output
+		cd "$test_base"
+	fi
+
+	if ! diff -u "$expected_output" /tmp/output.txt; then
+		fail "Output not as expected for command:" \
+		     "    lha $*" >&2
+	fi
+
+	rm -f /tmp/output.txt
+}
+
+# Basic 'lha e' extract.
+
+test_basic_extract() {
+	local archive_file=$1
+	local filename=$2
+	local expected_file="$test_base/output/$archive_file-e.txt"
+
+	make_sandboxes
+
+	lha_check_output "$expected_file" e $(test_arc_file "$archive_file")
+
+	check_extracted_files "$archive_file"
+
+	remove_sandboxes
+}
+
+# Basic extract, reading from stdin.
+
+test_stdin_extract() {
+	local archive_file=$1
+	local filename=$2
+	local expected_file="$test_base/output/$archive_file-e.txt"
+
+	make_sandboxes
+
+	lha_check_output "$expected_file" e - \
+	    < $(test_arc_file "$archive_file")
+
+	check_extracted_files "$archive_file"
+
+	remove_sandboxes
+}
+
+# Extract with 'w' option to specify destination directory.
+
+test_w_option() {
+	local archive_file=$1
+	local filename=$2
+	local expected_file="$test_base/output/$archive_file-e.txt"
+
+	# Extract into a subdirectory of the 'w' sandbox that does not
+	# exist: the path should be created as part of the extract.
+
+	local extract_dir="$w_sandbox/dir"
+
+	if $is_cygwin; then
+		extract_dir=$(cygpath -w "$w_sandbox/dir")
+	fi
+
+	make_sandboxes
+
+	lha_check_output "$expected_file" \
+	                 "ew=$extract_dir" $(test_arc_file "$archive_file")
+
+	x_filename=$(simplify_filename "$filename")
+
+	if [ ! -e "$w_sandbox/dir/$x_filename" ] && \
+	   [ ! -L "$w_sandbox/dir/$x_filename" ]; then
+		fail "Failed to extract $filename from $archive_file"
+	fi
+
+	remove_sandboxes
+}
+
+# Extract with level 1 quiet option to partially silence output.
+
+test_q1_option() {
+	local archive_file=$1
+	local filename=$2
+
+	make_sandboxes
+
+	if [ "$filename" = "symlink" ]; then
+		printf "Symbolic Link symlink -> target\n"
+	else
+		printf "\r$filename :\r$filename\t- Melted  \n"
+	fi >/tmp/expected.txt
+
+	lha_check_output /tmp/expected.txt \
+	                 eq1 $(test_arc_file "$archive_file")
+
+	check_exists "$archive_file" "$filename"
+
+	rm -f /tmp/expected.txt
+
+	remove_sandboxes
+}
+
+# Extract with level 2 quiet option to fully silence output.
+
+test_q_option() {
+	local cmd=$1
+	local archive_file=$2
+	local filename=$3
+
+	make_sandboxes
+
+	file_to_overwrite "$filename"
+	lha_check_output /dev/null $cmd $(test_arc_file "$archive_file")
+
+	check_exists "$archive_file" "$filename"
+
+	# The -q option also causes an existing file to be overwritten
+	# without confirmation (like -f). Make sure file is overwritten.
+
+	check_overwritten "$archive_file" "$filename"
+
+	remove_sandboxes
+}
+
+# Extract with 'i' option to ignore directory of archived files.
+
+test_i_option() {
+	local archive_file=$1
+	local filename=$2
+
+	local base_filename=$(basename "$filename")
+
+	make_sandboxes
+
+	# Hackishly transform the file containing the expected output
+	# to remove the parent directory. This gives the expected
+	# output when using the -i option.
+
+	sed 's/[A-Za-z0-9\/]*\///g'                       \
+	      < "$test_base/output/$archive_file-e.txt"   \
+	      > /tmp/expected.txt
+
+	lha_check_output /tmp/expected.txt \
+	                 ei $(test_arc_file "$archive_file")
+
+	check_exists "$archive_file" "$base_filename"
+
+	rm -f /tmp/expected.txt
+	remove_sandboxes
+}
+
+# Extract with the 'f' option to force overwrite of an existing file.
+
+test_f_option() {
+	local archive_file=$1
+	local filename=$2
+	local expected_file="$test_base/output/$archive_file-e.txt"
+
+	make_sandboxes
+	file_to_overwrite "$filename"
+
+	lha_check_output "$expected_file" \
+	                 ef $(test_arc_file "$archive_file")
+
+	check_exists "$archive_file" "$filename"
+
+	check_overwritten "$archive_file" "$filename"
+
+	remove_sandboxes
+}
+
+test_archive() {
+	local archive_file=$1
+	local filename=$2
+
+	#echo "test_archive $archive_file"
+
+	# Don't check symlink archives on non-Unix systems that
+	# don't support them.
+
+	if [ "$build_arch" != "unix" ] && [ "$filename" = "symlink" ]; then
+		return
+	fi
+
+	test_basic_extract "$archive_file" "$filename"
+	test_stdin_extract "$archive_file" "$filename"
+	test_w_option "$archive_file" "$filename"
+	test_q_option eq "$archive_file" "$filename"
+	test_q_option eq2 "$archive_file" "$filename"
+	test_q1_option "$archive_file" "$filename"
+	test_i_option "$archive_file" "$filename"
+	test_f_option "$archive_file" "$filename"
+	# TODO: check v option
+}
+
+test_archive larc333/lz4.lzs                "gpl-2.gz"
+test_archive larc333/lz5.lzs                "gpl-2"
+test_archive larc333/sfx.com                "gpl-2.gz"
+test_archive larc333/subdir.lzs             "subdir/subdir2/hello.txt"
+test_archive larc333/long.lzs               "long.txt"
+
+test_archive lharc113/lh0.lzh               "gpl-2.gz"
+test_archive lharc113/lh1.lzh               "gpl-2"
+test_archive lharc113/sfx.com               "gpl-2"
+test_archive lharc113/subdir.lzh            "subdir/subdir2/hello.txt"
+test_archive lharc113/long.lzh              "long.txt"
+
+test_archive lha213/lh0.lzh                 "gpl-2.gz"
+test_archive lha213/lh5.lzh                 "gpl-2"
+test_archive lha213/lh5_long.lzh            "long.txt"
+test_archive lha213/sfx.exe                 "gpl-2"
+test_archive lha213/subdir.lzh              "subdir/subdir2/hello.txt"
+
+test_archive lha255e/lh0.lzh                "gpl-2.gz"
+test_archive lha255e/lh5.lzh                "gpl-2"
+test_archive lha255e/sfx.exe                "gpl-2"
+test_archive lha255e/subdir.lzh             "subdir/subdir2/hello.txt"
+
+test_archive lha_unix114i/h0_lh0.lzh        "gpl-2.gz"
+test_archive lha_unix114i/h0_lh5.lzh        "gpl-2"
+test_archive lha_unix114i/h0_lh6.lzh        "gpl-2"
+test_archive lha_unix114i/h0_lh7.lzh        "gpl-2"
+#test_archive lha_unix114i/h0_subdir.lzh     "subdir/subdir2/hello.txt"
+test_archive lha_unix114i/h0_symlink.lzh    "symlink"
+test_archive lha_unix114i/h1_lh0.lzh        "gpl-2.gz"
+test_archive lha_unix114i/h1_lh5.lzh        "gpl-2"
+test_archive lha_unix114i/h1_lh6.lzh        "gpl-2"
+test_archive lha_unix114i/h1_lh7.lzh        "gpl-2"
+test_archive lha_unix114i/h1_subdir.lzh     "subdir/subdir2/hello.txt"
+test_archive lha_unix114i/h1_symlink.lzh    "symlink"
+test_archive lha_unix114i/h2_lh0.lzh        "gpl-2.gz"
+test_archive lha_unix114i/h2_lh5.lzh        "gpl-2"
+test_archive lha_unix114i/h2_lh6.lzh        "gpl-2"
+test_archive lha_unix114i/h2_lh7.lzh        "gpl-2"
+test_archive lha_unix114i/h2_subdir.lzh     "subdir/subdir2/hello.txt"
+test_archive lha_unix114i/h2_symlink.lzh    "symlink"
+test_archive lha_unix114i/lh6_long.lzh      "long.txt"
+test_archive lha_unix114i/lh7_long.lzh      "long.txt"
+
+test_archive lha_os2_208/lh0.lzh            "GPL-2.gz"
+test_archive lha_os2_208/lh5.lzh            "gpl-2"
+test_archive lha_os2_208/lfn.lzh            "Long Filename.txt"
+test_archive lha_os2_208/subdir.lzh         "subdir/subdir2/HELLO.TXT"
+test_archive lha_os2_208/lh1.lzh            "gpl-2"
+test_archive lha_os2_208/h3_lfn.lzh         "Long Filename.txt"
+test_archive lha_os2_208/h3_lh0.lzh         "GPL-2.gz"
+test_archive lha_os2_208/h3_lh5.lzh         "gpl-2"
+test_archive lha_os2_208/h3_subdir.lzh      "subdir/subdir2/HELLO.TXT"
+
+test_archive pmarc2/pm0.pma                 "gpl-2.gz"
+test_archive pmarc2/pm2.pma                 "gpl-2."
+test_archive pmarc2/comment.pma             "hello.txt"
+test_archive pmarc2/sfx.com                 "gpl-2."
+test_archive pmarc2/long.pma                "long.txt"
+
+test_archive lha_amiga_122/level0.lzh       "subdir/subdir2/hello.txt"
+test_archive lha_amiga_122/level1.lzh       "subdir/subdir2/hello.txt"
+test_archive lha_amiga_122/level2.lzh       "subdir/subdir2/hello.txt"
+test_archive lha_amiga_122/lh0.lzh          "gpl-2.gz"
+test_archive lha_amiga_122/lh1.lzh          "gpl-2"
+test_archive lha_amiga_122/lh4_long.lzh     "long.txt"
+test_archive lha_amiga_122/lh4.lzh          "gpl-2"
+test_archive lha_amiga_122/lh5.lzh          "gpl-2"
+test_archive lha_amiga_122/subdir.lzh       "subdir/subdir2/hello.txt"
+test_archive lha_amiga_122/sfx.run          "gpl-2"
+
+test_archive lha_amiga_212/level0.lzh       "subdir/subdir2/hello.txt"
+test_archive lha_amiga_212/level1.lzh       "subdir/subdir2/hello.txt"
+test_archive lha_amiga_212/level2.lzh       "subdir/subdir2/hello.txt"
+test_archive lha_amiga_212/lh1.lzh          "gpl-2"
+test_archive lha_amiga_212/lh6.lzh          "gpl-2"
+
+test_archive lharc_atari_313a/lh0.lzh       "gpl2.gz"
+test_archive lharc_atari_313a/lh5.lzh       "gpl2"
+test_archive lharc_atari_313a/lz5.lzh       "gpl2"
+test_archive lharc_atari_313a/subdir.lzh    "subdir/subdir2/hello.txt"
+test_archive lharc_atari_313a/sfx.tos       "gpl2"
+test_archive lharc_atari_313a/shorter.lzh   "shorter.txt"
+test_archive lharc_atari_313a/h1_lh5.lzh    "gpl2"
+test_archive lharc_atari_313a/h1_lz5.lzh    "gpl2"
+test_archive lharc_atari_313a/h1_subdir.lzh "subdir/subdir2/hello.txt"
+test_archive lharc_atari_313a/h2_lh5.lzh    "gpl2"
+test_archive lharc_atari_313a/h2_lz5.lzh    "gpl2"
+test_archive lharc_atari_313a/h2_subdir.lzh "subdir/subdir2/hello.txt"
+
+test_archive lha_x68k_213/h0_lh0.lzh        "gpl-2.gz"
+test_archive lha_x68k_213/h0_lh5.lzh        "gpl-2"
+test_archive lha_x68k_213/h0_subdir.lzh     "subdir/subdir2/HELLO.TXT"
+test_archive lha_x68k_213/h1_lh0.lzh        "GPL-2.GZ"
+test_archive lha_x68k_213/h1_lh5.lzh        "GPL-2"
+test_archive lha_x68k_213/h1_subdir.lzh     "subdir/subdir2/HELLO.TXT"
+test_archive lha_x68k_213/h2_lh0.lzh        "GPL-2.GZ"
+test_archive lha_x68k_213/h2_lh5.lzh        "GPL-2"
+test_archive lha_x68k_213/h2_subdir.lzh     "subdir/subdir2/HELLO.TXT"
+test_archive lha_x68k_213/sfx.x             "gpl-2"
+
+test_archive maclha_224/l0_lh0.lzh          "gpl-2.gz"
+test_archive maclha_224/l0_lh1.lzh          "gpl-2"
+test_archive maclha_224/l0_lh5.lzh          "gpl-2"
+test_archive maclha_224/l0_nm_lh5.lzh       "gpl-2"
+
+test_archive maclha_224/l1_lh0.lzh          "gpl-2.gz"
+test_archive maclha_224/l1_lh1.lzh          "gpl-2"
+test_archive maclha_224/l1_lh5.lzh          "gpl-2"
+test_archive maclha_224/l1_nm_lh5.lzh       "gpl-2"
+test_archive maclha_224/l1_subdir.lzh       "subdir/subdir2/hello.txt"
+test_archive maclha_224/l1_full_subdir.lzh  "Untitled/subdir/subdir2/hello.txt"
+
+test_archive maclha_224/l2_lh0.lzh          "gpl-2.gz"
+test_archive maclha_224/l2_lh1.lzh          "gpl-2"
+test_archive maclha_224/l2_lh5.lzh          "gpl-2"
+test_archive maclha_224/l2_nm_lh5.lzh       "gpl-2"
+test_archive maclha_224/l2_subdir.lzh       "subdir/subdir2/hello.txt"
+test_archive maclha_224/l2_full_subdir.lzh  "Untitled/subdir/subdir2/hello.txt"
+
+# Weird ordering of directories in LHmelt-generated archives means that the
+# subdirectory tests currently fail, because the timestamp is not set right:
+
+test_archive lhmelt_16536/h0_lh0.lzh        "gpl-2.gz"
+test_archive lhmelt_16536/h0_lh1.lzh        "gpl-2"
+test_archive lhmelt_16536/h0_lh5.lzh        "gpl-2"
+test_archive lhmelt_16536/h0_lh6.lzh        "gpl-2"
+test_archive lhmelt_16536/h0_lh7.lzh        "gpl-2"
+#test_archive lhmelt_16536/h0_subdir.lzh     "subdir/subdir2/hello.txt"
+test_archive lhmelt_16536/h1_lh0.lzh        "gpl-2.gz"
+test_archive lhmelt_16536/h1_lh1.lzh        "gpl-2"
+test_archive lhmelt_16536/h1_lh5.lzh        "gpl-2"
+#test_archive lhmelt_16536/h1_subdir.lzh     "subdir/subdir2/hello.txt"
+test_archive lhmelt_16536/h2_lh0.lzh        "gpl-2.gz"
+test_archive lhmelt_16536/h2_lh1.lzh        "gpl-2"
+test_archive lhmelt_16536/h2_lh5.lzh        "gpl-2"
+#test_archive lhmelt_16536/h2_subdir.lzh     "subdir/subdir2/hello.txt"
+test_archive lhmelt_16536/sfx_winsfx_213.exe    "gpl-2"
+test_archive lhmelt_16536/sfx_winsfx32_213.exe  "gpl-2"
+test_archive lhmelt_16536/sfx_winsfx32m_250.exe "gpl-2"
+test_archive lhmelt_16536/sfx_winsfxm_250.exe   "gpl-2"
+
+test_archive regression/abspath.lzh         "tmp/absolute_path.txt"
+test_archive regression/unixsep.lzh         "subdir/subdir2/hello.txt"
+
+test_archive generated/lzs/lzs.lzs          "gpl-2"
+test_archive generated/lzs/long.lzs         "long.txt"
+
+# ======================================================================
+#
+# Special cases:
+#
+
+# Test basic overwrite prompt (y/n).
+
+test_overwrite_prompt() {
+	make_sandboxes
+
+	local archive_file=regression/multiple.lzh
+
+	file_to_overwrite "file1.txt"
+	file_to_overwrite "file2-1.txt"
+	file_to_overwrite "file2-2.txt"
+	file_to_overwrite "file3.txt"
+	file_to_overwrite "file4.txt"
+
+	(echo y; echo n; echo Y; echo N; echo "") |               \
+	lha_check_output output/regression/multiple.lzh-ow1.txt   \
+	    e $(test_arc_file "$archive_file")
+
+	check_overwritten     "$archive_file" "file1.txt"
+	check_not_overwritten "$archive_file" "file2-1.txt"
+	check_overwritten     "$archive_file" "file2-2.txt"
+	check_not_overwritten "$archive_file" "file3.txt"
+	check_not_overwritten "$archive_file" "file4.txt"
+
+	remove_sandboxes
+}
+
+# Test "overwrite all" ('a' option).
+
+test_overwrite_all() {
+	local cmd=$1
+	local archive_file=regression/multiple.lzh
+
+	make_sandboxes
+
+	file_to_overwrite "file1.txt"
+	file_to_overwrite "file2-1.txt"
+	file_to_overwrite "file2-2.txt"
+	file_to_overwrite "file3.txt"
+	file_to_overwrite "file4.txt"
+
+	echo $cmd |                                               \
+	lha_check_output output/regression/multiple.lzh-ow2.txt   \
+	    e $(test_arc_file "$archive_file")
+
+	check_overwritten "$archive_file" "file1.txt"
+	check_overwritten "$archive_file" "file2-1.txt"
+	check_overwritten "$archive_file" "file2-2.txt"
+	check_overwritten "$archive_file" "file3.txt"
+	check_overwritten "$archive_file" "file4.txt"
+
+	remove_sandboxes
+}
+
+# Test overwrite "skip" ('s' option).
+
+test_overwrite_skip() {
+	local cmd=$1
+	local archive_file=regression/multiple.lzh
+
+	make_sandboxes
+
+	file_to_overwrite "file1.txt"
+	file_to_overwrite "file2-1.txt"
+	file_to_overwrite "file2-2.txt"
+	file_to_overwrite "file3.txt"
+	file_to_overwrite "file4.txt"
+
+	echo $cmd |                                               \
+	lha_check_output output/regression/multiple.lzh-ow3.txt   \
+	    e $(test_arc_file "$archive_file")
+
+	check_not_overwritten "$archive_file" "file1.txt"
+	check_not_overwritten "$archive_file" "file2-1.txt"
+	check_not_overwritten "$archive_file" "file2-2.txt"
+	check_not_overwritten "$archive_file" "file3.txt"
+	check_not_overwritten "$archive_file" "file4.txt"
+
+	remove_sandboxes
+}
+
+# Test wildcards for extract option.
+
+test_wildcard1() {
+	local archive_file=regression/multiple.lzh
+
+	make_sandboxes
+
+	lha_check_output output/regression/multiple.lzh-e1.txt    \
+	    e $(test_arc_file "$archive_file") "file2*.txt"
+
+	check_not_exists "$archive_file" "file1.txt"
+	check_exists     "$archive_file" "file2-1.txt"
+	check_exists     "$archive_file" "file2-2.txt"
+	check_not_exists "$archive_file" "file3.txt"
+	check_not_exists "$archive_file" "file4.txt"
+
+	remove_sandboxes
+}
+
+# Test wildcards for extract option (second test).
+
+test_wildcard2() {
+	local archive_file=regression/multiple.lzh
+
+	make_sandboxes
+
+	lha_check_output output/regression/multiple.lzh-e2.txt    \
+	    e $(test_arc_file "$archive_file") "file?.txt"
+
+	check_exists     "$archive_file" "file1.txt"
+	check_not_exists "$archive_file" "file2-1.txt"
+	check_not_exists "$archive_file" "file2-2.txt"
+	check_exists     "$archive_file" "file3.txt"
+	check_exists     "$archive_file" "file4.txt"
+
+	remove_sandboxes
+}
+
+# Test extract of a specific list of files.
+
+test_extract_list() {
+	local archive_file=regression/multiple.lzh
+
+	make_sandboxes
+
+	lha_check_output output/regression/multiple.lzh-e3.txt    \
+	    e $(test_arc_file "$archive_file")                    \
+	    file1.txt file2-2.txt file4.txt
+
+	check_exists     "$archive_file" "file1.txt"
+	check_not_exists "$archive_file" "file2-1.txt"
+	check_exists     "$archive_file" "file2-2.txt"
+	check_not_exists "$archive_file" "file3.txt"
+	check_exists     "$archive_file" "file4.txt"
+
+	remove_sandboxes
+}
+
+# Test extract of a truncated archive file.
+
+test_extract_truncated() {
+	local archive_file=regression/truncated.lzh
+
+	make_sandboxes
+
+	SUCCESS_EXPECTED=false \
+	  lha_check_output output/regression/truncated.lzh-e.txt \
+	      e $(test_arc_file "$archive_file")
+
+	remove_sandboxes
+}
+
+test_overwrite_prompt
+test_overwrite_all a
+test_overwrite_all A
+test_overwrite_skip s
+test_overwrite_skip S
+
+test_wildcard1
+test_wildcard2
+test_extract_list
+test_extract_truncated
+

@@ -1,0 +1,226 @@
+diff --git a/lib/crc16.h b/lib/crc16.h
+index 723decd..e65a92b 100644
+--- a/lib/crc16.h
++++ b/lib/crc16.h
+@@ -21,7 +21,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #ifndef LHASA_LHA_CRC16_H
+ #define LHASA_LHA_CRC16_H
+ 
+-#include <inttypes.h>
++#include "lha_types.h"
+ #include <stdlib.h>
+ 
+ void lha_crc16_buf(uint16_t *crc, uint8_t *buf, size_t buf_len);
+diff --git a/lib/lh1_decoder.c b/lib/lh1_decoder.c
+index 2188f12..fcda310 100644
+--- a/lib/lh1_decoder.c
++++ b/lib/lh1_decoder.c
+@@ -21,7 +21,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <inttypes.h>
+ 
+ #include "lha_decoder.h"
+ 
+diff --git a/lib/lh_new_decoder.c b/lib/lh_new_decoder.c
+index adf6219..491a4de 100644
+--- a/lib/lh_new_decoder.c
++++ b/lib/lh_new_decoder.c
+@@ -27,7 +27,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <inttypes.h>
+ 
+ #include "lha_decoder.h"
+ 
+diff --git a/lib/lha_arch.h b/lib/lha_arch.h
+index 4c2a184..16f8533 100644
+--- a/lib/lha_arch.h
++++ b/lib/lha_arch.h
+@@ -23,7 +23,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include <stdio.h>
+ #include <stdarg.h>
+-#include <stdint.h>
++#include "lha_types.h"
+ 
+ #define LHA_ARCH_UNIX     1
+ #define LHA_ARCH_WINDOWS  2
+diff --git a/lib/lha_arch_win32.c b/lib/lha_arch_win32.c
+index 3ae0ea9..b3412ce 100644
+--- a/lib/lha_arch_win32.c
++++ b/lib/lha_arch_win32.c
+@@ -33,7 +33,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #include <io.h>
+ 
+ #include <stdlib.h>
+-#include <stdint.h>
+ 
+ static uint64_t unix_epoch_offset = 0;
+ 
+diff --git a/lib/lha_decoder.h b/lib/lha_decoder.h
+index 5ece488..076ee20 100644
+--- a/lib/lha_decoder.h
++++ b/lib/lha_decoder.h
+@@ -22,7 +22,11 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #define LHASA_LHA_DECODER_H
+ 
+ #include <stdlib.h>
+-#include <inttypes.h>
++#include "lha_types.h"
++
++#ifdef __cplusplus
++extern "C" {
++#endif
+ 
+ typedef struct _LHADecoder LHADecoder;
+ typedef struct _LHADecoderType LHADecoderType;
+@@ -193,6 +197,9 @@ void lha_decoder_monitor(LHADecoder *decoder,
+  */
+ 
+ size_t lha_decoder_read(LHADecoder *decoder, uint8_t *buf, size_t buf_len);
++#ifdef __cplusplus
++}
++#endif
+ 
+ #endif /* #ifndef LHASA_LHA_DECODER_H */
+ 
+diff --git a/lib/lha_endian.h b/lib/lha_endian.h
+index c421edb..3eeb510 100644
+--- a/lib/lha_endian.h
++++ b/lib/lha_endian.h
+@@ -21,7 +21,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #ifndef LHASA_LHA_ENDIAN_H
+ #define LHASA_LHA_ENDIAN_H
+ 
+-#include <inttypes.h>
++#include "lha_types.h"
+ 
+ /**
+  * Decode a 16-bit little-endian unsigned integer.
+diff --git a/lib/lha_input_stream.h b/lib/lha_input_stream.h
+index 3b48a0a..fba828a 100644
+--- a/lib/lha_input_stream.h
++++ b/lib/lha_input_stream.h
+@@ -21,7 +21,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #ifndef LHASA_LHA_INPUT_STREAM_H
+ #define LHASA_LHA_INPUT_STREAM_H
+ 
+-#include <inttypes.h>
+ #include "public/lha_input_stream.h"
+ 
+ /**
+diff --git a/lib/lz5_decoder.c b/lib/lz5_decoder.c
+index 5c0d641..d447144 100644
+--- a/lib/lz5_decoder.c
++++ b/lib/lz5_decoder.c
+@@ -20,7 +20,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include <stdlib.h>
+ #include <string.h>
+-#include <inttypes.h>
+ 
+ #include "lha_decoder.h"
+ 
+diff --git a/lib/lzs_decoder.c b/lib/lzs_decoder.c
+index 87efc92..ca09c48 100644
+--- a/lib/lzs_decoder.c
++++ b/lib/lzs_decoder.c
+@@ -20,7 +20,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include <stdlib.h>
+ #include <string.h>
+-#include <inttypes.h>
+ 
+ #include "lha_decoder.h"
+ 
+diff --git a/lib/null_decoder.c b/lib/null_decoder.c
+index 170a220..c108e40 100644
+--- a/lib/null_decoder.c
++++ b/lib/null_decoder.c
+@@ -21,8 +21,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ // Null decoder, for uncompressed files.
+ 
+ #include <stdlib.h>
+-#include <inttypes.h>
+-
+ #include "lha_decoder.h"
+ 
+ #define BLOCK_READ_SIZE 1024
+diff --git a/lib/pm2_decoder.c b/lib/pm2_decoder.c
+index 7b10912..76141ae 100644
+--- a/lib/pm2_decoder.c
++++ b/lib/pm2_decoder.c
+@@ -26,7 +26,6 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#include <inttypes.h>
+ 
+ #include "lha_decoder.h"
+ 
+diff --git a/lib/public/lha_file_header.h b/lib/public/lha_file_header.h
+index 238e8cd..bf6ebcc 100644
+--- a/lib/public/lha_file_header.h
++++ b/lib/public/lha_file_header.h
+@@ -21,7 +21,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #ifndef LHASA_PUBLIC_LHA_FILE_HEADER_H
+ #define LHASA_PUBLIC_LHA_FILE_HEADER_H
+ 
+-#include <inttypes.h>
++#include "../lha_types.h"
+ 
+ /**
+  * @file lha_file_header.h
+diff --git a/lib/public/lha_input_stream.h b/lib/public/lha_input_stream.h
+index a3d81a7..73e50df 100644
+--- a/lib/public/lha_input_stream.h
++++ b/lib/public/lha_input_stream.h
+@@ -24,6 +24,10 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ 
+ #include <stdio.h>
+ 
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ /**
+  * @file lha_input_stream.h
+  *
+@@ -121,6 +125,9 @@ LHAInputStream *lha_input_stream_from_FILE(FILE *stream);
+  */
+ 
+ void lha_input_stream_free(LHAInputStream *stream);
++#ifdef __cplusplus
++}
++#endif
+ 
+ #endif /* #ifndef LHASA_PUBLIC_LHA_INPUT_STREAM_H */
+ 
+diff --git a/lib/public/lha_reader.h b/lib/public/lha_reader.h
+index e0c6182..da0fc54 100644
+--- a/lib/public/lha_reader.h
++++ b/lib/public/lha_reader.h
+@@ -24,6 +24,10 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ #include "lha_input_stream.h"
+ #include "lha_file_header.h"
+ 
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ /**
+  * @file lha_reader.h
+  *
+@@ -201,6 +205,9 @@ int lha_reader_extract(LHAReader *reader,
+                        char *filename,
+                        LHAReaderProgressCallback callback,
+                        void *callback_data);
++#ifdef __cplusplus
++}
++#endif
+ 
+ #endif /* #ifndef LHASA_PUBLIC_LHA_READER_H */
+ 

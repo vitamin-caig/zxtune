@@ -1,0 +1,10 @@
+ PERMSSN    UID  GID    PACKED    SIZE  RATIO METHOD CRC     STAMP
+---------- ----------- ------- ------- ------ ---------- ------------
+subdir/
+[OS/2]                       0       0 ****** -lhd- 0000 Dec  3 16:47 [1]
+subdir/subdir2/
+[OS/2]                       0       0 ****** -lhd- 0000 Dec  3 16:47 [1]
+subdir/subdir2/HELLO.TXT
+[OS/2]                      14      14 100.0% -lh0- 3197 Dec  3 16:38 [1]
+---------- ----------- ------- ------- ------ ---------- ------------
+ Total         3 files      14      14 100.0%            Jan  1  2000

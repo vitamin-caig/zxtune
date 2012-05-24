@@ -1,0 +1,4 @@
+
+subdir/subdir2/hello.txt	- Melting  :  .
+subdir/subdir2/hello.txt	- Melting  :  o
+subdir/subdir2/hello.txt	- Melted  

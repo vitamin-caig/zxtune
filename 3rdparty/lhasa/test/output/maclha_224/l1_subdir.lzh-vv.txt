@@ -1,0 +1,6 @@
+ PERMSSN    UID  GID    PACKED    SIZE  RATIO METHOD CRC     STAMP
+---------- ----------- ------- ------- ------ ---------- ------------
+subdir/subdir2/hello.txt
+[Mac OS]                   256     256 100.0% -lh0- eda1 Apr 19 19:10 [1]
+---------- ----------- ------- ------- ------ ---------- ------------
+ Total         1 file      256     256 100.0%            Jan  1  2000

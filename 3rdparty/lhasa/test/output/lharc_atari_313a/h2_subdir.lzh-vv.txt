@@ -1,0 +1,6 @@
+ PERMSSN    UID  GID    PACKED    SIZE  RATIO METHOD CRC     STAMP
+---------- ----------- ------- ------- ------ ---------- ------------
+subdir/subdir2/hello.txt
+[Atari]                     12      12 100.0% -lh0- 9778 Jan 11 18:49 [2]
+---------- ----------- ------- ------- ------ ---------- ------------
+ Total         1 file       12      12 100.0%            Jan  1  2000
