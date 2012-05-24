@@ -8,3 +8,7 @@ $(platform)_libraries += z
 $(platform)_include_dirs += $(path_step)/3rdparty/zlib
 $(platform)_depends += 3rdparty/zlib
 endif
+
+#TODO: extract to dependend lib
+$(platform)_libraries += lhasa
+$(platform)_depends = 3rdparty/lhasa/lib
