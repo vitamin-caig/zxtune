@@ -9,8 +9,6 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//local includes
-#include "lha.h"
 //common includes
 #include <contract.h>
 #include <logging.h>
@@ -18,8 +16,9 @@ Author:
 //library includes
 #include <binary/typed_container.h>
 #include <formats/archived.h>
+#include <formats/packed/lha_supp.h>
+#include <formats/packed/pack_utils.h>
 //3rdparty includes
-#include <3rdparty/lhasa/lib/lha_decoder.h>
 #include <3rdparty/lhasa/lib/public/lhasa.h>
 //std includes
 #include <cstring>
@@ -46,44 +45,6 @@ namespace Lha
   const std::string THIS_MODULE("Formats::Archived::Lha");
 
   using namespace Formats;
-
-  class MemoryFileI
-  {
-  public:
-    explicit MemoryFileI(const Binary::Container& rawData)
-      : Data(static_cast<const uint8_t*>(rawData.Data()))
-      , Limit(rawData.Size())
-      , Position(0)
-    {
-    }
-
-    std::size_t Read(void* buf, std::size_t len)
-    {
-      const std::size_t res = std::min(len, Limit - Position);
-      std::memcpy(buf, Data + Position, res);
-      Position += res;
-      return res;
-    }
-
-    std::size_t Skip(std::size_t len)
-    {
-      if (len + Position >= Limit)
-      {
-        return 0;
-      }
-      Position += len;
-      return 1;
-    }
-
-    std::size_t GetPosition() const
-    {
-      return Position;
-    }
-  private:
-    const uint8_t* const Data;
-    const std::size_t Limit;
-    std::size_t Position;
-  };
 
   class InputStreamWrapper
   {
@@ -155,7 +116,7 @@ namespace Lha
     virtual Binary::Container::Ptr GetData() const
     {
       Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
-      return Archived::Lha::DecodeRawData(*Data, Method, Size);
+      return Packed::Lha::DecodeRawData(*Data, Method, Size);
     }
   private:
     const Binary::Container::Ptr Data;
@@ -269,74 +230,12 @@ namespace Lha
     typedef std::map<String, Archived::File::Ptr> FilesMap;
     FilesMap Files;
   };
-
-  //raw data processing
-  class Decompressor
-  {
-  public:
-    typedef boost::shared_ptr<const Decompressor> Ptr;
-    virtual ~Decompressor() {}
-
-    virtual Binary::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const = 0;
-  };
-
-  class LHADecompressor : public Decompressor
-  {
-  public:
-    explicit LHADecompressor(LHADecoderType* type)
-      : Type(type)
-    {
-    }
-
-    virtual Binary::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const
-    {
-      MemoryFileI input(rawData);
-      const boost::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize), &::lha_decoder_free);
-      std::auto_ptr<Dump> result(new Dump(outputSize));
-      const std::size_t decoded = ::lha_decoder_read(decoder.get(), &result->front(), outputSize);
-      if (decoded == outputSize)
-      {
-        return Binary::CreateContainer(result);
-      }
-      Log::Debug(THIS_MODULE, "Output size mismatch while decoding");
-      return Binary::Container::Ptr();
-    }
-  private:
-    static size_t ReadData(void* buf, size_t len, void* data)
-    {
-      return static_cast<MemoryFileI*>(data)->Read(buf, len);
-    }
-  private:
-    LHADecoderType* const Type;
-  };
-
-  //TODO: create own decoders for non-packing modes
-  Decompressor::Ptr CreateDecompressor(const std::string& method)
-  {
-    if (LHADecoderType* type = ::lha_decoder_for_name(const_cast<char*>(method.c_str())))
-    {
-      return boost::make_shared<LHADecompressor>(type);
-    }
-    return Decompressor::Ptr();
-  }
 }
 
 namespace Formats
 {
   namespace Archived
   {
-    namespace Lha
-    {
-      Binary::Container::Ptr DecodeRawData(const Binary::Container& input, const std::string& method, std::size_t outputSize)
-      {
-        if (const ::Lha::Decompressor::Ptr decompressor = ::Lha::CreateDecompressor(method))
-        {
-          return decompressor->Decode(input, outputSize);
-        }
-        return Binary::Container::Ptr();
-      }
-    }
-
     class LhaDecoder : public Decoder
     {
     public:
