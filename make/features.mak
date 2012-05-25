@@ -10,5 +10,6 @@ $(platform)_depends += 3rdparty/zlib
 endif
 
 #TODO: extract to dependend lib
-$(platform)_libraries += lhasa oldnames
+$(platform)_libraries += lhasa
+windows_libraries += oldnames
 $(platform)_depends += 3rdparty/lhasa/lib

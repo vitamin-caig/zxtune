@@ -30,6 +30,7 @@ namespace Formats
     Decoder::Ptr CreateProSoundMakerCompiledDecoder();
     Decoder::Ptr CreateGlobalTrackerDecoder();
     Decoder::Ptr CreateProTracker1Decoder();
+    Decoder::Ptr CreateVTXDecoder();
   }
 }
 

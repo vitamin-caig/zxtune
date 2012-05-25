@@ -54,13 +54,13 @@ namespace Lha
       const boost::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize), &::lha_decoder_free);
       std::auto_ptr<Dump> result(new Dump(outputSize));
       const std::size_t decoded = ::lha_decoder_read(decoder.get(), &result->front(), outputSize);
+      const std::size_t originalSize = input.GetPosition();
       if (decoded == outputSize)
       {
-        const std::size_t originalSize = input.GetPosition();
         Log::Debug(THIS_MODULE, "Decoded %1% -> %2% bytes", originalSize, outputSize);
         return CreatePackedContainer(result, originalSize);
       }
-      Log::Debug(THIS_MODULE, "Output size mismatch while decoding");
+      Log::Debug(THIS_MODULE, "Output size mismatch while decoding %1% -> %2% (%3% required)", originalSize, decoded, outputSize);
       return Formats::Packed::Container::Ptr();
     }
   private:

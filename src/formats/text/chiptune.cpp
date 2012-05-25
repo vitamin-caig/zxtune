@@ -61,5 +61,8 @@ extern const Char SOUNDTRACKERPRO_DECODER_DESCRIPTION[] = {
 extern const Char SOUNDTRACKER_DECODER_DESCRIPTION[] = {
   'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char VTX_DECODER_DESCRIPTION[] = {
+  'V','T','X',0
+};
 }//namespace Text
 #endif //__TEXT_CHIPTUNE_H_DEFINED__
