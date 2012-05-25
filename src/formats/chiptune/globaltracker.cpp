@@ -10,8 +10,9 @@ Author:
 */
 
 //local includes
-#include "metainfo.h"
+#include "container.h"
 #include "globaltracker.h"
+#include "metainfo.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -813,39 +814,6 @@ namespace Chiptune
       const uint_t UnfixDelta;
     };
 
-    class Container : public Formats::Chiptune::Container
-    {
-    public:
-      Container(const Binary::Container& rawData, std::size_t size, const RangeChecker::Range& fixedArea)
-        : Delegate(rawData.GetSubcontainer(0, size))
-        , FixedArea(fixedArea)
-      {
-      }
-
-      virtual std::size_t Size() const
-      {
-        return Delegate->Size();
-      }
-
-      virtual const void* Data() const
-      {
-        return Delegate->Data();
-      }
-
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      virtual uint_t FixedChecksum() const
-      {
-        return Crc32(safe_ptr_cast<const uint8_t*>(Delegate->Data()) + FixedArea.first, FixedArea.second - FixedArea.first);
-      }
-    private:
-      const Binary::Container::Ptr Delegate;
-      const RangeChecker::Range FixedArea;
-    };
-    
     Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
     {
       return Binary::TypedContainer(rawData, std::min(rawData.Size(), MAX_MODULE_SIZE));
@@ -1034,7 +1002,9 @@ namespace Chiptune
         usedOrnaments.insert(0);
         format.ParseOrnaments(usedOrnaments, target);
 
-        return boost::make_shared<Container>(rawData, format.GetSize(), format.GetFixedArea());
+        const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
+        const RangeChecker::Range fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {

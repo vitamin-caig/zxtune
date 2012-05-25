@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "soundtracker.h"
 #include "soundtracker_detail.h"
 //common includes
@@ -144,39 +145,6 @@ namespace Chiptune
     BOOST_STATIC_ASSERT(offsetof(RawHeader, Tempo) == 3007);
     BOOST_STATIC_ASSERT(offsetof(RawHeader, Patterns) == 3009);
 
-    class Container : public Formats::Chiptune::Container
-    {
-    public:
-      explicit Container(Binary::Container::Ptr delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual std::size_t Size() const
-      {
-        return Delegate->Size();
-      }
-
-      virtual const void* Data() const
-      {
-        return Delegate->Data();
-      }
-
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      virtual uint_t FixedChecksum() const
-      {
-        const Binary::TypedContainer& data(*Delegate);
-        const RawHeader& header = *data.GetField<RawHeader>(0);
-        return Crc32(safe_ptr_cast<const uint8_t*>(header.Patterns), Delegate->Size() - offsetof(RawHeader, Patterns));
-      }
-    private:
-      const Binary::Container::Ptr Delegate;
-    };
-    
     class StubBuilder : public Builder
     {
     public:
@@ -552,8 +520,9 @@ namespace Chiptune
 
         const uint_t lastPattern = std::min(*usedPatterns.rbegin(), format.GetMaxPatterns() - 1);
         const std::size_t size = sizeof(RawHeader) + lastPattern * sizeof(RawPattern);
-        const Binary::Container::Ptr containerData = data.GetSubcontainer(0, size);
-        return boost::make_shared<Container>(containerData);
+        const Binary::Container::Ptr subData = data.GetSubcontainer(0, size);
+        const std::size_t patternsOffset = offsetof(RawHeader, Patterns);
+        return CreateCalculatingCrcContainer(subData, patternsOffset, size - patternsOffset);
       }
       catch (const std::exception&)
       {

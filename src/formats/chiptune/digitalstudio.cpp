@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "digitalstudio.h"
 //common includes
 #include <byteorder.h>
@@ -113,39 +114,6 @@ namespace Chiptune
     const uint_t NOTE_SPEED = 0x81;
     const uint_t NOTE_END = 0x82;
 
-    class Container : public Formats::Chiptune::Container
-    {
-    public:
-      explicit Container(Binary::Container::Ptr delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual std::size_t Size() const
-      {
-        return Delegate->Size();
-      }
-
-      virtual const void* Data() const
-      {
-        return Delegate->Data();
-      }
-
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      virtual uint_t FixedChecksum() const
-      {
-        const Binary::TypedContainer& data(*Delegate);
-        const Header& header = *data.GetField<Header>(0);
-        return Crc32(safe_ptr_cast<const uint8_t*>(header.Patterns), sizeof(header.Patterns));
-      }
-    private:
-      const Binary::Container::Ptr Delegate;
-    };
-    
     class StubBuilder : public Builder
     {
     public:
@@ -555,8 +523,9 @@ namespace Chiptune
         const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, target);
 
-        const Binary::Container::Ptr containerData = data.GetSubcontainer(0, format.GetSize());
-        return boost::make_shared<Container>(containerData);
+        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
+        const std::size_t patternsOffset = offsetof(Header, Patterns);
+        return CreateCalculatingCrcContainer(subData, patternsOffset, format.GetSize() - patternsOffset);
       }
       catch (const std::exception&)
       {

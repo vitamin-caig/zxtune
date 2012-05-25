@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "metainfo.h"
 #include "soundtrackerpro.h"
 #include "soundtrackerpro_detail.h"
@@ -699,40 +700,6 @@ namespace Chiptune
       const uint_t UnfixDelta;
     };
 
-    class Container : public Formats::Chiptune::Container
-    {
-    public:
-      Container(const Binary::Container& rawData, const Format& format)
-        : Delegate(rawData.GetSubcontainer(0, format.GetSize()))
-        , FixedArea(format.GetFixedArea())
-      {
-      }
-
-      virtual std::size_t Size() const
-      {
-        return Delegate->Size();
-      }
-
-      virtual const void* Data() const
-      {
-        return Delegate->Data();
-      }
-
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      virtual uint_t FixedChecksum() const
-      {
-        return Crc32(safe_ptr_cast<const uint8_t*>(Delegate->Data()) + FixedArea.first, FixedArea.second - FixedArea.first);
-      }
-    private:
-      const Binary::Container::Ptr Delegate;
-      const RangeChecker::Range FixedArea;
-    };
-    
-
     enum AreaTypes
     {
       HEADER,
@@ -930,7 +897,9 @@ namespace Chiptune
           usedOrnaments.insert(0);
           format.ParseOrnaments(usedOrnaments, target);
 
-          return boost::make_shared<Container>(rawData, format);
+          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
+          const RangeChecker::Range fixedRange = format.GetFixedArea();
+          return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
         }
         catch (const std::exception&)
         {

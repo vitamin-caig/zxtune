@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "container.h"
 #include "psg.h"
 //common includes
 #include <crc.h>
@@ -57,40 +58,6 @@ namespace Chiptune
 #endif
 
     BOOST_STATIC_ASSERT(sizeof(Header) == 16);
-
-    class Container : public Formats::Chiptune::Container
-    {
-    public:
-      explicit Container(Binary::Container::Ptr delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual std::size_t Size() const
-      {
-        return Delegate->Size();
-      }
-
-      virtual const void* Data() const
-      {
-        return Delegate->Data();
-      }
-
-      virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      virtual uint_t FixedChecksum() const
-      {
-        const Binary::TypedContainer& data(*Delegate);
-        const Header& header = *data.GetField<Header>(0);
-        const std::size_t dataOffset = (header.Version == INT_BEGIN) ? offsetof(Header, Version) : sizeof(header);
-        return Crc32(data.GetField<uint8_t>(dataOffset), Delegate->Size() - dataOffset);
-      }
-    private:
-      const Binary::Container::Ptr Delegate;
-    };
 
     class StubBuilder : public Builder
     {
@@ -158,28 +125,28 @@ namespace Chiptune
       const Header& header = *data.GetField<Header>(0);
       //workaround for some emulators
       const std::size_t offset = (header.Version == INT_BEGIN) ? offsetof(Header, Version) : sizeof(header);
-      std::size_t size = rawData.Size() - offset;
+      std::size_t restSize = rawData.Size() - offset;
       const uint8_t* bdata = data.GetField<uint8_t>(offset);
       //detect as much chunks as possible, in despite of real format issues
-      while (size)
+      while (restSize)
       {
         const uint_t reg = *bdata;
         ++bdata;
-        --size;
+        --restSize;
         if (INT_BEGIN == reg)
         {
           target.AddChunks(1);
         }
         else if (INT_SKIP == reg)
         {
-          if (size < 1)
+          if (restSize < 1)
           {
-            ++size;//put byte back
+            ++restSize;//put byte back
             break;
           }
           target.AddChunks(4 * *bdata);
           ++bdata;
-          --size;
+          --restSize;
         }
         else if (MUS_END == reg)
         {
@@ -187,23 +154,24 @@ namespace Chiptune
         }
         else if (reg <= 15) //register
         {
-          if (size < 1)
+          if (restSize < 1)
           {
-            ++size;//put byte back
+            ++restSize;//put byte back
             break;
           }
           target.SetRegister(reg, *bdata);
           ++bdata;
-          --size;
+          --restSize;
         }
         else
         {
-          ++size;//put byte back
+          ++restSize;//put byte back
           break;
         }
       }
-      const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, rawData.Size() - size);
-      return boost::make_shared<Container>(containerData);
+      const std::size_t usedSize = rawData.Size() - restSize;
+      const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, usedSize);
+      return CreateCalculatingCrcContainer(subData, offset, usedSize - offset);
     }
 
     Builder& GetStubBuilder()
