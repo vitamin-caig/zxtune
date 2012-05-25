@@ -188,7 +188,7 @@ namespace GamePacker
       return Data + header.GetPackedDataOffset();
     }
 
-    uint_t GetPackedDataSize() const
+    std::size_t GetPackedDataSize() const
     {
       const typename Version::RawHeader& header = GetHeader();
       if (uint_t packed = header.GetPackedDataSize())
@@ -232,7 +232,7 @@ namespace GamePacker
         : std::auto_ptr<Dump>();
     }
 
-    uint_t GetUsedSize() const
+    std::size_t GetUsedSize() const
     {
       return IsValid
         ? Header.GetPackedDataOffset() + Stream.GetProcessedBytes()

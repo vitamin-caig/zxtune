@@ -295,7 +295,7 @@ namespace Rar
       const uint_t timeSpent = std::clock() - StartTick;
       if (timeSpent)
       {
-        const uint_t speed = (TargetSize * CLOCKS_PER_SEC / timeSpent);
+        const std::size_t speed = TargetSize * CLOCKS_PER_SEC / timeSpent;
         Log::Debug(THIS_MODULE, "Depacking speed is %1% b/s", speed);
       }
       else

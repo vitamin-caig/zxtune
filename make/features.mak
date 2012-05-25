@@ -11,4 +11,4 @@ endif
 
 #TODO: extract to dependend lib
 $(platform)_libraries += lhasa
-$(platform)_depends = 3rdparty/lhasa/lib
+$(platform)_depends += 3rdparty/lhasa/lib

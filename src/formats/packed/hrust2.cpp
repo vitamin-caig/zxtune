@@ -463,7 +463,7 @@ namespace Hrust2
         {
           return Blocks.front();
         }
-        const std::size_t totalSize = std::accumulate(Blocks.begin(), Blocks.end(), 0, 
+        const std::size_t totalSize = std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), 
           boost::bind(std::plus<std::size_t>(), _1,
             boost::bind(&Binary::Container::Size, _2)));
         std::auto_ptr<Dump> result(new Dump(totalSize));

@@ -167,9 +167,9 @@ namespace Zip
         return res;
       }
       stream.next_in = const_cast<uint8_t*>(Start);
-      stream.avail_in = Size;
+      stream.avail_in = static_cast<uInt>(Size);
       stream.next_out = &dst[0];
-      stream.avail_out = DestSize;
+      stream.avail_out = static_cast<uInt>(DestSize);
       res = inflate(&stream, Z_FINISH);
       inflateEnd(&stream);
       return res == Z_STREAM_END

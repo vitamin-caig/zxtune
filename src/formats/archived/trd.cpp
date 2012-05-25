@@ -159,7 +159,6 @@ namespace TRD
       Log::Debug(THIS_MODULE, "Invalid track 0 reserved blocks content");
       return 0;
     }
-    const std::size_t trackSize = SECTORS_IN_TRACK * BYTES_PER_SECTOR;
     const bool validSize = dataSize == MODULE_SIZE;
 
     const std::size_t totalSectors = std::min(dataSize, MODULE_SIZE) / BYTES_PER_SECTOR;

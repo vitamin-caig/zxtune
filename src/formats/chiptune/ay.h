@@ -36,7 +36,7 @@ namespace Formats
         virtual void AddBlock(uint16_t addr, const void* data, std::size_t size) = 0;
       };
 
-      std::size_t GetModulesCount(const Binary::Container& data);
+      uint_t GetModulesCount(const Binary::Container& data);
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, std::size_t idx, Builder& target);
       Builder& GetStubBuilder();
 

@@ -169,7 +169,7 @@ namespace LZS
       {
         return false;
       }
-      const uint_t usedSize = GetUsedSize();
+      const std::size_t usedSize = GetUsedSize();
       if (usedSize > Size)
       {
         return false;
@@ -177,7 +177,7 @@ namespace LZS
       return true;
     }
 
-    uint_t GetUsedSize() const
+    std::size_t GetUsedSize() const
     {
       const RawHeader& header = GetHeader();
       const std::size_t defSize = sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);

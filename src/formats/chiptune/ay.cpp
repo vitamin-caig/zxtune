@@ -484,7 +484,7 @@ namespace AY
     BlocksList Blocks;
   };
 
-  std::size_t GetModulesCount(const Binary::Container& rawData)
+  uint_t GetModulesCount(const Binary::Container& rawData)
   {
     const Binary::TypedContainer data(rawData);
     if (const Header* header = data.GetField<Header>(0))

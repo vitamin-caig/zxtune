@@ -134,7 +134,7 @@ namespace Pack2
       {
         return false;
       }
-      const uint_t usedSize = GetUsedSize();
+      const std::size_t usedSize = GetUsedSize();
       if (usedSize > Size)
       {
         return false;
@@ -142,7 +142,7 @@ namespace Pack2
       return true;
     }
 
-    uint_t GetUsedSize() const
+    std::size_t GetUsedSize() const
     {
       const RawHeader& header = GetHeader();
       const std::size_t selfAddr = fromLE(header.FirstOfUnpacked) - (sizeof(header) - 1);
