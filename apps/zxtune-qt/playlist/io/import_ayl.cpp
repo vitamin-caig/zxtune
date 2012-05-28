@@ -65,9 +65,9 @@ namespace
       assert(Codec);
     }
 
-    String DecodeString(const std::string& str) const
+    String DecodeString(const QString& str) const
     {
-      return FromQString(Codec->toUnicode(str.c_str()));
+      return FromQString(Codec->toUnicode(str.toLocal8Bit()));
     }
 
     Parameters::IntType DecodeFrameduration(Parameters::IntType playerFreq) const
@@ -275,28 +275,28 @@ namespace
       //ignore "Length", "Address", "Loop", "Time", "Original"
       else if (name == AYL::NAME)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_TITLE, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_TITLE, val);
       }
       else if (name == AYL::AUTHOR)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_AUTHOR, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_AUTHOR, val);
       }
       else if (name == AYL::PROGRAM || name == AYL::TRACKER)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_PROGRAM, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_PROGRAM, val);
       }
       else if (name == AYL::COMPUTER)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_COMPUTER, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_COMPUTER, val);
       }
       else if (name == AYL::DATE)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_DATE, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_DATE, val);
       }
       else if (name == AYL::COMMENT)
       {
         //TODO: process escape sequence
-        Delegate.SetValue(ZXTune::Module::ATTR_COMMENT, Version.DecodeString(val));
+        Delegate.SetValue(ZXTune::Module::ATTR_COMMENT, val);
       }
       //ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }
@@ -368,9 +368,14 @@ namespace
 
   void ApplyOffset(std::size_t offset, Playlist::IO::ContainerItem& item)
   {
-    assert(offset);
-    const String subPath = IndexPathComponent(Text::RAW_PLUGIN_PREFIX).Build(offset);
-    ZXTune::IO::CombineUri(item.Path, subPath, item.Path);
+    //offset for YM/VTX cannot be applied
+    if (!boost::algorithm::iends_with(item.Path, FromStdString(".vtx")) &&
+        !boost::algorithm::iends_with(item.Path, FromStdString(".ym")))
+    {
+      assert(offset);
+      const String subPath = IndexPathComponent(Text::RAW_PLUGIN_PREFIX).Build(offset);
+      ZXTune::IO::CombineUri(item.Path, subPath, item.Path);
+    }
   }
 
   Playlist::IO::ContainerItemsPtr CreateItems(const QString& basePath, const VersionLayer& version, const AYLContainer& aylItems)
@@ -435,14 +440,14 @@ namespace Playlist
         return Container::Ptr();
       }
       Log::Debug(THIS_MODULE, "Processing AYL version %1%", vers);
+      const VersionLayer version(vers);
       StringArray lines;
       while (!stream.atEnd())
       {
         const QString line = stream.readLine(0).trimmed();
-        lines.push_back(FromQString(line));
+        lines.push_back(version.DecodeString(line));
       }
       const QString basePath = info.absolutePath();
-      const VersionLayer version(vers);
       const AYLContainer aylItems(lines);
       const ContainerItemsPtr items = CreateItems(basePath, version, aylItems);
       const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
