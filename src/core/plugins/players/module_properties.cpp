@@ -94,6 +94,11 @@ namespace
       Source = source;
     }
 
+    virtual Parameters::Modifier::Ptr GetInternalContainer() const
+    {
+      return Container;
+    }
+
     virtual Plugin::Ptr GetPlugin() const
     {
       return Plug;

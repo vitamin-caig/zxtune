@@ -87,6 +87,12 @@ namespace Time
     return TimeStamp::PER_SECOND / ts.Get();
   }
 
+  template<class TimeStamp>
+  TimeStamp GetPeriodForFrequency(typename TimeStamp::ValueType freq)
+  {
+    return TimeStamp(TimeStamp::PER_SECOND / freq);
+  }
+
   template<class T, class TimeStamp>
   class Oscillator
   {

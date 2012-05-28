@@ -105,8 +105,9 @@ namespace
   class StreamInfo : public Information
   {
   public:
-    explicit StreamInfo(uint_t frames, uint_t physChannels)
+    StreamInfo(uint_t frames, uint_t loopFrame, uint_t physChannels)
       : TotalFrames(frames)
+      , Loop(loopFrame)
       , PhysChans(physChannels)
     {
     }
@@ -128,7 +129,7 @@ namespace
     }
     virtual uint_t LoopFrame() const
     {
-      return 0;
+      return Loop;
     }
     virtual uint_t LogicalChannels() const
     {
@@ -144,6 +145,7 @@ namespace
     }
   private:
     const uint_t TotalFrames;
+    const uint_t Loop;
     const uint_t PhysChans;
   };
 
@@ -188,9 +190,9 @@ namespace ZXTune
 {
   namespace Module
   {
-    Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels)
+    Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels, uint_t loopFrame)
     {
-      return boost::make_shared<StreamInfo>(frames, physChannels);
+      return boost::make_shared<StreamInfo>(frames, loopFrame, physChannels);
     }
 
     StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)

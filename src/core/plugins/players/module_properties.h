@@ -41,6 +41,7 @@ namespace ZXTune
       virtual void SetSource(std::size_t usedSize, const struct ModuleRegion& fixedRegion) = 0;
       virtual void SetSource(Formats::Chiptune::Container::Ptr source) = 0;
 
+      virtual Parameters::Modifier::Ptr GetInternalContainer() const = 0;
       virtual Plugin::Ptr GetPlugin() const = 0;
       virtual void GetData(Dump& dump) const = 0;
 

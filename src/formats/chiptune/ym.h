@@ -29,7 +29,7 @@ namespace Formats
         virtual ~Builder() {}
 
         //YMx
-        virtual void SetType(const String& type) = 0;
+        virtual void SetVersion(const String& version) = 0;
         // Default: false
         virtual void SetChipType(bool ym) = 0;
         // Default: abc.

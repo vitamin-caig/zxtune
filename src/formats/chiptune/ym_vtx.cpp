@@ -54,11 +54,12 @@ namespace
       return *res;
     }
 
-    String ReadString()
+    String ReadString(std::size_t maxSize)
     {
       const uint8_t* const cursor = Start + Offset;
-      const uint8_t* const strEnd = std::find(cursor, Finish, 0);
-      Require(strEnd != Finish);
+      const uint8_t* const limit = std::min(cursor + maxSize, Finish);
+      const uint8_t* const strEnd = std::find(cursor, limit, 0);
+      Require(strEnd != limit);
       const String res(cursor, strEnd);
       Offset = strEnd - Start + 1;
       return res;
@@ -181,7 +182,7 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetType(const String& /*type*/) {}
+      virtual void SetVersion(const String& /*version*/) {}
       virtual void SetChipType(bool /*ym*/) {}
       virtual void SetStereoMode(uint_t /*mode*/) {}
       virtual void SetLoop(uint_t /*loop*/) {}
@@ -236,7 +237,7 @@ namespace Chiptune
         {
           ContainerHelper container(rawData);
           const IdentifierType& type = container.Read<IdentifierType>();
-          target.SetType(String(type.begin(), type.end()));
+          target.SetVersion(String(type.begin(), type.end()));
 
           const std::size_t columns = sizeof(RegistersDump);
           const std::size_t lines = (size - sizeof(IdentifierType)) / columns;
@@ -266,6 +267,8 @@ namespace Chiptune
 
     const uint_t CHIP_AY = 0x7961;
     const uint_t CHIP_YM = 0x6d79;
+    const uint_t CHIP_AY_OLD = 0x5941;
+    const uint_t CHIP_YM_OLD = 0x4d59;
 
     const uint_t LAYOUT_MASK = 7;
     const uint_t LAYOUT_MIN = 0;
@@ -273,68 +276,95 @@ namespace Chiptune
 
     const uint_t CLOCKRATE_MIN = 100000;//100kHz
 
-    const uint_t INTFREQ_MIN = 1;
+    const uint_t INTFREQ_MIN = 25;
     const uint_t INTFREQ_MAX = 100;
+
+    const uint_t UNPACKED_MAX = sizeof(RegistersDump) * INTFREQ_MAX * 30 * 60;//30 min
+
+    const std::size_t MAX_STRING_SIZE = 254;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
-    PACK_PRE struct RawHeader
+    PACK_PRE struct RawBasicHeader
     {
       uint16_t ChipType;
       uint8_t LayoutMode;
       uint16_t Loop;
       uint32_t Clockrate;
       uint8_t IntFreq;
+    } PACK_POST;
+
+    PACK_PRE struct RawNewHeader : RawBasicHeader
+    {
       uint16_t Year;
+      uint32_t UnpackedSize;
+    } PACK_POST;
+
+    PACK_PRE struct RawOldHeader : RawBasicHeader
+    {
       uint32_t UnpackedSize;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
 
-    BOOST_STATIC_ASSERT(sizeof(RawHeader) == 16);
+    BOOST_STATIC_ASSERT(sizeof(RawBasicHeader) == 10);
+    BOOST_STATIC_ASSERT(sizeof(RawNewHeader) == 16);
+    BOOST_STATIC_ASSERT(sizeof(RawOldHeader) == 14);
+
+    template<class HeaderType>
+    bool FastCheck(const HeaderType& hdr)
+    {
+      if (!in_range<uint_t>(hdr.LayoutMode & LAYOUT_MASK, LAYOUT_MIN, LAYOUT_MAX))
+      {
+        return false;
+      }
+      if (!in_range<uint_t>(hdr.IntFreq, INTFREQ_MIN, INTFREQ_MAX))
+      {
+        return false;
+      }
+      if (fromLE(hdr.Clockrate) < CLOCKRATE_MIN)
+      {
+        return false;
+      }
+      if (fromLE(hdr.UnpackedSize) > UNPACKED_MAX)
+      {
+        return false;
+      }
+      return true;
+    }
 
     bool FastCheck(const Binary::Container& rawData)
     {
       const Binary::TypedContainer typedData(rawData);
-      if (const RawHeader* hdr = typedData.GetField<RawHeader>(0))
+      if (const RawBasicHeader* basic = typedData.GetField<RawBasicHeader>(0))
       {
-        const uint16_t type = fromLE(hdr->ChipType);
-        if (type != CHIP_AY && type != CHIP_YM)
+        const uint16_t type = fromLE(basic->ChipType);
+        if (type == CHIP_AY || type == CHIP_YM)
         {
-          return false;
+          if (const RawNewHeader* hdr = typedData.GetField<RawNewHeader>(0))
+          {
+            return FastCheck(*hdr);
+          }
         }
-        if (!in_range<uint_t>(hdr->LayoutMode & LAYOUT_MASK, LAYOUT_MIN, LAYOUT_MAX))
+        else if (type == CHIP_AY_OLD || type == CHIP_YM_OLD)
         {
-          return false;
+          if (const RawOldHeader* hdr = typedData.GetField<RawOldHeader>(0))
+          {
+            return FastCheck(*hdr);
+          }
         }
-        if (!in_range<uint_t>(hdr->IntFreq, INTFREQ_MIN, INTFREQ_MAX))
-        {
-          return false;
-        }
-        if (fromLE(hdr->Clockrate < CLOCKRATE_MIN))
-        {
-          return false;
-        }
-        return true;
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
 
     const std::string FORMAT(
-      "('a|'y)('y|'m)" //type
+      "('a|'A|'y|'Y)('y|'Y|'m|'M)" //type
       "00-06"          //layout
       "??"             //loop
       "????"           //clockrate
       "01-64"          //intfreq, 1..100Hz
-      /*
-      "??"             //year
-      "????"           //unpacked size
-      */
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -381,25 +411,37 @@ namespace Chiptune
       try
       {
         ContainerHelper data(rawData);
-        const VTX::RawHeader& hdr = data.Read<VTX::RawHeader>();
-        target.SetChipType(fromLE(hdr.ChipType) == VTX::CHIP_YM);
+        const VTX::RawBasicHeader& hdr = data.Read<VTX::RawBasicHeader>();
+        const uint_t chipType = fromLE(hdr.ChipType);
+        const bool ym = chipType == VTX::CHIP_YM || chipType == VTX::CHIP_YM_OLD;
+        const bool newVersion = chipType == VTX::CHIP_YM || chipType == VTX::CHIP_AY;
+        target.SetChipType(ym);
         target.SetStereoMode(hdr.LayoutMode);
         target.SetLoop(fromLE(hdr.Loop));
         target.SetClockrate(fromLE(hdr.Clockrate));
         target.SetIntFreq(hdr.IntFreq);
-        target.SetYear(fromLE(hdr.Year));
-        target.SetTitle(data.ReadString());
-        target.SetAuthor(data.ReadString());
-        target.SetProgram(data.ReadString());
-        target.SetEditor(data.ReadString());
-        target.SetComment(data.ReadString());
+        if (newVersion)
+        {
+          target.SetYear(fromLE(data.Read<uint16_t>()));
+        }
+        const uint_t unpackedSize = fromLE(data.Read<uint32_t>());
+        target.SetTitle(data.ReadString(VTX::MAX_STRING_SIZE));
+        target.SetAuthor(data.ReadString(VTX::MAX_STRING_SIZE));
+        if (newVersion)
+        {
+          target.SetProgram(data.ReadString(VTX::MAX_STRING_SIZE));
+          target.SetEditor(data.ReadString(VTX::MAX_STRING_SIZE));
+          target.SetComment(data.ReadString(VTX::MAX_STRING_SIZE));
+        }
 
         const std::size_t packedOffset = data.GetOffset();
         Log::Debug(THIS_MODULE, "Packed data at %1%", packedOffset);
         const Binary::Container::Ptr packed = data.ReadRestData();
-        if (Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", fromLE(hdr.UnpackedSize)))
+        if (Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {
-          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Data()), unpacked->Size(), sizeof(RegistersDump), target);
+          const std::size_t unpackedSize = unpacked->Size();
+          Require(0 == (unpackedSize % sizeof(RegistersDump)));
+          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Data()), unpackedSize, sizeof(RegistersDump), target);
           const std::size_t packedSize = unpacked->PackedSize();
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
           return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
