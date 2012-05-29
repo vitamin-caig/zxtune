@@ -49,7 +49,7 @@ namespace
       const uint8_t* const cursor = Start + Offset;
       const std::size_t size = sizeof(T);
       const T* const res = safe_ptr_cast<const T*>(cursor);
-      Require(cursor + size < Finish);
+      Require(cursor + size <= Finish);
       Offset += size;
       return *res;
     }
@@ -68,7 +68,7 @@ namespace
     const uint8_t* ReadData(std::size_t size)
     {
       const uint8_t* const cursor = Start + Offset;
-      Require(cursor + size < Finish);
+      Require(cursor + size <= Finish);
       Offset += size;
       return cursor;
     }
@@ -106,6 +106,13 @@ namespace Chiptune
     typedef boost::array<uint8_t, 14> RegistersDump;
     typedef boost::array<uint8_t, 4> IdentifierType;
 
+    const uint_t CLOCKRATE_MIN = 100000;//100kHz
+
+    const uint_t INTFREQ_MIN = 25;
+    const uint_t INTFREQ_MAX = 100;
+
+    const std::size_t MAX_STRING_SIZE = 254;
+
     namespace Ver2
     {
       const uint8_t ID[] = {'Y', 'M', '2', '!'};
@@ -116,9 +123,14 @@ namespace Chiptune
         RegistersDump Row;
       } PACK_POST;
 
+      bool CheckSize(std::size_t size)
+      {
+        return size >= sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN;
+      }
+
       bool FastCheck(const void* data, std::size_t size)
       {
-        return size >= sizeof(RawHeader) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
@@ -132,9 +144,14 @@ namespace Chiptune
         RegistersDump Row;
       } PACK_POST;
 
+      bool CheckSize(std::size_t size)
+      {
+        return size >= sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN;
+      }
+
       bool FastCheck(const void* data, std::size_t size)
       {
-        return size >= sizeof(RawHeader) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
@@ -148,15 +165,23 @@ namespace Chiptune
         RegistersDump Row;
       } PACK_POST;
 
+      bool CheckSize(std::size_t size)
+      {
+        return size >= sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN + sizeof(uint32_t);
+      }
+
       bool FastCheck(const void* data, std::size_t size)
       {
-        return size >= sizeof(RawHeader) + sizeof(uint32_t) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
     namespace Ver5
     {
       const uint8_t ID[] = {'Y', 'M', '5', '!', 'L', 'e','O', 'n', 'A', 'r', 'D', '!'};
+
+      typedef boost::array<uint8_t, 16> RegistersDump;
+      typedef boost::array<uint8_t, 4> Footer;
 
       PACK_PRE struct RawHeader
       {
@@ -170,9 +195,55 @@ namespace Chiptune
         uint16_t ExtraSize;
       } PACK_POST;
 
+      bool CheckSize(std::size_t size)
+      {
+        return size >= sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN;
+      }
+
       bool FastCheck(const void* data, std::size_t size)
       {
-        return size >= sizeof(RawHeader) && 0 == std::memcmp(data, ID, sizeof(ID));
+        return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
+      }
+    }
+
+    namespace Compressed
+    {
+      PACK_PRE struct RawHeader
+      {
+        uint8_t HeaderSize;
+        uint8_t HeaderSum;
+        char Method[5];
+        uint32_t PackedSize;
+        uint32_t OriginalSize;
+        uint32_t Time;
+        uint8_t Attribute;
+        uint8_t Level;
+        uint8_t NameLen;
+
+        std::size_t GetDataOffset() const
+        {
+          return offsetof(RawHeader, Method) + HeaderSize;
+        }
+      } PACK_POST;
+
+      bool FastCheck(const void* data, std::size_t size)
+      {
+        if (size < sizeof(RawHeader))
+        {
+          return 0;
+        }
+        const RawHeader& hdr = *static_cast<const RawHeader*>(data);
+        const std::size_t hdrLen = hdr.GetDataOffset();
+        const std::size_t ftrLen = 1;//final byte
+        if (hdrLen + fromLE(hdr.PackedSize) + ftrLen > size)
+        {
+          return false;
+        }
+        const std::size_t origSize = fromLE(hdr.OriginalSize);
+        return Ver2::CheckSize(origSize)
+            || Ver3::CheckSize(origSize)
+            || Ver3b::CheckSize(origSize)
+            || Ver5::CheckSize(origSize);
       }
     }
 #ifdef USE_PRAGMA_PACK
@@ -225,6 +296,18 @@ namespace Chiptune
       }
     }
 
+    void ParseMatrix(const uint8_t* data, std::size_t size, std::size_t columns, Builder& target)
+    {
+      const std::size_t lines = size / columns;
+      Require(lines != 0);
+      const uint8_t* cursor = data;
+      for (std::size_t row = 0; row != lines; ++row, data += columns)
+      {
+        const Dump registers(cursor, cursor + columns);
+        target.AddData(registers);
+      }
+    }
+
     Formats::Chiptune::Container::Ptr ParseUnpacked(const Binary::Container& rawData, Builder& target)
     {
       const void* const data = rawData.Data();
@@ -239,8 +322,10 @@ namespace Chiptune
           const IdentifierType& type = container.Read<IdentifierType>();
           target.SetVersion(String(type.begin(), type.end()));
 
+          const std::size_t dumpOffset = sizeof(IdentifierType);
+          const std::size_t dumpSize = size - dumpOffset;
           const std::size_t columns = sizeof(RegistersDump);
-          const std::size_t lines = (size - sizeof(IdentifierType)) / columns;
+          const std::size_t lines = dumpSize / columns;
           const std::size_t matrixSize = lines * columns;
           const uint8_t* const src = container.ReadData(matrixSize);
           ParseTransponedMatrix(src, matrixSize, columns, target);
@@ -250,7 +335,43 @@ namespace Chiptune
             target.SetLoop(loop);
           }
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, container.GetOffset());
-          return CreateCalculatingCrcContainer(subData, sizeof(type), lines * columns);
+          return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
+        }
+        else if (Ver5::FastCheck(data, size))
+        {
+          ContainerHelper container(rawData);
+          const Ver5::RawHeader& header = container.Read<Ver5::RawHeader>();
+          if (0 != header.SamplesCount)
+          {
+            Log::Debug(THIS_MODULE, "Digital samples are not supported");
+            return Formats::Chiptune::Container::Ptr();
+          }
+          target.SetVersion(String(header.Signature, header.Signature + sizeof(IdentifierType)));
+          target.SetClockrate(fromBE(header.Clockrate));
+          target.SetIntFreq(fromBE(header.IntFreq));
+          target.SetLoop(fromBE(header.Loop));
+          target.SetTitle(container.ReadString(MAX_STRING_SIZE));
+          target.SetAuthor(container.ReadString(MAX_STRING_SIZE));
+          target.SetComment(container.ReadString(MAX_STRING_SIZE));
+          const uint_t attrs = fromBE(header.Attrs);
+
+          const std::size_t dumpOffset = container.GetOffset();
+          const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
+          const std::size_t columns = sizeof(Ver5::RegistersDump);
+          const std::size_t lines = dumpSize / columns;
+          const std::size_t matrixSize = lines * columns;
+          const uint8_t* const src = container.ReadData(matrixSize);
+          if (0 != (attrs & 1))
+          {
+            ParseTransponedMatrix(src, matrixSize, columns, target);
+          }
+          else
+          {
+            ParseMatrix(src, matrixSize, columns, target);
+          }
+          const Ver5::Footer& footer = container.Read<Ver5::Footer>();
+          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, container.GetOffset());
+          return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }
       }
       catch (const std::exception&)
@@ -259,6 +380,73 @@ namespace Chiptune
       }
       return Formats::Chiptune::Container::Ptr();
     }
+
+    Formats::Chiptune::Container::Ptr ParseYM(const Binary::Container& rawData, Builder& target)
+    {
+      const void* const data = rawData.Data();
+      const std::size_t size = rawData.Size();
+      if (!Compressed::FastCheck(data, size))
+      {
+        return Formats::Chiptune::Container::Ptr();
+      }
+      const Compressed::RawHeader& hdr = *static_cast<const Compressed::RawHeader*>(data);
+      const std::size_t packedOffset = hdr.GetDataOffset();
+      const std::size_t packedSize = fromLE(hdr.PackedSize);
+      const Binary::Container::Ptr packed = rawData.GetSubcontainer(packedOffset, packedSize);
+      const std::size_t unpackedSize = fromLE(hdr.OriginalSize);
+      if (Formats::Packed::Container::Ptr unpacked = Formats::Packed::Lha::DecodeRawData(*packed, FromCharArray(hdr.Method), unpackedSize))
+      {
+        if (ParseUnpacked(*unpacked, target))
+        {
+          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
+          return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
+        }
+      }
+      return Formats::Chiptune::Container::Ptr();
+    }
+
+    const std::string FORMAT(
+      "16-ff"      //header size
+      "?"          //header sum
+      "'-'l'h'5'-" //method
+      "????"       //packed size
+      "????"       //original size
+      "????"       //time+date
+      "%00x00xxx"  //attribute
+      "00"         //level
+    );
+
+    class Decoder : public Formats::Chiptune::Decoder
+    {
+    public:
+      Decoder()
+        : Format(Binary::Format::Create(FORMAT))
+      {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::YM_DECODER_DESCRIPTION;
+      }
+
+      virtual Binary::Format::Ptr GetFormat() const
+      {
+        return Format;
+      }
+
+      virtual bool Check(const Binary::Container& rawData) const
+      {
+        return Format->Match(rawData.Data(), rawData.Size());
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      {
+        Builder& stub = GetStubBuilder();
+        return ParseYM(rawData, stub);
+      }
+    private:
+      const Binary::Format::Ptr Format;
+    };
   }
 
   namespace VTX
@@ -279,9 +467,8 @@ namespace Chiptune
     const uint_t INTFREQ_MIN = 25;
     const uint_t INTFREQ_MAX = 100;
 
+    const uint_t UNPACKED_MIN = sizeof(RegistersDump) * INTFREQ_MIN * 1;//1 sec
     const uint_t UNPACKED_MAX = sizeof(RegistersDump) * INTFREQ_MAX * 30 * 60;//30 min
-
-    const std::size_t MAX_STRING_SIZE = 254;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -328,7 +515,7 @@ namespace Chiptune
       {
         return false;
       }
-      if (fromLE(hdr.UnpackedSize) > UNPACKED_MAX)
+      if (!in_range<uint_t>(fromLE(hdr.UnpackedSize), UNPACKED_MIN, UNPACKED_MAX))
       {
         return false;
       }
@@ -364,7 +551,7 @@ namespace Chiptune
       "00-06"          //layout
       "??"             //loop
       "????"           //clockrate
-      "01-64"          //intfreq, 1..100Hz
+      "19-64"          //intfreq, 25..100Hz
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -425,13 +612,13 @@ namespace Chiptune
           target.SetYear(fromLE(data.Read<uint16_t>()));
         }
         const uint_t unpackedSize = fromLE(data.Read<uint32_t>());
-        target.SetTitle(data.ReadString(VTX::MAX_STRING_SIZE));
-        target.SetAuthor(data.ReadString(VTX::MAX_STRING_SIZE));
+        target.SetTitle(data.ReadString(MAX_STRING_SIZE));
+        target.SetAuthor(data.ReadString(MAX_STRING_SIZE));
         if (newVersion)
         {
-          target.SetProgram(data.ReadString(VTX::MAX_STRING_SIZE));
-          target.SetEditor(data.ReadString(VTX::MAX_STRING_SIZE));
-          target.SetComment(data.ReadString(VTX::MAX_STRING_SIZE));
+          target.SetProgram(data.ReadString(MAX_STRING_SIZE));
+          target.SetEditor(data.ReadString(MAX_STRING_SIZE));
+          target.SetComment(data.ReadString(MAX_STRING_SIZE));
         }
 
         const std::size_t packedOffset = data.GetOffset();
@@ -462,9 +649,14 @@ namespace Chiptune
     }
   }
 
-  Decoder::Ptr CreateVTXDecoder()
+  Formats::Chiptune::Decoder::Ptr CreateVTXDecoder()
   {
     return boost::make_shared<VTX::Decoder>();
+  }
+
+  Formats::Chiptune::Decoder::Ptr CreateYMDecoder()
+  {
+    return boost::make_shared<YM::Decoder>();
   }
 }//namespace Chiptune
 }//namespace Formats

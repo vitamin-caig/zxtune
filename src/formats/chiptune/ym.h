@@ -51,7 +51,7 @@ namespace Formats
         virtual void AddData(const Dump& registers) = 0;
       };
 
-      Formats::Chiptune::Container::Ptr ParseUnpacked(const Binary::Container& data, Builder& target);
+      Formats::Chiptune::Container::Ptr ParseYM(const Binary::Container& data, Builder& target);
       Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
     }
