@@ -7,6 +7,13 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] LHA archives support
+[+] VTX modules support
+[+] YM modules support
+[*] Fixed crash on linux builds
+
+--- Rev1716 from 17.05.2012
+
 [+] zxtune-qt: persistent storage for settings and UI state
 [+] zxtune-qt: options dialog
 [+] zxtune-qt: current playlists store/restore between sessions
