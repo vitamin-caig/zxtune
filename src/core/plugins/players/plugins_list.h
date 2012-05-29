@@ -38,6 +38,7 @@ namespace ZXTune
   void RegisterGTRSupport(PluginsRegistrator& registrator);
   void RegisterPT1Support(PluginsRegistrator& registrator);
   void RegisterVTXSupport(PluginsRegistrator& registrator);
+  void RegisterYMSupport(PluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PluginsRegistrator& enumerator)
   {
@@ -62,6 +63,7 @@ namespace ZXTune
     RegisterGTRSupport(enumerator);
     RegisterPT1Support(enumerator);
     RegisterVTXSupport(enumerator);
+    RegisterYMSupport(enumerator);
   }
 }
 

@@ -117,7 +117,7 @@ namespace
       Loop = loop;
     }
 
-    virtual void SetDigitalSample(uint_t idx, const Dump& data)
+    virtual void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/)
     {
       //TODO:
     }
@@ -149,10 +149,13 @@ namespace
 
     virtual void SetYear(uint_t year)
     {
-      Props.GetInternalContainer()->SetValue(ATTR_DATE, year);
+      if (year)
+      {
+        Props.GetInternalContainer()->SetValue(ATTR_DATE, year);
+      }
     }
 
-    virtual void SetProgram(const String& program)
+    virtual void SetProgram(const String& /*program*/)
     {
       //TODO
     }
@@ -165,7 +168,7 @@ namespace
     virtual void AddData(const Dump& registers)
     {
       Devices::AYM::DataChunk& chunk = Allocate();
-      for (uint_t reg = 0, mask = 1; reg != registers.size(); ++reg, mask <<= 1)
+      for (uint_t reg = 0, mask = 1; reg != chunk.Data.size(); ++reg, mask <<= 1)
       {
         const uint8_t val = registers[reg];
         if (reg != Devices::AYM::DataChunk::REG_ENV || val != 0xff)
@@ -197,10 +200,10 @@ namespace
     mutable std::auto_ptr<ChunksArray> Data;
   };
 
-  class VTXDataIterator : public AYM::DataIterator
+  class DataIterator : public AYM::DataIterator
   {
   public:
-    VTXDataIterator(StateIterator::Ptr delegate, ChunksSet::Ptr data)
+    DataIterator(StateIterator::Ptr delegate, ChunksSet::Ptr data)
       : Delegate(delegate)
       , State(Delegate->GetStateObserver())
       , Data(data)
@@ -270,10 +273,10 @@ namespace
     Devices::AYM::DataChunk CurrentChunk;
   };
 
-  class VTXChiptune : public AYM::Chiptune
+  class Chiptune : public AYM::Chiptune
   {
   public:
-    VTXChiptune(ChunksSet::Ptr data, ModuleProperties::Ptr properties, uint_t loopFrame)
+    Chiptune(ChunksSet::Ptr data, ModuleProperties::Ptr properties, uint_t loopFrame)
       : Data(data)
       , Properties(properties)
       , Info(CreateStreamInfo(Data->Count(), Devices::AYM::CHANNELS, loopFrame))
@@ -293,7 +296,7 @@ namespace
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr /*trackParams*/) const
     {
       const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
-      return boost::make_shared<VTXDataIterator>(iter, Data);
+      return boost::make_shared<DataIterator>(iter, Data);
     }
   private:
     const ChunksSet::Ptr Data;
@@ -302,7 +305,7 @@ namespace
   };
 }
 
-namespace
+namespace VTX
 {
   using namespace ZXTune;
 
@@ -310,10 +313,10 @@ namespace
   const Char ID[] = {'V', 'T', 'X', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
 
-  class VTXModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    explicit VTXModulesFactory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -339,7 +342,54 @@ namespace
         const ChunksSet::Ptr data = builder.Result();
         if (data->Count())
         {
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<VTXChiptune>(data, properties, builder.GetLoop());
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, properties, builder.GetLoop());
+          return AYM::CreateHolder(chiptune);
+        }
+      }
+      return Holder::Ptr();
+    }
+  private:
+    const Formats::Chiptune::Decoder::Ptr Decoder;
+  };
+}
+
+namespace YM
+{
+  using namespace ZXTune;
+
+  //plugin attributes
+  const Char ID[] = {'Y', 'M', 0};
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+
+  class Factory : public ModulesFactory
+  {
+  public:
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+      : Decoder(decoder)
+    {
+    }
+
+    virtual bool Check(const Binary::Container& data) const
+    {
+      return Decoder->Check(data);
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Decoder->GetFormat();
+    }
+
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    {
+      Builder builder(*properties);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::YM::ParseYM(*data, builder))
+      {
+        usedSize = container->Size();
+        properties->SetSource(container);
+        const ChunksSet::Ptr data = builder.Result();
+        if (data->Count())
+        {
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, properties, builder.GetLoop());
           return AYM::CreateHolder(chiptune);
         }
       }
@@ -355,8 +405,16 @@ namespace ZXTune
   void RegisterVTXSupport(PluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateVTXDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<VTXModulesFactory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, CAPS, factory);
+    const ModulesFactory::Ptr factory = boost::make_shared<VTX::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(VTX::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, VTX::CAPS, factory);
+    registrator.RegisterPlugin(plugin);
+  }
+
+  void RegisterYMSupport(PluginsRegistrator& registrator)
+  {
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateYMDecoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<YM::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(YM::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, YM::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }
