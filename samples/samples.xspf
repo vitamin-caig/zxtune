@@ -59,5 +59,11 @@
   <track>
     <location>Samples/long_day.pt3</location>
   </track>
+  <track>
+    <location>Enlight3.vtx</location>
+  </track>
+  <track>
+    <location>Kurztech.ym</location>
+  </track>
 </trackList>
 </playlist>

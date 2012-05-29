@@ -18,6 +18,8 @@ install_samples:
 	$(call copyfile_cmd,$(path_step)/samples/stp/ZXGuide3_07.stp,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/str/COMETDAY.str,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(path_step)/samples/ts/long_day.pt3,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(path_step)/samples/vtx/Enlight3.vtx,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(path_step)/samples/ym/Kurztech.ym,$(DESTDIR)/Samples)
 
 install_samples_playlist: 
 	$(call copyfile_cmd,$(path_step)/samples/samples.xspf,$(DESTDIR))
