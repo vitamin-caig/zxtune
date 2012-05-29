@@ -60,10 +60,10 @@
     <location>Samples/long_day.pt3</location>
   </track>
   <track>
-    <location>Enlight3.vtx</location>
+    <location>Samples/Enlight3.vtx</location>
   </track>
   <track>
-    <location>Kurztech.ym</location>
+    <location>Samples/Kurztech.ym</location>
   </track>
 </trackList>
 </playlist>
