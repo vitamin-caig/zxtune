@@ -625,7 +625,7 @@ namespace AYModule
     {
       try
       {
-        assert(Formats::Chiptune::AY::GetModulesCount(*rawData) > 0);
+        assert(Formats::Chiptune::AY::GetModulesCount(*rawData) == 1);
 
         Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
         //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
