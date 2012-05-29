@@ -168,7 +168,8 @@ namespace
     virtual void AddData(const Dump& registers)
     {
       Devices::AYM::DataChunk& chunk = Allocate();
-      for (uint_t reg = 0, mask = 1; reg != chunk.Data.size(); ++reg, mask <<= 1)
+      const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::DataChunk::REG_ENV + 1);
+      for (uint_t reg = 0, mask = 1; reg != availRegs; ++reg, mask <<= 1)
       {
         const uint8_t val = registers[reg];
         if (reg != Devices::AYM::DataChunk::REG_ENV || val != 0xff)
