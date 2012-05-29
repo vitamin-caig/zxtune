@@ -613,7 +613,7 @@ namespace AYModule
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return Formats::Chiptune::AY::GetModulesCount(inputData) > 0;
+      return Formats::Chiptune::AY::GetModulesCount(inputData) == 1;
     }
 
     virtual Binary::Format::Ptr GetFormat() const
