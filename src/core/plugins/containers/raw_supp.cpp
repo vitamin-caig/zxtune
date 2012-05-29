@@ -57,12 +57,16 @@ namespace
       Log::Debug(THIS_MODULE, "Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
       Log::Debug(THIS_MODULE, "Coverage: %1%%%", useful * 100 / TotalData);
       Log::Debug(THIS_MODULE, "Speed is %1% b/s", spent ? (TotalData / spent) : TotalData);
+      uint64_t totalUsed = 0, totalMissed = 0;
       for (DetectMap::const_iterator it = Detection.begin(), lim = Detection.end(); it != lim; ++it)
       {
         const std::size_t used = it->second.first;
         const std::size_t missed = it->second.second;
         Log::Debug(THIS_MODULE, "Detector %1%: %2%/%3% missed/used (%4%%% effeciency)", it->first, missed, used, uint64_t(100) * (used - missed) / used);
+        totalUsed += used;
+        totalMissed += missed;
       }
+      Log::Debug(THIS_MODULE, "Total: %1%/%2% missed/used (%3%%% effeciency)", totalMissed, totalUsed, uint64_t(100) * (totalUsed - totalMissed) / totalUsed);
     }
 
     void Enqueue(std::size_t size)
@@ -467,16 +471,16 @@ namespace
 
     std::size_t Detect(DataLocation::Ptr input, const Module::DetectCallback& callback)
     {
-      const Analysis::Result::Ptr detectedArchives = DetectIn(Archives, input, callback);
-      if (const std::size_t matched = detectedArchives->GetMatchedDataSize())
-      {
-        Statistic::Self().AddArchived(matched);
-        return matched;
-      }
       const Analysis::Result::Ptr detectedModules = DetectIn(Players, input, callback);
       if (const std::size_t matched = detectedModules->GetMatchedDataSize())
       {
         Statistic::Self().AddModule(matched);
+        return matched;
+      }
+      const Analysis::Result::Ptr detectedArchives = DetectIn(Archives, input, callback);
+      if (const std::size_t matched = detectedArchives->GetMatchedDataSize())
+      {
+        Statistic::Self().AddArchived(matched);
         return matched;
       }
       const std::size_t archiveLookahead = detectedArchives->GetLookaheadOffset();

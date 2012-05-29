@@ -156,10 +156,6 @@ namespace Formats
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
         const uint_t subModules = Formats::Chiptune::AY::GetModulesCount(rawData);
-        if (subModules < 2)
-        {
-          return Container::Ptr();
-        }
         Formats::Chiptune::AY::Builder& stub = Formats::Chiptune::AY::GetStubBuilder();
         for (uint_t idx = subModules; idx; --idx)
         {
