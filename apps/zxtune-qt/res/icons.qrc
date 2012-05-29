@@ -26,5 +26,6 @@
     <file alias="TS">types/ts.png</file>
     <file alias="TXT">types/txt.png</file>
     <file alias="VTX">types/vtx.png</file>
+    <file alias="YM">types/ym.png</file>
   </qresource>
 </RCC>
