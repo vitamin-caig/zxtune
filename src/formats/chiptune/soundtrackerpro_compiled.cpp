@@ -255,7 +255,7 @@ namespace Chiptune
       //first pattern is always placed after the header (and optional id);
       const std::size_t hdrSize = sizeof(hdr) + (id.Check() ? sizeof(id) : 0);
       const std::size_t firstData = fromLE(firstPattern.Offsets[0]);
-      if (0 == hdr.FixesCount)
+      if (0 != hdr.FixesCount)
       {
         Require(firstData == hdrSize);
       }
@@ -450,7 +450,7 @@ namespace Chiptune
 
       const RawSample& GetSample(uint_t index) const
       {
-        const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.SamplesOffset)));
+        const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.SamplesOffset))) - UnfixDelta;
         const RawObject* const obj = Delegate.GetField<RawObject>(offset);
         Require(obj != 0);
         const RawSample* const res = safe_ptr_cast<const RawSample*>(obj);
@@ -460,7 +460,7 @@ namespace Chiptune
 
       const RawOrnament& GetOrnament(uint_t index) const
       {
-        const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.OrnamentsOffset)));
+        const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.OrnamentsOffset))) - UnfixDelta;
         const RawObject* const obj = Delegate.GetField<RawObject>(offset);
         Require(obj != 0);
         const RawOrnament* const res = safe_ptr_cast<const RawOrnament*>(obj);
