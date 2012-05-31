@@ -110,6 +110,8 @@ namespace Pack2
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x38);
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   class Container
   {
   public:
@@ -266,7 +268,7 @@ namespace Formats
     {
     public:
       Pack2Decoder()
-        : Depacker(Binary::Format::Create(Pack2::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(Pack2::DEPACKER_PATTERN, Pack2::MIN_SIZE))
       {
       }
 

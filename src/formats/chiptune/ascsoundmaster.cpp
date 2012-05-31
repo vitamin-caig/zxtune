@@ -44,7 +44,6 @@ namespace Chiptune
 {
   namespace ASCSoundMaster
   {
-    const std::size_t MAX_MODULE_SIZE = 0x3a00;
     const std::size_t SAMPLES_COUNT = 32;
     const std::size_t MAX_SAMPLE_SIZE = 150;
     const std::size_t ORNAMENTS_COUNT = 32;
@@ -58,6 +57,8 @@ namespace Chiptune
 #endif
     struct Version0
     {
+      static const std::size_t MIN_SIZE = 500;
+      static const std::size_t MAX_SIZE = 0x2400; //~9k
       static const String DESCRIPTION;
       static const std::string FORMAT;
 
@@ -77,6 +78,8 @@ namespace Chiptune
 
     struct Version1
     {
+      static const std::size_t MIN_SIZE = 256;
+      static const std::size_t MAX_SIZE = 0x3a00;
       static const String DESCRIPTION;
       static const std::string FORMAT;
 
@@ -96,8 +99,8 @@ namespace Chiptune
     const std::string Version0::FORMAT(
       "03-32"    //tempo
       "09-ab 00" //patterns
-      "? 00-39"  //samples
-      "? 00-3a"  //ornaments
+      "? 00-23"  //samples
+      "? 00-24"  //ornaments
       "01-64"    //length
       "00-1f"    //first position
     );
@@ -1197,9 +1200,10 @@ namespace Chiptune
       return FastCheck(data, areas);
     }
 
+    template<class Version>
     Binary::TypedContainer CreateContainer(const Binary::Container& data)
     {
-      return Binary::TypedContainer(data, std::min(data.Size(), MAX_MODULE_SIZE));
+      return Binary::TypedContainer(data, std::min(data.Size(), Version::MAX_SIZE));
     }
 
     Builder& GetStubBuilder()
@@ -1213,7 +1217,7 @@ namespace Chiptune
     {
     public:
       VersionedDecoder()
-        : Header(Binary::Format::Create(Version::FORMAT))
+        : Header(Binary::Format::Create(Version::FORMAT, Version::MIN_SIZE))
       {
       }
 
@@ -1229,7 +1233,7 @@ namespace Chiptune
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return Header->Match(rawData.Data(), rawData.Size()) && FastCheck<Version>(CreateContainer(rawData));
+        return Header->Match(rawData.Data(), rawData.Size()) && FastCheck<Version>(CreateContainer<Version>(rawData));
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
@@ -1246,7 +1250,7 @@ namespace Chiptune
         }
         try
         {
-          const Binary::TypedContainer data = CreateContainer(rawData);
+          const Binary::TypedContainer data = CreateContainer<Version>(rawData);
           const Format format(data, TypedHeader<Version>::Create(data));
           format.ParseCommonProperties(target);
 
@@ -1275,7 +1279,7 @@ namespace Chiptune
       {
         if (Binary::Container::Ptr parsed = Decode(rawData))
         {
-          const Binary::TypedContainer typedHelper(CreateContainer(*parsed));
+          const Binary::TypedContainer typedHelper(CreateContainer<Version>(*parsed));
           const typename Version::RawHeader& header = *typedHelper.GetField<typename Version::RawHeader>(0);
           const std::size_t headerSize = GetHeaderSize(header);
           const std::size_t infoSize = info.size();

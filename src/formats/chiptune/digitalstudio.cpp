@@ -108,6 +108,8 @@ namespace Chiptune
 
     BOOST_STATIC_ASSERT(sizeof(Header) == 0x7200);
 
+    const std::size_t MIN_SIZE = sizeof(Header);
+
     const uint_t NOTE_EMPTY = 0;
     const uint_t NOTE_BASE = 1;
     const uint_t NOTE_PAUSE = 0x80;
@@ -475,7 +477,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
 

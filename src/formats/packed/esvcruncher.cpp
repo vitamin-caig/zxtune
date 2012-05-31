@@ -195,6 +195,8 @@ namespace ESVCruncher
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xba + 1);
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   //dsq bitstream decoder
   class Bitstream
   {

@@ -64,6 +64,8 @@ namespace PowerfullCodeDecreaser6
 #endif
 
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xc9 + 3 + 2);
+
+    static const std::size_t MIN_SIZE = sizeof(RawHeader);
   };
 
   struct Version62
@@ -99,6 +101,8 @@ namespace PowerfullCodeDecreaser6
 #endif
 
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xc4 + 5 + 2);
+
+    static const std::size_t MIN_SIZE = sizeof(RawHeader);
   };
 
   const String Version61::DESCRIPTION = Text::PCD61_DECODER_DESCRIPTION;
@@ -402,7 +406,7 @@ namespace Formats
     {
     public:
       PowerfullCodeDecreaser6Decoder()
-        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
       {
       }
 

@@ -64,6 +64,8 @@ namespace Hrust2
         NO_COMPRESSION = 128
       };
     } PACK_POST;
+
+    const std::size_t MIN_SIZE = sizeof(FormatHeader);
   }
 
   namespace Version3
@@ -112,7 +114,10 @@ namespace Hrust2
       {
         return GetSize() + fromLE(PackedSize);
       }
+
     } PACK_POST;
+
+    const std::size_t MIN_SIZE = sizeof(FormatHeader);
   }
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -568,7 +573,7 @@ namespace Formats
     {
     public:
       Hrust21Decoder()
-        : Format(Binary::Format::Create(Hrust2::Version1::HEADER_FORMAT))
+        : Format(Binary::Format::Create(Hrust2::Version1::HEADER_FORMAT, Hrust2::Version1::MIN_SIZE))
       {
       }
 
@@ -602,7 +607,7 @@ namespace Formats
     {
     public:
       Hrust23Decoder()
-        : Format(Binary::Format::Create(Hrust2::Version3::HEADER_FORMAT))
+        : Format(Binary::Format::Create(Hrust2::Version3::HEADER_FORMAT, Hrust2::Version3::MIN_SIZE))
       {
       }
 

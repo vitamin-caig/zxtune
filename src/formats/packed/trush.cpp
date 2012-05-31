@@ -85,6 +85,8 @@ namespace TRUSH
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x11b);
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   class Container
   {
   public:
@@ -253,7 +255,7 @@ namespace Formats
     {
     public:
       TRUSHDecoder()
-        : Depacker(Binary::Format::Create(TRUSH::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(TRUSH::DEPACKER_PATTERN, TRUSH::MIN_SIZE))
       {
       }
 

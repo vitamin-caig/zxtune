@@ -40,7 +40,8 @@ namespace Chiptune
 {
   namespace ProTracker2
   {
-    const std::size_t MAX_MODULE_SIZE = 0x3600;
+    const std::size_t MIN_SIZE = 100;
+    const std::size_t MAX_SIZE = 0x3800;
     const std::size_t MAX_POSITIONS_COUNT = 255;
     const std::size_t MIN_PATTERN_SIZE = 5;
     const std::size_t MAX_PATTERN_SIZE = 64;
@@ -853,7 +854,7 @@ namespace Chiptune
 
     Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
     {
-      return Binary::TypedContainer(rawData, std::min(rawData.Size(), MAX_MODULE_SIZE));
+      return Binary::TypedContainer(rawData, std::min(rawData.Size(), MAX_SIZE));
     }
 
     bool FastCheck(const Binary::TypedContainer& data)
@@ -887,9 +888,9 @@ namespace Chiptune
       "?"          // uint8_t Length;
       "00-fe"      // uint8_t Loop; 0..99
       //boost::array<uint16_t, 32> SamplesOffsets;
-      "(?00-36){32}"
+      "(?00-38){32}"
       //boost::array<uint16_t, 16> OrnamentsOffsets;
-      "(?00-36){16}"
+      "(?00-38){16}"
       "?00-01" // uint16_t PatternsOffset;
       "+30+"   // char Name[30];
       "00-1f"  // uint8_t Positions[1]; at least one
@@ -900,7 +901,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
 

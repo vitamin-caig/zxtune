@@ -32,6 +32,7 @@ namespace GamePacker
   struct Version1
   {
     static const String DESCRIPTION;
+    static const std::size_t MIN_SIZE = 0x20;//TODO
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -77,6 +78,7 @@ namespace GamePacker
   struct Version2
   {
     static const String DESCRIPTION;
+    static const std::size_t MIN_SIZE = 0x20;//TODO
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -299,7 +301,7 @@ namespace Formats
     {
     public:
       GamePackerDecoder()
-        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
       {
       }
 

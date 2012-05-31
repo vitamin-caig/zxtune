@@ -39,8 +39,8 @@ namespace Hobeta
 #endif
 
   BOOST_STATIC_ASSERT(sizeof(Header) == 17);
-  const std::size_t HOBETA_MIN_SIZE = 0x100;
-  const std::size_t HOBETA_MAX_SIZE = 0xff00;
+  const std::size_t MIN_SIZE = 0x100;
+  const std::size_t MAX_SIZE = 0xff00;
 
   bool Check(const void* rawData, std::size_t limit)
   {
@@ -52,8 +52,7 @@ namespace Hobeta
     const Header* const header = static_cast<const Header*>(rawData);
     const std::size_t dataSize = fromLE(header->Length);
     const std::size_t fullSize = fromLE(header->FullLength);
-    if (dataSize < HOBETA_MIN_SIZE ||
-        dataSize > HOBETA_MAX_SIZE ||
+    if (!in_range(dataSize, MIN_SIZE, MAX_SIZE) ||
         dataSize + sizeof(*header) > limit ||
         fullSize != align<std::size_t>(dataSize, 256) ||
         //check for valid name
@@ -91,7 +90,7 @@ namespace Formats
     {
     public:
       HobetaDecoder()
-        : Format(Binary::Format::Create(Hobeta::FORMAT))
+        : Format(Binary::Format::Create(Hobeta::FORMAT, Hobeta::MIN_SIZE))
       {
       }
 

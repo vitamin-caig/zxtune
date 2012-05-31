@@ -45,7 +45,8 @@ namespace Chiptune
 {
   namespace ProTracker3
   {
-    const std::size_t MAX_MODULE_SIZE = 0xc000;
+    const std::size_t MIN_SIZE = 200;
+    const std::size_t MAX_SIZE = 0xc000;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -847,7 +848,7 @@ namespace Chiptune
 
     Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
     {
-      return Binary::TypedContainer(rawData, std::min(rawData.Size(), MAX_MODULE_SIZE));
+      return Binary::TypedContainer(rawData, std::min(rawData.Size(), MAX_SIZE));
     }
 
     bool FastCheck(const Binary::TypedContainer& data)
@@ -900,7 +901,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
 

@@ -70,6 +70,8 @@ namespace Sna128
 
   BOOST_STATIC_ASSERT(sizeof(Header) == 131103);
 
+  const std::size_t MIN_SIZE = sizeof(Header);
+
   bool Check(const void* rawData, std::size_t limit)
   {
     if (limit < sizeof(Header))
@@ -146,7 +148,7 @@ namespace Formats
     {
     public:
       Sna128Decoder()
-        : Format(Binary::Format::Create(Sna128::FORMAT))
+        : Format(Binary::Format::Create(Sna128::FORMAT, Sna128::MIN_SIZE))
       {
       }
 

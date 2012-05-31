@@ -145,6 +145,8 @@ namespace Chiptune
     BOOST_STATIC_ASSERT(offsetof(RawHeader, Tempo) == 3007);
     BOOST_STATIC_ASSERT(offsetof(RawHeader, Patterns) == 3009);
 
+    const std::size_t MIN_SIZE = sizeof(RawHeader);
+
     class StubBuilder : public Builder
     {
     public:
@@ -466,7 +468,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
 

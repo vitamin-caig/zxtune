@@ -27,6 +27,7 @@ Author:
 
 namespace CharPres
 {
+  const std::size_t MIN_SIZE = 0x20;//TODO
   const std::size_t MAX_DECODED_SIZE = 0xc000;
 
   const std::string DEPACKER_PATTERN(
@@ -249,7 +250,7 @@ namespace Formats
     {
     public:
       CharPresDecoder()
-        : Depacker(Binary::Format::Create(CharPres::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(CharPres::DEPACKER_PATTERN, CharPres::MIN_SIZE))
       {
       }
 

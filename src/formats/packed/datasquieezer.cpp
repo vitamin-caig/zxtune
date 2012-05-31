@@ -202,6 +202,8 @@ namespace DataSquieezer
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0xb0 + 1);
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   //dsq bitstream decoder
   class Bitstream
   {
@@ -434,7 +436,7 @@ namespace Formats
     {
     public:
       DataSquieezerDecoder()
-        : Depacker(Binary::Format::Create(DataSquieezer::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(DataSquieezer::DEPACKER_PATTERN, DataSquieezer::MIN_SIZE))
       {
       }
 

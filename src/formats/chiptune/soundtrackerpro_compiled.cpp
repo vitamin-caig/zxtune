@@ -46,8 +46,8 @@ namespace Chiptune
     using namespace SoundTrackerPro;
 
     //size and offsets are taken from ~3400 modules analyzing
-
-    const std::size_t MAX_MODULE_SIZE = 0x2800;
+    const std::size_t MIN_SIZE = 200;
+    const std::size_t MAX_SIZE = 0x2800;
 
     /*
       Typical module structure. Order is not changed according to different tests
@@ -791,7 +791,7 @@ namespace Chiptune
 
     Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
     {
-      const std::size_t size = std::min(rawData.Size(), MAX_MODULE_SIZE);
+      const std::size_t size = std::min(rawData.Size(), MAX_SIZE);
       return Binary::TypedContainer(rawData, size);
     }
 
@@ -847,7 +847,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Header(Binary::Format::Create(FORMAT))
+        : Header(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
 

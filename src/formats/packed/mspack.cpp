@@ -62,6 +62,8 @@ namespace MSPack
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x10);
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   const std::size_t LAST_BYTES_COUNT = 5;
 
   class Container
@@ -243,7 +245,7 @@ namespace Formats
     {
     public:
       MSPackDecoder()
-        : Depacker(Binary::Format::Create(MSPack::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(MSPack::DEPACKER_PATTERN, MSPack::MIN_SIZE))
       {
       }
 

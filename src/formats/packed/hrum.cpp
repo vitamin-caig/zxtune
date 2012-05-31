@@ -94,6 +94,8 @@ namespace Hrum
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x9b);
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   class Container
   {
   public:
@@ -305,7 +307,7 @@ namespace Formats
     {
     public:
       HrumDecoder()
-        : Depacker(Binary::Format::Create(Hrum::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(Hrum::DEPACKER_PATTERN, Hrum::MIN_SIZE))
       {
       }
 

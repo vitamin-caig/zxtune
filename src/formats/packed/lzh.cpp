@@ -83,6 +83,8 @@ namespace LZH
 #pragma pack(pop)
 #endif
 
+    static const std::size_t MIN_SIZE = sizeof(RawHeader);
+
     static std::size_t GetLZLen(uint_t data)
     {
       return (data & 15) + 3;
@@ -147,6 +149,8 @@ namespace LZH
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
+
+    static const std::size_t MIN_SIZE = sizeof(RawHeader);
 
     static std::size_t GetLZLen(uint_t data)
     {
@@ -371,7 +375,7 @@ namespace Formats
     {
     public:
       LZHDecoder()
-        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
       {
       }
 

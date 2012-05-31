@@ -34,6 +34,7 @@ namespace CompressorCode
   struct Version4
   {
     static const String DESCRIPTION;
+    static const std::size_t MIN_SIZE = 256;//TODO
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -74,6 +75,7 @@ namespace CompressorCode
   struct Version4Plus
   {
     static const String DESCRIPTION;
+    static const std::size_t MIN_SIZE = 256;//TODO
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -548,7 +550,7 @@ namespace Formats
     {
     public:
       CompressorCodeDecoder()
-        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
       {
       }
 

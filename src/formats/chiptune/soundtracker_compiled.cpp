@@ -41,7 +41,8 @@ namespace Chiptune
   {
     using namespace SoundTracker;
 
-    const std::size_t MAX_MODULE_SIZE = 0x2600;
+    const std::size_t MIN_SIZE = 128;
+    const std::size_t MAX_SIZE = 0x2600;
 
     /*
       Typical module structure
@@ -151,7 +152,7 @@ namespace Chiptune
     {
     public:
       explicit Format(const Binary::Container& data)
-        : Limit(std::min(data.Size(), MAX_MODULE_SIZE))
+        : Limit(std::min(data.Size(), MAX_SIZE))
         , Delegate(data, Limit)
         , Source(*Delegate.GetField<RawHeader>(0))
         , TotalRanges(RangeChecker::CreateSimple(Limit))
@@ -588,7 +589,7 @@ namespace Chiptune
 
     bool FastCheck(const Binary::Container& rawData)
     {
-      const std::size_t size = std::min(rawData.Size(), MAX_MODULE_SIZE);
+      const std::size_t size = std::min(rawData.Size(), MAX_SIZE);
       const Binary::TypedContainer data(rawData, size);
       const RawHeader* const hdr = data.GetField<RawHeader>(0);
       if (0 == hdr)
@@ -643,7 +644,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
 

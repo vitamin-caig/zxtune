@@ -32,6 +32,7 @@ namespace TurboLZ
   struct Simple
   {
     static const String DESCRIPTION;
+    static const std::size_t MIN_SIZE = 0x44;//TODO
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -105,6 +106,7 @@ namespace TurboLZ
   struct Protected
   {
     static const String DESCRIPTION;
+    static const std::size_t MIN_SIZE = 0x88;//TODO
     static const std::string DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
@@ -431,7 +433,7 @@ namespace Formats
     {
     public:
       TurboLZDecoder()
-        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
       {
       }
 

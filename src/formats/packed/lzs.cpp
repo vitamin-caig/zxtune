@@ -144,6 +144,8 @@ namespace LZS
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x83);
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   class Container
   {
   public:
@@ -292,7 +294,7 @@ namespace Formats
     {
     public:
       LZSDecoder()
-        : Depacker(Binary::Format::Create(LZS::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(LZS::DEPACKER_PATTERN, LZS::MIN_SIZE))
       {
       }
 

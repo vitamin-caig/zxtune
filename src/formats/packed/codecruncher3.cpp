@@ -177,6 +177,8 @@ namespace CodeCruncher3
 
   BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x99 + 1);
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   bool IsFinishMarker(uint_t data)
   {
     return 3 == (data & 0x0f);
@@ -351,7 +353,7 @@ namespace Formats
     {
     public:
       CodeCruncher3Decoder()
-        : Depacker(Binary::Format::Create(CodeCruncher3::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(CodeCruncher3::DEPACKER_PATTERN, CodeCruncher3::MIN_SIZE))
       {
       }
 

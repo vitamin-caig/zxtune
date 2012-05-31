@@ -134,7 +134,6 @@ namespace TeleDiskImage
   BOOST_STATIC_ASSERT(sizeof(RawData) == 3);
   BOOST_STATIC_ASSERT(sizeof(R2PEntry) == 4);
 
-  const std::size_t TD0_MAX_SIZE = 1048576;
   const uint_t MAX_CYLINDERS_COUNT = 100;
   const uint_t MIN_SIDES_COUNT = 1;
   const uint_t MAX_SIDES_COUNT = 2;
@@ -143,6 +142,7 @@ namespace TeleDiskImage
   const uint_t ID_OLD = 0x4454;
   const uint_t ID_NEW = 0x6474;
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
   const std::size_t MAX_IMAGE_SIZE = 1048576;
   const std::string COMPRESSION_ALGORITHM("-lh1-");
 
@@ -405,7 +405,7 @@ namespace Formats
     {
     public:
       TeleDiskImageDecoder()
-        : Format(Binary::Format::Create(TeleDiskImage::FORMAT_PATTERN))
+        : Format(Binary::Format::Create(TeleDiskImage::FORMAT_PATTERN, TeleDiskImage::MIN_SIZE))
       {
       }
 

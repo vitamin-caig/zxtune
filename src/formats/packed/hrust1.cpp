@@ -50,6 +50,8 @@ namespace Hrust1
 #pragma pack(pop)
 #endif
 
+  const std::size_t MIN_SIZE = sizeof(RawHeader);
+
   class Container
   {
   public:
@@ -435,7 +437,7 @@ namespace Formats
     {
     public:
       Hrust1Decoder()
-        : Format(Binary::Format::Create(Hrust1::FORMAT))
+        : Format(Binary::Format::Create(Hrust1::FORMAT, Hrust1::MIN_SIZE))
       {
       }
 

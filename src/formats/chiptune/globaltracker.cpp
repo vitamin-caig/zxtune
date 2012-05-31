@@ -44,8 +44,8 @@ namespace Chiptune
 {
   namespace GlobalTracker
   {
-
-    const std::size_t MAX_MODULE_SIZE = 0x2800;
+    const std::size_t MIN_SIZE = 1500;
+    const std::size_t MAX_SIZE = 0x2800;
     const std::size_t MAX_SAMPLES_COUNT = 15;
     const std::size_t MAX_ORNAMENTS_COUNT = 16;
     const std::size_t MAX_PATTERNS_COUNT = 32;
@@ -816,7 +816,7 @@ namespace Chiptune
 
     Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
     {
-      return Binary::TypedContainer(rawData, std::min(rawData.Size(), MAX_MODULE_SIZE));
+      return Binary::TypedContainer(rawData, std::min(rawData.Size(), MAX_SIZE));
     }
 
     std::size_t GetHeaderSize(const Binary::TypedContainer& data)
@@ -946,7 +946,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
 

@@ -153,7 +153,7 @@ namespace Formats
     {
     public:
       SCLDecoder()
-        : Format(Binary::Format::Create(SCL::FORMAT))
+        : Format(Binary::Format::Create(SCL::FORMAT, SCL::MIN_SIZE))
       {
       }
 
