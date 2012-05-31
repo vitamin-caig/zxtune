@@ -468,8 +468,9 @@ namespace
     typedef boost::array<uint8_t, 256> PatternRow;
     typedef std::vector<PatternRow> PatternMatrix;
 
-    FastSearchFormat(const PatternMatrix& mtx, std::size_t offset)
+    FastSearchFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize)
       : Offset(offset)
+      , MinSize(std::max(minSize, mtx.size() + offset))
       , Pat(mtx.rbegin(), mtx.rend())
       , PatRBegin(&Pat[0])
       , PatREnd(PatRBegin + Pat.size())
@@ -478,23 +479,23 @@ namespace
 
     virtual bool Match(const void* data, std::size_t size) const
     {
-      const std::size_t endOfPat = Offset + Pat.size();
-      if (endOfPat > size)
+      if (size < MinSize)
       {
         return false;
       }
+      const std::size_t endOfPat = Offset + Pat.size();
       const uint8_t* typedDataLast = static_cast<const uint8_t*>(data) + endOfPat - 1;
       return 0 == SearchBackward(typedDataLast);
     }
 
     virtual std::size_t Search(const void* data, std::size_t size) const
     {
-      const std::size_t endOfPat = Offset + Pat.size();
-      if (endOfPat > size)
+      if (size < MinSize)
       {
         return size;
       }
       const uint8_t* const typedData = static_cast<const uint8_t*>(data);
+      const std::size_t endOfPat = Offset + Pat.size();
       const uint8_t* const scanStart = typedData + endOfPat - 1;
       const uint8_t* const scanStop = typedData + size;
       for (const uint8_t* scanPos = scanStart; scanPos < scanStop; )
@@ -511,7 +512,7 @@ namespace
       return size;
     }
 
-    static Ptr Create(Pattern::const_iterator from, Pattern::const_iterator to, std::size_t offset)
+    static Ptr Create(Pattern::const_iterator from, Pattern::const_iterator to, std::size_t offset, std::size_t minSize)
     {
       //Pass1
       //matrix[pos][char] = Pattern.At(pos).IsMatchedFor(char)
@@ -541,7 +542,7 @@ namespace
           row[idx] = static_cast<PatternRow::value_type>(offset);
         }
       }
-      return boost::make_shared<FastSearchFormat>(tmp, offset);
+      return boost::make_shared<FastSearchFormat>(tmp, offset, minSize);
     }
   private:
     std::size_t SearchBackward(const uint8_t* data) const
@@ -558,53 +559,25 @@ namespace
     }
   private:
     const std::size_t Offset;
+    const std::size_t MinSize;
     const PatternMatrix Pat;
     const PatternRow* const PatRBegin;
     const PatternRow* const PatREnd;
-  };
-
-  class AlwaysMatchFormat : public Format
-  {
-  public:
-    explicit AlwaysMatchFormat(std::size_t offset)
-      : Offset(offset)
-    {
-    }
-
-    virtual bool Match(const void* /*data*/, std::size_t size) const
-    {
-      return Offset < size;
-    }
-
-    virtual std::size_t Search(const void* /*data*/, std::size_t size) const
-    {
-      return Offset < size
-        ? 0
-        : size;
-    }
-
-    static Ptr Create(std::size_t offset)
-    {
-      return boost::make_shared<AlwaysMatchFormat>(offset);
-    }
-
-  private:
-    const std::size_t Offset;
   };
 }
 
 namespace Binary
 {
-  Format::Ptr Format::Create(const std::string& pattern)
+  Format::Ptr Format::Create(const std::string& pattern, std::size_t minSize)
   {
     Pattern pat;
     CompilePattern(pattern, pat);
+    //Require(pat.size() <= minSize);
     const Pattern::const_iterator first = pat.begin();
     const Pattern::const_iterator last = pat.end();
     const Pattern::const_iterator firstNotAny = std::find_if(first, last, std::not1(std::ptr_fun(&IsAnyByte)));
     const std::size_t offset = std::distance(first, firstNotAny);
-    return firstNotAny != last
-      ? FastSearchFormat::Create(firstNotAny, last, offset)
-      : AlwaysMatchFormat::Create(offset);
+    Require(firstNotAny != last);
+    return FastSearchFormat::Create(firstNotAny, last, offset, minSize);
   }
 }

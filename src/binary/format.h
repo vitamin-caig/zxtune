@@ -68,7 +68,7 @@ namespace Binary
     virtual std::size_t Search(const void* data, std::size_t size) const = 0;
 
     // Factory based on text pattern
-    static Ptr Create(const std::string& pattern);
+    static Ptr Create(const std::string& pattern, std::size_t minSize = 0);
   };
 }
 
