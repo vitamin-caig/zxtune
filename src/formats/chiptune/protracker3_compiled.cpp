@@ -301,7 +301,7 @@ namespace Chiptune
       if (const RawHeader* hdr = data.GetField<RawHeader>(0))
       {
         const uint8_t* const dataBegin = hdr->Id;
-        const uint8_t* const dataEnd = dataBegin + data.GetSize();
+        const uint8_t* const dataEnd = dataBegin + std::min(data.GetSize(), MAX_POSITIONS_COUNT);
         const uint8_t* const lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
         if (lastPosition != dataEnd && 
             lastPosition == std::find_if(hdr->Positions, lastPosition, std::bind2nd(std::modulus<std::size_t>(), 3)))
