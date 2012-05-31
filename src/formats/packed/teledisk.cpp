@@ -16,15 +16,22 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <logging.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
 #include <formats/packed.h>
+#include <formats/packed/lha_supp.h>
 //std includes
 #include <cstring>
 #include <numeric>
 //text includes
 #include <formats/text/packed.h>
+
+namespace
+{
+  const std::string THIS_MODULE("Formats::Packed::Teledisk");
+}
 
 namespace TeleDiskImage
 {
@@ -33,7 +40,7 @@ namespace TeleDiskImage
 #endif
   PACK_PRE struct RawHeader
   {
-    uint8_t ID[2];
+    uint16_t ID;
     uint8_t Sequence;
     uint8_t CheckSequence;
     uint8_t Version;
@@ -132,6 +139,12 @@ namespace TeleDiskImage
   const uint_t MIN_SIDES_COUNT = 1;
   const uint_t MAX_SIDES_COUNT = 2;
   const std::size_t MAX_SECTOR_SIZE = 8192;
+
+  const uint_t ID_OLD = 0x4454;
+  const uint_t ID_NEW = 0x6474;
+
+  const std::size_t MAX_IMAGE_SIZE = 1048576;
+  const std::string COMPRESSION_ALGORITHM("-lh1-");
 
   enum SectorDataType
   {
@@ -277,13 +290,47 @@ namespace TeleDiskImage
     std::size_t Offset;
   };
 
+  void ParseSectors(SourceStream& stream, ImageVisitor& visitor)
+  {
+    for (;;)
+    {
+      const RawTrack& track = stream.Get<RawTrack>();
+      if (track.IsLast())
+      {
+        break;
+      }
+      Require(in_range<uint_t>(track.Cylinder, 0, MAX_CYLINDERS_COUNT));
+      for (uint_t sect = 0; sect != track.Sectors; ++sect)
+      {
+        const RawSector& sector = stream.Get<RawSector>();
+        if (sector.NoData())
+        {
+          continue;
+        }
+        Require(in_range<uint_t>(sector.Size, 0, 6));
+        const std::size_t sectorSize = 128 << sector.Size;
+        const RawData& srcDataDesc = stream.Get<RawData>();
+        Require(in_range<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
+        const std::size_t dataSize = fromLE(srcDataDesc.Size) - 1;
+        const uint8_t* const rawData = stream.GetData(dataSize);
+        //use track parameters for layout
+        if (!sector.NoId())
+        {
+          const Formats::CHS loc(sector.Cylinder, track.Head, sector.Number);
+          visitor.OnSector(loc, rawData, dataSize, static_cast<SectorDataType>(srcDataDesc.Method), sectorSize);
+        }
+      }
+    }
+  }
+
   std::size_t Parse(const Binary::Container& rawData, ImageVisitor& visitor)
   {
     SourceStream stream(rawData);
     try
     {
       const RawHeader& header = stream.Get<RawHeader>();
-      Require(header.ID[0] == 'T' && header.ID[1] == 'D');
+      const uint_t id = fromLE(header.ID);
+      Require(id == ID_OLD || id == ID_NEW);
       Require(header.Sequence == 0);
       Require(in_range<uint_t>(header.Sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT));
       if (header.HasComment())
@@ -294,34 +341,37 @@ namespace TeleDiskImage
           stream.GetData(size);
         }
       }
-      for (;;)
+      const bool compressedData = id == ID_NEW;
+      const bool newCompression = header.Version > 20;
+      if (compressedData)
       {
-        const RawTrack& track = stream.Get<RawTrack>();
-        if (track.IsLast())
+        if (!newCompression)
         {
-          break;
+          Log::Debug(THIS_MODULE, "Old compression is not supported.");
+          return 0;
         }
-        Require(in_range<uint_t>(track.Cylinder, 0, MAX_CYLINDERS_COUNT));
-        for (uint_t sect = 0; sect != track.Sectors; ++sect)
+        const std::size_t packedSize = rawData.Size() - sizeof(header);
+        const Binary::Container::Ptr packed = rawData.GetSubcontainer(sizeof(header), packedSize);
+        if (const Formats::Packed::Container::Ptr fullDecoded = 
+          Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, MAX_IMAGE_SIZE))
         {
-          const RawSector& sector = stream.Get<RawSector>();
-          if (sector.NoData())
+          SourceStream subStream(*fullDecoded);
+          ParseSectors(subStream, visitor);
+          const std::size_t usedInPacked = subStream.GetOffset();
+          Log::Debug(THIS_MODULE, "Used %1% bytes in packed stream", usedInPacked);
+          if (const Formats::Packed::Container::Ptr decoded =
+            Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, usedInPacked))
           {
-            continue;
-          }
-          Require(in_range<uint_t>(sector.Size, 0, 6));
-          const std::size_t sectorSize = 128 << sector.Size;
-          const RawData& srcDataDesc = stream.Get<RawData>();
-          Require(in_range<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
-          const std::size_t dataSize = fromLE(srcDataDesc.Size) - 1;
-          const uint8_t* const rawData = stream.GetData(dataSize);
-          //use track parameters for layout
-          if (!sector.NoId())
-          {
-            const Formats::CHS loc(sector.Cylinder, track.Head, sector.Number);
-            visitor.OnSector(loc, rawData, dataSize, static_cast<SectorDataType>(srcDataDesc.Method), sectorSize);
+            const std::size_t usedSize = decoded->PackedSize();
+            return sizeof(header) + usedSize;
           }
         }
+        Log::Debug(THIS_MODULE, "Failed to decode lha stream");
+        return 0;
+      }
+      else
+      {
+        ParseSectors(stream, visitor);
       }
       return stream.GetOffset();
     }
@@ -332,7 +382,7 @@ namespace TeleDiskImage
   }
 
   const std::string FORMAT_PATTERN(
-    "'T'D"        // uint8_t ID[2]
+    "('T|'t)('D|'d)"        // uint8_t ID[2]
     "00"          // uint8_t Sequence;
     "?"           // uint8_t CheckSequence;
     "?"           // uint8_t Version;

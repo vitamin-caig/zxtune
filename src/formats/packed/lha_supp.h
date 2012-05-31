@@ -22,6 +22,7 @@ namespace Formats
     namespace Lha
     {
       Container::Ptr DecodeRawData(const Binary::Container& input, const std::string& method, std::size_t outputSize);
+      Container::Ptr DecodeRawDataAtLeast(const Binary::Container& input, const std::string& method, std::size_t sizeHint);
     }
   }
 }
