@@ -156,42 +156,4 @@ inline std::size_t MatchedSize(const uint8_t* dataBegin, const uint8_t* dataEnd,
   }
 }
 
-class MemoryFileI
-{
-public:
-  explicit MemoryFileI(const Binary::Container& rawData)
-    : Data(static_cast<const uint8_t*>(rawData.Data()))
-    , Limit(rawData.Size())
-    , Position(0)
-  {
-  }
-
-  std::size_t Read(void* buf, std::size_t len)
-  {
-    const std::size_t res = std::min(len, Limit - Position);
-    std::memcpy(buf, Data + Position, res);
-    Position += res;
-    return res;
-  }
-
-  std::size_t Skip(std::size_t len)
-  {
-    if (len + Position >= Limit)
-    {
-      return 0;
-    }
-    Position += len;
-    return 1;
-  }
-
-  std::size_t GetPosition() const
-  {
-    return Position;
-  }
-private:
-  const uint8_t* const Data;
-  const std::size_t Limit;
-  std::size_t Position;
-};
-
 #endif //__CORE_PLUGINS_ARCHIVES_PACK_UTILS_H_DEFINED__

@@ -14,7 +14,7 @@ Author:
 #include <logging.h>
 #include <tools.h>
 //library includes
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <formats/archived.h>
 #include <formats/packed/lha_supp.h>
 #include <formats/packed/pack_utils.h>
@@ -70,15 +70,22 @@ namespace Lha
   private:
     static int Read(void* handle, void* buf, size_t len)
     {
-      return static_cast<int>(static_cast<MemoryFileI*>(handle)->Read(buf, len));
+      return static_cast<int>(static_cast<Binary::InputStream*>(handle)->Read(buf, len));
     }
 
     static int Skip(void* handle, size_t bytes)
     {
-      return static_cast<int>(static_cast<MemoryFileI*>(handle)->Skip(bytes));
+      Binary::InputStream* const stream = static_cast<Binary::InputStream*>(handle);
+      const std::size_t rest = stream->GetRestSize();
+      if (rest >= bytes)
+      {
+        stream->ReadData(bytes);//skip
+        return 1;
+      }
+      return 0;
     }
   private:
-    MemoryFileI State;
+    Binary::InputStream State;
     LHAInputStreamType Vtable;
     boost::shared_ptr<LHAInputStream> Stream;
   };

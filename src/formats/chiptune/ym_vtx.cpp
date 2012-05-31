@@ -18,6 +18,7 @@ Author:
 #include <crc.h>
 #include <logging.h>
 //library includes
+#include <binary/input_stream.h>
 #include <binary/typed_container.h>
 #include <formats/packed/lha_supp.h>
 //std includes
@@ -31,67 +32,6 @@ Author:
 namespace
 {
   const std::string THIS_MODULE("Formats::Chiptune::YM");
-
-  class ContainerHelper
-  {
-  public:
-    explicit ContainerHelper(const Binary::Container& rawData)
-      : Data(rawData)
-      , Start(static_cast<const uint8_t*>(rawData.Data()))
-      , Finish(Start + rawData.Size())
-      , Offset()
-    {
-    }
-
-    template<class T>
-    const T& Read()
-    {
-      const uint8_t* const cursor = Start + Offset;
-      const std::size_t size = sizeof(T);
-      const T* const res = safe_ptr_cast<const T*>(cursor);
-      Require(cursor + size <= Finish);
-      Offset += size;
-      return *res;
-    }
-
-    String ReadString(std::size_t maxSize)
-    {
-      const uint8_t* const cursor = Start + Offset;
-      const uint8_t* const limit = std::min(cursor + maxSize, Finish);
-      const uint8_t* const strEnd = std::find(cursor, limit, 0);
-      Require(strEnd != limit);
-      const String res(cursor, strEnd);
-      Offset = strEnd - Start + 1;
-      return res;
-    }
-
-    const uint8_t* ReadData(std::size_t size)
-    {
-      const uint8_t* const cursor = Start + Offset;
-      Require(cursor + size <= Finish);
-      Offset += size;
-      return cursor;
-    }
-
-    Binary::Container::Ptr ReadRestData()
-    {
-      const std::size_t limit = Data.Size();
-      Require(limit > Offset);
-      const std::size_t size = limit - Offset;
-      Offset = limit;
-      return Data.GetSubcontainer(Offset - size, size);
-    }
-
-    std::size_t GetOffset() const
-    {
-      return Offset;
-    }
-  private:
-    const Binary::Container& Data;
-    const uint8_t* const Start;
-    const uint8_t* const Finish;
-    std::size_t Offset;
-  };
 }
 
 namespace Formats
@@ -318,8 +258,8 @@ namespace Chiptune
          || Ver3::FastCheck(data, size)
          || Ver3b::FastCheck(data, size))
         {
-          ContainerHelper container(rawData);
-          const IdentifierType& type = container.Read<IdentifierType>();
+          Binary::InputStream stream(rawData);
+          const IdentifierType& type = stream.ReadField<IdentifierType>();
           target.SetVersion(String(type.begin(), type.end()));
 
           const std::size_t dumpOffset = sizeof(IdentifierType);
@@ -327,20 +267,20 @@ namespace Chiptune
           const std::size_t columns = sizeof(RegistersDump);
           const std::size_t lines = dumpSize / columns;
           const std::size_t matrixSize = lines * columns;
-          const uint8_t* const src = container.ReadData(matrixSize);
+          const uint8_t* const src = stream.ReadData(matrixSize);
           ParseTransponedMatrix(src, matrixSize, columns, target);
           if (Ver3b::FastCheck(data, size))
           {
-            const uint_t loop = fromBE(container.Read<uint32_t>());
+            const uint_t loop = fromBE(stream.ReadField<uint32_t>());
             target.SetLoop(loop);
           }
-          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, container.GetOffset());
+          const Binary::Container::Ptr subData = stream.GetReadData();
           return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }
         else if (Ver5::FastCheck(data, size))
         {
-          ContainerHelper container(rawData);
-          const Ver5::RawHeader& header = container.Read<Ver5::RawHeader>();
+          Binary::InputStream stream(rawData);
+          const Ver5::RawHeader& header = stream.ReadField<Ver5::RawHeader>();
           if (0 != header.SamplesCount)
           {
             Log::Debug(THIS_MODULE, "Digital samples are not supported");
@@ -350,17 +290,17 @@ namespace Chiptune
           target.SetClockrate(fromBE(header.Clockrate));
           target.SetIntFreq(fromBE(header.IntFreq));
           target.SetLoop(fromBE(header.Loop));
-          target.SetTitle(container.ReadString(MAX_STRING_SIZE));
-          target.SetAuthor(container.ReadString(MAX_STRING_SIZE));
-          target.SetComment(container.ReadString(MAX_STRING_SIZE));
+          target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetComment(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
           const uint_t attrs = fromBE(header.Attrs);
 
-          const std::size_t dumpOffset = container.GetOffset();
+          const std::size_t dumpOffset = stream.GetPosition();
           const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
           const std::size_t columns = sizeof(Ver5::RegistersDump);
           const std::size_t lines = dumpSize / columns;
           const std::size_t matrixSize = lines * columns;
-          const uint8_t* const src = container.ReadData(matrixSize);
+          const uint8_t* const src = stream.ReadData(matrixSize);
           if (0 != (attrs & 1))
           {
             ParseTransponedMatrix(src, matrixSize, columns, target);
@@ -369,8 +309,8 @@ namespace Chiptune
           {
             ParseMatrix(src, matrixSize, columns, target);
           }
-          const Ver5::Footer& footer = container.Read<Ver5::Footer>();
-          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, container.GetOffset());
+          const Ver5::Footer& footer = stream.ReadField<Ver5::Footer>();
+          const Binary::Container::Ptr subData = stream.GetReadData();
           return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }
       }
@@ -461,11 +401,6 @@ namespace Chiptune
     const uint_t LAYOUT_MASK = 7;
     const uint_t LAYOUT_MIN = 0;
     const uint_t LAYOUT_MAX = 6;
-
-    const uint_t CLOCKRATE_MIN = 100000;//100kHz
-
-    const uint_t INTFREQ_MIN = 25;
-    const uint_t INTFREQ_MAX = 100;
 
     const uint_t UNPACKED_MIN = sizeof(RegistersDump) * INTFREQ_MIN * 1;//1 sec
     const uint_t UNPACKED_MAX = sizeof(RegistersDump) * INTFREQ_MAX * 30 * 60;//30 min
@@ -597,8 +532,8 @@ namespace Chiptune
       }
       try
       {
-        ContainerHelper data(rawData);
-        const VTX::RawBasicHeader& hdr = data.Read<VTX::RawBasicHeader>();
+        Binary::InputStream stream(rawData);
+        const VTX::RawBasicHeader& hdr = stream.ReadField<VTX::RawBasicHeader>();
         const uint_t chipType = fromLE(hdr.ChipType);
         const bool ym = chipType == VTX::CHIP_YM || chipType == VTX::CHIP_YM_OLD;
         const bool newVersion = chipType == VTX::CHIP_YM || chipType == VTX::CHIP_AY;
@@ -609,21 +544,21 @@ namespace Chiptune
         target.SetIntFreq(hdr.IntFreq);
         if (newVersion)
         {
-          target.SetYear(fromLE(data.Read<uint16_t>()));
+          target.SetYear(fromLE(stream.ReadField<uint16_t>()));
         }
-        const uint_t unpackedSize = fromLE(data.Read<uint32_t>());
-        target.SetTitle(data.ReadString(MAX_STRING_SIZE));
-        target.SetAuthor(data.ReadString(MAX_STRING_SIZE));
+        const uint_t unpackedSize = fromLE(stream.ReadField<uint32_t>());
+        target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
         if (newVersion)
         {
-          target.SetProgram(data.ReadString(MAX_STRING_SIZE));
-          target.SetEditor(data.ReadString(MAX_STRING_SIZE));
-          target.SetComment(data.ReadString(MAX_STRING_SIZE));
+          target.SetProgram(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetEditor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetComment(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
         }
 
-        const std::size_t packedOffset = data.GetOffset();
+        const std::size_t packedOffset = stream.GetPosition();
         Log::Debug(THIS_MODULE, "Packed data at %1%", packedOffset);
-        const Binary::Container::Ptr packed = data.ReadRestData();
+        const Binary::Container::Ptr packed = stream.ReadRestData();
         if (Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {
           const std::size_t unpackedSize = unpacked->Size();

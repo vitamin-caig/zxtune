@@ -17,7 +17,7 @@ Author:
 #include <logging.h>
 #include <tools.h>
 //library includes
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <formats/archived.h>
 //3rdparty includes
 #include <3rdparty/lhasa/lib/lha_decoder.h>
@@ -50,7 +50,7 @@ namespace Lha
 
     virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const
     {
-      MemoryFileI input(rawData);
+      Binary::InputStream input(rawData);
       const boost::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize), &::lha_decoder_free);
       std::auto_ptr<Dump> result(new Dump(outputSize));
       if (const std::size_t decoded = ::lha_decoder_read(decoder.get(), &result->front(), outputSize))
@@ -64,7 +64,7 @@ namespace Lha
   private:
     static size_t ReadData(void* buf, size_t len, void* data)
     {
-      return static_cast<MemoryFileI*>(data)->Read(buf, len);
+      return static_cast<Binary::InputStream*>(data)->Read(buf, len);
     }
   private:
     LHADecoderType* const Type;
