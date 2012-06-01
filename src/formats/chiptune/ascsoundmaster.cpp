@@ -99,8 +99,8 @@ namespace Chiptune
     const std::string Version0::FORMAT(
       "03-32"    //tempo
       "09-ab 00" //patterns
-      "? 00-23"  //samples
-      "? 00-24"  //ornaments
+      "? 00-21"  //samples
+      "? 00-22"  //ornaments
       "01-64"    //length
       "00-1f"    //first position
     );
@@ -110,8 +110,8 @@ namespace Chiptune
       "03-32"    //tempo
       "00-63"    //loop
       "0a-ac 00" //patterns
-      "? 00-39"  //samples
-      "? 00-3a"  //ornaments
+      "? 00-35"  //samples
+      "? 00-37"  //ornaments
       "01-64"    //length
       "00-1f"    //first position
     );

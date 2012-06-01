@@ -828,7 +828,7 @@ namespace Chiptune
 
     const std::string FORMAT(
       "02-0f"      // uint8_t Tempo; 2..15
-      "?"          // uint8_t Length;
+      "01-ff"      // uint8_t Length;
       "00-fe"      // uint8_t Loop;
       //boost::array<uint16_t, 16> SamplesOffsets;
       "(?00-28){16}"

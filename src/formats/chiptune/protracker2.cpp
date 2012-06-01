@@ -885,12 +885,12 @@ namespace Chiptune
 
     const std::string FORMAT(
       "02-ff"      // uint8_t Tempo; 2..15
-      "?"          // uint8_t Length;
+      "01-ff"      // uint8_t Length;
       "00-fe"      // uint8_t Loop; 0..99
       //boost::array<uint16_t, 32> SamplesOffsets;
-      "(?00-38){32}"
+      "(?00-36){32}"
       //boost::array<uint16_t, 16> OrnamentsOffsets;
-      "(?00-38){16}"
+      "(?00-36){16}"
       "?00-01" // uint16_t PatternsOffset;
       "+30+"   // char Name[30];
       "00-1f"  // uint8_t Positions[1]; at least one

@@ -633,8 +633,8 @@ namespace Chiptune
 
     const std::string FORMAT(
     "01-32"       // uint8_t Tempo; 1..50
-    "?00-09"      // uint16_t PositionsOffset;
-    "?00-09"      // uint16_t OrnamentsOffset;
+    "?00-08"      // uint16_t PositionsOffset;
+    "?00-08"      // uint16_t OrnamentsOffset;
     "?00-09"      // uint16_t PatternsOffset;
     "+20+"        // Id+Size
     "00-0f"       // first sample index

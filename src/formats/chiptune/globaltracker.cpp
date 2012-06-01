@@ -939,7 +939,7 @@ namespace Chiptune
       "+192+"          //boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
       "01-ff"          //uint8_t Length;
       "00-fe"          //uint8_t Loop;
-      "*6"             //uint8_t Positions[1];
+      "*6&00-ba"       //uint8_t Positions[1];
     );
 
     class Decoder : public Formats::Chiptune::Decoder
