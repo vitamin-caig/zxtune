@@ -1,4 +1,4 @@
-pkg_any = $(pkg_dir)/$(binary_name)_r$(pkg_revision)$(pkg_subversion)_$(pkg_tag).$(pkg_suffix)
+pkg_any = $(pkg_dir)/$(pkg_name)_r$(pkg_revision)$(pkg_subversion)_$(pkg_tag).$(pkg_suffix)
 
 package_any:
 	@-$(call rmfiles_cmd,$(pkg_any) $(pkg_log))

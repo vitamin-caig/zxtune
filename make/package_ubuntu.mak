@@ -10,7 +10,7 @@ else
 $(warning Unknown debian package architecture)
 arch_deb = $(arch)
 endif
-pkg_deb = $(pkg_dir)/$(binary_name)_r$(pkg_revision)$(pkg_subversion)_$(distro)_$(arch_deb).deb
+pkg_deb = $(pkg_dir)/$(pkg_name)_r$(pkg_revision)$(pkg_subversion)_$(distro)_$(arch_deb).deb
 
 package_ubuntu:
 	@$-$(call rmfiles_cmd,$(pkg_deb) $(pkg_log))
@@ -31,21 +31,21 @@ install_ubuntu: install_linux $(pkg_debian)/md5sums $(pkg_debian)/control
 	install -m644 -D $(pkg_debian)/control $(DESTDIR)/DEBIAN/control
 
 $(pkg_debian)/md5sums: $(pkg_debian)/copyright $(pkg_debian)/changelog | $(pkg_debian)
-	install -m644 -D $(pkg_debian)/copyright $(pkg_root)/usr/share/doc/$(binary_name)/copyright
-	install -m644 -D $(pkg_debian)/changelog $(pkg_root)/usr/share/doc/$(binary_name)/changelog
-	gzip --best $(pkg_root)/usr/share/doc/$(binary_name)/changelog
+	install -m644 -D $(pkg_debian)/copyright $(pkg_root)/usr/share/doc/$(pkg_name)/copyright
+	install -m644 -D $(pkg_debian)/changelog $(pkg_root)/usr/share/doc/$(pkg_name)/changelog
+	gzip --best $(pkg_root)/usr/share/doc/$(pkg_name)/changelog
 	md5sum `find $(pkg_root) -type f` | sed 's| .*$(pkg_root)\/| |' > $@
 
 $(pkg_debian)/control: | $(pkg_debian)
 	@echo -e "\
-	Package: $(binary_name)\n\
+	Package: $(pkg_name)\n\
 	Version: $(pkg_revision)\n\
 	Architecture: $(arch_deb)\n\
 	Priority: optional\n\
 	Section: sound\n\
 	Maintainer: Vitamin <vitamin.caig@gmail.com>\n\
 	Depends: libc6, libasound2, zlib1g\n\
-	Description: The $(binary_name) application is used to play chiptunes from ZX Spectrum.\n\
+	Description: $(pkg_desc)\n\
 	" > $@
 
 $(pkg_debian)/copyright: | $(pkg_debian)
@@ -58,6 +58,6 @@ $(pkg_debian)/copyright: | $(pkg_debian)
 
 $(pkg_debian)/changelog: | $(pkg_debian)
 	@echo -e \
-	"$(binary_name) (r$(pkg_revision)) experimental; urgency=low\n\n"\
+	"$(pkg_name) (r$(pkg_revision)) experimental; urgency=low\n\n"\
 	"  * See svn log for details\n"\
 	" -- Vitamin <vitamin.caig@gmail.com>  "`date -R` > $@

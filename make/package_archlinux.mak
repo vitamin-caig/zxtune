@@ -1,7 +1,7 @@
 #archlinux-related rules
 pkg_archlinux = $(pkg_dir)/archlinux
 
-pkg_xz = $(pkg_dir)/$(binary_name)-r$(pkg_revision)$(pkg_subversion)-1-$(arch).pkg.tar.xz
+pkg_xz = $(pkg_dir)/$(pkg_name)-r$(pkg_revision)$(pkg_subversion)-1-$(arch).pkg.tar.xz
 
 package_archlinux:
 	@$-$(call rmfiles_cmd,$(pkg_xz) $(pkg_log))
@@ -22,10 +22,10 @@ install_archlinux: install_linux $(pkg_archlinux)/PKGBUILD $(pkg_archlinux)/make
 $(pkg_archlinux)/PKGBUILD: | $(pkg_archlinux)
 	@echo -e "\
 	# Maintainer: vitamin.caig@gmail.com\n\
-	pkgname=$(binary_name)\n\
+	pkgname=$(pkg_name)\n\
 	pkgver=r$(pkg_revision)\n\
 	pkgrel=1\n\
-	pkgdesc=\"The $(binary_name) application is used to play chiptunes from ZX Spectrum\"\n\
+	pkgdesc=\"$(pkg_desc)\"\n\
 	arch=('$(arch)')\n\
 	url=\"http://zxtune.googlecode.com\"\n\
 	license=('GPL3')\n\
@@ -37,7 +37,6 @@ $(pkg_archlinux)/PKGBUILD: | $(pkg_archlinux)
 	'libvorbis: for conversion to .ogg format'\n\
 	'flac: for conversion to .flac format'\n\
 	)\n\
-	provides=('$(binary_name)')\n\
 	options=(!strip !docs !libtool !emptydirs !zipman makeflags)\n\n\
 	package() {\n\
 	cp -R $(CURDIR)/$(pkg_root)/* \x24{pkgdir}\n\
