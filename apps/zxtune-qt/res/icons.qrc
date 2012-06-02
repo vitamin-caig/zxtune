@@ -23,6 +23,9 @@
     <file alias="STC">types/stc.png</file>
     <file alias="STP">types/stp.png</file>
     <file alias="STR">types/str.png</file>
+    <file alias="TFC">types/tfc.png</file>
+    <file alias="TFD">types/tfd.png</file>
+    <file alias="TFE">types/tfe.png</file>
     <file alias="TS">types/ts.png</file>
     <file alias="TXT">types/txt.png</file>
     <file alias="VTX">types/vtx.png</file>
