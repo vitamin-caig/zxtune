@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Playlist search dialog
+  Playlist search dialog for desktop
 
 Last changed:
   $Id$
@@ -12,10 +12,12 @@ Author:
 */
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_SEARCH_DIALOG_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_SEARCH_DIALOG_H_DEFINED
+#ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_SEARCH_DIALOG_H_DEFINED
+#define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_SEARCH_DIALOG_H_DEFINED
 
 //local includes
+#include "playlist/ui/search.h"
+#include "playlist/supp/model.h"
 #include "playlist/supp/operations_search.h"
 //qt includes
 #include <QtGui/QWidget>
@@ -35,8 +37,8 @@ namespace Playlist
       virtual Playlist::Item::Search::Data GetData() const = 0;
     };
 
-    bool GetSearchParameters(QWidget& parent, Playlist::Item::Search::Data& data);
+    void ExecuteSearchDialog(TableView& view, Playlist::Model::IndexSetPtr scope, Controller& controller);
   }
 }
 
-#endif //ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_SEARCH_DIALOG_H_DEFINED
+#endif //ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_SEARCH_DIALOG_H_DEFINED

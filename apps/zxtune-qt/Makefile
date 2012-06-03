@@ -32,11 +32,11 @@ qt_libraries += Network
 endif
 
 ifdef embedded
-libraries += ui_embedded
-depends += apps/zxtune-qt/ui/embedded
+libraries += ui_embedded playlist_ui_embedded
+depends += apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
 else
-libraries += ui_desktop
-depends += apps/zxtune-qt/ui/desktop
+libraries += ui_desktop playlist_ui_desktop
+depends += apps/zxtune-qt/ui/desktop apps/zxtune-qt/playlist/ui/desktop
 endif
 
 theme_resources = res/theme_$(gui_theme)

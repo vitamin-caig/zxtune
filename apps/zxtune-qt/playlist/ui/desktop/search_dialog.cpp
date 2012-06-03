@@ -14,7 +14,10 @@ Author:
 //local includes
 #include "search_dialog.h"
 #include "search_dialog.ui.h"
+#include "playlist/ui/table_view.h"
 #include "ui/state.h"
+//common includes
+#include <contract.h>
 //qt includes
 #include <QtGui/QDialog>
 #include <QtGui/QDialogButtonBox>
@@ -122,15 +125,25 @@ namespace Playlist
       return new SearchWidgetImpl(parent);
     }
 
-    bool GetSearchParameters(QWidget& parent, Playlist::Item::Search::Data& data)
+    void ExecuteSearchDialog(TableView& view, Controller& controller)
     {
-      SearchDialog dialog(parent);
-      if (dialog.exec())
+      return ExecuteSearchDialog(view, Model::IndexSetPtr(), controller);
+    }
+
+    void ExecuteSearchDialog(TableView& view, Model::IndexSetPtr scope, Controller& controller)
+    {
+      SearchDialog dialog(view);
+      if (!dialog.exec())
       {
-        data = dialog.GetResult();
-        return true;
+        return;
       }
-      return false;
+      const Playlist::Item::Search::Data data = dialog.GetResult();
+      const Playlist::Model::Ptr model = controller.GetModel();
+      const Playlist::Item::SelectionOperation::Ptr op = scope
+        ? Playlist::Item::CreateSearchOperation(*model, scope, data)
+        : Playlist::Item::CreateSearchOperation(*model, data);
+      Require(view.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+      model->PerformOperation(op);
     }
   }
 }

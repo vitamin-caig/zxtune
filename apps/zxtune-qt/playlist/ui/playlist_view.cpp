@@ -15,9 +15,9 @@ Author:
 #include "scanner_view.h"
 #include "table_view.h"
 #include "apps/base/app.h"
-#include "playlist_contextmenu.h"
+#include "contextmenu.h"
 #include "playlist_view.h"
-#include "search_dialog.h"
+#include "search.h"
 #include "playlist/parameters.h"
 #include "playlist/io/export.h"
 #include "playlist/supp/container.h"
@@ -352,10 +352,7 @@ namespace
 
     virtual void contextMenuEvent(QContextMenuEvent* event)
     {
-      if (Playlist::UI::ItemsContextMenu::Ptr itemsMenu = Playlist::UI::ItemsContextMenu::Create(*View, Controller))
-      {
-        itemsMenu->Exec(event->globalPos());
-      }
+      Playlist::UI::ExecuteContextMenu(event->globalPos(), *View, *Controller);
     }
 
     virtual void dragEnterEvent(QDragEnterEvent* event)
@@ -483,15 +480,7 @@ namespace
 
     void SearchItems()
     {
-      Playlist::Item::Search::Data data;
-      if (Playlist::UI::GetSearchParameters(*this, data))
-      {
-        const Playlist::Model::Ptr model = Controller->GetModel();
-        //search in all playlist when called via hotkey
-        const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSearchOperation(*model, data);
-        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
-        model->PerformOperation(op);
-      }
+      Playlist::UI::ExecuteSearchDialog(*View, *Controller);
     }
   private:
     const UI::State::Ptr LayoutState;

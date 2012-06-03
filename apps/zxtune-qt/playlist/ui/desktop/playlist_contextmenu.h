@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Playlist context menu
+  Playlist context menu for desktop version
 
 Last changed:
   $Id$
@@ -12,11 +12,11 @@ Author:
 */
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_CONTEXTMENU_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_CONTEXTMENU_H_DEFINED
+#ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_CONTEXTMENU_H_DEFINED
+#define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_CONTEXTMENU_H_DEFINED
 
 //local includes
-#include "playlist/supp/controller.h"
+#include "playlist/ui/contextmenu.h"
 //qt includes
 #include <QtCore/QObject>
 
@@ -24,19 +24,11 @@ namespace Playlist
 {
   namespace UI
   {
-    class TableView;
-
     class ItemsContextMenu : public QObject
     {
       Q_OBJECT
     protected:
       explicit ItemsContextMenu(QObject& parent);
-    public:
-      typedef boost::shared_ptr<ItemsContextMenu> Ptr;
-
-      static Ptr Create(TableView& view, Playlist::Controller::Ptr playlist);
-
-      virtual void Exec(const QPoint& pos) = 0;
     public slots:
       virtual void PlaySelected() const = 0;
       virtual void RemoveSelected() const = 0;
@@ -61,4 +53,4 @@ namespace Playlist
   }
 }
 
-#endif //ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_CONTEXTMENU_H_DEFINED
+#endif //ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_CONTEXTMENU_H_DEFINED
