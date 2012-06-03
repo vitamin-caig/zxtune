@@ -21,8 +21,6 @@ Author:
 #include <limits>
 #include <memory>
 //boost includes
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <boost/scoped_ptr.hpp>
 
 namespace
@@ -347,7 +345,7 @@ namespace
 
     virtual void Reset() = 0;
     virtual void SetNewData(const DataChunk& data) = 0;
-    virtual void Tick() = 0;
+    virtual void Tick(uint_t ticks) = 0;
     virtual bool HasLevelChanges() const = 0;
     virtual void GetLevels(MultiSample& result) const = 0;
   };
@@ -586,9 +584,12 @@ namespace
       }
     }
 
-    virtual void Tick()
+    virtual void Tick(uint_t ticks)
     {
-      Device->Tick();
+      for (uint_t i = 0; i != ticks; ++i)
+      {
+        Device->Tick();
+      }
     }
 
     virtual bool HasLevelChanges() const
@@ -741,7 +742,7 @@ namespace
       }
     }
 
-    virtual void Tick()
+    virtual void Tick(uint_t /*ticks*/)
     {
     }
 
@@ -779,10 +780,10 @@ namespace
       Second.SetNewData(data);
     }
 
-    virtual void Tick()
+    virtual void Tick(uint_t ticks)
     {
-      First.Tick();
-      Second.Tick();
+      First.Tick(ticks);
+      Second.Tick(ticks);
     }
 
     virtual bool HasLevelChanges() const
@@ -840,14 +841,17 @@ namespace
       Delegate->GetLevels(Levels);
     }
 
-    virtual void Tick()
+    virtual void Tick(uint_t ticks)
     {
-      std::transform(Accumulators.begin(), Accumulators.end(), Levels.begin(), Accumulators.begin(), std::plus<uint_t>());
-      ++AccumulatedSamples;
-      Delegate->Tick();
-      if (Delegate->HasLevelChanges())
+      for (uint_t i = 0; i != ticks; ++i)
       {
-        Delegate->GetLevels(Levels);
+        std::transform(Accumulators.begin(), Accumulators.end(), Levels.begin(), Accumulators.begin(), std::plus<uint_t>());
+        ++AccumulatedSamples;
+        Delegate->Tick(1);
+        if (Delegate->HasLevelChanges())
+        {
+          Delegate->GetLevels(Levels);
+        }
       }
     }
 
@@ -888,9 +892,9 @@ namespace
       return Delegate.SetNewData(data);
     }
 
-    virtual void Tick()
+    virtual void Tick(uint_t ticks)
     {
-      return Delegate.Tick();
+      return Delegate.Tick(ticks);
     }
 
     virtual bool HasLevelChanges() const
@@ -947,9 +951,9 @@ namespace
       LastTick = PsgOscillator.GetTickAtTime(time);
     }
 
-    bool Tick()
+    bool Tick(uint_t ticks)
     {
-      PsgOscillator.AdvanceTick(AYM_CLOCK_DIVISOR);
+      PsgOscillator.AdvanceTick(AYM_CLOCK_DIVISOR * ticks);
       if (PsgOscillator.GetCurrentTick() > NextSoundTick)
       {
         SndOscillator.AdvanceTick(1);
@@ -960,9 +964,18 @@ namespace
       return false;
     }
 
-    bool InFrame() const
+    uint_t GetTicksToFrameEnd() const
     {
-      return PsgOscillator.GetCurrentTick() < LastTick;
+      return LastTick > PsgOscillator.GetCurrentTick()
+        ? (LastTick - PsgOscillator.GetCurrentTick()) / AYM_CLOCK_DIVISOR
+        : 0;
+    }
+
+    uint_t GetTicksToSample() const
+    {
+      return NextSoundTick > PsgOscillator.GetCurrentTick()
+        ? (NextSoundTick - PsgOscillator.GetCurrentTick()) / AYM_CLOCK_DIVISOR
+        : 0;
     }
   private:
     void UpdateSoundTick()
@@ -985,11 +998,15 @@ namespace
       Buffer.push_back(src);
     }
 
-    void ForEachElement(boost::function<void(const DataChunk&)> cb)
+    const DataChunk* GetBegin() const
     {
-      std::for_each(Buffer.begin(), Buffer.end(), cb);
-      Reset();
-    };
+      return &Buffer.front();
+    }
+    
+    const DataChunk* GetEnd() const
+    {
+      return &Buffer.back() + 1;
+    }
 
     void Reset()
     {
@@ -1090,7 +1107,11 @@ namespace
 
     void RenderChunks(Renderer& render)
     {
-      BufferedData.ForEachElement(boost::bind(&RegularAYMChip::RenderSingleChunk, this, _1, boost::ref(render)));
+      for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
+      {
+        RenderSingleChunk(*it, render);
+      }
+      BufferedData.Reset();
     }
 
     void RenderSingleChunk(const DataChunk& src, Renderer& render)
@@ -1102,10 +1123,12 @@ namespace
       }
       Clock.SetFrameEnd(src.TimeStamp);
       MultiSample result;
-      while (Clock.InFrame())
+      while (const uint_t toEnd = Clock.GetTicksToFrameEnd())
       {
-        render.Tick();
-        if (Clock.Tick())
+        const uint_t toSound = Clock.GetTicksToSample();
+        const uint_t toTick = 1 + std::min(toSound, toEnd);
+        render.Tick(toTick);
+        if (Clock.Tick(toTick))
         {
           render.GetLevels(result);
           Target->ApplyData(result);
