@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>422</width>
-    <height>383</height>
+    <width>459</width>
+    <height>435</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -72,18 +72,21 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;center&gt;&lt;b&gt;Technical credits:&lt;/b&gt;&lt;/center&gt;
 &lt;ul&gt;
 &lt;li&gt;AY/YM engine is based on Unreal Speccy sources by &lt;b&gt;SMT&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Used AYEmul sources by &lt;b&gt;S.Bulba&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Used AYFly sources by &lt;b&gt;Ander&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Packer plugins are based on the xPlugins sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Used zlib library by &lt;b&gt;Jean-loup Gailly&lt;/b&gt; and &lt;b&gt;Mark Adler&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Used z80ex library by &lt;b&gt;Boo-boo&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Players code is based on &lt;a href=&quot;http://bulba.untergrund.net&quot;&gt;AYEmul&lt;/a&gt; sources by &lt;b&gt;S.Bulba&lt;/b&gt;&lt;br/&gt; and &lt;a href=&quot;http://ayfly.googlecode.com&quot;&gt;AYFly&lt;/a&gt; sources by &lt;b&gt;Ander&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Packer plugins are based on the &lt;a href=&quot;http://thex.untergrund.net&quot;&gt;xPlugins&lt;/a&gt; sources by &lt;b&gt;elf/2&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://zlib.net&quot;&gt;zlib&lt;/a&gt; library by &lt;b&gt;Jean-loup Gailly&lt;/b&gt; and &lt;b&gt;Mark Adler&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/mkoloberdin/z80ex&quot;&gt;z80ex&lt;/a&gt; library by &lt;b&gt;Boo-boo&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://boost.org&quot;&gt;boost&lt;/a&gt; library&lt;/li&gt;
 &lt;li&gt;Used Pusher sources by &lt;b&gt;Himik/ZxZ&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Used sunrar sources&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://sourceforge.net/projects/sunrar&quot;&gt;sunrar&lt;/a&gt; sources by &lt;b&gt;m2d3&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/fragglet/lhasa&quot;&gt;lhasa&lt;/a&gt; library by &lt;b&gt;Simon Howard&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://lame.sourceforge.net&quot;&gt;LAME&lt;/a&gt; SDK&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://www.vorbis.com&quot;&gt;Ogg Vorbis&lt;/a&gt; SDK&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://flac.sourceforge.net&quot;&gt;FLAC&lt;/a&gt; SDK&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;&lt;b&gt;Support credits:&lt;/b&gt;&lt;/center&gt;
-&lt;ul&gt;F0lken, Q-Master, Siril&lt;/ul&gt;
+&lt;ul&gt;F0lken, Q-Master, Siril, osa&lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
 &lt;/body&gt;&lt;/html&gt;</string>
@@ -117,7 +120,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         </sizepolicy>
        </property>
        <property name="text">
-        <string>${Fedback}</string>
+        <string>${Feedback}</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>
