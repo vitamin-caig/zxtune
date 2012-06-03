@@ -36,6 +36,11 @@ namespace Parameters
       {
         'L','a','y','o','u','t','\0'
       };
+      
+      const Char PARAM_VISIBLE[] =
+      {
+        'V','i','s','i','b','l','e','\0'
+      };
 
       const Char PARAM_INDEX[] =
       {

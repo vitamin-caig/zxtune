@@ -437,15 +437,21 @@ namespace
 
     virtual void Load() const
     {
+      Parameters::IntType val;
       if (!Wid.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY)))
       {
         Log::Debug(THIS_MODULE, "Failed to restore geometry of QWidget(%1%)", FromQString(Wid.objectName()));
+      }
+      else if (Container->FindValue(Parameters::ZXTuneQT::UI::PARAM_VISIBLE, val))
+      {
+        Wid.setVisible(val != 0);
       }
     }
 
     virtual void Save() const
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY, Wid.saveGeometry());
+      Container->SetValue(Parameters::ZXTuneQT::UI::PARAM_VISIBLE, Wid.isVisible());
     }
   private:
     QWidget& Wid;

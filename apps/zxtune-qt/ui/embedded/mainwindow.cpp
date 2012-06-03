@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "mainwindow.h"
 #include "mainwindow.ui.h"
+#include "ui/state.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "playlist/ui/container_view.h"
@@ -81,14 +82,25 @@ namespace
       , Playlist(Playlist::UI::ContainerView::Create(*this, Options))
     {
       setupUi(this);
+      State = UI::State::Create(*this);
+
       statusBar()->addWidget(new QLabel(
         tr("X-Space A-Ctrl B-Alt Y-Shift Select-Esc Start-Enter LH-Tab RH-Backspace"), this));
       //fill menu
+      Controls->hide();
       menubar->addMenu(Controls->GetActionsMenu());
       menubar->addMenu(Playlist->GetActionsMenu());
       //fill toolbar and layout menu
-      AddWidgetWithLayoutControl(AddWidgetOnLayout(Analyzer));
-      AddWidgetWithLayoutControl(AddWidgetOnLayout(Playlist));
+      {
+        QWidget* const ALL_WIDGETS[] =
+        {
+          AddWidgetOnLayout(Analyzer)
+        };
+        //playlist is mandatory and cannot be hidden
+        AddWidgetOnLayout(Playlist);
+        State->Load();
+        std::for_each(ALL_WIDGETS, ArrayEnd(ALL_WIDGETS), std::bind1st(std::mem_fun(&EmbeddedMainWindowImpl::AddWidgetLayoutControl), this));
+      }
 
       //connect root actions
       Require(Playlist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev())));
@@ -127,16 +139,16 @@ namespace
     virtual void closeEvent(QCloseEvent* event)
     {
       Backlight.Enable();
+      State->Save();
       Playlist->Teardown();
       event->accept();
     }
   private:
-    void AddWidgetWithLayoutControl(QWidget* widget)
+    void AddWidgetLayoutControl(QWidget* widget)
     {
-      QAction* const action = new QAction(widget);
+      QAction* const action = new QAction(widget->windowTitle(), widget);
       action->setCheckable(true);
-      action->setChecked(true);//TODO
-      action->setText(widget->windowTitle());
+      action->setChecked(widget->isVisibleTo(this));
       //integrate
       menuLayout->addAction(action);
       widget->connect(action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
@@ -145,10 +157,12 @@ namespace
     QWidget* AddWidgetOnLayout(QWidget* widget)
     {
       centralWidget()->layout()->addWidget(widget);
+      State->AddWidget(*widget);
       return widget;
     }
   private:
     const Parameters::Container::Ptr Options;
+    UI::State::Ptr State;
     BacklightControl Backlight;
     PlaybackSupport* const Playback;
     PlaybackControls* const Controls;
