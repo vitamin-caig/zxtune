@@ -59,7 +59,8 @@ namespace
     ZXTune::Module::ATTR_CONTAINER,
     ZXTune::Module::ATTR_TYPE,
     ZXTune::Module::ATTR_VERSION,
-    ZXTune::Module::ATTR_PROGRAM
+    ZXTune::Module::ATTR_PROGRAM,
+    ZXTune::Module::ATTR_DATE
   };
 
   class PropertiesFilter : public Parameters::Visitor
@@ -313,9 +314,11 @@ namespace
       const QString decoded = Version >= VERSION_WITH_TEXT_FIELDS_ESCAPING
         ? QUrl::fromPercentEncoding(input.toUtf8())
         : input;
-      String result;
-      Parameters::ConvertFromString(FromQString(decoded), result);
-      return result;
+      const String res = FromQString(decoded);
+      String unescaped;
+      return Parameters::ConvertFromString(res, unescaped)
+        ? unescaped
+        : res;
     }
   private:
     const QDir BaseDir;
