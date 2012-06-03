@@ -45,6 +45,12 @@ namespace
     return 0 == ((plugin.Capabilities() & ZXTune::CAP_DEVICE_MASK) & ~ZXTune::CAP_DEV_DAC_MASK);
   }
 
+  bool IsFMPlugin(const ZXTune::Plugin& plugin)
+  {
+    assert(IsPlayerPlugin(plugin));
+    return ZXTune::CAP_DEV_FM == (plugin.Capabilities() & ZXTune::CAP_DEV_FM);
+  }
+
   bool IsMultitrackPlugin(const ZXTune::Plugin& plugin)
   {
     assert(!IsPlayerPlugin(plugin));
@@ -75,6 +81,7 @@ namespace
       , Containers(new QTreeWidgetItem(&Widget, QStringList("Container plugins")))
       , Ayms(new QTreeWidgetItem(Players, QStringList("AY/YM")))
       , Dacs(new QTreeWidgetItem(Players, QStringList("DAC")))
+      , Fms(new QTreeWidgetItem(Players, QStringList("FM")))
       , Multitracks(new QTreeWidgetItem(Containers, QStringList("Multitrack")))
       , Archives(new QTreeWidgetItem(Containers, QStringList("Archive")))
     {
@@ -101,6 +108,10 @@ namespace
       else if (IsDACPlugin(plugin))
       {
         AddPlayerPluginItem(plugin, *Dacs);
+      }
+      else if (IsFMPlugin(plugin))
+      {
+        AddPlayerPluginItem(plugin, *Fms);
       }
       else
       {
@@ -187,6 +198,7 @@ namespace
     //2nd level
     QTreeWidgetItem* const Ayms;
     QTreeWidgetItem* const Dacs;
+    QTreeWidgetItem* const Fms;
     QTreeWidgetItem* const Multitracks;
     QTreeWidgetItem* const Archives;
   };
