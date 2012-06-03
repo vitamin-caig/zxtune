@@ -323,7 +323,7 @@ namespace
     //qwidget virtuals
     virtual void keyPressEvent(QKeyEvent* event)
     {
-      if (event->matches(QKeySequence::Delete))
+      if (event->matches(QKeySequence::Delete) || event->key() == Qt::Key_Backspace)
       {
         RemoveSelectedItems();
       }
