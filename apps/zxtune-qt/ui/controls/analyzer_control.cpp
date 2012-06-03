@@ -31,21 +31,40 @@ namespace
   const uint_t BAR_WIDTH = 3;
   const uint_t LEVELS_FALLBACK = 20;
 
-  typedef boost::array<uint_t, MAX_BANDS> Analyzed;
-
-  inline uint_t SafeSub(uint_t lh, uint_t rh)
+  struct BandLevel
   {
-    return lh >= rh ? lh - rh : 0;
-  }
+  public:
+    BandLevel()
+      : Value(0)
+      , Changed(false)
+    {
+    }
+    
+    void Fall(uint_t delta)
+    {
+      Set(Value >= delta ? Value - delta : 0);
+    }
+    
+    void Set(uint_t newVal)
+    {
+      std::swap(newVal, Value);
+      Changed = newVal != Value;
+    }
+
+    uint_t Value;
+    bool Changed;
+  };
+
+  typedef boost::array<BandLevel, MAX_BANDS> Analyzed;
 
   inline void StoreValue(const ZXTune::Module::Analyzer::BandAndLevel& chan, Analyzed& result)
   {
     if (chan.first < MAX_BANDS)
     {
-      result[chan.first] = chan.second;
+      result[chan.first].Set(chan.second);
     }
   }
-
+  
   class AnalyzerControlImpl : public AnalyzerControl
   {
   public:
@@ -57,6 +76,7 @@ namespace
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);
       setWindowTitle(tr("Analyzer"));
+      setObjectName("AnalyzerControl");
 
       this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
         SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
@@ -72,15 +92,18 @@ namespace
 
     virtual void UpdateState()
     {
-      std::transform(Levels.begin(), Levels.end(), Levels.begin(), boost::bind(&SafeSub, _1, LEVELS_FALLBACK));
-      Analyzer->BandLevels(State);
-      std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
-      DoRepaint();
+      if (isVisible())
+      {
+        std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Fall), LEVELS_FALLBACK));
+        Analyzer->BandLevels(State);
+        std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
+        repaint();
+      }
     }
 
     void CloseState()
     {
-      std::fill(Levels.begin(), Levels.end(), 0);
+      std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Set), 0));
       DoRepaint();
     }
 
@@ -92,15 +115,23 @@ namespace
       QPainter painter(this);
       const int curWidth = width();
       const int curHeight = height();
-      painter.fillRect(0, 0, curWidth, curHeight, back);
-      for (uint_t band = 0; band < std::min<uint_t>(curWidth / BAR_WIDTH, MAX_BANDS); ++band)
+      painter.setBrush(brush);
+      painter.setPen(mask.color());
+      const uint_t bandsCount = std::min<uint_t>(curWidth / BAR_WIDTH, MAX_BANDS);
+      for (uint_t band = 0; band < bandsCount; ++band)
       {
-        if (const int scaledValue = Levels[band] * (curHeight - 1) / 100)
+        const BandLevel& level = Levels[band];
+        if (!level.Changed)
         {
-          //fill mask
-          painter.fillRect(band * BAR_WIDTH + 1, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1, mask);
-          //fill rect
-          painter.fillRect(band * BAR_WIDTH + 2, curHeight - scaledValue, BAR_WIDTH - 1, scaledValue, brush);
+          continue;
+        }
+        const bool prevHigher = band && Levels[band - 1].Value > level.Value;
+        const bool nextLower = band != bandsCount - 1 && Levels[band + 1].Value < level.Value;
+        const int xleft = band * (BAR_WIDTH + 1);
+        painter.fillRect(xleft + prevHigher, 0, BAR_WIDTH + nextLower, curHeight, back);
+        if (const int scaledValue = level.Value * (curHeight - 1) / 100)
+        {
+          painter.drawRect(xleft, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1);
         }
       }
     }
