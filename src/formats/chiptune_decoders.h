@@ -32,6 +32,7 @@ namespace Formats
     Decoder::Ptr CreateProTracker1Decoder();
     Decoder::Ptr CreateVTXDecoder();
     Decoder::Ptr CreateYMDecoder();
+    Decoder::Ptr CreateTFDDecoder();
   }
 }
 
