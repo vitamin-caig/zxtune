@@ -7,6 +7,19 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] TFD format support
+[+] Compressed td0 images support
+[*] Fixed STP 1.xx detection
+[*] Improved AS0 detection
+[*] Detection speedup
+[*] AYM rendering slight speedup
+[*] zxtune-qt for dingux: binary size reducing
+[*] zxtune-qt for dingux: main window layout store/restore
+[*] zxtune-qt: fixed playlist loading with percentage encoding
+[*] zxtune-qt: spectrum analyzer speedup
+
+--- Rev1747 from 29.05.2012
+
 [+] LHA archives support
 [+] VTX modules support
 [+] YM modules support
