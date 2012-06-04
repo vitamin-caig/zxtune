@@ -59,6 +59,11 @@ namespace
     std::vector<Parameters::NameType> Names;
   };
 
+  const ZXTune::Sound::MultiGain MIXER1[] =
+  {
+    { {1.0, 1.0} }
+  };
+
   const ZXTune::Sound::MultiGain MIXER3[] =
   {
     { {1.0, 0.0} },
@@ -77,6 +82,8 @@ namespace
   {
     switch (channels)
     {
+    case 1:
+      return MixerMatrix(params, channels, MIXER1);
     case 3:
       return MixerMatrix(params, channels, MIXER3);
     case 4:
