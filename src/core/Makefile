@@ -6,6 +6,7 @@ source_dirs := plugins \
                plugins/players \
                plugins/players/ay \
                plugins/players/dac \
+               plugins/players/tfm \
                src
 
 text_files := text/core text/plugins text/warnings

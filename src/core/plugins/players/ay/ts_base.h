@@ -17,6 +17,7 @@ Author:
 #include <core/module_holder.h>
 #include <core/module_types.h>
 #include <devices/aym.h>
+#include <devices/fm.h>
 
 namespace ZXTune
 {
@@ -32,12 +33,14 @@ namespace ZXTune
     };
 
     typedef DoubleReceiver<Devices::AYM::MultiSample> AYMTSMixer;
+    typedef DoubleReceiver<Devices::FM::Sample> TFMMixer;
     typedef DoubleReceiver<std::vector<Sound::Sample> > TSMixer;
 
     TrackState::Ptr CreateTSTrackState(TrackState::Ptr first, TrackState::Ptr second);
     Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second);
     TSMixer::Ptr CreateTSMixer(Sound::MultichannelReceiver::Ptr delegate);
     AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate);
+    TFMMixer::Ptr CreateTFMMixer(Devices::FM::Receiver::Ptr delegate);
     Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target);
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer);
   }

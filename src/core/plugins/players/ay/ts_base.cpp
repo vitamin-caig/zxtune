@@ -109,17 +109,36 @@ namespace
     return (val1 + val2) / 2;
   }
 
-  template<class MultiSample>
-  class DoubleReceiverImpl : public DoubleReceiver<MultiSample>
+  template<class T>
+  void PerformMix(T& val1, T val2)
+  {
+    val1 = avg(val1, val2);
+  }
+
+  template<class T>
+  void PerformMix(std::vector<T>& val1, const std::vector<T>& val2)
+  {
+    assert(val1.size() == val2.size());
+    std::transform(val1.begin(), val1.end(), val2.begin(), val1.begin(), &avg<T>);
+  }
+
+  template<class T, std::size_t N>
+  void PerformMix(boost::array<T, N>& val1, const boost::array<T, N>& val2)
+  {
+    std::transform(val1.begin(), val1.end(), val2.begin(), val1.begin(), &avg<T>);
+  }
+
+  template<class SampleType>
+  class DoubleReceiverImpl : public DoubleReceiver<SampleType>
   {
   public:
-    explicit DoubleReceiverImpl(typename DataReceiver<MultiSample>::Ptr delegate)
+    explicit DoubleReceiverImpl(typename DataReceiver<SampleType>::Ptr delegate)
       : Delegate(delegate)
       , Stream()
     {
     }
 
-    virtual void ApplyData(const MultiSample& data)
+    virtual void ApplyData(const SampleType& data)
     {
       if (Stream)
       {
@@ -143,7 +162,7 @@ namespace
     {
       if ((Stream = idx))
       {
-        MixCursor = CycledIterator<typename BufferType::iterator>(Buffer.begin(), Buffer.end());
+        MixCursor = CycledIterator<SampleType*>(&Buffer.front(), &Buffer.back() + 1);
       }
       else
       {
@@ -151,25 +170,24 @@ namespace
       }
     }
   private:
-    void Store(const MultiSample& data)
+    void Store(const SampleType& data)
     {
       Buffer.push_back(data);
     }
 
-    void Mix(const MultiSample& data)
+    void Mix(const SampleType& data)
     {
-      assert(MixCursor->size() == data.size());
-      const typename MultiSample::iterator bufIter = MixCursor->begin();
-      std::transform(data.begin(), data.end(), bufIter, bufIter, &avg<typename MultiSample::value_type>);
-      Delegate->ApplyData(*MixCursor);
+      SampleType& src = *MixCursor;
+      PerformMix(src, data);
+      Delegate->ApplyData(src);
       ++MixCursor;
     }
   private:
-    const typename DataReceiver<MultiSample>::Ptr Delegate;
+    const typename DataReceiver<SampleType>::Ptr Delegate;
     uint_t Stream;
-    typedef std::vector<MultiSample> BufferType;
+    typedef std::vector<SampleType> BufferType;
     BufferType Buffer;
-    CycledIterator<typename BufferType::iterator> MixCursor;
+    CycledIterator<SampleType*> MixCursor;
   };
 
   template<class Type>
@@ -243,6 +261,12 @@ namespace ZXTune
     AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate)
     {
       typedef DoubleReceiverImpl<Devices::AYM::MultiSample> Impl;
+      return boost::make_shared<Impl>(delegate);
+    }
+
+    TFMMixer::Ptr CreateTFMMixer(Devices::FM::Receiver::Ptr delegate)
+    {
+      typedef DoubleReceiverImpl<Devices::FM::Sample> Impl;
       return boost::make_shared<Impl>(delegate);
     }
 
