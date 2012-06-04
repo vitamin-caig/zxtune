@@ -1,3 +1,5 @@
+#include "deftypes.h"		/* use RAINE */
+
 /* -------------------- YM2203(OPN) Interface -------------------- */
 
 /*
@@ -10,7 +12,7 @@
 ** 'IRQHandler'    IRQ callback handler when changed IRQ level
 ** return      0 = success
 */
-void* YM2203Init(int baseclock, int rate);
+void* YM2203Init(UINT64 baseclock, int rate);
 
 /*
 ** shutdown the YM2203 emulators
@@ -37,4 +39,4 @@ int YM2203Write(void *chip,int a,unsigned char v);
 void YM2203SetMute(void *chip,int mask);
 
 
-void YM2203GetAllTL(void *chip,int *levels);
+void YM2203GetAllTL(void *chip,int *levels,int *freqs);

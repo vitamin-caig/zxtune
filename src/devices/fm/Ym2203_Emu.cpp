@@ -1,3 +1,11 @@
+/*
+
+  Originally taken from MAME sources
+  Extracted and adapted by Shiru
+
+*/
+
+
 #define YM2610B_WARNING
 
 /* this is not part of the C/C++ standards and is not present on */
@@ -123,7 +131,6 @@
 #include <stdarg.h>
 #include <math.h>
 
-#include "deftypes.h"		/* use RAINE */
 #include "Ym2203_Emu.h"
 
 #define INLINE inline
@@ -645,7 +652,7 @@ typedef struct
 {
 	//const device_config *device;
 	void *		param;				/* this chip parameter  */
-	int			clock;				/* master clock  (Hz)   */
+	UINT64			clock;				/* master clock  (Hz)   */
 	int			rate;				/* sampling rate (Hz)   */
 	double		freqbase;			/* frequency base       */
 	int			timer_prescaler;	/* timer prescaler      */
@@ -2430,7 +2437,7 @@ void YM2203ResetChip(void *chip)
    'rate' is sampling rate
 */
 
-void* YM2203Init(int clock, int rate)
+void* YM2203Init(UINT64 clock, int rate)
 {
 	YM2203 *F2203;
 
@@ -2522,27 +2529,48 @@ void YM2203SetMute(void *chip,int mask)
 	F2203->mute=mask;
 }
 
+int GetFreq(UINT64 clock, UINT8 regHi, UINT8 regLo, unsigned scale)
+{
+  const unsigned counter = (unsigned(regHi & 7) << 8) | regLo;
+  const unsigned octave = (regHi & 0x38) >> 3;
+  return clock * 100 * counter * (1 << octave) / (scale << 21);
+}
 
-
-void YM2203GetAllTL(void *chip,int *levels)
+void YM2203GetAllTL(void *chip,int *levels, int* freqs)
 {
 	const int slotMap[8]={ 0x08,0x08,0x08,0x08,0x0c,0x0e,0x0e,0x0f };
+	const int opn_pres[4] = { 2*12 , 2*12 , 6*12 , 3*12 };
 	int aa,vol,algo,div;
 	YM2203 *F2203;
 	
 	F2203=(YM2203*)chip;
 	
+  const unsigned scale = opn_pres[F2203->OPN.ST.prescaler_sel & 3];
 	for(aa=0;aa<3;aa++)
 	{
 		algo=slotMap[F2203->CH[aa].ALGO&7];
 		vol=0;
 		div=0;
 
-		if(algo&1) { vol+=F2203->CH[aa].SLOT[SLOT1].vol_out; div++; }
-		if(algo&2) { vol+=F2203->CH[aa].SLOT[SLOT2].vol_out; div++; }
-		if(algo&4) { vol+=F2203->CH[aa].SLOT[SLOT3].vol_out; div++; }
-		if(algo&8) { vol+=F2203->CH[aa].SLOT[SLOT4].vol_out; div++; }
+    const int freq = GetFreq(F2203->OPN.ST.clock, F2203->REGS[0xa4 + aa], F2203->REGS[0xa0 + aa], scale);
+		if(algo&1)
+		{
+		  vol+=F2203->CH[aa].SLOT[SLOT1].vol_out; div++;
+		}
+		if(algo&2)
+		{
+		  vol+=F2203->CH[aa].SLOT[SLOT2].vol_out; div++;
+		}
+		if(algo&4)
+		{
+		  vol+=F2203->CH[aa].SLOT[SLOT3].vol_out; div++;
+		}
+		if(algo&8)
+		{
+		  vol+=F2203->CH[aa].SLOT[SLOT4].vol_out; div++;
+		}
 
 		levels[aa]=vol/div;
+		freqs[aa] = freq;
 	}
 }
