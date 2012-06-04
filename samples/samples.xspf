@@ -57,6 +57,9 @@
     <location>Samples/COMETDAY.str</location>
   </track>
   <track>
+    <location>Samples/mass_production.tfd</location>
+  </track>
+  <track>
     <location>Samples/long_day.pt3</location>
   </track>
   <track>
