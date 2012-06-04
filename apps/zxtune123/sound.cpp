@@ -302,7 +302,6 @@ namespace
 
       OptionsDescription.add_options()
         (Text::FREQUENCY_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FREQUENCY]), Text::FREQUENCY_DESC)
-        (Text::CLOCKRATE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::CLOCKRATE]), Text::CLOCKRATE_DESC)
         (Text::FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION]), Text::FRAMEDURATION_DESC)
         (Text::FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE]), Text::FREQTABLE_DESC)
         (Text::LOOP_KEY, bool_switch(&Looped), Text::LOOP_DESC)

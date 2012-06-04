@@ -49,7 +49,7 @@ namespace
       connect(clockRatePresets, SIGNAL(currentIndexChanged(int)), SLOT(OnClockRatePresetChanged(int)));
 
       using namespace Parameters;
-      BigIntegerValue::Bind(*clockRateValue, *Options, ZXTune::Sound::CLOCKRATE, ZXTune::Sound::CLOCKRATE_DEFAULT);
+      BigIntegerValue::Bind(*clockRateValue, *Options, ZXTune::Core::AYM::CLOCKRATE, ZXTune::Core::AYM::CLOCKRATE_DEFAULT);
       BooleanValue::Bind(*dutyCycleGroup, *Options, ZXTune::Core::AYM::DUTY_CYCLE_MASK, false, 0x1f);
       IntegerValue::Bind(*dutyCycleValue, *Options, ZXTune::Core::AYM::DUTY_CYCLE, 50);
     }

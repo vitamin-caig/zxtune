@@ -14,13 +14,6 @@ extern const Char ANALYZER_KEY[] = {
 extern const Char CLI_SECTION[] = {
   'O','t','h','e','r',' ','o','p','t','i','o','n','s',0
 };
-extern const Char CLOCKRATE_DESC[] = {
-  's','p','e','c','i','f','y',' ','C','P','U',' ','a','n','d',' ','P','S','G',' ','c','l','o','c','k',' ','r',
-  'a','t','e',' ','i','n',' ','H','z',0
-};
-extern const Char CLOCKRATE_KEY[] = {
-  'c','l','o','c','k','r','a','t','e',0
-};
 extern const Char COMMON_ERROR[] = {
   'E','r','r','o','r',':',' ','%','1','%',0
 };
@@ -368,6 +361,9 @@ extern const Char INFO_LIST_PROVIDERS_KEY[] = {
 extern const Char INFO_LIST_PROVIDERS_TITLE[] = {
   'S','u','p','p','o','r','t','e','d',' ','I','O',' ','p','r','o','v','i','d','e','r','s',0
 };
+extern const Char INFO_OPTIONS_CORE_AYM_CLOCKRATE[] = {
+  'c','l','o','c','k',' ','r','a','t','e',' ','f','o','r',' ','A','Y','M',' ','i','n',' ','H','z',0
+};
 extern const Char INFO_OPTIONS_CORE_AYM_DUTY_CYCLE[] = {
   'c','h','i','p',' ','d','u','t','y',' ','c','y','c','l','e',' ','v','a','l','u','e',' ','i','n',' ','p','e',
   'r','c','e','n','t','.',' ','S','h','o','u','l','d',' ','b','e',' ','i','n',' ','r','a','n','g','e',' ','1',
@@ -403,6 +399,9 @@ extern const Char INFO_OPTIONS_CORE_AYM_TYPE[] = {
 extern const Char INFO_OPTIONS_CORE_DAC_INTERPOLATION[] = {
   'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','D','A','C',' ','r',
   'e','n','d','e','r','i','n','g',0
+};
+extern const Char INFO_OPTIONS_CORE_FM_CLOCKRATE[] = {
+  'c','l','o','c','k',' ','r','a','t','e',' ','f','o','r',' ','F','M',' ','i','n',' ','H','z',0
 };
 extern const Char INFO_OPTIONS_CORE_PLUGINS_AY_DEFAULT_DURATION_FRAMES[] = {
   'd','e','f','a','u','l','t',' ','.','a','y',' ','m','o','d','u','l','e','s',' ','d','u','r','a','t','i','o',
@@ -541,9 +540,6 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_WIN32_BUFFERS[] = {
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE[] = {
   'd','e','v','i','c','e',' ','i','n','d','e','x',' ','f','o','r',' ','w','i','n','3','2',' ','b','a','c','k',
   'e','n','d',0
-};
-extern const Char INFO_OPTIONS_SOUND_CLOCKRATE[] = {
-  'c','l','o','c','k',' ','r','a','t','e',' ','f','o','r',' ','P','S','G',' ','i','n',' ','H','z',0
 };
 extern const Char INFO_OPTIONS_SOUND_FRAMEDURATION[] = {
   'f','r','a','m','e',' ','d','u','r','a','t','i','o','n',' ','i','n',' ','m','i','c','r','o','s','e','c','o',

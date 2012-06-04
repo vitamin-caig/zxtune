@@ -128,9 +128,6 @@
 < INFO_OPTIONS_SOUND_FREQUENCY
 > "sound frequency in Hz"
 
-< INFO_OPTIONS_SOUND_CLOCKRATE
-> "clock rate for PSG in Hz"
-
 < INFO_OPTIONS_SOUND_FRAMEDURATION
 > "frame duration in microseconds"
 
@@ -203,6 +200,9 @@
 < INFO_OPTIONS_CORE_TITLE
 > " Core options:"
 
+< INFO_OPTIONS_CORE_AYM_CLOCKRATE
+> "clock rate for AYM in Hz"
+
 < INFO_OPTIONS_CORE_AYM_TYPE
 > "use YM chip type for AYM rendering"
 
@@ -229,6 +229,9 @@
 
 < INFO_OPTIONS_CORE_Z80_CLOCKRATE
 > "Z80 processor clockrate"
+
+< INFO_OPTIONS_CORE_FM_CLOCKRATE
+> "clock rate for FM in Hz"
 
 < INFO_OPTIONS_CORE_PLUGINS_TITLE
 > " Core plugins options:"

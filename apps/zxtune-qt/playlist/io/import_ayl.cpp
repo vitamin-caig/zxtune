@@ -242,7 +242,7 @@ namespace
       Log::Debug(THIS_MODULE, "  property %1%=%2%", name, val);
       if (name == AYL::CHIP_FREQUENCY)
       {
-        Delegate.SetValue(Parameters::ZXTune::Sound::CLOCKRATE, val);
+        Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
       }
       else if (name == AYL::PLAYER_FREQUENCY)
       {

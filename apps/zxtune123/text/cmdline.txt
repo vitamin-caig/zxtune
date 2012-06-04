@@ -116,12 +116,6 @@
 < FREQUENCY_DESC
 > "specify sound frequency in Hz"
 
-< CLOCKRATE_KEY
-> CMD_CLOCKRATE_KEY
-
-< CLOCKRATE_DESC
-> "specify CPU and PSG clock rate in Hz"
-
 < FRAMEDURATION_KEY
 > CMD_FRAMEDURATION_KEY
 
