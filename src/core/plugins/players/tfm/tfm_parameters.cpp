@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "tfm_parameters.h"
 //library includes
+#include <core/core_parameters.h>
 #include <sound/render_params.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -46,13 +47,16 @@ namespace
   {
   public:
     explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
-      : SoundParams(Sound::RenderParameters::Create(params))
+      : Params(params)
+      , SoundParams(Sound::RenderParameters::Create(params))
     {
     }
 
     virtual uint64_t ClockFreq() const
     {
-      return SoundParams->ClockFreq();
+      Parameters::IntType val = Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::Core::FM::CLOCKRATE, val);
+      return val;
     }
 
     virtual uint_t SoundFreq() const
@@ -60,6 +64,7 @@ namespace
       return SoundParams->SoundFreq();
     }
   private:
+    const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
   };
 }

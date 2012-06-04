@@ -30,6 +30,18 @@ namespace Parameters
       //! @brief AYM-chip related parameters namespace
       namespace AYM
       {
+        //@{
+        //! @name PSG clockrate in Hz
+
+        //! Default value- 1.75MHz
+        const IntType CLOCKRATE_DEFAULT = 1750000;
+        //! Parameter name
+        const Char CLOCKRATE[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','c','l','o','c','k','r','a','t','e','\0'
+        };
+        //@}
+
         //! @brief Chip type
         //! @details 0 is AY, else is YM
         const Char TYPE[] =
@@ -103,6 +115,22 @@ namespace Parameters
         const Char CLOCKRATE[] =
         {
           'z','x','t','u','n','e','.','c','o','r','e','.','z','8','0','.','c','l','o','c','k','r','a','t','e','\0'
+        };
+        //@}
+      }
+
+      //! @brief FM-related parameters namespace
+      namespace FM
+      {
+        //@{
+        //! @name FM clockrate in Hz
+
+        //! Default value- 3.5MHz
+        const IntType CLOCKRATE_DEFAULT = 3500000;
+        //! Parameter name
+        const Char CLOCKRATE[] =
+        {
+          'z','x','t','u','n','e','.','c','o','r','e','.','f','m','.','c','l','o','c','k','r','a','t','e','\0'
         };
         //@}
       }

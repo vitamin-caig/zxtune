@@ -34,18 +34,6 @@ namespace Parameters
       //@}
 
       //@{
-      //! @name PSG clockrate in Hz
-
-      //! Default value- 1.75MHz
-      const IntType CLOCKRATE_DEFAULT = 1750000;
-      //! Parameter name
-      const Char CLOCKRATE[] =
-      {
-        'z','x','t','u','n','e','.','s','o','u','n','d','.','c','l','o','c','k','r','a','t','e','\0'
-      };
-      //@}
-
-      //@{
       //! @name Frame duration in microseconds
 
       //! Default value- 20mS (50Hz)

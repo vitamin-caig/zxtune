@@ -104,7 +104,9 @@ namespace
 
     virtual uint64_t ClockFreq() const
     {
-      return SoundParams->ClockFreq();
+      Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
+      return val;
     }
 
     virtual uint_t SoundFreq() const

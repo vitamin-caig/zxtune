@@ -14,6 +14,7 @@ Author:
 #include "vortex_io.h"
 //library includes
 #include <core/convert_parameters.h>
+#include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/plugin_attrs.h>
 #include <sound/render_params.h>
@@ -55,7 +56,8 @@ namespace
   {
   public:
     FYMDumperParameters(Parameters::Accessor::Ptr params, const Module::AYM::Chiptune& chiptune, uint_t opt)
-      : SndParams(Sound::RenderParameters::Create(params))
+      : Base(params, opt)
+      , Params(params)
       , Info(chiptune.GetInformation())
       , Properties(chiptune.GetProperties())
       , Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
@@ -64,17 +66,19 @@ namespace
 
     virtual Time::Microseconds FrameDuration() const
     {
-      return Time::Microseconds(SndParams->FrameDurationMicrosec());
+      return Base.FrameDuration();
     }
 
     virtual Devices::AYM::DumperParameters::Optimization OptimizationLevel() const
     {
-      return Optimization;
+      return Base.OptimizationLevel();
     }
 
     virtual uint64_t ClockFreq() const
     {
-      return SndParams->ClockFreq();
+      Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
+      return val;
     }
 
     virtual String Title() const
@@ -96,7 +100,8 @@ namespace
       return Info->LoopFrame();
     }
   private:
-    const Sound::RenderParameters::Ptr SndParams;
+    const BaseDumperParameters Base;
+    const Parameters::Accessor::Ptr Params;
     const Module::Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
     const Devices::AYM::DumperParameters::Optimization Optimization;

@@ -26,8 +26,6 @@ namespace ZXTune
 
       virtual ~RenderParameters() {}
 
-      //! Basic clock frequency for PSG
-      virtual uint64_t ClockFreq() const = 0;
       //! Rendering sound frequency
       virtual uint_t SoundFreq() const = 0;
       //! Frame duration in us

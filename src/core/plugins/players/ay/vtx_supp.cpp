@@ -124,7 +124,7 @@ namespace
 
     virtual void SetClockrate(uint64_t freq)
     {
-      Props.GetInternalContainer()->SetValue(Parameters::ZXTune::Sound::CLOCKRATE, freq);
+      Props.GetInternalContainer()->SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, freq);
     }
 
     virtual void SetIntFreq(uint_t freq)

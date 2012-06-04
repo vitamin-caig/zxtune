@@ -25,12 +25,6 @@ namespace
     {
     }
 
-    virtual uint64_t ClockFreq() const
-    {
-      using namespace Parameters::ZXTune::Sound;
-      return FoundProperty(CLOCKRATE, CLOCKRATE_DEFAULT);
-    }
-
     virtual uint_t SoundFreq() const
     {
       using namespace Parameters::ZXTune::Sound;
