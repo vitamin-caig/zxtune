@@ -137,7 +137,6 @@
 #define FM_BUSY_FLAG_SUPPORT 0
 
 
-
 #define INLINE inline
 
 
@@ -147,9 +146,6 @@
 #define TYPE_6CH    0x04    /* FM 6CH / 3CH         */
 #define TYPE_DAC    0x08    /* YM2612's DAC device  */
 #define TYPE_ADPCM  0x10    /* two ADPCM units      */
-
-
-
 
 #define FREQ_SH			16  /* 16.16 fixed point (frequency calculations) */
 #define EG_SH			16  /* 16.16 fixed point (envelope generator timing) */
@@ -188,6 +184,8 @@
 	#define MINOUT		(-128)
 #endif
 
+
+//contextless tables
 
 /*  TL_TAB_LEN is calculated as:
 *   13 - sinus amplitude bits     (Y axis)
@@ -643,16 +641,17 @@ typedef struct
 	UINT32	lfo_freq[8];	/* LFO FREQ table */
 } FM_OPN;
 
-
-
 /* current chip state */
-static INT32	m2,c1,c2;		/* Phase Modulation input for operators 2,3,4 */
-static INT32	mem;			/* one sample delay memory */
+typedef struct
+{
+  INT32	m2,c1,c2;		/* Phase Modulation input for operators 2,3,4 */
+  INT32	mem;			/* one sample delay memory */
 
-static INT32	out_fm[8];		/* outputs of working channels */
+  INT32	out_fm[8];		/* outputs of working channels */
 
-static UINT32	LFO_AM;			/* runtime LFO calculations helper */
-static INT32	LFO_PM;			/* runtime LFO calculations helper */
+  UINT32	LFO_AM;			/* runtime LFO calculations helper */
+  INT32	LFO_PM;			/* runtime LFO calculations helper */
+} FM_STATE;
 
 
 /* log output level */
@@ -865,9 +864,9 @@ inline void FM_KEYOFF(FM_CH *CH , int s )
 }
 
 /* set algorithm connection */
-static void setup_connection( FM_CH *CH, int ch )
+static void setup_connection(FM_STATE* state, FM_CH *CH, int ch )
 {
-	INT32 *carrier = &out_fm[ch];
+	INT32 *carrier = &state->out_fm[ch];
 
 	INT32 **om1 = &CH->connect1;
 	INT32 **om2 = &CH->connect3;
@@ -878,43 +877,43 @@ static void setup_connection( FM_CH *CH, int ch )
 	switch( CH->ALGO ){
 	case 0:
 		/* M1---C1---MEM---M2---C2---OUT */
-		*om1 = &c1;
-		*oc1 = &mem;
-		*om2 = &c2;
-		*memc= &m2;
+		*om1 = &state->c1;
+		*oc1 = &state->mem;
+		*om2 = &state->c2;
+		*memc= &state->m2;
 		break;
 	case 1:
 		/* M1------+-MEM---M2---C2---OUT */
 		/*      C1-+                     */
-		*om1 = &mem;
-		*oc1 = &mem;
-		*om2 = &c2;
-		*memc= &m2;
+		*om1 = &state->mem;
+		*oc1 = &state->mem;
+		*om2 = &state->c2;
+		*memc= &state->m2;
 		break;
 	case 2:
 		/* M1-----------------+-C2---OUT */
 		/*      C1---MEM---M2-+          */
-		*om1 = &c2;
-		*oc1 = &mem;
-		*om2 = &c2;
-		*memc= &m2;
+		*om1 = &state->c2;
+		*oc1 = &state->mem;
+		*om2 = &state->c2;
+		*memc= &state->m2;
 		break;
 	case 3:
 		/* M1---C1---MEM------+-C2---OUT */
 		/*                 M2-+          */
-		*om1 = &c1;
-		*oc1 = &mem;
-		*om2 = &c2;
-		*memc= &c2;
+		*om1 = &state->c1;
+		*oc1 = &state->mem;
+		*om2 = &state->c2;
+		*memc= &state->c2;
 		break;
 	case 4:
 		/* M1---C1-+-OUT */
 		/* M2---C2-+     */
 		/* MEM: not used */
-		*om1 = &c1;
+		*om1 = &state->c1;
 		*oc1 = carrier;
-		*om2 = &c2;
-		*memc= &mem;	/* store it anywhere where it will not be used */
+		*om2 = &state->c2;
+		*memc= &state->mem;	/* store it anywhere where it will not be used */
 		break;
 	case 5:
 		/*    +----C1----+     */
@@ -923,17 +922,17 @@ static void setup_connection( FM_CH *CH, int ch )
 		*om1 = 0;	/* special mark */
 		*oc1 = carrier;
 		*om2 = carrier;
-		*memc= &m2;
+		*memc= &state->m2;
 		break;
 	case 6:
 		/* M1---C1-+     */
 		/*      M2-+-OUT */
 		/*      C2-+     */
 		/* MEM: not used */
-		*om1 = &c1;
+		*om1 = &state->c1;
 		*oc1 = carrier;
 		*om2 = carrier;
-		*memc= &mem;	/* store it anywhere where it will not be used */
+		*memc= &state->mem;	/* store it anywhere where it will not be used */
 		break;
 	case 7:
 		/* M1-+     */
@@ -944,7 +943,7 @@ static void setup_connection( FM_CH *CH, int ch )
 		*om1 = carrier;
 		*oc1 = carrier;
 		*om2 = carrier;
-		*memc= &mem;	/* store it anywhere where it will not be used */
+		*memc= &state->mem;	/* store it anywhere where it will not be used */
 		break;
 	}
 
@@ -1048,7 +1047,7 @@ inline signed int op_calc1(UINT32 phase, unsigned int env, signed int pm)
 }
 
 /* advance LFO to next sample */
-inline void advance_lfo(FM_OPN *OPN)
+inline void advance_lfo(FM_STATE* state, FM_OPN *OPN)
 {
 	UINT8 pos;
 	UINT8 prev_pos;
@@ -1072,9 +1071,9 @@ inline void advance_lfo(FM_OPN *OPN)
 			/* triangle */
 			/* AM: 0 to 126 step +2, 126 to 0 step -2 */
 			if (pos<64)
-				LFO_AM = (pos&63) * 2;
+				state->LFO_AM = (pos&63) * 2;
 			else
-				LFO_AM = 126 - ((pos&63) * 2);
+				state->LFO_AM = 126 - ((pos&63) * 2);
 		}
 
 		/* PM works with 4 times slower clock */
@@ -1083,14 +1082,14 @@ inline void advance_lfo(FM_OPN *OPN)
 		/* update PM when LFO output changes */
 		/*if (prev_pos != pos)*/ /* can't use global lfo_pm for this optimization, must be chip->lfo_pm instead*/
 		{
-			LFO_PM = pos;
+			state->LFO_PM = pos;
 		}
 
 	}
 	else
 	{
-		LFO_AM = 0;
-		LFO_PM = 0;
+		state->LFO_AM = 0;
+		state->LFO_PM = 0;
 	}
 }
 
@@ -1237,14 +1236,14 @@ inline void advance_eg_channel(FM_OPN *OPN, FM_SLOT *SLOT)
 
 #define volume_calc(OP) ((OP)->vol_out + (AM & (OP)->AMmask))
 
-inline void chan_calc(FM_OPN *OPN, FM_CH *CH)
+inline void chan_calc(FM_STATE* state, FM_OPN *OPN, FM_CH *CH)
 {
 	unsigned int eg_out;
 
-	UINT32 AM = LFO_AM >> CH->ams;
+	UINT32 AM = state->LFO_AM >> CH->ams;
 
 
-	m2 = c1 = c2 = mem = 0;
+	state->m2 = state->c1 = state->c2 = state->mem = 0;
 
 	*CH->mem_connect = CH->mem_value;	/* restore delayed sample (MEM) value to m2 or c2 */
 
@@ -1255,7 +1254,7 @@ inline void chan_calc(FM_OPN *OPN, FM_CH *CH)
 
 		if( !CH->connect1 ){
 			/* algorithm 5  */
-			mem = c1 = c2 = CH->op1_out[0];
+			state->mem = state->c1 = state->c2 = CH->op1_out[0];
 		}else{
 			/* other algorithms */
 			*CH->connect1 += CH->op1_out[0];
@@ -1273,19 +1272,19 @@ inline void chan_calc(FM_OPN *OPN, FM_CH *CH)
 
 	eg_out = volume_calc(&CH->SLOT[SLOT3]);
 	if( eg_out < ENV_QUIET )		/* SLOT 3 */
-		*CH->connect3 += op_calc(CH->SLOT[SLOT3].phase, eg_out, m2);
+		*CH->connect3 += op_calc(CH->SLOT[SLOT3].phase, eg_out, state->m2);
 
 	eg_out = volume_calc(&CH->SLOT[SLOT2]);
 	if( eg_out < ENV_QUIET )		/* SLOT 2 */
-		*CH->connect2 += op_calc(CH->SLOT[SLOT2].phase, eg_out, c1);
+		*CH->connect2 += op_calc(CH->SLOT[SLOT2].phase, eg_out, state->c1);
 
 	eg_out = volume_calc(&CH->SLOT[SLOT4]);
 	if( eg_out < ENV_QUIET )		/* SLOT 4 */
-		*CH->connect4 += op_calc(CH->SLOT[SLOT4].phase, eg_out, c2);
+		*CH->connect4 += op_calc(CH->SLOT[SLOT4].phase, eg_out, state->c2);
 
 
 	/* store current MEM */
-	CH->mem_value = mem;
+	CH->mem_value = state->mem;
 
 	/* update phase counters AFTER output calculations */
 	if(CH->pms)
@@ -1298,7 +1297,7 @@ inline void chan_calc(FM_OPN *OPN, FM_CH *CH)
 		UINT32 block_fnum = CH->block_fnum;
 
 		UINT32 fnum_lfo   = ((block_fnum & 0x7f0) >> 4) * 32 * 8;
-		INT32  lfo_fn_table_index_offset = lfo_pm_table[ fnum_lfo + CH->pms + LFO_PM ];
+		INT32  lfo_fn_table_index_offset = lfo_pm_table[ fnum_lfo + CH->pms + state->LFO_PM ];
 
 		if (lfo_fn_table_index_offset)	/* LFO phase modulation active */
 		{
@@ -1676,7 +1675,7 @@ static void OPNWriteMode(FM_OPN *OPN, int r, int v)
 }
 
 /* write a OPN register (0x30-0xff) */
-static void OPNWriteReg(FM_OPN *OPN, int r, int v)
+static void OPNWriteReg(FM_STATE* state, FM_OPN *OPN, int r, int v)
 {
 	FM_CH *CH;
 	FM_SLOT *SLOT;
@@ -1851,7 +1850,7 @@ static void OPNWriteReg(FM_OPN *OPN, int r, int v)
 				int feedback = (v>>3)&7;
 				CH->ALGO = v&7;
 				CH->FB   = feedback ? feedback+6 : 0;
-				setup_connection( CH, c );
+				setup_connection(state, CH, c );
 			}
 			break;
 		case 1:		/* 0xb4-0xb6 : L , R , AMS , PMS (YM2612/YM2610B/YM2610/YM2608) */
@@ -1934,6 +1933,7 @@ void OPNPrescaler_w(FM_OPN *OPN , int addr, int pre_divider)
 typedef struct
 {
 	UINT8 REGS[256];		/* registers         */
+	FM_STATE State;
 	FM_OPN OPN;				/* OPN state         */
 	FM_CH CH[3];			/* channel state     */
 	int mute;				//маска заглушения каналов
@@ -1944,6 +1944,7 @@ void YM2203UpdateOne(void *chip, short *buffer, int length)
 {
 	YM2203 *F2203 = (YM2203*)chip;
 	FM_OPN *OPN =   &F2203->OPN;
+	FM_STATE *state = &F2203->State;
 	int i;
 	short *buf = buffer;
 	FM_CH	*cch[3];
@@ -1969,16 +1970,16 @@ void YM2203UpdateOne(void *chip, short *buffer, int length)
 
 
 	/* YM2203 doesn't have LFO so we must keep these globals at 0 level */
-	LFO_AM = 0;
-	LFO_PM = 0;
+	state->LFO_AM = 0;
+	state->LFO_PM = 0;
 
 	/* buffering */
 	for (i=0; i < length ; i++)
 	{
 		/* clear outputs */
-		out_fm[0] = 0;
-		out_fm[1] = 0;
-		out_fm[2] = 0;
+		state->out_fm[0] = 0;
+		state->out_fm[1] = 0;
+		state->out_fm[2] = 0;
 
 		/* advance envelope generator */
 		OPN->eg_timer += OPN->eg_timer_add;
@@ -1993,9 +1994,9 @@ void YM2203UpdateOne(void *chip, short *buffer, int length)
 		}
 
 		/* calculate FM */
-		chan_calc(OPN, cch[0] );
-		chan_calc(OPN, cch[1] );
-		chan_calc(OPN, cch[2] );
+		chan_calc(state, OPN, cch[0] );
+		chan_calc(state, OPN, cch[1] );
+		chan_calc(state, OPN, cch[2] );
 
 		/* buffering */
 		{
@@ -2003,9 +2004,9 @@ void YM2203UpdateOne(void *chip, short *buffer, int length)
 
 			//lt = out_fm[0] + out_fm[1] + out_fm[2];
 			lt=0;
-			if(F2203->mute&0x01) lt+=out_fm[0];
-			if(F2203->mute&0x02) lt+=out_fm[1];
-			if(F2203->mute&0x04) lt+=out_fm[2];
+			if(F2203->mute&0x01) lt+=state->out_fm[0];
+			if(F2203->mute&0x02) lt+=state->out_fm[1];
+			if(F2203->mute&0x04) lt+=state->out_fm[2];
 
 			lt >>= FINAL_SH;
 
@@ -2027,6 +2028,7 @@ void YM2203ResetChip(void *chip)
 	int i;
 	YM2203 *F2203 = (YM2203*)chip;
 	FM_OPN *OPN = &F2203->OPN;
+	FM_STATE *state = &F2203->State;
 
 	/* Reset Prescaler */
 	OPNPrescaler_w(OPN, 0 , 1 );
@@ -2044,8 +2046,8 @@ void YM2203ResetChip(void *chip)
 
 	reset_channels( &OPN->ST , F2203->CH , 3 );
 	/* reset OPerator paramater */
-	for(i = 0xb2 ; i >= 0x30 ; i-- ) OPNWriteReg(OPN,i,0);
-	for(i = 0x26 ; i >= 0x20 ; i-- ) OPNWriteReg(OPN,i,0);
+	for(i = 0xb2 ; i >= 0x30 ; i-- ) OPNWriteReg(state, OPN,i,0);
+	for(i = 0x26 ; i >= 0x20 ; i-- ) OPNWriteReg(state, OPN,i,0);
 }
 
 
@@ -2099,6 +2101,7 @@ int YM2203Write(void *chip,int a,UINT8 v)
 {
 	YM2203 *F2203 = (YM2203*)chip;
 	FM_OPN *OPN = &F2203->OPN;
+	FM_STATE *state = &F2203->State;
 
 	if( !(a&1) )
 	{	/* address port */
@@ -2129,7 +2132,7 @@ int YM2203Write(void *chip,int a,UINT8 v)
 		default:	/* 0x30-0xff : OPN section */
 	//		YM2203UpdateReq(OPN->ST.param);
 			/* write register */
-			OPNWriteReg(OPN,addr,v);
+			OPNWriteReg(state, OPN,addr,v);
 		}
 		FM_BUSY_SET(&OPN->ST,1);
 	}
