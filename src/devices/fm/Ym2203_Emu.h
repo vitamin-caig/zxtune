@@ -27,7 +27,7 @@ void YM2203ResetChip(void *chip);
 /*
 ** update one of chip
 */
-void YM2203UpdateOne(void *chip, int *buffer, int length, bool fill = true);
+void YM2203UpdateOne(void *chip, short *buffer, int length);
 
 /*
 ** Write

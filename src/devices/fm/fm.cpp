@@ -23,7 +23,7 @@ namespace
 {
   using namespace Devices::FM;
 
-  typedef int YM2203SampleType;
+  typedef short YM2203SampleType;
 
   uint_t GetBandByFreq(uint_t freq)
   {
