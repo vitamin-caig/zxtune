@@ -198,7 +198,7 @@ namespace Chiptune
         }
         else if (cmd >= 0xc0)//%110ddddd
         {
-          target.SetSlide((cmd & 0x1f) + 0x10);
+          target.SetSlide(cmd + 0x30);
         }
         else
         {
