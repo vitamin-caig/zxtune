@@ -28,6 +28,10 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < DIGITALSTUDIO_DECODER_DESCRIPTION
 > "Digital Studio"
 
+#FastTracker
+< FASTTRACKER_DECODER_DESCRIPTION
+> "Fast Tracker"
+
 #GlobalTracker
 < GLOBALTRACKER_DECODER_DESCRIPTION
 > "Global Tracker v1.x"
@@ -80,6 +84,10 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 
 < SOUNDTRACKERPROCOMPILED_DECODER_DESCRIPTION
 > "Sound Tracker Pro Compiled"
+
+#TFC
+< TFC_DECODER_DESCRIPTION
+> "TurboFM Compiled Dump (TFC)"
 
 #TFD
 < TFD_DECODER_DESCRIPTION

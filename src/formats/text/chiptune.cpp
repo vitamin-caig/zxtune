@@ -17,6 +17,9 @@ extern const Char ASCSOUNDMASTER2_DECODER_DESCRIPTION[] = {
 extern const Char DIGITALSTUDIO_DECODER_DESCRIPTION[] = {
   'D','i','g','i','t','a','l',' ','S','t','u','d','i','o',0
 };
+extern const Char FASTTRACKER_DECODER_DESCRIPTION[] = {
+  'F','a','s','t',' ','T','r','a','c','k','e','r',0
+};
 extern const Char GLOBALTRACKER1_EDITOR[] = {
   'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','%','1','%',0
 };
@@ -60,6 +63,9 @@ extern const Char SOUNDTRACKERPRO_DECODER_DESCRIPTION[] = {
 };
 extern const Char SOUNDTRACKER_DECODER_DESCRIPTION[] = {
   'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
+};
+extern const Char TFC_DECODER_DESCRIPTION[] = {
+  'T','u','r','b','o','F','M',' ','C','o','m','p','i','l','e','d',' ','D','u','m','p',' ','(','T','F','C',')',0
 };
 extern const Char TFD_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','F','M',' ','D','u','m','p',' ','(','T','F','D',')',0

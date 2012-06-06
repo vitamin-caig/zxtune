@@ -33,6 +33,7 @@ namespace Formats
     Decoder::Ptr CreateVTXDecoder();
     Decoder::Ptr CreateYMDecoder();
     Decoder::Ptr CreateTFDDecoder();
+    Decoder::Ptr CreateTFCDecoder();
   }
 }
 
