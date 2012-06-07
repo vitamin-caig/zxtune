@@ -1,9 +1,8 @@
 pkg_name = zxtune
 path_step := ../..
-no_debuginfo = 1
 include $(path_step)/make/default.mak
 
-all install install_$(platform) clean:
+all install install_$(platform) install_debug clean:
 	$(MAKE) -C ../xtractor $(MAKECMDGOALS)
 	$(MAKE) -C ../zxtune123 $(MAKECMDGOALS)
 	$(MAKE) -C ../zxtune-qt $(MAKECMDGOALS)
@@ -11,4 +10,3 @@ all install install_$(platform) clean:
 include $(path_step)/make/platforms/$(platform).mak
 include $(path_step)/make/hosts/$(host).mak
 include $(path_step)/make/package.mak
-

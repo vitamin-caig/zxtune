@@ -11,16 +11,18 @@ pkg_build_log := $(pkg_dir)/$(pkg_name).log
 pkg_debug := $(pkg_dir)/$(pkg_name)_debug.zip
 
 pkg_root = $(pkg_dir)/root
+pkg_debug_root = $(pkg_dir)/debug
 
 package: $(pkg_root)
 	@$(MAKE) $(if $(distro),package_$(distro),package_any)
 	@$(call rmdir_cmd,$(pkg_root))
 
-$(pkg_debug): $(pkg_build_log)
+$(pkg_debug): $(pkg_debug_root)
 	@$(call showtime_cmd)
 	$(info Packaging debug information and build log)
-	@zip -9Dj $@ $(target).pdb
-	@zip -9Djm $@ $(pkg_build_log)
+	@$(MAKE) DESTDIR=$(pkg_debug_root) install_debug
+	@zip -9Djr $@ $(pkg_debug_root)
+	@$(call rmdir_cmd,$(pkg_debug_root))
 
 $(pkg_build_log):
 	@$(call showtime_cmd)
@@ -29,7 +31,14 @@ $(pkg_build_log):
 
 pkg_dependency: $(if $(no_debuginfo),$(pkg_build_log),$(pkg_debug))
 
-$(pkg_root):
+ifdef target
+install_debug: $(pkg_build_log)
+	@$(if $(target),$(call copyfile_cmd,$(target).pdb,$(DESTDIR)),)
+	@$(call copyfile_cmd,$(pkg_build_log),$(DESTDIR))
+	@$(call rmfiles_cmd,$(pkg_build_log))
+endif
+
+$(pkg_root) $(pkg_debug_root):
 	@$(call makedir_cmd,$@)
 
 ifdef distro
