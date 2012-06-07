@@ -8,7 +8,7 @@ pkg_tag := $(platform)$(if $(arch),_$(arch),)$(if $(distro),_$(distro),)
 pkg_dir := $(path_step)/Builds/Revision$(pkg_revision)_$(pkg_tag)
 pkg_log := $(pkg_dir)/packaging_$(pkg_name).log
 pkg_build_log := $(pkg_dir)/$(pkg_name).log
-pkg_debug := $(pkg_dir)/$(pkg_name)_debug.zip
+pkg_debug := $(pkg_dir)/$(pkg_name)_debug.$(pkg_suffix)
 
 pkg_root = $(pkg_dir)/root
 pkg_debug_root = $(pkg_dir)/debug
@@ -21,7 +21,7 @@ $(pkg_debug): $(pkg_debug_root)
 	@$(call showtime_cmd)
 	$(info Packaging debug information and build log)
 	@$(MAKE) DESTDIR=$(pkg_debug_root) install_debug
-	@zip -9Djr $@ $(pkg_debug_root)
+	@$(call makepkg_cmd,$(pkg_debug_root),$@)
 	@$(call rmdir_cmd,$(pkg_debug_root))
 
 $(pkg_build_log):
