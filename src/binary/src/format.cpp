@@ -12,12 +12,12 @@ Author:
 //common includes
 #include <contract.h>
 #include <iterator.h>
+#include <logging.h>
 #include <tools.h>
 #include <types.h>
 //library includes
 #include <binary/format.h>
 //std includes
-#include <bitset>
 #include <cassert>
 #include <cctype>
 #include <limits>
@@ -462,6 +462,190 @@ namespace
     compiled.swap(result);
   }
 
+  class StaticToken
+  {
+  public:
+    StaticToken(Token::Ptr tok)
+      : Mask()
+      , Count()
+    {
+      for (uint_t idx = 0; idx != 256; ++idx)
+      {
+        if (tok->Match(idx))
+        {
+          Set(idx);
+        }
+      }
+    }
+
+    explicit StaticToken(uint_t val)
+      : Mask()
+      , Count()
+    {
+      Set(val);
+    }
+
+    bool Match(uint_t val) const
+    {
+      return Get(val);
+    }
+
+    bool IsAny() const
+    {
+      return Count == 256;
+    }
+
+    static bool AreIntersected(const StaticToken& lh, const StaticToken& rh)
+    {
+      if (lh.IsAny() || rh.IsAny())
+      {
+        return true;
+      }
+      else
+      {
+        for (uint_t idx = 0; idx != ElementsCount; ++idx)
+        {
+          if (0 != (lh.Mask[idx] & rh.Mask[idx]))
+          {
+            return true;
+          }
+        }
+        return false;
+      }
+    }
+  private:
+    void Set(uint_t idx)
+    {
+      Require(!Get(idx));
+      const uint_t bit = idx % BitsPerElement;
+      const std::size_t offset = idx / BitsPerElement;
+      const ElementType mask = ElementType(1) << bit;
+      Mask[offset] |= mask;
+      ++Count;
+    }
+
+    bool Get(uint_t idx) const
+    {
+      const uint_t bit = idx % BitsPerElement;
+      const std::size_t offset = idx / BitsPerElement;
+      const ElementType mask = ElementType(1) << bit;
+      return 0 != (Mask[offset] & mask);
+    }
+  private:
+    typedef uint_t ElementType;
+    static const std::size_t BitsPerElement = 8 * sizeof(ElementType);
+    static const std::size_t ElementsCount = 256 / BitsPerElement;
+    boost::array<ElementType, ElementsCount> Mask;
+    uint_t Count;
+  };
+
+  class StaticPattern
+  {
+  public:
+    template<class T>
+    StaticPattern(T from, T to)
+      : Data(from, to)
+    {
+    }
+
+    std::size_t GetSize() const
+    {
+      return Data.size();
+    }
+
+    StaticToken& Get(std::size_t idx)
+    {
+      return Data[idx];
+    }
+
+    const StaticToken& Get(std::size_t idx) const
+    {
+      return Data[idx];
+    }
+
+    StaticPattern GetSuffix(std::size_t size) const
+    {
+      Require(size <= GetSize());
+      return StaticPattern(Data.end() - size, Data.end());
+    }
+
+    //return back offset
+    std::size_t FindSuffix(const StaticPattern& suffix) const
+    {
+      const std::size_t patternSize = GetSize();
+      const std::size_t suffixSize = suffix.GetSize();
+      const StaticToken* start = End() - suffixSize - 1;
+      for (std::size_t offset = 1; ; ++offset, --start)
+      {
+        const std::size_t windowSize = suffixSize + offset;
+        if (patternSize >= windowSize)
+        {
+          //pattern:  ......sssssss
+          //suffix:        xssssss
+          //offset=1
+          if (std::equal(suffix.Begin(), suffix.End(), start, &StaticToken::AreIntersected))
+          {
+            return offset;
+          }
+        }
+        else
+        {
+          if (patternSize == offset)
+          {
+            //all suffix is out of pattern
+            return offset;
+          }
+          //pattern:   .......
+          //suffix:  xssssss
+          //out of pattern=2
+          const std::size_t outOfPattern = windowSize - patternSize;
+          if (std::equal(suffix.Begin() + outOfPattern, suffix.End(), Begin(), &StaticToken::AreIntersected))
+          {
+            return offset;
+          }
+        }
+      }
+    }
+  private:
+    const StaticToken* Begin() const
+    {
+      return &Data.front();
+    }
+
+    const StaticToken* End() const
+    {
+      return &Data.back() + 1;
+    }
+  private:
+    std::vector<StaticToken> Data;
+  };
+
+  class Statistic
+  {
+  public:
+    Statistic()
+     : Total()
+     , Count()
+    {
+    }
+
+    ~Statistic()
+    {
+      const uint64_t avg = Total * 100 / Count;
+      Log::Debug("Core::RawScaner::Statistic", 
+        "Average skip len is %1%.%2%", avg / 100, avg % 100);
+    }
+
+    void AddOffset(std::size_t offset)
+    {
+      Total += offset;
+      ++Count;
+    }
+  private:
+    uint64_t Total;
+    uint64_t Count;
+  } statistic;
+
   class FastSearchFormat : public Format
   {
   public:
@@ -503,6 +687,7 @@ namespace
         if (const std::size_t offset = SearchBackward(scanPos))
         {
           scanPos += offset;
+          statistic.AddOffset(offset);
         }
         else
         {
@@ -514,32 +699,47 @@ namespace
 
     static Ptr Create(Pattern::const_iterator from, Pattern::const_iterator to, std::size_t offset, std::size_t minSize)
     {
-      //Pass1
-      //matrix[pos][char] = Pattern.At(pos).IsMatchedFor(char)
-      PatternMatrix tmp;
-      for (Pattern::const_iterator it = from; it != to; ++it)
+      const StaticPattern pattern(from, to);
+      const std::size_t patternSize = pattern.GetSize();
+      PatternMatrix tmp(patternSize);
+      for (uint_t sym = 0; sym != 256; ++sym)
       {
-        PatternRow row;
-        for (uint_t idx = 0; idx != 256; ++idx)
+        for (std::size_t pos = 0, offset = 1; pos != patternSize; ++pos, ++offset)
         {
-          row[idx] = (*it)->Match(idx);
-        }
-        tmp.push_back(row);
-      }
-      //Pass2
-      //matrix[pos][char] = delta, Pattern.At(pos - delta).IsMatchedFor(char)
-      for (uint_t idx = 0; idx != 256; ++idx)
-      {
-        std::size_t offset = 1;//default offset
-        for (PatternMatrix::iterator it = tmp.begin(), lim = tmp.end(); it != lim; ++it, ++offset)
-        {
-          PatternRow& row = *it;
-          if (row[idx])
+          const StaticToken& tok = pattern.Get(pos);
+          if (tok.Match(sym))
           {
             offset = 0;
           }
-          Require(offset <= std::numeric_limits<PatternRow::value_type>::max());
-          row[idx] = static_cast<PatternRow::value_type>(offset);
+          else
+          {
+            Require(in_range<std::size_t>(offset, 0, std::numeric_limits<PatternRow::value_type>::max()));
+            tmp[pos][sym] = static_cast<PatternRow::value_type>(offset);
+          }
+        }
+      }
+      //increase offset using suffixes
+      for (std::size_t pos = patternSize; pos; --pos)
+      {
+        const std::size_t suffixBegin = pos - 1;
+        const std::size_t suffixLen = patternSize - suffixBegin;
+        PatternRow& row = tmp[suffixBegin];
+        StaticPattern suffix = pattern.GetSuffix(suffixLen);
+        const StaticToken first = suffix.Get(0);
+        if (first.IsAny())
+        {
+          continue;
+        }
+        for (uint_t sym = 0; sym != 256; ++sym)
+        {
+          if (first.Match(sym))
+          {
+            continue;
+          }
+          suffix.Get(0) = StaticToken(sym);
+          const std::size_t offset = pattern.FindSuffix(suffix);
+          const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
+          row[sym] = std::max(row[sym], static_cast<PatternRow::value_type>(availOffset));
         }
       }
       return boost::make_shared<FastSearchFormat>(tmp, offset, minSize);

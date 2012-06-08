@@ -63,7 +63,7 @@ int main()
     TestInvalid("invalid multiple range", "01-02-03");
     TestInvalid("empty conjunction", "01&10");
     TestInvalid("full disjunction", "00-80|80-ff");
-    TestDetector("whole any match", "?", true, 0);
+    TestInvalid("whole any match", "?");
     TestDetector("whole explicit match", "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f", true, 0);
     TestDetector("partial explicit match", "000102030405", true, 0);
     TestDetector("whole mask match", "?0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f", true, 0);
