@@ -12,7 +12,6 @@ Author:
 //common includes
 #include <contract.h>
 #include <iterator.h>
-#include <logging.h>
 #include <tools.h>
 #include <types.h>
 //library includes
@@ -620,32 +619,6 @@ namespace
     std::vector<StaticToken> Data;
   };
 
-  class Statistic
-  {
-  public:
-    Statistic()
-     : Total()
-     , Count()
-    {
-    }
-
-    ~Statistic()
-    {
-      const uint64_t avg = Total * 100 / Count;
-      Log::Debug("Core::RawScaner::Statistic", 
-        "Average skip len is %1%.%2%", avg / 100, avg % 100);
-    }
-
-    void AddOffset(std::size_t offset)
-    {
-      Total += offset;
-      ++Count;
-    }
-  private:
-    uint64_t Total;
-    uint64_t Count;
-  } statistic;
-
   class FastSearchFormat : public Format
   {
   public:
@@ -687,7 +660,6 @@ namespace
         if (const std::size_t offset = SearchBackward(scanPos))
         {
           scanPos += offset;
-          statistic.AddOffset(offset);
         }
         else
         {
