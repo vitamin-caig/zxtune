@@ -89,6 +89,9 @@ extern const Char STR_PLUGIN_INFO[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',' ','m','o','d','u','l','e','s',
   ' ','s','u','p','p','o','r','t',0
 };
+extern const Char TFC_COMPILER_VERSION[] = {
+  'T','u','r','b','o','F','M',' ','C','o','m','p','i','l','e','r',' ','v',0
+};
 extern const Char TS_PLUGIN_INFO[] = {
   'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e','s',' ','s','u','p','p','o','r','t',0
 };

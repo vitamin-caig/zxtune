@@ -105,6 +105,10 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < STR_EDITOR
 > "Sample Tracker v2.x"
 
+#TFC
+< TFC_COMPILER_VERSION
+> "TurboFM Compiler v"
+
 #TS
 < TS_PLUGIN_INFO
 > "TurboSound" PLAYER_DESCRIPTION_SUFFIX

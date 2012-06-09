@@ -30,6 +30,7 @@ extern const Char SQD_EDITOR[];
 extern const Char SQD_PLUGIN_INFO[];
 extern const Char STR_EDITOR[];
 extern const Char STR_PLUGIN_INFO[];
+extern const Char TFC_COMPILER_VERSION[];
 extern const Char TS_PLUGIN_INFO[];
 extern const Char TXT_ERROR_INVALID_STRING[];
 extern const Char TXT_PLUGIN_INFO[];

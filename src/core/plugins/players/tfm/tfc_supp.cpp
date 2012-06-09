@@ -165,7 +165,7 @@ namespace
 
     virtual void SetVersion(const String& version)
     {
-      Props.GetInternalContainer()->SetValue(ATTR_VERSION, version);
+      Props.SetProgram(Text::TFC_COMPILER_VERSION + version);
     }
 
     virtual void SetIntFreq(uint_t freq)
