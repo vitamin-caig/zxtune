@@ -78,6 +78,16 @@ namespace
     }
   }
 
+  /*
+  FLAC/stream_encoder.h
+
+   Note that for either process call, each sample in the buffers should be a
+   signed integer, right-justified to the resolution set by
+   FLAC__stream_encoder_set_bits_per_sample().  For example, if the resolution
+   is 16 bits per sample, the samples should all be in the range [-32768,32767].
+  */
+  const bool SamplesShouldBeConverted = !SAMPLE_SIGNED;
+
   class FlacMetadata
   {
   public:
@@ -139,6 +149,10 @@ namespace
 
     virtual void ApplyData(const ChunkPtr& data)
     {
+      if (SamplesShouldBeConverted)
+      {
+        std::transform(data->front().begin(), data->back().end(), data->front().begin(), &ToSignedSample);
+      }
       if (const std::size_t samples = data->size())
       {
         Buffer.resize(samples * OUTPUT_CHANNELS);

@@ -53,6 +53,20 @@ namespace
 
   const Char OSS_BACKEND_ID[] = {'o', 's', 's', 0};
 
+  int GetSoundFormat()
+  {
+    switch (sizeof(Sample))
+    {
+    case 1:
+      return SAMPLE_SIGNED ? AFMT_S8 : AFMT_U8;
+    case 2:
+      return SAMPLE_SIGNED ? AFMT_S16_NE : (isLE() ? AFMT_U16_LE : AFMT_U16_BE);
+    default:
+      assert(!"Invalid format");
+      return -1;
+    };
+  }
+
   class AutoDescriptor : public boost::noncopyable
   {
   public:
@@ -285,7 +299,7 @@ namespace
       AutoDescriptor tmpMixer(params.GetMixerName(), O_RDWR);
       AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY);
       BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
-      int tmp(2 == sizeof(Sample) ? AFMT_S16_NE : AFMT_S8);
+      int tmp = GetSoundFormat();
       Log::Debug(THIS_MODULE, "Setting format to %1%", tmp);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
 

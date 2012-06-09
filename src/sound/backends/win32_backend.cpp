@@ -73,6 +73,16 @@ namespace
 
   typedef SharedLibraryGate<WaveOutLibraryTraits> WaveOutLibrary;
 
+  /*
+
+   From http://msdn.microsoft.com/en-us/library/windows/desktop/dd797880(v=vs.85).aspx :
+
+   For 8-bit PCM data, each sample is represented by a single unsigned data byte.
+   For 16-bit PCM data, each sample is represented by a 16-bit signed value.
+  */
+
+  const bool SamplesShouldBeConverted = sizeof(Sample) > 1 && !SAMPLE_SIGNED;
+
   inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
   {
     if (MMSYSERR_NOERROR != res)
@@ -329,6 +339,10 @@ namespace
 
     virtual void OnBufferReady(Chunk& buffer)
     {
+      if (SamplesShouldBeConverted)
+      {
+        std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
+      }
       // buffer is just sent to playback, so we can safely lock here
       CurrentBuffer->Process(buffer);
       ++CurrentBuffer;

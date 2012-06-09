@@ -30,9 +30,9 @@ namespace
   const MultiGain INVALID_GAIN = { {2.0f, 3.0f} };
 
   const Sample INPUTS[] = {
-    0,
-    32768,
-    65535
+    SAMPLE_MIN,
+    SAMPLE_MID,
+    SAMPLE_MAX
   };
   
   const String INPUT_NAMES[] = {
@@ -41,20 +41,32 @@ namespace
   
   const MultiSample OUTS[] = {
   //zero matrix
-     { {0,0} }, { {0,0} }, { {0,0} },
+     { {SAMPLE_MID,SAMPLE_MID} },
+     { {SAMPLE_MID,SAMPLE_MID} },
+     { {SAMPLE_MID,SAMPLE_MID} },
   //full matrix
-     { {0,0} }, { {32768,32768} }, { {65535,65535} },
+     { {SAMPLE_MIN,SAMPLE_MIN} },
+     { {SAMPLE_MID,SAMPLE_MID} },
+     { {SAMPLE_MAX,SAMPLE_MAX} },
   //left matrix
-     { {0,0} }, { {32768,0} }, { {65535, 0} },
+     { {SAMPLE_MIN,SAMPLE_MID} },
+     { {SAMPLE_MID,SAMPLE_MID} },
+     { {SAMPLE_MAX,SAMPLE_MID} },
   //right matrix
-     { {0,0} }, { {0,32768} }, { {0, 65535} },
+     { {SAMPLE_MID,SAMPLE_MIN} },
+     { {SAMPLE_MID,SAMPLE_MID} },
+     { {SAMPLE_MID, SAMPLE_MAX} },
   //mid matrix
-     { {0,0} }, { {16384,16384} }, { {32767, 32767} },
+     { {SAMPLE_MID/2,SAMPLE_MID/2} },
+     { {SAMPLE_MID,SAMPLE_MID} },
+     { {(SAMPLE_MAX+SAMPLE_MID)/2, (SAMPLE_MAX+SAMPLE_MID)/2} },
   //balanced
      //left=25 right=230
      //(25*32768)/256, (230*32768)/256
      //(25*65535)/256, (230*65535)/256
-     { {0,0} }, { {25*32768/256,230*32768/256} }, { {25*65535/256,230*65535/256} }
+     { {SAMPLE_MID+25*(SAMPLE_MIN-SAMPLE_MID)/256,SAMPLE_MID+230*(SAMPLE_MIN-SAMPLE_MID)/256} },
+     { {SAMPLE_MID,SAMPLE_MID} },
+     { {SAMPLE_MID+25*(SAMPLE_MAX-SAMPLE_MID)/256,SAMPLE_MID+230*(SAMPLE_MAX-SAMPLE_MID)/256} }
   };
 
   template<class T>

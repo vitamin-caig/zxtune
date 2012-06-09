@@ -14,8 +14,7 @@ Author:
 //library includes
 #include <core/core_parameters.h>
 #include <sound/render_params.h>
-//std includes
-#include <limits>
+#include <sound/sample_convert.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -45,6 +44,30 @@ namespace
     }
   private:
     const Sound::RenderParameters::Ptr Delegate;
+  };
+
+  class DACReceiver : public Devices::DAC::Receiver
+  {
+  public:
+    DACReceiver(Sound::MultichannelReceiver::Ptr target, uint_t channels)
+      : Target(target)
+      , Data(channels)
+    {
+    }
+
+    virtual void ApplyData(const Devices::DAC::MultiSample& data)
+    {
+      std::transform(data.begin(), data.end(), Data.begin(), &Sound::ToSample<Devices::DAC::Sample>);
+      Target->ApplyData(Data);
+    }
+
+    virtual void Flush()
+    {
+      Target->Flush();
+    }
+  private:
+    const Sound::MultichannelReceiver::Ptr Target;
+    std::vector<Sound::Sample> Data;
   };
 
   class DACAnalyzer : public Analyzer
@@ -113,10 +136,9 @@ namespace ZXTune
         return boost::make_shared<TrackParametersImpl>(params);
       }
 
-      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)
+      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target, uint_t channels)
       {
-        //DAC receiver now is equal to Sound::MultichannelReceiver
-        return target;
+        return boost::make_shared<DACReceiver>(target, channels);
       }
 
       Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device)

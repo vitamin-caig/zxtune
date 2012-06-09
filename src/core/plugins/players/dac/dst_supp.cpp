@@ -277,7 +277,7 @@ namespace
     {
       const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
 
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target);
+      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target, DST::CHANNELS_COUNT);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DST::CHANNELS_COUNT, totalSamples, DST::BASE_FREQ, chipParams, receiver));
       for (uint_t idx = 0; idx != totalSamples; ++idx)

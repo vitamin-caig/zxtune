@@ -238,10 +238,10 @@ namespace
       switch (sizeof(Sample))
       {
       case 1:
-        format.format = AUDIO_S8;
+        format.format = SAMPLE_SIGNED ? AUDIO_S8 : AUDIO_U8;
         break;
       case 2:
-        format.format = isLE() ? AUDIO_S16LSB : AUDIO_S16MSB;
+        format.format = SAMPLE_SIGNED ? AUDIO_S16SYS : AUDIO_U16SYS;
         break;
       default:
         assert(!"Invalid format");

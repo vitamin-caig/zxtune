@@ -15,8 +15,7 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/error_codes.h>
-//std includes
-#include <limits>
+#include <sound/sample_convert.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -42,7 +41,7 @@ namespace
 
     virtual void ApplyData(const Devices::TFM::Sample& data)
     {
-      Data[0] = data / 2;
+      Data[0] = Sound::ToSample(data);
       Target->ApplyData(Data);
     }
 

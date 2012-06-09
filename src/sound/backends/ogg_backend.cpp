@@ -254,9 +254,10 @@ namespace
       return &State;
     }
   private:
+    //from SAMPLE_MIN..SAMPLE_MAX scale to -1.0..+1.0
     static float SampleToFloat(MultiSample smp, uint_t channel)
     {
-      return float(smp[channel]) / SAMPLE_MAX;
+      return float(ToSignedSample(smp[channel])) / (SAMPLE_MAX - SAMPLE_MID);
     }
   private:
     vorbis_dsp_state State;

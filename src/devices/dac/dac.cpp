@@ -71,7 +71,7 @@ namespace
   inline Sample scale(uint8_t inSample)
   {
     //simply shift bits
-    return Sample(inSample) << (8 * (sizeof(Sample) - sizeof(inSample)) - 1);
+    return Sample(inSample) << (8 * (sizeof(Sample) - sizeof(inSample)));
   }
 
   //digital sample type

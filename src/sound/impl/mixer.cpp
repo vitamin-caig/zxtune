@@ -26,6 +26,7 @@ Author:
 #include <boost/noncopyable.hpp>
 #include <boost/integer/static_log2.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/type_traits/is_signed.hpp>
 //text includes
 #include <sound/text/sound.h>
 
@@ -36,10 +37,16 @@ namespace
   using namespace ZXTune::Sound;
 
   //using unsigned as a native type gives better performance (very strange...), at least at gcc
-  typedef unsigned NativeType;
-  typedef uint64_t MaxBigType;
+  typedef int NativeType;
+  typedef int64_t MaxBigType;
 
-  const MaxBigType MAX_MIXER_CHANNELS = MaxBigType(1) << (8 * sizeof(MaxBigType) - 8 * sizeof(Sample) -
+  template<class T>
+  struct SignificantBits
+  {
+    static const uint_t Value = boost::is_signed<T>::value ? 8 * sizeof(T) - 1 : 8 * sizeof(T);
+  };
+
+  const MaxBigType MAX_MIXER_CHANNELS = MaxBigType(1) << (SignificantBits<MaxBigType>::Value - SignificantBits<Sample>::Value -
     boost::static_log2<FIXED_POINT_PRECISION>::value);
   
   inline bool FindOverloadedGain(const MultiGain& mg)
@@ -52,13 +59,13 @@ namespace
   {
     //determine type for intermediate value
     static const uint_t INTERMEDIATE_BITS_MIN =
-      8 * sizeof(Sample) +                               //input sample
+      SignificantBits<Sample>::Value +                   //input sample
       boost::static_log2<FIXED_POINT_PRECISION>::value + //mixer
       boost::static_log2<InChannels>::value;             //channels count
 
     // calculate most suitable type for intermediate value storage
     typedef typename boost::mpl::if_c<
-      INTERMEDIATE_BITS_MIN <= 8 * sizeof(NativeType),
+      INTERMEDIATE_BITS_MIN <= SignificantBits<NativeType>::Value,
       NativeType,
       MaxBigType
     >::type BigSample;
@@ -85,6 +92,11 @@ namespace
       std::transform(lh.begin(), lh.end(), rh.begin(), res.begin(), AddDivider);
       return res;
     }
+
+    static inline Sample NormalizeSum(BigSample in, BigSample divider)
+    {
+      return static_cast<Sample>(in / divider + SAMPLE_MID);
+    }
   public:
     FastMixer()
       : Endpoint(Receiver::CreateStub())
@@ -101,7 +113,7 @@ namespace
       MultiBigSample res = { {0} };
       for (uint_t inChan = 0; inChan != InChannels; ++inChan)
       {
-        const NativeType in = inData[inChan];
+        const NativeType in = NativeType(inData[inChan]) - SAMPLE_MID;
         const MultiFixed& inChanMix = Matrix[inChan];
         for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
         {
@@ -109,7 +121,7 @@ namespace
         }
       }
       MultiSample result;
-      std::transform(res.begin(), res.end(), Dividers.begin(), result.begin(), std::divides<BigSample>());
+      std::transform(res.begin(), res.end(), Dividers.begin(), result.begin(), &NormalizeSum);
       return Endpoint->ApplyData(result);
     }
     

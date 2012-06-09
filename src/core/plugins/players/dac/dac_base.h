@@ -36,7 +36,7 @@ namespace ZXTune
         static Ptr Create(Parameters::Accessor::Ptr params);
       };
 
-      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target);
+      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target, uint_t channels);
       Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device);
       Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
     }

@@ -69,6 +69,15 @@ namespace
 
   typedef SharedLibraryGate<DirectSoundLibraryTraits> DirectSoundLibrary;
 
+  /*
+
+   From http://msdn.microsoft.com/en-us/library/windows/desktop/dd797880(v=vs.85).aspx :
+
+   For 8-bit PCM data, each sample is represented by a single unsigned data byte.
+   For 16-bit PCM data, each sample is represented by a 16-bit signed value.
+  */
+  const bool SamplesShouldBeConverted = sizeof(Sample) > 1 && !SAMPLE_SIGNED;
+
   HWND GetWindowHandle()
   {
     if (HWND res = ::GetForegroundWindow())
@@ -469,6 +478,10 @@ namespace
 
     virtual void OnBufferReady(Chunk& buffer)
     {
+      if (SamplesShouldBeConverted)
+      {
+        std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
+      }
       Objects.Stream->Add(buffer);
     }
 

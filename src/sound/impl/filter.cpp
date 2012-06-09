@@ -27,6 +27,7 @@ Author:
 #include <boost/noncopyable.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/integer/static_log2.hpp>
+#include <boost/type_traits/is_signed.hpp>
 //text includes
 #include <sound/text/sound.h>
 
@@ -77,36 +78,12 @@ namespace
     }
   }
 
-  //TODO: use IIR filter to remove DC
   template<class T>
-  class Integrator
+  struct SignificantBits
   {
-  public:
-    explicit Integrator(uint_t size)
-      : Size(size), Buffer(size), Current(Buffer.begin())
-      , Sum(SAMPLE_MID)
-    {
-      std::fill(Buffer.begin(), Buffer.end(), Sum);
-    }
-
-    T Update(T val)
-    {
-      Sum -= *Current;
-      Sum += val;
-      *Current = val;
-      if (++Current == Buffer.end())
-      {
-        Current = Buffer.begin();
-      }
-      return Sum / Size;
-    }
-  private:
-    const uint_t Size;
-    std::vector<T> Buffer;
-    typename std::vector<T>::iterator Current;
-    T Sum;
+    static const uint_t Value = boost::is_signed<T>::value ? 8 * sizeof(T) - 1 : 8 * sizeof(T);
   };
-  
+
   template<class IntSample, class BigSample>
   class FIRFilter : public Filter, private boost::noncopyable
   {
@@ -116,29 +93,26 @@ namespace
     typedef boost::array<IntSample, OUTPUT_CHANNELS> MultiIntSample;
     typedef std::vector<IntSample> MatrixType;
     
-    inline static Sample Integral2Sample(BigSample smp, IntSample mid)
+    inline static Sample Integral2Sample(BigSample smp)
     {
-      return static_cast<Sample>(IntSample(smp / FIXED_POINT_PRECISION) + mid);
+      return static_cast<Sample>(smp / FIXED_POINT_PRECISION + SAMPLE_MID);
     }
   public:
     static const uint_t MIN_ORDER = 2;
     //all bits = SampleBits + 1 + FixedBits + 1 + OrderBits
     static const uint_t MAX_ORDER = uint_t(1) <<
-      (8 * sizeof(BigSample) - (8 * sizeof(Sample) + 1) - (boost::static_log2<FIXED_POINT_PRECISION>::value + 1));
+      (SignificantBits<BigSample>::Value - (SignificantBits<Sample>::Value + 1) - (boost::static_log2<FIXED_POINT_PRECISION>::value + 1));
       
     explicit FIRFilter(uint_t order)
       : Matrix(order), Delegate(Receiver::CreateStub())
       , History(order), Position(&History[0], &History.back() + 1)
-      , Midval(std::min(uint_t(4096), uint_t(1) << (8 * sizeof(IntSample) - 8 * sizeof(Sample) - boost::static_log2<OUTPUT_CHANNELS>::value)))
     {
       assert(in_range<uint_t>(order, MIN_ORDER, MAX_ORDER));
     }
 
     virtual void ApplyData(const MultiSample& data)
     {
-      std::copy(data.begin(), data.end(), Position->begin());
-      const IntSample avg = Midval.Update(std::accumulate(Position->begin(), Position->end(), IntSample(0))) / OUTPUT_CHANNELS;
-      std::transform(Position->begin(), Position->end(), Position->begin(), std::bind2nd(std::minus<IntSample>(), avg));
+      std::transform(data.begin(), data.end(), Position->begin(), std::bind2nd(std::minus<IntSample>(), SAMPLE_MID));
       MultiBigSample res = { {0} };
 
       for (typename MatrixType::const_iterator it = Matrix.begin(), lim = Matrix.end(); it != lim; ++it, --Position)
@@ -151,7 +125,7 @@ namespace
         }
       }
       MultiSample result;
-      std::transform(res.begin(), res.end(), result.begin(), std::bind2nd(std::ptr_fun(&Integral2Sample), avg));
+      std::transform(res.begin(), res.end(), result.begin(), &Integral2Sample);
       ++Position;
       return Delegate->ApplyData(result);
     }
@@ -223,7 +197,6 @@ namespace
     Receiver::Ptr Delegate;
     std::vector<MultiIntSample> History;
     CycledIterator<MultiIntSample*> Position;
-    Integrator<IntSample> Midval;
   };
 }
 
@@ -233,7 +206,7 @@ namespace ZXTune
   {
     Error CreateFIRFilter(uint_t order, Filter::Ptr& result)
     {
-      typedef FIRFilter<uint_t, uint_t> FIRFilterType;
+      typedef FIRFilter<int_t, int_t> FIRFilterType;
     
       try
       {

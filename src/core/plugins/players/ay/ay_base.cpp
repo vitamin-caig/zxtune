@@ -18,8 +18,7 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/error_codes.h>
 #include <sound/receiver.h>
-//std includes
-#include <limits>
+#include <sound/sample_convert.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/mem_fn.hpp>
@@ -101,18 +100,13 @@ namespace
 
     virtual void ApplyData(const Devices::AYM::MultiSample& data)
     {
-      std::transform(data.begin(), data.end(), Data.begin(), &AYMSampleToSoundSample);
+      std::transform(data.begin(), data.end(), Data.begin(), &Sound::ToSample<Devices::AYM::Sample>);
       Target->ApplyData(Data);
     }
 
     virtual void Flush()
     {
       Target->Flush();
-    }
-  private:
-    inline static Sound::Sample AYMSampleToSoundSample(Devices::AYM::Sample in)
-    {
-      return in / 2;
     }
   private:
     const Sound::MultichannelReceiver::Ptr Target;

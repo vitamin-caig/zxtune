@@ -83,6 +83,11 @@ namespace
 
   const std::size_t INITIAL_ENCODED_BUFFER_SIZE = 1048576;
 
+  //work with 16-bit
+  BOOST_STATIC_ASSERT(sizeof(Sample) == 2);
+
+  const bool SamplesShouldBeConverted = !SAMPLE_SIGNED;
+
   class Mp3Stream : public FileStream
   {
   public:
@@ -118,6 +123,10 @@ namespace
 
     virtual void ApplyData(const ChunkPtr& data)
     {
+      if (SamplesShouldBeConverted)
+      {
+        std::transform(data->front().begin(), data->back().end(), data->front().begin(), &ToSignedSample);
+      }
       while (const int res = ::lame_encode_buffer_interleaved(Context.get(),
         safe_ptr_cast<short int*>(&data->front()), data->size(), &Encoded[0], Encoded.size()))
       {

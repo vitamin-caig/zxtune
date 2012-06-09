@@ -35,6 +35,18 @@ namespace ZXTune
     const Sample SAMPLE_MID = 32768;
     const Sample SAMPLE_MAX = 65535;
 
+    const bool SAMPLE_SIGNED = SAMPLE_MID == 0;
+
+    inline Sample ToSignedSample(Sample in)
+    {
+      return in ^ (1 << (8 * sizeof(in) - 1));
+    }
+
+    inline Sample ToUnsignedSample(Sample in)
+    {
+      return in;
+    }
+
     //! @brief Gain type
     typedef double Gain;
     //! @brief All-channels gain type

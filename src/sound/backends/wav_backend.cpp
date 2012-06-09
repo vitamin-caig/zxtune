@@ -65,8 +65,24 @@ namespace
 #endif
 
   const uint8_t RIFF[] = {'R', 'I', 'F', 'F'};
+  const uint8_t RIFX[] = {'R', 'I', 'F', 'X'};
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
+
+  /*
+  From https://ccrma.stanford.edu/courses/422/projects/WaveFormat :
+
+  Notes: 
+   - The default byte ordering assumed for WAVE data files is little-endian.
+     Files written using the big-endian byte ordering scheme have the identifier RIFX instead of RIFF. 
+   - The sample data must end on an even byte boundary. Whatever that means. 
+   - 8-bit samples are stored as unsigned bytes, ranging from 0 to 255.
+     16-bit samples are stored as 2's-complement signed integers, ranging from -32768 to 32767. 
+   - There may be additional subchunks in a Wave data stream. If so, each will have a char[4] SubChunkID, and unsigned long SubChunkSize, and SubChunkSize amount of data. 
+   - RIFF stands for Resource Interchange File Format. 
+  */
+ 
+  const bool SamplesShouldBeConverted = sizeof(Sample) > 1 && !SAMPLE_SIGNED;
 
   class WavStream : public FileStream
   {
@@ -76,7 +92,14 @@ namespace
       , DoneBytes(0)
     {
       //init struct
-      std::memcpy(Format.Id, RIFF, sizeof(RIFF));
+      if (isLE())
+      {
+        std::memcpy(Format.Id, RIFF, sizeof(RIFF));
+      }
+      else
+      {
+        std::memcpy(Format.Id, RIFX, sizeof(RIFX));
+      }
       std::memcpy(Format.Type, WAVEfmt, sizeof(WAVEfmt));
       Format.ChunkSize = fromLE<uint32_t>(16);
       Format.Compression = fromLE<uint16_t>(1);//PCM
@@ -107,10 +130,10 @@ namespace
 
     virtual void ApplyData(const ChunkPtr& data)
     {
-#ifdef BOOST_BIG_ENDIAN
-      // in case of big endian, required to swap values
-      std::transform(data->front().begin(), data->back().end(), data->front().begin(), &swapBytes<Sample>);
-#endif
+      if (SamplesShouldBeConverted)
+      {
+        std::transform(data->front().begin(), data->back().end(), data->front().begin(), &ToSignedSample);
+      }
       const std::size_t sizeInBytes = data->size() * sizeof(data->front());
       Stream->write(safe_ptr_cast<const char*>(&data->front()), static_cast<std::streamsize>(sizeInBytes));
       DoneBytes += static_cast<uint32_t>(sizeInBytes);

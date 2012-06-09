@@ -79,6 +79,22 @@ namespace
     }
   }
 
+  snd_pcm_format_t GetSoundFormat()
+  {
+    switch (sizeof(Sample))
+    {
+    case 1:
+      fmt = SAMPLE_SIGNED ? SND_PCM_FORMAT_S8 : SND_PCM_FORMAT_U8;
+      break;
+    case 2:
+      fmt = SAMPLE_SIGNED ? (isLE() ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE) : (isLE() ? SND_PCM_FORMAT_U16_LE : SND_PCM_FORMAT_U16_BE);
+      break;
+    default:
+      assert(!"Invalid format");
+      return SND_PCM_FORMAT_UNKNOWN;
+    }
+  }
+
   template<class T>
   class AutoHandle : public boost::noncopyable
   {
@@ -492,21 +508,7 @@ namespace
       const String deviceName = params.GetDeviceName();
       AutoDevice tmpDevice(deviceName);
 
-      snd_pcm_format_t fmt(SND_PCM_FORMAT_UNKNOWN);
-      switch (sizeof(Sample))
-      {
-      case 1:
-        fmt = SND_PCM_FORMAT_S8;
-        break;
-      case 2:
-        fmt = isLE() ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE;
-        break;
-      case 4:
-        fmt = isLE() ? SND_PCM_FORMAT_S32_LE : SND_PCM_FORMAT_S32_BE;
-        break;
-      default:
-        assert(!"Invalid format");
-      }
+      snd_pcm_format_t fmt = GetSoundFormat();
 
       snd_pcm_hw_params_t* hwParams = 0;
       snd_pcm_hw_params_alloca(&hwParams);
