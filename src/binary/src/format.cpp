@@ -552,11 +552,6 @@ namespace
       return Data.size();
     }
 
-    StaticToken& Get(std::size_t idx)
-    {
-      return Data[idx];
-    }
-
     const StaticToken& Get(std::size_t idx) const
     {
       return Data[idx];
@@ -573,8 +568,9 @@ namespace
     {
       const std::size_t patternSize = GetSize();
       const std::size_t suffixSize = suffix.GetSize();
-      const StaticToken* start = End() - suffixSize - 1;
-      for (std::size_t offset = 1; ; ++offset, --start)
+      const std::size_t startOffset = 1;
+      const StaticToken* start = End() - suffixSize - startOffset;
+      for (std::size_t offset = startOffset; ; ++offset, --start)
       {
         const std::size_t windowSize = suffixSize + offset;
         if (patternSize >= windowSize)
@@ -690,30 +686,31 @@ namespace
           }
         }
       }
-      //increase offset using suffixes
-      for (std::size_t pos = patternSize; pos; --pos)
+      /*
+       Increase offset using suffixes.
+       Average offsets (standard big file test):
+         without increasing: 2.17
+         with increasing: 2.27
+         with precise increasing: 2.28
+
+       Due to high complexity of precise detection, simple increasing is used
+      */
+      for (std::size_t pos = 0; pos != patternSize - 1; ++pos)
       {
-        const std::size_t suffixBegin = pos - 1;
-        const std::size_t suffixLen = patternSize - suffixBegin;
-        PatternRow& row = tmp[suffixBegin];
-        StaticPattern suffix = pattern.GetSuffix(suffixLen);
-        const StaticToken first = suffix.Get(0);
-        if (first.IsAny())
-        {
-          continue;
-        }
+        PatternRow& row = tmp[pos];
+        const std::size_t suffixLen = patternSize - pos - 1;
+        const StaticPattern suffix = pattern.GetSuffix(suffixLen);
+        const std::size_t offset = pattern.FindSuffix(suffix);
+        const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
         for (uint_t sym = 0; sym != 256; ++sym)
         {
-          if (first.Match(sym))
+          if (uint8_t& curOffset = row[sym])
           {
-            continue;
+            curOffset = std::max(curOffset, static_cast<PatternRow::value_type>(availOffset));
           }
-          suffix.Get(0) = StaticToken(sym);
-          const std::size_t offset = pattern.FindSuffix(suffix);
-          const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
-          row[sym] = std::max(row[sym], static_cast<PatternRow::value_type>(availOffset));
         }
       }
+      //Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means symbol match
       return boost::make_shared<FastSearchFormat>(tmp, offset, minSize);
     }
   private:
