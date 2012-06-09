@@ -44,7 +44,7 @@ $(pkg_debian)/control: | $(pkg_debian)
 	Priority: optional\n\
 	Section: sound\n\
 	Maintainer: Vitamin <vitamin.caig@gmail.com>\n\
-	Depends: libc6, libasound2, zlib1g\n\
+	Depends: libc6, libasound2\n\
 	Description: $(pkg_desc)\n\
 	" > $@
 

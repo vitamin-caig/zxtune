@@ -21,15 +21,12 @@ Author:
 //std includes
 #include <cassert>
 #include <memory>
+//3rd-party includes
+#include <3rdparty/zlib/zlib.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/packed.h>
-
-#ifdef ZLIB_SUPPORT
-//platform includes
-#include <zlib.h>
-#endif
 
 namespace Zip
 {
@@ -124,7 +121,6 @@ namespace Zip
     const std::size_t DestSize;
   };
 
-#ifdef ZLIB_SUPPORT
   class InflatedDataDecoder : public DataDecoder
   {
   public:
@@ -161,7 +157,7 @@ namespace Zip
     int Uncompress(Dump& dst) const
     {
       z_stream stream = z_stream();
-      int res = inflateInit2(&stream, -15);
+      int res = ::inflateInit2(&stream, -15);
       if (Z_OK != res)
       {
         return res;
@@ -170,8 +166,8 @@ namespace Zip
       stream.avail_in = static_cast<uInt>(Size);
       stream.next_out = &dst[0];
       stream.avail_out = static_cast<uInt>(DestSize);
-      res = inflate(&stream, Z_FINISH);
-      inflateEnd(&stream);
+      res = ::inflate(&stream, Z_FINISH);
+      ::inflateEnd(&stream);
       return res == Z_STREAM_END
         ? Z_OK
         : res;
@@ -181,7 +177,6 @@ namespace Zip
     const std::size_t Size;
     const std::size_t DestSize;
   };
-#endif
 
   std::auto_ptr<DataDecoder> CreateDecoder(const Formats::Packed::Zip::LocalFileHeader& header, const Formats::Packed::Zip::CompressedFile& file)
   {
@@ -195,9 +190,7 @@ namespace Zip
       break;
     case 8:
     case 9:
-#ifdef ZLIB_SUPPORT
       return std::auto_ptr<DataDecoder>(new InflatedDataDecoder(start, size, outSize));
-#endif
       break;
     }
     return std::auto_ptr<DataDecoder>();

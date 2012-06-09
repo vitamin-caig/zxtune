@@ -9,7 +9,6 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifdef ZLIB_SUPPORT
 //local includes
 #include "dump_builder.h"
 //common includes
@@ -19,9 +18,8 @@ Author:
 //std includes
 #include <algorithm>
 #include <iterator>
-
-//platform includes
-#include <zlib.h>
+//3rd-party includes
+#include <3rdparty/zlib/zlib.h>
 
 namespace
 {
@@ -52,7 +50,7 @@ namespace
   {
     Dump result(input.size() * 2);
     uLongf dstLen = static_cast<uLongf>(result.size());
-    if (compress2(&result[0], &dstLen, &input[0], static_cast<uLongf>(input.size()), Z_BEST_COMPRESSION))
+    if (::compress2(&result[0], &dstLen, &input[0], static_cast<uLongf>(input.size()), Z_BEST_COMPRESSION))
     {
       assert(!"Failed to compress");
       output = input;
@@ -141,4 +139,3 @@ namespace Devices
     }
   }
 }
-#endif

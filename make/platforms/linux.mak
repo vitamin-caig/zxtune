@@ -16,7 +16,6 @@ endif
 support_oss = 1
 support_alsa = 1
 support_sdl = 1
-support_zlib = 1
 support_mp3 = 1
 support_ogg = 1
 support_flac = 1
