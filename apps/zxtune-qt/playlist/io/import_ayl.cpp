@@ -334,6 +334,10 @@ namespace
       {
         return Devices::AYM::LAYOUT_CBA;
       }
+      else if (value == AYL::MONO)
+      {
+        return Devices::AYM::LAYOUT_MONO;
+      }
       else
       {
         //default fallback

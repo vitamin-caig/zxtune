@@ -19,6 +19,7 @@ extern const Char COMMENT[];
 extern const Char COMPUTER[];
 extern const Char DATE[];
 extern const Char FORMAT_SPECIFIC[];
+extern const Char MONO[];
 extern const Char NAME[];
 extern const Char OFFSET[];
 extern const Char PLAYER_FREQUENCY[];

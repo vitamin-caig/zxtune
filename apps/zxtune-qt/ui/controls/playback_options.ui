@@ -142,6 +142,11 @@
           <string>CAB</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>Mono</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>

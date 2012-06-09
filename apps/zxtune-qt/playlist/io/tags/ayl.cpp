@@ -47,6 +47,9 @@ extern const Char DATE[] = {
 extern const Char FORMAT_SPECIFIC[] = {
   'F','o','r','m','a','t','S','p','e','c',0
 };
+extern const Char MONO[] = {
+  'M','o','n','o',0
+};
 extern const Char NAME[] = {
   'N','a','m','e',0
 };
