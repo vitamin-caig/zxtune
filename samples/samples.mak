@@ -19,6 +19,7 @@ install_samples:
 	$(call copyfile_cmd,$(samples_path)/stc/stracker.stc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/stp/ZXGuide3_07.stp,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/str/COMETDAY.str,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(samples_path)/tfc/unbeliev.tfc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/tfd/mass_production.tfd,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/ts/long_day.pt3,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/vtx/Enlight3.vtx,$(DESTDIR)/Samples)
