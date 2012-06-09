@@ -86,6 +86,10 @@ namespace
     {
       return Devices::AYM::LAYOUT_CAB;
     }
+    else if (str == Text::MODULE_LAYOUT_MONO)
+    {
+      return Devices::AYM::LAYOUT_MONO;
+    }
     else
     {
       throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,

@@ -20,6 +20,7 @@ Author:
 #include <functional>
 #include <limits>
 #include <memory>
+#include <numeric>
 //boost includes
 #include <boost/scoped_ptr.hpp>
 
@@ -917,6 +918,44 @@ namespace
     const LayoutData Layout;
   };
 
+  class MonoRenderer : public Renderer
+  {
+  public:
+    MonoRenderer(Renderer& delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual void Reset()
+    {
+      return Delegate.Reset();
+    }
+
+    virtual void SetNewData(const DataChunk &data)
+    {
+      return Delegate.SetNewData(data);
+    }
+
+    virtual void Tick(uint_t ticks)
+    {
+      return Delegate.Tick(ticks);
+    }
+
+    virtual bool HasLevelChanges() const
+    {
+      return Delegate.HasLevelChanges();
+    }
+
+    virtual void GetLevels(MultiSample& result) const
+    {
+      Delegate.GetLevels(result);
+      const Sample average(std::accumulate(result.begin(), result.end(), uint_t(0)) / result.size());
+      std::fill(result.begin(), result.end(), average);
+    }
+  private:
+    Renderer& Delegate;
+  };
+
   class ClockSource
   {
   public:
@@ -1065,6 +1104,11 @@ namespace
       if (LAYOUT_ABC == layout)
       {
         RenderChunks(targetRender);
+      }
+      else if (LAYOUT_MONO == layout)
+      {
+        MonoRenderer monoRender(targetRender);
+        RenderChunks(monoRender);
       }
       else
       {

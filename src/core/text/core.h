@@ -30,6 +30,7 @@ extern const Char MODULE_LAYOUT_BAC[];
 extern const Char MODULE_LAYOUT_BCA[];
 extern const Char MODULE_LAYOUT_CAB[];
 extern const Char MODULE_LAYOUT_CBA[];
+extern const Char MODULE_LAYOUT_MONO[];
 extern const Char MODULE_SUBPATH_DELIMITER[];
 }//namespace Text
 #endif //__TEXT_CORE_H_DEFINED__

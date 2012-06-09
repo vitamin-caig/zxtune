@@ -90,5 +90,8 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < MODULE_LAYOUT_CAB
 > "CAB"
 
+< MODULE_LAYOUT_MONO
+> "MONO"
+
 < MODULE_ERROR_SET_PLAYER_PARAMETERS
 > "Failed to set player parameters."

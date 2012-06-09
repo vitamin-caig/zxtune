@@ -98,6 +98,7 @@ namespace Devices
       LAYOUT_BCA = 3,
       LAYOUT_CAB = 4,
       LAYOUT_CBA = 5,
+      LAYOUT_MONO = 6,
 
       LAYOUT_LAST
     };
