@@ -15,9 +15,10 @@ Author:
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
-#include <tools.h>
+#include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
+#include <tools.h>
 //library includes
 #include <io/fs_tools.h>
 #include <sound/backend_attrs.h>

@@ -84,11 +84,9 @@ namespace
     switch (sizeof(Sample))
     {
     case 1:
-      fmt = SAMPLE_SIGNED ? SND_PCM_FORMAT_S8 : SND_PCM_FORMAT_U8;
-      break;
+      return SAMPLE_SIGNED ? SND_PCM_FORMAT_S8 : SND_PCM_FORMAT_U8;
     case 2:
-      fmt = SAMPLE_SIGNED ? (isLE() ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE) : (isLE() ? SND_PCM_FORMAT_U16_LE : SND_PCM_FORMAT_U16_BE);
-      break;
+      return SAMPLE_SIGNED ? (isLE() ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE) : (isLE() ? SND_PCM_FORMAT_U16_LE : SND_PCM_FORMAT_U16_BE);
     default:
       assert(!"Invalid format");
       return SND_PCM_FORMAT_UNKNOWN;
