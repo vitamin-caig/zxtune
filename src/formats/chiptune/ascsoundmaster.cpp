@@ -58,7 +58,7 @@ namespace Chiptune
     struct Version0
     {
       static const std::size_t MIN_SIZE = 500;
-      static const std::size_t MAX_SIZE = 0x2400; //~9k
+      static const std::size_t MAX_SIZE;
       static const String DESCRIPTION;
       static const std::string FORMAT;
 
@@ -79,7 +79,7 @@ namespace Chiptune
     struct Version1
     {
       static const std::size_t MIN_SIZE = 256;
-      static const std::size_t MAX_SIZE = 0x3a00;
+      static const std::size_t MAX_SIZE;
       static const String DESCRIPTION;
       static const std::string FORMAT;
 
@@ -95,6 +95,7 @@ namespace Chiptune
       } PACK_POST;
     };
 
+    const std::size_t Version0::MAX_SIZE = 0x2400;//~9k
     const String Version0::DESCRIPTION = Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION;
     const std::string Version0::FORMAT(
       "03-32"    //tempo
@@ -105,6 +106,7 @@ namespace Chiptune
       "00-1f"    //first position
     );
 
+    const std::size_t Version1::MAX_SIZE = 0x3a00;
     const String Version1::DESCRIPTION = Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION;
     const std::string Version1::FORMAT(
       "03-32"    //tempo

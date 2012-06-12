@@ -716,10 +716,15 @@ namespace
   private:
     std::size_t SearchBackward(const uint8_t* data) const
     {
-      for (const PatternRow* it = PatRBegin; it != PatREnd; ++it, --data)
+      if (const std::size_t offset = (*PatRBegin)[*data])
+      {
+        return offset;
+      }
+      --data;
+      for (const PatternRow* it = PatRBegin + 1; it != PatREnd; ++it, --data)
       {
         const PatternRow& row = *it;
-        if (std::size_t offset = row[*data])
+        if (const std::size_t offset = row[*data])
         {
           return offset;
         }
@@ -745,8 +750,9 @@ namespace Binary
     const Pattern::const_iterator first = pat.begin();
     const Pattern::const_iterator last = pat.end();
     const Pattern::const_iterator firstNotAny = std::find_if(first, last, std::not1(std::ptr_fun(&IsAnyByte)));
-    const std::size_t offset = std::distance(first, firstNotAny);
     Require(firstNotAny != last);
-    return FastSearchFormat::Create(firstNotAny, last, offset, minSize);
+    const Pattern::const_iterator lastNotAny = std::find_if(pat.rbegin(), pat.rend(), std::not1(std::ptr_fun(&IsAnyByte))).base();
+    const std::size_t offset = std::distance(first, firstNotAny);
+    return FastSearchFormat::Create(firstNotAny, lastNotAny, offset, minSize);
   }
 }
