@@ -7,6 +7,14 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] TFC format support
+[*] Scan speedup for 5..10%
+[*] Mono layout for AYM chiptunes
+[*] Sound samples generating fix. Default sound level is amplified.
+[*] Fixed FM playback
+
+--- Rev1777 from 04.06.2012
+
 [+] TFD format support
 [+] Compressed td0 images support
 [*] Fixed STP 1.xx detection
