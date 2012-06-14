@@ -15,6 +15,7 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <contract.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
@@ -213,11 +214,6 @@ namespace DataSquieezer
     {
     }
 
-    bool Eof() const
-    {
-      return Pos < Data;
-    }
-
     uint_t GetBit()
     {
       if (!(Mask >>= 1))
@@ -245,9 +241,9 @@ namespace DataSquieezer
   private:
     uint8_t GetByte()
     {
-      return Eof() ? 0 : *--Pos;
+      Require(Pos > Data);
+      return *--Pos;
     }
-
   private:
     const uint8_t* const Data;
     const uint8_t* Pos;
@@ -322,7 +318,7 @@ namespace DataSquieezer
       , Result(new Dump())
       , Decoded(*Result)
     {
-      if (IsValid && !Stream.Eof())
+      if (IsValid)
       {
         IsValid = DecodeData();
       }
@@ -339,26 +335,32 @@ namespace DataSquieezer
     {
       const uint_t unpackedSize = fromLE(Header.LastOfDepacked) - fromLE(Header.DepackedLimit);
       Decoded.reserve(unpackedSize);
-      while (!Stream.Eof() &&
-             Decoded.size() < unpackedSize)
+      try
       {
-        if (!Stream.GetBit())
+        while (Decoded.size() < unpackedSize)
         {
-          Decoded.push_back(Stream.Get8Bits());
+          if (!Stream.GetBit())
+          {
+            Decoded.push_back(Stream.Get8Bits());
+          }
+          else if (!DecodeCmd())
+          {
+            return false;
+          }
         }
-        else if (!DecodeCmd())
-        {
-          return false;
-        }
+        std::reverse(Decoded.begin(), Decoded.end());
+        return true;
       }
-      std::reverse(Decoded.begin(), Decoded.end());
-      return true;
+      catch (const std::exception&)
+      {
+        return false;
+      }
     }
 
     bool DecodeCmd()
     {
       const uint_t len = GetLength();
-      if (len == 0x17)
+      if (len == uint_t(-1))
       {
         CopySingleBytes();
         return true;
@@ -385,7 +387,8 @@ namespace DataSquieezer
       if (Stream.GetBit())
       {
         //%1001
-        return 8 + Stream.GetBits(4);
+        const uint_t res = 8 + Stream.GetBits(4);
+        return res == 0x17 ? uint_t(-1) : res;
       }
       //%1000
       uint_t res = 0x17;

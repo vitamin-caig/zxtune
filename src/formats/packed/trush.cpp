@@ -273,8 +273,12 @@ namespace Formats
       {
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
+        if (!Depacker->Match(data, availSize))
+        {
+          return Container::Ptr();
+        }
         const TRUSH::Container container(data, availSize);
-        if (!Depacker->Match(data, availSize) || !container.FastCheck())
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }
