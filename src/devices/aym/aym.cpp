@@ -1032,9 +1032,15 @@ namespace
   class DataCache
   {
   public:
+    DataCache()
+      : CumulativeMask()
+    {
+    }
+    
     void Add(const DataChunk& src)
     {
       Buffer.push_back(src);
+      CumulativeMask |= src.Mask;
     }
 
     const DataChunk* GetBegin() const
@@ -1050,29 +1056,21 @@ namespace
     void Reset()
     {
       Buffer.clear();
+      CumulativeMask = 0;
     }
 
     bool HasBeeperData() const
     {
-      return Buffer.end() != std::find_if(Buffer.begin(), Buffer.end(), &IsBeeperData);
+      return 0 != (CumulativeMask & (1 << DataChunk::REG_BEEPER));
     }
 
     bool HasPSGData() const
     {
-      return Buffer.end() != std::find_if(Buffer.begin(), Buffer.end(), &IsPSGData);
-    }
-  private:
-    static bool IsBeeperData(const DataChunk& data)
-    {
-      return 0 != (data.Mask & (1 << DataChunk::REG_BEEPER));
-    }
-
-    static bool IsPSGData(const DataChunk& data)
-    {
-      return 0 != (data.Mask & ((1 << DataChunk::REG_BEEPER) - 1));
+      return 0 != (CumulativeMask & ((1 << DataChunk::REG_BEEPER) - 1));
     }
   private:
     std::vector<DataChunk> Buffer;
+    uint_t CumulativeMask;
   };
 
   class RegularAYMChip : public Chip

@@ -100,6 +100,7 @@ namespace
     SimpleIOBus(const Time::NanosecOscillator& oscillator, const Dump& memory, ChipIO::Ptr ports)
       : Oscillator(oscillator)
       , Memory(memory)
+      , RawMemory(&Memory.front())
       , Ports(ports)
     {
     }
@@ -119,21 +120,21 @@ namespace
     static Z80EX_BYTE ReadByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
       const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
-      return self->Memory[addr];
+      return self->RawMemory[addr];
     }
 
     static Z80EX_BYTE ReadByteLimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
       const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
       return addr < self->Memory.size()
-        ? self->Memory[addr]
+        ? self->RawMemory[addr]
         : 0xff;
     }
 
     static void WriteByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
     {
       SimpleIOBus* const self = static_cast<SimpleIOBus*>(userData);
-      self->Memory[addr] = value;
+      self->RawMemory[addr] = value;
     }
 
     static void WriteByteLimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
@@ -141,7 +142,7 @@ namespace
       SimpleIOBus* const self = static_cast<SimpleIOBus*>(userData);
       if (addr < self->Memory.size())
       {
-        self->Memory[addr] = value;
+        self->RawMemory[addr] = value;
       }
     }
 
@@ -164,6 +165,7 @@ namespace
   private:
     const Time::NanosecOscillator& Oscillator;
     Dump Memory;
+    uint8_t* const RawMemory;
     const ChipIO::Ptr Ports;
   };
 
@@ -199,7 +201,7 @@ namespace
         if (uint_t tick = z80ex_int(Context.get()))
         {
           Oscillator.AdvanceTick(tick);
-          break;
+          continue;
         }
         Oscillator.AdvanceTick(z80ex_step(Context.get()));
       }
