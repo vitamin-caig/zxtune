@@ -143,7 +143,7 @@ namespace Parameters
           };
 
           //! Default value
-          const IntType BUFFERS_DEFAULT = 2;
+          const IntType BUFFERS_DEFAULT = 3;
           //! Buffers count
           const Char BUFFERS[] =
           {

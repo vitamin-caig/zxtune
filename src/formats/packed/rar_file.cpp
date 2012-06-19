@@ -29,7 +29,7 @@ Author:
 //text includes
 #include <formats/text/packed.h>
 
-namespace Rar
+namespace RarFile
 {
   const std::string THIS_MODULE("Formats::Packed::Rar");
 
@@ -262,7 +262,7 @@ namespace Rar
 
     bool CopyFromBack(uint_t offset, std::size_t count)
     {
-      if (offset > (Cursor - Data->begin()))
+      if (offset > uint_t(Cursor - Data->begin()))
       {
         return false;
       }
@@ -885,8 +885,8 @@ namespace Formats
     {
     public:
       RarDecoder()
-        : Format(Binary::Format::Create(::Rar::HEADER_PATTERN))
-        , Decoder(new ::Rar::DispatchedCompressedFile())
+        : Format(Binary::Format::Create(RarFile::HEADER_PATTERN))
+        , Decoder(new RarFile::DispatchedCompressedFile())
       {
       }
 
@@ -902,7 +902,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const ::Rar::Container container(rawData);
+        const RarFile::Container container(rawData);
         if (!container.FastCheck())
         {
           return Container::Ptr();
@@ -911,7 +911,7 @@ namespace Formats
       }
     private:
       const Binary::Format::Ptr Format;
-      const ::Rar::CompressedFile::Ptr Decoder;
+      const RarFile::CompressedFile::Ptr Decoder;
     };
 
     Decoder::Ptr CreateRarDecoder()

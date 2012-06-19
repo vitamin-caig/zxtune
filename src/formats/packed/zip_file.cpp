@@ -28,7 +28,7 @@ Author:
 //text includes
 #include <formats/text/packed.h>
 
-namespace Zip
+namespace ZipFile
 {
   //checkers
   const std::string HEADER_PATTERN =
@@ -347,15 +347,15 @@ namespace Formats
         assert(availSize > sizeof(hdr));
         if (0 != (fromLE(hdr.Flags) & FILE_ATTRIBUTES_IN_FOOTER))
         {
-          if (const LocalFileFooter* footer = ::Zip::FindFooter(hdr, availSize))
+          if (const LocalFileFooter* footer = ZipFile::FindFooter(hdr, availSize))
           {
-            return std::auto_ptr<const CompressedFile>(new ::Zip::StreamedFile(hdr, *footer));
+            return std::auto_ptr<const CompressedFile>(new ZipFile::StreamedFile(hdr, *footer));
           }
           return std::auto_ptr<const CompressedFile>();
         }
         else
         {
-          return std::auto_ptr<const CompressedFile>(new ::Zip::RegularFile(hdr));
+          return std::auto_ptr<const CompressedFile>(new ZipFile::RegularFile(hdr));
         }
       }
     }
@@ -364,7 +364,7 @@ namespace Formats
     {
     public:
       ZipDecoder()
-        : Depacker(Binary::Format::Create(::Zip::HEADER_PATTERN))
+        : Depacker(Binary::Format::Create(ZipFile::HEADER_PATTERN))
       {
       }
 
@@ -382,12 +382,12 @@ namespace Formats
       {
         const void* const data = rawData.Data();
         const std::size_t availSize = rawData.Size();
-        const ::Zip::Container container(data, availSize);
+        const ZipFile::Container container(data, availSize);
         if (!container.FastCheck() || !Depacker->Match(data, availSize))
         {
           return Container::Ptr();
         }
-        ::Zip::DispatchedDataDecoder decoder(container);
+        ZipFile::DispatchedDataDecoder decoder(container);
         return CreatePackedContainer(decoder.Decompress(), container.GetFile().GetPackedSize());
       }
     private:
