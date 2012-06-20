@@ -13,23 +13,24 @@ generated_sources += $(qrc_sources)
 
 ifdef STATIC_QT_PATH
 include_dirs += $(STATIC_QT_PATH)/include
-$(platform)_libraries_dirs += $(STATIC_QT_PATH)/lib
+static_libs_dir += $(STATIC_QT_PATH)/lib
+static_qt = 1
 endif
 
 ifneq (,$(findstring Core,$(qt_libraries)))
 windows_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
 mingw_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 z
-ifdef STATIC_QT_PATH
-linux_libraries += pthread z
-dingux_libraries += z
+ifdef static_qt
+linux_dynamic_libs += z rt
+dingux_dynamic_libs += z
 endif
 endif
 ifneq (,$(findstring Gui,$(qt_libraries)))
 windows_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
 mingw_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
-ifdef STATIC_QT_PATH
-linux_libraries += freetype SM ICE Xrender fontconfig Xext X11 z
-dingux_libraries += png z
+ifdef static_qt
+linux_dynamic_libs += freetype SM ICE Xrender fontconfig Xext X11
+dingux_dynamic_libs += png
 endif
 endif
 
