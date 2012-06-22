@@ -2,7 +2,7 @@
 
 BUILD_DIR=${BUILD_DIR-`pwd`/../Build}
 if [ "z${BOOST_VERSION}" = "z" ]; then
-  BOOST_VERSION=`cat ${BUILD_DIR}/boost-${Platform}-${Arch}`
+  BOOST_VERSION=`cat ${BUILD_DIR}/boost-${Platform}-${Arch} 2>/dev/null`
 fi
 BOOST_DIR=${BUILD_DIR}/boost-${BOOST_VERSION}-${Platform}-${Arch}
 

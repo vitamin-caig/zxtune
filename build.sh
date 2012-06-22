@@ -1,17 +1,29 @@
 #!/bin/sh
 
+#builds one or more targets for specified architecture, platform and distribution
+
 Platform=$1
 Arch=$2
 Distro=$3
+Targets=$4
 Formats=txt
 Languages=en
 
-if [ "${skip_updating}" = "" ]; then
+if [ -z "${Targets}" ]; then
+  Targets="xtractor zxtune123 zxtune-qt"
+fi
+
+if [ -z "${skip_updating}" ]; then
 # get current build and vesion
 echo "Updating"
 svn up > /dev/null || (echo "Failed to update" && exit 1)
 fi
 
+if [ "x${Distro}" != "xany" ]; then
+  BOOST_VERSION=system
+  QT_VERSION=system
+fi
+# on some platforms qt and boost includes are not in standard path, so setup_* is required in any case
 . make/platforms/setup_qt.sh || exit 1
 . make/platforms/setup_boost.sh || exit 1
 # checking for textator or assume that texts are correct
@@ -37,14 +49,17 @@ case ${Arch} in
     ;;
 esac
 
-if [ "x${STATIC_QT_PATH}y${STATIC_BOOST_PATH}" != "xy" ]; then
-echo Using static runtime
-options="static_runtime=1"
+makecmd="make platform=${Platform} release=1 arch=${Arch} distro=${Distro} -C apps/"
+if [ -z "${skip_clearing}" ]; then
+  echo "Clearing"
+  for target in ${Targets}
+  do
+    ${makecmd}${target} clean > /dev/null || exit 1
+  done
 fi
 
-makecmd="make platform=${Platform} release=1 arch=${Arch} distro=${Distro} -C apps"
-if [ "${skip_clearing}" = "" ]; then
-echo "Clearing"
-${makecmd} clean > /dev/null || exit 1
-fi
-time ${makecmd} -j ${cpus} package ${options} cxx_flags="${cxx_flags}" ld_flags="${ld_flags}" && echo Done
+for target in ${Targets}
+do
+  echo "Building ${target} ${Platform}-${Distro}-${Arch}"
+  time ${makecmd}${target} -j ${cpus} package ${options} cxx_flags="${cxx_flags}" ld_flags="${ld_flags}" && echo Done
+done

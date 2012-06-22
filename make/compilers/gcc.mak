@@ -16,10 +16,6 @@ else
 CXX_MODE_FLAGS = -O0
 endif
 
-ifdef static_runtime
-LD_MODE_FLAGS = -static-libstdc++
-endif
-
 #setup profiling
 ifdef profile
 CXX_MODE_FLAGS += -pg
@@ -58,19 +54,17 @@ CXXFLAGS = $(CCFLAGS) -ansi
 ARFLAGS := cru
 LDFLAGS = $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
 
-static_libs += $(libraries) $($(platform)_static_libs)
-static_libs_dir += $(libs_dir)
-dynamic_libs += $($(platform)_dynamic_libs)
-
 #specify endpoint commands
 build_obj_cmd_nodeps = $(CXX) $(CXXFLAGS) -c $1 -o $2
 build_obj_cmd = $(build_obj_cmd_nodeps) -MMD
 build_obj_cmd_cc = $(CC) $(CCFLAGS) -c $1 -o $2
 build_lib_cmd = $(AR) $(ARFLAGS) $2 $1
 link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
-           $(addprefix -L,$(static_libs_dir) $(output_dir)) \
-           -Wl,-Bstatic $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $(static_libs))) $(LINKER_END_GROUP) \
-           -Wl,-Bdynamic $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $(dynamic_libs))) $(LINKER_END_GROUP)
+	$(if $(libraries),-L$(libs_dir)\
+          $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP),)\
+        $(addprefix -L,$($(platform)_libraries_dirs))\
+        $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $($(platform)_libraries))) $(LINKER_END_GROUP)\
+	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
 #specify postlink command- generate pdb file
 postlink_cmd = $(OBJCOPY) --only-keep-debug $@ $@.pdb && \

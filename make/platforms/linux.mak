@@ -20,23 +20,17 @@ support_mp3 = 1
 support_ogg = 1
 support_flac = 1
 
-dynamic_libs += dl pthread
+$(platform)_libraries += dl rt pthread stdc++
 
 ifdef STATIC_BOOST_PATH
 include_dirs += $(STATIC_BOOST_PATH)/include
-static_libs_dir += $(STATIC_BOOST_PATH)/lib
-static_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt)
-static_boost = 1
+$(platform)_libraries_dirs += $(STATIC_BOOST_PATH)/lib
+boost_libs_model = -mt
+$(platform)_libraries += pthread
 endif
 
-ifdef static_boost
-static_libs += $(foreach lib,$(boost_libraries),boost_$(lib))
-else
-dynamic_libs += $(foreach lib,$(boost_libraries),boost_$(lib))
-endif
+#multithread release libraries
+$(platform)_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)$(boost_libs_model))
 
-ifdef static_qt
-static_libs += $(foreach lib,$(qt_libraries),Qt$(lib))
-else
-dynamic_libs += $(foreach lib,$(qt_libraries),Qt$(lib))
-endif
+#release libraries
+$(platform)_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))

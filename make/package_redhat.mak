@@ -16,6 +16,7 @@ $(pkg_rpm): pkg_dependency
 
 $(pkg_redhat):
 	$(call makedir_cmd,$@/BUILD)
+	$(call makedir_cmd,$@/RPMS)
 
 install_redhat: $(pkg_redhat)/rpm.spec
 

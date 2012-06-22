@@ -37,27 +37,27 @@ $(pkg_debian)/md5sums: $(pkg_debian)/copyright $(pkg_debian)/changelog | $(pkg_d
 	md5sum `find $(pkg_root) -type f` | sed 's| .*$(pkg_root)\/| |' > $@
 
 $(pkg_debian)/control: | $(pkg_debian)
-	@echo -e "\
+	@echo "\
 	Package: $(pkg_name)\n\
 	Version: $(pkg_revision)\n\
 	Architecture: $(arch_deb)\n\
 	Priority: optional\n\
 	Section: sound\n\
 	Maintainer: Vitamin <vitamin.caig@gmail.com>\n\
-	Depends: libc6, libasound2\n\
+	Depends: libc6\n\
 	Description: $(pkg_desc)\n\
 	" > $@
 
 $(pkg_debian)/copyright: | $(pkg_debian)
-	@echo -e "\
+	@echo "\
 	ZXTune\n\n\
-	Copyright 2009-2011 Vitamin <vitamin.caig@gmail.com>\n\n\
+	Copyright 2009-2012 Vitamin <vitamin.caig@gmail.com>\n\n\
 	Visit http://zxtune.googlecode.com to get new versions and report about errors.\n\n\
 	This software is distributed under GPLv3 license.\n\
 	" > $@
 
 $(pkg_debian)/changelog: | $(pkg_debian)
-	@echo -e \
+	@echo \
 	"$(pkg_name) (r$(pkg_revision)) experimental; urgency=low\n\n"\
 	"  * See svn log for details\n"\
 	" -- Vitamin <vitamin.caig@gmail.com>  "`date -R` > $@
