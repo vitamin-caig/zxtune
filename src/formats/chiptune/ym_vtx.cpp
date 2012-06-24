@@ -309,7 +309,7 @@ namespace Chiptune
           {
             ParseMatrix(src, matrixSize, columns, target);
           }
-          const Ver5::Footer& footer = stream.ReadField<Ver5::Footer>();
+          /*const Ver5::Footer& footer = */stream.ReadField<Ver5::Footer>();
           const Binary::Container::Ptr subData = stream.GetReadData();
           return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }

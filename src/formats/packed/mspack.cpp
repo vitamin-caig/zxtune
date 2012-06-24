@@ -144,8 +144,6 @@ namespace MSPack
   private:
     bool DecodeData()
     {
-      const uint_t packedSize = fromLE(Header.SizeOfPacked);
-
       Decoded.reserve(MAX_DECODED_SIZE);
 
       while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)

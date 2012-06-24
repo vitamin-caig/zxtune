@@ -177,7 +177,7 @@ namespace
       return Tune->CreateRenderer(params, chip);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
+    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
     {
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&spec))
