@@ -181,6 +181,21 @@ namespace ZXTune
 
     //! @brief Enumerating supported sound backends
     BackendCreator::Iterator::Ptr EnumerateBackends();
+
+    //! @breif System playback-able backends set
+    class BackendsScope
+    {
+    public:
+      //! Pointer type
+      typedef boost::shared_ptr<const BackendsScope> Ptr;
+
+      virtual ~BackendsScope() {}
+
+      //! @brief Enumerate scope
+      virtual BackendCreator::Iterator::Ptr Enumerate() const = 0;
+
+      static Ptr CreateSystemScope(Parameters::Accessor::Ptr params);
+    };
   }
 }
 

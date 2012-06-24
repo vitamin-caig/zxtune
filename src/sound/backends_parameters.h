@@ -29,6 +29,12 @@ namespace Parameters
           'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','\0'
         };
 
+        //! @brief Semicolon-delimited backends identifiers order
+        const Char ORDER[] =
+        {
+          'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','o','r','d','e','r','\0'
+        };
+
         //! @brief Any file-based backend parameters namespace
         namespace File
         {
