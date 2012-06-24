@@ -21,9 +21,13 @@ Author:
 #include <contract.h>
 #include <tools.h>
 //library includes
+#include <sound/backend.h>
+#include <sound/backend_attrs.h>
+#include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 namespace
 {
@@ -39,6 +43,18 @@ namespace
     48000
   };
   
+  StringArray GetSystemBackends(Parameters::Accessor::Ptr params)
+  {
+    StringArray result;
+    const ZXTune::Sound::BackendsScope::Ptr scope = ZXTune::Sound::BackendsScope::CreateSystemScope(params);
+    for (ZXTune::Sound::BackendCreator::Iterator::Ptr it = scope->Enumerate(); it->IsValid(); it->Next())
+    {
+      const ZXTune::Sound::BackendCreator::Ptr creator = it->Get();
+      result.push_back(creator->Id());
+    }
+    return result;
+  }
+
   class SoundOptionsWidget : public UI::SoundSettingsWidget
                            , public Ui::SoundOptions
   {
@@ -46,18 +62,25 @@ namespace
     SoundOptionsWidget(QWidget& parent, bool playing)
       : UI::SoundSettingsWidget(parent)
       , Options(GlobalOptions::Instance().Get())
+      , Backends(GetSystemBackends(Options))
     {
       //setup self
       setupUi(this);
       frameDurationValue->setDisabled(playing);
       soundFrequency->setDisabled(playing);
-      
+
+      FillFrequences();
+      FillBackends();
+
       Parameters::IntegerValue::Bind(*frameDurationValue, *Options, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT);
       Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
       Options->FindValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
-      FillFrequences();
       SetFrequency(freq);
       connect(soundFrequency, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int)));
+
+      connect(backendsList, SIGNAL(currentRowChanged(int)), SLOT(SelectBackend(int)));
+      connect(moveUp, SIGNAL(released()), SLOT(MoveBackendUp()));
+      connect(moveDown, SIGNAL(released()), SLOT(MoveBackendDown()));
     }
 
     virtual void ChangeSoundFrequency(int idx)
@@ -65,10 +88,49 @@ namespace
       const qlonglong val = FREQUENCES[idx];
       Options->SetValue(Parameters::ZXTune::Sound::FREQUENCY, val);
     }
+    
+    virtual void SelectBackend(int /*idx*/)
+    {
+    }
+    
+    virtual void MoveBackendUp()
+    {
+      if (int row = backendsList->currentRow())
+      {
+        SwapItems(row, row - 1);
+        backendsList->setCurrentRow(row - 1);
+      }
+    }
+    
+    virtual void MoveBackendDown()
+    {
+      const int row = backendsList->currentRow();
+      if (in_range<int>(row, 0, Backends.size() - 1))
+      {
+        SwapItems(row, row + 1);
+        backendsList->setCurrentRow(row + 1);
+      }
+    }
   private:
     void FillFrequences()
     {
       std::for_each(FREQUENCES, ArrayEnd(FREQUENCES), boost::bind(&SoundOptionsWidget::AddFrequency, this, _1));
+    }
+
+    void AddFrequency(uint_t freq)
+    {
+      const QString txt = QString("%1 Hz").arg(freq);
+      soundFrequency->addItem(txt);
+    }
+
+    void FillBackends()
+    {
+      std::for_each(Backends.begin(), Backends.end(), boost::bind(&SoundOptionsWidget::AddBackend, this, _1));
+    }
+    
+    void AddBackend(const String& id)
+    {
+      backendsList->addItem(ToQString(id));
     }
     
     void SetFrequency(uint_t val)
@@ -79,14 +141,35 @@ namespace
         soundFrequency->setCurrentIndex(frq - FREQUENCES);
       }
     }
-    
-    void AddFrequency(uint_t freq)
+
+    void SaveBackendsOrder()
     {
-      const QString txt = QString("%1 Hz").arg(freq);
-      soundFrequency->addItem(txt);
+      static const Char DELIMITER[] = {';', 0};
+      const String value = boost::algorithm::join(Backends, DELIMITER);
+      Options->SetValue(Parameters::ZXTune::Sound::Backends::ORDER, value);
+    }
+    
+    void SwapItems(int lh, int rh)
+    {
+      QListWidgetItem* const first = backendsList->item(lh);
+      QListWidgetItem* const second = backendsList->item(rh);
+      if (first && second)
+      {
+        const QString firstText = first->text();
+        const QString secondText = second->text();
+        String& firstId = Backends[lh];
+        String& secondId = Backends[rh];
+        assert(FromQString(firstText) == firstId);
+        assert(FromQString(secondText) == secondId);
+        first->setText(secondText);
+        second->setText(firstText);
+        std::swap(firstId, secondId);
+        SaveBackendsOrder();
+      }
     }
   private:
     const Parameters::Container::Ptr Options;
+    StringArray Backends;
   };
 }
 namespace UI

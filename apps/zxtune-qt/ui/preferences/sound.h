@@ -29,6 +29,9 @@ namespace UI
     static SoundSettingsWidget* Create(QWidget& parent, bool playing);
   private slots:
     virtual void ChangeSoundFrequency(int idx) = 0;
+    virtual void SelectBackend(int idx) = 0;
+    virtual void MoveBackendUp() = 0;
+    virtual void MoveBackendDown() = 0;
   };
 }
 

@@ -29,12 +29,6 @@ Author:
 
 namespace
 {
-  bool IsNullBackend(const ZXTune::Sound::BackendCreator& creator)
-  {
-    static const Char NULL_BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
-    return creator.Id() == NULL_BACKEND_ID;
-  }
-
   class BackendParams : public ZXTune::Sound::CreateBackendParameters
   {
   public:
@@ -250,27 +244,24 @@ namespace
       using namespace ZXTune;
       //create backend
       const Sound::CreateBackendParameters::Ptr createParams = CreateBackendParameters(*this, params, module);
-      Sound::Backend::Ptr result;
       std::list<Error> errors;
-      for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
+      const Sound::BackendsScope::Ptr systemBackends = Sound::BackendsScope::CreateSystemScope(params);
+      for (Sound::BackendCreator::Iterator::Ptr backends = systemBackends->Enumerate();
         backends->IsValid(); backends->Next())
       {
         const Sound::BackendCreator::Ptr creator = backends->Get();
-        if (IsNullBackend(*creator))
-        {
-          ReportErrors(errors);
-          return Sound::Backend::Ptr();
-        }
+        Sound::Backend::Ptr result;
         if (const Error& err = creator->CreateBackend(createParams, result))
         {
           errors.push_back(err);
         }
         else
         {
-          break;
+          return result;
         }
       }
-      return result;
+      ReportErrors(errors);
+      return Sound::Backend::Ptr();
     }
 
     void ReportErrors(const std::list<Error>& errors)
