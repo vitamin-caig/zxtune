@@ -17,6 +17,8 @@ support_mp3 = 1
 support_ogg = 1
 support_flac = 1
 
+windows_libraries += oldnames
+
 # installable boost names convention used
 # [prefix]boost_[lib]-mt[-gd].lib
 # prefix - 'lib' for static libraries
