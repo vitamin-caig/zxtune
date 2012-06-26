@@ -30,7 +30,7 @@ $(pkg_debian):
 dpkg_files: $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control $(pkg_debian)/docs $(pkg_debian)/rules $(pkg_debian)/copyright
 
 $(pkg_debian)/changelog: $(path_step)/apps/changelog.txt | $(pkg_debian)
-	$(path_step)/make/convlog.pl <$^ $(pkg_name) $(pkg_revision)$(pkg_subversion) > $@
+	$(path_step)/make/build/debian/convlog.pl <$^ $(pkg_name) $(pkg_revision)$(pkg_subversion) > $@
 
 $(pkg_debian)/compat: | $(pkg_debian)
 	@echo 7 > $@
