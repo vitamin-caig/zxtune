@@ -24,7 +24,7 @@ ifneq (,$(findstring Gui,$(qt_libraries)))
 windows_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
 mingw_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
 ifdef STATIC_QT_PATH
-linux_libraries += freetype SM ICE Xrender fontconfig Xext X11
+linux_libraries += freetype SM ICE Xext X11
 dingux_libraries += png
 endif
 endif

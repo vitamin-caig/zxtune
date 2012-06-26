@@ -1,0 +1,17 @@
+Source: zxtune123
+Priority: optional
+Section: sound
+Maintainer: Vitamin <vitamin.caig@gmail.com>
+Build-Depends: debhelper
+Homepage: http://zxtune.googlecode.com/
+Vcs-Svn: http://zxtune.googlecode.com/svn/trunk/
+Vcs-Browser: http://code.google.com/p/zxtune/source/browse/#svn/trunk
+
+Package: zxtune123
+Architecture: any
+Depends: ${shlibs:Depends} ${misc:Depends}
+Conflicts: zxtune
+Suggests: libasound2, libflac-dev, libogg-dev, libvorbis-dev, libmp3lame
+Description: Commandline version of crossplatform ZX Spectrum music player and ripper.
+ See zxtune123_en.txt for detailed information.
+ Run with '--help' to get brief options information.

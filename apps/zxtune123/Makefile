@@ -34,11 +34,13 @@ mingw_resources := zxtune123
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
 
-install_linux: dist/$(manual_file)
-	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
+install_linux: install_linux_binary dist/$(manual_file)
 	install -m644 -D ../zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
 	install -m644 -D ../changelog.txt $(DESTDIR)/usr/share/zxtune/changelog.txt
 	install -m644 -D dist/$(manual_file) $(DESTDIR)/usr/share/zxtune/$(manual_file)
+
+install_linux_binary:
+	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
 
 install_windows install_mingw: dist/$(manual_file) install_samples
 	$(call copyfile_cmd,$(target),$(DESTDIR))

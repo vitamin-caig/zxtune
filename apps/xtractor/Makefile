@@ -18,7 +18,9 @@ mingw_resources := xtractor
 include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
 
-install_linux:
+install_linux: install_linux_binary
+
+install_linux_binary:
 	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
 
 install_windows install_mingw:

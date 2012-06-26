@@ -1,0 +1,15 @@
+Source: xtractor
+Priority: optional
+Section: utils
+Maintainer: Vitamin <vitamin.caig@gmail.com>
+Build-Depends: debhelper
+Homepage: http://zxtune.googlecode.com/
+Vcs-Svn: http://zxtune.googlecode.com/svn/trunk/
+Vcs-Browser: http://code.google.com/p/zxtune/source/browse/#svn/trunk
+
+Package: xtractor
+Architecture: any
+Depends: ${shlibs:Depends} ${misc:Depends}
+Conflicts: zxtune
+Description: CLI tool to analyze calgary data.
+ Run program with '--help' option to get brief information.

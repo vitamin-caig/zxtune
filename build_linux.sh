@@ -9,7 +9,7 @@ CanBuild()
     test -e ../Build/boost-linux-${arc} && test -e ../Build/qt-linux-${arc}
     ;;
    ubuntu)
-    which dpkg-deb >/dev/null 2>&1
+    which dpkg-buildpackage >/dev/null 2>&1
     ;;
    archlinux)
     which makepkg >/dev/null 2>&1
