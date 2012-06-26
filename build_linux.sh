@@ -17,6 +17,9 @@ CanBuild()
    redhat)
     which rpmbuild >/dev/null 2>&1
     ;;
+   dingux)
+    test -e ../Build/boost-dingux-${arc} && test -e ../Build/qt-dingux-${arc}
+    ;;
    *)
     false
     ;;
@@ -33,20 +36,27 @@ if [ -z "${Arches}" ]; then
 fi
 
 if [ -z "${Distros}" ]; then
-  Distros="any ubuntu archlinux redhat"
+  Distros="any ubuntu archlinux redhat dingux"
 fi
 
 unset skip_updating
 for arc in ${Arches}
 do
-  unset skip_clearing
-  unset no_debuginfo
   for dist in ${Distros}
   do
+    if [ "x${dist}" = "xdingux" ]; then
+      platform="dingux"
+      arc=mipsel
+      real_dist=any
+    else
+      platform="linux"
+      real_dist=${dist}
+    fi
     if CanBuild ${dist} ${arc} ; then
-      if skip_updating=${skip_updating} skip_clearing=${skip_clearing} no_debuginfo=${no_debuginfo} ./build.sh linux ${arc} ${dist} "${Targets}" ; then
-        skip_clearing=1
-        no_debuginfo=1
+      if skip_updating=${skip_updating} TOOLCHAIN_PATH=/opt/mipsel-linux-uclibc ./build.sh ${platform} ${arc} ${real_dist} "${Targets}" ; then
+        skip_updating=1
+      else
+        echo Failed
       fi
     else
       echo Build for ${dist}-${arc} is not supported
