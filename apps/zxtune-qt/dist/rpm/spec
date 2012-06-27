@@ -1,0 +1,12 @@
+Name:               zxtune-qt
+Summary:            Qt-based GUI version of crossplatform ZX Spectrum music player and ripper. 
+Release:            1
+Version:            r%{pkg_revision}
+License:            GPLv3
+Group:              Applications/Multimedia
+URL:                http://zxtune.googlecode.com
+Conflicts:          zxtune
+Vendor:             vitamin.caig@gmail.com
+
+%description
+  For additional information please visit homepage and online manual.

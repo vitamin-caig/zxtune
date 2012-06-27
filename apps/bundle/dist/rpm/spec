@@ -1,0 +1,12 @@
+Name:               zxtune
+Summary:            Crossplatform ZX Spectrum music player and ripper. 
+Release:            1
+Version:            r%{pkg_revision}
+License:            GPLv3
+Group:              Applications/Multimedia
+URL:                http://zxtune.googlecode.com
+Conflicts:          xtractor zxtune123 zxtune-qt
+Vendor:             vitamin.caig@gmail.com
+
+%description
+  This package includes CLI and GUI version of application and CLI tool xtractor that can be used to analyze images, programs, archvies etc. 

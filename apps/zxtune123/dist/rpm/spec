@@ -1,0 +1,12 @@
+Name:               zxtune123
+Summary:            Commandline version of crossplatform ZX Spectrum music player and ripper. 
+Release:            1
+Version:            r%{pkg_revision}
+License:            GPLv3
+Group:              Applications/Multimedia
+URL:                http://zxtune.googlecode.com
+Conflicts:          zxtune
+Vendor:             vitamin.caig@gmail.com
+
+%description
+  See zxtune123_en.txt for detailed information. Run with '--help' to get brief options information. 

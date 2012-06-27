@@ -1,0 +1,12 @@
+Name:               xtractor
+Summary:            CLI tool to analyze calgary data
+Release:            1
+Version:            r%{pkg_revision}
+License:            GPLv3
+Group:              Development/Tools
+URL:                http://zxtune.googlecode.com
+Conflicts:          zxtune
+Vendor:             vitamin.caig@gmail.com
+
+%description
+  Run program with '--help' option to get brief information.
