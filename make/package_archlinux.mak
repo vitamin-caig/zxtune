@@ -8,40 +8,27 @@ package_archlinux:
 	@$(info Creating package $(pkg_xz))
 	@$(MAKE) $(pkg_xz) > $(pkg_log) 2>&1
 
-$(pkg_xz): pkg_dependency
+$(pkg_xz): pkg_dependency pkg_files
 	@$(call showtime_cmd)
-	@$(MAKE) DESTDIR=$(pkg_root) install_archlinux
 	(cd $(pkg_dir) && makepkg -c -p archlinux/PKGBUILD --config archlinux/makepkg.conf)
 	$(call rmdir_cmd,$(pkg_archlinux))
 
 $(pkg_archlinux):
 	$(call makedir_cmd,$@)
 
-install_archlinux: install_linux $(pkg_archlinux)/PKGBUILD $(pkg_archlinux)/makepkg.conf
+pkg_files: $(pkg_archlinux)/PKGBUILD $(pkg_archlinux)/makepkg.conf
 
-$(pkg_archlinux)/PKGBUILD: | $(pkg_archlinux)
+$(pkg_archlinux)/PKGBUILD: dist/arch/pkgbuild | $(pkg_archlinux)
+	$(call copyfile_cmd,$^,$@)
 	@echo -e "\
-	# Maintainer: vitamin.caig@gmail.com\n\
-	pkgname=$(pkg_name)\n\
 	pkgver=r$(pkg_revision)\n\
 	pkgrel=1\n\
-	pkgdesc=\"$(pkg_desc)\"\n\
 	arch=('$(arch)')\n\
-	url=\"http://zxtune.googlecode.com\"\n\
-	license=('GPL3')\n\
-	depends=()\n\
-	optdepends=(\n\
-	'alsa-lib: for ALSA output support'\n\
-	'sdl: for SDL output support'\n\
-	'lame: for conversion to .mp3 format'\n\
-	'libvorbis: for conversion to .ogg format'\n\
-	'flac: for conversion to .flac format'\n\
-	)\n\
 	options=(!strip !docs !libtool !emptydirs !zipman makeflags)\n\n\
 	package() {\n\
-	cp -R $(CURDIR)/$(pkg_root)/* \x24{pkgdir}\n\
+	make DESTDIR=\x24{pkgdir} release=$(release) platform=$(platform) arch=$(arch) distro=$(distro) install -C `pwd`\n\
 	}\n\
-	" > $@
+	" >> $@
 
 $(pkg_archlinux)/makepkg.conf: | $(pkg_archlinux)
 	@echo -e "\

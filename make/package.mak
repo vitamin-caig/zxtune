@@ -3,7 +3,6 @@ pkg_revision := $(subst :,_,$(shell svnversion $(path_step)))
 pkg_subversion := $(if $(release),,_dbg)
 
 pkg_name ?= $(binary_name)
-pkg_desc ?= The $(binary_name) application is used to play chiptunes from ZX Spectrum
 pkg_tag := $(platform)$(if $(arch),_$(arch),)$(if $(distro),_$(distro),)
 pkg_dir := $(path_step)/Builds/Revision$(pkg_revision)_$(pkg_tag)
 pkg_log := $(pkg_dir)/packaging_$(pkg_name).log

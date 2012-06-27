@@ -26,7 +26,7 @@ $(pkg_redhat)/rpm.spec: dist/rpm/spec | $(pkg_redhat)
 	$(call copyfile_cmd,$^,$@)
 	echo -e "\n\
 %install\n\
-make DESTDIR=%{buildroot} release=1 install -C `pwd`\n\
+make DESTDIR=%{buildroot} release=$(release) platform=$(platform) arch=$(arch) distro=$(distro) install -C `pwd`\n\
 \n\
 %files -f files.list\n" >> $@
 

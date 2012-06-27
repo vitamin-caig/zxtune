@@ -1,0 +1,14 @@
+# Maintainer: vitamin.caig@gmail.com
+pkgname=zxtune
+pkgdesc="Crossplatform ZX Spectrum music player and ripper"
+url="http://zxtune.googlecode.com"
+license=('GPL3')
+depends=('boost-libs' 'gcc-libs' 'qt')
+conflicts=('xtractor' 'zxtune123' 'zxtune-qt')
+optdepends=(
+ 'alsa-lib: for ALSA output support'
+ 'sdl: for SDL output support'
+ 'lame: for conversion to .mp3 format'
+ 'libvorbis: for conversion to .ogg format'
+ 'flac: for conversion to .flac format'
+)
