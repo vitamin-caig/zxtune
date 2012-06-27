@@ -11,14 +11,23 @@ CanBuild()
    ubuntu)
     which dpkg-buildpackage >/dev/null 2>&1
     ;;
+   ubuntu:any)
+    CanBuild ubuntu ${arc} && CanBuild any ${arc}
+    ;;
    archlinux)
     which makepkg >/dev/null 2>&1
+    ;;
+   archlinux:any)
+    CanBuild archlinux ${arc} && CanBuild any ${arc}
     ;;
    redhat)
     which rpmbuild >/dev/null 2>&1
     ;;
+   redhat:any)
+    CanBuild redhat ${arc} && CanBuild any ${arc}
+    ;;
    dingux)
-    test -e ../Build/boost-dingux-${arc} && test -e ../Build/qt-dingux-${arc}
+    test -e /opt/mipsel-linux-uclibc && test -e ../Build/boost-dingux-${arc} && test -e ../Build/qt-dingux-${arc}
     ;;
    *)
     false

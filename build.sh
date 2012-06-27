@@ -19,7 +19,9 @@ echo "Updating"
 svn up > /dev/null || (echo "Failed to update" && exit 1)
 fi
 
-if [ "x${Distro}" != "xany" ]; then
+DistroType=`echo ${Distro} | cut -d ':' -f 2`
+Distro=`echo ${Distro} | cut -d ':' -f 1`
+if [ "x${DistroType}" != "xany" ]; then
   BOOST_VERSION=system
   QT_VERSION=system
 fi

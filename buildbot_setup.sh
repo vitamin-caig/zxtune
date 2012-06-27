@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test -e buildbot.config && . ./buildbot.config
+test "x$1" != "x--recreate" && test -e ~/buildbot.config && . ~/buildbot.config
 
 if [ -z "${build_targets}" ]; then
   echo "Setting up default targets"
@@ -18,7 +18,7 @@ if [ -z "${build_distribs}" ]; then
   which dpkg-buildpackage >/dev/null 2>&1 && build_distribs="${build_distribs+${build_distribs} }ubuntu"
   which makepkg >/dev/null 2>&1 && build_distribs="${build_distribs+${build_distribs} }archlinux"
   which rpmbuild >/dev/null 2>&1 && build_distribs="${build_distribs+${build_distribs} }redhat"
-  test -e ../Build/boost-dingux-mipsel && test -e ../Build/qt-dingux-mipsel && build_distribs="${build_distribs+${build_distribs} }dingux"
+  test -e /opt/mipsel-linux-uclibc && test -e ../Build/boost-dingux-mipsel && test -e ../Build/qt-dingux-mipsel && build_distribs="${build_distribs+${build_distribs} }dingux"
 fi
 
 read -p "Targets [${build_targets}]: " build_targets_new
@@ -29,10 +29,10 @@ test -n "${build_targets_new}" && build_targets=${build_targets_new}
 test -n "${build_architectures_new}" && build_architectures=${build_architectures_new}
 test -n "${build_distribs_new}" && build_distribs=${build_distribs_new}
 
-echo "\
+printf "\
 #!/bin/sh\n\
-build_targets=\"${build_targets}\"\n\
-build_architectures=\"${build_architectures}\"\n\
-build_distribs=\"${build_distribs}\"\n\
-" > buildbot.config
-chmod +x buildbot.config
+build_targets=\"%s\"\n\
+build_architectures=\"%s\"\n\
+build_distribs=\"%s\"\n\
+" "${build_targets}" "${build_architectures}" "${build_distribs}" > ~/buildbot.config
+chmod +x ~/buildbot.config
