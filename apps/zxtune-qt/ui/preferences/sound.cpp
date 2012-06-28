@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "sound.h"
 #include "sound.ui.h"
+#include "sound_alsa.h"
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
@@ -42,7 +43,7 @@ namespace
     44100,
     48000
   };
-  
+
   StringArray GetSystemBackends(Parameters::Accessor::Ptr params)
   {
     StringArray result;
@@ -59,15 +60,13 @@ namespace
                            , public Ui::SoundOptions
   {
   public:
-    SoundOptionsWidget(QWidget& parent, bool playing)
+    explicit SoundOptionsWidget(QWidget& parent)
       : UI::SoundSettingsWidget(parent)
       , Options(GlobalOptions::Instance().Get())
       , Backends(GetSystemBackends(Options))
     {
       //setup self
       setupUi(this);
-      frameDurationValue->setDisabled(playing);
-      soundFrequency->setDisabled(playing);
 
       FillFrequences();
       FillBackends();
@@ -89,8 +88,13 @@ namespace
       Options->SetValue(Parameters::ZXTune::Sound::FREQUENCY, val);
     }
     
-    virtual void SelectBackend(int /*idx*/)
+    virtual void SelectBackend(int idx)
     {
+      const String id = Backends[idx];
+      for (std::map<String, QWidget*>::const_iterator it = SetupPages.begin(), lim = SetupPages.end(); it != lim; ++it)
+      {
+        it->second->setVisible(it->first == id);
+      }
     }
     
     virtual void MoveBackendUp()
@@ -126,6 +130,18 @@ namespace
     void FillBackends()
     {
       std::for_each(Backends.begin(), Backends.end(), boost::bind(&SoundOptionsWidget::AddBackend, this, _1));
+      AddPage(&UI::AlsaSettingsWidget::Create);
+    }
+
+    void AddPage(UI::BackendSettingsWidget* (*factory)(QWidget&))
+    {
+      std::auto_ptr<UI::BackendSettingsWidget> wid(factory(*backendSettings));
+      const String id = wid->GetBackendId();
+      if (Backends.end() != std::find(Backends.begin(), Backends.end(), id))
+      {
+        wid->hide();
+        SetupPages[id] = wid.release();
+      }
     }
     
     void AddBackend(const String& id)
@@ -170,6 +186,7 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
     StringArray Backends;
+    std::map<String, QWidget*> SetupPages;
   };
 }
 namespace UI
@@ -179,8 +196,8 @@ namespace UI
   {
   }
 
-  SoundSettingsWidget* SoundSettingsWidget::Create(QWidget& parent, bool playing)
+  SoundSettingsWidget* SoundSettingsWidget::Create(QWidget& parent)
   {
-    return new SoundOptionsWidget(parent, playing);
+    return new SoundOptionsWidget(parent);
   }
 }

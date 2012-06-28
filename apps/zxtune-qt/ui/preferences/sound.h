@@ -26,7 +26,7 @@ namespace UI
   protected:
     explicit SoundSettingsWidget(QWidget& parent);
   public:
-    static SoundSettingsWidget* Create(QWidget& parent, bool playing);
+    static SoundSettingsWidget* Create(QWidget& parent);
   private slots:
     virtual void ChangeSoundFrequency(int idx) = 0;
     virtual void SelectBackend(int idx) = 0;

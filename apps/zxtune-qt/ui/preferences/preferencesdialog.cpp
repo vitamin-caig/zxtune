@@ -48,7 +48,7 @@ namespace
       {
         UI::AYMSettingsWidget::Create(*Categories),
         UI::Z80SettingsWidget::Create(*Categories),
-        UI::SoundSettingsWidget::Create(*Categories, playing),
+        UI::SoundSettingsWidget::Create(*Categories),
         UI::MixingSettingsWidget::Create(*Categories, 3),
         UI::MixingSettingsWidget::Create(*Categories, 4),
         UI::PluginsSettingsWidget::Create(*Categories)
@@ -56,6 +56,7 @@ namespace
       std::for_each(pages, ArrayEnd(pages),
         boost::bind(&QTabWidget::addTab, Categories, _1, boost::bind(&QWidget::windowTitle, _1)));
 
+      Categories->setTabEnabled(2, !playing);
       State->AddWidget(*Categories);
       State->Load();
     }
