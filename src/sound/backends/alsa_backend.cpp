@@ -64,6 +64,8 @@ namespace
 
     static void Shutdown()
     {
+      //Due to static instances of traits, this call may cause crash
+      //::snd_config_update_free_global();
       Log::Debug(THIS_MODULE, "Library unloaded");
     }
   };
@@ -203,6 +205,49 @@ namespace
     }
   };
 
+  class MixerElementsIterator : public ObjectIterator<snd_mixer_elem_t*>
+  {
+  public:
+    explicit MixerElementsIterator(snd_mixer_t& mixer)
+      : Current(::snd_mixer_first_elem(&mixer))
+    {
+      SkipNotsupported();
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current != 0;
+    }
+
+    virtual snd_mixer_elem_t* Get() const
+    {
+      return Current;
+    }
+
+    virtual void Next()
+    {
+      Current = ::snd_mixer_elem_next(Current);
+      SkipNotsupported();
+    }
+  private:
+    void SkipNotsupported()
+    {
+      while (Current)
+      {
+        const snd_mixer_elem_type_t type = ::snd_mixer_elem_get_type(Current);
+        if (type == SND_MIXER_ELEM_SIMPLE &&
+            ::snd_mixer_selem_has_playback_volume(Current) != 0 &&
+            ::snd_mixer_selem_has_capture_volume(Current) == 0)
+        {
+          break;
+        }
+        Current = ::snd_mixer_elem_next(Current);
+      }
+    }
+  private:
+    snd_mixer_elem_t* Current;
+  };
+
   class AutoMixer : public AutoHandle<snd_mixer_t>
   {
   public:
@@ -211,49 +256,16 @@ namespace
     {
     }
 
-    explicit AutoMixer(const String& deviceName, const String& mixerName)
+    explicit AutoMixer(const String& deviceName)
       : AutoHandle<snd_mixer_t>(deviceName)
-      , MixerName(mixerName)
+      , MixerName()
       , MixerElement(0)
     {
-      Log::Debug(THIS_MODULE, "Opening mixer '%1%' for device '%2%'", mixerName, deviceName);
       CheckResult(::snd_mixer_open(&Handle, 0), THIS_LINE);
       CheckedCall(&::snd_mixer_attach, IO::ConvertToFilename(Name).c_str(), THIS_LINE);
       CheckedCall(&::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(0), static_cast<snd_mixer_class_t**>(0), THIS_LINE);
       CheckedCall(&::snd_mixer_load, THIS_LINE);
-      //find mixer element
-
-      snd_mixer_selem_id_t* sid = 0;
-      snd_mixer_selem_id_alloca(&sid);
-      for (snd_mixer_elem_t* elem = ::snd_mixer_first_elem(Handle); elem; elem = ::snd_mixer_elem_next(elem))
-      {
-        const snd_mixer_elem_type_t type = ::snd_mixer_elem_get_type(elem);
-        if (type == SND_MIXER_ELEM_SIMPLE &&
-            ::snd_mixer_selem_has_playback_volume(elem) != 0)
-        {
-          ::snd_mixer_selem_get_id(elem, sid);
-          const String mixName(FromStdString(::snd_mixer_selem_id_get_name(sid)));
-          Log::Debug(THIS_MODULE, "Checking for mixer %1%", mixName);
-          if (MixerName.empty())
-          {
-            Log::Debug(THIS_MODULE, "Using first mixer: %1%", mixName);
-            MixerName = mixName;
-            MixerElement = elem;
-            break;
-          }
-          else if (MixerName == mixName)
-          {
-            Log::Debug(THIS_MODULE, "Found mixer: %1%", mixName);
-            MixerElement = elem;
-            break;
-          }
-        }
-      }
-      if (!MixerElement)
-      {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::SOUND_ERROR_ALSA_BACKEND_NO_MIXER, MixerName);
-      }
+      Select(String());
     }
 
     ~AutoMixer()
@@ -344,6 +356,48 @@ namespace
       }
     }
 
+    void Select(const String& name)
+    {
+      Log::Debug(THIS_MODULE, "Opening mixer '%1%'' for device '%2%'", name, Name);
+      //find mixer element
+      for (MixerElementsIterator iter(*Handle); iter.IsValid(); iter.Next())
+      {
+        snd_mixer_elem_t* const elem = iter.Get();
+        const String mixName(FromStdString(::snd_mixer_selem_get_name(elem)));
+        Log::Debug(THIS_MODULE, "Checking for mixer %1%", mixName);
+        if (name.empty())
+        {
+          Log::Debug(THIS_MODULE, "Using first mixer: %1%", mixName);
+          MixerName = mixName;
+          MixerElement = elem;
+          break;
+        }
+        else if (name == mixName)
+        {
+          Log::Debug(THIS_MODULE, "Found mixer: %1%", mixName);
+          MixerName = mixName;
+          MixerElement = elem;
+          break;
+        }
+      }
+      if (!MixerElement)
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          Text::SOUND_ERROR_ALSA_BACKEND_NO_MIXER, MixerName);
+      }
+    }
+
+    StringArray Enumerate() const
+    {
+      StringArray result;
+      for (MixerElementsIterator iter(*Handle); iter.IsValid(); iter.Next())
+      {
+        snd_mixer_elem_t* const elem = iter.Get();
+        const String mixName(FromStdString(::snd_mixer_selem_get_name(elem)));
+        result.push_back(mixName);
+      }
+      return result;
+    }
   private:
     String MixerName;
     snd_mixer_elem_t* MixerElement;
@@ -539,7 +593,8 @@ namespace
       Log::Debug(THIS_MODULE, canPause ? "Hardware support pause" : "Hardware doesn't support pause");
       tmpDevice.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
       const String mixerName = params.GetMixerName();
-      AutoMixer tmpMixer(deviceName, mixerName);
+      AutoMixer tmpMixer(deviceName);
+      tmpMixer.Select(mixerName);
 
       device.Swap(tmpDevice);
       mixer.Swap(tmpMixer);
@@ -592,6 +647,22 @@ namespace
       }
     }
   };
+
+  boost::shared_ptr<void*> GetDeviceNamePCMHint()
+  {
+    void** hints = 0;
+    return ::snd_device_name_hint(-1, "pcm", &hints) >= 0
+      ? boost::shared_ptr<void*>(hints, &::snd_device_name_free_hint)
+      : boost::shared_ptr<void*>();
+  }
+
+  boost::shared_ptr<snd_ctl_t> OpenDevice(const std::string& deviceName)
+  {
+    snd_ctl_t* ctl = 0;
+    return ::snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
+      ? boost::shared_ptr<snd_ctl_t>(ctl, &::snd_ctl_close)
+      : boost::shared_ptr<snd_ctl_t>();
+  }
 }
 
 namespace ZXTune
@@ -609,6 +680,46 @@ namespace ZXTune
       else
       {
         Log::Debug(THIS_MODULE, "%1%", Error::ToString(AlsaLibrary::Instance().GetLoadError()));
+      }
+    }
+
+    namespace ALSA
+    {
+      StringArray EnumerateDevices()
+      {
+        StringArray result;
+        if (const boost::shared_ptr<void*> hints = GetDeviceNamePCMHint())
+        {
+          for (void** hint = hints.get(); *hint; ++hint)
+          {
+            const boost::shared_ptr<const char> iod(::snd_device_name_get_hint(*hint, "IOID"), &free);
+            if (iod.get() && 0 == std::strcmp(iod.get(), "Input"))
+            {
+              continue;//skip input-only devices
+            }
+            const boost::shared_ptr<const char> nameC(::snd_device_name_get_hint(*hint, "NAME"), &free);
+            const std::string fullName(nameC.get());
+            const std::string ctlName(fullName.substr(0, fullName.find(':')));
+            if (const boost::shared_ptr<snd_ctl_t> ctl = OpenDevice(ctlName))
+            {
+              result.push_back(FromStdString(ctlName));
+            }
+          }
+        }
+        return result;
+      }
+
+      StringArray EnumerateMixers(const String& device)
+      {
+        try
+        {
+          const AutoMixer mixer(device);
+          return mixer.Enumerate();
+        }
+        catch (const Error&)
+        {
+          return StringArray();
+        }
       }
     }
   }
@@ -783,14 +894,19 @@ size_t snd_mixer_selem_id_sizeof(void)
   return ASOUND_FUNC(snd_mixer_selem_id_sizeof)();
 }
 
-const char *snd_mixer_selem_id_get_name(const snd_mixer_selem_id_t *obj)
+const char *snd_mixer_selem_get_name(snd_mixer_elem_t *elem)
 {
-  return ASOUND_FUNC(snd_mixer_selem_id_get_name)(obj);
+  return ASOUND_FUNC(snd_mixer_selem_get_name)(elem);
 }
 
 int snd_mixer_selem_has_playback_volume(snd_mixer_elem_t *elem)
 {
   return ASOUND_FUNC(snd_mixer_selem_has_playback_volume)(elem);
+}
+
+int snd_mixer_selem_has_capture_volume(snd_mixer_elem_t *elem)
+{
+  return ASOUND_FUNC(snd_mixer_selem_has_capture_volume)(elem);
 }
 
 int snd_mixer_selem_get_playback_volume_range(snd_mixer_elem_t *elem, long *min, long *max)
@@ -808,6 +924,31 @@ int snd_mixer_selem_set_playback_volume(snd_mixer_elem_t *elem, snd_mixer_selem_
   return ASOUND_FUNC(snd_mixer_selem_set_playback_volume)(elem, channel, value);
 }
 
+int snd_device_name_hint(int card, const char* iface, void*** hints)
+{
+  return ASOUND_FUNC(snd_device_name_hint)(card, iface, hints);
+}
+
+int snd_device_name_free_hint(void** hints)
+{
+  return ASOUND_FUNC(snd_device_name_free_hint)(hints);
+}
+
+char* snd_device_name_get_hint(const void* hint, const char* id)
+{
+  return ASOUND_FUNC(snd_device_name_get_hint)(hint, id);
+}
+
+int snd_ctl_open(snd_ctl_t** ctlp, const char* name, int mode)
+{
+  return ASOUND_FUNC(snd_ctl_open)(ctlp, name, mode);
+}
+
+int snd_ctl_close(snd_ctl_t* ctl)
+{
+  return ASOUND_FUNC(snd_ctl_close)(ctl);
+}
+
 #else //not supported
 
 namespace ZXTune
@@ -817,6 +958,19 @@ namespace ZXTune
     void RegisterAlsaBackend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
+    }
+
+    namespace ALSA
+    {
+      StringArray EnumerateDevices()
+      {
+        return StringArray();
+      }
+
+      StringArray EnumerateMixers(const String& /*device*/)
+      {
+        return StringArray();
+      }
     }
   }
 }
