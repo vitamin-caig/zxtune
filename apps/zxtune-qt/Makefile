@@ -59,11 +59,11 @@ include $(path_step)/make/package.mak
 
 install_linux: install_linux_binary
 	install -m644 -D ../changelog.txt $(DESTDIR)/usr/share/zxtune/changelog.txt
-	install -m644 -D dist/linux/zxTune.desktop $(DESTDIR)/usr/share/applications/zxTune.desktop
-	install -m644 -D $(theme_resources)/zxtune.png $(DESTDIR)/usr/share/icons/zxtune.png
 
 install_linux_binary:
 	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
+	install -m644 -D dist/linux/zxTune.desktop $(DESTDIR)/usr/share/applications/zxTune.desktop
+	install -m644 -D $(theme_resources)/zxtune.png $(DESTDIR)/usr/share/icons/zxtune.png
 
 install_windows install_mingw: install_samples install_samples_playlist
 	$(call copyfile_cmd,$(target),$(DESTDIR))
