@@ -75,7 +75,7 @@ namespace
       Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
       Options->FindValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
       SetFrequency(freq);
-      connect(soundFrequency, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int)));
+      connect(soundFrequencyValue, SIGNAL(currentIndexChanged(int)), SLOT(ChangeSoundFrequency(int)));
 
       connect(backendsList, SIGNAL(currentRowChanged(int)), SLOT(SelectBackend(int)));
       connect(moveUp, SIGNAL(released()), SLOT(MoveBackendUp()));
@@ -124,7 +124,7 @@ namespace
     void AddFrequency(uint_t freq)
     {
       const QString txt = QString("%1 Hz").arg(freq);
-      soundFrequency->addItem(txt);
+      soundFrequencyValue->addItem(txt);
     }
 
     void FillBackends()
@@ -154,7 +154,7 @@ namespace
       const uint_t* const frq = std::find(FREQUENCES, ArrayEnd(FREQUENCES), val);
       if (frq != ArrayEnd(FREQUENCES))
       {
-        soundFrequency->setCurrentIndex(frq - FREQUENCES);
+        soundFrequencyValue->setCurrentIndex(frq - FREQUENCES);
       }
     }
 

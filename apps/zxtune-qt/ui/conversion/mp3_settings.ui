@@ -62,6 +62,9 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
+          <property name="suffix">
+           <string> kBps</string>
+          </property>
           <property name="minimum">
            <number>32</number>
           </property>

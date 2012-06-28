@@ -33,7 +33,7 @@
        <number>4</number>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel">
+       <widget class="QLabel" name="frameDurationLabel">
         <property name="text">
          <string>Frame duration</string>
         </property>
@@ -42,7 +42,7 @@
       <item row="0" column="1">
        <widget class="QSpinBox" name="frameDurationValue">
         <property name="suffix">
-         <string>uS</string>
+         <string> uS</string>
         </property>
         <property name="minimum">
          <number>1000</number>
@@ -53,14 +53,14 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel">
+       <widget class="QLabel" name="soundFrequencyLabel">
         <property name="text">
          <string>Sound frequency</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QComboBox" name="soundFrequency"/>
+       <widget class="QComboBox" name="soundFrequencyValue"/>
       </item>
      </layout>
     </widget>

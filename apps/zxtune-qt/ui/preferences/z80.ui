@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>320</width>
-    <height>60</height>
+    <height>85</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,19 +21,22 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QGroupBox">
+    <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Oscillator settings</string>
      </property>
      <layout class="QFormLayout">
-      <property name="spacing">
+      <property name="horizontalSpacing">
+       <number>4</number>
+      </property>
+      <property name="verticalSpacing">
        <number>4</number>
       </property>
       <property name="margin">
        <number>4</number>
       </property>
       <item row="0" column="0">
-       <widget class="QLabel">
+       <widget class="QLabel" name="clockRateLabel">
         <property name="text">
          <string>Clock rate, Hz</string>
         </property>
@@ -47,14 +50,17 @@
        </widget>
       </item>
       <item row="1" column="0">
-       <widget class="QLabel">
+       <widget class="QLabel" name="intDurationLabel">
         <property name="text">
-         <string>INT duration, ticks</string>
+         <string>INT duration</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QSpinBox" name="intDurationValue">
+        <property name="suffix">
+         <string> ticks</string>
+        </property>
         <property name="minimum">
          <number>1</number>
         </property>

@@ -31,7 +31,8 @@ namespace
     1773400,
     1750000,
     2000000,
-    1000000
+    1000000,
+    3500000
   };
 
   class AYMOptionsWidget : public UI::AYMSettingsWidget
