@@ -51,11 +51,38 @@ namespace
   const uint_t QUALITY_MIN = 0;
   const uint_t QUALITY_MAX = 9;
 
-  struct LameLibraryTraits
+  class LameName : public SharedLibrary::Name
   {
-    static std::string GetName()
+  public:
+    virtual std::string Base() const
     {
       return "mp3lame";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libmp3lame.so.0",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libmp3lame.dll",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+  } Names;
+
+  struct LameLibraryTraits
+  {
+    static const SharedLibrary::Name& GetName()
+    {
+      return Names;
     }
 
     static void Startup()

@@ -49,12 +49,36 @@ namespace
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
-  
-  struct AlsaLibraryTraits
+
+  class AlsaName : public SharedLibrary::Name
   {
-    static std::string GetName()
+  public:
+    virtual std::string Base() const
     {
       return "asound";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libasound.so.2.0.0",//deb-based
+        "libasound.so.2",    //rpm-based
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      return std::vector<std::string>();
+    }
+  } Names;
+
+  struct AlsaLibraryTraits
+  {
+    static const SharedLibrary::Name& GetName()
+    {
+      return Names;
     }
 
     static void Startup()

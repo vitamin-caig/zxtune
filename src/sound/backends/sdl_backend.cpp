@@ -51,11 +51,34 @@ namespace
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
 
-  struct SDLLibraryTraits
+  class SDLName : public SharedLibrary::Name
   {
-    static std::string GetName()
+  public:
+    virtual std::string Base() const
     {
       return "SDL";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libSDL-1.2.so.0",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      return std::vector<std::string>();
+    }
+  } Names;
+
+  struct SDLLibraryTraits
+  {
+    static const SharedLibrary::Name& GetName()
+    {
+      return Names;
     }
 
     static void Startup()

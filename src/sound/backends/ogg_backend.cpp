@@ -52,11 +52,34 @@ namespace
   const uint_t QUALITY_MIN = 0;
   const uint_t QUALITY_MAX = 10;
 
-  struct VorbisEncLibraryTraits
+  class VorbisEncName : public SharedLibrary::Name
   {
-    static std::string GetName()
+  public:
+    virtual std::string Base() const
     {
       return "vorbisenc";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libvorbisenc.so.2",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      return std::vector<std::string>();
+    }
+  } NamesVorbisenc;
+
+  struct VorbisEncLibraryTraits
+  {
+    static const SharedLibrary::Name& GetName()
+    {
+      return NamesVorbisenc;
     }
 
     static void Startup()
@@ -72,11 +95,34 @@ namespace
 
   typedef SharedLibraryGate<VorbisEncLibraryTraits> VorbisEncLibrary;
 
-  struct VorbisLibraryTraits
+  class VorbisName : public SharedLibrary::Name
   {
-    static std::string GetName()
+  public:
+    virtual std::string Base() const
     {
       return "vorbis";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libvorbis.so.0",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      return std::vector<std::string>();
+    }
+  } NamesVorbis;
+
+  struct VorbisLibraryTraits
+  {
+    static const SharedLibrary::Name& GetName()
+    {
+      return NamesVorbis;
     }
 
     static void Startup()
@@ -92,11 +138,34 @@ namespace
 
   typedef SharedLibraryGate<VorbisLibraryTraits> VorbisLibrary;
 
-  struct OggLibraryTraits
+  class OggName : public SharedLibrary::Name
   {
-    static std::string GetName()
+  public:
+    virtual std::string Base() const
     {
       return "ogg";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libogg.so.0",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      return std::vector<std::string>();
+    }
+  } NamesOgg;
+
+  struct OggLibraryTraits
+  {
+    static const SharedLibrary::Name& GetName()
+    {
+      return NamesOgg;
     }
 
     static void Startup()

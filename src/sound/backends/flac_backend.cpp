@@ -46,12 +46,36 @@ namespace
   const std::string THIS_MODULE("Sound::Backend::Flac");
 
   const Char FLAC_BACKEND_ID[] = {'f', 'l', 'a', 'c', 0};
+  
+  class FlacName : public SharedLibrary::Name
+  {
+  public:
+    virtual std::string Base() const
+    {
+      return "FLAC";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libFLAC.so.7",
+        "libFLAC.so.8"
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      return std::vector<std::string>();
+    }
+  } Names;
 
   struct FlacLibraryTraits
   {
-    static std::string GetName()
+    static const SharedLibrary::Name& GetName()
     {
-      return "FLAC";
+      return Names;
     }
 
     static void Startup()
