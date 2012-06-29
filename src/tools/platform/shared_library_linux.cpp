@@ -58,14 +58,18 @@ namespace
     const boost::shared_ptr<void> Handle;
   };
   
+  const std::string SUFFIX(".so");
+  
   std::string BuildLibraryFilename(const std::string& name)
   {
-    return "lib" + name + ".so";
+    return "lib" + name + SUFFIX;
   }
 }
 
 SharedLibrary::Ptr SharedLibrary::Load(const std::string& name)
 {
-  const std::string filename = BuildLibraryFilename(name);
+  const std::string filename = name.find(SUFFIX) == name.npos
+    ? BuildLibraryFilename(name)
+    : name;
   return boost::make_shared<LinuxSharedLibrary>(filename);
 }

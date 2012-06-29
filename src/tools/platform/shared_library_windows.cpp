@@ -59,14 +59,18 @@ namespace
     const HMODULE Handle;
   };
   
+  const std::string SUFFIX(".dll");
+  
   std::string BuildLibraryFilename(const std::string& name)
   {
-    return name + ".dll";
+    return name + SUFFIX;
   }
 }
 
 SharedLibrary::Ptr SharedLibrary::Load(const std::string& name)
 {
-  const std::string filename = BuildLibraryFilename(name);
+  const std::string filename = name.find(SUFFIX) == name.npos
+    ? BuildLibraryFilename(name)
+    : name;
   return boost::make_shared<WindowsSharedLibrary>(filename);
 }

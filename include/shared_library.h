@@ -20,7 +20,8 @@ public:
   virtual void* GetSymbol(const std::string& name) const = 0;
 
   //! @param name Library name without platform-dependent prefixes and extension
-  // E.g. Load("SDL") will call LoadImpl("libSDL.so") for Linux and LoadImpl("SDL.dll") for Windows
+  // E.g. Load("SDL") will try to load "libSDL.so" for Linux and and "SDL.dll" for Windows
+  // If platform-dependent full filename is specified, no substitution is made
   static Ptr Load(const std::string& name);
 };
 
