@@ -975,6 +975,9 @@ int snd_ctl_close(snd_ctl_t* ctl)
 
 #else //not supported
 
+//local includes
+#include "alsa.h"
+
 namespace ZXTune
 {
   namespace Sound
