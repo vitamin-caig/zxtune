@@ -11,7 +11,7 @@ Package: zxtune123
 Architecture: any
 Depends: ${shlibs:Depends} ${misc:Depends}
 Conflicts: zxtune
-Suggests: libasound2, libflac-dev, libogg-dev, libvorbis-dev, libmp3lame
+Suggests: libasound2, libflac8, libogg0, libvorbis0a, libvorbisenc2, libmp3lame
 Description: Commandline version of crossplatform ZX Spectrum music player and ripper.
  See zxtune123_en.txt for detailed information.
  Run with '--help' to get brief options information.

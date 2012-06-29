@@ -11,6 +11,6 @@ Package: zxtune
 Architecture: any
 Depends: ${shlibs:Depends} ${misc:Depends}
 Conflicts: xtractor, zxtune123, zxtune-qt
-Suggests: libasound2, libflac-dev, libogg-dev, libvorbis-dev, libmp3lame
+Suggests: libasound2, libflac8, libogg0, libvorbis0a, libvorbisenc2, libmp3lame
 Description: Crossplatform ZX Spectrum music player and ripper.
  This package includes CLI and GUI version of application and CLI tool xtractor that can be used to analyze images, programs, archvies etc.
