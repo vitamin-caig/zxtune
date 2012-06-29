@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./build_linux.sh i686
+./build.sh linux-i686

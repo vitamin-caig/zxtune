@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./build_linux.sh x86_64
+./build.sh linux-x86_64

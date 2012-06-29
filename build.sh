@@ -1,31 +1,45 @@
 #!/bin/sh
 
 #builds one or more targets for specified architecture, platform and distribution
+if [ $# -eq 0 ]; then
+  echo "$0 platform-arch[-packaging[-distro]] targets"
+  exit 0
+fi
 
-Platform=$1
-Arch=$2
-Distro=$3
-Targets=$4
+Mode=$1
+if [ -z "${Mode}" ]; then
+  echo "No mode specified"
+  exit 1
+fi;
+
+Targets=$2
+Platform=`echo ${Mode} | cut -d '-' -f 1`
+Arch=`echo ${Mode} | cut -d '-' -f 2`
+Packaging=`echo ${Mode} | cut -d '-' -f 3`
+Distro=`echo ${Mode} | cut -d '-' -f 4`
 Formats=txt
 Languages=en
 
-if [ -z "${Targets}" ]; then
+if [ -z "${Platform}" -o -z "${Arch}" ]; then
+  echo "Invalid format"
+  exit 1
+fi
+
+if [ -z "${Packaging}" ]; then
+  Packaging="any"
+  echo "No packaging specified. Using default '${Packaging}'"
+fi
+
+if [ -z "$2" ]; then
   Targets="xtractor zxtune123 zxtune-qt"
+  echo "No targets specified. Using default '${Targets}'"
 fi
 
-if [ -z "${skip_updating}" ]; then
-# get current build and vesion
-echo "Updating"
-svn up > /dev/null || (echo "Failed to update" && exit 1)
-fi
-
-DistroType=`echo ${Distro} | cut -d ':' -f 2`
-Distro=`echo ${Distro} | cut -d ':' -f 1`
-if [ "x${DistroType}" != "xany" ]; then
+# on some platforms qt and boost includes are not in standard path, so setup_* is required in any case
+if [ "x${Distro}" != "xany" -a "x${Distro}" != "x" ]; then
   BOOST_VERSION=system
   QT_VERSION=system
 fi
-# on some platforms qt and boost includes are not in standard path, so setup_* is required in any case
 . make/platforms/setup_qt.sh || exit 1
 . make/platforms/setup_boost.sh || exit 1
 # checking for textator or assume that texts are correct
@@ -51,7 +65,7 @@ case ${Arch} in
     ;;
 esac
 
-makecmd="make platform=${Platform} release=1 arch=${Arch} distro=${Distro} -C apps/"
+makecmd="make release=1 platform=${Platform} arch=${Arch} -C apps/"
 if [ -z "${skip_clearing}" ]; then
   echo "Clearing"
   for target in ${Targets}
@@ -62,6 +76,6 @@ fi
 
 for target in ${Targets}
 do
-  echo "Building ${target} ${Platform}-${Distro}-${Arch}"
-  time ${makecmd}${target} -j ${cpus} package ${options} cxx_flags="${cxx_flags}" ld_flags="${ld_flags}" && echo Done
+  echo "Building ${target} ${Platform}-${Arch}"
+  time ${makecmd}${target} -j ${cpus} package packaging=${Packaging} distro=${Distro} ${options} cxx_flags="${cxx_flags}" ld_flags="${ld_flags}" && echo Done
 done

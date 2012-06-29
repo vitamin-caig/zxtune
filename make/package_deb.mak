@@ -1,5 +1,5 @@
 #debian-related files
-pkg_debian_root = $(pkg_dir)/$(pkg_name)_$(pkg_revision)$(pkg_subversion)
+pkg_debian_root = $(pkg_dir)/$(pkg_name)_$(pkg_revision)
 pkg_debian = $(pkg_debian_root)/debian
 
 ifneq ($(findstring $(arch),i386 i486 i586 i686),)
@@ -12,28 +12,26 @@ else
 $(warning Unknown debian package architecture)
 arch_deb = $(arch)
 endif
-pkg_deb = $(pkg_dir)/$(pkg_name)_$(pkg_revision)$(pkg_subversion)_$(arch_deb).deb
+pkg_file = $(pkg_dir)/$(pkg_name)_r$(pkg_revision)$(pkg_subversion)_$(arch_deb)$(distro).deb
 
-package_ubuntu:
-	@$-$(call rmfiles_cmd,$(pkg_deb) $(pkg_log))
-	@$(info Creating package $(pkg_deb))
-	@$(MAKE) $(pkg_deb) > $(pkg_log) 2>&1
+package_deb:
+	$(info Creating $(pkg_file))
+	-$(call rmfiles_cmd,$(pkg_file))
+	$(MAKE) $(pkg_file) > $(pkg_log) 2>&1
 
-$(pkg_deb): pkg_dependency dpkg_files
+$(pkg_file): $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control $(pkg_debian)/docs $(pkg_debian)/rules $(pkg_debian)/copyright
 	@$(call showtime_cmd)
-	(cd $(pkg_debian_root) && dpkg-buildpackage -b )
+	(cd $(pkg_debian_root) && dpkg-buildpackage -b) && mv $(pkg_dir)/`basename $(pkg_debian_root)`_$(arch_deb).deb $@
 	$(call rmdir_cmd,$(pkg_debian_root))
 
 $(pkg_debian):
 	$(call makedir_cmd,$@)
 
-dpkg_files: $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control $(pkg_debian)/docs $(pkg_debian)/rules $(pkg_debian)/copyright
-
 $(pkg_debian)/changelog: $(path_step)/apps/changelog.txt | $(pkg_debian)
 	$(path_step)/make/build/debian/convlog.pl <$^ $(pkg_name) $(pkg_revision)$(pkg_subversion) > $@
 
 $(pkg_debian)/compat: | $(pkg_debian)
-	@echo 7 > $@
+	echo 7 > $@
 
 $(pkg_debian)/control: dist/debian/control | $(pkg_debian)
 	$(call copyfile_cmd,$^,$@);
@@ -41,10 +39,10 @@ $(pkg_debian)/control: dist/debian/control | $(pkg_debian)
 escaped_curdir = $(shell echo $(CURDIR) | sed -r 's/\//\\\//g')
 
 $(pkg_debian)/rules: $(path_step)/make/build/debian/rules | $(pkg_debian)
-	@sed -r 's/\$$\(target\)/release=$(release) platform=$(platform) arch=$(arch) distro=$(distro) -C $(escaped_curdir)/g' $^ > $@
+	sed -r 's/\$$\(target\)/release=$(release) platform=$(platform) arch=$(arch) distro=$(distro) -C $(escaped_curdir)/g' $^ > $@
 
 $(pkg_debian)/copyright: $(path_step)/apps/copyright | $(pkg_debian)
 	$(call copyfile_cmd,$^,$@)
 
 $(pkg_debian)/docs: | $(pkg_debian)
-	@sed -r 's/.*/$(escaped_curdir)\/&/' dist/debian/docs > $@ || touch $@
+	sed -r 's/.*/$(escaped_curdir)\/&/' dist/debian/docs > $@ || touch $@
