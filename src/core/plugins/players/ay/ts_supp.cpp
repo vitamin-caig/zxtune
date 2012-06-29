@@ -13,6 +13,7 @@ Author:
 #include "ts_base.h"
 #include "core/src/core.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
 #include "core/src/callback.h"
 //common includes
@@ -187,35 +188,6 @@ namespace
     const Accessor::Ptr Second;
   };
 
-  class TSModuleProperties : public Accessor
-  {
-  public:
-    virtual bool FindValue(const NameType& /*name*/, IntType& /*val*/) const
-    {
-      return false;
-    }
-
-    virtual bool FindValue(const NameType& name, StringType& val) const
-    {
-      if (name == ATTR_TYPE)
-      {
-        val = TS_PLUGIN_ID;
-        return true;
-      }
-      return false;
-    }
-
-    virtual bool FindValue(const NameType& /*name*/, DataType& /*val*/) const
-    {
-      return false;
-    }
-
-    virtual void Process(Visitor& visitor) const
-    {
-      visitor.SetValue(ATTR_TYPE, TS_PLUGIN_ID);
-    }
-  };
-
   class MergedModuleInfo : public Information
   {
   public:
@@ -266,9 +238,8 @@ namespace
   class TSHolder : public Holder
   {
   public:
-    TSHolder(Plugin::Ptr plugin, Binary::Container::Ptr data, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
-      : Plug(plugin)
-      , RawData(data)
+    TSHolder(ModuleProperties::Ptr props, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
+      : Properties(props)
       , Holder1(holder1), Holder2(holder2)
       , Info(new MergedModuleInfo(Holder1->GetModuleInformation(), Holder2->GetModuleInformation()))
     {
@@ -276,7 +247,7 @@ namespace
 
     virtual Plugin::Ptr GetPlugin() const
     {
-      return Plug;
+      return Properties->GetPlugin();
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -287,9 +258,8 @@ namespace
 
     virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      const Parameters::Accessor::Ptr tsProps = boost::make_shared<TSModuleProperties>();
       const Parameters::Accessor::Ptr mixProps = boost::make_shared<MergedModuleProperties>(Holder1->GetModuleProperties(), Holder2->GetModuleProperties());
-      return Parameters::CreateMergedAccessor(tsProps, mixProps);
+      return Parameters::CreateMergedAccessor(Properties, mixProps);
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
@@ -302,8 +272,7 @@ namespace
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&spec))
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(RawData->Data());
-        dst.assign(data, data + RawData->Size());
+        Properties->GetData(dst);
         return Error();
       }
       else
@@ -312,8 +281,7 @@ namespace
       }
     }
   private:
-    const Plugin::Ptr Plug;
-    const Binary::Container::Ptr RawData;
+    const ModuleProperties::Ptr Properties;
     const Holder::Ptr Holder1;
     const Holder::Ptr Holder2;
     const Information::Ptr Info;
@@ -404,11 +372,9 @@ namespace
         Log::Debug(THIS_MODULE, "Failed to create second module holder");
         return Analysis::CreateUnmatchedResult(dataSize);
       }
-      //try to create merged holder
-      const Binary::Container::Ptr tsData = data->GetSubcontainer(0, dataSize);
-
-      const Module::Holder::Ptr holder(new TSHolder(Description, tsData, holder1, holder2));
-      //TODO: proper data attributes calculation
+      const ModuleProperties::RWPtr properties = ModuleProperties::Create(Description, inputData);
+      properties->SetSource(dataSize, ModuleRegion(0, dataSize));
+      const Module::Holder::Ptr holder(new TSHolder(properties, holder1, holder2));
       callback.ProcessModule(inputData, holder);
       return Analysis::CreateMatchedResult(dataSize);
     }
