@@ -180,6 +180,12 @@ namespace Parameters
           //@{
           //! @name DirectSound backend parameters
 
+          //! Device uuid (empty for primary)
+          const Char DEVICE[] =
+          {
+            'z','x','t','u','n','e','.','s','o','u','n','d','.','b','a','c','k','e','n','d','s','.','d','s','o','u','n','d','.','d','e','v','i','c','e','\0'
+          };
+
           //! Default value
           const IntType LATENCY_DEFAULT = 100;
           //! Buffers count

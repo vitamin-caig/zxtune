@@ -103,14 +103,38 @@ namespace
     }
   }
 
+  String Guid2String(LPGUID guid)
+  {
+    OLECHAR strGuid[39] = {0};
+    if (0 == ::StringFromGUID2(*guid, strGuid, ArraySize(strGuid)))
+    {
+      return String();
+    }
+    return String(strGuid, ArrayEnd(strGuid));
+  }
+
+  std::auto_ptr<GUID> String2Guid(const String& str)
+  {
+    if (str.empty())
+    {
+      return std::auto_ptr<GUID>();
+    }
+    std::vector<OLECHAR> strGuid(str.begin(), str.end());
+    strGuid.push_back(0);
+    std::auto_ptr<GUID> res(new GUID);
+    CheckWin32Error(::CLSIDFromString(&strGuid[0], res.get()), THIS_LINE);
+    return res;
+  }
+
   typedef boost::shared_ptr<IDirectSound> DirectSoundDevicePtr;
   typedef boost::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
 
-  DirectSoundDevicePtr OpenDevice(/*device*/)
+  DirectSoundDevicePtr OpenDevice(const String& device)
   {
-    Log::Debug(THIS_MODULE, "OpenDevice");
+    Log::Debug(THIS_MODULE, "OpenDevice(%1%)", device);
     DirectSoundDevicePtr::pointer raw = 0;
-    CheckWin32Error(::DirectSoundCreate(NULL/*device*/, &raw, NULL), THIS_LINE);
+    const std::auto_ptr<GUID> deviceUuid = String2Guid(device);
+    CheckWin32Error(::DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
     const DirectSoundDevicePtr result = DirectSoundDevicePtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
     Log::Debug(THIS_MODULE, "Opened");
@@ -417,6 +441,13 @@ namespace
     {
     }
 
+    String GetDevice() const
+    {
+      Parameters::StringType device;
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::DirectSound::DEVICE, device);
+      return device;
+    }
+
     uint_t GetLatency() const
     {
       Parameters::IntType latency = Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT;
@@ -500,8 +531,9 @@ namespace
     DSObjects OpenDevices()
     {
       const DirectSoundBackendParameters params(*BackendParams);
+      const String device = params.GetDevice();
       DSObjects res;
-      res.Device = OpenDevice();
+      res.Device = OpenDevice(device);
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
       const uint_t frameDurationMs = RenderingParameters->FrameDurationMicrosec() / 1000;
@@ -555,9 +587,9 @@ namespace
     }
   };
 
-  BOOL CALLBACK EnumerateDevicesCallback(LPGUID /*guid*/, LPCSTR descr, LPCSTR /*module*/, LPVOID param)
+  BOOL CALLBACK EnumerateDevicesCallback(LPGUID guid, LPCSTR descr, LPCSTR module, LPVOID param)
   {
-    Log::Debug(THIS_MODULE, "Detected device '%1%'", descr);
+    Log::Debug(THIS_MODULE, "Detected device '%1%' (uuid=%2% module='%3%')", descr, Guid2String(guid), module);
     uint_t& devices = *safe_ptr_cast<uint_t*>(param);
     ++devices;
     return TRUE;
