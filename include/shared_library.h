@@ -11,6 +11,10 @@
 #ifndef __SHARED_LIBRARY_H_DEFINED__
 #define __SHARED_LIBRARY_H_DEFINED__
 
+//std includes
+#include <string>
+#include <vector>
+
 class SharedLibrary
 {
 public:
@@ -23,6 +27,18 @@ public:
   // E.g. Load("SDL") will try to load "libSDL.so" for Linux and and "SDL.dll" for Windows
   // If platform-dependent full filename is specified, no substitution is made
   static Ptr Load(const std::string& name);
+  
+  class Name
+  {
+  public:
+    virtual ~Name() {}
+    
+    virtual std::string Base() const = 0;
+    virtual std::vector<std::string> PosixAlternatives() const = 0;
+    virtual std::vector<std::string> WindowsAlternatives() const = 0;
+  };
+  
+  static Ptr Load(const Name& name);
 };
 
 #endif //__SHARED_LIBRARY_H_DEFINED__
