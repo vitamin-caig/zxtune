@@ -5,6 +5,7 @@
 
 namespace Text
 {
+extern const Char ALSA_BACKEND_DEFAULT_DEVICE[];
 extern const Char ALSA_BACKEND_DESCRIPTION[];
 extern const Char AYLPT_BACKEND_DESCRIPTION[];
 extern const Char DSOUND_BACKEND_DESCRIPTION[];

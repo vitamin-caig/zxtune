@@ -31,6 +31,9 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < ALSA_BACKEND_DESCRIPTION
 > "ALSA sound system backend"
 
+< ALSA_BACKEND_DEFAULT_DEVICE
+> "Default"
+
 < SOUND_ERROR_ALSA_BACKEND_ERROR
 > "Error in ALSA backend: %1%."
 

@@ -160,6 +160,25 @@ private:
 template<class T>
 class ObjectIterator
 {
+  class Stub : public ObjectIterator
+  {
+  public:
+    virtual bool IsValid() const
+    {
+      return false;
+    }
+
+    virtual T Get() const
+    {
+      return T();
+    }
+
+    virtual void Next()
+    {
+      assert(!"Should not be called");
+    }
+  };
+
 public:
   typedef typename std::auto_ptr<ObjectIterator<T> > Ptr;
 
@@ -173,6 +192,11 @@ public:
   virtual T Get() const = 0;
   //! Moving to next stored value
   virtual void Next() = 0;
+
+  static Ptr CreateStub()
+  {
+    return Ptr(new Stub());
+  }
 };
 
 template<class I>

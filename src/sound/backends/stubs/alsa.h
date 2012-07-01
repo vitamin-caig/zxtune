@@ -233,6 +233,11 @@ const char * snd_ctl_card_info_get_id (const snd_ctl_card_info_t *obj)
   return ASOUND_FUNC(snd_ctl_card_info_get_id)(obj);
 }
 
+const char * snd_ctl_card_info_get_name (const snd_ctl_card_info_t *obj)
+{
+  return ASOUND_FUNC(snd_ctl_card_info_get_name)(obj);
+}
+
 int snd_ctl_pcm_next_device (snd_ctl_t * ctl, int * device)
 {
   return ASOUND_FUNC(snd_ctl_pcm_next_device)(ctl, device);
@@ -241,5 +246,10 @@ int snd_ctl_pcm_next_device (snd_ctl_t * ctl, int * device)
 int snd_ctl_pcm_info (snd_ctl_t *ctl, snd_pcm_info_t *info)
 {
   return ASOUND_FUNC(snd_ctl_pcm_info)(ctl, info);
+}
+
+const char * snd_pcm_info_get_name (const snd_pcm_info_t *obj)
+{
+  return ASOUND_FUNC(snd_pcm_info_get_name)(obj);
 }
 

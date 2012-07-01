@@ -31,6 +31,7 @@ Author:
 //boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/thread/mutex.hpp>
 //platform-specific includes
 #include <alsa/asoundlib.h>
@@ -775,6 +776,236 @@ namespace
       ? boost::shared_ptr<snd_ctl_t>(ctl, &::snd_ctl_close)
       : boost::shared_ptr<snd_ctl_t>();
   }
+
+  template<class T>
+  boost::shared_ptr<T> AllocateStruct(int (*alloc)(T**), void (*dealloc)())
+  {
+    T* res = 0;
+    return alloc(&res) >= 0
+      ? boost::shared_ptr<T>(res, dealloc)
+      : boost::shared_ptr<T>();
+  }
+
+  class CardsIterator
+  {
+  public:
+    CardsIterator()
+      : Index(-1)
+    {
+      Next();
+    }
+
+    bool IsValid() const
+    {
+      return CurHandle;
+    }
+
+    snd_ctl_t& Handle() const
+    {
+      return *CurHandle;
+    }
+
+    std::string Name() const
+    {
+      return CurName;
+    }
+
+    std::string Id() const
+    {
+      return CurId;
+    }
+
+    void Next()
+    {
+      CurHandle = boost::shared_ptr<snd_ctl_t>();
+      CurName.clear();
+      CurId.clear();
+      snd_ctl_card_info_t* cardInfo;
+      snd_ctl_card_info_alloca(&cardInfo);
+      for (; ::snd_card_next(&Index) >= 0 && Index >= 0; )
+      {
+        const std::string hwId = (boost::format("hw:%i") % Index).str();
+        const boost::shared_ptr<snd_ctl_t> handle = OpenDevice(hwId);
+        if (!handle)
+        {
+          continue;
+        }
+        if (::snd_ctl_card_info(handle.get(), cardInfo) < 0)
+        {
+          continue;
+        }
+        CurHandle = handle;
+        CurId = ::snd_ctl_card_info_get_id(cardInfo);
+        CurName = ::snd_ctl_card_info_get_name(cardInfo);
+        return;
+      }
+    }
+  private:
+    int Index;
+    boost::shared_ptr<snd_ctl_t> CurHandle;
+    std::string CurName;
+    std::string CurId;
+  };
+
+  class PCMDevicesIterator
+  {
+  public:
+    explicit PCMDevicesIterator(const CardsIterator& card)
+      : Card(card)
+      , Index(-1)
+    {
+      Next();
+    }
+
+    bool IsValid() const
+    {
+      return !CurName.empty();
+    }
+
+    std::string Name() const
+    {
+      return CurName;
+    }
+
+    std::string Id() const
+    {
+      return (boost::format("hw:%s,%u") % Card.Id() % Index).str();
+    }
+
+    void Next()
+    {
+      CurName.clear();
+      snd_pcm_info_t* pcmInfo;
+      snd_pcm_info_alloca(&pcmInfo);
+      for (; ::snd_ctl_pcm_next_device(&Card.Handle(), &Index) >= 0 && Index >= 0; )
+      {
+        ::snd_pcm_info_set_device(pcmInfo, Index);
+        ::snd_pcm_info_set_subdevice(pcmInfo, 0);
+        ::snd_pcm_info_set_stream(pcmInfo, SND_PCM_STREAM_PLAYBACK);
+        if (::snd_ctl_pcm_info(&Card.Handle(), pcmInfo) < 0)
+        {
+          continue;
+        }
+        CurName = ::snd_pcm_info_get_name(pcmInfo);
+        return;
+      }
+    }
+
+    void Reset()
+    {
+      Index = -1;
+      Next();
+    }
+  private:
+    const CardsIterator& Card;
+    int Index;
+    std::string CurName;
+  };
+
+  class AlsaDevice : public ALSA::Device
+  {
+  public:
+    AlsaDevice(const String& id, const String& name, const String& cardName)
+      : IdValue(id)
+      , NameValue(name)
+      , CardNameValue(cardName)
+    {
+    }
+
+    virtual String Id() const
+    {
+      return IdValue;
+    }
+
+    virtual String Name() const
+    {
+      return NameValue;
+    }
+
+    virtual String CardName() const
+    {
+      return CardNameValue;
+    }
+
+    virtual StringArray Mixers() const
+    {
+      try
+      {
+        const AlsaIdentifier id(IdValue);
+        const AutoMixer mixer(id);
+        return mixer.Enumerate();
+      }
+      catch (const Error&)
+      {
+        return StringArray();
+      }
+    }
+
+    static Ptr CreateDefault()
+    {
+      return boost::make_shared<AlsaDevice>(
+        Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT,
+        Text::ALSA_BACKEND_DEFAULT_DEVICE,
+        Text::ALSA_BACKEND_DEFAULT_DEVICE
+        );
+    }
+
+    static Ptr Create(const CardsIterator& card, const PCMDevicesIterator& dev)
+    {
+      return boost::make_shared<AlsaDevice>(FromStdString(dev.Id()),
+        FromStdString(dev.Name()), FromStdString(card.Name())
+        );
+    }
+
+  private:
+    const String IdValue;
+    const String NameValue;
+    const String CardNameValue;
+  };
+
+  class AlsaDevicesIterator : public ALSA::Device::Iterator
+  {
+  public:
+    AlsaDevicesIterator()
+      : Cards()
+      , Devices(Cards)
+      , Current(AlsaDevice::CreateDefault())
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current;
+    }
+
+    virtual ALSA::Device::Ptr Get() const
+    {
+      return Current;
+    }
+
+    virtual void Next()
+    {
+      Current = ALSA::Device::Ptr();
+      while (Cards.IsValid())
+      {
+        for (; Devices.IsValid(); Devices.Next())
+        {
+          Current = AlsaDevice::Create(Cards, Devices);
+          Devices.Next();
+          return;
+        }
+        Cards.Next();
+        if (Cards.IsValid())
+        {
+          Devices.Reset();
+        }
+      }
+    }
+  private:
+    CardsIterator Cards;
+    PCMDevicesIterator Devices;
+    ALSA::Device::Ptr Current;
+  };
 }
 
 namespace ZXTune
@@ -797,56 +1028,9 @@ namespace ZXTune
 
     namespace ALSA
     {
-      StringArray EnumerateDevices()
+      Device::Iterator::Ptr EnumerateDevices()
       {
-        StringArray result;
-        snd_ctl_card_info_t* cardInfo;
-        snd_pcm_info_t* pcmInfo;
-        snd_ctl_card_info_alloca(&cardInfo);
-        snd_pcm_info_alloca(&pcmInfo);
-        for (int cardIdx = -1; ::snd_card_next(&cardIdx) >= 0 && cardIdx >= 0; )
-        {
-          const std::string hwId = (boost::format("hw:%i") % cardIdx).str();
-          const boost::shared_ptr<snd_ctl_t> card = OpenDevice(hwId);
-          if (!card)
-          {
-            continue;
-          }
-          if (::snd_ctl_card_info(card.get(), cardInfo) < 0)
-          {
-            continue;
-          }
-          const std::string cardId(::snd_ctl_card_info_get_id(cardInfo));
-          //const std::string cardName(::snd_ctl_card_info_get_name(cardInfo));
-          for (int devIdx = -1; ::snd_ctl_pcm_next_device(card.get(), &devIdx) >= 0 && devIdx >= 0; )
-          {
-            ::snd_pcm_info_set_device(pcmInfo, devIdx);
-            ::snd_pcm_info_set_subdevice(pcmInfo, 0);
-            ::snd_pcm_info_set_stream(pcmInfo, SND_PCM_STREAM_PLAYBACK);
-            if (::snd_ctl_pcm_info(card.get(), pcmInfo) < 0)
-            {
-              continue;
-            }
-            //const std::string deviceName(::snd_pcm_info_get_name(pcmInfo));
-            const std::string deviceId = (boost::format("hw:%s,%u") % cardId % devIdx).str();
-            result.push_back(FromStdString(deviceId));
-          }
-        }
-        return result;
-      }
-
-      StringArray EnumerateMixers(const String& device)
-      {
-        try
-        {
-          const AlsaIdentifier id(device);
-          const AutoMixer mixer(id);
-          return mixer.Enumerate();
-        }
-        catch (const Error&)
-        {
-          return StringArray();
-        }
+        return Device::Iterator::Ptr(new AlsaDevicesIterator());
       }
     }
   }
@@ -874,14 +1058,9 @@ namespace ZXTune
 
     namespace ALSA
     {
-      StringArray EnumerateDevices()
+      Device::Iterator::Ptr EnumerateDevices()
       {
-        return StringArray();
-      }
-
-      StringArray EnumerateMixers(const String& /*device*/)
-      {
-        return StringArray();
+        return Device::Iterator::CreateStub();
       }
     }
   }

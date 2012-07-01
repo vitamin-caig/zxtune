@@ -5,6 +5,9 @@
 
 namespace Text
 {
+extern const Char ALSA_BACKEND_DEFAULT_DEVICE[] = {
+  'D','e','f','a','u','l','t',0
+};
 extern const Char ALSA_BACKEND_DESCRIPTION[] = {
   'A','L','S','A',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
 };
