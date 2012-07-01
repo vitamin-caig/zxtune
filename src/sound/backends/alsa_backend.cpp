@@ -12,6 +12,7 @@ Author:
 #ifdef ALSA_SUPPORT
 
 //local includes
+#include "alsa.h"
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
@@ -28,7 +29,9 @@ Author:
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
-#include <boost/thread/thread.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/thread/mutex.hpp>
 //platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
@@ -105,19 +108,55 @@ namespace
     }
   }
 
-  snd_pcm_format_t GetSoundFormat()
+  class SoundFormat
   {
-    switch (sizeof(Sample))
+  public:
+    explicit SoundFormat(snd_pcm_format_mask_t* mask)
+      : Native(GetSoundFormat(SAMPLE_SIGNED))
+      , Negated(GetSoundFormat(!SAMPLE_SIGNED))
+      , NativeSupported(::snd_pcm_format_mask_test(mask, Native))
+      , NegatedSupported(::snd_pcm_format_mask_test(mask, Negated))
     {
-    case 1:
-      return SAMPLE_SIGNED ? SND_PCM_FORMAT_S8 : SND_PCM_FORMAT_U8;
-    case 2:
-      return SAMPLE_SIGNED ? (isLE() ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE) : (isLE() ? SND_PCM_FORMAT_U16_LE : SND_PCM_FORMAT_U16_BE);
-    default:
-      assert(!"Invalid format");
-      return SND_PCM_FORMAT_UNKNOWN;
     }
-  }
+
+    bool IsSupported() const
+    {
+      return NativeSupported || NegatedSupported;
+    }
+
+    snd_pcm_format_t Get() const
+    {
+      return NativeSupported
+        ? Native
+        : (NegatedSupported ? Negated : SND_PCM_FORMAT_UNKNOWN);
+    }
+
+    bool ChangeSign() const
+    {
+      return !NativeSupported && NegatedSupported;
+    }
+  private:
+    static snd_pcm_format_t GetSoundFormat(bool isSigned)
+    {
+      switch (sizeof(Sample))
+      {
+      case 1:
+        return isSigned ? SND_PCM_FORMAT_S8 : SND_PCM_FORMAT_U8;
+      case 2:
+        return isSigned
+            ? (isLE() ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE)
+            : (isLE() ? SND_PCM_FORMAT_U16_LE : SND_PCM_FORMAT_U16_BE);
+      default:
+        assert(!"Invalid format");
+        return SND_PCM_FORMAT_UNKNOWN;
+      }
+    }
+  private:
+    const snd_pcm_format_t Native;
+    const snd_pcm_format_t Negated;
+    const bool NativeSupported;
+    const bool NegatedSupported;
+  };
 
   template<class T>
   class AutoHandle : public boost::noncopyable
@@ -190,6 +229,52 @@ namespace
     T* Handle;
   };
 
+  class AlsaIdentifier
+  {
+  public:
+    explicit AlsaIdentifier(const String& id)
+    {
+      static const Char DELIMITERS[] = {':', ','};
+      StringArray elements;
+      boost::algorithm::split(elements, id, boost::algorithm::is_any_of(DELIMITERS));
+      elements.resize(3);
+      Interface = elements[0];
+      Card = elements[1];
+      Device = elements[2];
+    }
+
+    String GetCard() const
+    {
+      String res = Interface;
+      if (!Card.empty())
+      {
+        res += ':';
+        res += Card;
+      }
+      return res;
+    }
+
+    String GetPCM() const
+    {
+      String res = Interface;
+      if (!Card.empty())
+      {
+        res += ':';
+        res += Card;
+        if (!Device.empty())
+        {
+          res += ',';
+          res += Device;
+        }
+      }
+      return res;
+    }
+  private:
+    String Interface;
+    String Card;
+    String Device;
+  };
+
   class AutoDevice : public AutoHandle<snd_pcm_t>
   {
   public:
@@ -197,11 +282,11 @@ namespace
     {
     }
 
-    explicit AutoDevice(const String& name)
-      : AutoHandle<snd_pcm_t>(name)
+    explicit AutoDevice(const AlsaIdentifier& id)
+      : AutoHandle<snd_pcm_t>(id.GetPCM())
     {
-      Log::Debug(THIS_MODULE, "Opening device '%1%'", name);
-      CheckResult(::snd_pcm_open(&Handle, IO::ConvertToFilename(name).c_str(),
+      Log::Debug(THIS_MODULE, "Opening device '%1%'", Name);
+      CheckResult(::snd_pcm_open(&Handle, IO::ConvertToFilename(Name).c_str(),
         SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
     }
 
@@ -229,7 +314,7 @@ namespace
     }
   };
 
-  class MixerElementsIterator : public ObjectIterator<snd_mixer_elem_t*>
+  class MixerElementsIterator
   {
   public:
     explicit MixerElementsIterator(snd_mixer_t& mixer)
@@ -238,17 +323,17 @@ namespace
       SkipNotsupported();
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const
     {
       return Current != 0;
     }
 
-    virtual snd_mixer_elem_t* Get() const
+    snd_mixer_elem_t* Get() const
     {
       return Current;
     }
 
-    virtual void Next()
+    void Next()
     {
       Current = ::snd_mixer_elem_next(Current);
       SkipNotsupported();
@@ -260,8 +345,7 @@ namespace
       {
         const snd_mixer_elem_type_t type = ::snd_mixer_elem_get_type(Current);
         if (type == SND_MIXER_ELEM_SIMPLE &&
-            ::snd_mixer_selem_has_playback_volume(Current) != 0 &&
-            ::snd_mixer_selem_has_capture_volume(Current) == 0)
+            ::snd_mixer_selem_has_playback_volume(Current) != 0)
         {
           break;
         }
@@ -280,11 +364,12 @@ namespace
     {
     }
 
-    explicit AutoMixer(const String& deviceName)
-      : AutoHandle<snd_mixer_t>(deviceName)
+    explicit AutoMixer(const AlsaIdentifier& id)
+      : AutoHandle<snd_mixer_t>(id.GetCard())
       , MixerName()
       , MixerElement(0)
     {
+      Log::Debug(THIS_MODULE, "Opening mixer '%1%'", Name);
       CheckResult(::snd_mixer_open(&Handle, 0), THIS_LINE);
       CheckedCall(&::snd_mixer_attach, IO::ConvertToFilename(Name).c_str(), THIS_LINE);
       CheckedCall(&::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(0), static_cast<snd_mixer_class_t**>(0), THIS_LINE);
@@ -382,7 +467,7 @@ namespace
 
     void Select(const String& name)
     {
-      Log::Debug(THIS_MODULE, "Opening mixer '%1%'' for device '%2%'", name, Name);
+      Log::Debug(THIS_MODULE, "Opening mixer '%1% for device '%2%'", name, Name);
       //find mixer element
       for (MixerElementsIterator iter(*Handle); iter.IsValid(); iter.Next())
       {
@@ -500,6 +585,7 @@ namespace
       , DevHandle()
       , MixHandle()
       , CanPause(0)
+      , SamplesShouldBeConverted(0)
       , VolumeController(new AlsaVolumeControl(StateMutex, MixHandle))
     {
     }
@@ -513,8 +599,8 @@ namespace
     {
       AutoDevice device;
       AutoMixer mixer;
-      bool canPause = false;
-      OpenDevices(device, mixer, canPause);
+      bool canPause = false, changeSign = false;
+      OpenDevices(device, mixer, canPause, changeSign);
       Log::Debug(THIS_MODULE, "Checked!");
     }
 
@@ -526,7 +612,7 @@ namespace
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
       assert(!DevHandle.Get());
-      OpenDevices(DevHandle, MixHandle, CanPause);
+      OpenDevices(DevHandle, MixHandle, CanPause, SamplesShouldBeConverted);
       Log::Debug(THIS_MODULE, "Successfully opened");
     }
 
@@ -561,6 +647,10 @@ namespace
 
     virtual void OnBufferReady(Chunk& buffer)
     {
+      if (SamplesShouldBeConverted)
+      {
+        std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
+      }
       assert(0 != DevHandle.Get());
       const MultiSample* data = &buffer[0];
       std::size_t size = buffer.size();
@@ -577,23 +667,27 @@ namespace
       }
     }
   private:
-    void OpenDevices(AutoDevice& device, AutoMixer& mixer, bool& canPause) const
+    void OpenDevices(AutoDevice& device, AutoMixer& mixer, bool& canPause, bool& changeSign) const
     {
       const AlsaBackendParameters params(*BackendParams);
 
-      const String deviceName = params.GetDeviceName();
-      AutoDevice tmpDevice(deviceName);
-
-      snd_pcm_format_t fmt = GetSoundFormat();
+      const AlsaIdentifier deviceId(params.GetDeviceName());
+      AutoDevice tmpDevice(deviceId);
 
       snd_pcm_hw_params_t* hwParams = 0;
       snd_pcm_hw_params_alloca(&hwParams);
+
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_any, hwParams, THIS_LINE);
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_access, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED, THIS_LINE);
       Log::Debug(THIS_MODULE, "Setting resampling possibility");
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_rate_resample, hwParams, 1u, THIS_LINE);
+
+      snd_pcm_format_mask_t* fmtMask = 0;
+      snd_pcm_format_mask_alloca(&fmtMask);
+      ::snd_pcm_hw_params_get_format_mask(hwParams, fmtMask);
+      const SoundFormat fmt(fmtMask);
       Log::Debug(THIS_MODULE, "Setting format");
-      tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_format, hwParams, fmt, THIS_LINE);
+      tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_format, hwParams, fmt.Get(), THIS_LINE);
       Log::Debug(THIS_MODULE, "Setting channels");
       tmpDevice.CheckedCall(&::snd_pcm_hw_params_set_channels, hwParams, unsigned(OUTPUT_CHANNELS), THIS_LINE);
       const unsigned samplerate = RenderingParameters->SoundFreq();
@@ -614,10 +708,11 @@ namespace
       tmpDevice.CheckedCall(&::snd_pcm_hw_params, hwParams, THIS_LINE);
 
       canPause = ::snd_pcm_hw_params_can_pause(hwParams) != 0;
+      changeSign = fmt.ChangeSign();
       Log::Debug(THIS_MODULE, canPause ? "Hardware support pause" : "Hardware doesn't support pause");
       tmpDevice.CheckedCall(&::snd_pcm_prepare, THIS_LINE);
       const String mixerName = params.GetMixerName();
-      AutoMixer tmpMixer(deviceName);
+      AutoMixer tmpMixer(deviceId);
       tmpMixer.Select(mixerName);
 
       device.Swap(tmpDevice);
@@ -630,6 +725,7 @@ namespace
     AutoDevice DevHandle;
     AutoMixer MixHandle;
     bool CanPause;
+    bool SamplesShouldBeConverted;
     const VolumeControl::Ptr VolumeController;
   };
 
@@ -672,14 +768,6 @@ namespace
     }
   };
 
-  boost::shared_ptr<void*> GetDeviceNamePCMHint()
-  {
-    void** hints = 0;
-    return ::snd_device_name_hint(-1, "pcm", &hints) >= 0
-      ? boost::shared_ptr<void*>(hints, &::snd_device_name_free_hint)
-      : boost::shared_ptr<void*>();
-  }
-
   boost::shared_ptr<snd_ctl_t> OpenDevice(const std::string& deviceName)
   {
     snd_ctl_t* ctl = 0;
@@ -712,22 +800,36 @@ namespace ZXTune
       StringArray EnumerateDevices()
       {
         StringArray result;
-        if (const boost::shared_ptr<void*> hints = GetDeviceNamePCMHint())
+        snd_ctl_card_info_t* cardInfo;
+        snd_pcm_info_t* pcmInfo;
+        snd_ctl_card_info_alloca(&cardInfo);
+        snd_pcm_info_alloca(&pcmInfo);
+        for (int cardIdx = -1; ::snd_card_next(&cardIdx) >= 0 && cardIdx >= 0; )
         {
-          for (void** hint = hints.get(); *hint; ++hint)
+          const std::string hwId = (boost::format("hw:%i") % cardIdx).str();
+          const boost::shared_ptr<snd_ctl_t> card = OpenDevice(hwId);
+          if (!card)
           {
-            const boost::shared_ptr<const char> iod(::snd_device_name_get_hint(*hint, "IOID"), &free);
-            if (iod.get() && 0 == std::strcmp(iod.get(), "Input"))
+            continue;
+          }
+          if (::snd_ctl_card_info(card.get(), cardInfo) < 0)
+          {
+            continue;
+          }
+          const std::string cardId(::snd_ctl_card_info_get_id(cardInfo));
+          //const std::string cardName(::snd_ctl_card_info_get_name(cardInfo));
+          for (int devIdx = -1; ::snd_ctl_pcm_next_device(card.get(), &devIdx) >= 0 && devIdx >= 0; )
+          {
+            ::snd_pcm_info_set_device(pcmInfo, devIdx);
+            ::snd_pcm_info_set_subdevice(pcmInfo, 0);
+            ::snd_pcm_info_set_stream(pcmInfo, SND_PCM_STREAM_PLAYBACK);
+            if (::snd_ctl_pcm_info(card.get(), pcmInfo) < 0)
             {
-              continue;//skip input-only devices
+              continue;
             }
-            const boost::shared_ptr<const char> nameC(::snd_device_name_get_hint(*hint, "NAME"), &free);
-            const std::string fullName(nameC.get());
-            const std::string ctlName(fullName.substr(0, fullName.find(':')));
-            if (const boost::shared_ptr<snd_ctl_t> ctl = OpenDevice(ctlName))
-            {
-              result.push_back(FromStdString(ctlName));
-            }
+            //const std::string deviceName(::snd_pcm_info_get_name(pcmInfo));
+            const std::string deviceId = (boost::format("hw:%s,%u") % cardId % devIdx).str();
+            result.push_back(FromStdString(deviceId));
           }
         }
         return result;
@@ -737,7 +839,8 @@ namespace ZXTune
       {
         try
         {
-          const AutoMixer mixer(device);
+          const AlsaIdentifier id(device);
+          const AutoMixer mixer(id);
           return mixer.Enumerate();
         }
         catch (const Error&)
@@ -753,225 +856,7 @@ namespace ZXTune
 #define STR(a) #a
 #define ASOUND_FUNC(func) AlsaLibrary::Instance().GetSymbol(&func, STR(func))
 
-const char *snd_asoundlib_version(void)
-{
-  return ASOUND_FUNC(snd_asoundlib_version)();
-}
-
-const char* snd_strerror(int err)
-{
-  return ASOUND_FUNC(snd_strerror)(err);
-}
-
-int snd_config_update_free_global(void)
-{
-  return ASOUND_FUNC(snd_config_update_free_global)();
-}
-
-int snd_config_delete(snd_config_t *config)
-{
-  return ASOUND_FUNC(snd_config_delete)(config);
-}
-
-int snd_pcm_open(snd_pcm_t **pcm, const char *name, snd_pcm_stream_t stream, int mode)
-{
-  return ASOUND_FUNC(snd_pcm_open)(pcm, name, stream, mode);
-}
-
-int snd_pcm_close(snd_pcm_t *pcm)
-{
-  return ASOUND_FUNC(snd_pcm_close)(pcm);
-}
-
-int snd_pcm_hw_free(snd_pcm_t *pcm)
-{
-  return ASOUND_FUNC(snd_pcm_hw_free)(pcm);
-}
-
-int snd_pcm_prepare(snd_pcm_t *pcm)
-{
-  return ASOUND_FUNC(snd_pcm_prepare)(pcm);
-}
-
-int snd_pcm_drain(snd_pcm_t *pcm)
-{
-  return ASOUND_FUNC(snd_pcm_drain)(pcm);
-}
-
-int snd_pcm_pause(snd_pcm_t *pcm, int enable)
-{
-  return ASOUND_FUNC(snd_pcm_pause)(pcm, enable);
-}
-
-snd_pcm_sframes_t snd_pcm_writei(snd_pcm_t *pcm, const void *buffer, snd_pcm_uframes_t size)
-{
-  return ASOUND_FUNC(snd_pcm_writei)(pcm, buffer, size);
-}
-
-size_t snd_pcm_hw_params_sizeof(void)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_sizeof)();
-}
-
-int snd_pcm_hw_params(snd_pcm_t *pcm, snd_pcm_hw_params_t *params)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params)(pcm, params);
-}
-
-int snd_pcm_hw_params_any(snd_pcm_t *pcm, snd_pcm_hw_params_t *params)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_any)(pcm, params);
-}
-
-int snd_pcm_hw_params_can_pause(const snd_pcm_hw_params_t *params)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_can_pause)(params);
-}
-
-int snd_pcm_hw_params_set_access(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_access_t _access)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_set_access)(pcm, params, _access);
-}
-
-int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_format_t val)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_set_format)(pcm, params, val);
-}
-
-int snd_pcm_hw_params_set_channels(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_set_channels)(pcm, params, val);
-}
-
-int snd_pcm_hw_params_set_rate(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val, int dir)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_set_rate)(pcm, params, val, dir);
-}
-
-int snd_pcm_hw_params_set_rate_resample(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_set_rate_resample)(pcm, params, val);
-}
-
-int snd_pcm_hw_params_set_periods_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val, int *dir)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_set_periods_near)(pcm, params, val, dir);
-}
-
-int snd_pcm_hw_params_set_buffer_size_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, snd_pcm_uframes_t *val)
-{
-  return ASOUND_FUNC(snd_pcm_hw_params_set_buffer_size_near)(pcm, params, val);
-}
-
-int snd_mixer_open(snd_mixer_t **mixer, int mode)
-{
-  return ASOUND_FUNC(snd_mixer_open)(mixer, mode);
-}
-
-int snd_mixer_close(snd_mixer_t *mixer)
-{
-  return ASOUND_FUNC(snd_mixer_close)(mixer);
-}
-
-snd_mixer_elem_t *snd_mixer_first_elem(snd_mixer_t *mixer)
-{
-  return ASOUND_FUNC(snd_mixer_first_elem)(mixer);
-}
-
-snd_mixer_elem_t *snd_mixer_elem_next(snd_mixer_elem_t *elem)
-{
-  return ASOUND_FUNC(snd_mixer_elem_next)(elem);
-}
-
-snd_mixer_elem_type_t snd_mixer_elem_get_type(const snd_mixer_elem_t *obj)
-{
-  return ASOUND_FUNC(snd_mixer_elem_get_type)(obj);
-}
-
-int snd_mixer_attach(snd_mixer_t *mixer, const char *name)
-{
-  return ASOUND_FUNC(snd_mixer_attach)(mixer, name);
-}
-
-int snd_mixer_detach(snd_mixer_t *mixer, const char *name)
-{
-  return ASOUND_FUNC(snd_mixer_detach)(mixer, name);
-}
-
-int snd_mixer_load(snd_mixer_t *mixer)
-{
-  return ASOUND_FUNC(snd_mixer_load)(mixer);
-}
-
-int snd_mixer_selem_register(snd_mixer_t *mixer, struct snd_mixer_selem_regopt *options, snd_mixer_class_t **classp)
-{
-  return ASOUND_FUNC(snd_mixer_selem_register)(mixer, options, classp);
-}
-
-void snd_mixer_selem_get_id(snd_mixer_elem_t *element, snd_mixer_selem_id_t *id)
-{
-  return ASOUND_FUNC(snd_mixer_selem_get_id)(element, id);
-}
-
-size_t snd_mixer_selem_id_sizeof(void)
-{
-  return ASOUND_FUNC(snd_mixer_selem_id_sizeof)();
-}
-
-const char *snd_mixer_selem_get_name(snd_mixer_elem_t *elem)
-{
-  return ASOUND_FUNC(snd_mixer_selem_get_name)(elem);
-}
-
-int snd_mixer_selem_has_playback_volume(snd_mixer_elem_t *elem)
-{
-  return ASOUND_FUNC(snd_mixer_selem_has_playback_volume)(elem);
-}
-
-int snd_mixer_selem_has_capture_volume(snd_mixer_elem_t *elem)
-{
-  return ASOUND_FUNC(snd_mixer_selem_has_capture_volume)(elem);
-}
-
-int snd_mixer_selem_get_playback_volume_range(snd_mixer_elem_t *elem, long *min, long *max)
-{
-  return ASOUND_FUNC(snd_mixer_selem_get_playback_volume_range)(elem, min, max);
-}
-
-int snd_mixer_selem_get_playback_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t channel, long *value)
-{
-  return ASOUND_FUNC(snd_mixer_selem_get_playback_volume)(elem, channel, value);
-}
-
-int snd_mixer_selem_set_playback_volume(snd_mixer_elem_t *elem, snd_mixer_selem_channel_id_t channel, long value)
-{
-  return ASOUND_FUNC(snd_mixer_selem_set_playback_volume)(elem, channel, value);
-}
-
-int snd_device_name_hint(int card, const char* iface, void*** hints)
-{
-  return ASOUND_FUNC(snd_device_name_hint)(card, iface, hints);
-}
-
-int snd_device_name_free_hint(void** hints)
-{
-  return ASOUND_FUNC(snd_device_name_free_hint)(hints);
-}
-
-char* snd_device_name_get_hint(const void* hint, const char* id)
-{
-  return ASOUND_FUNC(snd_device_name_get_hint)(hint, id);
-}
-
-int snd_ctl_open(snd_ctl_t** ctlp, const char* name, int mode)
-{
-  return ASOUND_FUNC(snd_ctl_open)(ctlp, name, mode);
-}
-
-int snd_ctl_close(snd_ctl_t* ctl)
-{
-  return ASOUND_FUNC(snd_ctl_close)(ctl);
-}
+#include "stubs/alsa.h"
 
 #else //not supported
 

@@ -6,6 +6,9 @@ text_files := text/sound text/backends
 
 include $(path_step)/makefile.mak
 
+$(CURDIR)/backends/stubs/alsa.h: backends/functions/alsa.dat
+		cat $^ | $(path_step)/make/build_shgate.pl ASOUND_FUNC > $@
+
 ifdef support_waveout
 $(platform)_definitions += WIN32_WAVEOUT_SUPPORT
 endif
