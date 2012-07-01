@@ -41,7 +41,7 @@ namespace
     return LibHandle(::dlopen(fileName.c_str(), RTLD_LAZY), std::ptr_fun(&CloseLibrary));
   }
   
-  Error CreateLoadError(const Error::LocationRef& loc, const std::string& fileName)
+  Error CreateLoadError(Error::LocationRef loc, const std::string& fileName)
   {
     return MakeFormattedError(loc, THIS_MODULE,
       Text::FAILED_LOAD_DYNAMIC_LIBRARY, FromStdString(fileName), FromStdString(::dlerror()));

@@ -33,7 +33,7 @@ namespace
     return ::LoadLibrary(fileName.c_str());
   }
 
-  Error CreateLoadError(const Error::LocationRef& loc, const std::string& fileName)
+  Error CreateLoadError(Error::LocationRef loc, const std::string& fileName)
   {
     //TODO: make text error
     return MakeFormattedError(THIS_LINE, THIS_MODULE_CODE,
