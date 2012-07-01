@@ -16,6 +16,7 @@ Author:
 #include "sound.ui.h"
 #include "sound_alsa.h"
 #include "sound_oss.h"
+#include "sound_sdl.h"
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
@@ -133,6 +134,7 @@ namespace
       std::for_each(Backends.begin(), Backends.end(), boost::bind(&SoundOptionsWidget::AddBackend, this, _1));
       AddPage(&UI::AlsaSettingsWidget::Create);
       AddPage(&UI::OssSettingsWidget::Create);
+      AddPage(&UI::SdlSettingsWidget::Create);
     }
 
     void AddPage(UI::BackendSettingsWidget* (*factory)(QWidget&))
