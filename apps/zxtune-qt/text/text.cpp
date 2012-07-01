@@ -83,6 +83,9 @@ extern const Char REPORT_BUG_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e','/','i','s','s','u','e','s','/','e','n','t','r','y',0
 };
+extern const Char SOUND_DEVICE_ON_CARD_FORMAT[] = {
+  '%','1','%',' ','(','%','2','%',')',0
+};
 extern const Char TITLE_FORMAT[] = {
   '%','2','%',' ','[','%','1','%',']',0
 };

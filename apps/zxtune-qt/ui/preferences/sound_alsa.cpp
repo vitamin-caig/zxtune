@@ -19,6 +19,7 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
+#include <format.h>
 #include <logging.h>
 #include <tools.h>
 //library includes
@@ -26,6 +27,8 @@ Author:
 #include <sound/backends/alsa.h>
 //boost includes
 #include <boost/bind.hpp>
+//text includes
+#include "text/text.h"
 
 namespace
 {
@@ -98,15 +101,21 @@ namespace
 
     virtual void DeviceChanged(const QString& name)
     {
-      Log::Debug(THIS_MODULE, "Selecting device '%1%'", FromQString(name));
+      const String& id = FromQString(name);
+      Log::Debug(THIS_MODULE, "Selecting device '%1%'", id);
       const DevicesArray::const_iterator it = std::find_if(Devices.begin(), Devices.end(),
-        boost::bind(&Device::Name, _1) == name);
+        boost::bind(&Device::Name, _1) == name || boost::bind(&Device::Id, _1) == id);
       if (it != Devices.end())
       {
+        devices->setCurrentIndex(it - Devices.begin());
         mixers->clear();
         mixers->addItems(it->MixerNames);
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE, FromQString(name));
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE, it->Id);
         SelectMixer();
+      }
+      else
+      {
+        devices->setCurrentIndex(-1);
       }
     }
 
@@ -126,17 +135,20 @@ namespace
       using namespace Parameters::ZXTune::Sound::Backends::ALSA;
       String curDevice = DEVICE_DEFAULT;
       Options->FindValue(DEVICE, curDevice);
-      SetComboValue(*devices, curDevice);
       //force fill mixers- signal is not called by previous function (even when connected before, why?)
       DeviceChanged(ToQString(curDevice));
     }
 
     void FillDevices()
     {
-      const StringArray& availDevices = ZXTune::Sound::ALSA::EnumerateDevices();
-      Devices.resize(availDevices.size());
-      std::transform(availDevices.begin(), availDevices.end(), Devices.begin(), &Device::Create);
-      devices->addItems(ToStringList(availDevices));
+      using namespace ZXTune::Sound;
+      for (ALSA::Device::Iterator::Ptr availableDevices = ALSA::EnumerateDevices();
+        availableDevices->IsValid(); availableDevices->Next())
+      {
+        const ALSA::Device::Ptr cur = availableDevices->Get();
+        Devices.push_back(Device(*cur));
+        devices->addItem(Devices.back().Name);
+      }
     }
 
     void SelectMixer()
@@ -151,16 +163,20 @@ namespace
 
     struct Device
     {
-      QString Name;
-      QStringList MixerNames;
-
-      static Device Create(const String& name)
+      Device()
       {
-        Device dev;
-        dev.Name = ToQString(name);
-        dev.MixerNames = ToStringList(ZXTune::Sound::ALSA::EnumerateMixers(name));
-        return dev;
       }
+
+      Device(const ZXTune::Sound::ALSA::Device& in)
+        : Name(ToQString(Strings::Format(Text::SOUND_DEVICE_ON_CARD_FORMAT, in.Name(), in.CardName())))
+        , Id(in.Id())
+        , MixerNames(ToStringList(in.Mixers()))
+      {
+      }
+
+      QString Name;
+      String Id;
+      QStringList MixerNames;
     };
 
     typedef std::vector<Device> DevicesArray;

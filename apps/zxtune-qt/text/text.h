@@ -26,6 +26,7 @@ extern const Char PROGRAM_NAME[];
 extern const Char PROGRAM_SITE[];
 extern const Char PROJECT_NAME[];
 extern const Char REPORT_BUG_URL[];
+extern const Char SOUND_DEVICE_ON_CARD_FORMAT[];
 extern const Char TITLE_FORMAT[];
 extern const Char TOOLTIP_TEMPLATE[];
 extern const Char TYPEICONS_RESOURCE_PREFIX[];

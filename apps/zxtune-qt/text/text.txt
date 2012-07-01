@@ -100,3 +100,6 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < INPUT_CHANNEL_NAMES
 > "ABCD"
+
+< SOUND_DEVICE_ON_CARD_FORMAT
+> "%1% (%2%)"
