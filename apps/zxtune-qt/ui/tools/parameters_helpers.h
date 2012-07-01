@@ -77,6 +77,17 @@ namespace Parameters
   private slots:
     virtual void SetValue(const QString& value) = 0;
   };
+
+  class StringValue : public QObject
+  {
+    Q_OBJECT
+  protected:
+    explicit StringValue(QObject& parent);
+  public:
+    static void Bind(QLineEdit& line, Container& ctr, const NameType& name, const StringType& defValue);
+  private slots:
+    virtual void SetValue(const QString& value) = 0;
+  };
 }
 
 #endif //ZXTUNE_QT_PARAMETERS_HELPERS_H_DEFINED

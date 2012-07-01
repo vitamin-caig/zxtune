@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "parameters_helpers.h"
+#include "ui/utils.h"
 //common includes
 #include <logging.h>
 //qt includes
@@ -157,6 +158,32 @@ namespace
     Parameters::Container& Container;
     const Parameters::NameType Name;
   };
+
+  class StringValueImpl : public StringValue
+  {
+  public:
+    StringValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name, const Parameters::StringType& defValue)
+      : StringValue(parent)
+      , Container(ctr)
+      , Name(name)
+    {
+      Parameters::StringType value = defValue;
+      Container.FindValue(Name, value);
+      parent.setText(ToQString(value));
+      this->connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(SetValue(const QString&)));
+    }
+
+
+    virtual void SetValue(const QString& value)
+    {
+      const Parameters::StringType& val = FromQString(value);
+      Log::Debug("Parameters::Helper", "%1%=%2%", Name, val);
+      Container.SetValue(Name, val);
+    }
+  private:
+    Parameters::Container& Container;
+    const Parameters::NameType Name;
+  };
 }
 
 namespace Parameters
@@ -174,6 +201,10 @@ namespace Parameters
   }
 
   BigIntegerValue::BigIntegerValue(QObject &parent) : QObject(&parent)
+  {
+  }
+
+  StringValue::StringValue(QObject &parent) : QObject(&parent)
   {
   }
 
@@ -215,5 +246,10 @@ namespace Parameters
   void BigIntegerValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::IntType defValue)
   {
     new BigIntegerValueImpl(edit, ctr, name, defValue);
+  }
+
+  void StringValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name, const Parameters::StringType& defValue)
+  {
+    new StringValueImpl(edit, ctr, name, defValue);
   }
 }
