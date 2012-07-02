@@ -15,8 +15,10 @@ Author:
 #include "sound.h"
 #include "sound.ui.h"
 #include "sound_alsa.h"
+#include "sound_dsound.h"
 #include "sound_oss.h"
 #include "sound_sdl.h"
+#include "sound_win32.h"
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
@@ -97,6 +99,7 @@ namespace
       {
         it->second->setVisible(it->first == id);
       }
+      settingsHint->setVisible(0 == SetupPages.count(id));
     }
     
     virtual void MoveBackendUp()
@@ -133,17 +136,20 @@ namespace
     {
       std::for_each(Backends.begin(), Backends.end(), boost::bind(&SoundOptionsWidget::AddBackend, this, _1));
       AddPage(&UI::AlsaSettingsWidget::Create);
+      AddPage(&UI::DirectSoundSettingsWidget::Create);
       AddPage(&UI::OssSettingsWidget::Create);
       AddPage(&UI::SdlSettingsWidget::Create);
+      AddPage(&UI::Win32SettingsWidget::Create);
     }
 
     void AddPage(UI::BackendSettingsWidget* (*factory)(QWidget&))
     {
-      std::auto_ptr<UI::BackendSettingsWidget> wid(factory(*backendSettings));
+      std::auto_ptr<UI::BackendSettingsWidget> wid(factory(*backendGroupBox));
       const String id = wid->GetBackendId();
       if (Backends.end() != std::find(Backends.begin(), Backends.end(), id))
       {
         wid->hide();
+        backendGroupLayout->addWidget(wid.get());
         SetupPages[id] = wid.release();
       }
     }

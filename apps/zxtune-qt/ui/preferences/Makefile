@@ -3,7 +3,7 @@ path_step := ../../../..
 
 ui_files = aym mixer mixing plugins sound z80 preferencesdialog
 
-ui_files += sound_alsa sound_oss sound_sdl
+ui_files += sound_alsa sound_dsound sound_oss sound_sdl sound_win32
 
 include_dirs = ../..
 
