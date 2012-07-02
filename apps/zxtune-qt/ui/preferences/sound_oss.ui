@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>177</width>
+    <width>167</width>
     <height>79</height>
    </rect>
   </property>
@@ -28,12 +28,6 @@
       </property>
       <item row="0" column="0">
        <widget class="QLabel" name="labelDevice">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
         <property name="text">
          <string>Device</string>
         </property>
@@ -41,12 +35,6 @@
       </item>
       <item row="1" column="0">
        <widget class="QLabel" name="labelMixer">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
         <property name="text">
          <string>Mixer</string>
         </property>

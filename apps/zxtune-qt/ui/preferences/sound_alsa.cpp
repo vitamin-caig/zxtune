@@ -41,8 +41,9 @@ namespace
   QStringList ToStringList(const T& input)
   {
     QStringList result;
+    void (QStringList::*add)(const QString&) = &QStringList::append;
     std::for_each(input.begin(), input.end(),
-      boost::bind(boost::mem_fn<void, QStringList, const QString&>(&QStringList::append), &result, boost::bind(&ToQString, _1)));
+      boost::bind(add, &result, boost::bind(&ToQString, _1)));
     return result;
   }
 
