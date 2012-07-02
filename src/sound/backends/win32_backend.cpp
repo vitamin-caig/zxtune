@@ -12,6 +12,7 @@ Author:
 #ifdef WIN32_WAVEOUT_SUPPORT
 
 //local includes
+#include "win32.h"
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
@@ -31,6 +32,7 @@ Author:
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/ref.hpp>
 #include <boost/thread/thread.hpp>
@@ -81,7 +83,7 @@ namespace
    For 16-bit PCM data, each sample is represented by a 16-bit signed value.
   */
 
-  const bool SamplesShouldBeConverted = sizeof(Sample) > 1 && !SAMPLE_SIGNED;
+  const bool SamplesShouldBeConverted = (sizeof(Sample) > 1) != SAMPLE_SIGNED;
 
   inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
   {
@@ -414,6 +416,75 @@ namespace
       }
     }
   };
+
+  class Win32Device : public Win32::Device
+  {
+  public:
+    explicit Win32Device(int_t id)
+      : IdValue(id)
+    {
+    }
+
+    virtual int_t Id() const
+    {
+      return IdValue;
+    }
+
+    virtual String Name() const
+    {
+      WAVEOUTCAPS caps;
+      if (MMSYSERR_NOERROR != ::waveOutGetDevCaps(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
+      {
+        Log::Debug(THIS_MODULE, "Failed to get device name");
+        return String();
+      }
+      return FromStdString(caps.szPname);
+    }
+  private:
+    const int_t IdValue;
+  };
+
+  class DevicesIterator : public Win32::Device::Iterator
+  {
+  public:
+    DevicesIterator()
+      : Limit(::waveOutGetNumDevs())
+      , Current()
+    {
+      if (Limit)
+      {
+        Log::Debug(THIS_MODULE, "Detected %1% devices to output.", Limit);
+        Current = -1;//WAVE_MAPPER
+      }
+      else
+      {
+        Current = 0;
+      }
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current != Limit;
+    }
+
+    virtual Win32::Device::Ptr Get() const
+    {
+      return IsValid()
+        ? boost::make_shared<Win32Device>(Current)
+        : Win32::Device::Ptr();
+    }
+
+    virtual void Next()
+    {
+      if (IsValid())
+      {
+        ++Current;
+      }
+    }
+  private:
+    const int_t Limit;
+    int_t Current;
+  };
 }
 
 namespace ZXTune
@@ -424,9 +495,8 @@ namespace ZXTune
     {
       if (WaveOutLibrary::Instance().IsAccessible())
       {
-        if (const uint_t devices = ::waveOutGetNumDevs())
+        if (DevicesIterator().IsValid())
         {
-          Log::Debug(THIS_MODULE, "Found %1% devices", devices);
           const BackendCreator::Ptr creator(new Win32BackendCreator());
           enumerator.RegisterCreator(creator);
         }
@@ -440,6 +510,14 @@ namespace ZXTune
         Log::Debug(THIS_MODULE, "%1%", Error::ToString(WaveOutLibrary::Instance().GetLoadError()));
       }
     }
+
+    namespace Win32
+    {
+      Device::Iterator::Ptr EnumerateDevices()
+      {
+        return Device::Iterator::Ptr(new DevicesIterator());
+      }
+    }
   }
 }
 
@@ -450,6 +528,11 @@ namespace ZXTune
 UINT WINAPI waveOutGetNumDevs()
 {
   return WAVEOUT_FUNC(waveOutGetNumDevs)();
+}
+
+MMRESULT WINAPI waveOutGetDevCaps(UINT_PTR uDeviceID, LPWAVEOUTCAPS pwoc, UINT cbwoc)
+{
+  return WAVEOUT_FUNC(waveOutGetDevCaps)(uDeviceID, pwoc, cbwoc);
 }
 
 MMRESULT WINAPI waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen)
@@ -508,6 +591,7 @@ MMRESULT WINAPI waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume)
 }
 
 #else //not supported
+#include "win32.h"
 
 namespace ZXTune
 {
@@ -516,6 +600,14 @@ namespace ZXTune
     void RegisterWin32Backend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
+    }
+
+    namespace Win32
+    {
+      Device::Iterator::Ptr EnumerateDevices()
+      {
+        return Device::Iterator::CreateStub();
+      }
     }
   }
 }
