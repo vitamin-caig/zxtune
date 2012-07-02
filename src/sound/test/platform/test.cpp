@@ -1,4 +1,5 @@
 #include <sound/backends/alsa.h>
+#include <sound/backends/dsound.h>
 #include <iostream>
 #include <format.h>
 
@@ -19,9 +20,21 @@ namespace
       }
     }
   }
+
+  void ShowDirectSoundDevices()
+  {
+    using namespace ZXTune::Sound::DirectSound;
+    std::cout << "DirectSound devices:" << std::endl;
+    for (const Device::Iterator::Ptr devices = EnumerateDevices(); devices->IsValid(); devices->Next())
+    {
+      const Device::Ptr device = devices->Get();
+      std::cout << Strings::Format(" Name: '%1%' Id: '%2%'", device->Name(), device->Id()) << std::endl;
+    }
+  }
 }
 
 int main()
 {
   ShowAlsaDevicesAndMixers();
+  ShowDirectSoundDevices();
 }

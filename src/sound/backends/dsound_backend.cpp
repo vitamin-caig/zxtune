@@ -12,6 +12,7 @@ Author:
 #ifdef DIRECTSOUND_SUPPORT
 
 //local includes
+#include "dsound.h"
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
@@ -76,7 +77,7 @@ namespace
    For 8-bit PCM data, each sample is represented by a single unsigned data byte.
    For 16-bit PCM data, each sample is represented by a 16-bit signed value.
   */
-  const bool SamplesShouldBeConverted = sizeof(Sample) > 1 && !SAMPLE_SIGNED;
+  const bool SamplesShouldBeConverted = (sizeof(Sample) > 1) != SAMPLE_SIGNED;
 
   HWND GetWindowHandle()
   {
@@ -110,7 +111,7 @@ namespace
     {
       return String();
     }
-    return String(strGuid, ArrayEnd(strGuid));
+    return String(strGuid, ArrayEnd(strGuid) - 1);
   }
 
   std::auto_ptr<GUID> String2Guid(const String& str)
@@ -587,13 +588,82 @@ namespace
     }
   };
 
-  BOOL CALLBACK EnumerateDevicesCallback(LPGUID guid, LPCSTR descr, LPCSTR module, LPVOID param)
+  class DirectSoundDevice : public DirectSound::Device
   {
-    Log::Debug(THIS_MODULE, "Detected device '%1%' (uuid=%2% module='%3%')", descr, Guid2String(guid), module);
-    uint_t& devices = *safe_ptr_cast<uint_t*>(param);
-    ++devices;
-    return TRUE;
-  }
+  public:
+    DirectSoundDevice(const String& id, const String& name)
+      : IdValue(id)
+      , NameValue(name)
+    {
+    }
+
+    virtual String Id() const
+    {
+      return IdValue;
+    }
+
+    virtual String Name() const
+    {
+      return NameValue;
+    }
+  private:
+    const String IdValue;
+    const String NameValue;
+  };
+
+  class DevicesIterator : public DirectSound::Device::Iterator
+  {
+  public:
+    DevicesIterator()
+      : Current(Devices.begin())
+    {
+      if (DS_OK != ::DirectSoundEnumerate(&EnumerateDevicesCallback, &Devices))
+      {
+        Log::Debug(THIS_MODULE, "Failed to enumerate devices. Skip backend.");
+        Current = Devices.end();
+      }
+      else
+      {
+        Log::Debug(THIS_MODULE, "Detected %1% devices to output.", Devices.size());
+        Current = Devices.begin();
+      }
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current != Devices.end();
+    }
+
+    virtual DirectSound::Device::Ptr Get() const
+    {
+      return IsValid()
+        ? boost::make_shared<DirectSoundDevice>(Current->first, Current->second)
+        : DirectSound::Device::Ptr();
+    }
+
+    virtual void Next()
+    {
+      if (IsValid())
+      {
+        ++Current;
+      }
+    }
+  private:
+    static BOOL CALLBACK EnumerateDevicesCallback(LPGUID guid, LPCSTR descr, LPCSTR module, LPVOID param)
+    {
+      const String& id = Guid2String(guid);
+      const String& name = FromStdString(descr);
+      Log::Debug(THIS_MODULE, "Detected device '%1%' (uuid=%2% module='%3%')", name, id, module);
+      DevicesArray& devices = *safe_ptr_cast<DevicesArray*>(param);
+      devices.push_back(IdAndName(id, name));
+      return TRUE;
+    }
+  private:
+    typedef std::pair<String, String> IdAndName;
+    typedef std::vector<IdAndName> DevicesArray;
+    DevicesArray Devices;
+    DevicesArray::const_iterator Current;
+  };
 }
 
 namespace ZXTune
@@ -604,24 +674,25 @@ namespace ZXTune
     {
       if (DirectSoundLibrary::Instance().IsAccessible())
       {
-        uint_t devices = 0;
-        if (DS_OK != ::DirectSoundEnumerate(&EnumerateDevicesCallback, &devices))
-        {
-          Log::Debug(THIS_MODULE, "Failed to enumerate devices. Skip backend.");
-          return;
-        }
-        if (0 == devices)
+        if (!DevicesIterator().IsValid())
         {
           Log::Debug(THIS_MODULE, "No devices to output. Skip backend");
           return;
         }
-        Log::Debug(THIS_MODULE, "Detected %1% devices to output.", devices);
         const BackendCreator::Ptr creator(new DirectSoundBackendCreator());
         enumerator.RegisterCreator(creator);
       }
       else
       {
         Log::Debug(THIS_MODULE, "%1%", Error::ToString(DirectSoundLibrary::Instance().GetLoadError()));
+      }
+    }
+
+    namespace DirectSound
+    {
+      Device::Iterator::Ptr EnumerateDevices()
+      {
+        return Device::Iterator::Ptr(new DevicesIterator());
       }
     }
   }
@@ -642,6 +713,7 @@ HRESULT WINAPI DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUN
 }
 
 #else //not supported
+#include "dsound.h"
 
 namespace ZXTune
 {
@@ -650,6 +722,14 @@ namespace ZXTune
     void RegisterDirectSoundBackend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
+    }
+
+    namespace DirectSound
+    {
+      Device::Iterator::Ptr EnumerateDevices()
+      {
+        return Device::Iterator::CreateStub();
+      }
     }
   }
 }
