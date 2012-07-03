@@ -7,6 +7,18 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] zxtune-qt: sound subsystems setup
+[+] Device specifying for dsound backend
+[+] RPM packages building
+[+] Searching shared libraries also using alternative names
+[*] Fixed linux packages building
+[*] Different fixes in ALSA backend
+[*] Fixed DataSqueezer (DSQ) decoding
+[*] Slight AY/YM rendering speedup
+[*] Fixed TurboSound (TS) modules attributes
+
+--- Rev1802 from 13.06.2012
+
 [+] TFC format support
 [*] Scan speedup for 5..10%
 [*] Mono layout for AYM chiptunes
