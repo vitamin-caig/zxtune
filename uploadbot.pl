@@ -2,8 +2,8 @@
 
 use strict;
 
-my @PackageNames = split /\s/, shift;
 my $Revision = shift;
+my @PackageNames = split /\s/, shift;
 my %Packages = ();
 
 if (${Revision} eq '')
@@ -85,7 +85,8 @@ for my $folder (glob("Builds/Revision${Revision}_*"))
   }
 }
 
-my $account = `cat ../account` or die 'No account info';
+open ACCFILE, '<../account' or die 'No accound file';
+my $account = <ACCFILE>;
 chomp $account;
 my ($project, $user, $password) = split(/:/, ${account});
 
@@ -109,7 +110,7 @@ for my $opsys qw(Redhat Ubuntu Archlinux Dingux Linux Windows)
         my $tags = "Type-${type},OpSys-${opsys},Platform-${arch},Compiler-${compiler}";
         print "Uploading '${file}' (${tags})\n";
         die unless -e ${file};
-        system 'echo', 'make/build/googlecode_upload.py',
+        system 'python', 'make/build/googlecode_upload.py',
                '-s', "${package} revision ${Revision}",
                '-p', ${project},
                '-u', ${user},
