@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "playlist_contextmenu.h"
+#include "properties_dialog.h"
 #include "search_dialog.h"
 #include "ui/utils.h"
 #include "ui/conversion/filename_template.h"
@@ -76,6 +77,7 @@ namespace
       Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
       Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected())));
       Require(receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected())));
+      Require(receiver.connect(PropertiesAction, SIGNAL(triggered()), SLOT(ShowPropertiesOfSelected())));
     }
   };
 
@@ -289,6 +291,11 @@ namespace
     virtual void SelectFoundInSelected() const
     {
       Playlist::UI::ExecuteSearchDialog(View, SelectedItems, Controller);
+    }
+
+    virtual void ShowPropertiesOfSelected() const
+    {
+      Playlist::UI::ExecutePropertiesDialog(View, SelectedItems, Controller);
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()

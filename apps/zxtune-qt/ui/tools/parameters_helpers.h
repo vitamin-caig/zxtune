@@ -30,63 +30,72 @@ class QSpinBox;
 
 namespace Parameters
 {
-  class BooleanValue : public QObject
+  class Value : public QObject
+  {
+    Q_OBJECT
+  protected:
+    explicit Value(QObject& parent);
+  public slots:
+    virtual void Reset() = 0;
+  };
+
+  class BooleanValue : public Value
   {
     Q_OBJECT
   protected:
     explicit BooleanValue(QObject& parent);
   public:
-    static void Bind(QAction& action, Container& ctr, const NameType& name, bool defValue);
-    static void Bind(QAbstractButton& button, Container& ctr, const NameType& name, bool defValue, const Parameters::IntType& oneValue = 1);
-    static void Bind(QGroupBox& button, Container& ctr, const NameType& name, bool defValue, const Parameters::IntType& oneValue = 1);
+    static Value* Bind(QAction& action, Container& ctr, const NameType& name, bool defValue);
+    static Value* Bind(QAbstractButton& button, Container& ctr, const NameType& name, bool defValue, const Parameters::IntType& oneValue = 1);
+    static Value* Bind(QGroupBox& button, Container& ctr, const NameType& name, bool defValue, const Parameters::IntType& oneValue = 1);
   private slots:
-    virtual void SetValue(bool value) = 0;
+    virtual void Set(bool value) = 0;
   };
 
-  class ExclusiveValue : public QObject
+  class ExclusiveValue : public Value
   {
     Q_OBJECT
   protected:
     explicit ExclusiveValue(QObject& parent);
   public:
-    static void Bind(QAbstractButton& button, Container& ctr, const NameType& name, const StringType& value);
+    static Value* Bind(QAbstractButton& button, Container& ctr, const NameType& name, const StringType& value);
   private slots:
-    virtual void SetValue(bool value) = 0;
+    virtual void Set(bool value) = 0;
   };
 
-  class IntegerValue : public QObject
+  class IntegerValue : public Value
   {
     Q_OBJECT
   protected:
     explicit IntegerValue(QObject& parent);
   public:
-    static void Bind(QComboBox& combo, Container& ctr, const NameType& name, int defValue);
-    static void Bind(QSlider& slider, Container& ctr, const NameType& name, int defValue);
-    static void Bind(QSpinBox& spinbox, Container& ctr, const NameType& name, int defValue);
+    static Value* Bind(QComboBox& combo, Container& ctr, const NameType& name, int defValue);
+    static Value* Bind(QSlider& slider, Container& ctr, const NameType& name, int defValue);
+    static Value* Bind(QSpinBox& spinbox, Container& ctr, const NameType& name, int defValue);
   private slots:
-    virtual void SetValue(int value) = 0;
+    virtual void Set(int value) = 0;
   };
   
-  class BigIntegerValue : public QObject
+  class BigIntegerValue : public Value
   {
     Q_OBJECT
   protected:
     explicit BigIntegerValue(QObject& parent);
   public:
-    static void Bind(QLineEdit& line, Container& ctr, const NameType& name, IntType defValue);
+    static Value* Bind(QLineEdit& line, Container& ctr, const NameType& name, IntType defValue);
   private slots:
-    virtual void SetValue(const QString& value) = 0;
+    virtual void Set(const QString& value) = 0;
   };
 
-  class StringValue : public QObject
+  class StringValue : public Value
   {
     Q_OBJECT
   protected:
     explicit StringValue(QObject& parent);
   public:
-    static void Bind(QLineEdit& line, Container& ctr, const NameType& name, const StringType& defValue);
+    static Value* Bind(QLineEdit& line, Container& ctr, const NameType& name, const StringType& defValue);
   private slots:
-    virtual void SetValue(const QString& value) = 0;
+    virtual void Set(const QString& value) = 0;
   };
 }
 

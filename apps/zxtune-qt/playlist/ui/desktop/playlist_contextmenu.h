@@ -49,6 +49,7 @@ namespace Playlist
       virtual void ConvertSelected() const = 0;
       virtual void SelectFound() const = 0;
       virtual void SelectFoundInSelected() const = 0;
+      virtual void ShowPropertiesOfSelected() const = 0;
     };
   }
 }

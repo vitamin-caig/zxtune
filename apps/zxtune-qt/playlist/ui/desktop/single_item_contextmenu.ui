@@ -12,6 +12,8 @@
   <addaction name="CopyToClipboardAction"/>
   <addaction name="ExportAction"/>
   <addaction name="ConvertAction"/>
+  <addaction name="separator"/>
+  <addaction name="PropertiesAction"/>
   <action name="PlayAction">
    <property name="icon">
     <iconset>
@@ -97,6 +99,16 @@
    </property>
    <property name="text">
     <string>Convert</string>
+   </property>
+  </action>
+  <action name="PropertiesAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/info.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Properties</string>
    </property>
   </action>
  </widget>
