@@ -20,21 +20,22 @@ Author:
 #include "playlist/supp/model.h"
 #include "playlist/supp/operations_search.h"
 //qt includes
-#include <QtGui/QWidget>
+#include <QtGui/QDialog>
 
 namespace Playlist
 {
   namespace UI
   {
-    class SearchWidget : public QWidget
+    class SearchDialog : public QDialog
     {
       Q_OBJECT
     protected:
-      explicit SearchWidget(QWidget& parent);
+      explicit SearchDialog(QWidget& parent);
     public:
-      static SearchWidget* Create(QWidget& parent);
+      typedef boost::shared_ptr<SearchDialog> Ptr;
+      static Ptr Create(QWidget& parent);
 
-      virtual Playlist::Item::Search::Data GetData() const = 0;
+      virtual bool Execute(Playlist::Item::Search::Data& res) = 0;
     };
 
     void ExecuteSearchDialog(TableView& view, Playlist::Model::IndexSetPtr scope, Controller& controller);

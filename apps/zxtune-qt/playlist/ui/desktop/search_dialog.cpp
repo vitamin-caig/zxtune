@@ -18,10 +18,9 @@ Author:
 #include "ui/state.h"
 //common includes
 #include <contract.h>
-//qt includes
-#include <QtGui/QDialog>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QVBoxLayout>
+//boost includes
+#include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 
 namespace
 {
@@ -40,12 +39,12 @@ namespace
     box.insertItem(0, txt);
   }
 
-  class SearchWidgetImpl : public Playlist::UI::SearchWidget
-                         , public Ui::SearchWidget
+  class SearchDialogImpl : public Playlist::UI::SearchDialog
+                         , public Ui::SearchDialog
   {
   public:
-    explicit SearchWidgetImpl(QWidget& parent)
-      : Playlist::UI::SearchWidget(parent)
+    explicit SearchDialogImpl(QWidget& parent)
+      : Playlist::UI::SearchDialog(parent)
       , State(UI::State::Create(SEARCH_NAMESPACE))
     {
       //setup self
@@ -61,15 +60,18 @@ namespace
       State->Load();
     }
 
-    virtual ~SearchWidgetImpl()
+    virtual ~SearchDialogImpl()
     {
       UpdateRecent(*Pattern);
       State->Save();
     }
 
-    virtual Playlist::Item::Search::Data GetData() const
-    {
-      Playlist::Item::Search::Data res;
+    virtual bool Execute(Playlist::Item::Search::Data& res)
+    {     
+      if (!exec())
+      {
+        return false;
+      }
       res.Pattern = Pattern->currentText();
       res.Scope = (FindInAuthor->isChecked() ? Playlist::Item::Search::AUTHOR : 0)
                 | (FindInTitle->isChecked() ? Playlist::Item::Search::TITLE : 0)
@@ -78,37 +80,10 @@ namespace
       res.Options = (CaseSensitive->isChecked() ? Playlist::Item::Search::CASE_SENSITIVE : 0)
                   | (RegularExpression->isChecked() ? Playlist::Item::Search::REGULAR_EXPRESSION : 0)
       ;
-      return res;
+      return true;
     }
   private:
     const UI::State::Ptr State;
-  };
-
-  class SearchDialog : public QDialog
-  {
-  public:
-    explicit SearchDialog(QWidget& parent)
-      : QDialog(&parent)
-      , Content(0)
-    {
-      Content = Playlist::UI::SearchWidget::Create(*this);
-      QDialogButtonBox* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
-      this->connect(buttons, SIGNAL(accepted()), this, SLOT(accept()));
-      this->connect(buttons, SIGNAL(rejected()), this, SLOT(reject()));
-      QVBoxLayout* const layout = new QVBoxLayout(this);
-      layout->addWidget(Content);
-      layout->addWidget(buttons);
-      layout->setContentsMargins(4, 4, 4, 4);
-      layout->setSpacing(4);
-      setWindowTitle(Content->windowTitle());
-    }
-
-    Playlist::Item::Search::Data GetResult() const
-    {
-      return Content->GetData();
-    }
-  private:
-    Playlist::UI::SearchWidget* Content;
   };
 }
 
@@ -116,13 +91,13 @@ namespace Playlist
 {
   namespace UI
   {
-    SearchWidget::SearchWidget(QWidget& parent) : QWidget(&parent)
+    SearchDialog::SearchDialog(QWidget& parent) : QDialog(&parent)
     {
     }
 
-    SearchWidget* SearchWidget::Create(QWidget& parent)
+    SearchDialog::Ptr SearchDialog::Create(QWidget& parent)
     {
-      return new SearchWidgetImpl(parent);
+      return boost::make_shared<SearchDialogImpl>(boost::ref(parent));
     }
 
     void ExecuteSearchDialog(TableView& view, Controller& controller)
@@ -132,12 +107,12 @@ namespace Playlist
 
     void ExecuteSearchDialog(TableView& view, Model::IndexSetPtr scope, Controller& controller)
     {
-      SearchDialog dialog(view);
-      if (!dialog.exec())
+      const SearchDialog::Ptr dialog = SearchDialog::Create(view);
+      Playlist::Item::Search::Data data;
+      if (!dialog->Execute(data))
       {
         return;
       }
-      const Playlist::Item::Search::Data data = dialog.GetResult();
       const Playlist::Model::Ptr model = controller.GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = scope
         ? Playlist::Item::CreateSearchOperation(*model, scope, data)

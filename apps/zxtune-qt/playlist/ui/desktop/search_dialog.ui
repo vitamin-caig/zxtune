@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SearchWidget</class>
- <widget class="QWidget" name="SearchWidget">
+ <class>SearchDialog</class>
+ <widget class="QDialog" name="SearchDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -21,7 +21,7 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QGroupBox">
+    <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>What to find</string>
      </property>
@@ -46,15 +46,15 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox">
+    <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>Where to find</string>
      </property>
      <layout class="QHBoxLayout">
-      <property name="margin">
+      <property name="spacing">
        <number>4</number>
       </property>
-      <property name="spacing">
+      <property name="margin">
        <number>4</number>
       </property>
       <item>
@@ -91,15 +91,15 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox">
+    <widget class="QGroupBox" name="groupBox">
      <property name="title">
       <string>How to find</string>
      </property>
      <layout class="QHBoxLayout">
-      <property name="margin">
+      <property name="spacing">
        <number>4</number>
       </property>
-      <property name="spacing">
+      <property name="margin">
        <number>4</number>
       </property>
       <item>
@@ -132,8 +132,48 @@
      </property>
     </spacer>
    </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttons">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>buttons</sender>
+   <signal>accepted()</signal>
+   <receiver>SearchDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>159</x>
+     <y>189</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>159</x>
+     <y>102</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttons</sender>
+   <signal>rejected()</signal>
+   <receiver>SearchDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>159</x>
+     <y>189</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>159</x>
+     <y>102</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
