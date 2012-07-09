@@ -14,11 +14,13 @@ Author:
 //local includes
 #include "playback_options.h"
 #include "playback_options.ui.h"
+#include "playlist/supp/capabilities.h"
 #include "supp/playback_supp.h"
 #include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <core/core_parameters.h>
-#include <core/plugin_attrs.h>
 #include <sound/sound_parameters.h>
 
 namespace
@@ -39,34 +41,55 @@ namespace
       //common
       Parameters::BooleanValue::Bind(*isLooped, *Params, Parameters::ZXTune::Sound::LOOPED, false);
       //AYM
-      Parameters::BooleanValue::Bind(*isInterpolated, *Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isAYMInterpolated, *Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
       Parameters::BooleanValue::Bind(*isYM, *Params, Parameters::ZXTune::Core::AYM::TYPE, false);
       Parameters::IntegerValue::Bind(*aymLayout, *Params, Parameters::ZXTune::Core::AYM::LAYOUT, 0);
       //DAC
-      Parameters::BooleanValue::Bind(*isInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
-      this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
+      Require(connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
+      Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
+      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
     }
 
     virtual void InitState(ZXTune::Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
-      const ZXTune::Plugin::Ptr plugin = item->GetModule()->GetPlugin();
+      const Playlist::Item::Capabilities caps(item);
+      AYMOptions->setVisible(caps.IsAYM());
+      DACOptions->setVisible(caps.IsDAC());
+      SetEnabled(true);
 
-      const bool isAYM = 0 != (plugin->Capabilities() & ZXTune::CAP_DEV_AYM_MASK);
-      AYMOptions->setVisible(isAYM);
-      DACOptions->setVisible(!isAYM);
-      (isAYM ? AYMOptions : DACOptions)->setEnabled(true);
+      AdjustedParameters = item->GetAdjustedParameters();
+    }
+
+    virtual void UpdateState()
+    {
+      if (AdjustedParameters)
+      {
+        //TODO: use walker?
+        Parameters::IntType val;
+        isAYMInterpolated->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, val));
+        isYM->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::TYPE, val));
+        aymLayout->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, val));
+        isDACInterpolated->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val));
+      }
     }
 
     virtual void CloseState()
     {
-      AYMOptions->setEnabled(false);
-      DACOptions->setEnabled(false);
+      SetEnabled(false);
+      AdjustedParameters = Parameters::Accessor::Ptr();
+    }
+  private:
+    void SetEnabled(bool enabled)
+    {
+      AYMOptions->setEnabled(enabled);
+      DACOptions->setEnabled(enabled);
     }
   private:
     const Parameters::Container::Ptr Params;
+    Parameters::Accessor::Ptr AdjustedParameters;
   };
 }
 

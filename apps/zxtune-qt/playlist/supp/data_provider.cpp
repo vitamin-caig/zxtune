@@ -273,7 +273,7 @@ namespace
       if (module)
       {
         const Parameters::Accessor::Ptr pathParams = CreatePathProperties(Source->GetDataPath(), SubPath);
-        const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, CoreParams);
+        const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams);
         return ZXTune::Module::CreateMixedPropertiesHolder(module, moduleParams);
       }
       return module;

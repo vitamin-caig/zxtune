@@ -327,24 +327,6 @@ namespace
     const Parameters::Container::Ptr Container;
   };
 
-  class AutoBlockSignal
-  {
-  public:
-    explicit AutoBlockSignal(QObject& obj)
-      : Obj(obj)
-      , Previous(Obj.blockSignals(true))
-    {
-    }
-
-    ~AutoBlockSignal()
-    {
-      Obj.blockSignals(Previous);
-    }
-  private:
-    QObject& Obj;
-    const bool Previous;
-  };
-
   class SortState
   {
   public:

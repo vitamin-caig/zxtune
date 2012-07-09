@@ -19,23 +19,19 @@ Author:
 //common includes
 #include <contract.h>
 //library includes
+#include <core/core_parameters.h>
 #include <core/module_attrs.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
 //qt includes
 #include <QtGui/QAbstractButton>
+#include <QtGui/QComboBox>
 #include <QtGui/QLabel>
 #include <QtGui/QLineEdit>
 
 namespace
 {
-  enum Mode
-  {
-    READ_ONLY,
-    READ_WRITE
-  };
-
   class PropertiesDialogImpl : public Playlist::UI::PropertiesDialog
                              , public Ui::PropertiesDialog
   {
@@ -46,6 +42,8 @@ namespace
     {
       //setup self
       setupUi(this);
+
+      ValuesOffOn << tr("Off") << tr("On");
 
       FillProperties();
       itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding), itemsLayout->rowCount(), 0);
@@ -66,17 +64,32 @@ namespace
   private:
     void FillProperties()
     {
-      AddStringProperty(tr("Path"), ZXTune::Module::ATTR_FULLPATH, READ_ONLY);
-      AddStringProperty(tr("Title"), ZXTune::Module::ATTR_TITLE, READ_WRITE);
-      AddStringProperty(tr("Author"), ZXTune::Module::ATTR_AUTHOR, READ_WRITE);
-      AddStringProperty(tr("Comment"), ZXTune::Module::ATTR_COMMENT, READ_WRITE);
+      AddReadOnlyStringProperty(tr("Path"), ZXTune::Module::ATTR_FULLPATH);
+      AddStringProperty(tr("Title"), ZXTune::Module::ATTR_TITLE);
+      AddStringProperty(tr("Author"), ZXTune::Module::ATTR_AUTHOR);
+      AddStringProperty(tr("Comment"), ZXTune::Module::ATTR_COMMENT);
+      AddSetProperty(tr("Interpolation"), Parameters::ZXTune::Core::AYM::INTERPOLATION, ValuesOffOn);
     }
 
-    void AddStringProperty(const QString& title, const Parameters::NameType& name, Mode mode)
+    QLineEdit* AddStringProperty(const QString& title, const Parameters::NameType& name)
     {
       QLineEdit* const wid = new QLineEdit(this);
-      wid->setReadOnly(mode == READ_ONLY);
       Parameters::Value* const value = Parameters::StringValue::Bind(*wid, *Properties, name, Parameters::StringType());
+      Require(value->connect(this, SIGNAL(ResetToDefaults()), SLOT(Reset())));
+      AddProperty(title, wid);
+      return wid;
+    }
+
+    void AddReadOnlyStringProperty(const QString& title, const Parameters::NameType& name)
+    {
+      AddStringProperty(title, name)->setReadOnly(true);
+    }
+
+    void AddSetProperty(const QString& title, const Parameters::NameType& name, const QStringList& values)
+    {
+      QComboBox* const wid = new QComboBox(this);
+      wid->addItems(values);
+      Parameters::Value* const value = Parameters::IntegerValue::Bind(*wid, *Properties, name, -1);
       Require(value->connect(this, SIGNAL(ResetToDefaults()), SLOT(Reset())));
       AddProperty(title, wid);
     }
@@ -89,6 +102,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Properties;
+    QStringList ValuesOffOn;
   };
 
   class ItemPropertiesContainer : public Parameters::Container

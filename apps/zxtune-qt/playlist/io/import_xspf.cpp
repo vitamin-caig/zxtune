@@ -263,7 +263,7 @@ namespace
       else if (attr == XSPF::EXTENSION_TAG)
       {
         Log::Debug(THIS_MODULE, "  parsing extension");
-        PropertiesFilter filter(*Properties, ITEM_DISABLED_PROPERTIES, ArrayEnd(ITEM_DISABLED_PROPERTIES), false);
+        PropertiesFilter filter(props, ITEM_DISABLED_PROPERTIES, ArrayEnd(ITEM_DISABLED_PROPERTIES), false);
         ParseExtension(filter);
       }
       else

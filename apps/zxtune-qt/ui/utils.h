@@ -49,6 +49,25 @@ struct AutoMetaTypeRegistrator
   }
 };
 
+class AutoBlockSignal
+{
+public:
+  explicit AutoBlockSignal(QObject& obj)
+    : Obj(obj)
+    , Previous(Obj.blockSignals(true))
+  {
+  }
+
+  ~AutoBlockSignal()
+  {
+    Obj.blockSignals(Previous);
+  }
+private:
+  QObject& Obj;
+  const bool Previous;
+};
+
+
 #define REGISTER_METATYPE(A) {static AutoMetaTypeRegistrator<A> tmp(#A);}
 
 #endif //ZXTUNE_QT_UTILS_H_DEFINED
