@@ -3,7 +3,6 @@ path_step := ../../..
 
 source_files = format \
                state \
-               controls/parameters_controls \
                tools/filedialog \
                tools/errordialog
 
