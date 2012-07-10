@@ -109,7 +109,12 @@ namespace
     virtual uint64_t ClockFreq() const
     {
       Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val) &&
+          !in_range(val, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX))
+      {
+        throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+          Text::MODULE_ERROR_INVALID_CLOCKFREQ, val);
+      }
       return val;
     }
 

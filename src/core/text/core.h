@@ -14,6 +14,7 @@ extern const Char MODULE_ERROR_CONVERT_FYM[];
 extern const Char MODULE_ERROR_CONVERT_PSG[];
 extern const Char MODULE_ERROR_CONVERT_ZX50[];
 extern const Char MODULE_ERROR_FIND_SUBMODULE[];
+extern const Char MODULE_ERROR_INVALID_CLOCKFREQ[];
 extern const Char MODULE_ERROR_INVALID_DUTY_CYCLE[];
 extern const Char MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM[];
 extern const Char MODULE_ERROR_INVALID_FORMAT[];

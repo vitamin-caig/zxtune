@@ -40,6 +40,10 @@ extern const Char MODULE_ERROR_FIND_SUBMODULE[] = {
   'b','m','o','d','u','l','e',' ','s','t','a','r','t','i','n','g',' ','f','r','o','m',' ','p','a','t','h',' ',
   '\'','%','1','%','\'','.',0
 };
+extern const Char MODULE_ERROR_INVALID_CLOCKFREQ[] = {
+  'I','n','v','a','l','i','d',' ','c','l','o','c','k',' ','f','r','e','q','u','e','n','c','y',' ','(','%','1',
+  '%',')','.',0
+};
 extern const Char MODULE_ERROR_INVALID_DUTY_CYCLE[] = {
   'I','n','v','a','l','i','d',' ','d','u','t','y',' ','c','y','c','l','e',' ','v','a','l','u','e',' ','(','%',
   '1','%',')','.',0

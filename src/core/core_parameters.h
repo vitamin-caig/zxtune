@@ -35,6 +35,8 @@ namespace Parameters
 
         //! Default value- 1.75MHz
         const IntType CLOCKRATE_DEFAULT = 1750000;
+        const IntType CLOCKRATE_MIN = 1000000;
+        const IntType CLOCKRATE_MAX = 10000000;
         //! Parameter name
         const Char CLOCKRATE[] =
         {
@@ -111,6 +113,8 @@ namespace Parameters
 
         //! Default value- 3.5MHz
         const IntType CLOCKRATE_DEFAULT = 3500000;
+        const IntType CLOCKRATE_MIN = 1000000;
+        const IntType CLOCKRATE_MAX = 10000000;
         //! Parameter name
         const Char CLOCKRATE[] =
         {
