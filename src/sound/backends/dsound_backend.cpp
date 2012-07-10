@@ -208,39 +208,45 @@ namespace
 
     void Add(const Chunk& buffer)
     {
-      const std::size_t srcSize = buffer.size() * sizeof(buffer.front());
+      std::size_t inputSize = buffer.size() * sizeof(buffer.front());
+      const uint8_t* inputStart = safe_ptr_cast<const uint8_t*>(&buffer[0]);
 
-      if (!WaitForFree(srcSize))
+      while (inputSize)
       {
-        return;
-      }
-
-      LPVOID part1Data = 0, part2Data = 0;
-      DWORD part1Size = 0, part2Size = 0;
-
-      for (;;)
-      {
-        const HRESULT res = Buff->Lock(Cursor, srcSize,
-          &part1Data, &part1Size, &part2Data, &part2Size, 0);
-        if (DSERR_BUFFERLOST == res)
+        const std::size_t srcSize = std::min(inputSize, BuffSize / 2);
+        if (!WaitForFree(srcSize))
         {
-          Log::Debug(THIS_MODULE, "Buffer lost. Retry to lock");
-          Buff->Restore();
-          continue;
+          return;
         }
-        CheckWin32Error(res, THIS_LINE);
-        break;
+
+        LPVOID part1Data = 0, part2Data = 0;
+        DWORD part1Size = 0, part2Size = 0;
+
+        for (;;)
+        {
+          const HRESULT res = Buff->Lock(Cursor, srcSize,
+            &part1Data, &part1Size, &part2Data, &part2Size, 0);
+          if (DSERR_BUFFERLOST == res)
+          {
+            Log::Debug(THIS_MODULE, "Buffer lost. Retry to lock");
+            Buff->Restore();
+            continue;
+          }
+          CheckWin32Error(res, THIS_LINE);
+          break;
+        }
+        assert(srcSize == part1Size + part2Size);
+        std::memcpy(part1Data, inputStart, part1Size);
+        if (part2Data)
+        {
+          std::memcpy(part2Data, inputStart + part1Size, part2Size);
+        }
+        Cursor += srcSize;
+        Cursor %= BuffSize;
+        CheckWin32Error(Buff->Unlock(part1Data, part1Size, part2Data, part2Size), THIS_LINE);
+        inputSize -= srcSize;
+        inputStart += srcSize;
       }
-      assert(srcSize == part1Size + part2Size);
-      const uint8_t* const src = safe_ptr_cast<const uint8_t*>(&buffer[0]);
-      std::memcpy(part1Data, src, part1Size);
-      if (part2Data)
-      {
-        std::memcpy(part2Data, src + part1Size, part2Size);
-      }
-      Cursor += srcSize;
-      Cursor %= BuffSize;
-      CheckWin32Error(Buff->Unlock(part1Data, part1Size, part2Data, part2Size), THIS_LINE);
     }
 
     void Pause()

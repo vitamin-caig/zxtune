@@ -85,6 +85,13 @@ namespace
 
   const bool SamplesShouldBeConverted = (sizeof(Sample) > 1) != SAMPLE_SIGNED;
 
+  inline Sample ConvertSample(Sample in)
+  {
+    return SamplesShouldBeConverted
+      ? ToSignedSample(in)
+      : in;
+  }
+
   inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
   {
     if (MMSYSERR_NOERROR != res)
@@ -149,15 +156,16 @@ namespace
       Event = INVALID_HANDLE_VALUE;
     }
 
-    void Process(const Chunk& buf)
+    std::size_t Write(const MultiSample* buf, std::size_t samples)
     {
       Wait();
       assert(Header.dwFlags & WHDR_DONE);
-      assert(buf.size() <= Buffer.size());
-      Header.dwBufferLength = static_cast< ::DWORD>(std::min<std::size_t>(buf.size(), Buffer.size())) * sizeof(Buffer.front());
-      std::memcpy(Header.lpData, &buf[0], Header.dwBufferLength);
+      const std::size_t toWrite = std::min<std::size_t>(samples, Buffer.size());
+      Header.dwBufferLength = static_cast< ::DWORD>(toWrite * sizeof(Buffer.front()));
+      std::transform(&buf->front(), &(buf + toWrite)->front(), safe_ptr_cast<Sample*>(Header.lpData), &ConvertSample);
       Header.dwFlags &= ~WHDR_DONE;
       CheckMMResult(::waveOutWrite(Handle, &Header, sizeof(Header)), THIS_LINE);
+      return toWrite;
     }
   private:
     void Wait()
@@ -341,13 +349,15 @@ namespace
 
     virtual void OnBufferReady(Chunk& buffer)
     {
-      if (SamplesShouldBeConverted)
+      const MultiSample* data = &buffer.front();
+      for (std::size_t count = buffer.size(); count; )
       {
-        std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
+        // buffer is just sent to playback, so we can safely lock here
+        const std::size_t written = CurrentBuffer->Write(data, count);
+        ++CurrentBuffer;
+        count -= written;
+        data += written;
       }
-      // buffer is just sent to playback, so we can safely lock here
-      CurrentBuffer->Process(buffer);
-      ++CurrentBuffer;
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const

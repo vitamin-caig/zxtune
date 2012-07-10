@@ -38,6 +38,8 @@ namespace Parameters
 
       //! Default value- 20mS (50Hz)
       const IntType FRAMEDURATION_DEFAULT = 20000;
+      const IntType FRAMEDURATION_MIN = 1000;
+      const IntType FRAMEDURATION_MAX = 1000000;
       //! Parameter name
       const Char FRAMEDURATION[] =
       {
