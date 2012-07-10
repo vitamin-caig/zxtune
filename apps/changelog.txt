@@ -7,6 +7,10 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] zxtune-qt: item properties dialog
+
+--- Rev1850 from 03.07.2012
+
 [+] zxtune-qt: sound subsystems setup
 [+] Device specifying for dsound backend
 [+] RPM packages building
