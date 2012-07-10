@@ -32,6 +32,11 @@ namespace Playlist
       {
       }
 
+      explicit Capabilities(ZXTune::Module::Holder::Ptr holder)
+        : PluginCaps(holder->GetPlugin()->Capabilities())
+      {
+      }
+
       bool IsAYM() const
       {
         return 0 != (PluginCaps & ZXTune::CAP_DEV_AYM_MASK);

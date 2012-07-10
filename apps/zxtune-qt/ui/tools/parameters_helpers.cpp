@@ -17,6 +17,7 @@ Author:
 //common includes
 #include <contract.h>
 #include <logging.h>
+#include <tools.h>
 //qt includes
 #include <QtGui/QAbstractButton>
 #include <QtGui/QAction>
@@ -42,7 +43,7 @@ namespace
       , Default(defValue)
       , OneValue(oneValue)
     {
-      Reload();
+      BooleanValueImpl<Holder>::Reload();
       Require(connect(&parent, SIGNAL(toggled(bool)), SLOT(Set(bool))));
     }
 
@@ -59,12 +60,12 @@ namespace
       Container.RemoveValue(Name);
       Reload();
     }
-  private:
-    void Reload()
+
+    virtual void Reload()
     {
       Parent.setChecked(GetValue());
     }
-
+  private:
     bool GetValue() const
     {
       Parameters::IntType val = Default ? OneValue : 0;
@@ -89,7 +90,7 @@ namespace
       , Name(name)
       , Value(value)
     {
-      Reload();
+      StringSetValue::Reload();
       Require(connect(&parent, SIGNAL(toggled(bool)), SLOT(Set(bool))));
     }
 
@@ -108,12 +109,12 @@ namespace
       Container.RemoveValue(Name);
       Reload();
     }
-  private:
+
     virtual void Reload()
     {
       Parent.setChecked(GetValue() == Value);
     }
-
+  private:
     Parameters::StringType GetValue() const
     {
       Parameters::StringType value;
@@ -160,7 +161,7 @@ namespace
       , Name(name)
       , Default(defValue)
     {
-      Reload();
+      IntegerValueImpl<Holder>::Reload();
       ConnectChanges(Parent, *this);
     }
 
@@ -176,12 +177,12 @@ namespace
       Container.RemoveValue(Name);
       Reload();
     }
-  private:
-    void Reload()
+
+    virtual void Reload()
     {
       SetWidgetValue(Parent, GetValue());
     }
-
+  private:
     int GetValue() const
     {
       Parameters::IntType value = Default;
@@ -198,48 +199,58 @@ namespace
   class BigIntegerValueImpl : public BigIntegerValue
   {
   public:
-    BigIntegerValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::IntType defValue)
+    BigIntegerValueImpl(QLineEdit& parent, Parameters::Container& ctr, const IntegerTraits& traits)
       : BigIntegerValue(parent)
       , Parent(parent)
       , Container(ctr)
-      , Name(name)
-      , Default(defValue)
+      , Traits(traits)
     {
-      Reload();
+      BigIntegerValueImpl::Reload();
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
+      Require(connect(&parent, SIGNAL(editingFinished()), SLOT(Reload())));
     }
 
 
     virtual void Set(const QString& value)
     {
       const Parameters::IntType val = value.toLongLong();
-      Log::Debug("Parameters::Helper", "%1%=%2%", Name, val);
-      Container.SetValue(Name, val);
+      if (in_range(val, Traits.Min, Traits.Max))
+      {
+        Log::Debug("Parameters::Helper", "%1%=%2%", Traits.Name, val);
+        Container.SetValue(Traits.Name, val);
+      }
     }
 
     virtual void Reset()
     {
       const AutoBlockSignal block(Parent);
-      Container.RemoveValue(Name);
+      Container.RemoveValue(Traits.Name);
       Reload();
     }
-  private:
-    void Reload()
-    {
-      Parent.setText(QString::number(GetValue()));
-    }
 
+    virtual void Reload()
+    {
+      const Parameters::IntType val = GetValue();
+      if (in_range(val, Traits.Min, Traits.Max))
+      {
+        Parent.setText(QString::number(val));
+      }
+      else
+      {
+        Parent.clear();
+      }
+    }
+  private:
     Parameters::IntType GetValue() const
     {
-      Parameters::IntType value = Default;
-      Container.FindValue(Name, value);
+      Parameters::IntType value = Traits.Default;
+      Container.FindValue(Traits.Name, value);
       return value;
     }
   private:
     QLineEdit& Parent;
     Parameters::Container& Container;
-    const Parameters::NameType Name;
-    const Parameters::IntType Default;
+    const Parameters::IntegerTraits Traits;
   };
 
   class StringValueImpl : public StringValue
@@ -252,7 +263,7 @@ namespace
       , Name(name)
       , Default(defValue)
     {
-      Reload();
+      StringValueImpl::Reload();
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
     }
 
@@ -269,12 +280,12 @@ namespace
       Container.RemoveValue(Name);
       Reload();
     }
-  private:
-    void Reload()
+
+    virtual void Reload()
     {
       Parent.setText(ToQString(GetValue()));
     }
-
+  private:
     Parameters::StringType GetValue() const
     {
       Parameters::StringType value = Default;
@@ -350,9 +361,9 @@ namespace Parameters
     return new IntegerValueImpl<QSpinBox>(spinbox, ctr, name, defValue);
   }
 
-  Value* BigIntegerValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::IntType defValue)
+  Value* BigIntegerValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const IntegerTraits& traits)
   {
-    return new BigIntegerValueImpl(edit, ctr, name, defValue);
+    return new BigIntegerValueImpl(edit, ctr, traits);
   }
 
   Value* StringValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name, const Parameters::StringType& defValue)

@@ -34,7 +34,7 @@ namespace Playlist
     public:
       typedef boost::shared_ptr<PropertiesDialog> Ptr;
 
-      static Ptr Create(QWidget& parent, Parameters::Container::Ptr properties);
+      static Ptr Create(QWidget& parent, Item::Data::Ptr item);
     private slots:
       virtual void ButtonClicked(QAbstractButton* button) = 0;
     signals:

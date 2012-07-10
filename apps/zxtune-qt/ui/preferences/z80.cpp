@@ -34,7 +34,8 @@ namespace
       setupUi(this);
 
       using namespace Parameters;
-      BigIntegerValue::Bind(*clockRateValue, *Options, ZXTune::Core::Z80::CLOCKRATE, ZXTune::Core::Z80::CLOCKRATE_DEFAULT);
+      const IntegerTraits clockRate(ZXTune::Core::Z80::CLOCKRATE, ZXTune::Core::Z80::CLOCKRATE_DEFAULT, ZXTune::Core::Z80::CLOCKRATE_MIN, ZXTune::Core::Z80::CLOCKRATE_MAX);
+      BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
       IntegerValue::Bind(*intDurationValue, *Options, ZXTune::Core::Z80::INT_TICKS, ZXTune::Core::Z80::INT_TICKS_DEFAULT);
     }
   private:

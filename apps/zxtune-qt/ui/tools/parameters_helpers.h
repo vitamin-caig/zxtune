@@ -37,6 +37,30 @@ namespace Parameters
     explicit Value(QObject& parent);
   public slots:
     virtual void Reset() = 0;
+    virtual void Reload() = 0;
+  };
+
+  struct IntegerTraits
+  {
+    NameType Name;
+    IntType Default;
+    IntType Min;
+    IntType Max;
+
+    IntegerTraits()
+      : Default()
+      , Min()
+      , Max()
+    {
+    }
+
+    IntegerTraits(const NameType& name, IntType def, IntType min, IntType max)
+      : Name(name)
+      , Default(def)
+      , Min(min)
+      , Max(max)
+    {
+    }
   };
 
   class BooleanValue : public Value
@@ -82,7 +106,7 @@ namespace Parameters
   protected:
     explicit BigIntegerValue(QObject& parent);
   public:
-    static Value* Bind(QLineEdit& line, Container& ctr, const NameType& name, IntType defValue);
+    static Value* Bind(QLineEdit& line, Container& ctr, const IntegerTraits& traits);
   private slots:
     virtual void Set(const QString& value) = 0;
   };

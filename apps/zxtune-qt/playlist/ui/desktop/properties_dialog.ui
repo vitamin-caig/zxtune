@@ -13,9 +13,6 @@
   <property name="contextMenuPolicy">
    <enum>Qt::NoContextMenu</enum>
   </property>
-  <property name="windowTitle">
-   <string>View/adjust properties</string>
-  </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
     <number>4</number>
