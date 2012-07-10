@@ -19,6 +19,18 @@
 < VERSION_DESC
 > "show version"
 
+< ABOUT_KEY
+> CMD_ABOUT_KEY
+
+< ABOUT_DESC
+> "show information about program"
+
+< ABOUT_SECTION
+> "This program is the part of ZXTune project.\n"
+> "Visit http://zxtune.googlecode.com for support or new versions\n"
+> "For additional information contact vitamin.caig@gmail.com\n"
+> "(C) Vitamin/CAIG\n"
+
 < CONFIG_KEY
 > CMD_CONFIG_KEY
 

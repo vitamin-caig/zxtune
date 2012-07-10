@@ -5,6 +5,9 @@
 
 namespace Text
 {
+extern const Char ABOUT_DESC[];
+extern const Char ABOUT_KEY[];
+extern const Char ABOUT_SECTION[];
 extern const Char ANALYZER_DESC[];
 extern const Char ANALYZER_KEY[];
 extern const Char CLI_SECTION[];

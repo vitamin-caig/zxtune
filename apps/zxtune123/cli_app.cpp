@@ -266,6 +266,7 @@ namespace
         options.add_options()
           (Text::HELP_KEY, Text::HELP_DESC)
           (Text::VERSION_KEY, Text::VERSION_DESC)
+          (Text::ABOUT_KEY, Text::ABOUT_DESC)
           (Text::CONFIG_KEY, boost::program_options::value<String>(&configFile), Text::CONFIG_DESC)
           (Text::CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), Text::CONVERT_DESC)
         ;
@@ -296,6 +297,11 @@ namespace
         else if (vars.count(Text::VERSION_KEY))
         {
           StdOut << GetProgramVersionString() << std::endl;
+          return true;
+        }
+        else if (vars.count(Text::ABOUT_KEY))
+        {
+          StdOut << Text::ABOUT_SECTION << std::endl;
           return true;
         }
         ThrowIfError(ParseConfigFile(configFile, *ConfigParams));

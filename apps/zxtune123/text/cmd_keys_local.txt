@@ -4,6 +4,9 @@
 = CMD_VERSION_KEY
 > "version"
 
+= CMD_ABOUT_KEY
+> "about"
+
 = CMD_CONFIG_KEY
 > "config"
 
