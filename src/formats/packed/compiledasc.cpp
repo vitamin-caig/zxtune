@@ -121,20 +121,20 @@ namespace CompiledASC
 
   const std::string ID_FORMAT(
     "'A'S'M' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
-    "+20+" //title
-    "+4+"  //any text
-    "+20+" //author
+    "?{20}" //title
+    "?{4}"  //any text
+    "?{20}" //author
   );
 
   const std::string BASE_FORMAT = 
-    "+11+"  //unknown
+    "?{11}" //unknown
     "c3??"  //init
     "c3??"  //play
     "c3??"  //silent
     + ID_FORMAT +
     //+0x53    init
     "af"       //xor a
-    "+28+"
+    "?{28}"
   ;
 
   const std::string Version0::FORMAT = BASE_FORMAT +
@@ -162,7 +162,7 @@ namespace CompiledASC
   ;
 
   const std::string Version2::FORMAT =
-    "+11+"     //padding
+    "?{11}"     //padding
     "184600"
     "c3??"
     "c3??"
@@ -170,7 +170,7 @@ namespace CompiledASC
     //+0x53 init
     "cd??"
     "3b3b"
-    "+35+"
+    "?{35}"
     //+123
     "11??" //data offset
   ;

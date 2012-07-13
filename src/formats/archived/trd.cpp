@@ -33,14 +33,14 @@ namespace TRD
     "(00|01|20-7f??????? ??? ?? ? 0x 00-a0){128}"
     //service sector
     "00"     //zero
-    "+224+"  //reserved
+    "?{224}" //reserved
     "?"      //free sector
     "?"      //free track
     "16"     //type DS_DD
     "01-7f"  //files
     "?00-09" //free sectors
     "10"     //ID
-    "0000+9+00"//reserved
+    "0000?????????00"//reserved
     "?"      //deleted files
     "20-7f{8}"//title
     "000000"  //reserved

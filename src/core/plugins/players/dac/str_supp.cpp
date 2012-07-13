@@ -462,7 +462,7 @@ namespace
     "01-10" //tempo
     "01-10{64}" //positions
     "?73-8b"  //first position ptr
-    "+126+"  //other ptrs
+    "?{126}"  //other ptrs
     "20-7f{10}" //title
     "%xxxxxxx0" //doubled last position
   );

@@ -131,8 +131,8 @@ namespace CompiledSTP
     "c3??"     //jp xxxx
     "?"        //nop?
     "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
-    "+25+"
-    "+8+"
+    "?{25}"
+    "?{8}"
     "f3"       //di
     "22??"     //ld (xxxx),hl
     "3e?"      //ld a,xx
@@ -149,8 +149,8 @@ namespace CompiledSTP
     "c3??"     //jp PlayAddr
     "??"       //nop,nop
     "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' ' ' 'O'F' ' ' "
-    "+24+"
-    "+8+"
+    "?{24}"
+    "?{8}"
     //+0x48
     "f3"       //di
     "21??"     //ld hl,ModuleAddr

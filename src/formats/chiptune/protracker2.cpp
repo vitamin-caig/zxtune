@@ -892,7 +892,7 @@ namespace Chiptune
       //boost::array<uint16_t, 16> OrnamentsOffsets;
       "(?00-36){16}"
       "?00-01" // uint16_t PatternsOffset;
-      "+30+"   // char Name[30];
+      "?{30}"   // char Name[30];
       "00-1f"  // uint8_t Positions[1]; at least one
       "ff|00-1f" //next position or limit
     );

@@ -933,10 +933,10 @@ namespace Chiptune
       "???"            //uint8_t ID[3];
       "10-12"          //uint8_t Version; who knows?
       "??"             //uint16_t Address;
-      "+32+"           //char Title[32];
-      "+30+"           //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      "+32+"           //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      "+192+"          //boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
+      "?{32}"          //char Title[32];
+      "?{30}"          //boost::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      "?{32}"          //boost::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      "?{192}"         //boost::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
       "01-ff"          //uint8_t Length;
       "00-fe"          //uint8_t Loop;
       "*6&00-ba"       //uint8_t Positions[1];

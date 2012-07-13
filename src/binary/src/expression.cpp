@@ -27,7 +27,6 @@ namespace
 
   const char ANY_BYTE_TEXT = '?';
   const char ANY_NIBBLE_TEXT = 'x';
-  const char SKIP_BYTES_TEXT = '+';
   const char BINARY_MASK_TEXT = '%';
   const char SYMBOL_TEXT = '\'';
   const char MULTIPLICITY_TEXT = '*';
@@ -305,15 +304,6 @@ namespace
     const BinOp Op;
   };
 
-  inline std::size_t ParseSkipBytes(PatternIterator& it)
-  {
-    Require(it && SKIP_BYTES_TEXT == *it);
-    const std::size_t skip = ParseNumber(++it);
-    Require(it && SKIP_BYTES_TEXT == *it);
-    ++it;
-    return skip;
-  }
-
   inline std::size_t ParseQuantor(PatternIterator& it)
   {
     Require(it && QUANTOR_BEGIN == *it);
@@ -388,12 +378,6 @@ namespace
     {
       switch (*it)
       {
-      case SKIP_BYTES_TEXT:
-        {
-          const std::size_t skip = ParseSkipBytes(it);
-          std::fill_n(std::back_inserter(result), skip, AnyValueToken::Create());
-        }
-        break;
       case QUANTOR_BEGIN:
         {
           Require(!result.empty());

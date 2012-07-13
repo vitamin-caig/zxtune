@@ -68,8 +68,6 @@ int main()
     TestDetector("partial explicit match", "000102030405", true, 0);
     TestDetector("whole mask match", "?0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f", true, 0);
     TestDetector("partial mask match", "00?02030405", true, 0);
-    TestDetector("whole skip match", "00+30+1f", true, 0);
-    TestDetector("partial skip match", "00+4+05", true, 0);
     TestDetector("full oversize unmatch", "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20", false, 32);
     TestDetector("matched from 1", "01", false, 1);
     TestDetector("matched from 7", "07", false, 7);

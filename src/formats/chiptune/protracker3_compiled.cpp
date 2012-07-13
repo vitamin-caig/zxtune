@@ -878,12 +878,12 @@ namespace Chiptune
     }
 
     const std::string FORMAT(
-      "+13+"       // uint8_t Id[13];        //'ProTracker 3.'
+      "?{13}"      // uint8_t Id[13];        //'ProTracker 3.'
       "?"          // uint8_t Subversion;
-      "+16+"       // uint8_t Optional1[16]; //' compilation of '
-      "+32+"       // char TrackName[32];
-      "+4+"        // uint8_t Optional2[4]; //' by '
-      "+32+"       // char TrackAuthor[32];
+      "?{16}"      // uint8_t Optional1[16]; //' compilation of '
+      "?{32}"      // char TrackName[32];
+      "?{4}"       // uint8_t Optional2[4]; //' by '
+      "?{32}"      // char TrackAuthor[32];
       "?"          // uint8_t Mode;
       "?"          // uint8_t FreqTableNum;
       "01-ff"      // uint8_t Tempo;

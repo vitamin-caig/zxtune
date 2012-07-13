@@ -552,7 +552,7 @@ namespace
     "01-0f"         // uint8_t Tempo;
     "??"            // len,loop
     "(?00-bb?00-bb){16}"//samples descriptions
-    "+21+"          // uint8_t Reserved[21];
+    "?{21}"         // uint8_t Reserved[21];
     "(20-7f{8}){16}"// sample names
   );
 

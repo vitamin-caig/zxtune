@@ -40,14 +40,14 @@ namespace TRUSH
     "11??"  //ld de,xxxx
     "01??"  //ld bc,xxxx
     //+0xe
-    "+11+"
+    "?{11}"
     //+0x19
     "f9"    //ld sp,hl
     "21??"  //ld hl,xxxx
     "11??"  //ld de,xxxx
     "01??"  //ld bc,xxxx
     */
-    "+75+"
+    "?{75}"
     "d9"    //exx
     "e1"    //pop hl
     "1806"  //jr xx

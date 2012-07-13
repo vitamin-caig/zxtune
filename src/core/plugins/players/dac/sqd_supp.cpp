@@ -666,17 +666,17 @@ namespace
 
 
   const std::string SQD_FORMAT(
-    "+192+"
+    "?{192}"
     //layouts
     "(0080-c0 58-5f 01-80){8}"
-    "+32+"
+    "?{32}"
     //title
     "20-7f{32}"
-    "+128+"
+    "?{128}"
     //positions
     "00-1f{100}"
     "ff"
-    "+11+"
+    "?{11}"
     //tempo???
     "02-10"
     //loop

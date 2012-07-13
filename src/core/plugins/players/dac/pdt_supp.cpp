@@ -632,13 +632,13 @@ namespace
 
   const std::string PDT_FORMAT(
     //boost::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
-    "+176+"
+    "?{176}"
     //boost::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
-    "+22+"
+    "?{22}"
     //uint8_t Padding1[6];
-    "+6+"
+    "?{6}"
     //char Title[32];
-    "+32+"
+    "?{32}"
     //uint8_t Tempo;
     "03-63"
     //uint8_t Start;
@@ -658,7 +658,7 @@ namespace
     uint8_t Page;
     uint8_t Padding;
     */
-    "(+8+ ?5x|3x|c0-ff ?00-40 ?5x|3x|c0-ff 00|01|03|04|06|07 00){16}"
+    "(???????? ?5x|3x|c0-ff ?00-40 ?5x|3x|c0-ff 00|01|03|04|06|07 00){16}"
     //boost::array<uint8_t, POSITIONS_COUNT> Positions;
     "(00-1f){240}"
     //uint16_t LastDatas[PAGES_COUNT];

@@ -21,7 +21,6 @@ namespace Binary
   //Text pattern format (in regular expression notation):
   //  \?           - any byte
   //  [0-9a-fx]{2} - match byte/nibble
-  //  \+[0-9]+\+   - skip xx bytes (dec)
   //  %[01x]{8}    - match byte by bits
   //  '.           - match symbol
   //  [0-9]{2}-[0-9]{2} - match byte by range
@@ -34,7 +33,7 @@ namespace Binary
   /* Pattern grammar
 
   pattern      ::= sequence | 0
-  sequence     ::= multi_match | sequence multi_match | sequence space | space sequence | group | group '{' quantor '}' | '+' quantor '+'
+  sequence     ::= multi_match | sequence multi_match | sequence space | space sequence | group | group '{' quantor '}'
   group        ::= '(' sequence ')'
   multi_match  ::= single_match | single_match '-' single_match | '?' | any_nibble any_nibble | '%' any_bit x 8 | '*' quantor
   multi_match  ::= multi_match '|' multi_match | multi_match '&' multi_match

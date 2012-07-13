@@ -467,9 +467,9 @@ namespace Chiptune
       "01-64"     //length
       "20-7f{28}" //title
       //skip compiled
-      "+44+"
+      "?{44}"
       "ff{10}"
-      "+8+"//"ae7eae7e51000000"
+      "????????"//"ae7eae7e51000000"
       "20{8}"
     );
 

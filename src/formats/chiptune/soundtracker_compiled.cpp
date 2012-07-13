@@ -636,7 +636,7 @@ namespace Chiptune
     "?00-08"      // uint16_t PositionsOffset;
     "?00-08"      // uint16_t OrnamentsOffset;
     "?00-09"      // uint16_t PatternsOffset;
-    "+20+"        // Id+Size
+    "?{20}"       // Id+Size
     "00-0f"       // first sample index
     );
 
