@@ -381,22 +381,21 @@ namespace
       case QUANTOR_BEGIN:
         {
           Require(!result.empty());
-          if (const std::size_t mult = ParseQuantor(it))
+          const std::size_t mult = ParseQuantor(it);
+          Require(mult != 0);
+          Pattern dup;
+          if (!groups.empty() && groups.top().second == result.size())
           {
-            Pattern dup;
-            if (!groups.empty() && groups.top().second == result.size())
-            {
-              dup.assign(result.begin() + groups.top().first, result.end());
-              groups.pop();
-            }
-            else
-            {
-              dup.push_back(result.back());
-            }
-            for (std::size_t idx = 0; idx < mult - 1; ++idx)
-            {
-              std::copy(dup.begin(), dup.end(), std::back_inserter(result));
-            }
+            dup.assign(result.begin() + groups.top().first, result.end());
+            groups.pop();
+          }
+          else
+          {
+            dup.push_back(result.back());
+          }
+          for (std::size_t idx = 0; idx < mult - 1; ++idx)
+          {
+            std::copy(dup.begin(), dup.end(), std::back_inserter(result));
           }
         }
         break;
@@ -427,6 +426,7 @@ namespace
         }
       }
     }
+    Require(groupBegins.empty());
     return result;
   }
 

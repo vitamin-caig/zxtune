@@ -24,7 +24,7 @@ namespace
     }
     else
     {
-      std::cout << "Failed test for " << msg << " (got: '" << result << "' expected: '" << reference << "')" << std::endl;
+      std::cout << "Failed test for " << msg << "\ngot: '" << result << "'\nexp: '" << reference << '\'' << std::endl;
       throw 1;
     }
   }
@@ -47,7 +47,7 @@ namespace
       Str << TOKENS[type] << '(' << lexeme << ") ";
     }
 
-    virtual void MultipleTokensMatched(const std::string& lexeme, const std::set<LexicalAnalysis::TokenType>& types)
+    virtual void MultipleTokensMatched(const std::string& lexeme, const std::set<LexicalAnalysis::TokenType>& /*types*/)
     {
       Str << "X(" << lexeme << ") ";
     }
@@ -118,6 +118,35 @@ namespace
     }
     return result.str();
   }
+
+  std::string GetSyntaxRPN(const std::string& notation)
+  {
+    std::ostringstream result;
+    try
+    {
+      SyntaxReportCallback cb(result);
+      Binary::ParseFormatNotationPostfix(notation, cb);
+    }
+    catch (const std::exception&)
+    {
+    }
+    return result.str();
+  }
+
+  std::string GetSyntaxRPNChecked(const std::string& notation)
+  {
+    std::ostringstream result;
+    try
+    {
+      SyntaxReportCallback cb(result);
+      const Binary::FormatTokensVisitor::Ptr adapter = Binary::CreatePostfixSynaxCheckAdapter(cb);
+      Binary::ParseFormatNotationPostfix(notation, *adapter);
+    }
+    catch (const std::exception&)
+    {
+    }
+    return result.str();
+  }
 }
 
 namespace
@@ -149,6 +178,8 @@ namespace
     std::string Notation;
     std::string GrammarReport;
     std::string SyntaxReport;
+    std::string SyntaxReportRPN;
+    std::string SyntaxReportRPNChecked;
     FormatResult Result;
   };
 
@@ -160,12 +191,16 @@ namespace
       "@",
       " >@",
       "",
+      "",
+      "",
       INVALID_FORMAT
     },
     {
       "invalid hexvalue",
       "abc",
       "C(ab) ab >c",
+      "ab ",
+      "ab ",
       "ab ",
       INVALID_FORMAT
     },
@@ -174,12 +209,16 @@ namespace
       "%10101102",
       " >%10101102",
       "",
+      "",
+      "",
       INVALID_FORMAT
     },
     {
       "invalid value",
       "123z",
       "C(123) 123 >z",
+      "",
+      "",
       "",
       INVALID_FORMAT
     },
@@ -188,12 +227,16 @@ namespace
       "0g",
       "C(0) 0 >g",
       "",
+      "",
+      "",
       INVALID_FORMAT
     },
     {
       "incomplete nibble",
       "\?0",
       "M(\?) C(0) ",
+      "\? ",
+      "\? ",
       "\? ",
       INVALID_FORMAT
     },
@@ -203,12 +246,16 @@ namespace
       " ",
       "D( ) ",
       "",
+      "",
+      "",
       INVALID_FORMAT
     },
     {
       "multichar delimiter",
       " \t",
       "D( \t) ",
+      "",
+      "",
       "",
       INVALID_FORMAT
     },
@@ -217,12 +264,16 @@ namespace
       "10",
       "C(10) ",
       "10 ",
+      "10 ",
+      "10 ",
       FormatResult(false, 0x10)
     },
     {
       "hexadecimal constant",
       "af",
       "C(af) ",
+      "af ",
+      "af ",
       "af ",
       FormatResult(false, 32)
     },
@@ -231,12 +282,16 @@ namespace
       "%01010101",
       "C(%01010101) ",
       "%01010101 ",
+      "%01010101 ",
+      "%01010101 ",
       FormatResult(false, 32)
     },
     {
       "char constant",
       "'A",
       "C('A) ",
+      "'A ",
+      "'A ",
       "'A ",
       FormatResult(false, 32)
     },
@@ -245,12 +300,16 @@ namespace
       "\?",
       "M(\?) ",
       "\? ",
+      "\? ",
+      "\? ",
       INVALID_FORMAT
     },
     {
       "hex mask",
       "2x",
       "M(2x) ",
+      "2x ",
+      "2x ",
       "2x ",
       FormatResult(false, 32)
     },
@@ -259,6 +318,8 @@ namespace
       "%01xx1010",
       "M(%01xx1010) ",
       "%01xx1010 ",
+      "%01xx1010 ",
+      "%01xx1010 ",
       FormatResult(false, 32)
     },
     {
@@ -266,19 +327,88 @@ namespace
       "*5",
       "M(*5) ",
       "*5 ",
+      "*5 ",
+      "*5 ",
       FormatResult(true, 0)
     },
     {
-      "operations",
-      "-&|{}()",
-      "O(-) O(&) O(|) O({) O(}) O(() O()) ",
-      "- & | ",
+      "quantor on empty",
+      "{1}",
+      "O({) C(1) O(}) ",
+      "{1} ",
+      "{1} ",
+      "",
       INVALID_FORMAT,
+    },
+    {
+      "zero quantor",
+      "10{0}",
+      "C(10) O({) C(0) O(}) ",
+      "10 {0} ",
+      "10 {0} ",
+      "10 ",
+      INVALID_FORMAT,
+    },
+    {
+      "invalid bracket",
+      ")10",
+      "O()) C(10) ",
+      ") 10 ",
+      "",
+      "",
+      INVALID_FORMAT
+    },
+    {
+      "brackets mismatch",
+      "(10",
+      "O(() C(10) ",
+      "( 10 ",
+      "( 10 ",
+      "( 10 ",//???
+      INVALID_FORMAT
+    },
+    {
+      "multival operation left",
+      "(0001)|02",
+      "O(() C(0001) O()) O(|) C(02) ",
+      "( 00 01 ) | 02 ",
+      "( 00 01 ) 02 | ",
+      "( 00 01 ) 02 ",
+      INVALID_FORMAT
+    },
+    {
+      "singleval operation left",
+      "(00)|02",
+      "O(() C(00) O()) O(|) C(02) ",
+      "( 00 ) | 02 ",
+      "( 00 ) 02 | ",
+      "( 00 ) 02 | ",
+      INVALID_FORMAT/*FormatResult(false, 32)*/
+    },
+    {
+      "multival operation right",
+      "00|(0102)",
+      "C(00) O(|) O(() C(0102) O()) ",
+      "00 | ( 01 02 ) ",
+      "00 ( 01 02 ) | ",
+      "00 ( 01 02 ) ",
+      INVALID_FORMAT
+    },
+    {
+      "singleval operation right",
+      "00|(02)",
+      "C(00) O(|) O(() C(02) O()) ",
+      "00 | ( 02 ) ",
+      "00 ( 02 ) | ",
+      "00 ( 02 ) | ",
+      INVALID_FORMAT/*FormatResult(false, 32)*/
     },
     {
       "single char delimiters",
       ",,",
       "D(,) D(,) ",
+      "",
+      "",
       "",
       INVALID_FORMAT,
     },
@@ -287,6 +417,8 @@ namespace
       "0x-x0",
       "M(0x) O(-) M(x0) ",
       "0x - x0 ",
+      "0x x0 - ",
+      "0x x0 - ",
       INVALID_FORMAT
     },
     {
@@ -294,6 +426,8 @@ namespace
       "05-05",
       "C(05) O(-) C(05) ",
       "05 - 05 ",
+      "05 05 - ",
+      "05 05 - ",
       INVALID_FORMAT,
     },
     {
@@ -301,6 +435,8 @@ namespace
       "00-ff",
       "C(00) O(-) C(ff) ",
       "00 - ff ",
+      "00 ff - ",
+      "00 ff - ",
       INVALID_FORMAT
     },
     {
@@ -308,6 +444,8 @@ namespace
       "01-02-03",
       "C(01) O(-) C(02) O(-) C(03) ",
       "01 - 02 - 03 ",
+      "01 02 - 03 - ",
+      "01 02 - 03 - ",
       INVALID_FORMAT
     },
     {
@@ -315,6 +453,8 @@ namespace
       "01&10",
       "C(01) O(&) C(10) ",
       "01 & 10 ",
+      "01 10 & ",
+      "01 10 & ",
       INVALID_FORMAT
     },
     {
@@ -322,6 +462,8 @@ namespace
       "00-80|80-ff",
       "C(00) O(-) C(80) O(|) C(80) O(-) C(ff) ",
       "00 - 80 | 80 - ff ",
+      "00 80 - 80 ff - | ",
+      "00 80 - 80 ff - | ",
       INVALID_FORMAT
     },
     //valid tests
@@ -330,12 +472,16 @@ namespace
       "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
       "C(000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f) ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       FormatResult(true, 0)
     },
     {
       "partial explicit match",
       "000102030405",
       "C(000102030405) ",
+      "00 01 02 03 04 05 ",
+      "00 01 02 03 04 05 ",
       "00 01 02 03 04 05 ",
       FormatResult(true, 0)
     },
@@ -344,12 +490,16 @@ namespace
       "\?0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
       "M(\?) C(0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f) ",
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
+      "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
+      "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       FormatResult(true, 0)
     },
     {
       "partial mask match",
       "00\?02030405",
       "C(00) M(\?) C(02030405) ",
+      "00 \? 02 03 04 05 ",
+      "00 \? 02 03 04 05 ",
       "00 \? 02 03 04 05 ",
       FormatResult(true, 0)
     },
@@ -358,12 +508,16 @@ namespace
       "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20",
       "C(000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20) ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 ",
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 ",
+      "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 ",
       FormatResult(false, 32)
     },
     {
       "nibbles matched",
       "0x0x",
       "M(0x0x) ",
+      "0x 0x ",
+      "0x 0x ",
       "0x 0x ",
       FormatResult(true, 0)
     },
@@ -372,12 +526,16 @@ namespace
       "0x1x",
       "M(0x1x) ",
       "0x 1x ",
+      "0x 1x ",
+      "0x 1x ",
       FormatResult(false, 15)
     },
     {
       "binary matched",
       "%0x0x0x0x%x0x0x0x1", 
       "M(%0x0x0x0x) M(%x0x0x0x1) ",
+      "%0x0x0x0x %x0x0x0x1 ",
+      "%0x0x0x0x %x0x0x0x1 ",
       "%0x0x0x0x %x0x0x0x1 ",
       FormatResult(true, 0)
     },
@@ -386,6 +544,8 @@ namespace
       "%00010xxx%00011xxx",
       "M(%00010xxx) M(%00011xxx) ",
       "%00010xxx %00011xxx ",
+      "%00010xxx %00011xxx ",
+      "%00010xxx %00011xxx ",
       FormatResult(false, 0x17)
     },
     {
@@ -393,6 +553,8 @@ namespace
       "00-0200-02",
       "C(00) O(-) C(0200) O(-) C(02) ",
       "00 - 02 00 - 02 ",
+      "00 02 - 00 02 - ",
+      "00 02 - 00 02 - ",
       FormatResult(true, 0)
     },
     {
@@ -400,12 +562,16 @@ namespace
       "10-12",
       "C(10) O(-) C(12) ",
       "10 - 12 ",
+      "10 12 - ",
+      "10 12 - ",
       FormatResult(false, 0x10)
     },
     {
       "symbol unmatched",
       "'a'b'c'd'e",
       "C('a) C('b) C('c) C('d) C('e) ",
+      "'a 'b 'c 'd 'e ",
+      "'a 'b 'c 'd 'e ",
       "'a 'b 'c 'd 'e ",
       FormatResult(false, 32)
     },
@@ -414,12 +580,16 @@ namespace
       "\?0203",
       "M(\?) C(0203) ",
       "\? 02 03 ",
+      "\? 02 03 ",
+      "\? 02 03 ",
       FormatResult(false, 1)
     },
     {
       "unmatched with skip at begin",
       "\?0302", 
       "M(\?) C(0302) ",
+      "\? 03 02 ",
+      "\? 03 02 ",
       "\? 03 02 ",
       FormatResult(false, 32)
     },
@@ -428,12 +598,16 @@ namespace
       "0d0e\?\?111213\?\?", 
       "C(0d0e) M(\?) M(\?) C(111213) M(\?) M(\?) ",
       "0d 0e \? \? 11 12 13 \? \? ",
+      "0d 0e \? \? 11 12 13 \? \? ",
+      "0d 0e \? \? 11 12 13 \? \? ",
       FormatResult(false, 13)
     },
     {
       "unmatched with skip at end",
       "0302\?\?", 
       "C(0302) M(\?) M(\?) ",
+      "03 02 \? \? ",
+      "03 02 \? \? ",
       "03 02 \? \? ",
       FormatResult(false, 32)
     },
@@ -442,12 +616,16 @@ namespace
       "1d1e1f20",
       "C(1d1e1f20) ",
       "1d 1e 1f 20 ",
+      "1d 1e 1f 20 ",
+      "1d 1e 1f 20 ",
       FormatResult(false, 32)
     },
     {
       "partially matched at end with skipping",
       "\?1d1e1f202122",
       "M(\?) C(1d1e1f202122) ",
+      "\? 1d 1e 1f 20 21 22 ",
+      "\? 1d 1e 1f 20 21 22 ",
       "\? 1d 1e 1f 20 21 22 ",
       FormatResult(false, 32)
     },
@@ -456,12 +634,16 @@ namespace
       "0x{10}",
       "M(0x) O({) C(10) O(}) ",
       "0x {10} ",
+      "0x {10} ",
+      "0x {10} ",
       FormatResult(true, 0)
     },
     {
       "quantor unmatched",
       "1x{15}",
       "M(1x) O({) C(15) O(}) ",
+      "1x {15} ",
+      "1x {15} ",
       "1x {15} ",
       FormatResult(false, 16)
     },
@@ -470,12 +652,16 @@ namespace
       "(%xxxxxxx0%xxxxxxx1){3}",
       "O(() M(%xxxxxxx0) M(%xxxxxxx1) O()) O({) C(3) O(}) ",
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
+      "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
+      "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
       FormatResult(true, 0)
     },
     {
       "quanted group unmatched",
       "(%xxxxxxx1%xxxxxxx0){5}",
       "O(() M(%xxxxxxx1) M(%xxxxxxx0) O()) O({) C(5) O(}) ",
+      "( %xxxxxxx1 %xxxxxxx0 ) {5} ",
+      "( %xxxxxxx1 %xxxxxxx0 ) {5} ",
       "( %xxxxxxx1 %xxxxxxx0 ) {5} ",
       FormatResult(false, 1)
     },
@@ -484,12 +670,16 @@ namespace
       "00010203 *2 05 *3",
       "C(00010203) D( ) M(*2) D( ) C(05) D( ) M(*3) ",
       "00 01 02 03 *2 05 *3 ",
+      "00 01 02 03 *2 05 *3 ",
+      "00 01 02 03 *2 05 *3 ",
       FormatResult(true, 0)
     },
     {
       "multiplicity unmatched",
       "*2*3*4",
       "M(*2) M(*3) M(*4) ",
+      "*2 *3 *4 ",
+      "*2 *3 *4 ",
       "*2 *3 *4 ",
       FormatResult(false, 2)
     },
@@ -498,6 +688,8 @@ namespace
       "00 0x&x1",
       "C(00) D( ) M(0x) O(&) M(x1) ",
       "00 0x & x1 ",
+      "00 0x x1 & ",
+      "00 0x x1 & ",
       FormatResult(true, 0)
     },
     {
@@ -505,6 +697,8 @@ namespace
       "(1x&%xxxx11xx){4}",
       "O(() M(1x) O(&) M(%xxxx11xx) O()) O({) C(4) O(}) ",
       "( 1x & %xxxx11xx ) {4} ",
+      "( 1x %xxxx11xx & ) {4} ",
+      "( 1x %xxxx11xx & ) {4} ",
       FormatResult(false, 0x1c)
     },
     {
@@ -512,6 +706,8 @@ namespace
       "00|01 00|01",
       "C(00) O(|) C(01) D( ) C(00) O(|) C(01) ",
       "00 | 01 00 | 01 ",
+      "00 01 | 00 01 | ",
+      "00 01 | 00 01 | ",
       FormatResult(true, 0)
     },
     {
@@ -519,17 +715,19 @@ namespace
       "(1x|%xxxx11xx){6}",
       "O(() M(1x) O(|) M(%xxxx11xx) O()) O({) C(6) O(}) ",
       "( 1x | %xxxx11xx ) {6} ",
+      "( 1x %xxxx11xx | ) {6} ",
+      "( 1x %xxxx11xx | ) {6} ",
       FormatResult(false, 12)
     },
-    /*
     {
       "complex condition matched",
       "00-01|1e-1f",
       "C(00) O(-) C(01) O(|) C(1e) O(-) C(1f) ",
       "00 - 01 | 1e - 1f ",
-      FormatResult(true, 0)
+      "00 01 - 1e 1f - | ",
+      "00 01 - 1e 1f - | ",
+      INVALID_FORMAT/*FormatResult(true, 0)*/
     }
-    */
   };
 
   void Execute(const FormatTest& tst)
@@ -537,6 +735,8 @@ namespace
     std::cout << "Testing for " << tst.Name << std::endl;
     Test("grammar", GetGrammar(tst.Notation), tst.GrammarReport);
     Test("syntax", GetSyntax(tst.Notation), tst.SyntaxReport);
+    Test("syntax RPN", GetSyntaxRPN(tst.Notation), tst.SyntaxReportRPN);
+    Test("syntax RPN checked", GetSyntaxRPNChecked(tst.Notation), tst.SyntaxReportRPNChecked);
     if (tst.Result == INVALID_FORMAT)
     {
       TestInvalid("format creating", tst.Notation);

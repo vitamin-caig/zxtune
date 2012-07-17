@@ -41,6 +41,8 @@ namespace Binary
   const char ZERO_BIT_TEXT = '0';
   const char ONE_BIT_TEXT = '1';
 
+  const char DELIMITER_TEXT = ',';
+
   LexicalAnalysis::Grammar::Ptr CreateFormatGrammar();
 }
 

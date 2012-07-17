@@ -41,7 +41,7 @@ namespace
   public:
     virtual LexicalAnalysis::TokenType Parse(const std::string& lexeme) const
     {
-      static const std::string DELIMITERS(",;");
+      static const char DELIMITERS[] = {DELIMITER_TEXT, 0};
       return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(DELIMITERS)
         ? LexicalAnalysis::INVALID_TOKEN
         : DELIMITER;
