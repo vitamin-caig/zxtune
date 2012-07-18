@@ -23,7 +23,7 @@ namespace Binary
     typedef std::auto_ptr<FormatTokensVisitor> Ptr;
     virtual ~FormatTokensVisitor() {}
 
-    virtual void Value(const std::string& val) = 0;
+    virtual void Match(const std::string& val) = 0;
     virtual void GroupStart() = 0;
     virtual void GroupEnd() = 0;
     virtual void Quantor(uint_t count) = 0;

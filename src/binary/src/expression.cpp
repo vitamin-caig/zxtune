@@ -11,6 +11,8 @@ Author:
 
 //local includes
 #include "expression.h"
+#include "format_grammar.h"
+#include "format_syntax.h"
 //common includes
 #include <contract.h>
 #include <tools.h>
@@ -24,25 +26,6 @@ Author:
 namespace
 {
   using namespace Binary;
-
-  const char ANY_BYTE_TEXT = '?';
-  const char ANY_NIBBLE_TEXT = 'x';
-  const char BINARY_MASK_TEXT = '%';
-  const char SYMBOL_TEXT = '\'';
-  const char MULTIPLICITY_TEXT = '*';
-
-  const char RANGE_TEXT = '-';
-  const char CONJUNCTION_TEXT = '&';
-  const char DISJUNCTION_TEXT = '|';
-
-  const char QUANTOR_BEGIN = '{';
-  const char QUANTOR_END = '}';
-  const char GROUP_BEGIN = '(';
-  const char GROUP_END = ')';
-
-  const char ANY_BIT_TEXT = 'x';
-  const char ZERO_BIT_TEXT = '0';
-  const char ONE_BIT_TEXT = '1';
 
   typedef RangeIterator<std::string::const_iterator> PatternIterator;
 
@@ -313,8 +296,9 @@ namespace
     return mult;
   }
 
-  Token::Ptr ParseSingleToken(PatternIterator& it)
+  Token::Ptr ParseSingleToken(const std::string& txt)
   {
+    PatternIterator it(txt.begin(), txt.end());
     Require(it);
     switch (*it)
     {
@@ -331,103 +315,105 @@ namespace
     }
   }
 
-  Token::Ptr ParseComplexToken(PatternIterator& it)
+  typedef std::vector<Token::Ptr> Pattern;
+
+  Token::Ptr ParseOperation(const std::string& txt, Pattern& pat)
   {
-    const Token::Ptr lh = ParseSingleToken(it);
-    if (!it)
+    Require(!txt.empty());
+    if (txt[0] == RANGE_TEXT ||
+        txt[0] == CONJUNCTION_TEXT ||
+        txt[0] == DISJUNCTION_TEXT)
     {
-      return lh;
-    }
-    switch (*it)
-    {
-    case RANGE_TEXT:
+      Require(pat.size() >= 2);
+      const Token::Ptr rh = pat.back();
+      pat.pop_back();
+      const Token::Ptr lh = pat.back();
+      pat.pop_back();
+      if (txt[0] == RANGE_TEXT)
       {
-        const Token::Ptr rh = ParseSingleToken(++it);
         const Token::Ptr res = MatchRangeToken::Create(lh, rh);
         Require(!IsAnyByte(res));
         return res;
       }
-      break;
-    case CONJUNCTION_TEXT:
+      else if (txt[0] == CONJUNCTION_TEXT)
       {
-        const Token::Ptr rh = ParseComplexToken(++it);
-        const Token::Ptr res = BinaryOperationToken<Conjunction>::Create(lh, rh);
-        return res;
+        return BinaryOperationToken<Conjunction>::Create(lh, rh);
       }
-      break;
-    case DISJUNCTION_TEXT:
+      else if (txt[0] == DISJUNCTION_TEXT)
       {
-        const Token::Ptr rh = ParseComplexToken(++it);
         const Token::Ptr res = BinaryOperationToken<Disjunction>::Create(lh, rh);
         Require(!IsAnyByte(res));
         return res;
       }
-      break;
     }
-    return lh;
+    Require(false);
+    return Token::Ptr();
   }
 
-  typedef std::vector<Token::Ptr> Pattern;
+  class TokensFactory : public FormatTokensVisitor
+  {
+  public:
+    virtual void Match(const std::string& val)
+    {
+      Result.push_back(ParseSingleToken(val));
+      Require(!IsNoByte(Result.back()));
+    }
+
+    virtual void GroupStart()
+    {
+      GroupBegins.push(Result.size());
+    }
+
+    virtual void GroupEnd()
+    {
+      Require(!GroupBegins.empty());
+      Groups.push(std::make_pair(GroupBegins.top(), Result.size()));
+      GroupBegins.pop();
+    }
+
+    virtual void Quantor(uint_t count)
+    {
+      Require(count != 0);
+      Require(!Result.empty());
+      Pattern dup;
+      if (!Groups.empty() && Groups.top().second == Result.size())
+      {
+        dup.assign(Result.begin() + Groups.top().first, Result.end());
+        Groups.pop();
+      }
+      else
+      {
+        dup.push_back(Result.back());
+      }
+      for (std::size_t idx = 0; idx < count - 1; ++idx)
+      {
+        std::copy(dup.begin(), dup.end(), std::back_inserter(Result));
+      }
+    }
+
+    virtual void Operation(const std::string& op)
+    {
+      Result.push_back(ParseOperation(op, Result));
+      Require(!IsNoByte(Result.back()));
+    }
+
+    Pattern GetResult() const
+    {
+      Require(GroupBegins.empty());
+      return Result;
+    }
+  private:
+    Pattern Result;
+    std::stack<std::size_t> GroupBegins;
+    std::stack<std::pair<std::size_t, std::size_t> > Groups;
+  };
 
   Pattern CompilePattern(const std::string& textPattern)
   {
-    std::stack<std::size_t> groupBegins;
-    std::stack<std::pair<std::size_t, std::size_t> > groups;
-    Pattern result;
-    for (PatternIterator it(textPattern.begin(), textPattern.end()); it;)
-    {
-      switch (*it)
-      {
-      case QUANTOR_BEGIN:
-        {
-          Require(!result.empty());
-          const std::size_t mult = ParseQuantor(it);
-          Require(mult != 0);
-          Pattern dup;
-          if (!groups.empty() && groups.top().second == result.size())
-          {
-            dup.assign(result.begin() + groups.top().first, result.end());
-            groups.pop();
-          }
-          else
-          {
-            dup.push_back(result.back());
-          }
-          for (std::size_t idx = 0; idx < mult - 1; ++idx)
-          {
-            std::copy(dup.begin(), dup.end(), std::back_inserter(result));
-          }
-        }
-        break;
-      case GROUP_BEGIN:
-        groupBegins.push(result.size());
-        ++it;
-        break;
-      case GROUP_END:
-        {
-          Require(!groupBegins.empty());
-          const std::pair<std::size_t, std::size_t> newGroup = std::make_pair(groupBegins.top(), result.size());
-          groupBegins.pop();
-          groups.push(newGroup);
-          ++it;
-        }
-        break;
-      case ' ':
-      case '\n':
-      case '\r':
-      case '\t':
-        ++it;
-        break;
-      default:
-        {
-          const Token::Ptr tok = ParseComplexToken(it);
-          Require(!IsNoByte(tok));
-          result.push_back(tok);
-        }
-      }
-    }
-    Require(groupBegins.empty());
-    return result;
+    TokensFactory factory;
+    const FormatTokensVisitor::Ptr check = CreatePostfixSynaxCheckAdapter(factory);
+    ParseFormatNotationPostfix(textPattern, *check);
+    return factory.GetResult();
   }
 
   class LinearExpression : public Expression

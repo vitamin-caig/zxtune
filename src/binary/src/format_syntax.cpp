@@ -16,6 +16,7 @@ Author:
 #include <contract.h>
 #include <iterator.h>
 //std includes
+#include <cctype>
 #include <stack>
 
 namespace
@@ -112,7 +113,7 @@ namespace
           tok.Value[0] == Binary::ANY_BYTE_TEXT ||
           tok.Value[0] == Binary::SYMBOL_TEXT)
       {
-        visitor.Value(tok.Value);
+        visitor.Match(tok.Value);
         return this;
       }
       else
@@ -121,7 +122,7 @@ namespace
         std::string val = tok.Value;
         while (!val.empty())
         {
-          visitor.Value(val.substr(0, 2));
+          visitor.Match(val.substr(0, 2));
           val = val.substr(2);
         }
         return this;
@@ -255,6 +256,11 @@ namespace
       return Val;
     }
 
+    bool IsOperation() const
+    {
+      return Prec > 0;
+    }
+
     std::size_t Precedence() const
     {
       return Prec;
@@ -274,39 +280,139 @@ namespace
     std::size_t Prec;
   };
 
+  class RPNTranslation : public Binary::FormatTokensVisitor
+  {
+  public:
+    RPNTranslation(Binary::FormatTokensVisitor& delegate)
+      : Delegate(delegate)
+      , LastIsMatch(false)
+    {
+    }
+
+    virtual void Match(const std::string& val)
+    {
+      if (LastIsMatch)
+      {
+        FlushOperations();
+      }
+      Delegate.Match(val);
+      LastIsMatch = true;
+    }
+
+    virtual void GroupStart()
+    {
+      FlushOperations();
+      Ops.push(Operator(GROUP_START));
+      Delegate.GroupStart();
+      LastIsMatch = false;
+    }
+
+    virtual void GroupEnd()
+    {
+      FlushOperations();
+      Require(!Ops.empty() && Ops.top().Value() == GROUP_START);
+      Ops.pop();
+      Delegate.GroupEnd();
+      LastIsMatch = false;
+    }
+
+    virtual void Quantor(uint_t count)
+    {
+      FlushOperations();
+      Delegate.Quantor(count);
+      LastIsMatch = false;
+    }
+
+    virtual void Operation(const std::string& op)
+    {
+      const Operator newOp(op);
+      FlushOperations(newOp);
+      Ops.push(newOp);
+      LastIsMatch = false;
+    }
+
+    void Flush()
+    {
+      while (!Ops.empty())
+      {
+        Require(Ops.top().IsOperation());
+        FlushOperations();
+      }
+    }
+  private:
+    void FlushOperations()
+    {
+      while (!Ops.empty())
+      {
+        const Operator& topOp = Ops.top();
+        if (!topOp.IsOperation())
+        {
+          break;
+        }
+        Delegate.Operation(topOp.Value());
+        Ops.pop();
+      }
+    }
+    void FlushOperations(const Operator& newOp)
+    {
+      while (!Ops.empty())
+      {
+        const Operator& topOp = Ops.top();
+        if (!topOp.IsOperation())
+        {
+          break;
+        }
+        if ((newOp.LeftAssoc() && newOp.Precedence() <= topOp.Precedence())
+          || (newOp.Precedence() < topOp.Precedence()))
+        {
+          Delegate.Operation(topOp.Value());
+          Ops.pop();
+        }
+        else
+        {
+          break;
+        }
+      }
+    }
+  private:
+    Binary::FormatTokensVisitor& Delegate;
+    std::stack<Operator> Ops;
+    bool LastIsMatch;
+  };
+
   class SyntaxCheck : public Binary::FormatTokensVisitor
   {
   public:
     explicit SyntaxCheck(Binary::FormatTokensVisitor& delegate)
       : Delegate(delegate)
-      , ValuesInOutput(0)
+      , Position(0)
     {
     }
 
-    virtual void Value(const std::string& val)
+    virtual void Match(const std::string& val)
     {
-      Delegate.Value(val);
-      ++ValuesInOutput;
+      Delegate.Match(val);
+      ++Position;
     }
 
     virtual void GroupStart()
     {
-      GroupStarts.push(ValuesInOutput);
+      GroupStarts.push(Position);
       Delegate.GroupStart();
     }
 
     virtual void GroupEnd()
     {
       Require(!GroupStarts.empty());
-      Require(GroupStarts.top() != ValuesInOutput);
-      Groups.push(Group(GroupStarts.top(), ValuesInOutput));
+      Require(GroupStarts.top() != Position);
+      Groups.push(Group(GroupStarts.top(), Position));
       GroupStarts.pop();
       Delegate.GroupEnd();
     }
 
     virtual void Quantor(uint_t count)
     {
-      Require(ValuesInOutput != 0);
+      Require(Position != 0);
       Require(count != 0);
       Delegate.Quantor(count);
     }
@@ -314,12 +420,12 @@ namespace
     virtual void Operation(const std::string& op)
     {
       const std::size_t usedVals = Operator(op).Parameters();
-      CheckAvailableParameters(usedVals, ValuesInOutput);
-      ValuesInOutput = ValuesInOutput - usedVals + 1;
+      CheckAvailableParameters(usedVals, Position);
+      Position = Position - usedVals + 1;
       Delegate.Operation(op);
     }
   private:
-    void CheckAvailableParameters(std::size_t parameters, std::size_t valuesAvail)
+    void CheckAvailableParameters(std::size_t parameters, std::size_t position)
     {
       if (!parameters)
       {
@@ -328,11 +434,11 @@ namespace
       const std::size_t start = GroupStarts.empty() ? 0 : GroupStarts.top();
       if (Groups.empty() || Groups.top().End < start)
       {
-        Require(parameters + start <= valuesAvail);
+        Require(parameters + start <= position);
         return;
       }
       const Group top = Groups.top();
-      const std::size_t nonGrouped = valuesAvail - top.End;
+      const std::size_t nonGrouped = position - top.End;
       if (nonGrouped < parameters)
       {
         if (nonGrouped)
@@ -373,105 +479,9 @@ namespace
     };
   private:
     Binary::FormatTokensVisitor& Delegate;
-    std::size_t ValuesInOutput;
+    std::size_t Position;
     std::stack<std::size_t> GroupStarts;
     std::stack<Group> Groups;
-  };
-
-  class RPNTranslation : public Binary::FormatTokensVisitor
-  {
-  public:
-    RPNTranslation(Binary::FormatTokensVisitor& delegate)
-      : Delegate(delegate)
-      , LastIsValue(false)
-    {
-    }
-
-    virtual void Value(const std::string& val)
-    {
-      if (LastIsValue)
-      {
-        while (!Ops.empty())
-        {
-          const Operator& topOp = Ops.top();
-          if (topOp.Value() == GROUP_START)
-          {
-            break;
-          }
-          Delegate.Operation(topOp.Value());
-          Ops.pop();
-        }
-      }
-      Delegate.Value(val);
-      LastIsValue = true;
-    }
-
-    virtual void GroupStart()
-    {
-      Ops.push(Operator(GROUP_START));
-      Delegate.GroupStart();
-      LastIsValue = false;
-    }
-
-    virtual void GroupEnd()
-    {
-      for (;;)
-      {
-        Require(!Ops.empty());
-        const Operator& topOp = Ops.top();
-        if (topOp.Value() == GROUP_START)
-        {
-          Ops.pop();
-          break;
-        }
-        Delegate.Operation(topOp.Value());
-        Ops.pop();
-      }
-      Delegate.GroupEnd();
-      LastIsValue = false;
-    }
-
-    virtual void Quantor(uint_t count)
-    {
-      Delegate.Quantor(count);
-      LastIsValue = false;
-    }
-
-    virtual void Operation(const std::string& op)
-    {
-      const Operator newOp(op);
-      while (!Ops.empty())
-      {
-        const Operator& prevOp = Ops.top();
-        if ((newOp.LeftAssoc() && newOp.Precedence() <= prevOp.Precedence())
-          || (newOp.Precedence() < prevOp.Precedence()))
-        {
-          Delegate.Operation(prevOp.Value());
-          Ops.pop();
-        }
-        else
-        {
-          break;
-        }
-      }
-      Ops.push(newOp);
-      LastIsValue = false;
-    }
-
-    void Flush()
-    {
-      while (!Ops.empty())
-      {
-        const std::string val = Ops.top().Value();
-        Require(val != GROUP_START);
-        Delegate.Operation(val);
-        Ops.pop();
-      }
-    }
-  private:
-    Binary::FormatTokensVisitor& Delegate;
-    std::stack<Operator> Ops;
-    bool LastIsValue;
   };
 }
 

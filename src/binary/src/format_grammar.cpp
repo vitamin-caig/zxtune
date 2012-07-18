@@ -13,6 +13,8 @@ Author:
 #include "format_grammar.h"
 //common includes
 #include <tools.h>
+//std includes
+#include <cctype>
 //boost includes
 #include <boost/make_shared.hpp>
 

@@ -68,7 +68,7 @@ namespace
     {
     }
 
-    virtual void Value(const std::string& val)
+    virtual void Match(const std::string& val)
     {
       Str << val << ' ';
     }
@@ -151,23 +151,6 @@ namespace
 
 namespace
 {
-  void TestInvalid(const std::string& test, const std::string& pattern)
-  {
-    bool res = false;
-    try
-    {
-      Binary::Format::Create(pattern);
-    }
-    catch (const std::exception&)
-    {
-      res = true;
-    }
-    Test("invalid " + test, res);
-  }
-}
-
-namespace
-{
   typedef std::pair<bool, std::size_t> FormatResult;
 
   const FormatResult INVALID_FORMAT(false, 0);
@@ -182,6 +165,20 @@ namespace
     std::string SyntaxReportRPNChecked;
     FormatResult Result;
   };
+
+  FormatResult CheckFormat(const std::string& notation)
+  {
+    static const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+    try
+    {
+      const Binary::Format::Ptr format = Binary::Format::Create(notation);
+      return FormatResult(format->Match(SAMPLE, ArraySize(SAMPLE)), format->Search(SAMPLE, ArraySize(SAMPLE)));
+    }
+    catch (const std::exception&)
+    {
+      return INVALID_FORMAT;
+    }
+  }
 
   const FormatTest TESTS[] =
   {
@@ -383,15 +380,15 @@ namespace
       "( 00 ) | 02 ",
       "( 00 ) 02 | ",
       "( 00 ) 02 | ",
-      INVALID_FORMAT/*FormatResult(false, 32)*/
+      FormatResult(true, 0)
     },
     {
       "multival operation right",
       "00|(0102)",
       "C(00) O(|) O(() C(0102) O()) ",
       "00 | ( 01 02 ) ",
-      "00 ( 01 02 ) | ",
-      "00 ( 01 02 ) ",
+      "00 | ( 01 02 ) ",
+      "00 ",
       INVALID_FORMAT
     },
     {
@@ -399,9 +396,9 @@ namespace
       "00|(02)",
       "C(00) O(|) O(() C(02) O()) ",
       "00 | ( 02 ) ",
-      "00 ( 02 ) | ",
-      "00 ( 02 ) | ",
-      INVALID_FORMAT/*FormatResult(false, 32)*/
+      "00 | ( 02 ) ",
+      "00 ",
+      INVALID_FORMAT
     },
     {
       "single char delimiters",
@@ -464,6 +461,16 @@ namespace
       "00 - 80 | 80 - ff ",
       "00 80 - 80 ff - | ",
       "00 80 - 80 ff - | ",
+      INVALID_FORMAT
+    },
+    //brackets are used only for grouping, not for operations reordering
+    {
+      "grouping",
+      "(00|01)&(01|02)",
+      "O(() C(00) O(|) C(01) O()) O(&) O(() C(01) O(|) C(02) O()) ",
+      "( 00 | 01 ) & ( 01 | 02 ) ",
+      "( 00 01 | ) & ( 01 02 | ) ",
+      "( 00 01 | ) ",
       INVALID_FORMAT
     },
     //valid tests
@@ -666,6 +673,33 @@ namespace
       FormatResult(false, 1)
     },
     {
+      "group after range",
+      "00-01(02030405)",
+      "C(00) O(-) C(01) O(() C(02030405) O()) ",
+      "00 - 01 ( 02 03 04 05 ) ",
+      "00 01 - ( 02 03 04 05 ) ",
+      "00 01 - ( 02 03 04 05 ) ",
+      FormatResult(false, 1)
+    },
+    {
+      "group before range",
+      "(00010203)04-05",
+      "O(() C(00010203) O()) C(04) O(-) C(05) ",
+      "( 00 01 02 03 ) 04 - 05 ",
+      "( 00 01 02 03 ) 04 05 - ",
+      "( 00 01 02 03 ) 04 05 - ",
+      FormatResult(true, 0)
+    },
+    {
+      "quanted range matched",
+      "00-1f{32}",
+      "C(00) O(-) C(1f) O({) C(32) O(}) ",
+      "00 - 1f {32} ",
+      "00 1f - {32} ",
+      "00 1f - {32} ",
+      FormatResult(true, 0)
+    },
+    {
       "multiplicity matched",
       "00010203 *2 05 *3",
       "C(00010203) D( ) M(*2) D( ) C(05) D( ) M(*3) ",
@@ -726,29 +760,41 @@ namespace
       "00 - 01 | 1e - 1f ",
       "00 01 - 1e 1f - | ",
       "00 01 - 1e 1f - | ",
-      INVALID_FORMAT/*FormatResult(true, 0)*/
+      FormatResult(true, 0)
+    },
+    {
+      "trd format expression",
+      "(00|01|20-7f??????? ??? ?? ? 0x 00-a0){128}00?{224}??1601-7f?00-09100000?????????00?20-7f{8}000000",
+      "O(() C(00) O(|) C(01) O(|) C(20) O(-) C(7f) M(?) M(?) M(?) M(?) M(?) M(?) M(?) D( ) "
+        "M(?) M(?) M(?) D( ) M(?) M(?) D( ) M(?) D( ) M(0x) D( ) C(00) O(-) C(a0) O()) O({) C(128) O(}) C(00) M(?) O({) C(224) O(}) M(?) M(?) "
+        "C(1601) O(-) C(7f) M(?) C(00) O(-) C(09100000) M(?) M(?) M(?) M(?) M(?) M(?) M(?) M(?) M(?) C(00) M(?) C(20) O(-) C(7f) O({) C(8) O(}) C(000000) ",
+      "( 00 | 01 | 20 - 7f ? ? ? ? ? ? ? ? ? ? ? ? ? 0x 00 - a0 ) {128} 00 ? {224} ? ? 16 01 - 7f ? 00 - 09 10 00 00 ? ? ? ? ? ? ? ? ? 00 ? 20 - 7f {8} 00 00 00 ",
+      "( 00 01 | 20 7f - | ? ? ? ? ? ? ? ? ? ? ? ? ? 0x 00 a0 - ) {128} 00 ? {224} ? ? 16 01 7f - ? 00 09 - 10 00 00 ? ? ? ? ? ? ? ? ? 00 ? 20 7f - {8} 00 00 00 ",
+      "( 00 01 | 20 7f - | ? ? ? ? ? ? ? ? ? ? ? ? ? 0x 00 a0 - ) {128} 00 ? {224} ? ? 16 01 7f - ? 00 09 - 10 00 00 ? ? ? ? ? ? ? ? ? 00 ? 20 7f - {8} 00 00 00 ",
+      FormatResult(false, 32)
+    },
+    {
+      "pt3 format expression",
+      "?{13}??{16}?{32}?{4}?{32}??01-ff???00-01(?00-bf){32}(?00-d9){16}*3&00-fe*3",
+      "M(?) O({) C(13) O(}) M(?) M(?) O({) C(16) O(}) M(?) O({) C(32) O(}) M(?) O({) C(4) O(}) M(?) O({) C(32) O(}) M(?) M(?) C(01) O(-) C(ff) M(?) M(?) M(?) "
+        "C(00) O(-) C(01) O(() M(?) C(00) O(-) C(bf) O()) O({) C(32) O(}) O(() M(?) C(00) O(-) C(d9) O()) O({) C(16) O(}) M(*3) O(&) C(00) O(-) C(fe) M(*3) ",
+      "? {13} ? ? {16} ? {32} ? {4} ? {32} ? ? 01 - ff ? ? ? 00 - 01 ( ? 00 - bf ) {32} ( ? 00 - d9 ) {16} *3 & 00 - fe *3 ",
+      "? {13} ? ? {16} ? {32} ? {4} ? {32} ? ? 01 ff - ? ? ? 00 01 - ( ? 00 bf - ) {32} ( ? 00 d9 - ) {16} *3 00 fe - & *3 ",
+      "? {13} ? ? {16} ? {32} ? {4} ? {32} ? ? 01 ff - ? ? ? 00 01 - ( ? 00 bf - ) {32} ( ? 00 d9 - ) {16} *3 00 fe - & *3 ",
+      FormatResult(false, 32)
     }
   };
 
   void Execute(const FormatTest& tst)
   {
-    std::cout << "Testing for " << tst.Name << std::endl;
+    std::cout << "Testing for " << tst.Name << " (#" << &tst - TESTS << ')' << std::endl;
     Test("grammar", GetGrammar(tst.Notation), tst.GrammarReport);
     Test("syntax", GetSyntax(tst.Notation), tst.SyntaxReport);
     Test("syntax RPN", GetSyntaxRPN(tst.Notation), tst.SyntaxReportRPN);
     Test("syntax RPN checked", GetSyntaxRPNChecked(tst.Notation), tst.SyntaxReportRPNChecked);
-    if (tst.Result == INVALID_FORMAT)
-    {
-      TestInvalid("format creating", tst.Notation);
-    }
-    else
-    {
-      static const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
-      const Binary::Format::Ptr format = Binary::Format::Create(tst.Notation);
-      Test("match", format->Match(SAMPLE, ArraySize(SAMPLE)), tst.Result.first);
-      const std::size_t lookahead = format->Search(SAMPLE, ArraySize(SAMPLE));
-      Test("lookahead", lookahead, tst.Result.second);
-    }
+    const FormatResult res = CheckFormat(tst.Notation);
+    Test("match", res.first, tst.Result.first);
+    Test("lookahead", res.second, tst.Result.second);
   }
 }
 
