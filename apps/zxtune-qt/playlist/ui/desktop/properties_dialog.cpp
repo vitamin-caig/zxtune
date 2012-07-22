@@ -213,8 +213,11 @@ namespace Playlist
       }
       const Model::Ptr model = controller.GetModel();
       const Item::Data::Ptr item = model->GetItem(*scope->begin());
-      const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(view, item);
-      dialog->exec();
+      if (item->IsValid())
+      {
+        const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(view, item);
+        dialog->exec();
+      }
     }
   }
 }
