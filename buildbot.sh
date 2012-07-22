@@ -27,7 +27,13 @@ do
     skip_clearing=1
     no_debuginfo=1
   fi
-  TOOLCHAIN_PATH=/opt/mipsel-linux-uclibc skip_clearing=${skip_clearing} no_debuginfo=${no_debuginfo} ./build.sh ${mode} "${build_targets}" || exit 1
+  if [ "x${Platform}" = "xdingux" ]; then
+    TOOLCHAIN_PATH=/opt/mipsel-linux-uclibc skip_clearing=${skip_clearing} no_debuginfo=${no_debuginfo} ./build.sh ${mode} "${build_targets}" || exit 1
+  elif [ "x${Platform}" = "xlinux" -a "y${Arch}" = "yarm" ]; then
+    TOOLCHAIN_PATH=/opt/arm-linux TOOLCHAIN_ROOT=`pwd`../Build/linux-arm skip_clearing=${skip_clearing} no_debuginfo=${no_debuginfo} ./build.sh ${mode} "${build_targets}" || exit 1
+  else
+    skip_clearing=${skip_clearing} no_debuginfo=${no_debuginfo} ./build.sh ${mode} "${build_targets}" || exit 1
+  fi
   LastPlatform=${Platform}
   LastArch=${Arch}
   LastPackaging=${Packaging}
