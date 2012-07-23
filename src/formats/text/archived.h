@@ -12,5 +12,6 @@ extern const Char HRIP_DECODER_DESCRIPTION[];
 extern const Char LHA_DECODER_DESCRIPTION[];
 extern const Char SCL_DECODER_DESCRIPTION[];
 extern const Char TRD_DECODER_DESCRIPTION[];
+extern const Char ZXSTATE_DECODER_DESCRIPTION[];
 }//namespace Text
 #endif //__TEXT_ARCHIVED_H_DEFINED__

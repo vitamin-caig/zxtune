@@ -26,5 +26,8 @@ extern const Char SCL_DECODER_DESCRIPTION[] = {
 extern const Char TRD_DECODER_DESCRIPTION[] = {
   'T','R','-','D','o','s',' ','d','i','s','k','s',' ','i','m','a','g','e',0
 };
+extern const Char ZXSTATE_DECODER_DESCRIPTION[] = {
+  'Z','X','-','S','t','a','t','e',' ','s','n','a','p','s','h','o','t',' ','f','o','r','m','a','t',0
+};
 }//namespace Text
 #endif //__TEXT_ARCHIVED_H_DEFINED__

@@ -37,3 +37,7 @@ __cpp> "#endif //__TEXT_ARCHIVED_H_DEFINED__\n"
 #TRD
 < TRD_DECODER_DESCRIPTION
 > "TR-Dos disks image"
+
+#ZXS
+< ZXSTATE_DECODER_DESCRIPTION
+> "ZX-State snapshot format"
