@@ -292,6 +292,8 @@ namespace
       Decoders.push_back(CreateTRDDecoder());
       Decoders.push_back(CreateHripDecoder());
       //Decoders.push_back(CreateAYDecoder());
+      //Decoders.push_back(CreateLhaDecoder());
+      Decoders.push_back(CreateZXStateDecoder());
     }
 
     virtual bool ForEach(Formats::Archived::DecodersStorage::Visitor& visitor) const
