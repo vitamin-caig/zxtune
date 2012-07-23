@@ -7,6 +7,11 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] zx-state (.szx) snapshots format support
+[*] zxtune-qt: fixed crash for getting properties of invalid item
+
+--- Rev1864 from 10.07.2012
+
 [+] zxtune-qt: item properties dialog
 
 --- Rev1850 from 03.07.2012
