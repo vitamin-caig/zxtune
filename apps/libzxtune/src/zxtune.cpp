@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/container.h>
+#include <core/core_parameters.h>
 #include <core/module_detect.h>
 #include <core/module_holder.h>
 #include <core/module_player.h>
@@ -116,8 +117,8 @@ namespace
     std::size_t GetSamples(std::size_t count, ZXTune::Sound::MultiSample* target)
     {
       const std::size_t toGet = std::min(count, Buffer.size());
-      BufferType::iterator endToCopy = Buffer.begin() + toGet;
-      std::copy(Buffer.begin(), endToCopy, target);
+      const BufferType::iterator endToCopy = Buffer.begin() + toGet;
+      std::transform(Buffer.begin()->begin(), (endToCopy - 1)->end(), target->begin(), &ZXTune::Sound::ToSignedSample);
       Buffer.erase(Buffer.begin(), endToCopy);
       DoneSamples += toGet;
       return toGet;
@@ -263,7 +264,7 @@ namespace
     static const Name2Val DEFAULTS[] =
     {
       Name2Val(Parameters::ZXTune::Sound::FREQUENCY, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT),
-      Name2Val(Parameters::ZXTune::Sound::CLOCKRATE, Parameters::ZXTune::Sound::CLOCKRATE_DEFAULT),
+      Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
       Name2Val(Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
     };
     const Name2Val* const defVal = std::find_if(DEFAULTS, ArrayEnd(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);

@@ -128,7 +128,7 @@ $(LIBS): deps
 deps: $(depends) $($(platform)_depends)
 
 $(depends) $($(platform)_depends):
-	$(MAKE) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
+	$(MAKE) pic=$(pic) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
 endif
 
 $(OBJECTS): | $(GENERATED_HEADERS) $(objects_dir)
