@@ -9,10 +9,9 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifdef WIN32_WAVEOUT_SUPPORT
-
 //local includes
 #include "win32.h"
+#include "win32_api.h"
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
@@ -55,26 +54,6 @@ namespace
   const uint_t BUFFERS_MIN = 3;
   const uint_t BUFFERS_MAX = 10;
 
-  struct WaveOutLibraryTraits
-  {
-    static std::string GetName()
-    {
-      return "winmm";
-    }
-
-    static void Startup()
-    {
-      Log::Debug(THIS_MODULE, "Library loaded");
-    }
-
-    static void Shutdown()
-    {
-      Log::Debug(THIS_MODULE, "Library unloaded");
-    }
-  };
-
-  typedef SharedLibraryGate<WaveOutLibraryTraits> WaveOutLibrary;
-
   /*
 
    From http://msdn.microsoft.com/en-us/library/windows/desktop/dd797880(v=vs.85).aspx :
@@ -92,12 +71,12 @@ namespace
       : in;
   }
 
-  inline void CheckMMResult(::MMRESULT res, Error::LocationRef loc)
+  inline void CheckMMResult(Win32::Api& api, ::MMRESULT res, Error::LocationRef loc)
   {
     if (MMSYSERR_NOERROR != res)
     {
       std::vector<char> buffer(1024);
-      if (MMSYSERR_NOERROR == ::waveOutGetErrorText(res, &buffer[0], static_cast<UINT>(buffer.size())))
+      if (MMSYSERR_NOERROR == api.waveOutGetErrorText(res, &buffer[0], static_cast<UINT>(buffer.size())))
       {
         throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR,
           String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
@@ -132,7 +111,7 @@ namespace
       assert(0 == Handle);
     }
 
-    void Allocate(::HWAVEOUT handle, ::HANDLE event, const RenderParameters& params)
+    void Allocate(Win32::Api& api, ::HWAVEOUT handle, ::HANDLE event, const RenderParameters& params)
     {
       assert(0 == Handle && INVALID_HANDLE_VALUE == Event);
       const std::size_t bufSize = params.SamplesPerFrame();
@@ -140,23 +119,23 @@ namespace
       Header.lpData = ::LPSTR(&Buffer[0]);
       Header.dwBufferLength = ::DWORD(bufSize) * sizeof(Buffer.front());
       Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
-      CheckMMResult(::waveOutPrepareHeader(handle, &Header, sizeof(Header)), THIS_LINE);
+      CheckMMResult(api, api.waveOutPrepareHeader(handle, &Header, sizeof(Header)), THIS_LINE);
       //mark as free
       Header.dwFlags |= WHDR_DONE;
       Handle = handle;
       Event = event;
     }
 
-    void Release()
+    void Release(Win32::Api& api)
     {
       Wait();
-      CheckMMResult(::waveOutUnprepareHeader(Handle, &Header, sizeof(Header)), THIS_LINE);
+      CheckMMResult(api, api.waveOutUnprepareHeader(Handle, &Header, sizeof(Header)), THIS_LINE);
       Chunk().swap(Buffer);
       Handle = 0;
       Event = INVALID_HANDLE_VALUE;
     }
 
-    std::size_t Write(const MultiSample* buf, std::size_t samples)
+    std::size_t Write(Win32::Api& api, const MultiSample* buf, std::size_t samples)
     {
       Wait();
       assert(Header.dwFlags & WHDR_DONE);
@@ -164,7 +143,7 @@ namespace
       Header.dwBufferLength = static_cast< ::DWORD>(toWrite * sizeof(Buffer.front()));
       std::transform(&buf->front(), &(buf + toWrite)->front(), safe_ptr_cast<Sample*>(Header.lpData), &ConvertSample);
       Header.dwFlags &= ~WHDR_DONE;
-      CheckMMResult(::waveOutWrite(Handle, &Header, sizeof(Header)), THIS_LINE);
+      CheckMMResult(api, api.waveOutWrite(Handle, &Header, sizeof(Header)), THIS_LINE);
       return toWrite;
     }
   private:
@@ -186,8 +165,10 @@ namespace
   class Win32VolumeController : public VolumeControl
   {
   public:
-    Win32VolumeController(boost::mutex& stateMutex, int_t& device)
-      : StateMutex(stateMutex), Device(device)
+    Win32VolumeController(Win32::Api::Ptr api, boost::mutex& stateMutex, int_t& device)
+      : Api(api)
+      , StateMutex(stateMutex)
+      , Device(device)
     {
     }
 
@@ -199,7 +180,7 @@ namespace
         boost::mutex::scoped_lock lock(StateMutex);
         boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
         BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
-        CheckMMResult(::waveOutGetVolume(reinterpret_cast< ::HWAVEOUT>(Device), safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
+        CheckMMResult(Api->waveOutGetVolume(reinterpret_cast< ::HWAVEOUT>(Device), safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
         std::transform(buffer.begin(), buffer.end(), volume.begin(), std::bind2nd(std::divides<Gain>(), MAX_WIN32_VOLUME));
         return Error();
       }
@@ -222,7 +203,7 @@ namespace
         boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
         std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
         BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
-        CheckMMResult(::waveOutSetVolume(reinterpret_cast< ::HWAVEOUT>(Device), *safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
+        CheckMMResult(Api->waveOutSetVolume(reinterpret_cast< ::HWAVEOUT>(Device), *safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
         return Error();
       }
       catch (const Error& e)
@@ -230,8 +211,13 @@ namespace
         return e;
       }
     }
-
   private:
+    void CheckMMResult(::MMRESULT res, Error::LocationRef loc) const
+    {
+      ::CheckMMResult(*Api, res, loc);
+    }
+  private:
+    const Win32::Api::Ptr Api;
     boost::mutex& StateMutex;
     int_t& Device;
   };
@@ -270,14 +256,15 @@ namespace
                            , private boost::noncopyable
   {
   public:
-    explicit Win32BackendWorker(Parameters::Accessor::Ptr params)
-      : BackendParams(params)
+    Win32BackendWorker(Win32::Api::Ptr api, Parameters::Accessor::Ptr params)
+      : Api(api)
+      , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
       , Event(::CreateEvent(0, FALSE, FALSE, 0))
       //device identifier used for opening and volume control
       , Device(0)
       , WaveHandle(0)
-      , VolumeController(new Win32VolumeController(StateMutex, Device))
+      , VolumeController(new Win32VolumeController(Api, StateMutex, Device))
     {
     }
 
@@ -294,9 +281,9 @@ namespace
       const Win32BackendParameters params(*BackendParams);
       const int_t device = params.GetDevice();
       ::HWAVEOUT handle;
-      CheckMMResult(::waveOutOpen(&handle, static_cast< ::UINT>(device), &format, 0, 0,
+      CheckMMResult(Api->waveOutOpen(&handle, static_cast< ::UINT>(device), &format, 0, 0,
         WAVE_FORMAT_DIRECT), THIS_LINE);
-      CheckMMResult(::waveOutClose(handle), THIS_LINE);
+      CheckMMResult(Api->waveOutClose(handle), THIS_LINE);
     }
 
     virtual void OnStartup(const Module::Holder& /*module*/)
@@ -310,9 +297,9 @@ namespace
       CurrentBuffer = CycledIterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
 
       SetupFormat(Format);
-      CheckMMResult(::waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &Format, DWORD_PTR(Event), 0,
+      CheckMMResult(Api->waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &Format, DWORD_PTR(Event), 0,
         CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
-      std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, WaveHandle, Event, boost::cref(*RenderingParameters)));
+      std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, boost::ref(*Api), WaveHandle, Event, boost::cref(*RenderingParameters)));
       CheckPlatformResult(0 != ::ResetEvent(Event), THIS_LINE);
     }
 
@@ -320,9 +307,9 @@ namespace
     {
       if (0 != WaveHandle)
       {
-        std::for_each(Buffers.begin(), Buffers.end(), boost::mem_fn(&WaveBuffer::Release));
-        CheckMMResult(::waveOutReset(WaveHandle), THIS_LINE);
-        CheckMMResult(::waveOutClose(WaveHandle), THIS_LINE);
+        std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Release, _1, boost::ref(*Api)));
+        CheckMMResult(Api->waveOutReset(WaveHandle), THIS_LINE);
+        CheckMMResult(Api->waveOutClose(WaveHandle), THIS_LINE);
         WaveHandle = 0;
       }
     }
@@ -331,7 +318,7 @@ namespace
     {
       if (0 != WaveHandle)
       {
-        CheckMMResult(::waveOutPause(WaveHandle), THIS_LINE);
+        CheckMMResult(Api->waveOutPause(WaveHandle), THIS_LINE);
       }
     }
 
@@ -339,7 +326,7 @@ namespace
     {
       if (0 != WaveHandle)
       {
-        CheckMMResult(::waveOutRestart(WaveHandle), THIS_LINE);
+        CheckMMResult(Api->waveOutRestart(WaveHandle), THIS_LINE);
       }
     }
 
@@ -353,7 +340,7 @@ namespace
       for (std::size_t count = buffer.size(); count; )
       {
         // buffer is just sent to playback, so we can safely lock here
-        const std::size_t written = CurrentBuffer->Write(data, count);
+        const std::size_t written = CurrentBuffer->Write(*Api, data, count);
         ++CurrentBuffer;
         count -= written;
         data += written;
@@ -365,6 +352,11 @@ namespace
       return VolumeController;
     }
   private:
+    void CheckMMResult(::MMRESULT res, Error::LocationRef loc) const
+    {
+      ::CheckMMResult(*Api, res, loc);
+    }
+
     void SetupFormat(::WAVEFORMATEX& format) const
     {
       std::memset(&format, 0, sizeof(format));
@@ -376,6 +368,7 @@ namespace
       format.wBitsPerSample = 8 * sizeof(Sample);
     }
   private:
+    const Win32::Api::Ptr Api;
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
     boost::mutex StateMutex;
@@ -391,6 +384,11 @@ namespace
   class Win32BackendCreator : public BackendCreator
   {
   public:
+    explicit Win32BackendCreator(Win32::Api::Ptr api)
+      : Api(api)
+    {
+    }
+
     virtual String Id() const
     {
       return WIN32_BACKEND_ID;
@@ -411,7 +409,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new Win32BackendWorker(allParams));
+        const BackendWorker::Ptr worker(new Win32BackendWorker(Api, allParams));
         result = Sound::CreateBackend(params, worker);
         return Error();
       }
@@ -425,13 +423,16 @@ namespace
         return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
       }
     }
+  private:
+    const Win32::Api::Ptr Api;
   };
 
   class Win32Device : public Win32::Device
   {
   public:
-    explicit Win32Device(int_t id)
-      : IdValue(id)
+    Win32Device(Win32::Api::Ptr api, int_t id)
+      : Api(api)
+      , IdValue(id)
     {
     }
 
@@ -443,7 +444,7 @@ namespace
     virtual String Name() const
     {
       WAVEOUTCAPS caps;
-      if (MMSYSERR_NOERROR != ::waveOutGetDevCaps(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
+      if (MMSYSERR_NOERROR != Api->waveOutGetDevCaps(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
       {
         Log::Debug(THIS_MODULE, "Failed to get device name");
         return String();
@@ -451,14 +452,16 @@ namespace
       return FromStdString(caps.szPname);
     }
   private:
+    const Win32::Api::Ptr Api;
     const int_t IdValue;
   };
 
   class DevicesIterator : public Win32::Device::Iterator
   {
   public:
-    DevicesIterator()
-      : Limit(::waveOutGetNumDevs())
+    explicit DevicesIterator(Win32::Api::Ptr api)
+      : Api(api)
+      , Limit(Api->waveOutGetNumDevs())
       , Current()
     {
       if (Limit)
@@ -480,7 +483,7 @@ namespace
     virtual Win32::Device::Ptr Get() const
     {
       return IsValid()
-        ? boost::make_shared<Win32Device>(Current)
+        ? boost::make_shared<Win32Device>(Api, Current)
         : Win32::Device::Ptr();
     }
 
@@ -492,6 +495,7 @@ namespace
       }
     }
   private:
+    const Win32::Api::Ptr Api;
     const int_t Limit;
     int_t Current;
   };
@@ -503,11 +507,12 @@ namespace ZXTune
   {
     void RegisterWin32Backend(BackendsEnumerator& enumerator)
     {
-      if (WaveOutLibrary::Instance().IsAccessible())
+      try
       {
-        if (DevicesIterator().IsValid())
+        const Win32::Api::Ptr api = Win32::LoadDynamicApi();
+        if (DevicesIterator(api).IsValid())
         {
-          const BackendCreator::Ptr creator(new Win32BackendCreator());
+          const BackendCreator::Ptr creator(new Win32BackendCreator(api));
           enumerator.RegisterCreator(creator);
         }
         else
@@ -515,9 +520,9 @@ namespace ZXTune
           Log::Debug(THIS_MODULE, "No devices detected. Disable backend.");
         }
       }
-      else
+      catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(WaveOutLibrary::Instance().GetLoadError()));
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
       }
     }
 
@@ -525,101 +530,17 @@ namespace ZXTune
     {
       Device::Iterator::Ptr EnumerateDevices()
       {
-        return Device::Iterator::Ptr(new DevicesIterator());
+        try
+        {
+          const Win32::Api::Ptr api = Win32::LoadDynamicApi();
+          return Device::Iterator::Ptr(new DevicesIterator(api));
+        }
+        catch (const Error& e)
+        {
+          Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+          return Device::Iterator::CreateStub();
+        }
       }
     }
   }
 }
-
-//global namespace
-#define STR(a) #a
-#define WAVEOUT_FUNC(func) WaveOutLibrary::Instance().GetSymbol(&func, STR(func))
-
-UINT WINAPI waveOutGetNumDevs()
-{
-  return WAVEOUT_FUNC(waveOutGetNumDevs)();
-}
-
-MMRESULT WINAPI waveOutGetDevCaps(UINT_PTR uDeviceID, LPWAVEOUTCAPS pwoc, UINT cbwoc)
-{
-  return WAVEOUT_FUNC(waveOutGetDevCaps)(uDeviceID, pwoc, cbwoc);
-}
-
-MMRESULT WINAPI waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen)
-{
-  return WAVEOUT_FUNC(waveOutOpen)(phwo, uDeviceID, pwfx, dwCallback, dwInstance, fdwOpen);
-}
-
-MMRESULT WINAPI waveOutClose(HWAVEOUT hwo)
-{
-  return WAVEOUT_FUNC(waveOutClose)(hwo);
-}
-
-MMRESULT WINAPI waveOutPrepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh)
-{
-  return WAVEOUT_FUNC(waveOutPrepareHeader)(hwo, pwh, cbwh);
-}
-
-MMRESULT WINAPI waveOutUnprepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh)
-{
-  return WAVEOUT_FUNC(waveOutUnprepareHeader)(hwo, pwh, cbwh);
-}
-
-MMRESULT WINAPI waveOutWrite(HWAVEOUT hwo, LPWAVEHDR pwh, IN UINT cbwh)
-{
-  return WAVEOUT_FUNC(waveOutWrite)(hwo, pwh, cbwh);
-}
-
-MMRESULT WINAPI waveOutGetErrorText(MMRESULT mmrError, LPSTR pszText, UINT cchText)
-{
-  return WAVEOUT_FUNC(waveOutGetErrorText)(mmrError, pszText, cchText);
-}
-
-MMRESULT WINAPI waveOutPause(HWAVEOUT hwo)
-{
-  return WAVEOUT_FUNC(waveOutPause)(hwo);
-}
-
-MMRESULT WINAPI waveOutRestart(HWAVEOUT hwo)
-{
-  return WAVEOUT_FUNC(waveOutRestart)(hwo);
-}
-
-MMRESULT WINAPI waveOutReset(HWAVEOUT hwo)
-{
-  return WAVEOUT_FUNC(waveOutReset)(hwo);
-}
-
-MMRESULT WINAPI waveOutGetVolume(HWAVEOUT hwo, LPDWORD pdwVolume)
-{
-  return WAVEOUT_FUNC(waveOutGetVolume)(hwo, pdwVolume);
-}
-
-MMRESULT WINAPI waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume)
-{
-  return WAVEOUT_FUNC(waveOutSetVolume)(hwo, dwVolume);
-}
-
-#else //not supported
-#include "win32.h"
-
-namespace ZXTune
-{
-  namespace Sound
-  {
-    void RegisterWin32Backend(class BackendsEnumerator& /*enumerator*/)
-    {
-      //do nothing
-    }
-
-    namespace Win32
-    {
-      Device::Iterator::Ptr EnumerateDevices()
-      {
-        return Device::Iterator::CreateStub();
-      }
-    }
-  }
-}
-
-#endif

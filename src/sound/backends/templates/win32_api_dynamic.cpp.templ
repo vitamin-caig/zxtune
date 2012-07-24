@@ -1,0 +1,42 @@
+/*
+Abstract:
+  Win32 subsystem api dynamic gate implementation
+
+Last changed:
+  $Id: win32.h 1842 2012-07-02 09:44:02Z vitamin.caig $
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+//local includes
+#include "win32_api.h"
+//common includes
+#include <logging.h>
+#include <shared_library_adapter.h>
+//boost includes
+#include <boost/make_shared.hpp>
+
+namespace
+{
+  const std::string THIS_MODULE("Sound::Backend::Win32");
+
+  using namespace ZXTune::Sound::Win32;
+
+<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
+}
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    namespace Win32
+    {
+      Api::Ptr LoadDynamicApi()
+      {
+        const SharedLibrary::Ptr lib = SharedLibrary::Load("winmm");
+        return boost::make_shared<DynamicApi>(lib);
+      }
+    }
+  }
+}
