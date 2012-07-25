@@ -43,12 +43,14 @@ namespace Async
 
     virtual void ApplyData(const T& data)
     {
+      CheckWorkersAvailable();
       Statistic->Produce(1);
       QueueObject->Add(data);
     }
 
     virtual void Flush()
     {
+      CheckWorkersAvailable();
       //may not flush queue
       Statistic->WaitForComplete();
       Delegate->Flush();
@@ -71,13 +73,29 @@ namespace Async
       }
     }
 
-    void WaitAll()
+    std::list<Error> WaitAll()
     {
+      std::list<Error> result;
       while (!Activities.empty())
       {
         const Activity::Ptr act = Activities.front();
         Activities.pop_front();
-        act->Wait();//TODO log error
+        if (const Error& err = act->Wait())
+        {
+          result.push_back(err);
+        }
+      }
+      return result;
+    }
+
+    void CheckWorkersAvailable()
+    {
+      if (Activities.end() == std::find_if(Activities.begin(), Activities.end(), boost::mem_fn(&Activity::IsExecuted)))
+      {
+        const std::list<Error>& errors = WaitAll();
+        throw errors.empty()
+          ? Error()//TODO
+          : *errors.begin();
       }
     }
   private:
@@ -122,7 +140,8 @@ namespace Async
     const typename Queue<T>::Ptr QueueObject;
     const Progress::Ptr Statistic;
     const typename ::DataReceiver<T>::Ptr Delegate;
-    std::list<typename Activity::Ptr> Activities;
+    typedef std::list<typename Activity::Ptr> ActivitiesList;
+    ActivitiesList Activities;
   };
 }
 

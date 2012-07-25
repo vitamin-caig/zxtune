@@ -79,7 +79,7 @@ namespace
       State.Set(INITIALIZED);
       State.Wait(STARTED);
       LastError = Oper->Execute();
-      State.Set(STOPPED);
+      State.Set(LastError ? FAILED : STOPPED);
     }
   private:
     const Operation::Ptr Oper;
