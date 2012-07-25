@@ -108,6 +108,7 @@ namespace
       {
         callback.OnProgress(state->Frame());
       }
+      ThrowIfError(backend.Stop());
     }
 
     void Failed(const String& status)
