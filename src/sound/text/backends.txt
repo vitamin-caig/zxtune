@@ -139,6 +139,8 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < FLAC_BACKEND_DESCRIPTION
 > "FLAC support backend."
 
-< SOUND_ERROR_FLAC_BACKEND_ERROR
+< SOUND_ERROR_FLAC_BACKEND_UNKNOWN_ERROR
 > "Error in flac backend."
 
+< SOUND_ERROR_FLAC_BACKEND_ERROR
+> "Error in flac backend (code %1%)."

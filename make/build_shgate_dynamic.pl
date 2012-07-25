@@ -17,7 +17,7 @@ while (my $line = <FUNCS>)
   $line =~ /^(.*?)(#.*)?$/;
   my $func = $1;
   next unless $func;
-  die "Invalid function format ($_)" unless $func =~ /([\w_][\w\d_\s]*?)([\w_][\w\d_]*)\s*\((.*)\)/;
+  die "Invalid function format ($_)" unless $func =~ /([\w_][\w\d_*\s]*?)([\w_][\w\d_]*)\s*\((.*)\)/;
   my %function = (DECLARATION => $func, RETTYPE => $1, NAME => $ 2);
   my @params = split /,\s*/,$3;
   my @paramTypes = ();
@@ -25,7 +25,7 @@ while (my $line = <FUNCS>)
   while (my $param = shift @params)
   {
     next if $param =~ /^\s*void\s*$/;
-    die "Invalid parameters format ($param)" unless $param =~ /^([\w\d_ *]+)[\s*]+([\w_][\w\d_]*)(\[\])?$/;
+    die "Invalid parameters format ($param)" unless $param =~ /^([\w\d_ *]+?)\s*([\w_][\w\d_]*)(\[\])?$/;
     push @paramTypes, $1.$3;
     push @paramNames, $2;
   }

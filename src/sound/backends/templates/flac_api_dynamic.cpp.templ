@@ -1,0 +1,68 @@
+/*
+Abstract:
+  FLAC api dynamic gate implementation
+
+Last changed:
+  $Id: win32.h 1842 2012-07-02 09:44:02Z vitamin.caig $
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+//local includes
+#include "flac_api.h"
+//common includes
+#include <logging.h>
+#include <shared_library_adapter.h>
+#include <tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
+
+namespace
+{
+  const std::string THIS_MODULE("Sound::Backend::Flac");
+
+  using namespace ZXTune::Sound::Flac;
+
+  class FlacName : public SharedLibrary::Name
+  {
+  public:
+    virtual std::string Base() const
+    {
+      return "FLAC";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libFLAC.so.7",
+        "libFLAC.so.8"
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      return std::vector<std::string>();
+    }
+  };
+
+<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
+}
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    namespace Flac
+    {
+      Api::Ptr LoadDynamicApi()
+      {
+        static const FlacName NAME;
+        const SharedLibrary::Ptr lib = SharedLibrary::Load(NAME);
+        return boost::make_shared<DynamicApi>(lib);
+      }
+    }
+  }
+}

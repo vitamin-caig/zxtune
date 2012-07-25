@@ -85,6 +85,10 @@ extern const Char SOUND_ERROR_FILE_BACKEND_NO_FILENAME[] = {
   ' ','n','o','t',' ','s','p','e','c','i','f','i','e','d','.',0
 };
 extern const Char SOUND_ERROR_FLAC_BACKEND_ERROR[] = {
+  'E','r','r','o','r',' ','i','n',' ','f','l','a','c',' ','b','a','c','k','e','n','d',' ','(','c','o','d','e',
+  ' ','%','1','%',')','.',0
+};
+extern const Char SOUND_ERROR_FLAC_BACKEND_UNKNOWN_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','f','l','a','c',' ','b','a','c','k','e','n','d','.',0
 };
 extern const Char SOUND_ERROR_MP3_BACKEND_ERROR[] = {
