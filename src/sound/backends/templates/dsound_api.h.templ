@@ -1,0 +1,32 @@
+/*
+Abstract:
+  DirectSound subsystem api gate interface
+
+Last changed:
+  $Id: win32.h 1842 2012-07-02 09:44:02Z vitamin.caig $
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#ifndef SOUND_BACKENDS_DSOUND_API_H_DEFINED
+#define SOUND_BACKENDS_DSOUND_API_H_DEFINED
+
+//platform-dependent includes
+#define NOMINMAX
+#include <dsound.h>
+//boost includes
+#include <boost/shared_ptr.hpp>
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    namespace DirectSound
+    {
+<TMPL_INCLUDE NAME="api.h.templ">
+    }
+  }
+}
+
+#endif //SOUND_BACKENDS_DSOUND_API_H_DEFINED

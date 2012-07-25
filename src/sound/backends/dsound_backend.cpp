@@ -9,25 +9,20 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifdef DIRECTSOUND_SUPPORT
-
 //local includes
 #include "dsound.h"
+#include "dsound_api.h"
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
 #include <error_tools.h>
 #include <logging.h>
-#include <shared_library_gate.h>
 #include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
-//platform-dependent includes
-#define NOMINMAX
-#include <dsound.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
@@ -49,26 +44,6 @@ namespace
 
   const uint_t LATENCY_MIN = 20;
   const uint_t LATENCY_MAX = 10000;
-
-  struct DirectSoundLibraryTraits
-  {
-    static std::string GetName()
-    {
-      return "dsound";
-    }
-
-    static void Startup()
-    {
-      Log::Debug(THIS_MODULE, "Library loaded");
-    }
-
-    static void Shutdown()
-    {
-      Log::Debug(THIS_MODULE, "Library unloaded");
-    }
-  };
-
-  typedef SharedLibraryGate<DirectSoundLibraryTraits> DirectSoundLibrary;
 
   /*
 
@@ -130,12 +105,12 @@ namespace
   typedef boost::shared_ptr<IDirectSound> DirectSoundDevicePtr;
   typedef boost::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
 
-  DirectSoundDevicePtr OpenDevice(const String& device)
+  DirectSoundDevicePtr OpenDevice(DirectSound::Api& api, const String& device)
   {
     Log::Debug(THIS_MODULE, "OpenDevice(%1%)", device);
     DirectSoundDevicePtr::pointer raw = 0;
     const std::auto_ptr<GUID> deviceUuid = String2Guid(device);
-    CheckWin32Error(::DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
+    CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
     const DirectSoundDevicePtr result = DirectSoundDevicePtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
     Log::Debug(THIS_MODULE, "Opened");
@@ -473,8 +448,9 @@ namespace
   class DirectSoundBackendWorker : public BackendWorker
   {
   public:
-    explicit DirectSoundBackendWorker(Parameters::Accessor::Ptr params)
-      : BackendParams(params)
+    DirectSoundBackendWorker(DirectSound::Api::Ptr api, Parameters::Accessor::Ptr params)
+      : Api(api)
+      , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
     {
     }
@@ -540,7 +516,7 @@ namespace
       const DirectSoundBackendParameters params(*BackendParams);
       const String device = params.GetDevice();
       DSObjects res;
-      res.Device = OpenDevice(device);
+      res.Device = OpenDevice(*Api, device);
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
       const uint_t frameDurationMs = RenderingParameters->FrameDurationMicrosec() / 1000;
@@ -550,6 +526,7 @@ namespace
       return res;
     }
   private:
+    const DirectSound::Api::Ptr Api;
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
     DSObjects Objects; 
@@ -558,6 +535,11 @@ namespace
   class DirectSoundBackendCreator : public BackendCreator
   {
   public:
+    explicit DirectSoundBackendCreator(DirectSound::Api::Ptr api)
+      : Api(api)
+    {
+    }
+
     virtual String Id() const
     {
       return DSOUND_BACKEND_ID;
@@ -578,7 +560,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new DirectSoundBackendWorker(allParams));
+        const BackendWorker::Ptr worker(new DirectSoundBackendWorker(Api, allParams));
         result = Sound::CreateBackend(params, worker);
         return Error();
       }
@@ -592,6 +574,8 @@ namespace
         return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
       }
     }
+  private:
+    const DirectSound::Api::Ptr Api;
   };
 
   class DirectSoundDevice : public DirectSound::Device
@@ -620,10 +604,10 @@ namespace
   class DevicesIterator : public DirectSound::Device::Iterator
   {
   public:
-    DevicesIterator()
+    explicit DevicesIterator(DirectSound::Api::Ptr api)
       : Current(Devices.begin())
     {
-      if (DS_OK != ::DirectSoundEnumerate(&EnumerateDevicesCallback, &Devices))
+      if (DS_OK != api->DirectSoundEnumerate(&EnumerateDevicesCallback, &Devices))
       {
         Log::Debug(THIS_MODULE, "Failed to enumerate devices. Skip backend.");
         Current = Devices.end();
@@ -678,19 +662,22 @@ namespace ZXTune
   {
     void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
     {
-      if (DirectSoundLibrary::Instance().IsAccessible())
+      try
       {
-        if (!DevicesIterator().IsValid())
+        const DirectSound::Api::Ptr api = DirectSound::LoadDynamicApi();
+        if (DevicesIterator(api).IsValid())
+        {
+          const BackendCreator::Ptr creator(new DirectSoundBackendCreator(api));
+          enumerator.RegisterCreator(creator);
+        }
+        else
         {
           Log::Debug(THIS_MODULE, "No devices to output. Skip backend");
-          return;
         }
-        const BackendCreator::Ptr creator(new DirectSoundBackendCreator());
-        enumerator.RegisterCreator(creator);
       }
-      else
+      catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(DirectSoundLibrary::Instance().GetLoadError()));
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
       }
     }
 
@@ -698,46 +685,17 @@ namespace ZXTune
     {
       Device::Iterator::Ptr EnumerateDevices()
       {
-        return Device::Iterator::Ptr(new DevicesIterator());
+        try
+        {
+          const Api::Ptr api = LoadDynamicApi();
+          return Device::Iterator::Ptr(new DevicesIterator(api));
+        }
+        catch (const Error& e)
+        {
+          Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+          return Device::Iterator::CreateStub();
+        }
       }
     }
   }
 }
-
-//global namespace
-#define STR(a) #a
-#define DIRECTSOUND_FUNC(func) DirectSoundLibrary::Instance().GetSymbol(&func, STR(func))
-
-HRESULT WINAPI DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param)
-{
-  return DIRECTSOUND_FUNC(DirectSoundEnumerateA)(cb, param);
-}
-
-HRESULT WINAPI DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
-{
-  return DIRECTSOUND_FUNC(DirectSoundCreate)(pcGuidDevice, ppDS, pUnkOuter);
-}
-
-#else //not supported
-#include "dsound.h"
-
-namespace ZXTune
-{
-  namespace Sound
-  {
-    void RegisterDirectSoundBackend(class BackendsEnumerator& /*enumerator*/)
-    {
-      //do nothing
-    }
-
-    namespace DirectSound
-    {
-      Device::Iterator::Ptr EnumerateDevices()
-      {
-        return Device::Iterator::CreateStub();
-      }
-    }
-  }
-}
-
-#endif

@@ -1,0 +1,42 @@
+/*
+Abstract:
+  DirectSound subsystem api dynamic gate implementation
+
+Last changed:
+  $Id: win32.h 1842 2012-07-02 09:44:02Z vitamin.caig $
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+//local includes
+#include "dsound_api.h"
+//common includes
+#include <logging.h>
+#include <shared_library_adapter.h>
+//boost includes
+#include <boost/make_shared.hpp>
+
+namespace
+{
+  const std::string THIS_MODULE("Sound::Backend::DirectSound");
+
+  using namespace ZXTune::Sound::DirectSound;
+
+<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
+}
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    namespace DirectSound
+    {
+      Api::Ptr LoadDynamicApi()
+      {
+        const SharedLibrary::Ptr lib = SharedLibrary::Load("dsound");
+        return boost::make_shared<DynamicApi>(lib);
+      }
+    }
+  }
+}

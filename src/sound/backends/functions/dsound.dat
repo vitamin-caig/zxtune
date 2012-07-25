@@ -1,0 +1,2 @@
+HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param)
+HRESULT DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
