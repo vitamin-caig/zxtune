@@ -31,13 +31,13 @@ namespace ZXTune
 
         
         virtual UINT waveOutGetNumDevs() = 0;
-        virtual MMRESULT waveOutGetDevCaps(UINT_PTR uDeviceID, LPWAVEOUTCAPS pwoc, UINT cbwoc) = 0;
+        virtual MMRESULT waveOutGetDevCapsA(UINT_PTR uDeviceID, LPWAVEOUTCAPS pwoc, UINT cbwoc) = 0;
         virtual MMRESULT waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen) = 0;
         virtual MMRESULT waveOutClose(HWAVEOUT hwo) = 0;
         virtual MMRESULT waveOutPrepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh) = 0;
         virtual MMRESULT waveOutUnprepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh) = 0;
         virtual MMRESULT waveOutWrite(HWAVEOUT hwo, LPWAVEHDR pwh, IN UINT cbwh) = 0;
-        virtual MMRESULT waveOutGetErrorText(MMRESULT mmrError, LPSTR pszText, UINT cchText) = 0;
+        virtual MMRESULT waveOutGetErrorTextA(MMRESULT mmrError, LPSTR pszText, UINT cchText) = 0;
         virtual MMRESULT waveOutPause(HWAVEOUT hwo) = 0;
         virtual MMRESULT waveOutRestart(HWAVEOUT hwo) = 0;
         virtual MMRESULT waveOutReset(HWAVEOUT hwo) = 0;

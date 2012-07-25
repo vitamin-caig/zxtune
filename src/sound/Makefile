@@ -1,7 +1,7 @@
 library_name := sound
 path_step := ../..
 source_dirs := impl
-source_files = backends/backend_impl backends/enumerator backends/file_backend
+source_files = backends/backend_impl backends/enumerator backends/file_backend backends/scope
 
 text_files := text/sound text/backends
 

@@ -46,9 +46,9 @@ namespace
       return func();
     }
     
-    virtual MMRESULT waveOutGetDevCaps(UINT_PTR uDeviceID, LPWAVEOUTCAPS pwoc, UINT cbwoc)
+    virtual MMRESULT waveOutGetDevCapsA(UINT_PTR uDeviceID, LPWAVEOUTCAPS pwoc, UINT cbwoc)
     {
-      static const char* NAME = "waveOutGetDevCaps";
+      static const char* NAME = "waveOutGetDevCapsA";
       typedef MMRESULT (*FunctionType)(UINT_PTR, LPWAVEOUTCAPS, UINT);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(uDeviceID, pwoc, cbwoc);
@@ -94,9 +94,9 @@ namespace
       return func(hwo, pwh, cbwh);
     }
     
-    virtual MMRESULT waveOutGetErrorText(MMRESULT mmrError, LPSTR pszText, UINT cchText)
+    virtual MMRESULT waveOutGetErrorTextA(MMRESULT mmrError, LPSTR pszText, UINT cchText)
     {
-      static const char* NAME = "waveOutGetErrorText";
+      static const char* NAME = "waveOutGetErrorTextA";
       typedef MMRESULT (*FunctionType)(MMRESULT, LPSTR, UINT);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(mmrError, pszText, cchText);

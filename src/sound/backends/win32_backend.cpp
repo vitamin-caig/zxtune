@@ -15,6 +15,7 @@ Author:
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
+#include <contract.h>
 #include <error_tools.h>
 #include <logging.h>
 #include <shared_library_gate.h>
@@ -71,105 +72,276 @@ namespace
       : in;
   }
 
-  inline void CheckMMResult(Win32::Api& api, ::MMRESULT res, Error::LocationRef loc)
-  {
-    if (MMSYSERR_NOERROR != res)
-    {
-      std::vector<char> buffer(1024);
-      if (MMSYSERR_NOERROR == api.waveOutGetErrorText(res, &buffer[0], static_cast<UINT>(buffer.size())))
-      {
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR,
-          String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
-      }
-      else
-      {
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR, res);
-      }
-    }
-  }
-
-  inline void CheckPlatformResult(bool val, Error::LocationRef loc)
-  {
-    if (!val)
-    {
-      //TODO: convert code to string
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());
-    }
-  }
-
-  // buffer wrapper
-  class WaveBuffer
+  class SharedEvent
   {
   public:
-    WaveBuffer()
-      : Header(), Buffer(), Handle(0), Event(INVALID_HANDLE_VALUE)
+    SharedEvent()
+      : Handle(::CreateEvent(0, FALSE, FALSE, 0), &::CloseHandle)
     {
     }
 
-    ~WaveBuffer()
+    void Wait() const
     {
-      assert(0 == Handle);
+      CheckPlatformResult(WAIT_OBJECT_0 == ::WaitForSingleObject(Get(), INFINITE), THIS_LINE);
     }
 
-    void Allocate(Win32::Api& api, ::HWAVEOUT handle, ::HANDLE event, const RenderParameters& params)
+    ::HANDLE Get() const
     {
-      assert(0 == Handle && INVALID_HANDLE_VALUE == Event);
-      const std::size_t bufSize = params.SamplesPerFrame();
-      Buffer.resize(bufSize);
-      Header.lpData = ::LPSTR(&Buffer[0]);
-      Header.dwBufferLength = ::DWORD(bufSize) * sizeof(Buffer.front());
-      Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
-      CheckMMResult(api, api.waveOutPrepareHeader(handle, &Header, sizeof(Header)), THIS_LINE);
-      //mark as free
-      Header.dwFlags |= WHDR_DONE;
-      Handle = handle;
-      Event = event;
+      return Handle.get();
+    }
+  private:
+    static void CheckPlatformResult(bool val, Error::LocationRef loc)
+    {
+      if (!val)
+      {
+        //TODO: convert code to string
+        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());
+      }
+    }
+  private:
+    const boost::shared_ptr<void> Handle;
+  };
+
+  //lightweight wrapper around HWAVEOUT handle
+  class WaveOutDevice
+  {
+  public:
+    typedef boost::shared_ptr<WaveOutDevice> Ptr;
+    typedef boost::weak_ptr<WaveOutDevice> WeakPtr;
+
+    WaveOutDevice(Win32::Api::Ptr api, const ::WAVEFORMATEX& format, UINT device)
+      : Api(api)
+      , Handle(0)
+    {
+      Log::Debug(THIS_MODULE, "Opening device %1% (%2% Hz)", device, format.nSamplesPerSec);
+      CheckMMResult(Api->waveOutOpen(&Handle, device, &format, DWORD_PTR(Event.Get()), 0,
+        CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
     }
 
-    void Release(Win32::Api& api)
+    ~WaveOutDevice()
     {
-      Wait();
-      CheckMMResult(api, api.waveOutUnprepareHeader(Handle, &Header, sizeof(Header)), THIS_LINE);
-      Chunk().swap(Buffer);
-      Handle = 0;
-      Event = INVALID_HANDLE_VALUE;
+      try
+      {
+        Close();
+      }
+      catch (const Error& e)
+      {
+        Log::Debug(THIS_MODULE, "Failed to close device: %1%", Error::ToString(e));
+      }
     }
 
-    std::size_t Write(Win32::Api& api, const MultiSample* buf, std::size_t samples)
+    void Close()
     {
-      Wait();
+      if (Handle)
+      {
+        Log::Debug(THIS_MODULE, "Closing device");
+        CheckMMResult(Api->waveOutReset(Handle), THIS_LINE);
+        CheckMMResult(Api->waveOutClose(Handle), THIS_LINE);
+        Handle = 0;
+      }
+    }
+
+    void WaitForBufferComplete()
+    {
+      Event.Wait();
+    }
+
+    ::HWAVEOUT Get() const
+    {
+      return Handle;
+    }
+
+    void PrepareHeader(::WAVEHDR& header)
+    {
+      CheckMMResult(Api->waveOutPrepareHeader(Handle, &header, sizeof(header)), THIS_LINE);
+    }
+
+    void UnprepareHeader(::WAVEHDR& header)
+    {
+      CheckMMResult(Api->waveOutUnprepareHeader(Handle, &header, sizeof(header)), THIS_LINE);
+    }
+
+    void Write(::WAVEHDR& header)
+    {
+      CheckMMResult(Api->waveOutWrite(Handle, &header, sizeof(header)), THIS_LINE);
+    }
+
+    void Pause()
+    {
+      CheckMMResult(Api->waveOutPause(Handle), THIS_LINE);
+    }
+
+    void Resume()
+    {
+      CheckMMResult(Api->waveOutRestart(Handle), THIS_LINE);
+    }
+
+    void GetVolume(LPDWORD val)
+    {
+      CheckMMResult(Api->waveOutGetVolume(Handle, val), THIS_LINE);
+    }
+
+    void SetVolume(DWORD val)
+    {
+      CheckMMResult(Api->waveOutSetVolume(Handle, val), THIS_LINE);
+    }
+  private:
+    void CheckMMResult(::MMRESULT res, Error::LocationRef loc) const
+    {
+      if (MMSYSERR_NOERROR != res)
+      {
+        std::vector<char> buffer(1024);
+        if (MMSYSERR_NOERROR == Api->waveOutGetErrorTextA(res, &buffer[0], static_cast<UINT>(buffer.size())))
+        {
+          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR,
+            String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
+        }
+        else
+        {
+          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR, res);
+        }
+      }
+    }
+  private:
+    const Win32::Api::Ptr Api;
+    const SharedEvent Event;
+    ::HWAVEOUT Handle;
+  };
+
+  class WaveTarget
+  {
+  public:
+    typedef boost::shared_ptr<WaveTarget> Ptr;
+    virtual ~WaveTarget() {}
+
+    virtual std::size_t Write(const MultiSample* buf, std::size_t samples) = 0;
+  };
+
+  class WaveBuffer : public WaveTarget
+  {
+  public:
+    WaveBuffer(WaveOutDevice::Ptr device, std::size_t size)
+      : Device(device)
+      , Buffer(size)
+      , Header()
+    {
+      Allocate();
+    }
+
+    virtual ~WaveBuffer()
+    {
+      try
+      {
+        Reset();
+      }
+      catch (const Error& e)
+      {
+        Log::Debug(THIS_MODULE, "Failed to reset buffer: %1%", Error::ToString(e));
+      }
+    }
+
+    virtual std::size_t Write(const MultiSample* buf, std::size_t samples)
+    {
+      WaitForBufferDone();
       assert(Header.dwFlags & WHDR_DONE);
       const std::size_t toWrite = std::min<std::size_t>(samples, Buffer.size());
       Header.dwBufferLength = static_cast< ::DWORD>(toWrite * sizeof(Buffer.front()));
       std::transform(&buf->front(), &(buf + toWrite)->front(), safe_ptr_cast<Sample*>(Header.lpData), &ConvertSample);
       Header.dwFlags &= ~WHDR_DONE;
-      CheckMMResult(api, api.waveOutWrite(Handle, &Header, sizeof(Header)), THIS_LINE);
+      Device->Write(Header);
       return toWrite;
     }
   private:
-    void Wait()
+    void Allocate()
+    {
+      Header.lpData = ::LPSTR(&Buffer[0]);
+      Header.dwBufferLength = ::DWORD(Buffer.size()) * sizeof(Buffer.front());
+      Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
+      Device->PrepareHeader(Header);
+      //mark as free
+      Header.dwFlags |= WHDR_DONE;
+    }
+
+    void Reset()
+    {
+      WaitForBufferDone();
+      // safe to call more than once
+      Device->UnprepareHeader(Header);
+      Require(0 == (Header.dwFlags & WHDR_PREPARED));
+    }
+
+    void WaitForBufferDone()
     {
       while (!(Header.dwFlags & WHDR_DONE))
       {
-        CheckPlatformResult(WAIT_OBJECT_0 == ::WaitForSingleObject(Event, INFINITE), THIS_LINE);
+        Device->WaitForBufferComplete();
       }
     }
   private:
+    const WaveOutDevice::Ptr Device;
+    const Chunk Buffer;
     ::WAVEHDR Header;
-    Chunk Buffer;
-    ::HWAVEOUT Handle;
-    ::HANDLE Event;
+  };
+
+  class CycledWaveBuffer : public WaveTarget
+  {
+  public:
+    CycledWaveBuffer(WaveOutDevice::Ptr device, std::size_t size, std::size_t count)
+      : Buffers(count)
+      , Cursor()
+    {
+      for (BuffersArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
+      {
+        *it = boost::make_shared<WaveBuffer>(device, size);
+      }
+    }
+
+    virtual ~CycledWaveBuffer()
+    {
+      try
+      {
+        Reset();
+      }
+      catch (const Error& e)
+      {
+        Log::Debug(THIS_MODULE, "Failed to reset cycle buffer: %1%", Error::ToString(e));
+      }
+    }
+
+    virtual std::size_t Write(const MultiSample* buf, std::size_t samples)
+    {
+      // split big buffer
+      // small buffer is covered by adjusting of subbuffers
+      std::size_t done = 0;
+      while (done < samples)
+      {
+        const std::size_t written = Buffers[Cursor]->Write(buf, samples);
+        Cursor = (Cursor + 1) % Buffers.size();
+        done += written;
+        buf += written;
+      }
+      return done;
+    }
+  private:
+    void Reset()
+    {
+      BuffersArray().swap(Buffers);
+      Cursor = 0;
+    }
+  private:
+    typedef std::vector<WaveTarget::Ptr> BuffersArray;
+    BuffersArray Buffers;
+    std::size_t Cursor;
   };
 
   // volume controller implementation
   class Win32VolumeController : public VolumeControl
   {
   public:
-    Win32VolumeController(Win32::Api::Ptr api, boost::mutex& stateMutex, int_t& device)
-      : Api(api)
-      , StateMutex(stateMutex)
-      , Device(device)
+    explicit Win32VolumeController(WaveOutDevice::Ptr device)
+      : Device(device)
     {
+      Log::Debug(THIS_MODULE, "Created volume controller");
     }
 
     virtual Error GetVolume(MultiGain& volume) const
@@ -177,12 +349,14 @@ namespace
       // use exceptions for simplification
       try
       {
-        boost::mutex::scoped_lock lock(StateMutex);
-        boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
-        BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
-        CheckMMResult(Api->waveOutGetVolume(reinterpret_cast< ::HWAVEOUT>(Device), safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
-        std::transform(buffer.begin(), buffer.end(), volume.begin(), std::bind2nd(std::divides<Gain>(), MAX_WIN32_VOLUME));
-        return Error();
+        if (WaveOutDevice::Ptr dev = Device.lock())
+        {
+          boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
+          BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+          dev->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
+          std::transform(buffer.begin(), buffer.end(), volume.begin(), std::bind2nd(std::divides<Gain>(), MAX_WIN32_VOLUME));
+        }
+        return Error();//?
       }
       catch (const Error& e)
       {
@@ -199,11 +373,13 @@ namespace
       // use exceptions for simplification
       try
       {
-        boost::mutex::scoped_lock lock(StateMutex);
-        boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
-        std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
-        BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
-        CheckMMResult(Api->waveOutSetVolume(reinterpret_cast< ::HWAVEOUT>(Device), *safe_ptr_cast<LPDWORD>(&buffer[0])), THIS_LINE);
+        if (WaveOutDevice::Ptr dev = Device.lock())
+        {
+          boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
+          std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
+          BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+          dev->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
+        }
         return Error();
       }
       catch (const Error& e)
@@ -212,14 +388,7 @@ namespace
       }
     }
   private:
-    void CheckMMResult(::MMRESULT res, Error::LocationRef loc) const
-    {
-      ::CheckMMResult(*Api, res, loc);
-    }
-  private:
-    const Win32::Api::Ptr Api;
-    boost::mutex& StateMutex;
-    int_t& Device;
+    const WaveOutDevice::WeakPtr Device;
   };
 
   class Win32BackendParameters
@@ -260,74 +429,51 @@ namespace
       : Api(api)
       , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
-      , Event(::CreateEvent(0, FALSE, FALSE, 0))
-      //device identifier used for opening and volume control
-      , Device(0)
-      , WaveHandle(0)
-      , VolumeController(new Win32VolumeController(Api, StateMutex, Device))
+      , Volume(boost::make_shared<Win32VolumeController>(Device))
     {
     }
 
     virtual ~Win32BackendWorker()
     {
-      assert(0 == WaveHandle || !"Win32Backend::Stop should be called before exit");
-      ::CloseHandle(Event);
+      assert(!Device || !"Win32Backend::Stop should be called before exit");
     }
 
     virtual void Test()
     {
-      ::WAVEFORMATEX format;
-      SetupFormat(format);
       const Win32BackendParameters params(*BackendParams);
-      const int_t device = params.GetDevice();
-      ::HWAVEOUT handle;
-      CheckMMResult(Api->waveOutOpen(&handle, static_cast< ::UINT>(device), &format, 0, 0,
-        WAVE_FORMAT_DIRECT), THIS_LINE);
-      CheckMMResult(Api->waveOutClose(handle), THIS_LINE);
+      WaveOutDevice device(Api, GetFormat(), params.GetDevice());
+      device.Close();
     }
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
-      assert(0 == WaveHandle);
+      assert(!Device);
 
       const Win32BackendParameters params(*BackendParams);
+      const WaveOutDevice::Ptr newDevice = boost::make_shared<WaveOutDevice>(Api, GetFormat(), params.GetDevice());
+      const WaveTarget::Ptr newTarget = boost::make_shared<CycledWaveBuffer>(newDevice, RenderingParameters->SamplesPerFrame(), params.GetBuffers());
+      const VolumeControl::Ptr newVolume = boost::make_shared<Win32VolumeController>(newDevice);
       const boost::mutex::scoped_lock lock(StateMutex);
-      Device = params.GetDevice();
-      Buffers.resize(params.GetBuffers());
-      CurrentBuffer = CycledIterator<WaveBuffer*>(&Buffers.front(), &Buffers.back() + 1);
-
-      SetupFormat(Format);
-      CheckMMResult(Api->waveOutOpen(&WaveHandle, static_cast< ::UINT>(Device), &Format, DWORD_PTR(Event), 0,
-        CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
-      std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Allocate, _1, boost::ref(*Api), WaveHandle, Event, boost::cref(*RenderingParameters)));
-      CheckPlatformResult(0 != ::ResetEvent(Event), THIS_LINE);
+      Target = newTarget;
+      Device = newDevice;
+      Volume = newVolume;
     }
 
     virtual void OnShutdown()
     {
-      if (0 != WaveHandle)
-      {
-        std::for_each(Buffers.begin(), Buffers.end(), boost::bind(&WaveBuffer::Release, _1, boost::ref(*Api)));
-        CheckMMResult(Api->waveOutReset(WaveHandle), THIS_LINE);
-        CheckMMResult(Api->waveOutClose(WaveHandle), THIS_LINE);
-        WaveHandle = 0;
-      }
+      Target = WaveTarget::Ptr();
+      Device = WaveOutDevice::Ptr();
+      //keep volume controller available
     }
 
     virtual void OnPause()
     {
-      if (0 != WaveHandle)
-      {
-        CheckMMResult(Api->waveOutPause(WaveHandle), THIS_LINE);
-      }
+      Device->Pause();
     }
 
     virtual void OnResume()
     {
-      if (0 != WaveHandle)
-      {
-        CheckMMResult(Api->waveOutRestart(WaveHandle), THIS_LINE);
-      }
+      Device->Resume();
     }
 
     virtual void OnFrame(const Module::TrackState& /*state*/)
@@ -336,29 +482,17 @@ namespace
 
     virtual void OnBufferReady(Chunk& buffer)
     {
-      const MultiSample* data = &buffer.front();
-      for (std::size_t count = buffer.size(); count; )
-      {
-        // buffer is just sent to playback, so we can safely lock here
-        const std::size_t written = CurrentBuffer->Write(*Api, data, count);
-        ++CurrentBuffer;
-        count -= written;
-        data += written;
-      }
+      Target->Write(&buffer.front(), buffer.size());
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
-      return VolumeController;
+      return Volume;
     }
   private:
-    void CheckMMResult(::MMRESULT res, Error::LocationRef loc) const
+    ::WAVEFORMATEX GetFormat() const
     {
-      ::CheckMMResult(*Api, res, loc);
-    }
-
-    void SetupFormat(::WAVEFORMATEX& format) const
-    {
+      ::WAVEFORMATEX format;
       std::memset(&format, 0, sizeof(format));
       format.wFormatTag = WAVE_FORMAT_PCM;
       format.nChannels = OUTPUT_CHANNELS;
@@ -366,19 +500,16 @@ namespace
       format.nBlockAlign = sizeof(MultiSample);
       format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
       format.wBitsPerSample = 8 * sizeof(Sample);
+      return format;
     }
   private:
     const Win32::Api::Ptr Api;
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
     boost::mutex StateMutex;
-    std::vector<WaveBuffer> Buffers;
-    CycledIterator<WaveBuffer*> CurrentBuffer;
-    ::HANDLE Event;
-    int_t Device;
-    ::HWAVEOUT WaveHandle;
-    ::WAVEFORMATEX Format;
-    const VolumeControl::Ptr VolumeController;
+    WaveOutDevice::Ptr Device;
+    WaveTarget::Ptr Target;
+    VolumeControl::Ptr Volume;
   };
 
   class Win32BackendCreator : public BackendCreator
@@ -444,7 +575,7 @@ namespace
     virtual String Name() const
     {
       WAVEOUTCAPS caps;
-      if (MMSYSERR_NOERROR != Api->waveOutGetDevCaps(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
+      if (MMSYSERR_NOERROR != Api->waveOutGetDevCapsA(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
       {
         Log::Debug(THIS_MODULE, "Failed to get device name");
         return String();
