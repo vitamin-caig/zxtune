@@ -1,0 +1,71 @@
+/*
+Abstract:
+  Mp3 api dynamic gate implementation
+
+Last changed:
+  $Id: win32.h 1842 2012-07-02 09:44:02Z vitamin.caig $
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+//local includes
+#include "mp3_api.h"
+//common includes
+#include <logging.h>
+#include <shared_library_adapter.h>
+#include <tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
+
+namespace
+{
+  const std::string THIS_MODULE("Sound::Backend::Mp3");
+
+  using namespace ZXTune::Sound::Mp3;
+
+  class LameName : public SharedLibrary::Name
+  {
+  public:
+    virtual std::string Base() const
+    {
+      return "mp3lame";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libmp3lame.so.0",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libmp3lame.dll",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+  };
+
+<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
+}
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    namespace Mp3
+    {
+      Api::Ptr LoadDynamicApi()
+      {
+        static const LameName NAME;
+        const SharedLibrary::Ptr lib = SharedLibrary::Load(NAME);
+        return boost::make_shared<DynamicApi>(lib);
+      }
+    }
+  }
+}

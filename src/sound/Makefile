@@ -18,7 +18,6 @@ source_files += backends/win32_stub
 endif
 
 ifdef support_directsound
-$(platform)_definitions += DIRECTSOUND_SUPPORT
 generated_headers += backends/dsound_api
 source_files += backends/dsound_backend
 generated_sources += backends/dsound_api_dynamic
@@ -33,10 +32,20 @@ generated_headers += backends/flac_api
 source_files += backends/flac_backend
 generated_sources += backends/flac_api_dynamic
 else
-source_files += backends/dsound_stub
+source_files += backends/flac_stub
 endif
 
-source_files += backends/oss_backend backends/alsa_backend backends/sdl_backend backends/mp3_backend backends/ogg_backend \
+ifdef support_mp3
+$(platform)_include_dirs += $(path_step)/3rdparty
+$(platform)_include_dirs += $(path_step)/3rdparty
+generated_headers += backends/mp3_api
+source_files += backends/mp3_backend
+generated_sources += backends/mp3_api_dynamic
+else
+source_files += backends/mp3_stub
+endif
+
+source_files += backends/oss_backend backends/alsa_backend backends/sdl_backend backends/ogg_backend \
                 backends/null_backend backends/wav_backend
 
 include $(path_step)/makefile.mak
@@ -62,6 +71,12 @@ backends/flac_api_dynamic.cpp: backends/templates/flac_api_dynamic.cpp.templ bac
 backends/flac_api.h: backends/templates/flac_api.h.templ backends/functions/flac.dat
 		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
 
+backends/mp3_api_dynamic.cpp: backends/templates/mp3_api_dynamic.cpp.templ backends/functions/mp3.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
+backends/mp3_api.h: backends/templates/mp3_api.h.templ backends/functions/mp3.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
 ifdef support_oss
 $(platform)_definitions += OSS_SUPPORT
 endif
@@ -76,12 +91,6 @@ endif
 
 ifdef support_sdl
 $(platform)_definitions += SDL_SUPPORT
-endif
-
-ifdef support_mp3
-$(platform)_definitions += MP3_SUPPORT
-$(platform)_include_dirs += $(path_step)/3rdparty
-$(platform)_include_dirs += $(path_step)/3rdparty
 endif
 
 ifdef support_ogg

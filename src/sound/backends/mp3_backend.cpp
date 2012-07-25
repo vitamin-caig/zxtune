@@ -9,15 +9,13 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifdef MP3_SUPPORT
-
 //local includes
+#include "mp3_api.h"
 #include "enumerator.h"
 #include "file_backend.h"
 //common includes
 #include <error_tools.h>
 #include <logging.h>
-#include <shared_library_gate.h>
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
@@ -25,11 +23,10 @@ Author:
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
-//platform-specific includes
-#include <lame/lame.h>
 //std includes
 #include <algorithm>
 //boost includes
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <sound/text/backends.h>
@@ -51,53 +48,6 @@ namespace
   const uint_t QUALITY_MIN = 0;
   const uint_t QUALITY_MAX = 9;
 
-  class LameName : public SharedLibrary::Name
-  {
-  public:
-    virtual std::string Base() const
-    {
-      return "mp3lame";
-    }
-    
-    virtual std::vector<std::string> PosixAlternatives() const
-    {
-      static const std::string ALTERNATIVES[] =
-      {
-        "libmp3lame.so.0",
-      };
-      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
-    }
-    
-    virtual std::vector<std::string> WindowsAlternatives() const
-    {
-      static const std::string ALTERNATIVES[] =
-      {
-        "libmp3lame.dll",
-      };
-      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
-    }
-  } Names;
-
-  struct LameLibraryTraits
-  {
-    static const SharedLibrary::Name& GetName()
-    {
-      return Names;
-    }
-
-    static void Startup()
-    {
-      Log::Debug(THIS_MODULE, "Library loaded");
-    }
-
-    static void Shutdown()
-    {
-      Log::Debug(THIS_MODULE, "Library unloaded");
-    }
-  };
-
-  typedef SharedLibraryGate<LameLibraryTraits> LameLibrary;
-
   typedef boost::shared_ptr<lame_global_flags> LameContextPtr;
 
   void CheckLameCall(int res, Error::LocationRef loc)
@@ -118,8 +68,9 @@ namespace
   class Mp3Stream : public FileStream
   {
   public:
-    Mp3Stream(LameContextPtr context, std::auto_ptr<std::ofstream> stream)
-      : Stream(stream)
+    Mp3Stream(Mp3::Api::Ptr api, LameContextPtr context, std::auto_ptr<std::ofstream> stream)
+      : Api(api)
+      , Stream(stream)
       , Context(context)
       , Encoded(INITIAL_ENCODED_BUFFER_SIZE)
     {
@@ -129,19 +80,19 @@ namespace
     virtual void SetTitle(const String& title)
     {
       const std::string titleC = IO::ConvertToFilename(title);
-      ::id3tag_set_title(Context.get(), titleC.c_str());
+      Api->id3tag_set_title(Context.get(), titleC.c_str());
     }
 
     virtual void SetAuthor(const String& author)
     {
       const std::string authorC = IO::ConvertToFilename(author);
-      ::id3tag_set_artist(Context.get(), authorC.c_str());
+      Api->id3tag_set_artist(Context.get(), authorC.c_str());
     }
 
     virtual void SetComment(const String& comment)
     {
       const std::string commentC = IO::ConvertToFilename(comment);
-      ::id3tag_set_comment(Context.get(), commentC.c_str());
+      Api->id3tag_set_comment(Context.get(), commentC.c_str());
     }
 
     virtual void FlushMetadata()
@@ -154,7 +105,7 @@ namespace
       {
         std::transform(data->front().begin(), data->back().end(), data->front().begin(), &ToSignedSample);
       }
-      while (const int res = ::lame_encode_buffer_interleaved(Context.get(),
+      while (const int res = Api->lame_encode_buffer_interleaved(Context.get(),
         safe_ptr_cast<short int*>(&data->front()), data->size(), &Encoded[0], Encoded.size()))
       {
         if (res > 0) //encoded
@@ -180,7 +131,7 @@ namespace
 
     virtual void Flush()
     {
-      while (const int res = ::lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
+      while (const int res = Api->lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
       {
         if (res > 0)
         {
@@ -204,6 +155,7 @@ namespace
       Log::Debug(THIS_MODULE, "Stream flushed");
     }
   private:
+    const Mp3::Api::Ptr Api;
     const std::auto_ptr<std::ofstream> Stream;
     const LameContextPtr Context;
     Dump Encoded;
@@ -277,8 +229,9 @@ namespace
   class Mp3FileFactory : public FileStreamFactory
   {
   public:
-    explicit Mp3FileFactory(Parameters::Accessor::Ptr params)
-      : Params(params)
+    Mp3FileFactory(Mp3::Api::Ptr api, Parameters::Accessor::Ptr params)
+      : Api(api)
+      , Params(params)
       , RenderingParameters(RenderParameters::Create(params))
     {
     }
@@ -291,59 +244,65 @@ namespace
     virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
     {
       std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
-      const LameContextPtr context = LameContextPtr(::lame_init(), &::lame_close);
+      const LameContextPtr context = LameContextPtr(Api->lame_init(), boost::bind(&Mp3::Api::lame_close, Api, _1));
       SetupContext(*context);
-      return FileStream::Ptr(new Mp3Stream(context, rawFile));
+      return FileStream::Ptr(new Mp3Stream(Api, context, rawFile));
     }
   private:
     void SetupContext(lame_global_flags& ctx) const
     {
       const uint_t samplerate = RenderingParameters->SoundFreq();
       Log::Debug(THIS_MODULE, "Setting samplerate to %1%Hz", samplerate);
-      CheckLameCall(::lame_set_in_samplerate(&ctx, samplerate), THIS_LINE);
-      CheckLameCall(::lame_set_out_samplerate(&ctx, samplerate), THIS_LINE);
-      CheckLameCall(::lame_set_num_channels(&ctx, OUTPUT_CHANNELS), THIS_LINE);
-      CheckLameCall(::lame_set_bWriteVbrTag(&ctx, true), THIS_LINE);
+      CheckLameCall(Api->lame_set_in_samplerate(&ctx, samplerate), THIS_LINE);
+      CheckLameCall(Api->lame_set_out_samplerate(&ctx, samplerate), THIS_LINE);
+      CheckLameCall(Api->lame_set_num_channels(&ctx, OUTPUT_CHANNELS), THIS_LINE);
+      CheckLameCall(Api->lame_set_bWriteVbrTag(&ctx, true), THIS_LINE);
       switch (Params.GetMode())
       {
       case MODE_CBR:
         {
           const uint_t bitrate = Params.GetBitrate();
           Log::Debug(THIS_MODULE, "Setting bitrate to %1%kbps", bitrate);
-          CheckLameCall(::lame_set_VBR(&ctx, vbr_off), THIS_LINE);
-          CheckLameCall(::lame_set_brate(&ctx, bitrate), THIS_LINE);
+          CheckLameCall(Api->lame_set_VBR(&ctx, vbr_off), THIS_LINE);
+          CheckLameCall(Api->lame_set_brate(&ctx, bitrate), THIS_LINE);
         }
         break;
       case MODE_ABR:
         {
           const uint_t bitrate = Params.GetBitrate();
           Log::Debug(THIS_MODULE, "Setting average bitrate to %1%kbps", bitrate);
-          CheckLameCall(::lame_set_VBR(&ctx, vbr_abr), THIS_LINE);
-          CheckLameCall(::lame_set_VBR_mean_bitrate_kbps(&ctx, bitrate), THIS_LINE);
+          CheckLameCall(Api->lame_set_VBR(&ctx, vbr_abr), THIS_LINE);
+          CheckLameCall(Api->lame_set_VBR_mean_bitrate_kbps(&ctx, bitrate), THIS_LINE);
         }
         break;
       case MODE_VBR:
         {
           const uint_t quality = Params.GetQuality();
           Log::Debug(THIS_MODULE, "Setting VBR quality to %1%", quality);
-          CheckLameCall(::lame_set_VBR(&ctx, vbr_default), THIS_LINE);
-          CheckLameCall(::lame_set_VBR_q(&ctx, quality), THIS_LINE);
+          CheckLameCall(Api->lame_set_VBR(&ctx, vbr_default), THIS_LINE);
+          CheckLameCall(Api->lame_set_VBR_q(&ctx, quality), THIS_LINE);
         }
         break;
       default:
         assert(!"Invalid mode");
       }
-      CheckLameCall(::lame_init_params(&ctx), THIS_LINE);
-      ::id3tag_init(&ctx);
+      CheckLameCall(Api->lame_init_params(&ctx), THIS_LINE);
+      Api->id3tag_init(&ctx);
     }
   private:
+    const Mp3::Api::Ptr Api;
     const Mp3Parameters Params;
     const RenderParameters::Ptr RenderingParameters;
   };
 
-  class MP3BackendCreator : public BackendCreator
+  class Mp3BackendCreator : public BackendCreator
   {
   public:
+    explicit Mp3BackendCreator(Mp3::Api::Ptr api)
+      : Api(api)
+    {
+    }
+
     virtual String Id() const
     {
       return MP3_BACKEND_ID;
@@ -364,7 +323,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const FileStreamFactory::Ptr factory = boost::make_shared<Mp3FileFactory>(allParams);
+        const FileStreamFactory::Ptr factory = boost::make_shared<Mp3FileFactory>(Api, allParams);
         const BackendWorker::Ptr worker = CreateFileBackendWorker(allParams, factory);
         result = Sound::CreateBackend(params, worker);
         return Error();
@@ -379,6 +338,8 @@ namespace
         return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
       }
     }
+  private:
+    const Mp3::Api::Ptr Api;
   };
 }
 
@@ -388,129 +349,17 @@ namespace ZXTune
   {
     void RegisterMP3Backend(BackendsEnumerator& enumerator)
     {
-      if (LameLibrary::Instance().IsAccessible())
+      try
       {
-        Log::Debug(THIS_MODULE, "Detected LAME library %1%", ::get_lame_version());
-        const BackendCreator::Ptr creator(new MP3BackendCreator());
+        const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
+        Log::Debug(THIS_MODULE, "Detected LAME library %1%", api->get_lame_version());
+        const BackendCreator::Ptr creator(new Mp3BackendCreator(api));
         enumerator.RegisterCreator(creator);
       }
-      else
+      catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(LameLibrary::Instance().GetLoadError()));
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
       }
     }
   }
 }
-
-//global namespace
-#define STR(a) #a
-#define LAME_FUNC(func) LameLibrary::Instance().GetSymbol(&func, STR(func))
-
-const char* get_lame_version()
-{
-  return LAME_FUNC(get_lame_version)();
-}
-
-lame_t lame_init()
-{
-  return LAME_FUNC(lame_init)();
-}
-
-int lame_close(lame_t ctx)
-{
-  return LAME_FUNC(lame_close)(ctx);
-}
-
-int lame_set_in_samplerate(lame_t ctx, int rate)
-{
-  return LAME_FUNC(lame_set_in_samplerate)(ctx, rate);
-}
-
-int lame_set_out_samplerate(lame_t ctx, int rate)
-{
-  return LAME_FUNC(lame_set_out_samplerate)(ctx, rate);
-}
-
-int lame_set_bWriteVbrTag(lame_t ctx, int flag)
-{
-  return LAME_FUNC(lame_set_bWriteVbrTag)(ctx, flag);
-}
-
-int lame_set_num_channels(lame_t ctx, int chans)
-{
-  return LAME_FUNC(lame_set_num_channels)(ctx, chans);
-}
-
-int lame_set_brate(lame_t ctx, int brate)
-{
-  return LAME_FUNC(lame_set_brate)(ctx, brate);
-}
-
-int lame_set_VBR(lame_t ctx, vbr_mode mode)
-{
-  return LAME_FUNC(lame_set_VBR)(ctx, mode);
-}
-
-int lame_set_VBR_q(lame_t ctx, int quality)
-{
-  return LAME_FUNC(lame_set_VBR_q)(ctx, quality);
-}
-
-int lame_set_VBR_mean_bitrate_kbps(lame_t ctx, int brate)
-{
-  return LAME_FUNC(lame_set_VBR_mean_bitrate_kbps)(ctx, brate);
-}
-
-int lame_init_params(lame_t ctx)
-{
-  return LAME_FUNC(lame_init_params)(ctx);
-}
-
-int lame_encode_buffer_interleaved(lame_t ctx, short int* pcm, int samples, unsigned char* dst, int dstSize)
-{
-  return LAME_FUNC(lame_encode_buffer_interleaved)(ctx, pcm, samples, dst, dstSize);
-}
-
-int lame_encode_flush(lame_t ctx, unsigned char* dst, int dstSize)
-{
-  return LAME_FUNC(lame_encode_flush)(ctx, dst, dstSize);
-}
-
-void id3tag_init(lame_t ctx)
-{
-  return LAME_FUNC(id3tag_init)(ctx);
-}
-
-void id3tag_add_v2(lame_t ctx)
-{
-  return LAME_FUNC(id3tag_add_v2)(ctx);
-}
-
-void id3tag_set_title(lame_t ctx, const char* title)
-{
-  return LAME_FUNC(id3tag_set_title)(ctx, title);
-}
-
-void id3tag_set_artist(lame_t ctx, const char* artist)
-{
-  return LAME_FUNC(id3tag_set_artist)(ctx, artist);
-}
-
-void id3tag_set_comment(lame_t ctx, const char* comment)
-{
-  return LAME_FUNC(id3tag_set_comment)(ctx, comment);
-}
-
-#else //not supported
-
-namespace ZXTune
-{
-  namespace Sound
-  {
-    void RegisterMP3Backend(class BackendsEnumerator& /*enumerator*/)
-    {
-      //do nothing
-    }
-  }
-}
-#endif
