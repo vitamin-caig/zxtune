@@ -1,6 +1,6 @@
 /*
 Abstract:
-  VorbisEnc api gate interface
+  Alsa subsystem api gate interface
 
 Last changed:
   $Id$
@@ -9,11 +9,12 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifndef SOUND_BACKENDS_VORBISENC_API_H_DEFINED
-#define SOUND_BACKENDS_VORBISENC_API_H_DEFINED
+#ifndef SOUND_BACKENDS_ALSA_API_H_DEFINED
+#define SOUND_BACKENDS_ALSA_API_H_DEFINED
 
 //platform-specific includes
-#include <vorbis/vorbisenc.h>
+#include <alsa/asoundlib.h>
+#include <alsa/pcm.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -21,11 +22,11 @@ namespace ZXTune
 {
   namespace Sound
   {
-    namespace VorbisEnc
+    namespace Alsa
     {
 <TMPL_INCLUDE NAME="api.h.templ">
     }
   }
 }
 
-#endif //SOUND_BACKENDS_VORBISENC_API_H_DEFINED
+#endif //SOUND_BACKENDS_ALSA_API_H_DEFINED

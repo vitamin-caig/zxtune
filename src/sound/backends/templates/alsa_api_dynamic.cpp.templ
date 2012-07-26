@@ -1,6 +1,6 @@
 /*
 Abstract:
-  VorbisEnc api dynamic gate implementation
+  Alsa subsystem api dynamic gate implementation
 
 Last changed:
   $Id$
@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "vorbisenc_api.h"
+#include "alsa_api.h"
 //common includes
 #include <logging.h>
 #include <shared_library_adapter.h>
@@ -20,23 +20,24 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::Ogg");
+  const std::string THIS_MODULE("Sound::Backend::Alsa");
 
-  using namespace ZXTune::Sound::VorbisEnc;
+  using namespace ZXTune::Sound::Alsa;
 
-  class VorbisEncName : public SharedLibrary::Name
+  class AlsaName : public SharedLibrary::Name
   {
   public:
     virtual std::string Base() const
     {
-      return "vorbisenc";
+      return "asound";
     }
     
     virtual std::vector<std::string> PosixAlternatives() const
     {
       static const std::string ALTERNATIVES[] =
       {
-        "libvorbisenc.so.2",
+        "libasound.so.2.0.0",//deb-based
+        "libasound.so.2",    //rpm-based
       };
       return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
     }
@@ -54,11 +55,11 @@ namespace ZXTune
 {
   namespace Sound
   {
-    namespace VorbisEnc
+    namespace Alsa
     {
       Api::Ptr LoadDynamicApi()
       {
-        static const VorbisEncName NAME;
+        static const AlsaName NAME;
         const SharedLibrary::Ptr lib = SharedLibrary::Load(NAME);
         return boost::make_shared<DynamicApi>(lib);
       }

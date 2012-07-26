@@ -55,7 +55,15 @@ else
 source_files += backends/ogg_stub
 endif
 
-source_files += backends/oss_backend backends/alsa_backend backends/sdl_backend \
+ifdef support_alsa
+generated_headers += backends/alsa_api
+source_files += backends/alsa_backend
+generated_sources += backends/alsa_api_dynamic
+else
+source_files += backends/alsa_stub
+endif
+
+source_files += backends/oss_backend backends/sdl_backend \
                 backends/null_backend backends/wav_backend
 
 include $(path_step)/makefile.mak
@@ -105,12 +113,14 @@ backends/vorbisenc_api_dynamic.cpp: backends/templates/vorbisenc_api_dynamic.cpp
 backends/vorbisenc_api.h: backends/templates/vorbisenc_api.h.templ backends/functions/vorbisenc.dat
 		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
 
+backends/alsa_api_dynamic.cpp: backends/templates/alsa_api_dynamic.cpp.templ backends/functions/alsa.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
+backends/alsa_api.h: backends/templates/alsa_api.h.templ backends/functions/alsa.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
 ifdef support_oss
 $(platform)_definitions += OSS_SUPPORT
-endif
-
-ifdef support_alsa
-$(platform)_definitions += ALSA_SUPPORT
 endif
 
 ifdef support_aylpt_dlportio
