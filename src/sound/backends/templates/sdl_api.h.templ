@@ -1,0 +1,31 @@
+/*
+Abstract:
+  Sdl api gate interface
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#ifndef SOUND_BACKENDS_SDL_API_H_DEFINED
+#define SOUND_BACKENDS_SDL_API_H_DEFINED
+
+//platform-dependent includes
+#include <SDL/SDL.h>
+//boost includes
+#include <boost/shared_ptr.hpp>
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    namespace Sdl
+    {
+<TMPL_INCLUDE NAME="api.h.templ">
+    }
+  }
+}
+
+#endif //SOUND_BACKENDS_SDL_API_H_DEFINED

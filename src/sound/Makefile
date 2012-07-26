@@ -63,7 +63,15 @@ else
 source_files += backends/alsa_stub
 endif
 
-source_files += backends/oss_backend backends/sdl_backend \
+ifdef support_sdl
+generated_headers += backends/sdl_api
+source_files += backends/sdl_backend
+generated_sources += backends/sdl_api_dynamic
+else
+source_files += backends/sdl_stub
+endif
+
+source_files += backends/oss_backend \
                 backends/null_backend backends/wav_backend
 
 include $(path_step)/makefile.mak
@@ -119,14 +127,16 @@ backends/alsa_api_dynamic.cpp: backends/templates/alsa_api_dynamic.cpp.templ bac
 backends/alsa_api.h: backends/templates/alsa_api.h.templ backends/functions/alsa.dat
 		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
 
+backends/sdl_api_dynamic.cpp: backends/templates/sdl_api_dynamic.cpp.templ backends/functions/sdl.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
+backends/sdl_api.h: backends/templates/sdl_api.h.templ backends/functions/sdl.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
 ifdef support_oss
 $(platform)_definitions += OSS_SUPPORT
 endif
 
 ifdef support_aylpt_dlportio
 $(platform)_definitions += DLPORTIO_AYLPT_SUPPORT
-endif
-
-ifdef support_sdl
-$(platform)_definitions += SDL_SUPPORT
 endif

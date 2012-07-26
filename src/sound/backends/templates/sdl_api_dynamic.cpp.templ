@@ -1,0 +1,67 @@
+/*
+Abstract:
+  Sdl api dynamic gate implementation
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+//local includes
+#include "sdl_api.h"
+//common includes
+#include <logging.h>
+#include <shared_library_adapter.h>
+#include <tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
+
+namespace
+{
+  const std::string THIS_MODULE("Sound::Backend::Sdl");
+
+  using namespace ZXTune::Sound::Sdl;
+
+  class SdlName : public SharedLibrary::Name
+  {
+  public:
+    virtual std::string Base() const
+    {
+      return "SDL";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libSDL-1.2.so.0",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      return std::vector<std::string>();
+    }
+  };
+
+<TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
+}
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    namespace Sdl
+    {
+      Api::Ptr LoadDynamicApi()
+      {
+        static const SdlName NAME;
+        const SharedLibrary::Ptr lib = SharedLibrary::Load(NAME);
+        return boost::make_shared<DynamicApi>(lib);
+      }
+    }
+  }
+}

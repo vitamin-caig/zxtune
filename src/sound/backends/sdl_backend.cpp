@@ -9,18 +9,16 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifdef SDL_SUPPORT
-
 #define DECLSPEC
 
 //local includes
+#include "sdl_api.h"
 #include "backend_impl.h"
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <shared_library_gate.h>
 #include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
@@ -28,8 +26,6 @@ Author:
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//platform-dependent includes
-#include <SDL/SDL.h>
 //boost includes
 #include <boost/noncopyable.hpp>
 #include <boost/thread/condition_variable.hpp>
@@ -44,68 +40,12 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::SDL");
+  const std::string THIS_MODULE("Sound::Backend::Sdl");
 
   const Char SDL_BACKEND_ID[] = {'s', 'd', 'l', 0};
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
-
-  class SDLName : public SharedLibrary::Name
-  {
-  public:
-    virtual std::string Base() const
-    {
-      return "SDL";
-    }
-    
-    virtual std::vector<std::string> PosixAlternatives() const
-    {
-      static const std::string ALTERNATIVES[] =
-      {
-        "libSDL-1.2.so.0",
-      };
-      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
-    }
-    
-    virtual std::vector<std::string> WindowsAlternatives() const
-    {
-      return std::vector<std::string>();
-    }
-  } Names;
-
-  struct SDLLibraryTraits
-  {
-    static const SharedLibrary::Name& GetName()
-    {
-      return Names;
-    }
-
-    static void Startup()
-    {
-      Log::Debug(THIS_MODULE, "Library loaded");
-    }
-
-    static void Shutdown()
-    {
-      Log::Debug(THIS_MODULE, "Library unloaded");
-    }
-  };
-
-  typedef SharedLibraryGate<SDLLibraryTraits> SDLLibrary;
-
-  void CheckCall(bool ok, Error::LocationRef loc)
-  {
-    if (!ok)
-    {
-      if (const char* txt = ::SDL_GetError())
-      {
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-          Text::SOUND_ERROR_SDL_BACKEND_ERROR, FromStdString(txt));
-      }
-      throw Error(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_SDL_BACKEND_UNKNOWN_ERROR);
-    }
-  }
 
   class SDLBackendParameters
   {
@@ -210,21 +150,22 @@ namespace
                          , private boost::noncopyable
   {
   public:
-    explicit SDLBackendWorker(Parameters::Accessor::Ptr params)
-      : BackendParams(params)
+    SDLBackendWorker(Sdl::Api::Ptr api, Parameters::Accessor::Ptr params)
+      : Api(api)
+      , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
-      , WasInitialized(::SDL_WasInit(SDL_INIT_EVERYTHING))
+      , WasInitialized(Api->SDL_WasInit(SDL_INIT_EVERYTHING))
       , Queue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT)
     {
       if (0 == WasInitialized)
       {
         Log::Debug(THIS_MODULE, "Initializing");
-        CheckCall(::SDL_Init(SDL_INIT_AUDIO) == 0, THIS_LINE);
+        CheckCall(Api->SDL_Init(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
       else if (0 == (WasInitialized & SDL_INIT_AUDIO))
       {
         Log::Debug(THIS_MODULE, "Initializing sound subsystem");
-        CheckCall(::SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
+        CheckCall(Api->SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
     }
 
@@ -233,12 +174,12 @@ namespace
       if (0 == WasInitialized)
       {
         Log::Debug(THIS_MODULE, "Shutting down");
-        ::SDL_Quit();
+        Api->SDL_Quit();
       }
       else if (0 == (WasInitialized & SDL_INIT_AUDIO))
       {
         Log::Debug(THIS_MODULE, "Shutting down sound subsystem");
-        ::SDL_QuitSubSystem(SDL_INIT_AUDIO);
+        Api->SDL_QuitSubSystem(SDL_INIT_AUDIO);
       }
     }
 
@@ -287,26 +228,26 @@ namespace
       format.userdata = &Queue;
       const SDLBackendParameters params(*BackendParams);
       Queue.SetSize(params.GetBuffersCount());
-      CheckCall(::SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
-      ::SDL_PauseAudio(0);
+      CheckCall(Api->SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
+      Api->SDL_PauseAudio(0);
     }
 
     virtual void OnShutdown()
     {
       Log::Debug(THIS_MODULE, "Shutdown");
-      ::SDL_CloseAudio();
+      Api->SDL_CloseAudio();
     }
 
     virtual void OnPause()
     {
       Log::Debug(THIS_MODULE, "Pause");
-      ::SDL_PauseAudio(1);
+      Api->SDL_PauseAudio(1);
     }
 
     virtual void OnResume()
     {
       Log::Debug(THIS_MODULE, "Resume");
-      ::SDL_PauseAudio(0);
+      Api->SDL_PauseAudio(0);
     }
 
     virtual void OnFrame(const Module::TrackState& /*state*/)
@@ -319,12 +260,26 @@ namespace
       Queue.AddData(buffer);
     }
   private:
+    void CheckCall(bool ok, Error::LocationRef loc) const
+    {
+      if (!ok)
+      {
+        if (const char* txt = Api->SDL_GetError())
+        {
+          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
+            Text::SOUND_ERROR_SDL_BACKEND_ERROR, FromStdString(txt));
+        }
+        throw Error(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_SDL_BACKEND_UNKNOWN_ERROR);
+      }
+    }
+
     static void OnBuffer(void* param, ::Uint8* stream, int len)
     {
       BuffersQueue* const queue = static_cast<BuffersQueue*>(param);
       queue->GetData(stream, len);
     }
   private:
+    const Sdl::Api::Ptr Api;
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
     const ::Uint32 WasInitialized;
@@ -334,6 +289,11 @@ namespace
   class SDLBackendCreator : public BackendCreator
   {
   public:
+    explicit SDLBackendCreator(Sdl::Api::Ptr api)
+      : Api(api)
+    {
+    }
+
     virtual String Id() const
     {
       return SDL_BACKEND_ID;
@@ -354,7 +314,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new SDLBackendWorker(allParams));
+        const BackendWorker::Ptr worker(new SDLBackendWorker(Api, allParams));
         result = Sound::CreateBackend(params, worker);
         return Error();
       }
@@ -368,6 +328,7 @@ namespace
         return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
       }
     }
+  const Sdl::Api::Ptr Api;
   };
 }
 
@@ -377,86 +338,18 @@ namespace ZXTune
   {
     void RegisterSDLBackend(BackendsEnumerator& enumerator)
     {
-      if (SDLLibrary::Instance().IsAccessible())
+      try
       {
-        const SDL_version* const vers = ::SDL_Linked_Version();
+        const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
+        const SDL_version* const vers = api->SDL_Linked_Version();
         Log::Debug(THIS_MODULE, "Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
-        const BackendCreator::Ptr creator(new SDLBackendCreator());
+        const BackendCreator::Ptr creator(new SDLBackendCreator(api));
         enumerator.RegisterCreator(creator);
       }
-      else
+      catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(SDLLibrary::Instance().GetLoadError()));
+        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
       }
     }
   }
 }
-
-//global namespace
-#define STR(a) #a
-#define SDL_FUNC(func) SDLLibrary::Instance().GetSymbol(&func, STR(func))
-
-char* SDL_GetError(void)
-{
-  return SDL_FUNC(SDL_GetError)();
-}
-
-const SDL_version* SDL_Linked_Version(void)
-{
-  return SDL_FUNC(SDL_Linked_Version)();
-}
-
-int SDL_Init(Uint32 flags)
-{
-  return SDL_FUNC(SDL_Init)(flags);
-}
-
-int SDL_InitSubSystem(Uint32 flags)
-{
-  return SDL_FUNC(SDL_InitSubSystem)(flags);
-}
-
-void SDL_QuitSubSystem(Uint32 flags)
-{
-  return SDL_FUNC(SDL_QuitSubSystem)(flags);
-}
-
-Uint32 SDL_WasInit(Uint32 flags)
-{
-  return SDL_FUNC(SDL_WasInit)(flags);
-}
-
-void SDL_Quit(void)
-{
-  return SDL_FUNC(SDL_Quit)();
-}
-
-int SDL_OpenAudio(SDL_AudioSpec *desired, SDL_AudioSpec *obtained)
-{
-  return SDL_FUNC(SDL_OpenAudio)(desired, obtained);
-}
-
-void SDL_PauseAudio(int pause_on)
-{
-  return SDL_FUNC(SDL_PauseAudio)(pause_on);
-}
-
-void SDL_CloseAudio(void)
-{
-  return SDL_FUNC(SDL_CloseAudio)();
-}
-
-#else //not supported
-
-namespace ZXTune
-{
-  namespace Sound
-  {
-    void RegisterSDLBackend(class BackendsEnumerator& /*enumerator*/)
-    {
-      //do nothing
-    }
-  }
-}
-
-#endif
