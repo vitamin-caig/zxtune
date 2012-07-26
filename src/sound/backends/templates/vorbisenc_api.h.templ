@@ -1,0 +1,31 @@
+/*
+Abstract:
+  VorbisEnc api gate interface
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#ifndef SOUND_BACKENDS_VORBISENC_API_H_DEFINED
+#define SOUND_BACKENDS_VORBISENC_API_H_DEFINED
+
+//platform-specific includes
+#include <vorbis/vorbisenc.h>
+//boost includes
+#include <boost/shared_ptr.hpp>
+
+namespace ZXTune
+{
+  namespace Sound
+  {
+    namespace VorbisEnc
+    {
+<TMPL_INCLUDE NAME="api.h.templ">
+    }
+  }
+}
+
+#endif //SOUND_BACKENDS_VORBISENC_API_H_DEFINED

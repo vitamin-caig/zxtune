@@ -1,0 +1,6 @@
+int ogg_stream_init(ogg_stream_state *os, int serialno)
+int ogg_stream_clear(ogg_stream_state *os)
+int ogg_stream_packetin(ogg_stream_state *os, ogg_packet *op)
+int ogg_stream_pageout(ogg_stream_state *os, ogg_page *og)
+int ogg_stream_flush(ogg_stream_state *os, ogg_page *og)
+int ogg_page_eos(const ogg_page *og)

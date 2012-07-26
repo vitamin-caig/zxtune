@@ -45,7 +45,17 @@ else
 source_files += backends/mp3_stub
 endif
 
-source_files += backends/oss_backend backends/alsa_backend backends/sdl_backend backends/ogg_backend \
+ifdef support_ogg
+$(platform)_include_dirs += $(path_step)/3rdparty
+$(platform)_include_dirs += $(path_step)/3rdparty
+generated_headers += backends/ogg_api backends/vorbis_api backends/vorbisenc_api
+source_files += backends/ogg_backend
+generated_sources += backends/ogg_api_dynamic backends/vorbis_api_dynamic backends/vorbisenc_api_dynamic
+else
+source_files += backends/ogg_stub
+endif
+
+source_files += backends/oss_backend backends/alsa_backend backends/sdl_backend \
                 backends/null_backend backends/wav_backend
 
 include $(path_step)/makefile.mak
@@ -77,6 +87,24 @@ backends/mp3_api_dynamic.cpp: backends/templates/mp3_api_dynamic.cpp.templ backe
 backends/mp3_api.h: backends/templates/mp3_api.h.templ backends/functions/mp3.dat
 		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
 
+backends/ogg_api_dynamic.cpp: backends/templates/ogg_api_dynamic.cpp.templ backends/functions/ogg.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
+backends/ogg_api.h: backends/templates/ogg_api.h.templ backends/functions/ogg.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
+backends/vorbis_api_dynamic.cpp: backends/templates/vorbis_api_dynamic.cpp.templ backends/functions/vorbis.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
+backends/vorbis_api.h: backends/templates/vorbis_api.h.templ backends/functions/vorbis.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
+backends/vorbisenc_api_dynamic.cpp: backends/templates/vorbisenc_api_dynamic.cpp.templ backends/functions/vorbisenc.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
+backends/vorbisenc_api.h: backends/templates/vorbisenc_api.h.templ backends/functions/vorbisenc.dat
+		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
+
 ifdef support_oss
 $(platform)_definitions += OSS_SUPPORT
 endif
@@ -91,10 +119,4 @@ endif
 
 ifdef support_sdl
 $(platform)_definitions += SDL_SUPPORT
-endif
-
-ifdef support_ogg
-$(platform)_definitions += OGG_SUPPORT
-$(platform)_include_dirs += $(path_step)/3rdparty
-$(platform)_include_dirs += $(path_step)/3rdparty
 endif
