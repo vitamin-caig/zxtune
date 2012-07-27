@@ -71,13 +71,16 @@ else
 source_files += backends/sdl_stub
 endif
 
-source_files += backends/oss_backend \
-                backends/null_backend backends/wav_backend
+ifdef support_oss
+$(platform)_definitions += OSS_SUPPORT
+source_files += backends/oss_backend
+else
+source_files += backends/oss_stub
+endif
+
+source_files += backends/null_backend backends/wav_backend
 
 include $(path_step)/makefile.mak
-
-backends/stubs/alsa.h: backends/functions/alsa.dat
-		cat $^ | $(path_step)/make/build_shgate.pl ASOUND_FUNC > $@
 
 backends/win32_api_dynamic.cpp: backends/templates/win32_api_dynamic.cpp.templ backends/functions/win32.dat
 		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
@@ -132,10 +135,6 @@ backends/sdl_api_dynamic.cpp: backends/templates/sdl_api_dynamic.cpp.templ backe
 
 backends/sdl_api.h: backends/templates/sdl_api.h.templ backends/functions/sdl.dat
 		perl $(path_step)/make/build_shgate_dynamic.pl $^ > $@
-
-ifdef support_oss
-$(platform)_definitions += OSS_SUPPORT
-endif
 
 ifdef support_aylpt_dlportio
 $(platform)_definitions += DLPORTIO_AYLPT_SUPPORT

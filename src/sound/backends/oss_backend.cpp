@@ -9,8 +9,6 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-#ifdef OSS_SUPPORT
-
 //local includes
 #include "backend_impl.h"
 #include "enumerator.h"
@@ -377,18 +375,3 @@ namespace ZXTune
     }
   }
 }
-
-#else //not supported
-
-namespace ZXTune
-{
-  namespace Sound
-  {
-    void RegisterOSSBackend(class BackendsEnumerator& /*enumerator*/)
-    {
-      //do nothing
-    }
-  }
-}
-
-#endif
