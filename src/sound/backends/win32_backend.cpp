@@ -14,11 +14,11 @@ Author:
 #include "win32_api.h"
 #include "backend_impl.h"
 #include "enumerator.h"
+#include "volume_control.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <logging.h>
-#include <shared_library_gate.h>
 #include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
@@ -26,16 +26,12 @@ Author:
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//platform-dependent includes
-#include <windows.h>
 //std includes
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/noncopyable.hpp>
-#include <boost/ref.hpp>
-#include <boost/thread/thread.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
@@ -349,14 +345,11 @@ namespace
       // use exceptions for simplification
       try
       {
-        if (WaveOutDevice::Ptr dev = Device.lock())
-        {
-          boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
-          BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
-          dev->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
-          std::transform(buffer.begin(), buffer.end(), volume.begin(), std::bind2nd(std::divides<Gain>(), MAX_WIN32_VOLUME));
-        }
-        return Error();//?
+        boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
+        BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+        Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
+        std::transform(buffer.begin(), buffer.end(), volume.begin(), std::bind2nd(std::divides<Gain>(), MAX_WIN32_VOLUME));
+        return Error();
       }
       catch (const Error& e)
       {
@@ -373,13 +366,10 @@ namespace
       // use exceptions for simplification
       try
       {
-        if (WaveOutDevice::Ptr dev = Device.lock())
-        {
-          boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
-          std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
-          BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
-          dev->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
-        }
+        boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
+        std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
+        BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+        Device->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
         return Error();
       }
       catch (const Error& e)
@@ -388,7 +378,7 @@ namespace
       }
     }
   private:
-    const WaveOutDevice::WeakPtr Device;
+    const WaveOutDevice::Ptr Device;
   };
 
   class Win32BackendParameters
@@ -429,51 +419,44 @@ namespace
       : Api(api)
       , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
-      , Volume(boost::make_shared<Win32VolumeController>(Device))
     {
     }
 
     virtual ~Win32BackendWorker()
     {
-      assert(!Device || !"Win32Backend::Stop should be called before exit");
+      assert(!Objects.Device || !"Win32Backend::Stop should be called before exit");
     }
 
     virtual void Test()
     {
-      const Win32BackendParameters params(*BackendParams);
-      WaveOutDevice device(Api, GetFormat(), params.GetDevice());
-      device.Close();
+      const WaveOutObjects obj = OpenDevices();
+      obj.Device->Close();
     }
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
-      assert(!Device);
-
-      const Win32BackendParameters params(*BackendParams);
-      const WaveOutDevice::Ptr newDevice = boost::make_shared<WaveOutDevice>(Api, GetFormat(), params.GetDevice());
-      const WaveTarget::Ptr newTarget = boost::make_shared<CycledWaveBuffer>(newDevice, RenderingParameters->SamplesPerFrame(), params.GetBuffers());
-      const VolumeControl::Ptr newVolume = boost::make_shared<Win32VolumeController>(newDevice);
-      const boost::mutex::scoped_lock lock(StateMutex);
-      Target = newTarget;
-      Device = newDevice;
-      Volume = newVolume;
+      Log::Debug(THIS_MODULE, "Starting");
+      Objects = OpenDevices();
+      Log::Debug(THIS_MODULE, "Started");
     }
 
     virtual void OnShutdown()
     {
-      Target = WaveTarget::Ptr();
-      Device = WaveOutDevice::Ptr();
-      //keep volume controller available
+      Log::Debug(THIS_MODULE, "Stopping");
+      Objects.Volume.reset();
+      Objects.Target.reset();
+      Objects.Device.reset();
+      Log::Debug(THIS_MODULE, "Stopped");
     }
 
     virtual void OnPause()
     {
-      Device->Pause();
+      Objects.Device->Pause();
     }
 
     virtual void OnResume()
     {
-      Device->Resume();
+      Objects.Device->Resume();
     }
 
     virtual void OnFrame(const Module::TrackState& /*state*/)
@@ -482,12 +465,12 @@ namespace
 
     virtual void OnBufferReady(Chunk& buffer)
     {
-      Target->Write(&buffer.front(), buffer.size());
+      Objects.Target->Write(&buffer.front(), buffer.size());
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
-      return Volume;
+      return CreateVolumeControlDelegate(Objects.Volume);
     }
   private:
     ::WAVEFORMATEX GetFormat() const
@@ -502,14 +485,28 @@ namespace
       format.wBitsPerSample = 8 * sizeof(Sample);
       return format;
     }
+
+    struct WaveOutObjects
+    {
+      WaveOutDevice::Ptr Device;
+      WaveTarget::Ptr Target;
+      VolumeControl::Ptr Volume;
+    };
+
+    WaveOutObjects OpenDevices() const
+    {
+      WaveOutObjects res;
+      const Win32BackendParameters params(*BackendParams);
+      res.Device = boost::make_shared<WaveOutDevice>(Api, GetFormat(), params.GetDevice());
+      res.Target = boost::make_shared<CycledWaveBuffer>(res.Device, RenderingParameters->SamplesPerFrame(), params.GetBuffers());
+      res.Volume = boost::make_shared<Win32VolumeController>(res.Device);
+      return res;
+    }
   private:
     const Win32::Api::Ptr Api;
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
-    boost::mutex StateMutex;
-    WaveOutDevice::Ptr Device;
-    WaveTarget::Ptr Target;
-    VolumeControl::Ptr Volume;
+    WaveOutObjects Objects;
   };
 
   class Win32BackendCreator : public BackendCreator

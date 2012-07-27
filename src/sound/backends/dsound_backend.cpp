@@ -14,6 +14,7 @@ Author:
 #include "dsound_api.h"
 #include "backend_impl.h"
 #include "enumerator.h"
+#include "volume_control.h"
 //common includes
 #include <error_tools.h>
 #include <logging.h>
@@ -386,35 +387,6 @@ namespace
     const DirectSoundBufferPtr Buffer;
   };
 
-  class VolumeControlDelegate : public VolumeControl
-  {
-  public:
-    explicit VolumeControlDelegate(const VolumeControl::Ptr& delegate)
-      : Delegate(delegate)
-    {
-    }
-
-    virtual Error GetVolume(MultiGain& volume) const
-    {
-      if (VolumeControl::Ptr delegate = Delegate)
-      {
-        return delegate->GetVolume(volume);
-      }
-      return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
-    }
-
-    virtual Error SetVolume(const MultiGain& volume)
-    {
-      if (VolumeControl::Ptr delegate = Delegate)
-      {
-        return delegate->SetVolume(volume);
-      }
-      return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_INVALID_STATE);
-    }
-  private:
-    const VolumeControl::Ptr& Delegate;
-  };
-
   class DirectSoundBackendParameters
   {
   public:
@@ -501,7 +473,7 @@ namespace
 
     VolumeControl::Ptr GetVolumeControl() const
     {
-      return boost::make_shared<VolumeControlDelegate>(boost::cref(Objects.Volume));
+      return CreateVolumeControlDelegate(Objects.Volume);
     }
   private:
     struct DSObjects
