@@ -14,6 +14,7 @@ Author:
 #include "alsa_api.h"
 #include "backend_impl.h"
 #include "enumerator.h"
+#include "volume_control.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -32,7 +33,6 @@ Author:
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/thread/mutex.hpp>
 //text includes
 #include <sound/text/backends.h>
 #include <sound/text/sound.h>
@@ -177,7 +177,7 @@ namespace
   public:
     explicit AlsaIdentifier(const String& id)
     {
-      static const Char DELIMITERS[] = {':', ','};
+      static const Char DELIMITERS[] = {':', ',', 0};
       StringArray elements;
       boost::algorithm::split(elements, id, boost::algorithm::is_any_of(DELIMITERS));
       elements.resize(3);
@@ -314,7 +314,7 @@ namespace
       }
     }
 
-    void SetParameters(uint_t buffersCount, const RenderParameters& params)
+    void SetParameters(unsigned buffersCount, const RenderParameters& params)
     {
       const boost::shared_ptr<snd_pcm_hw_params_t> hwParams = Allocate<snd_pcm_hw_params_t>(Api,
         &Alsa::Api::snd_pcm_hw_params_malloc, &Alsa::Api::snd_pcm_hw_params_free);
@@ -722,67 +722,46 @@ namespace
       : Api(api)
       , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
-      , Volume(boost::make_shared<AlsaVolumeControl>(Mix))
     {
     }
 
     virtual ~AlsaBackendWorker()
     {
-      assert(!DevHandle.Get() || !"AlsaBackend was destroyed without stopping");
+      assert(!Objects.Dev || !"AlsaBackend was destroyed without stopping");
     }
 
     virtual void Test()
     {
-      const AlsaBackendParameters params(*BackendParams);
-      const AlsaIdentifier deviceId(params.GetDeviceName());
-      
-      Device dev(Api, deviceId);
-      dev.SetParameters(params.GetBuffersCount(), *RenderingParameters);
-      dev.Close();
-      Mixer mix(Api, deviceId, params.GetMixerName());
-      mix.Close();
+      const AlsaObjects obj = OpenDevices();
+      obj.Dev->Close();
+      obj.Mix->Close();
       Log::Debug(THIS_MODULE, "Checked!");
-    }
-
-    virtual VolumeControl::Ptr GetVolumeControl() const
-    {
-      return Volume;
     }
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
-      assert(!Dev);
-      const AlsaBackendParameters params(*BackendParams);
-      const AlsaIdentifier deviceId(params.GetDeviceName());
-
-      const Device::Ptr newDev = boost::make_shared<Device>(Api, deviceId);
-      newDev->SetParameters(params.GetBuffersCount(), *RenderingParameters);
-      const Mixer::Ptr newMix = boost::make_shared<Mixer>(Api, deviceId, params.GetMixerName());
-      const VolumeControl::Ptr newVol = boost::make_shared<AlsaVolumeControl>(newMix);
-      const boost::mutex::scoped_lock lock(StateMutex);
-      Dev = newDev;
-      Mix = newMix;
-      Volume = newVol;
-      Log::Debug(THIS_MODULE, "Successfully opened");
+      Log::Debug(THIS_MODULE, "Starting");
+      Objects = OpenDevices();
+      Log::Debug(THIS_MODULE, "Started");
     }
 
     virtual void OnShutdown()
     {
-      Mix = Mixer::Ptr();
-      Dev = Device::Ptr();
-      //do not reset volume controller
-      Api->snd_config_update_free_global();
-      Log::Debug(THIS_MODULE, "Successfully closed");
+      Log::Debug(THIS_MODULE, "Stopping");
+      Objects.Vol.reset();
+      Objects.Mix.reset();
+      Objects.Dev.reset();
+      Log::Debug(THIS_MODULE, "Stopped");
     }
 
     virtual void OnPause()
     {
-      Dev->Pause();
+      Objects.Dev->Pause();
     }
 
     virtual void OnResume()
     {
-      Dev->Resume();
+      Objects.Dev->Resume();
     }
 
     virtual void OnFrame(const Module::TrackState& /*state*/)
@@ -791,16 +770,38 @@ namespace
 
     virtual void OnBufferReady(Chunk& buffer)
     {
-      Dev->Write(buffer);
+      Objects.Dev->Write(buffer);
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
+    {
+      return CreateVolumeControlDelegate(Objects.Vol);
+    }
+  private:
+    struct AlsaObjects
+    {
+      Device::Ptr Dev;
+      Mixer::Ptr Mix;
+      VolumeControl::Ptr Vol;
+    };
+    
+    AlsaObjects OpenDevices() const
+    {
+      const AlsaBackendParameters params(*BackendParams);
+      const AlsaIdentifier deviceId(params.GetDeviceName());
+
+      AlsaObjects res;
+      res.Dev = boost::make_shared<Device>(Api, deviceId);
+      res.Dev->SetParameters(params.GetBuffersCount(), *RenderingParameters);
+      res.Mix = boost::make_shared<Mixer>(Api, deviceId, params.GetMixerName());
+      res.Vol = boost::make_shared<AlsaVolumeControl>(res.Mix);
+      return res;
     }
   private:
     const Alsa::Api::Ptr Api;
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
-    boost::mutex StateMutex;
-    Device::Ptr Dev;
-    Mixer::Ptr Mix;
-    VolumeControl::Ptr Volume;
+    AlsaObjects Objects;
   };
 
   class AlsaBackendCreator : public BackendCreator
@@ -1119,6 +1120,12 @@ namespace ZXTune
       {
         try
         {
+          /*
+            Note: api instance should be created using cache for every instance of backend (TODO).
+            Call of snd_config_update_free_global should be performed on destruction of Api's insance,
+            but till alsa 1.0.24 this will lead to crash.
+            TODO: check for previously called snd_lib_error_set_handler(NULL)
+          */
           const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
           return Device::Iterator::Ptr(new AlsaDevicesIterator(api));
         }
