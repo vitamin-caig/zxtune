@@ -8,15 +8,6 @@ makeres_cmd = rc $(addprefix /d, $(DEFINITIONS)) /r /fo$(2) $(1)
 host=windows
 compiler := msvs
 
-# built-in features
-support_waveout = 1
-support_aylpt_dlportio = 1
-support_directsound = 1
-#support_sdl = 1
-support_mp3 = 1
-support_ogg = 1
-support_flac = 1
-
 windows_libraries += oldnames
 
 # installable boost names convention used

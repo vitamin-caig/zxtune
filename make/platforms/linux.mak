@@ -28,21 +28,12 @@ OBJCOPY = ${TOOLCHAIN_PATH}/bin/arm-none-linux-gnueabi-objcopy
 STRIP = ${TOOLCHAIN_PATH}/bin/arm-none-linux-gnueabi-strip
 endif
 
-#built-in features
-support_oss = 1
-support_alsa = 1
-#support_sdl = 1
-support_mp3 = 1
-support_ogg = 1
-support_flac = 1
-
 $(platform)_libraries += dl rt pthread stdc++
 
 ifdef STATIC_BOOST_PATH
 include_dirs += $(STATIC_BOOST_PATH)/include
 $(platform)_libraries_dirs += $(STATIC_BOOST_PATH)/lib
 boost_libs_model = -mt
-$(platform)_libraries += pthread
 endif
 
 #multithread release libraries

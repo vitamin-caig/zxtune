@@ -22,10 +22,6 @@ dingux_definitions += 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' '
 dingux_libraries += stdc++ gcc c m dl pthread
 dingux_libraries_dirs += ${TOOLCHAIN_PATH}/usr/mipsel-linux/lib
 
-#built-in features
-support_oss = 1
-#support_sdl = 1
-
 ifdef STATIC_BOOST_PATH
 include_dirs += $(STATIC_BOOST_PATH)/include
 dingux_libraries_dirs += $(STATIC_BOOST_PATH)/lib

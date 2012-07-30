@@ -12,9 +12,6 @@ CXX_PLATFORM_FLAGS = -fvisibility=hidden -fvisibility-inlines-hidden
 LINKER_BEGIN_GROUP=
 LINKER_END_GROUP=
 
-#built-in features
-support_sdl = 1
-
 macos_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
 
 CXX_PLATFORM_FLAGS += $(addprefix -FQt,$(qt_libraries))

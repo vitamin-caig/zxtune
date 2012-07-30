@@ -32,15 +32,6 @@ endif
 
 mingw_definitions += BOOST_THREAD_USE_LIB BOOST_FILESYSTEM_VERSION=3
 
-#built-in features
-support_waveout = 1
-support_aylpt_dlportio = 1
-support_directsound = 1
-#support_sdl = 1
-support_mp3 = 1
-support_ogg = 1
-support_flac = 1
-
 #simple library naming convention used
 mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt$(if $(release),,-d))
 
