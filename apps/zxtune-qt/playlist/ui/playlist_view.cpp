@@ -476,6 +476,15 @@ namespace
         const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
         scanner->AddItems(items, false);
       }
+      else if (data.hasText())
+      {
+        const QString& text = data.text();
+        const QUrl& url = QUrl::fromUserInput(text);
+        if (url.isValid())
+        {
+          AddItems(QStringList(url.toString()));
+        }
+      }
     }
 
     void SearchItems()

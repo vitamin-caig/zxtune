@@ -235,8 +235,10 @@ namespace
       assert(XML.isStartElement() && XML.name() == XSPF::ITEM_LOCATION_TAG);
       const QString location = XML.readElementText();;
       const QUrl url(QUrl::fromPercentEncoding(location.toUtf8()));
-      const QString& itemLocation = BaseDir.absoluteFilePath(url.toString());
-      return FromQString(BaseDir.cleanPath(itemLocation));
+      const QString& itemLocation = url.isRelative()
+        ? BaseDir.absoluteFilePath(url.toString())
+        : url.toString();
+      return FromQString(itemLocation);
     }
 
     void ParseTrackitemParameters(const QStringRef& attr, Parameters::Visitor& props)

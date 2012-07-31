@@ -27,12 +27,12 @@ namespace
   class PathPropertiesAccessor : public Parameters::Accessor
   {
   public:
-    PathPropertiesAccessor(const String& path, const String& subpath)
-      : Path(path)
+    PathPropertiesAccessor(const String& uri, const String& path, const String& subpath)
+      : Uri(uri)
+      , Path(path)
       , Filename(ZXTune::IO::ExtractLastPathComponent(Path, Dir))
       , Subpath(subpath)
     {
-      ThrowIfError(IO::CombineUri(Path, Subpath, Uri));
     }
 
     virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
@@ -78,22 +78,36 @@ namespace
       visitor.SetValue(Module::ATTR_FULLPATH, Uri);
     }
   private:
+    const String Uri;
     const String Path;
     String Dir;//before filename
     const String Filename;
     const String Subpath;
-    String Uri;
   };
 }
 
 Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String& subpath)
 {
-  return boost::make_shared<PathPropertiesAccessor>(path, subpath);
+  String fullPath;
+  if (subpath.empty() || ZXTune::IO::CombineUri(path, subpath, fullPath))
+  {
+    return boost::make_shared<PathPropertiesAccessor>(path, path, String());
+  }
+  else
+  {
+    return boost::make_shared<PathPropertiesAccessor>(fullPath, path, subpath);
+  }
 }
 
 Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
 {
   String path, subpath;
-  ThrowIfError(ZXTune::IO::SplitUri(fullpath, path, subpath));
-  return CreatePathProperties(path, subpath);
+  if (ZXTune::IO::SplitUri(fullpath, path, subpath))
+  {
+    return boost::make_shared<PathPropertiesAccessor>(fullpath, String(), String());
+  }
+  else
+  {
+    return boost::make_shared<PathPropertiesAccessor>(fullpath, path, subpath);
+  }
 }
