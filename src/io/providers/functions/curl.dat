@@ -1,0 +1,9 @@
+CURL *curl_easy_init()
+void curl_easy_cleanup(CURL *curl)
+CURLcode curl_easy_perform(CURL *curl)
+const char *curl_easy_strerror(CURLcode errornum)
+#bunch of functions
+CURLcode curl_easy_setopt(CURL *curl, CURLoption option, int intParam)
+CURLcode curl_easy_setopt(CURL *curl, CURLoption option, const char* strParam)
+CURLcode curl_easy_setopt(CURL *curl, CURLoption option, void* opaqueParam)
+CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, void* opaqueResult)

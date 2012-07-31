@@ -1,0 +1,72 @@
+/*
+Abstract:
+  Curl api dynamic gate implementation
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+//local includes
+#include "curl_api.h"
+//common includes
+#include <logging.h>
+#include <shared_library_adapter.h>
+#include <tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
+
+namespace
+{
+  const std::string THIS_MODULE("IO::Provider::Network");
+
+  using namespace ZXTune::IO::Curl;
+
+  class CurlName : public SharedLibrary::Name
+  {
+  public:
+    virtual std::string Base() const
+    {
+      return "curl";
+    }
+    
+    virtual std::vector<std::string> PosixAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libcurl.so.3",
+        "libcurl.so.4",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+    
+    virtual std::vector<std::string> WindowsAlternatives() const
+    {
+      static const std::string ALTERNATIVES[] =
+      {
+        "libcurl.dll",
+      };
+      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+    }
+  };
+
+<TMPL_INCLUDE NAME="../../../sound/backends/templates/api_dynamic.cpp.templ">
+}
+
+namespace ZXTune
+{
+  namespace IO
+  {
+    namespace Curl
+    {
+      Api::Ptr LoadDynamicApi()
+      {
+        static const CurlName NAME;
+        const SharedLibrary::Ptr lib = SharedLibrary::Load(NAME);
+        return boost::make_shared<DynamicApi>(lib);
+      }
+    }
+  }
+}

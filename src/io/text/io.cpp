@@ -11,6 +11,9 @@ extern const Char IO_ERROR_FILE_EXISTS[] = {
 extern const Char IO_ERROR_IO_ERROR[] = {
   'I','/','O',' ','e','r','r','o','r',' ','h','a','p','p','e','n','d','s','.',0
 };
+extern const Char IO_ERROR_NETWORK_ERROR[] = {
+  'N','e','t','w','o','r','k',' ','e','r','r','o','r',' ','h','a','p','p','e','n','d','s',':',' ','%','1','%',0
+};
 extern const Char IO_ERROR_NOT_FOUND[] = {
   'F','a','i','l','e','d',' ','t','o',' ','f','i','n','d',' ','s','p','e','c','i','f','i','e','d',' ','f','i',
   'l','e','.',0
@@ -35,6 +38,13 @@ extern const Char IO_FILE_PROVIDER_DESCRIPTION[] = {
 };
 extern const Char IO_FILE_PROVIDER_ID[] = {
   'f','i','l','e',0
+};
+extern const Char IO_NETWORK_PROVIDER_DESCRIPTION[] = {
+  'N','e','t','w','o','r','k',' ','f','i','l','e','s',' ','a','c','c','e','s','s',' ','v','i','a',' ','d','i',
+  'f','f','e','r','e','n','t',' ','s','c','h','e','m','e','s',' ','s','u','p','p','o','r','t',0
+};
+extern const Char IO_NETWORK_PROVIDER_ID[] = {
+  'n','e','t',0
 };
 }//namespace Text
 #endif //__TEXT_IO_H_DEFINED__

@@ -1,0 +1,32 @@
+/*
+Abstract:
+  Curl api gate interface
+
+Last changed:
+  $Id$
+
+Author:
+  (C) Vitamin/CAIG/2001
+*/
+
+#ifndef IO_CURL_API_H_DEFINED
+#define IO_CURL_API_H_DEFINED
+
+//platform-specific includes
+#include <curl/curl.h>
+#include <curl/easy.h>
+//boost includes
+#include <boost/shared_ptr.hpp>
+
+namespace ZXTune
+{
+  namespace IO
+  {
+    namespace Curl
+    {
+<TMPL_INCLUDE NAME="../../../sound/backends/templates/api.h.templ">
+    }
+  }
+}
+
+#endif //IO_CURL_API_H_DEFINED

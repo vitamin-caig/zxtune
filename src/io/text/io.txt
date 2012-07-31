@@ -34,9 +34,18 @@ __cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
 < IO_ERROR_NO_MEMORY
 > "Failed to allocate memory to open data."
 
+< IO_ERROR_NETWORK_ERROR
+> "Network error happends: %1%"
+
 #providers description
 < IO_FILE_PROVIDER_ID
 > "file"
 
 < IO_FILE_PROVIDER_DESCRIPTION
 > "Local files and file:// scheme support"
+
+< IO_NETWORK_PROVIDER_ID
+> "net"
+
+< IO_NETWORK_PROVIDER_DESCRIPTION
+> "Network files access via different schemes support"
