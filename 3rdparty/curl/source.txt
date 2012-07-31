@@ -1,0 +1,4 @@
+http://curl.haxx.se/download.html:
+
+curl-7.26.0-rtmp-ssh2-ssl-sspi-zlib-winidn-static-bin-w64.7z
+curl-7.26.0-ssl-sspi-zlib-static-bin-w32.zip
