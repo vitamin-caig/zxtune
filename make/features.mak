@@ -22,6 +22,8 @@ else
 $(warning Unknown platform)
 endif
 
+support_curl = 1
+
 ifdef support_directsound
 windows_libraries += user32 ole32
 mingw_libraries += ole32
