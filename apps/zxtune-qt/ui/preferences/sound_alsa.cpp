@@ -1,6 +1,6 @@
 /*
 Abstract:
-  ALSA settings widget implementation
+  Alsa settings widget implementation
 
 Last changed:
   $Id$
@@ -32,7 +32,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::Preferences::ALSA");
+  const std::string THIS_MODULE("UI::Preferences::Alsa");
 }
 
 namespace
@@ -77,7 +77,7 @@ namespace
       FillDevices();
       SelectDevice();
 
-      using namespace Parameters::ZXTune::Sound::Backends::ALSA;
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
       Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
       Require(connect(mixers, SIGNAL(currentIndexChanged(const QString&)), SLOT(MixerChanged(const QString&))));
       Require(connect(devices, SIGNAL(currentIndexChanged(const QString&)), SLOT(DeviceChanged(const QString&))));
@@ -111,7 +111,7 @@ namespace
         devices->setCurrentIndex(it - Devices.begin());
         mixers->clear();
         mixers->addItems(it->MixerNames);
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE, it->Id);
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, it->Id);
         SelectMixer();
       }
       else
@@ -127,13 +127,13 @@ namespace
       {
         const String mixer = FromQString(name);
         Log::Debug(THIS_MODULE, "Selecting mixer '%1%'", mixer);
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::ALSA::MIXER, mixer);
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, mixer);
       }
     }
   private:
     void SelectDevice()
     {
-      using namespace Parameters::ZXTune::Sound::Backends::ALSA;
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
       String curDevice = DEVICE_DEFAULT;
       Options->FindValue(DEVICE, curDevice);
       //force fill mixers- signal is not called by previous function (even when connected before, why?)
@@ -143,10 +143,10 @@ namespace
     void FillDevices()
     {
       using namespace ZXTune::Sound;
-      for (ALSA::Device::Iterator::Ptr availableDevices = ALSA::EnumerateDevices();
+      for (Alsa::Device::Iterator::Ptr availableDevices = Alsa::EnumerateDevices();
         availableDevices->IsValid(); availableDevices->Next())
       {
-        const ALSA::Device::Ptr cur = availableDevices->Get();
+        const Alsa::Device::Ptr cur = availableDevices->Get();
         Devices.push_back(Device(*cur));
         devices->addItem(Devices.back().Name);
       }
@@ -154,7 +154,7 @@ namespace
 
     void SelectMixer()
     {
-      using namespace Parameters::ZXTune::Sound::Backends::ALSA;
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
       String curMixer;
       Options->FindValue(MIXER, curMixer);
       SetComboValue(*mixers, curMixer);
@@ -168,7 +168,7 @@ namespace
       {
       }
 
-      Device(const ZXTune::Sound::ALSA::Device& in)
+      Device(const ZXTune::Sound::Alsa::Device& in)
         : Name(ToQString(Strings::Format(Text::SOUND_DEVICE_ON_CARD_FORMAT, in.Name(), in.CardName())))
         , Id(in.Id())
         , MixerNames(ToStringList(in.Mixers()))

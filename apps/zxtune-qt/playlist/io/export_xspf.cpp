@@ -69,7 +69,7 @@ namespace
       void SaveProperty(const Parameters::NameType& name, const String& strVal)
       {
         XML.writeStartElement(XSPF::EXTENDED_PROPERTY_TAG);
-        XML.writeAttribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name));
+        XML.writeAttribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name.FullPath()));
         XML.writeCharacters(ConvertString(strVal));
         XML.writeEndElement();
       }
@@ -89,7 +89,7 @@ namespace
       {
         return;
       }
-      Log::Debug(THIS_MODULE, "  saving extended attribute %1%=%2%", name, val);
+      Log::Debug(THIS_MODULE, "  saving extended attribute %1%=%2%", name.FullPath(), val);
       SaveProperty(name, val);
     }
 
@@ -99,7 +99,7 @@ namespace
       {
         return;
       }
-      Log::Debug(THIS_MODULE, "  saving extended attribute %1%='%2%'", name, val);
+      Log::Debug(THIS_MODULE, "  saving extended attribute %1%='%2%'", name.FullPath(), val);
       SaveProperty(name, val);
     }
 
@@ -109,7 +109,7 @@ namespace
       {
         return;
       }
-      Log::Debug(THIS_MODULE, "  saving extended attribute %1%=data(%2%)", name, val.size());
+      Log::Debug(THIS_MODULE, "  saving extended attribute %1%=data(%2%)", name.FullPath(), val.size());
       SaveProperty(name, val);
     }
   private:
@@ -185,17 +185,17 @@ namespace
       const QString valStr = ConvertString(value);
       if (name == ZXTune::Module::ATTR_TITLE)
       {
-        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
+        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_TITLE_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_AUTHOR)
       {
-        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
+        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_CREATOR_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_COMMENT)
       {
-        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name, val);
+        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_ANNOTATION_TAG, valStr);
       }
     }
@@ -240,13 +240,13 @@ namespace
 
     static bool IsParameter(const Parameters::NameType& name)
     {
-      return Parameters::NameType::npos != name.find(Parameters::NAMESPACE_DELIMITER);
+      return name.IsPath();
     }
 
     static bool KeepOnlyParameters(const Parameters::NameType& name)
     {
-      return 0 == name.find(Parameters::ZXTune::PREFIX) &&
-             0 != name.find(Playlist::ATTRIBUTES_PREFIX);
+      return name.IsSubpathOf(Parameters::ZXTune::PREFIX) &&
+            !name.IsSubpathOf(Playlist::ATTRIBUTES_PREFIX);
     }
 
     void SaveExtendedProperties(const Parameters::Accessor& props)

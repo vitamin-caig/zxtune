@@ -11,8 +11,6 @@
 #ifndef __FORMATS_CHIPTUNE_H_DEFINED__
 #define __FORMATS_CHIPTUNE_H_DEFINED__
 
-//common includes
-#include <parameters.h>
 //library includes
 #include <binary/container.h>
 #include <binary/format.h>

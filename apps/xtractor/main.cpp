@@ -1001,7 +1001,7 @@ namespace
       {
         Log::Debug(THIS_MODULE, "Opening '%1%'", filename);
         Binary::Container::Ptr data;
-        ThrowIfError(ZXTune::IO::OpenData(filename, *Params, ZXTune::IO::ProgressCallback(), data));
+        ThrowIfError(ZXTune::IO::OpenData(filename, *Params, Log::ProgressCallback::Stub(), data));
         const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);
         Analyse->ApplyData(root);
       }

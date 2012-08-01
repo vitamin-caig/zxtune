@@ -1,6 +1,6 @@
 /*
 Abstract:
-  OSS backend stub implementation
+  Oss backend stub implementation
 
 Last changed:
   $Id: oss_backend.cpp 1799 2012-06-11 15:04:38Z vitamin.caig $
@@ -13,7 +13,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterOSSBackend(class BackendsEnumerator& /*enumerator*/)
+    void RegisterOssBackend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
     }

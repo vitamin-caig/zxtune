@@ -11,8 +11,8 @@
 #ifndef __CORE_PLUGINS_PARAMETERS_H_DEFINED__
 #define __CORE_PLUGINS_PARAMETERS_H_DEFINED__
 
-//common includes
-#include <parameters.h>
+//local includes
+#include "core_parameters.h"
 
 namespace Parameters
 {
@@ -23,18 +23,20 @@ namespace Parameters
       //! @brief Plugins-related parameters namespace
       namespace Plugins
       {
+        //! @brief Parameters#ZXTune#Core#Plugins namespace prefix
+        const NameType PREFIX = Core::PREFIX + "plugins";
+
         //! @brief RAW scaner parameters namespace
         namespace Raw
         {
+          //! @brief Parameters#ZXTune#Core#Plugins#Raw namespace prefix
+          const NameType PREFIX = Plugins::PREFIX + "raw";
+
           //@{
           //! @name Perform double analysis of plain data containers
 
           //! Parameter name
-          const Char PLAIN_DOUBLE_ANALYSIS[] =
-          {
-            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','r','a','w','.',
-            'p','l','a','i','n','_','d','o','u','b','l','e','_','a','n','a','l','y','s','i','s','\0'
-          };
+          const NameType PLAIN_DOUBLE_ANALYSIS = PREFIX + "plain_double_analysis";
           //@}
 
           //@{
@@ -43,53 +45,50 @@ namespace Parameters
           //! Default value
           const IntType MIN_SIZE_DEFAULT = 128;
           //! Parameter name
-          const Char MIN_SIZE[] =
-          {
-            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','r','a','w','.','m','i','n','_','s','i','z','e','\0'
-          };
+          const NameType MIN_SIZE = PREFIX + "min_size";
           //@}
         }
 
         //! @brief HRIP container parameters namespace
         namespace Hrip
         {
+          //! @brief Parameters#ZXTune#Core#Plugins#Hrip namespace prefix
+          const NameType PREFIX = Plugins::PREFIX + "hrip";
+
           //! @brief Ignore corrupted blocks
           //! @details 1 if do so
-          const Char IGNORE_CORRUPTED[] =
-          {
-            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','h','r','i','p','.','i','g','n','o','r','e','_','c','o','r','r','u','p','t','e','d','\0'
-          };
+          const NameType IGNORE_CORRUPTED = PREFIX + "ignore_corrupted";
         }
 
         //! @brief AY container/player parameters namespace
         namespace AY
         {
+          //! @brief Parameters#ZXTune#Core#Plugins#AY namespace prefix
+          const NameType PREFIX = Plugins::PREFIX + "ay";
+
           //@{
           //! @name Default song duration (if not specified exactly)
 
           //! Default value (3min for 50 fps)
           const IntType DEFAULT_DURATION_FRAMES_DEFAULT = 3 * 60 * 50;
           //! Parameter name
-          const Char DEFAULT_DURATION_FRAMES[] =
-          {
-            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','a','y','.','d','e','f','a','u','l','t','_','d','u','r','a','t','i','o','n','\0'
-          };
+          const NameType DEFAULT_DURATION_FRAMES = PREFIX + "default_duration";
           //@}
         }
 
         //! @brief ZIP container parameters namespace
-        namespace ZIP
+        namespace Zip
         {
+          //! @brief Parameters#ZXTune#Core#Plugins#Zip namespace prefix
+          const NameType PREFIX = Plugins::PREFIX + "zip";
+
           //@{
           //! @name Maximal file size to be depacked in Mb
 
           //! Default value
           const IntType MAX_DEPACKED_FILE_SIZE_MB_DEFAULT = 32;
           //! Parameter name
-          const Char MAX_DEPACKED_FILE_SIZE_MB[] =
-          {
-            'z','x','t','u','n','e','.','c','o','r','e','.','p','l','u','g','i','n','s','.','z','i','p','.','m','a','x','_','d','e','p','a','c','k','e','d','_','s','i','z','e','_','m','b','\0'
-          };
+          const NameType MAX_DEPACKED_FILE_SIZE_MB = PREFIX + "max_depacked_size_mb";
           //@}
         }
       }

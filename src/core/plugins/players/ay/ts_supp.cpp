@@ -110,10 +110,10 @@ namespace
 
       virtual void SetValue(const NameType& name, const StringType& val)
       {
-        const StringMap::iterator it = Strings.find(name);
+        const StringsValuesMap::iterator it = Strings.find(name);
         if (it == Strings.end())
         {
-          Strings.insert(StringMap::value_type(name, val));
+          Strings.insert(StringsValuesMap::value_type(name, val));
         }
         else
         {
@@ -131,14 +131,15 @@ namespace
 
       void ProcessRestStrings() const
       {
-        for (StringMap::const_iterator it = Strings.begin(), lim = Strings.end(); it != lim; ++it)
+        for (StringsValuesMap::const_iterator it = Strings.begin(), lim = Strings.end(); it != lim; ++it)
         {
           Delegate.SetValue(it->first, it->second);
         }
       }
     private:
       Visitor& Delegate;
-      StringMap Strings;
+      typedef std::map<NameType, StringType> StringsValuesMap;
+      StringsValuesMap Strings;
       std::set<NameType> DoneIntegers;
       std::set<NameType> DoneDatas;
     };

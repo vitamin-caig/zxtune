@@ -11,8 +11,8 @@
 #ifndef __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 #define __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 
-//common includes
-#include <parameters.h>
+//local includes
+#include "io_parameters.h"
 
 namespace Parameters
 {
@@ -23,42 +23,41 @@ namespace Parameters
       //! @brief Providers-related %IO parameters namespace
       namespace Providers
       {
-        //! @brief Parameters#ZXTune#IO#Provders namespace prefix
-        const Char PREFIX[] =
-        {
-          'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','\0'
-        };
+        //! @brief Parameters#ZXTune#IO#Providers namespace prefix
+        const NameType PREFIX = IO::PREFIX + "providers";
 
         //! @brief %File provider parameters namespace
         namespace File
         {
+          //! @brief Parameters#ZXTune#IO#Providers#File namespace prefix
+          const NameType PREFIX = Providers::PREFIX + "file";
           //@{
           //! @name Memory-mapping usage data size threshold parameter.
 
           //! Default value
           const IntType MMAP_THRESHOLD_DEFAULT = 16384;
-          //! Parameter name
-          const Char MMAP_THRESHOLD[] =
-          {
-            'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','f','i','l','e','.','m','m','a','p','_','t','h','r','e','s','h','o','l','d','\0'
-          };
+          //! Parameter full path
+          const NameType MMAP_THRESHOLD = PREFIX + "mmap_threshold";
           //@}
         }
 
         //! @brief %Network provider parameters namespace
         namespace Network
         {
+          //! @brief Parameters#ZXTune#IO#Providers#Network namespace prefix
+          const NameType PREFIX = Providers::PREFIX + "network";
+
           //! @brief Parameters for HTTP protocol
           namespace Http
           {
+            //! @brief Parameters#ZXTune#IO#Providers#Network#Http namespace prefix
+            const NameType PREFIX = Network::PREFIX + "http";
+
             //@{
             //! @name Useragent parameter
 
-            //! Parameter name
-            const Char USERAGENT[] =
-            {
-              'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','n','e','t','w','o','r','k','.','h','t','t','p','.','u','s','e','r','a','g','e','n','t','\0'
-            };
+            //! Parameter full path
+            const NameType USERAGENT = PREFIX + "useragent";
           }
         }
       }

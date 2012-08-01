@@ -1,6 +1,6 @@
 /*
 Abstract:
-  FLAC file backend implementation
+  Flac file backend implementation
 
 Last changed:
   $Id$
@@ -321,12 +321,12 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterFLACBackend(BackendsEnumerator& enumerator)
+    void RegisterFlacBackend(BackendsEnumerator& enumerator)
     {
       try
       {
         const Flac::Api::Ptr api = Flac::LoadDynamicApi();
-        Log::Debug(THIS_MODULE, "Detected FLAC library");
+        Log::Debug(THIS_MODULE, "Detected Flac library");
         const BackendCreator::Ptr creator(new FlacBackendCreator(api));
         enumerator.RegisterCreator(creator);
       }

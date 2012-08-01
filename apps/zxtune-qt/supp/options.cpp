@@ -117,7 +117,7 @@ namespace
     }
   private:
     typedef boost::shared_ptr<QSettings> SettingsPtr;
-    typedef std::map<NameType, SettingsPtr> SettingsStorage;
+    typedef std::map<QString, SettingsPtr> SettingsStorage;
 
     class Value
     {
@@ -130,7 +130,7 @@ namespace
 
       bool IsValid() const
       {
-        return FullName.npos != FullName.find(NAMESPACE_DELIMITER);
+        return FullName.IsPath();
       }
 
       QVariant Get() const
@@ -153,7 +153,7 @@ namespace
     private:
       static QString GetKeyName(const NameType& name)
       {
-        QString res(ToQString(name));
+        QString res(name.FullPath().c_str());
         res.replace('.', '/');
         return res;
       }
@@ -171,9 +171,9 @@ namespace
       void FillCache() const
       {
         Require(!Setup);
-        const NameType::size_type delimPos = FullName.find(NAMESPACE_DELIMITER);
-        const NameType rootNamespace = FullName.substr(0, delimPos);
-        ParamName = GetKeyName(FullName.substr(delimPos + 1));
+        const QString fullKey = GetKeyName(FullName);
+        const QString rootNamespace = fullKey.section('/', 0, 0);
+        ParamName = fullKey.section('/', 1);
         const SettingsStorage::const_iterator it = Storage.find(rootNamespace);
         if (it != Storage.end())
         {
@@ -181,7 +181,7 @@ namespace
         }
         else
         {
-          Setup = boost::make_shared<QSettings>(QString(Text::PROJECT_NAME), ToQString(rootNamespace));
+          Setup = boost::make_shared<QSettings>(QString(Text::PROJECT_NAME), rootNamespace);
           Storage.insert(SettingsStorage::value_type(rootNamespace, Setup));
         }
       }

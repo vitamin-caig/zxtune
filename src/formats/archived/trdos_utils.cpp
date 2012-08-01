@@ -11,9 +11,22 @@ Author:
 
 //local includes
 #include "trdos_utils.h"
-#include "core/plugins/utils.h"
 //common includes
 #include <locale_helpers.h>
+#include <tools.h>
+//boost includes
+#include <boost/algorithm/string/trim.hpp>
+
+namespace
+{
+  inline String OptimizeString(const String& str, Char replace = '\?')
+  {
+    // applicable only printable chars in range 0x21..0x7f
+    String res(boost::algorithm::trim_copy_if(str, !boost::is_from_range('\x21', '\x7f')));
+    std::replace_if(res.begin(), res.end(), std::ptr_fun<int, int>(&std::iscntrl), replace);
+    return res;
+  }
+}
 
 namespace TRDos
 {

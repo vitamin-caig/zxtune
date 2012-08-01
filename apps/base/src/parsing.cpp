@@ -43,13 +43,8 @@ namespace
     return Text::CONFIG_FILENAME;
   }
 
-  Error ParseParametersString(const String& pfx, const String& str, StringMap& result)
+  Error ParseParametersString(const Parameters::NameType& prefix, const String& str, StringMap& result)
   {
-    String prefix(pfx);
-    if (!prefix.empty() && Parameters::NAMESPACE_DELIMITER != *prefix.rbegin())
-    {
-      prefix += Parameters::NAMESPACE_DELIMITER;
-    }
     StringMap res;
   
     enum
@@ -84,7 +79,7 @@ namespace
         {
           mode = IN_VALUE;
         }
-        else if (std::isalnum(sym) || Parameters::NAMESPACE_DELIMITER == sym || sym == '_')
+        else if (!std::isspace(sym))
         {
           paramName += sym;
         }
@@ -125,14 +120,14 @@ namespace
 
       if (doApply)
       {
-        res.insert(StringMap::value_type(prefix + paramName, paramValue));
+        res.insert(StringMap::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
         paramName.clear();
         paramValue.clear();
       }
     }
     if (IN_VALUE == mode)
     {
-      res.insert(StringMap::value_type(prefix + paramName, paramValue));
+      res.insert(StringMap::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
     }
     else if (IN_NOWHERE != mode)
     {
@@ -206,7 +201,7 @@ Error ParseConfigFile(const String& filename, Parameters::Modifier& result)
   return ParseParametersString(String(), strVal, result);
 }
 
-Error ParseParametersString(const String& pfx, const String& str, Parameters::Modifier& result)
+Error ParseParametersString(const Parameters::NameType& pfx, const String& str, Parameters::Modifier& result)
 {
   StringMap strMap;
   if (const Error& err = ParseParametersString(pfx, str, strMap))

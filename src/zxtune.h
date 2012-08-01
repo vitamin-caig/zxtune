@@ -12,17 +12,14 @@
 #define __ZXTUNE_H_DEFINED__
 
 //common includes
-#include <char_type.h>
+#include <parameters.h>
 
 namespace Parameters
 {
   namespace ZXTune
   {
     //! @brief Parameters#ZXTune namespace prefix
-    const Char PREFIX[] =
-    {
-      'z','x','t','u','n','e','.','\0'
-    };
+    const NameType PREFIX("zxtune");
   }
 }
 

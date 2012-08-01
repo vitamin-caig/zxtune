@@ -11,8 +11,8 @@
 #ifndef __CORE_PARAMETERS_H_DEFINED__
 #define __CORE_PARAMETERS_H_DEFINED__
 
-//common includes
-#include <parameters.h>
+//local includes
+#include <zxtune.h>
 
 namespace Parameters
 {
@@ -22,14 +22,14 @@ namespace Parameters
     namespace Core
     {
       //! @brief Parameters#ZXTune#Core namespace prefix
-      const Char PREFIX[] =
-      {
-        'z','x','t','u','n','e','.','c','o','r','e','.','\0'
-      };
+      const NameType PREFIX = ZXTune::PREFIX + "core";
 
       //! @brief AYM-chip related parameters namespace
       namespace AYM
       {
+        //! @brief Parameters#ZXTune#Core#AYM namespace prefix
+        const NameType PREFIX = Core::PREFIX + "aym";
+
         //@{
         //! @name PSG clockrate in Hz
 
@@ -38,74 +38,58 @@ namespace Parameters
         const IntType CLOCKRATE_MIN = 1000000;
         const IntType CLOCKRATE_MAX = 10000000;
         //! Parameter name
-        const Char CLOCKRATE[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','c','l','o','c','k','r','a','t','e','\0'
-        };
+        const NameType CLOCKRATE = PREFIX + "clockrate";
         //@}
 
         //! @brief Chip type
         //! @details 0 is AY, else is YM
-        const Char TYPE[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','t','y','p','e','\0'
-        };
+        const NameType TYPE = PREFIX + "type";
+
         //! @brief Use interpolation
         //! @details integer value
-        const Char INTERPOLATION[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','i','n','t','e','r','p','o','l','a','t','i','o','n','\0'
-        };
+        const NameType INTERPOLATION = PREFIX + "interpolation";
+
         //! @brief Frequency table for ay-based plugins
         //! @details String- table name or dump @see freq_tables.h
-        const Char TABLE[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','t','a','b','l','e','\0'
-        };
+        const NameType TABLE = PREFIX + "table";
+
         //! @brief Duty cycle in percents
         //! @details Integer. Valid values are 1..99. Default is 50
-        const Char DUTY_CYCLE[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','d','u','t','y','_','c','y','c','l','e','\0'
-        };
+        const NameType DUTY_CYCLE = PREFIX + "duty_cycle";
+
         //! @brief Duty cycle applied channels masks
         //! @details @see core/devices/aym.h
-        const Char DUTY_CYCLE_MASK[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','d','u','t','y','_','c','y','c','l','e','_','m','a','s','k','\0'
-        };
+        const NameType DUTY_CYCLE_MASK = PREFIX + "duty_cycle_mask";
+
         //! @brief Channels layout parameter
         //! @details @see core/devices/aym.h
-        const Char LAYOUT[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','a','y','m','.','l','a','y','o','u','t','\0'
-        };
+        const NameType LAYOUT = PREFIX + "layout";
       }
 
       //! @brief DAC-related parameters namespace
       namespace DAC
       {
+        //! @brief Parameters#ZXTune#Core#DAC namespace prefix
+        const NameType PREFIX = Core::PREFIX + "dac";
+
         //! @brief Use interpolation
         //! @details Integer value
-        const Char INTERPOLATION[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','d','a','c','.','i','n','t','e','r','p','o','l','a','t','i','o','n','\0'
-        };
+        const NameType INTERPOLATION = PREFIX + "interpolation";
       }
 
       //! @brief Z80-related parameters namespace
       namespace Z80
       {
+        //! @brief Parameters#ZXTune#Core#Z80 namespace prefix
+        const NameType PREFIX = Core::PREFIX + "z80";
+
         //@{
         //! @name CPU int duration in ticks
 
         //! Default value
         const IntType INT_TICKS_DEFAULT = 24;
         //! Parameter name
-        const Char INT_TICKS[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','z','8','0','.','i','n','t','_','t','i','c','k','s','\0'
-        };
+        const NameType INT_TICKS = PREFIX + "int_ticks";
         //@}
 
           //@{
@@ -116,26 +100,23 @@ namespace Parameters
         const IntType CLOCKRATE_MIN = 1000000;
         const IntType CLOCKRATE_MAX = 10000000;
         //! Parameter name
-        const Char CLOCKRATE[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','z','8','0','.','c','l','o','c','k','r','a','t','e','\0'
-        };
+        const NameType CLOCKRATE = PREFIX + "clockrate";
         //@}
       }
 
       //! @brief FM-related parameters namespace
       namespace FM
       {
+        //! @brief Parameters#ZXTune#Core#FM namespace prefix
+        const NameType PREFIX = Core::PREFIX + "fm";
+
         //@{
         //! @name FM clockrate in Hz
 
         //! Default value- 3.5MHz
         const IntType CLOCKRATE_DEFAULT = 3500000;
         //! Parameter name
-        const Char CLOCKRATE[] =
-        {
-          'z','x','t','u','n','e','.','c','o','r','e','.','f','m','.','c','l','o','c','k','r','a','t','e','\0'
-        };
+        const NameType CLOCKRATE = PREFIX + "clockrate";
         //@}
       }
     }

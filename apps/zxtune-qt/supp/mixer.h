@@ -32,7 +32,7 @@ public slots:
   virtual void Update() = 0;
 };
 
-String GetMixerChannelParameterName(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
+Parameters::NameType GetMixerChannelParameterName(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
 int GetMixerChannelDefaultValue(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
 ZXTune::Sound::Mixer::Ptr CreateMixer(Parameters::Accessor::Ptr params, uint_t channels);
 ZXTune::Sound::Mixer::Ptr CreateMixer(class PlaybackSupport& supp, Parameters::Accessor::Ptr params, uint_t channels);

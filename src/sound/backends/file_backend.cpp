@@ -142,7 +142,7 @@ namespace
 
     String GetFilenameTemplate() const
     {
-      Parameters::StringType nameTemplate = GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::FILENAME_PARAMETER);
+      Parameters::StringType nameTemplate = GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::FILENAME.Name());
       if (nameTemplate.empty())
       {
         // Filename parameter is required
@@ -160,18 +160,18 @@ namespace
 
     bool CheckIfRewrite() const
     {
-      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::OVERWRITE_PARAMETER);
+      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::OVERWRITE.Name());
       return intParam != 0;
     }
 
     uint_t GetBuffersCount() const
     {
-      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS_PARAMETER);
+      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS.Name());
       return static_cast<uint_t>(intParam);
     }
   private:
     template<class T>
-    T GetProperty(const Parameters::NameType& name) const
+    T GetProperty(const std::string& name) const
     {
       T result = T();
       if (!Params->FindValue(GetBackendPropertyName(name), result))
@@ -181,14 +181,14 @@ namespace
       return result;
     }
 
-    Parameters::StringType GetBackendPropertyName(const Parameters::NameType& name) const
+    Parameters::NameType GetBackendPropertyName(const std::string& name) const
     {
-      return Parameters::ZXTune::Sound::Backends::PREFIX + Id + Parameters::NAMESPACE_DELIMITER + name;
+      return Parameters::ZXTune::Sound::Backends::PREFIX + ToStdString(Id) + name;
     }
 
-    Parameters::StringType GetComonPropertyName(const Parameters::NameType& name) const
+    Parameters::NameType GetComonPropertyName(const std::string& name) const
     {
-      return String(Parameters::ZXTune::Sound::Backends::PREFIX) + COMMON_FILE_BACKEND_ID + Parameters::NAMESPACE_DELIMITER + name;
+      return Parameters::ZXTune::Sound::Backends::File::PREFIX + name;
     }
   private:
     const Parameters::Accessor::Ptr Params;

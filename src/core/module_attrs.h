@@ -11,8 +11,8 @@
 #ifndef __CORE_MODULE_ATTRS_H_DEFINED__
 #define __CORE_MODULE_ATTRS_H_DEFINED__
 
-//common includes
-#include <char_type.h>
+//std includes
+#include <string>
 
 namespace ZXTune
 {
@@ -22,57 +22,57 @@ namespace ZXTune
     //! @name Built-in attributes
 
     //! %Module type attribute @see PluginInformation#Id
-    const Char ATTR_TYPE[] = {'T', 'y', 'p', 'e', '\0'};
+    const std::string ATTR_TYPE("Type");
     //! %Module containers chain
-    const Char ATTR_CONTAINER[] = {'C', 'o', 'n', 't', 'a', 'i', 'n', 'e', 'r', '\0'};
+    const std::string ATTR_CONTAINER("Container");
     //! %Module path in top-level data dump
-    const Char ATTR_SUBPATH[] = {'S', 'u', 'b', 'p', 'a', 't', 'h', '\0'};
+    const std::string ATTR_SUBPATH("Subpath");
     //! %Module author
-    const Char ATTR_AUTHOR[] = {'A', 'u', 't', 'h', 'o', 'r', '\0'};
+    const std::string ATTR_AUTHOR("Author");
     //! %Module title
-    const Char ATTR_TITLE[] = {'T', 'i', 't', 'l', 'e', '\0'};
+    const std::string ATTR_TITLE("Title");
     //! %Module program produced at
-    const Char ATTR_PROGRAM[] = {'P', 'r', 'o', 'g', 'r', 'a', 'm', '\0'};
+    const std::string ATTR_PROGRAM("Program");
     //! %Module computer (hardware platform)
-    const Char ATTR_COMPUTER[] = {'C', 'o', 'm', 'p', 'u', 't', 'e', 'r', '\0'};
+    const std::string ATTR_COMPUTER("Computer");
     //! %Module creating date
-    const Char ATTR_DATE[] = {'D', 'a', 't', 'e', '\0'};
+    const std::string ATTR_DATE("Date");
     //! %Module comment
-    const Char ATTR_COMMENT[] = {'C', 'o', 'm', 'm', 'e', 'n', 't', '\0'};
+    const std::string ATTR_COMMENT("Comment");
     //! %Module structure warnings
-    const Char ATTR_WARNINGS[] = {'W', 'a', 'r', 'n', 'i', 'n', 'g', 's', '\0'};
+    const std::string ATTR_WARNINGS("Warnings");
     //! %Module structure warnings count
-    const Char ATTR_WARNINGS_COUNT[] = {'W', 'a', 'r', 'n', 'i', 'n', 'g', 's', 'C', 'o', 'u', 'n', 't', '\0'};
+    const std::string ATTR_WARNINGS_COUNT("WarningsCount");
     //! Raw module data crc32 checksum
-    const Char ATTR_CRC[] = {'C', 'R', 'C', '\0'};
+    const std::string ATTR_CRC("CRC");
     //! Constant (without any headers) module data crc32 checksum
-    const Char ATTR_FIXEDCRC[] = {'F', 'i', 'x', 'e', 'd', 'C', 'R', 'C', '\0'};
+    const std::string ATTR_FIXEDCRC("FixedCRC");
     //! Raw module size in bytes
-    const Char ATTR_SIZE[] = {'S', 'i', 'z', 'e', '\0'};
+    const std::string ATTR_SIZE("Size");
     //! Internal format version 10 * major + minor
-    const Char ATTR_VERSION[] = {'V', 'e', 'r', 's', 'i', 'o', 'n', '\0'};
+    const std::string ATTR_VERSION("Version");
     //@}
 
     //@{
     //! @name External attributes
 
     //! Module's input data filename
-    const Char ATTR_FILENAME[] = {'F', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'};
+    const std::string ATTR_FILENAME("Filename");
     //! Path of module's input data
-    const Char ATTR_PATH[] = {'P', 'a', 't', 'h', '\0'};
+    const std::string ATTR_PATH("Path");
     //! Full path of module including path of input data and subpath
-    const Char ATTR_FULLPATH[] = {'F', 'u', 'l', 'l', 'p', 'a', 't', 'h', '\0'};
+    const std::string ATTR_FULLPATH("Fullpath");
     //@}
 
     //@{
     //! @name Runtime attributes
 
     //! Current module position
-    const Char ATTR_CURRENT_POSITION[] = {'C', 'u', 'r', 'P', 'o', 's', 'i', 't', 'i', 'o', 'n', '\0'};
+    const std::string ATTR_CURRENT_POSITION("CurPosition");
     //! Current module pattern
-    const Char ATTR_CURRENT_PATTERN[] = {'C', 'u', 'r', 'P', 'a', 't', 't', 'e', 'r', 'n', '\0'};
+    const std::string ATTR_CURRENT_PATTERN("CurPattern");
     //! Current module line
-    const Char ATTR_CURRENT_LINE[] = {'C', 'u', 'r', 'L', 'i', 'n', 'e', '\0'};
+    const std::string ATTR_CURRENT_LINE("CurLine");
   }
 }
 

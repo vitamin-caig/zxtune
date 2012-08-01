@@ -21,32 +21,32 @@ namespace ZXTune
 
     //forward declaration of supported backends
     void RegisterNullBackend(BackendsEnumerator& enumerator);
-    void RegisterWAVBackend(BackendsEnumerator& enumerator);
-    void RegisterMP3Backend(BackendsEnumerator& enumerator);
-    void RegisterOGGBackend(BackendsEnumerator& enumerator);
-    void RegisterFLACBackend(BackendsEnumerator& enumerator);
+    void RegisterWavBackend(BackendsEnumerator& enumerator);
+    void RegisterMp3Backend(BackendsEnumerator& enumerator);
+    void RegisterOggBackend(BackendsEnumerator& enumerator);
+    void RegisterFlacBackend(BackendsEnumerator& enumerator);
     void RegisterDirectSoundBackend(BackendsEnumerator& enumerator);
     void RegisterWin32Backend(BackendsEnumerator& enumerator);
-    void RegisterOSSBackend(BackendsEnumerator& enumerator);
+    void RegisterOssBackend(BackendsEnumerator& enumerator);
     void RegisterAlsaBackend(BackendsEnumerator& enumerator);
     //void RegisterAYLPTBackend(BackendsEnumerator& enumerator);
-    void RegisterSDLBackend(BackendsEnumerator& enumerator);
+    void RegisterSdlBackend(BackendsEnumerator& enumerator);
 
     inline void RegisterBackends(BackendsEnumerator& enumerator)
     {
       //potentially unsafe backends
-      RegisterOSSBackend(enumerator);
+      RegisterOssBackend(enumerator);
       RegisterAlsaBackend(enumerator);
       RegisterDirectSoundBackend(enumerator);
       RegisterWin32Backend(enumerator);
-      RegisterSDLBackend(enumerator);
+      RegisterSdlBackend(enumerator);
       //stub
       RegisterNullBackend(enumerator);
       //never default backends
-      RegisterWAVBackend(enumerator);
-      RegisterMP3Backend(enumerator);
-      RegisterOGGBackend(enumerator);
-      RegisterFLACBackend(enumerator);
+      RegisterWavBackend(enumerator);
+      RegisterMp3Backend(enumerator);
+      RegisterOggBackend(enumerator);
+      RegisterFlacBackend(enumerator);
       //RegisterAYLPTBackend(enumerator);
     }
   }

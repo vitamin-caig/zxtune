@@ -45,13 +45,13 @@ namespace
     VERSION_WITH_TEXT_FIELDS_ESCAPING = 1
   };
 
-  const Char* PLAYLIST_ENABLED_PROPERTIES[] =
+  Parameters::NameType PLAYLIST_ENABLED_PROPERTIES[] =
   {
     Playlist::ATTRIBUTE_VERSION,
     Playlist::ATTRIBUTE_NAME,
   };
 
-  const Char* ITEM_DISABLED_PROPERTIES[] =
+  std::string ITEM_DISABLED_PROPERTIES[] =
   {
     ZXTune::Module::ATTR_CRC,
     ZXTune::Module::ATTR_FIXEDCRC,
@@ -98,13 +98,13 @@ namespace
       }
     }
   private:
-    bool Pass(const String& name) const
+    bool Pass(const Parameters::NameType& name) const
     {
       return Match == (0 != Filter.count(name));
     }
   private:
     Parameters::Visitor& Delegate;
-    const std::set<String> Filter;
+    const std::set<Parameters::NameType> Filter;
     const bool Match;
   };
 

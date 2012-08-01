@@ -1,6 +1,6 @@
 /*
 Abstract:
-  SDL backend sub implementation
+  Sdl backend sub implementation
 
 Last changed:
   $Id$
@@ -13,7 +13,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterSDLBackend(class BackendsEnumerator& /*enumerator*/)
+    void RegisterSdlBackend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
     }

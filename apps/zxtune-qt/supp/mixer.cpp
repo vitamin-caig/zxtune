@@ -12,6 +12,7 @@ Author:
 */
 
 //local includes
+#include "app_parameters.h"
 #include "mixer.h"
 #include "playback_supp.h"
 //common includes
@@ -146,20 +147,27 @@ namespace
     const ZXTune::Sound::MatrixMixer::Ptr Delegate;
     Mixer* const Feedback;
   };
+}
 
-  const Char MIXER_PARAMETER_TEMPLATE[] =
+namespace Parameters
+{
+  namespace ZXTuneQT
   {
-    'z','x','t','u','n','e','-','q','t','.','m','i','x','e','r','s','.','%','1','%','.','%','2','%','_','%','3','%',0
-  };
+    namespace Mixers
+    {
+      const NameType PREFIX = ZXTuneQT::PREFIX + "mixers";
+    }
+  }
 }
 
 Mixer::Mixer(QObject& parent) : QObject(&parent)
 {
 }
 
-String GetMixerChannelParameterName(uint_t totalChannels, uint_t inChannel, uint_t outChannel)
+Parameters::NameType GetMixerChannelParameterName(uint_t totalChannels, uint_t inChannel, uint_t outChannel)
 {
-  return Strings::Format(MIXER_PARAMETER_TEMPLATE, totalChannels, inChannel, outChannel);
+  const std::string subName = (boost::format("%1%.%2%_%3%") % totalChannels % inChannel % outChannel).str();
+  return Parameters::ZXTuneQT::Mixers::PREFIX + subName;
 }
 
 int GetMixerChannelDefaultValue(uint_t totalChannels, uint_t inChannel, uint_t outChannel)

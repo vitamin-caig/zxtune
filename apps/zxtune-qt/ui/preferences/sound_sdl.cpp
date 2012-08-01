@@ -1,6 +1,6 @@
 /*
 Abstract:
-  SDL settings widget implementation
+  Sdl settings widget implementation
 
 Last changed:
   $Id$
@@ -25,7 +25,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::Preferences::SDL");
+  const std::string THIS_MODULE("UI::Preferences::Sdl");
 }
 
 namespace
@@ -41,7 +41,7 @@ namespace
       //setup self
       setupUi(this);
 
-      using namespace Parameters::ZXTune::Sound::Backends::SDL;
+      using namespace Parameters::ZXTune::Sound::Backends::Sdl;
       Parameters::IntegerValue::Bind(*buffers, *Options, BUFFERS, BUFFERS_DEFAULT);
     }
 

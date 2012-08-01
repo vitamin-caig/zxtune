@@ -26,15 +26,11 @@ namespace Parameters
     {
       namespace Export
       {
-        const Char NAMESPACE_NAME[] = {'E','x','p','o','r','t','\0'};
-        const NameType PREFIX = NameType(Parameters::ZXTuneQT::UI::PREFIX) + NAMESPACE_NAME + NAMESPACE_DELIMITER;
+        const std::string NAMESPACE_NAME("Export");
 
-        const Char PARAM_TYPE[] =
-        {
-          'T','y','p','e','\0'
-        };
+        const NameType PREFIX = UI::PREFIX + NAMESPACE_NAME;
 
-        const NameType TYPE = PREFIX + PARAM_TYPE;
+        const NameType TYPE = PREFIX + "Type";
       }
     }
   }

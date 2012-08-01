@@ -22,10 +22,7 @@ namespace Parameters
 {
   namespace ZXTuneQT
   {
-    const Char PREFIX[] =
-    {
-      'z','x','t','u','n','e','-','q','t','.','\0'
-    };
+    const NameType PREFIX("zxtune-qt");
   }
 }
 #endif //ZXTUNE_QT_APP_PARAMETERS_H_DEFINED

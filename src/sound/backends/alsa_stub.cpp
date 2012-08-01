@@ -1,6 +1,6 @@
 /*
 Abstract:
-  ALSA backend stub implementation
+  Alsa backend stub implementation
 
 Last changed:
   $Id: alsa_backend.cpp 1837 2012-07-01 13:42:01Z vitamin.caig $
@@ -21,7 +21,7 @@ namespace ZXTune
       //do nothing
     }
 
-    namespace ALSA
+    namespace Alsa
     {
       Device::Iterator::Ptr EnumerateDevices()
       {

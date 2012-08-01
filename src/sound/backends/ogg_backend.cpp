@@ -1,6 +1,6 @@
 /*
 Abstract:
-  OGG file backend implementation
+  Ogg file backend implementation
 
 Last changed:
   $Id$
@@ -413,10 +413,10 @@ namespace
     const RenderParameters::Ptr RenderingParameters;
   };
 
-  class OGGBackendCreator : public BackendCreator
+  class OggBackendCreator : public BackendCreator
   {
   public:
-    OGGBackendCreator(Ogg::Api::Ptr oggApi, Vorbis::Api::Ptr vorbisApi, VorbisEnc::Api::Ptr vorbisEncApi)
+    OggBackendCreator(Ogg::Api::Ptr oggApi, Vorbis::Api::Ptr vorbisApi, VorbisEnc::Api::Ptr vorbisEncApi)
       : OggApi(oggApi)
       , VorbisApi(vorbisApi)
       , VorbisEncApi(vorbisEncApi)
@@ -469,7 +469,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterOGGBackend(BackendsEnumerator& enumerator)
+    void RegisterOggBackend(BackendsEnumerator& enumerator)
     {
       try
       {
@@ -477,7 +477,7 @@ namespace ZXTune
         const Vorbis::Api::Ptr vorbisApi = Vorbis::LoadDynamicApi();
         const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
         Log::Debug(THIS_MODULE, "Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
-        const BackendCreator::Ptr creator(new OGGBackendCreator(oggApi, vorbisApi, vorbisEncApi));
+        const BackendCreator::Ptr creator(new OggBackendCreator(oggApi, vorbisApi, vorbisEncApi));
         enumerator.RegisterCreator(creator);
       }
       catch (const Error& e)

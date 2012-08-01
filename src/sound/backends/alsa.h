@@ -1,6 +1,6 @@
 /*
 Abstract:
-  ALSA subsystem access functions
+  Alsa subsystem access functions
 
 Last changed:
   $Id$
@@ -22,7 +22,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    namespace ALSA
+    namespace Alsa
     {
       class Device
       {

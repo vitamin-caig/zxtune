@@ -1,6 +1,6 @@
 /*
 Abstract:
-  OGG file backend stub implementation
+  Ogg file backend stub implementation
 
 Last changed:
   $Id$
@@ -14,7 +14,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterOGGBackend(class BackendsEnumerator& /*enumerator*/)
+    void RegisterOggBackend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
     }

@@ -157,29 +157,46 @@ namespace
   }
   
   typedef boost::variant<Parameters::IntType, Parameters::StringType> ValueType;
-  typedef boost::tuple<String, String, ValueType> OptionDesc;
+
+  struct OptionDesc
+  {
+    OptionDesc(const Parameters::NameType& name, const String& descr, const ValueType& def)
+      : Name(FromStdString(name.FullPath()))
+      , Desc(descr)
+      , Default(def)
+    {
+    }
+
+    OptionDesc(const String& name, const String& descr, const ValueType& def)
+      : Name(name)
+      , Desc(descr)
+      , Default(def)
+    {
+    }
+
+    String Name;
+    String Desc;
+    ValueType Default;
+  };
   
   void ShowOption(const OptionDesc& opt)
   {
     //section
-    if (opt.get<1>().empty())
+    if (opt.Desc.empty())
     {
-      StdOut << opt.get<0>() << std::endl;
+      StdOut << opt.Name << std::endl;
     }
     else
     {
-      const String& optName = opt.get<0>();
-      const String& optDesc = opt.get<1>();
-      const ValueType& defVal = opt.get<2>();
-      const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&defVal);
+      const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&opt.Default);
       if (defValString && defValString->empty())
       {
-        StdOut << Strings::Format(Text::INFO_OPTION_INFO, optName, optDesc);
+        StdOut << Strings::Format(Text::INFO_OPTION_INFO, opt.Name, opt.Desc);
       }
       else
       {
         StdOut << Strings::Format(Text::INFO_OPTION_INFO_DEFAULTS,
-          optName, optDesc, defVal);
+          opt.Name, opt.Desc, opt.Default);
       }
     }
   }
@@ -223,24 +240,24 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_WIN32_BUFFERS,
                  Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT),
-      OptionDesc(Parameters::ZXTune::Sound::Backends::OSS::DEVICE,
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Oss::DEVICE,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE,
-                 Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT),
-      OptionDesc(Parameters::ZXTune::Sound::Backends::OSS::MIXER,
+                 Parameters::ZXTune::Sound::Backends::Oss::DEVICE_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Oss::MIXER,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_OSS_MIXER,
-                 Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT),
-      OptionDesc(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE,
+                 Parameters::ZXTune::Sound::Backends::Oss::MIXER_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_ALSA_DEVICE,
-                 Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT),
-      OptionDesc(Parameters::ZXTune::Sound::Backends::ALSA::MIXER,
+                 Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Alsa::MIXER,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_ALSA_MIXER,
                  EMPTY),
-      OptionDesc(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS,
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Alsa::BUFFERS,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_ALSA_BUFFERS,
-                 Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT),
-      OptionDesc(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS,
+                 Parameters::ZXTune::Sound::Backends::Alsa::BUFFERS_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_SDL_BUFFERS,
-                 Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT),
+                 Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT),
       OptionDesc(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_DIRECTSOUND_LATENCY,
                  Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT),
@@ -320,9 +337,9 @@ namespace
       OptionDesc(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES,
                  Text::INFO_OPTIONS_CORE_PLUGINS_AY_DEFAULT_DURATION_FRAMES,
                  Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT),
-      OptionDesc(Parameters::ZXTune::Core::Plugins::ZIP::MAX_DEPACKED_FILE_SIZE_MB,
+      OptionDesc(Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB,
                  Text::INFO_OPTIONS_CORE_PLUGINS_ZIP_MAX_DEPACKED_FILE_SIZE_MB,
-                 Parameters::ZXTune::Core::Plugins::ZIP::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT),
+                 Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT),
     };
     StdOut << Text::INFO_LIST_OPTIONS_TITLE << std::endl;
     std::for_each(OPTIONS, ArrayEnd(OPTIONS), ShowOption);

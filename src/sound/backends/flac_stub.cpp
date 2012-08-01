@@ -1,6 +1,6 @@
 /*
 Abstract:
-  FLAC file stub backend implementation
+  Flac file stub backend implementation
 
 Last changed:
   $Id$
@@ -13,7 +13,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterFLACBackend(class BackendsEnumerator& /*enumerator*/)
+    void RegisterFlacBackend(class BackendsEnumerator& /*enumerator*/)
     {
       //do nothing
     }

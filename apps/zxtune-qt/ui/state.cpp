@@ -125,10 +125,10 @@ namespace
       template<class T>
       void FilterValue(const Parameters::NameType& name, const T& val)
       {
-        const std::size_t size = Prefix.size();
-        if (Prefix.compare(0, size, name, 0, size))
+        if (name.IsSubpathOf(Prefix))
         {
-          Delegate.SetValue(name.substr(size), val);
+          const Parameters::NameType subName = name - Prefix;
+          Delegate.SetValue(subName, val);
         }
       }
     private:
@@ -169,7 +169,7 @@ namespace
     const QString name = obj.objectName();
     return name.size() == 0
       ? parent
-      : boost::make_shared<NamespaceContainer>(parent, FromQString(name) + Parameters::NAMESPACE_DELIMITER);
+      : boost::make_shared<NamespaceContainer>(parent, name.toStdString());
   }
 
   class MainWindowState : public WidgetState
@@ -504,14 +504,14 @@ namespace UI
   State::Ptr State::Create(const String& category)
   {
     const Parameters::Container::Ptr container = boost::make_shared<NamespaceContainer>(
-      GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + category + Parameters::NAMESPACE_DELIMITER);
+      GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + ToStdString(category));
     return State::Ptr(new PersistentState(container));
   }
 
   State::Ptr State::Create(QWidget& root)
   {
     const Parameters::Container::Ptr container = boost::make_shared<NamespaceContainer>(
-      GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + FromQString(root.objectName()) + Parameters::NAMESPACE_DELIMITER);
+      GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + root.objectName().toStdString());
     State::Ptr res(new PersistentState(container));
     res->AddWidget(root);
     return res;

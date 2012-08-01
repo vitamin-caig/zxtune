@@ -19,6 +19,6 @@ Author:
 
 Error ParseConfigFile(const String& filename, Parameters::Modifier& result);
 //result will be overwritten
-Error ParseParametersString(const String& prefix, const String& str, Parameters::Modifier& result);
+Error ParseParametersString(const Parameters::NameType& prefix, const String& str, Parameters::Modifier& result);
 
 #endif //BASE_PARSING_H_DEFINED

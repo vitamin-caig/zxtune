@@ -1,6 +1,6 @@
 /*
 Abstract:
-  OSS settings widget implementation
+  Oss settings widget implementation
 
 Last changed:
   $Id$
@@ -27,7 +27,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::Preferences::OSS");
+  const std::string THIS_MODULE("UI::Preferences::Oss");
 }
 
 namespace
@@ -46,7 +46,7 @@ namespace
       connect(selectDevice, SIGNAL(clicked()), SLOT(DeviceSelected()));
       connect(selectMixer, SIGNAL(clicked()), SLOT(MixerSelected()));
 
-      using namespace Parameters::ZXTune::Sound::Backends::OSS;
+      using namespace Parameters::ZXTune::Sound::Backends::Oss;
       Parameters::StringValue::Bind(*device, *Options, DEVICE, DEVICE_DEFAULT);
       Parameters::StringValue::Bind(*mixer, *Options, MIXER, MIXER_DEFAULT);
     }

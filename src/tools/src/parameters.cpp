@@ -360,17 +360,17 @@ namespace
   public:
     virtual void SetValue(const NameType& name, IntType val)
     {
-      insert(value_type(name, IntegerToString(val)));
+      insert(value_type(name.FullPath(), IntegerToString(val)));
     }
 
     virtual void SetValue(const NameType& name, const StringType& val)
     {
-      insert(value_type(name, StringToString(val)));
+      insert(value_type(name.FullPath(), StringToString(val)));
     }
 
     virtual void SetValue(const NameType& name, const DataType& val)
     {
-      insert(value_type(name, DataToString(val)));
+      insert(value_type(name.FullPath(), DataToString(val)));
     }
   };
 

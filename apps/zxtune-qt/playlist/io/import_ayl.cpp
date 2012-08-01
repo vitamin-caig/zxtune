@@ -239,21 +239,22 @@ namespace
 
     virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
     {
-      Log::Debug(THIS_MODULE, "  property %1%=%2%", name, val);
-      if (name == AYL::CHIP_FREQUENCY)
+      const String nameStr = FromStdString(name.FullPath());
+      Log::Debug(THIS_MODULE, "  property %1%=%2%", nameStr, val);
+      if (nameStr == AYL::CHIP_FREQUENCY)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
       }
-      else if (name == AYL::PLAYER_FREQUENCY)
+      else if (nameStr == AYL::PLAYER_FREQUENCY)
       {
         Delegate.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION,
           Version.DecodeFrameduration(val));
       }
-      else if (name == AYL::FORMAT_SPECIFIC)
+      else if (nameStr == AYL::FORMAT_SPECIFIC)
       {
         FormatSpec = static_cast<std::size_t>(val);
       }
-      else if (name == AYL::OFFSET)
+      else if (nameStr == AYL::OFFSET)
       {
         Offset = static_cast<std::size_t>(val);
       }
@@ -262,38 +263,39 @@ namespace
 
     virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
-      Log::Debug(THIS_MODULE, "  property %1%='%2%'", name, val);
-      if (name == AYL::CHIP_TYPE)
+      const String nameStr = FromStdString(name.FullPath());
+      Log::Debug(THIS_MODULE, "  property %1%='%2%'", nameStr, val);
+      if (nameStr == AYL::CHIP_TYPE)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
       }
       //ignore "Channels"
-      else if (name == AYL::CHANNELS_ALLOCATION)
+      else if (nameStr == AYL::CHANNELS_ALLOCATION)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
       }
       //ignore "Length", "Address", "Loop", "Time", "Original"
-      else if (name == AYL::NAME)
+      else if (nameStr == AYL::NAME)
       {
         Delegate.SetValue(ZXTune::Module::ATTR_TITLE, val);
       }
-      else if (name == AYL::AUTHOR)
+      else if (nameStr == AYL::AUTHOR)
       {
         Delegate.SetValue(ZXTune::Module::ATTR_AUTHOR, val);
       }
-      else if (name == AYL::PROGRAM || name == AYL::TRACKER)
+      else if (nameStr == AYL::PROGRAM || nameStr == AYL::TRACKER)
       {
         Delegate.SetValue(ZXTune::Module::ATTR_PROGRAM, val);
       }
-      else if (name == AYL::COMPUTER)
+      else if (nameStr == AYL::COMPUTER)
       {
         Delegate.SetValue(ZXTune::Module::ATTR_COMPUTER, val);
       }
-      else if (name == AYL::DATE)
+      else if (nameStr == AYL::DATE)
       {
         Delegate.SetValue(ZXTune::Module::ATTR_DATE, val);
       }
-      else if (name == AYL::COMMENT)
+      else if (nameStr == AYL::COMMENT)
       {
         //TODO: process escape sequence
         Delegate.SetValue(ZXTune::Module::ATTR_COMMENT, val);

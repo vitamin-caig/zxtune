@@ -177,7 +177,7 @@ namespace
     const RenderParameters::Ptr RenderingParameters;
   };
 
-  class WAVBackendCreator : public BackendCreator
+  class WavBackendCreator : public BackendCreator
   {
   public:
     virtual String Id() const
@@ -222,9 +222,9 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterWAVBackend(BackendsEnumerator& enumerator)
+    void RegisterWavBackend(BackendsEnumerator& enumerator)
     {
-      const BackendCreator::Ptr creator(new WAVBackendCreator());
+      const BackendCreator::Ptr creator(new WavBackendCreator());
       enumerator.RegisterCreator(creator);
     }
   }

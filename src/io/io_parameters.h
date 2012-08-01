@@ -11,8 +11,8 @@
 #ifndef __IO_PARAMETERS_H_DEFINED__
 #define __IO_PARAMETERS_H_DEFINED__
 
-//common includes
-#include <parameters.h>
+//local includes
+#include <zxtune.h>
 
 namespace Parameters
 {
@@ -22,10 +22,7 @@ namespace Parameters
     namespace IO
     {
       //! @brief Parameters#ZXTune#IO namespace prefix
-      const Char PREFIX[] =
-      {
-        'z','x','t','u','n','e','.','i','o','.','\0'
-      };
+      const NameType PREFIX = ZXTune::PREFIX + "io";
       //IO-related parameters
     }
   }

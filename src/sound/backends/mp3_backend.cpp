@@ -1,6 +1,6 @@
 /*
 Abstract:
-  MP3 file backend implementation
+  Mp3 file backend implementation
 
 Last changed:
   $Id$
@@ -347,7 +347,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterMP3Backend(BackendsEnumerator& enumerator)
+    void RegisterMp3Backend(BackendsEnumerator& enumerator)
     {
       try
       {

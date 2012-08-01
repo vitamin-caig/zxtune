@@ -22,27 +22,12 @@ Author:
 
 namespace Playlist
 {
-  const Char ATTRIBUTES_PREFIX[] =
-  {
-    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.',0
-  };
+  const Parameters::NameType ATTRIBUTES_PREFIX("zxtune.app.playlist");
 
-  const Char ATTRIBUTE_NAME[] =
-  {
-    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','n','a','m','e',0
-  };
-  const Char ATTRIBUTE_VERSION[] =
-  {
-    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','v','e','r','s','i','o','n',0
-  };
-  const Char ATTRIBUTE_CREATOR[] =
-  {
-    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','c','r','e','a','t','o','r',0
-  };
-  const Char ATTRIBUTE_ITEMS[] =
-  {
-    'z','x','t','u','n','e','.','a','p','p','.','p','l','a','y','l','i','s','t','.','i','t','e','m','s',0
-  };
+  const Parameters::NameType ATTRIBUTE_NAME = ATTRIBUTES_PREFIX + "name";
+  const Parameters::NameType ATTRIBUTE_VERSION = ATTRIBUTES_PREFIX + "version"; 
+  const Parameters::NameType ATTRIBUTE_CREATOR = ATTRIBUTES_PREFIX + "creator";
+  const Parameters::NameType ATTRIBUTE_ITEMS = ATTRIBUTES_PREFIX + "items";
 
   namespace IO
   {

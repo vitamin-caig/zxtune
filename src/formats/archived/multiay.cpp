@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//local includes
-#include "core/plugins/utils.h"
+//common includes
+#include <string_helpers.h>
 //library includes
 #include <formats/archived_decoders.h>
 #include <formats/chiptune/ay.h>
@@ -49,13 +49,55 @@ namespace MultiAY
     const Binary::Container::Ptr Data;
   };
 
+  class Filename
+  {
+  public:
+    Filename(const String& prefix, const String& value)
+      : Str(value)
+      , Valid(false)
+      , Index()
+    {
+      if (0 == value.compare(0, prefix.size(), prefix))
+      {
+        InStringStream str(value.substr(prefix.size()));
+        Valid = str >> Index;
+      }
+    }
+
+    Filename(const String& prefix, uint_t index)
+      : Valid(true)
+      , Index(index)
+    {
+      OutStringStream str;
+      str << prefix << index;
+      Str = str.str();
+    }
+
+    bool IsValid() const
+    {
+      return Valid;
+    }
+
+    uint_t GetIndex() const
+    {
+      return Index;
+    }
+
+    String ToString() const
+    {
+      return Str;
+    }
+  private:
+    String Str;
+    bool Valid;
+    uint_t Index;
+  };
+
   class Container : public Formats::Archived::Container
   {
   public:
     explicit Container(Binary::Container::Ptr data)
       : Delegate(data)
-      , AyPath(Text::AY_FILENAME_PREFIX)
-      , RawPath(Text::AY_RAW_FILENAME_PREFIX)
     {
     }
 
@@ -83,7 +125,7 @@ namespace MultiAY
         const Formats::Chiptune::AY::BlobBuilder::Ptr builder = Formats::Chiptune::AY::CreateFileBuilder();
         if (const Formats::Chiptune::Container::Ptr parsed = Formats::Chiptune::AY::Parse(*Delegate, idx, *builder))
         {
-          const String subPath = AyPath.Build(idx);
+          const String subPath = Filename(Text::AY_FILENAME_PREFIX, idx).ToString();
           const Binary::Container::Ptr subData = builder->Result();
           const File file(subPath, subData);
           walker.OnFile(file);
@@ -93,18 +135,19 @@ namespace MultiAY
 
     virtual Formats::Archived::File::Ptr FindFile(const String& name) const
     {
-      uint_t index = 0;
-      const bool asRaw = RawPath.GetIndex(name, index);
-      if (!asRaw && !AyPath.GetIndex(name, index))
+      const Filename rawName(Text::AY_RAW_FILENAME_PREFIX, name);
+      const Filename ayName(Text::AY_FILENAME_PREFIX, name);
+      if (!rawName.IsValid() && !ayName.IsValid())
       {
         return Formats::Archived::File::Ptr();
       }
+      const uint_t index = rawName.IsValid() ? rawName.GetIndex() : ayName.GetIndex();
       const uint_t subModules = Formats::Chiptune::AY::GetModulesCount(*Delegate);
       if (subModules < index)
       {
         return Formats::Archived::File::Ptr();
       }
-      const Formats::Chiptune::AY::BlobBuilder::Ptr builder = asRaw
+      const Formats::Chiptune::AY::BlobBuilder::Ptr builder = rawName.IsValid()
         ? Formats::Chiptune::AY::CreateMemoryDumpBuilder()
         : Formats::Chiptune::AY::CreateFileBuilder();
       if (!Formats::Chiptune::AY::Parse(*Delegate, index, *builder))
@@ -121,8 +164,6 @@ namespace MultiAY
     }
   private:
     const Binary::Container::Ptr Delegate;
-    const IndexPathComponent AyPath;
-    const IndexPathComponent RawPath;
   };
 
   const std::string HEADER_FORMAT(

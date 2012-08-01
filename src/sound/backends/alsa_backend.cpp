@@ -1,6 +1,6 @@
 /*
 Abstract:
-  ALSA backend implementation
+  Alsa backend implementation
 
 Last changed:
   $Id$
@@ -44,7 +44,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::ALSA");
+  const std::string THIS_MODULE("Sound::Backend::Alsa");
 
   const Char ALSA_BACKEND_ID[] = {'a', 'l', 's', 'a', 0};
 
@@ -687,22 +687,22 @@ namespace
 
     String GetDeviceName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::ALSA::DEVICE, strVal);
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT;
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, strVal);
       return strVal;
     }
 
     String GetMixerName() const
     {
       Parameters::StringType strVal;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::ALSA::MIXER, strVal);
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, strVal);
       return strVal;
     }
 
     uint_t GetBuffersCount() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::ALSA::BUFFERS, val) &&
+      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Alsa::BUFFERS_DEFAULT;
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
@@ -979,7 +979,7 @@ namespace
     std::string CurName;
   };
 
-  class AlsaDevice : public ALSA::Device
+  class AlsaDevice : public Alsa::Device
   {
   public:
     AlsaDevice(Alsa::Api::Ptr api, const String& id, const String& name, const String& cardName)
@@ -1028,7 +1028,7 @@ namespace
     static Ptr CreateDefault(Alsa::Api::Ptr api)
     {
       return boost::make_shared<AlsaDevice>(api,
-        Parameters::ZXTune::Sound::Backends::ALSA::DEVICE_DEFAULT,
+        Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
         Text::ALSA_BACKEND_DEFAULT_DEVICE,
         Text::ALSA_BACKEND_DEFAULT_DEVICE
         );
@@ -1048,7 +1048,7 @@ namespace
     const String CardNameValue;
   };
 
-  class AlsaDevicesIterator : public ALSA::Device::Iterator
+  class AlsaDevicesIterator : public Alsa::Device::Iterator
   {
   public:
     explicit AlsaDevicesIterator(Alsa::Api::Ptr api)
@@ -1064,14 +1064,14 @@ namespace
       return Current;
     }
 
-    virtual ALSA::Device::Ptr Get() const
+    virtual Alsa::Device::Ptr Get() const
     {
       return Current;
     }
 
     virtual void Next()
     {
-      Current = ALSA::Device::Ptr();
+      Current = Alsa::Device::Ptr();
       while (Cards.IsValid())
       {
         for (; Devices.IsValid(); Devices.Next())
@@ -1091,7 +1091,7 @@ namespace
     const Alsa::Api::Ptr Api;
     CardsIterator Cards;
     PCMDevicesIterator Devices;
-    ALSA::Device::Ptr Current;
+    Alsa::Device::Ptr Current;
   };
 }
 
@@ -1104,7 +1104,7 @@ namespace ZXTune
       try
       {
         const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
-        Log::Debug(THIS_MODULE, "Detected ALSA %1%", api->snd_asoundlib_version());
+        Log::Debug(THIS_MODULE, "Detected Alsa %1%", api->snd_asoundlib_version());
         const BackendCreator::Ptr creator(new AlsaBackendCreator(api));
         enumerator.RegisterCreator(creator);
       }
@@ -1114,7 +1114,7 @@ namespace ZXTune
       }
     }
 
-    namespace ALSA
+    namespace Alsa
     {
       Device::Iterator::Ptr EnumerateDevices()
       {

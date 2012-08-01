@@ -1,6 +1,6 @@
 /*
 Abstract:
-  OSS backend implementation
+  Oss backend implementation
 
 Last changed:
   $Id$
@@ -46,7 +46,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::OSS");
+  const std::string THIS_MODULE("Sound::Backend::Oss");
 
   const uint_t MAX_OSS_VOLUME = 100;
 
@@ -129,10 +129,10 @@ namespace
     int Handle;
   };
 
-  class OSSVolumeControl : public VolumeControl
+  class OssVolumeControl : public VolumeControl
   {
   public:
-    OSSVolumeControl(boost::mutex& stateMutex, AutoDescriptor& mixer)
+    OssVolumeControl(boost::mutex& stateMutex, AutoDescriptor& mixer)
       : StateMutex(stateMutex), MixHandle(mixer)
     {
     }
@@ -193,46 +193,46 @@ namespace
     AutoDescriptor& MixHandle;
   };
 
-  class OSSBackendParameters
+  class OssBackendParameters
   {
   public:
-    explicit OSSBackendParameters(const Parameters::Accessor& accessor)
+    explicit OssBackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
 
     String GetDeviceName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::DEVICE_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::OSS::DEVICE, strVal);
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::Oss::DEVICE_DEFAULT;
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Oss::DEVICE, strVal);
       return strVal;
     }
 
     String GetMixerName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::OSS::MIXER_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::OSS::MIXER, strVal);
+      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::Oss::MIXER_DEFAULT;
+      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Oss::MIXER, strVal);
       return strVal;
     }
   private:
     const Parameters::Accessor& Accessor;
   };
 
-  class OSSBackendWorker : public BackendWorker
+  class OssBackendWorker : public BackendWorker
                          , private boost::noncopyable
   {
   public:
-    explicit OSSBackendWorker(Parameters::Accessor::Ptr params)
+    explicit OssBackendWorker(Parameters::Accessor::Ptr params)
       : BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
       , CurrentBuffer(Buffers.begin(), Buffers.end())
-      , VolumeController(new OSSVolumeControl(StateMutex, MixHandle))
+      , VolumeController(new OssVolumeControl(StateMutex, MixHandle))
     {
     }
 
-    virtual ~OSSBackendWorker()
+    virtual ~OssBackendWorker()
     {
-      assert(-1 == DevHandle.Get() || !"OSSBackend should be stopped before destruction.");
+      assert(-1 == DevHandle.Get() || !"OssBackend should be stopped before destruction.");
     }
 
     virtual void Test()
@@ -293,7 +293,7 @@ namespace
   private:
     void SetupDevices(AutoDescriptor& device, AutoDescriptor& mixer) const
     {
-      const OSSBackendParameters params(*BackendParams);
+      const OssBackendParameters params(*BackendParams);
 
       AutoDescriptor tmpMixer(params.GetMixerName(), O_RDWR);
       AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY);
@@ -324,7 +324,7 @@ namespace
     const VolumeControl::Ptr VolumeController;
   };
 
-  class OSSBackendCreator : public BackendCreator
+  class OssBackendCreator : public BackendCreator
   {
   public:
     virtual String Id() const
@@ -347,7 +347,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new OSSBackendWorker(allParams));
+        const BackendWorker::Ptr worker(new OssBackendWorker(allParams));
         result = Sound::CreateBackend(params, worker);
         return Error();
       }
@@ -368,9 +368,9 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterOSSBackend(BackendsEnumerator& enumerator)
+    void RegisterOssBackend(BackendsEnumerator& enumerator)
     {
-      const BackendCreator::Ptr creator(new OSSBackendCreator());
+      const BackendCreator::Ptr creator(new OssBackendCreator());
       enumerator.RegisterCreator(creator);
     }
   }

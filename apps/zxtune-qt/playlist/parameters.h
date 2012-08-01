@@ -24,36 +24,33 @@ namespace Parameters
   {
     namespace Playlist
     {
-      const Char NAMESPACE_NAME[] = {'P','l','a','y','l','i','s','t','\0'};
+      const std::string NAMESPACE_NAME("Playlist");
 
-      const NameType PREFIX = NameType(Parameters::ZXTuneQT::PREFIX) + NAMESPACE_NAME + NAMESPACE_DELIMITER;
+      const NameType PREFIX = ZXTuneQT::PREFIX + NAMESPACE_NAME;
 
       //@{
       //! @name Use deep scanning while processing input files
-      const Char DEEP_SCANNING_PARAMETER[] = {'D','e','e','p','S','c','a','n','n','i','n','g','\0'};
 
       //! Parameter name
-      const NameType DEEP_SCANNING = PREFIX + DEEP_SCANNING_PARAMETER;
+      const NameType DEEP_SCANNING = PREFIX + "DeepScanning";
       //! Default value
       const IntType DEEP_SCANNING_DEFAULT = 1;
       //@}
 
       //@{
       //! @name Loop playlist playback
-      const Char LOOPED_PARAMETER[] = {'L','o','o','p','\0'};
 
       //! Parameter name
-      const NameType LOOPED = PREFIX + LOOPED_PARAMETER;
+      const NameType LOOPED = PREFIX + "Loop";
       //! Default value
       const IntType LOOPED_DEFAULT = 0;
       //@}
 
       //@{
       //! @name Randomize playlist playback
-      const Char RANDOMIZED_PARAMETER[] = {'R','a','n','d','o','m','\0'};
 
       //! Parameter name
-      const NameType RANDOMIZED = PREFIX + RANDOMIZED_PARAMETER;
+      const NameType RANDOMIZED = PREFIX + "Random";
       //! Default value
       const IntType RANDOMIZED_DEFAULT = 0;
       //@}

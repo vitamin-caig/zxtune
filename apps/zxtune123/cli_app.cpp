@@ -135,17 +135,17 @@ namespace
       : Pipe(DataReceiver<ZXTune::Module::Holder::Ptr>::CreateStub())
     {
       Parameters::StringType mode;
-      if (!params.FindValue(Text::CONVERSION_PARAM_MODE, mode))
+      if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_MODE), mode))
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_MODE);
       }
       String nameTemplate;
-      if (!params.FindValue(Text::CONVERSION_PARAM_FILENAME, nameTemplate))
+      if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_FILENAME), nameTemplate))
       {
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_FILENAME);
       }
       Parameters::IntType optimization = ZXTune::Module::Conversion::DEFAULT_OPTIMIZATION;
-      params.FindValue(Text::CONVERSION_PARAM_OPTIMIZATION, optimization);
+      params.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
       std::auto_ptr<ZXTune::Module::Conversion::Parameter> param;
       uint_t mask = 0;
       if (mode == Text::CONVERSION_MODE_RAW)
@@ -233,7 +233,7 @@ namespace
         if (!ConvertParams.empty())
         {
           const Parameters::Container::Ptr cnvParams = Parameters::Container::Create();
-          ThrowIfError(ParseParametersString(String(), ConvertParams, *cnvParams));
+          ThrowIfError(ParseParametersString(Parameters::NameType(), ConvertParams, *cnvParams));
           Convertor cnv(*cnvParams, *Display);
           Sourcer->ProcessItems(boost::bind(&Convertor::ProcessItem, &cnv, _1));
         }

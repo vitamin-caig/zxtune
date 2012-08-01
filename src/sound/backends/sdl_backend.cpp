@@ -1,6 +1,6 @@
 /*
 Abstract:
-  SDL backend implementation
+  Sdl backend implementation
 
 Last changed:
   $Id$
@@ -146,11 +146,11 @@ namespace
     CycledIterator<Buffer*> FillIter, PlayIter;
   };
 
-  class SDLBackendWorker : public BackendWorker
+  class SdlBackendWorker : public BackendWorker
                          , private boost::noncopyable
   {
   public:
-    SDLBackendWorker(Sdl::Api::Ptr api, Parameters::Accessor::Ptr params)
+    SdlBackendWorker(Sdl::Api::Ptr api, Parameters::Accessor::Ptr params)
       : Api(api)
       , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
@@ -286,10 +286,10 @@ namespace
     BuffersQueue Queue;
   };
 
-  class SDLBackendCreator : public BackendCreator
+  class SdlBackendCreator : public BackendCreator
   {
   public:
-    explicit SDLBackendCreator(Sdl::Api::Ptr api)
+    explicit SdlBackendCreator(Sdl::Api::Ptr api)
       : Api(api)
     {
     }
@@ -314,7 +314,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new SDLBackendWorker(Api, allParams));
+        const BackendWorker::Ptr worker(new SdlBackendWorker(Api, allParams));
         result = Sound::CreateBackend(params, worker);
         return Error();
       }
@@ -336,14 +336,14 @@ namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterSDLBackend(BackendsEnumerator& enumerator)
+    void RegisterSdlBackend(BackendsEnumerator& enumerator)
     {
       try
       {
         const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
         const SDL_version* const vers = api->SDL_Linked_Version();
         Log::Debug(THIS_MODULE, "Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
-        const BackendCreator::Ptr creator(new SDLBackendCreator(api));
+        const BackendCreator::Ptr creator(new SdlBackendCreator(api));
         enumerator.RegisterCreator(creator);
       }
       catch (const Error& e)
