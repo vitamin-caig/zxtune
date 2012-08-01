@@ -1,3 +1,4 @@
+char* curl_version()
 CURL *curl_easy_init()
 void curl_easy_cleanup(CURL *curl)
 CURLcode curl_easy_perform(CURL *curl)

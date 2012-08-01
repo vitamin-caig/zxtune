@@ -44,6 +44,12 @@ namespace
     {
     }
 
+    String GetHttpUseragent() const
+    {
+      String res;
+      Accessor.FindValue(Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT, res);
+      return res;
+    }
   private:
     const Parameters::Accessor& Accessor;
   };
@@ -103,6 +109,27 @@ namespace
     return 2 != (code / 100);
   }
 
+  class IOProgressCallback : public Log::ProgressCallback
+  {
+  public:
+    explicit IOProgressCallback(const IO::ProgressCallback& cb)
+      : Delegate(cb)
+    {
+    }
+
+    virtual void OnProgress(uint_t current)
+    {
+      Delegate(String(), current);
+    }
+
+    virtual void OnProgress(uint_t current, const String& message)
+    {
+      Delegate(message, current);
+    }
+  private:
+    const IO::ProgressCallback Delegate;
+  };
+
   class RemoteResource
   {
   public:
@@ -112,8 +139,24 @@ namespace
       Object.SetOption(CURLOPT_URL, IO::ConvertToFilename(url).c_str(), THIS_LINE);
       Object.SetOption(CURLOPT_DEBUGFUNCTION, reinterpret_cast<void*>(&DebugCallback), THIS_LINE);
       Object.SetOption(CURLOPT_WRITEFUNCTION, reinterpret_cast<void*>(&WriteCallback), THIS_LINE);
+    }
+
+    void SetOptions(const NetworkProviderParameters& params, const ProgressCallback& cb)
+    {
+      const String useragent = params.GetHttpUseragent();
+      if (!useragent.empty())
+      {
+        Object.SetOption(CURLOPT_USERAGENT, IO::ConvertToFilename(useragent).c_str(), THIS_LINE);
+      }
       Object.SetOption(CURLOPT_FOLLOWLOCATION, 1, THIS_LINE);
       Object.SetOption(CURLOPT_VERBOSE, 1, THIS_LINE);
+      if (cb)
+      {
+        Progress.reset(new IOProgressCallback(cb));
+        Object.SetOption(CURLOPT_PROGRESSFUNCTION, reinterpret_cast<void*>(&ProgressCallback), THIS_LINE);
+        Object.SetOption(CURLOPT_PROGRESSDATA, static_cast<void*>(Progress.get()), THIS_LINE);
+        Object.SetOption(CURLOPT_NOPROGRESS, 0, THIS_LINE);
+      }
     }
 
     //TODO: pass callback to handle progress and other
@@ -134,22 +177,17 @@ namespace
   private:
     static int DebugCallback(CURL* obj, curl_infotype type, char* data, size_t size, void* /*param*/)
     {
+      //size includes CR code
       switch (type)
       {
       case CURLINFO_TEXT:
-        Log::Debug(THIS_MODULE, "Curl(%1%): %2%", obj, std::string(data, data + size - 1));//initial CR
+        Log::Debug(THIS_MODULE, "Curl(%1%): %2%", obj, std::string(data, data + size - 1));
         break;
       case CURLINFO_HEADER_IN:
-        Log::Debug(THIS_MODULE, "Curl(%1%): header in, %2% bytes", obj, size);
+        Log::Debug(THIS_MODULE, "Curl(%1%): -> %2%", obj, std::string(data, data + size - 1));
         break;
       case CURLINFO_HEADER_OUT:
-        Log::Debug(THIS_MODULE, "Curl(%1%): header out, %2% bytes", obj, size);
-        break;
-      case CURLINFO_DATA_IN:
-        Log::Debug(THIS_MODULE, "Curl(%1%): data in, %2% bytes", obj, size);
-        break;
-      case CURLINFO_DATA_OUT:
-        Log::Debug(THIS_MODULE, "Curl(%1%): data out, %2% bytes", obj, size);
+        Log::Debug(THIS_MODULE, "Curl(%1%): <- %2%", obj, std::string(data, data + size - 1));
         break;
       default:
         break;
@@ -165,8 +203,20 @@ namespace
       std::memcpy(&result->front() + prevSize, ptr, toSave);
       return toSave;
     }
+
+    static int ProgressCallback(void* data, double dlTotal, double dlNow, double /*ulTotal*/, double /*ulNow*/)
+    {
+      if (dlTotal)//0 for source files with unknown size
+      {
+        Log::ProgressCallback* const cb = static_cast<Log::ProgressCallback*>(data);
+        const uint_t progress = static_cast<uint_t>(dlNow * 100 / dlTotal);
+        cb->OnProgress(progress);
+      }
+      return 0;
+    }
   private:
     CurlObject Object;
+    Log::ProgressCallback::Ptr Progress;
   };
 
   // uri-related constants
@@ -246,12 +296,14 @@ namespace
     }
   
     //no callback
-    virtual Error Open(const String& path, const Parameters::Accessor& params, const ProgressCallback& /*cb*/,
+    virtual Error Open(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb,
       Binary::Container::Ptr& result) const
     {
       try
       {
+        const NetworkProviderParameters options(params);
         RemoteResource resource(Api, path);
+        resource.SetOptions(options, cb);
         result = resource.Download();
         return Error();
       }
@@ -274,6 +326,7 @@ namespace ZXTune
       try
       {
         const Curl::Api::Ptr api = Curl::LoadDynamicApi();
+        Log::Debug(THIS_MODULE, "Detected CURL library %1%", api->curl_version());
         const DataProvider::Ptr provider = boost::make_shared<NetworkDataProvider>(api);
         enumerator.RegisterProvider(provider);
       }

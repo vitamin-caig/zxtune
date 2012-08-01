@@ -31,6 +31,7 @@ namespace ZXTune
         virtual ~Api() {}
 
         
+        virtual char* curl_version() = 0;
         virtual CURL *curl_easy_init() = 0;
         virtual void curl_easy_cleanup(CURL *curl) = 0;
         virtual CURLcode curl_easy_perform(CURL *curl) = 0;

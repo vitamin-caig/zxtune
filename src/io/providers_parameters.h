@@ -44,6 +44,23 @@ namespace Parameters
           };
           //@}
         }
+
+        //! @brief %Network provider parameters namespace
+        namespace Network
+        {
+          //! @brief Parameters for HTTP protocol
+          namespace Http
+          {
+            //@{
+            //! @name Useragent parameter
+
+            //! Parameter name
+            const Char USERAGENT[] =
+            {
+              'z','x','t','u','n','e','.','i','o','.','p','r','o','v','i','d','e','r','s','.','n','e','t','w','o','r','k','.','h','t','t','p','.','u','s','e','r','a','g','e','n','t','\0'
+            };
+          }
+        }
       }
     }
   }

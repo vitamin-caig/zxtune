@@ -67,6 +67,14 @@ namespace
     }
 
     
+    virtual char* curl_version()
+    {
+      static const char* NAME = "curl_version";
+      typedef char* (*FunctionType)();
+      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+      return func();
+    }
+    
     virtual CURL *curl_easy_init()
     {
       static const char* NAME = "curl_easy_init";
