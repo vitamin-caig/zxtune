@@ -58,6 +58,18 @@ namespace
     const std::size_t VariableSize;
   };
 
+  class StubProgressCallback : public ProgressCallback
+  {
+  public:
+    virtual void OnProgress(uint_t /*current*/)
+    {
+    }
+
+    virtual void OnProgress(uint_t /*current*/, const String& /*message*/)
+    {
+    }
+  };
+
   class FilteredProgressCallback : public ProgressCallback
   {
   public:
@@ -163,6 +175,12 @@ namespace
 
 namespace Log
 {
+  ProgressCallback& ProgressCallback::Stub()
+  {
+    static StubProgressCallback stub;
+    return stub;
+  }
+
   ProgressCallback::Ptr CreatePercentProgressCallback(uint_t total, ProgressCallback& delegate)
   {
     return ProgressCallback::Ptr(new PercentProgressCallback(total, delegate));

@@ -32,6 +32,8 @@ namespace Log
     virtual ~ProgressCallback() {}
     virtual void OnProgress(uint_t current) = 0;
     virtual void OnProgress(uint_t current, const String& message) = 0;
+
+    static ProgressCallback& Stub();
   };
 
   ProgressCallback::Ptr CreatePercentProgressCallback(uint_t total, ProgressCallback& delegate);

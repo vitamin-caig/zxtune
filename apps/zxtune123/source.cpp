@@ -257,9 +257,10 @@ namespace
         Binary::Container::Ptr data;
         String path, subpath;
         ThrowIfError(ZXTune::IO::SplitUri(*it, path, subpath));
-        ThrowIfError(ZXTune::IO::OpenData(path, *Params, 0, data));
 
         const DetectParametersImpl params(Params, path, callback, ShowProgress);
+        ThrowIfError(ZXTune::IO::OpenData(path, *Params, ShowProgress ? *params.GetProgressCallback() : Log::ProgressCallback::Stub(), data));
+
         ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));
       }
     }

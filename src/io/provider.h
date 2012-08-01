@@ -17,8 +17,6 @@
 #include <binary/container.h>
 //std includes
 #include <vector>
-//boost includes
-#include <boost/function.hpp>
 
 //forward declarations
 class Error;
@@ -27,20 +25,22 @@ namespace Parameters
   class Accessor;
 }
 
+namespace Log
+{
+  class ProgressCallback;
+}
+
 namespace ZXTune
 {
   namespace IO
   {
-    //! @brief Progress callback. In case if result Error is not success, it used as a suberror of #ERROR_CANCELED error
-    typedef boost::function<Error(const String&, uint_t)> ProgressCallback;
-
     //! @brief Performs opening specified uri
     //! @param path External data identifier
     //! @param params %Parameters accessor to setup providers work
     //! @param cb Callback for long-time controlable operations
     //! @param data Reference to result data container
     //! @return Error() in case of success
-    Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb, Binary::Container::Ptr& data);
+    Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& data);
 
     //! @brief Performs splitting specified uri to filesystem and internal parts
     //! @param uri Full path

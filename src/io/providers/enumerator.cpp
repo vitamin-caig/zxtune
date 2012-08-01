@@ -109,7 +109,7 @@ namespace
       Log::Debug(THIS_MODULE, "Registered provider '%1%'", provider->Id());
     }
 
-    virtual Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb, Binary::Container::Ptr& result) const
+    virtual Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& result) const
     {
       Log::Debug(THIS_MODULE, "Opening path '%1%'", path);
       if (const DataProvider* provider = FindProvider(path))
@@ -176,7 +176,7 @@ namespace ZXTune
       return instance;
     }
 
-    Error OpenData(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb, Binary::Container::Ptr& data)
+    Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& data)
     {
       try
       {

@@ -253,7 +253,7 @@ namespace
     }
   
     //no callback
-    virtual Error Open(const String& path, const Parameters::Accessor& params, const ProgressCallback& /*cb*/,
+    virtual Error Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/,
       Binary::Container::Ptr& result) const
     {
       try

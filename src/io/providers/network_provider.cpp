@@ -109,27 +109,6 @@ namespace
     return 2 != (code / 100);
   }
 
-  class IOProgressCallback : public Log::ProgressCallback
-  {
-  public:
-    explicit IOProgressCallback(const IO::ProgressCallback& cb)
-      : Delegate(cb)
-    {
-    }
-
-    virtual void OnProgress(uint_t current)
-    {
-      Delegate(String(), current);
-    }
-
-    virtual void OnProgress(uint_t current, const String& message)
-    {
-      Delegate(message, current);
-    }
-  private:
-    const IO::ProgressCallback Delegate;
-  };
-
   class RemoteResource
   {
   public:
@@ -141,7 +120,7 @@ namespace
       Object.SetOption(CURLOPT_WRITEFUNCTION, reinterpret_cast<void*>(&WriteCallback), THIS_LINE);
     }
 
-    void SetOptions(const NetworkProviderParameters& params, const ProgressCallback& cb)
+    void SetOptions(const NetworkProviderParameters& params, Log::ProgressCallback& cb)
     {
       const String useragent = params.GetHttpUseragent();
       if (!useragent.empty())
@@ -150,13 +129,9 @@ namespace
       }
       Object.SetOption(CURLOPT_FOLLOWLOCATION, 1, THIS_LINE);
       Object.SetOption(CURLOPT_VERBOSE, 1, THIS_LINE);
-      if (cb)
-      {
-        Progress.reset(new IOProgressCallback(cb));
-        Object.SetOption(CURLOPT_PROGRESSFUNCTION, reinterpret_cast<void*>(&ProgressCallback), THIS_LINE);
-        Object.SetOption(CURLOPT_PROGRESSDATA, static_cast<void*>(Progress.get()), THIS_LINE);
-        Object.SetOption(CURLOPT_NOPROGRESS, 0, THIS_LINE);
-      }
+      Object.SetOption(CURLOPT_PROGRESSFUNCTION, reinterpret_cast<void*>(&ProgressCallback), THIS_LINE);
+      Object.SetOption(CURLOPT_PROGRESSDATA, static_cast<void*>(&cb), THIS_LINE);
+      Object.SetOption(CURLOPT_NOPROGRESS, 0, THIS_LINE);
     }
 
     //TODO: pass callback to handle progress and other
@@ -216,7 +191,6 @@ namespace
     }
   private:
     CurlObject Object;
-    Log::ProgressCallback::Ptr Progress;
   };
 
   // uri-related constants
@@ -296,7 +270,7 @@ namespace
     }
   
     //no callback
-    virtual Error Open(const String& path, const Parameters::Accessor& params, const ProgressCallback& cb,
+    virtual Error Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb,
       Binary::Container::Ptr& result) const
     {
       try
