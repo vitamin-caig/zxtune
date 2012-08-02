@@ -9,10 +9,11 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
+#include "shared_library_common.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
-#include <shared_library.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //platform includes
@@ -26,46 +27,33 @@ namespace
 {
   const unsigned THIS_MODULE = Error::ModuleCode<'L', 'S', 'O'>::Value;
 
-  void CloseLibrary(void* handle)
-  {
-    if (handle)
-    {
-      ::dlclose(handle);
-    }
-  }
-  
-  typedef boost::shared_ptr<void> LibHandle;
-  
-  LibHandle OpenLibrary(const std::string& fileName)
-  {
-    return LibHandle(::dlopen(fileName.c_str(), RTLD_LAZY), std::ptr_fun(&CloseLibrary));
-  }
-  
-  Error CreateLoadError(Error::LocationRef loc, const std::string& fileName)
-  {
-    return MakeFormattedError(loc, THIS_MODULE,
-      Text::FAILED_LOAD_DYNAMIC_LIBRARY, FromStdString(fileName), FromStdString(::dlerror()));
-  }
-
   class LinuxSharedLibrary : public SharedLibrary
   {
   public:
-    explicit LinuxSharedLibrary(LibHandle handle)
+    explicit LinuxSharedLibrary(void* handle)
       : Handle(handle)
     {
-      Require(Handle);
+      Require(Handle != 0);
+    }
+
+    virtual ~LinuxSharedLibrary()
+    {
+      if (Handle)
+      {
+        ::dlclose(Handle);
+      }
     }
 
     virtual void* GetSymbol(const std::string& name) const
     {
-      if (void* res = ::dlsym(Handle.get(), name.c_str()))
+      if (void* res = ::dlsym(Handle, name.c_str()))
       {
         return res;
       }
       throw MakeFormattedError(THIS_LINE, THIS_MODULE, Text::FAILED_FIND_DYNAMIC_LIBRARY_SYMBOL, FromStdString(name));
     }
   private:
-    const LibHandle Handle;
+    void* const Handle;
   };
   
   const std::string SUFFIX(".so");
@@ -74,42 +62,31 @@ namespace
   {
     return "lib" + name + SUFFIX;
   }
+}
+
+Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
+{
+  if (LibHandle handle = LibHandle(::dlopen(fileName.c_str(), RTLD_LAZY), std::ptr_fun(&CloseLibrary)))
+  {
+    res = boost::make_shared<LinuxSharedLibrary>(handle);
+    return Error();
+  }
+  return MakeFormattedError(THIS_LINE, THIS_MODULE_CODE,
+    Text::FAILED_LOAD_DYNAMIC_LIBRARY, FromStdString(fileName), FromStdString(::dlerror()));
+}
   
-  std::string GetLibraryFilename(const std::string& name)
-  {
-    return name.find(SUFFIX) == name.npos
-      ? BuildLibraryFilename(name)
-      : name;
-  }
+std::string GetSharedLibraryFilename(const std::string& name)
+{
+  return name.find(SUFFIX) == name.npos
+    ? BuildLibraryFilename(name)
+    : name;
 }
 
-SharedLibrary::Ptr SharedLibrary::Load(const std::string& name)
+std::vector<std::string> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
 {
-  const std::string& fileName = GetLibraryFilename(name);
-  if (const LibHandle handle = OpenLibrary(fileName))
-  {
-    return boost::make_shared<LinuxSharedLibrary>(handle);
-  }
-  throw CreateLoadError(THIS_LINE, fileName);
-}
-
-SharedLibrary::Ptr SharedLibrary::Load(const SharedLibrary::Name& name)
-{
-  const std::string& baseFileName = GetLibraryFilename(name.Base());
-  if (const LibHandle handle = OpenLibrary(baseFileName))
-  {
-    return boost::make_shared<LinuxSharedLibrary>(handle);
-  }
-  const Error result = CreateLoadError(THIS_LINE, name.Base());
-  const std::vector<std::string>& alternatives = name.PosixAlternatives();
-  for (std::vector<std::string>::const_iterator it = alternatives.begin(), lim = alternatives.end(); it != lim; ++it)
-  {
-    const std::string altName = *it;
-    const std::string altFilename = GetLibraryFilename(altName);
-    if (const LibHandle handle = OpenLibrary(altFilename))
-    {
-      return boost::make_shared<LinuxSharedLibrary>(handle);
-    }
-  }
-  throw result;
+  std::vector<std::string> res;
+  res.push_back(GetSharedLibraryFilename(name.Base()));
+  const std::vector<std::string>& alternatives = name.LinuxAlternatives();
+  std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), std::ptr_fun(&GetSharedLibraryFilename));
+  return res;
 }

@@ -11,6 +11,8 @@ else
 source_files += platform/shared_library_$(platform)
 endif
 
+source_files += platform/shared_library_common
+
 text_files := text/tools
 
 include $(path_step)/makefile.mak

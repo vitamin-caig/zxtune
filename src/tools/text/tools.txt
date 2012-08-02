@@ -31,5 +31,9 @@ __cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 < FAILED_LOAD_DYNAMIC_LIBRARY
 > "Failed to load dynamic library '%1%' (%2%)."
 
+< FAILED_LOAD_DYNAMIC_LIBRARY_ALTERNATIVES
+> "Failed to load dynamic library '%1%' even using alternative names."
+
 < FAILED_FIND_DYNAMIC_LIBRARY_SYMBOL
 > "Failed to find symbol '%1%' in dynamic library."
+
