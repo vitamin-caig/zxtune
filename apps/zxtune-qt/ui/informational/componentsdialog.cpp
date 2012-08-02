@@ -226,7 +226,7 @@ namespace
     if (status)
     {
       item->setCheckState(0, Qt::Unchecked);
-      item->setToolTip(0, ToQString(status.GetText()));
+      item->setToolTip(0, ToQString(Error::ToString(status)));
     }
     else
     {
