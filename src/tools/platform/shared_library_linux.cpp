@@ -66,12 +66,12 @@ namespace
 
 Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
 {
-  if (LibHandle handle = LibHandle(::dlopen(fileName.c_str(), RTLD_LAZY), std::ptr_fun(&CloseLibrary)))
+  if (void* handle = ::dlopen(fileName.c_str(), RTLD_LAZY))
   {
     res = boost::make_shared<LinuxSharedLibrary>(handle);
     return Error();
   }
-  return MakeFormattedError(THIS_LINE, THIS_MODULE_CODE,
+  return MakeFormattedError(THIS_LINE, THIS_MODULE,
     Text::FAILED_LOAD_DYNAMIC_LIBRARY, FromStdString(fileName), FromStdString(::dlerror()));
 }
   
@@ -86,7 +86,7 @@ std::vector<std::string> GetSharedLibraryFilenames(const SharedLibrary::Name& na
 {
   std::vector<std::string> res;
   res.push_back(GetSharedLibraryFilename(name.Base()));
-  const std::vector<std::string>& alternatives = name.LinuxAlternatives();
+  const std::vector<std::string>& alternatives = name.PosixAlternatives();
   std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), std::ptr_fun(&GetSharedLibraryFilename));
   return res;
 }
