@@ -125,8 +125,9 @@ namespace
   
   inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)
   {
+    const Error& status = info.Status();
     StdOut << Strings::Format(Text::INFO_BACKEND_INFO,
-      info.Id(), info.Description(), BackendCaps(info.Capabilities()));
+      info.Id(), info.Description(), BackendCaps(info.Capabilities()), status ? status.GetText() : Text::INFO_STATUS_OK);
   }
   
   inline void ShowBackends()
@@ -141,8 +142,9 @@ namespace
   
   inline void ShowProvider(const ZXTune::IO::Provider& provider)
   {
+    const Error& status = provider.Status();
     StdOut << Strings::Format(Text::INFO_PROVIDER_INFO,
-      provider.Id(), provider.Description());
+      provider.Id(), provider.Description(), status ? status.GetText() : Text::INFO_STATUS_OK);
   }
   
   inline void ShowProviders()

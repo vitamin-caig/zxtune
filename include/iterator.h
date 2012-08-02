@@ -199,8 +199,8 @@ public:
   }
 };
 
-template<class I>
-class RangedObjectIteratorAdapter : public ObjectIterator<typename std::iterator_traits<I>::value_type>
+template<class I, class V = typename std::iterator_traits<I>::value_type>
+class RangedObjectIteratorAdapter : public ObjectIterator<V>
 {
 public:
   explicit RangedObjectIteratorAdapter(I from, I to)
@@ -213,7 +213,7 @@ public:
     return Range;
   }
 
-  virtual typename std::iterator_traits<I>::value_type Get() const
+  virtual V Get() const
   {
     assert(Range);
     return *Range;

@@ -45,17 +45,20 @@ namespace
         const BackendCreator::Ptr creator = backends->Get();
         if (0 != (creator->Capabilities() & CAP_TYPE_FILE))
         {
-          Ids.insert(creator->Id());
+          Ids.insert(std::make_pair(creator->Id(), creator->Status()));
         }
       }
     }
 
-    bool IsAvailable(const String& id) const
+    Error GetStatus(const String& id) const
     {
-      return Ids.count(id);
+      const std::map<String, Error>::const_iterator it = Ids.find(id);
+      return it != Ids.end()
+        ? it->second
+        : Error();//TODO
     }
   private:
-    std::set<String> Ids;
+    std::map<String, Error> Ids;
   };
 
   const Char TYPE_WAV[] = {'w', 'a', 'v', 0};
@@ -125,7 +128,15 @@ namespace
     void SetupButton(IdToButton::value_type but)
     {
       connect(but.second, SIGNAL(toggled(bool)), SIGNAL(SettingsChanged()));
-      but.second->setEnabled(Backends.IsAvailable(but.first));
+      if (const Error status = Backends.GetStatus(but.first))
+      {
+        but.second->setEnabled(false);
+        but.second->setToolTip(ToQString(status.GetText()));
+      }
+      else
+      {
+        but.second->setEnabled(true);
+      }
       Parameters::ExclusiveValue::Bind(*but.second, *Options, Parameters::ZXTuneQT::UI::Export::TYPE, but.first);
     }
   private:

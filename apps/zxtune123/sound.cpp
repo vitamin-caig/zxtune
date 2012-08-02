@@ -293,6 +293,10 @@ namespace
         backends->IsValid(); backends->Next())
       {
         const ZXTune::Sound::BackendCreator::Ptr creator = backends->Get();
+        if (creator->Status())
+        {
+          continue;
+        }
         BackendOptions.push_back(std::make_pair(creator, NOTUSED_MARK));
         OptionsDescription.add_options()
           (creator->Id().c_str(), value<String>(&BackendOptions.back().second)->implicit_value(String(),

@@ -160,6 +160,7 @@ extern const Char INFO_OPTION_INFO[];
 extern const Char INFO_OPTION_INFO_DEFAULTS[];
 extern const Char INFO_PLUGIN_INFO[];
 extern const Char INFO_PROVIDER_INFO[];
+extern const Char INFO_STATUS_OK[];
 extern const Char INPUT_ERROR_NO_FILES[];
 extern const Char INPUT_FILE_DESC[];
 extern const Char INPUT_FILE_KEY[];

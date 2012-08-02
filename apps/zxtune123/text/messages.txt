@@ -98,12 +98,17 @@
 > "Backend:      %1%\n"
 > "Description:  %2%\n"
 > "Capabilities: %3%\n"
+> "Status:       %4%\n"
 > "\n"
 
 < INFO_PROVIDER_INFO
 > "Provider:    %1%\n"
 > "Description: %2%\n"
+> "Status:      %3%\n"
 > "\n"
+
+< INFO_STATUS_OK
+> "Available"
 
 < INFO_OPTION_INFO
 > "  %1%\n"

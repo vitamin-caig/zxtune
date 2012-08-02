@@ -218,6 +218,23 @@ namespace
     return ZXTune::Sound::CAP_TYPE_HARDWARE == (backend.Capabilities() & ZXTune::Sound::CAP_TYPE_MASK);
   }
 
+  template<class T>
+  QTreeWidgetItem* CreateRootItem(T& root, const String& description, const Error& status)
+  {
+    QTreeWidgetItem* const item = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
+    item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    if (status)
+    {
+      item->setCheckState(0, Qt::Unchecked);
+      item->setToolTip(0, ToQString(status.GetText()));
+    }
+    else
+    {
+      item->setCheckState(0, Qt::Checked);
+    }
+    return item;
+  }
+
   class BackendsTreeHelper
   {
   public:
@@ -255,11 +272,10 @@ namespace
   private:
     void AddBackend(QTreeWidgetItem& root, const ZXTune::Sound::BackendInformation& backend)
     {
-      const String& description = backend.Description();
       const QString& featuresTitle("Features");
 
       //root
-      QTreeWidgetItem* const backendItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
+      QTreeWidgetItem* const backendItem = CreateRootItem(root, backend.Description(), backend.Status());
       //features
       if (uint_t features = backend.Capabilities() & ZXTune::Sound::CAP_FEAT_MASK)
       {
@@ -291,10 +307,8 @@ namespace
 
     void AddProvider(const ZXTune::IO::Provider& provider)
     {
-      const String& description = provider.Description();
-
       //root
-      new QTreeWidgetItem(&Widget, QStringList(ToQString(description)));
+      CreateRootItem(Widget, provider.Description(), provider.Status());
     }
   private:
     QTreeWidget& Widget;
