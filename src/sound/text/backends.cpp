@@ -11,12 +11,18 @@ extern const Char ALSA_BACKEND_DEFAULT_DEVICE[] = {
 extern const Char ALSA_BACKEND_DESCRIPTION[] = {
   'A','L','S','A',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
 };
+extern const Char ALSA_BACKEND_ID[] = {
+  'a','l','s','a',0
+};
 extern const Char AYLPT_BACKEND_DESCRIPTION[] = {
   'A','Y','L','P','T',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d',0
 };
 extern const Char DSOUND_BACKEND_DESCRIPTION[] = {
   'D','i','r','e','c','t','S','o','u','n','d',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d',
   '.',0
+};
+extern const Char DSOUND_BACKEND_ID[] = {
+  'd','s','o','u','n','d',0
 };
 extern const Char FILE_BACKEND_DEFAULT_COMMENT[] = {
   'C','r','e','a','t','e','d',' ','u','s','i','n','g',' ','Z','X','T','u','n','e',' ','t','o','o','l','k','i',
@@ -25,11 +31,20 @@ extern const Char FILE_BACKEND_DEFAULT_COMMENT[] = {
 extern const Char FLAC_BACKEND_DESCRIPTION[] = {
   'F','L','A','C',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d','.',0
 };
+extern const Char FLAC_BACKEND_ID[] = {
+  'f','l','a','c',0
+};
 extern const Char MP3_BACKEND_DESCRIPTION[] = {
   'M','P','3',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d','.',0
 };
+extern const Char MP3_BACKEND_ID[] = {
+  'm','p','3',0
+};
 extern const Char NULL_BACKEND_DESCRIPTION[] = {
   'N','u','l','l',' ','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
+};
+extern const Char NULL_BACKEND_ID[] = {
+  'n','u','l','l',0
 };
 extern const Char OGG_BACKEND_AUTHOR_TAG[] = {
   'A','R','T','I','S','T',0
@@ -40,14 +55,23 @@ extern const Char OGG_BACKEND_COMMENT_TAG[] = {
 extern const Char OGG_BACKEND_DESCRIPTION[] = {
   'O','G','G',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d','.',0
 };
+extern const Char OGG_BACKEND_ID[] = {
+  'o','g','g',0
+};
 extern const Char OGG_BACKEND_TITLE_TAG[] = {
   'T','I','T','L','E',0
 };
 extern const Char OSS_BACKEND_DESCRIPTION[] = {
   'O','S','S',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
 };
+extern const Char OSS_BACKEND_ID[] = {
+  'o','s','s',0
+};
 extern const Char SDL_BACKEND_DESCRIPTION[] = {
   'S','D','L',' ','s','u','p','p','o','r','t',' ','b','a','c','k','e','n','d',0
+};
+extern const Char SDL_BACKEND_ID[] = {
+  's','d','l',0
 };
 extern const Char SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR[] = {
   'E','r','r','o','r',' ','i','n',' ','A','L','S','A',' ','b','a','c','k','e','n','d',' ','w','h','i','l','e',
@@ -154,8 +178,14 @@ extern const Char SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS[] = {
 extern const Char WAV_BACKEND_DESCRIPTION[] = {
   'W','A','V','-','o','u','t','p','u','t',' ','b','a','c','k','e','n','d',0
 };
+extern const Char WAV_BACKEND_ID[] = {
+  'w','a','v',0
+};
 extern const Char WIN32_BACKEND_DESCRIPTION[] = {
   'W','i','n','3','2',' ','s','o','u','n','d',' ','s','y','s','t','e','m',' ','b','a','c','k','e','n','d',0
+};
+extern const Char WIN32_BACKEND_ID[] = {
+  'w','i','n','3','2',0
 };
 }//namespace Text
 #endif //__TEXT_BACKENDS_H_DEFINED__

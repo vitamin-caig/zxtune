@@ -34,7 +34,7 @@ namespace
     {
       const BackendCreator::Ptr creator = it->Get();
       const uint_t caps = creator->Capabilities();
-      if (0 != (caps & CAP_TYPE_SYSTEM))
+      if (0 != (caps & CAP_TYPE_SYSTEM) && !creator->Status())
       {
         available.push_back(creator);
       }

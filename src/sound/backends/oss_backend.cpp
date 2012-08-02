@@ -50,7 +50,7 @@ namespace
 
   const uint_t MAX_OSS_VOLUME = 100;
 
-  const Char OSS_BACKEND_ID[] = {'o', 's', 's', 0};
+  const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   int GetSoundFormat()
   {
@@ -329,7 +329,7 @@ namespace
   public:
     virtual String Id() const
     {
-      return OSS_BACKEND_ID;
+      return Text::OSS_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -339,7 +339,12 @@ namespace
 
     virtual uint_t Capabilities() const
     {
-      return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+      return CAPABILITIES;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const

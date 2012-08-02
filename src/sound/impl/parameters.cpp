@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Parameters::ZXTune::Sound::Backends implementation
+  Parameters::ZXTune::Sound and nested
 
 Last changed:
   $Id$
@@ -20,6 +20,12 @@ namespace Parameters
   {
     namespace Sound
     {
+      extern const NameType PREFIX = ZXTune::PREFIX + "sound";
+
+      extern const NameType FREQUENCY = PREFIX + "frequency";
+      extern const NameType FRAMEDURATION = PREFIX + "frameduration";
+      extern const NameType LOOPED = PREFIX + "looped";
+
       namespace Backends
       {
         extern const NameType PREFIX = Sound::PREFIX + "backends";

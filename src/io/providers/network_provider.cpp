@@ -218,6 +218,11 @@ namespace
       return Text::IO_NETWORK_PROVIDER_DESCRIPTION;
     }
 
+    virtual Error Status() const
+    {
+      return Error();
+    }
+
     virtual bool Check(const String& uri) const
     {
       // TODO: extract and use common scheme-working code
@@ -306,7 +311,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+        enumerator.RegisterProvider(CreateUnavailableProviderStub(Text::IO_NETWORK_PROVIDER_ID, Text::IO_NETWORK_PROVIDER_DESCRIPTION, e));
       }
     }
   }

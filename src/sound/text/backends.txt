@@ -23,11 +23,21 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 < FILE_BACKEND_DEFAULT_COMMENT
 > "Created using ZXTune toolkit"
 
+#null backend
+< NULL_BACKEND_ID
+> "null"
+
 #wav backend
+< WAV_BACKEND_ID
+> "wav"
+
 < WAV_BACKEND_DESCRIPTION
 > "WAV-output backend"
 
 #alsa backend
+< ALSA_BACKEND_ID
+> "alsa"
+
 < ALSA_BACKEND_DESCRIPTION
 > "ALSA sound system backend"
 
@@ -47,6 +57,9 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 > "ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."
 
 #oss backend
+< OSS_BACKEND_ID
+> "oss"
+
 < OSS_BACKEND_DESCRIPTION
 > "OSS sound system backend"
 
@@ -54,6 +67,9 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 > "Error in OSS backend while working with device '%1%': %2%."
 
 #win32 backend
+< WIN32_BACKEND_ID
+> "win32"
+
 < WIN32_BACKEND_DESCRIPTION
 > "Win32 sound system backend"
 
@@ -71,6 +87,9 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 > "Specified module does not supports dumping to AY-LPT device."
 
 #sdl backend
+< SDL_BACKEND_ID
+> "sdl"
+
 < SDL_BACKEND_DESCRIPTION
 > "SDL support backend"
 
@@ -84,6 +103,9 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 > "SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."
 
 #dsound backend
+< DSOUND_BACKEND_ID
+> "dsound"
+
 < DSOUND_BACKEND_DESCRIPTION
 > "DirectSound support backend."
 
@@ -94,6 +116,9 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 > "DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."
 
 #mp3 backend
+< MP3_BACKEND_ID
+> "mp3"
+
 < MP3_BACKEND_DESCRIPTION
 > "MP3 support backend."
 
@@ -110,6 +135,9 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 > "MP3 backend error: quality (%1%) is out of range (%2%..%3%)."
 
 #ogg backend
+< OGG_BACKEND_ID
+> "ogg"
+
 < OGG_BACKEND_DESCRIPTION
 > "OGG support backend."
 
@@ -136,6 +164,9 @@ __cpp> "#endif //__TEXT_BACKENDS_H_DEFINED__\n"
 > "COMMENT"
 
 #flac backend
+< FLAC_BACKEND_ID
+> "flac"
+
 < FLAC_BACKEND_DESCRIPTION
 > "FLAC support backend."
 

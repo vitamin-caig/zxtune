@@ -38,6 +38,9 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 < SOUND_ERROR_BACKEND_NOT_FOUND
 > "Requested backend is not supported."
 
+< SOUND_ERROR_DISABLED_BACKEND
+> "Not available"
+
 < SOUND_ERROR_BACKEND_FAILED
 > "Failed to create backend '%1%'."
 
@@ -73,3 +76,6 @@ __cpp> "#endif //__TEXT_SOUND_H_DEFINED__\n"
 
 < SOUND_ERROR_BACKEND_INVALID_GAIN
 > "Failed to set volume- gain is out of range."
+
+< SOUND_ERROR_BACKEND_NO_DEVICES
+> "No suitable output devices found"

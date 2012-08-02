@@ -10,14 +10,19 @@ Author:
 */
 
 #include "dsound.h"
+#include "enumerator.h"
+//library includes
+#include <sound/backend_attrs.h>
+//text includes
+#include <sound/text/backends.h>
 
 namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterDirectSoundBackend(class BackendsEnumerator& /*enumerator*/)
+    void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
     {
-      //do nothing
+      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::DSOUND_BACKEND_ID, Text::DSOUND_BACKEND_DESCRIPTION, CAP_TYPE_SYSTEM));
     }
 
     namespace DirectSound

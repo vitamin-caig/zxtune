@@ -21,7 +21,7 @@ Author:
 #include <list>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/bind/apply.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -34,65 +34,6 @@ namespace
   const std::string THIS_MODULE("IO::Enumerator");
 
   typedef std::vector<DataProvider::Ptr> ProvidersList;
-
-  class ProviderIteratorImpl : public Provider::Iterator
-  {
-    class ProviderStub : public Provider
-    {
-    public:
-      virtual String Id() const
-      {
-        return String();
-      }
-
-      virtual String Description() const
-      {
-        return String();
-      }
-
-      static void Deleter(Provider*)
-      {
-      }
-    };
-  public:
-    ProviderIteratorImpl(ProvidersList::const_iterator from,
-                         ProvidersList::const_iterator to)
-      : Pos(from), Limit(to)
-    {
-    }
-
-    virtual bool IsValid() const
-    {
-      return Pos != Limit;
-    }
-
-    virtual Provider::Ptr Get() const
-    {
-      //since this implementation is passed to external client, make it as safe as possible
-      if (Pos != Limit)
-      {
-        return *Pos;
-      }
-      assert(!"Provider iterator is out of range");
-      static ProviderStub stub;
-      return Provider::Ptr(&stub, &ProviderStub::Deleter);
-    }
-
-    virtual void Next()
-    {
-      if (Pos != Limit)
-      {
-        ++Pos;
-      }
-      else
-      {
-        assert(!"Provider iterator is out of range");
-      }
-    }
-  private:
-    ProvidersList::const_iterator Pos;
-    const ProvidersList::const_iterator Limit;
-  };
 
   //implementation of IO providers enumerator
   class ProvidersEnumeratorImpl : public ProvidersEnumerator
@@ -147,7 +88,7 @@ namespace
 
     virtual Provider::Iterator::Ptr Enumerate() const
     {
-      return Provider::Iterator::Ptr(new ProviderIteratorImpl(Providers.begin(), Providers.end()));
+      return Provider::Iterator::Ptr(new RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr>(Providers.begin(), Providers.end()));
     }
   private:
     const DataProvider* FindProvider(const String& uri) const
@@ -163,6 +104,56 @@ namespace
     }
   private:
     ProvidersList Providers;
+  };
+
+  class UnavailableProvider : public DataProvider
+  {
+  public:
+    UnavailableProvider(const String& id, const String& descr, const Error& status)
+      : IdValue(id)
+      , DescrValue(descr)
+      , StatusValue(status)
+    {
+    }
+
+    virtual String Id() const
+    {
+      return IdValue;
+    }
+
+    virtual String Description() const
+    {
+      return DescrValue;
+    }
+
+    virtual Error Status() const
+    {
+      return StatusValue;
+    }
+
+    virtual bool Check(const String&) const
+    {
+      return false;
+    }
+
+    virtual Error Split(const String&, String&, String&) const
+    {
+      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+    }
+
+    virtual Error Combine(const String&, const String&, String&) const
+    {
+      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+    }
+
+    virtual Error Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&, Binary::Container::Ptr&) const
+    {
+      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+    }
+  private:
+    const String IdValue;
+    const String DescrValue;
+    const Error StatusValue;
   };
 }
 
@@ -201,6 +192,16 @@ namespace ZXTune
     Provider::Iterator::Ptr EnumerateProviders()
     {
       return ProvidersEnumerator::Instance().Enumerate();
+    }
+
+    DataProvider::Ptr CreateDisabledProviderStub(const String& id, const String& description)
+    {
+      return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_DISABLED_PROVIDER));
+    }
+
+    DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const String& description, const Error& status)
+    {
+      return boost::make_shared<UnavailableProvider>(id, description, status);
     }
   }
 }

@@ -46,10 +46,10 @@ namespace
 
   const std::string THIS_MODULE("Sound::Backend::Alsa");
 
-  const Char ALSA_BACKEND_ID[] = {'a', 'l', 's', 'a', 0};
-
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
+
+  const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   inline void CheckResult(Alsa::Api& api, int res, Error::LocationRef loc)
   {
@@ -814,7 +814,7 @@ namespace
     
     virtual String Id() const
     {
-      return ALSA_BACKEND_ID;
+      return Text::ALSA_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -824,7 +824,12 @@ namespace
 
     virtual uint_t Capabilities() const
     {
-      return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+      return CAPABILITIES;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
@@ -1110,7 +1115,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::ALSA_BACKEND_ID, Text::ALSA_BACKEND_DESCRIPTION, CAPABILITIES, e));
       }
     }
 

@@ -29,8 +29,6 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const Char NULL_BACKEND_ID[] = {'n', 'u', 'l', 'l', 0};
-
   class NullBackendWorker : public BackendWorker
   {
   public:
@@ -73,7 +71,7 @@ namespace
   public:
     virtual String Id() const
     {
-      return NULL_BACKEND_ID;
+      return Text::NULL_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -84,6 +82,11 @@ namespace
     virtual uint_t Capabilities() const
     {
       return CAP_TYPE_STUB;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const

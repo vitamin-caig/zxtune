@@ -20,6 +20,8 @@ Author:
 //std includes
 #include <cassert>
 #include <list>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
 #include <sound/text/sound.h>
 
@@ -33,75 +35,6 @@ namespace
   const std::string THIS_MODULE("Sound::Enumerator");
 
   typedef std::list<BackendCreator::Ptr> BackendCreatorsList;
-
-  class BackendCreatorIteratorImpl : public BackendCreator::Iterator
-  {
-    class BackendCreatorStub : public BackendCreator
-    {
-    public:
-      virtual String Id() const
-      {
-        return String();
-      }
-
-      virtual String Description() const
-      {
-        return String();
-      }
-
-      virtual uint_t Capabilities() const
-      {
-        return 0;
-      }
-
-      virtual Error CreateBackend(CreateBackendParameters::Ptr /*params*/, Backend::Ptr& /*result*/) const
-      {
-        return Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND);
-      }
-
-      static void Deleter(BackendCreatorStub*)
-      {
-      }
-    };
-  public:
-    BackendCreatorIteratorImpl(BackendCreatorsList::const_iterator from,
-                               BackendCreatorsList::const_iterator to)
-      : Pos(from), Limit(to)
-    {
-    }
-
-    virtual bool IsValid() const
-    {
-      return Pos != Limit;
-    }
-
-    virtual BackendCreator::Ptr Get() const
-    {
-      //since this implementation is passed to external client, make it as safe as possible
-      if (Pos != Limit)
-      {
-        return *Pos;
-      }
-      assert(!"BackendCreator iterator is out of range");
-      static BackendCreatorStub stub;
-      return BackendCreator::Ptr(&stub, &BackendCreatorStub::Deleter);
-    }
-
-    virtual void Next()
-    {
-      if (Pos != Limit)
-      {
-        ++Pos;
-      }
-      else
-      {
-        assert(!"BackendCreator iterator is out of range");
-      }
-    }
-  private:
-    BackendCreatorsList::const_iterator Pos;
-    const BackendCreatorsList::const_iterator Limit;
-  };
 
   class BackendsEnumeratorImpl : public BackendsEnumerator
   {
@@ -120,10 +53,53 @@ namespace
 
     virtual BackendCreator::Iterator::Ptr Enumerate() const
     {
-      return BackendCreator::Iterator::Ptr(new BackendCreatorIteratorImpl(Creators.begin(), Creators.end()));
+      return BackendCreator::Iterator::Ptr(new RangedObjectIteratorAdapter<BackendCreatorsList::const_iterator, BackendCreator::Ptr>(
+        Creators.begin(), Creators.end()));
     }
   private:
     BackendCreatorsList Creators;
+  };
+
+  class UnavailableBackend : public BackendCreator
+  {
+  public:
+    UnavailableBackend(const String& id, const String& descr, uint_t caps, const Error& status)
+      : IdValue(id)
+      , DescrValue(descr)
+      , CapsValue(caps)
+      , StatusValue(status)
+    {
+    }
+
+    virtual String Id() const
+    {
+      return IdValue;
+    }
+
+    virtual String Description() const
+    {
+      return DescrValue;
+    }
+
+    virtual uint_t Capabilities() const
+    {
+      return CapsValue;
+    }
+
+    virtual Error Status() const
+    {
+      return StatusValue;
+    }
+
+    virtual Error CreateBackend(CreateBackendParameters::Ptr, Backend::Ptr&) const
+    {
+      return Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND);
+    }
+  private:
+    const String IdValue;
+    const String DescrValue;
+    const uint_t CapsValue;
+    const Error StatusValue;
   };
 }
 
@@ -140,6 +116,16 @@ namespace ZXTune
     BackendCreator::Iterator::Ptr EnumerateBackends()
     {
       return BackendsEnumerator::Instance().Enumerate();
+    }
+
+    BackendCreator::Ptr CreateDisabledBackendStub(const String& id, const String& description, uint_t caps)
+    {
+      return CreateUnavailableBackendStub(id, description, caps, Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_DISABLED_BACKEND));
+    }
+
+    BackendCreator::Ptr CreateUnavailableBackendStub(const String& id, const String& description, uint_t caps, const Error& status)
+    {
+      return boost::make_shared<UnavailableBackend>(id, description, caps, status);
     }
   }
 }

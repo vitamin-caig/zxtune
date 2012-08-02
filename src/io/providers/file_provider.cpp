@@ -204,6 +204,11 @@ namespace
       return Text::IO_FILE_PROVIDER_DESCRIPTION;
     }
 
+    virtual Error Status() const
+    {
+      return Error();
+    }
+
     virtual bool Check(const String& uri) const
     {
       // TODO: extract and use common scheme-working code

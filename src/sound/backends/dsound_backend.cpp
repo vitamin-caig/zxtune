@@ -41,7 +41,7 @@ namespace
 
   const std::string THIS_MODULE("Sound::Backend::DirectSound");
 
-  const Char DSOUND_BACKEND_ID[] = {'d', 's', 'o', 'u', 'n', 'd', 0};
+  const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const uint_t LATENCY_MIN = 20;
   const uint_t LATENCY_MAX = 10000;
@@ -514,7 +514,7 @@ namespace
 
     virtual String Id() const
     {
-      return DSOUND_BACKEND_ID;
+      return Text::DSOUND_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -524,7 +524,12 @@ namespace
 
     virtual uint_t Capabilities() const
     {
-      return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+      return CAPABILITIES;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
@@ -644,12 +649,12 @@ namespace ZXTune
         }
         else
         {
-          Log::Debug(THIS_MODULE, "No devices to output. Skip backend");
+          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_NO_DEVICES);
         }
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::DSOUND_BACKEND_ID, Text::DSOUND_BACKEND_DESCRIPTION, CAPABILITIES, e));
       }
     }
 

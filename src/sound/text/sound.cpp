@@ -34,6 +34,10 @@ extern const Char SOUND_ERROR_BACKEND_NOT_FOUND[] = {
   'R','e','q','u','e','s','t','e','d',' ','b','a','c','k','e','n','d',' ','i','s',' ','n','o','t',' ','s','u',
   'p','p','o','r','t','e','d','.',0
 };
+extern const Char SOUND_ERROR_BACKEND_NO_DEVICES[] = {
+  'N','o',' ','s','u','i','t','a','b','l','e',' ','o','u','t','p','u','t',' ','d','e','v','i','c','e','s',' ',
+  'f','o','u','n','d',0
+};
 extern const Char SOUND_ERROR_BACKEND_NO_MEMORY[] = {
   'F','a','i','l','e','d',' ','t','o',' ','w','o','r','k',' ','w','i','t','h',' ','b','a','c','k','e','n','d',
   '-',' ','n','o',' ','m','e','m','o','r','y','.',0
@@ -54,6 +58,9 @@ extern const Char SOUND_ERROR_BACKEND_SETUP_BACKEND[] = {
 };
 extern const Char SOUND_ERROR_BACKEND_STOP[] = {
   'F','a','i','l','e','d',' ','t','o',' ','s','t','o','p',' ','p','l','a','y','b','a','c','k','.',0
+};
+extern const Char SOUND_ERROR_DISABLED_BACKEND[] = {
+  'N','o','t',' ','a','v','a','i','l','a','b','l','e',0
 };
 extern const Char SOUND_ERROR_FILTER_HIGH_CUTOFF[] = {
   'S','p','e','c','i','f','i','e','d',' ','f','i','l','t','e','r',' ','h','i','g','h',' ','c','u','t','o','f',

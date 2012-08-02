@@ -41,8 +41,6 @@ namespace
 
   const std::string THIS_MODULE("Sound::Backend::Mp3");
 
-  const Char MP3_BACKEND_ID[] = {'m', 'p', '3', 0};
-
   const uint_t BITRATE_MIN = 32;
   const uint_t BITRATE_MAX = 320;
   const uint_t QUALITY_MIN = 0;
@@ -238,7 +236,7 @@ namespace
 
     virtual String GetId() const
     {
-      return MP3_BACKEND_ID;
+      return Text::MP3_BACKEND_ID;
     }
 
     virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
@@ -305,7 +303,7 @@ namespace
 
     virtual String Id() const
     {
-      return MP3_BACKEND_ID;
+      return Text::MP3_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -316,6 +314,11 @@ namespace
     virtual uint_t Capabilities() const
     {
       return CAP_TYPE_FILE;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
@@ -358,7 +361,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::MP3_BACKEND_ID, Text::MP3_BACKEND_DESCRIPTION, CAP_TYPE_FILE, e));
       }
     }
   }

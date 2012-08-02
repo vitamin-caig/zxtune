@@ -11,14 +11,19 @@ Author:
 
 //local includes
 #include "alsa.h"
+#include "enumerator.h"
+//library includes
+#include <sound/backend_attrs.h>
+//text includes
+#include <sound/text/backends.h>
 
 namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterAlsaBackend(class BackendsEnumerator& /*enumerator*/)
+    void RegisterAlsaBackend(BackendsEnumerator& enumerator)
     {
-      //do nothing
+      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::ALSA_BACKEND_ID, Text::ALSA_BACKEND_DESCRIPTION, CAP_TYPE_SYSTEM));
     }
 
     namespace Alsa

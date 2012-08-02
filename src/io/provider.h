@@ -72,6 +72,8 @@ namespace ZXTune
       virtual String Id() const = 0;
       //! Description in any form
       virtual String Description() const = 0;
+      //! Actuality status
+      virtual Error Status() const = 0;
     };
 
     //! @brief Enumerating supported %IO providers

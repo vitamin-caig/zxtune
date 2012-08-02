@@ -5,6 +5,9 @@
 
 namespace Text
 {
+extern const Char IO_ERROR_DISABLED_PROVIDER[] = {
+  'N','o','t',' ','a','v','a','i','l','a','b','l','e',0
+};
 extern const Char IO_ERROR_FILE_EXISTS[] = {
   'F','i','l','e',' ','\'','%','1','%','\'',' ','a','l','r','e','a','d','y',' ','e','x','i','s','t','s','.',0
 };

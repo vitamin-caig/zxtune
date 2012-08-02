@@ -37,6 +37,9 @@ __cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
 < IO_ERROR_NETWORK_ERROR
 > "Network error happends: %1%"
 
+< IO_ERROR_DISABLED_PROVIDER
+> "Not available"
+
 #providers description
 < IO_FILE_PROVIDER_ID
 > "file"

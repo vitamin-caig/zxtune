@@ -42,8 +42,6 @@ namespace
 
   const std::string THIS_MODULE("Sound::Backend::Flac");
 
-  const Char FLAC_BACKEND_ID[] = {'f', 'l', 'a', 'c', 0};
-  
   typedef boost::shared_ptr<FLAC__StreamEncoder> FlacEncoderPtr;
 
   void CheckFlacCall(FLAC__bool res, Error::LocationRef loc)
@@ -233,7 +231,7 @@ namespace
 
     virtual String GetId() const
     {
-      return FLAC_BACKEND_ID;
+      return Text::FLAC_BACKEND_ID;
     }
 
     virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
@@ -279,7 +277,7 @@ namespace
 
     virtual String Id() const
     {
-      return FLAC_BACKEND_ID;
+      return Text::FLAC_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -290,6 +288,11 @@ namespace
     virtual uint_t Capabilities() const
     {
       return CAP_TYPE_FILE;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
@@ -332,7 +335,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::FLAC_BACKEND_ID, Text::FLAC_BACKEND_DESCRIPTION, CAP_TYPE_FILE, e));
       }
     }
   }

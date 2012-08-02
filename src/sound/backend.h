@@ -40,6 +40,8 @@ namespace ZXTune
       virtual String Description() const = 0;
       //! Backend capabilities @see backend_attrs.h
       virtual uint_t Capabilities() const = 0;
+      //! Actuality status
+      virtual Error Status() const = 0;
     };
 
     //! @brief Volume control interface

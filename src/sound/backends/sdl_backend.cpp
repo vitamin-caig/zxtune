@@ -42,7 +42,7 @@ namespace
 
   const std::string THIS_MODULE("Sound::Backend::Sdl");
 
-  const Char SDL_BACKEND_ID[] = {'s', 'd', 'l', 0};
+  const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
@@ -296,7 +296,7 @@ namespace
 
     virtual String Id() const
     {
-      return SDL_BACKEND_ID;
+      return Text::SDL_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -306,7 +306,12 @@ namespace
 
     virtual uint_t Capabilities() const
     {
-      return CAP_TYPE_SYSTEM;
+      return CAPABILITIES;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
@@ -348,7 +353,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::SDL_BACKEND_ID, Text::SDL_BACKEND_DESCRIPTION, CAPABILITIES, e));
       }
     }
   }

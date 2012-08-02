@@ -44,8 +44,6 @@ namespace
 
   const std::string THIS_MODULE("Sound::Backend::Ogg");
 
-  const Char OGG_BACKEND_ID[] = {'o', 'g', 'g', 0};
-
   const uint_t BITRATE_MIN = 48;
   const uint_t BITRATE_MAX = 500;
   const uint_t QUALITY_MIN = 0;
@@ -375,7 +373,7 @@ namespace
 
     virtual String GetId() const
     {
-      return OGG_BACKEND_ID;
+      return Text::OGG_BACKEND_ID;
     }
 
     virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
@@ -425,7 +423,7 @@ namespace
 
     virtual String Id() const
     {
-      return OGG_BACKEND_ID;
+      return Text::OGG_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -436,6 +434,11 @@ namespace
     virtual uint_t Capabilities() const
     {
       return CAP_TYPE_FILE;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
@@ -482,7 +485,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::OGG_BACKEND_ID, Text::OGG_BACKEND_DESCRIPTION, CAP_TYPE_FILE, e));
       }
     }
   }

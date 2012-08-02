@@ -30,6 +30,9 @@ namespace ZXTune
 
       static BackendsEnumerator& Instance();
     };
+
+    BackendCreator::Ptr CreateDisabledBackendStub(const String& id, const String& description, uint_t caps);
+    BackendCreator::Ptr CreateUnavailableBackendStub(const String& id, const String& description, uint_t caps, const Error& status);
   }
 }
 

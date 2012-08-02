@@ -45,7 +45,7 @@ namespace
 
   const std::string THIS_MODULE("Sound::Backend::Win32");
 
-  const Char WIN32_BACKEND_ID[] = {'w', 'i', 'n', '3', '2', 0};
+  const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const uint_t MAX_WIN32_VOLUME = 0xffff;
   const uint_t BUFFERS_MIN = 3;
@@ -519,7 +519,7 @@ namespace
 
     virtual String Id() const
     {
-      return WIN32_BACKEND_ID;
+      return Text::WIN32_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -529,7 +529,12 @@ namespace
 
     virtual uint_t Capabilities() const
     {
-      return CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+      return CAPABILITIES;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
@@ -645,12 +650,12 @@ namespace ZXTune
         }
         else
         {
-          Log::Debug(THIS_MODULE, "No devices detected. Disable backend.");
+          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_NO_DEVICES);
         }
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::WIN32_BACKEND_ID, Text::WIN32_BACKEND_DESCRIPTION, CAPABILITIES, e));
       }
     }
 

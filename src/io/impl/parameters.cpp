@@ -10,7 +10,9 @@ Author:
 */
 
 //library includes
+#include <zxtune.h>
 #include <io/io_parameters.h>
+#include <io/providers_parameters.h>
 
 namespace Parameters
 {
@@ -18,6 +20,8 @@ namespace Parameters
   {
     namespace IO
     {
+      extern const NameType PREFIX = ZXTune::PREFIX + "io";
+
       namespace Providers
       {
         extern const NameType PREFIX = IO::PREFIX + "providers";

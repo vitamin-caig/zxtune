@@ -9,14 +9,20 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
+#include "enumerator.h"
+//library includes
+#include <sound/backend_attrs.h>
+//text includes
+#include <sound/text/backends.h> 
 
 namespace ZXTune
 {
   namespace Sound
   {
-    void RegisterOggBackend(class BackendsEnumerator& /*enumerator*/)
+    void RegisterOggBackend(BackendsEnumerator& enumerator)
     {
-      //do nothing
+      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::OGG_BACKEND_ID, Text::OGG_BACKEND_DESCRIPTION, CAP_TYPE_FILE)); 
     }
   }
 }

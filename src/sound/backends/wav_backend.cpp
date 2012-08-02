@@ -38,8 +38,6 @@ namespace
 
   const std::string THIS_MODULE("Sound::Backend::Wav");
 
-  const Char WAV_BACKEND_ID[] = {'w', 'a', 'v', 0};
-
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -165,7 +163,7 @@ namespace
 
     virtual String GetId() const
     {
-      return WAV_BACKEND_ID;
+      return Text::WAV_BACKEND_ID;
     }
 
     virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
@@ -182,7 +180,7 @@ namespace
   public:
     virtual String Id() const
     {
-      return WAV_BACKEND_ID;
+      return Text::WAV_BACKEND_ID;
     }
 
     virtual String Description() const
@@ -193,6 +191,11 @@ namespace
     virtual uint_t Capabilities() const
     {
       return CAP_TYPE_FILE;
+    }
+
+    virtual Error Status() const
+    {
+      return Error();
     }
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const

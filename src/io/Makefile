@@ -1,6 +1,6 @@
 library_name := io
 path_step := ../..
-source_dirs := impl parameters
+source_dirs := impl
 source_files = providers/enumerator
 
 text_files := text/io
