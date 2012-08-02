@@ -258,7 +258,7 @@ namespace
 
   typedef HandlesCache<PlayerWrapper::Ptr> PlayersCache;
 
-  bool FindDefaultValue(const char* name, Parameters::IntType& value)
+  bool FindDefaultValue(const Parameters::NameType& name, Parameters::IntType& value)
   {
     typedef std::pair<Parameters::NameType, Parameters::IntType> Name2Val;
     static const Name2Val DEFAULTS[] =
@@ -292,7 +292,7 @@ ZXTuneHandle ZXTune_OpenData(const char* filename, const char** subname)
     ThrowIfError(ZXTune::IO::SplitUri(uri, path, subpath));
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
     Binary::Container::Ptr result;
-    ThrowIfError(ZXTune::IO::OpenData(path, *params, ZXTune::IO::ProgressCallback(), result));
+    ThrowIfError(ZXTune::IO::OpenData(path, *params, Log::ProgressCallback::Stub(), result));
     Require(result->Size() != 0);
     if (subname)
     {
@@ -494,8 +494,9 @@ bool ZXTune_GetPlayerParameterInt(ZXTuneHandle player, const char* paramName, in
     Require(paramValue != 0);
     const PlayerWrapper::Ptr wrapper = PlayersCache::Instance().Get(player);
     const Parameters::Accessor::Ptr props = wrapper->GetParameters();
+    const Parameters::NameType name(paramName);
     Parameters::IntType value;
-    if (!props->FindValue(paramName, value) && !FindDefaultValue(paramName, value))
+    if (!props->FindValue(name, value) && !FindDefaultValue(name, value))
     {
       return false;
     }
@@ -518,7 +519,8 @@ bool ZXTune_SetPlayerParameterInt(ZXTuneHandle player, const char* paramName, in
   {
     const PlayerWrapper::Ptr wrapper = PlayersCache::Instance().Get(player);
     const Parameters::Modifier::Ptr props = wrapper->GetParameters();
-    props->SetValue(paramName, paramValue);
+    const Parameters::NameType name(paramName);
+    props->SetValue(name, paramValue);
     return true;
   }
   catch (const Error&)
