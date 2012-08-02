@@ -11,8 +11,8 @@
 #ifndef __CORE_PLUGINS_PARAMETERS_H_DEFINED__
 #define __CORE_PLUGINS_PARAMETERS_H_DEFINED__
 
-//local includes
-#include "core_parameters.h"
+//common includes
+#include <parameters.h>
 
 namespace Parameters
 {
@@ -24,19 +24,19 @@ namespace Parameters
       namespace Plugins
       {
         //! @brief Parameters#ZXTune#Core#Plugins namespace prefix
-        const NameType PREFIX = Core::PREFIX + "plugins";
+        extern const NameType PREFIX;
 
         //! @brief RAW scaner parameters namespace
         namespace Raw
         {
           //! @brief Parameters#ZXTune#Core#Plugins#Raw namespace prefix
-          const NameType PREFIX = Plugins::PREFIX + "raw";
+          extern const NameType PREFIX;
 
           //@{
           //! @name Perform double analysis of plain data containers
 
           //! Parameter name
-          const NameType PLAIN_DOUBLE_ANALYSIS = PREFIX + "plain_double_analysis";
+          extern const NameType PLAIN_DOUBLE_ANALYSIS;
           //@}
 
           //@{
@@ -45,7 +45,7 @@ namespace Parameters
           //! Default value
           const IntType MIN_SIZE_DEFAULT = 128;
           //! Parameter name
-          const NameType MIN_SIZE = PREFIX + "min_size";
+          extern const NameType MIN_SIZE;
           //@}
         }
 
@@ -53,18 +53,18 @@ namespace Parameters
         namespace Hrip
         {
           //! @brief Parameters#ZXTune#Core#Plugins#Hrip namespace prefix
-          const NameType PREFIX = Plugins::PREFIX + "hrip";
+          extern const NameType PREFIX;
 
           //! @brief Ignore corrupted blocks
           //! @details 1 if do so
-          const NameType IGNORE_CORRUPTED = PREFIX + "ignore_corrupted";
+          extern const NameType IGNORE_CORRUPTED;
         }
 
         //! @brief AY container/player parameters namespace
         namespace AY
         {
           //! @brief Parameters#ZXTune#Core#Plugins#AY namespace prefix
-          const NameType PREFIX = Plugins::PREFIX + "ay";
+          extern const NameType PREFIX;
 
           //@{
           //! @name Default song duration (if not specified exactly)
@@ -72,7 +72,7 @@ namespace Parameters
           //! Default value (3min for 50 fps)
           const IntType DEFAULT_DURATION_FRAMES_DEFAULT = 3 * 60 * 50;
           //! Parameter name
-          const NameType DEFAULT_DURATION_FRAMES = PREFIX + "default_duration";
+          extern const NameType DEFAULT_DURATION_FRAMES;
           //@}
         }
 
@@ -80,7 +80,7 @@ namespace Parameters
         namespace Zip
         {
           //! @brief Parameters#ZXTune#Core#Plugins#Zip namespace prefix
-          const NameType PREFIX = Plugins::PREFIX + "zip";
+          extern const NameType PREFIX;
 
           //@{
           //! @name Maximal file size to be depacked in Mb
@@ -88,7 +88,7 @@ namespace Parameters
           //! Default value
           const IntType MAX_DEPACKED_FILE_SIZE_MB_DEFAULT = 32;
           //! Parameter name
-          const NameType MAX_DEPACKED_FILE_SIZE_MB = PREFIX + "max_depacked_size_mb";
+          extern const NameType MAX_DEPACKED_FILE_SIZE_MB;
           //@}
         }
       }

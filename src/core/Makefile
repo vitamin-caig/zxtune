@@ -1,6 +1,7 @@
 library_name := core
 path_step := ../..
-source_dirs := plugins \
+source_dirs := parameters \
+               plugins \
                plugins/archives \
                plugins/containers \
                plugins/players \

@@ -11,8 +11,8 @@
 #ifndef __SOUND_PARAMETERS_H_DEFINED__
 #define __SOUND_PARAMETERS_H_DEFINED__
 
-//local includes
-#include <zxtune.h>
+//common includes
+#include <parameters.h>
 
 namespace Parameters
 {
@@ -22,7 +22,7 @@ namespace Parameters
     namespace Sound
     {
       //! @brief Parameters#ZXTune#Sound namespace prefix
-      const NameType PREFIX = ZXTune::PREFIX + "sound";
+      extern const NameType PREFIX;
 
       //@{
       //! @name %Sound frequency in Hz
@@ -30,7 +30,7 @@ namespace Parameters
       //! Default value- 44.1kHz
       const IntType FREQUENCY_DEFAULT = 44100;
       //! Parameter name
-      const NameType FREQUENCY = PREFIX + "frequency";
+      extern const NameType FREQUENCY;
       //@}
 
       //@{
@@ -41,13 +41,13 @@ namespace Parameters
       const IntType FRAMEDURATION_MIN = 1000;
       const IntType FRAMEDURATION_MAX = 1000000;
       //! Parameter name
-      const NameType FRAMEDURATION = PREFIX + "frameduration";
+      extern const NameType FRAMEDURATION;
 
       //@{
       //! @name Looped playback
 
       //! Parameter name
-      const NameType LOOPED = PREFIX + "looped";
+      extern const NameType LOOPED;
       //@}
     }
   }

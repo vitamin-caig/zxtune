@@ -11,8 +11,8 @@
 #ifndef __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 #define __IO_PROVIDERS_PARAMETERS_H_DEFINED__
 
-//local includes
-#include "io_parameters.h"
+//common includes
+#include <parameters.h>
 
 namespace Parameters
 {
@@ -24,20 +24,20 @@ namespace Parameters
       namespace Providers
       {
         //! @brief Parameters#ZXTune#IO#Providers namespace prefix
-        const NameType PREFIX = IO::PREFIX + "providers";
+        extern const NameType PREFIX;
 
         //! @brief %File provider parameters namespace
         namespace File
         {
           //! @brief Parameters#ZXTune#IO#Providers#File namespace prefix
-          const NameType PREFIX = Providers::PREFIX + "file";
+          extern const NameType PREFIX;
           //@{
           //! @name Memory-mapping usage data size threshold parameter.
 
           //! Default value
           const IntType MMAP_THRESHOLD_DEFAULT = 16384;
           //! Parameter full path
-          const NameType MMAP_THRESHOLD = PREFIX + "mmap_threshold";
+          extern const NameType MMAP_THRESHOLD;
           //@}
         }
 
@@ -45,19 +45,19 @@ namespace Parameters
         namespace Network
         {
           //! @brief Parameters#ZXTune#IO#Providers#Network namespace prefix
-          const NameType PREFIX = Providers::PREFIX + "network";
+          extern const NameType PREFIX;
 
           //! @brief Parameters for HTTP protocol
           namespace Http
           {
             //! @brief Parameters#ZXTune#IO#Providers#Network#Http namespace prefix
-            const NameType PREFIX = Network::PREFIX + "http";
+            extern const NameType PREFIX;
 
             //@{
             //! @name Useragent parameter
 
             //! Parameter full path
-            const NameType USERAGENT = PREFIX + "useragent";
+            extern const NameType USERAGENT;
           }
         }
       }
