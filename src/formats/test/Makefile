@@ -1,5 +1,14 @@
 all test:
-	$(MAKE) -C cc3 test
-	$(MAKE) -C rar test
-	$(MAKE) -C zip test
-	$(MAKE) -C zxzip test
+	$(MAKE) -C cc3 $(MAKECMDGOALS)
+	$(MAKE) -C dsq $(MAKECMDGOALS)
+	$(MAKE) -C esv $(MAKECMDGOALS)
+	$(MAKE) -C hrip $(MAKECMDGOALS)
+	$(MAKE) -C hrum $(MAKECMDGOALS)
+	$(MAKE) -C lha $(MAKECMDGOALS)
+	$(MAKE) -C lzh $(MAKECMDGOALS)
+	$(MAKE) -C lzs $(MAKECMDGOALS)
+	$(MAKE) -C pack2 $(MAKECMDGOALS)
+	$(MAKE) -C rar $(MAKECMDGOALS)
+	$(MAKE) -C tlz $(MAKECMDGOALS)
+	$(MAKE) -C zip $(MAKECMDGOALS)
+	$(MAKE) -C zxzip $(MAKECMDGOALS)

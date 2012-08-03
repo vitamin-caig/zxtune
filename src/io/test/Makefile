@@ -1,3 +1,2 @@
-all:
-	$(MAKE) -C file test
-	$(MAKE) -C uri test
+all test:
+	$(MAKE) -C providers $(MAKECMDGOALS)

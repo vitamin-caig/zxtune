@@ -1,3 +1,3 @@
 all test:
-	$(MAKE) -C common test
-	$(MAKE) -C error test
+	$(MAKE) -C common $(MAKECMDGOALS)
+	$(MAKE) -C error $(MAKECMDGOALS)
