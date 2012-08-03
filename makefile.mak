@@ -128,7 +128,7 @@ $(LIBS): deps
 deps: $(depends) $($(platform)_depends)
 
 $(depends) $($(platform)_depends):
-	$(MAKE) pic=$(pic) -C $(addprefix $(path_step)/,$@)
+	$(MAKE) pic=$(pic) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
 endif
 
 $(OBJECTS): | $(GENERATED_HEADERS) $(objects_dir)
@@ -162,7 +162,7 @@ install: install_$(platform)
 
 include $(path_step)/make/codeblocks.mak
 
-ifdef binary_name
 test: $(target)
+ifdef binary_name
 	$^
 endif
