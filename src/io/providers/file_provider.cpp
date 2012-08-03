@@ -34,6 +34,8 @@ Author:
 
 #define FILE_TAG 0D4CB3DA
 
+#undef min
+
 namespace
 {
   using namespace ZXTune;
@@ -190,7 +192,7 @@ namespace
     std::size_t Length;
   };
 
-  class FileIdentifier : public ::IO::Identifier
+  class FileIdentifier : public Identifier
   {
   public:
     FileIdentifier(const String& path, const String& subpath)
@@ -292,7 +294,7 @@ namespace
       return StringSet(SCHEMES, ArrayEnd(SCHEMES));
     }
 
-    virtual ::IO::Identifier::Ptr Resolve(const String& uri) const
+    virtual Identifier::Ptr Resolve(const String& uri) const
     {
       const String::size_type schemePos = uri.find(SCHEME_SIGN);
       const String::size_type hierPos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
@@ -303,7 +305,7 @@ namespace
       const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
       return !path.empty() && scheme == SCHEME_FILE
         ? boost::make_shared<FileIdentifier>(path, subpath)
-        : ::IO::Identifier::Ptr();
+        : Identifier::Ptr();
     }
 
     virtual Error Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/,

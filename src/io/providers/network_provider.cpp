@@ -215,7 +215,7 @@ namespace
     SCHEME_FTP,
   };
 
-  class RemoteIdentifier : public ::IO::Identifier
+  class RemoteIdentifier : public Identifier
   {
   public:
     RemoteIdentifier(const String& scheme, const String& path, const String& subpath)
@@ -317,7 +317,7 @@ namespace
       if (String::npos == schemePos)
       {
         //scheme is required
-        return ::IO::Identifier::Ptr();
+        return Identifier::Ptr();
       }
       const String::size_type hierPos = schemePos + ArraySize(SCHEME_SIGN) - 1;
       const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
