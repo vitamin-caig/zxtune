@@ -15,6 +15,7 @@
 #include <types.h>
 //std includes
 #include <map>
+#include <set>
 #include <sstream>
 #include <vector>
 
@@ -27,5 +28,7 @@ typedef std::basic_istringstream<Char> InStringStream;
 typedef std::map<String, String> StringMap;
 //! @brief Array of strings
 typedef std::vector<String> StringArray;
+//! @brief Set of strings
+typedef std::set<String> StringSet;
 
 #endif //__STRING_HELPERS_H_DEFINED__

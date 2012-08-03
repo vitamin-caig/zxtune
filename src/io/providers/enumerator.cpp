@@ -48,15 +48,21 @@ namespace
     {
       Providers.push_back(provider);
       Log::Debug(THIS_MODULE, "Registered provider '%1%'", provider->Id());
+      const StringSet& schemes = provider->Schemes();
+      std::transform(schemes.begin(), schemes.end(), std::inserter(Schemes, Schemes.end()),
+        boost::bind(&std::make_pair<String, DataProvider::Ptr>, _1, provider));
     }
 
     virtual Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& result) const
     {
       Log::Debug(THIS_MODULE, "Opening path '%1%'", path);
-      if (const DataProvider* provider = FindProvider(path))
+      if (Identifier::Ptr id = Resolve(path))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
-        return provider->Open(path, params, cb, result);
+        if (const DataProvider* provider = FindProvider(id->Scheme()))
+        {
+          Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
+          return provider->Open(id->Path(), params, cb, result);
+        }
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
@@ -65,10 +71,11 @@ namespace
     virtual Error SplitUri(const String& uri, String& path, String& subpath) const
     {
       Log::Debug(THIS_MODULE, "Splitting uri '%1%'", uri);
-      if (const DataProvider* provider = FindProvider(uri))
+      if (Identifier::Ptr id = Resolve(uri))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
-        return provider->Split(uri, path, subpath);
+        path = id->Path();
+        subpath = id->Subpath();
+        return Error();
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
@@ -77,10 +84,10 @@ namespace
     virtual Error CombineUri(const String& path, const String& subpath, String& uri) const
     {
       Log::Debug(THIS_MODULE, "Combining path '%1%' and subpath '%2%'", path, subpath);
-      if (const DataProvider* provider = FindProvider(path))
+      if (Identifier::Ptr id = Resolve(path))
       {
-        Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
-        return provider->Combine(path, subpath, uri);
+        uri = id->WithSubpath(subpath)->Full();
+        return Error();
       }
       Log::Debug(THIS_MODULE, " No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
@@ -91,19 +98,29 @@ namespace
       return Provider::Iterator::Ptr(new RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr>(Providers.begin(), Providers.end()));
     }
   private:
-    const DataProvider* FindProvider(const String& uri) const
+    Identifier::Ptr Resolve(const String& uri) const
     {
       for (ProvidersList::const_iterator it = Providers.begin(), lim = Providers.end(); it != lim; ++it)
       {
-        if ((*it)->Check(uri))
+        if (const Identifier::Ptr res = (*it)->Resolve(uri))
         {
-          return it->get();
+          return res;
         }
       }
-      return 0;
+      return Identifier::Ptr();
+    }
+
+    const DataProvider* FindProvider(const String& scheme) const
+    {
+      const SchemeToProviderMap::const_iterator it = Schemes.find(scheme);
+      return it != Schemes.end()
+        ? it->second.get()
+        : 0;
     }
   private:
     ProvidersList Providers;
+    typedef std::map<String, DataProvider::Ptr> SchemeToProviderMap;
+    SchemeToProviderMap Schemes;
   };
 
   class UnavailableProvider : public DataProvider
@@ -149,6 +166,16 @@ namespace
     virtual Error Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&, Binary::Container::Ptr&) const
     {
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+    }
+
+    virtual StringSet Schemes() const
+    {
+      return StringSet();
+    }
+
+    virtual Identifier::Ptr Resolve(const String& /*uri*/) const
+    {
+      return Identifier::Ptr();
     }
   private:
     const String IdValue;

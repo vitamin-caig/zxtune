@@ -15,7 +15,9 @@ Author:
 //local includes
 #include "curl_api.h"
 #include "enumerator.h"
+#include "providers_factories.h"
 //common includes
+#include <contract.h>
 #include <error_tools.h>
 #include <logging.h>
 #include <tools.h>
@@ -112,23 +114,31 @@ namespace
   class RemoteResource
   {
   public:
-    RemoteResource(Curl::Api::Ptr api, const String& url)
+    explicit RemoteResource(Curl::Api::Ptr api)
       : Object(api)
     {
-      Object.SetOption(CURLOPT_URL, IO::ConvertToFilename(url).c_str(), THIS_LINE);
       Object.SetOption(CURLOPT_DEBUGFUNCTION, reinterpret_cast<void*>(&DebugCallback), THIS_LINE);
+      Object.SetOption(CURLOPT_VERBOSE, 1, THIS_LINE);
       Object.SetOption(CURLOPT_WRITEFUNCTION, reinterpret_cast<void*>(&WriteCallback), THIS_LINE);
     }
 
-    void SetOptions(const NetworkProviderParameters& params, Log::ProgressCallback& cb)
+    void SetSource(const String& url)
+    {
+      Object.SetOption(CURLOPT_URL, ZXTune::IO::ConvertToFilename(url).c_str(), THIS_LINE);
+    }
+
+    void SetOptions(const NetworkProviderParameters& params)
     {
       const String useragent = params.GetHttpUseragent();
       if (!useragent.empty())
       {
-        Object.SetOption(CURLOPT_USERAGENT, IO::ConvertToFilename(useragent).c_str(), THIS_LINE);
+        Object.SetOption(CURLOPT_USERAGENT, ZXTune::IO::ConvertToFilename(useragent).c_str(), THIS_LINE);
       }
       Object.SetOption(CURLOPT_FOLLOWLOCATION, 1, THIS_LINE);
-      Object.SetOption(CURLOPT_VERBOSE, 1, THIS_LINE);
+    }
+
+    void SetProgressCallback(Log::ProgressCallback& cb)
+    {
       Object.SetOption(CURLOPT_PROGRESSFUNCTION, reinterpret_cast<void*>(&ProgressCallback), THIS_LINE);
       Object.SetOption(CURLOPT_PROGRESSDATA, static_cast<void*>(&cb), THIS_LINE);
       Object.SetOption(CURLOPT_NOPROGRESS, 0, THIS_LINE);
@@ -196,15 +206,88 @@ namespace
   // uri-related constants
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_HTTP[] = {'h', 't', 't', 'p', 0};
-  const Char SCHEME_HTTPS[] = {'h', 't', 't', 'p', 's', 0};
   const Char SCHEME_FTP[] = {'f', 't', 'p', 0};
   const Char SUBPATH_DELIMITER = '#';
+
+  const Char* ALL_SCHEMES[] = 
+  {
+    SCHEME_HTTP,
+    SCHEME_FTP,
+  };
+
+  class RemoteIdentifier : public ::IO::Identifier
+  {
+  public:
+    RemoteIdentifier(const String& scheme, const String& path, const String& subpath)
+      : SchemeValue(scheme)
+      , PathValue(path)
+      , SubpathValue(subpath)
+      , FullValue(Serialize())
+    {
+      Require(!SchemeValue.empty() && !PathValue.empty());
+    }
+
+    virtual String Full() const
+    {
+      return FullValue;
+    }
+
+    virtual String Scheme() const
+    {
+      return SchemeValue;
+    }
+
+    virtual String Path() const
+    {
+      return PathValue;
+    }
+
+    virtual String Filename() const
+    {
+      //filename usually is useless on remote schemes
+      return String();
+    }
+
+    virtual String Extension() const
+    {
+      //filename usually is useless on remote schemes
+      return String();
+    }
+
+    virtual String Subpath() const
+    {
+      return SubpathValue;
+    }
+
+    virtual Ptr WithSubpath(const String& subpath) const
+    {
+      return boost::make_shared<RemoteIdentifier>(SchemeValue, PathValue, subpath);
+    }
+  private:
+    String Serialize() const
+    {
+      //do not place scheme
+      String res = PathValue;
+      if (!SubpathValue.empty())
+      {
+        res += SUBPATH_DELIMITER;
+        res += SubpathValue;
+      }
+      return res;
+    }
+  private:
+    const String SchemeValue;
+    const String PathValue;
+    const String SubpathValue;
+    const String FullValue;
+  };
 
   class NetworkDataProvider : public DataProvider
   {
   public:
     explicit NetworkDataProvider(Curl::Api::Ptr api)
       : Api(api)
+      , SupportedSchemes(ALL_SCHEMES, ArrayEnd(ALL_SCHEMES))
     {
     }
 
@@ -223,66 +306,45 @@ namespace
       return Error();
     }
 
-    virtual bool Check(const String& uri) const
+    virtual StringSet Schemes() const
     {
-      // TODO: extract and use common scheme-working code
+      return SupportedSchemes;
+    }
+
+    virtual Identifier::Ptr Resolve(const String& uri) const
+    {
       const String::size_type schemePos = uri.find(SCHEME_SIGN);
-      if (schemePos == String::npos)
+      if (String::npos == schemePos)
       {
-        return false;//scheme is mandatory
+        //scheme is required
+        return ::IO::Identifier::Ptr();
       }
+      const String::size_type hierPos = schemePos + ArraySize(SCHEME_SIGN) - 1;
+      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
+
       const String scheme = uri.substr(0, schemePos);
-      return scheme == SCHEME_HTTP
-          || scheme == SCHEME_HTTPS
-          || scheme == SCHEME_FTP
-      ;
+      const String hier = String::npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
+      if (hier.empty() || !SupportedSchemes.count(scheme))
+      {
+        //scheme and hierarchy part is mandatory
+        return Identifier::Ptr();
+      }
+      //Path should include scheme and all possible parameters
+      const String path = String::npos == subPos ? uri : uri.substr(0, subPos);
+      const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
+      return boost::make_shared<RemoteIdentifier>(scheme, path, subpath);
     }
-  
-    virtual Error Split(const String& uri, String& path, String& subpath) const
-    {
-      if (!Check(uri))
-      {
-        return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
-      }
-      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
-      if (String::npos != subPos)
-      {
-        path = uri.substr(0, subPos);
-        subpath = uri.substr(subPos + 1);
-      }
-      else
-      {
-        path = uri;
-        subpath = String();
-      }
-      return Error();
-    }
-  
-    virtual Error Combine(const String& path, const String& subpath, String& uri) const
-    {
-      String base, sub;
-      if (const Error& e = Split(path, base, sub))
-      {
-        return e;
-      }
-      uri = base;
-      if (!subpath.empty())
-      {
-        uri += SUBPATH_DELIMITER;
-        uri += subpath;
-      }
-      return Error();
-    }
-  
-    //no callback
+
     virtual Error Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb,
       Binary::Container::Ptr& result) const
     {
       try
       {
         const NetworkProviderParameters options(params);
-        RemoteResource resource(Api, path);
-        resource.SetOptions(options, cb);
+        RemoteResource resource(Api);
+        resource.SetSource(path);
+        resource.SetOptions(options);
+        resource.SetProgressCallback(cb);
         result = resource.Download();
         return Error();
       }
@@ -293,6 +355,7 @@ namespace
     }
   private:
     const Curl::Api::Ptr Api;
+    const StringSet SupportedSchemes;
   };
 }
 
@@ -300,14 +363,18 @@ namespace ZXTune
 {
   namespace IO
   {
+    DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
+    {
+      return boost::make_shared<NetworkDataProvider>(api);
+    }
+
     void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
     {
       try
       {
         const Curl::Api::Ptr api = Curl::LoadDynamicApi();
         Log::Debug(THIS_MODULE, "Detected CURL library %1%", api->curl_version());
-        const DataProvider::Ptr provider = boost::make_shared<NetworkDataProvider>(api);
-        enumerator.RegisterProvider(provider);
+        enumerator.RegisterProvider(CreateNetworkDataProvider(api));
       }
       catch (const Error& e)
       {

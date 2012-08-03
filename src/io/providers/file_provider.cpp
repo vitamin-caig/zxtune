@@ -9,13 +9,17 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//include first due to strange problems with curl includes
+#include <io/error_codes.h>
+
 //local includes
 #include "enumerator.h"
+#include "providers_factories.h"
 //common includes
-#include <tools.h>
+#include <contract.h>
 #include <error_tools.h>
+#include <tools.h>
 //library includes
-#include <io/error_codes.h>
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 //std includes
@@ -23,6 +27,7 @@ Author:
 //boost includes
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/shared_array.hpp>
 //text includes
 #include <io/text/io.h>
@@ -185,6 +190,75 @@ namespace
     std::size_t Length;
   };
 
+  class FileIdentifier : public ::IO::Identifier
+  {
+  public:
+    FileIdentifier(const String& path, const String& subpath)
+      : PathValue(path)
+      , SubpathValue(subpath)
+      , FullValue(Serialize())
+    {
+      Require(!PathValue.empty());
+    }
+
+    virtual String Full() const
+    {
+      return FullValue;
+    }
+
+    virtual String Scheme() const
+    {
+      return SCHEME_FILE;
+    }
+
+    virtual String Path() const
+    {
+      return PathValue;
+    }
+
+    virtual String Filename() const
+    {
+      String rest;
+      return ZXTune::IO::ExtractLastPathComponent(PathValue, rest);
+    }
+
+    virtual String Extension() const
+    {
+      const String& filename = Filename();
+      const String::size_type dotPos = filename.find_last_of('.');
+      return dotPos != String::npos
+        ? filename.substr(dotPos + 1)
+        : String();
+    }
+
+    virtual String Subpath() const
+    {
+      return SubpathValue;
+    }
+
+    virtual Ptr WithSubpath(const String& subpath) const
+    {
+      return boost::make_shared<FileIdentifier>(PathValue, subpath);
+    }
+  private:
+    String Serialize() const
+    {
+      //do not place scheme
+      String res = PathValue;
+      if (!SubpathValue.empty())
+      {
+        res += SUBPATH_DELIMITER;
+        res += SubpathValue;
+      }
+      return res;
+    }
+  private:
+    const String PathValue;
+    const String SubpathValue;
+    const String FullValue;
+  };
+
+
   inline bool IsOrdered(String::size_type lh, String::size_type rh)
   {
     return String::npos == rh ? true : lh < rh;
@@ -209,55 +283,29 @@ namespace
       return Error();
     }
 
-    virtual bool Check(const String& uri) const
+    virtual StringSet Schemes() const
     {
-      // TODO: extract and use common scheme-working code
+      static const Char* SCHEMES[] = 
+      {
+        SCHEME_FILE
+      };
+      return StringSet(SCHEMES, ArrayEnd(SCHEMES));
+    }
+
+    virtual ::IO::Identifier::Ptr Resolve(const String& uri) const
+    {
       const String::size_type schemePos = uri.find(SCHEME_SIGN);
-      const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
-      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
-    
-      return (String::npos == schemePos || uri.substr(0, schemePos) == SCHEME_FILE) && IsOrdered(basePos, subPos);
+      const String::size_type hierPos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
+      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
+
+      const String scheme = String::npos == schemePos ? String(SCHEME_FILE) : uri.substr(0, schemePos);
+      const String path = String::npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
+      const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
+      return !path.empty() && scheme == SCHEME_FILE
+        ? boost::make_shared<FileIdentifier>(path, subpath)
+        : ::IO::Identifier::Ptr();
     }
-  
-    virtual Error Split(const String& uri, String& path, String& subpath) const
-    {
-      const String::size_type schemePos = uri.find(SCHEME_SIGN);
-      const String::size_type basePos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
-      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER);
-      if ((String::npos != schemePos && uri.substr(0, schemePos) != SCHEME_FILE) || !IsOrdered(basePos, subPos))
-      {
-        return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
-      }
-      if (String::npos != subPos)
-      {
-        path = uri.substr(basePos, subPos - basePos);
-        subpath = uri.substr(subPos + 1);
-      }
-      else
-      {
-        path = uri.substr(basePos);
-        subpath = String();
-      }
-      return Error();
-    }
-  
-    virtual Error Combine(const String& path, const String& subpath, String& uri) const
-    {
-      String base, sub;
-      if (const Error& e = Split(path, base, sub))
-      {
-        return e;
-      }
-      uri = base;
-      if (!subpath.empty())
-      {
-        uri += SUBPATH_DELIMITER;
-        uri += subpath;
-      }
-      return Error();
-    }
-  
-    //no callback
+
     virtual Error Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/,
       Binary::Container::Ptr& result) const
     {
@@ -278,10 +326,14 @@ namespace ZXTune
 {
   namespace IO
   {
+    DataProvider::Ptr CreateFileDataProvider()
+    {
+      return boost::make_shared<FileDataProvider>();
+    }
+
     void RegisterFileProvider(ProvidersEnumerator& enumerator)
     {
-      const DataProvider::Ptr provider(new FileDataProvider());
-      enumerator.RegisterProvider(provider);
+      enumerator.RegisterProvider(CreateFileDataProvider());
     }
   }
 }
