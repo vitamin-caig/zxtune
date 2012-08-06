@@ -8,7 +8,7 @@ namespace
 {
   void ShowAlsaDevicesAndMixers()
   {
-    using namespace ZXTune::Sound::ALSA;
+    using namespace ZXTune::Sound::Alsa;
     std::cout << "ALSA devices and mixers:" << std::endl;
     for (const Device::Iterator::Ptr devices = EnumerateDevices(); devices->IsValid(); devices->Next())
     {

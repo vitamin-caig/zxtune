@@ -15,8 +15,8 @@
     <TMPL_LOOP NAME=FUNCTIONS>
     virtual <TMPL_VAR NAME=DECLARATION>
     {
-      static const char* NAME = "<TMPL_VAR NAME=NAME>";
-      typedef <TMPL_VAR NAME=RETTYPE>(*FunctionType)(<TMPL_VAR NAME=PARAMTYPES>);
+      static const char NAME[] = "<TMPL_VAR NAME=NAME>";
+      typedef <TMPL_VAR NAME=RETTYPE>(<TMPL_VAR NAME=CALLTYPE> *FunctionType)(<TMPL_VAR NAME=PARAMTYPES>);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(<TMPL_VAR NAME=PARAMNAMES>);
     }

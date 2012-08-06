@@ -40,16 +40,16 @@ namespace
     
     virtual HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param)
     {
-      static const char* NAME = "DirectSoundEnumerateA";
-      typedef HRESULT (*FunctionType)(LPDSENUMCALLBACKA, LPVOID);
+      static const char NAME[] = "DirectSoundEnumerateA";
+      typedef HRESULT (WINAPI *FunctionType)(LPDSENUMCALLBACKA, LPVOID);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(cb, param);
     }
     
     virtual HRESULT DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter)
     {
-      static const char* NAME = "DirectSoundCreate";
-      typedef HRESULT (*FunctionType)(LPCGUID, LPDIRECTSOUND*, LPUNKNOWN);
+      static const char NAME[] = "DirectSoundCreate";
+      typedef HRESULT (WINAPI *FunctionType)(LPCGUID, LPDIRECTSOUND*, LPUNKNOWN);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(pcGuidDevice, ppDS, pUnkOuter);
     }

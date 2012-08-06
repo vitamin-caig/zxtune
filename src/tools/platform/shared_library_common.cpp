@@ -52,4 +52,6 @@ SharedLibrary::Ptr SharedLibrary::Load(const SharedLibrary::Name& name)
     }
   }
   throw resError;
+  //workaround for MSVS7.1
+  return SharedLibrary::Ptr();
 }

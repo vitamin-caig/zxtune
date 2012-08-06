@@ -576,7 +576,7 @@ namespace
 
     virtual String Name() const
     {
-      WAVEOUTCAPS caps;
+      WAVEOUTCAPSA caps;
       if (MMSYSERR_NOERROR != Api->waveOutGetDevCapsA(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
       {
         Log::Debug(THIS_MODULE, "Failed to get device name");

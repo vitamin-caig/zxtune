@@ -83,7 +83,7 @@ namespace
   String Guid2String(LPGUID guid)
   {
     OLECHAR strGuid[39] = {0};
-    if (0 == ::StringFromGUID2(*guid, strGuid, ArraySize(strGuid)))
+    if (!guid || 0 == ::StringFromGUID2(*guid, strGuid, ArraySize(strGuid)))
     {
       return String();
     }
@@ -584,7 +584,7 @@ namespace
     explicit DevicesIterator(DirectSound::Api::Ptr api)
       : Current(Devices.begin())
     {
-      if (DS_OK != api->DirectSoundEnumerate(&EnumerateDevicesCallback, &Devices))
+      if (DS_OK != api->DirectSoundEnumerateA(&EnumerateDevicesCallback, &Devices))
       {
         Log::Debug(THIS_MODULE, "Failed to enumerate devices. Skip backend.");
         Current = Devices.end();
