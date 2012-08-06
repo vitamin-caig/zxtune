@@ -7,6 +7,13 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Network schemes access support (http and ftp)
+[*] zxtune-qt: support of any URI paste to playlist
+[*] zxtune-qt: improved errors processing for conversion and playback
+[*] zxtune-qt: detailed information about components' unavailability reasons
+
+--- Rev1877 from 23.07.2012
+
 [+] zx-state (.szx) snapshots format support
 [*] zxtune-qt: fixed crash for getting properties of invalid item
 
