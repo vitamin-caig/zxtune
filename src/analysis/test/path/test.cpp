@@ -50,7 +50,7 @@ int main()
   try
   {
     {
-      const Analysis::Path::Ptr empty = Analysis::ParsePath(EMPTY_PATH);
+      const Analysis::Path::Ptr empty = Analysis::ParsePath(EMPTY_PATH, '/');
       TestPath("empty path", *empty, EMPTY_PATH);
       const Analysis::Path::Ptr emptyPlusNotEmpty = empty->Append(FIRST_ELEMENT);
       TestPath("empty path plus not empty", *emptyPlusNotEmpty, SINGLE_PATH, FIRST_ELEMENT);
@@ -62,7 +62,7 @@ int main()
       Test(!emptyExtractNotEmpty, "empty path extracts not empty");
     }
     {
-      const Analysis::Path::Ptr single = Analysis::ParsePath(SINGLE_PATH);
+      const Analysis::Path::Ptr single = Analysis::ParsePath(SINGLE_PATH, '/');
       TestPath("single element path", *single, SINGLE_PATH, FIRST_ELEMENT);
       const Analysis::Path::Ptr singlePlusNotEmpty = single->Append(SECOND_ELEMENT);
       TestPath("single path plus not empty", *singlePlusNotEmpty, DOUBLE_PATH, FIRST_ELEMENT, SECOND_ELEMENT);
@@ -76,7 +76,7 @@ int main()
       Test(!singleExtractsInvalid, "single path extracts invalid");
     }
     {
-      const Analysis::Path::Ptr dbl = Analysis::ParsePath(DOUBLE_PATH);
+      const Analysis::Path::Ptr dbl = Analysis::ParsePath(DOUBLE_PATH, '/');
       TestPath("double element path", *dbl, DOUBLE_PATH, FIRST_ELEMENT, SECOND_ELEMENT);
       const Analysis::Path::Ptr dblPlusNotEmpty = dbl->Append(THIRD_ELEMENT);
       TestPath("double path plus not empty", *dblPlusNotEmpty, TREBLE_PATH, FIRST_ELEMENT, SECOND_ELEMENT, THIRD_ELEMENT);

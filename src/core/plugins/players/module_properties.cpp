@@ -216,8 +216,7 @@ namespace
         Container->SetValue(ATTR_FIXEDCRC, FixedRegion.Checksum(*allData));
       }
       //plugins
-      const PluginsChain::Ptr plugins = Location->GetPlugins();
-      const String& container = plugins->AsString();
+      const String& container = Location->GetPluginsChain()->AsString();
       if (!container.empty())
       {
         Container->SetValue(ATTR_CONTAINER, container);

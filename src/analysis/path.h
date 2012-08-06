@@ -50,7 +50,7 @@ namespace Analysis
     virtual Ptr Extract(const String& startPath) const = 0;
   };
 
-  Path::Ptr ParsePath(const String& str);
+  Path::Ptr ParsePath(const String& str, Char separator);
 }
 
 #endif //ANALYSIS_PATH_H_DEFINED

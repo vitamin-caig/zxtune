@@ -22,6 +22,7 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
+#include <core/text/core.h>
 #include <core/text/plugins.h>
 
 namespace
@@ -33,11 +34,11 @@ namespace
   class LoggerHelper
   {
   public:
-    LoggerHelper(uint_t total, const Module::DetectCallback& delegate, const Plugin& plugin, const String& path)
+    LoggerHelper(uint_t total, const Module::DetectCallback& delegate, const String& plugin, const String& path)
       : Total(total)
       , Delegate(delegate)
       , Progress(CreateProgressCallback(delegate, Total))
-      , Id(plugin.Id())
+      , Id(plugin)
       , Path(path)
       , Current()
     {
@@ -84,11 +85,11 @@ namespace
   class ContainerDetectCallback : public Formats::Archived::Container::Walker
   {
   public:
-    ContainerDetectCallback(std::size_t maxSize, Plugin::Ptr descr, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
+    ContainerDetectCallback(std::size_t maxSize, const String& plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
       : MaxSize(maxSize)
       , BaseLocation(location)
-      , Description(descr)
-      , Logger(count, callback, *Description, BaseLocation->GetPath()->AsString())
+      , SubPlugin(plugin)
+      , Logger(count, callback, SubPlugin, BaseLocation->GetPath()->AsString())
     {
     }
 
@@ -112,7 +113,7 @@ namespace
       if (const Binary::Container::Ptr subData = file.GetData())
       {
         const String subPath = file.GetName();
-        const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, Description, subPath);
+        const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, SubPlugin, subPath);
         const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
         ZXTune::Module::Detect(subLocation, *nestedProgressCallback);
       }
@@ -121,7 +122,7 @@ namespace
   private:
     const std::size_t MaxSize;
     const DataLocation::Ptr BaseLocation;
-    const Plugin::Ptr Description;
+    const String SubPlugin;
     mutable LoggerHelper Logger;
   };
 
@@ -147,7 +148,7 @@ namespace
       {
         if (const uint_t count = archive->CountFiles())
         {
-          ContainerDetectCallback detect(~std::size_t(0), Description, input, count, callback);
+          ContainerDetectCallback detect(~std::size_t(0), Description->Id(), input, count, callback);
           archive->ExploreFiles(detect);
         }
         return Analysis::CreateMatchedResult(archive->Size());
@@ -164,7 +165,7 @@ namespace
         {
           if (const Binary::Container::Ptr subData = fileToOpen->GetData())
           {
-            return CreateNestedLocation(location, subData, Description, fileToOpen->GetName());
+            return CreateNestedLocation(location, subData, Description->Id(), fileToOpen->GetName());
           }
         }
       }
@@ -173,7 +174,7 @@ namespace
   private:
     Formats::Archived::File::Ptr FindFile(const Formats::Archived::Container& container, const Analysis::Path& path) const
     {
-      Analysis::Path::Ptr resolved = Analysis::ParsePath(String());
+      Analysis::Path::Ptr resolved = Analysis::ParsePath(String(), Text::MODULE_SUBPATH_DELIMITER[0]);
       for (const Analysis::Path::Iterator::Ptr components = path.GetIterator();
            components->IsValid(); components->Next())
       {

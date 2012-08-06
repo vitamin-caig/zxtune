@@ -13,8 +13,6 @@ Author:
 #ifndef __CORE_DATA_LOCATION_H_DEFINED__
 #define __CORE_DATA_LOCATION_H_DEFINED__
 
-//local includes
-#include "core/plugins/plugins_chain.h"
 //common includes
 #include <parameters.h>
 //library includes
@@ -32,7 +30,7 @@ namespace ZXTune
 
     virtual Binary::Container::Ptr GetData() const = 0;
     virtual Analysis::Path::Ptr GetPath() const = 0;
-    virtual PluginsChain::Ptr GetPlugins() const = 0;
+    virtual Analysis::Path::Ptr GetPluginsChain() const = 0;
   };
 
   //! @param coreParams Parameters for plugins processing
@@ -43,7 +41,7 @@ namespace ZXTune
   DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, Binary::Container::Ptr data, const String& subpath);
 
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData);
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, Plugin::Ptr subPlugin, const String& subPath);
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, const String& subPlugin, const String& subPath);
 }
 
 #endif //__CORE_DATA_LOCATION_H_DEFINED__

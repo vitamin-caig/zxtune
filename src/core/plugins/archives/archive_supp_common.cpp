@@ -47,8 +47,9 @@ namespace
     if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
     {
       const ZXTune::Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
-      const String subPath = EncodeArchivePluginToPath(plugin->Id());
-      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, plugin, subPath);
+      const String subPlugin = plugin->Id();
+      const String subPath = EncodeArchivePluginToPath(subPlugin);
+      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, subPlugin, subPath);
       ZXTune::Module::Detect(subLocation, noProgressCallback);
       return Analysis::CreateMatchedResult(subData->PackedSize());
     }
@@ -72,7 +73,7 @@ namespace
     const Binary::Container::Ptr rawData = inputData->GetData();
     if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
     {
-      return CreateNestedLocation(inputData, subData, plugin, pathComponent);
+      return CreateNestedLocation(inputData, subData, pluginId, pathComponent);
     }
     return DataLocation::Ptr();
   }

@@ -17,6 +17,8 @@ Author:
 #include <tools.h>
 //boost includes
 #include <boost/make_shared.hpp>
+//text includes
+#include <src/core/text/core.h>
 
 namespace
 {
@@ -24,23 +26,17 @@ namespace
 
   const std::string THIS_MODULE("Core");
 
-  class EmptyPluginsChain : public PluginsChain
+  Analysis::Path::Ptr CreateEmptyPath()
   {
-    EmptyPluginsChain()
-    {
-    }
-  public:
-    static PluginsChain::Ptr Create()
-    {
-      static EmptyPluginsChain instance;
-      return PluginsChain::Ptr(&instance, NullDeleter<EmptyPluginsChain>());
-    }
+    static const Analysis::Path::Ptr instance = Analysis::ParsePath(String(), Text::MODULE_SUBPATH_DELIMITER[0]);
+    return instance;
+  }
 
-    virtual String AsString() const
-    {
-      return String();
-    }
-  };
+  Analysis::Path::Ptr CreateEmptyPluginsChain()
+  {
+    static const Analysis::Path::Ptr instance = Analysis::ParsePath(String(), Text::MODULE_CONTAINERS_DELIMITER[0]);
+    return instance;
+  }
 
   class UnresolvedLocation : public DataLocation
   {
@@ -57,12 +53,12 @@ namespace
 
     virtual Analysis::Path::Ptr GetPath() const
     {
-      return Analysis::ParsePath(String());
+      return CreateEmptyPath();
     }
 
-    virtual PluginsChain::Ptr GetPlugins() const
+    virtual Analysis::Path::Ptr GetPluginsChain() const
     {
-      return EmptyPluginsChain::Create();
+      return CreateEmptyPluginsChain();
     }
   private:
     const Binary::Container::Ptr Data;
@@ -93,7 +89,7 @@ namespace ZXTune
   {
     const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
     DataLocation::Ptr resolvedLocation = boost::make_shared<UnresolvedLocation>(data);
-    const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath);
+    const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath, Text::MODULE_SUBPATH_DELIMITER[0]);
     for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty(); unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
     {
       const String toResolve = unresolved->AsString();

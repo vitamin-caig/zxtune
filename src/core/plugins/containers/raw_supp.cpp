@@ -230,7 +230,7 @@ namespace
   public:
     typedef boost::shared_ptr<ScanDataLocation> Ptr;
 
-    ScanDataLocation(DataLocation::Ptr parent, Plugin::Ptr subPlugin, std::size_t offset)
+    ScanDataLocation(DataLocation::Ptr parent, const String& subPlugin, std::size_t offset)
       : Parent(parent)
       , Subdata(boost::make_shared<ScanDataContainer>(Parent->GetData(), offset))
       , Subplugin(subPlugin)
@@ -253,12 +253,12 @@ namespace
       return parentPath;
     }
 
-    virtual PluginsChain::Ptr GetPlugins() const
+    virtual Analysis::Path::Ptr GetPluginsChain() const
     {
-      const PluginsChain::Ptr parentPlugins = Parent->GetPlugins();
+      const Analysis::Path::Ptr parentPlugins = Parent->GetPluginsChain();
       if (Subdata->GetOffset())
       {
-        return PluginsChain::CreateMerged(parentPlugins, Subplugin);
+        return parentPlugins->Append(Subplugin);
       }
       return parentPlugins;
     }
@@ -280,7 +280,7 @@ namespace
   private:
     const DataLocation::Ptr Parent;
     const ScanDataContainer::Ptr Subdata;
-    const Plugin::Ptr Subplugin;
+    const String Subplugin;
   };
 
   template<class P>
@@ -574,7 +574,7 @@ namespace
         : availableArchives;
       RawDetectionPlugins usedPlugins(availablePlugins->EnumeratePlayers(), usedArchives, Description->Id());
 
-      ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, Description, 0);
+      ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, Description->Id(), 0);
 
       while (subLocation->HasToScan(minRawSize))
       {
@@ -586,7 +586,7 @@ namespace
         if (!subLocation.unique())
         {
           Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");
-          subLocation = boost::make_shared<ScanDataLocation>(input, Description, offset);
+          subLocation = boost::make_shared<ScanDataLocation>(input, Description->Id(), offset);
         }
         subLocation->Move(std::max(bytesToSkip, SCAN_STEP));
       }
@@ -601,7 +601,7 @@ namespace
       {
         const Binary::Container::Ptr inData = location->GetData();
         const Binary::Container::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
-        return CreateNestedLocation(location, subData, Description, pathComp); 
+        return CreateNestedLocation(location, subData, Description->Id(), pathComp); 
       }
       return DataLocation::Ptr();
     }
