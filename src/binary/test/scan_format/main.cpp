@@ -1,6 +1,7 @@
 #include <types.h>
 #include <tools.h>
 #include <error_tools.h>
+#include <logging.h>
 #include <parameters.h>
 #include <binary/format.h>
 #include <io/provider.h>
@@ -19,7 +20,7 @@ int main(int argc, char* argv[])
     const std::string filename = argv[1];
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
     Binary::Container::Ptr data;
-    ThrowIfError(ZXTune::IO::OpenData(filename, *params, ZXTune::IO::ProgressCallback(), data));
+    ThrowIfError(ZXTune::IO::OpenData(filename, *params, Log::ProgressCallback::Stub(), data));
 
     if (format->Match(data->Data(), data->Size()))
     {
