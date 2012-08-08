@@ -54,6 +54,9 @@ namespace Formats
     Decoder::Ptr CreateCompiledSTP2Decoder();
     Decoder::Ptr CreateCompiledPT24Decoder();
     Decoder::Ptr CreateCompiledPTU13Decoder();
+    Decoder::Ptr CreateZ80V145Decoder();
+    Decoder::Ptr CreateZ80V20Decoder();
+    Decoder::Ptr CreateZ80V30Decoder();
   }
 }
 

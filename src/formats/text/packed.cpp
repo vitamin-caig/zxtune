@@ -92,6 +92,15 @@ extern const Char TLZ_DECODER_DESCRIPTION[] = {
 extern const Char TRUSH_DECODER_DESCRIPTION[] = {
   'T','r','u','s','h',' ','C','o','m','p','r','e','s','s','o','r',' ','v','3','.','x',0
 };
+extern const Char Z80V145_DECODER_DESCRIPTION[] = {
+  'Z','8','0',' ','s','n','a','p','s','h','o','t','s',' ','v','e','r','s','i','o','n',' ','1','.','4','5',0
+};
+extern const Char Z80V20_DECODER_DESCRIPTION[] = {
+  'Z','8','0',' ','s','n','a','p','s','h','o','t','s',' ','v','e','r','s','i','o','n',' ','2','.','0',0
+};
+extern const Char Z80V30_DECODER_DESCRIPTION[] = {
+  'Z','8','0',' ','s','n','a','p','s','h','o','t','s',' ','v','e','r','s','i','o','n',' ','3','.','0',0
+};
 extern const Char ZIP_DECODER_DESCRIPTION[] = {
   'Z','I','P',' ','a','r','c','h','i','v','e','r',0
 };

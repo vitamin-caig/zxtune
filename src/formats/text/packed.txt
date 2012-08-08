@@ -128,3 +128,13 @@ __cpp> "#endif //__TEXT_PACKED_H_DEFINED__\n"
 #ZXZIP
 < ZXZIP_DECODER_DESCRIPTION
 > "ZXZip archiver"
+
+#Z80
+< Z80V145_DECODER_DESCRIPTION
+> "Z80 snapshots version 1.45"
+
+< Z80V20_DECODER_DESCRIPTION
+> "Z80 snapshots version 2.0"
+
+< Z80V30_DECODER_DESCRIPTION
+> "Z80 snapshots version 3.0"

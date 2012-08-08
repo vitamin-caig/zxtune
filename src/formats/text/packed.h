@@ -33,6 +33,9 @@ extern const Char TELEDISKIMAGE_DECODER_DESCRIPTION[];
 extern const Char TLZP_DECODER_DESCRIPTION[];
 extern const Char TLZ_DECODER_DESCRIPTION[];
 extern const Char TRUSH_DECODER_DESCRIPTION[];
+extern const Char Z80V145_DECODER_DESCRIPTION[];
+extern const Char Z80V20_DECODER_DESCRIPTION[];
+extern const Char Z80V30_DECODER_DESCRIPTION[];
 extern const Char ZIP_DECODER_DESCRIPTION[];
 extern const Char ZXZIP_DECODER_DESCRIPTION[];
 }//namespace Text
