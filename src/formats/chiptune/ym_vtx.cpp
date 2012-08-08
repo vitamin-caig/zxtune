@@ -47,6 +47,7 @@ namespace Chiptune
     typedef boost::array<uint8_t, 4> IdentifierType;
 
     const uint_t CLOCKRATE_MIN = 100000;//100kHz
+    const uint_t CLOCKRATE_MAX = 10000000;//10MHz
 
     const uint_t INTFREQ_MIN = 25;
     const uint_t INTFREQ_MAX = 100;
@@ -446,7 +447,7 @@ namespace Chiptune
       {
         return false;
       }
-      if (fromLE(hdr.Clockrate) < CLOCKRATE_MIN)
+      if (!in_range<uint_t>(fromLE(hdr.Clockrate), CLOCKRATE_MIN, CLOCKRATE_MAX))
       {
         return false;
       }
@@ -485,7 +486,7 @@ namespace Chiptune
       "('a|'A|'y|'Y)('y|'Y|'m|'M)" //type
       "00-06"          //layout
       "??"             //loop
-      "????"           //clockrate
+      "??01-9800"      //clockrate
       "19-64"          //intfreq, 25..100Hz
     );
 

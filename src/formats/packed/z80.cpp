@@ -110,7 +110,10 @@ namespace Z80
       Ver_48k_iface1,
       Ver_SamRam,
       Ver128k,
-      Ver128k_iface1
+      Ver128k_iface1,
+      //some of the emulators write such hardware in ver2 snapshots
+      Ver_Pentagon = 9,
+      Ver_Scorpion //16 pages
     };
 
     static const String DESCRIPTION;
@@ -181,7 +184,7 @@ namespace Z80
 
   const String Version2_0::DESCRIPTION = Text::Z80V20_DECODER_DESCRIPTION;
   const std::string Version2_0::FORMAT(
-    "(\?\?){3}"    //skip registers
+    "(\?\?){3}"  //skip registers
     "0000"       //PC is 0
     "(\?\?){2}"
     "%00xxxxxx"
@@ -191,7 +194,7 @@ namespace Z80
     "%xxxxxx00|%xxxxxx01|%xxxxxx10" //im3 cannot be
     "1700"       //additional size is 23
     "\?\?"       //PC
-    "00-04"      //Mode
+    "00-04|09"   //Mode
     "\?"         //7ffd
     "00|ff"      //Interface2ROM
     "%000000xx"  //Flag3
@@ -299,6 +302,8 @@ namespace Z80
   struct PlatformTraits
   {
   public:
+    static const int_t NO_PAGE = -1;
+
     PlatformTraits(std::size_t additionalSize, uint_t hwMode, uint_t port7ffd)
       : MinPages()
       , Pages()
@@ -340,14 +345,14 @@ namespace Z80
     {
       static const int_t VER48_PAGES[] =
       {
-        -1, //ROM not need
-        -1, //interface rom is not available
-        -1,
-        -1,
+        NO_PAGE, //ROM not need
+        NO_PAGE, //interface rom is not available
+        NO_PAGE,
+        NO_PAGE,
         1,  //p4 to 4000
         2,  //p5 to 8000
-        -1,
-        -1,
+        NO_PAGE,
+        NO_PAGE,
         0   //p8 to 0000
       };
 
@@ -359,10 +364,10 @@ namespace Z80
     {
       static const int_t SAMRAM_PAGES[] =
       {    
-        -1, //ROM not need
-        -1, //interface ROM not need
-        -1, //SamRam basic ROM not need
-        -1, //SamRam monitor ROM not need
+        NO_PAGE, //ROM not need
+        NO_PAGE, //interface ROM not need
+        NO_PAGE, //SamRam basic ROM not need
+        NO_PAGE, //SamRam monitor ROM not need
         1,  //p4 to 4000
         2,  //p5 to 8000
         3,  //p6 to c000 (shadow)
@@ -378,9 +383,9 @@ namespace Z80
     {
       static const int_t VER128_PAGES[] =
       {
-        -1, //old ROM not need
-        -1, //interface ROM not need
-        -1, //new ROM not need
+        NO_PAGE, //old ROM not need
+        NO_PAGE, //interface ROM not need
+        NO_PAGE, //new ROM not need
         2,  //p3(0)  to  8000
         3,  //p4(1)  to  c000
         1,  //p5(2)  to  4000
@@ -398,9 +403,9 @@ namespace Z80
     {
       static const int_t VER256_PAGES[] =
       {
-        -1, //old ROM not need
-        -1, //interface ROM not need
-        -1, //new ROM not need
+        NO_PAGE, //old ROM not need
+        NO_PAGE, //interface ROM not need
+        NO_PAGE, //new ROM not need
         2,  //p3(0)  to  8000
         3,  //p4(1)  to  c000
         1,  //p5(2)  to  4000
@@ -435,6 +440,7 @@ namespace Z80
         break;
       case Version2_0::Ver128k:
       case Version2_0::Ver128k_iface1:
+      case Version3_0::Ver_Pentagon:
         Fill128kTraits();
         break;
       default:
@@ -494,6 +500,13 @@ namespace Z80
         break;
       }
       const Version2_0::MemoryPage page = stream.ReadField<Version2_0::MemoryPage>();
+      const int_t pageNumber = traits.PageNumber(page.Number);
+      const bool isPageValid = pageNumber != PlatformTraits::NO_PAGE;
+      if (!isPageRequired && !isPageValid)
+      {
+        break;
+      }
+      Require(isPageValid);
       const std::size_t pageSize = fromLE(page.DataSize);
       const uint8_t* pageSource = 0;
       if (pageSize == page.UNCOMPRESSED)
@@ -506,11 +519,7 @@ namespace Z80
         DecodeBlock(stream, pageSize, curPage);
         pageSource = &curPage.front();
       }
-      const int_t pageNumber = traits.PageNumber(page.Number);
-      if (-1 != pageNumber)
-      {
-        std::memcpy(&res->front() + pageNumber * PAGE_SIZE, pageSource, PAGE_SIZE);
-      }
+      std::memcpy(&res->front() + pageNumber * PAGE_SIZE, pageSource, PAGE_SIZE);
     }
     return CreatePackedContainer(res, stream.GetPosition());
   }
