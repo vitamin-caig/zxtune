@@ -47,18 +47,18 @@ namespace
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
 
-  class SDLBackendParameters
+  class SdlBackendParameters
   {
   public:
-    explicit SDLBackendParameters(const Parameters::Accessor& accessor)
+    explicit SdlBackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
 
     uint_t GetBuffersCount() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS, val) &&
+      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT;
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
@@ -155,7 +155,7 @@ namespace
       , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
       , WasInitialized(Api->SDL_WasInit(SDL_INIT_EVERYTHING))
-      , Queue(Parameters::ZXTune::Sound::Backends::SDL::BUFFERS_DEFAULT)
+      , Queue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT)
     {
       if (0 == WasInitialized)
       {
@@ -169,7 +169,7 @@ namespace
       }
     }
 
-    virtual ~SDLBackendWorker()
+    virtual ~SdlBackendWorker()
     {
       if (0 == WasInitialized)
       {
@@ -226,7 +226,7 @@ namespace
       }
       format.callback = OnBuffer;
       format.userdata = &Queue;
-      const SDLBackendParameters params(*BackendParams);
+      const SdlBackendParameters params(*BackendParams);
       Queue.SetSize(params.GetBuffersCount());
       CheckCall(Api->SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
       Api->SDL_PauseAudio(0);
