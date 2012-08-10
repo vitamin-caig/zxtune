@@ -17,7 +17,6 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <logging.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>

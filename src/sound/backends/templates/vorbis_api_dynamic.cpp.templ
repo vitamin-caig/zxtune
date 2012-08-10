@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "vorbis_api.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <shared_library_adapter.h>
 #include <tools.h>
 //boost includes
@@ -20,8 +20,6 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::Ogg");
-
   using namespace ZXTune::Sound::Vorbis;
 
   class VorbisName : public SharedLibrary::Name

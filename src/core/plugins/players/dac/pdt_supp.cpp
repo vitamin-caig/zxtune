@@ -18,8 +18,8 @@ Author:
 #include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -40,6 +40,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
+
+  const Debug::Stream Dbg("Core::PDTSupp");
 
   //hints
   const uint_t ORNAMENTS_COUNT = 11;
@@ -697,7 +699,7 @@ namespace
       }
       catch (const Error&/*e*/)
       {
-        Log::Debug("Core::PDTSupp", "Failed to create holder");
+        Dbg("Failed to create holder");
       }
       return Holder::Ptr();
     }

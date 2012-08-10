@@ -14,7 +14,7 @@ Author:
 #include <formats/chiptune/ascsoundmaster.h>
 //common includes
 #include <byteorder.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
@@ -26,7 +26,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Packed::CompiledASC");
+  const Debug::Stream Dbg("Formats::Packed::CompiledASC");
 }
 
 namespace CompiledASC
@@ -225,16 +225,16 @@ namespace Formats
         const std::size_t playerSize = rawPlayer.GetSize();
         if (playerSize >= std::min(availSize, CompiledASC::MAX_PLAYER_SIZE))
         {
-          Log::Debug(THIS_MODULE, "Invalid player");
+          Dbg("Invalid player");
           return Container::Ptr();
         }
-        Log::Debug(THIS_MODULE, "Detected player in first %1% bytes", playerSize);
+        Dbg("Detected player in first %1% bytes", playerSize);
         const std::size_t modDataSize = std::min(CompiledASC::MAX_MODULE_SIZE, availSize - playerSize);
         const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
         const Dump metainfo(rawPlayer.Information.begin(), rawPlayer.Information.end());
         if (CompiledASC::IsInfoEmpty(rawPlayer.Information))
         {
-          Log::Debug(THIS_MODULE, "Player has empty metainfo");
+          Dbg("Player has empty metainfo");
           if (const Binary::Container::Ptr originalModule = Decoder->Decode(*modData))
           {
             const std::size_t originalSize = originalModule->Size();
@@ -248,9 +248,9 @@ namespace Formats
             const std::size_t originalSize = fixedModule->Size() - metainfo.size();
             return CreatePackedContainer(fixedModule, playerSize + originalSize);
           }
-          Log::Debug(THIS_MODULE, "Failed to parse fixed module");
+          Dbg("Failed to parse fixed module");
         }
-        Log::Debug(THIS_MODULE, "Failed to find module after player");
+        Dbg("Failed to find module after player");
         return Container::Ptr();
       }
     private:

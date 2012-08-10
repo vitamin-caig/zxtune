@@ -16,7 +16,7 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
@@ -29,7 +29,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Chiptune::DigitalStudio");
+  const Debug::Stream Dbg("Formats::Chiptune::DigitalStudio");
 }
 
 namespace Formats
@@ -240,7 +240,7 @@ namespace Chiptune
         Require(in_range<std::size_t>(Source.Length, MIN_POSITIONS_COUNT, MAX_POSITIONS_COUNT));
         const std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
         target.SetPositions(positions, Source.Loop);
-        Log::Debug(THIS_MODULE, "Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
+        Dbg("Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
       }
 
       void ParsePatterns(const Indices& pats, Builder& target) const
@@ -250,7 +250,7 @@ namespace Chiptune
         {
           const uint_t patIndex = *it;
           Require(in_range<uint_t>(patIndex + 1, 1, PATTERNS_COUNT));
-          Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
+          Dbg("Parse pattern %1%", patIndex);
           target.StartPattern(patIndex);
           ParsePattern(Source.Patterns[patIndex], target);
         }
@@ -266,7 +266,7 @@ namespace Chiptune
           const SampleInfo& info = Source.Samples[samIdx];
           if (!ParseSample(samIdx, info, target))
           {
-            Log::Debug(THIS_MODULE, " Stub sample");
+            Dbg(" Stub sample");
             const std::size_t size = 0;
             target.SetSample(samIdx, 0, Binary::CreateContainer(&size, 1));
           }
@@ -364,7 +364,7 @@ namespace Chiptune
         static const std::size_t SAMPLES_OFFSETS[8] = {0x200, 0x7200, 0x0, 0xb200, 0xf200, 0x0, 0x13200, 0x17200};
         static const std::size_t SAMPLES_OFFSETS_COMPILED[8] = {0x200, 0x8200, 0x0, 0xc200, 0x10200, 0x0, 0x14200, 0x18200};
 
-        Log::Debug(THIS_MODULE, "Sample %1%: start=#%2$04x loop=#%3$04x page=#%4$02x size=#%5$04x", 
+        Dbg("Sample %1%: start=#%2$04x loop=#%3$04x page=#%4$02x size=#%5$04x", 
           idx, fromLE(info.Start), fromLE(info.Loop), unsigned(info.Page), fromLE(info.Size));
 
         if (info.Size == 0)
@@ -404,16 +404,16 @@ namespace Chiptune
             Require(part1);
             const std::size_t secondOffset = offsets[7];
             const std::size_t secondCopy = sampleOffsetInPage + sampleSize - PAGE_SIZE;
-            Log::Debug(THIS_MODULE, " Two parts in low memory: #%1$05x..#%2$05x + #%3$05x..#%4$05x", 
+            Dbg(" Two parts in low memory: #%1$05x..#%2$05x + #%3$05x..#%4$05x", 
               firstOffset, firstOffset + firstCopy, secondOffset, secondOffset + secondCopy);
             if (const Binary::Container::Ptr part2 = GetSampleData(secondOffset, secondCopy))
             {
-              Log::Debug(THIS_MODULE, " Using two parts with sizes #%1$05x + #%2$05x", part1->Size(), part2->Size());
+              Dbg(" Using two parts with sizes #%1$05x + #%2$05x", part1->Size(), part2->Size());
               target.SetSample(idx, sampleLoop, part1, part2);
             }
             else
             {
-              Log::Debug(THIS_MODULE, " Using first part with size #%1$05x", part1->Size());
+              Dbg(" Using first part with size #%1$05x", part1->Size());
               target.SetSample(idx, sampleLoop, part1);
             }
             return true;
@@ -423,11 +423,11 @@ namespace Chiptune
             const std::size_t dataOffset = isLoMemSampleInPage 
               ? (offsets[7] + (sampleOffsetInPage - PAGE_SIZE))
               : offsets[0] + sampleOffsetInPage;
-            Log::Debug(THIS_MODULE, " One part in low memory: #%1$05x..#%2$05x", 
+            Dbg(" One part in low memory: #%1$05x..#%2$05x", 
               dataOffset, dataOffset + sampleSize);
             if (const Binary::Container::Ptr data = GetSampleData(dataOffset, sampleSize))
             {
-              Log::Debug(THIS_MODULE, " Using size #%1$05x", data->Size());
+              Dbg(" Using size #%1$05x", data->Size());
               target.SetSample(idx, sampleLoop, data);
               return true;
             }
@@ -436,11 +436,11 @@ namespace Chiptune
         else
         {
           const std::size_t dataOffset = offsets[pageNumber] + sampleOffsetInPage;
-          Log::Debug(THIS_MODULE, " Hi memory: #%1$05x..#%2$05x", 
+          Dbg(" Hi memory: #%1$05x..#%2$05x", 
             dataOffset, dataOffset + sampleSize);
           if (const Binary::Container::Ptr data = GetSampleData(dataOffset, sampleSize))
           {
-            Log::Debug(THIS_MODULE, " Using size #%1$05x", data->Size());
+            Dbg(" Using size #%1$05x", data->Size());
             target.SetSample(idx, sampleLoop, data);
             return true;
           }
@@ -531,7 +531,7 @@ namespace Chiptune
       }
       catch (const std::exception&)
       {
-        Log::Debug(THIS_MODULE, "Failed to create");
+        Dbg("Failed to create");
         return Formats::Chiptune::Container::Ptr();
       }
     }

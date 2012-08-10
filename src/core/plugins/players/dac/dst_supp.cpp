@@ -19,7 +19,6 @@ Author:
 //common includes
 //#include <byteorder.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -37,11 +36,6 @@ Author:
 #include <core/text/plugins.h>
 
 #define FILE_TAG 3226C730
-
-namespace
-{
-  const std::string THIS_MODULE("Core::DSTSupp");
-}
 
 namespace DST
 {

@@ -14,7 +14,7 @@ Author:
 #include "container.h"
 #include "zip_supp.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
@@ -38,7 +38,7 @@ namespace ZipFile
     "%0000x00x 00"  //uint16_t CompressionMethod;
   ;
 
-  const std::string THIS_MODULE("Formats::Packed::Zip");
+  const Debug::Stream Dbg("Formats::Packed::Zip");
 
   class Container
   {
@@ -106,12 +106,12 @@ namespace ZipFile
     {
       if (Size != DestSize)
       {
-        Log::Debug(THIS_MODULE, "Stored file sizes mismatch");
+        Dbg("Stored file sizes mismatch");
         return std::auto_ptr<Dump>();
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Restore %1% bytes", DestSize);
+        Dbg("Restore %1% bytes", DestSize);
         return std::auto_ptr<Dump>(new Dump(Start, Start + DestSize));
       }
     }
@@ -133,23 +133,23 @@ namespace ZipFile
 
     virtual std::auto_ptr<Dump> Decompress() const
     {
-      Log::Debug(THIS_MODULE, "Inflate %1% -> %2%", Size, DestSize);
+      Dbg("Inflate %1% -> %2%", Size, DestSize);
       std::auto_ptr<Dump> res(new Dump(DestSize));
       switch (const int err = Uncompress(*res))
       {
       case Z_OK:
         return res;
       case Z_MEM_ERROR:
-        Log::Debug(THIS_MODULE, "No memory to deflate");
+        Dbg("No memory to deflate");
         break;
       case Z_BUF_ERROR:
-        Log::Debug(THIS_MODULE, "No memory in target buffer to deflate");
+        Dbg("No memory in target buffer to deflate");
         break;
       case Z_DATA_ERROR:
-        Log::Debug(THIS_MODULE, "Data is corrupted");
+        Dbg("Data is corrupted");
         break;
       default:
-        Log::Debug(THIS_MODULE, "Unknown error (%1%)", err);
+        Dbg("Unknown error (%1%)", err);
       }
       return std::auto_ptr<Dump>();
     }

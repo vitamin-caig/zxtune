@@ -1,4 +1,5 @@
 #include <error_tools.h>
+#include <progress_callback.h>
 #include <template_parameters.h>
 #include <core/module_detect.h>
 #include <core/module_holder.h>

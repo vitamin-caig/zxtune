@@ -18,17 +18,11 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <sound/backends_parameters.h>
 //qt includes
 #include <QtGui/QFileDialog>
-
-namespace
-{
-  const std::string THIS_MODULE("UI::Preferences::Oss");
-}
 
 namespace
 {

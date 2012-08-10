@@ -18,8 +18,8 @@ Author:
 #include "core/plugins/players/module_properties.h"
 //common includes
 #include <byteorder.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -52,6 +52,8 @@ namespace
   {
     return !(sym >= ' ' || sym == '\r' || sym == '\n');
   }
+
+  const Debug::Stream Dbg("Core::TXTSupp");
 }
 
 namespace
@@ -114,7 +116,7 @@ namespace
       }
       catch (const Error& e)
       {
-        Log::Debug("Core::TXTSupp", "Failed to create holder ('%1%')", e.GetText());
+        Dbg("Failed to create holder ('%1%')", e.GetText());
       }
       return Holder::Ptr();
     }

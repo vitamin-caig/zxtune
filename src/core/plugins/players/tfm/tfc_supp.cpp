@@ -18,7 +18,6 @@ Author:
 //common includes
 #include <contract.h>
 #include <tools.h>
-#include <logging.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>

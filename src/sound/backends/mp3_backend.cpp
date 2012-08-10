@@ -14,8 +14,8 @@ Author:
 #include "enumerator.h"
 #include "file_backend.h"
 //common includes
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
@@ -39,7 +39,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Mp3");
+  const Debug::Stream Dbg("Sound::Backend::Mp3");
 
   const uint_t BITRATE_MIN = 32;
   const uint_t BITRATE_MAX = 320;
@@ -72,7 +72,7 @@ namespace
       , Context(context)
       , Encoded(INITIAL_ENCODED_BUFFER_SIZE)
     {
-      Log::Debug(THIS_MODULE, "Stream initialized");
+      Dbg("Stream initialized");
     }
 
     virtual void SetTitle(const String& title)
@@ -114,7 +114,7 @@ namespace
         else if (-1 == res)//buffer too small
         {
           Encoded.resize(Encoded.size() * 2);
-          Log::Debug(THIS_MODULE, "Increase buffer to %1% bytes", Encoded.size());
+          Dbg("Increase buffer to %1% bytes", Encoded.size());
         }
         else if (-2 == res)//malloc problem
         {
@@ -139,7 +139,7 @@ namespace
         else if (-1 == res)//buffer too small
         {
           Encoded.resize(Encoded.size() * 2);
-          Log::Debug(THIS_MODULE, "Increase buffer to %1% bytes", Encoded.size());
+          Dbg("Increase buffer to %1% bytes", Encoded.size());
         }
         else if (-2 == res)//malloc problem
         {
@@ -150,7 +150,7 @@ namespace
           CheckLameCall(res, THIS_LINE);
         }
       }
-      Log::Debug(THIS_MODULE, "Stream flushed");
+      Dbg("Stream flushed");
     }
   private:
     const Mp3::Api::Ptr Api;
@@ -250,7 +250,7 @@ namespace
     void SetupContext(lame_global_flags& ctx) const
     {
       const uint_t samplerate = RenderingParameters->SoundFreq();
-      Log::Debug(THIS_MODULE, "Setting samplerate to %1%Hz", samplerate);
+      Dbg("Setting samplerate to %1%Hz", samplerate);
       CheckLameCall(Api->lame_set_in_samplerate(&ctx, samplerate), THIS_LINE);
       CheckLameCall(Api->lame_set_out_samplerate(&ctx, samplerate), THIS_LINE);
       CheckLameCall(Api->lame_set_num_channels(&ctx, OUTPUT_CHANNELS), THIS_LINE);
@@ -260,7 +260,7 @@ namespace
       case MODE_CBR:
         {
           const uint_t bitrate = Params.GetBitrate();
-          Log::Debug(THIS_MODULE, "Setting bitrate to %1%kbps", bitrate);
+          Dbg("Setting bitrate to %1%kbps", bitrate);
           CheckLameCall(Api->lame_set_VBR(&ctx, vbr_off), THIS_LINE);
           CheckLameCall(Api->lame_set_brate(&ctx, bitrate), THIS_LINE);
         }
@@ -268,7 +268,7 @@ namespace
       case MODE_ABR:
         {
           const uint_t bitrate = Params.GetBitrate();
-          Log::Debug(THIS_MODULE, "Setting average bitrate to %1%kbps", bitrate);
+          Dbg("Setting average bitrate to %1%kbps", bitrate);
           CheckLameCall(Api->lame_set_VBR(&ctx, vbr_abr), THIS_LINE);
           CheckLameCall(Api->lame_set_VBR_mean_bitrate_kbps(&ctx, bitrate), THIS_LINE);
         }
@@ -276,7 +276,7 @@ namespace
       case MODE_VBR:
         {
           const uint_t quality = Params.GetQuality();
-          Log::Debug(THIS_MODULE, "Setting VBR quality to %1%", quality);
+          Dbg("Setting VBR quality to %1%", quality);
           CheckLameCall(Api->lame_set_VBR(&ctx, vbr_default), THIS_LINE);
           CheckLameCall(Api->lame_set_VBR_q(&ctx, quality), THIS_LINE);
         }
@@ -355,7 +355,7 @@ namespace ZXTune
       try
       {
         const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
-        Log::Debug(THIS_MODULE, "Detected LAME library %1%", api->get_lame_version());
+        Dbg("Detected LAME library %1%", api->get_lame_version());
         const BackendCreator::Ptr creator(new Mp3BackendCreator(api));
         enumerator.RegisterCreator(creator);
       }

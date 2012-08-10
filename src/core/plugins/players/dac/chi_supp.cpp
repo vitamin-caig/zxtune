@@ -18,8 +18,8 @@ Author:
 #include "core/plugins/players/tracking.h"
 //common includes
 #include <byteorder.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -42,6 +42,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
+
+  const Debug::Stream Dbg("Core::CHISupp");
 
   //////////////////////////////////////////////////////////////////////////
   const uint8_t CHI_SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
@@ -587,7 +589,7 @@ namespace
       }
       catch (const Error&/*e*/)
       {
-        Log::Debug("Core::CHISupp", "Failed to create holder");
+        Dbg("Failed to create holder");
       }
       return Holder::Ptr();
     }

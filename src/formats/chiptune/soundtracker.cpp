@@ -17,7 +17,7 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
-#include <logging.h>
+#include <debug_log.h>
 //library includes
 #include <binary/typed_container.h>
 //boost includes
@@ -28,7 +28,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Chiptune::SoundTracker");
+  const Debug::Stream Dbg("Formats::Chiptune::SoundTracker");
 }
 
 namespace Formats
@@ -195,7 +195,7 @@ namespace Chiptune
           dst.Transposition = src.Transposition;
         }
         builder.SetPositions(positions);
-        Log::Debug(THIS_MODULE, "Positions: %1% entries", positions.size());
+        Dbg("Positions: %1% entries", positions.size());
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -207,14 +207,14 @@ namespace Chiptune
           Require(in_range<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
           if (patIndex < MaxPatterns)
           {
-            Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
+            Dbg("Parse pattern %1%", patIndex);
             const RawPattern& src = GetPattern(patIndex);
             builder.StartPattern(patIndex);
             ParsePattern(src, Source.PatternsSize, builder);
           }
           else
           {
-            Log::Debug(THIS_MODULE, "Fill stub pattern %1%", patIndex);
+            Dbg("Fill stub pattern %1%", patIndex);
             builder.StartPattern(patIndex);
             builder.FinishPattern(Source.PatternsSize);
           }
@@ -228,7 +228,7 @@ namespace Chiptune
         {
           const uint_t samIdx = *it;
           Require(in_range<uint_t>(samIdx + 1, 1, MAX_SAMPLES_COUNT));
-          Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
+          Dbg("Parse sample %1%", samIdx);
           if (samIdx)
           {
             Sample result;
@@ -246,14 +246,14 @@ namespace Chiptune
       {
         if (ornaments.empty())
         {
-          Log::Debug(THIS_MODULE, "No ornaments used");
+          Dbg("No ornaments used");
           return;
         }
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
           Require(in_range<uint_t>(ornIdx + 1, 1, MAX_ORNAMENTS_COUNT));
-          Log::Debug(THIS_MODULE, "Parse ornament %1%", ornIdx);
+          Dbg("Parse ornament %1%", ornIdx);
           const RawOrnament& src = Source.Ornaments[ornIdx];
           const Ornament result(src.Offsets.begin(), src.Offsets.end());
           builder.SetOrnament(ornIdx, result);
@@ -528,7 +528,7 @@ namespace Chiptune
       }
       catch (const std::exception&)
       {
-        Log::Debug(THIS_MODULE, "Failed to create");
+        Dbg("Failed to create");
         return Formats::Chiptune::Container::Ptr();
       }
     }

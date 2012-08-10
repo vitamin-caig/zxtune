@@ -1,3 +1,4 @@
+DEBUGMODULE=Sound::Backend::Mp3
 const char* get_lame_version()
 lame_t lame_init()
 int lame_close(lame_t ctx)

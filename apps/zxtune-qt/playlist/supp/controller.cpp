@@ -18,7 +18,7 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <logging.h>
+#include <debug_log.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -27,7 +27,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::Controller");
+  const Debug::Stream Dbg("Playlist::Controller");
 
   unsigned Randomized(unsigned idx, unsigned total)
   {
@@ -90,15 +90,15 @@ namespace
 
     virtual void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping)
     {
-      Log::Debug(THIS_MODULE, "Iterator: index changed.");
+      Dbg("Iterator: index changed.");
       if (NO_INDEX == Index)
       {
-        Log::Debug(THIS_MODULE, "Iterator: nothing to update");
+        Dbg("Iterator: nothing to update");
         return;
       }
       if (const Playlist::Model::IndexType* moved = remapping->FindNewIndex(Index))
       {
-        Log::Debug(THIS_MODULE, "Iterator: index updated %1% -> %2%", Index, *moved);
+        Dbg("Iterator: index updated %1% -> %2%", Index, *moved);
         Index = *moved;
         return;
       }
@@ -111,14 +111,14 @@ namespace
       }
       //invalidated
       Index = NO_INDEX;
-      Log::Debug(THIS_MODULE, "Iterator: invalidated after removing.");
+      Dbg("Iterator: invalidated after removing.");
     }
   private:
     bool SelectItem(unsigned idx)
     {
       if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
-        Log::Debug(THIS_MODULE, "Iterator: selected %1%", idx);
+        Dbg("Iterator: selected %1%", idx);
         Item = item;
         Index = idx;
         if (Item->IsValid())
@@ -183,12 +183,12 @@ namespace
       Require(Iterator->connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
         SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
 
-      Log::Debug(THIS_MODULE, "Created at %1%", this);
+      Dbg("Created at %1%", this);
     }
 
     virtual ~ControllerImpl()
     {
-      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+      Dbg("Destroyed at %1%", this);
 
       Scanner->Cancel();
       Scanner->wait();

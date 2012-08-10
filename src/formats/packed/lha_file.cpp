@@ -14,7 +14,7 @@ Author:
 #include "lha_supp.h"
 #include "pack_utils.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/input_stream.h>
@@ -26,7 +26,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Packed::Lha");
+  const Debug::Stream Dbg("Formats::Packed::Lha");
 }
 
 namespace Lha
@@ -56,7 +56,7 @@ namespace Lha
       if (const std::size_t decoded = ::lha_decoder_read(decoder.get(), &result->front(), outputSize))
       {
         const std::size_t originalSize = input.GetPosition();
-        Log::Debug(THIS_MODULE, "Decoded %1% -> %2% bytes", originalSize, outputSize);
+        Dbg("Decoded %1% -> %2% bytes", originalSize, outputSize);
         return CreatePackedContainer(result, originalSize);
       }
       return Formats::Packed::Container::Ptr();
@@ -97,7 +97,7 @@ namespace Formats
             return result;
           }
           const std::size_t originalSize = result->PackedSize();
-          Log::Debug(THIS_MODULE, "Output size mismatch while decoding %1% -> %2% (%3% required)", originalSize, decoded, outputSize);
+          Dbg("Output size mismatch while decoding %1% -> %2% (%3% required)", originalSize, decoded, outputSize);
         }
         return Formats::Packed::Container::Ptr();
       }

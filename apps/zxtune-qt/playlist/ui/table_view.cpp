@@ -18,7 +18,7 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <logging.h>
+#include <debug_log.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -29,7 +29,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::UI::TableView");
+  const Debug::Stream Dbg("Playlist::UI::TableView");
 
   //Options
   const char FONT_FAMILY[] = "Arial";
@@ -146,12 +146,12 @@ namespace
       //signals
       Require(connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&))));
 
-      Log::Debug(THIS_MODULE, "Created at %1%", this);
+      Dbg("Created at %1%", this);
     }
 
     virtual ~TableViewImpl()
     {
-      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+      Dbg("Destroyed at %1%", this);
     }
 
     virtual Playlist::Model::IndexSetPtr GetSelectedItems() const

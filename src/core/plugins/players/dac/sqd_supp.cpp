@@ -18,8 +18,8 @@ Author:
 #include "core/plugins/players/tracking.h"
 //common includes
 #include <byteorder.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -38,6 +38,11 @@ Author:
 #include <core/text/warnings.h>
 
 #define FILE_TAG 44AA4DF8
+
+namespace
+{
+  const Debug::Stream Dbg("Core::SQDSupp");
+}
 
 namespace SQD
 {
@@ -713,7 +718,7 @@ namespace
       }
       catch (const Error&/*e*/)
       {
-        Log::Debug("Core::SQDSupp", "Failed to create holder");
+        Dbg("Failed to create holder");
       }
       return Holder::Ptr();
     }

@@ -13,7 +13,7 @@ Author:
 #include "shared_library_common.h"
 //common includes
 #include <error_tools.h>
-#include <logging.h>
+#include <debug_log.h>
 //text includes
 #include <tools/text/tools.h>
 
@@ -21,7 +21,8 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Tools");
+  const Debug::Stream Dbg("Tools");
+
   const unsigned THIS_MODULE_CODE = Error::ModuleCode<'C', 'S', 'O'>::Value;
 }
 
@@ -30,7 +31,7 @@ SharedLibrary::Ptr SharedLibrary::Load(const std::string& name)
   const std::string& fileName = GetSharedLibraryFilename(name);
   SharedLibrary::Ptr res;
   ThrowIfError(LoadSharedLibrary(fileName, res));
-  Log::Debug(THIS_MODULE, "Loaded '%1%' (as '%2%')", name, fileName);
+  Dbg("Loaded '%1%' (as '%2%')", name, fileName);
   return res;
 }
 
@@ -47,7 +48,7 @@ SharedLibrary::Ptr SharedLibrary::Load(const SharedLibrary::Name& name)
     }
     else
     {
-      Log::Debug(THIS_MODULE, "Loaded '%1%' (as '%2%')", name.Base(), *it);
+      Dbg("Loaded '%1%' (as '%2%')", name.Base(), *it);
       return res;
     }
   }

@@ -18,8 +18,9 @@ Author:
 #include "providers_factories.h"
 //common includes
 #include <contract.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
+#include <progress_callback.h>
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
@@ -36,7 +37,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::IO;
 
-  const std::string THIS_MODULE("IO::Provider::Network");
+  const Debug::Stream Dbg("IO::Provider::Network");
 
   class NetworkProviderParameters
   {
@@ -65,7 +66,7 @@ namespace
       : Api(api)
       , Object(Api->curl_easy_init())
     {
-      Log::Debug(THIS_MODULE, "Curl(%1%): created", Object);
+      Dbg("Curl(%1%): created", Object);
     }
 
     ~CurlObject()
@@ -73,7 +74,7 @@ namespace
       if (Object)
       {
         Api->curl_easy_cleanup(Object);
-        Log::Debug(THIS_MODULE, "Curl(%1%): destroyed", Object);
+        Dbg("Curl(%1%): destroyed", Object);
       }
     }
 
@@ -166,13 +167,13 @@ namespace
       switch (type)
       {
       case CURLINFO_TEXT:
-        Log::Debug(THIS_MODULE, "Curl(%1%): %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): %2%", obj, std::string(data, data + size - 1));
         break;
       case CURLINFO_HEADER_IN:
-        Log::Debug(THIS_MODULE, "Curl(%1%): -> %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): -> %2%", obj, std::string(data, data + size - 1));
         break;
       case CURLINFO_HEADER_OUT:
-        Log::Debug(THIS_MODULE, "Curl(%1%): <- %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): <- %2%", obj, std::string(data, data + size - 1));
         break;
       default:
         break;
@@ -373,7 +374,7 @@ namespace ZXTune
       try
       {
         const Curl::Api::Ptr api = Curl::LoadDynamicApi();
-        Log::Debug(THIS_MODULE, "Detected CURL library %1%", api->curl_version());
+        Dbg("Detected CURL library %1%", api->curl_version());
         enumerator.RegisterProvider(CreateNetworkDataProvider(api));
       }
       catch (const Error& e)

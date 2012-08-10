@@ -10,7 +10,7 @@ Author:
 */
 
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
@@ -25,7 +25,7 @@ Author:
 
 namespace Zip
 {
-  const std::string THIS_MODULE("Formats::Archived::ZIP");
+  const Debug::Stream Dbg("Formats::Archived::ZIP");
 
   using namespace Formats;
 
@@ -52,7 +52,7 @@ namespace Zip
 
     virtual Binary::Container::Ptr GetData() const
     {
-      Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
+      Dbg("Decompressing '%1%'", Name);
       return Decoder.Decode(*Data);
     }
   private:
@@ -150,7 +150,7 @@ namespace Zip
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Unknown block");
+        Dbg("Unknown block");
         return 0;
       }
     }
@@ -254,7 +254,7 @@ namespace Zip
       , Delegate(data)
       , FilesCount(filesCount)
     {
-      Log::Debug(THIS_MODULE, "Found %1% files. Size is %2%", filesCount, Delegate->Size());
+      Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
     }
 
     //Binary::Container
@@ -323,11 +323,11 @@ namespace Zip
         const String fileName = Iter->GetName();
         if (!Iter->IsValid())
         {
-          Log::Debug(THIS_MODULE, "Invalid file '%1%'", fileName);
+          Dbg("Invalid file '%1%'", fileName);
           Iter->Next();
           continue;
         }
-        Log::Debug(THIS_MODULE, "Found file '%1%'", fileName);
+        Dbg("Found file '%1%'", fileName);
         const Archived::File::Ptr fileObject = Iter->GetFile();
         Files.insert(FilesMap::value_type(fileName, fileObject));
         Iter->Next();

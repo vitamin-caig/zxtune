@@ -17,8 +17,8 @@ Author:
 #include "ui/utils.h"
 #include "tags/ayl.h"
 //common includes
+#include <debug_log.h>
 #include <error.h>
-#include <logging.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -43,7 +43,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::IO::AYL");
+  const Debug::Stream Dbg("Playlist::IO::AYL");
 
   /*
     Versions:
@@ -240,7 +240,7 @@ namespace
     virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
     {
       const String nameStr = FromStdString(name.FullPath());
-      Log::Debug(THIS_MODULE, "  property %1%=%2%", nameStr, val);
+      Dbg("  property %1%=%2%", nameStr, val);
       if (nameStr == AYL::CHIP_FREQUENCY)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
@@ -264,7 +264,7 @@ namespace
     virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
     {
       const String nameStr = FromStdString(name.FullPath());
-      Log::Debug(THIS_MODULE, "  property %1%='%2%'", nameStr, val);
+      Dbg("  property %1%='%2%'", nameStr, val);
       if (nameStr == AYL::CHIP_TYPE)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
@@ -391,7 +391,7 @@ namespace
     for (AYLContainer::Iterator iter = aylItems.GetIterator(); iter.IsValid(); iter.Next())
     {
       const String& itemPath = iter.GetPath();
-      Log::Debug(THIS_MODULE, "Processing '%1%'", itemPath);
+      Dbg("Processing '%1%'", itemPath);
       Playlist::IO::ContainerItem item;
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
       ParametersFilter filter(version, *adjustedParams);
@@ -445,7 +445,7 @@ namespace Playlist
       {
         return Container::Ptr();
       }
-      Log::Debug(THIS_MODULE, "Processing AYL version %1%", vers);
+      Dbg("Processing AYL version %1%", vers);
       const VersionLayer version(vers);
       StringArray lines;
       while (!stream.atEnd())

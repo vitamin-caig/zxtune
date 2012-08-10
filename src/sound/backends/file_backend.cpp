@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "file_backend.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <template_parameters.h>
 #include <template_tools.h>
 //library includes
@@ -30,7 +30,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::FileBase");
+  const Debug::Stream Dbg("Sound::Backend::FileBase");
 }
 
 namespace
@@ -213,10 +213,10 @@ namespace
 
   String InstantiateModuleFields(const String& nameTemplate, const Parameters::Accessor& props)
   {
-    Log::Debug(THIS_MODULE, "Original filename template: '%1%'", nameTemplate);
+    Dbg("Original filename template: '%1%'", nameTemplate);
     const ModuleFieldsSource moduleFields(props);
     const String nameTemplateWithRuntimeFields = InstantiateTemplate(nameTemplate, moduleFields);
-    Log::Debug(THIS_MODULE, "Fixed filename template: '%1%'", nameTemplateWithRuntimeFields);
+    Dbg("Fixed filename template: '%1%'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;
   }
 

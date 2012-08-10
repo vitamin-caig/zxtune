@@ -13,7 +13,7 @@ Author:
 #include "enumerator.h"
 #include "providers_list.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 //library includes
 #include <io/error_codes.h>
 //std includes
@@ -31,7 +31,7 @@ namespace
 {
   using namespace ZXTune::IO;
 
-  const std::string THIS_MODULE("IO::Enumerator");
+  const Debug::Stream Dbg("IO::Enumerator");
 
   typedef std::vector<DataProvider::Ptr> ProvidersList;
 
@@ -47,7 +47,7 @@ namespace
     virtual void RegisterProvider(DataProvider::Ptr provider)
     {
       Providers.push_back(provider);
-      Log::Debug(THIS_MODULE, "Registered provider '%1%'", provider->Id());
+      Dbg("Registered provider '%1%'", provider->Id());
       const StringSet& schemes = provider->Schemes();
       std::transform(schemes.begin(), schemes.end(), std::inserter(Schemes, Schemes.end()),
         boost::bind(&std::make_pair<String, DataProvider::Ptr>, _1, provider));
@@ -55,41 +55,41 @@ namespace
 
     virtual Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& result) const
     {
-      Log::Debug(THIS_MODULE, "Opening path '%1%'", path);
+      Dbg("Opening path '%1%'", path);
       if (Identifier::Ptr id = Resolve(path))
       {
         if (const DataProvider* provider = FindProvider(id->Scheme()))
         {
-          Log::Debug(THIS_MODULE, " Used provider '%1%'", provider->Id());
+          Dbg(" Used provider '%1%'", provider->Id());
           return provider->Open(id->Path(), params, cb, result);
         }
       }
-      Log::Debug(THIS_MODULE, " No suitable provider found");
+      Dbg(" No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
 
     virtual Error SplitUri(const String& uri, String& path, String& subpath) const
     {
-      Log::Debug(THIS_MODULE, "Splitting uri '%1%'", uri);
+      Dbg("Splitting uri '%1%'", uri);
       if (Identifier::Ptr id = Resolve(uri))
       {
         path = id->Path();
         subpath = id->Subpath();
         return Error();
       }
-      Log::Debug(THIS_MODULE, " No suitable provider found");
+      Dbg(" No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
 
     virtual Error CombineUri(const String& path, const String& subpath, String& uri) const
     {
-      Log::Debug(THIS_MODULE, "Combining path '%1%' and subpath '%2%'", path, subpath);
+      Dbg("Combining path '%1%' and subpath '%2%'", path, subpath);
       if (Identifier::Ptr id = Resolve(path))
       {
         uri = id->WithSubpath(subpath)->Full();
         return Error();
       }
-      Log::Debug(THIS_MODULE, " No suitable provider found");
+      Dbg(" No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
 

@@ -14,8 +14,8 @@ Author:
 #include "core.h"
 #include "core/plugins/plugins_types.h"
 //common includes
+#include <debug_log.h>
 #include <error.h>
-#include <logging.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -25,7 +25,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const std::string THIS_MODULE("Core::Detection");
+  const Debug::Stream Dbg("Core::Detection");
 
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
@@ -69,7 +69,7 @@ namespace
       const Analysis::Result::Ptr result = plugin->Detect(location, callback);
       if (std::size_t usedSize = result->GetMatchedDataSize())
       {
-        Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());
+        Dbg("Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());
         return usedSize;
       }
     }

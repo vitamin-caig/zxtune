@@ -16,7 +16,7 @@ Author:
 #include "core/plugins/utils.h"
 //common includes
 #include <format.h>
-#include <logging.h>
+#include <debug_log.h>
 //library includes
 #include <core/plugin_attrs.h>
 //boost includes
@@ -29,7 +29,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const std::string THIS_MODULE("Core::ArchivesSupp");
+  const Debug::Stream Dbg("Core::ArchivesSupp");
 
   class LoggerHelper
   {
@@ -103,7 +103,7 @@ namespace
       }
       else
       {
-        Log::Debug(THIS_MODULE, "'%1%' is too big (%1%). Skipping.", name, size);
+        Dbg("'%1%' is too big (%1%). Skipping.", name, size);
       }
     }
   private:
@@ -180,10 +180,10 @@ namespace
       {
         resolved = resolved->Append(components->Get());
         const String filename = resolved->AsString();
-        Log::Debug(THIS_MODULE, "Trying '%1%'", filename);
+        Dbg("Trying '%1%'", filename);
         if (Formats::Archived::File::Ptr file = container.FindFile(filename))
         {
-          Log::Debug(THIS_MODULE, "Found");
+          Dbg("Found");
           return file;
         }
         if (!SupportDirectories)

@@ -18,7 +18,7 @@ Author:
 //local includes
 #include "data.h"
 //common includes
-#include <logging.h>
+#include <progress_callback.h>
 //std includes
 #include <map>
 #include <set>

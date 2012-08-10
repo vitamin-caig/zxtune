@@ -1,3 +1,4 @@
+DEBUGMODULE=Sound::Backend::Ogg
 int vorbis_block_clear(vorbis_block *vb)
 int vorbis_block_init(vorbis_dsp_state *v, vorbis_block *vb)
 void vorbis_dsp_clear(vorbis_dsp_state *v)

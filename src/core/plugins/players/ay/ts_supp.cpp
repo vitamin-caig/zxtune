@@ -18,8 +18,8 @@ Author:
 #include "core/src/callback.h"
 //common includes
 #include <byteorder.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <messages_collector.h>
 #include <tools.h>
 //library includes
@@ -47,7 +47,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  const std::string THIS_MODULE("Core::TSSupp");
+  const Debug::Stream Dbg("Core::TSSupp");
 
   //plugin attributes
   const Char TS_PLUGIN_ID[] = {'T', 'S', 0};
@@ -363,14 +363,14 @@ namespace
       const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation);
       if (InvalidHolder(holder1))
       {
-        Log::Debug(THIS_MODULE, "Invalid first module holder");
+        Dbg("Invalid first module holder");
         return Analysis::CreateUnmatchedResult(dataSize);
       }
       const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
       const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation);
       if (InvalidHolder(holder2))
       {
-        Log::Debug(THIS_MODULE, "Failed to create second module holder");
+        Dbg("Failed to create second module holder");
         return Analysis::CreateUnmatchedResult(dataSize);
       }
       const ModuleProperties::RWPtr properties = ModuleProperties::Create(Description, inputData);

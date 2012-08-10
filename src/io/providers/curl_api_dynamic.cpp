@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "curl_api.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <shared_library_adapter.h>
 #include <tools.h>
 //boost includes
@@ -20,8 +20,6 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("IO::Provider::Network");
-
   using namespace ZXTune::IO::Curl;
 
   class CurlName : public SharedLibrary::Name
@@ -52,89 +50,91 @@ namespace
     }
   };
 
+  const Debug::Stream Dbg("IO::Provider::Network");
+
   class DynamicApi : public Api
   {
   public:
     explicit DynamicApi(SharedLibrary::Ptr lib)
       : Lib(lib)
     {
-      Log::Debug(THIS_MODULE, "Library loaded");
+      Dbg("Library loaded");
     }
 
     virtual ~DynamicApi()
     {
-      Log::Debug(THIS_MODULE, "Library unloaded");
+      Dbg("Library unloaded");
     }
 
     
     virtual char* curl_version()
     {
-      static const char* NAME = "curl_version";
-      typedef char* (*FunctionType)();
+      static const char NAME[] = "curl_version";
+      typedef char* ( *FunctionType)();
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func();
     }
     
     virtual CURL *curl_easy_init()
     {
-      static const char* NAME = "curl_easy_init";
-      typedef CURL *(*FunctionType)();
+      static const char NAME[] = "curl_easy_init";
+      typedef CURL *( *FunctionType)();
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func();
     }
     
     virtual void curl_easy_cleanup(CURL *curl)
     {
-      static const char* NAME = "curl_easy_cleanup";
-      typedef void (*FunctionType)(CURL *);
+      static const char NAME[] = "curl_easy_cleanup";
+      typedef void ( *FunctionType)(CURL *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(curl);
     }
     
     virtual CURLcode curl_easy_perform(CURL *curl)
     {
-      static const char* NAME = "curl_easy_perform";
-      typedef CURLcode (*FunctionType)(CURL *);
+      static const char NAME[] = "curl_easy_perform";
+      typedef CURLcode ( *FunctionType)(CURL *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(curl);
     }
     
     virtual const char *curl_easy_strerror(CURLcode errornum)
     {
-      static const char* NAME = "curl_easy_strerror";
-      typedef const char *(*FunctionType)(CURLcode);
+      static const char NAME[] = "curl_easy_strerror";
+      typedef const char *( *FunctionType)(CURLcode);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(errornum);
     }
     
     virtual CURLcode curl_easy_setopt(CURL *curl, CURLoption option, int intParam)
     {
-      static const char* NAME = "curl_easy_setopt";
-      typedef CURLcode (*FunctionType)(CURL *, CURLoption, int);
+      static const char NAME[] = "curl_easy_setopt";
+      typedef CURLcode ( *FunctionType)(CURL *, CURLoption, int);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(curl, option, intParam);
     }
     
     virtual CURLcode curl_easy_setopt(CURL *curl, CURLoption option, const char* strParam)
     {
-      static const char* NAME = "curl_easy_setopt";
-      typedef CURLcode (*FunctionType)(CURL *, CURLoption, const char*);
+      static const char NAME[] = "curl_easy_setopt";
+      typedef CURLcode ( *FunctionType)(CURL *, CURLoption, const char*);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(curl, option, strParam);
     }
     
     virtual CURLcode curl_easy_setopt(CURL *curl, CURLoption option, void* opaqueParam)
     {
-      static const char* NAME = "curl_easy_setopt";
-      typedef CURLcode (*FunctionType)(CURL *, CURLoption, void*);
+      static const char NAME[] = "curl_easy_setopt";
+      typedef CURLcode ( *FunctionType)(CURL *, CURLoption, void*);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(curl, option, opaqueParam);
     }
     
     virtual CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, void* opaqueResult)
     {
-      static const char* NAME = "curl_easy_getinfo";
-      typedef CURLcode (*FunctionType)(CURL *, CURLINFO, void*);
+      static const char NAME[] = "curl_easy_getinfo";
+      typedef CURLcode ( *FunctionType)(CURL *, CURLINFO, void*);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(curl, info, opaqueResult);
     }

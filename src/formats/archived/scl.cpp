@@ -14,7 +14,7 @@ Author:
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //std includes
 #include <cstring>
@@ -33,7 +33,7 @@ namespace SCL
     "01-ff"
   );
 
-  const std::string THIS_MODULE("Formats::Archived::SCL");
+  const Debug::Stream Dbg("Formats::Archived::SCL");
 
   const std::size_t BYTES_PER_SECTOR = 256;
 
@@ -96,13 +96,13 @@ namespace SCL
     const std::size_t descriptionsSize = sizeof(*header) + sizeof(header->Blocks) * (header->BlocksCount - 1);
     if (descriptionsSize > limit)
     {
-      Log::Debug(THIS_MODULE, "No place for data at all");
+      Dbg("No place for data at all");
       return false;
     }
     const std::size_t dataSize = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount, 0, &SumDataSize);
     if (descriptionsSize + dataSize + sizeof(uint32_t) > limit)
     {
-      Log::Debug(THIS_MODULE, "No place for all data");
+      Dbg("No place for all data");
       return false;
     }
     const std::size_t checksumOffset = descriptionsSize + dataSize;
@@ -111,7 +111,7 @@ namespace SCL
     const uint32_t checksum = std::accumulate(dump, dump + checksumOffset, uint32_t(0));
     if (storedChecksum != checksum)
     {
-      Log::Debug(THIS_MODULE, "Invalid checksum (stored %1%@%2%, calculated %3%)", storedChecksum, checksumOffset, checksum);
+      Dbg("Invalid checksum (stored %1%@%2%, calculated %3%)", storedChecksum, checksumOffset, checksum);
       return false;
     }
     return true;

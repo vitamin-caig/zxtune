@@ -17,6 +17,7 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
+#include <debug_log.h>
 //std includes
 #include <algorithm>
 #include <list>
@@ -32,7 +33,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::Session");
+  const Debug::Stream Dbg("Playlist::Session");
 
   QStringList Substract(const QStringList& lh, const QStringList& rh)
   {
@@ -71,7 +72,7 @@ namespace
       Require(Directory.mkpath(dirPath));
       Require(Directory.cd(dirPath));
       Files = Directory.entryList(QStringList("*.xspf"), QDir::Files | QDir::Readable, QDir::Name);
-      Log::Debug(THIS_MODULE, "%1% stored playlists", Files.size());
+      Dbg("%1% stored playlists", Files.size());
     }
 
     virtual void Load(Playlist::Container::Ptr container)
@@ -80,7 +81,7 @@ namespace
       {
         const QString& fileName = *it;
         const QString& fullPath = Directory.absoluteFilePath(fileName);
-        Log::Debug(THIS_MODULE, "Loading stored playlist '%1%'", FromQString(fullPath));
+        Dbg("Loading stored playlist '%1%'", FromQString(fullPath));
         container->OpenPlaylist(fullPath);
       }
     }
@@ -88,7 +89,7 @@ namespace
     virtual void Save(Playlist::Controller::Iterator::Ptr it)
     {
       const QStringList& newFiles = SaveFiles(it);
-      Log::Debug(THIS_MODULE, "Saved %1% playlists", newFiles.size());
+      Dbg("Saved %1% playlists", newFiles.size());
       const QStringList& toRemove = Substract(Files, newFiles);
       RemoveFiles(toRemove);
       Files = newFiles;

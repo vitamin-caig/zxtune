@@ -16,8 +16,8 @@ Author:
 #include "source.h"
 #include "ui/utils.h"
 //common includes
+#include <debug_log.h>
 #include <error.h>
-#include <logging.h>
 //library includes
 #include <core/error_codes.h>
 //qt includes
@@ -29,7 +29,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::Scanner");
+  const Debug::Stream Dbg("Playlist::Scanner");
 
   class EventFilter
   {
@@ -65,12 +65,12 @@ namespace
       , ItemsDone()
       , ItemsTotal()
     {
-      Log::Debug(THIS_MODULE, "Created at %1%", this);
+      Dbg("Created at %1%", this);
     }
 
     virtual ~ScannerImpl()
     {
-      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+      Dbg("Destroyed at %1%", this);
     }
 
     virtual void AddItems(const QStringList& items, bool deepScan)

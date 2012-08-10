@@ -13,7 +13,7 @@ Author:
 #include "enumerator.h"
 #include "backends_list.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <error_tools.h>
 //library includes
 #include <sound/error_codes.h>
@@ -32,7 +32,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Enumerator");
+  const Debug::Stream Dbg("Sound::Enumerator");
 
   typedef std::list<BackendCreator::Ptr> BackendCreatorsList;
 
@@ -48,7 +48,7 @@ namespace
     {
       assert(creator);
       Creators.push_back(creator);
-      Log::Debug(THIS_MODULE, "Registered backend '%1%'", creator->Id());
+      Dbg("Registered backend '%1%'", creator->Id());
     }
 
     virtual BackendCreator::Iterator::Ptr Enumerate() const

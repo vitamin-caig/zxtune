@@ -19,7 +19,7 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <format.h>
-#include <logging.h>
+#include <progress_callback.h>
 #include <template_parameters.h>
 //library includes
 #include <core/error_codes.h>
@@ -41,8 +41,6 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::DataProvider");
-
   class DataProvider
   {
   public:

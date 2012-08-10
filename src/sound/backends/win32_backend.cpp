@@ -17,8 +17,8 @@ Author:
 #include "volume_control.h"
 //common includes
 #include <contract.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
@@ -43,7 +43,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Win32");
+  const Debug::Stream Dbg("Sound::Backend::Win32");
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
@@ -109,7 +109,7 @@ namespace
       : Api(api)
       , Handle(0)
     {
-      Log::Debug(THIS_MODULE, "Opening device %1% (%2% Hz)", device, format.nSamplesPerSec);
+      Dbg("Opening device %1% (%2% Hz)", device, format.nSamplesPerSec);
       CheckMMResult(Api->waveOutOpen(&Handle, device, &format, DWORD_PTR(Event.Get()), 0,
         CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
     }
@@ -122,7 +122,7 @@ namespace
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "Failed to close device: %1%", Error::ToString(e));
+        Dbg("Failed to close device: %1%", Error::ToString(e));
       }
     }
 
@@ -130,7 +130,7 @@ namespace
     {
       if (Handle)
       {
-        Log::Debug(THIS_MODULE, "Closing device");
+        Dbg("Closing device");
         CheckMMResult(Api->waveOutReset(Handle), THIS_LINE);
         CheckMMResult(Api->waveOutClose(Handle), THIS_LINE);
         Handle = 0;
@@ -232,7 +232,7 @@ namespace
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "Failed to reset buffer: %1%", Error::ToString(e));
+        Dbg("Failed to reset buffer: %1%", Error::ToString(e));
       }
     }
 
@@ -300,7 +300,7 @@ namespace
       }
       catch (const Error& e)
       {
-        Log::Debug(THIS_MODULE, "Failed to reset cycle buffer: %1%", Error::ToString(e));
+        Dbg("Failed to reset cycle buffer: %1%", Error::ToString(e));
       }
     }
 
@@ -337,7 +337,7 @@ namespace
     explicit Win32VolumeController(WaveOutDevice::Ptr device)
       : Device(device)
     {
-      Log::Debug(THIS_MODULE, "Created volume controller");
+      Dbg("Created volume controller");
     }
 
     virtual Error GetVolume(MultiGain& volume) const
@@ -435,18 +435,18 @@ namespace
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
-      Log::Debug(THIS_MODULE, "Starting");
+      Dbg("Starting");
       Objects = OpenDevices();
-      Log::Debug(THIS_MODULE, "Started");
+      Dbg("Started");
     }
 
     virtual void OnShutdown()
     {
-      Log::Debug(THIS_MODULE, "Stopping");
+      Dbg("Stopping");
       Objects.Volume.reset();
       Objects.Target.reset();
       Objects.Device.reset();
-      Log::Debug(THIS_MODULE, "Stopped");
+      Dbg("Stopped");
     }
 
     virtual void OnPause()
@@ -579,7 +579,7 @@ namespace
       WAVEOUTCAPSA caps;
       if (MMSYSERR_NOERROR != Api->waveOutGetDevCapsA(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
       {
-        Log::Debug(THIS_MODULE, "Failed to get device name");
+        Dbg("Failed to get device name");
         return String();
       }
       return FromStdString(caps.szPname);
@@ -599,7 +599,7 @@ namespace
     {
       if (Limit)
       {
-        Log::Debug(THIS_MODULE, "Detected %1% devices to output.", Limit);
+        Dbg("Detected %1% devices to output.", Limit);
         Current = -1;//WAVE_MAPPER
       }
       else
@@ -670,7 +670,7 @@ namespace ZXTune
         }
         catch (const Error& e)
         {
-          Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+          Dbg("%1%", Error::ToString(e));
           return Device::Iterator::CreateStub();
         }
       }

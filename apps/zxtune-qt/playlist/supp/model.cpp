@@ -16,7 +16,7 @@ Author:
 #include "storage.h"
 #include "ui/utils.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <template_parameters.h>
 //library includes
 #include <async/activity.h>
@@ -35,7 +35,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::Model");
+  const Debug::Stream Dbg("Playlist::Model");
 
   const QModelIndex EMPTY_INDEX = QModelIndex();
 
@@ -349,12 +349,12 @@ namespace
       , AsyncExecution(Async::Activity::CreateStub())
       , Canceled(false)
     {
-      Log::Debug(THIS_MODULE, "Created at %1%", this);
+      Dbg("Created at %1%", this);
     }
 
     virtual ~ModelImpl()
     {
-      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+      Dbg("Destroyed at %1%", this);
     }
 
     virtual void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation)
@@ -440,7 +440,7 @@ namespace
 
     virtual void MoveItems(const IndexSet& items, IndexType target)
     {
-      Log::Debug(THIS_MODULE, "Moving %1% items to row %2%", items.size(), target);
+      Dbg("Moving %1% items to row %2%", items.size(), target);
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
         boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
@@ -633,8 +633,7 @@ namespace
 
     virtual void sort(int column, Qt::SortOrder order)
     {
-      Log::Debug(THIS_MODULE, "Sort data in column=%1% by order=%2%",
-        column, order);
+      Dbg("Sort data in column=%1% by order=%2%", column, order);
       const bool ascending = order == Qt::AscendingOrder;
       if (Playlist::Item::Comparer::Ptr comparer = CreateComparerByColumn(column, ascending))
       {

@@ -32,8 +32,8 @@ Author:
 #include "ui/tools/filedialog.h"
 //local includes
 #include <contract.h>
+#include <debug_log.h>
 #include <error.h>
-#include <logging.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -50,7 +50,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::UI::View");
+  const Debug::Stream Dbg("Playlist::UI::View");
 
   class PlayitemStateCallbackImpl : public Playlist::Item::StateCallback
   {
@@ -162,12 +162,12 @@ namespace
       Require(connect(OperationProgress, SIGNAL(Canceled()), SLOT(LongOperationCancel())));
 
       LayoutState->AddWidget(*View->horizontalHeader());
-      Log::Debug(THIS_MODULE, "Created at %1%", this);
+      Dbg("Created at %1%", this);
     }
 
     virtual ~ViewImpl()
     {
-      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+      Dbg("Destroyed at %1%", this);
     }
 
     virtual Playlist::Controller::Ptr GetPlaylist() const
@@ -379,14 +379,14 @@ namespace
 
     virtual void showEvent(QShowEvent* event)
     {
-      Log::Debug(THIS_MODULE, "Layout load for %1%", this);
+      Dbg("Layout load for %1%", this);
       LayoutState->Load();
       event->accept();
     }
 
     virtual void hideEvent(QHideEvent* event)
     {
-      Log::Debug(THIS_MODULE, "Layout save for %1%", this);
+      Dbg("Layout save for %1%", this);
       LayoutState->Save();
       event->accept();
     }

@@ -18,7 +18,7 @@ Author:
 #include "core/src/core.h"
 //common includes
 #include <error_tools.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <core/error_codes.h>
@@ -36,7 +36,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const std::string THIS_MODULE("Core::Enumerator");
+  const Debug::Stream Dbg("Core::Enumerator");
 
   typedef std::vector<Plugin::Ptr> PluginsArray;
   typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
@@ -63,7 +63,7 @@ namespace
       const Plugin::Ptr description = plugin->GetDescription();
       AllPlugins.push_back(description);
       PlayerPlugins.push_back(plugin);
-      Log::Debug(THIS_MODULE, "Registered player %1%", description->Id());
+      Dbg("Registered player %1%", description->Id());
     }
 
     virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
@@ -71,7 +71,7 @@ namespace
       const Plugin::Ptr description = plugin->GetDescription();
       AllPlugins.push_back(description);
       ArchivePlugins.push_back(plugin);
-      Log::Debug(THIS_MODULE, "Registered archive container %1%", description->Id());
+      Dbg("Registered archive container %1%", description->Id());
     }
 
     //public interface

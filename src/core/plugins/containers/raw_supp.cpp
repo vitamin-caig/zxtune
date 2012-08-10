@@ -16,7 +16,7 @@ Author:
 #include <core/plugins/utils.h>
 //common includes
 #include <error_tools.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/container.h>
@@ -50,23 +50,23 @@ namespace
 
     ~Statistic()
     {
-      const std::string THIS_MODULE("Core::RawScaner::Statistic");
+      const Debug::Stream Dbg("Core::RawScaner::Statistic");
       const std::time_t spent = std::time(0) - Start;
-      Log::Debug(THIS_MODULE, "Total processed: %1%", TotalData);
+      Dbg("Total processed: %1%", TotalData);
       const uint64_t useful = ArchivedData + ModulesData;
-      Log::Debug(THIS_MODULE, "Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
-      Log::Debug(THIS_MODULE, "Coverage: %1%%%", useful * 100 / TotalData);
-      Log::Debug(THIS_MODULE, "Speed is %1% b/s", spent ? (TotalData / spent) : TotalData);
+      Dbg("Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
+      Dbg("Coverage: %1%%%", useful * 100 / TotalData);
+      Dbg("Speed is %1% b/s", spent ? (TotalData / spent) : TotalData);
       uint64_t totalUsed = 0, totalMissed = 0;
       for (DetectMap::const_iterator it = Detection.begin(), lim = Detection.end(); it != lim; ++it)
       {
         const std::size_t used = it->second.first;
         const std::size_t missed = it->second.second;
-        Log::Debug(THIS_MODULE, "Detector %1%: %2%/%3% missed/used (%4%%% effeciency)", it->first, missed, used, uint64_t(100) * (used - missed) / used);
+        Dbg("Detector %1%: %2%/%3% missed/used (%4%%% effeciency)", it->first, missed, used, uint64_t(100) * (used - missed) / used);
         totalUsed += used;
         totalMissed += missed;
       }
-      Log::Debug(THIS_MODULE, "Total: %1%/%2% missed/used (%3%%% effeciency)", totalMissed, totalUsed, uint64_t(100) * (totalUsed - totalMissed) / totalUsed);
+      Dbg("Total: %1%/%2% missed/used (%3%%% effeciency)", totalMissed, totalUsed, uint64_t(100) * (totalUsed - totalMissed) / totalUsed);
     }
 
     void Enqueue(std::size_t size)
@@ -113,7 +113,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const std::string THIS_MODULE("Core::RawScaner");
+  const Debug::Stream Dbg("Core::RawScaner");
 
   const std::size_t SCAN_STEP = 1;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
@@ -381,7 +381,7 @@ namespace
         boost::bind(&PluginEntry::Id, _1) == id);
       if (it != Plugins.end())
       {
-        Log::Debug(THIS_MODULE, "Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
+        Dbg("Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
         it->Offset += lookahead;
       }
     }
@@ -485,7 +485,7 @@ namespace
       }
       const std::size_t archiveLookahead = detectedArchives->GetLookaheadOffset();
       const std::size_t moduleLookahead = detectedModules->GetLookaheadOffset();
-      Log::Debug(THIS_MODULE, "No archives for nearest %1% bytes, modules for %2% bytes",
+      Dbg("No archives for nearest %1% bytes, modules for %2% bytes",
         archiveLookahead, moduleLookahead);
       return std::min(archiveLookahead, moduleLookahead);
     }
@@ -507,7 +507,7 @@ namespace
         Statistic::Self().AddUsed(id);
         if (std::size_t usedSize = result->GetMatchedDataSize())
         {
-          Log::Debug(THIS_MODULE, "Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
+          Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
         const std::size_t lookahead = result->GetLookaheadOffset();
@@ -554,7 +554,7 @@ namespace
       Statistic::Self().Enqueue(size);
       if (size < MIN_MINIMAL_RAW_SIZE)
       {
-        Log::Debug(THIS_MODULE, "Size is too small (%1%)", size);
+        Dbg("Size is too small (%1%)", size);
         return Analysis::CreateUnmatchedResult(size);
       }
 
@@ -563,7 +563,7 @@ namespace
       const std::size_t minRawSize = scanParams.GetMinimalSize();
 
       const String currentPath = input->GetPath()->AsString();
-      Log::Debug(THIS_MODULE, "Detecting modules in raw data at '%1%'", currentPath);
+      Dbg("Detecting modules in raw data at '%1%'", currentPath);
       const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), currentPath));
       const Module::DetectCallback& noProgressCallback = Module::CustomProgressDetectCallbackAdapter(callback);
 
@@ -585,7 +585,7 @@ namespace
         const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, curCallback);
         if (!subLocation.unique())
         {
-          Log::Debug(THIS_MODULE, "Sublocation is captured. Duplicate.");
+          Dbg("Sublocation is captured. Duplicate.");
           subLocation = boost::make_shared<ScanDataLocation>(input, Description->Id(), offset);
         }
         subLocation->Move(std::max(bytesToSkip, SCAN_STEP));

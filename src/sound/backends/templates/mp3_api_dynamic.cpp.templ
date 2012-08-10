@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "mp3_api.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <shared_library_adapter.h>
 #include <tools.h>
 //boost includes
@@ -20,8 +20,6 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::Mp3");
-
   using namespace ZXTune::Sound::Mp3;
 
   class LameName : public SharedLibrary::Name

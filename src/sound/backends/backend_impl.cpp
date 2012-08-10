@@ -13,8 +13,8 @@ Author:
 #include "backend_impl.h"
 //common includes
 #include <tools.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 //library includes
 #include <async/job.h>
 #include <sound/error_codes.h>
@@ -33,7 +33,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Base");
+  const Debug::Stream Dbg("Sound::Backend::Base");
 
   class SafeRendererWrapper : public Module::Renderer
   {
@@ -198,11 +198,11 @@ namespace
     {
       try
       {
-        Log::Debug(THIS_MODULE, "Initializing");
+        Dbg("Initializing");
         Delegate->OnStartup(*Holder);
         Playing = true;
         Signaller.Notify(Backend::MODULE_START);
-        Log::Debug(THIS_MODULE, "Initialized");
+        Dbg("Initialized");
         return Error();
       }
       catch (const Error& e)
@@ -215,11 +215,11 @@ namespace
     {
       try
       {
-        Log::Debug(THIS_MODULE, "Finalizing");
+        Dbg("Finalizing");
         Playing = false;
         Signaller.Notify(Backend::MODULE_STOP);
         Delegate->OnShutdown();
-        Log::Debug(THIS_MODULE, "Finalized");
+        Dbg("Finalized");
         return Error();
       }
       catch (const Error& e)
@@ -232,10 +232,10 @@ namespace
     {
       try
       {
-        Log::Debug(THIS_MODULE, "Suspending");
+        Dbg("Suspending");
         Delegate->OnPause();
         Signaller.Notify(Backend::MODULE_PAUSE);
-        Log::Debug(THIS_MODULE, "Suspended");
+        Dbg("Suspended");
         return Error();
       }
       catch (const Error& e)
@@ -248,10 +248,10 @@ namespace
     {
       try
       {
-        Log::Debug(THIS_MODULE, "Resuming");
+        Dbg("Resuming");
         Delegate->OnResume();
         Signaller.Notify(Backend::MODULE_RESUME);
-        Log::Debug(THIS_MODULE, "Resumed");
+        Dbg("Resumed");
         return Error();
       }
       catch (const Error& e)

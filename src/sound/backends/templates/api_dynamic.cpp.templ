@@ -1,15 +1,17 @@
+  const Debug::Stream Dbg("<TMPL_VAR NAME=DEBUGMODULE>");
+
   class DynamicApi : public Api
   {
   public:
     explicit DynamicApi(SharedLibrary::Ptr lib)
       : Lib(lib)
     {
-      Log::Debug(THIS_MODULE, "Library loaded");
+      Dbg("Library loaded");
     }
 
     virtual ~DynamicApi()
     {
-      Log::Debug(THIS_MODULE, "Library unloaded");
+      Dbg("Library unloaded");
     }
 
     <TMPL_LOOP NAME=FUNCTIONS>

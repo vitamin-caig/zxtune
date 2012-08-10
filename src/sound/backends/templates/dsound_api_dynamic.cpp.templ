@@ -12,15 +12,13 @@ Author:
 //local includes
 #include "dsound_api.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::DirectSound");
-
   using namespace ZXTune::Sound::DirectSound;
 
 <TMPL_INCLUDE NAME="api_dynamic.cpp.templ">

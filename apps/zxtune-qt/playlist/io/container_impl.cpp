@@ -15,14 +15,14 @@ Author:
 #include "container_impl.h"
 #include <apps/base/playitem.h>
 //common includes
+#include <debug_log.h>
 #include <error.h>
-#include <logging.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::IO::Base");
+  const Debug::Stream Dbg("Playlist::IO::Base");
 
   class CollectorStub : public Playlist::Item::DetectParameters
   {
@@ -290,12 +290,12 @@ namespace
         const String& path = Provider->GetPath();
         if (const Playlist::Item::Data::Ptr realItem = Provider->OpenItem())
         {
-          Log::Debug(THIS_MODULE, "Opened '%1%'", path);
+          Dbg("Opened '%1%'", path);
           Delegate = realItem;
         }
         else
         {
-          Log::Debug(THIS_MODULE, "Failed to open '%1%'", path);
+          Dbg("Failed to open '%1%'", path);
           Delegate = Provider->OpenStub();
           Valid = false;
         }

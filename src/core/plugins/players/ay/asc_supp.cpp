@@ -19,7 +19,6 @@ Author:
 #include "core/plugins/players/module_properties.h"
 //common includes
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -34,11 +33,6 @@ Author:
 #include <core/text/plugins.h>
 
 #define FILE_TAG 45B26E38
-
-namespace
-{
-  const std::string THIS_MODULE("Core::ASCSupp");
-}
 
 namespace ASCSoundMaster
 {

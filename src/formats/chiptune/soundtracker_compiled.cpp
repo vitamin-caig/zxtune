@@ -17,8 +17,8 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <debug_log.h>
 #include <iterator.h>
-#include <logging.h>
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
@@ -30,7 +30,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Chiptune::SoundTrackerCompiled");
+  const Debug::Stream Dbg("Formats::Chiptune::SoundTrackerCompiled");
 }
 
 namespace Formats
@@ -180,7 +180,7 @@ namespace Chiptune
           positions.push_back(dst);
         }
         builder.SetPositions(positions);
-        Log::Debug(THIS_MODULE, "Positions: %1% entries", positions.size());
+        Dbg("Positions: %1% entries", positions.size());
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
@@ -197,7 +197,7 @@ namespace Chiptune
           const uint_t patIndex = src.Number - 1;
           if (restPats.count(patIndex))
           {
-            Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
+            Dbg("Parse pattern %1%", patIndex);
             builder.StartPattern(patIndex);
             ParsePattern(src, builder);
             restPats.erase(patIndex);
@@ -207,7 +207,7 @@ namespace Chiptune
         while (!restPats.empty())
         {
           const uint_t idx = *restPats.begin();
-          Log::Debug(THIS_MODULE, "Fill stub pattern %1%", idx);
+          Dbg("Fill stub pattern %1%", idx);
           builder.StartPattern(idx);
           restPats.erase(idx);
         }
@@ -226,7 +226,7 @@ namespace Chiptune
             continue;
           }
           Require(in_range<uint_t>(samIdx + 1, 1, MAX_SAMPLES_COUNT));
-          Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
+          Dbg("Parse sample %1%", samIdx);
           Sample result;
           ParseSample(src, result);
           builder.SetSample(samIdx, result);
@@ -235,7 +235,7 @@ namespace Chiptune
         while (!restSams.empty())
         {
           const uint_t idx = *restSams.begin();
-          Log::Debug(THIS_MODULE, "Fill stub sample %1%", idx);
+          Dbg("Fill stub sample %1%", idx);
           builder.SetSample(idx, Sample());
           restSams.erase(idx);
         }
@@ -245,7 +245,7 @@ namespace Chiptune
       {
         if (ornaments.empty())
         {
-          Log::Debug(THIS_MODULE, "No ornaments used");
+          Dbg("No ornaments used");
           return;
         }
         Indices restOrns(ornaments);
@@ -258,7 +258,7 @@ namespace Chiptune
             continue;
           }
           Require(in_range<uint_t>(ornIdx + 1, 1, MAX_ORNAMENTS_COUNT));
-          Log::Debug(THIS_MODULE, "Parse ornament %1%", ornIdx);
+          Dbg("Parse ornament %1%", ornIdx);
           const Ornament result(src.Data.begin(), src.Data.end());
           builder.SetOrnament(ornIdx, result);
           restOrns.erase(ornIdx);
@@ -266,7 +266,7 @@ namespace Chiptune
         while (!restOrns.empty())
         {
           const uint_t idx = *restOrns.begin();
-          Log::Debug(THIS_MODULE, "Fill stub ornament %1%", idx);
+          Dbg("Fill stub ornament %1%", idx);
           builder.SetOrnament(idx, Ornament());
           restOrns.erase(idx);
         }
@@ -385,12 +385,12 @@ namespace Chiptune
           const std::size_t start = rangesStarts[chanNum];
           if (start >= Limit)
           {
-            Log::Debug(THIS_MODULE, "Invalid offset (%1%)", start);
+            Dbg("Invalid offset (%1%)", start);
           }
           else
           {
             const std::size_t stop = std::min(Limit, state.Offsets[chanNum] + 1);
-            Log::Debug(THIS_MODULE, "Affected ranges %1%..%2%", start, stop);
+            Dbg("Affected ranges %1%..%2%", start, stop);
             AddFixedRange(start, stop - start);
           }
         }
@@ -707,7 +707,7 @@ namespace Chiptune
       }
       catch (const std::exception&)
       {
-        Log::Debug(THIS_MODULE, "Failed to create");
+        Dbg("Failed to create");
         return Formats::Chiptune::Container::Ptr();
       }
     }

@@ -11,7 +11,7 @@ Author:
 
 //common includes
 #include <contract.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/input_stream.h>
@@ -42,7 +42,7 @@ namespace Lha
     "00-03"     //level
   );
 
-  const std::string THIS_MODULE("Formats::Archived::Lha");
+  const Debug::Stream Dbg("Formats::Archived::Lha");
 
   using namespace Formats;
 
@@ -107,7 +107,7 @@ namespace Lha
       , Size(header.length)
       , Method(FromStdString(header.compress_method))
     {
-      Log::Debug(THIS_MODULE, "Created file '%1%', size=%2%, packed size=%3%, compression=%4%", Name, Size, Data->Size(), Method);
+      Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%", Name, Size, Data->Size(), Method);
     }
 
     virtual String GetName() const
@@ -122,7 +122,7 @@ namespace Lha
 
     virtual Binary::Container::Ptr GetData() const
     {
-      Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
+      Dbg("Decompressing '%1%'", Name);
       return Packed::Lha::DecodeRawData(*Data, Method, Size);
     }
   private:

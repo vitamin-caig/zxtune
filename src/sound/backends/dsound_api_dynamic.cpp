@@ -12,16 +12,16 @@ Author:
 //local includes
 #include "dsound_api.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::DirectSound");
-
   using namespace ZXTune::Sound::DirectSound;
+
+  const Debug::Stream Dbg("Sound::Backend::DirectSound");
 
   class DynamicApi : public Api
   {
@@ -29,12 +29,12 @@ namespace
     explicit DynamicApi(SharedLibrary::Ptr lib)
       : Lib(lib)
     {
-      Log::Debug(THIS_MODULE, "Library loaded");
+      Dbg("Library loaded");
     }
 
     virtual ~DynamicApi()
     {
-      Log::Debug(THIS_MODULE, "Library unloaded");
+      Dbg("Library unloaded");
     }
 
     

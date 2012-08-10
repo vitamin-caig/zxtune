@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "ogg_api.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <shared_library_adapter.h>
 #include <tools.h>
 //boost includes
@@ -20,8 +20,6 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::Ogg");
-
   using namespace ZXTune::Sound::Ogg;
 
   class OggName : public SharedLibrary::Name
@@ -47,65 +45,67 @@ namespace
     }
   };
 
+  const Debug::Stream Dbg("Sound::Backend::Ogg");
+
   class DynamicApi : public Api
   {
   public:
     explicit DynamicApi(SharedLibrary::Ptr lib)
       : Lib(lib)
     {
-      Log::Debug(THIS_MODULE, "Library loaded");
+      Dbg("Library loaded");
     }
 
     virtual ~DynamicApi()
     {
-      Log::Debug(THIS_MODULE, "Library unloaded");
+      Dbg("Library unloaded");
     }
 
     
     virtual int ogg_stream_init(ogg_stream_state *os, int serialno)
     {
-      static const char* NAME = "ogg_stream_init";
-      typedef int (*FunctionType)(ogg_stream_state *, int);
+      static const char NAME[] = "ogg_stream_init";
+      typedef int ( *FunctionType)(ogg_stream_state *, int);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(os, serialno);
     }
     
     virtual int ogg_stream_clear(ogg_stream_state *os)
     {
-      static const char* NAME = "ogg_stream_clear";
-      typedef int (*FunctionType)(ogg_stream_state *);
+      static const char NAME[] = "ogg_stream_clear";
+      typedef int ( *FunctionType)(ogg_stream_state *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(os);
     }
     
     virtual int ogg_stream_packetin(ogg_stream_state *os, ogg_packet *op)
     {
-      static const char* NAME = "ogg_stream_packetin";
-      typedef int (*FunctionType)(ogg_stream_state *, ogg_packet *);
+      static const char NAME[] = "ogg_stream_packetin";
+      typedef int ( *FunctionType)(ogg_stream_state *, ogg_packet *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(os, op);
     }
     
     virtual int ogg_stream_pageout(ogg_stream_state *os, ogg_page *og)
     {
-      static const char* NAME = "ogg_stream_pageout";
-      typedef int (*FunctionType)(ogg_stream_state *, ogg_page *);
+      static const char NAME[] = "ogg_stream_pageout";
+      typedef int ( *FunctionType)(ogg_stream_state *, ogg_page *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(os, og);
     }
     
     virtual int ogg_stream_flush(ogg_stream_state *os, ogg_page *og)
     {
-      static const char* NAME = "ogg_stream_flush";
-      typedef int (*FunctionType)(ogg_stream_state *, ogg_page *);
+      static const char NAME[] = "ogg_stream_flush";
+      typedef int ( *FunctionType)(ogg_stream_state *, ogg_page *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(os, og);
     }
     
     virtual int ogg_page_eos(const ogg_page *og)
     {
-      static const char* NAME = "ogg_page_eos";
-      typedef int (*FunctionType)(const ogg_page *);
+      static const char NAME[] = "ogg_page_eos";
+      typedef int ( *FunctionType)(const ogg_page *);
       const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
       return func(og);
     }

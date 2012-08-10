@@ -16,9 +16,8 @@ Author:
 #include "enumerator.h"
 #include "file_backend.h"
 //common includes
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
-#include <shared_library_gate.h>
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
@@ -42,7 +41,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Ogg");
+  const Debug::Stream Dbg("Sound::Backend::Ogg");
 
   const uint_t BITRATE_MIN = 48;
   const uint_t BITRATE_MAX = 500;
@@ -258,7 +257,7 @@ namespace
       , State(boost::make_shared<VorbisState>(Api, Info->Get()))
       , Stream(stream)
     {
-      Log::Debug(THIS_MODULE, "Stream initialized");
+      Dbg("Stream initialized");
     }
 
     virtual void SetTitle(const String& title)
@@ -388,17 +387,17 @@ namespace
     void SetupInfo(VorbisInfo& info) const
     {
       const uint_t samplerate = RenderingParameters->SoundFreq();
-      Log::Debug(THIS_MODULE, "Samplerate is %1%", samplerate);
+      Dbg("Samplerate is %1%", samplerate);
       if (Params.IsABRMode())
       {
         const uint_t bitrate = Params.GetBitrate();
-        Log::Debug(THIS_MODULE, "Setting ABR to %1%kbps", bitrate);
+        Dbg("Setting ABR to %1%kbps", bitrate);
         info.SetABR(bitrate, samplerate);
       }
       else
       {
         const uint_t quality = Params.GetQuality();
-        Log::Debug(THIS_MODULE, "Setting VBR quality to %1%", quality);
+        Dbg("Setting VBR quality to %1%", quality);
         info.SetQuality(quality, samplerate);
       }
 
@@ -479,7 +478,7 @@ namespace ZXTune
         const Ogg::Api::Ptr oggApi = Ogg::LoadDynamicApi();
         const Vorbis::Api::Ptr vorbisApi = Vorbis::LoadDynamicApi();
         const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
-        Log::Debug(THIS_MODULE, "Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
+        Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
         const BackendCreator::Ptr creator(new OggBackendCreator(oggApi, vorbisApi, vorbisEncApi));
         enumerator.RegisterCreator(creator);
       }

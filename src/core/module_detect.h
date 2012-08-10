@@ -11,8 +11,6 @@
 #ifndef __CORE_MODULE_DETECT_H_DEFINED__
 #define __CORE_MODULE_DETECT_H_DEFINED__
 
-//common includes
-#include <logging.h>
 //library includes
 #include <binary/container.h>
 #include <core/module_holder.h>//for Module::Holder::Ptr
@@ -23,6 +21,11 @@ class Error;
 namespace Parameters
 {
   class Accessor;
+}
+
+namespace Log
+{
+  class ProgressCallback;
 }
 
 //! @brief Global library namespace

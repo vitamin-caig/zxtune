@@ -16,8 +16,8 @@ Author:
 #include "ui/utils.h"
 #include "playlist/io/import.h"
 //common includes
+#include <debug_log.h>
 #include <error.h>
-#include <logging.h>
 //library includes
 #include <core/error_codes.h>
 //qt includes
@@ -28,7 +28,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::IO");
+  const Debug::Stream Dbg("Playlist::IO");
 
   void ResolveItems(Playlist::ScannerCallback& callback, QStringList& unresolved, QStringList& resolved)
   {
@@ -37,18 +37,18 @@ namespace
       const QString& curItem = unresolved.takeFirst();
       if (QFileInfo(curItem).isDir())
       {
-        Log::Debug(THIS_MODULE, "Resolving directory '%1%'", FromQString(curItem));
+        Dbg("Resolving directory '%1%'", FromQString(curItem));
         const QDir::Filters filter = QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden;
         for (QDirIterator iterator(curItem, filter, QDirIterator::Subdirectories); !callback.IsCanceled() && iterator.hasNext(); )
         {
           const QString& curFile = iterator.next();
-          Log::Debug(THIS_MODULE, "Added '%1%'", FromQString(curFile));
+          Dbg("Added '%1%'", FromQString(curFile));
           resolved.append(curFile);
         }
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Added '%1%'", FromQString(curItem));
+        Dbg("Added '%1%'", FromQString(curItem));
         resolved.append(curItem);
       }
     }

@@ -16,7 +16,7 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
@@ -30,7 +30,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Packed::Teledisk");
+  const Debug::Stream Dbg("Formats::Packed::Teledisk");
 }
 
 namespace TeleDiskImage
@@ -347,7 +347,7 @@ namespace TeleDiskImage
       {
         if (!newCompression)
         {
-          Log::Debug(THIS_MODULE, "Old compression is not supported.");
+          Dbg("Old compression is not supported.");
           return 0;
         }
         const std::size_t packedSize = rawData.Size() - sizeof(header);
@@ -358,7 +358,7 @@ namespace TeleDiskImage
           SourceStream subStream(*fullDecoded);
           ParseSectors(subStream, visitor);
           const std::size_t usedInPacked = subStream.GetOffset();
-          Log::Debug(THIS_MODULE, "Used %1% bytes in packed stream", usedInPacked);
+          Dbg("Used %1% bytes in packed stream", usedInPacked);
           if (const Formats::Packed::Container::Ptr decoded =
             Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, usedInPacked))
           {
@@ -366,7 +366,7 @@ namespace TeleDiskImage
             return sizeof(header) + usedSize;
           }
         }
-        Log::Debug(THIS_MODULE, "Failed to decode lha stream");
+        Dbg("Failed to decode lha stream");
         return 0;
       }
       else

@@ -1,3 +1,4 @@
+DEBUGMODULE=Sound::Backend::Alsa
 #common
 const char * snd_asoundlib_version (void)
 const char * snd_strerror (int errnum)

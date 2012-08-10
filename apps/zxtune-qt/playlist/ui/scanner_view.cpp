@@ -17,11 +17,11 @@ Author:
 #include "playlist/supp/scanner.h"
 //common includes
 #include <contract.h>
-#include <logging.h>
+#include <debug_log.h>
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::UI::ScannerView");
+  const Debug::Stream Dbg("Playlist::UI::ScannerView");
 
   class ScannerViewImpl : public Playlist::UI::ScannerView
                         , private Ui::PlaylistScannerView
@@ -43,12 +43,12 @@ namespace
       Require(connect(Scanner, SIGNAL(OnResolvingStop()), this, SLOT(HideResolving())));
       Require(connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel())));
 
-      Log::Debug(THIS_MODULE, "Created at %1%", this);
+      Dbg("Created at %1%", this);
     }
 
     virtual ~ScannerViewImpl()
     {
-      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+      Dbg("Destroyed at %1%", this);
     }
 
     virtual void ScanStart()

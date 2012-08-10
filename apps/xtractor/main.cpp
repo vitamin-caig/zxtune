@@ -12,9 +12,10 @@ Author:
 //local includes
 #include <apps/version/api.h>
 //common includes
+#include <debug_log.h>
 #include <format.h>
-#include <logging.h>
 #include <parameters.h>
+#include <progress_callback.h>
 #include <template.h>
 //library includes
 #include <analysis/path.h>
@@ -44,7 +45,7 @@ namespace
     std::cout << Error::AttributesToString(loc, code, text);
   }
 
-  const std::string THIS_MODULE("XTractor");
+  const Debug::Stream Dbg("XTractor");
 }
 
 template<class ObjType>
@@ -429,7 +430,7 @@ namespace
       {
         return;
       }
-      Log::Debug(THIS_MODULE, "Creating dir '%1%'", dir);
+      Dbg("Creating dir '%1%'", dir);
       const boost::filesystem::path path(dir);
       if (boost::filesystem::create_directories(path))
       {
@@ -613,11 +614,11 @@ namespace
     {
       const Binary::Container::Ptr rawData = node->Data();
       const String descr = Decoder->GetDescription();
-      Log::Debug(THIS_MODULE, "Trying '%1%'", descr);
+      Dbg("Trying '%1%'", descr);
       if (Formats::Packed::Container::Ptr depacked = Decoder->Decode(*rawData))
       {
         const std::size_t matched = depacked->PackedSize();
-        Log::Debug(THIS_MODULE, "Found in %1% bytes", matched);
+        Dbg("Found in %1% bytes", matched);
         const String name = descr;//TODO
         const Analysis::Node::Ptr subNode = Analysis::CreateSubnode(node, depacked, name, descr);
         Unpacked->ApplyData(subNode);
@@ -625,7 +626,7 @@ namespace
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Not found");
+        Dbg("Not found");
         return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
       }
     }
@@ -691,11 +692,11 @@ namespace
     {
       const Binary::Container::Ptr rawData = node->Data();
       const String descr = Decoder->GetDescription();
-      Log::Debug(THIS_MODULE, "Trying '%1%'", descr);
+      Dbg("Trying '%1%'", descr);
       if (Formats::Archived::Container::Ptr depacked = Decoder->Decode(*rawData))
       {
         const std::size_t matched = depacked->Size();
-        Log::Debug(THIS_MODULE, "Found in %1% bytes", matched);
+        Dbg("Found in %1% bytes", matched);
         const String name = descr;//TODO
         const Analysis::Node::Ptr subNode = Analysis::CreateSubnode(node, depacked, name, descr);
         const DepackFiles walker(subNode, Unarchived);
@@ -704,7 +705,7 @@ namespace
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Not found");
+        Dbg("Not found");
         return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
       }
     }
@@ -891,7 +892,7 @@ namespace
       if (const std::size_t matched = result->GetMatchedDataSize())
       {
         const std::size_t nextOffset = *ScanOffset + matched;
-        Log::Debug(THIS_MODULE, "Matched at %1%..%2%", *ScanOffset, nextOffset);
+        Dbg("Matched at %1%..%2%", *ScanOffset, nextOffset);
         //limit result for captured ScanNode
         *ScanLimit = nextOffset;
 
@@ -899,7 +900,7 @@ namespace
         ResetScaner(nextOffset);
         if (nextOffset == Limit)
         {
-          Log::Debug(THIS_MODULE, "No more data to analyze. Stop.");
+          Dbg("No more data to analyze. Stop.");
           return true;
         }
         Analysers.insert(std::make_pair(nextOffset, service));
@@ -910,12 +911,12 @@ namespace
         const std::size_t nextSearch = *ScanOffset + std::max(lookahead, std::size_t(1));
         if (nextSearch < Limit)
         {
-          Log::Debug(THIS_MODULE, "Skip for nearest %1% bytes", lookahead);
+          Dbg("Skip for nearest %1% bytes", lookahead);
           Analysers.insert(std::make_pair(nextSearch, service));
         }
         else
         {
-          Log::Debug(THIS_MODULE, "Disable for further checking");
+          Dbg("Disable for further checking");
         }
       }
       return false;
@@ -925,7 +926,7 @@ namespace
     {
       if (*UnresolvedOffset < *ScanOffset)
       {
-        Log::Debug(THIS_MODULE, "Unresolved %1%..%2%", *UnresolvedOffset, *ScanOffset);
+        Dbg("Unresolved %1%..%2%", *UnresolvedOffset, *ScanOffset);
         const Analysis::Node::Ptr unresolvedNode = boost::make_shared<ScanningNode>(Source, UnresolvedOffset, ScanOffset);
         Unresolved->ApplyData(unresolvedNode);
         //recreate
@@ -1002,7 +1003,7 @@ namespace
     {
       try
       {
-        Log::Debug(THIS_MODULE, "Opening '%1%'", filename);
+        Dbg("Opening '%1%'", filename);
         Binary::Container::Ptr data;
         ThrowIfError(ZXTune::IO::OpenData(filename, *Params, Log::ProgressCallback::Stub(), data));
         const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);

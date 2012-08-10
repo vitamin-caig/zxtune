@@ -16,7 +16,7 @@ Author:
 #include <formats/chiptune/protracker3_detail.h>
 //common includes
 #include <byteorder.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
@@ -28,7 +28,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Packed::CompiledPTU13");
+  const Debug::Stream Dbg("Formats::Packed::CompiledPTU13");
 }
 
 namespace CompiledPTU13
@@ -153,7 +153,7 @@ namespace Formats
         const uint_t positionsAddr = fromLE(rawPlayer.PositionsAddr);
         if (positionsAddr < playerSize + offsetof(CompiledPTU13::RawHeader, Positions))
         {
-          Log::Debug(THIS_MODULE, "Invalid compile addr");
+          Dbg("Invalid compile addr");
           return Container::Ptr();
         }
         const uint_t dataAddr = positionsAddr - offsetof(CompiledPTU13::RawHeader, Positions);
@@ -161,11 +161,11 @@ namespace Formats
         const uint_t patternsCount = CompiledPTU13::GetPatternsCount(rawHeader, availSize - playerSize);
         if (!patternsCount)
         {
-          Log::Debug(THIS_MODULE, "Invalid patterns count");
+          Dbg("Invalid patterns count");
           return Container::Ptr();
         }
         const uint_t compileAddr = dataAddr - playerSize;
-        Log::Debug(THIS_MODULE, "Detected player compiled at %1% (#%1$04x) with %2% patterns", compileAddr, patternsCount);
+        Dbg("Detected player compiled at %1% (#%1$04x) with %2% patterns", compileAddr, patternsCount);
         const std::size_t modDataSize = std::min(CompiledPTU13::MAX_MODULE_SIZE, availSize - playerSize);
         const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
         const Formats::Chiptune::PatchedDataBuilder::Ptr builder = Formats::Chiptune::PatchedDataBuilder::Create(*modData);
@@ -184,7 +184,7 @@ namespace Formats
         {
           return CreatePackedContainer(fixedParsed, playerSize + fixedParsed->Size());
         }
-        Log::Debug(THIS_MODULE, "Failed to parse fixed module");
+        Dbg("Failed to parse fixed module");
         return Container::Ptr();
       }
     private:

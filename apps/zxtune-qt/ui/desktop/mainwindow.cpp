@@ -33,7 +33,6 @@ Author:
 //common includes
 #include <contract.h>
 #include <format.h>
-#include <logging.h>
 //library includes
 #include <core/module_attrs.h>
 //boost includes

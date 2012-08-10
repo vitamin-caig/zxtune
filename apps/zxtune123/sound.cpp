@@ -17,8 +17,8 @@ Author:
 #include <apps/base/error_codes.h>
 #include <apps/base/parsing.h>
 //common includes
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <string_helpers.h>
 #include <tools.h>
 //library includes
@@ -48,6 +48,8 @@ namespace
 {
   const Char DEFAULT_MIXER_3[] = {'A', 'B', 'C', '\0'};
   const Char DEFAULT_MIXER_4[] = {'A', 'B', 'C', 'D', '\0'};
+
+  const Debug::Stream Dbg(THIS_MODULE);
 
   static const String NOTUSED_MARK("\x01\x02");
 
@@ -374,10 +376,10 @@ namespace
         for (std::list<ZXTune::Sound::BackendCreator::Ptr>::const_iterator it =
           backends.begin(), lim = backends.end(); it != lim; ++it)
         {
-          Log::Debug(THIS_MODULE, "Trying backend %1%", (*it)->Id());
+          Dbg("Trying backend %1%", (*it)->Id());
           if (const Error& e = (*it)->CreateBackend(createParams, backend))
           {
-            Log::Debug(THIS_MODULE, " failed");
+            Dbg(" failed");
             if (1 == backends.size())
             {
               throw e;
@@ -385,7 +387,7 @@ namespace
             e.WalkSuberrors(ErrOuter);
             continue;
           }
-          Log::Debug(THIS_MODULE, "Success!");
+          Dbg("Success!");
           Creator = *it;
           break;
         }

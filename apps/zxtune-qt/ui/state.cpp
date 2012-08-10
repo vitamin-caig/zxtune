@@ -17,7 +17,7 @@ Author:
 #include "supp/options.h"
 #include "ui/utils.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -34,7 +34,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::State");
+  const Debug::Stream Dbg("UI::State");
 
   class WidgetState
   {
@@ -366,7 +366,7 @@ namespace
       const SortState sortstate(View);
       if (!View.restoreState(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT)))
       {
-        Log::Debug(THIS_MODULE, "Failed to restore state of QHeaderView(%1%)", FromQString(View.objectName()));
+        Dbg("Failed to restore state of QHeaderView(%1%)", FromQString(View.objectName()));
       }
     }
 
@@ -422,7 +422,7 @@ namespace
       Parameters::IntType val;
       if (!Wid.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY)))
       {
-        Log::Debug(THIS_MODULE, "Failed to restore geometry of QWidget(%1%)", FromQString(Wid.objectName()));
+        Dbg("Failed to restore geometry of QWidget(%1%)", FromQString(Wid.objectName()));
       }
       else if (Container->FindValue(Parameters::ZXTuneQT::UI::PARAM_VISIBLE, val))
       {

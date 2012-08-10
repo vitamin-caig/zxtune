@@ -17,8 +17,8 @@ Author:
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
@@ -40,7 +40,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Sdl");
+  const Debug::Stream Dbg("Sound::Backend::Sdl");
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
@@ -121,7 +121,7 @@ namespace
 
     void SetSize(uint_t size)
     {
-      Log::Debug(THIS_MODULE, "Change buffers count %1% -> %2%", Buffers.size(), size);
+      Dbg("Change buffers count %1% -> %2%", Buffers.size(), size);
       Buffers.resize(size);
       FillIter = CycledIterator<Buffer*>(&Buffers.front(), &Buffers.back() + 1);
       PlayIter = FillIter;
@@ -159,12 +159,12 @@ namespace
     {
       if (0 == WasInitialized)
       {
-        Log::Debug(THIS_MODULE, "Initializing");
+        Dbg("Initializing");
         CheckCall(Api->SDL_Init(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
       else if (0 == (WasInitialized & SDL_INIT_AUDIO))
       {
-        Log::Debug(THIS_MODULE, "Initializing sound subsystem");
+        Dbg("Initializing sound subsystem");
         CheckCall(Api->SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
     }
@@ -173,12 +173,12 @@ namespace
     {
       if (0 == WasInitialized)
       {
-        Log::Debug(THIS_MODULE, "Shutting down");
+        Dbg("Shutting down");
         Api->SDL_Quit();
       }
       else if (0 == (WasInitialized & SDL_INIT_AUDIO))
       {
-        Log::Debug(THIS_MODULE, "Shutting down sound subsystem");
+        Dbg("Shutting down sound subsystem");
         Api->SDL_QuitSubSystem(SDL_INIT_AUDIO);
       }
     }
@@ -195,7 +195,7 @@ namespace
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
-      Log::Debug(THIS_MODULE, "Starting playback");
+      Dbg("Starting playback");
 
       SDL_AudioSpec format;
       format.format = -1;
@@ -234,19 +234,19 @@ namespace
 
     virtual void OnShutdown()
     {
-      Log::Debug(THIS_MODULE, "Shutdown");
+      Dbg("Shutdown");
       Api->SDL_CloseAudio();
     }
 
     virtual void OnPause()
     {
-      Log::Debug(THIS_MODULE, "Pause");
+      Dbg("Pause");
       Api->SDL_PauseAudio(1);
     }
 
     virtual void OnResume()
     {
-      Log::Debug(THIS_MODULE, "Resume");
+      Dbg("Resume");
       Api->SDL_PauseAudio(0);
     }
 
@@ -347,7 +347,7 @@ namespace ZXTune
       {
         const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
         const SDL_version* const vers = api->SDL_Linked_Version();
-        Log::Debug(THIS_MODULE, "Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
+        Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
         const BackendCreator::Ptr creator(new SdlBackendCreator(api));
         enumerator.RegisterCreator(creator);
       }

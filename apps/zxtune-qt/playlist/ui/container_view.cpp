@@ -26,8 +26,8 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
+#include <debug_log.h>
 #include <error.h>
-#include <logging.h>
 //std includes
 #include <cassert>
 //qt includes
@@ -36,7 +36,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::UI::ContainerView");
+  const Debug::Stream Dbg("Playlist::UI::ContainerView");
 
   class PlaylistsIterator : public Playlist::Controller::Iterator
   {
@@ -115,12 +115,12 @@ namespace
       Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED, Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
       Parameters::BooleanValue::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED, Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
 
-      Log::Debug(THIS_MODULE, "Created at %1%", this);
+      Dbg("Created at %1%", this);
     }
 
     virtual ~ContainerViewImpl()
     {
-      Log::Debug(THIS_MODULE, "Destroyed at %1%", this);
+      Dbg("Destroyed at %1%", this);
     }
 
     virtual void Setup(const QStringList& items)
@@ -242,7 +242,7 @@ namespace
       Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
       view->hide();//to save layout
       widgetsContainer->removeTab(index);
-      Log::Debug(THIS_MODULE, "Closed playlist idx=%1% val=%2%, active=%3%",
+      Dbg("Closed playlist idx=%1% val=%2%, active=%3%",
         index, view, ActivePlaylistView);
       if (view == ActivePlaylistView)
       {
@@ -290,7 +290,7 @@ namespace
         Playlist::UI::View* const newView = static_cast<Playlist::UI::View*>(sender);
         if (newView != ActivePlaylistView)
         {
-          Log::Debug(THIS_MODULE, "Switched playlist %1% -> %2%", newView, ActivePlaylistView);
+          Dbg("Switched playlist %1% -> %2%", newView, ActivePlaylistView);
           ActivePlaylistView->Stop();
           ActivePlaylistView = newView;
         }
@@ -314,7 +314,7 @@ namespace
 
     Playlist::UI::View& CreateAnonymousPlaylist()
     {
-      Log::Debug(THIS_MODULE, "Create default playlist");
+      Dbg("Create default playlist");
       const Playlist::Controller::Ptr pl = Container->CreatePlaylist(tr("Default"));
       return RegisterPlaylist(pl);
     }
@@ -353,7 +353,7 @@ namespace
 
     void SwitchToLastPlaylist()
     {
-      Log::Debug(THIS_MODULE, "Move to another playlist");
+      Dbg("Move to another playlist");
       if (int total = widgetsContainer->count())
       {
         ActivatePlaylist(total - 1);
@@ -369,7 +369,7 @@ namespace
       if (QWidget* widget = widgetsContainer->widget(index))
       {
         ActivePlaylistView = static_cast<Playlist::UI::View*>(widget);
-        Log::Debug(THIS_MODULE, "Switching to playlist idx=%1% val=%2%", index, ActivePlaylistView);
+        Dbg("Switching to playlist idx=%1% val=%2%", index, ActivePlaylistView);
       }
     }
   private:

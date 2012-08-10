@@ -36,8 +36,6 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Wav");
-
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif

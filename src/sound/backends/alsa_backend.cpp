@@ -18,8 +18,8 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
@@ -44,7 +44,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Alsa");
+  const Debug::Stream Dbg("Sound::Backend::Alsa");
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
@@ -243,7 +243,7 @@ namespace
     void Open()
     {
       Require(Handle == 0);
-      Log::Debug(THIS_MODULE, "Opening PCM device '%1%'", Name);
+      Dbg("Opening PCM device '%1%'", Name);
       CheckResult(Api->snd_pcm_open(&Handle, IO::ConvertToFilename(Name).c_str(),
         SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
     }
@@ -255,7 +255,7 @@ namespace
         //do not break if error while drain- we need to close
         Api->snd_pcm_drain(Handle);
         Api->snd_pcm_hw_free(Handle);
-        Log::Debug(THIS_MODULE, "Closing PCM device '%1%'", Name);
+        Dbg("Closing PCM device '%1%'", Name);
         CheckResult(Api->snd_pcm_close(Release()), THIS_LINE);
       }
     }
@@ -320,7 +320,7 @@ namespace
         &Alsa::Api::snd_pcm_hw_params_malloc, &Alsa::Api::snd_pcm_hw_params_free);
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_any, hwParams.get(), THIS_LINE);
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_set_access, hwParams.get(), SND_PCM_ACCESS_RW_INTERLEAVED, THIS_LINE);
-      Log::Debug(THIS_MODULE, "Setting resampling possibility");
+      Dbg("Setting resampling possibility");
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_set_rate_resample, hwParams.get(), 1u, THIS_LINE);
 
       const boost::shared_ptr<snd_pcm_format_mask_t> fmtMask = Allocate<snd_pcm_format_mask_t>(Api,
@@ -328,29 +328,29 @@ namespace
       Api->snd_pcm_hw_params_get_format_mask(hwParams.get(), fmtMask.get());
 
       const SoundFormat fmt(*Api, fmtMask.get());
-      Log::Debug(THIS_MODULE, "Setting format");
+      Dbg("Setting format");
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_set_format, hwParams.get(), fmt.Get(), THIS_LINE);
-      Log::Debug(THIS_MODULE, "Setting channels");
+      Dbg("Setting channels");
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_set_channels, hwParams.get(), unsigned(OUTPUT_CHANNELS), THIS_LINE);
       const unsigned samplerate = params.SoundFreq();
-      Log::Debug(THIS_MODULE, "Setting frequency to %1%", samplerate);
+      Dbg("Setting frequency to %1%", samplerate);
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_set_rate, hwParams.get(), samplerate, 0, THIS_LINE);
-      Log::Debug(THIS_MODULE, "Setting buffers count to %1%", buffersCount);
+      Dbg("Setting buffers count to %1%", buffersCount);
       int dir = 0;
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_set_periods_near, hwParams.get(), &buffersCount, &dir, THIS_LINE);
-      Log::Debug(THIS_MODULE, "Actually set to %1%", buffersCount);
+      Dbg("Actually set to %1%", buffersCount);
 
       snd_pcm_uframes_t minBufSize(buffersCount * params.SamplesPerFrame());
-      Log::Debug(THIS_MODULE, "Setting buffer size to %1% samples", minBufSize);
+      Dbg("Setting buffer size to %1% samples", minBufSize);
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_set_buffer_size_near, hwParams.get(), &minBufSize, THIS_LINE);
-      Log::Debug(THIS_MODULE, "Actually set %1% samples", minBufSize);
+      Dbg("Actually set %1% samples", minBufSize);
 
-      Log::Debug(THIS_MODULE, "Applying parameters");
+      Dbg("Applying parameters");
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params, hwParams.get(), THIS_LINE);
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_prepare, THIS_LINE);
 
       CanPause = Api->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
-      Log::Debug(THIS_MODULE, CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
+      Dbg(CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
       ChangeSign = fmt.ChangeSign();
     }
 
@@ -462,7 +462,7 @@ namespace
     
     void Open()
     {
-      Log::Debug(THIS_MODULE, "Opening mixer device '%1%'", Name);
+      Dbg("Opening mixer device '%1%'", Name);
       CheckResult(Api->snd_mixer_open(&Handle, 0), THIS_LINE);
     }
     
@@ -470,7 +470,7 @@ namespace
     {
       if (Handle)
       {
-        Log::Debug(THIS_MODULE, "Closing mixer device '%1%'", Name);
+        Dbg("Closing mixer device '%1%'", Name);
         CheckResult(Api->snd_mixer_close(Release()), THIS_LINE);
       }
     }
@@ -500,7 +500,7 @@ namespace
 
     void Open()
     {
-      Log::Debug(THIS_MODULE, "Attaching to mixer device '%1%'", Name);
+      Dbg("Attaching to mixer device '%1%'", Name);
       MixDev.CheckedCall(&Alsa::Api::snd_mixer_attach, Name.c_str(), THIS_LINE);
       MixDev.CheckedCall(&Alsa::Api::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(0), static_cast<snd_mixer_class_t**>(0), THIS_LINE);
       MixDev.CheckedCall(&Alsa::Api::snd_mixer_load, THIS_LINE);
@@ -510,7 +510,7 @@ namespace
     {
       if (MixDev.Get())
       {
-        Log::Debug(THIS_MODULE, "Detaching from mixer device '%1%'", Name);
+        Dbg("Detaching from mixer device '%1%'", Name);
         MixDev.CheckedCall(&Alsa::Api::snd_mixer_detach, Name.c_str(), THIS_LINE);
         MixDev.Close();
       }
@@ -538,22 +538,22 @@ namespace
       , MixerElement(0)
     {
 
-      Log::Debug(THIS_MODULE, "Opening mixer '%1%'", mixer);
+      Dbg("Opening mixer '%1%'", mixer);
       //find mixer element
       for (MixerElementsIterator iter = Attached.GetElements(); iter.IsValid(); iter.Next())
       {
         snd_mixer_elem_t* const elem = iter.Get();
         const String mixName = iter.GetName();
-        Log::Debug(THIS_MODULE, "Checking for mixer %1%", mixName);
+        Dbg("Checking for mixer %1%", mixName);
         if (mixer.empty())
         {
-          Log::Debug(THIS_MODULE, "Using first mixer: %1%", mixName);
+          Dbg("Using first mixer: %1%", mixName);
           MixerElement = elem;
           break;
         }
         else if (mixer == mixName)
         {
-          Log::Debug(THIS_MODULE, "Found mixer: %1%", mixName);
+          Dbg("Found mixer: %1%", mixName);
           MixerElement = elem;
           break;
         }
@@ -654,23 +654,23 @@ namespace
 
     virtual Error GetVolume(MultiGain& volume) const
     {
-      Log::Debug(THIS_MODULE, "GetVolume");
+      Dbg("GetVolume");
       if (Mixer::Ptr obj = Mix.lock())
       {
         return obj->GetVolume(volume);
       }
-      Log::Debug(THIS_MODULE, "Volume control is expired");
+      Dbg("Volume control is expired");
       return Error();
     }
 
     virtual Error SetVolume(const MultiGain& volume)
     {
-      Log::Debug(THIS_MODULE, "SetVolume");
+      Dbg("SetVolume");
       if (Mixer::Ptr obj = Mix.lock())
       {
         return obj->SetVolume(volume);
       }
-      Log::Debug(THIS_MODULE, "Volume control is expired");
+      Dbg("Volume control is expired");
       return Error();
     }
   private:
@@ -735,23 +735,23 @@ namespace
       const AlsaObjects obj = OpenDevices();
       obj.Dev->Close();
       obj.Mix->Close();
-      Log::Debug(THIS_MODULE, "Checked!");
+      Dbg("Checked!");
     }
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
-      Log::Debug(THIS_MODULE, "Starting");
+      Dbg("Starting");
       Objects = OpenDevices();
-      Log::Debug(THIS_MODULE, "Started");
+      Dbg("Started");
     }
 
     virtual void OnShutdown()
     {
-      Log::Debug(THIS_MODULE, "Stopping");
+      Dbg("Stopping");
       Objects.Vol.reset();
       Objects.Mix.reset();
       Objects.Dev.reset();
-      Log::Debug(THIS_MODULE, "Stopped");
+      Dbg("Stopped");
     }
 
     virtual void OnPause()
@@ -1109,7 +1109,7 @@ namespace ZXTune
       try
       {
         const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
-        Log::Debug(THIS_MODULE, "Detected Alsa %1%", api->snd_asoundlib_version());
+        Dbg("Detected Alsa %1%", api->snd_asoundlib_version());
         const BackendCreator::Ptr creator(new AlsaBackendCreator(api));
         enumerator.RegisterCreator(creator);
       }
@@ -1136,7 +1136,7 @@ namespace ZXTune
         }
         catch (const Error& e)
         {
-          Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+          Dbg("%1%", Error::ToString(e));
           return Device::Iterator::CreateStub();
         }
       }

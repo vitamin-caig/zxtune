@@ -11,7 +11,8 @@ include $(path_step)/make/features.mak
 define declare_native_backend
 ifdef support_$(1)
 generated_headers += backends/$(2)_api
-source_files += backends/$(2)_backend backends/$(2)_api_dynamic
+generated_sources += backends/$(2)_api_dynamic
+source_files += backends/$(2)_backend
 else
 source_files += backends/$(2)_stub
 endif
@@ -21,7 +22,8 @@ define declare_thirdparty_backend
 ifdef support_$(1)
 $$(platform)_include_dirs += $$(path_step)/3rdparty
 generated_headers += backends/$(1)_api
-source_files += backends/$(1)_backend backends/$(1)_api_dynamic
+generated_sources += backends/$(1)_api_dynamic
+source_files += backends/$(1)_backend
 else
 source_files += backends/$(1)_stub
 endif

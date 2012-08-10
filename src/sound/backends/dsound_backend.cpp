@@ -16,8 +16,8 @@ Author:
 #include "enumerator.h"
 #include "volume_control.h"
 //common includes
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <sound/backend_attrs.h>
@@ -39,7 +39,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::DirectSound");
+  const Debug::Stream Dbg("Sound::Backend::DirectSound");
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
@@ -108,19 +108,19 @@ namespace
 
   DirectSoundDevicePtr OpenDevice(DirectSound::Api& api, const String& device)
   {
-    Log::Debug(THIS_MODULE, "OpenDevice(%1%)", device);
+    Dbg("OpenDevice(%1%)", device);
     DirectSoundDevicePtr::pointer raw = 0;
     const std::auto_ptr<GUID> deviceUuid = String2Guid(device);
     CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
     const DirectSoundDevicePtr result = DirectSoundDevicePtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
-    Log::Debug(THIS_MODULE, "Opened");
+    Dbg("Opened");
     return result;
   }
 
   DirectSoundBufferPtr CreateSecondaryBuffer(DirectSoundDevicePtr device, uint_t sampleRate, uint_t bufferInMs)
   {
-    Log::Debug(THIS_MODULE, "CreateSecondaryBuffer");
+    Dbg("CreateSecondaryBuffer");
     WAVEFORMATEX format;
     std::memset(&format, 0, sizeof(format));
     format.cbSize = sizeof(format);
@@ -142,13 +142,13 @@ namespace
     CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawSecondary, NULL), THIS_LINE);
     assert(rawSecondary);
     const boost::shared_ptr<IDirectSoundBuffer> secondary(rawSecondary, &ReleaseRef);
-    Log::Debug(THIS_MODULE, "Created");
+    Dbg("Created");
     return secondary;
   }
 
   DirectSoundBufferPtr CreatePrimaryBuffer(DirectSoundDevicePtr device)
   {
-    Log::Debug(THIS_MODULE, "CreatePrimaryBuffer");
+    Dbg("CreatePrimaryBuffer");
     DSBUFFERDESC buffer;
     std::memset(&buffer, 0, sizeof(buffer));
     buffer.dwSize = sizeof(buffer);
@@ -158,7 +158,7 @@ namespace
     CheckWin32Error(device->CreateSoundBuffer(&buffer, &rawPrimary, NULL), THIS_LINE);
     assert(rawPrimary);
     const boost::shared_ptr<IDirectSoundBuffer> primary(rawPrimary, &ReleaseRef);
-    Log::Debug(THIS_MODULE, "Created");
+    Dbg("Created");
     return primary;
   }
 
@@ -178,7 +178,7 @@ namespace
       caps.dwSize = sizeof(caps);
       CheckWin32Error(Buff->GetCaps(&caps), THIS_LINE);
       BuffSize = caps.dwBufferBytes;
-      Log::Debug(THIS_MODULE, "Using cycle buffer size %1%", BuffSize);
+      Dbg("Using cycle buffer size %1%", BuffSize);
       CheckWin32Error(Buff->Play(0, 0, DSBPLAY_LOOPING), THIS_LINE);
     }
 
@@ -204,7 +204,7 @@ namespace
             &part1Data, &part1Size, &part2Data, &part2Size, 0);
           if (DSERR_BUFFERLOST == res)
           {
-            Log::Debug(THIS_MODULE, "Buffer lost. Retry to lock");
+            Dbg("Buffer lost. Retry to lock");
             Buff->Restore();
             continue;
           }
@@ -235,7 +235,7 @@ namespace
           &part1Data, &part1Size, &part2Data, &part2Size, DSBLOCK_ENTIREBUFFER);
         if (DSERR_BUFFERLOST == res)
         {
-          Log::Debug(THIS_MODULE, "Buffer lost. Retry to lock");
+          Dbg("Buffer lost. Retry to lock");
           Buff->Restore();
           continue;
         }
@@ -335,7 +335,7 @@ namespace
         const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);
         volume[0] = AttenuationToGain(attLeft);
         volume[1] = AttenuationToGain(attRight);
-        Log::Debug(THIS_MODULE, "GetVolume(vol=%1% pan=%2%) = {%3%, %4%}", 
+        Dbg("GetVolume(vol=%1% pan=%2%) = {%3%, %4%}", 
           vols.first, vols.second, volume[0], volume[1]);
         return Error();
       }
@@ -358,7 +358,7 @@ namespace
         const LONG vol = std::max(attLeft, attRight);
         //pan is negative for left
         const LONG pan = attLeft < vol ? vol - attLeft : vol - attRight;
-        Log::Debug(THIS_MODULE, "SetVolume(%1%, %2%) => vol=%3% pan=%4%", volume[0], volume[1], vol, pan);
+        Dbg("SetVolume(%1%, %2%) => vol=%3% pan=%4%", volume[0], volume[1], vol, pan);
         SetVolume(VolPan(vol, pan));
         return Error();
       }
@@ -434,19 +434,19 @@ namespace
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
-      Log::Debug(THIS_MODULE, "Starting");
+      Dbg("Starting");
       Objects = OpenDevices();
-      Log::Debug(THIS_MODULE, "Started");
+      Dbg("Started");
     }
 
     virtual void OnShutdown()
     {
-      Log::Debug(THIS_MODULE, "Stopping");
+      Dbg("Stopping");
       Objects.Stream->Stop();
       Objects.Volume.reset();
       Objects.Stream.reset();
       Objects.Device.reset();
-      Log::Debug(THIS_MODULE, "Stopped");
+      Dbg("Stopped");
     }
 
     virtual void OnPause()
@@ -586,12 +586,12 @@ namespace
     {
       if (DS_OK != api->DirectSoundEnumerateA(&EnumerateDevicesCallback, &Devices))
       {
-        Log::Debug(THIS_MODULE, "Failed to enumerate devices. Skip backend.");
+        Dbg("Failed to enumerate devices. Skip backend.");
         Current = Devices.end();
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Detected %1% devices to output.", Devices.size());
+        Dbg("Detected %1% devices to output.", Devices.size());
         Current = Devices.begin();
       }
     }
@@ -620,7 +620,7 @@ namespace
     {
       const String& id = Guid2String(guid);
       const String& name = FromStdString(descr);
-      Log::Debug(THIS_MODULE, "Detected device '%1%' (uuid=%2% module='%3%')", name, id, module);
+      Dbg("Detected device '%1%' (uuid=%2% module='%3%')", name, id, module);
       DevicesArray& devices = *safe_ptr_cast<DevicesArray*>(param);
       devices.push_back(IdAndName(id, name));
       return TRUE;
@@ -669,7 +669,7 @@ namespace ZXTune
         }
         catch (const Error& e)
         {
-          Log::Debug(THIS_MODULE, "%1%", Error::ToString(e));
+          Dbg("%1%", Error::ToString(e));
           return Device::Iterator::CreateStub();
         }
       }

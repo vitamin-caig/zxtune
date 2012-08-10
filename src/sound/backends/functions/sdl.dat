@@ -1,3 +1,4 @@
+DEBUGMODULE=Sound::Backend::Sdl
 char* SDL_GetError(void)
 const SDL_version* SDL_Linked_Version(void)
 int SDL_Init(Uint32 flags)

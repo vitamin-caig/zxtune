@@ -16,8 +16,8 @@ Author:
 #include "tags/xspf.h"
 #include "ui/utils.h"
 //common includes
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 //library includes
 #include <zxtune.h>
 #include <core/module_attrs.h>
@@ -38,7 +38,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::IO::XSPF");
+  const Debug::Stream Dbg("Playlist::IO::XSPF");
 
   const unsigned XSPF_VERSION = 1;
 
@@ -89,7 +89,7 @@ namespace
       {
         return;
       }
-      Log::Debug(THIS_MODULE, "  saving extended attribute %1%=%2%", name.FullPath(), val);
+      Dbg("  saving extended attribute %1%=%2%", name.FullPath(), val);
       SaveProperty(name, val);
     }
 
@@ -99,7 +99,7 @@ namespace
       {
         return;
       }
-      Log::Debug(THIS_MODULE, "  saving extended attribute %1%='%2%'", name.FullPath(), val);
+      Dbg("  saving extended attribute %1%='%2%'", name.FullPath(), val);
       SaveProperty(name, val);
     }
 
@@ -109,7 +109,7 @@ namespace
       {
         return;
       }
-      Log::Debug(THIS_MODULE, "  saving extended attribute %1%=data(%2%)", name.FullPath(), val.size());
+      Dbg("  saving extended attribute %1%=data(%2%)", name.FullPath(), val.size());
       SaveProperty(name, val);
     }
   private:
@@ -145,7 +145,7 @@ namespace
 
     void SaveModuleLocation(const String& location)
     {
-      Log::Debug(THIS_MODULE, "  saving item location %1%", location);
+      Dbg("  saving item location %1%", location);
       const QUrl url(ToQString(location));
       XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, url.toEncoded());
     }
@@ -153,24 +153,24 @@ namespace
     void SaveModuleProperties(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
     {
       //save common properties
-      Log::Debug(THIS_MODULE, " Save basic properties");
+      Dbg(" Save basic properties");
       props.Process(*this);
       SaveDuration(info, props);
-      Log::Debug(THIS_MODULE, " Save extended properties");
+      Dbg(" Save extended properties");
       SaveExtendedProperties(props);
     }
 
     void SaveStubModuleProperties(const Parameters::Accessor& props)
     {
-      Log::Debug(THIS_MODULE, " Save basic stub properties");
+      Dbg(" Save basic stub properties");
       props.Process(*this);
-      Log::Debug(THIS_MODULE, " Save stub extended properties");
+      Dbg(" Save stub extended properties");
       SaveExtendedProperties(props);
     }
 
     void SaveAdjustedParameters(const Parameters::Accessor& params)
     {
-      Log::Debug(THIS_MODULE, " Save adjusted parameters");
+      Dbg(" Save adjusted parameters");
       ExtendedPropertiesSaver saver(XML, &KeepOnlyParameters);
       params.Process(saver);
     }
@@ -185,17 +185,17 @@ namespace
       const QString valStr = ConvertString(value);
       if (name == ZXTune::Module::ATTR_TITLE)
       {
-        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name.FullPath(), val);
+        Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_TITLE_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_AUTHOR)
       {
-        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name.FullPath(), val);
+        Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_CREATOR_TAG, valStr);
       }
       else if (name == ZXTune::Module::ATTR_COMMENT)
       {
-        Log::Debug(THIS_MODULE, "  saving item attribute %1%='%2%'", name.FullPath(), val);
+        Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_ANNOTATION_TAG, valStr);
       }
     }
@@ -209,7 +209,7 @@ namespace
       Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
       props.FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
       const uint64_t msecDuration = info.FramesCount() * frameDuration / 1000;
-      Log::Debug(THIS_MODULE, "  saving item attribute Duration=%1%", msecDuration);
+      Dbg("  saving item attribute Duration=%1%", msecDuration);
       XML.writeTextElement(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }
 
@@ -317,7 +317,7 @@ namespace
   private:
     virtual void OnItem(Playlist::Item::Data::Ptr item)
     {
-      Log::Debug(THIS_MODULE, "Save playitem");
+      Dbg("Save playitem");
       ItemPropertiesSaver saver(XML);
       saver.SaveModuleLocation(item->GetFullPath());
       const Parameters::Accessor::Ptr adjustedParams = item->GetAdjustedParameters();

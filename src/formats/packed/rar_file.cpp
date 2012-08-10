@@ -15,7 +15,7 @@ Author:
 #include "rar_supp.h"
 #include "pack_utils.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
@@ -31,7 +31,7 @@ Author:
 
 namespace RarFile
 {
-  const std::string THIS_MODULE("Formats::Packed::Rar");
+  const Debug::Stream Dbg("Formats::Packed::Rar");
 
   const std::string HEADER_PATTERN =
     "??"          // uint16_t CRC;
@@ -230,7 +230,7 @@ namespace RarFile
         Cursor = std::copy(Data->begin() + toSkip, Data->end(), newData->begin());
         Data = newData;
         Rest = size;
-        Log::Debug(THIS_MODULE, "Reallocate memory %1% -> %2% (%3% in context)", prevSize, size, toCopy);
+        Dbg("Reallocate memory %1% -> %2% (%3% in context)", prevSize, size, toCopy);
         return Binary::CreateContainer(Data, toCopy, size);
       }
       else
@@ -244,7 +244,7 @@ namespace RarFile
       Data = boost::make_shared<Dump>(size);
       Cursor = Data->begin();
       Rest = size;
-      Log::Debug(THIS_MODULE, "Allocated memory %1%", size);
+      Dbg("Allocated memory %1%", size);
       return Binary::CreateContainer(Data, 0, size);
     }
 
@@ -296,11 +296,11 @@ namespace RarFile
       if (timeSpent)
       {
         const std::size_t speed = TargetSize * CLOCKS_PER_SEC / timeSpent;
-        Log::Debug(THIS_MODULE, "Depacking speed is %1% b/s", speed);
+        Dbg("Depacking speed is %1% b/s", speed);
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Unable to determine depacking speed.");
+        Dbg("Unable to determine depacking speed.");
       }
     }
   private:
@@ -648,7 +648,7 @@ namespace RarFile
     {
       if (!Decoded.CopyFromBack(dist, count))
       {
-        Log::Debug(THIS_MODULE, "Invalid backreference!");
+        Dbg("Invalid backreference!");
       }
       History.Store(dist, count);
     }
@@ -764,12 +764,12 @@ namespace RarFile
       assert(0x30 == header.Method);
       if (size != outSize)
       {
-        Log::Debug(THIS_MODULE, "Stored file sizes mismatch");
+        Dbg("Stored file sizes mismatch");
         return Binary::Container::Ptr();
       }
       else
       {
-        Log::Debug(THIS_MODULE, "Restore");
+        Dbg("Restore");
         return container.GetData().GetSubcontainer(offset, size);
       }
     }
@@ -787,11 +787,11 @@ namespace RarFile
       const std::size_t outSize = fromLE(header.UnpackedSize);
       assert(0x30 != header.Method);
       RarBitstream stream(container.GetField<uint8_t>(offset), size);
-      Log::Debug(THIS_MODULE, "Depack %1% -> %2%", size, outSize);
+      Dbg("Depack %1% -> %2%", size, outSize);
       const bool isSolid = header.IsSolid();
       if (isSolid)
       {
-        Log::Debug(THIS_MODULE, "solid mode on");
+        Dbg("solid mode on");
       }
       return Decoder.Decode(stream, outSize, isSolid);
     }

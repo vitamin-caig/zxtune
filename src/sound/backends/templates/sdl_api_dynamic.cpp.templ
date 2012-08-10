@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "sdl_api.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <shared_library_adapter.h>
 #include <tools.h>
 //boost includes
@@ -20,8 +20,6 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::Sdl");
-
   using namespace ZXTune::Sound::Sdl;
 
   class SdlName : public SharedLibrary::Name

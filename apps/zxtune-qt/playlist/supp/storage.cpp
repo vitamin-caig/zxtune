@@ -14,7 +14,7 @@ Author:
 //local includes
 #include "storage.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -22,7 +22,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Playlist::Storage");
+  const Debug::Stream Dbg("Playlist::Storage");
 
   typedef std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType> IndexedItem;
 
@@ -353,7 +353,7 @@ namespace
         std::advance(entry.second, delta);
         if (absolute(delta) > std::ptrdiff_t(CACHE_THRESHOLD))
         {
-          Log::Debug(THIS_MODULE, "Cached iterator for idx=%1%. Nearest idx=%2%, delta=%3%", idx, entry.first, delta);
+          Dbg("Cached iterator for idx=%1%. Nearest idx=%2%, delta=%3%", idx, entry.first, delta);
           entry.first += delta;
           IteratorsCache.insert(entry);
         }
@@ -482,7 +482,7 @@ namespace
 
     void ClearCache()
     {
-      Log::Debug(THIS_MODULE, "Cleared iterators cache");
+      Dbg("Cleared iterators cache");
       IteratorsCache.clear();
     }
 

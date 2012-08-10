@@ -20,7 +20,7 @@ Author:
 #include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
-#include <logging.h>
+#include <progress_callback.h>
 #include <tools.h>
 //library includes
 #include <core/core_parameters.h>

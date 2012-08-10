@@ -19,7 +19,7 @@ Author:
 #include <core/module_holder.h>
 //common includes
 #include <error.h>
-#include <logging.h>
+#include <progress_callback.h>
 
 namespace ZXTune
 {

@@ -16,7 +16,7 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
-#include <logging.h>
+#include <debug_log.h>
 //library includes
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>
@@ -31,7 +31,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Chiptune::YM");
+  const Debug::Stream Dbg("Formats::Chiptune::YM");
 }
 
 namespace Formats
@@ -284,7 +284,7 @@ namespace Chiptune
           const Ver5::RawHeader& header = stream.ReadField<Ver5::RawHeader>();
           if (0 != header.SamplesCount)
           {
-            Log::Debug(THIS_MODULE, "Digital samples are not supported");
+            Dbg("Digital samples are not supported");
             return Formats::Chiptune::Container::Ptr();
           }
           target.SetVersion(String(header.Signature, header.Signature + sizeof(IdentifierType)));
@@ -317,7 +317,7 @@ namespace Chiptune
       }
       catch (const std::exception&)
       {
-        Log::Debug(THIS_MODULE, "Failed to parse");
+        Dbg("Failed to parse");
       }
       return Formats::Chiptune::Container::Ptr();
     }
@@ -558,7 +558,7 @@ namespace Chiptune
         }
 
         const std::size_t packedOffset = stream.GetPosition();
-        Log::Debug(THIS_MODULE, "Packed data at %1%", packedOffset);
+        Dbg("Packed data at %1%", packedOffset);
         const Binary::Container::Ptr packed = stream.ReadRestData();
         if (Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {
@@ -569,11 +569,11 @@ namespace Chiptune
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
           return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
         }
-        Log::Debug(THIS_MODULE, "Failed to decode ym data");
+        Dbg("Failed to decode ym data");
       }
       catch (const std::exception&)
       {
-        Log::Debug(THIS_MODULE, "Failed to parse");
+        Dbg("Failed to parse");
       }
       return Formats::Chiptune::Container::Ptr();
     }

@@ -12,15 +12,13 @@ Author:
 //local includes
 #include "win32_api.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
 namespace
 {
-  const std::string THIS_MODULE("Sound::Backend::Win32");
-
   using namespace ZXTune::Sound::Win32;
 
 <TMPL_INCLUDE NAME="api_dynamic.cpp.templ">

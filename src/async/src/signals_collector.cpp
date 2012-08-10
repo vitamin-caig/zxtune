@@ -10,7 +10,7 @@ Author:
 */
 
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 //library includes
 #include <async/signals_collector.h>
 //std includes
@@ -25,7 +25,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Signals");
+  const Debug::Stream Dbg("Signals");
 
   using namespace Async::Signals;
 
@@ -39,12 +39,12 @@ namespace
       : Mask(mask)
       , Signals(0)
     {
-      Log::Debug(THIS_MODULE, "Created collector %1$#x", this);
+      Dbg("Created collector %1$#x", this);
     }
 
     virtual ~CollectorImpl()
     {
-      Log::Debug(THIS_MODULE, "Destroyed collector %1$#x", this);
+      Dbg("Destroyed collector %1$#x", this);
     }
 
     virtual uint_t WaitForSignals(uint_t timeoutMs)
@@ -54,7 +54,7 @@ namespace
       if (Event.timed_wait(locker, boost::posix_time::milliseconds(timeoutMs)))
       {
         assert(Signals);
-        Log::Debug(THIS_MODULE, "Catched collector %1$#x with %2$#x", this, Signals);
+        Dbg("Catched collector %1$#x with %2$#x", this, Signals);
       }
       std::swap(Signals, result);
       return result;
@@ -67,7 +67,7 @@ namespace
         const boost::mutex::scoped_lock locker(Mutex);
         Signals |= sigmask;
         Event.notify_one();
-        Log::Debug(THIS_MODULE, "Notified collector %1$#x with %2$#x", this, sigmask);
+        Dbg("Notified collector %1$#x with %2$#x", this, sigmask);
       }
     }
   private:
@@ -125,7 +125,7 @@ namespace
       {
         if (Id)
         {
-          Log::Debug(THIS_MODULE, "Untied collector %1$#x", Id);
+          Dbg("Untied collector %1$#x", Id);
         }
         Delegate.reset();
         Id = 0;

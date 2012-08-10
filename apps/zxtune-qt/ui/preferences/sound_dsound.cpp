@@ -19,8 +19,8 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
+#include <debug_log.h>
 #include <format.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <sound/backends_parameters.h>
@@ -32,7 +32,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("UI::Preferences::DirectSound");
+  const Debug::Stream Dbg("UI::Preferences::DirectSound");
 }
 
 namespace
@@ -76,7 +76,7 @@ namespace
     virtual void DeviceChanged(const QString& name)
     {
       const String& id = FromQString(name);
-      Log::Debug(THIS_MODULE, "Selecting device '%1%'", id);
+      Dbg("Selecting device '%1%'", id);
       const DevicesArray::const_iterator it = std::find_if(Devices.begin(), Devices.end(),
         boost::bind(&Device::Name, _1) == name || boost::bind(&Device::Id, _1) == id);
       if (it != Devices.end())

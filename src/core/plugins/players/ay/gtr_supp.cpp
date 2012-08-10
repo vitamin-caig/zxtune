@@ -20,7 +20,6 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <range_checker.h>
 #include <tools.h>
 //library includes
@@ -38,11 +37,6 @@ Author:
 #include <core/text/warnings.h>
 
 #define FILE_TAG 1F7CDD7C
-
-namespace
-{
-  const std::string THIS_MODULE("Core::GTRSupp");
-}
 
 namespace GlobalTracker
 {

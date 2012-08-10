@@ -18,15 +18,9 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <sound/backends_parameters.h>
-
-namespace
-{
-  const std::string THIS_MODULE("UI::Preferences::Sdl");
-}
 
 namespace
 {

@@ -18,8 +18,8 @@ Author:
 #include "core/plugins/players/tracking.h"
 //common includes
 #include <byteorder.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -41,7 +41,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Core::DMMSupp");
+  const Debug::Stream Dbg("Core::DMMSupp");
 }
 
 namespace DMM
@@ -425,7 +425,7 @@ namespace
         const std::size_t bankEnd = fromLE(header->EndOfBanks[layIdx]);
         if (bankEnd <= DMM::SAMPLES_ADDR)
         {
-          Log::Debug(THIS_MODULE, "Skipping bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
+          Dbg("Skipping bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
           continue;
         }
         const std::size_t bankSize = bankEnd - DMM::SAMPLES_ADDR;
@@ -439,7 +439,7 @@ namespace
         {
           DMM::ConvertFrom4Bit(regions[bankNum]);
         }
-        Log::Debug(THIS_MODULE, "Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
+        Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
         lastData += realSize;
       }
 
@@ -449,23 +449,23 @@ namespace
         const DMM::SampleInfo& srcSample = header->SampleDescriptions[samIdx - 1];
         if (srcSample.Name[0] == '.')
         {
-          Log::Debug(THIS_MODULE, "No sample %1%", samIdx);
+          Dbg("No sample %1%", samIdx);
           continue;
         }
         const std::size_t sampleStart = fromLE(srcSample.Start);
         const std::size_t sampleEnd = fromLE(srcSample.Limit);
         const std::size_t sampleLoop = fromLE(srcSample.Loop);
-        Log::Debug(THIS_MODULE, "Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank), sampleStart, sampleEnd, sampleLoop);
+        Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank), sampleStart, sampleEnd, sampleLoop);
         if (sampleStart < DMM::SAMPLES_ADDR ||
             sampleStart > sampleEnd ||
             sampleStart > sampleLoop)
         {
-          Log::Debug(THIS_MODULE, "Skipped due to invalid layout");
+          Dbg("Skipped due to invalid layout");
           continue;
         }
         if (!regions.count(srcSample.Bank))
         {
-          Log::Debug(THIS_MODULE, "Skipped. No data");
+          Dbg("Skipped. No data");
           continue;
         }
         const Dump& bankData = regions[srcSample.Bank];
@@ -474,7 +474,7 @@ namespace
         const std::size_t sampleSize = limitInBank - offsetInBank;
         if (limitInBank > bankData.size())
         {
-          Log::Debug(THIS_MODULE, "Skipped. Not enough data");
+          Dbg("Skipped. Not enough data");
           continue;
         }
         const uint8_t* const sampleDataStart = &bankData[offsetInBank];
@@ -1155,7 +1155,7 @@ namespace
       }
       catch (const Error&/*e*/)
       {
-        Log::Debug("Core::DMMSupp", "Failed to create holder");
+        Dbg("Failed to create holder");
       }
       return Holder::Ptr();
     }

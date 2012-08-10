@@ -18,9 +18,9 @@ while (my $line = <FUNCS>)
   $line =~ /^(.*?)(#.*)?$/;
   my $func = $1;
   next unless $func;
-  if ($func =~ /(\w+)\s*=\s*([\w\d_]+)/)
+  if ($func =~ /(\w+)\s*=\s*(.+)/)
   {
-    $template->param(CALLTYPE => $2) if $1 eq 'CALLTYPE';
+    $template->param($1 => $2);
     next;
   }
   die "Invalid function format ($_)" unless $func =~ /([\w_][\w\d_*\s]*?)([\w_][\w\d_]*)\s*\((.*)\)/;

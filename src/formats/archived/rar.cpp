@@ -10,7 +10,7 @@ Author:
 */
 
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
@@ -29,7 +29,7 @@ Author:
 
 namespace Rar
 {
-  const std::string THIS_MODULE("Formats::Archived::Rar");
+  const Debug::Stream Dbg("Formats::Archived::Rar");
 
   using namespace Formats;
 
@@ -115,11 +115,11 @@ namespace Rar
 
     virtual Binary::Container::Ptr GetData() const
     {
-      Log::Debug(THIS_MODULE, "Decompressing '%1%'", Name);
+      Dbg("Decompressing '%1%'", Name);
       const String parentName = Parent->GetName();
       if (!parentName.empty() && Decoder->GetLastDecoded() != parentName)
       {
-        Log::Debug(THIS_MODULE, " Decompressing parent '%1%'", parentName);
+        Dbg(" Decompressing parent '%1%'", parentName);
         Parent->GetData();
       }
       return Decoder->Decode(*Data, Name);
@@ -314,7 +314,7 @@ namespace Rar
       , Delegate(data)
       , FilesCount(filesCount)
     {
-      Log::Debug(THIS_MODULE, "Found %1% files. Size is %2%", filesCount, Delegate->Size());
+      Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
     }
 
     //Binary::Container
@@ -384,11 +384,11 @@ namespace Rar
         const String fileName = Iter->GetName();
         if (!Iter->IsValid())
         {
-          Log::Debug(THIS_MODULE, "Invalid file '%1%'", fileName);
+          Dbg("Invalid file '%1%'", fileName);
           Iter->Next();
           continue;
         }
-        Log::Debug(THIS_MODULE, "Found file '%1%'", fileName);
+        Dbg("Found file '%1%'", fileName);
         const Archived::File::Ptr fileObject = Iter->GetFile();
         Files.push_back(fileObject);
         Iter->Next();

@@ -13,8 +13,8 @@ Author:
 #include "zxstate_supp.h"
 //common includes
 #include <contract.h>
+#include <debug_log.h>
 #include <format.h>
-#include <logging.h>
 #include <string_helpers.h>
 #include <tools.h>
 //library includes
@@ -42,7 +42,7 @@ namespace ZXState
     "%0000000x"//flags
   );
 
-  const std::string THIS_MODULE("Formats::Archived::ZXState");
+  const Debug::Stream Dbg("Formats::Archived::ZXState");
 
   using namespace Formats;
   using namespace Formats::Archived::ZXState;
@@ -394,7 +394,7 @@ namespace ZXState
       {
         const Header& hdr = Stream.ReadField<Header>();
         Require(hdr.Id == Header::SIGNATURE);
-        Log::Debug(THIS_MODULE, "ZXState container ver %1%.%2%", uint_t(hdr.Major), uint_t(hdr.Minor));
+        Dbg("ZXState container ver %1%.%2%", uint_t(hdr.Major), uint_t(hdr.Minor));
       }
 
       const Chunk* GetNext()
@@ -451,26 +451,26 @@ namespace ZXState
     case Z_OK:
       {
         const std::size_t targetSize = stream.next_out - &result->front();
-        Log::Debug(THIS_MODULE, "Decompressed %1% -> %2% (required %3%)", blk.Size, targetSize, blk.UncompressedSize);
+        Dbg("Decompressed %1% -> %2% (required %3%)", blk.Size, targetSize, blk.UncompressedSize);
         if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == targetSize)
         {
           result->resize(targetSize);
           return Binary::CreateContainer(result);
         }
-        Log::Debug(THIS_MODULE, "Uncompressed size mismatch");
+        Dbg("Uncompressed size mismatch");
       }
       break;
     case Z_MEM_ERROR:
-      Log::Debug(THIS_MODULE, "No memory to deflate");
+      Dbg("No memory to deflate");
       break;
     case Z_BUF_ERROR:
-      Log::Debug(THIS_MODULE, "No memory in target buffer to deflate");
+      Dbg("No memory in target buffer to deflate");
       break;
     case Z_DATA_ERROR:
-      Log::Debug(THIS_MODULE, "Data is corrupted");
+      Dbg("Data is corrupted");
       break;
     default:
-      Log::Debug(THIS_MODULE, "Unknown error (%1%)", res);
+      Dbg("Unknown error (%1%)", res);
     }
     return Binary::Container::Ptr();
   }
@@ -503,7 +503,7 @@ namespace ZXState
       , Name(name)
       , Block(block)
     {
-      Log::Debug(THIS_MODULE, "Created file '%1%', size=%2%, packed size=%3%, compression=%4%",
+      Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%",
         Name, Block.UncompressedSize, block.Size, Block.IsCompressed);
     }
 
@@ -519,7 +519,7 @@ namespace ZXState
 
     virtual Binary::Container::Ptr GetData() const
     {
-      Log::Debug(THIS_MODULE, "Decompressing '%1%' (%2% -> %3%)", Name, Block.Size, Block.UncompressedSize);
+      Dbg("Decompressing '%1%' (%2% -> %3%)", Name, Block.Size, Block.UncompressedSize);
       return ExtractData(Block);
     }
   private:
@@ -543,7 +543,7 @@ namespace ZXState
       , Name(name)
       , Blocks(blocks)
     {
-      Log::Debug(THIS_MODULE, "Created file '%1%', contains from %2% parts", Name, Blocks.size());
+      Dbg("Created file '%1%', contains from %2% parts", Name, Blocks.size());
     }
 
     virtual String GetName() const
@@ -562,7 +562,7 @@ namespace ZXState
       {
         const std::size_t unpacked = GetSize();
         Require(unpacked != 0);
-        Log::Debug(THIS_MODULE, "Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
+        Dbg("Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
         std::auto_ptr<Dump> result(new Dump(unpacked));
         std::size_t target = 0;
         for (DataBlocks::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
@@ -576,7 +576,7 @@ namespace ZXState
       }
       catch (const std::exception&)
       {
-        Log::Debug(THIS_MODULE, "Failed to decompress");
+        Dbg("Failed to decompress");
         return Binary::Container::Ptr();
       }
     }
@@ -623,14 +623,14 @@ namespace ZXState
   public:
     virtual bool Visit(const Chunk& ch)
     {
-      Log::Debug(THIS_MODULE, "Skipping useless '%1%'", GenerateChunkName(ch));
+      Dbg("Skipping useless '%1%'", GenerateChunkName(ch));
       return true;
     }
 
     virtual bool Visit(const Chunk& ch, const DataBlockDescription& blk)
     {
       const String& name = GenerateChunkName(ch);
-      Log::Debug(THIS_MODULE, "Single block '%1%'", name);
+      Dbg("Single block '%1%'", name);
       (*this)[name].push_back(blk);
       return true;
     }
@@ -638,7 +638,7 @@ namespace ZXState
     virtual bool Visit(const Chunk& ch, uint_t idx, const DataBlockDescription& blk)
     {
       const String& name = GenerateChunkName(ch, idx);
-      Log::Debug(THIS_MODULE, "Single indexed block '%1%'", name);
+      Dbg("Single indexed block '%1%'", name);
       DataBlocksAdapter blocks((*this)[name], ch.Id);
       blocks.Add(idx, blk);
       return true;
@@ -647,7 +647,7 @@ namespace ZXState
     virtual bool Visit(const Chunk& ch, const String& suffix, const DataBlockDescription& blk)
     {
       const String& name = GenerateChunkName(ch, suffix);
-      Log::Debug(THIS_MODULE, "Single suffixed block '%1%'", name);
+      Dbg("Single suffixed block '%1%'", name);
       (*this)[name].push_back(blk);
       return true;
     }
@@ -786,7 +786,7 @@ namespace Formats
             const Binary::Container::Ptr archive = data.GetSubcontainer(0, size);
             return boost::make_shared< ::ZXState::Container>(archive, blocks.begin(), blocks.end());
           }
-          Log::Debug(::ZXState::THIS_MODULE, "No files found");
+          ::ZXState::Dbg("No files found");
         }
         return Container::Ptr();
       }

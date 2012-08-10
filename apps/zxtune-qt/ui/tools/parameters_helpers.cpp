@@ -16,7 +16,7 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //qt includes
 #include <QtGui/QAbstractButton>
@@ -30,6 +30,8 @@ Author:
 namespace
 {
   using namespace Parameters;
+
+  const Debug::Stream Dbg("Parameters::Helper");
 
   template<class Holder>
   class BooleanValueImpl : public BooleanValue
@@ -50,7 +52,7 @@ namespace
     virtual void Set(bool value)
     {
       const Parameters::IntType val = value ? OneValue : 0;
-      Log::Debug("Parameters::Helper", "%1%=%2%", Name.FullPath(), val);
+      Dbg("%1%=%2%", Name.FullPath(), val);
       Container.SetValue(Name, val);
     }
 
@@ -98,7 +100,7 @@ namespace
     {
       if (value)
       {
-        Log::Debug("Parameters::Helper", "%1%=%2%", Name.FullPath(), Value);
+        Dbg("%1%=%2%", Name.FullPath(), Value);
         Container.SetValue(Name, Value);
       }
     }
@@ -167,7 +169,7 @@ namespace
 
     virtual void Set(int value)
     {
-      Log::Debug("Parameters::Helper", "%1%=%2%", Name.FullPath(), value);
+      Dbg("%1%=%2%", Name.FullPath(), value);
       Container.SetValue(Name, value);
     }
 
@@ -216,7 +218,7 @@ namespace
       const Parameters::IntType val = value.toLongLong();
       if (in_range(val, Traits.Min, Traits.Max))
       {
-        Log::Debug("Parameters::Helper", "%1%=%2%", Traits.Name.FullPath(), val);
+        Dbg("%1%=%2%", Traits.Name.FullPath(), val);
         Container.SetValue(Traits.Name, val);
       }
     }
@@ -270,7 +272,7 @@ namespace
     virtual void Set(const QString& value)
     {
       const Parameters::StringType& val = FromQString(value);
-      Log::Debug("Parameters::Helper", "%1%=%2%", Name.FullPath(), val);
+      Dbg("%1%=%2%", Name.FullPath(), val);
       Container.SetValue(Name, val);
     }
 

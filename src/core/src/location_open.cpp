@@ -13,7 +13,7 @@ Author:
 #include "location.h"
 #include "core/plugins/enumerator.h"
 //common includes
-#include <logging.h>
+#include <debug_log.h>
 #include <tools.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -24,7 +24,7 @@ namespace
 {
   using namespace ZXTune;
 
-  const std::string THIS_MODULE("Core");
+  const Debug::Stream Dbg("Core");
 
   Analysis::Path::Ptr CreateEmptyPath()
   {
@@ -93,14 +93,14 @@ namespace ZXTune
     for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty(); unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
     {
       const String toResolve = unresolved->AsString();
-      Log::Debug(THIS_MODULE, "Resolving '%1%'", toResolve);
+      Dbg("Resolving '%1%'", toResolve);
       if (!(resolvedLocation = TryToOpenLocation(*usedPlugins, *coreParams, resolvedLocation, *unresolved)))
       {
-        Log::Debug(THIS_MODULE, "Failed to resolve subpath '%1%'", toResolve);
+        Dbg("Failed to resolve subpath '%1%'", toResolve);
         return DataLocation::Ptr();
       }
     }
-    Log::Debug(THIS_MODULE, "Resolved '%1%'", subpath);
+    Dbg("Resolved '%1%'", subpath);
     return resolvedLocation;
   }
 }

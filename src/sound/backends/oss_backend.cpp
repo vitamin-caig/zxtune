@@ -14,8 +14,8 @@ Author:
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
@@ -46,7 +46,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Oss");
+  const Debug::Stream Dbg("Sound::Backend::Oss");
 
   const uint_t MAX_OSS_VOLUME = 100;
 
@@ -78,7 +78,7 @@ namespace
       , Handle(::open(IO::ConvertToFilename(name).c_str(), mode, 0))
     {
       CheckResult(-1 != Handle, THIS_LINE);
-      Log::Debug(THIS_MODULE, "Opened device '%1%'", Name);
+      Dbg("Opened device '%1%'", Name);
     }
 
     ~AutoDescriptor()
@@ -111,7 +111,7 @@ namespace
     {
       if (-1 != Handle)
       {
-        Log::Debug(THIS_MODULE, "Close device '%1%'", Name);
+        Dbg("Close device '%1%'", Name);
         int tmpHandle = -1;
         std::swap(Handle, tmpHandle);
         Name.clear();
@@ -141,7 +141,7 @@ namespace
     {
       try
       {
-        Log::Debug(THIS_MODULE, "GetVolume");
+        Dbg("GetVolume");
         boost::mutex::scoped_lock lock(StateMutex);
         if (-1 != MixHandle.Get())
         {
@@ -171,7 +171,7 @@ namespace
       }
       try
       {
-        Log::Debug(THIS_MODULE, "SetVolume");
+        Dbg("SetVolume");
         boost::mutex::scoped_lock lock(StateMutex);
         if (-1 != MixHandle.Get())
         {
@@ -240,7 +240,7 @@ namespace
       AutoDescriptor tmpMixer;
       AutoDescriptor tmpDevice;
       SetupDevices(tmpDevice, tmpMixer);
-      Log::Debug(THIS_MODULE, "Tested!");
+      Dbg("Tested!");
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -252,14 +252,14 @@ namespace
     {
       assert(-1 == MixHandle.Get() && -1 == DevHandle.Get());
       SetupDevices(DevHandle, MixHandle);
-      Log::Debug(THIS_MODULE, "Successfully opened");
+      Dbg("Successfully opened");
     }
 
     virtual void OnShutdown()
     {
       DevHandle.Close();
       MixHandle.Close();
-      Log::Debug(THIS_MODULE, "Successfully closed");
+      Dbg("Successfully closed");
     }
 
     virtual void OnPause()
@@ -299,15 +299,15 @@ namespace
       AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY);
       BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
       int tmp = GetSoundFormat();
-      Log::Debug(THIS_MODULE, "Setting format to %1%", tmp);
+      Dbg("Setting format to %1%", tmp);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
 
       tmp = OUTPUT_CHANNELS;
-      Log::Debug(THIS_MODULE, "Setting channels to %1%", tmp);
+      Dbg("Setting channels to %1%", tmp);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
 
       tmp = RenderingParameters->SoundFreq();
-      Log::Debug(THIS_MODULE, "Setting frequency to %1%", tmp);
+      Dbg("Setting frequency to %1%", tmp);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
 
       device.Swap(tmpDevice);

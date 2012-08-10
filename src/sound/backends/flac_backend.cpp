@@ -14,9 +14,8 @@ Author:
 #include "enumerator.h"
 #include "file_backend.h"
 //common includes
+#include <debug_log.h>
 #include <error_tools.h>
-#include <logging.h>
-#include <shared_library_gate.h>
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
@@ -40,7 +39,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const std::string THIS_MODULE("Sound::Backend::Flac");
+  const Debug::Stream Dbg("Sound::Backend::Flac");
 
   typedef boost::shared_ptr<FLAC__StreamEncoder> FlacEncoderPtr;
 
@@ -129,7 +128,7 @@ namespace
       //real stream initializing should be performed after all set functions
       CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
         Api->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, Stream.get()), THIS_LINE);
-      Log::Debug(THIS_MODULE, "Stream initialized");
+      Dbg("Stream initialized");
     }
 
     virtual void ApplyData(const ChunkPtr& data)
@@ -145,7 +144,7 @@ namespace
     virtual void Flush()
     {
       CheckFlacCall(Api->FLAC__stream_encoder_finish(Encoder.get()), THIS_LINE);
-      Log::Debug(THIS_MODULE, "Stream flushed");
+      Dbg("Stream flushed");
     }
   private:
     static FLAC__StreamEncoderWriteStatus WriteCallback(const FLAC__StreamEncoder* /*encoder*/, const FLAC__byte buffer[],
@@ -248,16 +247,16 @@ namespace
       CheckFlacCall(Api->FLAC__stream_encoder_set_channels(&encoder, OUTPUT_CHANNELS), THIS_LINE);
       CheckFlacCall(Api->FLAC__stream_encoder_set_bits_per_sample(&encoder, 8 * sizeof(Sample)), THIS_LINE);
       const uint_t samplerate = RenderingParameters->SoundFreq();
-      Log::Debug(THIS_MODULE, "Setting samplerate to %1%Hz", samplerate);
+      Dbg("Setting samplerate to %1%Hz", samplerate);
       CheckFlacCall(Api->FLAC__stream_encoder_set_sample_rate(&encoder, samplerate), THIS_LINE);
       if (const boost::optional<uint_t> compression = Params.GetCompressionLevel())
       {
-        Log::Debug(THIS_MODULE, "Setting compression level to %1%", *compression);
+        Dbg("Setting compression level to %1%", *compression);
         CheckFlacCall(Api->FLAC__stream_encoder_set_compression_level(&encoder, *compression), THIS_LINE);
       }
       if (const boost::optional<uint_t> blocksize = Params.GetBlockSize())
       {
-        Log::Debug(THIS_MODULE, "Setting block size to %1%", *blocksize);
+        Dbg("Setting block size to %1%", *blocksize);
         CheckFlacCall(Api->FLAC__stream_encoder_set_blocksize(&encoder, *blocksize), THIS_LINE);
       }
     }
@@ -329,7 +328,7 @@ namespace ZXTune
       try
       {
         const Flac::Api::Ptr api = Flac::LoadDynamicApi();
-        Log::Debug(THIS_MODULE, "Detected Flac library");
+        Dbg("Detected Flac library");
         const BackendCreator::Ptr creator(new FlacBackendCreator(api));
         enumerator.RegisterCreator(creator);
       }

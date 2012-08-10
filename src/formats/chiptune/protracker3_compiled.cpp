@@ -17,7 +17,7 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
@@ -36,7 +36,7 @@ Author:
 
 namespace
 {
-  const std::string THIS_MODULE("Formats::Chiptune::ProTracker3");
+  const Debug::Stream Dbg("Formats::Chiptune::ProTracker3");
 }
 
 namespace Formats
@@ -277,7 +277,7 @@ namespace Chiptune
 
       void Add(std::size_t offset, std::size_t size) const
       {
-        Log::Debug(THIS_MODULE, " Affected range %1%..%2%", offset, offset + size);
+        Dbg(" Affected range %1%..%2%", offset, offset + size);
         Require(TotalRanges->AddRange(offset, size));
       }
 
@@ -369,20 +369,20 @@ namespace Chiptune
         Require(in_range<std::size_t>(positions.size(), 1, MAX_POSITIONS_COUNT));
         const uint_t loop = Source.Loop;
         builder.SetPositions(positions, loop);
-        Log::Debug(THIS_MODULE, "Positions: %1% entries, loop to %2% (header length is %3%)", positions.size(), loop, uint_t(Source.Length));
+        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.size(), loop, uint_t(Source.Length));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
         Require(!pats.empty());
-        Log::Debug(THIS_MODULE, "Patterns: %1% to parse", pats.size());
+        Dbg("Patterns: %1% to parse", pats.size());
         const std::size_t minOffset = fromLE(Source.PatternsOffset) + *pats.rbegin() * sizeof(RawPattern);
         bool hasValidPatterns = false;
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
           Require(in_range<uint_t>(patIndex, 0, MAX_PATTERNS_COUNT - 1));
-          Log::Debug(THIS_MODULE, "Parse pattern %1%", patIndex);
+          Dbg("Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
           builder.StartPattern(patIndex);
           if (ParsePattern(src, minOffset, builder))
@@ -396,7 +396,7 @@ namespace Chiptune
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
         Require(!samples.empty() && 0 == *samples.begin());
-        Log::Debug(THIS_MODULE, "Samples: %1% to parse", samples.size());
+        Dbg("Samples: %1% to parse", samples.size());
         //samples are mandatory
         bool hasValidSamples = false, hasPartialSamples = false;
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
@@ -412,14 +412,14 @@ namespace Chiptune
               const std::size_t usedSize = src->GetUsedSize();
               if (usedSize <= availSize)
               {
-                Log::Debug(THIS_MODULE, "Parse sample %1%", samIdx);
+                Dbg("Parse sample %1%", samIdx);
                 Ranges.Add(samOffset, usedSize);
                 ParseSample(*src, src->GetSize(), result);
                 hasValidSamples = true;
               }
               else
               {
-                Log::Debug(THIS_MODULE, "Parse partial sample %1%", samIdx);
+                Dbg("Parse partial sample %1%", samIdx);
                 Ranges.Add(samOffset, availSize);
                 const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawSample::Line);
                 ParseSample(*src, availLines, result);
@@ -428,7 +428,7 @@ namespace Chiptune
             }
             else
             {
-              Log::Debug(THIS_MODULE, "Stub sample %1%", samIdx);
+              Dbg("Stub sample %1%", samIdx);
             }
           }
           builder.SetSample(samIdx, result);
@@ -439,7 +439,7 @@ namespace Chiptune
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
         Require(!ornaments.empty() && 0 == *ornaments.begin());
-        Log::Debug(THIS_MODULE, "Ornaments: %1% to parse", ornaments.size());
+        Dbg("Ornaments: %1% to parse", ornaments.size());
         //ornaments are not mandatory
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
@@ -454,13 +454,13 @@ namespace Chiptune
               const std::size_t usedSize = src->GetUsedSize();
               if (usedSize <= availSize)
               {
-                Log::Debug(THIS_MODULE, "Parse ornament %1%", ornIdx);
+                Dbg("Parse ornament %1%", ornIdx);
                 Ranges.Add(ornOffset, usedSize);
                 ParseOrnament(*src, src->GetSize(), result);
               }
               else
               {
-                Log::Debug(THIS_MODULE, "Parse partial ornament %1%", ornIdx);
+                Dbg("Parse partial ornament %1%", ornIdx);
                 Ranges.Add(ornOffset, availSize);
                 const uint_t availLines = (availSize - sizeof(*src)) / sizeof(RawOrnament::Line);
                 ParseOrnament(*src, availLines, result);
@@ -468,7 +468,7 @@ namespace Chiptune
             }
             else
             {
-              Log::Debug(THIS_MODULE, "Stub ornament %1%", ornIdx);
+              Dbg("Stub ornament %1%", ornIdx);
             }
           }
           builder.SetOrnament(ornIdx, result);
@@ -566,7 +566,7 @@ namespace Chiptune
           const std::size_t start = rangesStarts[chanNum];
           if (start >= Delegate.GetSize())
           {
-            Log::Debug(THIS_MODULE, "Invalid offset (%1%)", start);
+            Dbg("Invalid offset (%1%)", start);
           }
           else
           {
@@ -966,7 +966,7 @@ namespace Chiptune
       }
       catch (const std::exception&)
       {
-        Log::Debug(THIS_MODULE, "Failed to create");
+        Dbg("Failed to create");
         return Formats::Chiptune::Container::Ptr();
       }
     }

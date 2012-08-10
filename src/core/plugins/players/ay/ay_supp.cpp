@@ -20,9 +20,9 @@ Author:
 #include "core/plugins/players/streaming.h"
 #include "core/src/core.h"
 //common includes
+#include <debug_log.h>
 #include <format.h>
 #include <tools.h>
-#include <logging.h>
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -47,6 +47,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
+
+  const Debug::Stream Dbg("Core::AYSupp");
                                                      
   class AYDataChannel
   {
@@ -641,7 +643,7 @@ namespace AYModule
       }
       catch (const Error&/*e*/)
       {
-        Log::Debug("Core::AYSupp", "Failed to create holder");
+        Dbg("Failed to create holder");
       }
       return Holder::Ptr();
     }

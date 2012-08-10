@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Logging functions implementation
+  Progress callback implementation
 
 Last changed:
   $Id$
@@ -10,55 +10,11 @@ Author:
 */
 
 //common includes
-#include <logging.h>
-//std includes
-#include <cstdio>
-#include <cstring>
-#include <iostream>
+#include <progress_callback.h>
 
 namespace
 {
-  using namespace Log;
-
-  // environment variable used to switch on logging
-  const char DEBUG_LOG_VARIABLE[] = "ZXTUNE_DEBUG_LOG";
-
-  // mask for all logging output
-  const char DEBUG_ALL = '*';
-
-  // helper singleton class to incapsulate logic
-  class Logger
-  {
-  public:
-    bool IsDebuggingEnabled(const std::string& module)
-    {
-      return Variable &&
-        (*Variable == DEBUG_ALL || 0 == module.compare(0, VariableSize, Variable));
-    }
-    
-    void Message(const std::string& module, const std::string& msg)
-    {
-      std::cerr << '[' << module << "]: " << msg << std::endl;
-    }
-  
-    static Logger& Instance()
-    {
-      static Logger instance;
-      return instance;
-    }
-  private:
-    Logger()
-      : Variable(::getenv(DEBUG_LOG_VARIABLE))
-      , VariableSize(Variable ? std::strlen(Variable) : 0)
-    {
-    }
-    
-  private:
-    const char* const Variable;
-    const std::size_t VariableSize;
-  };
-
-  class StubProgressCallback : public ProgressCallback
+  class StubProgressCallback : public Log::ProgressCallback
   {
   public:
     virtual void OnProgress(uint_t /*current*/)
@@ -70,10 +26,10 @@ namespace
     }
   };
 
-  class FilteredProgressCallback : public ProgressCallback
+  class FilteredProgressCallback : public Log::ProgressCallback
   {
   public:
-    explicit FilteredProgressCallback(ProgressCallback& delegate)
+    explicit FilteredProgressCallback(Log::ProgressCallback& delegate)
       : Delegate(delegate)
       , Last(~uint_t(0))
     {
@@ -105,7 +61,7 @@ namespace
       return false;
     }
   private:
-    ProgressCallback& Delegate;
+    Log::ProgressCallback& Delegate;
     uint_t Last;
   };
 
@@ -115,10 +71,10 @@ namespace
   }
 
   //TODO: use template method or functor
-  class PercentProgressCallback : public ProgressCallback
+  class PercentProgressCallback : public Log::ProgressCallback
   {
   public:
-    PercentProgressCallback(uint_t total, ProgressCallback& delegate)
+    PercentProgressCallback(uint_t total, Log::ProgressCallback& delegate)
       : Total(total)
       , Delegate(delegate)
     {
@@ -140,10 +96,10 @@ namespace
     FilteredProgressCallback Delegate;
   };
 
-  class NestedPercentProgressCallback : public ProgressCallback
+  class NestedPercentProgressCallback : public Log::ProgressCallback
   {
   public:
-    NestedPercentProgressCallback(uint_t total, uint_t current, ProgressCallback& delegate)
+    NestedPercentProgressCallback(uint_t total, uint_t current, Log::ProgressCallback& delegate)
       : Start(ScaleToPercent(total, current))
       , Range(ScaleToPercent(total, current + 1) - Start)
       , Delegate(delegate)
@@ -189,17 +145,5 @@ namespace Log
   ProgressCallback::Ptr CreateNestedPercentProgressCallback(uint_t total, uint_t current, ProgressCallback& delegate)
   {
     return ProgressCallback::Ptr(new NestedPercentProgressCallback(total, current, delegate));
-  }
-
-  //public gate
-
-  bool IsDebuggingEnabled(const std::string& module)
-  {
-    return Logger::Instance().IsDebuggingEnabled(module);
-  }
-
-  void Message(const std::string& module, const std::string& msg)
-  {
-    return Logger::Instance().Message(module, msg);
   }
 }

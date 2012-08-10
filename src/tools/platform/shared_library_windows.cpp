@@ -14,7 +14,6 @@ Author:
 //common includes
 #include <contract.h>
 #include <error_tools.h>
-#include <logging.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //platform includes

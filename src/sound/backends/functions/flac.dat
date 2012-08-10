@@ -1,3 +1,4 @@
+DEBUGMODULE=Sound::Backend::Flac
 FLAC__StreamEncoder* FLAC__stream_encoder_new(void)
 void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder)
 FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder, FLAC__bool value)

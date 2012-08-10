@@ -16,7 +16,6 @@ Author:
 //local includes
 #include "core/src/callback.h"
 //common includes
-#include <logging.h>
 #include <tools.h>
 //std includes
 #include <algorithm>

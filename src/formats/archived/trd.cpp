@@ -14,7 +14,7 @@ Author:
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
-#include <logging.h>
+#include <debug_log.h>
 #include <range_checker.h>
 #include <tools.h>
 //std includes
@@ -46,7 +46,7 @@ namespace TRD
     "000000"  //reserved
   );
 
-  const std::string THIS_MODULE("Formats::Archived::TRD");
+  const Debug::Stream Dbg("Formats::Archived::TRD");
 
   //hints
   const std::size_t MODULE_SIZE = 655360;
@@ -157,7 +157,7 @@ namespace TRD
           catalog->Empty1[2].IsEmpty() && 
           catalog->Empty1[3].IsEmpty()))
     {
-      Log::Debug(THIS_MODULE, "Invalid track 0 reserved blocks content");
+      Dbg("Invalid track 0 reserved blocks content");
       return 0;
     }
     const bool validSize = dataSize == MODULE_SIZE;
@@ -181,19 +181,19 @@ namespace TRD
       const uint_t size = catEntry->SizeInSectors;
       if (offset + size > totalSectors)
       {
-        Log::Debug(THIS_MODULE, "File '%1%' is out of bounds", entryName);
+        Dbg("File '%1%' is out of bounds", entryName);
         return 0;//out of bounds
       }
       const std::vector<bool>::iterator begin = usedSectors.begin() + offset;
       const std::vector<bool>::iterator end = begin + size;
       if (end != std::find(begin, end, true))
       {
-        Log::Debug(THIS_MODULE, "File '%1%' is overlapped with some other", entryName);
+        Dbg("File '%1%' is overlapped with some other", entryName);
         return 0;//overlap
       }
       if (!*(begin - 1))
       {
-        Log::Debug(THIS_MODULE, "File '%1%' has a gap before", entryName);
+        Dbg("File '%1%' has a gap before", entryName);
         return 0;//gap
       }
       std::fill(begin, end, true);
@@ -202,7 +202,7 @@ namespace TRD
     }
     if (!files)
     {
-      Log::Debug(THIS_MODULE, "No files in image");
+      Dbg("No files in image");
       //no files
       return 0;
     }
