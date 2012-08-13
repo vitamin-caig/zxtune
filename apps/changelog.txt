@@ -7,6 +7,12 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Snapshots (.z80) format support (Z80V145, Z80V20, Z80V30 for versions 1.45, 2.0 and 3.0 respectively)
+[*] Improved VTX detection
+[*] Speedup for debug logging
+
+--- Rev1915 from 06.08.2012
+
 [+] Network schemes access support (http and ftp)
 [*] zxtune-qt: support of any URI paste to playlist
 [*] zxtune-qt: improved errors processing for conversion and playback
