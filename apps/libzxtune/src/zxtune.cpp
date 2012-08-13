@@ -291,8 +291,7 @@ ZXTuneHandle ZXTune_OpenData(const char* filename, const char** subname)
     const String uri(filename);
     const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(uri);
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
-    Binary::Container::Ptr result;
-    ThrowIfError(ZXTune::IO::OpenData(id->Path(), *params, Log::ProgressCallback::Stub(), result));
+    const Binary::Container::Ptr result = ZXTune::IO::OpenData(id->Path(), *params, Log::ProgressCallback::Stub());
     Require(result->Size() != 0);
     if (subname)
     {

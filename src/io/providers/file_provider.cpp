@@ -308,17 +308,15 @@ namespace
         : Identifier::Ptr();
     }
 
-    virtual Error Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/,
-      Binary::Container::Ptr& result) const
+    virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/) const
     {
       try
       {
-        result = Binary::Container::Ptr(new FileDataContainer(path, params));
-        return Error();
+        return Binary::Container::Ptr(new FileDataContainer(path, params));
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, path).AddSuberror(e);
       }
     }
   };

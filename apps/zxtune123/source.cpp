@@ -266,8 +266,8 @@ namespace
         const String path = id->Path();
 
         const DetectParametersImpl params(Params, path, callback, ShowProgress);
-        Binary::Container::Ptr data;
-        ThrowIfError(ZXTune::IO::OpenData(path, *Params, ShowProgress ? *params.GetProgressCallback() : Log::ProgressCallback::Stub(), data));
+        Log::ProgressCallback& progress = ShowProgress ? *params.GetProgressCallback() : Log::ProgressCallback::Stub();
+        const Binary::Container::Ptr data = ZXTune::IO::OpenData(path, *Params, progress);
 
         const String subpath = id->Subpath();
         ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));

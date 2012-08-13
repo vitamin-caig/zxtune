@@ -2,8 +2,8 @@ binary_name := io_test_file
 path_step := ../../../..
 source_files := test
 
-libraries := io tools
-depends := src/tools src/io
+libraries := binary io tools
+depends := src/binary src/tools src/io
 
 windows_libraries := advapi32
 

@@ -65,7 +65,7 @@ namespace
       throw MakeFormattedError(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_FAILED_RESOLVE_URI, uri);
     }
 
-    virtual Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& result) const
+    virtual Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
     {
       Dbg("Opening path '%1%'", path);
       if (Identifier::Ptr id = Resolve(path))
@@ -73,11 +73,11 @@ namespace
         if (const DataProvider* provider = FindProvider(id->Scheme()))
         {
           Dbg(" Used provider '%1%'", provider->Id());
-          return provider->Open(id->Path(), params, cb, result);
+          return provider->Open(id->Path(), params, cb);
         }
       }
       Dbg(" No suitable provider found");
-      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
 
     virtual Provider::Iterator::Ptr Enumerate() const
@@ -140,9 +140,9 @@ namespace
       return false;
     }
 
-    virtual Error Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&, Binary::Container::Ptr&) const
+    virtual Binary::Container::Ptr Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const
     {
-      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
     }
 
     virtual StringSet Schemes() const
@@ -176,15 +176,15 @@ namespace ZXTune
       return ProvidersEnumerator::Instance().ResolveUri(uri);
     }
 
-    Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& data)
+    Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
     {
       try
       {
-        return ProvidersEnumerator::Instance().OpenData(path, params, cb, data);
+        return ProvidersEnumerator::Instance().OpenData(path, params, cb);
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, ERROR_NO_MEMORY, Text::IO_ERROR_NO_MEMORY);
+        throw Error(THIS_LINE, ERROR_NO_MEMORY, Text::IO_ERROR_NO_MEMORY);
       }
     }
 

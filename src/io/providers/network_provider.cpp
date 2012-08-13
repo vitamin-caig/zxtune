@@ -336,8 +336,7 @@ namespace
       return boost::make_shared<RemoteIdentifier>(scheme, path, subpath);
     }
 
-    virtual Error Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb,
-      Binary::Container::Ptr& result) const
+    virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
     {
       try
       {
@@ -346,12 +345,11 @@ namespace
         resource.SetSource(path);
         resource.SetOptions(options);
         resource.SetProgressCallback(cb);
-        result = resource.Download();
-        return Error();
+        return resource.Download();
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, path).AddSuberror(e);
       }
     }
   private:

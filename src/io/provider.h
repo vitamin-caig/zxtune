@@ -44,9 +44,8 @@ namespace ZXTune
     //! @param path External data identifier
     //! @param params %Parameters accessor to setup providers work
     //! @param cb Callback for long-time controlable operations
-    //! @param data Reference to result data container
-    //! @return Error() in case of success
-    Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& data);
+    //! @throw Error if failed to open
+    Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb);
 
     //! @brief Provider information interface
     class Provider

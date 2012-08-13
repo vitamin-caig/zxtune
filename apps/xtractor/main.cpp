@@ -1004,8 +1004,7 @@ namespace
       try
       {
         Dbg("Opening '%1%'", filename);
-        Binary::Container::Ptr data;
-        ThrowIfError(ZXTune::IO::OpenData(filename, *Params, Log::ProgressCallback::Stub(), data));
+        const Binary::Container::Ptr data = ZXTune::IO::OpenData(filename, *Params, Log::ProgressCallback::Stub());
         const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);
         Analyse->ApplyData(root);
       }

@@ -61,9 +61,7 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
-      Binary::Container::Ptr data;
-      ThrowIfError(ZXTune::IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub(), data));
-      return data;
+      return ZXTune::IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
     }
   private:
     const Parameters::Accessor::Ptr Params;

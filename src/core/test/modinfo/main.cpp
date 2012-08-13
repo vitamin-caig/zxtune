@@ -15,8 +15,7 @@ namespace
     const Parameters::Accessor::Ptr emptyParams = Parameters::Container::Create();
     const String filename = fullPath;//TODO: split if required
     const String subpath = String();
-    Binary::Container::Ptr data;
-    ThrowIfError(IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub(), data));
+    const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
     Module::Holder::Ptr module;
     ThrowIfError(OpenModule(emptyParams, data, subpath, module));
     return module;

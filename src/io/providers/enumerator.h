@@ -29,13 +29,9 @@ namespace ZXTune
     public:
       typedef boost::shared_ptr<const DataProvider> Ptr;
 
-      // Open data
-      virtual Error Open(const String& path, const Parameters::Accessor& parameters,
-                         Log::ProgressCallback& callback, Binary::Container::Ptr& result) const = 0;
-
-      // New API
       virtual StringSet Schemes() const = 0;
       virtual Identifier::Ptr Resolve(const String& uri) const = 0;
+      virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& parameters, Log::ProgressCallback& callback) const = 0;
     };
 
     // internal enumerator interface
@@ -48,8 +44,7 @@ namespace ZXTune
 
       virtual Identifier::Ptr ResolveUri(const String& uri) const = 0;
 
-      virtual Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb,
-                            Binary::Container::Ptr& result) const = 0;
+      virtual Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const = 0;
 
       virtual Provider::Iterator::Ptr Enumerate() const = 0;
 
