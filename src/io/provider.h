@@ -15,6 +15,7 @@
 #include <iterator.h>
 //library includes
 #include <binary/container.h>
+#include <io/identifier.h>
 //std includes
 #include <vector>
 
@@ -34,6 +35,11 @@ namespace ZXTune
 {
   namespace IO
   {
+    //! @brief Resolve uri to identifier object
+    //! @param uri Full data identifier
+    //! @throw Error if failed to resolve
+    Identifier::Ptr ResolveUri(const String& uri);
+
     //! @brief Performs opening specified uri
     //! @param path External data identifier
     //! @param params %Parameters accessor to setup providers work
@@ -41,20 +47,6 @@ namespace ZXTune
     //! @param data Reference to result data container
     //! @return Error() in case of success
     Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& data);
-
-    //! @brief Performs splitting specified uri to filesystem and internal parts
-    //! @param uri Full path
-    //! @param path Reference to external identifier result
-    //! @param subpath Reference to internal identifier result
-    //! @return Error() in case of success
-    Error SplitUri(const String& uri, String& path, String& subpath);
-
-    //! @brief Performs combining external and internal identifiers in scheme-dependent style
-    //! @param path External data identifier
-    //! @param subpath Internal data identifier
-    //! @param uri Reference to merged uri result
-    //! @return Error() in case of success
-    Error CombineUri(const String& path, const String& subpath, String& uri);
 
     //! @brief Provider information interface
     class Provider

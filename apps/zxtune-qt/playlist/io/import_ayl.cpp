@@ -362,13 +362,26 @@ namespace
     return properties;
   }
 
+  String AppendSubpath(const String& path, const String& subpath)
+  {
+    try
+    {
+      const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
+      return id->WithSubpath(subpath)->Full();
+    }
+    catch (const Error&)
+    {
+      return path;
+    }
+  }
+
   void ApplyFormatSpecificData(std::size_t formatSpec, Playlist::IO::ContainerItem& item)
   {
     //for AY files FormatSpec is subtune index
     if (boost::algorithm::iends_with(item.Path, FromStdString(".ay")))
     {
       const String subPath = IndexPathComponent(Text::AY_FILENAME_PREFIX).Build(formatSpec);
-      ZXTune::IO::CombineUri(item.Path, subPath, item.Path);
+      item.Path = AppendSubpath(item.Path, subPath);
     }
   }
 
@@ -380,7 +393,7 @@ namespace
     {
       assert(offset);
       const String subPath = IndexPathComponent(Text::RAW_PLUGIN_PREFIX).Build(offset);
-      ZXTune::IO::CombineUri(item.Path, subPath, item.Path);
+      item.Path = AppendSubpath(item.Path, subPath);
     }
   }
 

@@ -6,6 +6,7 @@
 namespace Text
 {
 extern const Char IO_ERROR_DISABLED_PROVIDER[];
+extern const Char IO_ERROR_FAILED_RESOLVE_URI[];
 extern const Char IO_ERROR_FILE_EXISTS[];
 extern const Char IO_ERROR_IO_ERROR[];
 extern const Char IO_ERROR_NETWORK_ERROR[];

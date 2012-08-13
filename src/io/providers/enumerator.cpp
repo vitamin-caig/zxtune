@@ -14,6 +14,7 @@ Author:
 #include "providers_list.h"
 //common includes
 #include <debug_log.h>
+#include <error_tools.h>
 //library includes
 #include <io/error_codes.h>
 //std includes
@@ -53,6 +54,17 @@ namespace
         boost::bind(&std::make_pair<String, DataProvider::Ptr>, _1, provider));
     }
 
+    virtual Identifier::Ptr ResolveUri(const String& uri) const
+    {
+      Dbg("Resolving uri '%1%'", uri);
+      if (const Identifier::Ptr id = Resolve(uri))
+      {
+        return id;
+      }
+      Dbg(" No suitable provider found");
+      throw MakeFormattedError(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_FAILED_RESOLVE_URI, uri);
+    }
+
     virtual Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& result) const
     {
       Dbg("Opening path '%1%'", path);
@@ -63,31 +75,6 @@ namespace
           Dbg(" Used provider '%1%'", provider->Id());
           return provider->Open(id->Path(), params, cb, result);
         }
-      }
-      Dbg(" No suitable provider found");
-      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
-    }
-
-    virtual Error SplitUri(const String& uri, String& path, String& subpath) const
-    {
-      Dbg("Splitting uri '%1%'", uri);
-      if (Identifier::Ptr id = Resolve(uri))
-      {
-        path = id->Path();
-        subpath = id->Subpath();
-        return Error();
-      }
-      Dbg(" No suitable provider found");
-      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
-    }
-
-    virtual Error CombineUri(const String& path, const String& subpath, String& uri) const
-    {
-      Dbg("Combining path '%1%' and subpath '%2%'", path, subpath);
-      if (Identifier::Ptr id = Resolve(path))
-      {
-        uri = id->WithSubpath(subpath)->Full();
-        return Error();
       }
       Dbg(" No suitable provider found");
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
@@ -153,16 +140,6 @@ namespace
       return false;
     }
 
-    virtual Error Split(const String&, String&, String&) const
-    {
-      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
-    }
-
-    virtual Error Combine(const String&, const String&, String&) const
-    {
-      return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
-    }
-
     virtual Error Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&, Binary::Container::Ptr&) const
     {
       return Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
@@ -194,6 +171,11 @@ namespace ZXTune
       return instance;
     }
 
+    Identifier::Ptr ResolveUri(const String& uri)
+    {
+      return ProvidersEnumerator::Instance().ResolveUri(uri);
+    }
+
     Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb, Binary::Container::Ptr& data)
     {
       try
@@ -204,16 +186,6 @@ namespace ZXTune
       {
         return Error(THIS_LINE, ERROR_NO_MEMORY, Text::IO_ERROR_NO_MEMORY);
       }
-    }
-
-    Error SplitUri(const String& uri, String& path, String& subpath)
-    {
-      return ProvidersEnumerator::Instance().SplitUri(uri, path, subpath);
-    }
-
-    Error CombineUri(const String& path, const String& subpath, String& uri)
-    {
-      return ProvidersEnumerator::Instance().CombineUri(path, subpath, uri);
     }
 
     Provider::Iterator::Ptr EnumerateProviders()

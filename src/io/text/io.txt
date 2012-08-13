@@ -13,6 +13,9 @@ __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_IO_H_DEFINED__\n"
 
 #common errors
+< IO_ERROR_FAILED_RESOLVE_URI
+> "Failed to resolve uri '%1%'."
+
 < IO_ERROR_NOT_SUPPORTED_URI
 > "Specified uri scheme does not supported."
 

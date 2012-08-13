@@ -254,14 +254,27 @@ namespace
 
       for (StringArray::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
-        Binary::Container::Ptr data;
-        String path, subpath;
-        ThrowIfError(ZXTune::IO::SplitUri(*it, path, subpath));
+        ProcessItem(*it, callback);
+      }
+    }
+  private:
+    void ProcessItem(const String& uri, const OnItemCallback& callback) const
+    {
+      try
+      {
+        const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(uri);
+        const String path = id->Path();
 
         const DetectParametersImpl params(Params, path, callback, ShowProgress);
+        Binary::Container::Ptr data;
         ThrowIfError(ZXTune::IO::OpenData(path, *Params, ShowProgress ? *params.GetProgressCallback() : Log::ProgressCallback::Stub(), data));
 
+        const String subpath = id->Subpath();
         ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));
+      }
+      catch (const Error& e)
+      {
+        StdOut << Error::ToString(e) << std::endl;
       }
     }
   private:

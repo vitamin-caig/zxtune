@@ -46,10 +46,10 @@ namespace ZXTune
       //registration
       virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
 
+      virtual Identifier::Ptr ResolveUri(const String& uri) const = 0;
+
       virtual Error OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb,
                             Binary::Container::Ptr& result) const = 0;
-      virtual Error SplitUri(const String& uri, String& path, String& subpath) const = 0;
-      virtual Error CombineUri(const String& path, const String& subpath, String& uri) const = 0;
 
       virtual Provider::Iterator::Ptr Enumerate() const = 0;
 

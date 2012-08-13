@@ -16,6 +16,7 @@ Author:
 //common includes
 #include <contract.h>
 #include <error_tools.h>
+#include <progress_callback.h>
 #include <tools.h>
 //library includes
 #include <binary/container.h>
@@ -288,14 +289,14 @@ ZXTuneHandle ZXTune_OpenData(const char* filename, const char** subname)
   try
   {
     const String uri(filename);
-    String path, subpath;
-    ThrowIfError(ZXTune::IO::SplitUri(uri, path, subpath));
+    const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(uri);
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
     Binary::Container::Ptr result;
-    ThrowIfError(ZXTune::IO::OpenData(path, *params, Log::ProgressCallback::Stub(), result));
+    ThrowIfError(ZXTune::IO::OpenData(id->Path(), *params, Log::ProgressCallback::Stub(), result));
     Require(result->Size() != 0);
     if (subname)
     {
+      const String subpath = id->Subpath();
       const String::size_type subpathOffset = uri.size() - subpath.size();
       *subname = filename + subpathOffset;
     }
