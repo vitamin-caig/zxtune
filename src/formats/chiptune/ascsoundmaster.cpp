@@ -712,14 +712,17 @@ namespace Chiptune
       {
         Require(!ornaments.empty() && 0 == *ornaments.begin());
         Dbg("Ornaments: %1% to parse", ornaments.size());
+        std::set<std::size_t> usedOffsets;
         const std::size_t baseOffset = Source->GetOrnamentsOffset();
         const RawOrnamentsList& list = GetServiceObject<RawOrnamentsList>(baseOffset);
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
           Require(in_range<uint_t>(ornIdx, 0, ORNAMENTS_COUNT - 1));
-          Dbg("Parse ornament %1%", ornIdx);
-          const Ornament& result = ParseOrnament(baseOffset + fromLE(list.Offsets[ornIdx]));
+          const std::size_t ornOffset = baseOffset + fromLE(list.Offsets[ornIdx]);
+          Dbg("Parse ornament %1% at %2%", ornIdx, ornOffset);
+          Require(usedOffsets.insert(ornOffset).second);
+          const Ornament& result = ParseOrnament(ornOffset);
           builder.SetOrnament(ornIdx, result);
         }
       }
@@ -1021,28 +1024,34 @@ namespace Chiptune
 
       Ornament ParseOrnament(std::size_t offset) const
       {
-        const RawOrnament& src = GetObject<RawOrnament>(offset);
         Ornament result;
-        const std::size_t availSize = (Delegate.GetSize() - offset) / sizeof(RawOrnament::Line);
-        for (std::size_t idx = 0, lim = std::min(availSize, MAX_ORNAMENT_SIZE); idx != lim; ++idx)
+        if (const RawOrnament* const src = Delegate.GetField<RawOrnament>(offset))
         {
-          const RawOrnament::Line& srcLine = src.Data[idx];
-          const Ornament::Line& dstLine = ParseOrnamentLine(srcLine);
-          result.Lines.push_back(dstLine);
-          if (srcLine.IsLoopBegin())
+          const std::size_t availSize = (Delegate.GetSize() - offset) / sizeof(RawOrnament::Line);
+          for (std::size_t idx = 0, lim = std::min(availSize, MAX_ORNAMENT_SIZE); idx != lim; ++idx)
           {
-            result.Loop = idx;
+            const RawOrnament::Line& srcLine = src->Data[idx];
+            const Ornament::Line& dstLine = ParseOrnamentLine(srcLine);
+            result.Lines.push_back(dstLine);
+            if (srcLine.IsLoopBegin())
+            {
+              result.Loop = idx;
+            }
+            if (srcLine.IsLoopEnd())
+            {
+              result.LoopLimit = idx;
+            }
+            if (srcLine.IsFinished())
+            {
+              break;
+            }
           }
-          if (srcLine.IsLoopEnd())
-          {
-            result.LoopLimit = idx;
-          }
-          if (srcLine.IsFinished())
-          {
-            break;
-          }
+          Ranges.Add(offset, result.Lines.size() * sizeof(RawOrnament::Line));
         }
-        Ranges.Add(offset, result.Lines.size() * sizeof(RawOrnament::Line));
+        else
+        {
+          Dbg("Stub ornament");
+        }
         return result;
       }
 
