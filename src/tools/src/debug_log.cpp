@@ -26,24 +26,27 @@ namespace
 
   class DebugSwitch
   {
-  public:
     DebugSwitch()
       : Variable(::getenv(DEBUG_LOG_VARIABLE))
       , VariableSize(Variable ? std::strlen(Variable) : 0)
     {
     }
-
+  public:
     bool EnabledFor(const std::string& module) const
     {
       return Variable &&
         (*Variable == DEBUG_ALL || 0 == module.compare(0, VariableSize, Variable));
     }
+
+    static DebugSwitch& Instance()
+    {
+      static DebugSwitch self;
+      return self;
+    }
   private:
     const char* const Variable;
     const std::size_t VariableSize;
   };
-
-  const DebugSwitch Debugging;
 }
 
 namespace Debug
@@ -55,7 +58,7 @@ namespace Debug
 
   Stream::Stream(const std::string& module)
     : Module(module)
-    , Enabled(Debugging.EnabledFor(Module))
+    , Enabled(DebugSwitch::Instance().EnabledFor(Module))
   {
   }
 }
