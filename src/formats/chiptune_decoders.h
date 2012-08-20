@@ -22,6 +22,7 @@ namespace Formats
     Decoder::Ptr CreateDigitalStudioDecoder();
     Decoder::Ptr CreateSoundTrackerDecoder();
     Decoder::Ptr CreateSoundTrackerCompiledDecoder();
+    Decoder::Ptr CreateSoundTracker3Decoder();
     Decoder::Ptr CreateSoundTrackerProCompiledDecoder();
     Decoder::Ptr CreateASCSoundMaster0xDecoder();
     Decoder::Ptr CreateASCSoundMaster1xDecoder();

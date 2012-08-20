@@ -91,6 +91,7 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
+      Formats::Chiptune::Container::Ptr ParseVersion3(const Binary::Container& rawData, Builder& target);
       Builder& GetStubBuilder();
     }
   }

@@ -73,7 +73,11 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 
 #SoundTrackerCompiled
 < SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION
-> "Sound Tracker Compiled"
+> "Sound Tracker v1.x Compiled"
+
+#SoundTracker3
+< SOUNDTRACKER3_DECODER_DESCRIPTION
+> "Sound Tracker v3.x Compiled"
 
 #SoundTrackerProCompiled
 < SOUNDTRACKERPRO_DECODER_DESCRIPTION

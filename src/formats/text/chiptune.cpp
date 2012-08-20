@@ -49,8 +49,11 @@ extern const Char PSG_DECODER_DESCRIPTION[] = {
   'P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n','e','r','a','t','o',
   'r',' ','(','P','S','G',')',0
 };
+extern const Char SOUNDTRACKER3_DECODER_DESCRIPTION[] = {
+  'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','v','3','.','x',' ','C','o','m','p','i','l','e','d',0
+};
 extern const Char SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION[] = {
-  'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','C','o','m','p','i','l','e','d',0
+  'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','v','1','.','x',' ','C','o','m','p','i','l','e','d',0
 };
 extern const Char SOUNDTRACKERPRO2_DECODER_DESCRIPTION[] = {
   'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','P','r','o',' ','v','2','.','x',0

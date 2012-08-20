@@ -172,7 +172,7 @@ namespace Formats
           {
             return false;
           }
-          for (uint_t idx = 0; idx != SAMPLE_SIZE; ++idx)
+          for (uint_t idx = 0; idx != smp.Lines.size(); ++idx)
           {
             const Sample::Line& line = smp.Lines[idx];
             if (line.EnvelopeMask || line.Level)
