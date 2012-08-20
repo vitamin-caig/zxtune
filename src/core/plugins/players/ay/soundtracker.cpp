@@ -59,6 +59,7 @@ namespace SoundTracker
     virtual void SetProgram(const String& program)
     {
       if (program == Text::SOUNDTRACKER_DECODER_DESCRIPTION ||
+          program == Text::SOUNDTRACKER3_DECODER_DESCRIPTION ||
           IsProgramName(program))
       {
         Properties->SetProgram(OptimizeString(program));
