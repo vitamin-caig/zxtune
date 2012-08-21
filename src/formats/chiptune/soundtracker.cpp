@@ -151,6 +151,7 @@ namespace Chiptune
     {
     public:
       virtual void SetProgram(const String& /*program*/) {}
+      virtual void SetTitle(const String& /*title*/) {}
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}

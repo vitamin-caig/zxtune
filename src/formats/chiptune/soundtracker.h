@@ -67,6 +67,8 @@ namespace Formats
 
         //common properties
         virtual void SetProgram(const String& program) = 0;
+        //some of the variations of SoundTracker has explicit title field
+        virtual void SetTitle(const String& program) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
         virtual void SetSample(uint_t index, const Sample& sample) = 0;
@@ -91,7 +93,10 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
+      //TODO: group together
       Formats::Chiptune::Container::Ptr ParseVersion3(const Binary::Container& rawData, Builder& target);
+      Binary::Container::Ptr InsertVersion3Metainformation(const Binary::Container& rawData, const Dump& info);
+
       Builder& GetStubBuilder();
     }
   }

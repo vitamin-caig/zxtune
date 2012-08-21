@@ -148,6 +148,26 @@ namespace Chiptune
     BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 33);
     BOOST_STATIC_ASSERT(sizeof(RawSample) == 99);
 
+    bool IsProgramName(const String& name)
+    {
+      static const std::string STANDARD_PROGRAMS[] = 
+      {
+        "SONG BY ST COMPIL\x01",
+        "SONG BY ST COMPILE",
+        "SONG BY MB COMPILE",
+        "SONG BY ST-COMPILE",
+        "SONG ST BY COMPILE"
+        "SOUND TRACKER v1.1",
+        "SOUND TRACKER v1.3",
+        "SOUND TRACKER v3.0",
+        "S.T.FULL EDITION  ",
+        "S.T.FULL EDITION \x7f",
+        "S.W.COMPILE V2.0  ",
+        "STU SONG COMPILER ",
+      };
+      return ArrayEnd(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, ArrayEnd(STANDARD_PROGRAMS), ToStdString(name));
+    }
+
     class Format
     {
     public:
@@ -164,7 +184,16 @@ namespace Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         builder.SetInitialTempo(Source.Tempo);
-        builder.SetProgram(FromCharArray(Source.Identifier));
+        const String id(FromCharArray(Source.Identifier));
+        if (IsProgramName(id))
+        {
+          builder.SetProgram(id);
+        }
+        else
+        {
+          builder.SetTitle(id);
+          builder.SetProgram(Text::SOUNDTRACKER_DECODER_DESCRIPTION);
+        }
       }
 
       void ParsePositions(Builder& builder) const

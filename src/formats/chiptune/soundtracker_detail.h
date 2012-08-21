@@ -53,6 +53,11 @@ namespace Formats
           return Delegate.SetProgram(program);
         }
 
+        virtual void SetTitle(const String& title)
+        {
+          return Delegate.SetTitle(title);
+        }
+
         virtual void SetInitialTempo(uint_t tempo)
         {
           return Delegate.SetInitialTempo(tempo);
