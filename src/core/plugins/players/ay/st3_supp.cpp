@@ -14,10 +14,12 @@ Author:
 #include "soundtracker.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/chiptune_decoders.h>
+#include <formats/packed_decoders.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -68,13 +70,27 @@ namespace ST3
   };
 }
 
+namespace ST3
+{
+  const Char IDC[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'S', 'T', '3', 0};
+  const uint_t CCAPS = CAP_STOR_CONTAINER;
+}
+
 namespace ZXTune
 {
   void RegisterST3Support(PluginsRegistrator& registrator)
   {
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSoundTracker3Decoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<ST3::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST3::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ST3::CAPS, factory);
-    registrator.RegisterPlugin(plugin);
+    //modules with players
+    {
+      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledST3Decoder();
+      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ST3::IDC, ST3::CCAPS, decoder);
+      registrator.RegisterPlugin(plugin);
+    }
+    {
+      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSoundTracker3Decoder();
+      const ModulesFactory::Ptr factory = boost::make_shared<ST3::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST3::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ST3::CAPS, factory);
+      registrator.RegisterPlugin(plugin);
+    }
   }
 }

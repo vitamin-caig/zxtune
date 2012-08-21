@@ -18,33 +18,11 @@ Author:
 #include <formats/chiptune/soundtracker.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <formats/text/chiptune.h>
 
 namespace SoundTracker
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  bool IsProgramName(const String& name)
-  {
-    static const std::string STANDARD_PROGRAMS[] = 
-    {
-      "SONG BY ST COMPIL\x01",
-      "SONG BY ST COMPILE",
-      "SONG BY MB COMPILE",
-      "SONG BY ST-COMPILE",
-      "SONG ST BY COMPILE"
-      "SOUND TRACKER v1.1",
-      "SOUND TRACKER v1.3",
-      "SOUND TRACKER v3.0",
-      "S.T.FULL EDITION  ",
-      "S.T.FULL EDITION \x7f",
-      "S.W.COMPILE V2.0  ",
-      "STU SONG COMPILER ",
-    };
-    return ArrayEnd(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, ArrayEnd(STANDARD_PROGRAMS), ToStdString(name));
-  }
 
   class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
   {
@@ -58,18 +36,13 @@ namespace SoundTracker
 
     virtual void SetProgram(const String& program)
     {
-      if (program == Text::SOUNDTRACKER_DECODER_DESCRIPTION ||
-          program == Text::SOUNDTRACKER3_DECODER_DESCRIPTION ||
-          IsProgramName(program))
-      {
-        Properties->SetProgram(OptimizeString(program));
-      }
-      else
-      {
-        Properties->SetTitle(OptimizeString(program));
-        Properties->SetProgram(Text::SOUNDTRACKER_DECODER_DESCRIPTION);
-      }
+      Properties->SetProgram(OptimizeString(program));
       Properties->SetFreqtable(TABLE_SOUNDTRACKER);
+    }
+
+    virtual void SetTitle(const String& title)
+    {
+      Properties->SetTitle(OptimizeString(title));
     }
 
     virtual void SetInitialTempo(uint_t tempo)
