@@ -7,6 +7,11 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] ST3 (SoundTracker v3.x) format support including player analysis (COMPILEDST3)
+[*] Improved detect of AS0/ASC modules
+
+--- Rev1924 from 13.08.2012
+
 [+] Snapshots (.z80) format support (Z80V145, Z80V20, Z80V30 for versions 1.45, 2.0 and 3.0 respectively)
 [*] Improved VTX detection
 [*] Speedup for debug logging
