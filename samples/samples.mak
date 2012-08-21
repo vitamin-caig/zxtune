@@ -16,6 +16,7 @@ install_samples:
 	$(call copyfile_cmd,$(samples_path)/pt3/Speccy2.pt3,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/sqd/Maskarad.sqd,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/st1/SHOCK4.S,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(samples_path)/st3/Kvs_Joke.st3,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/stc/stracker.stc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/stp/ZXGuide3_07.stp,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/str/COMETDAY.str,$(DESTDIR)/Samples)
