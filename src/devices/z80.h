@@ -15,7 +15,7 @@ Author:
 
 //common includes
 #include <types.h>
-#include <time_tools.h>
+#include <time_oscillator.h>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>

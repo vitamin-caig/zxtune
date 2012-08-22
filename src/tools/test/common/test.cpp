@@ -5,7 +5,9 @@
 #include <parameters.h>
 #include <range_checker.h>
 #include <messages_collector.h>
-#include <time_tools.h>
+#include <time_duration.h>
+#include <time_oscillator.h>
+#include <time_stamp.h>
 #include <tools.h>
 
 #include <iostream>
@@ -295,6 +297,14 @@ int main()
       Test<uint64_t>("S => Ms", oms.Get(), s.Get() * 1000);
     }
     */
+    {
+      Time::Milliseconds period1(20), period2(40);
+      Time::MillisecondsDuration msd1(12345, period1);
+      Time::MillisecondsDuration msd2(5678, period2);
+      Test<String>("MillisecondsDuration1 ToString()", msd1.ToString(), "4:06.45");
+      Test<String>("MillisecondsDuration2 ToString()", msd2.ToString(), "3:47.03");
+      Test("MillisecondsDuration compare", msd2 < msd1);
+    }
   }
   std::cout << "---- Test for iterators ----" << std::endl;
   {

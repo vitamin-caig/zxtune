@@ -22,6 +22,7 @@ Author:
 //common includes
 #include <debug_log.h>
 #include <format.h>
+#include <time_oscillator.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>

@@ -14,7 +14,7 @@ Author:
 //local includes
 #include <devices/aym.h>
 //common includes
-#include <time_tools.h>
+#include <time_oscillator.h>
 //std includes
 #include <cassert>
 #include <functional>

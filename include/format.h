@@ -65,6 +65,7 @@ namespace Strings
   //! @param frameDurationMicrosec frame duration in microseconds
   //! @return Formatted time
   String FormatTime(uint_t timeInFrames, uint_t frameDurationMicrosec);
+  String FormatTime(uint_t hours, uint_t minutes, uint_t seconds, uint_t frames);
 }
 
 #endif //__STRINGS_FORMAT_H_DEFINED__

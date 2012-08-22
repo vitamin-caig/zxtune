@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "Ym2203_Emu.h"
 //common includes
-#include <time_tools.h>
+#include <time_oscillator.h>
 //library includes
 #include <devices/fm.h>
 //boost includes
