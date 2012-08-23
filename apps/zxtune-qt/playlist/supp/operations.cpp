@@ -521,6 +521,7 @@ namespace
       , Duration()
       , Size()
     {
+      Duration.SetPeriod(Time::Milliseconds(1));
     }
 
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
@@ -546,7 +547,7 @@ namespace
 
     virtual String Text() const
     {
-      const String duration = Strings::FormatTime(Duration.Get(), 1000);
+      const String duration = Duration.ToString();
       return Strings::Format(Text::BASIC_STATISTIC_TEMPLATE,
         Processed, Invalids,
         duration,
@@ -570,7 +571,7 @@ namespace
   private:
     std::size_t Processed;
     std::size_t Invalids;
-    Time::Stamp<uint64_t, 1000> Duration;
+    Time::Duration<uint64_t, Time::Milliseconds> Duration;
     uint64_t Size;
     std::map<String, std::size_t> Types;
   };

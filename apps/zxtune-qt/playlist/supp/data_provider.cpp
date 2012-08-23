@@ -29,6 +29,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/fs_tools.h>
 #include <io/provider.h>
+#include <sound/sound_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -295,15 +296,11 @@ namespace
     return String();
   }
 
-  Parameters::IntType GetIntProperty(const Parameters::Accessor& props, const Parameters::NameType& propName)
+  Parameters::IntType GetIntProperty(const Parameters::Accessor& props, const Parameters::NameType& propName, Parameters::IntType defVal = 0)
   {
-    Parameters::IntType val = 0;
-    if (props.FindValue(propName, val))
-    {
-      return val;
-    }
-    assert(!"Failed to get property");
-    return 0;
+    Parameters::IntType val = defVal;
+    props.FindValue(propName, val);
+    return val;
   }
 
   class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
@@ -372,20 +369,18 @@ namespace
     DataImpl(DynamicAttributesProvider::Ptr attributes,
         const ModuleSource& source,
         Parameters::Container::Ptr adjustedParams,
-        unsigned duration, const Parameters::Accessor& moduleProps)
+        uint_t frames, const Parameters::Accessor& moduleProps)
       : Attributes(attributes)
       , Source(source)
       , AdjustedParams(adjustedParams)
       , Type(GetStringProperty(moduleProps, ZXTune::Module::ATTR_TYPE))
-      , DisplayName(Attributes->GetDisplayName(moduleProps))
-      , Author(GetStringProperty(moduleProps, ZXTune::Module::ATTR_AUTHOR))
-      , Title(GetStringProperty(moduleProps, ZXTune::Module::ATTR_TITLE))
-      , DurationInFrames(duration)
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_FIXEDCRC)))
       , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_SIZE)))
       , Valid(true)
     {
+      Duration.SetCount(frames);
+      LoadProperties(moduleProps);
     }
 
     virtual ZXTune::Module::Holder::Ptr GetModule() const
@@ -419,23 +414,12 @@ namespace
 
     virtual String GetDisplayName() const
     {
-      if (DisplayName.empty())
-      {
-        AcquireDisplayName();
-      }
       return DisplayName;
     }
 
-    virtual Time::Milliseconds GetDuration() const
+    virtual Time::MillisecondsDuration GetDuration() const
     {
-      //TODO:
-      const unsigned FRAME_DURATION_MS = 20;
-      return Time::Milliseconds(DurationInFrames * FRAME_DURATION_MS);
-    }
-
-    virtual String GetDurationString() const
-    {
-      return Strings::FormatTime(DurationInFrames, 20000);//TODO
+      return Duration;
     }
 
     virtual String GetTooltip() const
@@ -472,14 +456,6 @@ namespace
       return Size;
     }
   private:
-    void AcquireDisplayName() const
-    {
-      if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
-      {
-        DisplayName = Attributes->GetDisplayName(*properties);
-      }
-    }
-
     Parameters::Accessor::Ptr GetModuleProperties() const
     {
       if (const ZXTune::Module::Holder::Ptr holder = GetModule())
@@ -491,30 +467,39 @@ namespace
   private:
     virtual void OnPropertyChanged(const Parameters::NameType& /*name*/) const
     {
-      DisplayName.clear();
       if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
       {
-        Author = GetStringProperty(*properties, ZXTune::Module::ATTR_AUTHOR);
-        Title = GetStringProperty(*properties, ZXTune::Module::ATTR_TITLE);
+        LoadProperties(*properties);
       }
       else
       {
+        DisplayName.clear();
         Author.clear();
         Title.clear();
+        Duration.SetCount(0);
       }
+    }
+
+    void LoadProperties(const Parameters::Accessor& props) const
+    {
+      DisplayName = Attributes->GetDisplayName(props);
+      Author = GetStringProperty(props, ZXTune::Module::ATTR_AUTHOR);
+      Title = GetStringProperty(props, ZXTune::Module::ATTR_TITLE);
+      const Time::Microseconds period(GetIntProperty(props, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT));
+      Duration.SetPeriod(period);
     }
   private:
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
     const String Type;
-    mutable String DisplayName;
-    mutable String Author;
-    mutable String Title;
-    const unsigned DurationInFrames;
     const uint32_t Checksum;
     const uint32_t CoreChecksum;
     const std::size_t Size;
+    mutable String DisplayName;
+    mutable String Author;
+    mutable String Title;
+    mutable Time::MillisecondsDuration Duration;
     mutable bool Valid;
   };
 

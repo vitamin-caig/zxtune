@@ -104,14 +104,9 @@ namespace
       return Path;
     }
 
-    virtual Time::Milliseconds GetDuration() const
+    virtual Time::MillisecondsDuration GetDuration() const
     {
-      return Time::Milliseconds();
-    }
-
-    virtual String GetDurationString() const
-    {
-      return String();
+      return Time::MillisecondsDuration();
     }
 
     virtual String GetTooltip() const
@@ -235,16 +230,10 @@ namespace
       return Delegate->GetDisplayName();
     }
 
-    virtual Time::Milliseconds GetDuration() const
+    virtual Time::MillisecondsDuration GetDuration() const
     {
       AcquireDelegate();
       return Delegate->GetDuration();
-    }
-
-    virtual String GetDurationString() const
-    {
-      AcquireDelegate();
-      return Delegate->GetDurationString();
     }
 
     virtual String GetTooltip() const

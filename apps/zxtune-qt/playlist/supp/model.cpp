@@ -123,7 +123,7 @@ namespace
       case Playlist::Model::COLUMN_DISPLAY_NAME:
         return ToQString(item.GetDisplayName());
       case Playlist::Model::COLUMN_DURATION:
-        return ToQString(item.GetDurationString());
+        return ToQString(item.GetDuration().ToString());
       case Playlist::Model::COLUMN_AUTHOR:
         return ToQString(item.GetAuthor());
       case Playlist::Model::COLUMN_TITLE:
@@ -212,28 +212,34 @@ namespace
     const bool Ascending;
   };
 
+  template<class R>
+  Playlist::Item::Comparer::Ptr CreateComparer(R (Playlist::Item::Data::*func)() const, bool ascending)
+  {
+    return boost::make_shared<TypedPlayitemsComparer<R> >(func, ascending);
+  }
+
   Playlist::Item::Comparer::Ptr CreateComparerByColumn(int column, bool ascending)
   {
     switch (column)
     {
     case Playlist::Model::COLUMN_TYPE:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetType, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetType, ascending);
     case Playlist::Model::COLUMN_DISPLAY_NAME:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetDisplayName, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetDisplayName, ascending);
     case Playlist::Model::COLUMN_DURATION:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<Time::Milliseconds>(&Playlist::Item::Data::GetDuration, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetDuration, ascending);
     case Playlist::Model::COLUMN_AUTHOR:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetAuthor, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetAuthor, ascending);
     case Playlist::Model::COLUMN_TITLE:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetTitle, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetTitle, ascending);
     case Playlist::Model::COLUMN_PATH:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<String>(&Playlist::Item::Data::GetFullPath, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetFullPath, ascending);
     case Playlist::Model::COLUMN_SIZE:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<std::size_t>(&Playlist::Item::Data::GetSize, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetSize, ascending);
     case Playlist::Model::COLUMN_CRC:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<uint32_t>(&Playlist::Item::Data::GetChecksum, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetChecksum, ascending);
     case Playlist::Model::COLUMN_FIXEDCRC:
-      return Playlist::Item::Comparer::Ptr(new TypedPlayitemsComparer<uint32_t>(&Playlist::Item::Data::GetCoreChecksum, ascending));
+      return CreateComparer(&Playlist::Item::Data::GetCoreChecksum, ascending);
     default:
       return Playlist::Item::Comparer::Ptr();
     }
