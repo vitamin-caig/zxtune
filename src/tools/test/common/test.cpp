@@ -298,12 +298,19 @@ int main()
     }
     */
     {
-      Time::Milliseconds period1(20), period2(40);
+      Time::Milliseconds period1(20), period2(30);
       Time::MillisecondsDuration msd1(12345, period1);
       Time::MillisecondsDuration msd2(5678, period2);
+      //246900ms = 246.9s = 4m6s + 900ms/20
       Test<String>("MillisecondsDuration1 ToString()", msd1.ToString(), "4:06.45");
-      Test<String>("MillisecondsDuration2 ToString()", msd2.ToString(), "3:47.03");
+      //170340ms = 170.34s = 2m50s + 340ms/30
+      Test<String>("MillisecondsDuration2 ToString()", msd2.ToString(), "2:50.11");
       Test("MillisecondsDuration compare", msd2 < msd1);
+      msd1 += msd2;
+      //period == 10
+      //value == 12345 * 2 + 5678 * 3 = 41724
+      //417240ms = 417.24s = 6m57s + 240/10
+      Test<String>("MillisecondsDuration sum", msd1.ToString(), "6:57.24");
     }
   }
   std::cout << "---- Test for iterators ----" << std::endl;

@@ -42,14 +42,19 @@ namespace Time
     }
 
     //from the same type
-    Stamp(const Stamp<T, Resolution>& rh)
+    Stamp(const Stamp& rh)
       : Value(rh.Value)
     {
     }
 
-    bool operator < (const Stamp<T, Resolution>& rh) const
+    bool operator < (const Stamp& rh) const
     {
       return Value < rh.Value;
+    }
+
+    bool operator == (const Stamp& rh) const
+    {
+      return Value == rh.Value;
     }
     
     //from the other types
@@ -72,7 +77,13 @@ namespace Time
     template<class T1, T1 OtherResolution>
     bool operator < (const Stamp<T1, OtherResolution>& rh) const
     {
-      return Value < Stamp<T, Resolution>(rh).Get();
+      return *this < Stamp<T, Resolution>(rh);
+    }
+
+    template<class T1, T1 OtherResolution>
+    bool operator == (const Stamp<T1, OtherResolution>& rh) const
+    {
+      return *this == Stamp<T, Resolution>(rh);
     }
 
     T Get() const
