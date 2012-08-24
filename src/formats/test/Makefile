@@ -7,6 +7,7 @@ all test:
 	$(MAKE) -C lha $(MAKECMDGOALS)
 	$(MAKE) -C lzh $(MAKECMDGOALS)
 	$(MAKE) -C lzs $(MAKECMDGOALS)
+	$(MAKE) -C megalz $(MAKECMDGOALS)
 	$(MAKE) -C pack2 $(MAKECMDGOALS)
 	$(MAKE) -C rar $(MAKECMDGOALS)
 	$(MAKE) -C tlz $(MAKECMDGOALS)

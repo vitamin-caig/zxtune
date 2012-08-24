@@ -56,6 +56,9 @@ extern const Char LZH2_DECODER_DESCRIPTION[] = {
 extern const Char LZS_DECODER_DESCRIPTION[] = {
   'A','S','C',' ','L','Z','S',' ','P','a','c','k',0
 };
+extern const Char MEGALZ_DECODER_DESCRIPTION[] = {
+  'M','e','g','a','L','Z',0
+};
 extern const Char MSP_DECODER_DESCRIPTION[] = {
   'M','i','c','r','o','S','p','a','c','e',' ','P','a','c','k','e','r',' ','v','1','.','x',0
 };

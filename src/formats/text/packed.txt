@@ -82,6 +82,10 @@ __cpp> "#endif //__TEXT_PACKED_H_DEFINED__\n"
 < LZS_DECODER_DESCRIPTION
 > "ASC LZS Pack"
 
+#MegaLZ
+< MEGALZ_DECODER_DESCRIPTION
+> "MegaLZ"
+
 #MsPack
 < MSP_DECODER_DESCRIPTION
 > "MicroSpace Packer v1.x"

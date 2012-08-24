@@ -58,6 +58,7 @@ namespace Formats
     Decoder::Ptr CreateZ80V145Decoder();
     Decoder::Ptr CreateZ80V20Decoder();
     Decoder::Ptr CreateZ80V30Decoder();
+    Decoder::Ptr CreateMegaLZDecoder();
   }
 }
 

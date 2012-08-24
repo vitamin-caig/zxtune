@@ -22,6 +22,7 @@ extern const Char HRUST23_DECODER_DESCRIPTION[];
 extern const Char LZH1_DECODER_DESCRIPTION[];
 extern const Char LZH2_DECODER_DESCRIPTION[];
 extern const Char LZS_DECODER_DESCRIPTION[];
+extern const Char MEGALZ_DECODER_DESCRIPTION[];
 extern const Char MSP_DECODER_DESCRIPTION[];
 extern const Char PACK2_DECODER_DESCRIPTION[];
 extern const Char PCD61_DECODER_DESCRIPTION[];
