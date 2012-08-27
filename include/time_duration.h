@@ -95,6 +95,18 @@ namespace Time
 
     String ToString() const
     {
+      return IsValid()
+        ? Serialize()
+        : String();
+    }
+  private:
+    bool IsValid() const
+    {
+      return Period.Get() != 0;
+    }
+
+    String Serialize() const
+    {
       const typename TimeStamp::ValueType allUnits = Total();
       const typename TimeStamp::ValueType allSeconds = allUnits / Period.PER_SECOND;
       const uint_t allMinutes = allSeconds / SECONDS_PER_MINUTE;
@@ -105,7 +117,7 @@ namespace Time
       const uint_t hours = allMinutes / MINUTES_PER_HOUR;
       return Strings::FormatTime(hours, minutes, seconds, frames);
     }
-  private:
+
     typename TimeStamp::ValueType Total() const
     {
       return Period.Get() * Count;
