@@ -28,6 +28,7 @@ Author:
 #include <list>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
@@ -37,12 +38,80 @@ Author:
 
 namespace
 {
+  class AutoTimer
+  {
+  public:
+    AutoTimer()
+      : Start(std::clock())
+    {
+    }
+
+    std::clock_t Elapsed() const
+    {
+      return std::clock() - Start;
+    }
+  private:
+    const std::clock_t Start;
+  };
+
+  template<std::size_t Fields>
+  class StatisticBuilder
+  {
+  public:
+    typedef boost::array<std::string, Fields> Line;
+
+    StatisticBuilder()
+      : Lines()
+      , Widths()
+    {
+    }
+
+    void Add(const Line& line)
+    {
+      for (uint_t idx = 0; idx != Fields; ++idx)
+      {
+        Widths[idx] = std::max(Widths[idx], line[idx].size());
+      }
+      Lines.push_back(line);
+    }
+
+    std::string Get() const
+    {
+      std::string res;
+      for (typename std::vector<Line>::const_iterator it = Lines.begin(), lim = Lines.end(); it != lim; ++it)
+      {
+        res += ToString(*it);
+      }
+      return res;
+    }
+  private:
+    std::string ToString(const Line& line) const
+    {
+      std::string res;
+      for (uint_t idx = 0; idx != Fields; ++idx)
+      {
+        res += Widen(line[idx], Widths[idx] + 1);
+      }
+      *res.rbegin() = '\n';
+      return res;
+    }
+
+    static std::string Widen(const std::string& str, std::size_t wid)
+    {
+      std::string res(wid, ' ');
+      std::copy(str.begin(), str.end(), res.begin());
+      return res;
+    }
+  private:
+    std::vector<Line> Lines;
+    boost::array<std::size_t, Fields> Widths;
+  };
+
   class Statistic
   {
   public:
     Statistic()
-      : Start(std::time(0))
-      , TotalData(0)
+      : TotalData(0)
       , ArchivedData(0)
       , ModulesData(0)
     {
@@ -51,22 +120,22 @@ namespace
     ~Statistic()
     {
       const Debug::Stream Dbg("Core::RawScaner::Statistic");
-      const std::time_t spent = std::time(0) - Start;
+      const std::time_t spent = Timer.Elapsed();
       Dbg("Total processed: %1%", TotalData);
       const uint64_t useful = ArchivedData + ModulesData;
       Dbg("Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
       Dbg("Coverage: %1%%%", useful * 100 / TotalData);
-      Dbg("Speed is %1% b/s", spent ? (TotalData / spent) : TotalData);
-      uint64_t totalUsed = 0, totalMissed = 0;
+      Dbg("Speed: %1% b/s", spent ? (TotalData * CLOCKS_PER_SEC / spent) : TotalData);
+      StatisticBuilder<5> builder;
+      builder.Add(MakeStatLine());
+      StatItem total;
       for (DetectMap::const_iterator it = Detection.begin(), lim = Detection.end(); it != lim; ++it)
       {
-        const std::size_t used = it->second.first;
-        const std::size_t missed = it->second.second;
-        Dbg("Detector %1%: %2%/%3% missed/used (%4%%% effeciency)", it->first, missed, used, uint64_t(100) * (used - missed) / used);
-        totalUsed += used;
-        totalMissed += missed;
+        builder.Add(MakeStatLine(it->first, it->second));
+        total += it->second;
       }
-      Dbg("Total: %1%/%2% missed/used (%3%%% effeciency)", totalMissed, totalUsed, uint64_t(100) * (totalUsed - totalMissed) / totalUsed);
+      builder.Add(MakeStatLine("Total", total));
+      Dbg(builder.Get().c_str());
     }
 
     void Enqueue(std::size_t size)
@@ -84,14 +153,17 @@ namespace
       ModulesData += size;
     }
 
-    void AddUsed(const String& type)
+    void Add(const String& type)
     {
-      ++Detection[type].first;
+      ++Detection[type].Used;
     }
 
-    void AddMissed(const String& type)
+    void Add(const String& type, const AutoTimer& scanTimer, bool missed)
     {
-      ++Detection[type].second;
+      StatItem& item = Detection[type];
+      ++item.Used;
+      item.Missed += missed;
+      item.TimeInSearch += scanTimer.Elapsed();
     }
 
     static Statistic& Self()
@@ -100,11 +172,55 @@ namespace
       return self;
     }
   private:
-    const std::time_t Start;
+    struct StatItem
+    {
+      std::size_t Used;
+      std::size_t Missed;
+      std::clock_t TimeInSearch;
+
+      StatItem()
+        : Used()
+        , Missed()
+        , TimeInSearch()
+      {
+      }
+
+      StatItem& operator += (const StatItem& rh)
+      {
+        Used += rh.Used;
+        Missed += rh.Missed;
+        TimeInSearch += rh.TimeInSearch;
+        return *this;
+      }
+    };
+
+    static boost::array<std::string, 5> MakeStatLine()
+    {
+      boost::array<std::string, 5> res;
+      res[0] = "\nDetector";
+      res[1] = "Missed";
+      res[2] = "Used";
+      res[3] = "Eff,%";
+      res[4] = "Time,ms";
+      return res;
+    }
+
+    static boost::array<std::string, 5> MakeStatLine(const String& id, const StatItem& item)
+    {
+      boost::array<std::string, 5> res;
+      res[0] = ToStdString(id);
+      res[1] = boost::lexical_cast<std::string>(item.Missed);
+      res[2] = boost::lexical_cast<std::string>(item.Used);
+      res[3] = boost::lexical_cast<std::string>(uint64_t(100) * (item.Used - item.Missed) / item.Used);
+      res[4] = boost::lexical_cast<std::string>(item.TimeInSearch * 1000 / CLOCKS_PER_SEC);
+      return res;
+    }
+  private:
+    const AutoTimer Timer;
     uint64_t TotalData;
     uint64_t ArchivedData;
     uint64_t ModulesData;
-    typedef std::map<String, std::pair<std::size_t, std::size_t> > DetectMap;
+    typedef std::map<String, StatItem> DetectMap;
     DetectMap Detection;
   };
 }
@@ -504,17 +620,15 @@ namespace
         const typename T::Ptr plugin = iter->Get();
         const Analysis::Result::Ptr result = plugin->Detect(input, callback);
         const String id = plugin->GetDescription()->Id();
-        Statistic::Self().AddUsed(id);
         if (std::size_t usedSize = result->GetMatchedDataSize())
         {
+          Statistic::Self().Add(id);
           Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
+        const AutoTimer timer;
         const std::size_t lookahead = result->GetLookaheadOffset();
-        if (0 == lookahead)
-        {
-          Statistic::Self().AddMissed(id);
-        }
+        Statistic::Self().Add(id, timer, 0 == lookahead);
         container.SetPluginLookahead(id, std::max<std::size_t>(lookahead, SCAN_STEP));
       }
       const std::size_t minLookahead = container.GetMinimalPluginLookahead();
