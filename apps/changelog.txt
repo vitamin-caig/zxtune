@@ -7,6 +7,12 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] MegaLZ packed blocks support (MEGALZ)
+[+] zxtune-qt: show time position while seeking
+[*] zxtune-qt: take into account frame duration while calculating modules' duration and playback position
+
+--- Rev1936 from 21.08.2012
+
 [+] ST3 (SoundTracker v3.x) format support including player analysis (COMPILEDST3)
 [*] Improved detect of AS0/ASC modules
 
