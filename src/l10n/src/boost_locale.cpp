@@ -17,6 +17,7 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/locale/gnu_gettext.hpp>
+#include <boost/locale/util.hpp>
 //std includes
 #include <map>
 
@@ -71,13 +72,40 @@ namespace
     const LocalePtr Locale;
     const std::string Domain;
   };
+  
+  //language[_COUNTRY][.encoding][@variant]
+  struct LocaleAttributes
+  {
+    LocaleAttributes()
+      : Name(boost::locale::util::get_system_locale())
+    {
+      const std::string::size_type encPos = Name.find_first_of('.');
+      if (encPos != Name.npos)
+      {
+        const std::string::size_type varPos = Name.find_first_of('@');
+        if (varPos != Name.npos)
+        {
+          Encoding = Name.substr(encPos + 1, varPos - encPos - 1);
+        }
+        else
+        {
+          Encoding = Name.substr(encPos + 1);
+        }
+      }
+    }
+
+    const std::string Name;
+    std::string Encoding;
+  };
 
   class BoostLocaleLibrary : public L10n::Library
   {
   public:
     BoostLocaleLibrary()
-      : CurrentLocale(boost::make_shared<std::locale>())
+      : SystemLocale()
+      , CurrentLocale(boost::make_shared<std::locale>())
     {
+      Dbg("Current locale is %1%. Encoding is %2%", SystemLocale.Name, SystemLocale.Encoding);
     }
 
     virtual void AddTranslation(const std::string& domain, const std::string& translation, const Dump& data)
@@ -87,6 +115,7 @@ namespace
       static const std::string EMPTY_PATH;
       gnu_gettext::messages_info& info = Locales[translation];
       info.language = translation;
+      info.encoding = SystemLocale.Encoding;
       info.domains.push_back(gnu_gettext::messages_info::domain(domain));
       info.callback = &LoadMessage;
       info.paths.assign(&EMPTY_PATH, &EMPTY_PATH + 1);
@@ -144,6 +173,7 @@ namespace
       }
     }
   private:
+    const LocaleAttributes SystemLocale;
     const LocalePtr CurrentLocale;
     MapAdapter<std::string, Dump> Translations;
     MapAdapter<std::string, boost::locale::gnu_gettext::messages_info> Locales;
