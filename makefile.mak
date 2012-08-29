@@ -101,6 +101,9 @@ OBJECTS = $(foreach src, $(notdir $(source_files) $(source_files_cc) $(generated
 #calculate object files from windows resources
 RESOURCES += $(foreach res,$(notdir $($(platform)_resources)), $(objects_dir)/$(call makeres_name,$(res)))
 
+#process l10n files (SOURCES required)
+include $(path_step)/make/l10n.mak
+
 #make objects and binaries dir
 $(objects_dir):
 	$(call makedir_cmd,$@)
@@ -115,6 +118,8 @@ ifdef library_name
 #simple libraries
 $(target): $(OBJECTS) $(RESOURCES) | $(output_dir)
 	$(call build_lib_cmd,$^,$@)
+
+.PHONY deps:
 else
 #binary and dynamic libraries with dependencies
 LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
