@@ -27,6 +27,8 @@ $(po_dir) $(mo_dir):
 	$(call makedir_cmd,$@)
 
 $(l10n_archive): l10n
+ifeq ($(host),windows)
 	(cd $(subst /,\,$(path_step)/l10n) && zip -9DR $(CURDIR)\$(subst /,\,$(@)) "*.mo")
-
-	
+else
+	(cd $(path_step)/l10n && zip -9DR $(CURDIR)/$(@) "*.mo")
+endif
