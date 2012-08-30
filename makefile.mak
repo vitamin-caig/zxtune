@@ -124,9 +124,10 @@ else
 #binary and dynamic libraries with dependencies
 LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
-$(target): $(OBJECTS) $(RESOURCES) $(LIBS) | $(output_dir)
+$(target): $(OBJECTS) $(RESOURCES) $(LIBS) $(embedded_files) | $(output_dir)
 	$(link_cmd)
 	$(postlink_cmd)
+	$(if $(embedded_files),$(embed_file_cmd),)
 
 $(LIBS): deps
 

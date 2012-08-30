@@ -15,10 +15,10 @@ include_dirs = .
 
 text_files := text/text
 
-libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io sound tools \
+libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io l10n platform sound tools \
             playlist_ui playlist_supp playlist_io ui_common ui_conversion ui_preferences
 
-depends = apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/sound src/tools \
+depends = apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/l10n src/platform src/sound src/tools \
           apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io \
           apps/zxtune-qt/ui apps/zxtune-qt/ui/conversion apps/zxtune-qt/ui/preferences
 
@@ -26,7 +26,8 @@ depends = apps/base apps/version src/analysis src/async src/binary src/core src/
 libraries += lhasa z z80ex
 depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
 
-boost_libraries = thread system
+boost_libraries = thread system locale
+mingw_libraries = iconv
 
 qt_libraries = Gui Core
 
@@ -51,6 +52,7 @@ qrc_files := res/icons $(theme_resources)/theme
 #platform-specific resources
 windows_resources := res/zxtune-qt
 mingw_resources := res/zxtune-qt
+embedded_files = $(l10n_archive)
 
 $(platform)_definitions += GUI_THEME=$(gui_theme)
 

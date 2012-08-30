@@ -6,8 +6,8 @@ include $(path_step)/make/default.mak
 
 $(platform)_include_dirs += $(path_step)/3rdparty
 
-libraries := binary io tools
-depends := src/binary src/tools src/io
+libraries := binary io l10n_stub tools
+depends := src/binary src/l10n/stub src/tools src/io
 
 windows_libraries := advapi32
 

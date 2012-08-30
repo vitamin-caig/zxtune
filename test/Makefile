@@ -5,5 +5,6 @@ all test:
 	$(MAKE) -C ../src/formats/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/l10n/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/io/test $(MAKECMDGOALS)
+	$(MAKE) -C ../src/platform/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/sound/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/tools/test $(MAKECMDGOALS)

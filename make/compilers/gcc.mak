@@ -68,7 +68,7 @@ link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 
 #specify postlink command- generate pdb file
 postlink_cmd = $(OBJCOPY) --only-keep-debug $@ $@.pdb && \
-	$(STRIP) -s $@ && \
+	$(OBJCOPY) --strip-debug $@ && \
 	$(OBJCOPY) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies

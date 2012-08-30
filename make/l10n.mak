@@ -1,8 +1,12 @@
-l10n: $(if deps,deps,) $(addsuffix .po,$(po_files))
+l10n: $(if deps,deps,) $(addsuffix .mo,$(addprefix $(path_step)/l10n/,$(po_files)))
+
+l10n_source: $(if deps,deps,) $(addsuffix .po,$(addprefix $(path_step)/l10n/,$(po_files)))
+
+l10n_archive = $(path_step)/l10n/data.zip
 
 po_dir = $(objects_dir)/.po
 
-vpath %.po $(sort $(dir $(po_files)))
+vpath %.po $(path_step)/l10n
 
 #path/lang/domain.po
 getlang = $(lastword $(subst /, ,$(dir $(1))))
@@ -19,5 +23,10 @@ $(po_dir)/messages.pot: $(SOURCES) | $(po_dir)
 %.mo: %.po
 		msgfmt --output $@ $^
 		
-$(po_dir):
+$(po_dir) $(mo_dir):
 	$(call makedir_cmd,$@)
+
+$(l10n_archive): l10n
+	(cd $(subst /,\,$(path_step)/l10n) && zip -9DR $(CURDIR)\$(subst /,\,$(@)) "*.mo")
+
+	

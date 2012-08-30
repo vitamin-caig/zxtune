@@ -4,11 +4,11 @@ source_files := main
 
 text_files := text/text
 
-libraries := analysis async binary formats io tools zxtune_app_version lhasa z
-depends := src/analysis src/async src/binary src/formats src/io src/tools apps/version 3rdparty/lhasa/lib 3rdparty/zlib
+libraries := analysis async binary formats io l10n_stub tools zxtune_app_version lhasa z
+depends := src/analysis src/async src/binary src/formats src/io src/l10n/stub src/tools apps/version 3rdparty/lhasa/lib 3rdparty/zlib
 
-boost_libraries := filesystem program_options thread system
-
+boost_libraries := filesystem program_options thread system locale
+mingw_libraries := iconv
 windows_libraries := advapi32
 
 #platform-specific resources

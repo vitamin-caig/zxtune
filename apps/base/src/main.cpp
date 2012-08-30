@@ -11,6 +11,11 @@ Author:
 
 //local includes
 #include <apps/base/app.h>
+//common includes
+#include <error.h>
+//library includes
+#include <l10n/api.h>
+#include <l10n/control.h>
 //std includes
 #include <locale>
 //text includes
@@ -22,9 +27,27 @@ std::basic_ostream<Char>& StdOut = std::wcout;
 std::basic_ostream<Char>& StdOut = std::cout;
 #endif
 
+namespace
+{
+  void SetupLocale()
+  {
+    std::locale::global(std::locale(""));
+    L10n::LoadTranslationsFromResources();
+    L10n::Library::Instance().SelectTranslation("ru");
+  }
+}
+
 int main(int argc, char* argv[])
 {
-  std::locale::global(std::locale(""));
-  std::auto_ptr<Application> app(Application::Create());
-  return app->Run(argc, argv);
+  try
+  {
+    SetupLocale();
+    std::auto_ptr<Application> app(Application::Create());
+    return app->Run(argc, argv);
+  }
+  catch (const Error& e)
+  {
+    StdOut << Error::ToString(e) << std::endl;
+    return 1;
+  }
 }
