@@ -14,6 +14,8 @@ Author:
 //common includes
 #include <contract.h>
 #include <error_tools.h>
+//library includes
+#include <l10n/api.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //platform includes
@@ -25,7 +27,9 @@ Author:
 
 namespace
 {
-  const unsigned THIS_MODULE_CODE = Error::ModuleCode<'W', 'S', 'O'>::Value;
+  const unsigned THIS_MODULE = Error::ModuleCode<'W', 'S', 'O'>::Value;
+
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("tools");
 
   class WindowsSharedLibrary : public SharedLibrary
   {
@@ -50,7 +54,8 @@ namespace
       {
         return res;
       }
-      throw MakeFormattedError(THIS_LINE, THIS_MODULE_CODE, Text::FAILED_FIND_DYNAMIC_LIBRARY_SYMBOL, FromStdString(name));
+      throw MakeFormattedError(THIS_LINE, THIS_MODULE, 
+        translate("Failed to find symbol '%1%' in dynamic library."), FromStdString(name));
     }
   private:
     const HMODULE Handle;
@@ -77,8 +82,8 @@ Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
     res = boost::make_shared<WindowsSharedLibrary>(handle);
     return Error();
   }
-  return MakeFormattedError(THIS_LINE, THIS_MODULE_CODE,
-    Text::FAILED_LOAD_DYNAMIC_LIBRARY, FromStdString(fileName), GetWindowsError());
+  return MakeFormattedError(THIS_LINE, THIS_MODULE,
+    translate("Failed to load dynamic library '%1%' (error code is %2%)."), FromStdString(fileName), GetWindowsError());
 }
 
 

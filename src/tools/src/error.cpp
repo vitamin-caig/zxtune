@@ -12,6 +12,8 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <string_helpers.h>
+//library includes
+#include <l10n/api.h>
 //std includes
 #include <cctype>
 #include <iomanip>
@@ -26,6 +28,8 @@ namespace
   {
     resultStr += Error::AttributesToString(location, code, text);
   }
+
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("tools");
 }
 
 // implementation of error's core used to keep data
@@ -162,7 +166,7 @@ String Error::CodeToString(CodeType code)
 
 String Error::AttributesToString(LocationRef loc, CodeType code, const String& text)
 {
-  return Strings::Format(Text::ERROR_DEFAULT_FORMAT, text, CodeToString(code), LocationToString(loc));
+  return Strings::Format(translate("%1%\n\nCode: %2%\nAt: %3%\n--------\n"), text, CodeToString(code), LocationToString(loc));
 }
 
 String Error::LocationToString(Error::LocationRef loc)
