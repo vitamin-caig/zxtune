@@ -47,6 +47,7 @@ namespace
       : Locale(locale)
       , Domain(domain)
     {
+      Dbg("Created vocabulary for domain '%1%'", domain);
     }
 
     virtual String GetText(const char* text) const
@@ -82,6 +83,7 @@ namespace
       const std::string::size_type encPos = Name.find_first_of('.');
       if (encPos != Name.npos)
       {
+        Translation = Name.substr(0, encPos);
         const std::string::size_type varPos = Name.find_first_of('@');
         if (varPos != Name.npos)
         {
@@ -95,6 +97,7 @@ namespace
     }
 
     const std::string Name;
+    std::string Translation;
     std::string Encoding;
   };
 
@@ -105,7 +108,7 @@ namespace
       : SystemLocale()
       , CurrentLocale(boost::make_shared<std::locale>())
     {
-      Dbg("Current locale is %1%. Encoding is %2%", SystemLocale.Name, SystemLocale.Encoding);
+      Dbg("Current locale is %1%. Encoding is %2%. Translation is %3%", SystemLocale.Name, SystemLocale.Encoding, SystemLocale.Translation);
     }
 
     virtual void AddTranslation(const std::string& domain, const std::string& translation, const Dump& data)
@@ -133,7 +136,7 @@ namespace
         if (const gnu_gettext::messages_info* info = Locales.Find(translation))
         {
           message_format<Char>* const facet = gnu_gettext::create_messages_facet<Char>(*info);
-          Require(facet);
+          Require(facet != 0);
           *CurrentLocale = std::locale(std::locale::classic(), facet);
           Dbg("Selected translation %1%", translation);
           return;

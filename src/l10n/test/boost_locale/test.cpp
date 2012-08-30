@@ -67,6 +67,9 @@ int main()
     std::cout << "Test Russian translation" << std::endl;
     library.SelectTranslation("ru");
     Test(OpenFile("russian.res"));
+    std::cout << "Test nonexisting translation" << std::endl;
+    library.SelectTranslation("zz");
+    Test(OpenFile("default.res"));
     return 0;
   }
   catch (...)
