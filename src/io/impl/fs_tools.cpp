@@ -147,5 +147,16 @@ namespace ZXTune
       }
       throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, Text::IO_ERROR_NOT_OPENED, path);
     }
+
+    std::auto_ptr<std::ifstream> OpenFile(const String& path)
+    {
+      const std::string& pathC = ConvertToFilename(path);
+      std::auto_ptr<std::ifstream> res(new std::ifstream(pathC.c_str(), std::ios::binary));
+      if (res.get() && res->good())
+      {
+        return res;
+      }
+      throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, Text::IO_ERROR_NOT_OPENED, path);
+    }
   }
 }

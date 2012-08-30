@@ -50,6 +50,12 @@ namespace ZXTune
     //! @return File stream
     //! @note Throws exception if file is already exists and overwrite flag is not set
     std::auto_ptr<std::ofstream> CreateFile(const String& path, bool overwrite);
+
+    //! @brief Open file
+    //! @param path Path to the file
+    //! @return File stream
+    //! @note Throws exception if file cannot be open
+    std::auto_ptr<std::ifstream> OpenFile(const String& path);
   }
 }
 
