@@ -77,7 +77,7 @@ Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
     return Error();
   }
   return MakeFormattedError(THIS_LINE, THIS_MODULE,
-    translate("Failed to load shared object '%1%' (%2%).", FromStdString(fileName), FromStdString(::dlerror())));
+    translate("Failed to load shared object '%1%' (%2%)."), FromStdString(fileName), FromStdString(::dlerror()));
 }
   
 std::string GetSharedLibraryFilename(const std::string& name)
