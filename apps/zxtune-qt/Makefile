@@ -52,7 +52,7 @@ qrc_files := res/icons $(theme_resources)/theme
 #platform-specific resources
 windows_resources := res/zxtune-qt
 mingw_resources := res/zxtune-qt
-embedded_files = $(l10n_archive)
+embedded_files = $(mo_translation_data)
 
 $(platform)_definitions += GUI_THEME=$(gui_theme)
 

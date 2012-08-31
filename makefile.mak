@@ -90,6 +90,9 @@ ifdef use_qt
 include $(path_step)/make/qt.mak
 endif
 
+#process l10n files
+include $(path_step)/make/l10n.mak
+
 GENERATED_HEADERS = $(addsuffix .h,$(generated_headers))
 
 SOURCES = $(addsuffix $(src_suffix),$(source_files)) $(addsuffix $(src_suffix_cc),$(source_files_cc))
@@ -101,8 +104,7 @@ OBJECTS = $(foreach src, $(notdir $(source_files) $(source_files_cc) $(generated
 #calculate object files from windows resources
 RESOURCES += $(foreach res,$(notdir $($(platform)_resources)), $(objects_dir)/$(call makeres_name,$(res)))
 
-#process l10n files (SOURCES required)
-include $(path_step)/make/l10n.mak
+TRANSLATIONS = $(mo_files)
 
 #make objects and binaries dir
 $(objects_dir):
@@ -116,15 +118,15 @@ $(output_dir):
 #build target
 ifdef library_name
 #simple libraries
-$(target): $(OBJECTS) $(RESOURCES) | $(output_dir)
+$(target): $(OBJECTS) $(RESOURCES) | $(output_dir) $(TRANSLATIONS)
 	$(call build_lib_cmd,$^,$@)
 
-.PHONY deps:
+.PHONY: deps
 else
 #binary and dynamic libraries with dependencies
 LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
-$(target): $(OBJECTS) $(RESOURCES) $(LIBS) $(embedded_files) | $(output_dir)
+$(target): $(OBJECTS) $(RESOURCES) $(LIBS) $(embedded_files) | $(output_dir) $(TRANSLATIONS)
 	$(link_cmd)
 	$(postlink_cmd)
 	$(if $(embedded_files),$(embed_file_cmd),)

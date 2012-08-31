@@ -12,6 +12,6 @@ else
 source_dirs += src/$(platform)
 endif
 
-po_files := ru/platform
+po_files := platform
 
 include $(path_step)/makefile.mak
