@@ -3,7 +3,8 @@ path_step := ../..
 source_dirs := impl
 source_files = backends/backend_impl backends/enumerator backends/file_backend backends/scope backends/volume_control
 
-text_files := text/sound text/backends
+text_files := text/backends
+po_files := sound
 
 include $(path_step)/make/default.mak
 include $(path_step)/make/features.mak

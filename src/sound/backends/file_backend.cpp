@@ -19,6 +19,7 @@ Author:
 #include <async/data_receiver.h>
 #include <core/module_attrs.h>
 #include <io/fs_tools.h>
+#include <l10n/api.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
 //boost includes
@@ -31,6 +32,7 @@ Author:
 namespace
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 }
 
 namespace
@@ -146,7 +148,7 @@ namespace
       if (nameTemplate.empty())
       {
         // Filename parameter is required
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_FILE_BACKEND_NO_FILENAME);
+        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Output filename template is not specified."));
       }
       // check if required to add extension
       const String extension = Char('.') + Id;

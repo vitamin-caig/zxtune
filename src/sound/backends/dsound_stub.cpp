@@ -12,6 +12,7 @@ Author:
 #include "dsound.h"
 #include "enumerator.h"
 //library includes
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
 #include <sound/text/backends.h>
@@ -22,7 +23,7 @@ namespace ZXTune
   {
     void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::DSOUND_BACKEND_ID, Text::DSOUND_BACKEND_DESCRIPTION, CAP_TYPE_SYSTEM));
+      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::DSOUND_BACKEND_ID, L10n::translate("DirectSound support backend."), CAP_TYPE_SYSTEM));
     }
 
     namespace DirectSound

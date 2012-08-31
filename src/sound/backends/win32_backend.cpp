@@ -21,6 +21,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
@@ -34,7 +35,6 @@ Author:
 #include <boost/noncopyable.hpp>
 //text includes
 #include <sound/text/backends.h>
-#include <sound/text/sound.h>
 
 #define FILE_TAG 5E3F141A
 
@@ -44,6 +44,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Win32");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
@@ -91,7 +92,7 @@ namespace
       if (!val)
       {
         //TODO: convert code to string
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR, ::GetLastError());
+        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in Win32 backend: code %1%."), ::GetLastError());
       }
     }
   private:
@@ -189,12 +190,12 @@ namespace
         std::vector<char> buffer(1024);
         if (MMSYSERR_NOERROR == Api->waveOutGetErrorTextA(res, &buffer[0], static_cast<UINT>(buffer.size())))
         {
-          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR,
+          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in Win32 backend: %1%."),
             String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
         }
         else
         {
-          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_WIN32_BACKEND_ERROR, res);
+          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in Win32 backend: code %1%."), res);
         }
       }
     }
@@ -361,7 +362,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_GAIN);
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Failed to set volume: gain is out of range."));
       }
       // use exceptions for simplification
       try
@@ -403,7 +404,7 @@ namespace
           !in_range<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::SOUND_ERROR_WIN32_BACKEND_INVALID_BUFFERS, static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
+          translate("Win32 backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<std::size_t>(buffers);
     }
@@ -509,6 +510,9 @@ namespace
     WaveOutObjects Objects;
   };
 
+  const String ID = Text::WIN32_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("Win32 sound system backend");
+
   class Win32BackendCreator : public BackendCreator
   {
   public:
@@ -519,12 +523,12 @@ namespace
 
     virtual String Id() const
     {
-      return Text::WIN32_BACKEND_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return Text::WIN32_BACKEND_DESCRIPTION;
+      return translate(DESCRIPTION);
     }
 
     virtual uint_t Capabilities() const
@@ -549,11 +553,11 @@ namespace
       catch (const Error& e)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
       }
     }
   private:
@@ -650,12 +654,12 @@ namespace ZXTune
         }
         else
         {
-          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_NO_DEVICES);
+          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable output devices found"));
         }
       }
       catch (const Error& e)
       {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::WIN32_BACKEND_ID, Text::WIN32_BACKEND_DESCRIPTION, CAPABILITIES, e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAPABILITIES, e));
       }
     }
 

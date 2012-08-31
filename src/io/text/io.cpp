@@ -5,50 +5,8 @@
 
 namespace Text
 {
-extern const Char IO_ERROR_DISABLED_PROVIDER[] = {
-  'N','o','t',' ','a','v','a','i','l','a','b','l','e',0
-};
-extern const Char IO_ERROR_FAILED_RESOLVE_URI[] = {
-  'F','a','i','l','e','d',' ','t','o',' ','r','e','s','o','l','v','e',' ','u','r','i',' ','\'','%','1','%','\'',
-  '.',0
-};
-extern const Char IO_ERROR_FILE_EXISTS[] = {
-  'F','i','l','e',' ','\'','%','1','%','\'',' ','a','l','r','e','a','d','y',' ','e','x','i','s','t','s','.',0
-};
-extern const Char IO_ERROR_IO_ERROR[] = {
-  'I','/','O',' ','e','r','r','o','r',' ','h','a','p','p','e','n','d','s','.',0
-};
-extern const Char IO_ERROR_NETWORK_ERROR[] = {
-  'N','e','t','w','o','r','k',' ','e','r','r','o','r',' ','h','a','p','p','e','n','d','s',':',' ','%','1','%',0
-};
-extern const Char IO_ERROR_NOT_FOUND[] = {
-  'F','a','i','l','e','d',' ','t','o',' ','f','i','n','d',' ','s','p','e','c','i','f','i','e','d',' ','f','i',
-  'l','e','.',0
-};
-extern const Char IO_ERROR_NOT_OPENED[] = {
-  'F','a','i','l','e','d',' ','t','o',' ','o','p','e','n',' ','f','i','l','e',' ','\'','%','1','%','\'','.',0
-};
-extern const Char IO_ERROR_NOT_SUPPORTED_URI[] = {
-  'S','p','e','c','i','f','i','e','d',' ','u','r','i',' ','s','c','h','e','m','e',' ','d','o','e','s',' ','n',
-  'o','t',' ','s','u','p','p','o','r','t','e','d','.',0
-};
-extern const Char IO_ERROR_NO_ACCESS[] = {
-  'F','a','i','l','e','d',' ','t','o',' ','g','e','t',' ','a','c','c','e','s','s','.',0
-};
-extern const Char IO_ERROR_NO_MEMORY[] = {
-  'F','a','i','l','e','d',' ','t','o',' ','a','l','l','o','c','a','t','e',' ','m','e','m','o','r','y',' ','t',
-  'o',' ','o','p','e','n',' ','d','a','t','a','.',0
-};
-extern const Char IO_FILE_PROVIDER_DESCRIPTION[] = {
-  'L','o','c','a','l',' ','f','i','l','e','s',' ','a','n','d',' ','f','i','l','e',':','/','/',' ','s','c','h',
-  'e','m','e',' ','s','u','p','p','o','r','t',0
-};
 extern const Char IO_FILE_PROVIDER_ID[] = {
   'f','i','l','e',0
-};
-extern const Char IO_NETWORK_PROVIDER_DESCRIPTION[] = {
-  'N','e','t','w','o','r','k',' ','f','i','l','e','s',' ','a','c','c','e','s','s',' ','v','i','a',' ','d','i',
-  'f','f','e','r','e','n','t',' ','s','c','h','e','m','e','s',' ','s','u','p','p','o','r','t',0
 };
 extern const Char IO_NETWORK_PROVIDER_ID[] = {
   'n','e','t',0

@@ -4,6 +4,7 @@ source_dirs := impl
 source_files = providers/enumerator
 
 text_files := text/io
+po_files := io
 
 include $(path_step)/make/default.mak
 include $(path_step)/make/features.mak

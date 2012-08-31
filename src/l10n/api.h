@@ -105,6 +105,11 @@ namespace L10n
   private:
     const Vocabulary::Ptr Delegate;
   };
+
+  inline const char* translate(const char* txt)
+  {
+    return txt;
+  }
 }
 
 #endif //L10N_API_H_DEFINED

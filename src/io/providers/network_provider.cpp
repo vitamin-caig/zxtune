@@ -25,6 +25,7 @@ Author:
 //library includes
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
+#include <l10n/api.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -38,6 +39,7 @@ namespace
   using namespace ZXTune::IO;
 
   const Debug::Stream Dbg("IO::Provider::Network");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
 
   class NetworkProviderParameters
   {
@@ -99,7 +101,7 @@ namespace
     {
       if (code != CURLE_OK)
       {
-        throw MakeFormattedError(loc, ERROR_IO_ERROR, Text::IO_ERROR_NETWORK_ERROR, Api->curl_easy_strerror(code));
+        throw MakeFormattedError(loc, ERROR_IO_ERROR, translate("Network error happends: %1%"), Api->curl_easy_strerror(code));
       }
     }
   private:
@@ -156,7 +158,7 @@ namespace
       Object.GetInfo(CURLINFO_RESPONSE_CODE, &retCode, THIS_LINE);
       if (IsHttpErrorCode(retCode))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, Text::IO_ERROR_NETWORK_ERROR, retCode);
+        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Http error happends: %1%."), retCode);
       }
       return Binary::CreateContainer(result);
     }
@@ -283,6 +285,9 @@ namespace
     const String FullValue;
   };
 
+  const String ID = Text::IO_NETWORK_PROVIDER_ID;
+  const char* const DESCRIPTION = L10n::translate("Network files access via different schemes support");
+
   class NetworkDataProvider : public DataProvider
   {
   public:
@@ -294,12 +299,12 @@ namespace
 
     virtual String Id() const
     {
-      return Text::IO_NETWORK_PROVIDER_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return Text::IO_NETWORK_PROVIDER_DESCRIPTION;
+      return translate(DESCRIPTION);
     }
 
     virtual Error Status() const
@@ -349,7 +354,7 @@ namespace
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to open network resource '%1%'."), path).AddSuberror(e);
       }
     }
   private:
@@ -377,7 +382,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        enumerator.RegisterProvider(CreateUnavailableProviderStub(Text::IO_NETWORK_PROVIDER_ID, Text::IO_NETWORK_PROVIDER_DESCRIPTION, e));
+        enumerator.RegisterProvider(CreateUnavailableProviderStub(ID, DESCRIPTION, e));
       }
     }
   }

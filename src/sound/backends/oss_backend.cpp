@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
@@ -37,7 +38,6 @@ Author:
 #include <boost/thread/thread.hpp>
 //text includes
 #include <sound/text/backends.h>
-#include <sound/text/sound.h>
 
 #define FILE_TAG 69200152
 
@@ -47,6 +47,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Oss");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   const uint_t MAX_OSS_VOLUME = 100;
 
@@ -97,7 +98,7 @@ namespace
       if (!res)
       {
         throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-          Text::SOUND_ERROR_OSS_BACKEND_ERROR, Name, ::strerror(errno));
+          translate("Error in OSS backend while working with device '%1%': %2%."), Name, ::strerror(errno));
       }
     }
 
@@ -167,7 +168,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_GAIN);
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Failed to set volume: gain is out of range."));
       }
       try
       {
@@ -324,17 +325,20 @@ namespace
     const VolumeControl::Ptr VolumeController;
   };
 
+  const String ID = Text::OSS_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("OSS sound system backend");
+
   class OssBackendCreator : public BackendCreator
   {
   public:
     virtual String Id() const
     {
-      return Text::OSS_BACKEND_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return Text::OSS_BACKEND_DESCRIPTION;
+      return translate(DESCRIPTION);
     }
 
     virtual uint_t Capabilities() const
@@ -359,11 +363,11 @@ namespace
       catch (const Error& e)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
       }
     }
   };

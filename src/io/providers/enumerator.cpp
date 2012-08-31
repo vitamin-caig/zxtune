@@ -17,14 +17,13 @@ Author:
 #include <error_tools.h>
 //library includes
 #include <io/error_codes.h>
+#include <l10n/api.h>
 //std includes
 #include <algorithm>
 #include <list>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-//text includes
-#include <io/text/io.h>
 
 #define FILE_TAG 03113EE3
 
@@ -33,6 +32,7 @@ namespace
   using namespace ZXTune::IO;
 
   const Debug::Stream Dbg("IO::Enumerator");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
 
   typedef std::vector<DataProvider::Ptr> ProvidersList;
 
@@ -62,7 +62,7 @@ namespace
         return id;
       }
       Dbg(" No suitable provider found");
-      throw MakeFormattedError(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_FAILED_RESOLVE_URI, uri);
+      throw MakeFormattedError(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Failed to resolve uri '%1%'."), uri);
     }
 
     virtual Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
@@ -77,7 +77,7 @@ namespace
         }
       }
       Dbg(" No suitable provider found");
-      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Specified uri scheme is not supported."));
     }
 
     virtual Provider::Iterator::Ptr Enumerate() const
@@ -113,7 +113,7 @@ namespace
   class UnavailableProvider : public DataProvider
   {
   public:
-    UnavailableProvider(const String& id, const String& descr, const Error& status)
+    UnavailableProvider(const String& id, const char* descr, const Error& status)
       : IdValue(id)
       , DescrValue(descr)
       , StatusValue(status)
@@ -127,7 +127,7 @@ namespace
 
     virtual String Description() const
     {
-      return DescrValue;
+      return translate(DescrValue);
     }
 
     virtual Error Status() const
@@ -142,7 +142,7 @@ namespace
 
     virtual Binary::Container::Ptr Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const
     {
-      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_NOT_SUPPORTED_URI);
+      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Specified uri scheme is not supported."));
     }
 
     virtual StringSet Schemes() const
@@ -156,7 +156,7 @@ namespace
     }
   private:
     const String IdValue;
-    const String DescrValue;
+    const char* const DescrValue;
     const Error StatusValue;
   };
 }
@@ -184,7 +184,7 @@ namespace ZXTune
       }
       catch (const std::bad_alloc&)
       {
-        throw Error(THIS_LINE, ERROR_NO_MEMORY, Text::IO_ERROR_NO_MEMORY);
+        throw Error(THIS_LINE, ERROR_NO_MEMORY, translate("Failed to allocate memory to open data."));
       }
     }
 
@@ -193,12 +193,12 @@ namespace ZXTune
       return ProvidersEnumerator::Instance().Enumerate();
     }
 
-    DataProvider::Ptr CreateDisabledProviderStub(const String& id, const String& description)
+    DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description)
     {
-      return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, ERROR_NOT_SUPPORTED, Text::IO_ERROR_DISABLED_PROVIDER));
+      return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Not supported in current configuration")));
     }
 
-    DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const String& description, const Error& status)
+    DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)
     {
       return boost::make_shared<UnavailableProvider>(id, description, status);
     }

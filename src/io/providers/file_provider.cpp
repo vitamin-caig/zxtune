@@ -17,11 +17,13 @@ Author:
 #include "providers_factories.h"
 //common includes
 #include <contract.h>
+#include <debug_log.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
+#include <l10n/api.h>
 //std includes
 #include <fstream>
 //boost includes
@@ -40,6 +42,9 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::IO;
+
+  const Debug::Stream Dbg("IO::Provider::File");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
 
   class FileProviderParameters
   {
@@ -136,25 +141,27 @@ namespace
       std::ifstream file(ConvertToFilename(path).c_str(), std::ios::binary);
       if (!file)
       {
-        throw Error(THIS_LINE, ERROR_NO_ACCESS, Text::IO_ERROR_NO_ACCESS);
+        throw Error(THIS_LINE, ERROR_NO_ACCESS, translate("Failed to get access."));
       }
       file.seekg(0, std::ios::end);
       const std::streampos fileSize = file.tellg();
       if (!fileSize || !file)
       {
-        throw Error(THIS_LINE, ERROR_IO_ERROR, Text::IO_ERROR_IO_ERROR);
+        throw Error(THIS_LINE, ERROR_IO_ERROR, translate("File is empty."));
       }
       const FileProviderParameters providerParams(params);
       const std::streampos threshold = providerParams.GetMMapThreshold();
 
       if (fileSize >= threshold)
       {
+        Dbg("Using memory-mapped i/o for '%1%'.", path);
         file.close();
         //use mmap
         CoreHolder.reset(new MMapHolder(path));
       }
       else
       {
+        Dbg("Reading '%1%' to memory.", path);
         boost::shared_array<uint8_t> buffer(new uint8_t[fileSize]);
         file.seekg(0);
         file.read(safe_ptr_cast<char*>(buffer.get()), std::streamsize(fileSize));
@@ -277,7 +284,7 @@ namespace
 
     virtual String Description() const
     {
-      return Text::IO_FILE_PROVIDER_DESCRIPTION;
+      return translate("Local files and file:// scheme support");
     }
 
     virtual Error Status() const
@@ -316,7 +323,7 @@ namespace
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, Text::IO_ERROR_NOT_OPENED, path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to open file '%1%'."), path).AddSuberror(e);
       }
     }
   };

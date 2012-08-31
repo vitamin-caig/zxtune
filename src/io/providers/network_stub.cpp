@@ -10,6 +10,8 @@ Author:
 */
 
 #include "enumerator.h"
+//common includes
+#include <l10n/api.h>
 //text includes
 #include <io/text/io.h>
 
@@ -19,7 +21,7 @@ namespace ZXTune
   {
     void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
     {
-      enumerator.RegisterProvider(CreateDisabledProviderStub(Text::IO_NETWORK_PROVIDER_ID, Text::IO_NETWORK_PROVIDER_DESCRIPTION));
+      enumerator.RegisterProvider(CreateDisabledProviderStub(Text::IO_NETWORK_PROVIDER_ID, L10n::translate("Network files access via different schemes support")));
     }
   }
 }

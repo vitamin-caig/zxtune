@@ -380,7 +380,7 @@ namespace Playlist
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
       {
-        return MakeFormattedError(THIS_LINE, ZXTune::IO::ERROR_IO_ERROR, Text::IO_ERROR_NOT_OPENED, FromQString(filename));
+        return Error(THIS_LINE, ZXTune::IO::ERROR_IO_ERROR, FromQString(device.tr("Failed to store playlist '{0}'").arg(filename)));
       }
       try
       {

@@ -20,6 +20,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
@@ -30,7 +31,6 @@ Author:
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 //text includes
 #include <sound/text/backends.h>
-#include <sound/text/sound.h>
 
 #define FILE_TAG BCBCECCC
 
@@ -40,6 +40,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::DirectSound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
@@ -68,7 +69,7 @@ namespace
   {
     if (FAILED(res))
     {
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_DSOUND_BACKEND_ERROR, res);
+      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in DirectSound backend: %1%."), res);
     }
   }
 
@@ -349,7 +350,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_GAIN);
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Failed to set volume: gain is out of range."));
       }
       try
       {
@@ -409,7 +410,7 @@ namespace
           !in_range<Parameters::IntType>(latency, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::SOUND_ERROR_DSOUND_BACKEND_INVALID_LATENCY, static_cast<int_t>(latency), LATENCY_MIN, LATENCY_MAX);
+          translate("DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(latency), LATENCY_MIN, LATENCY_MAX);
       }
       return static_cast<uint_t>(latency);
     }
@@ -504,6 +505,9 @@ namespace
     DSObjects Objects; 
   };
 
+  const String ID = Text::DSOUND_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("DirectSound support backend.");
+
   class DirectSoundBackendCreator : public BackendCreator
   {
   public:
@@ -514,12 +518,12 @@ namespace
 
     virtual String Id() const
     {
-      return Text::DSOUND_BACKEND_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return Text::DSOUND_BACKEND_DESCRIPTION;
+      return translate(DESCRIPTION);
     }
 
     virtual uint_t Capabilities() const
@@ -544,11 +548,11 @@ namespace
       catch (const Error& e)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
       }
     }
   private:
@@ -649,12 +653,12 @@ namespace ZXTune
         }
         else
         {
-          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, Text::SOUND_ERROR_BACKEND_NO_DEVICES);
+          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable output devices found"));
         }
       }
       catch (const Error& e)
       {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::DSOUND_BACKEND_ID, Text::DSOUND_BACKEND_DESCRIPTION, CAPABILITIES, e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAPABILITIES, e));
       }
     }
 

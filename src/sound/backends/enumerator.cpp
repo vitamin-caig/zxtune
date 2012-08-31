@@ -16,14 +16,13 @@ Author:
 #include <debug_log.h>
 #include <error_tools.h>
 //library includes
+#include <l10n/api.h>
 #include <sound/error_codes.h>
 //std includes
 #include <cassert>
 #include <list>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <sound/text/sound.h>
 
 #define FILE_TAG AE42FD5E
 
@@ -33,6 +32,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Enumerator");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   typedef std::list<BackendCreator::Ptr> BackendCreatorsList;
 
@@ -63,7 +63,7 @@ namespace
   class UnavailableBackend : public BackendCreator
   {
   public:
-    UnavailableBackend(const String& id, const String& descr, uint_t caps, const Error& status)
+    UnavailableBackend(const String& id, const char* descr, uint_t caps, const Error& status)
       : IdValue(id)
       , DescrValue(descr)
       , CapsValue(caps)
@@ -78,7 +78,7 @@ namespace
 
     virtual String Description() const
     {
-      return DescrValue;
+      return translate(DescrValue);
     }
 
     virtual uint_t Capabilities() const
@@ -93,11 +93,11 @@ namespace
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr, Backend::Ptr&) const
     {
-      return Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_BACKEND_NOT_FOUND);
+      return Error(THIS_LINE, BACKEND_NOT_FOUND, translate("Requested backend is not supported."));
     }
   private:
     const String IdValue;
-    const String DescrValue;
+    const char* const DescrValue;
     const uint_t CapsValue;
     const Error StatusValue;
   };
@@ -118,12 +118,12 @@ namespace ZXTune
       return BackendsEnumerator::Instance().Enumerate();
     }
 
-    BackendCreator::Ptr CreateDisabledBackendStub(const String& id, const String& description, uint_t caps)
+    BackendCreator::Ptr CreateDisabledBackendStub(const String& id, const char* description, uint_t caps)
     {
-      return CreateUnavailableBackendStub(id, description, caps, Error(THIS_LINE, BACKEND_NOT_FOUND, Text::SOUND_ERROR_DISABLED_BACKEND));
+      return CreateUnavailableBackendStub(id, description, caps, Error(THIS_LINE, BACKEND_NOT_FOUND, translate("Not supported in current configuration")));
     }
 
-    BackendCreator::Ptr CreateUnavailableBackendStub(const String& id, const String& description, uint_t caps, const Error& status)
+    BackendCreator::Ptr CreateUnavailableBackendStub(const String& id, const char* description, uint_t caps, const Error& status)
     {
       return boost::make_shared<UnavailableBackend>(id, description, caps, status);
     }
