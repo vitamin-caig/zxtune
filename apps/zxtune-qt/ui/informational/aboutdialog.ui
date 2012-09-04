@@ -83,6 +83,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://lame.sourceforge.net&quot;&gt;LAME&lt;/a&gt; SDK&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://www.vorbis.com&quot;&gt;Ogg Vorbis&lt;/a&gt; SDK&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://flac.sourceforge.net&quot;&gt;FLAC&lt;/a&gt; SDK&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://curl.haxx.se/libcurl&quot;&gt;libCURL&lt;/a&gt; by &lt;b&gt;Haxx team&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;&lt;b&gt;Support credits:&lt;/b&gt;&lt;/center&gt;
@@ -145,7 +146,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <enum>Qt::LeftToRight</enum>
        </property>
        <property name="text">
-        <string>Ok</string>
+        <string notr="true">Ok</string>
        </property>
        <property name="default">
         <bool>true</bool>

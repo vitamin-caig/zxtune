@@ -12,7 +12,7 @@ extern const Char CONVERT_FAILED_OPEN[];
 extern const Char CONVERT_STATUS[];
 extern const Char DEFAULT_PLAYLIST_NAME[];
 extern const Char FAQ_URL[];
-extern const Char FEEDBACK_TEXT[];
+extern const Char FEEDBACK_EMAIL[];
 extern const Char HELP_URL[];
 extern const Char HOMEPAGE_URL[];
 extern const Char INPUT_CHANNEL_NAMES[];
