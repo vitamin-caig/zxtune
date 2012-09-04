@@ -9,6 +9,8 @@ ui_files = filename_template \
 ui_headeronly = mp3_settings ogg_settings flac_settings
 source_files += $(ui_headeronly)
 
+ts_files := ui_conversion
+
 include_dirs = ../..
 
 include $(path_step)/makefile.mak

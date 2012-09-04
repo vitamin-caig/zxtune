@@ -27,21 +27,11 @@ std::basic_ostream<Char>& StdOut = std::wcout;
 std::basic_ostream<Char>& StdOut = std::cout;
 #endif
 
-namespace
-{
-  void SetupLocale()
-  {
-    std::locale::global(std::locale(""));
-    L10n::LoadTranslationsFromResources();
-    L10n::Library::Instance().SelectTranslation("ru");
-  }
-}
-
 int main(int argc, char* argv[])
 {
   try
   {
-    SetupLocale();
+    std::locale::global(std::locale(""));
     std::auto_ptr<Application> app(Application::Create());
     return app->Run(argc, argv);
   }

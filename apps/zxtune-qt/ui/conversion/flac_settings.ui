@@ -40,7 +40,7 @@
    <item>
     <widget class="QLabel" name="min">
      <property name="text">
-      <string notr="true">Min</string>
+      <string>Min</string>
      </property>
     </widget>
    </item>
@@ -57,7 +57,7 @@
    <item>
     <widget class="QLabel" name="max">
      <property name="text">
-      <string notr="true">Max</string>
+      <string>Max</string>
      </property>
     </widget>
    </item>

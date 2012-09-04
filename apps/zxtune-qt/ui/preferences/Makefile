@@ -5,6 +5,8 @@ ui_files = aym mixer mixing plugins sound z80 preferencesdialog
 
 ui_files += sound_alsa sound_dsound sound_oss sound_sdl sound_win32
 
+ts_files := ui_preferences
+
 include_dirs = ../..
 
 include $(path_step)/makefile.mak

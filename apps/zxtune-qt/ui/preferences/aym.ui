@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>AY/YM</string>
+   <string notr="true">AY/YM</string>
   </property>
   <layout class="QVBoxLayout">
    <property name="spacing">
@@ -54,22 +54,22 @@
         </item>
         <item>
          <property name="text">
-          <string>ZX Spectrum (1.7734 MHz)</string>
+          <string notr="true">ZX Spectrum (1.7734 MHz)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Pentagon (1.75 MHz)</string>
+          <string notr="true">Pentagon (1.75 MHz)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Atari ST (2 MHz)</string>
+          <string notr="true">Atari ST (2 MHz)</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Amstrad CPC (1 MHz)</string>
+          <string notr="true">Amstrad CPC (1 MHz)</string>
          </property>
         </item>
        </widget>

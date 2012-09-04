@@ -75,7 +75,7 @@ namespace
     {
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);
-      setWindowTitle(tr("Analyzer"));
+      setWindowTitle(tr(QT_TRANSLATE_NOOP("AnalyzerControl", "Analyzer")));
       setObjectName("AnalyzerControl");
 
       this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),

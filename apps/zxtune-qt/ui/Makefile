@@ -22,6 +22,8 @@ moc_files += controls/analyzer_control controls/overlay_progress
 #other
 moc_files += tools/parameters_helpers
 
+ts_files := ui_common
+
 include_dirs = ..
 
 include $(path_step)/makefile.mak

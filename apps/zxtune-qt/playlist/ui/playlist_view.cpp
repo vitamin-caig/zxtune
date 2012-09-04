@@ -246,8 +246,9 @@ namespace
     virtual void AddFiles()
     {
       QStringList files;
-      if (UI::OpenMultipleFilesDialog(tr("Add files"),
-        tr("All files (*.*)"), files))
+      if (UI::OpenMultipleFilesDialog(
+        Playlist::UI::View::tr("Add files"),
+        Playlist::UI::View::tr("All files (*.*)"), files))
       {
         AddItems(files);
       }
@@ -257,7 +258,7 @@ namespace
     {
       QStringList folders;
       folders += QString();
-      if (UI::OpenFolderDialog(tr("Add folder"), folders.front()))
+      if (UI::OpenFolderDialog(Playlist::UI::View::tr("Add folder"), folders.front()))
       {
         AddItems(folders);
       }
@@ -267,7 +268,7 @@ namespace
     {
       const QString oldName = Controller->GetName();
       bool ok = false;
-      const QString newName = QInputDialog::getText(this, QString::fromUtf8("Rename playlist"), QString(), QLineEdit::Normal, oldName, &ok);
+      const QString newName = QInputDialog::getText(this, Playlist::UI::View::tr("Rename playlist"), QString(), QLineEdit::Normal, oldName, &ok);
       if (ok && !newName.isEmpty())
       {
         Controller->SetName(newName);
@@ -277,13 +278,13 @@ namespace
     virtual void Save()
     {
       QStringList filters;
-      filters << "Simple playlist (*.xspf)";
-      filters << "Playlist with module's attributes (*.xspf)";
+      filters << Playlist::UI::View::tr("Simple playlist (*.xspf)");
+      filters << Playlist::UI::View::tr("Playlist with module's attributes (*.xspf)");
 
       QString filename = Controller->GetName();
       int usedFilter = 0;
-      if (UI::SaveFileDialog(QString::fromUtf8("Save playlist"),
-        QString::fromUtf8("xspf"), filters, filename, &usedFilter))
+      if (UI::SaveFileDialog(Playlist::UI::View::tr("Save playlist"),
+        QLatin1String("xspf"), filters, filename, &usedFilter))
       {
         Playlist::IO::ExportFlags flags = 0;
         if (1 == usedFilter)

@@ -41,7 +41,7 @@ namespace
   }
 
   class FilenameTemplateWidgetImpl : public UI::FilenameTemplateWidget
-                                   , private Ui::FilenameTemplate
+                                   , private UI::Ui_FilenameTemplateWidget
   {
   public:
     explicit FilenameTemplateWidgetImpl(QWidget& parent)

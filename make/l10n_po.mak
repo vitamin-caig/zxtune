@@ -6,6 +6,8 @@ getlang = $(lastword $(subst /, ,$(dir $(1))))
 %.po: $(po_dir)/messages.pot
 		$(if $(wildcard $@),msgmerge --update --lang=$(call getlang,$@) $@ $^,msginit --locale=$(call getlang,$@) --input $^ --output $@)
 
+.PRECIOUS: %.po
+
 $(po_dir)/messages.pot: $(wildcard $(addsuffix *$(src_suffix),$(sort $(dir $(source_files))))) | $(po_dir)
 		xgettext --c++ --escape --boost --from-code=UTF-8 --omit-header \
 		  --keyword=translate:1,1t --keyword=translate:1,2,3t \

@@ -20,7 +20,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string notr="true">Options</string>
+   <string>Options</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <property name="spacing">
@@ -98,7 +98,7 @@
       <item>
        <widget class="QToolButton" name="isYM">
         <property name="toolTip">
-         <string>YM2149</string>
+         <string notr="true">YM2149</string>
         </property>
         <property name="icon">
          <iconset>
@@ -114,32 +114,32 @@
        <widget class="QComboBox" name="aymLayout">
         <item>
          <property name="text">
-          <string>ABC</string>
+          <string notr="true">ABC</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>ACB</string>
+          <string notr="true">ACB</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>BAC</string>
+          <string notr="true">BAC</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>BCA</string>
+          <string notr="true">BCA</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>CBA</string>
+          <string notr="true">CBA</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>CAB</string>
+          <string notr="true">CAB</string>
          </property>
         </item>
         <item>

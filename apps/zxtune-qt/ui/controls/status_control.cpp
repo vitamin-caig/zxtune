@@ -26,7 +26,7 @@ Author:
 
 namespace
 {
-  const QString EMPTY_TEXT(QString::fromUtf8("-"));
+  const QString EMPTY_TEXT(QLatin1String("-"));
 
   class StatusControlImpl : public StatusControl
                           , private Ui::StatusControl

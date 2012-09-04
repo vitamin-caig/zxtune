@@ -69,7 +69,7 @@ namespace
     virtual void CloseState()
     {
       timePosition->setRange(0, 0);
-      timeDisplay->setText(QString::fromUtf8("-:-.-"));
+      timeDisplay->setText(QLatin1String("-:-.-"));
     }
 
     virtual void EndSeeking()

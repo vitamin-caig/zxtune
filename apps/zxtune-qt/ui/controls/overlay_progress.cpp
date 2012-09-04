@@ -42,7 +42,7 @@ namespace
       setPalette(Qt::transparent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 64);
-      setToolTip(tr("Click to cancel"));
+      setToolTip(tr(QT_TRANSLATE_NOOP("OverlayProgress", "Click to cancel")));
     }
 
     virtual void UpdateProgress(int progress)
@@ -75,7 +75,7 @@ namespace
       painter.drawEllipse(QPoint(0, 0), maxRadius, maxRadius);
       painter.setBrush(QBrush());
       painter.drawText(-smallRadius, -smallRadius, smallRadius * 2, smallRadius * 2, Qt::AlignHCenter | Qt::AlignVCenter | Qt::TextSingleLine,
-        QString("%1%").arg(Value));
+        QString::fromUtf8("%1%").arg(Value));
 
       const int totalSteps = std::min(STEPS_MAX, Value * STEPS_MAX / 100 + 1);
       painter.drawLines(Lines.begin(), totalSteps);

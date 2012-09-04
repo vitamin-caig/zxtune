@@ -27,7 +27,7 @@ Author:
 namespace
 {
   class OssOptionsWidget : public UI::OssSettingsWidget
-                          , public Ui::OssOptions
+                         , public Ui::OssOptions
   {
   public:
     explicit OssOptionsWidget(QWidget& parent)
@@ -65,7 +65,7 @@ namespace
     virtual void DeviceSelected()
     {
       QString devFile = device->text();
-      if (OpenFileDialog(tr("Select device"), devFile))
+      if (OpenFileDialog(tr("Select device", "OssOptions"), devFile))
       {
         device->setText(devFile);
       }
@@ -74,7 +74,7 @@ namespace
     virtual void MixerSelected()
     {
       QString mixFile = mixer->text();
-      if (OpenFileDialog(tr("Select mixer"), mixFile))
+      if (OpenFileDialog(tr("Select mixer", "OssOptions"), mixFile))
       {
         mixer->setText(mixFile);
       }
@@ -83,7 +83,7 @@ namespace
     bool OpenFileDialog(const QString& title, QString& filename)
     {
       //do not use UI::OpenSingleFileDialog for keeping global settings intact
-      QFileDialog dialog(this, title, filename, QString::fromUtf8("*"));
+      QFileDialog dialog(this, title, filename, QLatin1String("*"));
       dialog.setFileMode(QFileDialog::ExistingFile);
       dialog.setReadOnly(true);
       dialog.setOption(QFileDialog::DontUseNativeDialog, true);

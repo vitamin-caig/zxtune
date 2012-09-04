@@ -104,7 +104,7 @@ OBJECTS = $(foreach src, $(notdir $(source_files) $(source_files_cc) $(generated
 #calculate object files from windows resources
 RESOURCES += $(foreach res,$(notdir $($(platform)_resources)), $(objects_dir)/$(call makeres_name,$(res)))
 
-TRANSLATIONS = $(mo_files)
+TRANSLATIONS = $(mo_files) $(qm_files)
 
 #make objects and binaries dir
 $(objects_dir):

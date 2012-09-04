@@ -10,9 +10,6 @@
     <height>69</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
-  </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
     <number>0</number>
@@ -20,7 +17,7 @@
    <item row="0" column="0">
     <widget class="QGroupBox" name="nameGroup">
      <property name="title">
-      <string>DirectSound settings</string>
+      <string>Win32 settings</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="margin">

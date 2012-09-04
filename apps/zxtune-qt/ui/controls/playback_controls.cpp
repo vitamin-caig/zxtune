@@ -28,7 +28,7 @@ namespace
   public:
     PlaybackControlsImpl(QWidget& parent, PlaybackSupport& supp)
       : ::PlaybackControls(parent)
-      , ActionsMenu(new QMenu(tr("Playback"), this))
+      , ActionsMenu(new QMenu(tr(QT_TRANSLATE_NOOP("PlaybackControls", "Playback")), this))
     {
       //setup self
       setupUi(this);

@@ -83,7 +83,7 @@ namespace
   };
 
   class ContainerViewImpl : public Playlist::UI::ContainerView
-                          , public Ui::PlaylistContainerView
+                          , public Playlist::UI::Ui_ContainerView
   {
   public:
     ContainerViewImpl(QWidget& parent, Parameters::Container::Ptr parameters)
@@ -91,7 +91,7 @@ namespace
       , Options(parameters)
       , Container(Playlist::Container::Create(*this, parameters))
       , Session(Playlist::Session::Create())
-      , ActionsMenu(new QMenu(tr("Playlist"), this))
+      , ActionsMenu(new QMenu(this))
       , ActivePlaylistView(0)
     {
       //setup self
@@ -214,7 +214,7 @@ namespace
     {
       QString file;
       if (UI::OpenSingleFileDialog(actionLoadPlaylist->text(),
-         tr("Playlist files (*.xspf *.ayl)"), file))
+         Playlist::UI::ContainerView::tr("Playlist files (*.xspf *.ayl)"), file))
       {
         Container->OpenPlaylist(file);
       }
@@ -300,6 +300,7 @@ namespace
   private:
     void SetupMenu()
     {
+      ActionsMenu->setTitle(windowTitle());
       ActionsMenu->addAction(actionCreatePlaylist);
       ActionsMenu->addAction(actionLoadPlaylist);
       ActionsMenu->addAction(actionSavePlaylist);
@@ -315,7 +316,7 @@ namespace
     Playlist::UI::View& CreateAnonymousPlaylist()
     {
       Dbg("Create default playlist");
-      const Playlist::Controller::Ptr pl = Container->CreatePlaylist(tr("Default"));
+      const Playlist::Controller::Ptr pl = Container->CreatePlaylist(Playlist::UI::ContainerView::tr("Default"));
       return RegisterPlaylist(pl);
     }
 

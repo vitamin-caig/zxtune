@@ -50,7 +50,7 @@
    <item>
     <widget class="QLabel" name="buildLabel">
      <property name="text">
-      <string>${Build}</string>
+      <string notr="true">${Build}</string>
      </property>
      <property name="textFormat">
       <enum>Qt::PlainText</enum>
@@ -120,7 +120,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         </sizepolicy>
        </property>
        <property name="text">
-        <string>${Feedback}</string>
+        <string notr="true">${Feedback}</string>
        </property>
        <property name="textFormat">
         <enum>Qt::RichText</enum>

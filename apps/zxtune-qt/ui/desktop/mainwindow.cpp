@@ -14,9 +14,11 @@ Author:
 //local includes
 #include "mainwindow.h"
 #include "mainwindow.ui.h"
+#include "language.h"
 #include "ui/format.h"
 #include "ui/utils.h"
 #include "ui/state.h"
+#include "ui/parameters.h"
 #include "ui/controls/analyzer_control.h"
 #include "ui/controls/playback_controls.h"
 #include "ui/controls/playback_options.h"
@@ -49,12 +51,29 @@ Author:
 
 namespace
 {
+  Parameters::StringType GetSystemLanguage()
+  {
+    QString curLang = QLocale::system().name();
+    curLang.truncate(curLang.lastIndexOf('_'));//$(lang)_$(country)
+    return FromQString(curLang);
+  }
+
+  UI::Language::Ptr CreateLanguage(const Parameters::Container& options)
+  {
+    const UI::Language::Ptr res = UI::Language::Create();
+    Parameters::StringType lang = GetSystemLanguage();
+    options.FindValue(Parameters::ZXTuneQT::UI::LANGUAGE, lang);
+    res->Set(ToQString(lang));
+    return res;
+  }
+
   class MainWindowImpl : public MainWindow
                        , public Ui::MainWindow
   {
   public:
     MainWindowImpl(Parameters::Container::Ptr options, const StringArray& cmdline)
       : Options(options)
+      , Language(CreateLanguage(*options))
       , Playback(PlaybackSupport::Create(*this, Options))
       , Controls(PlaybackControls::Create(*this, *Playback))
       , FastOptions(PlaybackOptions::Create(*this, *Playback, Options))
@@ -198,9 +217,9 @@ namespace
   private:
     QToolBar* AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
     {
-      const QString widgetId = widget->windowTitle();
-      QToolBar* const toolBar = new QToolBar(widgetId, this);
-      toolBar->setObjectName(widgetId);
+      const QString widgetName = widget->windowTitle();
+      QToolBar* const toolBar = new QToolBar(widgetName, this);
+      toolBar->setObjectName(widget->objectName());
       QSizePolicy sizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
       sizePolicy.setHorizontalStretch(0);
       sizePolicy.setVerticalStretch(0);
@@ -236,6 +255,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
+    const UI::Language::Ptr Language;
     UI::State::Ptr State;
     PlaybackSupport* const Playback;
     PlaybackControls* const Controls;

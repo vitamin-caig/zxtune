@@ -54,7 +54,7 @@
    </property>
    <widget class="QMenu" name="menuLayout">
     <property name="title">
-     <string notr="true">Layout</string>
+     <string>Layout</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuFile">

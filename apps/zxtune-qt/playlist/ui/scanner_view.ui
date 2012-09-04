@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PlaylistScannerView</class>
- <widget class="QWidget" name="Scanner">
+ <class>Playlist::UI::ScannerView</class>
+ <widget class="QWidget" name="ScannerView">
   <property name="geometry">
    <rect>
     <x>0</x>
