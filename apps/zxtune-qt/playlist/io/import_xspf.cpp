@@ -42,7 +42,9 @@ namespace
 
   enum
   {
-    VERSION_WITH_TEXT_FIELDS_ESCAPING = 1
+    VERSION_WITH_TEXT_FIELDS_ESCAPING = 1,
+
+    LAST_VERSION = 1
   };
 
   Parameters::NameType PLAYLIST_ENABLED_PROPERTIES[] =
@@ -114,7 +116,7 @@ namespace
     XSPFReader(const QString& basePath, const QString& autoName, QIODevice& device)
       : BaseDir(basePath)
       , XML(&device)
-      , Version(0)
+      , Version(LAST_VERSION)
       , Properties(Parameters::Container::Create())
       , Items(boost::make_shared<Playlist::IO::ContainerItems>())
     {

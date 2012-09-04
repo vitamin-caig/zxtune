@@ -46,7 +46,7 @@ namespace
 
   QString ConvertString(const String& str)
   {
-    return QUrl::toPercentEncoding(str.c_str());
+    return QUrl::toPercentEncoding(ToQString(str.c_str()));
   }
 
   class ExtendedPropertiesSaver : public Parameters::Visitor
