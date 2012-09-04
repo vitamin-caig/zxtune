@@ -15,7 +15,6 @@ Author:
 //local includes
 #include "curl_api.h"
 #include "enumerator.h"
-#include "providers_factories.h"
 //common includes
 #include <contract.h>
 #include <debug_log.h>
