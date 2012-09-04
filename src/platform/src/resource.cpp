@@ -19,6 +19,8 @@ Author:
 #include <l10n/api.h>
 #include <platform/resource.h>
 #include <platform/tools.h>
+//boost includes
+#include <boost/make_shared.hpp>
 
 #define FILE_TAG 82AE713A
 
@@ -58,6 +60,64 @@ namespace
     const uint8_t* const RawData;
     const std::size_t RawSize;
   };
+
+  typedef std::vector<Formats::Archived::Container::Ptr> ArchivesSet;
+
+  class CompositeArchive : public Formats::Archived::Container
+  {
+  public:
+    explicit CompositeArchive(const ArchivesSet& delegates)
+      : Delegates(delegates)
+    {
+    }
+
+    virtual std::size_t Size() const
+    {
+      return 0;
+    }
+
+    virtual const void* Data() const
+    {
+      return 0;
+    }
+
+    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    {
+      return Binary::Container::Ptr();
+    }
+
+    virtual void ExploreFiles(const Formats::Archived::Container::Walker& walker) const
+    {
+      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      {
+        (*it)->ExploreFiles(walker);
+      }
+    }
+
+    virtual Formats::Archived::File::Ptr FindFile(const String& name) const
+    {
+      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      {
+        if (const Formats::Archived::File::Ptr res = (*it)->FindFile(name))
+        {
+          return res;
+        }
+      }
+      return Formats::Archived::File::Ptr();
+    }
+
+    virtual uint_t CountFiles() const
+    {
+      uint_t res = 0;
+      for (ArchivesSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      {
+        res += (*it)->CountFiles();
+      }
+      return res;
+    }
+  private:
+    const ArchivesSet Delegates;
+  };
 }
 
 namespace
@@ -84,11 +144,12 @@ namespace
     return ReadFile(filename);
   }
 
-  Formats::Archived::Container::Ptr FindArchive(const Binary::Container& data, const Formats::Archived::Decoder& decoder)
+  ArchivesSet FindArchives(const Binary::Container& data, const Formats::Archived::Decoder& decoder)
   {
     const Binary::Format::Ptr format = decoder.GetFormat();
     const std::size_t dataSize = data.Size();
     const uint8_t* const dataStart = static_cast<const uint8_t*>(data.Data());
+    ArchivesSet result;
     for (std::size_t offset = 0; offset < dataSize; )
     {
       if (const std::size_t skip = format->Search(dataStart + offset, dataSize - offset))
@@ -100,13 +161,32 @@ namespace
         const LightweightBinaryContainer archData(dataStart + offset, dataSize - offset);
         if (const Formats::Archived::Container::Ptr arch = decoder.Decode(archData))
         {
-          Dbg("Found resource archive at %1%", offset);
-          return arch;
+          const std::size_t size = arch->Size();
+          Dbg("Found resource archive at %1%, size %2%", offset, size);
+          result.push_back(arch);
+          offset += size;
         }
-        offset += 1;
+        else
+        {
+          offset += 1;
+        }
       }
     }
-    throw Error(THIS_LINE, 1, translate("Failed to find resource archive."));
+    return result;
+  }
+
+  Formats::Archived::Container::Ptr FindArchive(const Binary::Container& data, const Formats::Archived::Decoder& decoder)
+  {
+    const ArchivesSet archives = FindArchives(data, decoder);
+    switch (archives.size())
+    {
+    case 0:
+      throw Error(THIS_LINE, 1, translate("Failed to find resource archive."));
+    case 1:
+      return archives.front();
+    default:
+      return boost::make_shared<CompositeArchive>(archives);
+    }
   }
 
   Formats::Archived::Container::Ptr LoadEmbeddedArchive()

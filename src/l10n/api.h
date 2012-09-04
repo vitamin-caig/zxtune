@@ -45,12 +45,20 @@ namespace L10n
     virtual String GetText(const char* context, const char* single, const char* plural, int count) const = 0;
   };
 
+  struct Translation
+  {
+    std::string Domain;
+    std::string Language;
+    std::string Type;
+    Dump Data;
+  };
+
   class Library
   {
   public:
     virtual ~Library() {}
 
-    virtual void AddTranslation(const std::string& domain, const std::string& translation, const Dump& data) = 0;
+    virtual void AddTranslation(const Translation& trans) = 0;
 
     virtual void SelectTranslation(const std::string& translation) = 0;
 

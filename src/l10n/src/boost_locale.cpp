@@ -101,6 +101,8 @@ namespace
     std::string Encoding;
   };
 
+  const std::string TYPE_MO("mo");
+
   class BoostLocaleLibrary : public L10n::Library
   {
   public:
@@ -111,21 +113,25 @@ namespace
       Dbg("Current locale is %1%. Encoding is %2%. Translation is %3%", SystemLocale.Name, SystemLocale.Encoding, SystemLocale.Translation);
     }
 
-    virtual void AddTranslation(const std::string& domain, const std::string& translation, const Dump& data)
+    virtual void AddTranslation(const L10n::Translation& trans)
     {
+      if (trans.Type != TYPE_MO)
+      {
+        return;
+      }
       using namespace boost::locale;
 
       static const std::string EMPTY_PATH;
-      gnu_gettext::messages_info& info = Locales[translation];
-      info.language = translation;
+      gnu_gettext::messages_info& info = Locales[trans.Language];
+      info.language = trans.Language;
       info.encoding = SystemLocale.Encoding;
-      info.domains.push_back(gnu_gettext::messages_info::domain(domain));
+      info.domains.push_back(gnu_gettext::messages_info::domain(trans.Domain));
       info.callback = &LoadMessage;
       info.paths.assign(&EMPTY_PATH, &EMPTY_PATH + 1);
 
-      const std::string filename = EMPTY_PATH + '/' + translation + '/' + info.locale_category + '/' + domain + ".mo";
-      Translations[filename] = data;
-      Dbg("Added translation %1% in %2% bytes", filename, data.size());
+      const std::string filename = EMPTY_PATH + '/' + trans.Language + '/' + info.locale_category + '/' + trans.Domain + '.' + TYPE_MO;
+      Translations[filename] = trans.Data;
+      Dbg("Added translation %1% in %2% bytes", filename, trans.Data.size());
     }
 
     virtual void SelectTranslation(const std::string& translation)

@@ -11,9 +11,12 @@
 #ifndef L10N_CONTROL_H_DEFINED
 #define L10N_CONTROL_H_DEFINED
 
+//library includes
+#include <l10n/api.h>
+
 namespace L10n
 {
-  void LoadTranslationsFromResources();
+  void LoadTranslationsFromResources(Library& lib);
 }
 
 #endif //L10N_CONTROL_H_DEFINED

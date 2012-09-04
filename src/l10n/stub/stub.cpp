@@ -43,7 +43,7 @@ namespace
   class StubLibrary : public L10n::Library
   {
   public:
-    virtual void AddTranslation(const std::string& /*domain*/, const std::string& /*translation*/, const Dump& /*data*/)
+    virtual void AddTranslation(const L10n::Translation& /*trans*/)
     {
     }
 
@@ -67,7 +67,7 @@ namespace L10n
     return instance;
   }
 
-  void LoadTranslationsFromResources()
+  void LoadTranslationsFromResources(Library& /*lib*/)
   {
   }
 }
