@@ -98,6 +98,71 @@
     </message>
 </context>
 <context>
+    <name>Playlist::UI::ItemsContextMenu</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="104"/>
+        <source>%1 item(s)</source>
+        <translation>%1 модулей</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="136"/>
+        <source>Statistic</source>
+        <translation>Статистика</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="142"/>
+        <source>Total: %1 item(s)</source>
+        <translation>Всего: %1 модулей</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="143"/>
+        <source>Invalid: %1 item(s)</source>
+        <translation>Недоступно: %1 модулей</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="144"/>
+        <source>Total duration: %1</source>
+        <translation>Общее время: %1</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="145"/>
+        <source>Total size: %1 byte(s)</source>
+        <translation>Общий размер: %1 байт</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="146"/>
+        <source>%1 diferent modules&apos; type(s)</source>
+        <translation>%1 разных типов модулей</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="152"/>
+        <source>%1: %2 item(s)</source>
+        <translation>%1: %2 модулей</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="196"/>
+        <source>Export</source>
+        <translation>Экспорт</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="201"/>
+        <source>Converted: %1
+Failed: %2</source>
+        <translation>Сконвертировано: %1
+Ошибок: %2</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="220"/>
+        <source>Failed to open &apos;%1&apos; for conversion</source>
+        <translation>Ошибка доступа к &apos;%1&apos; при конверсии</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="228"/>
+        <source>Failed to convert &apos;%1&apos;: %2</source>
+        <translation>Ошибка конверсии &apos;%1&apos;: %2</translation>
+    </message>
+</context>
+<context>
     <name>Playlist::UI::PropertiesDialog</name>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/properties_dialog.cpp" line="129"/>

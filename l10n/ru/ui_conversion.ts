@@ -20,163 +20,6 @@
     </message>
 </context>
 <context>
-    <name>FilenameTemplate</name>
-    <message>
-        <source>Setup filename template</source>
-        <translation type="obsolete">Настройте шаблон имен файлов</translation>
-    </message>
-    <message>
-        <source>Select directory</source>
-        <translation type="obsolete">Выберите папку назначения</translation>
-    </message>
-    <message>
-        <source>Specify filename template</source>
-        <translation type="obsolete">Укажите шаблон имени файла</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means full source data path including any nested container subpath normalized to filename.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Example:&lt;/b&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
-&lt;pre&gt;_path_to_file.ext_nested.bin_+256_subfile.B&lt;/pre&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле обозначает полный путь к модулю, включая внутренний путь к контейнерах.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
-&lt;pre&gt;_path_to_file.ext_nested.bin_+256_subfile.B&lt;/pre&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means source file path normalized to filename.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Example:&lt;/b&gt;&lt;/p&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
-&lt;pre&gt;_path_to_file.ext&lt;/pre&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает путь к исходному файлу.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;&lt;/p&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
-&lt;pre&gt;_path_to_file.ext&lt;/pre&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means source data filename.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Example:&lt;/b&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
-&lt;pre&gt;file.ext&lt;/pre&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает имя исходного файла.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
-&lt;pre&gt;file.ext&lt;/pre&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means subdata identifier in source file normalized to filename format.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Example:&lt;/b&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
-&lt;pre&gt;nested.bin_+256_subfile.B&lt;/pre&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает путь внутри контейнера.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
-&lt;pre&gt;nested.bin_+256_subfile.B&lt;/pre&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means subdata containers chain identifiers normalized to filename format.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Example:&lt;/b&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; can be translated to
-&lt;pre&gt;ZIP_RAW_TRD&lt;/pre&gt; in case if file.ext is ZIP file and TRD file is located at 256-byte offset of nested.bin file
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает цепочку декодеров, использумых для доступа к данным внутри контейнера.&lt;/p&gt;
-&lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
-&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
-&lt;pre&gt;ZIP_RAW_TRD&lt;/pre&gt; in case if file.ext is ZIP file and TRD file is located at 256-byte offset of nested.bin file
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means chiptune type. Usually 2-3 uppercased letters. Can be used as an extension.&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает тип модуля. Обычно 2-3 буквы в верхнем регистре. Может использоваться в качестве расширения файла.&lt;/p&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means chiptune size in bytes.&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает размер модуля в байтах.&lt;/p&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means CRC32 checksum of chiptune in decimal form.&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает контрольную сумму модуля (CRC32) в десятичной форме.&lt;/p&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means CRC32 checksum if meaningful chiptune parts in decimal form.&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает контрольную сумму важных частей модуля (CRC32) в десятичной форме.&lt;/p&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means chiptune title and can be empty.&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает название модуля и может быть пустым.&lt;/p&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means chiptune&apos;s author and can be empty.&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает автора модуля и может быть пустым.&lt;/p&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means chiptune comment and can be empty.&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает комментарий к модулю и может быть пустым.&lt;/p&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means program familiy chiptune was created in or compatible with.&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает программу, в которой модуль был создан или с которой он совместим.&lt;/p&gt;
-</translation>
-    </message>
-    <message>
-        <source>
-&lt;p&gt;This field means program version chiptune was created in. Can be not specified. Format is 10*MAJOR+MINOR&lt;/p&gt;
-</source>
-        <translation type="obsolete">
-&lt;p&gt;Это поле означает версию программы, в которой модуль был создан. Может отсутствовать. Представлено в формате 10*MAJOR+MINOR&lt;/p&gt;
-</translation>
-    </message>
-</context>
-<context>
     <name>FlacSettings</name>
     <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/flac_settings.ui" line="23"/>
@@ -286,17 +129,17 @@
     <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="14"/>
         <source>Setup filename template</source>
-        <translation type="unfinished">Настройте шаблон имен файлов</translation>
+        <translation>Настройте шаблон имен файлов</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="29"/>
         <source>Select directory</source>
-        <translation type="unfinished">Выберите папку назначения</translation>
+        <translation>Выберите папку назначения</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="58"/>
         <source>Specify filename template</source>
-        <translation type="unfinished">Укажите шаблон имени файла</translation>
+        <translation>Укажите шаблон имени файла</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="94"/>
@@ -306,7 +149,7 @@
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
 &lt;pre&gt;_path_to_file.ext_nested.bin_+256_subfile.B&lt;/pre&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле обозначает полный путь к модулю, включая внутренний путь к контейнерах.&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
@@ -321,7 +164,7 @@
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
 &lt;pre&gt;_path_to_file.ext&lt;/pre&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает путь к исходному файлу.&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;&lt;/p&gt;
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
@@ -336,7 +179,7 @@
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
 &lt;pre&gt;file.ext&lt;/pre&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает имя исходного файла.&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
@@ -351,7 +194,7 @@
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
 &lt;pre&gt;nested.bin_+256_subfile.B&lt;/pre&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает путь внутри контейнера.&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
@@ -366,7 +209,7 @@
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; can be translated to
 &lt;pre&gt;ZIP_RAW_TRD&lt;/pre&gt; in case if file.ext is ZIP file and TRD file is located at 256-byte offset of nested.bin file
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает цепочку декодеров, использумых для доступа к данным внутри контейнера.&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
@@ -378,7 +221,7 @@
         <source>
 &lt;p&gt;This field means chiptune type. Usually 2-3 uppercased letters. Can be used as an extension.&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает тип модуля. Обычно 2-3 буквы в верхнем регистре. Может использоваться в качестве расширения файла.&lt;/p&gt;
 </translation>
     </message>
@@ -387,7 +230,7 @@
         <source>
 &lt;p&gt;This field means chiptune size in bytes.&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает размер модуля в байтах.&lt;/p&gt;
 </translation>
     </message>
@@ -396,7 +239,7 @@
         <source>
 &lt;p&gt;This field means CRC32 checksum of chiptune in decimal form.&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает контрольную сумму модуля (CRC32) в десятичной форме.&lt;/p&gt;
 </translation>
     </message>
@@ -405,7 +248,7 @@
         <source>
 &lt;p&gt;This field means CRC32 checksum if meaningful chiptune parts in decimal form.&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает контрольную сумму важных частей модуля (CRC32) в десятичной форме.&lt;/p&gt;
 </translation>
     </message>
@@ -414,7 +257,7 @@
         <source>
 &lt;p&gt;This field means chiptune title and can be empty.&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает название модуля и может быть пустым.&lt;/p&gt;
 </translation>
     </message>
@@ -423,7 +266,7 @@
         <source>
 &lt;p&gt;This field means chiptune&apos;s author and can be empty.&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает автора модуля и может быть пустым.&lt;/p&gt;
 </translation>
     </message>
@@ -432,7 +275,7 @@
         <source>
 &lt;p&gt;This field means chiptune comment and can be empty.&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает комментарий к модулю и может быть пустым.&lt;/p&gt;
 </translation>
     </message>
@@ -441,7 +284,7 @@
         <source>
 &lt;p&gt;This field means program familiy chiptune was created in or compatible with.&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает программу, в которой модуль был создан или с которой он совместим.&lt;/p&gt;
 </translation>
     </message>
@@ -450,7 +293,7 @@
         <source>
 &lt;p&gt;This field means program version chiptune was created in. Can be not specified. Format is 10*MAJOR+MINOR&lt;/p&gt;
 </source>
-        <translation type="unfinished">
+        <translation>
 &lt;p&gt;Это поле означает версию программы, в которой модуль был создан. Может отсутствовать. Представлено в формате 10*MAJOR+MINOR&lt;/p&gt;
 </translation>
     </message>

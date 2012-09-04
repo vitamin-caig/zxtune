@@ -27,16 +27,17 @@ Author:
 #include "playlist/ui/table_view.h"
 //common includes
 #include <contract.h>
+#include <error.h>
 #include <format.h>
 //library includes
 #include <core/module_attrs.h>
 #include <sound/backends_parameters.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QClipboard>
 #include <QtGui/QMenu>
-//text includes
-#include "text/text.h"
 
 namespace
 {
@@ -81,6 +82,16 @@ namespace
     }
   };
 
+  QString Translate(const char* msg)
+  {
+    return QApplication::translate("Playlist::UI::ItemsContextMenu", msg, 0, QApplication::UnicodeUTF8);
+  }
+
+  QString Translate(const char* msg, int count)
+  {
+    return QApplication::translate("Playlist::UI::ItemsContextMenu", msg, 0, QApplication::UnicodeUTF8, count);
+  }
+
   class MultipleItemsContextMenu : public QMenu
                                  , private Ui::MultipleItemsContextMenu
   {
@@ -90,7 +101,7 @@ namespace
     {
       //setup self
       setupUi(this);
-      InfoAction->setText(ToQString(Strings::Format(Text::CONTEXTMENU_STATUS, count)));
+      InfoAction->setText(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "%1 item(s)"), count).arg(count));
 
       Require(receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected())));
       Require(receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected())));
@@ -105,6 +116,129 @@ namespace
       Require(receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected())));
     }
   };
+
+  static const QString LINE_BREAK('\n');
+
+  class StatisticNotification : public Playlist::Item::StatisticTextNotification
+  {
+  public:
+    StatisticNotification()
+      : Processed()
+      , Invalids()
+      , Duration()
+      , Size()
+    {
+      Duration.SetPeriod(Time::Milliseconds(1));
+    }
+
+    virtual QString Category() const
+    {
+      return Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Statistic"));
+    }
+
+    virtual QString Text() const
+    {
+      QStringList result;
+      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Total: %1 item(s)"), Processed).arg(Processed));
+      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Invalid: %1 item(s)"), Invalids).arg(Invalids));
+      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Total duration: %1")).arg(ToQString(Duration.ToString())));
+      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Total size: %1 byte(s)"), Size).arg(Size));
+      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "%1 diferent modules' type(s)"), Types.size()).arg(Types.size()));
+      return result.join(LINE_BREAK);
+    }
+
+    virtual QString Details() const
+    {
+      const char* const FORMAT = QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "%1: %2 item(s)");
+      QStringList result;
+      for (std::map<String, std::size_t>::const_iterator it = Types.begin(), lim = Types.end(); it != lim; ++it)
+      {
+        result.append(Translate(FORMAT, it->second).arg(ToQString(it->first)).arg(it->second));
+      }
+      return result.join(LINE_BREAK);
+    }
+
+    virtual void AddInvalid()
+    {
+      ++Invalids;
+    }
+
+    virtual void AddValid(const String& type, const Time::MillisecondsDuration& duration, std::size_t size)
+    {
+      ++Processed;
+      Duration += duration;
+      Size += size;
+      ++Types[type];
+    }
+  private:
+    std::size_t Processed;
+    std::size_t Invalids;
+    Time::Duration<uint64_t, Time::Milliseconds> Duration;
+    uint64_t Size;
+    std::map<String, std::size_t> Types;
+  };
+
+  Playlist::Item::StatisticTextNotification::Ptr CreateStatisticNotification()
+  {
+    return boost::make_shared<StatisticNotification>();
+  }
+
+  class ExportResult : public Playlist::Item::ConversionResultNotification
+  {
+  public:
+    ExportResult()
+      : Succeeds()
+    {
+    }
+
+    virtual QString Category() const
+    {
+      return Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Export"));
+    }
+
+    virtual QString Text() const
+    {
+      const QString format = Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", 
+        "Converted: %1\n"
+        "Failed: %2"
+      ));
+      return format.arg(Succeeds).arg(Errors.size());
+    }
+
+    virtual QString Details() const
+    {
+      return Errors.join(LINE_BREAK);
+    }
+
+    virtual void AddSucceed()
+    {
+      ++Succeeds;
+    }
+
+    virtual void AddFailedToOpen(const String& path)
+    {
+      const QString format = Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", 
+        "Failed to open '%1' for conversion"
+      ));
+      Errors.append(format.arg(ToQString(path)));
+    }
+
+    virtual void AddFailedToConvert(const String& path, const Error& err)
+    {
+      const QString format = Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", 
+        "Failed to convert '%1': %2"
+      ));
+      Errors.append(format.arg(ToQString(path)).arg(ToQString(Error::ToString(err))));
+    }
+  private:
+    std::size_t Succeeds;
+    QStringList Errors;
+  };
+
+  Playlist::Item::ConversionResultNotification::Ptr CreateConversionResultNotification()
+  {
+    return boost::make_shared<ExportResult>();
+  }
 
   class ItemsContextMenuImpl : public Playlist::UI::ItemsContextMenu
   {
@@ -223,13 +357,14 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
       const QStringList paths =  model->GetItemsPaths(*SelectedItems);
-      QApplication::clipboard()->setText(paths.join(QString('\n')));
+      QApplication::clipboard()->setText(paths.join(LINE_BREAK));
     }
 
     virtual void ShowAllStatistic() const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model);
+      const Playlist::Item::StatisticTextNotification::Ptr result = CreateStatisticNotification();
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model, result);
       Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
         SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
       model->PerformOperation(op);
@@ -238,7 +373,8 @@ namespace
     virtual void ShowStatisticOfSelected() const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model, SelectedItems);
+      const Playlist::Item::StatisticTextNotification::Ptr result = CreateStatisticNotification();
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model, SelectedItems, result);
       Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
         SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
       model->PerformOperation(op);
@@ -250,7 +386,8 @@ namespace
       if (UI::GetFilenameTemplate(View, nameTemplate))
       {
         const Playlist::Model::Ptr model = Controller.GetModel();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, FromQString(nameTemplate));
+        const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, FromQString(nameTemplate), result);
         Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
           SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);
@@ -263,7 +400,8 @@ namespace
       if (UI::GetFilenameTemplate(View, nameTemplate))
       {
         const Playlist::Model::Ptr model = Controller.GetModel();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, SelectedItems, FromQString(nameTemplate));
+        const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, SelectedItems, FromQString(nameTemplate), result);
         Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
           SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);
@@ -276,7 +414,8 @@ namespace
       if (Parameters::Accessor::Ptr params = UI::GetConversionParameters(View, type))
       {
         const Playlist::Model::Ptr model = Controller.GetModel();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, type, params);
+        const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, type, params, result);
         Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
           SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);

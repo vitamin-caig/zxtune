@@ -82,10 +82,6 @@
         <source>Mixer</source>
         <translation>Микшер</translation>
     </message>
-    <message>
-        <source>...</source>
-        <translation type="obsolete">Выбрать</translation>
-    </message>
 </context>
 <context>
     <name>OssOptionsWidget</name>

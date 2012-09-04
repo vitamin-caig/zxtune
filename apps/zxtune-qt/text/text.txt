@@ -59,30 +59,6 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 > "[Comment]"
 > "</html>"
 
-< CONTEXTMENU_STATUS
-> "%1% items"
-
-< BASIC_STATISTIC_TEMPLATE
-> "%1% items total (%2% are invalid(s))\n"
-> "Total duration: %3%\n"
-> "Total size: %4% bytes\n"
-> "%5% different modules types"
-
-< PATHS_COLLECTING_STATUS
-> "Copied %1% paths to clipboard."
-
-< TYPE_STATISTIC_TEMPLATE
-> "%1%: %2% item(s)"
-
-< CONVERT_FAILED_OPEN
-> "Failed to open '%1%' for conversion."
-
-< CONVERT_FAILED
-> "Failed to convert '%1%': %2%."
-
-< CONVERT_STATUS
-> "Converted: %1% Failed: %2%"
-
 < PLAYLISTS_DIR
 > PROJECT_NAME "/Playlists"
 
@@ -90,7 +66,7 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 > "Default"
 
 < PLAYLIST_LOADING_HEADER
-> "Loading..."
+> "..."
 
 < MIXER_WINDOW_TITLE_TEMPLATE
 > "%1%-channel mixer"

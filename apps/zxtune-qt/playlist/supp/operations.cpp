@@ -28,8 +28,6 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
 #include <boost/make_shared.hpp>
-//text includes
-#include "text/text.h"
 
 namespace
 {
@@ -264,8 +262,8 @@ namespace
   template<class T>
   void VisitAllItems(const PropertyModel<T>& model, Log::ProgressCallback& cb, typename PropertyModel<T>::Visitor& visitor)
   {
-    const uint_t totalItems = model.CountItems();
-    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
+    const std::size_t totalItems = model.CountItems();
+    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
     const PropertyModelWithProgress<T> modelWrapper(model, *progress);
     modelWrapper.ForAllItems(visitor);
   }
@@ -273,8 +271,8 @@ namespace
   template<class T>
   void VisitAsSelectedItems(const PropertyModel<T>& model, const Playlist::Model::IndexSet& selectedItems, Log::ProgressCallback& cb, typename PropertyModel<T>::Visitor& visitor)
   {
-    const uint_t totalItems = model.CountItems() + selectedItems.size();
-    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
+    const std::size_t totalItems = model.CountItems() + selectedItems.size();
+    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
     const PropertyModelWithProgress<T> modelWrapper(model, *progress);
 
     PropertiesCollector<T> selectedProps;
@@ -286,8 +284,8 @@ namespace
   template<class T>
   void VisitOnlySelectedItems(const PropertyModel<T>& model, const Playlist::Model::IndexSet& selectedItems, Log::ProgressCallback& cb, typename PropertyModel<T>::Visitor& visitor)
   {
-    const uint_t totalItems = selectedItems.size();
-    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
+    const std::size_t totalItems = selectedItems.size();
+    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
     const PropertyModelWithProgress<uint32_t> modelWrapper(model, *progress);
     modelWrapper.ForSpecifiedItems(selectedItems, visitor);
   }
@@ -474,140 +472,92 @@ namespace
     uint_t Done;
   };
 
-  class TextResultOperationBase : public Playlist::Item::TextResultOperation
+  void ExecuteOperation(const Playlist::Item::Storage& stor, Playlist::Model::IndexSetPtr selectedItems, Playlist::Item::Visitor& visitor, Log::ProgressCallback& cb)
+  {
+    const std::size_t totalItems = selectedItems ? selectedItems->size() : stor.CountItems();
+    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
+    ProgressModelVisitor progressed(visitor, *progress);
+    if (selectedItems)
+    {
+      stor.ForSpecifiedItems(*selectedItems, progressed);
+    }
+    else
+    {
+      stor.ForAllItems(progressed);
+    }
+  }
+
+  // Statistic
+  class CollectStatisticOperation : public Playlist::Item::TextResultOperation
+                                  , private Playlist::Item::Visitor
   {
   public:
-    explicit TextResultOperationBase(QObject& parent)
+    CollectStatisticOperation(QObject& parent, Playlist::Item::StatisticTextNotification::Ptr result)
       : Playlist::Item::TextResultOperation(parent)
       , SelectedItems()
+      , Result(result)
     {
     }
 
-    TextResultOperationBase(QObject& parent, Playlist::Model::IndexSetPtr items)
+    CollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items, Playlist::Item::StatisticTextNotification::Ptr result)
       : Playlist::Item::TextResultOperation(parent)
       , SelectedItems(items)
+      , Result(result)
     {
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      const CollectingVisitor::Ptr tmp = CreateCollector();
-      const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
-      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
-      ProgressModelVisitor progressed(*tmp, *progress);
-      if (SelectedItems)
-      {
-        stor.ForSpecifiedItems(*SelectedItems, progressed);
-      }
-      else
-      {
-        stor.ForAllItems(progressed);
-      }
-      emit ResultAcquired(tmp);
+      ExecuteOperation(stor, SelectedItems, *this, cb);
+      emit ResultAcquired(Result);
     }
-  protected:
-    virtual CollectingVisitor::Ptr CreateCollector() const = 0;
   private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
-  };
-
-  // Statistic
-  class StatisticCollector : public CollectingVisitor
-  {
-  public:
-    StatisticCollector()
-      : Processed()
-      , Invalids()
-      , Duration()
-      , Size()
-    {
-      Duration.SetPeriod(Time::Milliseconds(1));
-    }
-
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
     {
       //check for the data first to define is data valid or not
       const String type = data->GetType();
       if (!data->IsValid())
       {
-        ++Invalids;
-        return;
+        Result->AddInvalid();
       }
-      assert(!type.empty());
-      ++Processed;
-      Duration += data->GetDuration();
-      Size += data->GetSize();
-      ++Types[type];
-    }
-
-    virtual String Category() const
-    {
-      return FromStdString("Statistic:");
-    }
-
-    virtual String Text() const
-    {
-      const String duration = Duration.ToString();
-      return Strings::Format(Text::BASIC_STATISTIC_TEMPLATE,
-        Processed, Invalids,
-        duration,
-        Size,
-        Types.size()
-        );
-    }
-
-    virtual String Details() const
-    {
-      return std::accumulate(Types.begin(), Types.end(), String(), &TypeStatisticToString);
+      else
+      {
+        assert(!type.empty());
+        Result->AddValid(type, data->GetDuration(), data->GetSize());
+      }
     }
   private:
-    static String TypeStatisticToString(const String& prev, const std::pair<String, std::size_t>& item)
-    {
-      const String& next = Strings::Format(Text::TYPE_STATISTIC_TEMPLATE, item.first, item.second);
-      return prev.empty()
-        ? next
-        : prev + '\n' + next;
-    }
-  private:
-    std::size_t Processed;
-    std::size_t Invalids;
-    Time::Duration<uint64_t, Time::Milliseconds> Duration;
-    uint64_t Size;
-    std::map<String, std::size_t> Types;
-  };
-
-  class CollectStatisticOperation : public TextResultOperationBase
-  {
-  public:
-    explicit CollectStatisticOperation(QObject& parent)
-      : TextResultOperationBase(parent)
-    {
-    }
-
-    CollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
-      : TextResultOperationBase(parent, items)
-    {
-    }
-  protected:
-    virtual CollectingVisitor::Ptr CreateCollector() const
-    {
-      return boost::make_shared<StatisticCollector>();
-    }
+    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Playlist::Item::StatisticTextNotification::Ptr Result;
   };
 
   // Exporting
-  class ExportVisitor : public CollectingVisitor
+  class ExportOperation : public Playlist::Item::TextResultOperation
+                        , private Playlist::Item::Visitor
   {
   public:
-    ExportVisitor(const String& nameTemplate, bool overwrite)
-      : NameTemplate(StringTemplate::Create(nameTemplate))
-      , Overwrite(overwrite)
-      , Messages(Log::MessagesCollector::Create())
-      , SucceedConvertions(0)
-      , FailedConvertions(0)
+    ExportOperation(QObject& parent, const String& nameTemplate, Playlist::Item::ConversionResultNotification::Ptr result)
+      : Playlist::Item::TextResultOperation(parent)
+      , SelectedItems()
+      , NameTemplate(StringTemplate::Create(nameTemplate))
+      , Result(result)
     {
     }
 
+    ExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, Playlist::Item::ConversionResultNotification::Ptr result)
+      : Playlist::Item::TextResultOperation(parent)
+      , SelectedItems(items)
+      , NameTemplate(StringTemplate::Create(nameTemplate))
+      , Result(result)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      ExecuteOperation(stor, SelectedItems, *this, cb);
+      emit ResultAcquired(Result);
+    }
+  private:
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
     {
       const String path = data->GetFullPath();
@@ -617,23 +567,33 @@ namespace
       }
       else
       {
-        Failed(Strings::Format(Text::CONVERT_FAILED_OPEN, path));
+        Result->AddFailedToOpen(path);
       }
     }
 
-    virtual String Category() const
+    void ExportItem(const String& path, const ZXTune::Module::Holder& item)
     {
-      return FromStdString("Export");
+      static const ZXTune::Module::Conversion::RawConvertParam RAW_CONVERSION;
+      try
+      {
+        const Parameters::Accessor::Ptr props = item.GetModuleProperties();
+        Dump result;
+        ThrowIfError(item.Convert(RAW_CONVERSION, props, result));
+        const String filename = NameTemplate->Instantiate(ModuleFieldsSource(*props));
+        Save(result, filename);
+        Result->AddSucceed();
+      }
+      catch (const Error& err)
+      {
+        Result->AddFailedToConvert(path, err);
+      }
     }
 
-    virtual String Text() const
+    void Save(const Dump& data, const String& filename) const
     {
-      return Strings::Format(Text::CONVERT_STATUS, SucceedConvertions, FailedConvertions);
-    }
-
-    virtual String Details() const
-    {
-      return Messages->GetMessages('\n');
+      const std::auto_ptr<std::ofstream> stream = ZXTune::IO::CreateFile(filename, true/*TODO*/);
+      stream->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(data.size() * sizeof(data.front())));
+      //TODO: handle possible errors
     }
   private:
     class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
@@ -650,75 +610,11 @@ namespace
         return ZXTune::IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
       }
     };
-
-    void ExportItem(const String& path, const ZXTune::Module::Holder& item)
-    {
-      static const ZXTune::Module::Conversion::RawConvertParam RAW_CONVERSION;
-      try
-      {
-        const Parameters::Accessor::Ptr props = item.GetModuleProperties();
-        Dump result;
-        ThrowIfError(item.Convert(RAW_CONVERSION, props, result));
-        const String filename = NameTemplate->Instantiate(ModuleFieldsSource(*props));
-        Save(result, filename);
-        Succeed();
-      }
-      catch (const Error& err)
-      {
-        Failed(Strings::Format(Text::CONVERT_FAILED, path, err.GetText()));
-      }
-    }
-
-    void Save(const Dump& data, const String& filename) const
-    {
-      const std::auto_ptr<std::ofstream> stream = ZXTune::IO::CreateFile(filename, Overwrite);
-      stream->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(data.size() * sizeof(data.front())));
-      //TODO: handle possible errors
-    }
-
-    void Failed(const String& status)
-    {
-      ++FailedConvertions;
-      Messages->AddMessage(status);
-    }
-
-    void Succeed()
-    {
-      ++SucceedConvertions;
-      //Do not add text about succeed convertion
-    }
-
   private:
+    const Playlist::Model::IndexSetPtr SelectedItems;
     const StringTemplate::Ptr NameTemplate;
-    const bool Overwrite;
-    const Log::MessagesCollector::Ptr Messages;
-    std::size_t SucceedConvertions;
-    std::size_t FailedConvertions;
+    const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
-
-  class ExportOperation : public TextResultOperationBase
-  {
-  public:
-    ExportOperation(QObject& parent, const String& nameTemplate)
-      : TextResultOperationBase(parent)
-      , NameTemplate(nameTemplate)
-    {
-    }
-
-    ExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
-      : TextResultOperationBase(parent, items)
-      , NameTemplate(nameTemplate)
-    {
-    }
-  protected:
-    virtual CollectingVisitor::Ptr CreateCollector() const
-    {
-      return boost::make_shared<ExportVisitor>(NameTemplate, true);
-    }
-  private:
-    const String NameTemplate;
-  };
-
 }
 
 namespace Playlist
@@ -776,24 +672,24 @@ namespace Playlist
       return boost::make_shared<SelectTypesOfSelectedOperation>(boost::ref(parent), items);
     }
 
-    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent)
+    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, StatisticTextNotification::Ptr result)
     {
-      return boost::make_shared<CollectStatisticOperation>(boost::ref(parent));
+      return boost::make_shared<CollectStatisticOperation>(boost::ref(parent), result);
     }
 
-    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result)
     {
-      return boost::make_shared<CollectStatisticOperation>(boost::ref(parent), items);
+      return boost::make_shared<CollectStatisticOperation>(boost::ref(parent), items, result);
     }
 
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate)
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ExportOperation>(boost::ref(parent), nameTemplate);
+      return boost::make_shared<ExportOperation>(boost::ref(parent), nameTemplate, result);
     }
 
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate)
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ExportOperation>(boost::ref(parent), items, nameTemplate);
+      return boost::make_shared<ExportOperation>(boost::ref(parent), items, nameTemplate, result);
     }
   }
 }
