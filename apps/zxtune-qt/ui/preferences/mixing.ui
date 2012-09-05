@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MixingOptions</class>
+ <class>UI::MixingSettingsWidget</class>
  <widget class="QWidget" name="MixingOptions">
   <property name="geometry">
    <rect>

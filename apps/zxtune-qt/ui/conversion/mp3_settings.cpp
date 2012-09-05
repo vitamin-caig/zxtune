@@ -24,6 +24,11 @@ Author:
 
 namespace
 {
+  QString Translate(const char* msg)
+  {
+    return QApplication::translate("Mp3Settings", msg, 0, QApplication::UnicodeUTF8);
+  }
+
   class MP3SettingsWidget : public UI::BackendSettingsWidget
                           , private Ui::Mp3Settings
   {
@@ -79,11 +84,14 @@ namespace
     {
       if (selectCBR->isChecked() || selectABR->isChecked())
       {
-        return QString(selectCBR->isChecked() ? "%1 kbps" : "~%1 kbps").arg(bitrateValue->value());
+        const int bitrate = bitrateValue->value();
+        return selectCBR->isChecked()
+          ? Translate(QT_TRANSLATE_NOOP("Mp3Settings", "%1 kbps")).arg(bitrate)
+          : Translate(QT_TRANSLATE_NOOP("Mp3Settings", "~ %1 kbps")).arg(bitrate);
       }
       else if (selectQuality->isChecked())
       {
-        return QString("VBR quality %1").arg(qualityValue->value());
+        return Translate(QT_TRANSLATE_NOOP("Mp3Settings", "VBR quality %1")).arg(qualityValue->value());
       }
       else
       {

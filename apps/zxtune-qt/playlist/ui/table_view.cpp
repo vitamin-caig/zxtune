@@ -52,7 +52,7 @@ namespace
       : QHeaderView(Qt::Horizontal)
     {
       setModel(model);
-      setObjectName("Columns");
+      setObjectName(QLatin1String("Columns"));
       setFont(font);
       setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       setHighlightSections(false);
@@ -111,7 +111,7 @@ namespace
     TableViewImpl(QWidget& parent, const Playlist::Item::StateCallback& callback,
       Playlist::Model::Ptr model)
       : Playlist::UI::TableView(parent)
-      , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
+      , Font(QLatin1String(FONT_FAMILY), FONT_SIZE)
     {
       //setup self
       setSortingEnabled(true);

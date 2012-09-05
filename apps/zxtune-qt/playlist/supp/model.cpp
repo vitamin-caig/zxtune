@@ -286,7 +286,7 @@ namespace
     const Playlist::Item::Comparer::Ptr Comparer;
   };
 
-  const char INDICES_MIMETYPE[] = "application/playlist.indices";
+  const QLatin1String INDICES_MIMETYPE("application/playlist.indices");
 
   template<class OpType>
   class OperationTarget

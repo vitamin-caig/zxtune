@@ -75,7 +75,7 @@ namespace
       painter.drawEllipse(QPoint(0, 0), maxRadius, maxRadius);
       painter.setBrush(QBrush());
       painter.drawText(-smallRadius, -smallRadius, smallRadius * 2, smallRadius * 2, Qt::AlignHCenter | Qt::AlignVCenter | Qt::TextSingleLine,
-        QString::fromUtf8("%1%").arg(Value));
+        QString::fromAscii("%1%").arg(Value));
 
       const int totalSteps = std::min(STEPS_MAX, Value * STEPS_MAX / 100 + 1);
       painter.drawLines(Lines.begin(), totalSteps);

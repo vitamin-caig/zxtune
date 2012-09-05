@@ -5,9 +5,6 @@
 
 namespace Text
 {
-extern const Char DEFAULT_PLAYLIST_NAME[] = {
-  'D','e','f','a','u','l','t',0
-};
 extern const Char FAQ_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e','/','w','i','k','i','/','F','A','Q',0
@@ -22,12 +19,6 @@ extern const Char HELP_URL[] = {
 extern const Char HOMEPAGE_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e',0
-};
-extern const Char INPUT_CHANNEL_NAMES[] = {
-  'A','B','C','D',0
-};
-extern const Char MIXER_WINDOW_TITLE_TEMPLATE[] = {
-  '%','1','%','-','c','h','a','n','n','e','l',' ','m','i','x','e','r',0
 };
 extern const Char MODULE_PLAYLIST_FORMAT[] = {
   '[','A','u','t','h','o','r',']',' ','-',' ','[','T','i','t','l','e',']',0
@@ -54,9 +45,6 @@ extern const Char PROJECT_NAME[] = {
 extern const Char REPORT_BUG_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e','/','i','s','s','u','e','s','/','e','n','t','r','y',0
-};
-extern const Char SOUND_DEVICE_ON_CARD_FORMAT[] = {
-  '%','1','%',' ','(','%','2','%',')',0
 };
 extern const Char TITLE_FORMAT[] = {
   '%','2','%',' ','[','%','1','%',']',0

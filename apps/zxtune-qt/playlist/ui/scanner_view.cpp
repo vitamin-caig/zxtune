@@ -70,7 +70,7 @@ namespace
 
     virtual void ShowProgress(unsigned progress, unsigned itemsDone, unsigned totalItems)
     {
-      const QString itemsProgressText = QString::fromUtf8("%1/%2").arg(itemsDone).arg(totalItems);
+      const QString itemsProgressText = QString::fromAscii("%1/%2").arg(itemsDone).arg(totalItems);
       itemsProgress->setText(itemsProgressText);
       scanProgress->setValue(progress);
       CheckedShow();

@@ -115,7 +115,7 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  const char ITEMS_MIMETYPE[] = "application/playlist.items";
+  const QLatin1String ITEMS_MIMETYPE("application/playlist.items");
 
   class ViewImpl : public Playlist::UI::View
   {

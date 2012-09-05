@@ -82,14 +82,9 @@ namespace
     }
   };
 
-  QString Translate(const char* msg)
+  QString ModulesCount(uint_t count)
   {
-    return QApplication::translate("Playlist::UI::ItemsContextMenu", msg, 0, QApplication::UnicodeUTF8);
-  }
-
-  QString Translate(const char* msg, int count)
-  {
-    return QApplication::translate("Playlist::UI::ItemsContextMenu", msg, 0, QApplication::UnicodeUTF8, count);
+    return Playlist::UI::ItemsContextMenu::tr("%n item(s)", 0, static_cast<int>(count));
   }
 
   class MultipleItemsContextMenu : public QMenu
@@ -101,7 +96,7 @@ namespace
     {
       //setup self
       setupUi(this);
-      InfoAction->setText(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "%1 item(s)"), count).arg(count));
+      InfoAction->setText(ModulesCount(count));
 
       Require(receiver.connect(DeleteAction, SIGNAL(triggered()), SLOT(RemoveSelected())));
       Require(receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected())));
@@ -117,7 +112,7 @@ namespace
     }
   };
 
-  static const QString LINE_BREAK('\n');
+  static const QLatin1String LINE_BREAK("\n");
 
   class StatisticNotification : public Playlist::Item::StatisticTextNotification
   {
@@ -133,27 +128,27 @@ namespace
 
     virtual QString Category() const
     {
-      return Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Statistic"));
+      return Playlist::UI::ItemsContextMenu::tr("Statistic");
     }
 
     virtual QString Text() const
     {
       QStringList result;
-      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Total: %1 item(s)"), Processed).arg(Processed));
-      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Invalid: %1 item(s)"), Invalids).arg(Invalids));
-      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Total duration: %1")).arg(ToQString(Duration.ToString())));
-      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Total size: %1 byte(s)"), Size).arg(Size));
-      result.append(Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "%1 diferent modules' type(s)"), Types.size()).arg(Types.size()));
+      result.append(Playlist::UI::ItemsContextMenu::tr("Total: %1").arg(ModulesCount(Processed)));
+      result.append(Playlist::UI::ItemsContextMenu::tr("Invalid: %1").arg(ModulesCount(Invalids)));
+      result.append(Playlist::UI::ItemsContextMenu::tr("Total duration: %1").arg(ToQString(Duration.ToString())));
+      result.append(Playlist::UI::ItemsContextMenu::tr("Total size: %n byte(s)", 0, Size));
+      result.append(Playlist::UI::ItemsContextMenu::tr("%n diferent modules' type(s)", 0, Types.size()));
       return result.join(LINE_BREAK);
     }
 
     virtual QString Details() const
     {
-      const char* const FORMAT = QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "%1: %2 item(s)");
       QStringList result;
       for (std::map<String, std::size_t>::const_iterator it = Types.begin(), lim = Types.end(); it != lim; ++it)
       {
-        result.append(Translate(FORMAT, it->second).arg(ToQString(it->first)).arg(it->second));
+        result.append(QString::fromAscii("%1: %2")
+          .arg(ToQString(it->first)).arg(ModulesCount(it->second)));
       }
       return result.join(LINE_BREAK);
     }
@@ -193,16 +188,13 @@ namespace
 
     virtual QString Category() const
     {
-      return Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", "Export"));
+      return Playlist::UI::ItemsContextMenu::tr("Export");
     }
 
     virtual QString Text() const
     {
-      const QString format = Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", 
-        "Converted: %1\n"
-        "Failed: %2"
-      ));
-      return format.arg(Succeeds).arg(Errors.size());
+      return Playlist::UI::ItemsContextMenu::tr("Converted: %1\nFailed: %2")
+        .arg(ModulesCount(Succeeds)).arg(ModulesCount(Errors.size()));
     }
 
     virtual QString Details() const
@@ -217,18 +209,13 @@ namespace
 
     virtual void AddFailedToOpen(const String& path)
     {
-      const QString format = Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", 
-        "Failed to open '%1' for conversion"
-      ));
-      Errors.append(format.arg(ToQString(path)));
+      Errors.append(Playlist::UI::ItemsContextMenu::tr("Failed to open '%1' for conversion").arg(ToQString(path)));
     }
 
     virtual void AddFailedToConvert(const String& path, const Error& err)
     {
-      const QString format = Translate(QT_TRANSLATE_NOOP("Playlist::UI::ItemsContextMenu", 
-        "Failed to convert '%1': %2"
-      ));
-      Errors.append(format.arg(ToQString(path)).arg(ToQString(Error::ToString(err))));
+      Errors.append(Playlist::UI::ItemsContextMenu::tr("Failed to convert '%1': %2")
+        .arg(ToQString(path)).arg(ToQString(Error::ToString(err))));
     }
   private:
     std::size_t Succeeds;

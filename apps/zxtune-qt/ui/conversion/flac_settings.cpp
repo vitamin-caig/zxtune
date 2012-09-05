@@ -24,6 +24,11 @@ Author:
 
 namespace
 {
+  QString Translate(const char* msg)
+  {
+    return QApplication::translate("FlacSettings", msg, 0, QApplication::UnicodeUTF8);
+  }
+
   class FLACSettingsWidget : public UI::BackendSettingsWidget
                            , private Ui::FlacSettings
   {
@@ -58,7 +63,7 @@ namespace
 
     virtual QString GetDescription() const
     {
-      return QString("Compression %1").arg(compressionValue->value());
+      return Translate(QT_TRANSLATE_NOOP("FlacSettings", "Compression %1")).arg(compressionValue->value());
     }
   private:
     const Parameters::Container::Ptr Options;

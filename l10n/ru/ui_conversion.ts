@@ -36,6 +36,11 @@
         <source>Max</source>
         <translation>Максимум</translation>
     </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/flac_settings.cpp" line="66"/>
+        <source>Compression %1</source>
+        <translation>Сжатие %1</translation>
+    </message>
 </context>
 <context>
     <name>Mp3Settings</name>
@@ -74,6 +79,21 @@
         <source>Min</source>
         <translation>Минимум</translation>
     </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="89"/>
+        <source>%1 kbps</source>
+        <translation>%1 кбит/с</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="90"/>
+        <source>~ %1 kbps</source>
+        <translation>примерно %1 кбит/с</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="94"/>
+        <source>VBR quality %1</source>
+        <translation>VBR качество %1</translation>
+    </message>
 </context>
 <context>
     <name>OggSettings</name>
@@ -106,6 +126,16 @@
         <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.ui" line="116"/>
         <source> kBps</source>
         <translation> кбит/с</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="84"/>
+        <source>Quality %1</source>
+        <translation>Качество %1</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="88"/>
+        <source>ABR %1 kbps</source>
+        <translation>Средний битрейт %1 кбит/с</translation>
     </message>
 </context>
 <context>
@@ -296,6 +326,16 @@
         <translation>
 &lt;p&gt;Это поле означает версию программы, в которой модуль был создан. Может отсутствовать. Представлено в формате 10*MAJOR+MINOR&lt;/p&gt;
 </translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="159"/>
+        <source>Invalid parameter</source>
+        <translation>Неправильный параметр</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="160"/>
+        <source>Filename template is empty</source>
+        <translation>Шаблон имени пустой</translation>
     </message>
 </context>
 </TS>

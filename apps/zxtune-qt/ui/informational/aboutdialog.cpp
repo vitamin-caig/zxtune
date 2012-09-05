@@ -40,7 +40,7 @@ namespace
       const QString appVersion(ToQString(GetProgramVersionString()));
       buildLabel->setText(appVersion);
       const QString feedbackFormat(QApplication::translate("AboutDialog", FEEDBACK_FORMAT, 0, QApplication::UnicodeUTF8));
-      feedbackLabel->setText(feedbackFormat.arg(Text::FEEDBACK_EMAIL).arg(appVersion));
+      feedbackLabel->setText(feedbackFormat.arg(QLatin1String(Text::FEEDBACK_EMAIL)).arg(appVersion));
     }
   };
 }

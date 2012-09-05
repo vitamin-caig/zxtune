@@ -5,13 +5,10 @@
 
 namespace Text
 {
-extern const Char DEFAULT_PLAYLIST_NAME[];
 extern const Char FAQ_URL[];
 extern const Char FEEDBACK_EMAIL[];
 extern const Char HELP_URL[];
 extern const Char HOMEPAGE_URL[];
-extern const Char INPUT_CHANNEL_NAMES[];
-extern const Char MIXER_WINDOW_TITLE_TEMPLATE[];
 extern const Char MODULE_PLAYLIST_FORMAT[];
 extern const Char MODULE_TITLE_FORMAT[];
 extern const Char PLAYLISTS_DIR[];
@@ -20,7 +17,6 @@ extern const Char PROGRAM_NAME[];
 extern const Char PROGRAM_SITE[];
 extern const Char PROJECT_NAME[];
 extern const Char REPORT_BUG_URL[];
-extern const Char SOUND_DEVICE_ON_CARD_FORMAT[];
 extern const Char TITLE_FORMAT[];
 extern const Char TOOLTIP_TEMPLATE[];
 extern const Char TYPEICONS_RESOURCE_PREFIX[];

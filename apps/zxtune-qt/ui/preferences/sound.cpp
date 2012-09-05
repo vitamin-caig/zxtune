@@ -61,7 +61,7 @@ namespace
   }
 
   class SoundOptionsWidget : public UI::SoundSettingsWidget
-                           , public Ui::SoundOptions
+                           , public UI::Ui_SoundSettingsWidget
   {
   public:
     explicit SoundOptionsWidget(QWidget& parent)
@@ -128,7 +128,7 @@ namespace
 
     void AddFrequency(uint_t freq)
     {
-      const QString txt = QString("%1 Hz").arg(freq);
+      const QString txt = UI::SoundSettingsWidget::tr("%1 Hz").arg(freq);
       soundFrequencyValue->addItem(txt);
     }
 

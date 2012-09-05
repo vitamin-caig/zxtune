@@ -44,9 +44,15 @@ namespace
 
   typedef bool (*AttributesFilter)(const Parameters::NameType&);
 
+  QString DataToQString(const QByteArray& data)
+  {
+    return QString::fromAscii(data.data(), data.size());
+  }
+
   QString ConvertString(const String& str)
   {
-    return QUrl::toPercentEncoding(ToQString(str.c_str()));
+    const QByteArray data = QUrl::toPercentEncoding(ToQString(str));
+    return DataToQString(data);
   }
 
   class ExtendedPropertiesSaver : public Parameters::Visitor
@@ -57,8 +63,8 @@ namespace
       explicit StringPropertySaver(QXmlStreamWriter& xml)
         : XML(xml)
       {
-        XML.writeStartElement(XSPF::EXTENSION_TAG);
-        XML.writeAttribute(XSPF::APPLICATION_ATTR, Text::PROGRAM_SITE);
+        XML.writeStartElement(QLatin1String(XSPF::EXTENSION_TAG));
+        XML.writeAttribute(QLatin1String(XSPF::APPLICATION_ATTR), QLatin1String(Text::PROGRAM_SITE));
       }
 
       ~StringPropertySaver()
@@ -68,8 +74,8 @@ namespace
 
       void SaveProperty(const Parameters::NameType& name, const String& strVal)
       {
-        XML.writeStartElement(XSPF::EXTENDED_PROPERTY_TAG);
-        XML.writeAttribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name.FullPath()));
+        XML.writeStartElement(QLatin1String(XSPF::EXTENDED_PROPERTY_TAG));
+        XML.writeAttribute(QLatin1String(XSPF::EXTENDED_PROPERTY_NAME_ATTR), ToQString(name.FullPath()));
         XML.writeCharacters(ConvertString(strVal));
         XML.writeEndElement();
       }
@@ -135,7 +141,7 @@ namespace
     explicit ItemPropertiesSaver(QXmlStreamWriter& xml)
       : XML(xml)
     {
-      XML.writeStartElement(XSPF::ITEM_TAG);
+      XML.writeStartElement(QLatin1String(XSPF::ITEM_TAG));
     }
 
     virtual ~ItemPropertiesSaver()
@@ -147,7 +153,7 @@ namespace
     {
       Dbg("  saving item location %1%", location);
       const QUrl url(ToQString(location));
-      XML.writeTextElement(XSPF::ITEM_LOCATION_TAG, url.toEncoded());
+      XML.writeTextElement(QLatin1String(XSPF::ITEM_LOCATION_TAG), DataToQString(url.toEncoded()));
     }
 
     void SaveModuleProperties(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
@@ -210,12 +216,12 @@ namespace
       props.FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
       const uint64_t msecDuration = info.FramesCount() * frameDuration / 1000;
       Dbg("  saving item attribute Duration=%1%", msecDuration);
-      XML.writeTextElement(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
+      XML.writeTextElement(QLatin1String(XSPF::ITEM_DURATION_TAG), QString::number(msecDuration));
     }
 
     void SaveText(const Char* tag, const QString& value)
     {
-      XML.writeTextElement(tag, value);
+      XML.writeTextElement(QLatin1String(tag), value);
     }
 
     static bool KeepExtendedProperties(const Parameters::NameType& name)
@@ -289,9 +295,9 @@ namespace
       XML.setAutoFormatting(true);
       XML.setAutoFormattingIndent(2);
       XML.writeStartDocument();
-      XML.writeStartElement(XSPF::ROOT_TAG);
-      XML.writeAttribute(XSPF::VERSION_ATTR, XSPF::VERSION_VALUE);
-      XML.writeAttribute(XSPF::XMLNS_ATTR, XSPF::XMLNS_VALUE);
+      XML.writeStartElement(QLatin1String(XSPF::ROOT_TAG));
+      XML.writeAttribute(QLatin1String(XSPF::VERSION_ATTR), QLatin1String(XSPF::VERSION_VALUE));
+      XML.writeAttribute(QLatin1String(XSPF::XMLNS_ATTR), QLatin1String(XSPF::XMLNS_VALUE));
     }
 
     void WriteProperties(const Parameters::Accessor& props, uint_t items)
@@ -304,7 +310,7 @@ namespace
 
     void WriteItems(const Playlist::IO::Container& container, Playlist::IO::ExportCallback& cb)
     {
-      XML.writeStartElement(XSPF::TRACKLIST_TAG);
+      XML.writeStartElement(QLatin1String(XSPF::TRACKLIST_TAG));
       CallbackAdapter adapter(*this, cb);
       container.ForAllItems(adapter);
       XML.writeEndElement();

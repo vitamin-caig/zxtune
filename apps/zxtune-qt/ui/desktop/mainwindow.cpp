@@ -54,7 +54,7 @@ namespace
   Parameters::StringType GetSystemLanguage()
   {
     QString curLang = QLocale::system().name();
-    curLang.truncate(curLang.lastIndexOf('_'));//$(lang)_$(country)
+    curLang.truncate(curLang.lastIndexOf(QLatin1Char('_')));//$(lang)_$(country)
     return FromQString(curLang);
   }
 
@@ -179,25 +179,25 @@ namespace
 
     virtual void VisitHelp()
     {
-      const QString siteUrl(Text::HELP_URL);
+      const QLatin1String siteUrl(Text::HELP_URL);
       QDesktopServices::openUrl(QUrl(siteUrl));
     }
 
     virtual void VisitSite()
     {
-      const QString siteUrl(Text::HOMEPAGE_URL);
+      const QLatin1String siteUrl(Text::HOMEPAGE_URL);
       QDesktopServices::openUrl(QUrl(siteUrl));
     }
 
     virtual void VisitFAQ()
     {
-      const QString faqUrl(Text::FAQ_URL);
+      const QLatin1String faqUrl(Text::FAQ_URL);
       QDesktopServices::openUrl(QUrl(faqUrl));
     }
 
     virtual void ReportIssue()
     {
-      const QString faqUrl(Text::REPORT_BUG_URL);
+      const QLatin1String faqUrl(Text::REPORT_BUG_URL);
       QDesktopServices::openUrl(QUrl(faqUrl));
     }
 

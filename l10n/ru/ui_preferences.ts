@@ -153,7 +153,25 @@
     </message>
 </context>
 <context>
-    <name>SoundOptions</name>
+    <name>UI::MixingSettingsWidget</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="40"/>
+        <source>Left</source>
+        <translation>Левый</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="41"/>
+        <source>Right</source>
+        <translation>Правый</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="54"/>
+        <source>%1-channels mixer</source>
+        <translation>%1-канальный микшер</translation>
+    </message>
+</context>
+<context>
+    <name>UI::SoundSettingsWidget</name>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="14"/>
         <source>Sound</source>
@@ -198,6 +216,11 @@
         <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="153"/>
         <source>Select backend to setup</source>
         <translation>Выберите подсистему для настройки</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.cpp" line="131"/>
+        <source>%1 Hz</source>
+        <translation>%1 Гц</translation>
     </message>
 </context>
 <context>

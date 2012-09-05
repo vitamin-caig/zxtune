@@ -45,8 +45,8 @@ namespace
       StringArray cmdline(argc - 1);
       std::transform(argv + 1, argv + argc, cmdline.begin(), &FromStdString);
       const QPointer<QMainWindow> win = WidgetsFactory::Instance().CreateMainWindow(GlobalOptions::Instance().Get(), cmdline);
-      qapp.setOrganizationName(QString(Text::PROJECT_NAME));
-      qapp.setOrganizationDomain(QString(Text::PROGRAM_SITE));
+      qapp.setOrganizationName(QLatin1String(Text::PROJECT_NAME));
+      qapp.setOrganizationDomain(QLatin1String(Text::PROGRAM_SITE));
       qapp.setApplicationVersion(ToQString(GetProgramVersionString()));
       //std::cout << QDesktopServices::storageLocation(QDesktopServices::DataLocation).toStdString() << std::endl;
       return qapp.exec();

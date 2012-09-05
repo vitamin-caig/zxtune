@@ -169,7 +169,7 @@ namespace
       }
 
       Device(const ZXTune::Sound::Alsa::Device& in)
-        : Name(ToQString(Strings::Format(Text::SOUND_DEVICE_ON_CARD_FORMAT, in.Name(), in.CardName())))
+        : Name(QString::fromAscii("%1 (%2)").arg(ToQString(in.Name()).arg(ToQString(in.CardName()))))
         , Id(in.Id())
         , MixerNames(ToStringList(in.Mixers()))
       {
