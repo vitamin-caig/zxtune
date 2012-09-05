@@ -96,7 +96,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
     <message>
         <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.ui" line="54"/>
         <source>Sound backends</source>
-        <translation>Подсистемы вывода звука</translation>
+        <translation>Вывод звука</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.ui" line="79"/>
@@ -260,7 +260,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="160"/>
         <source>Play</source>
-        <translation>Воспроизведение</translation>
+        <translation>Старт</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="170"/>
@@ -270,17 +270,17 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="180"/>
         <source>Stop</source>
-        <translation>Останов</translation>
+        <translation>Стоп</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="190"/>
         <source>Previous</source>
-        <translation>Предыдущий</translation>
+        <translation>Назад</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="200"/>
         <source>Next</source>
-        <translation>Следующий</translation>
+        <translation>Вперед</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.cpp" line="78"/>
@@ -317,7 +317,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/seek_controls.ui" line="20"/>
         <source>Seeking</source>
-        <translation>Позиционирование</translation>
+        <translation>Позиция</translation>
     </message>
 </context>
 <context>

@@ -331,7 +331,7 @@ Failed: %2</source>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="101"/>
         <source>Convert</source>
-        <translation>Конверсия</translation>
+        <translation>Конвертировать</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="111"/>

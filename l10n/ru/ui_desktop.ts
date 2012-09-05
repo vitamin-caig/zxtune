@@ -51,7 +51,7 @@
     <message>
         <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="166"/>
         <source>Online FAQ</source>
-        <translation>Онлайн FAQ</translation>
+        <translation>Онлайн ЧаВо</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="176"/>
