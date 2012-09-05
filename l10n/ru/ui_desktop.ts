@@ -4,11 +4,6 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="20"/>
-        <source>zxtune-qt</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="57"/>
         <source>Layout</source>
         <translation>Вид</translation>
@@ -34,19 +29,9 @@
         <translation>Добавить папку</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="110"/>
-        <source>Ctrl+Alt+O</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="120"/>
         <source>Preferences</source>
         <translation>Настройки</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="123"/>
-        <source>Ctrl+P</source>
-        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="133"/>

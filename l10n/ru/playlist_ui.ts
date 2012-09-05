@@ -114,5 +114,50 @@
         <source>Save playlist</source>
         <translation>Сохранить</translation>
     </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="134"/>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="136"/>
+        <source>Author - Title</source>
+        <translation>Автор - Название</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="138"/>
+        <source>Duration</source>
+        <translation>Время</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="140"/>
+        <source>Author</source>
+        <translation>Автор</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="142"/>
+        <source>Title</source>
+        <translation>Название</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="144"/>
+        <source>Path</source>
+        <translation>Путь</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="146"/>
+        <source>Size</source>
+        <translation>Размер</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="148"/>
+        <source>CRC</source>
+        <translation>CRC</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/table_view.cpp" line="150"/>
+        <source>FixedCRC</source>
+        <translation>CRC данных</translation>
+    </message>
 </context>
 </TS>
