@@ -13,7 +13,7 @@ mo_translation_data := $(l10n_dir)/gettext.zip
 mo_translation_files = $(wildcard $(foreach lang,$(l10n_languages),$(l10n_dir)/$(lang)/*.mo))
 
 $(mo_translation_data): $(mo_translation_files)
-	(cd $(call fix_path_cmd,$(l10n_dir)) && zip -v9uD $(notdir $@) $(call fix_path_cmd,$(addprefix $(CURDIR)/,$^)))
+	(cd $(call fix_path_cmd,$(l10n_dir)) && zip -v9uD $(notdir $@) $(call fix_path_cmd,$(subst $(l10n_dir)/,,$^)))
 
 %.mo: %.po
 		msgfmt --output $@ $^
@@ -25,7 +25,7 @@ qm_translation_data := $(l10n_dir)/qt.zip
 qm_translation_files = $(wildcard $(foreach lang,$(l10n_languages),$(l10n_dir)/$(lang)/*.qm))
 
 $(qm_translation_data): $(qm_translation_files)
-	(cd $(call fix_path_cmd,$(l10n_dir)) && zip -v9uD $(notdir $@) $(call fix_path_cmd,$(addprefix $(CURDIR)/,$^)))
+	(cd $(call fix_path_cmd,$(l10n_dir)) && zip -v9uD $(notdir $@) $(call fix_path_cmd,$(subst $(l10n_dir)/,,$^)))
 
 %.qm: %.ts
 	lrelease $^ -qm $@

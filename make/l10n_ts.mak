@@ -1,7 +1,7 @@
 #path/lang/domain.ts
 getlang = $(lastword $(subst /, ,$(dir $(1))))
 
-%.ts: $(wildcard $(addsuffix *$(src_suffix),$(sort $(dir $(source_files))))) $(addsuffix *.ui,$(sort $(dir $(ui_files))))
+%.ts: $(sort $(wildcard $(addsuffix *$(src_suffix),$(sort $(dir $(source_files))))) $(addsuffix *.ui,$(sort $(dir $(ui_files)))))
 	lupdate $^ -ts $@
 
 .PRECIOUS: %.ts
