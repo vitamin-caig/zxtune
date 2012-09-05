@@ -76,6 +76,16 @@ namespace
     {
       OnSeeking(timePosition->value());
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      ::SeekControls::changeEvent(event);
+    }
   private:
     void ShowTooltip()
     {

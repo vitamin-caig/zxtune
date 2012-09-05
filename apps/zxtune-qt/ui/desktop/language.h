@@ -29,6 +29,7 @@ namespace UI
     virtual ~Language() {}
 
     virtual QStringList GetAvailable() const = 0;
+    virtual QString GetSystem() const = 0;
     virtual void Set(const QString& lang) = 0;
 
     static Ptr Create();

@@ -51,17 +51,10 @@ Author:
 
 namespace
 {
-  Parameters::StringType GetSystemLanguage()
-  {
-    QString curLang = QLocale::system().name();
-    curLang.truncate(curLang.lastIndexOf(QLatin1Char('_')));//$(lang)_$(country)
-    return FromQString(curLang);
-  }
-
   UI::Language::Ptr CreateLanguage(const Parameters::Container& options)
   {
     const UI::Language::Ptr res = UI::Language::Create();
-    Parameters::StringType lang = GetSystemLanguage();
+    Parameters::StringType lang = FromQString(res->GetSystem());
     options.FindValue(Parameters::ZXTuneQT::UI::LANGUAGE, lang);
     res->Set(ToQString(lang));
     return res;
@@ -213,6 +206,15 @@ namespace
       State->Save();
       MultiPlaylist->Teardown();
       event->accept();
+    }
+
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      ::MainWindow::changeEvent(event);
     }
   private:
     QToolBar* AddWidgetOnToolbar(QWidget* widget, bool lastInRow)

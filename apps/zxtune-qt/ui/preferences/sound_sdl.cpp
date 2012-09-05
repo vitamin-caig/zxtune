@@ -55,6 +55,16 @@ namespace
     {
       return nameGroup->title();
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      UI::SdlSettingsWidget::changeEvent(event);
+    }
   private:
     const Parameters::Container::Ptr Options;
   };

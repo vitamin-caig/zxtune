@@ -28,7 +28,13 @@ namespace UI
   protected:
     explicit MixerWidget(QWidget& parent);
   public:
-    static MixerWidget* Create(QWidget& parent, const QString& name);
+    enum Channel
+    {
+      Left,
+      Right
+    };
+
+    static MixerWidget* Create(QWidget& parent, Channel chan);
   public slots:
     virtual void setValue(int val) = 0;
   signals:

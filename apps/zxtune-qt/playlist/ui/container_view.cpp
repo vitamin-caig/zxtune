@@ -253,6 +253,16 @@ namespace
     }
 
     //qwidget virtuals
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+        SetMenuTitle();
+      }
+      Playlist::UI::ContainerView::changeEvent(event);
+    }
+
     virtual void contextMenuEvent(QContextMenuEvent* event)
     {
       ActionsMenu->exec(event->globalPos());
@@ -300,7 +310,7 @@ namespace
   private:
     void SetupMenu()
     {
-      ActionsMenu->setTitle(windowTitle());
+      SetMenuTitle();
       ActionsMenu->addAction(actionCreatePlaylist);
       ActionsMenu->addAction(actionLoadPlaylist);
       ActionsMenu->addAction(actionSavePlaylist);
@@ -311,6 +321,11 @@ namespace
       ActionsMenu->addAction(actionLoop);
       ActionsMenu->addAction(actionRandom);
       ActionsMenu->addAction(actionDeepScan);
+    }
+
+    void SetMenuTitle()
+    {
+      ActionsMenu->setTitle(windowTitle());
     }
 
     Playlist::UI::View& CreateAnonymousPlaylist()

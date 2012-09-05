@@ -130,6 +130,16 @@ namespace
         Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, mixer);
       }
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      UI::AlsaSettingsWidget::changeEvent(event);
+    }
   private:
     void SelectDevice()
     {

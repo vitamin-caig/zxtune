@@ -120,6 +120,16 @@ namespace
         backendsList->setCurrentRow(row + 1);
       }
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      UI::SoundSettingsWidget::changeEvent(event);
+    }
   private:
     void FillFrequences()
     {

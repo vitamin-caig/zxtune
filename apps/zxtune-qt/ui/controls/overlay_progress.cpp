@@ -42,7 +42,7 @@ namespace
       setPalette(Qt::transparent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 64);
-      setToolTip(tr(QT_TRANSLATE_NOOP("OverlayProgress", "Click to cancel")));
+      SetToolTip();
     }
 
     virtual void UpdateProgress(int progress)
@@ -55,6 +55,15 @@ namespace
     }
 
     //QWidget virtuals
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        SetToolTip();
+      }
+      OverlayProgress::changeEvent(event);
+    }
+
     virtual void paintEvent(QPaintEvent*)
     {
       FillGeometry();
@@ -89,6 +98,11 @@ namespace
       }
     }
   private:
+    void SetToolTip()
+    {
+      setToolTip(OverlayProgress::tr("Click to cancel"));
+    }
+
     void DoRepaint()
     {
       const std::time_t curTime = std::time(0);

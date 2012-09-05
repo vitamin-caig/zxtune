@@ -19,6 +19,7 @@ Author:
 #include "sound.h"
 #include "mixing.h"
 #include "plugins.h"
+#include "interface.h"
 #include "ui/state.h"
 //common includes
 #include <tools.h>
@@ -51,7 +52,8 @@ namespace
         UI::SoundSettingsWidget::Create(*Categories),
         UI::MixingSettingsWidget::Create(*Categories, 3),
         UI::MixingSettingsWidget::Create(*Categories, 4),
-        UI::PluginsSettingsWidget::Create(*Categories)
+        UI::PluginsSettingsWidget::Create(*Categories),
+        UI::InterfaceSettingsWidget::Create(*Categories)
       };
       std::for_each(pages, ArrayEnd(pages),
         boost::bind(&QTabWidget::addTab, Categories, _1, boost::bind(&QWidget::windowTitle, _1)));
@@ -66,6 +68,24 @@ namespace
     {
       State->Save();
       event->accept();
+    }
+
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+        for (int idx = 0, lim = Categories->count(); idx != lim; ++idx)
+        {
+          QWidget* const tab = Categories->widget(idx);
+          //tab->changeEvent(event);
+          Categories->setTabText(idx, tab->windowTitle());
+        }
+      }
+      else
+      {
+        QDialog::changeEvent(event);
+      }
     }
   private:
     UI::State::Ptr State;

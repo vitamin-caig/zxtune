@@ -89,6 +89,16 @@ namespace
         devices->setCurrentIndex(-1);
       }
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      UI::DirectSoundSettingsWidget::changeEvent(event);
+    }
   private:
     void SelectDevice()
     {

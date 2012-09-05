@@ -35,12 +35,6 @@ namespace
     "D"
   };
 
-  const char* OUTPUT_CHANNEL_NAMES[ZXTune::Sound::OUTPUT_CHANNELS] =
-  {
-    QT_TRANSLATE_NOOP("UI::MixingSettingsWidget", "Left"),
-    QT_TRANSLATE_NOOP("UI::MixingSettingsWidget", "Right")
-  };
-
   class MixingOptionsWidget : public UI::MixingSettingsWidget
                             , public UI::Ui_MixingSettingsWidget
   {
@@ -48,25 +42,42 @@ namespace
     MixingOptionsWidget(QWidget& parent, unsigned channels)
       : UI::MixingSettingsWidget(parent)
       , Options(GlobalOptions::Instance().Get())
+      , Channels(channels)
     {
       //setup self
       setupUi(this);
-      setWindowTitle(UI::MixingSettingsWidget::tr("%1-channels mixer").arg(channels));
+      SetTitle();
 
-      for (uint_t inChan = 0; inChan != channels; ++inChan)
+      for (int inChan = 0; inChan != channels; ++inChan)
       {
         channelNames->addWidget(new QLabel(QLatin1String(INPUT_CHANNEL_NAMES[inChan]), this));
         for (uint_t outChan = 0; outChan != ZXTune::Sound::OUTPUT_CHANNELS; ++outChan)
         {
-          UI::MixerWidget* const mixer = UI::MixerWidget::Create(*this, tr(OUTPUT_CHANNEL_NAMES[outChan]));
+          UI::MixerWidget* const mixer = UI::MixerWidget::Create(*this, static_cast<UI::MixerWidget::Channel>(outChan));
           channelValues->addWidget(mixer);
           const int defLevel = GetMixerChannelDefaultValue(channels, inChan, outChan);
           Parameters::MixerValue::Bind(*mixer, *Options, GetMixerChannelParameterName(channels, inChan, outChan), defLevel);
         }
       }
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        SetTitle();
+      }
+      UI::MixingSettingsWidget::changeEvent(event);
+    }
+  private:
+    void SetTitle()
+    {
+      setWindowTitle(UI::MixingSettingsWidget::tr("%1-channels mixer").arg(Channels));
+    }
   private:
     const Parameters::Container::Ptr Options;
+    const int Channels;
   };
 }
 

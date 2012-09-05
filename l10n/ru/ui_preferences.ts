@@ -66,39 +66,6 @@
     </message>
 </context>
 <context>
-    <name>OssOptions</name>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.ui" line="20"/>
-        <source>OSS settings</source>
-        <translation>Настройки подсистемы OSS</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.ui" line="29"/>
-        <source>Device</source>
-        <translation>Устройство</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.ui" line="36"/>
-        <source>Mixer</source>
-        <translation>Микшер</translation>
-    </message>
-</context>
-<context>
-    <name>OssOptionsWidget</name>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="68"/>
-        <source>Select device</source>
-        <comment>OssOptions</comment>
-        <translation>Выберите устройство</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="77"/>
-        <source>Select mixer</source>
-        <comment>OssOptions</comment>
-        <translation>Выберите микшер</translation>
-    </message>
-</context>
-<context>
     <name>PluginsOptions</name>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="14"/>
@@ -153,21 +120,65 @@
     </message>
 </context>
 <context>
-    <name>UI::MixingSettingsWidget</name>
+    <name>UI::InterfaceSettingsWidget</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="40"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="14"/>
+        <source>Interface</source>
+        <translation>Интерфейс</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="20"/>
+        <source>Language</source>
+        <translation>Язык</translation>
+    </message>
+</context>
+<context>
+    <name>UI::MixerWidget</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixer.cpp" line="24"/>
         <source>Left</source>
         <translation>Левый</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="41"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixer.cpp" line="25"/>
         <source>Right</source>
         <translation>Правый</translation>
     </message>
+</context>
+<context>
+    <name>UI::MixingSettingsWidget</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="54"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="76"/>
         <source>%1-channels mixer</source>
         <translation>%1-канальный микшер</translation>
+    </message>
+</context>
+<context>
+    <name>UI::OssSettingsWidget</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.ui" line="20"/>
+        <source>OSS settings</source>
+        <translation>Настройки подсистемы OSS</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.ui" line="29"/>
+        <source>Device</source>
+        <translation>Устройство</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.ui" line="36"/>
+        <source>Mixer</source>
+        <translation>Микшер</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="68"/>
+        <source>Select device</source>
+        <translation>Выберите устройство</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="77"/>
+        <source>Select mixer</source>
+        <translation>Выберите микшер</translation>
     </message>
 </context>
 <context>
@@ -218,7 +229,7 @@
         <translation>Выберите подсистему для настройки</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.cpp" line="131"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.cpp" line="141"/>
         <source>%1 Hz</source>
         <translation>%1 Гц</translation>
     </message>

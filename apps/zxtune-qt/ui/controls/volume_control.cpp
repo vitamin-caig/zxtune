@@ -79,6 +79,16 @@ namespace
         Controller->SetVolume(vol);
       }
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      ::VolumeControl::changeEvent(event);
+    }
   private:
     ZXTune::Sound::VolumeControl::Ptr Controller;
     std::time_t LastUpdateTime;

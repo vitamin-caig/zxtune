@@ -23,6 +23,7 @@ Author:
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 //qt includes
+#include <QtCore/QEvent>
 #include <QtGui/QPaintEngine>
 
 namespace
@@ -75,8 +76,8 @@ namespace
     {
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);
-      setWindowTitle(AnalyzerControl::tr("Analyzer"));
       setObjectName(QLatin1String("AnalyzerControl"));
+      SetTitle();
 
       this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
         SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
@@ -105,6 +106,16 @@ namespace
     {
       std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Set), 0));
       DoRepaint();
+    }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        SetTitle();
+      }
+      AnalyzerControl::changeEvent(event);
     }
 
     virtual void paintEvent(QPaintEvent*)
@@ -136,6 +147,11 @@ namespace
       }
     }
   private:
+    void SetTitle()
+    {
+      setWindowTitle(AnalyzerControl::tr("Analyzer"));
+    }
+
     void DoRepaint()
     {
       //update graph if visible

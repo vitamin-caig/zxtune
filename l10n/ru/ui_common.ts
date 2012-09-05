@@ -76,7 +76,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 <context>
     <name>AnalyzerControl</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/analyzer_control.cpp" line="78"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/analyzer_control.cpp" line="152"/>
         <source>Analyzer</source>
         <translation>Анализатор</translation>
     </message>
@@ -245,7 +245,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 <context>
     <name>OverlayProgress</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/overlay_progress.cpp" line="45"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/overlay_progress.cpp" line="103"/>
         <source>Click to cancel</source>
         <translation>Нажмите для отмены</translation>
     </message>
@@ -283,7 +283,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Следующий</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.cpp" line="31"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.cpp" line="78"/>
         <source>Playback</source>
         <translation>Контроль</translation>
     </message>
