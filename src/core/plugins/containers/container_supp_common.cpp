@@ -19,6 +19,7 @@ Author:
 #include <debug_log.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <l10n/api.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -30,6 +31,7 @@ namespace
   using namespace ZXTune;
 
   const Debug::Stream Dbg("Core::ArchivesSupp");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
   class LoggerHelper
   {
@@ -48,9 +50,7 @@ namespace
     {
       if (Progress.get())
       {
-        const String text = Path.empty()
-          ? Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS_NOPATH, Id, cur.GetName())
-          : Strings::Format(Text::CONTAINER_PLUGIN_PROGRESS, Id, cur.GetName(), Path);
+        const String text = ProgressMessage(Id, Path, cur.GetName());
         Progress->OnProgress(Current, text);
       }
     }
@@ -204,7 +204,21 @@ namespace ZXTune
 {
   ArchivePlugin::Ptr CreateContainerPlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription() + Text::CONTAINER_DESCRIPTION_SUFFIX, caps);
+    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps);
     return ArchivePlugin::Ptr(new ArchivedContainerPlugin(description, decoder));
+  }
+
+  String ProgressMessage(const String& id, const String& path)
+  {
+    return path.empty()
+      ? Strings::Format(translate("%1% processing"), id)
+      : Strings::Format(translate("%1% processing at %2%"), id, path);
+  }
+
+  String ProgressMessage(const String& id, const String& path, const String& element)
+  {
+    return path.empty()
+      ? Strings::Format(translate("%1% processing for %2%"), id, element)
+      : Strings::Format(translate("%1% processing for %2% at %3%"), id, element, path);
   }
 }

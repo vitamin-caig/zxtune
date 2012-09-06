@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "ts_base.h"
+#include "ay_conversion.h"
 #include "core/src/core.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/module_properties.h"
@@ -37,7 +38,6 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 //text includes
-#include <core/text/core.h>
 #include <core/text/plugins.h>
 
 #define FILE_TAG 83089B6F
@@ -278,7 +278,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return CreateUnsupportedConversionError(THIS_LINE, spec);
       }
     }
   private:

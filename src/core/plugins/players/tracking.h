@@ -29,8 +29,6 @@ Author:
 #include <boost/make_shared.hpp>
 #include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
-//text includes
-#include <core/text/warnings.h>
 
 namespace ZXTune
 {

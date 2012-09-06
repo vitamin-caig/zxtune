@@ -25,8 +25,6 @@ Author:
 #include <formats/chiptune/psg.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/plugins.h>
 
 #define FILE_TAG 59843902
 
@@ -265,7 +263,7 @@ namespace ZXTune
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSGDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<PSGModulesFactory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

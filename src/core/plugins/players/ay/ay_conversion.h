@@ -52,6 +52,8 @@ namespace ZXTune
 
     //! @brief Mask for supported Vortex-related formats
     uint_t GetSupportedVortexFormatConvertors();
+
+    Error CreateUnsupportedConversionError(Error::LocationRef loc, const Conversion::Parameter& param);
   }
 }
 

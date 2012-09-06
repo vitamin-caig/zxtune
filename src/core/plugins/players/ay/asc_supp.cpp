@@ -28,9 +28,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/ascsoundmaster.h>
 #include <formats/packed_decoders.h>
-//text includes
-#include <core/text/core.h>
-#include <core/text/plugins.h>
 
 #define FILE_TAG 45B26E38
 
@@ -826,13 +823,13 @@ namespace ZXTune
     {
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder();
       const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID_0, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ASC::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID_0, decoder->GetDescription(), ASC::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver1::CreateDecoder();
       const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID_1, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ASC::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID_1, decoder->GetDescription(), ASC::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

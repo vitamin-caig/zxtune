@@ -247,7 +247,7 @@ namespace
       }
       else if (!ConvertAYMFormat(*Tune, spec, Parameters::CreateMergedAccessor(params, Tune->GetProperties()), dst, result))
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return CreateUnsupportedConversionError(THIS_LINE, spec);
       }
       return result;
     }

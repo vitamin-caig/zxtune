@@ -43,25 +43,21 @@ msgid "ALSA sound system backend"
 msgstr "Поддержка подсистемы ALSA"
 
 #: backends/alsa_backend.cpp:851 backends/dsound_backend.cpp:551
-#: backends/mp3_backend.cpp:333 backends/oss_backend.cpp:366
-#: backends/ogg_backend.cpp:460 backends/wav_backend.cpp:217
-#: backends/sdl_backend.cpp:333 backends/flac_backend.cpp:314
-#: backends/win32_backend.cpp:556 backends/null_backend.cpp:109
+#: backends/flac_backend.cpp:314 backends/mp3_backend.cpp:333
+#: backends/null_backend.cpp:109 backends/ogg_backend.cpp:460
+#: backends/oss_backend.cpp:366 backends/sdl_backend.cpp:333
+#: backends/wav_backend.cpp:217 backends/win32_backend.cpp:556
 #, boost-format
 msgid "Failed to create backend '%1%'."
 msgstr "Ошибка создания подсистемы вывода '%1%'."
 
 #: backends/alsa_backend.cpp:855 backends/dsound_backend.cpp:555
-#: backends/mp3_backend.cpp:337 backends/oss_backend.cpp:370
-#: backends/ogg_backend.cpp:464 backends/wav_backend.cpp:221
-#: backends/sdl_backend.cpp:337 backends/flac_backend.cpp:318
-#: backends/win32_backend.cpp:560 backends/null_backend.cpp:113
+#: backends/flac_backend.cpp:318 backends/mp3_backend.cpp:337
+#: backends/null_backend.cpp:113 backends/ogg_backend.cpp:464
+#: backends/oss_backend.cpp:370 backends/sdl_backend.cpp:337
+#: backends/wav_backend.cpp:221 backends/win32_backend.cpp:560
 msgid "Failed to allocate memory for backend."
 msgstr "Ошибка выделения памяти для звуковой подсистемы."
-
-#: backends/win32_stub.cpp:26 backends/win32_backend.cpp:514
-msgid "Win32 sound system backend"
-msgstr "Поддержка подистемы Win32"
 
 #: backends/backend_impl.cpp:46
 msgid "Invalid module specified for backend."
@@ -111,9 +107,30 @@ msgstr "Поддержка подсистемы DirectSound"
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
-#: backends/mp3_stub.cpp:26 backends/mp3_backend.cpp:221
-msgid "MP3 support backend"
-msgstr "Поддержка вывода MP3"
+#: backends/enumerator.cpp:96
+msgid "Requested backend is not supported."
+msgstr "Запрашиваемая подсистема вывода звука не поддерживается."
+
+#: backends/enumerator.cpp:123
+msgid "Not supported in current configuration"
+msgstr "Не поддерживается в текущей конфигурации."
+
+#: backends/file_backend.cpp:151
+msgid "Output filename template is not specified."
+msgstr "Шаблон имени результирующего файла не задан."
+
+#: backends/flac_backend.cpp:51
+msgid "Error in FLAC backend."
+msgstr "Ошибка в подсистеме вывода FLAC."
+
+#: backends/flac_backend.cpp:180
+#, boost-format
+msgid "Error in FLAC backend (code %1%)."
+msgstr "Ошибка в подсистеме вывода FLAC: код %1%."
+
+#: backends/flac_backend.cpp:223 backends/flac_stub.cpp:26
+msgid "FLAC support backend."
+msgstr "Поддержка вывода FLAC"
 
 #: backends/mp3_backend.cpp:56
 #, boost-format
@@ -139,30 +156,13 @@ msgstr ""
 "Ошибка в подсистеме вывода MP3: уровень качества (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: backends/ogg_stub.cpp:26 backends/ogg_backend.cpp:363
-msgid "OGG support backend"
-msgstr "Поддержка вывода OGG"
+#: backends/mp3_backend.cpp:221 backends/mp3_stub.cpp:26
+msgid "MP3 support backend"
+msgstr "Поддержка вывода MP3"
 
-#: backends/volume_control.cpp:43
-msgid "Failed to get volume in invalid state."
-msgstr "Ошибка получения уровня громкости."
-
-#: backends/volume_control.cpp:52
-msgid "Failed to set volume in invalid state."
-msgstr "Ошибка установки уровня громкости."
-
-#: backends/file_backend.cpp:151
-msgid "Output filename template is not specified."
-msgstr "Шаблон имени результирующего файла не задан."
-
-#: backends/oss_stub.cpp:26 backends/oss_backend.cpp:329
-msgid "OSS sound system backend"
-msgstr "Поддержка подсистемы OSS"
-
-#: backends/oss_backend.cpp:101
-#, boost-format
-msgid "Error in OSS backend while working with device '%1%': %2%."
-msgstr "Ошибка при работе с OSS устройством '%1%': %2%."
+#: backends/null_backend.cpp:84
+msgid "Null output backend"
+msgstr "Поддержка NULL-вывода"
 
 #: backends/ogg_backend.cpp:56
 #, boost-format
@@ -188,21 +188,18 @@ msgstr ""
 "Ошибка в подсистеме вывода OGG: уровень качества (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: backends/enumerator.cpp:96
-msgid "Requested backend is not supported."
-msgstr "Запрашиваемая подсистема вывода звука не поддерживается."
+#: backends/ogg_backend.cpp:363 backends/ogg_stub.cpp:26
+msgid "OGG support backend"
+msgstr "Поддержка вывода OGG"
 
-#: backends/enumerator.cpp:123
-msgid "Not supported in current configuration"
-msgstr "Не поддерживается в текущей конфигурации."
+#: backends/oss_backend.cpp:101
+#, boost-format
+msgid "Error in OSS backend while working with device '%1%': %2%."
+msgstr "Ошибка при работе с OSS устройством '%1%': %2%."
 
-#: backends/sdl_stub.cpp:26 backends/sdl_backend.cpp:291
-msgid "SDL support backend"
-msgstr "Поддержка подсистемы SDL"
-
-#: backends/wav_backend.cpp:157
-msgid "WAV support backend"
-msgstr "Поддержка вывода WAV"
+#: backends/oss_backend.cpp:329 backends/oss_stub.cpp:26
+msgid "OSS sound system backend"
+msgstr "Поддержка подсистемы OSS"
 
 #: backends/sdl_backend.cpp:66
 #, boost-format
@@ -220,18 +217,21 @@ msgstr "Ошибка в подсистеме SDL: %1%."
 msgid "Unknown error in SDL backend."
 msgstr "Неизвестная ошибка в подсистеме SDL."
 
-#: backends/flac_backend.cpp:51
-msgid "Error in FLAC backend."
-msgstr "Ошибка в подсистеме вывода FLAC."
+#: backends/sdl_backend.cpp:291 backends/sdl_stub.cpp:26
+msgid "SDL support backend"
+msgstr "Поддержка подсистемы SDL"
 
-#: backends/flac_backend.cpp:180
-#, boost-format
-msgid "Error in FLAC backend (code %1%)."
-msgstr "Ошибка в подсистеме вывода FLAC: код %1%."
+#: backends/volume_control.cpp:43
+msgid "Failed to get volume in invalid state."
+msgstr "Ошибка получения уровня громкости."
 
-#: backends/flac_backend.cpp:223 backends/flac_stub.cpp:26
-msgid "FLAC support backend."
-msgstr "Поддержка вывода FLAC"
+#: backends/volume_control.cpp:52
+msgid "Failed to set volume in invalid state."
+msgstr "Ошибка установки уровня громкости."
+
+#: backends/wav_backend.cpp:157
+msgid "WAV support backend"
+msgstr "Поддержка вывода WAV"
 
 #: backends/win32_backend.cpp:95 backends/win32_backend.cpp:198
 #, boost-format
@@ -250,9 +250,9 @@ msgstr ""
 "Ошибка в подсистеме Win32: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: backends/null_backend.cpp:84
-msgid "Null output backend"
-msgstr "Поддержка NULL-вывода"
+#: backends/win32_backend.cpp:514 backends/win32_stub.cpp:26
+msgid "Win32 sound system backend"
+msgstr "Поддержка подистемы Win32"
 
 #: impl/filter.cpp:154 impl/filter.cpp:214
 #, boost-format

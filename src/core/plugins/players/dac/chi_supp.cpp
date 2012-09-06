@@ -13,6 +13,7 @@ Author:
 #include "dac_base.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
+#include "core/plugins/players/ay/ay_conversion.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
@@ -32,9 +33,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 //text includes
-#include <core/text/core.h>
-#include <core/text/plugins.h>
-#include <core/text/warnings.h>
+#include <formats/text/chiptune.h>
 
 #define FILE_TAG AB8BEC8B
 
@@ -295,7 +294,8 @@ namespace
         Properties->SetSource(usedSize, fixedRegion);
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
-      Properties->SetProgram(Strings::Format(Text::CHI_EDITOR, FromCharArray(header->Version)));
+      Properties->SetProgram(Text::CHIPTRACKER_DECODER_DESCRIPTION);
+      Properties->SetVersion(header->Version[0] - '0', header->Version[2] - '0');
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -340,7 +340,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return CreateUnsupportedConversionError(THIS_LINE, spec);
       }
       return Error();
     }
@@ -543,7 +543,7 @@ namespace
 
   //plugin attributes
   const Char ID[] = {'C', 'H', 'I', 0};
-  const Char* const INFO = Text::CHI_PLUGIN_INFO;
+  const Char* const INFO = Text::CHIPTRACKER_DECODER_DESCRIPTION;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
 
 

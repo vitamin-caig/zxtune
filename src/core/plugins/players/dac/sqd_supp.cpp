@@ -16,6 +16,7 @@ Author:
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
+#include "core/plugins/players/ay/ay_conversion.h"
 //common includes
 #include <byteorder.h>
 #include <debug_log.h>
@@ -33,9 +34,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 //text includes
-#include <core/text/core.h>
-#include <core/text/plugins.h>
-#include <core/text/warnings.h>
+#include <formats/text/chiptune.h>
 
 #define FILE_TAG 44AA4DF8
 
@@ -362,7 +361,7 @@ namespace
         ? String(header->Title.begin() + 1, header->Title.end() - 1)
         : String(header->Title.begin(), header->Title.end());
       Properties->SetTitle(OptimizeString(title));
-      Properties->SetProgram(Text::SQD_EDITOR);
+      Properties->SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -407,7 +406,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return CreateUnsupportedConversionError(THIS_LINE, spec);
       }
       return Error();
     }
@@ -666,7 +665,7 @@ namespace
 
   //plugin attributes
   const Char ID[] = {'S', 'Q', 'D', 0};
-  const Char* const INFO = Text::SQD_PLUGIN_INFO;
+  const Char* const INFO = Text::SQDIGITALTRACKER_DECODER_DESCRIPTION;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
 
 

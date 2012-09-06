@@ -26,6 +26,35 @@ msgstr "Ошибка создания файла '%1%'."
 msgid "Failed to open file '%1%'."
 msgstr "Ошибка открытия файла '%1%'."
 
+#: providers/enumerator.cpp:65
+#, boost-format
+msgid "Failed to resolve uri '%1%'."
+msgstr "Ошибка анализа идентификатора '%1%'."
+
+#: providers/enumerator.cpp:80 providers/enumerator.cpp:145
+msgid "Specified uri scheme is not supported."
+msgstr "Данная схема идентификатора не поддерживается."
+
+#: providers/enumerator.cpp:187
+msgid "Failed to allocate memory to open data."
+msgstr "Ошибка выделения памяти."
+
+#: providers/enumerator.cpp:198
+msgid "Not supported in current configuration"
+msgstr "Не поддерживается в текущей конфигурации."
+
+#: providers/file_provider.cpp:144
+msgid "Failed to get access."
+msgstr "Ошибка получения доступа."
+
+#: providers/file_provider.cpp:150
+msgid "File is empty."
+msgstr "Файл пуст."
+
+#: providers/file_provider.cpp:287
+msgid "Local files and file:// scheme support"
+msgstr "Поддержка доступа к локальным файлам и схемы file://"
+
 #: providers/network_provider.cpp:104
 #, boost-format
 msgid "Network error happends: %1%"
@@ -44,32 +73,3 @@ msgstr "Поддержка доступа к сетевым файлам"
 #, boost-format
 msgid "Failed to open network resource '%1%'."
 msgstr "Ошибка открытия сетевого ресурса '%1%'."
-
-#: providers/file_provider.cpp:144
-msgid "Failed to get access."
-msgstr "Ошибка получения доступа."
-
-#: providers/file_provider.cpp:150
-msgid "File is empty."
-msgstr "Файл пуст."
-
-#: providers/file_provider.cpp:287
-msgid "Local files and file:// scheme support"
-msgstr "Поддержка доступа к локальным файлам и схемы file://"
-
-#: providers/enumerator.cpp:65
-#, boost-format
-msgid "Failed to resolve uri '%1%'."
-msgstr "Ошибка анализа идентификатора '%1%'."
-
-#: providers/enumerator.cpp:80 providers/enumerator.cpp:145
-msgid "Specified uri scheme is not supported."
-msgstr "Данная схема идентификатора не поддерживается."
-
-#: providers/enumerator.cpp:187
-msgid "Failed to allocate memory to open data."
-msgstr "Ошибка выделения памяти."
-
-#: providers/enumerator.cpp:198
-msgid "Not supported in current configuration"
-msgstr "Не поддерживается в текущей конфигурации."

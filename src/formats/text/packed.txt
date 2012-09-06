@@ -42,7 +42,7 @@ __cpp> "#endif //__TEXT_PACKED_H_DEFINED__\n"
 
 #FDI
 < FDI_DECODER_DESCRIPTION
-> "FullDiskImage (FDI)"
+> "FDI (Full Disk Image)"
 
 #Hobeta
 < HOBETA_DECODER_DESCRIPTION
@@ -103,15 +103,15 @@ __cpp> "#endif //__TEXT_PACKED_H_DEFINED__\n"
 
 #RAR
 < RAR_DECODER_DESCRIPTION
-> "RAR v2.x archiver"
+> "RAR v2.x"
 
 #SNA128
 < SNA128_DECODER_DESCRIPTION
-> "SNA 128k snapshot"
+> "SNA 128k"
 
 #TD0
 < TELEDISKIMAGE_DECODER_DESCRIPTION
-> "TeleDisk Image (TD0)"
+> "TD0 (TeleDisk Image)"
 
 #TLZ
 < TLZ_DECODER_DESCRIPTION
@@ -119,7 +119,7 @@ __cpp> "#endif //__TEXT_PACKED_H_DEFINED__\n"
 
 #TLZP
 < TLZP_DECODER_DESCRIPTION
-> "Turbo#LZ v1.x (for internal usage only)"
+> "Turbo#LZ v1.x (internal)"
 
 #TRUSH
 < TRUSH_DECODER_DESCRIPTION
@@ -127,18 +127,18 @@ __cpp> "#endif //__TEXT_PACKED_H_DEFINED__\n"
 
 #ZIP
 < ZIP_DECODER_DESCRIPTION
-> "ZIP archiver"
+> "ZIP"
 
 #ZXZIP
 < ZXZIP_DECODER_DESCRIPTION
-> "ZXZip archiver"
+> "ZXZip"
 
 #Z80
 < Z80V145_DECODER_DESCRIPTION
-> "Z80 snapshots version 1.45"
+> "Z80 v1.45"
 
 < Z80V20_DECODER_DESCRIPTION
-> "Z80 snapshots version 2.0"
+> "Z80 v2.x"
 
 < Z80V30_DECODER_DESCRIPTION
-> "Z80 snapshots version 3.0"
+> "Z80 v3.x"

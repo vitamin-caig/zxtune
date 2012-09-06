@@ -16,6 +16,7 @@ Author:
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
+#include "core/plugins/players/ay/ay_conversion.h"
 //common includes
 #include <byteorder.h>
 #include <debug_log.h>
@@ -33,8 +34,7 @@ Author:
 #include <boost/bind.hpp>
 //text includes
 #include <core/text/core.h>
-#include <core/text/plugins.h>
-#include <core/text/warnings.h>
+#include <formats/text/chiptune.h>
 
 #define FILE_TAG ADBE77A4
 
@@ -233,7 +233,7 @@ namespace
         Properties->SetSource(usedSize, fixedRegion);
       }
       Properties->SetTitle(OptimizeString(FromCharArray(header->Title)));
-      Properties->SetProgram(Text::STR_EDITOR);
+      Properties->SetProgram(Text::SAMPLETRACKER_DECODER_DESCRIPTION);
     }
 
     virtual Plugin::Ptr GetPlugin() const
@@ -278,7 +278,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return CreateUnsupportedConversionError(THIS_LINE, spec);
       }
       return Error();
     }
@@ -459,7 +459,7 @@ namespace
 
   //plugin attributes
   const Char ID[] = {'S', 'T', 'R', 0};
-  const Char* const INFO = Text::STR_PLUGIN_INFO;
+  const Char* const INFO = Text::SAMPLETRACKER_DECODER_DESCRIPTION;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
 
 

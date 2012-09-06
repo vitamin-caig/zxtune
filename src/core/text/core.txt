@@ -18,63 +18,6 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 < MODULE_CONTAINERS_DELIMITER
 > ">"
 
-< MODULE_ERROR_PARAMETERS
-> "Invalid input parameters specified."
-
-< MODULE_ERROR_INVALID_FORMAT
-> "Invalid module format."
-
-< MODULE_ERROR_MODULE_END
-> "Module end is reached."
-
-< MODULE_ERROR_CONVERSION_UNSUPPORTED
-> "Unsupported conversion mode."
-
-= MODULE_ERROR_CONVERT
-> "Failed to convert to "
-
-< MODULE_ERROR_CONVERT_PSG
-> MODULE_ERROR_CONVERT "PSG format."
-
-< MODULE_ERROR_CONVERT_ZX50
-> MODULE_ERROR_CONVERT "ZX50 format."
-
-< MODULE_ERROR_CONVERT_DEBUGAY
-> MODULE_ERROR_CONVERT "DebugAY format."
-
-< MODULE_ERROR_CONVERT_AYDUMP
-> MODULE_ERROR_CONVERT "raw ay dump format."
-
-< MODULE_ERROR_CONVERT_FYM
-> MODULE_ERROR_CONVERT "FYM format."
-
-< MODULE_ERROR_CANCELED
-> "Canceled."
-
-< MODULE_ERROR_NO_MEMORY
-> "Failed to allocate memory while processing modules."
-
-< MODULE_ERROR_FIND_SUBMODULE
-> "Failed to find specified submodule starting from path '%1%'."
-
-< MODULE_ERROR_INVALID_CLOCKFREQ
-> "Invalid clock frequency (%1%)."
-
-< MODULE_ERROR_INVALID_FREQ_TABLE_NAME
-> "Invalid frequency table '%1%'."
-
-< MODULE_ERROR_INVALID_FREQ_TABLE_SIZE
-> "Invalid frequency table size (%1%)."
-
-< MODULE_ERROR_INVALID_DUTY_CYCLE
-> "Invalid duty cycle value (%1%)."
-
-< MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM
-> "Invalid duty cycle mask item: '%1%'."
-
-< MODULE_ERROR_INVALID_LAYOUT
-> "Invalid layout value (%1%)."
-
 < MODULE_LAYOUT_ABC
 > "ABC"
 
@@ -95,6 +38,3 @@ __cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 
 < MODULE_LAYOUT_MONO
 > "MONO"
-
-< MODULE_ERROR_SET_PLAYER_PARAMETERS
-> "Failed to set player parameters."

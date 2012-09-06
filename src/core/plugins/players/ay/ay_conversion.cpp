@@ -12,11 +12,14 @@ Author:
 //local includes
 #include "ay_conversion.h"
 #include "vortex_io.h"
+//common includes
+#include <error_tools.h>
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/error_codes.h>
 #include <core/plugin_attrs.h>
+#include <l10n/api.h>
 #include <sound/render_params.h>
 //boost includes
 #include <boost/algorithm/string.hpp>
@@ -28,6 +31,8 @@ Author:
 namespace
 {
   using namespace ZXTune;
+
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
   class BaseDumperParameters : public Devices::AYM::DumperParameters
   {
@@ -126,35 +131,35 @@ namespace ZXTune
       {
         const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, psg->Optimization);
         dumper = Devices::AYM::CreatePSGDumper(dumpParams);
-        errMessage = Text::MODULE_ERROR_CONVERT_PSG;
+        errMessage = translate("Failed to convert to PSG format.");
       }
       //convert to ZX50
       else if (const ZX50ConvertParam* zx50 = parameter_cast<ZX50ConvertParam>(&spec))
       {
         const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, zx50->Optimization);
         dumper = Devices::AYM::CreateZX50Dumper(dumpParams);
-        errMessage = Text::MODULE_ERROR_CONVERT_ZX50;
+        errMessage = translate("Failed to convert to ZX50 format.");
       }
       //convert to debugay
       else if (const DebugAYConvertParam* dbg = parameter_cast<DebugAYConvertParam>(&spec))
       {
         const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, dbg->Optimization);
         dumper = Devices::AYM::CreateDebugDumper(dumpParams);
-        errMessage = Text::MODULE_ERROR_CONVERT_DEBUGAY;
+        errMessage = translate("Failed to convert to debug ay format.");
       }
       //convert to aydump
       else if (const AYDumpConvertParam* aydump = parameter_cast<AYDumpConvertParam>(&spec))
       {
         const Devices::AYM::DumperParameters::Ptr dumpParams = boost::make_shared<BaseDumperParameters>(params, aydump->Optimization);
         dumper = Devices::AYM::CreateRawStreamDumper(dumpParams);
-        errMessage = Text::MODULE_ERROR_CONVERT_AYDUMP;
+        errMessage = translate("Failed to convert to raw ay dump.");;
       }
       //convert to fym
       else if (const FYMConvertParam* fym = parameter_cast<FYMConvertParam>(&spec))
       {
         const Devices::AYM::FYMDumperParameters::Ptr dumpParams = boost::make_shared<FYMDumperParameters>(params, boost::cref(chiptune), fym->Optimization);
         dumper = Devices::AYM::CreateFYMDumper(dumpParams);
-        errMessage = Text::MODULE_ERROR_CONVERT_PSG;
+        errMessage = translate("Failed to convert to FYM format.");;
       }
 
       if (!dumper)
@@ -201,6 +206,11 @@ namespace ZXTune
     uint_t GetSupportedVortexFormatConvertors()
     {
       return CAP_CONV_TXT;
+    }
+
+    Error CreateUnsupportedConversionError(Error::LocationRef loc, const Conversion::Parameter& param)
+    {
+      return MakeFormattedError(loc, ERROR_MODULE_CONVERT, translate("Unsupported conversion mode (%1$08x)."), param.ID);
     }
   }
 }

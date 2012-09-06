@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "container_supp_common.h"
 #include <core/src/callback.h>
 #include <core/src/core.h>
 #include <core/plugins/registrator.h>
@@ -24,6 +25,7 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
+#include <l10n/api.h>
 //std includes
 #include <list>
 //boost includes
@@ -31,13 +33,14 @@ Author:
 #include <boost/lexical_cast.hpp>
 #include <boost/make_shared.hpp>
 //text includes
-#include <core/text/core.h>
 #include <core/text/plugins.h>
 
 #define FILE_TAG 7E0CBD98
 
 namespace
 {
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+
   class AutoTimer
   {
   public:
@@ -231,6 +234,10 @@ namespace
 
   const Debug::Stream Dbg("Core::RawScaner");
 
+  const Char ID[] = {'R', 'A', 'W', 0};
+  const Char* const INFO = Text::RAW_PLUGIN_INFO;
+  const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
+
   const std::size_t SCAN_STEP = 1;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
 
@@ -251,7 +258,7 @@ namespace
           minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
       {
         throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
-          Text::RAW_ERROR_INVALID_MIN_SIZE, minRawSize, MIN_MINIMAL_RAW_SIZE);
+          translate("Specified minimal scan size (%1%). Should be more than %2%."), minRawSize, MIN_MINIMAL_RAW_SIZE);
       }
       return static_cast<std::size_t>(minRawSize);
     }
@@ -271,7 +278,7 @@ namespace
   public:
     RawProgressCallback(const Module::DetectCallback& callback, uint_t limit, const String& path)
       : Delegate(CreateProgressCallback(callback, limit))
-      , Text(path.empty() ? String(Text::PLUGIN_RAW_PROGRESS_NOPATH) : Strings::Format(Text::PLUGIN_RAW_PROGRESS, path))
+      , Text(ProgressMessage(ID, path))
     {
     }
 
@@ -643,10 +650,6 @@ namespace
 namespace
 {
   using namespace ZXTune;
-
-  const Char ID[] = {'R', 'A', 'W', 0};
-  const Char* const INFO = Text::RAW_PLUGIN_INFO;
-  const uint_t CAPS = CAP_STOR_MULTITRACK | CAP_STOR_SCANER;
 
   class RawScaner : public ArchivePlugin
   {

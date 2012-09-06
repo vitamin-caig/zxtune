@@ -21,6 +21,9 @@ Author:
 namespace ZXTune
 {
   ArchivePlugin::Ptr CreateContainerPlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder);
+
+  String ProgressMessage(const String& id, const String& path);
+  String ProgressMessage(const String& id, const String& path, const String& element);
 }
 
 #endif //__CORE_PLUGINS_CONTAINER_SUPP_COMMON_H_DEFINED__

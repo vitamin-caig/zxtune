@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "tfm_base.h"
+#include "core/plugins/players/ay/ay_conversion.h"
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -187,7 +188,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return CreateUnsupportedConversionError(THIS_LINE, spec);
       }
     }
   private:

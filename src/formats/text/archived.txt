@@ -14,7 +14,7 @@ __cpp> "#endif //__TEXT_ARCHIVED_H_DEFINED__\n"
 
 #AY
 < AY_ARCHIVE_DECODER_DESCRIPTION
-> "Multimodule AY container"
+> "Multi-AY/EMUL"
 
 < AY_FILENAME_PREFIX
 > "#"
@@ -24,20 +24,20 @@ __cpp> "#endif //__TEXT_ARCHIVED_H_DEFINED__\n"
 
 #HRIP
 < HRIP_DECODER_DESCRIPTION
-> "Hrip archive"
+> "Hrip (Hrust RiP archiver)"
 
 #LHA
 < LHA_DECODER_DESCRIPTION
-> "LHA archive"
+> "LHA (LHArc)"
 
 #SCL
 < SCL_DECODER_DESCRIPTION
-> "SCL files container"
+> "SCL (SINCLAIR)"
 
 #TRD
 < TRD_DECODER_DESCRIPTION
-> "TR-Dos disks image"
+> "TRD (TR-DOS)"
 
-#ZXS
+#SZX
 < ZXSTATE_DECODER_DESCRIPTION
-> "ZX-State snapshot format"
+> "SZX (ZX-State)"

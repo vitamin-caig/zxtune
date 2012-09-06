@@ -20,6 +20,7 @@ Author:
 #include <core/error_codes.h>
 #include <core/freq_tables.h>
 #include <core/module_attrs.h>
+#include <l10n/api.h>
 //std includes
 #include <cctype>
 //boost includes
@@ -851,6 +852,13 @@ namespace
     descr.Order.swap(tmp.Order);
     return it;
   }
+
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+
+  Error CreateInvalidStringError(Error::LocationRef loc, const std::string& txt)
+  {
+    return MakeFormattedError(loc, ERROR_INVALID_FORMAT, translate("Invalid string while parsing: '%1%'."), txt);
+  }
 }
 
 namespace ZXTune
@@ -867,7 +875,7 @@ namespace ZXTune
           boost::algorithm::token_compress_on);
         if (std::count_if(lines.begin(), lines.end(), &FindSection) < 4)
         {
-          return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, text);
+          return CreateInvalidStringError(THIS_LINE, text);
         }
 
         Description descr;
@@ -885,7 +893,7 @@ namespace ZXTune
             const LinesArray::const_iterator stop = DescriptionFromStrings(it, next, descr);
             if (next != stop)
             {
-              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, *stop);
+              return CreateInvalidStringError(THIS_LINE, *stop);
             }
           }
           else if (OrnamentHeaderFromString(string, idx))
@@ -893,7 +901,7 @@ namespace ZXTune
             data.Ornaments.resize(idx + 1);
             if (!OrnamentFromString(*it, data.Ornaments[idx]))
             {
-              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, *it);
+              return CreateInvalidStringError(THIS_LINE, *it);
             }
           }
           else if (SampleHeaderFromString(string, idx))
@@ -902,7 +910,7 @@ namespace ZXTune
             const StringArray::const_iterator stop = SampleFromStrings(it, next, data.Samples[idx]);
             if (next != stop)
             {
-              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, *stop);
+              return CreateInvalidStringError(THIS_LINE, *stop);
             }
           }
           else if (PatternHeaderFromString(string, idx))
@@ -911,18 +919,18 @@ namespace ZXTune
             const LinesArray::const_iterator stop = PatternFromStrings(it, next, data.Patterns[idx]);
             if (next != stop)
             {
-              return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, *stop);
+              return CreateInvalidStringError(THIS_LINE, *stop);
             }
           }
           else
           {
-            return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, string);
+            return CreateInvalidStringError(THIS_LINE, string);
           }
           it = next;
         }
         if (descr.Order.empty() || 0 == descr.Tempo || 0 == descr.Version)
         {
-          return MakeFormattedError(THIS_LINE, ERROR_INVALID_FORMAT, Text::TXT_ERROR_INVALID_STRING, text);
+          return CreateInvalidStringError(THIS_LINE, text);
         }
 
         data.LoopPosition = descr.Loop;

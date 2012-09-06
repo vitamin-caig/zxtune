@@ -31,10 +31,6 @@ Author:
 #include <formats/chiptune_decoders.h>
 #include <formats/packed_decoders.h>
 #include <formats/chiptune/protracker2.h>
-//text includes
-#include <core/text/core.h>
-#include <core/text/plugins.h>
-#include <core/text/warnings.h>
 
 #define FILE_TAG 077C8579
 
@@ -636,7 +632,7 @@ namespace ZXTune
     {
       const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
       const ModulesFactory::Ptr factory = boost::make_shared<PT2::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT2::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, PT2::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT2::ID, decoder->GetDescription(), PT2::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

@@ -31,10 +31,6 @@ Author:
 #include <formats/chiptune_decoders.h>
 #include <formats/packed_decoders.h>
 #include <formats/chiptune/prosoundmaker.h>
-//text includes
-#include <core/text/core.h>
-#include <core/text/plugins.h>
-#include <core/text/warnings.h>
 
 #define FILE_TAG B74E7B96
 
@@ -700,7 +696,7 @@ namespace ZXTune
     {
       const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProSoundMakerCompiledDecoder();
       const ModulesFactory::Ptr factory = boost::make_shared<PSM::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PSM::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, PSM::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PSM::ID, decoder->GetDescription(), PSM::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }
