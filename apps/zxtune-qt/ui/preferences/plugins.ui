@@ -49,15 +49,12 @@
            </sizepolicy>
           </property>
           <property name="text">
-           <string>Minimal data size to scan</string>
+           <string>Minimal data size to scan, bytes</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QSpinBox" name="rawMinSizeValue">
-          <property name="suffix">
-           <string> bytes</string>
-          </property>
           <property name="minimum">
            <number>128</number>
           </property>

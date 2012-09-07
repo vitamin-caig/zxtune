@@ -193,7 +193,7 @@ namespace
 
     virtual QString Text() const
     {
-      return Playlist::UI::ItemsContextMenu::tr("Converted: %1\nFailed: %2")
+      return Playlist::UI::ItemsContextMenu::tr("Converted: %1<br/>Failed: %2")
         .arg(ModulesCount(Succeeds)).arg(ModulesCount(Errors.size()));
     }
 

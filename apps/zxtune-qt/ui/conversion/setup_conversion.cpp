@@ -49,7 +49,7 @@ namespace
   }
 
   class SetupConversionDialogImpl : public UI::SetupConversionDialog
-                                  , private Ui::ConversionDialog
+                                  , private UI::Ui_SetupConversionDialog
   {
   public:
     explicit SetupConversionDialogImpl(QWidget& parent)
@@ -121,6 +121,7 @@ namespace
     {
       QWidget* const settingsWidget = toolBox->widget(SETTINGS_PAGE);
       UI::BackendSettingsWidget* const result = factory(*settingsWidget);
+      formatSettingsLayout->addWidget(result);
       connect(result, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
       BackendSettings[result->GetBackendId()] = result;
     }
@@ -164,7 +165,7 @@ namespace
       }
       else
       {
-        toolBox->setItemText(SETTINGS_PAGE, tr("No options"));
+        toolBox->setItemText(SETTINGS_PAGE, UI::SetupConversionDialog::tr("No options"));
         toolBox->setItemEnabled(SETTINGS_PAGE, false);
       }
     }

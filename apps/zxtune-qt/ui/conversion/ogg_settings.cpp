@@ -85,7 +85,7 @@ namespace
       }
       else if (selectBitrate->isChecked())
       {
-        return Translate(QT_TRANSLATE_NOOP("OggSettings", "ABR %1 kbps")).arg(bitrateValue->value());
+        return Translate(QT_TRANSLATE_NOOP("OggSettings", "Average bitrate %1 kbps")).arg(bitrateValue->value());
       }
       else
       {

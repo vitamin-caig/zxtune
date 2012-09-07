@@ -29,7 +29,7 @@
       <item row="0" column="0">
        <widget class="QRadioButton" name="selectCBR">
         <property name="text">
-         <string>Fixed bitrate</string>
+         <string>Fixed bitrate, kBps</string>
         </property>
        </widget>
       </item>
@@ -62,9 +62,6 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="suffix">
-           <string> kBps</string>
-          </property>
           <property name="minimum">
            <number>32</number>
           </property>
@@ -78,7 +75,7 @@
       <item row="1" column="0">
        <widget class="QRadioButton" name="selectABR">
         <property name="text">
-         <string>Average bitrate</string>
+         <string>Average bitrate, kBps</string>
         </property>
        </widget>
       </item>

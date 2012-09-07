@@ -138,8 +138,7 @@ namespace
 
     void AddFrequency(uint_t freq)
     {
-      const QString txt = UI::SoundSettingsWidget::tr("%1 Hz").arg(freq);
-      soundFrequencyValue->addItem(txt);
+      soundFrequencyValue->addItem(QString::number(freq));
     }
 
     void FillBackends()

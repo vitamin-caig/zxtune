@@ -55,7 +55,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Latency</string>
+         <string>Latency, mS</string>
         </property>
        </widget>
       </item>
@@ -63,9 +63,6 @@
        <widget class="QSpinBox" name="latency">
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-        <property name="suffix">
-         <string> mS</string>
         </property>
         <property name="minimum">
          <number>20</number>

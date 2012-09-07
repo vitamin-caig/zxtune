@@ -153,10 +153,8 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="196"/>
-        <source>Converted: %1
-Failed: %2</source>
-        <translation>Сконвертировано: %1
-Ошибок: %2</translation>
+        <source>Converted: %1&lt;br/&gt;Failed: %2</source>
+        <translation>Сконвертировано: %1&lt;br/&gt;Неудачно: %2</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="212"/>

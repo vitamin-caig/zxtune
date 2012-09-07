@@ -91,7 +91,7 @@ namespace
       }
       else if (selectQuality->isChecked())
       {
-        return Translate(QT_TRANSLATE_NOOP("Mp3Settings", "VBR quality %1")).arg(qualityValue->value());
+        return Translate(QT_TRANSLATE_NOOP("Mp3Settings", "Quality %1")).arg(qualityValue->value());
       }
       else
       {

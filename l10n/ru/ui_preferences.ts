@@ -5,8 +5,8 @@
     <name>AYMOptions</name>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="26"/>
-        <source>Clock frequency</source>
-        <translation>Тактовая частота</translation>
+        <source>Clock frequency, Hz</source>
+        <translation>Тактовая частота, Гц</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="52"/>
@@ -14,9 +14,29 @@
         <translation>Пользовательская</translation>
     </message>
     <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="57"/>
+        <source>ZX Spectrum (1.7734 MHz)</source>
+        <translation>ZX Spectrum (1.7734 МГц)</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="62"/>
+        <source>Pentagon (1.75 MHz)</source>
+        <translation>Pentagon (1.75 МГц)</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="67"/>
+        <source>Atari ST (2 MHz)</source>
+        <translation>Atari ST (2 МГц)</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="72"/>
+        <source>Amstrad CPC (1 MHz)</source>
+        <translation>Amstrad CPC (1 МГц)</translation>
+    </message>
+    <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="89"/>
-        <source>Duty cycle</source>
-        <translation>Скважность</translation>
+        <source>Duty cycle, %</source>
+        <translation>Скважность, %</translation>
     </message>
 </context>
 <context>
@@ -56,13 +76,8 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound_dsound.ui" line="58"/>
-        <source>Latency</source>
-        <translation>Латентность</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_dsound.ui" line="68"/>
-        <source> mS</source>
-        <translation> мс</translation>
+        <source>Latency, mS</source>
+        <translation>Латентность, мс</translation>
     </message>
 </context>
 <context>
@@ -79,21 +94,16 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="52"/>
-        <source>Minimal data size to scan</source>
-        <translation>Минимальный размер данных для анализа</translation>
+        <source>Minimal data size to scan, bytes</source>
+        <translation>Минимальный размер для анализа, байт</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="59"/>
-        <source> bytes</source>
-        <translation> байт</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="74"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="71"/>
         <source>&lt;b&gt;Warning!&lt;/b&gt; This may cause big amount of duplicates while searching in raw data</source>
         <translation>&lt;b&gt;Внимание!&lt;/b&gt; Включение данной опции может привести к большому количеству дубликатов при поиске</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="77"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/plugins.ui" line="74"/>
         <source>Double analysis of plain data containers</source>
         <translation>Двойной анализ контейнеров с простой структурой</translation>
     </message>
@@ -195,43 +205,33 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="38"/>
-        <source>Frame duration</source>
-        <translation>Длительность кадра</translation>
+        <source>Frame duration, uS</source>
+        <translation>Длительность кадра, мкс</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="45"/>
-        <source> uS</source>
-        <translation> мкс</translation>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="55"/>
+        <source>Sound frequency, Hz</source>
+        <translation>Частота звука, Гц</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="58"/>
-        <source>Sound frequency</source>
-        <translation>Частота звука</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="71"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="68"/>
         <source>Backends settings</source>
         <translation>Настройки подсистем</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="94"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="91"/>
         <source>Move up</source>
         <translation>Вверх</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="138"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="135"/>
         <source>Move down</source>
         <translation>Вниз</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="153"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="150"/>
         <source>Select backend to setup</source>
         <translation>Выберите подсистему для настройки</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.cpp" line="141"/>
-        <source>%1 Hz</source>
-        <translation>%1 Гц</translation>
     </message>
 </context>
 <context>
@@ -266,13 +266,8 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/z80.ui" line="55"/>
-        <source>INT duration</source>
-        <translation>Длительность INT</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/z80.ui" line="62"/>
-        <source> ticks</source>
-        <translation> тактов</translation>
+        <source>INT duration, ticks</source>
+        <translation>Длительность INT, тактов</translation>
     </message>
 </context>
 </TS>
