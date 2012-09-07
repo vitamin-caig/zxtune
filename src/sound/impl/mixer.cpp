@@ -15,6 +15,7 @@ Author:
 #include <tools.h>
 #include <error_tools.h>
 //library includes
+#include <l10n/api.h>
 #include <sound/error_codes.h>
 #include <sound/mixer.h>
 //std includes
@@ -27,14 +28,14 @@ Author:
 #include <boost/integer/static_log2.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_signed.hpp>
-//text includes
-#include <sound/text/sound.h>
 
 #define FILE_TAG 278565B1
 
 namespace
 {
   using namespace ZXTune::Sound;
+
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   //using unsigned as a native type gives better performance (very strange...), at least at gcc
   typedef int NativeType;
@@ -139,13 +140,13 @@ namespace
     {
       if (data.size() != InChannels)
       {
-        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, Text::SOUND_ERROR_MIXER_INVALID_MATRIX_CHANNELS);
+        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, translate("Failed to set mixer matrix: invalid channels count specified."));
       }
       const std::vector<MultiGain>::const_iterator it = std::find_if(data.begin(), data.end(),
         FindOverloadedGain);
       if (it != data.end())
       {
-        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, Text::SOUND_ERROR_MIXER_INVALID_MATRIX_GAIN);
+        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, translate("Failed to set mixer matrix: gain is out of range."));
       }
       boost::array<MultiFixed, InChannels> tmpMatrix;
       std::transform(data.begin(), data.end(), tmpMatrix.begin(), MultiGain2MultiFixed<NativeType>);
@@ -180,7 +181,7 @@ namespace ZXTune
         return boost::make_shared<FastMixer<4> >();
       default:
         assert(!"Mixer: invalid channels count specified");
-        throw MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, Text::SOUND_ERROR_MIXER_UNSUPPORTED, channels);
+        throw MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, translate("Failed to create unsupported mixer with %1% channels."), channels);
       }
     }
   }

@@ -34,9 +34,11 @@ Author:
 #include <contract.h>
 #include <debug_log.h>
 #include <error.h>
+#include <template_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/algorithm/string/replace.hpp>
 //qt includes
 #include <QtCore/QUrl>
 #include <QtGui/QApplication>
@@ -46,6 +48,7 @@ Author:
 #include <QtGui/QInputDialog>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QProgressBar>
+#include <QtGui/QProxyModel>
 #include <QtGui/QVBoxLayout>
 
 namespace
@@ -115,7 +118,168 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  const char ITEMS_MIMETYPE[] = "application/playlist.items";
+  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+  {
+    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
+  public:
+    explicit HTMLEscapedFieldsSourceAdapter(const Parameters::Accessor& props)
+      : Parent(props)
+    {
+    }
+
+    virtual String GetFieldValue(const String& fieldName) const
+    {
+      static const Char AMPERSAND[] = {'&', 0};
+      static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
+      static const Char LBRACKET[] = {'<', 0};
+      static const Char LBRACKET_ESCAPED[] = {'&', 'l', 't', ';', 0};
+      String result = Parent::GetFieldValue(fieldName);
+      boost::algorithm::replace_all(result, AMPERSAND, AMPERSAND_ESCAPED);
+      boost::algorithm::replace_all(result, LBRACKET, LBRACKET_ESCAPED);
+      return result;
+    }
+  };
+
+  class TooltipSource
+  {
+  public:
+    String Get(const Parameters::Accessor& properties) const
+    {
+      const HTMLEscapedFieldsSourceAdapter adapter(properties);
+      return GetTemplate().Instantiate(adapter);
+    }
+  private:
+    const StringTemplate& GetTemplate() const
+    {
+      const QString view = Playlist::UI::View::tr(
+        "<html>"
+        "[Fullpath]<br/>"
+        "[Container]&nbsp;([Size] bytes)<br/><br/>"
+        "<b>Title:</b> [Title]<br/>"
+        "<b>Author:</b> [Author]<br/>"
+        "<b>Program:</b> [Program]<br/>"
+        "[Comment]"
+        "</html>"
+      );
+      return GetTemplate(view);
+    }
+
+    const StringTemplate& GetTemplate(const QString& view) const
+    {
+      if (view != TemplateView)
+      {
+        TemplateData = StringTemplate::Create(FromQString(view));
+        TemplateView = view;
+      }
+      return *TemplateData;
+    }
+  private:
+    mutable QString TemplateView;
+    mutable StringTemplate::Ptr TemplateData;
+  };
+
+  class RetranslateModel : public QProxyModel
+  {
+  public:
+    explicit RetranslateModel(Playlist::Model& model)
+      : QProxyModel(&model)
+      , Delegate(model)
+    {
+      setModel(&model);
+      Dbg("Created retranslation model at %1% for %2%", this, &model);
+    }
+
+    virtual ~RetranslateModel()
+    {
+      Dbg("Destroyed retranslation model at %1%", this);
+    }
+
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const
+    {
+      if (Qt::Horizontal == orientation  &&
+          Qt::DisplayRole == role)
+      {
+        return GetHeaderText(section);
+      }
+      return QProxyModel::headerData(section, orientation, role);
+    }
+
+    virtual QVariant data(const QModelIndex& index, int role) const
+    {
+      if (!index.isValid())
+      {
+        return QVariant();
+      }
+      else if (Qt::ToolTipRole == role)
+      {
+        const int_t itemNum = index.row();
+        return GetTooltip(itemNum);
+      }
+      else
+      {
+        return QProxyModel::data(index, role);
+      }
+    }
+
+    virtual bool canFetchMore(const QModelIndex& index) const
+    {
+      return Delegate.canFetchMore(index);
+    }
+  private:
+    QVariant GetTooltip(int_t itemNum) const
+    {
+      if (const Playlist::Item::Data::Ptr item = Delegate.GetItem(itemNum))
+      {
+        return GetTooltip(*item);
+      }
+      return QVariant();
+    }
+
+    QVariant GetTooltip(const Playlist::Item::Data& item) const
+    {
+      if (item.IsValid())
+      {
+        if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
+        {
+          const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
+          return ToQString(Tooltip.Get(*properties));
+        }
+      }
+      return ToQString(item.GetFullPath());
+    }
+
+    QVariant GetHeaderText(unsigned column) const
+    {
+      switch (column)
+      {
+      case Playlist::Model::COLUMN_TYPE:
+        return Playlist::UI::View::tr("Type");
+      case Playlist::Model::COLUMN_DISPLAY_NAME:
+        return Playlist::UI::View::tr("Author - Title");
+      case Playlist::Model::COLUMN_DURATION:
+        return Playlist::UI::View::tr("Duration");
+      case Playlist::Model::COLUMN_AUTHOR:
+        return Playlist::UI::View::tr("Author");
+      case Playlist::Model::COLUMN_TITLE:
+        return Playlist::UI::View::tr("Title");
+      case Playlist::Model::COLUMN_PATH:
+        return Playlist::UI::View::tr("Path");
+      case Playlist::Model::COLUMN_SIZE:
+        return Playlist::UI::View::tr("Size");
+      case Playlist::Model::COLUMN_CRC:
+        return Playlist::UI::View::tr("CRC");
+      case Playlist::Model::COLUMN_FIXEDCRC:
+        return Playlist::UI::View::tr("FixedCRC");
+      default:
+        return QVariant();
+      };
+    }
+  private:
+    Playlist::Model& Delegate;
+    TooltipSource Tooltip;
+  };
+
+  const QLatin1String ITEMS_MIMETYPE("application/playlist.items");
 
   class ViewImpl : public Playlist::UI::View
   {
@@ -126,7 +290,7 @@ namespace
       , Controller(playlist)
       , Options(PlaylistOptionsWrapper(params))
       , State(*Controller->GetModel(), *Controller->GetIterator())
-      , View(Playlist::UI::TableView::Create(*this, State, Controller->GetModel()))
+      , View(Playlist::UI::TableView::Create(*this, State, *new RetranslateModel(*Controller->GetModel())))
       , OperationProgress(OverlayProgress::Create(*this))
     {
       //setup ui
@@ -246,8 +410,9 @@ namespace
     virtual void AddFiles()
     {
       QStringList files;
-      if (UI::OpenMultipleFilesDialog(tr("Add files"),
-        tr("All files (*.*)"), files))
+      if (UI::OpenMultipleFilesDialog(
+        Playlist::UI::View::tr("Add files"),
+        Playlist::UI::View::tr("All files (*.*)"), files))
       {
         AddItems(files);
       }
@@ -257,7 +422,7 @@ namespace
     {
       QStringList folders;
       folders += QString();
-      if (UI::OpenFolderDialog(tr("Add folder"), folders.front()))
+      if (UI::OpenFolderDialog(Playlist::UI::View::tr("Add folder"), folders.front()))
       {
         AddItems(folders);
       }
@@ -267,7 +432,7 @@ namespace
     {
       const QString oldName = Controller->GetName();
       bool ok = false;
-      const QString newName = QInputDialog::getText(this, QString::fromUtf8("Rename playlist"), QString(), QLineEdit::Normal, oldName, &ok);
+      const QString newName = QInputDialog::getText(this, Playlist::UI::View::tr("Rename playlist"), QString(), QLineEdit::Normal, oldName, &ok);
       if (ok && !newName.isEmpty())
       {
         Controller->SetName(newName);
@@ -277,13 +442,13 @@ namespace
     virtual void Save()
     {
       QStringList filters;
-      filters << "Simple playlist (*.xspf)";
-      filters << "Playlist with module's attributes (*.xspf)";
+      filters << Playlist::UI::View::tr("Simple playlist (*.xspf)");
+      filters << Playlist::UI::View::tr("Playlist with module's attributes (*.xspf)");
 
       QString filename = Controller->GetName();
       int usedFilter = 0;
-      if (UI::SaveFileDialog(QString::fromUtf8("Save playlist"),
-        QString::fromUtf8("xspf"), filters, filename, &usedFilter))
+      if (UI::SaveFileDialog(Playlist::UI::View::tr("Save playlist"),
+        QLatin1String("xspf"), filters, filename, &usedFilter))
       {
         Playlist::IO::ExportFlags flags = 0;
         if (1 == usedFilter)

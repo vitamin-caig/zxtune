@@ -22,6 +22,7 @@ Author:
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
 //qt includes
+#include <QtGui/QApplication>
 #include <QtGui/QDialog>
 //text includes
 #include "text/text.h"
@@ -63,12 +64,22 @@ namespace
     return ZXTune::CAP_STOR_CONTAINER == (plugin.Capabilities() & ZXTune::CAP_STOR_CONTAINER);
   }
 
+  QString Translate(const char* msg)
+  {
+    return QApplication::translate("ComponentsDialog", msg, 0, QApplication::UnicodeUTF8);
+  }
+
+  template<class T>
+  QTreeWidgetItem* CreateTreeWidgetItem(T* parent, const char* title)
+  {
+    return new QTreeWidgetItem(parent, QStringList(Translate(title)));
+  }
+
   void AddCapability(uint_t caps, uint_t mask, QTreeWidgetItem& root, const char* notation)
   {
     if (mask == (caps & mask))
     {
-      const QString& title(notation);
-      new QTreeWidgetItem(&root, QStringList(title));
+      CreateTreeWidgetItem(&root, notation);
     }
   }
 
@@ -77,13 +88,13 @@ namespace
   public:
     explicit PluginsTreeHelper(QTreeWidget& widget)
       : Widget(widget)
-      , Players(new QTreeWidgetItem(&Widget, QStringList("Player plugins")))
-      , Containers(new QTreeWidgetItem(&Widget, QStringList("Container plugins")))
-      , Ayms(new QTreeWidgetItem(Players, QStringList("AY/YM")))
-      , Dacs(new QTreeWidgetItem(Players, QStringList("DAC")))
-      , Fms(new QTreeWidgetItem(Players, QStringList("FM")))
-      , Multitracks(new QTreeWidgetItem(Containers, QStringList("Multitrack")))
-      , Archives(new QTreeWidgetItem(Containers, QStringList("Archive")))
+      , Players(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Player plugins")))
+      , Containers(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Container plugins")))
+      , Ayms(CreateTreeWidgetItem(Players, "AY/YM"))
+      , Dacs(CreateTreeWidgetItem(Players, "DAC"))
+      , Fms(CreateTreeWidgetItem(Players, "FM"))
+      , Multitracks(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack")))
+      , Archives(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Archive")))
     {
     }
 
@@ -124,7 +135,6 @@ namespace
       assert(IsPlayerPlugin(plugin));
       const String& description = plugin.Description();
       const String& id = plugin.Id();
-      const QString& conversionTitle("Conversion targets");
 
       //root
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
@@ -134,21 +144,21 @@ namespace
       //conversion
       if (uint_t convCaps = plugin.Capabilities() & ZXTune::CAP_CONVERSION_MASK)
       {
-        QTreeWidgetItem* const conversionItem = new QTreeWidgetItem(pluginItem, QStringList(conversionTitle));
+        QTreeWidgetItem* const conversionItem = CreateTreeWidgetItem(pluginItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Conversion targets"));
         FillConversionCapabilities(convCaps, *conversionItem);
       }
     }
 
     void FillConversionCapabilities(uint_t caps, QTreeWidgetItem& root)
     {
-      AddCapability(caps, ZXTune::CAP_CONV_RAW, root, QT_TR_NOOP("Raw ripping"));
-      AddCapability(caps, ZXTune::CAP_CONV_OUT, root, QT_TR_NOOP("Streamed .out format"));
-      AddCapability(caps, ZXTune::CAP_CONV_PSG, root, QT_TR_NOOP("Streamed .psg format"));
-      AddCapability(caps, ZXTune::CAP_CONV_YM, root, QT_TR_NOOP("Streamed .ym format"));
-      AddCapability(caps, ZXTune::CAP_CONV_ZX50, root, QT_TR_NOOP("Streamed .zx50 format"));
-      AddCapability(caps, ZXTune::CAP_CONV_TXT, root, QT_TR_NOOP("Vortex .txt format"));
-      AddCapability(caps, ZXTune::CAP_CONV_AYDUMP, root, QT_TR_NOOP("Raw aydump format"));
-      AddCapability(caps, ZXTune::CAP_CONV_FYM, root, QT_TR_NOOP("Compressed .fym format"));
+      AddCapability(caps, ZXTune::CAP_CONV_RAW, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Raw ripping"));
+      AddCapability(caps, ZXTune::CAP_CONV_OUT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .out format"));
+      AddCapability(caps, ZXTune::CAP_CONV_PSG, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .psg format"));
+      AddCapability(caps, ZXTune::CAP_CONV_YM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .ym format"));
+      AddCapability(caps, ZXTune::CAP_CONV_ZX50, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .zx50 format"));
+      AddCapability(caps, ZXTune::CAP_CONV_TXT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Vortex .txt format"));
+      AddCapability(caps, ZXTune::CAP_CONV_AYDUMP, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Raw aydump format"));
+      AddCapability(caps, ZXTune::CAP_CONV_FYM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressed .fym format"));
     }
 
     void AddStoragePlugin(const ZXTune::Plugin& plugin)
@@ -171,7 +181,6 @@ namespace
     {
       assert(!IsPlayerPlugin(plugin));
       const String& description = plugin.Description();
-      const QString& capabilitiesTitle("Capabilities");
 
       //root
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
@@ -179,16 +188,16 @@ namespace
       const uint_t otherCapsMask = ZXTune::CAP_STORAGE_MASK & ~(ZXTune::CAP_STOR_MULTITRACK | ZXTune::CAP_STOR_CONTAINER);
       if (uint_t caps = plugin.Capabilities() & otherCapsMask)
       {
-        QTreeWidgetItem* const capabilitiesItem = new QTreeWidgetItem(pluginItem, QStringList(capabilitiesTitle));
+        QTreeWidgetItem* const capabilitiesItem = CreateTreeWidgetItem(pluginItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Capabilities"));
         FillStorageCapabilities(caps, *capabilitiesItem);
       }
     }
 
     void FillStorageCapabilities(uint_t caps, QTreeWidgetItem& root) const
     {
-      AddCapability(caps, ZXTune::CAP_STOR_SCANER, root, QT_TR_NOOP("Data scanner"));
-      AddCapability(caps, ZXTune::CAP_STOR_PLAIN, root, QT_TR_NOOP("Plain data structure format"));
-      AddCapability(caps, ZXTune::CAP_STOR_DIRS, root, QT_TR_NOOP("Directories support"));
+      AddCapability(caps, ZXTune::CAP_STOR_SCANER, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Data scanner"));
+      AddCapability(caps, ZXTune::CAP_STOR_PLAIN, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Plain data structure format"));
+      AddCapability(caps, ZXTune::CAP_STOR_DIRS, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Directories support"));
     }
   private:
     QTreeWidget& Widget;
@@ -240,10 +249,10 @@ namespace
   public:
     explicit BackendsTreeHelper(QTreeWidget& widget)
       : Widget(widget)
-      , Playbacks(new QTreeWidgetItem(&Widget, QStringList("Playback backends")))
-      , Filesaves(new QTreeWidgetItem(&Widget, QStringList("File backends")))
-      , Hardwares(new QTreeWidgetItem(&Widget, QStringList("Hardware backends")))
-      , Others(new QTreeWidgetItem(&Widget, QStringList("Other backends")))
+      , Playbacks(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Playback backends")))
+      , Filesaves(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "File backends")))
+      , Hardwares(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware backends")))
+      , Others(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Other backends")))
     {
     }
 
@@ -272,21 +281,19 @@ namespace
   private:
     void AddBackend(QTreeWidgetItem& root, const ZXTune::Sound::BackendInformation& backend)
     {
-      const QString& featuresTitle("Features");
-
       //root
       QTreeWidgetItem* const backendItem = CreateRootItem(root, backend.Description(), backend.Status());
       //features
       if (uint_t features = backend.Capabilities() & ZXTune::Sound::CAP_FEAT_MASK)
       {
-        QTreeWidgetItem* const featuresItem = new QTreeWidgetItem(backendItem, QStringList(featuresTitle));
+        QTreeWidgetItem* const featuresItem = CreateTreeWidgetItem(backendItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Features"));
         FillBackendFeatures(features, *featuresItem);
       }
     }
 
     void FillBackendFeatures(uint_t feats, QTreeWidgetItem& root)
     {
-      AddCapability(feats, ZXTune::Sound::CAP_FEAT_HWVOLUME, root, QT_TR_NOOP("Hardware volume control"));
+      AddCapability(feats, ZXTune::Sound::CAP_FEAT_HWVOLUME, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware volume control"));
     }
   private:
     QTreeWidget& Widget;

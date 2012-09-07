@@ -31,10 +31,6 @@ Author:
 #include <formats/chiptune_decoders.h>
 #include <formats/packed_decoders.h>
 #include <formats/chiptune/globaltracker.h>
-//text includes
-#include <core/text/core.h>
-#include <core/text/plugins.h>
-#include <core/text/warnings.h>
 
 #define FILE_TAG 1F7CDD7C
 
@@ -537,7 +533,7 @@ namespace ZXTune
     {
       const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateGlobalTrackerDecoder();
       const ModulesFactory::Ptr factory = boost::make_shared<GTR::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(GTR::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, GTR::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(GTR::ID, decoder->GetDescription(), GTR::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

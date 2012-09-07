@@ -27,25 +27,20 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/ref.hpp>
 #include <boost/make_shared.hpp>
-//text includes
-#include "text/text.h"
 
 namespace
 {
   class ConvertVisitor : public Playlist::Item::Visitor
-                       , public Playlist::TextNotification
   {
   public:
-    ConvertVisitor(uint_t totalItems, ZXTune::Sound::BackendCreator::Ptr creator, Parameters::Accessor::Ptr params, Log::ProgressCallback& cb)
+    ConvertVisitor(uint_t totalItems, ZXTune::Sound::BackendCreator::Ptr creator, Parameters::Accessor::Ptr params, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
       : TotalItems(totalItems)
+      , DoneItems(0)
       , Callback(cb)
       , Creator(creator)
       , BackendParameters(params)
-      , Messages(Log::MessagesCollector::Create())
-      , SucceedConvertions(0)
-      , FailedConvertions(0)
+      , Result(result)
     {
     }
 
@@ -58,30 +53,16 @@ namespace
       }
       else
       {
-        Failed(Strings::Format(Text::CONVERT_FAILED_OPEN, path));
+        Result->AddFailedToOpen(path);
       }
-    }
-
-    virtual String Category() const
-    {
-      return FromStdString("Convert");
-    }
-
-    virtual String Text() const
-    {
-      return Strings::Format(Text::CONVERT_STATUS, SucceedConvertions, FailedConvertions);
-    }
-
-    virtual String Details() const
-    {
-      return Messages->GetMessages('\n');
+      ++DoneItems;
     }
   private:
     void ConvertItem(const String& path, ZXTune::Module::Holder::Ptr item)
     {
       try
       {
-        const Log::ProgressCallback::Ptr curItemProgress = Log::CreateNestedPercentProgressCallback(TotalItems, SucceedConvertions + FailedConvertions, Callback);
+        const Log::ProgressCallback::Ptr curItemProgress = Log::CreateNestedPercentProgressCallback(TotalItems, DoneItems, Callback);
         const ZXTune::Module::Information::Ptr info = item->GetModuleInformation();
         const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
         const ZXTune::Sound::CreateBackendParameters::Ptr params = CreateBackendParameters(BackendParameters, item);
@@ -89,11 +70,11 @@ namespace
         ThrowIfError(Creator->CreateBackend(params, backend));
         Convert(*backend, *framesProgress);
         curItemProgress->OnProgress(100);
-        Succeed();
+        Result->AddSucceed();
       }
       catch (const Error& err)
       {
-        Failed(Strings::Format(Text::CONVERT_FAILED, path, err.GetText()));
+        Result->AddFailedToConvert(path, err);
       }
     }
 
@@ -111,26 +92,13 @@ namespace
       ThrowIfError(backend.Stop());
     }
 
-    void Failed(const String& status)
-    {
-      ++FailedConvertions;
-      Messages->AddMessage(status);
-    }
-
-    void Succeed()
-    {
-      ++SucceedConvertions;
-      //Do not add text about succeed convertion
-    }
-
   private:
     const uint_t TotalItems;
+    uint_t DoneItems;
     Log::ProgressCallback& Callback;
     const ZXTune::Sound::BackendCreator::Ptr Creator;
     const Parameters::Accessor::Ptr BackendParameters;
-    const Log::MessagesCollector::Ptr Messages;
-    std::size_t SucceedConvertions;
-    std::size_t FailedConvertions;
+    const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 
   ZXTune::Sound::BackendCreator::Ptr FindBackendCreator(const String& id)
@@ -153,11 +121,12 @@ namespace
   {
   public:
     ConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
-      const String& type, Parameters::Accessor::Ptr params)
+      const String& type, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : Playlist::Item::TextResultOperation(parent)
       , SelectedItems(items)
       , Creator(FindBackendCreator(type))
       , Params(params)
+      , Result(result)
     {
       Require(Creator);
     }
@@ -165,21 +134,22 @@ namespace
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
-      const boost::shared_ptr<ConvertVisitor> tmp = boost::make_shared<ConvertVisitor>(totalItems, Creator, Params, boost::ref(cb));
+      ConvertVisitor visitor(totalItems, Creator, Params, cb, Result);
       if (SelectedItems)
       {
-        stor.ForSpecifiedItems(*SelectedItems, *tmp);
+        stor.ForSpecifiedItems(*SelectedItems, visitor);
       }
       else
       {
-        stor.ForAllItems(*tmp);
+        stor.ForAllItems(visitor);
       }
-      emit ResultAcquired(tmp);
+      emit ResultAcquired(Result);
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
     const ZXTune::Sound::BackendCreator::Ptr Creator;
     const Parameters::Accessor::Ptr Params;
+    const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 }
 
@@ -188,9 +158,9 @@ namespace Playlist
   namespace Item
   {
     TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
-      const String& type, Parameters::Accessor::Ptr params)
+      const String& type, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ConvertOperation>(boost::ref(parent), items, type, params);
+      return boost::make_shared<ConvertOperation>(boost::ref(parent), items, type, params, result);
     }
   }
 }

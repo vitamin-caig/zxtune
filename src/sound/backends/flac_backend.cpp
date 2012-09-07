@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
@@ -30,7 +31,6 @@ Author:
 #include <boost/make_shared.hpp>
 //text includes
 #include <sound/text/backends.h>
-#include <sound/text/sound.h>
 
 #define FILE_TAG 6575CD3F
 
@@ -40,6 +40,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Flac");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   typedef boost::shared_ptr<FLAC__StreamEncoder> FlacEncoderPtr;
 
@@ -47,7 +48,7 @@ namespace
   {
     if (!res)
     {
-      throw Error(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_FLAC_BACKEND_UNKNOWN_ERROR);
+      throw Error(loc, BACKEND_PLATFORM_ERROR, translate("Error in FLAC backend."));
     }
   }
 
@@ -176,7 +177,7 @@ namespace
       if (!res)
       {
         const FLAC__StreamEncoderState state = Api->FLAC__stream_encoder_get_state(Encoder.get());
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_FLAC_BACKEND_ERROR, state);
+        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in FLAC backend (code %1%)."), state);
       }
     }
   private:
@@ -218,6 +219,9 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
+  const String ID = Text::FLAC_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
+
   class FlacFileFactory : public FileStreamFactory
   {
   public:
@@ -230,7 +234,7 @@ namespace
 
     virtual String GetId() const
     {
-      return Text::FLAC_BACKEND_ID;
+      return ID;
     }
 
     virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
@@ -276,12 +280,12 @@ namespace
 
     virtual String Id() const
     {
-      return Text::FLAC_BACKEND_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return Text::FLAC_BACKEND_DESCRIPTION;
+      return translate(DESCRIPTION);
     }
 
     virtual uint_t Capabilities() const
@@ -307,11 +311,11 @@ namespace
       catch (const Error& e)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
       }
     }
   private:
@@ -334,7 +338,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::FLAC_BACKEND_ID, Text::FLAC_BACKEND_DESCRIPTION, CAP_TYPE_FILE, e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAP_TYPE_FILE, e));
       }
     }
   }

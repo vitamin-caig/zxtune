@@ -33,9 +33,7 @@ Author:
 #include <formats/packed_decoders.h>
 #include <formats/chiptune/protracker3.h>
 //text includes
-#include <core/text/core.h>
 #include <core/text/plugins.h>
-#include <core/text/warnings.h>
 
 #define FILE_TAG 3CBC0BBC
 
@@ -408,7 +406,7 @@ namespace PT3
       {
         return Delegate->Convert(spec, params, dst);
       }
-      return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+      return CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const Vortex::Track::ModuleData::Ptr Data;
@@ -495,7 +493,7 @@ namespace ZXTune
     {
       const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker3Decoder();
       const ModulesFactory::Ptr factory = boost::make_shared<PT3::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, PT3::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription(), PT3::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

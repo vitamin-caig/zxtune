@@ -33,9 +33,7 @@ Author:
 //boost includes
 #include <boost/algorithm/string.hpp>
 //text includes
-#include <core/text/core.h>
 #include <core/text/plugins.h>
-#include <core/text/warnings.h>
 
 #define FILE_TAG 24577A20
 

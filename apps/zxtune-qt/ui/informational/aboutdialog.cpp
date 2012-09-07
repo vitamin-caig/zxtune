@@ -19,12 +19,15 @@ Author:
 //common includes
 #include <format.h>
 //qt includes
+#include <QtGui/QApplication>
 #include <QtGui/QDialog>
 //text includes
 #include "text/text.h"
 
 namespace
 {
+  const char* const FEEDBACK_FORMAT = QT_TRANSLATE_NOOP("AboutDialog", "<a href=\"mailto:%1?subject=Feedback for %2\">Send feedback</a>");
+
   class AboutDialog : public QDialog
                     , private Ui::AboutDialog
   {
@@ -34,10 +37,10 @@ namespace
     {
       //do not set parent
       setupUi(this);
-      const String appVersion = GetProgramVersionString();
-      buildLabel->setText(ToQString(appVersion));
-      const String feedbackText = Strings::Format(Text::FEEDBACK_TEXT, appVersion);
-      feedbackLabel->setText(ToQString(feedbackText));
+      const QString appVersion(ToQString(GetProgramVersionString()));
+      buildLabel->setText(appVersion);
+      const QString feedbackFormat(QApplication::translate("AboutDialog", FEEDBACK_FORMAT, 0, QApplication::UnicodeUTF8));
+      feedbackLabel->setText(feedbackFormat.arg(QLatin1String(Text::FEEDBACK_EMAIL)).arg(appVersion));
     }
   };
 }

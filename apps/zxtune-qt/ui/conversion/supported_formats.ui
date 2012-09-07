@@ -29,28 +29,28 @@
       <item>
        <widget class="QRadioButton" name="selectWAV">
         <property name="text">
-         <string>WAV</string>
+         <string notr="true">WAV</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QRadioButton" name="selectMP3">
         <property name="text">
-         <string>MP3</string>
+         <string notr="true">MP3</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QRadioButton" name="selectOGG">
         <property name="text">
-         <string>OGG</string>
+         <string notr="true">OGG</string>
         </property>
        </widget>
       </item>
       <item>
        <widget class="QRadioButton" name="selectFLAC">
         <property name="text">
-         <string>FLAC</string>
+         <string notr="true">FLAC</string>
         </property>
        </widget>
       </item>

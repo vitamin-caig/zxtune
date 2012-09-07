@@ -14,6 +14,8 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <debug_log.h>
+//library includes
+#include <l10n/api.h>
 //text includes
 #include <tools/text/tools.h>
 
@@ -21,9 +23,10 @@ Author:
 
 namespace
 {
-  const Debug::Stream Dbg("Tools");
+  const Debug::Stream Dbg("Platform");
 
   const unsigned THIS_MODULE_CODE = Error::ModuleCode<'C', 'S', 'O'>::Value;
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("tools");
 }
 
 SharedLibrary::Ptr SharedLibrary::Load(const std::string& name)
@@ -38,7 +41,8 @@ SharedLibrary::Ptr SharedLibrary::Load(const std::string& name)
 SharedLibrary::Ptr SharedLibrary::Load(const SharedLibrary::Name& name)
 {
   const std::vector<std::string> filenames = GetSharedLibraryFilenames(name);
-  Error resError = MakeFormattedError(THIS_LINE, THIS_MODULE_CODE, Text::FAILED_LOAD_DYNAMIC_LIBRARY_ALTERNATIVES, FromStdString(name.Base()));
+  Error resError = MakeFormattedError(THIS_LINE, THIS_MODULE_CODE,
+    translate("Failed to load dynamic library '%1%' by any of the alternative names."), FromStdString(name.Base()));
   for (std::vector<std::string>::const_iterator it = filenames.begin(), lim = filenames.end(); it != lim; ++it)
   {
     SharedLibrary::Ptr res;

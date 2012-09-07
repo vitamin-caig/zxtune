@@ -78,6 +78,20 @@ namespace
         clockRateValue->setText(QString::number(PRESETS[idx - 1]));
       }
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        //do not change preset or smth
+        const AutoBlockSignal block(*clockRatePresets);
+        retranslateUi(this);
+        //restore combobox value
+        OnClockRateChanged(clockRateValue->text());
+      }
+      UI::AYMSettingsWidget::changeEvent(event);
+    }
   private:
     const Parameters::Container::Ptr Options;
   };

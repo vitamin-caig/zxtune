@@ -24,7 +24,7 @@ extern const Char ESV_DECODER_DESCRIPTION[] = {
   'E','S','V',' ','C','r','u','n','c','h','e','r',0
 };
 extern const Char FDI_DECODER_DESCRIPTION[] = {
-  'F','u','l','l','D','i','s','k','I','m','a','g','e',' ','(','F','D','I',')',0
+  'F','D','I',' ','(','F','u','l','l',' ','D','i','s','k',' ','I','m','a','g','e',')',0
 };
 extern const Char GAMPLUS_DECODER_DESCRIPTION[] = {
   'G','a','m','e','P','a','c','k','e','r','+',0
@@ -77,17 +77,16 @@ extern const Char PLAYER_SUFFIX[] = {
   ' ','p','l','a','y','e','r',0
 };
 extern const Char RAR_DECODER_DESCRIPTION[] = {
-  'R','A','R',' ','v','2','.','x',' ','a','r','c','h','i','v','e','r',0
+  'R','A','R',' ','v','2','.','x',0
 };
 extern const Char SNA128_DECODER_DESCRIPTION[] = {
-  'S','N','A',' ','1','2','8','k',' ','s','n','a','p','s','h','o','t',0
+  'S','N','A',' ','1','2','8','k',0
 };
 extern const Char TELEDISKIMAGE_DECODER_DESCRIPTION[] = {
-  'T','e','l','e','D','i','s','k',' ','I','m','a','g','e',' ','(','T','D','0',')',0
+  'T','D','0',' ','(','T','e','l','e','D','i','s','k',' ','I','m','a','g','e',')',0
 };
 extern const Char TLZP_DECODER_DESCRIPTION[] = {
-  'T','u','r','b','o','#','L','Z',' ','v','1','.','x',' ','(','f','o','r',' ','i','n','t','e','r','n','a','l',
-  ' ','u','s','a','g','e',' ','o','n','l','y',')',0
+  'T','u','r','b','o','#','L','Z',' ','v','1','.','x',' ','(','i','n','t','e','r','n','a','l',')',0
 };
 extern const Char TLZ_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','-','L','Z',' ','v','1','.','x',0
@@ -96,19 +95,19 @@ extern const Char TRUSH_DECODER_DESCRIPTION[] = {
   'T','r','u','s','h',' ','C','o','m','p','r','e','s','s','o','r',' ','v','3','.','x',0
 };
 extern const Char Z80V145_DECODER_DESCRIPTION[] = {
-  'Z','8','0',' ','s','n','a','p','s','h','o','t','s',' ','v','e','r','s','i','o','n',' ','1','.','4','5',0
+  'Z','8','0',' ','v','1','.','4','5',0
 };
 extern const Char Z80V20_DECODER_DESCRIPTION[] = {
-  'Z','8','0',' ','s','n','a','p','s','h','o','t','s',' ','v','e','r','s','i','o','n',' ','2','.','0',0
+  'Z','8','0',' ','v','2','.','x',0
 };
 extern const Char Z80V30_DECODER_DESCRIPTION[] = {
-  'Z','8','0',' ','s','n','a','p','s','h','o','t','s',' ','v','e','r','s','i','o','n',' ','3','.','0',0
+  'Z','8','0',' ','v','3','.','x',0
 };
 extern const Char ZIP_DECODER_DESCRIPTION[] = {
-  'Z','I','P',' ','a','r','c','h','i','v','e','r',0
+  'Z','I','P',0
 };
 extern const Char ZXZIP_DECODER_DESCRIPTION[] = {
-  'Z','X','Z','i','p',' ','a','r','c','h','i','v','e','r',0
+  'Z','X','Z','i','p',0
 };
 }//namespace Text
 #endif //__TEXT_PACKED_H_DEFINED__

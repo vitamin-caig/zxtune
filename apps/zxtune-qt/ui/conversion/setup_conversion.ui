@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ConversionDialog</class>
- <widget class="QDialog" name="ConversionDialog">
+ <class>UI::SetupConversionDialog</class>
+ <widget class="QDialog" name="UI::SetupConversionDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -26,6 +26,11 @@
       <attribute name="label">
        <string/>
       </attribute>
+      <layout class="QVBoxLayout" name="formatSettingsLayout">
+       <property name="margin">
+        <number>0</number>
+       </property>
+      </layout>
      </widget>
     </widget>
    </item>

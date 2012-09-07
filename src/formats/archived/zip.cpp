@@ -249,7 +249,7 @@ namespace Zip
   class Container : public Archived::Container
   {
   public:
-    Container(const Packed::Decoder& decoder, Binary::Container::Ptr data, uint_t filesCount)
+    Container(Packed::Decoder::Ptr decoder, Binary::Container::Ptr data, uint_t filesCount)
       : Decoder(decoder)
       , Delegate(data)
       , FilesCount(filesCount)
@@ -343,11 +343,11 @@ namespace Zip
     {
       if (!Iter.get())
       {
-        Iter.reset(new FileIterator(Decoder, *Delegate));
+        Iter.reset(new FileIterator(*Decoder, *Delegate));
       }
     }
   private:
-    const Formats::Packed::Decoder& Decoder;
+    const Formats::Packed::Decoder::Ptr Decoder;
     const Binary::Container::Ptr Delegate;
     const uint_t FilesCount;
     mutable std::auto_ptr<FileIterator> Iter;
@@ -397,7 +397,7 @@ namespace Formats
         if (const std::size_t totalSize = iter.GetOffset())
         {
           const Binary::Container::Ptr archive = data.GetSubcontainer(0, totalSize);
-          return boost::make_shared<Zip::Container>(*FileDecoder, archive, filesCount);
+          return boost::make_shared<Zip::Container>(FileDecoder, archive, filesCount);
         }
         else
         {

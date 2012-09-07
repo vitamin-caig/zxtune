@@ -11,6 +11,10 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 
+#AY_EMUL
+< AY_EMUL_DECODER_DESCRIPTION
+> "AY/EMUL"
+
 #ASC
 = ASC_SOUND_MASTER_EDITOR
 > "ASC Sound Master"
@@ -24,9 +28,17 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < ASCSOUNDMASTER2_DECODER_DESCRIPTION
 > ASC_SOUND_MASTER_EDITOR " v2.x"
 
+#ChipTracker
+< CHIPTRACKER_DECODER_DESCRIPTION
+> "Chip Tracker"
+
 #DigitalStudio
 < DIGITALSTUDIO_DECODER_DESCRIPTION
 > "Digital Studio"
+
+#DigitalMusicMaker
+< DIGITALMUSICMAKER_DECODER_DESCRIPTION
+> "Digital Music Maker v1.x"
 
 #FastTracker
 < FASTTRACKER_DECODER_DESCRIPTION
@@ -38,6 +50,10 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 
 < GLOBALTRACKER1_EDITOR
 > "Global Tracker v1.%1%"
+
+#ProDigiTracker
+< PRODIGITRACKER_DECODER_DESCRIPTION
+> "ProDigi Tracker v0.0x"
 
 #ProTracker1
 < PROTRACKER1_DECODER_DESCRIPTION
@@ -53,7 +69,7 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 
 #PSG
 < PSG_DECODER_DESCRIPTION
-> "Programmable Sound Generator (PSG)"
+> "PSG (Programmable Sound Generator)"
 
 #PSM
 < PROSOUNDMAKER_DECODER_DESCRIPTION
@@ -89,18 +105,26 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < SOUNDTRACKERPROCOMPILED_DECODER_DESCRIPTION
 > "Sound Tracker Pro Compiled"
 
+#SampleTracker
+< SAMPLETRACKER_DECODER_DESCRIPTION
+> "Sample Tracker v2.x"
+
+#SQD
+< SQDIGITALTRACKER_DECODER_DESCRIPTION
+> "SQ Digital Tracker"
+
 #TFC
 < TFC_DECODER_DESCRIPTION
-> "TurboFM Compiled Dump (TFC)"
+> "TurboFM Compiled Dump"
 
 #TFD
 < TFD_DECODER_DESCRIPTION
-> "TurboFM Dump (TFD)"
+> "TurboFM Dump"
 
 #VTX
 < VTX_DECODER_DESCRIPTION
-> "VTX"
+> "VTX (Vortex Project)"
 
 #YM
 < YM_DECODER_DESCRIPTION
-> "YM"
+> "YM (ST-Sound Project)"

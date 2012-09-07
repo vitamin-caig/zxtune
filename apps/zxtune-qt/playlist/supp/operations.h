@@ -59,15 +59,35 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
     //other
     SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+
     //statistic
-    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent);
-    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    class StatisticTextNotification : public Playlist::TextNotification
+    {
+    public:
+      typedef boost::shared_ptr<StatisticTextNotification> Ptr;
+
+      virtual void AddInvalid() = 0;
+      virtual void AddValid(const String& type, const Time::MillisecondsDuration& duration, std::size_t size) = 0;
+    };
+
+    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, StatisticTextNotification::Ptr result);
+    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result);
+
     //export
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate);
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate);
+    class ConversionResultNotification : public Playlist::TextNotification
+    {
+    public:
+      typedef boost::shared_ptr<ConversionResultNotification> Ptr;
+
+      virtual void AddSucceed() = 0;
+      virtual void AddFailedToOpen(const String& path) = 0;
+      virtual void AddFailedToConvert(const String& path, const Error& err) = 0;
+    };
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate, ConversionResultNotification::Ptr result);
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, ConversionResultNotification::Ptr result);
     //convert
     TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
-      const String& type, Parameters::Accessor::Ptr params);
+      const String& type, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
   }
 }
 

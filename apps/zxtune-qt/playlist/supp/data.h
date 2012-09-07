@@ -43,7 +43,6 @@ namespace Playlist
       virtual String GetType() const = 0;
       virtual String GetDisplayName() const = 0;
       virtual Time::MillisecondsDuration GetDuration() const = 0;
-      virtual String GetTooltip() const = 0;
       virtual String GetAuthor() const = 0;
       virtual String GetTitle() const = 0;
       virtual uint32_t GetChecksum() const = 0;

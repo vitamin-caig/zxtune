@@ -28,7 +28,7 @@ namespace
   public:
     PlaybackControlsImpl(QWidget& parent, PlaybackSupport& supp)
       : ::PlaybackControls(parent)
-      , ActionsMenu(new QMenu(tr("Playback"), this))
+      , ActionsMenu(new QMenu(this))
     {
       //setup self
       setupUi(this);
@@ -50,15 +50,32 @@ namespace
     {
       return ActionsMenu;
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+        SetMenuTitle();
+      }
+      ::PlaybackControls::changeEvent(event);
+    }
   private:
     void SetupMenu()
     {
+      SetMenuTitle();
       ActionsMenu->addAction(actionPlay);
       ActionsMenu->addAction(actionPause);
       ActionsMenu->addAction(actionStop);
       ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionPrevious);
       ActionsMenu->addAction(actionNext);
+    }
+
+    void SetMenuTitle()
+    {
+      ActionsMenu->setTitle(::PlaybackControls::tr("Playback"));
     }
   private:
     QMenu* const ActionsMenu;

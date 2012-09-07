@@ -12,6 +12,7 @@ Author:
 */
 
 //local includes
+#include "playlist_view.h"
 #include "table_view.h"
 #include "playlist/supp/controller.h"
 #include "playlist/supp/model.h"
@@ -32,7 +33,7 @@ namespace
   const Debug::Stream Dbg("Playlist::UI::TableView");
 
   //Options
-  const char FONT_FAMILY[] = "Arial";
+  const QLatin1String FONT_FAMILY("Arial");
   const int_t FONT_SIZE = 8;
   const int_t ROW_HEIGTH = 16;
   const int_t ICON_WIDTH = 24;
@@ -48,11 +49,11 @@ namespace
   class TableHeader : public QHeaderView
   {
   public:
-    TableHeader(Playlist::Model::Ptr model, const QFont& font)
+    TableHeader(QAbstractItemModel& model, const QFont& font)
       : QHeaderView(Qt::Horizontal)
     {
-      setModel(model);
-      setObjectName("Columns");
+      setObjectName(QLatin1String("Columns"));
+      setModel(&model);
       setFont(font);
       setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       setHighlightSections(false);
@@ -109,9 +110,9 @@ namespace
   {
   public:
     TableViewImpl(QWidget& parent, const Playlist::Item::StateCallback& callback,
-      Playlist::Model::Ptr model)
+      QAbstractItemModel& model)
       : Playlist::UI::TableView(parent)
-      , Font(QString::fromUtf8(FONT_FAMILY), FONT_SIZE)
+      , Font(FONT_FAMILY, FONT_SIZE)
     {
       //setup self
       setSortingEnabled(true);
@@ -134,7 +135,7 @@ namespace
       setCornerButtonEnabled(false);
       //setup dynamic ui
       setHorizontalHeader(new TableHeader(model, Font));
-      setModel(model);
+      setModel(&model);
       if (QHeaderView* const verHeader = verticalHeader())
       {
         verHeader->setFont(Font);
@@ -302,7 +303,7 @@ namespace Playlist
     {
     }
 
-    TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, Playlist::Model::Ptr model)
+    TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, QAbstractItemModel& model)
     {
       REGISTER_METATYPE(Playlist::Model::IndexSetPtr);
       return new TableViewImpl(parent, callback, model);

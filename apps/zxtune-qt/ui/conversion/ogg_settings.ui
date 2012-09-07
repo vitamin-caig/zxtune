@@ -79,7 +79,7 @@
       <item row="1" column="0">
        <widget class="QRadioButton" name="selectBitrate">
         <property name="text">
-         <string>Average bitrate</string>
+         <string>Average bitrate, kBps</string>
         </property>
        </widget>
       </item>
@@ -111,9 +111,6 @@
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
-          </property>
-          <property name="suffix">
-           <string> kBps</string>
           </property>
           <property name="minimum">
            <number>48</number>
@@ -174,6 +171,54 @@
     <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>selectBitrate</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>bitrateValuePrecise</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>68</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>282</x>
+     <y>60</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>bitrateValue</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>bitrateValuePrecise</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>197</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>282</x>
+     <y>60</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>bitrateValuePrecise</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>bitrateValue</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>282</x>
+     <y>60</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>197</x>
+     <y>60</y>
     </hint>
    </hints>
   </connection>

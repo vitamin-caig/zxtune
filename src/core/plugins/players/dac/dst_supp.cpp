@@ -16,6 +16,7 @@ Author:
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
+#include "core/plugins/players/ay/ay_conversion.h"
 //common includes
 //#include <byteorder.h>
 #include <error_tools.h>
@@ -30,9 +31,7 @@ Author:
 #include <formats/chiptune/digitalstudio.h>
 //std includes
 #include <set>
-//#include <utility>
 //text includes
-#include <core/text/core.h>
 #include <core/text/plugins.h>
 
 #define FILE_TAG 3226C730
@@ -294,7 +293,7 @@ namespace
       }
       else
       {
-        return Error(THIS_LINE, ERROR_MODULE_CONVERT, Text::MODULE_ERROR_CONVERSION_UNSUPPORTED);
+        return CreateUnsupportedConversionError(THIS_LINE, spec);
       }
       return Error();
     }
@@ -488,7 +487,7 @@ namespace ZXTune
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateDigitalStudioDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<DSTModulesFactory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

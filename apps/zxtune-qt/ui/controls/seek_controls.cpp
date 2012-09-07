@@ -69,12 +69,22 @@ namespace
     virtual void CloseState()
     {
       timePosition->setRange(0, 0);
-      timeDisplay->setText(QString::fromUtf8("-:-.-"));
+      timeDisplay->setText(QLatin1String("-:-.-"));
     }
 
     virtual void EndSeeking()
     {
       OnSeeking(timePosition->value());
+    }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      ::SeekControls::changeEvent(event);
     }
   private:
     void ShowTooltip()

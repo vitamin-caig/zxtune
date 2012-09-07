@@ -61,7 +61,7 @@ namespace
   }
 
   class SoundOptionsWidget : public UI::SoundSettingsWidget
-                           , public Ui::SoundOptions
+                           , public UI::Ui_SoundSettingsWidget
   {
   public:
     explicit SoundOptionsWidget(QWidget& parent)
@@ -120,6 +120,16 @@ namespace
         backendsList->setCurrentRow(row + 1);
       }
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      UI::SoundSettingsWidget::changeEvent(event);
+    }
   private:
     void FillFrequences()
     {
@@ -128,8 +138,7 @@ namespace
 
     void AddFrequency(uint_t freq)
     {
-      const QString txt = QString("%1 Hz").arg(freq);
-      soundFrequencyValue->addItem(txt);
+      soundFrequencyValue->addItem(QString::number(freq));
     }
 
     void FillBackends()

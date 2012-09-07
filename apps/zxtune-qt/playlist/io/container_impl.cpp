@@ -109,11 +109,6 @@ namespace
       return Time::MillisecondsDuration();
     }
 
-    virtual String GetTooltip() const
-    {
-      return Path;
-    }
-
     virtual String GetAuthor() const
     {
       return String();
@@ -234,12 +229,6 @@ namespace
     {
       AcquireDelegate();
       return Delegate->GetDuration();
-    }
-
-    virtual String GetTooltip() const
-    {
-      AcquireDelegate();
-      return Delegate->GetTooltip();
     }
 
     virtual String GetAuthor() const

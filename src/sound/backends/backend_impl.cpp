@@ -17,14 +17,13 @@ Author:
 #include <error_tools.h>
 //library includes
 #include <async/job.h>
+#include <l10n/api.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
-//text includes
-#include <sound/text/sound.h>
 
 #define FILE_TAG B3D60DB5
 
@@ -34,6 +33,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Base");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   class SafeRendererWrapper : public Module::Renderer
   {
@@ -43,7 +43,7 @@ namespace
     {
       if (!Delegate.get())
       {
-        throw Error(THIS_LINE, BACKEND_FAILED_CREATE, Text::SOUND_ERROR_BACKEND_INVALID_MODULE);
+        throw Error(THIS_LINE, BACKEND_FAILED_CREATE, translate("Invalid module specified for backend."));
       }
     }
 
@@ -207,7 +207,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PLAYBACK).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to initialize playback.")).AddSuberror(e);
       }
     }
 
@@ -224,7 +224,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_STOP).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to finalize playback.")).AddSuberror(e);
       }
     }
 
@@ -240,7 +240,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PAUSE).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to pause playback.")).AddSuberror(e);
       }
     }
 
@@ -256,7 +256,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_PLAYBACK).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to resume playback.")).AddSuberror(e);
       }
     }
 
@@ -344,7 +344,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_STOP).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to stop playback.")).AddSuberror(e);
       }
     }
 
@@ -358,7 +358,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, Text::SOUND_ERROR_BACKEND_SEEK).AddSuberror(e);
+        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to set playback position.")).AddSuberror(e);
       }
     }
 

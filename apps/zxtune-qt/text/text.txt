@@ -33,11 +33,8 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < REPORT_BUG_URL
 > HOMEPAGE_URL "/issues/entry"
 
-= FEEDBACK_EMAIL
+< FEEDBACK_EMAIL
 > "vitamin.caig@gmail.com"
-
-< FEEDBACK_TEXT
-> "<a href=\"mailto:" FEEDBACK_EMAIL "?subject=Feedback for %1%\">Send feedback</a>"
 
 # 1- program name, 2- song name
 < TITLE_FORMAT
@@ -52,54 +49,8 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < TYPEICONS_RESOURCE_PREFIX
 > ":/types/"
 
-< TOOLTIP_TEMPLATE
-> "<html>"
-> "[Fullpath]<br/>"
-> "[Container]&nbsp;([Size] bytes)<br/><br/>"
-> "<b>Title:</b> [Title]<br/>"
-> "<b>Author:</b> [Author]<br/>"
-> "<b>Program:</b> [Program]<br/>"
-> "[Comment]"
-> "</html>"
-
-< CONTEXTMENU_STATUS
-> "%1% items"
-
-< BASIC_STATISTIC_TEMPLATE
-> "%1% items total (%2% are invalid(s))\n"
-> "Total duration: %3%\n"
-> "Total size: %4% bytes\n"
-> "%5% different modules types"
-
-< PATHS_COLLECTING_STATUS
-> "Copied %1% paths to clipboard."
-
-< TYPE_STATISTIC_TEMPLATE
-> "%1%: %2% item(s)"
-
-< CONVERT_FAILED_OPEN
-> "Failed to open '%1%' for conversion."
-
-< CONVERT_FAILED
-> "Failed to convert '%1%': %2%."
-
-< CONVERT_STATUS
-> "Converted: %1% Failed: %2%"
-
 < PLAYLISTS_DIR
 > PROJECT_NAME "/Playlists"
 
-< DEFAULT_PLAYLIST_NAME
-> "Default"
-
 < PLAYLIST_LOADING_HEADER
-> "Loading..."
-
-< MIXER_WINDOW_TITLE_TEMPLATE
-> "%1%-channel mixer"
-
-< INPUT_CHANNEL_NAMES
-> "ABCD"
-
-< SOUND_DEVICE_ON_CARD_FORMAT
-> "%1% (%2%)"
+> "..."

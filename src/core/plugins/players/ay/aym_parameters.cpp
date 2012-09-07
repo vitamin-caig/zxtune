@@ -18,6 +18,7 @@ Author:
 //library includes
 #include <core/error_codes.h>
 #include <core/core_parameters.h>
+#include <l10n/api.h>
 #include <sound/render_params.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -32,6 +33,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
+
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
   //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
@@ -50,7 +53,7 @@ namespace
     if (pos == ArraySize(LETTERS))
     {
       throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-        Text::MODULE_ERROR_INVALID_DUTY_CYCLE_MASK_ITEM, String(1, letter));
+        translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));
     }
     return val | MASKS[pos];
   }
@@ -93,7 +96,7 @@ namespace
     else
     {
       throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-        Text::MODULE_ERROR_INVALID_LAYOUT, str);
+        translate("Invalid layout value (%1%)."), str);
     }
   }
 
@@ -113,7 +116,7 @@ namespace
           !in_range(val, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX))
       {
         throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-          Text::MODULE_ERROR_INVALID_CLOCKFREQ, val);
+          translate("Invalid clock frequency (%1%)."), val);
       }
       return val;
     }
@@ -145,7 +148,7 @@ namespace
       if (found && (intVal < 1 || intVal > 99))
       {
         throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-          Text::MODULE_ERROR_INVALID_DUTY_CYCLE, intVal);
+          translate("Invalid duty cycle value (%1%)."), intVal);
       }
       return static_cast<uint_t>(intVal);
     }
@@ -174,7 +177,7 @@ namespace
             intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST))
         {
           throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-            Text::MODULE_ERROR_INVALID_LAYOUT, intVal);
+            translate("Invalid layout value (%1%)."), intVal);
         }
         return static_cast<Devices::AYM::LayoutType>(intVal);
       }
@@ -240,7 +243,7 @@ namespace
         if (newData.size() != Table.size() * sizeof(Table.front()))
         {
           throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
-            Text::MODULE_ERROR_INVALID_FREQ_TABLE_SIZE, newData.size());
+            translate("Invalid frequency table size (%1%)."), newData.size());
         }
         std::memcpy(&Table.front(), &newData.front(), newData.size());
       }

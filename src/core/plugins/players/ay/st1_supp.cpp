@@ -20,8 +20,6 @@ Author:
 #include <formats/chiptune_decoders.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/plugins.h>
 
 namespace ST1
 {
@@ -74,7 +72,7 @@ namespace ZXTune
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSoundTrackerDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<ST1::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST1::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ST1::CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST1::ID, decoder->GetDescription(), ST1::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

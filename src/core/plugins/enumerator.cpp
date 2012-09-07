@@ -23,6 +23,7 @@ Author:
 //library includes
 #include <core/error_codes.h>
 #include <core/module_detect.h>
+#include <l10n/api.h>
 //std includes
 #include <list>
 //boost includes
@@ -37,6 +38,7 @@ namespace
   using namespace ZXTune;
 
   const Debug::Stream Dbg("Core::Enumerator");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
   typedef std::vector<Plugin::Ptr> PluginsArray;
   typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
@@ -180,7 +182,7 @@ namespace ZXTune
   {
     if (!data.get())
     {
-      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_PARAMETERS);
+      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, translate("Invalid parameters specified."));
     }
     try
     {
@@ -190,7 +192,8 @@ namespace ZXTune
         Module::Detect(location, callback);
         return Error();
       }
-      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, startSubpath);
+      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE,
+        translate("Failed to find specified submodule starting from path '%1%'."), startSubpath);
     }
     catch (const Error& e)
     {
@@ -198,7 +201,7 @@ namespace ZXTune
     }
     catch (const std::bad_alloc&)
     {
-      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, Text::MODULE_ERROR_NO_MEMORY);
+      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, translate("Failed to allocate memory while processing modules."));
     }
   }
 
@@ -207,7 +210,7 @@ namespace ZXTune
   {
     if (!data.get())
     {
-      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, Text::MODULE_ERROR_PARAMETERS);
+      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, translate("Invalid parameters specified."));
     }
     try
     {
@@ -219,11 +222,12 @@ namespace ZXTune
           return Error();
         }
       }
-      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE, Text::MODULE_ERROR_FIND_SUBMODULE, subpath);
+      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE,
+        translate("Failed to find specified submodule starting from path '%1%'."), subpath);
     }
     catch (const std::bad_alloc&)
     {
-      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, Text::MODULE_ERROR_NO_MEMORY);
+      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, translate("Failed to allocate memory while processing modules."));
     }
   }
 }

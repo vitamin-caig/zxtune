@@ -412,7 +412,7 @@ namespace ZXTune
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFCDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<TFC::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TFC::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, TFC::CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TFC::ID, decoder->GetDescription(), TFC::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

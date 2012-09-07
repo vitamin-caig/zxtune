@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "enumerator.h"
 //library includes
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
 #include <sound/text/backends.h> 
@@ -22,7 +23,7 @@ namespace ZXTune
   {
     void RegisterOggBackend(BackendsEnumerator& enumerator)
     {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::OGG_BACKEND_ID, Text::OGG_BACKEND_DESCRIPTION, CAP_TYPE_FILE)); 
+      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::OGG_BACKEND_ID, L10n::translate("OGG support backend"), CAP_TYPE_FILE)); 
     }
   }
 }

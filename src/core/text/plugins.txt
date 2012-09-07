@@ -11,65 +11,18 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
-< PLAYER_DESCRIPTION_SUFFIX
-> " modules support"
-
-< CONTAINER_DESCRIPTION_SUFFIX
-> " format support"
-
 < ARCHIVE_PLUGIN_PREFIX
 > "+un"
 
 < RAW_PLUGIN_PREFIX
 > "+"
 
-#common
-< CONTAINER_PLUGIN_PROGRESS_NOPATH
-> "%1% container processing for '%2%'"
-
-< CONTAINER_PLUGIN_PROGRESS
-> CONTAINER_PLUGIN_PROGRESS_NOPATH " at subpath '%3%'"
-
-#AY
-< AY_PLUGIN_INFO
-> "AY" PLAYER_DESCRIPTION_SUFFIX
-
-#CHI
-= CHI_EDITOR_NOVER
-> "ChipTracker"
-
-< CHI_PLUGIN_INFO
-> CHI_EDITOR_NOVER PLAYER_DESCRIPTION_SUFFIX
-
-< CHI_EDITOR
-> CHI_EDITOR_NOVER " v%1%"
-
-#DMM
-= DMM_EDITOR_NOVER
-> "DigitalMusicMaker"
-
-< DMM_PLUGIN_INFO
-> DMM_EDITOR_NOVER PLAYER_DESCRIPTION_SUFFIX
-
-< DMM_EDITOR
-> DMM_EDITOR_NOVER " v1.x"
-
 #DST
 < DST_EDITOR_AY
-> " for AY"
+> " (AY)"
 
 < DST_EDITOR_DAC
-> " for Covox/SD"
-
-#ProDigi
-= PDT_EDITOR_NOVER
-> "ProDigi Tracker"
-
-< PDT_PLUGIN_INFO
-> PDT_EDITOR_NOVER PLAYER_DESCRIPTION_SUFFIX
-
-< PDT_EDITOR
-> PDT_EDITOR_NOVER " v0.0x"
+> " (Covox/SD)"
 
 #PT3
 < PT3_TURBOSOUND_MODULE
@@ -77,33 +30,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 #RAW
 < RAW_PLUGIN_INFO
-> "Raw modules scaner"
-
-< RAW_ERROR_INVALID_STEP
-> "Specified scan step (%1%) is out of range %2%..%3%."
-
-< RAW_ERROR_INVALID_MIN_SIZE
-> "Specified minimal scan size (%1%) should be >= %2%."
-
-< PLUGIN_RAW_PROGRESS_NOPATH
-> "Raw scaner processing"
-
-< PLUGIN_RAW_PROGRESS
-> PLUGIN_RAW_PROGRESS_NOPATH " at subpath '%1%'"
-
-#SQD
-< SQD_EDITOR
-> "SQ Digital Tracker"
-
-< SQD_PLUGIN_INFO
-> SQD_EDITOR PLAYER_DESCRIPTION_SUFFIX
-
-#STR
-< STR_PLUGIN_INFO
-> STR_EDITOR PLAYER_DESCRIPTION_SUFFIX
-
-< STR_EDITOR
-> "Sample Tracker v2.x"
+> "RAW"
 
 #TFC
 < TFC_COMPILER_VERSION
@@ -111,14 +38,11 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 #TS
 < TS_PLUGIN_INFO
-> "TurboSound" PLAYER_DESCRIPTION_SUFFIX
+> "TurboSound"
 
 #TXT
 < TXT_PLUGIN_INFO
-> "Text (Vortex)" PLAYER_DESCRIPTION_SUFFIX
+> "Text (VortexTracker)"
 
 < VORTEX_EDITOR
-> "VortexTracker (ProTracker v%1%.%2% compatible)"
-
-< TXT_ERROR_INVALID_STRING
-> "Invalid string while parsing: '%1%'."
+> "VortexTracker (ProTracker v%1%.%2%)"

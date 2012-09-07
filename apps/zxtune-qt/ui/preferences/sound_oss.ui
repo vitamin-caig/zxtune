@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>OssOptions</class>
+ <class>UI::OssSettingsWidget</class>
  <widget class="QWidget" name="OssOptions">
   <property name="geometry">
    <rect>
@@ -9,9 +9,6 @@
     <width>167</width>
     <height>79</height>
    </rect>
-  </property>
-  <property name="windowTitle">
-   <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
@@ -49,14 +46,14 @@
       <item row="0" column="2">
        <widget class="QToolButton" name="selectDevice">
         <property name="text">
-         <string>...</string>
+         <string notr="true">...</string>
         </property>
        </widget>
       </item>
       <item row="1" column="2">
        <widget class="QToolButton" name="selectMixer">
         <property name="text">
-         <string>...</string>
+         <string notr="true">...</string>
         </property>
        </widget>
       </item>

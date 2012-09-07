@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PropertiesDialog</class>
+ <class>Playlist::UI::PropertiesDialog</class>
  <widget class="QDialog" name="PropertiesDialog">
   <property name="geometry">
    <rect>

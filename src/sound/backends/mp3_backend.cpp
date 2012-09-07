@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
@@ -30,7 +31,6 @@ Author:
 #include <boost/make_shared.hpp>
 //text includes
 #include <sound/text/backends.h>
-#include <sound/text/sound.h>
 
 #define FILE_TAG 3B251603
 
@@ -40,6 +40,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Mp3");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   const uint_t BITRATE_MIN = 32;
   const uint_t BITRATE_MAX = 320;
@@ -52,7 +53,7 @@ namespace
   {
     if (res < 0)
     {
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, Text::SOUND_ERROR_MP3_BACKEND_ERROR, res);
+      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in MP3 backend: %1%."), res);
     }
   }
 
@@ -116,10 +117,6 @@ namespace
           Encoded.resize(Encoded.size() * 2);
           Dbg("Increase buffer to %1% bytes", Encoded.size());
         }
-        else if (-2 == res)//malloc problem
-        {
-          throw Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
-        }
         else
         {
           CheckLameCall(res, THIS_LINE);
@@ -140,10 +137,6 @@ namespace
         {
           Encoded.resize(Encoded.size() * 2);
           Dbg("Increase buffer to %1% bytes", Encoded.size());
-        }
-        else if (-2 == res)//malloc problem
-        {
-          throw Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
         }
         else
         {
@@ -193,7 +186,7 @@ namespace
       else
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::SOUND_ERROR_MP3_BACKEND_INVALID_MODE, mode);
+          translate("MP3 backend error: invalid mode '%1%'."), mode);
       }
     }
 
@@ -204,7 +197,7 @@ namespace
         !in_range<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::SOUND_ERROR_MP3_BACKEND_INVALID_BITRATE, static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
+          translate("MP3 backend error: bitrate (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
       }
       return static_cast<uint_t>(bitrate);
     }
@@ -216,13 +209,16 @@ namespace
         !in_range<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::SOUND_ERROR_MP3_BACKEND_INVALID_QUALITY, static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
+          translate("MP3 backend error: quality (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
       }
       return static_cast<uint_t>(quality);
     }
   private:
     const Parameters::Accessor::Ptr Params;
   };
+
+  const String ID = Text::MP3_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("MP3 support backend");
 
   class Mp3FileFactory : public FileStreamFactory
   {
@@ -236,7 +232,7 @@ namespace
 
     virtual String GetId() const
     {
-      return Text::MP3_BACKEND_ID;
+      return ID;
     }
 
     virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
@@ -303,12 +299,12 @@ namespace
 
     virtual String Id() const
     {
-      return Text::MP3_BACKEND_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return Text::MP3_BACKEND_DESCRIPTION;
+      return translate(DESCRIPTION);
     }
 
     virtual uint_t Capabilities() const
@@ -334,11 +330,11 @@ namespace
       catch (const Error& e)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
       }
     }
   private:
@@ -361,7 +357,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::MP3_BACKEND_ID, Text::MP3_BACKEND_DESCRIPTION, CAP_TYPE_FILE, e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAP_TYPE_FILE, e));
       }
     }
   }

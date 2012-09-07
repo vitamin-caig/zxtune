@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Z80</string>
+   <string notr="true">Z80</string>
   </property>
   <layout class="QVBoxLayout">
    <property name="spacing">
@@ -52,15 +52,12 @@
       <item row="1" column="0">
        <widget class="QLabel" name="intDurationLabel">
         <property name="text">
-         <string>INT duration</string>
+         <string>INT duration, ticks</string>
         </property>
        </widget>
       </item>
       <item row="1" column="1">
        <widget class="QSpinBox" name="intDurationValue">
-        <property name="suffix">
-         <string> ticks</string>
-        </property>
         <property name="minimum">
          <number>1</number>
         </property>

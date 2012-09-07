@@ -1,0 +1,37 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2012-08-28 21:44+0400\n"
+"PO-Revision-Date: 2012-08-28 21:44+0400\n"
+"Last-Translator: <EMAIL@ADDRESS>\n"
+"Language-Team: English\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: test.cpp:32
+msgid "Just a message"
+msgstr "en: just a message"
+
+#: test.cpp:33
+msgctxt "context"
+msgid "Just a message with context"
+msgstr "en: just a message with context"
+
+#: test.cpp:36
+#, boost-format
+msgid "Single form for %1%"
+msgid_plural "Plural form for %1%"
+msgstr[0] "en: plural form 0 for %1%"
+msgstr[1] "en: plural form 1 for %1%"
+
+#: test.cpp:37
+#, boost-format
+msgctxt "another context"
+msgid "Single form for %1% with context"
+msgid_plural "Plural form for %1% with context"
+msgstr[0] "en: plural form 0 for %1% with context"
+msgstr[1] "en: plural form 1 for %1% with context"

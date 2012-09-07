@@ -83,7 +83,7 @@ namespace
   };
 
   class ContainerViewImpl : public Playlist::UI::ContainerView
-                          , public Ui::PlaylistContainerView
+                          , public Playlist::UI::Ui_ContainerView
   {
   public:
     ContainerViewImpl(QWidget& parent, Parameters::Container::Ptr parameters)
@@ -91,7 +91,7 @@ namespace
       , Options(parameters)
       , Container(Playlist::Container::Create(*this, parameters))
       , Session(Playlist::Session::Create())
-      , ActionsMenu(new QMenu(tr("Playlist"), this))
+      , ActionsMenu(new QMenu(this))
       , ActivePlaylistView(0)
     {
       //setup self
@@ -214,7 +214,7 @@ namespace
     {
       QString file;
       if (UI::OpenSingleFileDialog(actionLoadPlaylist->text(),
-         tr("Playlist files (*.xspf *.ayl)"), file))
+         Playlist::UI::ContainerView::tr("Playlist files (*.xspf *.ayl)"), file))
       {
         Container->OpenPlaylist(file);
       }
@@ -253,6 +253,16 @@ namespace
     }
 
     //qwidget virtuals
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+        SetMenuTitle();
+      }
+      Playlist::UI::ContainerView::changeEvent(event);
+    }
+
     virtual void contextMenuEvent(QContextMenuEvent* event)
     {
       ActionsMenu->exec(event->globalPos());
@@ -300,6 +310,7 @@ namespace
   private:
     void SetupMenu()
     {
+      SetMenuTitle();
       ActionsMenu->addAction(actionCreatePlaylist);
       ActionsMenu->addAction(actionLoadPlaylist);
       ActionsMenu->addAction(actionSavePlaylist);
@@ -312,10 +323,15 @@ namespace
       ActionsMenu->addAction(actionDeepScan);
     }
 
+    void SetMenuTitle()
+    {
+      ActionsMenu->setTitle(windowTitle());
+    }
+
     Playlist::UI::View& CreateAnonymousPlaylist()
     {
       Dbg("Create default playlist");
-      const Playlist::Controller::Ptr pl = Container->CreatePlaylist(tr("Default"));
+      const Playlist::Controller::Ptr pl = Container->CreatePlaylist(Playlist::UI::ContainerView::tr("Default"));
       return RegisterPlaylist(pl);
     }
 

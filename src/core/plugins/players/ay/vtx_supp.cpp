@@ -27,8 +27,6 @@ Author:
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/plugins.h>
 
 namespace
 {
@@ -406,7 +404,7 @@ namespace ZXTune
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateVTXDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<VTX::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(VTX::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, VTX::CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(VTX::ID, decoder->GetDescription(), VTX::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 
@@ -414,7 +412,7 @@ namespace ZXTune
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateYMDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<YM::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(YM::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, YM::CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(YM::ID, decoder->GetDescription(), YM::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

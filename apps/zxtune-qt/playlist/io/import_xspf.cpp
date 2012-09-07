@@ -42,7 +42,9 @@ namespace
 
   enum
   {
-    VERSION_WITH_TEXT_FIELDS_ESCAPING = 1
+    VERSION_WITH_TEXT_FIELDS_ESCAPING = 1,
+
+    LAST_VERSION = 1
   };
 
   Parameters::NameType PLAYLIST_ENABLED_PROPERTIES[] =
@@ -114,7 +116,7 @@ namespace
     XSPFReader(const QString& basePath, const QString& autoName, QIODevice& device)
       : BaseDir(basePath)
       , XML(&device)
-      , Version(0)
+      , Version(LAST_VERSION)
       , Properties(Parameters::Container::Create())
       , Items(boost::make_shared<Playlist::IO::ContainerItems>())
     {
@@ -131,7 +133,7 @@ namespace
           return false;
         }
         const QXmlStreamAttributes attributes = XML.attributes();
-        if (attributes.value(XSPF::VERSION_ATTR) != XSPF::VERSION_VALUE)
+        if (attributes.value(QLatin1String(XSPF::VERSION_ATTR)) != XSPF::VERSION_VALUE)
         {
           Dbg("  unknown format version");
         }
@@ -294,7 +296,7 @@ namespace
           XML.skipCurrentElement();
         }
         const QXmlStreamAttributes attributes = XML.attributes();
-        const QStringRef& propName = attributes.value(XSPF::EXTENDED_PROPERTY_NAME_ATTR);
+        const QStringRef& propName = attributes.value(QLatin1String(XSPF::EXTENDED_PROPERTY_NAME_ATTR));
         const QString& propValue = XML.readElementText();
         const String propNameStr = FromQString(propName.toString());
         const String propValStr = ConvertString(propValue);
@@ -308,7 +310,7 @@ namespace
     bool CheckForZXTuneExtension()
     {
       const QXmlStreamAttributes attributes = XML.attributes();
-      return attributes.value(XSPF::APPLICATION_ATTR) == Text::PROGRAM_SITE;
+      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Text::PROGRAM_SITE;
     }
 
     String ConvertString(const QString& input) const
@@ -357,7 +359,7 @@ namespace
 
   bool CheckXSPFByName(const QString& filename)
   {
-    static const QString XSPF_SUFFIX = QString::fromUtf8(XSPF::SUFFIX);
+    static const QLatin1String XSPF_SUFFIX(XSPF::SUFFIX);
     return filename.endsWith(XSPF_SUFFIX, Qt::CaseInsensitive);
   }
 }

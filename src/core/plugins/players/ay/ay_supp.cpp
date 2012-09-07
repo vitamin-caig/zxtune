@@ -40,7 +40,7 @@ Author:
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/core.h>
-#include <core/text/plugins.h>
+#include <formats/text/chiptune.h>
 
 #define FILE_TAG 6CDE76E4
 
@@ -591,7 +591,7 @@ namespace
 namespace AYPlugin
 {
   const Char ID[] = {'A', 'Y', 0};
-  const Char* const INFO = Text::AY_PLUGIN_INFO;
+  const Char* const INFO = Text::AY_EMUL_DECODER_DESCRIPTION;
 }
 
 namespace AYModule

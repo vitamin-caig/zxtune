@@ -41,7 +41,7 @@ namespace
   }
 
   class FilenameTemplateWidgetImpl : public UI::FilenameTemplateWidget
-                                   , private Ui::FilenameTemplate
+                                   , private UI::Ui_FilenameTemplateWidget
   {
   public:
     explicit FilenameTemplateWidgetImpl(QWidget& parent)
@@ -75,7 +75,7 @@ namespace
       const QString dir = DirectoryName->currentText();
       if (dir.size() != 0)
       {
-        return dir + '/' + name;
+        return dir + QLatin1Char('/') + name;
       }
       return name;
     }
@@ -155,8 +155,9 @@ namespace UI
         result = res;
         return true;
       }
-      QMessageBox warning(QMessageBox::Critical, QString::fromUtf8("Failed to export"),
-        QString::fromUtf8("Filename template is empty"), QMessageBox::Ok);
+      QMessageBox warning(QMessageBox::Critical,
+        UI::FilenameTemplateWidget::tr("Invalid parameter"),
+        UI::FilenameTemplateWidget::tr("Filename template is empty"), QMessageBox::Ok);
       warning.exec();
     }
     return false;

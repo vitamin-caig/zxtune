@@ -51,8 +51,8 @@ namespace ZXTune
       static ProvidersEnumerator& Instance();
     };
 
-    DataProvider::Ptr CreateDisabledProviderStub(const String& id, const String& description);
-    DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const String& description, const Error& status);
+    DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description);
+    DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status);
   }
 }
 

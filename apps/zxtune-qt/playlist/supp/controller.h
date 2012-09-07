@@ -85,9 +85,9 @@ namespace Playlist
     typedef boost::shared_ptr<const TextNotification> Ptr;
     virtual ~TextNotification() {}
 
-    virtual String Category() const = 0;
-    virtual String Text() const = 0;
-    virtual String Details() const = 0;
+    virtual QString Category() const = 0;
+    virtual QString Text() const = 0;
+    virtual QString Details() const = 0;
   };
 
   class Controller : public QObject

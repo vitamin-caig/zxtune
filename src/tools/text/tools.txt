@@ -13,9 +13,6 @@ __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 
 #common texts
-< ERROR_DEFAULT_FORMAT
-> "%1%\n\nCode: %2%\nAt: %3%\n--------\n"
-
 < ERROR_LOCATION_FORMAT
 > "%1$08x"
 
@@ -27,13 +24,4 @@ __cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 
 < TIME_FORMAT_HOURS
 > "%1%:%2$02u:%3$02u.%4$02u"
-
-< FAILED_LOAD_DYNAMIC_LIBRARY
-> "Failed to load dynamic library '%1%' (%2%)."
-
-< FAILED_LOAD_DYNAMIC_LIBRARY_ALTERNATIVES
-> "Failed to load dynamic library '%1%' even using alternative names."
-
-< FAILED_FIND_DYNAMIC_LIBRARY_SYMBOL
-> "Failed to find symbol '%1%' in dynamic library."
 

@@ -2,6 +2,10 @@ binary_name := zxtune-qt
 path_step := ../..
 include $(path_step)/make/default.mak
 
+ifeq ($(platform),dingux)
+embedded := 1
+endif
+
 source_files = qt_app supp/options
 
 #ui-related
@@ -15,10 +19,10 @@ include_dirs = .
 
 text_files := text/text
 
-libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io sound tools \
+libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io platform sound tools \
             playlist_ui playlist_supp playlist_io ui_common ui_conversion ui_preferences
 
-depends = apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/sound src/tools \
+depends = apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/platform src/sound src/tools \
           apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io \
           apps/zxtune-qt/ui apps/zxtune-qt/ui/conversion apps/zxtune-qt/ui/preferences
 
@@ -30,17 +34,15 @@ boost_libraries = thread system
 
 qt_libraries = Gui Core
 
-ifeq ($(platform),dingux)
-embedded := 1
-qt_libraries += Network
-endif
-
 ifdef embedded
-libraries += ui_embedded playlist_ui_embedded
-depends += apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
+libraries += l10n_stub ui_embedded playlist_ui_embedded
+depends += src/l10n/stub apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
+qt_libraries += Network
 else
-libraries += ui_desktop playlist_ui_desktop
-depends += apps/zxtune-qt/ui/desktop apps/zxtune-qt/playlist/ui/desktop
+libraries += l10n ui_desktop playlist_ui_desktop
+depends += src/l10n apps/zxtune-qt/ui/desktop apps/zxtune-qt/playlist/ui/desktop
+boost_libraries += locale
+mingw_libraries += iconv
 endif
 
 theme_resources = res/theme_$(gui_theme)
@@ -51,6 +53,7 @@ qrc_files := res/icons $(theme_resources)/theme
 #platform-specific resources
 windows_resources := res/zxtune-qt
 mingw_resources := res/zxtune-qt
+embedded_files = $(qm_translation_data) $(mo_translation_data)
 
 $(platform)_definitions += GUI_THEME=$(gui_theme)
 

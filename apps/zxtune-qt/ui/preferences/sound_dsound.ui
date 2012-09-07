@@ -10,9 +10,6 @@
     <height>69</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Form</string>
-  </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="margin">
     <number>0</number>
@@ -58,7 +55,7 @@
          </sizepolicy>
         </property>
         <property name="text">
-         <string>Latency</string>
+         <string>Latency, mS</string>
         </property>
        </widget>
       </item>
@@ -66,9 +63,6 @@
        <widget class="QSpinBox" name="latency">
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-        <property name="suffix">
-         <string notr="true"> mS</string>
         </property>
         <property name="minimum">
          <number>20</number>

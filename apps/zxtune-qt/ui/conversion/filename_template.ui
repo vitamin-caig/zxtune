@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FilenameTemplate</class>
+ <class>UI::FilenameTemplateWidget</class>
  <widget class="QWidget" name="FilenameTemplate">
   <property name="geometry">
    <rect>
@@ -45,7 +45,7 @@
       <item>
        <widget class="QToolButton" name="browseDirButton">
         <property name="text">
-         <string>...</string>
+         <string notr="true">...</string>
         </property>
        </widget>
       </item>
@@ -71,17 +71,17 @@
         </property>
         <item>
          <property name="text">
-          <string>[Fullpath].[Type]</string>
+          <string notr="true">[Fullpath].[Type]</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>[Filename]_[Subpath].[Type]</string>
+          <string notr="true">[Filename]_[Subpath].[Type]</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>[CRC].[Type]</string>
+          <string notr="true">[CRC].[Type]</string>
          </property>
         </item>
        </widget>

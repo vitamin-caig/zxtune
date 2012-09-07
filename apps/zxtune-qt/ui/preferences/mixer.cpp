@@ -19,16 +19,23 @@ Author:
 
 namespace
 {
+  const char* CHANNEL_NAMES[] =
+  {
+    QT_TRANSLATE_NOOP("UI::MixerWidget", "Left"),
+    QT_TRANSLATE_NOOP("UI::MixerWidget", "Right")
+  };
+
   class MixerWidgetImpl : public UI::MixerWidget
                         , private Ui::Mixer
   {
   public:
-    MixerWidgetImpl(QWidget& parent, const QString& name)
+    MixerWidgetImpl(QWidget& parent, UI::MixerWidget::Channel chan)
       : UI::MixerWidget(parent)
+      , Chan(chan)
     {
       //setup self
       setupUi(this);
-      channelName->setText(name);
+      LoadName();
 
       Require(connect(channelValue, SIGNAL(valueChanged(int)), SIGNAL(valueChanged(int))));
     }
@@ -37,6 +44,23 @@ namespace
     {
       channelValue->setValue(val);
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        LoadName();
+      }
+      UI::MixerWidget::changeEvent(event);
+    }
+  private:
+    void LoadName()
+    {
+      channelName->setText(UI::MixerWidget::tr(CHANNEL_NAMES[Chan]));
+    }
+  private:
+    const UI::MixerWidget::Channel Chan;
   };
 }
 
@@ -47,9 +71,9 @@ namespace UI
   {
   }
   
-  MixerWidget* MixerWidget::Create(QWidget& parent, const QString& name)
+  MixerWidget* MixerWidget::Create(QWidget& parent, MixerWidget::Channel chan)
   {
-    return new MixerWidgetImpl(parent, name);
+    return new MixerWidgetImpl(parent, chan);
   }
 }
 

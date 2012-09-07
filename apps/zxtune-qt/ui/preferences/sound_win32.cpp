@@ -95,6 +95,16 @@ namespace
       Dbg("Selecting device '%1%'", FromQString(name));
       DeviceChanged(boost::bind(&Device::Name, _1) == name);
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      UI::Win32SettingsWidget::changeEvent(event);
+    }
   private:
     void SelectDevice()
     {

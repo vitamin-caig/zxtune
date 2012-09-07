@@ -90,7 +90,7 @@ namespace
   };
 
   class PropertiesDialogImpl : public Playlist::UI::PropertiesDialog
-                             , public Ui::PropertiesDialog
+                             , public Playlist::UI::Ui_PropertiesDialog
   {
   public:
     explicit PropertiesDialogImpl(QWidget& parent, Playlist::Item::Data::Ptr item)
@@ -126,30 +126,37 @@ namespace
   private:
     void FillProperties(const Playlist::Item::Capabilities& caps)
     {
-      AddStringProperty(tr("Title"), ZXTune::Module::ATTR_TITLE);
-      AddStringProperty(tr("Author"), ZXTune::Module::ATTR_AUTHOR);
-      AddStringProperty(tr("Comment"), ZXTune::Module::ATTR_COMMENT);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Title"), ZXTune::Module::ATTR_TITLE);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Author"), ZXTune::Module::ATTR_AUTHOR);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Comment"), ZXTune::Module::ATTR_COMMENT);
 
       QStringList valuesOffOn;
-      valuesOffOn << tr("Off") << tr("On");
+      valuesOffOn << Playlist::UI::PropertiesDialog::tr("Off") << Playlist::UI::PropertiesDialog::tr("On");
 
       if (caps.IsAYM())
       {
         QStringList chipTypes;
-        chipTypes << tr("AY-3-8910/12") << tr("YM2149");
-        AddSetProperty(tr("Chip type"), Parameters::ZXTune::Core::AYM::TYPE, chipTypes);
+        chipTypes << QLatin1String("AY-3-8910/12") << QLatin1String("YM2149");
+        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Chip type"), Parameters::ZXTune::Core::AYM::TYPE, chipTypes);
         QStringList layouts;
-        layouts << tr("ABC") << tr("ACB") << tr("BAC") << tr("BCA") << tr("CAB") << tr("CBA") << tr("Mono");
-        AddSetProperty(tr("Layout"), Parameters::ZXTune::Core::AYM::LAYOUT, layouts);
-        AddSetProperty(tr("Interpolation"), Parameters::ZXTune::Core::AYM::INTERPOLATION, valuesOffOn);
+        layouts
+          << QLatin1String("ABC")
+          << QLatin1String("ACB")
+          << QLatin1String("BAC")
+          << QLatin1String("BCA")
+          << QLatin1String("CAB")
+          << QLatin1String("CBA")
+          << Playlist::UI::PropertiesDialog::tr("Mono");
+        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Layout"), Parameters::ZXTune::Core::AYM::LAYOUT, layouts);
+        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::AYM::INTERPOLATION, valuesOffOn);
         const Parameters::IntegerTraits clockRate(Parameters::ZXTune::Core::AYM::CLOCKRATE, -1, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX);
-        AddIntegerProperty(tr("Clockrate, Hz"), clockRate);
+        AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"), clockRate);
         const Parameters::IntegerTraits frameDuration(Parameters::ZXTune::Sound::FRAMEDURATION, -1, Parameters::ZXTune::Sound::FRAMEDURATION_MIN, Parameters::ZXTune::Sound::FRAMEDURATION_MAX);
-        AddIntegerProperty(tr("Frame duration, uS"), frameDuration);
+        AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Frame duration, uS"), frameDuration);
       }
       if (caps.IsDAC())
       {
-        AddSetProperty(tr("Interpolation"), Parameters::ZXTune::Core::DAC::INTERPOLATION, valuesOffOn);
+        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::DAC::INTERPOLATION, valuesOffOn);
       }
     }
 
@@ -179,7 +186,7 @@ namespace
     {
       QToolButton* const resetButton = new QToolButton(this);
       resetButton->setArrowType(Qt::DownArrow);
-      resetButton->setToolTip(tr("Reset value"));
+      resetButton->setToolTip(Playlist::UI::PropertiesDialog::tr("Reset value"));
       const int row = itemsLayout->rowCount();
       itemsLayout->addWidget(new QLabel(title, this), row, 0);
       itemsLayout->addWidget(widget, row, 1);

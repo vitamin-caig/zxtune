@@ -16,6 +16,7 @@ Author:
 #include <iterator.h>
 #include <tools.h>
 //library includes
+#include <l10n/api.h>
 #include <sound/error_codes.h>
 #include <sound/filter.h>
 //std includes
@@ -28,14 +29,14 @@ Author:
 #include <boost/static_assert.hpp>
 #include <boost/integer/static_log2.hpp>
 #include <boost/type_traits/is_signed.hpp>
-//text includes
-#include <sound/text/sound.h>
 
 #define FILE_TAG 8A9585D9
 
 namespace
 {
   using namespace ZXTune::Sound;
+
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   //TODO: use from boost
   inline double bessel(double alpha)
@@ -70,7 +71,7 @@ namespace
   }
 
   template<class T>
-  inline void CheckParams(T val, T min, T max, Error::LocationRef loc, const Char* text)
+  inline void CheckParams(T val, T min, T max, Error::LocationRef loc, const String& text)
   {
     if (!in_range<T>(val, min, max))
     {
@@ -150,9 +151,9 @@ namespace
 
         //check parameters
         const uint_t order = static_cast<uint_t>(Matrix.size());
-        CheckParams(order, MIN_ORDER, MAX_ORDER, THIS_LINE, Text::SOUND_ERROR_FILTER_ORDER);
-        CheckParams(highCutoff, freq / order, freq / 2, THIS_LINE, Text::SOUND_ERROR_FILTER_HIGH_CUTOFF);
-        CheckParams(lowCutoff, uint_t(0), highCutoff, THIS_LINE, Text::SOUND_ERROR_FILTER_LOW_CUTOFF);
+        CheckParams(order, MIN_ORDER, MAX_ORDER, THIS_LINE, translate("Specified filter order (%1%) is out of range (%2%...%3%)."));
+        CheckParams(highCutoff, freq / order, freq / 2, THIS_LINE, translate("Specified filter high cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."));
+        CheckParams(lowCutoff, uint_t(0), highCutoff, THIS_LINE, translate("Specified filter low cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."));
 
         //create freq responses
         std::vector<Gain> freqResponse(order, 0.0);
@@ -210,7 +211,7 @@ namespace ZXTune
     
       try
       {
-        CheckParams(order, FIRFilterType::MIN_ORDER, FIRFilterType::MAX_ORDER, THIS_LINE, Text::SOUND_ERROR_FILTER_ORDER);
+        CheckParams(order, FIRFilterType::MIN_ORDER, FIRFilterType::MAX_ORDER, THIS_LINE, translate("Specified filter order (%1%) is out of range (%2%...%3%)."));
         result.reset(new FIRFilterType(order));
         return Error();
       }

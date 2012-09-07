@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SoundOptions</class>
+ <class>UI::SoundSettingsWidget</class>
  <widget class="QWidget" name="SoundOptions">
   <property name="geometry">
    <rect>
@@ -35,15 +35,12 @@
       <item row="0" column="0">
        <widget class="QLabel" name="frameDurationLabel">
         <property name="text">
-         <string>Frame duration</string>
+         <string>Frame duration, uS</string>
         </property>
        </widget>
       </item>
       <item row="0" column="1">
        <widget class="QSpinBox" name="frameDurationValue">
-        <property name="suffix">
-         <string> uS</string>
-        </property>
         <property name="minimum">
          <number>1000</number>
         </property>
@@ -55,7 +52,7 @@
       <item row="1" column="0">
        <widget class="QLabel" name="soundFrequencyLabel">
         <property name="text">
-         <string>Sound frequency</string>
+         <string>Sound frequency, Hz</string>
         </property>
        </widget>
       </item>

@@ -23,6 +23,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <io/fs_tools.h>
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
@@ -35,7 +36,6 @@ Author:
 #include <boost/make_shared.hpp>
 //text includes
 #include <sound/text/backends.h>
-#include <sound/text/sound.h>
 
 #define FILE_TAG 8B5627E4
 
@@ -45,6 +45,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Alsa");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
@@ -56,7 +57,7 @@ namespace
     if (res < 0)
     {
       throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-        Text::SOUND_ERROR_ALSA_BACKEND_ERROR, api.snd_strerror(res));
+        translate("Error in ALSA backend: %1%."), api.snd_strerror(res));
     }
   }
 
@@ -163,7 +164,7 @@ namespace
       if (res < 0)
       {
         throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
-          Text::SOUND_ERROR_ALSA_BACKEND_DEVICE_ERROR, Name, Api->snd_strerror(res));
+          translate("Error in ALSA backend while working with device '%1%': %2%."), Name, Api->snd_strerror(res));
       }
     }
   protected:
@@ -561,7 +562,7 @@ namespace
       if (!MixerElement)
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::SOUND_ERROR_ALSA_BACKEND_NO_MIXER, mixer);
+          translate("Failed to found mixer '%1%' for ALSA backend."), mixer);
       }
     }
 
@@ -613,7 +614,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, Text::SOUND_ERROR_BACKEND_INVALID_GAIN);
+        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Failed to set volume: gain is out of range."));
       }
       if (!MixerElement)
       {
@@ -706,7 +707,7 @@ namespace
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          Text::SOUND_ERROR_ALSA_BACKEND_INVALID_BUFFERS, static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
+          translate("ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
     }
@@ -804,6 +805,9 @@ namespace
     AlsaObjects Objects;
   };
 
+  const String ID = Text::ALSA_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("ALSA sound system backend");
+
   class AlsaBackendCreator : public BackendCreator
   {
   public:
@@ -814,12 +818,12 @@ namespace
     
     virtual String Id() const
     {
-      return Text::ALSA_BACKEND_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return Text::ALSA_BACKEND_DESCRIPTION;
+      return translate(DESCRIPTION);
     }
 
     virtual uint_t Capabilities() const
@@ -844,11 +848,11 @@ namespace
       catch (const Error& e)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
       }
     }
   private:
@@ -1115,7 +1119,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(Text::ALSA_BACKEND_ID, Text::ALSA_BACKEND_DESCRIPTION, CAPABILITIES, e));
+        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAPABILITIES, e));
       }
     }
 

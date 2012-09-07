@@ -24,7 +24,7 @@ namespace
   const Debug::Stream Dbg("Playlist::UI::ScannerView");
 
   class ScannerViewImpl : public Playlist::UI::ScannerView
-                        , private Ui::PlaylistScannerView
+                        , private Playlist::UI::Ui_ScannerView
   {
   public:
     ScannerViewImpl(QWidget& parent, Playlist::Scanner::Ptr scanner)
@@ -70,7 +70,7 @@ namespace
 
     virtual void ShowProgress(unsigned progress, unsigned itemsDone, unsigned totalItems)
     {
-      const QString itemsProgressText = QString("%1/%2").arg(itemsDone).arg(totalItems);
+      const QString itemsProgressText = QString::fromAscii("%1/%2").arg(itemsDone).arg(totalItems);
       itemsProgress->setText(itemsProgressText);
       scanProgress->setValue(progress);
       CheckedShow();
@@ -83,7 +83,7 @@ namespace
 
     virtual void ShowResolving()
     {
-      itemsProgress->setText(tr("Searching..."));
+      itemsProgress->setText(Playlist::UI::ScannerView::tr("Searching..."));
       CheckedShow();
     }
 

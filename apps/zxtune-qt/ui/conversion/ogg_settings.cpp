@@ -24,6 +24,11 @@ Author:
 
 namespace
 {
+  QString Translate(const char* msg)
+  {
+    return QApplication::translate("OggSettings", msg, 0, QApplication::UnicodeUTF8);
+  }
+
   class OGGSettingsWidget : public UI::BackendSettingsWidget
                           , private Ui::OggSettings
   {
@@ -76,11 +81,11 @@ namespace
     {
       if (selectQuality->isChecked())
       {
-        return QString("Quality %1").arg(qualityValue->value());
+        return Translate(QT_TRANSLATE_NOOP("OggSettings", "Quality %1")).arg(qualityValue->value());
       }
       else if (selectBitrate->isChecked())
       {
-        return QString("ABR %1 kbps").arg(bitrateValue->value());
+        return Translate(QT_TRANSLATE_NOOP("OggSettings", "Average bitrate %1 kbps")).arg(bitrateValue->value());
       }
       else
       {

@@ -15,15 +15,16 @@ Author:
 //library includes
 #include <io/error_codes.h>
 #include <io/fs_tools.h>
+#include <l10n/api.h>
 //std includes
 #include <cctype>
-//text includes
-#include <io/text/io.h>
 
 #define FILE_TAG 9AC2A0AC
 
 namespace
 {
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
+
   const Char FS_DELIMITERS[] =
   {
   //windows-based systems supports two types of delimiters
@@ -138,14 +139,25 @@ namespace ZXTune
       //check if file exists and overwriting is disabled
       if (!overwrite && std::ifstream(pathC.c_str()))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_FILE_EXISTS, Text::IO_ERROR_FILE_EXISTS, path);
+        throw MakeFormattedError(THIS_LINE, ERROR_FILE_EXISTS, translate("File '%1%' already exists."), path);
       }
       std::auto_ptr<std::ofstream> res(new std::ofstream(pathC.c_str(), std::ios::binary));
       if (res.get() && res->good())
       {
         return res;
       }
-      throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, Text::IO_ERROR_NOT_OPENED, path);
+      throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, translate("Failed to create file '%1%'."), path);
+    }
+
+    std::auto_ptr<std::ifstream> OpenFile(const String& path)
+    {
+      const std::string& pathC = ConvertToFilename(path);
+      std::auto_ptr<std::ifstream> res(new std::ifstream(pathC.c_str(), std::ios::binary));
+      if (res.get() && res->good())
+      {
+        return res;
+      }
+      throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, translate("Failed to open file '%1%'."), path);
     }
   }
 }

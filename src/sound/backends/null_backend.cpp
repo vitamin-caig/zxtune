@@ -15,14 +15,19 @@ Author:
 //common includes
 #include <error_tools.h>
 //library includes
+#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
 //text includes
 #include <sound/text/backends.h>
-#include <sound/text/sound.h>
 
 #define FILE_TAG 9A6FD87F
+
+namespace
+{
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+}
 
 namespace
 {
@@ -76,7 +81,7 @@ namespace
 
     virtual String Description() const
     {
-      return Text::NULL_BACKEND_DESCRIPTION;
+      return translate("Null output backend");
     }
 
     virtual uint_t Capabilities() const
@@ -101,11 +106,11 @@ namespace
       catch (const Error& e)
       {
         return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          Text::SOUND_ERROR_BACKEND_FAILED, Id()).AddSuberror(e);
+          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
       catch (const std::bad_alloc&)
       {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, Text::SOUND_ERROR_BACKEND_NO_MEMORY);
+        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
       }
     }
   };

@@ -428,7 +428,7 @@ namespace
 
   bool CheckAYLByName(const QString& filename)
   {
-    static const QString AYL_SUFFIX = QString::fromUtf8(AYL::SUFFIX);
+    static const QLatin1String AYL_SUFFIX(AYL::SUFFIX);
     return filename.endsWith(AYL_SUFFIX, Qt::CaseInsensitive);
   }
 }

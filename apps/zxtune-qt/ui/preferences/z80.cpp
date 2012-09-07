@@ -38,6 +38,16 @@ namespace
       BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
       IntegerValue::Bind(*intDurationValue, *Options, ZXTune::Core::Z80::INT_TICKS, ZXTune::Core::Z80::INT_TICKS_DEFAULT);
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      UI::Z80SettingsWidget::changeEvent(event);
+    }
   private:
     const Parameters::Container::Ptr Options;
   };

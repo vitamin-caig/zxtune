@@ -62,16 +62,22 @@ namespace
     std::list<Playlist::Model::Ptr> Models;
   };
 
+  template<class T>
+  QString BuildPlaylistFileName(const T& val)
+  {
+    return QString::fromAscii("%1.xspf").arg(val);
+  }
+
   class FiledSession : public Playlist::Session
   {
   public:
     FiledSession()
       : Directory(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
     {
-      const QString dirPath(Text::PLAYLISTS_DIR);
+      const QLatin1String dirPath(Text::PLAYLISTS_DIR);
       Require(Directory.mkpath(dirPath));
       Require(Directory.cd(dirPath));
-      Files = Directory.entryList(QStringList("*.xspf"), QDir::Files | QDir::Readable, QDir::Name);
+      Files = Directory.entryList(QStringList(BuildPlaylistFileName('*')), QDir::Files | QDir::Readable, QDir::Name);
       Dbg("%1% stored playlists", Files.size());
     }
 
@@ -102,7 +108,7 @@ namespace
       for (int idx = 0; it->IsValid(); it->Next(), ++idx)
       {
         const Playlist::Controller::Ptr ctrl = it->Get();
-        const QString& fileName = QString("%1.xspf").arg(idx);
+        const QString& fileName = BuildPlaylistFileName(idx);
         const QString& fullPath = Directory.absoluteFilePath(fileName);
         Playlist::Save(ctrl, fullPath, 0);
         tasks.Add(ctrl);

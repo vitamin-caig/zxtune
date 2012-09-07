@@ -22,8 +22,6 @@ Author:
 #include <formats/packed_decoders.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/plugins.h>
 
 namespace ST3
 {
@@ -89,7 +87,7 @@ namespace ZXTune
     {
       const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSoundTracker3Decoder();
       const ModulesFactory::Ptr factory = boost::make_shared<ST3::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST3::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, ST3::CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST3::ID, decoder->GetDescription(), ST3::CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

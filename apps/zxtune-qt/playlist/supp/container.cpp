@@ -32,7 +32,7 @@ namespace
 {
   QString GetPlaylistName(const Parameters::Accessor& params)
   {
-    Parameters::StringType name(Text::DEFAULT_PLAYLIST_NAME);
+    Parameters::StringType name;
     params.FindValue(Playlist::ATTRIBUTE_NAME, name);
     return ToQString(name);
   }
@@ -197,7 +197,7 @@ namespace
     virtual void OpenPlaylist(const QString& filename)
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
-      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(*this, QString(Text::PLAYLIST_LOADING_HEADER), provider);
+      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(*this, QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
       const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<LoadPlaylistOperation>(provider, filename, boost::ref(*playlist));
       playlist->GetModel()->PerformOperation(op);
       emit PlaylistCreated(playlist);

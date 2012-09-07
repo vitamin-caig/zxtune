@@ -14,5 +14,6 @@ endif
 source_files += platform/shared_library_common
 
 text_files := text/tools
+po_files := tools
 
 include $(path_step)/makefile.mak

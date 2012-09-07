@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>zxtune-qt</string>
+   <string notr="true">zxtune-qt</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -54,7 +54,7 @@
    </property>
    <widget class="QMenu" name="menuLayout">
     <property name="title">
-     <string notr="true">Layout</string>
+     <string>Layout</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -107,7 +107,7 @@
     <string>Add folder</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Alt+O</string>
+    <string notr="true">Ctrl+Alt+O</string>
    </property>
   </action>
   <action name="actionPreferences">
@@ -120,7 +120,7 @@
     <string>Preferences</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+P</string>
+    <string notr="true">Ctrl+P</string>
    </property>
   </action>
   <action name="actionQuit">

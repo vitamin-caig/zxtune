@@ -81,6 +81,16 @@ namespace
       SetEnabled(false);
       AdjustedParameters = Parameters::Accessor::Ptr();
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      ::PlaybackOptions::changeEvent(event);
+    }
   private:
     void SetEnabled(bool enabled)
     {

@@ -38,6 +38,16 @@ namespace
       IntegerValue::Bind(*rawMinSizeValue, *Options, ZXTune::Core::Plugins::Raw::MIN_SIZE, ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT);
       BooleanValue::Bind(*rawPlainDoubleAnalysis, *Options, ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, false);
     }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      UI::PluginsSettingsWidget::changeEvent(event);
+    }
   private:
     const Parameters::Container::Ptr Options;
   };

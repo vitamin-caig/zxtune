@@ -24,8 +24,6 @@ Author:
 #include <formats/chiptune/tfd.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/plugins.h>
 
 namespace
 {
@@ -297,7 +295,7 @@ namespace ZXTune
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFDDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<TFD::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TFD::ID, decoder->GetDescription() + Text::PLAYER_DESCRIPTION_SUFFIX, TFD::CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TFD::ID, decoder->GetDescription(), TFD::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

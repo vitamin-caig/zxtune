@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>AY/YM</string>
+   <string notr="true">AY/YM</string>
   </property>
   <layout class="QVBoxLayout">
    <property name="spacing">
@@ -23,7 +23,7 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Clock frequency</string>
+      <string>Clock frequency, Hz</string>
      </property>
      <layout class="QHBoxLayout">
       <property name="spacing">
@@ -86,7 +86,7 @@
       </sizepolicy>
      </property>
      <property name="title">
-      <string>Duty cycle</string>
+      <string>Duty cycle, %</string>
      </property>
      <property name="checkable">
       <bool>true</bool>
@@ -121,9 +121,6 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
-        </property>
-        <property name="suffix">
-         <string notr="true"> %</string>
         </property>
         <property name="minimum">
          <number>1</number>

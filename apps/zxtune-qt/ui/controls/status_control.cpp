@@ -26,7 +26,7 @@ Author:
 
 namespace
 {
-  const QString EMPTY_TEXT(QString::fromUtf8("-"));
+  const QString EMPTY_TEXT(QLatin1String("-"));
 
   class StatusControlImpl : public StatusControl
                           , private Ui::StatusControl
@@ -68,6 +68,16 @@ namespace
       textFrame->setText(EMPTY_TEXT);
       textChannels->setText(EMPTY_TEXT);
       textTempo->setText(EMPTY_TEXT);
+    }
+
+    //QWidget
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        retranslateUi(this);
+      }
+      ::StatusControl::changeEvent(event);
     }
   private:
     ZXTune::Module::TrackState::Ptr TrackState;

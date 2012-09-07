@@ -226,9 +226,9 @@ namespace
     virtual void ShowNotification(Playlist::TextNotification::Ptr notification)
     {
       QMessageBox msgBox(QMessageBox::Information,
-        ToQString(notification->Category()), ToQString(notification->Text()),
+        notification->Category(), notification->Text(),
         QMessageBox::Ok);
-      msgBox.setDetailedText(ToQString(notification->Details()));
+      msgBox.setDetailedText(notification->Details());
       msgBox.exec();
     }
   private:

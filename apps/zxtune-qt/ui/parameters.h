@@ -26,6 +26,8 @@ namespace Parameters
     {
       const NameType PREFIX = ZXTuneQT::PREFIX + "UI";
 
+      const NameType LANGUAGE = PREFIX + "Language";
+
       const std::string PARAM_GEOMETRY("Geometry");
       const std::string PARAM_LAYOUT("Layout");
       const std::string PARAM_VISIBLE("Visible");

@@ -42,7 +42,7 @@ namespace
       setPalette(Qt::transparent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 64);
-      setToolTip(tr("Click to cancel"));
+      SetToolTip();
     }
 
     virtual void UpdateProgress(int progress)
@@ -55,6 +55,15 @@ namespace
     }
 
     //QWidget virtuals
+    virtual void changeEvent(QEvent* event)
+    {
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        SetToolTip();
+      }
+      OverlayProgress::changeEvent(event);
+    }
+
     virtual void paintEvent(QPaintEvent*)
     {
       FillGeometry();
@@ -75,7 +84,7 @@ namespace
       painter.drawEllipse(QPoint(0, 0), maxRadius, maxRadius);
       painter.setBrush(QBrush());
       painter.drawText(-smallRadius, -smallRadius, smallRadius * 2, smallRadius * 2, Qt::AlignHCenter | Qt::AlignVCenter | Qt::TextSingleLine,
-        QString("%1%").arg(Value));
+        QString::fromAscii("%1%").arg(Value));
 
       const int totalSteps = std::min(STEPS_MAX, Value * STEPS_MAX / 100 + 1);
       painter.drawLines(Lines.begin(), totalSteps);
@@ -89,6 +98,11 @@ namespace
       }
     }
   private:
+    void SetToolTip()
+    {
+      setToolTip(OverlayProgress::tr("Click to cancel"));
+    }
+
     void DoRepaint()
     {
       const std::time_t curTime = std::time(0);

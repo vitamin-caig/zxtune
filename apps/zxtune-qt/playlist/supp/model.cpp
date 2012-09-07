@@ -44,18 +44,12 @@ namespace
   public:
     virtual ~RowDataProvider() {}
 
-    virtual QVariant GetHeader(unsigned column) const = 0;
     virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const = 0;
   };
 
   class DummyDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetHeader(unsigned /*column*/) const
-    {
-      return QVariant();
-    }
-
     virtual QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const
     {
       return QVariant();
@@ -65,11 +59,6 @@ namespace
   class DecorationDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetHeader(unsigned /*column*/) const
-    {
-      return QVariant();
-    }
-
     virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const
     {
       switch (column)
@@ -89,33 +78,6 @@ namespace
   class DisplayDataProvider : public RowDataProvider
   {
   public:
-    virtual QVariant GetHeader(unsigned column) const
-    {
-      switch (column)
-      {
-      case Playlist::Model::COLUMN_TYPE:
-        return Playlist::Model::tr("Type");
-      case Playlist::Model::COLUMN_DISPLAY_NAME:
-        return Playlist::Model::tr("Author - Title");
-      case Playlist::Model::COLUMN_DURATION:
-        return Playlist::Model::tr("Duration");
-      case Playlist::Model::COLUMN_AUTHOR:
-        return Playlist::Model::tr("Author");
-      case Playlist::Model::COLUMN_TITLE:
-        return Playlist::Model::tr("Title");
-      case Playlist::Model::COLUMN_PATH:
-        return Playlist::Model::tr("Path");
-      case Playlist::Model::COLUMN_SIZE:
-        return Playlist::Model::tr("Size");
-      case Playlist::Model::COLUMN_CRC:
-        return Playlist::Model::tr("CRC");
-      case Playlist::Model::COLUMN_FIXEDCRC:
-        return Playlist::Model::tr("FixedCRC");
-      default:
-        return QVariant();
-      };
-    }
-
     virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const
     {
       switch (column)
@@ -142,27 +104,12 @@ namespace
     }
   };
 
-  class TooltipDataProvider : public RowDataProvider
-  {
-  public:
-    virtual QVariant GetHeader(unsigned /*column*/) const
-    {
-      return QVariant();
-    }
-
-    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned /*column*/) const
-    {
-      return ToQString(item.GetTooltip());
-    }
-  };
-
   class DataProvidersSet
   {
   public:
     DataProvidersSet()
       : Decoration()
       , Display()
-      , Tooltip()
       , Dummy()
     {
     }
@@ -175,8 +122,6 @@ namespace
         return Decoration;
       case Qt::DisplayRole:
         return Display;
-      case Qt::ToolTipRole:
-        return Tooltip;
       default:
         return Dummy;
       }
@@ -184,7 +129,6 @@ namespace
   private:
     const DecorationDataProvider Decoration;
     const DisplayDataProvider Display;
-    const TooltipDataProvider Tooltip;
     const DummyDataProvider Dummy;
   };
 
@@ -286,7 +230,7 @@ namespace
     const Playlist::Item::Comparer::Ptr Comparer;
   };
 
-  const char INDICES_MIMETYPE[] = "application/playlist.indices";
+  const QLatin1String INDICES_MIMETYPE("application/playlist.indices");
 
   template<class OpType>
   class OperationTarget
@@ -607,12 +551,7 @@ namespace
 
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const
     {
-      if (Qt::Horizontal == orientation)
-      {
-        const RowDataProvider& provider = Providers.GetProvider(role);
-        return provider.GetHeader(section);
-      }
-      else if (Qt::Vertical == orientation && Qt::DisplayRole == role)
+      if (Qt::Vertical == orientation && Qt::DisplayRole == role)
       {
         //item number is 1-based
         return QVariant(section + 1);

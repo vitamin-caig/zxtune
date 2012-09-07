@@ -30,6 +30,8 @@ namespace
 {
   using namespace Parameters;
 
+ const QLatin1Char PATH_SEPARATOR('/');
+
   class SettingsContainer : public Container
   {
   public:
@@ -153,8 +155,8 @@ namespace
     private:
       static QString GetKeyName(const NameType& name)
       {
-        QString res(name.FullPath().c_str());
-        res.replace('.', '/');
+        QString res = QString::fromStdString(name.FullPath());
+        res.replace(QLatin1Char('.'), PATH_SEPARATOR);
         return res;
       }
 
@@ -172,8 +174,8 @@ namespace
       {
         Require(!Setup);
         const QString fullKey = GetKeyName(FullName);
-        const QString rootNamespace = fullKey.section('/', 0, 0);
-        ParamName = fullKey.section('/', 1);
+        const QString rootNamespace = fullKey.section(PATH_SEPARATOR, 0, 0);
+        ParamName = fullKey.section(PATH_SEPARATOR, 1);
         const SettingsStorage::const_iterator it = Storage.find(rootNamespace);
         if (it != Storage.end())
         {
@@ -181,7 +183,7 @@ namespace
         }
         else
         {
-          Setup = boost::make_shared<QSettings>(QString(Text::PROJECT_NAME), rootNamespace);
+          Setup = boost::make_shared<QSettings>(QLatin1String(Text::PROJECT_NAME), rootNamespace);
           Storage.insert(SettingsStorage::value_type(rootNamespace, Setup));
         }
       }
