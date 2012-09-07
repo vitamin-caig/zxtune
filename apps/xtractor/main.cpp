@@ -258,6 +258,7 @@ namespace
       Decoders.push_back(CreateZ80V145Decoder());
       Decoders.push_back(CreateZ80V20Decoder());
       Decoders.push_back(CreateZ80V30Decoder());
+      Decoders.push_back(Decoder::Ptr CreateMegaLZDecoder());
     }
 
     virtual bool ForEach(Formats::Packed::DecodersStorage::Visitor& visitor) const

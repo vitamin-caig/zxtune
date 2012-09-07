@@ -53,7 +53,7 @@ namespace
 
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
-      std::auto_ptr<Dump> copy(new Dump(RawData, RawData + std::min(RawSize, size)));
+      std::auto_ptr<Dump> copy(new Dump(RawData + offset, RawData + std::min(RawSize, offset + size)));
       return Binary::CreateContainer(copy);
     }
   private:
@@ -81,7 +81,7 @@ namespace
       return 0;
     }
 
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
+    virtual Binary::Container::Ptr GetSubcontainer(std::size_t /*offset*/, std::size_t /*size*/) const
     {
       return Binary::Container::Ptr();
     }

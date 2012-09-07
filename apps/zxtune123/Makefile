@@ -14,8 +14,8 @@ endif
 text_files := text/text
 other_text_files := text/cmdline text/messages text/conversion text/cmd_keys_local
 
-libraries := analysis async binary core devices formats platform sound tools io l10n zxtune_app_base zxtune_app_version
-depends := src/analysis src/async src/binary src/tools src/core src/devices src/l10n src/platform src/formats src/sound src/io apps/base apps/version
+libraries := analysis async binary core devices formats platform sound tools io l10n_stub zxtune_app_base zxtune_app_version
+depends := src/analysis src/async src/binary src/tools src/core src/devices src/l10n/stub src/platform src/formats src/sound src/io apps/base apps/version
 
 #3rdparty
 libraries += lhasa z z80ex
@@ -23,7 +23,7 @@ depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
 
 windows_libraries = advapi32
 mingw_libraries = iconv
-boost_libraries = thread program_options system locale
+boost_libraries = thread program_options system
 
 manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)
