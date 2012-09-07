@@ -118,7 +118,7 @@ $(output_dir):
 #build target
 ifdef library_name
 #simple libraries
-$(target): $(OBJECTS) $(RESOURCES) | $(output_dir)
+$(target): $(OBJECTS) $(RESOURCES) | $(output_dir) $(TRANSLATIONS)
 	$(call build_lib_cmd,$^,$@)
 
 .PHONY: deps
@@ -126,7 +126,7 @@ else
 #binary and dynamic libraries with dependencies
 LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
-$(target): $(OBJECTS) $(RESOURCES) $(LIBS) $(embedded_files) | $(output_dir)
+$(target): $(OBJECTS) $(RESOURCES) $(LIBS) $(embedded_files) | $(output_dir) $(TRANSLATIONS)
 	$(link_cmd)
 	$(postlink_cmd)
 	$(if $(embedded_files),$(embed_file_cmd),)
@@ -167,8 +167,6 @@ clean_self:
 clean_deps: $(depends)
 
 install: install_$(platform)
-
-l10n: $(TRANSLATIONS)
 
 include $(path_step)/make/codeblocks.mak
 
