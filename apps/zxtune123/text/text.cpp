@@ -197,8 +197,11 @@ extern const Char INFO_ATTRIBUTES_CURRENT_POSITION[] = {
 extern const Char INFO_ATTRIBUTES_DATE[] = {
   'm','o','d','u','l','e',' ','d','a','t','e',' ','i','n','f','o','r','m','a','t','i','o','n',0
 };
+extern const Char INFO_ATTRIBUTES_EXTENSION[] = {
+  's','o','u','r','c','e',' ','f','i','l','e',' ','e','x','t','e','n','s','i','o','n',0
+};
 extern const Char INFO_ATTRIBUTES_FILENAME[] = {
-  's','h','o','r','t',' ','s','o','u','r','c','e',' ','f','i','l','e',' ','n','a','m','e',0
+  's','o','u','r','c','e',' ','f','i','l','e',' ','n','a','m','e',0
 };
 extern const Char INFO_ATTRIBUTES_FULLPATH[] = {
   'f','u','l','l',' ','s','o','u','r','c','e',' ','d','a','t','a',' ','i','d','e','n','t','i','f','i','e','r',
@@ -206,7 +209,7 @@ extern const Char INFO_ATTRIBUTES_FULLPATH[] = {
   'd',' ','s','u','b','p','a','t','h',0
 };
 extern const Char INFO_ATTRIBUTES_PATH[] = {
-  'f','u','l','l',' ','s','o','u','r','c','e',' ','f','i','l','e',' ','n','a','m','e',0
+  'f','u','l','l',' ','s','o','u','r','c','e',' ','f','i','l','e',' ','p','a','t','h',0
 };
 extern const Char INFO_ATTRIBUTES_PROGRAM[] = {
   'p','r','o','g','r','a','m',' ','m','o','d','u','l','e',' ','w','a','s',' ','c','r','e','a','t','e','d',0

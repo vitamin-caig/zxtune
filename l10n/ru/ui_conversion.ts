@@ -183,6 +183,21 @@
     <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="150"/>
         <source>
+&lt;p&gt;This field means source data filename&apos;s extension.&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Example:&lt;/b&gt;
+&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
+&lt;pre&gt;ext&lt;/pre&gt;
+</source>
+        <translation>
+&lt;p&gt;Это поле означает расширение исходного файла.&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
+&lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
+&lt;pre&gt;ext&lt;/pre&gt;
+</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="168"/>
+        <source>
 &lt;p&gt;This field means subdata identifier in source file normalized to filename format.&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;Example:&lt;/b&gt;
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; will be translated to
@@ -196,7 +211,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="168"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="186"/>
         <source>
 &lt;p&gt;This field means subdata containers chain identifiers normalized to filename format.&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;Example:&lt;/b&gt;
@@ -207,11 +222,11 @@
 &lt;p&gt;Это поле означает цепочку декодеров, использумых для доступа к данным внутри контейнера.&lt;/p&gt;
 &lt;p&gt;&lt;b&gt;Пример:&lt;/b&gt;
 &lt;pre&gt;/path/to/file.ext?nested.bin/+256/subfile.B&lt;/pre&gt; преобразуется в
-&lt;pre&gt;ZIP_RAW_TRD&lt;/pre&gt; in case if file.ext is ZIP file and TRD file is located at 256-byte offset of nested.bin file
+&lt;pre&gt;ZIP_RAW_TRD&lt;/pre&gt; в случае если file.ext является ZIP-архивом и TRD образ расположен по смещению в 256 байт внутри упакованного файла nested.bin
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="186"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="204"/>
         <source>
 &lt;p&gt;This field means chiptune type. Usually 2-3 uppercased letters. Can be used as an extension.&lt;/p&gt;
 </source>
@@ -220,7 +235,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="201"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="219"/>
         <source>
 &lt;p&gt;This field means chiptune size in bytes.&lt;/p&gt;
 </source>
@@ -229,7 +244,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="216"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="234"/>
         <source>
 &lt;p&gt;This field means CRC32 checksum of chiptune in decimal form.&lt;/p&gt;
 </source>
@@ -238,7 +253,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="231"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="249"/>
         <source>
 &lt;p&gt;This field means CRC32 checksum if meaningful chiptune parts in decimal form.&lt;/p&gt;
 </source>
@@ -247,7 +262,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="246"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="264"/>
         <source>
 &lt;p&gt;This field means chiptune title and can be empty.&lt;/p&gt;
 </source>
@@ -256,7 +271,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="261"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="279"/>
         <source>
 &lt;p&gt;This field means chiptune&apos;s author and can be empty.&lt;/p&gt;
 </source>
@@ -265,7 +280,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="276"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="294"/>
         <source>
 &lt;p&gt;This field means chiptune comment and can be empty.&lt;/p&gt;
 </source>
@@ -274,7 +289,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="291"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="309"/>
         <source>
 &lt;p&gt;This field means program familiy chiptune was created in or compatible with.&lt;/p&gt;
 </source>
@@ -283,7 +298,7 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="306"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="324"/>
         <source>
 &lt;p&gt;This field means program version chiptune was created in. Can be not specified. Format is 10*MAJOR+MINOR&lt;/p&gt;
 </source>

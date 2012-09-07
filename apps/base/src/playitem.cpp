@@ -84,6 +84,11 @@ namespace
         val = Id->Filename();
         return true;
       }
+      else if (name == Module::ATTR_EXTENSION)
+      {
+        val = Id->Extension();
+        return true;
+      }
       else if (name == Module::ATTR_PATH)
       {
         val = Id->Path();
@@ -106,6 +111,7 @@ namespace
     {
       visitor.SetValue(Module::ATTR_SUBPATH, Id->Subpath());
       visitor.SetValue(Module::ATTR_FILENAME, Id->Filename());
+      visitor.SetValue(Module::ATTR_EXTENSION, Id->Extension());
       visitor.SetValue(Module::ATTR_PATH, Id->Path());
       visitor.SetValue(Module::ATTR_FULLPATH, Id->Full());
     }

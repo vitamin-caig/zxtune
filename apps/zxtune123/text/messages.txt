@@ -256,11 +256,14 @@
 < INFO_OPTIONS_CORE_PLUGINS_ZIP_MAX_DEPACKED_FILE_SIZE_MB
 > "maximal file size to be depacked from .zip archive"
 
+< INFO_ATTRIBUTES_EXTENSION
+> "source file extension"
+
 < INFO_ATTRIBUTES_FILENAME
-> "short source file name"
+> "source file name"
 
 < INFO_ATTRIBUTES_PATH
-> "full source file name"
+> "full source file path"
 
 < INFO_ATTRIBUTES_FULLPATH
 > "full source data identifier including full filename and subpath"

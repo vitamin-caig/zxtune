@@ -358,6 +358,7 @@ namespace
     static const AttrType ATTRIBUTES[] =
     {
       //external
+      AttrType(ZXTune::Module::ATTR_EXTENSION, Text::INFO_ATTRIBUTES_EXTENSION),
       AttrType(ZXTune::Module::ATTR_FILENAME, Text::INFO_ATTRIBUTES_FILENAME),
       AttrType(ZXTune::Module::ATTR_PATH, Text::INFO_ATTRIBUTES_PATH),
       AttrType(ZXTune::Module::ATTR_FULLPATH, Text::INFO_ATTRIBUTES_FULLPATH),

@@ -56,6 +56,8 @@ namespace ZXTune
     //@{
     //! @name External attributes
 
+    //! Module's input data filename extension
+    const std::string ATTR_EXTENSION("Extension");
     //! Module's input data filename
     const std::string ATTR_FILENAME("Filename");
     //! Path of module's input data

@@ -56,6 +56,7 @@ extern const Char INFO_ATTRIBUTES_CURRENT_LINE[];
 extern const Char INFO_ATTRIBUTES_CURRENT_PATTERN[];
 extern const Char INFO_ATTRIBUTES_CURRENT_POSITION[];
 extern const Char INFO_ATTRIBUTES_DATE[];
+extern const Char INFO_ATTRIBUTES_EXTENSION[];
 extern const Char INFO_ATTRIBUTES_FILENAME[];
 extern const Char INFO_ATTRIBUTES_FULLPATH[];
 extern const Char INFO_ATTRIBUTES_PATH[];
