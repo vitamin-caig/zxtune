@@ -34,7 +34,6 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread/mutex.hpp>
-#include <boost/algorithm/string/replace.hpp>
 //text includes
 #include "text/text.h"
 
@@ -303,28 +302,6 @@ namespace
     return val;
   }
 
-  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
-  {
-    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
-  public:
-    explicit HTMLEscapedFieldsSourceAdapter(const Parameters::Accessor& props)
-      : Parent(props)
-    {
-    }
-
-    virtual String GetFieldValue(const String& fieldName) const
-    {
-      static const Char AMPERSAND[] = {'&', 0};
-      static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
-      static const Char LBRACKET[] = {'<', 0};
-      static const Char LBRACKET_ESCAPED[] = {'&', 'l', 't', ';', 0};
-      String result = Parent::GetFieldValue(fieldName);
-      boost::algorithm::replace_all(result, AMPERSAND, AMPERSAND_ESCAPED);
-      boost::algorithm::replace_all(result, LBRACKET, LBRACKET_ESCAPED);
-      return result;
-    }
-  };
-
   class DynamicAttributesProvider
   {
   public:
@@ -333,7 +310,6 @@ namespace
     DynamicAttributesProvider()
       : DisplayNameTemplate(StringTemplate::Create(Text::MODULE_PLAYLIST_FORMAT))
       , DummyDisplayName(DisplayNameTemplate->Instantiate(SkipFieldsSource()))
-      , TooltipTemplate(StringTemplate::Create(Text::TOOLTIP_TEMPLATE))
     {
     }
 
@@ -350,16 +326,9 @@ namespace
       }
       return result;
     }
-
-    String GetTooltip(const Parameters::Accessor& properties) const
-    {
-      const HTMLEscapedFieldsSourceAdapter adapter(properties);
-      return TooltipTemplate->Instantiate(adapter);
-    }
   private:
     const StringTemplate::Ptr DisplayNameTemplate;
     const String DummyDisplayName;
-    const StringTemplate::Ptr TooltipTemplate;
   };
 
   class DataImpl : public Playlist::Item::Data
@@ -420,15 +389,6 @@ namespace
     virtual Time::MillisecondsDuration GetDuration() const
     {
       return Duration;
-    }
-
-    virtual String GetTooltip() const
-    {
-      if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
-      {
-        return Attributes->GetTooltip(*properties);
-      }
-      return String();
     }
 
     virtual String GetAuthor() const

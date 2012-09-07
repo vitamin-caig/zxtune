@@ -50,7 +50,7 @@ namespace Playlist
       explicit TableView(QWidget& parent);
     public:
       //creator
-      static TableView* Create(QWidget& parent, const Item::StateCallback& callback, Playlist::Model::Ptr model);
+      static TableView* Create(QWidget& parent, const Item::StateCallback& callback, QAbstractItemModel& model);
 
       virtual Model::IndexSetPtr GetSelectedItems() const = 0;
       virtual void SelectItems(const Playlist::Model::IndexSet& indices) = 0;

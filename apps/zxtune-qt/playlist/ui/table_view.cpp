@@ -27,7 +27,6 @@ Author:
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QHeaderView>
 #include <QtGui/QMenu>
-#include <QtGui/QProxyModel>
 
 namespace
 {
@@ -50,11 +49,11 @@ namespace
   class TableHeader : public QHeaderView
   {
   public:
-    TableHeader(QAbstractItemModel* model, const QFont& font)
+    TableHeader(QAbstractItemModel& model, const QFont& font)
       : QHeaderView(Qt::Horizontal)
     {
-      setModel(model);
       setObjectName(QLatin1String("Columns"));
+      setModel(&model);
       setFont(font);
       setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       setHighlightSections(false);
@@ -107,59 +106,11 @@ namespace
     }
   };
 
-  class RetranslateModel : public QProxyModel
-  {
-  public:
-    explicit RetranslateModel(QObject& parent)
-      : QProxyModel(&parent)
-    {
-    }
-
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const
-    {
-      const QVariant orig = QProxyModel::headerData(section, orientation, role);
-      if (Qt::Horizontal == orientation  &&
-          Qt::DisplayRole == role)
-      {
-        return GetHeaderText(section);
-      }
-      return orig;
-    }
-  private:
-    QVariant GetHeaderText(unsigned column) const
-    {
-      switch (column)
-      {
-      case Playlist::Model::COLUMN_TYPE:
-        return Playlist::UI::View::tr("Type");
-      case Playlist::Model::COLUMN_DISPLAY_NAME:
-        return Playlist::UI::View::tr("Author - Title");
-      case Playlist::Model::COLUMN_DURATION:
-        return Playlist::UI::View::tr("Duration");
-      case Playlist::Model::COLUMN_AUTHOR:
-        return Playlist::UI::View::tr("Author");
-      case Playlist::Model::COLUMN_TITLE:
-        return Playlist::UI::View::tr("Title");
-      case Playlist::Model::COLUMN_PATH:
-        return Playlist::UI::View::tr("Path");
-      case Playlist::Model::COLUMN_SIZE:
-        return Playlist::UI::View::tr("Size");
-      case Playlist::Model::COLUMN_CRC:
-        return Playlist::UI::View::tr("CRC");
-      case Playlist::Model::COLUMN_FIXEDCRC:
-        return Playlist::UI::View::tr("FixedCRC");
-      default:
-        return QVariant();
-      };
-    }
-  };
-
-
   class TableViewImpl : public Playlist::UI::TableView
   {
   public:
     TableViewImpl(QWidget& parent, const Playlist::Item::StateCallback& callback,
-      Playlist::Model::Ptr model)
+      QAbstractItemModel& model)
       : Playlist::UI::TableView(parent)
       , Font(FONT_FAMILY, FONT_SIZE)
     {
@@ -183,10 +134,8 @@ namespace
       setWordWrap(false);
       setCornerButtonEnabled(false);
       //setup dynamic ui
-      setModel(model);
-      QProxyModel* const proxyModel = new RetranslateModel(*this);
-      proxyModel->setModel(model);
-      setHorizontalHeader(new TableHeader(proxyModel, Font));
+      setHorizontalHeader(new TableHeader(model, Font));
+      setModel(&model);
       if (QHeaderView* const verHeader = verticalHeader())
       {
         verHeader->setFont(Font);
@@ -354,7 +303,7 @@ namespace Playlist
     {
     }
 
-    TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, Playlist::Model::Ptr model)
+    TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, QAbstractItemModel& model)
     {
       REGISTER_METATYPE(Playlist::Model::IndexSetPtr);
       return new TableViewImpl(parent, callback, model);

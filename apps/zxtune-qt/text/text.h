@@ -18,7 +18,6 @@ extern const Char PROGRAM_SITE[];
 extern const Char PROJECT_NAME[];
 extern const Char REPORT_BUG_URL[];
 extern const Char TITLE_FORMAT[];
-extern const Char TOOLTIP_TEMPLATE[];
 extern const Char TYPEICONS_RESOURCE_PREFIX[];
 }//namespace Text
 #endif //__TEXT_TEXT_H_DEFINED__

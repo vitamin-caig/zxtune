@@ -104,22 +104,12 @@ namespace
     }
   };
 
-  class TooltipDataProvider : public RowDataProvider
-  {
-  public:
-    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned /*column*/) const
-    {
-      return ToQString(item.GetTooltip());
-    }
-  };
-
   class DataProvidersSet
   {
   public:
     DataProvidersSet()
       : Decoration()
       , Display()
-      , Tooltip()
       , Dummy()
     {
     }
@@ -132,8 +122,6 @@ namespace
         return Decoration;
       case Qt::DisplayRole:
         return Display;
-      case Qt::ToolTipRole:
-        return Tooltip;
       default:
         return Dummy;
       }
@@ -141,7 +129,6 @@ namespace
   private:
     const DecorationDataProvider Decoration;
     const DisplayDataProvider Display;
-    const TooltipDataProvider Tooltip;
     const DummyDataProvider Dummy;
   };
 

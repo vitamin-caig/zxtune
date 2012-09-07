@@ -49,16 +49,6 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < TYPEICONS_RESOURCE_PREFIX
 > ":/types/"
 
-< TOOLTIP_TEMPLATE
-> "<html>"
-> "[Fullpath]<br/>"
-> "[Container]&nbsp;([Size] bytes)<br/><br/>"
-> "<b>Title:</b> [Title]<br/>"
-> "<b>Author:</b> [Author]<br/>"
-> "<b>Program:</b> [Program]<br/>"
-> "[Comment]"
-> "</html>"
-
 < PLAYLISTS_DIR
 > PROJECT_NAME "/Playlists"
 

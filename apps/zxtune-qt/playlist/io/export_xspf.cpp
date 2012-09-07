@@ -386,7 +386,7 @@ namespace Playlist
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
       {
-        return Error(THIS_LINE, ZXTune::IO::ERROR_IO_ERROR, FromQString(device.tr("Failed to store playlist '{0}'").arg(filename)));
+        return Error(THIS_LINE, ZXTune::IO::ERROR_IO_ERROR, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
       }
       try
       {
