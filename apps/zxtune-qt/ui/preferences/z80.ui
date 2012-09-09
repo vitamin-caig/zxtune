@@ -25,7 +25,7 @@
      <property name="title">
       <string>Oscillator settings</string>
      </property>
-     <layout class="QFormLayout">
+     <layout class="QGridLayout">
       <property name="horizontalSpacing">
        <number>4</number>
       </property>
