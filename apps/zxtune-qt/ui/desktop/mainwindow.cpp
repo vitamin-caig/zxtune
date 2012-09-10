@@ -34,6 +34,7 @@ Author:
 #include <apps/version/api.h>
 //common includes
 #include <contract.h>
+#include <debug_log.h>
 #include <format.h>
 //library includes
 #include <core/module_attrs.h>
@@ -51,6 +52,8 @@ Author:
 
 namespace
 {
+  const Debug::Stream Dbg("UI::MainWindow");
+
   UI::Language::Ptr CreateLanguage(const Parameters::Container& options)
   {
     const UI::Language::Ptr res = UI::Language::Create();
@@ -85,19 +88,16 @@ namespace
       menubar->addMenu(menuHelp);
       //fill toolbar and layout menu
       {
-        QWidget* const ALL_WIDGETS[] =
-        {
-          AddWidgetOnToolbar(Controls, false),
-          AddWidgetOnToolbar(FastOptions, false),
-          AddWidgetOnToolbar(Volume, true),
-          AddWidgetOnToolbar(Status, false),
-          AddWidgetOnToolbar(Seeking, true),
-          AddWidgetOnToolbar(Analyzer, false)
-        };
+        Toolbars.push_back(AddWidgetOnToolbar(Controls, false));
+        Toolbars.push_back(AddWidgetOnToolbar(FastOptions, false));
+        Toolbars.push_back(AddWidgetOnToolbar(Volume, true));
+        Toolbars.push_back(AddWidgetOnToolbar(Status, false));
+        Toolbars.push_back(AddWidgetOnToolbar(Seeking, true));
+        Toolbars.push_back(AddWidgetOnToolbar(Analyzer, false));
         //playlist is mandatory and cannot be hidden
         AddWidgetOnLayout(MultiPlaylist);
         State->Load();
-        std::for_each(ALL_WIDGETS, ArrayEnd(ALL_WIDGETS), boost::bind(&MainWindowImpl::AddWidgetLayoutControl, this, _1));
+        FillLayoutMenu();
       }
 
       //connect root actions
@@ -207,20 +207,32 @@ namespace
       MultiPlaylist->Teardown();
       event->accept();
     }
+    
+    virtual bool event(QEvent* event)
+    {
+      const bool res = ::MainWindow::event(event);
+      if (event && QEvent::LanguageChange == event->type())
+      {
+        FillLayoutMenu();
+      }
+      return res;
+    }
 
     virtual void changeEvent(QEvent* event)
     {
       if (event && QEvent::LanguageChange == event->type())
       {
+        Dbg("Retranslate main UI");
         retranslateUi(this);
       }
       ::MainWindow::changeEvent(event);
     }
   private:
-    QToolBar* AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
+    typedef std::pair<QWidget*, QToolBar*> WidgetOnToolbar;
+
+    WidgetOnToolbar AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
     {
-      const QString widgetName = widget->windowTitle();
-      QToolBar* const toolBar = new QToolBar(widgetName, this);
+      QToolBar* const toolBar = new QToolBar(this);
       toolBar->setObjectName(widget->objectName());
       QSizePolicy sizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
       sizePolicy.setHorizontalStretch(0);
@@ -237,23 +249,23 @@ namespace
       {
         addToolBarBreak();
       }
-      return toolBar;
-    }
-
-    void AddWidgetLayoutControl(QWidget* widget)
-    {
-      QAction* const action = new QAction(widget->windowTitle(), widget);
-      action->setCheckable(true);
-      action->setChecked(widget->isVisibleTo(this));
-      //integrate
-      menuLayout->addAction(action);
-      widget->connect(action, SIGNAL(toggled(bool)), SLOT(setVisible(bool)));
+      return WidgetOnToolbar(widget, toolBar);
     }
 
     QWidget* AddWidgetOnLayout(QWidget* widget)
     {
       centralWidget()->layout()->addWidget(widget);
       return widget;
+    }
+    
+    void FillLayoutMenu()
+    {
+      menuLayout->clear();
+      for (std::vector<WidgetOnToolbar>::const_iterator it = Toolbars.begin(), lim = Toolbars.end(); it != lim; ++it)
+      {
+        it->second->setWindowTitle(it->first->windowTitle());
+        menuLayout->addAction(it->second->toggleViewAction());
+      }
     }
   private:
     const Parameters::Container::Ptr Options;
@@ -268,6 +280,7 @@ namespace
     AnalyzerControl* const Analyzer;
     Playlist::UI::ContainerView* const MultiPlaylist;
     bool Playing;
+    std::vector<WidgetOnToolbar> Toolbars;
   };
 }
 

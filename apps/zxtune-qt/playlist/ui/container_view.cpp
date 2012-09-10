@@ -257,6 +257,7 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
+        Dbg("Retranslating UI");
         retranslateUi(this);
         SetMenuTitle();
       }
