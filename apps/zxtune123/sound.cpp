@@ -49,7 +49,7 @@ namespace
   const Char DEFAULT_MIXER_3[] = {'A', 'B', 'C', '\0'};
   const Char DEFAULT_MIXER_4[] = {'A', 'B', 'C', 'D', '\0'};
 
-  const Debug::Stream Dbg(THIS_MODULE);
+  const Debug::Stream Dbg("zxtune123::Sound");
 
   static const String NOTUSED_MARK("\x01\x02");
 

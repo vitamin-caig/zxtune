@@ -412,8 +412,6 @@ namespace
   };
 }
 
-const std::string THIS_MODULE("zxtune123");
-
 std::auto_ptr<Application> Application::Create()
 {
   return std::auto_ptr<Application>(new CLIApplication());

@@ -19,9 +19,6 @@ Author:
 #include <iostream>
 #include <memory>
 
-// declaration of module id
-extern const std::string THIS_MODULE;
-
 // standart stream
 extern std::basic_ostream<Char>& StdOut;
 
