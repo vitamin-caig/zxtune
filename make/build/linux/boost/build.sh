@@ -8,4 +8,5 @@ fi
 echo "Building boost version ${BOOST_VERSION} for ${ARCH}"
 PREFIX=/mnt/devel/zxtune/Build/boost-${BOOST_VERSION}-linux-${ARCH}
 mkdir -p ${PREFIX}
-./bjam --prefix=${PREFIX} link=static threading=multi target-os=linux variant=release address-model=${MODEL} --without-mpi --layout=tagged --without-python install
+./bjam --prefix=${PREFIX} link=static threading=multi target-os=linux variant=release address-model=${MODEL} --layout=tagged \
+--without-mpi --without-python boost.locale.icu=off install
