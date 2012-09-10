@@ -25,6 +25,7 @@ Author:
 #include "playlist/supp/storage.h"
 #include "playlist/ui/contextmenu.h"
 #include "playlist/ui/table_view.h"
+#include "supp/options.h"
 //common includes
 #include <contract.h>
 #include <error.h>
@@ -400,9 +401,11 @@ namespace
       String type;
       if (Parameters::Accessor::Ptr params = UI::GetConversionParameters(View, type))
       {
+        //copy global parameters to prevent modification while convert
+        const Parameters::Accessor::Ptr allParams = Parameters::CreateMergedAccessor(params, GlobalOptions::Instance().Get());
         const Playlist::Model::Ptr model = Controller.GetModel();
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, type, params, result);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, type, allParams, result);
         Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
           SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);
