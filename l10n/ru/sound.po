@@ -59,6 +59,11 @@ msgstr "Ошибка создания подсистемы вывода '%1%'."
 msgid "Failed to allocate memory for backend."
 msgstr "Ошибка выделения памяти для звуковой подсистемы."
 
+#: backends/alsa_backend.cpp:1124 backends/dsound_backend.cpp:656
+#: backends/win32_backend.cpp:657
+msgid "No suitable output devices found"
+msgstr "Не найдено ни одного подходящего устройства."
+
 #: backends/backend_impl.cpp:46
 msgid "Invalid module specified for backend."
 msgstr "Неправильный модуль."
@@ -102,10 +107,6 @@ msgstr ""
 #: backends/dsound_backend.cpp:509 backends/dsound_stub.cpp:26
 msgid "DirectSound support backend."
 msgstr "Поддержка подсистемы DirectSound"
-
-#: backends/dsound_backend.cpp:656 backends/win32_backend.cpp:657
-msgid "No suitable output devices found"
-msgstr "Не найдено ни одного подходящего устройства."
 
 #: backends/enumerator.cpp:96
 msgid "Requested backend is not supported."

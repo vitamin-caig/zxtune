@@ -962,7 +962,7 @@ namespace
       CurName.clear();
       const boost::shared_ptr<snd_pcm_info_t> pcmInfo = Allocate<snd_pcm_info_t>(Api,
         &Alsa::Api::snd_pcm_info_malloc, &Alsa::Api::snd_pcm_info_free);
-      for (; Api->snd_ctl_pcm_next_device(&Card.Handle(), &Index) >= 0 && Index >= 0; )
+      for (; Card.IsValid() && Api->snd_ctl_pcm_next_device(&Card.Handle(), &Index) >= 0 && Index >= 0; )
       {
         Api->snd_pcm_info_set_device(pcmInfo.get(), Index);
         Api->snd_pcm_info_set_subdevice(pcmInfo.get(), 0);
@@ -1064,7 +1064,7 @@ namespace
       : Api(api)
       , Cards(api)
       , Devices(api, Cards)
-      , Current(AlsaDevice::CreateDefault(api))
+      , Current(Cards.IsValid() && Devices.IsValid() ? AlsaDevice::CreateDefault(api) : AlsaDevice::Ptr())
     {
     }
 
@@ -1114,8 +1114,15 @@ namespace ZXTune
       {
         const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
         Dbg("Detected Alsa %1%", api->snd_asoundlib_version());
-        const BackendCreator::Ptr creator(new AlsaBackendCreator(api));
-        enumerator.RegisterCreator(creator);
+        if (AlsaDevicesIterator(api).IsValid())
+        {
+          const BackendCreator::Ptr creator(new AlsaBackendCreator(api));
+          enumerator.RegisterCreator(creator);
+        }
+        else
+        {
+          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable output devices found"));
+        }
       }
       catch (const Error& e)
       {
