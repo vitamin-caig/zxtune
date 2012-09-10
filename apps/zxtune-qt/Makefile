@@ -43,7 +43,6 @@ libraries += l10n ui_desktop playlist_ui_desktop ui_conversion ui_preferences
 depends += src/l10n apps/zxtune-qt/ui/desktop apps/zxtune-qt/playlist/ui/desktop apps/zxtune-qt/ui/conversion apps/zxtune-qt/ui/preferences
 boost_libraries += locale
 mingw_libraries += iconv
-linux_libraries += icui18n
 endif
 
 theme_resources = res/theme_$(gui_theme)
