@@ -46,7 +46,7 @@ namespace
     virtual void Save() const = 0;
   };
 
-  const int PARAMETERS_VERSION = 0;
+  const int PARAMETERS_VERSION = 1;
 
   class NamespaceContainer : public Parameters::Container
   {
