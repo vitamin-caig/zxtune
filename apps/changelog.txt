@@ -7,6 +7,18 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Localization and internationalization support
+[+] Russian translation for zxtune-qt and core libraries
+[+] ARM platform support
+[+] Supported [Extension] template field
+[*] Fixed crash in ALSA backend in the case of no devices
+[*] zxtune-qt: fixed playlist saving/loading with non-ascii symbols
+[*] zxtune-qt: use global options while converting to sound formats
+[*] zxtune-qt: multiple UI fixes
+[*] zxtune123: fixed crash
+
+--- Rev1946 from 27.08.2012
+
 [+] MegaLZ packed blocks support (MEGALZ)
 [+] zxtune-qt: show time position while seeking
 [*] zxtune-qt: take into account frame duration while calculating modules' duration and playback position
