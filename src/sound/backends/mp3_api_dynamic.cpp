@@ -114,6 +114,14 @@ namespace
       return func(ctx, flag);
     }
     
+    virtual int lame_set_mode(lame_t ctx, MPEG_mode mode)
+    {
+      static const char NAME[] = "lame_set_mode";
+      typedef int ( *FunctionType)(lame_t, MPEG_mode);
+      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+      return func(ctx, mode);
+    }
+    
     virtual int lame_set_num_channels(lame_t ctx, int chans)
     {
       static const char NAME[] = "lame_set_num_channels";

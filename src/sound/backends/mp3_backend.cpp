@@ -152,11 +152,19 @@ namespace
     Dump Encoded;
   };
 
-  enum Mode
+  enum BitrateMode
   {
     MODE_CBR,
     MODE_VBR,
     MODE_ABR
+  };
+
+  enum ChannelsMode
+  {
+    MODE_DEFAULT,
+    MODE_STEREO,
+    MODE_JOINTSTEREO,
+    MODE_MONO
   };
 
   class Mp3Parameters
@@ -167,7 +175,7 @@ namespace
     {
     }
 
-    Mode GetMode() const
+    BitrateMode GetBitrateMode() const
     {
       Parameters::StringType mode = Parameters::ZXTune::Sound::Backends::Mp3::MODE_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Sound::Backends::Mp3::MODE, mode);
@@ -186,7 +194,7 @@ namespace
       else
       {
         throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
-          translate("MP3 backend error: invalid mode '%1%'."), mode);
+          translate("MP3 backend error: invalid bitrate mode '%1%'."), mode);
       }
     }
 
@@ -212,6 +220,33 @@ namespace
           translate("MP3 backend error: quality (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
       }
       return static_cast<uint_t>(quality);
+    }
+
+    ChannelsMode GetChannelsMode() const
+    {
+      Parameters::StringType mode = Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS, mode);
+      if (mode == Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT)
+      {
+        return MODE_DEFAULT;
+      }
+      else if (mode == Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_STEREO)
+      {
+        return MODE_STEREO;
+      }
+      else if (mode == Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_JOINTSTEREO)
+      {
+        return MODE_JOINTSTEREO;
+      }
+      else if (mode == Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_MONO)
+      {
+        return MODE_MONO;
+      }
+      else
+      {
+        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+          translate("MP3 backend error: invalid channels mode '%1%'."), mode);
+      }
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -251,7 +286,7 @@ namespace
       CheckLameCall(Api->lame_set_out_samplerate(&ctx, samplerate), THIS_LINE);
       CheckLameCall(Api->lame_set_num_channels(&ctx, OUTPUT_CHANNELS), THIS_LINE);
       CheckLameCall(Api->lame_set_bWriteVbrTag(&ctx, true), THIS_LINE);
-      switch (Params.GetMode())
+      switch (Params.GetBitrateMode())
       {
       case MODE_CBR:
         {
@@ -276,6 +311,26 @@ namespace
           CheckLameCall(Api->lame_set_VBR(&ctx, vbr_default), THIS_LINE);
           CheckLameCall(Api->lame_set_VBR_q(&ctx, quality), THIS_LINE);
         }
+        break;
+      default:
+        assert(!"Invalid mode");
+      }
+      switch (Params.GetChannelsMode())
+      {
+      case MODE_DEFAULT:
+        Dbg("Using default channels mode");
+        break;
+      case MODE_STEREO:
+        Dbg("Using stereo mode");
+        CheckLameCall(Api->lame_set_mode(&ctx, STEREO), THIS_LINE);
+        break;
+      case MODE_JOINTSTEREO:
+        Dbg("Using joint stereo mode");
+        CheckLameCall(Api->lame_set_mode(&ctx, JOINT_STEREO), THIS_LINE);
+        break;
+      case MODE_MONO:
+        Dbg("Using mono mode");
+        CheckLameCall(Api->lame_set_mode(&ctx, MONO), THIS_LINE);
         break;
       default:
         assert(!"Invalid mode");

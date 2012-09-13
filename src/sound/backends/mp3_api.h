@@ -36,6 +36,7 @@ namespace ZXTune
         virtual int lame_set_in_samplerate(lame_t ctx, int rate) = 0;
         virtual int lame_set_out_samplerate(lame_t ctx, int rate) = 0;
         virtual int lame_set_bWriteVbrTag(lame_t ctx, int flag) = 0;
+        virtual int lame_set_mode(lame_t ctx, MPEG_mode mode) = 0;
         virtual int lame_set_num_channels(lame_t ctx, int chans) = 0;
         virtual int lame_set_brate(lame_t ctx, int brate) = 0;
         virtual int lame_set_VBR(lame_t ctx, vbr_mode mode) = 0;

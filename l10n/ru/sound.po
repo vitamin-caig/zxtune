@@ -43,7 +43,7 @@ msgid "ALSA sound system backend"
 msgstr "Поддержка подсистемы ALSA"
 
 #: backends/alsa_backend.cpp:851 backends/dsound_backend.cpp:551
-#: backends/flac_backend.cpp:314 backends/mp3_backend.cpp:333
+#: backends/flac_backend.cpp:314 backends/mp3_backend.cpp:388
 #: backends/null_backend.cpp:109 backends/ogg_backend.cpp:460
 #: backends/oss_backend.cpp:366 backends/sdl_backend.cpp:333
 #: backends/wav_backend.cpp:217 backends/win32_backend.cpp:556
@@ -52,7 +52,7 @@ msgid "Failed to create backend '%1%'."
 msgstr "Ошибка создания подсистемы вывода '%1%'."
 
 #: backends/alsa_backend.cpp:855 backends/dsound_backend.cpp:555
-#: backends/flac_backend.cpp:318 backends/mp3_backend.cpp:337
+#: backends/flac_backend.cpp:318 backends/mp3_backend.cpp:392
 #: backends/null_backend.cpp:113 backends/ogg_backend.cpp:464
 #: backends/oss_backend.cpp:370 backends/sdl_backend.cpp:337
 #: backends/wav_backend.cpp:221 backends/win32_backend.cpp:560
@@ -138,26 +138,31 @@ msgstr "Поддержка вывода FLAC"
 msgid "Error in MP3 backend: %1%."
 msgstr "Ошибка в подсистеме вывода MP3: %1%."
 
-#: backends/mp3_backend.cpp:189
+#: backends/mp3_backend.cpp:197
 #, boost-format
-msgid "MP3 backend error: invalid mode '%1%'."
-msgstr "Ошибка в подсистеме вывода MP3: неправильный режим '%1%'."
+msgid "MP3 backend error: invalid bitrate mode '%1%'."
+msgstr "Ошибка в подсистеме вывода MP3: неправильный режим битрейта '%1%'."
 
-#: backends/mp3_backend.cpp:200
+#: backends/mp3_backend.cpp:208
 #, boost-format
 msgid "MP3 backend error: bitrate (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода MP3: битрейт (%1%) превышает допустимые значения "
 "(%2%..%3%)."
 
-#: backends/mp3_backend.cpp:212
+#: backends/mp3_backend.cpp:220
 #, boost-format
 msgid "MP3 backend error: quality (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода MP3: уровень качества (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: backends/mp3_backend.cpp:221 backends/mp3_stub.cpp:26
+#: backends/mp3_backend.cpp:248
+#, boost-format
+msgid "MP3 backend error: invalid channels mode '%1%'."
+msgstr "Ошибка в подсистеме вывода MP3: неправильный режим каналов '%1%'."
+
+#: backends/mp3_backend.cpp:256 backends/mp3_stub.cpp:26
 msgid "MP3 support backend"
 msgstr "Поддержка вывода MP3"
 
@@ -240,7 +245,7 @@ msgid "Error in Win32 backend: code %1%."
 msgstr "Ошибка в подсистеме Win32: код %1%."
 
 #: backends/win32_backend.cpp:193
-#, fuzzy, boost-format
+#, boost-format
 msgid "Error in Win32 backend: %1%."
 msgstr "Ошибка в подсистеме Win32: %1%."
 

@@ -88,6 +88,7 @@ namespace Parameters
           extern const NameType MODE = PREFIX + "mode";
           extern const NameType BITRATE = PREFIX + "bitrate";
           extern const NameType QUALITY = PREFIX + "quality";
+          extern const NameType CHANNELS = PREFIX + "channels";
         }
 
         namespace Ogg

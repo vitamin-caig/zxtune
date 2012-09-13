@@ -179,6 +179,13 @@ namespace Parameters
           const IntType QUALITY_DEFAULT = 5;
           //! VBR quality 9..0
           extern const NameType QUALITY;
+
+          const Char CHANNELS_DEFAULT[] = {'d','e','f','a','u','l','t',0};
+          const Char CHANNELS_STEREO[] = {'s','t','e','r','e','o',0};
+          const Char CHANNELS_JOINTSTEREO[] = {'j','o','i','n','t','s','t','e','r','e','o',0};
+          const Char CHANNELS_MONO[] = {'m','o','n','o',0};
+          //! Channels encoding mode
+          extern const NameType CHANNELS;
           //@}
         }
 
