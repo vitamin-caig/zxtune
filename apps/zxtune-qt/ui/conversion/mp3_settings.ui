@@ -129,6 +129,37 @@
         </item>
        </layout>
       </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="channelsModeLabel">
+        <property name="text">
+         <string>Channels mode</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="channelsMode">
+        <item>
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Stereo</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Joint Stereo</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Mono</string>
+         </property>
+        </item>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

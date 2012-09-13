@@ -198,6 +198,40 @@ namespace
     const int Default;
   };
 
+  template<class Holder>
+  class IntegerValueControl : public IntegerValue
+  {
+  public:
+    IntegerValueControl(Holder& parent, Integer::Ptr val)
+      : IntegerValue(parent)
+      , Parent(parent)
+      , Value(val)
+    {
+      IntegerValueControl<Holder>::Reload();
+      ConnectChanges(Parent, *this);
+    }
+
+    virtual void Set(int value)
+    {
+      Value->Set(value);
+    }
+
+    virtual void Reset()
+    {
+      const AutoBlockSignal block(Parent);
+      Value->Reset();
+      Reload();
+    }
+
+    virtual void Reload()
+    {
+      SetWidgetValue(Parent, Value->Get());
+    }
+  private:
+    Holder& Parent;
+    const Integer::Ptr Value;
+  };
+
   class BigIntegerValueImpl : public BigIntegerValue
   {
   public:
@@ -361,6 +395,11 @@ namespace Parameters
   Value* IntegerValue::Bind(QSpinBox& spinbox, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
   {
     return new IntegerValueImpl<QSpinBox>(spinbox, ctr, name, defValue);
+  }
+
+  Value* IntegerValue::Bind(QComboBox& combo, Integer::Ptr val)
+  {
+    return new IntegerValueControl<QComboBox>(combo, val);
   }
 
   Value* BigIntegerValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const IntegerTraits& traits)

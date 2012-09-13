@@ -87,6 +87,17 @@ namespace Parameters
     virtual void Set(bool value) = 0;
   };
 
+  class Integer
+  {
+  public:
+    typedef boost::shared_ptr<Integer> Ptr;
+    virtual ~Integer() {}
+
+    virtual int Get() const = 0;
+    virtual void Set(int val) = 0;
+    virtual void Reset() = 0;
+  };
+
   class IntegerValue : public Value
   {
     Q_OBJECT
@@ -96,6 +107,7 @@ namespace Parameters
     static Value* Bind(QComboBox& combo, Container& ctr, const NameType& name, int defValue);
     static Value* Bind(QSlider& slider, Container& ctr, const NameType& name, int defValue);
     static Value* Bind(QSpinBox& spinbox, Container& ctr, const NameType& name, int defValue);
+    static Value* Bind(QComboBox& combo, Integer::Ptr val);
   private slots:
     virtual void Set(int value) = 0;
   };

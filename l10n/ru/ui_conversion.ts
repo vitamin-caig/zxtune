@@ -57,17 +57,42 @@
         <translation>Минимум</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="89"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.ui" line="135"/>
+        <source>Channels mode</source>
+        <translation>Режим каналов</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.ui" line="143"/>
+        <source>Default</source>
+        <translation>По умолчанию</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.ui" line="148"/>
+        <source>Stereo</source>
+        <translation>Стерео</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.ui" line="153"/>
+        <source>Joint Stereo</source>
+        <translation>Объединенное стерео</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.ui" line="158"/>
+        <source>Mono</source>
+        <translation>Моно</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="148"/>
         <source>%1 kbps</source>
         <translation>%1 кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="90"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="149"/>
         <source>~ %1 kbps</source>
         <translation>В среднем %1 кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="94"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="153"/>
         <source>Quality %1</source>
         <translation>Качество %1</translation>
     </message>
