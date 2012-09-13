@@ -187,6 +187,9 @@
 < INFO_OPTIONS_SOUND_BACKENDS_MP3_QUALITY
 > "specify quality for Mp3 backend (0- highest, 9- lowest) in mode=vbr"
 
+< INFO_OPTIONS_SOUND_BACKENDS_MP3_CHANNELS
+> "specify channels encoding mode (default/stereo/jointstereo/mode)"
+
 < INFO_OPTIONS_SOUND_BACKENDS_OGG_MODE
 > "specify mode for Ogg backend (quality/abr)"
 

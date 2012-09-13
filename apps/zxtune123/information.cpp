@@ -273,6 +273,9 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::Backends::Mp3::QUALITY,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_QUALITY,
                  Parameters::ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS,
+                 Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_CHANNELS,
+                 Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT),
       //Ogg
       OptionDesc(Parameters::ZXTune::Sound::Backends::Ogg::MODE,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_OGG_MODE,

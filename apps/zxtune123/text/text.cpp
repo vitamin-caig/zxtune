@@ -519,6 +519,11 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_BITRATE[] = {
   ' ','M','p','3',' ','b','a','c','k','e','n','d',' ','i','n',' ','m','o','d','e','=','c','b','r',' ','o','r',
   ' ','m','o','d','e','=','a','b','r',0
 };
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_CHANNELS[] = {
+  's','p','e','c','i','f','y',' ','c','h','a','n','n','e','l','s',' ','e','n','c','o','d','i','n','g',' ','m',
+  'o','d','e',' ','(','d','e','f','a','u','l','t','/','s','t','e','r','e','o','/','j','o','i','n','t','s','t',
+  'e','r','e','o','/','m','o','d','e',')',0
+};
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_MODE[] = {
   's','p','e','c','i','f','y',' ','m','o','d','e',' ','f','o','r',' ','M','p','3',' ','b','a','c','k','e','n',
   'd',' ','(','c','b','r','/','a','b','r','/','v','b','r',')',0
