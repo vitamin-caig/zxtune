@@ -67,9 +67,8 @@
         <translation>Отмена</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/scanner_view.cpp" line="86"/>
         <source>Searching...</source>
-        <translation>Поиск...</translation>
+        <translation type="obsolete">Поиск...</translation>
     </message>
 </context>
 <context>

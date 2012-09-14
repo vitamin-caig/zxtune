@@ -23,7 +23,19 @@ Author:
 
 namespace Playlist
 {
-  class Scanner : public QThread
+  class ScanStatus
+  {
+  public:
+    typedef boost::shared_ptr<const ScanStatus> Ptr;
+    virtual ~ScanStatus() {}
+
+    virtual unsigned DoneFiles() const = 0;
+    virtual unsigned FoundFiles() const = 0;
+    virtual QString CurrentFile() const = 0;
+    virtual bool SearchFinished() const = 0;
+  };
+
+  class Scanner : public QObject
   {
     Q_OBJECT
   protected:
@@ -35,18 +47,17 @@ namespace Playlist
 
     virtual void AddItems(const QStringList& items) = 0;
   public slots:
-    //asynchronous, doesn't wait until real stop
-    virtual void Cancel() = 0;
+    virtual void Pause() = 0;
+    virtual void Resume() = 0;
+    virtual void Stop() = 0;
   signals:
     //for UI
-    void OnScanStart();
-    void OnProgressStatus(unsigned progress, unsigned itemsDone, unsigned totalItems);
-    void OnProgressMessage(const QString& message, const QString& item);
-    void OnScanStop();
-    void OnResolvingStart();
-    void OnResolvingStop();
+    void ScanStarted(Playlist::ScanStatus::Ptr status);
+    void ScanProgressChanged(unsigned progress);
+    void ScanMessageChanged(const QString& message);
+    void ScanStopped();
     //for BL
-    void OnGetItem(Playlist::Item::Data::Ptr);
+    void ItemFound(Playlist::Item::Data::Ptr item);
     void ErrorOccurred(const Error& e);
   };
 }

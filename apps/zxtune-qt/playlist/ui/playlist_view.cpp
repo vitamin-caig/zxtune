@@ -310,7 +310,7 @@ namespace
       Require(connect(Controller.get(), SIGNAL(Renamed(const QString&)), SIGNAL(Renamed(const QString&))));
       Require(connect(iter, SIGNAL(ItemActivated(unsigned, Playlist::Item::Data::Ptr)),
         SLOT(ActivateItem(unsigned, Playlist::Item::Data::Ptr))));
-      Require(View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries())));
+      Require(View->connect(Controller->GetScanner(), SIGNAL(ScanStopped()), SLOT(updateGeometries())));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
       Require(connect(model, SIGNAL(OperationStarted()), SLOT(LongOperationStart())));

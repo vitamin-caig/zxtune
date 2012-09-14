@@ -13,17 +13,22 @@ Author:
 
 //local includes
 #include "scanner.h"
-#include "source.h"
+#include "playlist/io/import.h"
 #include "ui/utils.h"
 //common includes
 #include <debug_log.h>
 #include <error.h>
 //library includes
+#include <async/job.h>
 #include <core/error_codes.h>
-//qt includes
-#include <QtCore/QMutex>
 //std includes
 #include <ctime>
+//boost includes
+#include <boost/make_shared.hpp>
+#include <boost/thread/mutex.hpp>
+//qt includes
+#include <QtCore/QDirIterator>
+#include <QtCore/QStringList>
 
 #define FILE_TAG EA26A866
 
@@ -53,17 +58,378 @@ namespace
     std::time_t LastTime;
   };
 
-  class ScannerImpl : public Playlist::Scanner
-                    , private Playlist::ScannerCallback
+  class FilenamesTarget
   {
-    typedef QList<Playlist::ScannerSource::Ptr> ScannersQueue;
+  public:
+    virtual ~FilenamesTarget() {}
+
+    virtual void Add(const QStringList& items) = 0;
+  };
+
+  class FilenamesSource
+  {
+  public:
+    virtual ~FilenamesSource() {}
+
+    virtual bool Empty() const = 0;
+    virtual QString GetNext() = 0;
+  };
+
+  class SourceFilenames : public FilenamesTarget
+                        , public FilenamesSource
+  {
+  public:
+    virtual void Add(const QStringList& items)
+    {
+      Items.append(items);
+    }
+
+    virtual bool Empty() const
+    {
+      return Items.isEmpty();
+    }
+
+    virtual QString GetNext()
+    {
+      return Items.takeFirst();
+    }
+  private:
+    QStringList Items;
+  };
+
+  class ResolvedFilenames : public FilenamesSource
+  {
+  public:
+    explicit ResolvedFilenames(FilenamesSource& delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    virtual bool Empty() const
+    {
+      return NoCurrentDir() && Delegate.Empty();
+    }
+
+    virtual QString GetNext()
+    {
+      while (NoCurrentDir())
+      {
+        const QString res = Delegate.GetNext();
+        if (IsDir(res))
+        {
+          OpenDir(res);
+          continue;
+        }
+        else
+        {
+          CloseDir();
+          return res;
+        }
+      }
+      return CurDir->next();
+    }
+  private:
+    bool NoCurrentDir() const
+    {
+      return 0 == CurDir.get() || !CurDir->hasNext();
+    }
+
+    static bool IsDir(const QString& name)
+    {
+      return QFileInfo(name).isDir();
+    }
+
+    void OpenDir(const QString& name)
+    {
+      const QDir::Filters filter = QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden;
+      CurDir.reset(new QDirIterator(name, filter, QDirIterator::Subdirectories));
+    }
+
+    void CloseDir()
+    {
+      CurDir.reset(0);
+    }
+  private:
+    FilenamesSource& Delegate;
+    std::auto_ptr<QDirIterator> CurDir;
+  };
+
+  class PrefetchedFilenames : public FilenamesSource
+  {
+  public:
+    PrefetchedFilenames(FilenamesSource& delegate, int lowerBound, int upperBound)
+      : Delegate(delegate)
+      , LowerBound(lowerBound)
+      , UpperBound(upperBound)
+    {
+    }
+
+    virtual bool Empty() const
+    {
+      return Cache.isEmpty() && Delegate.Empty();
+    }
+
+    virtual QString GetNext()
+    {
+      Prefetch();
+      return Cache.takeFirst();
+    }
+  private:
+    void Prefetch()
+    {
+      int curSize = Cache.size();
+      if (curSize < LowerBound && !Delegate.Empty())
+      {
+        for (; curSize < UpperBound && !Delegate.Empty(); ++curSize)
+        {
+          Cache.append(Delegate.GetNext());
+        }
+      }
+    }
+  private:
+    FilenamesSource& Delegate;
+    const int LowerBound;
+    const int UpperBound;
+    QStringList Cache;
+  };
+
+  class FilenamesSourceStatistic : public FilenamesSource
+  {
+  public:
+    FilenamesSourceStatistic(FilenamesSource& delegate)
+      : Delegate(delegate)
+      , GotFilenames(0)
+    {
+    }
+
+    virtual bool Empty() const
+    {
+      return Delegate.Empty();
+    }
+
+    virtual QString GetNext()
+    {
+      ++GotFilenames;
+      return Delegate.GetNext();
+    }
+
+    unsigned Get() const
+    {
+      return GotFilenames;
+    }
+  private:
+    FilenamesSource& Delegate;
+    unsigned GotFilenames;
+  };
+
+  class FilesQueue : public FilenamesTarget
+                   , public FilenamesSource
+                   , public Playlist::ScanStatus
+  {
+  public:
+    typedef boost::shared_ptr<FilesQueue> Ptr;
+
+    FilesQueue()
+      : Resolved(Source)
+      , ResolvedStatistic(Resolved)
+      , Prefetched(ResolvedStatistic, 500, 1000)
+      , PrefetchedStatistic(Prefetched)
+    {
+    }
+
+    virtual void Add(const QStringList& items)
+    {
+      const boost::mutex::scoped_lock lock(Lock);
+      Source.Add(items);
+    }
+
+    //FilenamesSource
+    virtual bool Empty() const
+    {
+      return Prefetched.Empty();
+    }
+
+    virtual QString GetNext()
+    {
+      const boost::mutex::scoped_lock lock(Lock);
+      return Current = PrefetchedStatistic.GetNext();
+    }
+
+    //ScanStatus
+    virtual unsigned DoneFiles() const
+    {
+      return PrefetchedStatistic.Get();
+    }
+
+    virtual unsigned FoundFiles() const
+    {
+      return ResolvedStatistic.Get();
+    }
+
+    virtual QString CurrentFile() const
+    {
+      return Current;
+    }
+
+    virtual bool SearchFinished() const
+    {
+      return Resolved.Empty();
+    }
+  private:
+    boost::mutex Lock;
+    SourceFilenames Source;
+    ResolvedFilenames Resolved;
+    FilenamesSourceStatistic ResolvedStatistic;
+    PrefetchedFilenames Prefetched;
+    FilenamesSourceStatistic PrefetchedStatistic;
+    QString Current;
+  };
+
+  class ScannerCallback : public Playlist::Item::Callback
+  {
+  public:
+    virtual ~ScannerCallback() {}
+
+    virtual void OnScanStart(Playlist::ScanStatus::Ptr status) = 0;
+    virtual void OnProgress(unsigned progress) = 0;
+    virtual void OnMessage(const QString& message) = 0;
+    virtual void OnError(const class Error& err) = 0;
+    virtual void OnScanEnd() = 0;
+  };
+
+  class DetectParametersWrapper : public Playlist::Item::DetectParameters
+  {
+  public:
+    explicit DetectParametersWrapper(ScannerCallback& callback)
+      : Callback(callback)
+    {
+    }
+
+    virtual Parameters::Container::Ptr CreateInitialAdjustedParameters() const
+    {
+      return Parameters::Container::Create();
+    }
+
+    virtual void ProcessItem(Playlist::Item::Data::Ptr item)
+    {
+      Callback.OnItem(item);
+    }
+
+    virtual void ShowProgress(unsigned progress)
+    {
+      Callback.OnProgress(progress);
+    }
+
+    virtual void ShowMessage(const String& message)
+    {
+      const QString text = ToQString(message);
+      Callback.OnMessage(text);
+    }
+  private:
+    ScannerCallback& Callback;
+  };
+
+
+  class ScanWorker : public FilenamesTarget
+                   , public Async::Job::Worker
+  {
+  public:
+    typedef boost::shared_ptr<ScanWorker> Ptr;
+
+    ScanWorker(ScannerCallback& cb, Playlist::Item::DataProvider::Ptr provider)
+      : Callback(cb)
+      , DetectParams(Callback)
+      , Provider(provider)
+    {
+      CreateQueue();
+    }
+
+    virtual void Add(const QStringList& items)
+    {
+      Queue->Add(items);
+    }
+
+    virtual Error Initialize()
+    {
+      Callback.OnScanStart(Queue);
+      return Error();
+    }
+
+    virtual Error Finalize()
+    {
+      Callback.OnScanEnd();
+      CreateQueue();
+      return Error();
+    }
+
+    virtual Error Suspend()
+    {
+      return Error();
+    }
+
+    virtual Error Resume()
+    {
+      return Error();
+    }
+
+    virtual Error ExecuteCycle()
+    {
+      const QString file = Queue->GetNext();
+      ScanFile(file);
+      return Error();
+    }
+
+    virtual bool IsFinished() const
+    {
+      return Queue->Empty();
+    }
+  private:
+    void CreateQueue()
+    {
+      Queue = boost::make_shared<FilesQueue>();
+    }
+
+    void ScanFile(const QString& name)
+    {
+      if (!ProcessAsPlaylist(name))
+      {
+        DetectSubitems(name);
+      }
+    }
+
+    bool ProcessAsPlaylist(const QString& path)
+    {
+      const Playlist::IO::Container::Ptr playlist = Playlist::IO::Open(Provider, path);
+      if (!playlist.get())
+      {
+        return false;
+      }
+      playlist->ForAllItems(Callback);
+      return true;
+    }
+
+    void DetectSubitems(const QString& itemPath)
+    {
+      if (const Error& e = Provider->DetectModules(FromQString(itemPath), DetectParams))
+      {
+        Callback.OnError(e);
+      }
+    }
+  private:
+    ScannerCallback& Callback;
+    DetectParametersWrapper DetectParams;
+    const Playlist::Item::DataProvider::Ptr Provider;
+    FilesQueue::Ptr Queue;
+  };
+
+  class ScannerImpl : public Playlist::Scanner
+                    , private ScannerCallback
+  {
   public:
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
-      , Provider(provider)
-      , Canceled(false)
-      , ItemsDone()
-      , ItemsTotal()
+      , Worker(boost::make_shared<ScanWorker>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
+      , ScanJob(Async::Job::Create(Worker))
     {
       Dbg("Created at %1%", this);
     }
@@ -75,122 +441,77 @@ namespace
 
     virtual void AddItems(const QStringList& items)
     {
-      QMutexLocker lock(&QueueLock);
-      if (Canceled)
-      {
-        this->wait();
-      }
-      const Playlist::ScannerSource::Ptr scanner = Playlist::ScannerSource::CreateDetectFileSource(Provider, *this, items);
-      Queue.append(scanner);
-      this->start();
+      Worker->Add(items);
+      ThrowIfError(ScanJob->Start());
     }
 
-    virtual void Cancel()
+    virtual void Pause()
     {
-      QMutexLocker lock(&QueueLock);
-      Canceled = true;
-      Queue.clear();
+      ThrowIfError(ScanJob->Pause());
     }
 
-    virtual void run()
+    virtual void Resume()
     {
-      Canceled = false;
-      ItemsDone = ItemsTotal = 0;
-      //RAII usage is complicated by On* signals visibility (protected)
-      try
-      {
-        OnScanStart();
-        while (Playlist::ScannerSource::Ptr scanner = GetNextScanner())
-        {
-          OnResolvingStart();
-          const unsigned newItems = scanner->Resolve();
-          OnResolvingStop();
-          ItemsTotal += newItems;
-          scanner->Process();
-          ItemsDone += newItems;
-        }
-        OnScanStop();
-      }
-      catch (const Error& err)
-      {
-        OnScanStop();
-        emit ErrorOccurred(err);
-      }
+      ThrowIfError(ScanJob->Start());
+    }
+
+    virtual void Stop()
+    {
+      ThrowIfError(ScanJob->Stop());
     }
   private:
-    Playlist::ScannerSource::Ptr GetNextScanner()
-    {
-      QMutexLocker lock(&QueueLock);
-      if (Canceled || Queue.empty())
-      {
-        return Playlist::ScannerSource::Ptr();
-      }
-      return Queue.takeFirst();
-    }
-
-    virtual bool IsCanceled() const
-    {
-      return Canceled;
-    }
-
     virtual void OnItem(Playlist::Item::Data::Ptr item)
     {
-      OnGetItem(item);
+      emit ItemFound(item);
     }
 
-    virtual void OnProgress(unsigned progress, unsigned curItem)
+    virtual void OnScanStart(Playlist::ScanStatus::Ptr status)
     {
-      if (Canceled)
+      emit ScanStarted(status);
+    }
+
+    virtual void OnProgress(unsigned progress)
+    {
+      if (!NotificationFilter())
       {
-        throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-      }
-      if (!StatusFilter())
-      {
-        OnProgressStatus(progress, ItemsDone + curItem, ItemsTotal);
+        emit ScanProgressChanged(progress);
       }
     }
 
-    virtual void OnReport(const QString& report, const QString& item)
+    virtual void OnMessage(const QString& message)
     {
-      if (Canceled)
+      if (!NotificationFilter())
       {
-        throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
-      }
-      if (!MessageFilter())
-      {
-        OnProgressMessage(report, item);
+        emit ScanMessageChanged(message);
       }
     }
 
     virtual void OnError(const Error& err)
     {
-      if (err.GetCode() != ZXTune::Module::ERROR_DETECT_CANCELED)
-      {
-        emit ErrorOccurred(err);
-      }
+      emit ErrorOccurred(err);
+    }
+
+    virtual void OnScanEnd()
+    {
+      emit ScanStopped();
     }
   private:
-    const Playlist::Item::DataProvider::Ptr Provider;
-    QMutex QueueLock;
-    ScannersQueue Queue;
-    //TODO: possibly use events
-    volatile bool Canceled;
-    unsigned ItemsDone;
-    unsigned ItemsTotal;
-    EventFilter StatusFilter;
-    EventFilter MessageFilter;
+    const ScanWorker::Ptr Worker;
+    const Async::Job::Ptr ScanJob;
+    EventFilter NotificationFilter;
   };
 }
 
 namespace Playlist
 {
-  Scanner::Scanner(QObject& parent) : QThread(&parent)
+  Scanner::Scanner(QObject& parent) : QObject(&parent)
   {
   }
 
   Scanner::Ptr Scanner::Create(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::Item::Data::Ptr);
+    REGISTER_METATYPE(Playlist::ScanStatus::Ptr);
     return new ScannerImpl(parent, provider);
   }
 }

@@ -179,7 +179,7 @@ namespace
     {
       //setup connections
       //use direct connection due to possible model locking
-      Require(Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
+      Require(Model->connect(Scanner, SIGNAL(ItemFound(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
       Require(Iterator->connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
         SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
 
@@ -190,8 +190,7 @@ namespace
     {
       Dbg("Destroyed at %1%", this);
 
-      Scanner->Cancel();
-      Scanner->wait();
+      Scanner->Stop();
     }
 
     virtual QString GetName() const
