@@ -96,13 +96,6 @@ namespace
     {
     }
 
-    bool IsDeepScanning() const
-    {
-      Parameters::IntType val = Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, val);
-      return val != 0;
-    }
-
     unsigned GetPlayorderMode() const
     {
       Parameters::IntType isLooped = Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT;
@@ -343,8 +336,7 @@ namespace
     virtual void AddItems(const QStringList& items)
     {
       const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
-      const bool deepScan = Options.IsDeepScanning();
-      scanner->AddItems(items, deepScan);
+      scanner->AddItems(items);
     }
 
     virtual void Play()
@@ -639,7 +631,7 @@ namespace
           stream >> items;
         }
         const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
-        scanner->AddItems(items, false);
+        scanner->AddItems(items);
       }
       else if (data.hasText())
       {

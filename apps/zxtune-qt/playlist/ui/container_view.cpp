@@ -111,7 +111,6 @@ namespace
 
       Require(connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int))));
 
-      Parameters::BooleanValue::Bind(*actionDeepScan, *Options, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT);
       Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED, Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
       Parameters::BooleanValue::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED, Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
 
@@ -321,7 +320,6 @@ namespace
       ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionLoop);
       ActionsMenu->addAction(actionRandom);
-      ActionsMenu->addAction(actionDeepScan);
     }
 
     void SetMenuTitle()

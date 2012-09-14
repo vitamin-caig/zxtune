@@ -111,53 +111,6 @@ namespace
     const QString& CurrentItem;
   };
 
-  class OpenFileScanner : public Playlist::ScannerSource
-  {
-  public:
-    OpenFileScanner(Playlist::Item::DataProvider::Ptr provider, Playlist::ScannerCallback& callback, const QStringList& items)
-      : Provider(provider)
-      , Callback(callback)
-      , UnresolvedItems(items)
-    {
-    }
-
-    virtual unsigned Resolve()
-    {
-      ResolveItems(Callback, UnresolvedItems, ResolvedItems);
-      return ResolvedItems.size();
-    }
-
-    virtual void Process()
-    {
-      const unsigned totalItems = ResolvedItems.size();
-      for (unsigned curItemNum = 0; !ResolvedItems.empty() && !Callback.IsCanceled(); ++curItemNum)
-      {
-        const QString& curItem = ResolvedItems.takeFirst();
-        if (!ProcessAsPlaylist(Provider, curItem, Callback))
-        {
-          OpenItem(curItem, curItemNum);
-        }
-        Callback.OnProgress(curItemNum * 100 / totalItems, curItemNum);
-        Callback.OnReport(QString(), curItem);
-      }
-    }
-  private:
-    void OpenItem(const QString& itemPath, unsigned itemNum)
-    {
-      const String& strPath = FromQString(itemPath);
-      DetectParametersWrapper detectParams(Callback, itemNum, itemPath);
-      if (const Error& e = Provider->OpenModule(strPath, detectParams))
-      {
-        Callback.OnError(e);
-      }
-    }
-  private:
-    const Playlist::Item::DataProvider::Ptr Provider;
-    Playlist::ScannerCallback& Callback;
-    QStringList UnresolvedItems;
-    QStringList ResolvedItems;
-  };
-
   class DetectModuleScanner : public Playlist::ScannerSource
   {
   public:
@@ -205,12 +158,6 @@ namespace
 
 namespace Playlist
 {
-  ScannerSource::Ptr ScannerSource::CreateOpenFileSource(Playlist::Item::DataProvider::Ptr provider, ScannerCallback& callback,
-    const QStringList& items)
-  {
-    return ScannerSource::Ptr(new OpenFileScanner(provider, callback, items));
-  }
-
   ScannerSource::Ptr ScannerSource::CreateDetectFileSource(Playlist::Item::DataProvider::Ptr provider, ScannerCallback& callback,
     const QStringList& items)
   {

@@ -29,15 +29,6 @@ namespace Parameters
       const NameType PREFIX = ZXTuneQT::PREFIX + NAMESPACE_NAME;
 
       //@{
-      //! @name Use deep scanning while processing input files
-
-      //! Parameter name
-      const NameType DEEP_SCANNING = PREFIX + "DeepScanning";
-      //! Default value
-      const IntType DEEP_SCANNING_DEFAULT = 1;
-      //@}
-
-      //@{
       //! @name Loop playlist playback
 
       //! Parameter name

@@ -45,7 +45,6 @@ namespace Playlist
     virtual unsigned Resolve() = 0;
     virtual void Process() = 0;
 
-    static Ptr CreateOpenFileSource(Item::DataProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
     static Ptr CreateDetectFileSource(Item::DataProvider::Ptr provider, ScannerCallback& callback, const QStringList& items);
   };
 }

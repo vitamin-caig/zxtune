@@ -73,16 +73,14 @@ namespace
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual void AddItems(const QStringList& items, bool deepScan)
+    virtual void AddItems(const QStringList& items)
     {
       QMutexLocker lock(&QueueLock);
       if (Canceled)
       {
         this->wait();
       }
-      const Playlist::ScannerSource::Ptr scanner = deepScan
-        ? Playlist::ScannerSource::CreateDetectFileSource(Provider, *this, items)
-        : Playlist::ScannerSource::CreateOpenFileSource(Provider, *this, items);
+      const Playlist::ScannerSource::Ptr scanner = Playlist::ScannerSource::CreateDetectFileSource(Provider, *this, items);
       Queue.append(scanner);
       this->start();
     }
