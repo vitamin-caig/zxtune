@@ -19,8 +19,6 @@ Author:
 
 namespace
 {
-  using namespace Async;
-
   Error BuildPausePausedError()
   {
     return Error();
@@ -48,10 +46,10 @@ namespace
     START
   };
 
-  class JobOperation : public Operation
+  class JobOperation : public Async::Operation
   {
   public:
-    JobOperation(Job::Worker::Ptr worker, Event<JobState>& signal, Event<JobState>& state)
+    JobOperation(Async::Worker::Ptr worker, Async::Event<JobState>& signal, Async::Event<JobState>& state)
       : Work(worker)
       , Signal(signal)
       , State(state)
@@ -100,15 +98,15 @@ namespace
       return lastError;
     }
   private:
-    const Job::Worker::Ptr Work;
-    Event<JobState>& Signal;
-    Event<JobState>& State;
+    const Async::Worker::Ptr Work;
+    Async::Event<JobState>& Signal;
+    Async::Event<JobState>& State;
   };
   
-  class JobImpl : public Job
+  class JobImpl : public Async::Job
   {
   public:
-    explicit JobImpl(Job::Worker::Ptr worker)
+    explicit JobImpl(Async::Worker::Ptr worker)
       : Work(worker)
     {
     }
@@ -134,8 +132,8 @@ namespace
           }
           FinishAction();
         }
-        const Operation::Ptr jobOper = boost::make_shared<JobOperation>(Work, boost::ref(Signal), boost::ref(State));
-        Act = Activity::Create(jobOper);
+        const Async::Operation::Ptr jobOper = boost::make_shared<JobOperation>(Work, boost::ref(Signal), boost::ref(State));
+        Act = Async::Activity::Create(jobOper);
         Signal.Set(START);
         return Error();
       }
@@ -219,17 +217,17 @@ namespace
       return err;
     }
   private:
-    const Job::Worker::Ptr Work;
+    const Async::Worker::Ptr Work;
     mutable boost::mutex Mutex;
-    Event<JobState> Signal;
-    Event<JobState> State;
-    Activity::Ptr Act;
+    Async::Event<JobState> Signal;
+    Async::Event<JobState> State;
+    Async::Activity::Ptr Act;
   };
 }
 
 namespace Async
 {
-  Job::Ptr Job::Create(Job::Worker::Ptr worker)
+  Job::Ptr CreateJob(Worker::Ptr worker)
   {
     return boost::make_shared<JobImpl>(worker);
   }

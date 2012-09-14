@@ -182,7 +182,7 @@ namespace
     Chunk Buffer;
   };
 
-  class AsyncWrapper : public Async::Job::Worker
+  class AsyncWrapper : public Async::Worker
   {
   public:
     AsyncWrapper(Module::Holder::Ptr holder, BackendWorker::Ptr worker, Async::Signals::Dispatcher& signaller, Renderer::Ptr render)
@@ -300,7 +300,7 @@ namespace
       , Mix(CreateMixer(*params))
       , Holder(params->GetModule())
       , Renderer(new SafeRendererWrapper(Holder->CreateRenderer(params->GetParameters(), Mix)))
-      , Job(Async::Job::Create(Async::Job::Worker::Ptr(new AsyncWrapper(Holder, Worker, *Signaller, Renderer::Create(Renderer, Mix)))))
+      , Job(Async::CreateJob(Async::Worker::Ptr(new AsyncWrapper(Holder, Worker, *Signaller, Renderer::Create(Renderer, Mix)))))
     {
     }
 

@@ -43,7 +43,7 @@ namespace
     return Error(THIS_LINE, 5, "Failed to execute");
   }
 
-	class TempWorker : public Job::Worker
+	class TempWorker : public Worker
 	{
 	public:
     TempWorker()
@@ -135,7 +135,7 @@ namespace
 	{
 		std::cout << "Test for invalid worker" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     const Error& initErr = FailedToInitializeError();
     worker.InitError = initErr;
     if (const Error& err = job->Start())
@@ -157,7 +157,7 @@ namespace
   {
     std::cout << "Test for no cycle worker" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     const Error& execErr = FailedToExecuteError();
     worker.ExecError = execErr;
     ThrowIfError(job->Start());
@@ -172,7 +172,7 @@ namespace
   {
     std::cout << "Test for first cycle error worker" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     worker.Finished = false;
     const Error& execErr = FailedToExecuteError();
     worker.ExecError = execErr;
@@ -198,7 +198,7 @@ namespace
   {
     std::cout << "Test for deinit error worker" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     worker.Finished = false;
     const Error& finErr = FailedToFinalizeError();
     worker.FinalError = finErr;
@@ -223,7 +223,7 @@ namespace
   {
     std::cout << "Test for suspend error worker" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     worker.Finished = false;
     const Error& suspErr = FailedToSuspendError();
     worker.SuspendError = suspErr;
@@ -248,7 +248,7 @@ namespace
   {
     std::cout << "Test for resume error worker" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     worker.Finished = false;
     const Error& resErr = FailedToResumeError();
     worker.ResumeError = resErr;
@@ -292,7 +292,7 @@ namespace
   {
     std::cout << "Test for simple workflow" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     worker.Finished = false;
     CheckNotActive(*job, THIS_LINE);
     CheckNotPaused(*job, THIS_LINE);
@@ -314,7 +314,7 @@ namespace
   {
     std::cout << "Test for double workflow" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     worker.Finished = false;
     for (int i = 1; i < 2; ++i)
     {
@@ -339,7 +339,7 @@ namespace
   {
     std::cout << "Test for duplicated calls" << std::endl;
     TempWorker worker;
-    const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+    const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     worker.Finished = false;
     CheckNotActive(*job, THIS_LINE);
     CheckNotPaused(*job, THIS_LINE);
@@ -371,7 +371,7 @@ namespace
     std::cout << "Test for stopping on destruction" << std::endl;
     {
       TempWorker worker;
-      const Job::Ptr job = Job::Create(Job::Worker::Ptr(&worker, NullDeleter<Job::Worker>()));
+      const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
       worker.Finished = false;
       ThrowIfError(job->Start());
       boost::this_thread::sleep(boost::posix_time::milliseconds(3000));

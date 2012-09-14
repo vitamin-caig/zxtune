@@ -331,7 +331,7 @@ namespace
 
 
   class ScanWorker : public FilenamesTarget
-                   , public Async::Job::Worker
+                   , public Async::Worker
   {
   public:
     typedef boost::shared_ptr<ScanWorker> Ptr;
@@ -429,7 +429,7 @@ namespace
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
       , Worker(boost::make_shared<ScanWorker>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
-      , ScanJob(Async::Job::Create(Worker))
+      , ScanJob(Async::CreateJob(Worker))
     {
       Dbg("Created at %1%", this);
     }
