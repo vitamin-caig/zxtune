@@ -1,5 +1,6 @@
+#include <error.h>
 #include <tools.h>
-#include <async/job.h>
+#include <async/worker.h>
 #include <boost/thread/thread.hpp>
 #include <boost/make_shared.hpp>
 #include <iostream>

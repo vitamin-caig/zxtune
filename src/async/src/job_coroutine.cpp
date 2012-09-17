@@ -12,8 +12,8 @@ Author:
 //local includes
 #include "event.h"
 //library includes
-#include <async/job.h>
 #include <async/activity.h>
+#include <async/coroutine.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -46,11 +46,34 @@ namespace
     START
   };
 
-  class JobOperation : public Async::Operation
+  struct ErrorObject
+  {
+    Error Err;
+
+    ErrorObject()
+    {
+    }
+
+    explicit ErrorObject(const Error& e)
+      : Err(e)
+    {
+    }
+  };
+
+  void TransportError(const Error& e)
+  {
+    if (e)
+    {
+      throw ErrorObject(e);
+    }
+  }
+
+  class CoroutineOperation : public Async::Operation
+                           , private Async::Scheduler
   {
   public:
-    JobOperation(Async::Worker::Ptr worker, Async::Event<JobState>& signal, Async::Event<JobState>& state)
-      : Work(worker)
+    CoroutineOperation(Async::Coroutine::Ptr routine, Async::Event<JobState>& signal, Async::Event<JobState>& state)
+      : Routine(routine)
       , Signal(signal)
       , State(state)
     {
@@ -58,47 +81,52 @@ namespace
 
     virtual Error Prepare()
     {
-      return Work->Initialize();//TODO: wrap error
+      return Routine->Initialize();
     }
     
     virtual Error Execute()
     {
-      Error lastError;
-      while (!Work->IsFinished())
-      {
-        const JobState signal = Signal.WaitForAny(STOP, PAUSE, START);
-        if (STOP == signal)
-        {
-          break;
-        }
-        else if (PAUSE == signal)
-        {
-          if (lastError = Work->Suspend())
-          {
-            break;
-          }
-          State.Set(PAUSE);
-          Signal.WaitForAny(STOP, START);
-          if (lastError = Work->Resume())
-          {
-            break;
-          }
-          State.Set(START);
-        }
-        else if (lastError = Work->ExecuteCycle())
-        {
-          break;
-        }
-      }
+      State.Set(START);
+      Error lastError = ExecuteRoutine();
       State.Set(STOP);
-      if (Error err = Work->Finalize())
+      if (Error err = Routine->Finalize())
       {
         return err.AddSuberror(lastError);
       }
       return lastError;
     }
   private:
-    const Async::Worker::Ptr Work;
+    Error ExecuteRoutine()
+    {
+      try
+      {
+        return Routine->Execute(*this);
+      }
+      catch (const ErrorObject& e)
+      {
+        return e.Err;
+      }
+    }
+
+    virtual void Yield()
+    {
+      switch (Signal.WaitForAny(STOP, PAUSE, START))
+      {
+      case STOP:
+        throw ErrorObject();
+      case PAUSE:
+        TransportError(Routine->Suspend());
+        State.Set(PAUSE);
+        Signal.WaitForAny(STOP, START);
+        TransportError(Routine->Resume());
+        State.Set(START);
+        break;
+      default:
+        break;
+      }
+    }
+  private:
+    const Async::Coroutine::Ptr Routine;
     Async::Event<JobState>& Signal;
     Async::Event<JobState>& State;
   };
@@ -106,8 +134,8 @@ namespace
   class JobImpl : public Async::Job
   {
   public:
-    explicit JobImpl(Async::Worker::Ptr worker)
-      : Work(worker)
+    explicit JobImpl(Async::Coroutine::Ptr routine)
+      : Routine(routine)
     {
     }
 
@@ -132,9 +160,8 @@ namespace
           }
           FinishAction();
         }
-        const Async::Operation::Ptr jobOper = boost::make_shared<JobOperation>(Work, boost::ref(Signal), boost::ref(State));
+        const Async::Operation::Ptr jobOper = boost::make_shared<CoroutineOperation>(Routine, boost::ref(Signal), boost::ref(State));
         Act = Async::Activity::Create(jobOper);
-        Signal.Set(START);
         return Error();
       }
       catch (const Error& err)
@@ -217,7 +244,7 @@ namespace
       return err;
     }
   private:
-    const Async::Worker::Ptr Work;
+    const Async::Coroutine::Ptr Routine;
     mutable boost::mutex Mutex;
     Async::Event<JobState> Signal;
     Async::Event<JobState> State;
@@ -227,8 +254,8 @@ namespace
 
 namespace Async
 {
-  Job::Ptr CreateJob(Worker::Ptr worker)
+  Job::Ptr CreateJob(Coroutine::Ptr routine)
   {
-    return boost::make_shared<JobImpl>(worker);
+    return boost::make_shared<JobImpl>(routine);
   }
 }

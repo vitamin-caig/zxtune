@@ -16,7 +16,7 @@ Author:
 #include <debug_log.h>
 #include <error_tools.h>
 //library includes
-#include <async/job.h>
+#include <async/worker.h>
 #include <l10n/api.h>
 #include <sound/error_codes.h>
 #include <sound/render_params.h>
