@@ -19,7 +19,7 @@ Author:
 #include <debug_log.h>
 #include <error.h>
 //library includes
-#include <async/job.h>
+#include <async/coroutine.h>
 #include <core/error_codes.h>
 //std includes
 #include <ctime>
@@ -297,11 +297,12 @@ namespace
     virtual void OnScanEnd() = 0;
   };
 
-  class DetectParametersWrapper : public Playlist::Item::DetectParameters
+  class DetectParamsAdapter : public Playlist::Item::DetectParameters
   {
   public:
-    explicit DetectParametersWrapper(ScannerCallback& callback)
-      : Callback(callback)
+    DetectParamsAdapter(ScannerCallback& cb, Async::Scheduler& sched)
+      : Callback(cb)
+      , Scheduler(sched)
     {
     }
 
@@ -318,6 +319,7 @@ namespace
     virtual void ShowProgress(unsigned progress)
     {
       Callback.OnProgress(progress);
+      Scheduler.Yield();
     }
 
     virtual void ShowMessage(const String& message)
@@ -327,18 +329,17 @@ namespace
     }
   private:
     ScannerCallback& Callback;
+    Async::Scheduler& Scheduler;
   };
 
-
-  class ScanWorker : public FilenamesTarget
-                   , public Async::Worker
+  class ScanRoutine : public FilenamesTarget
+                    , public Async::Coroutine
   {
   public:
-    typedef boost::shared_ptr<ScanWorker> Ptr;
+    typedef boost::shared_ptr<ScanRoutine> Ptr;
 
-    ScanWorker(ScannerCallback& cb, Playlist::Item::DataProvider::Ptr provider)
+    ScanRoutine(ScannerCallback& cb, Playlist::Item::DataProvider::Ptr provider)
       : Callback(cb)
-      , DetectParams(Callback)
       , Provider(provider)
     {
       CreateQueue();
@@ -372,16 +373,14 @@ namespace
       return Error();
     }
 
-    virtual Error ExecuteCycle()
+    virtual Error Execute(Async::Scheduler& sched)
     {
-      const QString file = Queue->GetNext();
-      ScanFile(file);
+      while (!Queue->Empty())
+      {
+        const QString file = Queue->GetNext();
+        ScanFile(file, sched);
+      }
       return Error();
-    }
-
-    virtual bool IsFinished() const
-    {
-      return Queue->Empty();
     }
   private:
     void CreateQueue()
@@ -389,11 +388,11 @@ namespace
       Queue = boost::make_shared<FilesQueue>();
     }
 
-    void ScanFile(const QString& name)
+    void ScanFile(const QString& name, Async::Scheduler& sched)
     {
       if (!ProcessAsPlaylist(name))
       {
-        DetectSubitems(name);
+        DetectSubitems(name, sched);
       }
     }
 
@@ -408,16 +407,16 @@ namespace
       return true;
     }
 
-    void DetectSubitems(const QString& itemPath)
+    void DetectSubitems(const QString& itemPath, Async::Scheduler& sched)
     {
-      if (const Error& e = Provider->DetectModules(FromQString(itemPath), DetectParams))
+      DetectParamsAdapter params(Callback, sched);
+      if (const Error& e = Provider->DetectModules(FromQString(itemPath), params))
       {
         Callback.OnError(e);
       }
     }
   private:
     ScannerCallback& Callback;
-    DetectParametersWrapper DetectParams;
     const Playlist::Item::DataProvider::Ptr Provider;
     FilesQueue::Ptr Queue;
   };
@@ -428,8 +427,8 @@ namespace
   public:
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
-      , Worker(boost::make_shared<ScanWorker>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
-      , ScanJob(Async::CreateJob(Worker))
+      , Routine(boost::make_shared<ScanRoutine>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
+      , ScanJob(Async::CreateJob(Routine))
     {
       Dbg("Created at %1%", this);
     }
@@ -441,22 +440,22 @@ namespace
 
     virtual void AddItems(const QStringList& items)
     {
-      Worker->Add(items);
+      Dbg("Added %1% items to %2%", items.size(), this);
+      Routine->Add(items);
       ThrowIfError(ScanJob->Start());
     }
 
-    virtual void Pause()
+    virtual void Pause(bool pause)
     {
-      ThrowIfError(ScanJob->Pause());
-    }
-
-    virtual void Resume()
-    {
-      ThrowIfError(ScanJob->Start());
+      Dbg(pause ? "Pausing %1%" : "Resuming %1%", this);
+      ThrowIfError(pause
+        ? ScanJob->Pause()
+        : ScanJob->Start());
     }
 
     virtual void Stop()
     {
+      Dbg("Stopping %1%", this);
       ThrowIfError(ScanJob->Stop());
     }
   private:
@@ -496,7 +495,7 @@ namespace
       emit ScanStopped();
     }
   private:
-    const ScanWorker::Ptr Worker;
+    const ScanRoutine::Ptr Routine;
     const Async::Job::Ptr ScanJob;
     EventFilter NotificationFilter;
   };

@@ -34,7 +34,6 @@ namespace Playlist
 
     private slots:
       virtual void ScanStart(Playlist::ScanStatus::Ptr) = 0;
-      virtual void ScanCancel() = 0;
       virtual void ScanStop() = 0;
       virtual void ShowProgress(unsigned) = 0;
       virtual void ShowProgressMessage(const QString&) = 0;

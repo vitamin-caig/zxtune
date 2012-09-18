@@ -62,13 +62,14 @@
 <context>
     <name>Playlist::UI::ScannerView</name>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/scanner_view.ui" line="49"/>
-        <source>Cancel</source>
-        <translation>Отмена</translation>
+        <location filename="../../apps/zxtune-qt/playlist/ui/scanner_view.ui" line="57"/>
+        <source>Pause/continue scanning</source>
+        <translation>Приостановить/продолжить</translation>
     </message>
     <message>
-        <source>Searching...</source>
-        <translation type="obsolete">Поиск...</translation>
+        <location filename="../../apps/zxtune-qt/playlist/ui/scanner_view.ui" line="69"/>
+        <source>Stop scanning</source>
+        <translation>Остановить</translation>
     </message>
 </context>
 <context>

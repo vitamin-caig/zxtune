@@ -39,7 +39,8 @@ namespace
       Require(connect(Scanner, SIGNAL(ScanStopped()), this, SLOT(ScanStop())));
       Require(connect(Scanner, SIGNAL(ScanProgressChanged(unsigned)), SLOT(ShowProgress(unsigned))));
       Require(connect(Scanner, SIGNAL(ScanMessageChanged(const QString&)), SLOT(ShowProgressMessage(const QString&))));
-      Require(connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel())));
+      Require(Scanner->connect(scanCancel, SIGNAL(clicked()), SLOT(Stop())));
+      Require(Scanner->connect(scanPause, SIGNAL(toggled(bool)), SLOT(Pause(bool))));
 
       Dbg("Created at %1%", this);
     }
@@ -51,20 +52,16 @@ namespace
 
     virtual void ScanStart(Playlist::ScanStatus::Ptr status)
     {
+      Dbg("Scan started for %1%", this);
       Status = status;
       show();
     }
 
-    virtual void ScanCancel()
-    {
-      scanCancel->setEnabled(false);
-      Scanner->Stop();
-    }
-
     virtual void ScanStop()
     {
+      Dbg("Scan stopped for %1%", this);
       hide();
-      scanCancel->setEnabled(true);
+      scanPause->setChecked(false);
     }
 
     virtual void ShowProgress(unsigned progress)

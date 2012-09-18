@@ -44,9 +44,29 @@
     </widget>
    </item>
    <item>
+    <widget class="QToolButton" name="scanPause">
+     <property name="icon">
+      <iconset>
+       <normalon>:/playback/pause.png</normalon>
+      </iconset>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="toolTip">
+      <string>Pause/continue scanning</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QToolButton" name="scanCancel">
-     <property name="text">
-      <string>Cancel</string>
+     <property name="icon">
+      <iconset>
+       <normalon>:/playback/stop.png</normalon>
+      </iconset>
+     </property>
+     <property name="toolTip">
+      <string>Stop scanning</string>
      </property>
     </widget>
    </item>
