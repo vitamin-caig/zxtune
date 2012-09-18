@@ -41,9 +41,12 @@ namespace
 
   enum JobState
   {
-    STOP,
-    PAUSE,
-    START
+    STOPPED,
+    STOPPING,
+    STARTED,
+    STARTING,
+    PAUSED,
+    PAUSING,
   };
 
   struct ErrorObject
@@ -72,9 +75,8 @@ namespace
                            , private Async::Scheduler
   {
   public:
-    CoroutineOperation(Async::Coroutine::Ptr routine, Async::Event<JobState>& signal, Async::Event<JobState>& state)
+    CoroutineOperation(Async::Coroutine::Ptr routine, Async::Event<JobState>& state)
       : Routine(routine)
-      , Signal(signal)
       , State(state)
     {
     }
@@ -86,9 +88,8 @@ namespace
     
     virtual Error Execute()
     {
-      State.Set(START);
       Error lastError = ExecuteRoutine();
-      State.Set(STOP);
+      State.Set(STOPPED);
       if (Error err = Routine->Finalize())
       {
         return err.AddSuberror(lastError);
@@ -110,24 +111,28 @@ namespace
 
     virtual void Yield()
     {
-      switch (Signal.WaitForAny(STOP, PAUSE, START))
+      switch (State.WaitForAny(STOPPING, PAUSING, STARTED))
       {
-      case STOP:
+      case PAUSING:
+        {
+          TransportError(Routine->Suspend());
+          State.Set(PAUSED);
+          const JobState nextState = State.WaitForAny(STOPPING, STARTING);
+          TransportError(Routine->Resume());
+          if (STARTING == nextState)
+          {
+            State.Set(STARTED);
+            break;
+          }
+        }
+      case STOPPING:
         throw ErrorObject();
-      case PAUSE:
-        TransportError(Routine->Suspend());
-        State.Set(PAUSE);
-        Signal.WaitForAny(STOP, START);
-        TransportError(Routine->Resume());
-        State.Set(START);
-        break;
       default:
         break;
       }
     }
   private:
     const Async::Coroutine::Ptr Routine;
-    Async::Event<JobState>& Signal;
     Async::Event<JobState>& State;
   };
   
@@ -160,8 +165,9 @@ namespace
           }
           FinishAction();
         }
-        const Async::Operation::Ptr jobOper = boost::make_shared<CoroutineOperation>(Routine, boost::ref(Signal), boost::ref(State));
+        const Async::Operation::Ptr jobOper = boost::make_shared<CoroutineOperation>(Routine, boost::ref(State));
         Act = Async::Activity::Create(jobOper);
+        State.Set(STARTED);
         return Error();
       }
       catch (const Error& err)
@@ -203,15 +209,15 @@ namespace
     virtual bool IsPaused() const
     {
       const boost::mutex::scoped_lock lock(Mutex);
-      return Act && Act->IsExecuted() && State.Check(PAUSE);
+      return Act && Act->IsExecuted() && State.Check(PAUSED);
     }
   private:
     Error StartExecutingAction()
     {
-      if (State.Check(PAUSE))
+      if (State.Check(PAUSED))
       {
-        Signal.Set(START);
-        if (STOP == State.WaitForAny(STOP, START))
+        State.Set(STARTING);
+        if (STOPPED == State.WaitForAny(STOPPED, STARTED))
         {
           return FinishAction();
         }
@@ -222,10 +228,10 @@ namespace
 
     Error PauseExecutingAction()
     {
-      if (!State.Check(PAUSE))
+      if (!State.Check(PAUSED))
       {
-        Signal.Set(PAUSE);
-        if (STOP == State.WaitForAny(STOP, PAUSE))
+        State.Set(PAUSING);
+        if (STOPPED == State.WaitForAny(STOPPED, PAUSED))
         {
           return FinishAction();
         }
@@ -236,17 +242,15 @@ namespace
     
     Error FinishAction()
     {
-      Signal.Set(STOP);
+      State.Set(STOPPING);
       const Error err = Act->Wait();
       Act.reset();
-      Signal.Reset();
       State.Reset();
       return err;
     }
   private:
     const Async::Coroutine::Ptr Routine;
     mutable boost::mutex Mutex;
-    Async::Event<JobState> Signal;
     Async::Event<JobState> State;
     Async::Activity::Ptr Act;
   };
