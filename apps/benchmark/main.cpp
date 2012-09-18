@@ -38,6 +38,7 @@ namespace
   };
 
   const unsigned SOUND_FREQ = 44100;
+  const Time::Milliseconds FRAME_DURATION(20);
 }
 
 namespace
@@ -92,7 +93,8 @@ namespace
     const bool Interpolation;
   };
 
-  double Test(Devices::AYM::Device& dev, const unsigned iterations)
+  template<class Stamp>
+  double Test(Devices::AYM::Device& dev, const Stamp& duration)
   {
     using namespace Devices::AYM;
     const Timer timer;
@@ -102,8 +104,9 @@ namespace
     chunk.Data[DataChunk::REG_VOLB] = DataChunk::REG_MASK_VOL;
     chunk.Data[DataChunk::REG_VOLC] = DataChunk::REG_MASK_ENV | DataChunk::REG_MASK_VOL;
     chunk.Mask = (1 << DataChunk::REG_BEEPER) - 1;
-    const Time::Nanoseconds period = Time::Milliseconds(1);
-    for (uint_t val = 0; val != 0x100000 * iterations; ++val)
+    const Time::Nanoseconds period = FRAME_DURATION;
+    const uint_t frames = Time::Nanoseconds(duration).Get() / period.Get();
+    for (uint_t val = 0; val != frames; ++val)
     {
       const uint_t tonLo = (val &    0xff);
       const uint_t tonHi = (val &   0xf00) >> 8;
@@ -128,15 +131,16 @@ namespace
   void TestAY()
   {
     std::cout << "Test for AY chip emulation\n";
+    const Time::Milliseconds emulationTime(1000000);//1000s
     {
       const Devices::AYM::ChipParameters::Ptr params = boost::make_shared<AYParameters>(false);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(params, Devices::AYM::Receiver::CreateStub());
-      std::cout << " without interpolation: x" << Test(*chip, 3) << std::endl;
+      std::cout << " without interpolation: x" << Test(*chip, emulationTime) << std::endl;
     }
     {
       const Devices::AYM::ChipParameters::Ptr params = boost::make_shared<AYParameters>(true);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(params, Devices::AYM::Receiver::CreateStub());
-      std::cout << " with interpolation: x" << Test(*chip, 3) << std::endl;
+      std::cout << " with interpolation: x" << Test(*chip, emulationTime) << std::endl;
     }
   }
 }
@@ -176,11 +180,13 @@ namespace
     Time::Nanoseconds Dummy;
   };
 
-  double Test(Devices::Z80::Chip& chip, const unsigned frames)
+  template<class Stamp>
+  double Test(Devices::Z80::Chip& chip, const Stamp& duration)
   {
     using namespace Devices::Z80;
     const Timer timer;
-    const Time::Nanoseconds period = Time::Milliseconds(20);
+    const Time::Nanoseconds period = FRAME_DURATION;
+    const uint_t frames = Time::Nanoseconds(duration).Get() / period.Get();
     Time::Nanoseconds stamp;
     for (uint_t frame = 0; frame != frames; ++frame)
     {
@@ -217,18 +223,19 @@ namespace
   void TestZ80()
   {
     std::cout << "Test for Z80 emulation\n";
+    const Time::Milliseconds emulationTime(1000000);//1000s
     const Devices::Z80::ChipParameters::Ptr params = boost::make_shared<Z80Parameters>();
     {
       Dump mem(Z80_TEST_MEM, ArrayEnd(Z80_TEST_MEM));
       mem.resize(65536);
       const Devices::Z80::Chip::Ptr chip = Devices::Z80::CreateChip(params, mem, Devices::Z80::ChipIO::Ptr());
-      std::cout << " memory access: x" << Test(*chip, 50000) << std::endl;
+      std::cout << " memory access: x" << Test(*chip, emulationTime) << std::endl;
     }
     {
       Dump mem(Z80_TEST_IO, ArrayEnd(Z80_TEST_IO));
       mem.resize(65536);
       const Devices::Z80::Chip::Ptr chip = Devices::Z80::CreateChip(params, mem, boost::make_shared<Z80Ports>());
-      std::cout << " i/o ports access: x" << Test(*chip, 50000) << std::endl;
+      std::cout << " i/o ports access: x" << Test(*chip, emulationTime) << std::endl;
     }
   }
 }
@@ -254,10 +261,11 @@ namespace
   void TestMixer()
   {
     std::cout << "Test for mixer\n";
+    const Time::Milliseconds emulationTime(1000000);//1000s
     for (uint_t chan = 1; chan <= 4; ++chan)
     {
       const ZXTune::Sound::Mixer::Ptr mixer = ZXTune::Sound::CreateMatrixMixer(chan);
-      std::cout << ' ' << chan << "-channels: x" << Test<Time::Milliseconds>(*mixer, chan, Time::Milliseconds(100000)) << std::endl;
+      std::cout << ' ' << chan << "-channels: x" << Test(*mixer, chan, emulationTime) << std::endl;
     }
   }
 }
