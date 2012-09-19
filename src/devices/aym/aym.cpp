@@ -347,7 +347,6 @@ namespace
     virtual void Reset() = 0;
     virtual void SetNewData(const DataChunk& data) = 0;
     virtual void Tick(uint_t ticks) = 0;
-    virtual bool HasLevelChanges() const = 0;
     virtual void GetLevels(MultiSample& result) const = 0;
   };
 
@@ -363,8 +362,7 @@ namespace
     virtual void SetEnvType(uint_t type) = 0;
     virtual void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC) = 0;
     virtual void Reset() = 0;
-    virtual void Tick() = 0;
-    virtual bool HasLevelChanges() const = 0;
+    virtual void Tick(uint_t ticks) = 0;
     virtual void GetLevels(MultiSample& result) const = 0;
   };
 
@@ -443,23 +441,16 @@ namespace
       VolTable = &AYVolumeTab;
     }
 
-    virtual void Tick()
+    virtual void Tick(uint_t ticks)
     {
-      GenA.Tick();
-      GenB.Tick();
-      GenC.Tick();
-      GenN.Tick();
-      GenE.Tick();
-    }
-
-    virtual bool HasLevelChanges() const
-    {
-      return (!GenA.IsMasked() && !GenA.GetCounter())
-          || (!GenB.IsMasked() && !GenB.GetCounter())
-          || (!GenC.IsMasked() && !GenC.GetCounter())
-          || (!GenN.IsMasked() && !GenN.GetCounter())
-          || (!GenE.IsMasked() && !GenE.GetCounter())
-      ;
+      while (ticks--)
+      {
+        GenA.Tick();
+        GenB.Tick();
+        GenC.Tick();
+        GenN.Tick();
+        GenE.Tick();
+      }
     }
 
     virtual void GetLevels(MultiSample& result) const
@@ -587,15 +578,7 @@ namespace
 
     virtual void Tick(uint_t ticks)
     {
-      for (uint_t i = 0; i != ticks; ++i)
-      {
-        Device->Tick();
-      }
-    }
-
-    virtual bool HasLevelChanges() const
-    {
-      return Device->HasLevelChanges();
+      Device->Tick(ticks);
     }
 
     virtual void GetLevels(MultiSample& result) const
@@ -747,11 +730,6 @@ namespace
     {
     }
 
-    virtual bool HasLevelChanges() const
-    {
-      return false;
-    }
-
     virtual void GetLevels(MultiSample& result) const
     {
       std::fill(result.begin(), result.end(), Beeper);
@@ -759,6 +737,11 @@ namespace
   private:
     Sample Beeper;
   };
+
+  static Sample Average(Sample first, Sample second)
+  {
+    return static_cast<Sample>((uint_t(first) + second) / 2);
+  }
 
   class MixedRenderer : public Renderer
   {
@@ -787,11 +770,6 @@ namespace
       Second.Tick(ticks);
     }
 
-    virtual bool HasLevelChanges() const
-    {
-      return First.HasLevelChanges() || Second.HasLevelChanges();
-    }
-
     virtual void GetLevels(MultiSample& result) const
     {
       MultiSample firstResult;
@@ -799,11 +777,6 @@ namespace
       First.GetLevels(firstResult);
       Second.GetLevels(secondResult);
       std::transform(firstResult.begin(), firstResult.end(), secondResult.begin(), result.begin(), &Average);
-    }
-  private:
-    static Sample Average(Sample first, Sample second)
-    {
-      return static_cast<Sample>((uint_t(first) + second) / 2);
     }
   private:
     Renderer& First;
@@ -815,8 +788,8 @@ namespace
   public:
     InterpolatedRenderer()
       : Delegate()
-      , Levels()
-      , AccumulatedSamples()
+      , PrevValues()
+      , CurValues()
     {
     }
 
@@ -832,46 +805,30 @@ namespace
       {
         Delegate->Reset();
       }
-      std::fill(Levels.begin(), Levels.end(), 0);
-      AccumulatedSamples = 0;
+      PrevValues = CurValues = MultiSample();
     }
 
     virtual void SetNewData(const DataChunk &data)
     {
       Delegate->SetNewData(data);
-      Delegate->GetLevels(Levels);
     }
 
     virtual void Tick(uint_t ticks)
     {
-      for (uint_t i = 0; i != ticks; ++i)
-      {
-        std::transform(Accumulators.begin(), Accumulators.end(), Levels.begin(), Accumulators.begin(), std::plus<uint_t>());
-        ++AccumulatedSamples;
-        Delegate->Tick(1);
-        if (Delegate->HasLevelChanges())
-        {
-          Delegate->GetLevels(Levels);
-        }
-      }
-    }
-
-    bool HasLevelChanges() const
-    {
-      return true;
+      Delegate->Tick(ticks);
     }
 
     virtual void GetLevels(MultiSample& result) const
     {
-      std::transform(Accumulators.begin(), Accumulators.end(), result.begin(), std::bind2nd(std::divides<uint_t>(), AccumulatedSamples));
-      std::fill(Accumulators.begin(), Accumulators.end(), 0);
-      AccumulatedSamples = 0;
+      PrevValues = CurValues;
+      Delegate->GetLevels(CurValues);
+      std::transform(PrevValues.begin(), PrevValues.end(), CurValues.begin(), result.begin(), &Average);
     }
   private:
     Renderer* Delegate;
     MultiSample Levels;
-    mutable boost::array<uint_t, CHANNELS> Accumulators;
-    mutable uint_t AccumulatedSamples;
+    mutable MultiSample PrevValues;
+    mutable MultiSample CurValues;
   };
 
   class RelayoutRenderer : public Renderer
@@ -896,11 +853,6 @@ namespace
     virtual void Tick(uint_t ticks)
     {
       return Delegate.Tick(ticks);
-    }
-
-    virtual bool HasLevelChanges() const
-    {
-      return Delegate.HasLevelChanges();
     }
 
     virtual void GetLevels(MultiSample& result) const
@@ -939,11 +891,6 @@ namespace
     virtual void Tick(uint_t ticks)
     {
       return Delegate.Tick(ticks);
-    }
-
-    virtual bool HasLevelChanges() const
-    {
-      return Delegate.HasLevelChanges();
     }
 
     virtual void GetLevels(MultiSample& result) const
