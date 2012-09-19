@@ -52,21 +52,7 @@ namespace
   const uint_t MAX_OSS_VOLUME = 100;
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
-
-  int GetSoundFormat()
-  {
-    switch (sizeof(Sample))
-    {
-    case 1:
-      return SAMPLE_SIGNED ? AFMT_S8 : AFMT_U8;
-    case 2:
-      return SAMPLE_SIGNED ? AFMT_S16_NE : (isLE() ? AFMT_U16_LE : AFMT_U16_BE);
-    default:
-      assert(!"Invalid format");
-      return -1;
-    };
-  }
-
+  
   class AutoDescriptor : public boost::noncopyable
   {
   public:
@@ -129,6 +115,57 @@ namespace
     //leave handle as int
     int Handle;
   };
+
+  class SoundFormat
+  {
+  public:
+    explicit SoundFormat(int supportedFormats)
+      : Native(GetSoundFormat(SAMPLE_SIGNED))
+      , Negated(GetSoundFormat(!SAMPLE_SIGNED))
+      , NativeSupported(0 != (supportedFormats & Native))
+      , NegatedSupported(0 != (supportedFormats & Negated))
+    {
+    }
+    
+    bool IsSupported() const
+    {
+      return NativeSupported || NegatedSupported;
+    }
+    
+    bool ChangeSign() const
+    {
+      return !NativeSupported && NegatedSupported;
+    }
+    
+    int Get() const
+    {
+      return NativeSupported
+        ? Native
+        : NegatedSupported ? Negated : -1;
+    }
+  private:
+    static int GetSoundFormat(bool isSigned)
+    {
+      switch (sizeof(Sample))
+      {
+      case 1:
+        return isSigned ? AFMT_S8 : AFMT_U8;
+      case 2:
+        return isSigned
+          ? (isLE() ? AFMT_S16_LE : AFMT_S16_BE)
+          : (isLE() ? AFMT_U16_LE : AFMT_U16_BE);
+      default:
+        assert(!"Invalid format");
+        return -1;
+      };
+    }
+  private:
+    const int Native;
+    const int Negated;
+    const bool NativeSupported;
+    const bool NegatedSupported;
+  };
+
 
   class OssVolumeControl : public VolumeControl
   {
@@ -226,6 +263,7 @@ namespace
     explicit OssBackendWorker(Parameters::Accessor::Ptr params)
       : BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
+      , ChangeSign(false)
       , CurrentBuffer(Buffers.begin(), Buffers.end())
       , VolumeController(new OssVolumeControl(StateMutex, MixHandle))
     {
@@ -240,7 +278,8 @@ namespace
     {
       AutoDescriptor tmpMixer;
       AutoDescriptor tmpDevice;
-      SetupDevices(tmpDevice, tmpMixer);
+      bool tmpSign = false;
+      SetupDevices(tmpDevice, tmpMixer, tmpSign);
       Dbg("Tested!");
     }
 
@@ -252,7 +291,7 @@ namespace
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
       assert(-1 == MixHandle.Get() && -1 == DevHandle.Get());
-      SetupDevices(DevHandle, MixHandle);
+      SetupDevices(DevHandle, MixHandle, ChangeSign);
       Dbg("Successfully opened");
     }
 
@@ -277,6 +316,10 @@ namespace
 
     virtual void OnBufferReady(Chunk& buffer)
     {
+      if (ChangeSign)
+      {
+        std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
+      }
       Chunk& buf(*CurrentBuffer);
       buf.swap(buffer);
       assert(-1 != DevHandle.Get());
@@ -292,14 +335,22 @@ namespace
       ++CurrentBuffer;
     }
   private:
-    void SetupDevices(AutoDescriptor& device, AutoDescriptor& mixer) const
+    void SetupDevices(AutoDescriptor& device, AutoDescriptor& mixer, bool& changeSign) const
     {
       const OssBackendParameters params(*BackendParams);
 
       AutoDescriptor tmpMixer(params.GetMixerName(), O_RDWR);
       AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY);
       BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
-      int tmp = GetSoundFormat();
+      int tmp = 0;
+      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_GETFMTS, &tmp), THIS_LINE);
+      Dbg("Supported formats %1%", tmp);
+      const SoundFormat format(tmp);
+      if (!format.IsSupported())
+      {
+        throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable formats supported by OSS."));
+      }
+      tmp = format.Get();
       Dbg("Setting format to %1%", tmp);
       tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
 
@@ -313,6 +364,7 @@ namespace
 
       device.Swap(tmpDevice);
       mixer.Swap(tmpMixer);
+      changeSign = format.ChangeSign();
     }
   private:
     const Parameters::Accessor::Ptr BackendParams;
@@ -320,6 +372,7 @@ namespace
     boost::mutex StateMutex;
     AutoDescriptor MixHandle;
     AutoDescriptor DevHandle;
+    bool ChangeSign;
     boost::array<Chunk, 2> Buffers;
     CycledIterator<Chunk*> CurrentBuffer;
     const VolumeControl::Ptr VolumeController;
