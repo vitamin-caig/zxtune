@@ -329,7 +329,7 @@ namespace
       Api->snd_pcm_hw_params_get_format_mask(hwParams.get(), fmtMask.get());
 
       const SoundFormat fmt(*Api, fmtMask.get());
-      if (!format.IsSupported())
+      if (!fmt.IsSupported())
       {
         throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable formats supported by ALSA."));
       }
