@@ -15,6 +15,7 @@
 #include <iterator.h>
 //library includes
 #include <binary/container.h>
+#include <binary/output_stream.h>
 #include <io/identifier.h>
 //std includes
 #include <vector>
@@ -42,8 +43,8 @@ namespace ZXTune
 
     //! @brief Performs opening specified uri
     //! @param path External data identifier
-    //! @param params %Parameters accessor to setup providers work
-    //! @param cb Callback for long-time controlable operations
+    //! @param params %Parameters accessor to setup providers' work
+    //! @param cb Callback for long-time controllable operations
     //! @throw Error if failed to open
     Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb);
 

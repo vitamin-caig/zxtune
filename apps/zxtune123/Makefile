@@ -22,7 +22,7 @@ libraries += lhasa z z80ex
 depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
 
 windows_libraries = advapi32
-boost_libraries = thread program_options system
+boost_libraries = thread program_options system filesystem
 
 manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)

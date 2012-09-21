@@ -39,6 +39,24 @@ namespace Parameters
           //! Parameter full path
           extern const NameType MMAP_THRESHOLD;
           //@}
+
+          //@{
+          //! @name Create intermediate directories
+
+          //! Default value
+          const IntType CREATE_DIRECTORIES_DEFAULT = 1;
+          //! @Parameter full path
+          extern const NameType CREATE_DIRECTORIES;
+          //@}
+
+          //@{
+          //! @name Overwrite files
+
+          //! Default value
+          const IntType OVERWRITE_EXISTING_DEFAULT = 0;
+          //! @Parameter full path
+          extern const NameType OVERWRITE_EXISTING;
+          //@}
         }
 
         //! @brief %Network provider parameters namespace

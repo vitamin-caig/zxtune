@@ -16,12 +16,12 @@ msgstr ""
 msgid "File '%1%' already exists."
 msgstr "Файл '%1%' существует."
 
-#: impl/fs_tools.cpp:149
+#: impl/fs_tools.cpp:149 providers/file_provider.cpp:369
 #, boost-format
 msgid "Failed to create file '%1%'."
 msgstr "Ошибка создания файла '%1%'."
 
-#: impl/fs_tools.cpp:160 providers/file_provider.cpp:325
+#: impl/fs_tools.cpp:160 providers/file_provider.cpp:357
 #, boost-format
 msgid "Failed to open file '%1%'."
 msgstr "Ошибка открытия файла '%1%'."
@@ -43,15 +43,20 @@ msgstr "Ошибка выделения памяти."
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
-#: providers/file_provider.cpp:143
-msgid "Failed to get access."
-msgstr "Ошибка получения доступа."
+#: providers/file_provider.cpp:196
+#, boost-format
+msgid "Failed to read %1% bytes. Actually got %2% bytes."
+msgstr "Ошибка чтения %1% байт. Прочитано %2%."
 
-#: providers/file_provider.cpp:149
+#: providers/file_provider.cpp:213
 msgid "File is empty."
 msgstr "Файл пуст."
 
-#: providers/file_provider.cpp:286
+#: providers/file_provider.cpp:290
+msgid "File already exists."
+msgstr "Файл '%1%' существует."
+
+#: providers/file_provider.cpp:306
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 

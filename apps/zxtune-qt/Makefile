@@ -30,7 +30,7 @@ depends = apps/base apps/version src/analysis src/async src/binary src/core src/
 libraries += lhasa z z80ex
 depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
 
-boost_libraries = thread system
+boost_libraries = thread system filesystem
 
 qt_libraries = Gui Core
 

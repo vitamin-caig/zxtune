@@ -14,22 +14,26 @@ Author:
 
 //local includes
 #include "enumerator.h"
+#include "file_provider.h"
 //common includes
 #include <contract.h>
 #include <debug_log.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/container_factories.h>
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
 //std includes
 #include <fstream>
 //boost includes
+#include <boost/filesystem/fstream.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/shared_array.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -45,7 +49,7 @@ namespace
   const Debug::Stream Dbg("IO::Provider::File");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
 
-  class FileProviderParameters
+  class FileProviderParameters : public FileCreatingParameters
   {
   public:
     explicit FileProviderParameters(const Parameters::Accessor& accessor)
@@ -53,11 +57,25 @@ namespace
     {
     }
 
-    std::streampos GetMMapThreshold() const
+    std::size_t MemoryMappingThreshold() const
     {
       Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT;
       Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, intVal);
-      return static_cast<std::streampos>(intVal);
+      return static_cast<std::size_t>(intVal);
+    }
+
+    virtual bool Overwrite() const
+    {
+      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT;
+      Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, intVal);
+      return intVal != 0;
+    }
+
+    virtual bool CreateDirectories() const
+    {
+      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT;
+      Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, intVal);
+      return intVal != 0;
     }
   private:
     const Parameters::Accessor& Accessor;
@@ -67,136 +85,6 @@ namespace
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
   const Char SUBPATH_DELIMITER = '\?';
-
-  class FileDataContainer : public Binary::Container
-  {
-    // basic interface for internal data storing
-    class Holder
-    {
-    public:
-      typedef boost::shared_ptr<Holder> Ptr;
-      virtual ~Holder() {}
-      
-      virtual std::size_t Size() const = 0;
-      virtual const uint8_t* Data() const = 0;
-    };
-
-    // memory-mapping holder implementation
-    class MMapHolder : public Holder
-    {
-    public:
-      explicit MMapHolder(const String& path)
-      try
-        : File(ConvertToFilename(path).c_str(), boost::interprocess::read_only), Region(File, boost::interprocess::read_only)
-      {
-      }
-      catch (const boost::interprocess::interprocess_exception& e)
-      {
-        throw Error(THIS_LINE, ERROR_IO_ERROR, FromStdString(e.what()));
-      }
-
-      virtual std::size_t Size() const
-      {
-        return Region.get_size();
-      }
-      
-      virtual const uint8_t* Data() const
-      {
-        return static_cast<const uint8_t*>(Region.get_address());
-      }
-    private:
-      boost::interprocess::file_mapping File;
-      boost::interprocess::mapped_region Region;
-    };
-
-    // simple buffer implementation
-    class DumpHolder : public Holder
-    {
-    public:
-      DumpHolder(const boost::shared_array<uint8_t>& dump, std::size_t size)
-        : Dump(dump), Length(size)
-      {
-      }
-      
-      virtual std::size_t Size() const
-      {
-        return Length;
-      }
-      
-      virtual const uint8_t* Data() const
-      {
-        return Dump.get();
-      }
-    private:
-      const boost::shared_array<uint8_t> Dump;
-      const std::size_t Length;
-    };
-  public:
-    FileDataContainer(const String& path, const Parameters::Accessor& params)
-      : CoreHolder()
-      , Offset(0), Length(0)
-    {
-      //TODO: possible use boost.filesystem to determine file size
-      std::ifstream file(ConvertToFilename(path).c_str(), std::ios::binary);
-      if (!file)
-      {
-        throw Error(THIS_LINE, ERROR_NO_ACCESS, translate("Failed to get access."));
-      }
-      file.seekg(0, std::ios::end);
-      const std::streampos fileSize = file.tellg();
-      if (!fileSize || !file)
-      {
-        throw Error(THIS_LINE, ERROR_IO_ERROR, translate("File is empty."));
-      }
-      const FileProviderParameters providerParams(params);
-      const std::streampos threshold = providerParams.GetMMapThreshold();
-
-      if (fileSize >= threshold)
-      {
-        Dbg("Using memory-mapped i/o for '%1%'.", path);
-        file.close();
-        //use mmap
-        CoreHolder.reset(new MMapHolder(path));
-      }
-      else
-      {
-        Dbg("Reading '%1%' to memory.", path);
-        boost::shared_array<uint8_t> buffer(new uint8_t[fileSize]);
-        file.seekg(0);
-        file.read(safe_ptr_cast<char*>(buffer.get()), std::streamsize(fileSize));
-        file.close();
-        //use dump
-        CoreHolder.reset(new DumpHolder(buffer, fileSize));
-      }
-      Length = fileSize;
-    }
-    
-    virtual const void* Start() const
-    {
-      return CoreHolder->Data() + Offset;
-    }
-    
-    virtual std::size_t Size() const
-    {
-      return Length;
-    }
-    
-    virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-    {
-      size = std::min(size, Length - offset);
-      return Ptr(new FileDataContainer(CoreHolder, offset + Offset, size));
-    }
-  private:
-    FileDataContainer(Holder::Ptr holder, std::size_t offset, std::size_t size)
-      : CoreHolder(holder), Offset(offset), Length(size)
-    {
-    }
-    
-  private:
-    Holder::Ptr CoreHolder;
-    const std::size_t Offset;
-    std::size_t Length;
-  };
 
   class FileIdentifier : public Identifier
   {
@@ -266,10 +154,142 @@ namespace
     const String FullValue;
   };
 
-
-  inline bool IsOrdered(String::size_type lh, String::size_type rh)
+  class MemoryMappedData : public Binary::Data
   {
-    return String::npos == rh ? true : lh < rh;
+  public:
+    explicit MemoryMappedData(const std::string& path)
+    try
+      : File(path.c_str(), boost::interprocess::read_only)
+      , Region(File, boost::interprocess::read_only)
+    {
+    }
+    catch (const boost::interprocess::interprocess_exception& e)
+    {
+      throw Error(THIS_LINE, ERROR_IO_ERROR, FromStdString(e.what()));
+    }
+
+    virtual const void* Start() const
+    {
+      return Region.get_address();
+    }
+
+    virtual std::size_t Size() const
+    {
+      return Region.get_size();
+    }
+  private:
+    const boost::interprocess::file_mapping File;
+    const boost::interprocess::mapped_region Region;
+  };
+
+  Binary::Data::Ptr OpenMemoryMappedFile(const std::string& path)
+  {
+    return boost::make_shared<MemoryMappedData>(path);
+  }
+
+  Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
+  {
+    std::auto_ptr<Dump> res(new Dump(size));
+    const std::streampos read = stream.read(safe_ptr_cast<char*>(&res->front()), size).tellg();
+    if (static_cast<std::size_t>(read) != size)
+    {
+      throw MakeFormattedError(THIS_LINE, ERROR_NO_ACCESS, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);
+    }
+    //TODO: Binary::CreateData
+    return Binary::CreateContainer(res);
+  }
+
+  Binary::Data::Ptr OpenFileData(const String& path, std::size_t mmapThreshold)
+  {
+    const boost::filesystem::path fileName(path);
+    boost::system::error_code err;
+    const boost::uintmax_t size = boost::filesystem::file_size(fileName, err);
+    if (size == static_cast<boost::uintmax_t>(-1))
+    {
+      throw Error(THIS_LINE, ERROR_NO_ACCESS, ToStdString(err.message()));
+    }
+    else if (size == 0)
+    {
+      throw Error(THIS_LINE, ERROR_IO_ERROR, translate("File is empty."));
+    }
+    else if (size >= mmapThreshold)
+    {
+      Dbg("Using memory-mapped i/o for '%1%'.", path);
+      return OpenMemoryMappedFile(fileName.string());
+    }
+    else
+    {
+      Dbg("Reading '%1%' to memory.", path);
+      boost::filesystem::ifstream stream(fileName, std::ios::binary);
+      return ReadFileToMemory(stream, static_cast<std::size_t>(size));
+    }
+  }
+
+  class OutputFileStream : public Binary::OutputStream
+  {
+  public:
+    explicit OutputFileStream(const boost::filesystem::path& name)
+      : Name(name.string<String>())
+      , Stream(name, std::ios::binary)
+    {
+      if (!Stream)
+      {
+        throw Error(THIS_LINE, ERROR_IO_ERROR, "Failed to open file.");
+      }
+    }
+
+    virtual void ApplyData(const Binary::Data& data)
+    {
+      if (!Stream.write(static_cast<const char*>(data.Start()), data.Size()))
+      {
+        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, "Failed to write file '%1%'", Name);
+      }
+    }
+
+    virtual void Flush()
+    {
+      if (!Stream.flush())
+      {
+        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, "Failed to flush file '%1%'", Name);
+      }
+    }
+  private:
+    const String Name;
+    boost::filesystem::ofstream Stream;
+  };
+
+  //standard implementation does not work in mingw
+  void CreateDirectoryRecursive(const boost::filesystem::path& dir)
+  {
+    boost::system::error_code err;
+    if (boost::filesystem::is_directory(dir, err))
+    {
+      return;
+    }
+    const boost::filesystem::path& parent = dir.parent_path();
+    if (!parent.empty())
+    {
+      CreateDirectoryRecursive(parent);
+    }
+    if (!boost::filesystem::create_directory(dir, err))
+    {
+      throw Error(THIS_LINE, ERROR_IO_ERROR, ToStdString(err.message()));
+    }
+  }
+
+  Binary::OutputStream::Ptr CreateFileStream(const String& fileName, const FileCreatingParameters& params)
+  {
+    const boost::filesystem::path path(fileName);
+    boost::system::error_code err;
+    if (params.CreateDirectories() && path.has_parent_path())
+    {
+      CreateDirectoryRecursive(path.parent_path());
+    }
+    if (!params.Overwrite() && boost::filesystem::exists(path, err))
+    {
+      throw Error(THIS_LINE, ERROR_FILE_EXISTS, translate("File already exists."));
+    }
+    return boost::make_shared<OutputFileStream>(path);
   }
 
   ///////////////////////////////////////
@@ -316,14 +336,8 @@ namespace
 
     virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/) const
     {
-      try
-      {
-        return Binary::Container::Ptr(new FileDataContainer(path, params));
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to open file '%1%'."), path).AddSuberror(e);
-      }
+      const FileProviderParameters parameters(params);
+      return Binary::CreateContainer(OpenLocalFile(path, parameters.MemoryMappingThreshold()));
     }
   };
 }
@@ -332,6 +346,30 @@ namespace ZXTune
 {
   namespace IO
   {
+    Binary::Data::Ptr OpenLocalFile(const String& path, std::size_t mmapThreshold)
+    {
+      try
+      {
+        return OpenFileData(path, mmapThreshold);
+      }
+      catch (const Error& e)
+      {
+        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to open file '%1%'."), path).AddSuberror(e);
+      }
+    }
+
+    Binary::OutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params)
+    {
+      try
+      {
+        return CreateFileStream(path, params);
+      }
+      catch (const Error& e)
+      {
+        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to create file '%1%'."), path).AddSuberror(e);
+      }
+    }
+
     DataProvider::Ptr CreateFileDataProvider()
     {
       return boost::make_shared<FileDataProvider>();
