@@ -20,8 +20,10 @@ Author:
 #include <messages_collector.h>
 #include <template_parameters.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <core/convert_parameters.h>
 #include <io/fs_tools.h>
+#include <io/providers/file_provider.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -532,6 +534,20 @@ namespace
   };
 
   // Exporting
+  class SaveParameters : public ZXTune::IO::FileCreatingParameters
+  {
+  public:
+    virtual bool Overwrite() const
+    {
+      return true;
+    }
+
+    virtual bool CreateDirectories() const
+    {
+      return true;
+    }
+  };
+
   class ExportOperation : public Playlist::Item::TextResultOperation
                         , private Playlist::Item::Visitor
   {
@@ -591,9 +607,10 @@ namespace
 
     void Save(const Dump& data, const String& filename) const
     {
-      const std::auto_ptr<std::ofstream> stream = ZXTune::IO::CreateFile(filename, true/*TODO*/);
-      stream->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(data.size() * sizeof(data.front())));
-      //TODO: handle possible errors
+      static const SaveParameters PARAMS;
+      const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(filename, PARAMS);
+      const Binary::DataAdapter toSave(&data[0], data.size());
+      stream->ApplyData(toSave);
     }
   private:
     class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>

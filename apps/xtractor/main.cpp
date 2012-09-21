@@ -25,6 +25,7 @@ Author:
 #include <formats/packed_decoders.h>
 #include <io/fs_tools.h>
 #include <io/provider.h>
+#include <io/providers/file_provider.h>
 //std includes
 #include <iostream>
 #include <locale>
@@ -378,6 +379,20 @@ namespace Parsing
 
 namespace
 {
+  class SaveParameters : public ZXTune::IO::FileCreatingParameters
+  {
+  public:
+    virtual bool Overwrite() const
+    {
+      return true;
+    }
+
+    virtual bool CreateDirectories() const
+    {
+      return true;
+    }
+  };
+
   class SaveTarget : public Parsing::Target
   {
   public:
@@ -385,10 +400,11 @@ namespace
     {
       try
       {
+        static const SaveParameters PARAMS;
         const String filePath = result->Name();
+        const Binary::OutputStream::Ptr target = ZXTune::IO::CreateLocalFile(filePath, Params);
         const Binary::Container::Ptr data = result->Data();
-        const std::auto_ptr<std::ofstream> target = ZXTune::IO::CreateFile(filePath, true);
-        target->write(static_cast<const char*>(data->Start()), data->Size());
+        target->ApplyData(*data);
       }
       catch (const Error& e)
       {
@@ -399,49 +415,6 @@ namespace
     virtual void Flush()
     {
     }
-  };
-
-  class BuildDirsTarget : public Parsing::Target
-  {
-  public:
-    explicit BuildDirsTarget(Parsing::Target::Ptr target)
-      : Target(target)
-    {
-    }
-
-    virtual void ApplyData(const Parsing::Result::Ptr& result)
-    {
-      const String path = result->Name();
-      String dir;
-      const String filename = ZXTune::IO::ExtractLastPathComponent(path, dir);
-      CreateDir(dir);
-      Target->ApplyData(result);
-    }
-
-    virtual void Flush()
-    {
-      Target->Flush();
-    }
-
-  private:
-    void CreateDir(const String& dir)
-    {
-      const boost::mutex::scoped_lock lock(DirCacheLock);
-      if (DirCache.count(dir))
-      {
-        return;
-      }
-      Dbg("Creating dir '%1%'", dir);
-      const boost::filesystem::path path(dir);
-      if (boost::filesystem::create_directories(path))
-      {
-        DirCache.insert(dir);
-      }
-    }
-  private:
-    const Parsing::Target::Ptr Target;
-    boost::mutex DirCacheLock;
-    std::set<String> DirCache;
   };
 
   class StatisticTarget : public Parsing::Target
@@ -474,11 +447,6 @@ namespace Parsing
   Parsing::Target::Ptr CreateSaveTarget()
   {
     return boost::make_shared<SaveTarget>();
-  }
-
-  Parsing::Target::Ptr CreateBuildDirsTarget(Parsing::Target::Ptr target)
-  {
-    return boost::make_shared<BuildDirsTarget>(target);
   }
 
   Parsing::Target::Ptr CreateStatisticTarget()
@@ -1259,7 +1227,7 @@ namespace
   {
     const Parsing::Target::Ptr save = opts.StatisticOutput()
       ? Parsing::CreateStatisticTarget()
-      : Parsing::CreateBuildDirsTarget(Parsing::CreateSaveTarget());
+      : Parsing::CreateSaveTarget();
     const Analysis::NodeReceiver::Ptr makeName = boost::make_shared<TargetNamePoint>(opts.TargetNameTemplate(), save);
     const Analysis::NodeReceiver::Ptr storeAll = makeName;
     const Analysis::NodeReceiver::Ptr storeNoEmpty = opts.IgnoreEmptyData()
