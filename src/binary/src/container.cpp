@@ -56,8 +56,15 @@ namespace
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
       assert(offset + size <= Length);
-      size = std::min(size, Length - offset);
-      return boost::make_shared<SharedContainer<Value> >(Buffer, Offset + offset, size);
+      if (size && offset < Length)
+      {
+        size = std::min(size, Length - offset);
+        return boost::make_shared<SharedContainer<Value> >(Buffer, Offset + offset, size);
+      }
+      else
+      {
+        return Ptr();
+      }
     }
   private:
     const Value Buffer;
@@ -74,7 +81,7 @@ namespace Binary
   //construct container from data dump. Use memcpy since shared_array is less usable in common code
   Container::Ptr CreateContainer(const void* data, std::size_t size)
   {
-    if (const uint8_t* byteData = static_cast<const uint8_t*>(data))
+    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
     {
       const boost::shared_ptr<Dump> buffer = boost::make_shared<Dump>(byteData, byteData + size);
       return CreateContainer(buffer, 0, size);
@@ -94,7 +101,12 @@ namespace Binary
 
   Container::Ptr CreateContainer(Data::Ptr data)
   {
-    if (data)
+    //cover downcasting
+    if (const Container::Ptr asContainer = boost::dynamic_pointer_cast<const Container>(data))
+    {
+      return asContainer;
+    }
+    else if (data && data->Size())
     {
       return boost::make_shared<SharedContainer<Data::Ptr> >(data, 0, data->Size());
     }

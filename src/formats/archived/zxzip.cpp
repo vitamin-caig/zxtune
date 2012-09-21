@@ -62,8 +62,15 @@ namespace ZXZip
       rawOffset += usedSize;
       flatOffset += fileSize;
     }
-    builder->SetRawData(data.GetSubcontainer(0, rawOffset));
-    return builder->GetResult();
+    if (rawOffset)
+    {
+      builder->SetRawData(data.GetSubcontainer(0, rawOffset));
+      return builder->GetResult();
+    }
+    else
+    {
+      return Archived::Container::Ptr();
+    }
   }
 }
 
