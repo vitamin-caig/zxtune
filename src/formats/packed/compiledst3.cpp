@@ -110,7 +110,7 @@ namespace Formats
     {
     public:
       CompiledST3Decoder()
-        : Player(Binary::Format::Create(CompiledST3::FORMAT))
+        : Player(Binary::Format::Create(CompiledST3::FORMAT, sizeof(CompiledST3::Player)))
       {
       }
 
@@ -126,13 +126,13 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const uint8_t* const data = safe_ptr_cast<const uint8_t*>(rawData.Data());
-        const std::size_t availSize = rawData.Size();
-        if (!Player->Match(data, availSize) || availSize < sizeof(CompiledST3::Player))
+        if (!Player->Match(rawData))
         {
           return Container::Ptr();
         }
-        const CompiledST3::Player& rawPlayer = *safe_ptr_cast<const CompiledST3::Player*>(data);
+        const Binary::TypedContainer typedData(rawData);
+        const std::size_t availSize = rawData.Size();
+        const CompiledST3::Player& rawPlayer = *typedData.GetField<CompiledST3::Player>(0);
         const std::size_t playerSize = rawPlayer.GetSize();
         if (playerSize >= std::min(availSize, CompiledST3::MAX_PLAYER_SIZE))
         {

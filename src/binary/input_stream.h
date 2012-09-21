@@ -27,7 +27,7 @@ namespace Binary
   public:
     explicit InputStream(const Container& rawData)
       : Data(rawData)
-      , Start(static_cast<const uint8_t*>(rawData.Data()))
+      , Start(static_cast<const uint8_t*>(rawData.Start()))
       , Finish(Start + Data.Size())
       , Cursor(Start)
     {

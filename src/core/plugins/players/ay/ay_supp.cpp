@@ -444,7 +444,7 @@ namespace
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
       const Binary::Container::Ptr memory = Delegate->Result();
-      const uint8_t* const rawMemory = static_cast<const uint8_t*>(memory->Data());
+      const uint8_t* const rawMemory = static_cast<const uint8_t*>(memory->Start());
       const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + memory->Size()), ports);
       Devices::Z80::Registers regs;
       regs.Mask = ~0;

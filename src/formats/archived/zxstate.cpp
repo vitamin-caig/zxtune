@@ -18,6 +18,7 @@ Author:
 #include <string_helpers.h>
 #include <tools.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/input_stream.h>
 #include <formats/archived.h>
 //std includes
@@ -569,7 +570,7 @@ namespace ZXState
         {
           const Binary::Container::Ptr block = ExtractData(*it);
           Require(block && block->Size() == it->UncompressedSize);
-          std::memcpy(&result->at(target), block->Data(), it->UncompressedSize);
+          std::memcpy(&result->at(target), block->Start(), it->UncompressedSize);
           target += it->UncompressedSize;
         }
         return Binary::CreateContainer(result);    
@@ -694,14 +695,14 @@ namespace ZXState
     }
 
     //Binary::Container
+    virtual const void* Start() const
+    {
+      return Delegate->Start();
+    }
+
     virtual std::size_t Size() const
     {
       return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
     }
 
     virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -773,7 +774,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!Format->Match(data.Data(), data.Size()))
+        if (!Format->Match(data))
         {
           return Container::Ptr();
         }

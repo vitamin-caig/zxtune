@@ -63,7 +63,7 @@ namespace Chiptune
       {
         return false;
       }
-      const SignatureType& sign = *safe_ptr_cast<const SignatureType*>(rawData.Data());
+      const SignatureType& sign = *safe_ptr_cast<const SignatureType*>(rawData.Start());
       return sign == SIGNATURE;
     }
 

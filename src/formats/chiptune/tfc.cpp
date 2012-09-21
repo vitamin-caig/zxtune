@@ -79,7 +79,7 @@ namespace Chiptune
       {
         return false;
       }
-      const RawHeader& hdr = *safe_ptr_cast<const RawHeader*>(rawData.Data());
+      const RawHeader& hdr = *safe_ptr_cast<const RawHeader*>(rawData.Start());
       return hdr.Sign == SIGNATURE && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(), boost::bind(&fromLE<uint16_t>, _1) >= size);
     }
 

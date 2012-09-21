@@ -46,7 +46,7 @@ namespace
       Test("Test file exists", 1 == Etalons.count(name));
       const Binary::Container::Ptr data = Platform::Resource::Load(name);
       const Dump& ref = Etalons[name];
-      Test("Test file is expected", ref.size() == data->Size() && 0 == std::memcmp(&ref[0], data->Data(), ref.size()));
+      Test("Test file is expected", ref.size() == data->Size() && 0 == std::memcmp(&ref[0], data->Start(), ref.size()));
       Etalons.erase(name);
     }
 

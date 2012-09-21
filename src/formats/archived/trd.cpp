@@ -150,7 +150,7 @@ namespace TRD
     {
       return 0;
     }
-    const Catalog* const catalog = safe_ptr_cast<const Catalog*>(data.Data());
+    const Catalog* const catalog = safe_ptr_cast<const Catalog*>(data.Start());
     if (!(catalog->Empty.IsEmpty() && 
           catalog->Empty1[0].IsEmpty() &&
           catalog->Empty1[1].IsEmpty() &&
@@ -268,7 +268,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!Format->Match(data.Data(), data.Size()))
+        if (!Format->Match(data))
         {
           return Container::Ptr();
         }

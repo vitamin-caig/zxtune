@@ -14,6 +14,8 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+//library includes
+#include <binary/container_factories.h>
 //std includes
 #include <set>
 #include <map>
@@ -58,7 +60,7 @@ namespace
 
     virtual Binary::Container::Ptr GetResult() const
     {
-      const uint8_t* const srcData = static_cast<const uint8_t*>(Source.Data());
+      const uint8_t* const srcData = static_cast<const uint8_t*>(Source.Start());
       std::auto_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));
       ApplyFixes(*result);
       ApplyOverwrites(*result);

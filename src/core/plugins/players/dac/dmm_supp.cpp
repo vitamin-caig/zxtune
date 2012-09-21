@@ -1030,7 +1030,7 @@ namespace
     {
       return false;
     }
-    const DMM::Header* const header(safe_ptr_cast<const DMM::Header*>(data.Data()));
+    const DMM::Header* const header(safe_ptr_cast<const DMM::Header*>(data.Start()));
     if (!(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32 || header->PatternSize == 24))
     {
       return false;
@@ -1130,13 +1130,13 @@ namespace
   {
   public:
     DMMModulesFactory()
-      : Format(Binary::Format::Create(DMM_FORMAT))
+      : Format(Binary::Format::Create(DMM_FORMAT, sizeof(DMM::Header)))
     {
     }
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return Format->Match(inputData.Data(), inputData.Size()) && CheckDMM(inputData);
+      return Format->Match(inputData) && CheckDMM(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const

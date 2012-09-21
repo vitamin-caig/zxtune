@@ -388,7 +388,7 @@ namespace
         const String filePath = result->Name();
         const Binary::Container::Ptr data = result->Data();
         const std::auto_ptr<std::ofstream> target = ZXTune::IO::CreateFile(filePath, true);
-        target->write(static_cast<const char*>(data->Data()), data->Size());
+        target->write(static_cast<const char*>(data->Start()), data->Size());
       }
       catch (const Error& e)
       {
@@ -527,7 +527,7 @@ namespace
     virtual void ApplyData(const Analysis::Node::Ptr& result)
     {
       const Binary::Container::Ptr data = result->Data();
-      const uint8_t* const begin = static_cast<const uint8_t*>(data->Data());
+      const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
       const uint8_t* const end = begin + data->Size();
       if (end != std::find_if(begin, end, std::bind1st(std::not_equal_to<uint8_t>(), *begin)))
       {
@@ -555,9 +555,8 @@ namespace
     virtual void ApplyData(const Analysis::Node::Ptr& result)
     {
       const Binary::Container::Ptr data = result->Data();
-      const uint8_t* const begin = static_cast<const uint8_t*>(data->Data());
       const std::size_t size = data->Size();
-      if (size != Format->Search(begin, size))
+      if (size != Format->Search(*data))
       {
         Target->ApplyData(result);
       }

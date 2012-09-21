@@ -307,19 +307,19 @@ namespace
     ScanDataContainer(Binary::Container::Ptr delegate, std::size_t offset)
       : Delegate(delegate)
       , OriginalSize(delegate->Size())
-      , OriginalData(static_cast<const uint8_t*>(delegate->Data()))
+      , OriginalData(static_cast<const uint8_t*>(delegate->Start()))
       , Offset(offset)
     {
+    }
+
+    virtual const void* Start() const
+    {
+      return OriginalData + Offset;
     }
 
     virtual std::size_t Size() const
     {
       return OriginalSize - Offset;
-    }
-
-    virtual const void* Data() const
-    {
-      return OriginalData + Offset;
     }
 
     virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const

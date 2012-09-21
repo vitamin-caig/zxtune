@@ -14,6 +14,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/container_factories.h>
 #include <formats/archived_decoders.h>
 #include <io/fs_tools.h>
 #include <l10n/api.h>
@@ -41,14 +42,14 @@ namespace
     {
     }
 
+    virtual const void* Start() const
+    {
+      return RawData;
+    }
+
     virtual std::size_t Size() const
     {
       return RawSize;
-    }
-
-    virtual const void* Data() const
-    {
-      return RawData;
     }
 
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -71,12 +72,12 @@ namespace
     {
     }
 
-    virtual std::size_t Size() const
+    virtual const void* Start() const
     {
       return 0;
     }
 
-    virtual const void* Data() const
+    virtual std::size_t Size() const
     {
       return 0;
     }
@@ -148,17 +149,17 @@ namespace
   {
     const Binary::Format::Ptr format = decoder.GetFormat();
     const std::size_t dataSize = data.Size();
-    const uint8_t* const dataStart = static_cast<const uint8_t*>(data.Data());
+    const uint8_t* const dataStart = static_cast<const uint8_t*>(data.Start());
     ArchivesSet result;
     for (std::size_t offset = 0; offset < dataSize; )
     {
-      if (const std::size_t skip = format->Search(dataStart + offset, dataSize - offset))
+      const LightweightBinaryContainer archData(dataStart + offset, dataSize - offset);
+      if (const std::size_t skip = format->Search(archData))
       {
         offset += skip;
       }
       else
       {
-        const LightweightBinaryContainer archData(dataStart + offset, dataSize - offset);
         if (const Formats::Archived::Container::Ptr arch = decoder.Decode(archData))
         {
           const std::size_t size = arch->Size();

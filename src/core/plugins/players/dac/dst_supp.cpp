@@ -132,14 +132,14 @@ namespace
         const std::size_t firstSize = part1->Size();
         const std::size_t secondSize = part2->Size();
         res.Data.resize(firstSize + secondSize);
-        std::memcpy(&res.Data[0], part1->Data(), firstSize);
-        std::memcpy(&res.Data[0] + firstSize, part2->Data(), secondSize);
+        std::memcpy(&res.Data[0], part1->Start(), firstSize);
+        std::memcpy(&res.Data[0] + firstSize, part2->Start(), secondSize);
       }
       else
       {
         const std::size_t size = part1->Size();
         res.Data.resize(size);
-        std::memcpy(&res.Data[0], part1->Data(), size);
+        std::memcpy(&res.Data[0], part1->Start(), size);
       }
       ++(res.Is4Bit() ? FourBitSamples : EightBitSamples);
     }

@@ -55,7 +55,7 @@ namespace
 
     virtual std::size_t GetLookaheadOffset() const
     {
-      return Format->Search(RawData->Data(), RawData->Size());
+      return Format->Search(*RawData);
     }
   private:
     const Binary::Format::Ptr Format;

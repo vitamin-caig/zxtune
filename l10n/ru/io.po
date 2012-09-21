@@ -55,21 +55,21 @@ msgstr "Файл пуст."
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 
-#: providers/network_provider.cpp:103
+#: providers/network_provider.cpp:104
 #, boost-format
 msgid "Network error happends: %1%"
 msgstr "Сетевая ошибка: %1%"
 
-#: providers/network_provider.cpp:160
+#: providers/network_provider.cpp:161
 #, boost-format
 msgid "Http error happends: %1%."
 msgstr "Ошибка HTTP: %1%."
 
-#: providers/network_provider.cpp:288 providers/network_stub.cpp:24
+#: providers/network_provider.cpp:289 providers/network_stub.cpp:24
 msgid "Network files access via different schemes support"
 msgstr "Поддержка доступа к сетевым файлам"
 
-#: providers/network_provider.cpp:356
+#: providers/network_provider.cpp:357
 #, boost-format
 msgid "Failed to open network resource '%1%'."
 msgstr "Ошибка открытия сетевого ресурса '%1%'."

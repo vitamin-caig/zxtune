@@ -183,7 +183,7 @@ namespace Formats
     {
     public:
       CompiledSTPDecoder()
-        : Player(Binary::Format::Create(Version::FORMAT))
+        : Player(Binary::Format::Create(Version::FORMAT, sizeof(typename Version::Player)))
         , Decoder(Formats::Chiptune::SoundTrackerPro::CreateCompiledModulesDecoder())
       {
       }
@@ -200,13 +200,13 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        if (!Player->Match(data, availSize) || availSize < sizeof(typename Version::Player))
+        if (!Player->Match(rawData))
         {
           return Container::Ptr();
         }
-        const typename Version::Player& rawPlayer = *safe_ptr_cast<const typename Version::Player*>(data);
+        const Binary::TypedContainer typedData(rawData);
+        const std::size_t availSize = rawData.Size();
+        const typename Version::Player& rawPlayer = *typedData.GetField<typename Version::Player>(0);
         const std::size_t playerSize = rawPlayer.GetSize();
         if (playerSize >= std::min(availSize, CompiledSTP::MAX_PLAYER_SIZE))
         {

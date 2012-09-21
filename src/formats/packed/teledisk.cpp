@@ -421,7 +421,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        if (!Format->Match(rawData.Data(), rawData.Size()))
+        if (!Format->Match(rawData))
         {
           return Container::Ptr();
         }

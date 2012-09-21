@@ -14,8 +14,9 @@ Author:
 #define FORMATS_CHIPTUNE_ASCSOUNDMASTER_H_DEFINED
 
 //common includes
-#include <binary/container.h>
+#include <types.h>
 //library includes
+#include <binary/container.h>
 #include <formats/chiptune.h>
 
 namespace Formats

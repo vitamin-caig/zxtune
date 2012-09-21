@@ -1,5 +1,6 @@
 #include <tools.h>
 #include <types.h>
+#include <binary/data_adapter.h>
 #include <binary/format.h>
 #include <binary/src/format_grammar.h>
 #include <binary/src/format_syntax.h>
@@ -172,7 +173,8 @@ namespace
     try
     {
       const Binary::Format::Ptr format = Binary::Format::Create(notation);
-      return FormatResult(format->Match(SAMPLE, ArraySize(SAMPLE)), format->Search(SAMPLE, ArraySize(SAMPLE)));
+      const Binary::DataAdapter sample(SAMPLE, ArraySize(SAMPLE));
+      return FormatResult(format->Match(sample), format->Search(sample));
     }
     catch (const std::exception&)
     {

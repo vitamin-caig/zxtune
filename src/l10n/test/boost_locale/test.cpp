@@ -56,8 +56,10 @@ int main()
   try
   {
     L10n::Library& library = L10n::Library::Instance();
-    library.AddTranslation(Domain, "en", OpenFile("en/test.mo"));
-    library.AddTranslation(Domain, "ru", OpenFile("ru/test.mo"));
+    const L10n::Translation eng = {Domain, "en", "mo", OpenFile("en/test.mo")};
+    library.AddTranslation(eng);
+    const L10n::Translation rus = {Domain, "ru", "mo", OpenFile("ru/test.mo")};
+    library.AddTranslation(rus);
     
     std::cout << "Test Default translation" << std::endl;
     Test(OpenFile("default.res"));

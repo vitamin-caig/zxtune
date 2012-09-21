@@ -54,7 +54,7 @@ namespace ZXZip
       {
         break;
       }
-      const String fileName = ExtractFileName(rawData->Data());
+      const String fileName = ExtractFileName(rawData->Start());
       const std::size_t fileSize = fileData->Size();
       const std::size_t usedSize = fileData->PackedSize();
       const TRDos::File::Ptr file = TRDos::File::Create(fileData, fileName, flatOffset, fileSize);
@@ -91,7 +91,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!FileDecoder->GetFormat()->Match(data.Data(), data.Size()))
+        if (!FileDecoder->GetFormat()->Match(data))
         {
           return Container::Ptr();
         }

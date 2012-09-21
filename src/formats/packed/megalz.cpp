@@ -232,13 +232,11 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        if (!Depacker->Match(data, availSize) || availSize < MegaLZ::MIN_SIZE)
+        if (!Depacker->Match(rawData))
         {
           return Container::Ptr();
         }
-        MegaLZ::DataDecoder decoder(static_cast<const uint8_t*>(data), availSize);
+        MegaLZ::DataDecoder decoder(static_cast<const uint8_t*>(rawData.Start()), rawData.Size());
         return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
       }
     private:

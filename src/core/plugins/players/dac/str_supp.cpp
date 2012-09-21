@@ -420,7 +420,7 @@ namespace
     {
       return false;
     }
-    const STR::Header* const header(safe_ptr_cast<const STR::Header*>(data.Data()));
+    const STR::Header* const header(safe_ptr_cast<const STR::Header*>(data.Start()));
     if (header->LastPositionDoubled < 2 || header->LastPositionDoubled > 128 || 0 != (header->LastPositionDoubled & 1))
     {
       return false;
@@ -476,13 +476,13 @@ namespace
   {
   public:
     STRModulesFactory()
-      : Format(Binary::Format::Create(SAT_FORMAT))
+      : Format(Binary::Format::Create(SAT_FORMAT, sizeof(STR::Header)))
     {
     }
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return Format->Match(inputData.Data(), inputData.Size()) && CheckSTR(inputData);
+      return Format->Match(inputData) && CheckSTR(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const

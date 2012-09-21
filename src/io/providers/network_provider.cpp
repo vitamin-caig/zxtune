@@ -22,6 +22,7 @@ Author:
 #include <progress_callback.h>
 #include <tools.h>
 //library includes
+#include <binary/container_factories.h>
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>

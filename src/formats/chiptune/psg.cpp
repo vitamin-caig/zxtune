@@ -72,7 +72,7 @@ namespace Chiptune
       {
         return false;
       }
-      const Header* const header = safe_ptr_cast<const Header*>(rawData.Data());
+      const Header* const header = safe_ptr_cast<const Header*>(rawData.Start());
       return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) &&
          MARKER == header->Marker;
     }

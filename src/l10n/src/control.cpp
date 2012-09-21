@@ -49,7 +49,7 @@ namespace
   Dump LoadResource(const String& name)
   {
     const Binary::Container::Ptr data = Platform::Resource::Load(name);
-    const uint8_t* const begin = static_cast<const uint8_t*>(data->Data());
+    const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
     return Dump(begin, begin + data->Size());
   }
 

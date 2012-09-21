@@ -23,7 +23,7 @@ namespace ZXTune
     {
     public:
       FastDump(const Binary::Container& data, std::size_t offset = 0, std::size_t length = ~0)
-        : Ptr(static_cast<const uint8_t*>(data.Data()) + offset)
+        : Ptr(static_cast<const uint8_t*>(data.Start()) + offset)
         , Length(std::min(length, data.Size() - offset))
       {
       }

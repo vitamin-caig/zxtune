@@ -171,14 +171,14 @@ namespace
       Length = fileSize;
     }
     
+    virtual const void* Start() const
+    {
+      return CoreHolder->Data() + Offset;
+    }
+    
     virtual std::size_t Size() const
     {
       return Length;
-    }
-    
-    virtual const void* Data() const
-    {
-      return CoreHolder->Data() + Offset;
     }
     
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const

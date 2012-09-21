@@ -453,10 +453,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust1::Container container(data, availSize);
-        if (!Format->Match(data, availSize) || !container.FastCheck())
+        if (!Format->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const Hrust1::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }

@@ -125,7 +125,7 @@ namespace Formats
     {
     public:
       CompiledPTU13Decoder()
-        : Player(Binary::Format::Create(CompiledPTU13::FORMAT))
+        : Player(Binary::Format::Create(CompiledPTU13::FORMAT, CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader)))
         , Decoder(Formats::Chiptune::CreateProTracker3Decoder())
       {
       }
@@ -142,14 +142,14 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const uint8_t* const data = safe_ptr_cast<const uint8_t*>(rawData.Data());
-        const std::size_t availSize = rawData.Size();
-        const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
-        if (!Player->Match(data, availSize) || availSize < CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader))
+        if (!Player->Match(rawData))
         {
           return Container::Ptr();
         }
-        const CompiledPTU13::Player& rawPlayer = *safe_ptr_cast<const CompiledPTU13::Player*>(data);
+        const Binary::TypedContainer typedData(rawData);
+        const std::size_t availSize = rawData.Size();
+        const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
+        const CompiledPTU13::Player& rawPlayer = *typedData.GetField<CompiledPTU13::Player>(0);
         const uint_t positionsAddr = fromLE(rawPlayer.PositionsAddr);
         if (positionsAddr < playerSize + offsetof(CompiledPTU13::RawHeader, Positions))
         {
@@ -157,7 +157,7 @@ namespace Formats
           return Container::Ptr();
         }
         const uint_t dataAddr = positionsAddr - offsetof(CompiledPTU13::RawHeader, Positions);
-        const CompiledPTU13::RawHeader& rawHeader = *safe_ptr_cast<const CompiledPTU13::RawHeader*>(data + playerSize);
+        const CompiledPTU13::RawHeader& rawHeader = *typedData.GetField<CompiledPTU13::RawHeader>(playerSize);
         const uint_t patternsCount = CompiledPTU13::GetPatternsCount(rawHeader, availSize - playerSize);
         if (!patternsCount)
         {

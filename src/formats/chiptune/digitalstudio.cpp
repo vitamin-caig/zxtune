@@ -19,6 +19,7 @@ Author:
 #include <debug_log.h>
 #include <range_checker.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/typed_container.h>
 //std includes
 #include <set>
@@ -219,7 +220,7 @@ namespace Chiptune
     public:
       explicit Format(const Binary::Container& rawData)
         : RawData(rawData)
-        , Source(*safe_ptr_cast<const Header*>(RawData.Data()))
+        , Source(*safe_ptr_cast<const Header*>(RawData.Start()))
         , IsCompiled(Source.Zeroes != ZeroesArray())
         , Ranges(RangeChecker::Create(GetSize()))
       {
@@ -282,7 +283,7 @@ namespace Chiptune
       Binary::Container::Ptr GetSampleData(std::size_t offset, std::size_t size) const
       {
         const Binary::Container::Ptr total = RawData.GetSubcontainer(offset, size);
-        const uint8_t* const start = static_cast<const uint8_t*>(total->Data());
+        const uint8_t* const start = static_cast<const uint8_t*>(total->Start());
         const uint8_t* const end = start + total->Size();
         const uint8_t* const sampleEnd = std::find(start, end, 0xff);
         if (const std::size_t newSize = sampleEnd - start)
@@ -493,7 +494,7 @@ namespace Chiptune
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return FastCheck(rawData) && Format->Match(rawData.Data(), rawData.Size());
+        return FastCheck(rawData) && Format->Match(rawData);
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const

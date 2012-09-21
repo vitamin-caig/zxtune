@@ -30,14 +30,14 @@ namespace Formats
         assert(delegate && delegate->Size());
       }
 
+      virtual const void* Start() const
+      {
+        return Delegate->Start();
+      }
+
       virtual std::size_t Size() const
       {
         return Delegate->Size();
-      }
-
-      virtual const void* Data() const
-      {
-        return Delegate->Data();
       }
 
       virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -77,7 +77,7 @@ namespace Formats
 
       virtual uint_t FixedChecksum() const
       {
-        return Crc32(safe_ptr_cast<const uint8_t*>(Delegate->Data()) + FixedOffset, FixedSize);
+        return Crc32(safe_ptr_cast<const uint8_t*>(Delegate->Start()) + FixedOffset, FixedSize);
       }
     private:
       const std::size_t FixedOffset;

@@ -73,13 +73,13 @@ namespace
   {
   public:
     TXTModulesFactory()
-      : Format(Binary::Format::Create(TXT_FORMAT))
+      : Format(Binary::Format::Create(TXT_FORMAT, MIN_MODULE_SIZE))
     {
     }
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return inputData.Size() > MIN_MODULE_SIZE && Format->Match(inputData.Data(), inputData.Size());
+      return Format->Match(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
@@ -94,7 +94,7 @@ namespace
         assert(Check(*allData));
 
         const std::size_t dataSize = allData->Size();
-        const char* const rawData = static_cast<const char*>(allData->Data());
+        const char* const rawData = static_cast<const char*>(allData->Start());
         const char* const dataEnd = std::find_if(rawData, rawData + std::min(MAX_MODULE_SIZE, dataSize), &CheckSymbol);
         const std::size_t limit = dataEnd - rawData;
 

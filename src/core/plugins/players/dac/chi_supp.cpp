@@ -522,7 +522,7 @@ namespace
     {
       return false;
     }
-    const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Data()));
+    const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Start()));
     if (0 != std::memcmp(header->Signature, CHI_SIGNATURE, sizeof(CHI_SIGNATURE)))
     {
       return false;
@@ -562,13 +562,13 @@ namespace
   {
   public:
     CHIModulesFactory()
-      : Format(Binary::Format::Create(CHI_FORMAT))
+      : Format(Binary::Format::Create(CHI_FORMAT, sizeof(CHIHeader)))
     {
     }
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return Format->Match(inputData.Data(), inputData.Size()) && CheckCHI(inputData);
+      return Format->Match(inputData) && CheckCHI(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const

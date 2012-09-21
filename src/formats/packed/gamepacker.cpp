@@ -317,10 +317,13 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const GamePacker::Container<Version> container(data, availSize);
-        if (!container.Check() || !Depacker->Match(data, availSize))
+        if (!Depacker->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+
+        const GamePacker::Container<Version> container(rawData.Start(), rawData.Size());
+        if (!container.Check())
         {
           return Container::Ptr();
         }

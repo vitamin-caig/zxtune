@@ -917,7 +917,7 @@ namespace Chiptune
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return Format->Match(rawData.Data(), rawData.Size()) && FastCheck(rawData);
+        return Format->Match(rawData) && FastCheck(rawData);
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const

@@ -10,7 +10,7 @@ Author:
 */
 
 //library includes
-#include <binary/container.h>
+#include <binary/container_factories.h>
 //std includes
 #include <cstring>
 //boost includes
@@ -20,18 +20,32 @@ Author:
 
 namespace
 {
-  using namespace Binary;
+  inline const void* GetPointer(const Dump& val, std::size_t offset)
+  {
+    return &val[offset];
+  }
 
-  typedef boost::shared_ptr<const Dump> DumpPtr;
+  inline const void* GetPointer(const Binary::Data& val, std::size_t offset)
+  {
+    return static_cast<const uint8_t*>(val.Start()) + offset;
+  }
 
-  //implementation of DataContainer based on shared array data
-  class SharedDumpContainer : public Container
+  template<class Value>
+  class SharedContainer : public Binary::Container
   {
   public:
-    SharedDumpContainer(const DumpPtr& arr, std::size_t offset, std::size_t size)
-      : Buffer(arr), Offset(offset), Length(size)
+    SharedContainer(Value arr, std::size_t offset, std::size_t size)
+      : Buffer(arr)
+      , Address(GetPointer(*arr, offset))
+      , Offset(offset)
+      , Length(size)
     {
       assert(Length);
+    }
+
+    virtual const void* Start() const
+    {
+      return Address;
     }
 
     virtual std::size_t Size() const
@@ -39,19 +53,15 @@ namespace
       return Length;
     }
 
-    virtual const void* Data() const
-    {
-      return &(*Buffer)[Offset];
-    }
-
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
       assert(offset + size <= Length);
       size = std::min(size, Length - offset);
-      return CreateContainer(Buffer, Offset + offset, size);
+      return boost::make_shared<SharedContainer<Value> >(Buffer, Offset + offset, size);
     }
   private:
-    const DumpPtr Buffer;
+    const Value Buffer;
+    const void* const Address;
     const std::size_t Offset;
     const std::size_t Length;
   };
@@ -77,16 +87,28 @@ namespace Binary
 
   Container::Ptr CreateContainer(std::auto_ptr<Dump> data)
   {
-    const DumpPtr buffer(data);
+    const boost::shared_ptr<const Dump> buffer(data);
     const std::size_t size = buffer ? buffer->size() : 0;
     return CreateContainer(buffer, 0, size);
+  }
+
+  Container::Ptr CreateContainer(Data::Ptr data)
+  {
+    if (data)
+    {
+      return boost::make_shared<SharedContainer<Data::Ptr> >(data, 0, data->Size());
+    }
+    else
+    {
+      return Container::Ptr();
+    }
   }
 
   Container::Ptr CreateContainer(boost::shared_ptr<const Dump> data, std::size_t offset, std::size_t size)
   {
     if (size && data && data->size() >= offset + size)
     {
-      return boost::make_shared<SharedDumpContainer>(data, offset, size);
+      return boost::make_shared<SharedContainer<boost::shared_ptr<const Dump> > >(data, offset, size);
     }
     else
     {

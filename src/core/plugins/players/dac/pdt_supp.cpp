@@ -595,7 +595,7 @@ namespace
       return false;
     }
     //check in header
-    const PDTHeader* const header = safe_ptr_cast<const PDTHeader*>(data.Data());
+    const PDTHeader* const header = safe_ptr_cast<const PDTHeader*>(data.Start());
     if (!header->Length || header->Loop > header->Length || !header->Tempo)
     {
       return false;
@@ -674,13 +674,13 @@ namespace
   {
   public:
     PDTModulesFactory()
-      : Format(Binary::Format::Create(PDT_FORMAT))
+      : Format(Binary::Format::Create(PDT_FORMAT, MODULE_SIZE))
     {
     }
     
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return Format->Match(inputData.Data(), inputData.Size()) && CheckPDT(inputData);
+      return Format->Match(inputData) && CheckPDT(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const

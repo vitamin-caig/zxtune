@@ -204,24 +204,25 @@ namespace
     {
     }
 
-    virtual bool Match(const void* data, std::size_t size) const
+    virtual bool Match(const Data& data) const
     {
-      if (size < MinSize)
+      if (data.Size() < MinSize)
       {
         return false;
       }
       const std::size_t endOfPat = Offset + Pat.size();
-      const uint8_t* typedDataLast = static_cast<const uint8_t*>(data) + endOfPat - 1;
+      const uint8_t* typedDataLast = static_cast<const uint8_t*>(data.Start()) + endOfPat - 1;
       return 0 == SearchBackward(typedDataLast);
     }
 
-    virtual std::size_t Search(const void* data, std::size_t size) const
+    virtual std::size_t Search(const Data& data) const
     {
+      const std::size_t size = data.Size();
       if (size < MinSize)
       {
         return size;
       }
-      const uint8_t* const typedData = static_cast<const uint8_t*>(data);
+      const uint8_t* const typedData = static_cast<const uint8_t*>(data.Start());
       const std::size_t endOfPat = Offset + Pat.size();
       const uint8_t* const scanStart = typedData + endOfPat - 1;
       const uint8_t* const scanStop = typedData + size;

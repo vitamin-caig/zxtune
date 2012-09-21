@@ -111,7 +111,7 @@ namespace Formats
     {
     public:
       CompiledPT24Decoder()
-        : Player(Binary::Format::Create(CompiledPT24::FORMAT))
+        : Player(Binary::Format::Create(CompiledPT24::FORMAT, CompiledPT24::PLAYER_SIZE + sizeof(CompiledPT24::RawHeader)))
         , Decoder(Formats::Chiptune::CreateProTracker2Decoder())
       {
       }
@@ -128,21 +128,21 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const uint8_t* const data = safe_ptr_cast<const uint8_t*>(rawData.Data());
-        const std::size_t availSize = rawData.Size();
-        const std::size_t playerSize = CompiledPT24::PLAYER_SIZE;
-        if (!Player->Match(data, availSize) || availSize < CompiledPT24::PLAYER_SIZE + sizeof(CompiledPT24::RawHeader))
+        if (!Player->Match(rawData))
         {
           return Container::Ptr();
         }
-        const CompiledPT24::Player& rawPlayer = *safe_ptr_cast<const CompiledPT24::Player*>(data);
+        const Binary::TypedContainer typedData(rawData);
+        const std::size_t availSize = rawData.Size();
+        const std::size_t playerSize = CompiledPT24::PLAYER_SIZE;
+        const CompiledPT24::Player& rawPlayer = *typedData.GetField<CompiledPT24::Player>(0);
         const uint_t dataAddr = fromLE(rawPlayer.DataAddr);
         if (dataAddr < playerSize)
         {
           Dbg("Invalid compile addr");
           return Container::Ptr();
         }
-        const CompiledPT24::RawHeader& rawHeader = *safe_ptr_cast<const CompiledPT24::RawHeader*>(data + playerSize);
+        const CompiledPT24::RawHeader& rawHeader = *typedData.GetField<CompiledPT24::RawHeader>(playerSize);
         const uint_t patternsCount = CompiledPT24::GetPatternsCount(rawHeader, availSize - playerSize);
         if (!patternsCount)
         {

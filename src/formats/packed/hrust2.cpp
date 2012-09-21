@@ -476,7 +476,7 @@ namespace Hrust2
         for (std::vector<Binary::Container::Ptr>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
         {
           const Binary::Container::Ptr block = *it;
-          std::memcpy(&result->at(offset), block->Data(), block->Size());
+          std::memcpy(&result->at(offset), block->Start(), block->Size());
           offset += block->Size();
         }
         return Binary::CreateContainer(result);
@@ -487,7 +487,7 @@ namespace Hrust2
 
     Binary::Container::Ptr DecodeBlock(const Binary::Container& data)
     {
-      const RawHeader& block = *safe_ptr_cast<const RawHeader*>(data.Data());
+      const RawHeader& block = *safe_ptr_cast<const RawHeader*>(data.Start());
       RawDataDecoder decoder(block, data.Size());
       return Binary::CreateContainer(decoder.GetResult());
     }
@@ -499,7 +499,7 @@ namespace Hrust2
         : Data(data)
         , UsedSize()
       {
-        if (Container(data.Data(), data.Size()).FastCheck())
+        if (Container(data.Start(), data.Size()).FastCheck())
         {
           DecodeData();
         }
@@ -589,10 +589,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust2::Version1::Container container(data, availSize);
-        if (!container.FastCheck() || !Format->Match(data, availSize))
+        if (!Format->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const Hrust2::Version1::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }
@@ -623,10 +625,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust2::Version3::Container container(data, availSize);
-        if (!container.FastCheck() || !Format->Match(data, availSize))
+        if (!Format->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const Hrust2::Version3::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }

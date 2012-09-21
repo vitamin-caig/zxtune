@@ -560,9 +560,7 @@ namespace Formats
 
       virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(rawData.Data());
-        const std::size_t availSize = rawData.Size();
-        if (!Format->Match(data, availSize))
+        if (!Format->Match(rawData))
         {
           return Container::Ptr();
         }

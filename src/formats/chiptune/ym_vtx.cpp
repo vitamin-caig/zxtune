@@ -213,7 +213,7 @@ namespace Chiptune
 
     bool FastCheck(const Binary::Container& rawData)
     {
-      const void* const data = rawData.Data();
+      const void* const data = rawData.Start();
       const std::size_t size = rawData.Size();
       return Ver2::FastCheck(data, size)
           || Ver3::FastCheck(data, size)
@@ -251,7 +251,7 @@ namespace Chiptune
 
     Formats::Chiptune::Container::Ptr ParseUnpacked(const Binary::Container& rawData, Builder& target)
     {
-      const void* const data = rawData.Data();
+      const void* const data = rawData.Start();
       const std::size_t size = rawData.Size();
       try
       {
@@ -324,7 +324,7 @@ namespace Chiptune
 
     Formats::Chiptune::Container::Ptr ParseYM(const Binary::Container& rawData, Builder& target)
     {
-      const void* const data = rawData.Data();
+      const void* const data = rawData.Start();
       const std::size_t size = rawData.Size();
       if (!Compressed::FastCheck(data, size))
       {
@@ -377,7 +377,7 @@ namespace Chiptune
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return Format->Match(rawData.Data(), rawData.Size());
+        return Format->Match(rawData);
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
@@ -564,7 +564,7 @@ namespace Chiptune
         {
           const std::size_t unpackedSize = unpacked->Size();
           Require(0 == (unpackedSize % sizeof(RegistersDump)));
-          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Data()), unpackedSize, sizeof(RegistersDump), target);
+          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), unpackedSize, sizeof(RegistersDump), target);
           const std::size_t packedSize = unpacked->PackedSize();
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
           return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);

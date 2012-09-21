@@ -603,7 +603,7 @@ namespace
     {
       return false;
     }
-    const SQD::Header* const header(safe_ptr_cast<const SQD::Header*>(data.Data()));
+    const SQD::Header* const header(safe_ptr_cast<const SQD::Header*>(data.Start()));
     //check layout
     std::size_t lastData = sizeof(*header);
     std::set<uint_t> banks, bigBanks;
@@ -693,13 +693,13 @@ namespace
   {
   public:
     SQDModulesFactory()
-      : Format(Binary::Format::Create(SQD_FORMAT))
+      : Format(Binary::Format::Create(SQD_FORMAT, sizeof(SQD::Header)))
     {
     }
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return Format->Match(inputData.Data(), inputData.Size()) && CheckSQD(inputData);
+      return Format->Match(inputData) && CheckSQD(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const

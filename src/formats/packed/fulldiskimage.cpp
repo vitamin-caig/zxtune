@@ -271,7 +271,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
+        const void* const data = rawData.Start();
         const std::size_t availSize = rawData.Size();
         const FullDiskImage::Container container(data, availSize);
         if (!container.FastCheck())

@@ -421,7 +421,7 @@ namespace Formats
     {
     public:
       ESVCruncherDecoder()
-        : Depacker(Binary::Format::Create(ESVCruncher::DEPACKER_PATTERN))
+        : Depacker(Binary::Format::Create(ESVCruncher::DEPACKER_PATTERN, ESVCruncher::MIN_SIZE))
       {
       }
 
@@ -437,13 +437,11 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        if (!Depacker->Match(data, availSize))
+        if (!Depacker->Match(rawData))
         {
           return Container::Ptr();
         }
-        const ESVCruncher::Container container(data, availSize);
+        const ESVCruncher::Container container(rawData.Start(), rawData.Size());
         if (!container.FastCheck())
         {
           return Container::Ptr();

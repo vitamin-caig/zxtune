@@ -1,7 +1,7 @@
 #include <types.h>
 #include <tools.h>
 #include <error_tools.h>
-#include <logging.h>
+#include <progress_callback.h>
 #include <parameters.h>
 #include <binary/format.h>
 #include <io/provider.h>
@@ -19,16 +19,15 @@ int main(int argc, char* argv[])
     const Binary::Format::Ptr format = Binary::Format::Create(argv[2]);
     const std::string filename = argv[1];
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
-    Binary::Container::Ptr data;
-    ThrowIfError(ZXTune::IO::OpenData(filename, *params, Log::ProgressCallback::Stub(), data));
+    const Binary::Container::Ptr data = ZXTune::IO::OpenData(filename, *params, Log::ProgressCallback::Stub());
 
-    if (format->Match(data->Data(), data->Size()))
+    if (format->Match(*data))
     {
       std::cout << "Matched" << std::endl;
     }
     else
     {
-      const std::size_t offset = format->Search(data->Data(), data->Size());
+      const std::size_t offset = format->Search(*data);
       if (offset != data->Size())
       {
         std::cout << "Matched at offset " << offset << std::endl;

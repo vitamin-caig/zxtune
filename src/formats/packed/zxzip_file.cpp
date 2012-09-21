@@ -663,10 +663,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const ZXZip::Container container(data, availSize);
-        if (!container.FastCheck() || !Depacker->Match(data, availSize))
+        if (!Depacker->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const ZXZip::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }

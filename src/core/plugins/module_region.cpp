@@ -19,7 +19,7 @@ namespace ZXTune
 {
   uint_t ModuleRegion::Checksum(const Binary::Container& container) const
   {
-    const uint8_t* const data = static_cast<const uint8_t*>(container.Data());
+    const uint8_t* const data = static_cast<const uint8_t*>(container.Start());
     assert(Offset + Size <= container.Size());
     return Crc32(data + Offset, Size);
   }

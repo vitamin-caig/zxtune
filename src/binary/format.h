@@ -11,10 +11,10 @@
 #ifndef __BINARY_FORMAT_H_DEFINED__
 #define __BINARY_FORMAT_H_DEFINED__
 
+//library includes
+#include <binary/data.h>
 //std includes
 #include <string>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 namespace Binary
 {
@@ -57,14 +57,12 @@ namespace Binary
 
     //! @brief Check if input data is data format
     //! @param data Data to be checked
-    //! @param size Size of data to be checked
     //! @return true if data comply format
-    virtual bool Match(const void* data, std::size_t size) const = 0;
+    virtual bool Match(const Data& data) const = 0;
     //! @brief Search for matched offset in input data
     //! @param data Data to be checked
-    //! @param size Size of data to be checked
     //! @return Offset of matched data or size if not found
-    virtual std::size_t Search(const void* data, std::size_t size) const = 0;
+    virtual std::size_t Search(const Data& data) const = 0;
 
     // Factory based on text pattern
     static Ptr Create(const std::string& pattern, std::size_t minSize = 0);

@@ -13,6 +13,8 @@ Author:
 #ifndef FORMATS_CHIPTUNE_AY_H_DEFINED
 #define FORMATS_CHIPTUNE_AY_H_DEFINED
 
+//common includes
+#include <types.h>
 //library includes
 #include <formats/chiptune.h>
 

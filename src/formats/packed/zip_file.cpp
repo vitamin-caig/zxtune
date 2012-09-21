@@ -364,7 +364,7 @@ namespace Formats
     {
     public:
       ZipDecoder()
-        : Depacker(Binary::Format::Create(ZipFile::HEADER_PATTERN))
+        : Depacker(Binary::Format::Create(ZipFile::HEADER_PATTERN, sizeof(Formats::Packed::Zip::LocalFileHeader)))
       {
       }
 
@@ -380,10 +380,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const ZipFile::Container container(data, availSize);
-        if (!container.FastCheck() || !Depacker->Match(data, availSize))
+        if (!Depacker->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const ZipFile::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }

@@ -20,6 +20,7 @@ Author:
 #include <debug_log.h>
 #include <range_checker.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/typed_container.h>
 //std includes
 #include <cstring>
@@ -1244,7 +1245,7 @@ namespace Chiptune
 
       virtual bool Check(const Binary::Container& rawData) const
       {
-        return Header->Match(rawData.Data(), rawData.Size()) && FastCheck<Version>(CreateContainer<Version>(rawData));
+        return Header->Match(rawData) && FastCheck<Version>(CreateContainer<Version>(rawData));
       }
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const

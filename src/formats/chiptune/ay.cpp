@@ -18,6 +18,7 @@ Author:
 #include <range_checker.h>
 #include <tools.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/typed_container.h>
 #include <formats/chiptune.h>
 //std includes
@@ -183,14 +184,14 @@ namespace AY
     {
     }
 
+    virtual const void* Start() const
+    {
+      return Delegate->Start();
+    }
+
     virtual std::size_t Size() const
     {
       return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
     }
 
     virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -540,8 +541,8 @@ namespace AY
         const std::size_t blockSize = fromBE(block.Size);
         if (Binary::Container::Ptr blockData = data.GetBlob(&block.Offset, blockSize))
         {
-          target.AddBlock(blockAddr, blockData->Data(), blockData->Size());
-          crc = Crc32(static_cast<const uint8_t*>(blockData->Data()), blockData->Size(), crc);
+          target.AddBlock(blockAddr, blockData->Start(), blockData->Size());
+          crc = Crc32(static_cast<const uint8_t*>(blockData->Start()), blockData->Size(), crc);
         }
       }
       const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, data.GetSize());
