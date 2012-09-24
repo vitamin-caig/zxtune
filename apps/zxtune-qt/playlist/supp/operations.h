@@ -83,8 +83,10 @@ namespace Playlist
       virtual void AddFailedToOpen(const String& path) = 0;
       virtual void AddFailedToConvert(const String& path, const Error& err) = 0;
     };
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate, ConversionResultNotification::Ptr result);
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, ConversionResultNotification::Ptr result);
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate,
+      Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
+      const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
     //convert
     TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
       const String& type, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);

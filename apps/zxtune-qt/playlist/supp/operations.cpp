@@ -23,6 +23,7 @@ Author:
 #include <binary/data_adapter.h>
 #include <core/convert_parameters.h>
 #include <io/fs_tools.h>
+#include <io/providers_parameters.h>
 #include <io/providers/file_provider.h>
 //std includes
 #include <numeric>
@@ -534,36 +535,50 @@ namespace
   };
 
   // Exporting
+  //cache parameter value
   class SaveParameters : public ZXTune::IO::FileCreatingParameters
   {
   public:
+    explicit SaveParameters(Parameters::Accessor::Ptr params)
+      : OverwriteValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT)
+      , CreateDirectoriesValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT)
+    {
+      params->FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteValue);
+      params->FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, CreateDirectoriesValue);
+    }
+
     virtual bool Overwrite() const
     {
-      return true;
+      return OverwriteValue != 0;
     }
 
     virtual bool CreateDirectories() const
     {
-      return true;
+      return CreateDirectoriesValue != 0;
     }
+  private:
+    Parameters::IntType OverwriteValue;
+    Parameters::IntType CreateDirectoriesValue;
   };
 
   class ExportOperation : public Playlist::Item::TextResultOperation
                         , private Playlist::Item::Visitor
   {
   public:
-    ExportOperation(QObject& parent, const String& nameTemplate, Playlist::Item::ConversionResultNotification::Ptr result)
+    ExportOperation(QObject& parent, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : Playlist::Item::TextResultOperation(parent)
       , SelectedItems()
       , NameTemplate(StringTemplate::Create(nameTemplate))
+      , Params(params)
       , Result(result)
     {
     }
 
-    ExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, Playlist::Item::ConversionResultNotification::Ptr result)
+    ExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : Playlist::Item::TextResultOperation(parent)
       , SelectedItems(items)
       , NameTemplate(StringTemplate::Create(nameTemplate))
+      , Params(params)
       , Result(result)
     {
     }
@@ -607,8 +622,7 @@ namespace
 
     void Save(const Dump& data, const String& filename) const
     {
-      static const SaveParameters PARAMS;
-      const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(filename, PARAMS);
+      const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(filename, Params);
       const Binary::DataAdapter toSave(&data[0], data.size());
       stream->ApplyData(toSave);
     }
@@ -630,6 +644,7 @@ namespace
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
     const StringTemplate::Ptr NameTemplate;
+    const SaveParameters Params;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 }
@@ -699,14 +714,14 @@ namespace Playlist
       return boost::make_shared<CollectStatisticOperation>(boost::ref(parent), items, result);
     }
 
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate, ConversionResultNotification::Ptr result)
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ExportOperation>(boost::ref(parent), nameTemplate, result);
+      return boost::make_shared<ExportOperation>(boost::ref(parent), nameTemplate, params, result);
     }
 
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, ConversionResultNotification::Ptr result)
+    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ExportOperation>(boost::ref(parent), items, nameTemplate, result);
+      return boost::make_shared<ExportOperation>(boost::ref(parent), items, nameTemplate, params, result);
     }
   }
 }

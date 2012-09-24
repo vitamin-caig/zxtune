@@ -332,12 +332,37 @@
 </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="159"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="350"/>
+        <source>Specify parameters</source>
+        <translation>Укажите дополнительные параметры</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="359"/>
+        <source>Overwrite</source>
+        <translation>Перезаписывать</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="362"/>
+        <source>Force to overwrite existing files</source>
+        <translation>Перезаписывать существующие файлы</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="372"/>
+        <source>Create path</source>
+        <translation>Создавать путь</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="375"/>
+        <source>Force to create all intermediate directories of target files</source>
+        <translation>Создавать промежуточные директории для файлов результата</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="170"/>
         <source>Invalid parameter</source>
         <translation>Неправильный параметр</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="160"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="171"/>
         <source>Filename template is empty</source>
         <translation>Шаблон имени пустой</translation>
     </message>
@@ -350,37 +375,17 @@
         <translation>Настройка конверсии</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="42"/>
-        <source>Overwrite</source>
-        <translation>Перезаписывать</translation>
-    </message>
-    <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="45"/>
-        <source>Force to overwrite existing files</source>
-        <translation>Перезаписывать существующие файлы</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="55"/>
-        <source>Create path</source>
-        <translation>Создавать путь</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="58"/>
-        <source>Force to create all intermediate directories of target files</source>
-        <translation>Создавать промежуточные директории для файлов результата</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="71"/>
         <source>Save data in separate thread. Speedup for 20..100%</source>
-        <translation>Сохранять данные в отдельном потоке. Улучшает скорость работы на 20..100%</translation>
+        <translation>Сохранять данные в отдельном потоке. Повышает скорость работы на 20..100%</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="68"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="42"/>
         <source>Use multithread conversion</source>
         <translation>Многопоточная конверсия</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.cpp" line="171"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.cpp" line="166"/>
         <source>No options</source>
         <translation>Нет настроек</translation>
     </message>

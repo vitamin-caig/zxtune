@@ -373,9 +373,10 @@ namespace
       QString nameTemplate;
       if (UI::GetFilenameTemplate(View, nameTemplate))
       {
+        const Parameters::Accessor::Ptr allParams = GlobalOptions::Instance().Get();
         const Playlist::Model::Ptr model = Controller.GetModel();
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, FromQString(nameTemplate), result);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, FromQString(nameTemplate), allParams, result);
         Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
           SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);
@@ -387,9 +388,10 @@ namespace
       QString nameTemplate;
       if (UI::GetFilenameTemplate(View, nameTemplate))
       {
+        const Parameters::Accessor::Ptr allParams = GlobalOptions::Instance().Get();
         const Playlist::Model::Ptr model = Controller.GetModel();
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, SelectedItems, FromQString(nameTemplate), result);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, SelectedItems, FromQString(nameTemplate), allParams, result);
         Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
           SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
         model->PerformOperation(op);
@@ -401,7 +403,7 @@ namespace
       String type;
       if (Parameters::Accessor::Ptr params = UI::GetConversionParameters(View, type))
       {
-        //copy global parameters to prevent modification while convert
+        //TODO: copy parameters
         const Parameters::Accessor::Ptr allParams = Parameters::CreateMergedAccessor(params, GlobalOptions::Instance().Get());
         const Playlist::Model::Ptr model = Controller.GetModel();
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();

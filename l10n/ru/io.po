@@ -58,7 +58,7 @@ msgstr "Ошибка позиционирования файла '%1%'."
 
 #: providers/file_provider.cpp:303
 msgid "File already exists."
-msgstr "Файл '%1%' существует."
+msgstr "Файл существует."
 
 #: providers/file_provider.cpp:319
 msgid "Local files and file:// scheme support"

@@ -37,32 +37,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QCheckBox" name="overwriteExisting">
-       <property name="text">
-        <string>Overwrite</string>
-       </property>
-       <property name="toolTip">
-         <string>Force to overwrite existing files</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QCheckBox" name="createDirectories">
-       <property name="text">
-        <string>Create path</string>
-       </property>
-       <property name="toolTip">
-         <string>Force to create all intermediate directories of target files</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QCheckBox" name="useMultithreading">
        <property name="text">
         <string>Use multithread conversion</string>
