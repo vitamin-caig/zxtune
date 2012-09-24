@@ -11,21 +11,6 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: impl/fs_tools.cpp:142
-#, boost-format
-msgid "File '%1%' already exists."
-msgstr "Файл '%1%' существует."
-
-#: impl/fs_tools.cpp:149 providers/file_provider.cpp:369
-#, boost-format
-msgid "Failed to create file '%1%'."
-msgstr "Ошибка создания файла '%1%'."
-
-#: impl/fs_tools.cpp:160 providers/file_provider.cpp:357
-#, boost-format
-msgid "Failed to open file '%1%'."
-msgstr "Ошибка открытия файла '%1%'."
-
 #: providers/enumerator.cpp:65
 #, boost-format
 msgid "Failed to resolve uri '%1%'."
@@ -52,13 +37,42 @@ msgstr "Ошибка чтения %1% байт. Прочитано %2%."
 msgid "File is empty."
 msgstr "Файл пуст."
 
-#: providers/file_provider.cpp:290
+#: providers/file_provider.cpp:237
+msgid "Failed to open file."
+msgstr "Ошибка открытия файла."
+
+#: providers/file_provider.cpp:245
+#, boost-format
+msgid "Failed to write file '%1%'"
+msgstr "Ошибка записи файла '%1%'."
+
+#: providers/file_provider.cpp:253
+#, boost-format
+msgid "Failed to flush file '%1%'"
+msgstr "Ошибка синхронизации файла '%1%'."
+
+#: providers/file_provider.cpp:261
+#, boost-format
+msgid "Failed to seek file '%1%'"
+msgstr "Ошибка позиционирования файла '%1%'."
+
+#: providers/file_provider.cpp:303
 msgid "File already exists."
 msgstr "Файл '%1%' существует."
 
-#: providers/file_provider.cpp:306
+#: providers/file_provider.cpp:319
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
+
+#: providers/file_provider.cpp:370
+#, boost-format
+msgid "Failed to open file '%1%'."
+msgstr "Ошибка открытия файла '%1%'."
+
+#: providers/file_provider.cpp:382
+#, boost-format
+msgid "Failed to create file '%1%'."
+msgstr "Ошибка создания файла '%1%'."
 
 #: providers/network_provider.cpp:104
 #, boost-format

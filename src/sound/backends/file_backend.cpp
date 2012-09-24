@@ -19,6 +19,8 @@ Author:
 #include <async/data_receiver.h>
 #include <core/module_attrs.h>
 #include <io/fs_tools.h>
+#include <io/providers_parameters.h>
+#include <io/providers/file_provider.h>
 #include <l10n/api.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
@@ -133,7 +135,7 @@ namespace
     mutable String Result;
   };
 
-  class FileParameters
+  class FileParameters : public ZXTune::IO::FileCreatingParameters
   {
   public:
     FileParameters(Parameters::Accessor::Ptr params, const String& id)
@@ -160,16 +162,24 @@ namespace
       return nameTemplate;
     }
 
-    bool CheckIfRewrite() const
-    {
-      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::OVERWRITE.Name());
-      return intParam != 0;
-    }
-
     uint_t GetBuffersCount() const
     {
       const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS.Name());
       return static_cast<uint_t>(intParam);
+    }
+
+    virtual bool Overwrite() const
+    {
+      Parameters::IntType intParam = Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, intParam);
+      return intParam != 0;
+    }
+
+    virtual bool CreateDirectories() const
+    {
+      Parameters::IntType intParam = Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, intParam);
+      return intParam != 0;
     }
   private:
     template<class T>
@@ -238,8 +248,10 @@ namespace
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
       {
+        //TODO: use most common API to create stream
+        const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(newFilename, Params);
         Filename = newFilename;
-        const FileStream::Ptr result = Factory->OpenStream(Filename, Params.CheckIfRewrite());
+        const FileStream::Ptr result = Factory->CreateStream(stream);
         SetProperties(*result);
         if (const uint_t buffers = Params.GetBuffersCount())
         {

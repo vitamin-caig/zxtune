@@ -18,6 +18,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
@@ -67,7 +68,7 @@ namespace
   class Mp3Stream : public FileStream
   {
   public:
-    Mp3Stream(Mp3::Api::Ptr api, LameContextPtr context, std::auto_ptr<std::ofstream> stream)
+    Mp3Stream(Mp3::Api::Ptr api, LameContextPtr context, Binary::OutputStream::Ptr stream)
       : Api(api)
       , Stream(stream)
       , Context(context)
@@ -109,13 +110,12 @@ namespace
       {
         if (res > 0) //encoded
         {
-          Stream->write(safe_ptr_cast<const char*>(&Encoded[0]), static_cast<std::streamsize>(res));
+          Stream->ApplyData(Binary::DataAdapter(&Encoded[0], res));
           break;
         }
         else if (-1 == res)//buffer too small
         {
-          Encoded.resize(Encoded.size() * 2);
-          Dbg("Increase buffer to %1% bytes", Encoded.size());
+          ResizeBuffer();
         }
         else
         {
@@ -130,13 +130,12 @@ namespace
       {
         if (res > 0)
         {
-          Stream->write(safe_ptr_cast<const char*>(&Encoded[0]), static_cast<std::streamsize>(res));
+          Stream->ApplyData(Binary::DataAdapter(&Encoded[0], res));
           break;
         }
         else if (-1 == res)//buffer too small
         {
-          Encoded.resize(Encoded.size() * 2);
-          Dbg("Increase buffer to %1% bytes", Encoded.size());
+          ResizeBuffer();
         }
         else
         {
@@ -146,8 +145,14 @@ namespace
       Dbg("Stream flushed");
     }
   private:
+    void ResizeBuffer()
+    {
+      Encoded.resize(Encoded.size() * 2);
+      Dbg("Increase buffer to %1% bytes", Encoded.size());
+    }
+  private:
     const Mp3::Api::Ptr Api;
-    const std::auto_ptr<std::ofstream> Stream;
+    const Binary::OutputStream::Ptr Stream;
     const LameContextPtr Context;
     Dump Encoded;
   };
@@ -270,12 +275,11 @@ namespace
       return ID;
     }
 
-    virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
+    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
     {
-      std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
       const LameContextPtr context = LameContextPtr(Api->lame_init(), boost::bind(&Mp3::Api::lame_close, Api, _1));
       SetupContext(*context);
-      return FileStream::Ptr(new Mp3Stream(Api, context, rawFile));
+      return boost::make_shared<Mp3Stream>(Api, context, stream);
     }
   private:
     void SetupContext(lame_global_flags& ctx) const
@@ -407,7 +411,7 @@ namespace ZXTune
       {
         const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
         Dbg("Detected LAME library %1%", api->get_lame_version());
-        const BackendCreator::Ptr creator(new Mp3BackendCreator(api));
+        const BackendCreator::Ptr creator = boost::make_shared<Mp3BackendCreator>(api);
         enumerator.RegisterCreator(creator);
       }
       catch (const Error& e)

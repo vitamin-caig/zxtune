@@ -18,6 +18,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
@@ -100,7 +101,7 @@ namespace
   class FlacStream : public FileStream
   {
   public:
-    FlacStream(Flac::Api::Ptr api, FlacEncoderPtr encoder, std::auto_ptr<std::ofstream> stream)
+    FlacStream(Flac::Api::Ptr api, FlacEncoderPtr encoder, Binary::OutputStream::Ptr stream)
       : Api(api)
       , Encoder(encoder)
       , Meta(api)
@@ -127,8 +128,18 @@ namespace
     {
       Meta.Encode(*Encoder);
       //real stream initializing should be performed after all set functions
-      CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
-        Api->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, Stream.get()), THIS_LINE);
+      if (const Binary::SeekableOutputStream::Ptr seekableStream = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
+      {
+        Dbg("Using seekable stream for FLAC output");
+        CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
+          Api->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, seekableStream.get()), THIS_LINE);
+      }
+      else
+      {
+        Dbg("Using non-seekable stream for FLAC output");
+        CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
+          Api->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, 0, 0, 0, Stream.get()), THIS_LINE);
+      }
       Dbg("Stream initialized");
     }
 
@@ -151,24 +162,24 @@ namespace
     static FLAC__StreamEncoderWriteStatus WriteCallback(const FLAC__StreamEncoder* /*encoder*/, const FLAC__byte buffer[],
       size_t bytes, unsigned /*samples*/, unsigned /*current_frame*/, void* client_data)
     {
-      std::ofstream* const stream = static_cast<std::ofstream*>(client_data);
-      stream->write(safe_ptr_cast<const char*>(buffer), bytes);
+      Binary::OutputStream* const stream = static_cast<Binary::OutputStream*>(client_data);
+      stream->ApplyData(Binary::DataAdapter(buffer, bytes));
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
 
     static FLAC__StreamEncoderSeekStatus SeekCallback(const FLAC__StreamEncoder* /*encoder*/,
       FLAC__uint64 absolute_byte_offset, void *client_data)
     {
-      std::ofstream* const stream = static_cast<std::ofstream*>(client_data);
-      stream->seekp(absolute_byte_offset, std::ios_base::beg);
+      Binary::SeekableOutputStream* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
+      stream->Seek(absolute_byte_offset);
       return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
     }
 
     static FLAC__StreamEncoderTellStatus TellCallback(const FLAC__StreamEncoder* /*encoder*/, FLAC__uint64* absolute_byte_offset,
       void *client_data)
     {
-      std::ofstream* const stream = static_cast<std::ofstream*>(client_data);
-      *absolute_byte_offset = stream->tellp();
+      Binary::SeekableOutputStream* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
+      *absolute_byte_offset = stream->Position();
       return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
     }
 
@@ -184,7 +195,7 @@ namespace
     const Flac::Api::Ptr Api;
     const FlacEncoderPtr Encoder;
     FlacMetadata Meta;
-    const std::auto_ptr<std::ofstream> Stream;
+    const Binary::OutputStream::Ptr Stream;
     std::vector<FLAC__int32> Buffer;
   };
 
@@ -237,12 +248,11 @@ namespace
       return ID;
     }
 
-    virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
+    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
     {
-      std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
       const FlacEncoderPtr encoder(Api->FLAC__stream_encoder_new(), boost::bind(&Flac::Api::FLAC__stream_encoder_delete, Api, _1));
       SetupEncoder(*encoder);
-      return FileStream::Ptr(new FlacStream(Api, encoder, rawFile));
+      return boost::make_shared<FlacStream>(Api, encoder, stream);
     }
   private:
     void SetupEncoder(FLAC__StreamEncoder& encoder) const
@@ -333,7 +343,7 @@ namespace ZXTune
       {
         const Flac::Api::Ptr api = Flac::LoadDynamicApi();
         Dbg("Detected Flac library");
-        const BackendCreator::Ptr creator(new FlacBackendCreator(api));
+        const BackendCreator::Ptr creator = boost::make_shared<FlacBackendCreator>(api);
         enumerator.RegisterCreator(creator);
       }
       catch (const Error& e)

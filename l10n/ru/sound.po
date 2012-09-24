@@ -23,7 +23,8 @@ msgstr "Ошибка при работе с ALSA устройством '%1%': %
 
 #: backends/alsa_backend.cpp:334
 msgid "No suitable formats supported by ALSA."
-msgstr "Ни один подходящий формат вывода звука не поддерживается подсистемой ALSA."
+msgstr ""
+"Ни один подходящий формат вывода звука не поддерживается подсистемой ALSA."
 
 #: backends/alsa_backend.cpp:569
 #, boost-format
@@ -47,19 +48,19 @@ msgid "ALSA sound system backend"
 msgstr "Поддержка подсистемы ALSA"
 
 #: backends/alsa_backend.cpp:855 backends/dsound_backend.cpp:551
-#: backends/flac_backend.cpp:314 backends/mp3_backend.cpp:388
+#: backends/flac_backend.cpp:324 backends/mp3_backend.cpp:392
 #: backends/null_backend.cpp:109 backends/ogg_backend.cpp:460
 #: backends/oss_backend.cpp:419 backends/sdl_backend.cpp:333
-#: backends/wav_backend.cpp:217 backends/win32_backend.cpp:556
+#: backends/wav_backend.cpp:221 backends/win32_backend.cpp:556
 #, boost-format
 msgid "Failed to create backend '%1%'."
 msgstr "Ошибка создания подсистемы вывода '%1%'."
 
 #: backends/alsa_backend.cpp:859 backends/dsound_backend.cpp:555
-#: backends/flac_backend.cpp:318 backends/mp3_backend.cpp:392
+#: backends/flac_backend.cpp:328 backends/mp3_backend.cpp:396
 #: backends/null_backend.cpp:113 backends/ogg_backend.cpp:464
 #: backends/oss_backend.cpp:423 backends/sdl_backend.cpp:337
-#: backends/wav_backend.cpp:221 backends/win32_backend.cpp:560
+#: backends/wav_backend.cpp:225 backends/win32_backend.cpp:560
 msgid "Failed to allocate memory for backend."
 msgstr "Ошибка выделения памяти для звуковой подсистемы."
 
@@ -120,53 +121,53 @@ msgstr "Запрашиваемая подсистема вывода звука 
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
-#: backends/file_backend.cpp:151
+#: backends/file_backend.cpp:153
 msgid "Output filename template is not specified."
 msgstr "Шаблон имени результирующего файла не задан."
 
-#: backends/flac_backend.cpp:51
+#: backends/flac_backend.cpp:52
 msgid "Error in FLAC backend."
 msgstr "Ошибка в подсистеме вывода FLAC."
 
-#: backends/flac_backend.cpp:180
+#: backends/flac_backend.cpp:191
 #, boost-format
 msgid "Error in FLAC backend (code %1%)."
 msgstr "Ошибка в подсистеме вывода FLAC: код %1%."
 
-#: backends/flac_backend.cpp:223 backends/flac_stub.cpp:26
+#: backends/flac_backend.cpp:234 backends/flac_stub.cpp:26
 msgid "FLAC support backend."
 msgstr "Поддержка вывода FLAC"
 
-#: backends/mp3_backend.cpp:56
+#: backends/mp3_backend.cpp:57
 #, boost-format
 msgid "Error in MP3 backend: %1%."
 msgstr "Ошибка в подсистеме вывода MP3: %1%."
 
-#: backends/mp3_backend.cpp:197
+#: backends/mp3_backend.cpp:202
 #, boost-format
 msgid "MP3 backend error: invalid bitrate mode '%1%'."
 msgstr "Ошибка в подсистеме вывода MP3: неправильный режим битрейта '%1%'."
 
-#: backends/mp3_backend.cpp:208
+#: backends/mp3_backend.cpp:213
 #, boost-format
 msgid "MP3 backend error: bitrate (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода MP3: битрейт (%1%) превышает допустимые значения "
 "(%2%..%3%)."
 
-#: backends/mp3_backend.cpp:220
+#: backends/mp3_backend.cpp:225
 #, boost-format
 msgid "MP3 backend error: quality (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода MP3: уровень качества (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: backends/mp3_backend.cpp:248
+#: backends/mp3_backend.cpp:253
 #, boost-format
 msgid "MP3 backend error: invalid channels mode '%1%'."
 msgstr "Ошибка в подсистеме вывода MP3: неправильный режим каналов '%1%'."
 
-#: backends/mp3_backend.cpp:256 backends/mp3_stub.cpp:26
+#: backends/mp3_backend.cpp:261 backends/mp3_stub.cpp:26
 msgid "MP3 support backend"
 msgstr "Поддержка вывода MP3"
 
@@ -174,31 +175,31 @@ msgstr "Поддержка вывода MP3"
 msgid "Null output backend"
 msgstr "Поддержка NULL-вывода"
 
-#: backends/ogg_backend.cpp:56
+#: backends/ogg_backend.cpp:57
 #, boost-format
 msgid "Error in OGG backend: code %1%."
 msgstr "Ошибка в подсистеме вывода OGG: код %1%."
 
-#: backends/ogg_backend.cpp:331
+#: backends/ogg_backend.cpp:332
 #, boost-format
 msgid "OGG backend error: invalid mode '%1%'."
 msgstr "Ошибка в подсистеме вывода OGG: неправильный режим '%1%'."
 
-#: backends/ogg_backend.cpp:342
+#: backends/ogg_backend.cpp:343
 #, boost-format
 msgid "OGG backend error: bitrate (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода OGG: битрейт (%1%) превышает допустимые значения "
 "(%2%..%3%)."
 
-#: backends/ogg_backend.cpp:354
+#: backends/ogg_backend.cpp:355
 #, boost-format
 msgid "OGG backend error: quality (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода OGG: уровень качества (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: backends/ogg_backend.cpp:363 backends/ogg_stub.cpp:26
+#: backends/ogg_backend.cpp:364 backends/ogg_stub.cpp:26
 msgid "OGG support backend"
 msgstr "Поддержка вывода OGG"
 
@@ -209,7 +210,8 @@ msgstr "Ошибка при работе с OSS устройством '%1%': %2
 
 #: backends/oss_backend.cpp:351
 msgid "No suitable formats supported by OSS."
-msgstr "Ни один подходящий формат вывода звука не поддерживается подсистемой OSS."
+msgstr ""
+"Ни один подходящий формат вывода звука не поддерживается подсистемой OSS."
 
 #: backends/oss_backend.cpp:382 backends/oss_stub.cpp:26
 msgid "OSS sound system backend"
@@ -243,9 +245,13 @@ msgstr "Ошибка получения уровня громкости."
 msgid "Failed to set volume in invalid state."
 msgstr "Ошибка установки уровня громкости."
 
-#: backends/wav_backend.cpp:157
+#: backends/wav_backend.cpp:158
 msgid "WAV support backend"
 msgstr "Поддержка вывода WAV"
+
+#: backends/wav_backend.cpp:179
+msgid "WAV conversion is not supported on non-seekable streams."
+msgstr "Конверсия в WAV не поддерживается для непозиционируемых потоков."
 
 #: backends/win32_backend.cpp:95 backends/win32_backend.cpp:198
 #, boost-format

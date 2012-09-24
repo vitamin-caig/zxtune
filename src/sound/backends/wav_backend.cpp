@@ -17,6 +17,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
@@ -85,7 +86,7 @@ namespace
   class WavStream : public FileStream
   {
   public:
-    WavStream(uint_t soundFreq, std::auto_ptr<std::ofstream> stream)
+    WavStream(uint_t soundFreq, Binary::SeekableOutputStream::Ptr stream)
       : Stream(stream)
       , DoneBytes(0)
     {
@@ -133,22 +134,22 @@ namespace
         std::transform(data->front().begin(), data->back().end(), data->front().begin(), &ToSignedSample);
       }
       const std::size_t sizeInBytes = data->size() * sizeof(data->front());
-      Stream->write(safe_ptr_cast<const char*>(&data->front()), static_cast<std::streamsize>(sizeInBytes));
+      Stream->ApplyData(Binary::DataAdapter(&data->front(), sizeInBytes));
       DoneBytes += static_cast<uint32_t>(sizeInBytes);
     }
 
     virtual void Flush()
     {
-      const std::streampos oldPos = Stream->tellp();
+      const uint64_t oldPos = Stream->Position();
       // write header
-      Stream->seekp(0);
+      Stream->Seek(0);
       Format.Size = fromLE<uint32_t>(sizeof(Format) - 8 + DoneBytes);
       Format.DataSize = fromLE<uint32_t>(DoneBytes);
-      Stream->write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
-      Stream->seekp(oldPos);
+      Stream->ApplyData(Binary::DataAdapter(&Format, sizeof(Format)));
+      Stream->Seek(oldPos);
     }
   private:
-    const std::auto_ptr<std::ofstream> Stream;
+    const Binary::SeekableOutputStream::Ptr Stream;
     uint32_t DoneBytes;
     WaveFormat Format;
   };
@@ -169,10 +170,13 @@ namespace
       return ID;
     }
 
-    virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
+    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
     {
-      std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
-      return FileStream::Ptr(new WavStream(RenderingParameters->SoundFreq(), rawFile));
+      if (const Binary::SeekableOutputStream::Ptr seekable = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
+      {
+        return boost::make_shared<WavStream>(RenderingParameters->SoundFreq(), seekable);
+      }
+      throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("WAV conversion is not supported on non-seekable streams."));
     }
   private:
     const RenderParameters::Ptr RenderingParameters;

@@ -3,8 +3,8 @@ path_step := ../../../..
 source_files := test
 embedded_files := resource.zip test.cpp
 
-libraries := binary formats io l10n_stub platform tools z
-depends := src/binary src/formats src/io src/l10n/stub src/platform src/tools 3rdparty/zlib
+libraries := binary formats l10n_stub platform tools z
+depends := src/binary src/formats src/l10n/stub src/platform src/tools 3rdparty/zlib
 
 windows_libraries := advapi32
 

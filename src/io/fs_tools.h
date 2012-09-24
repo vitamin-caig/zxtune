@@ -43,19 +43,6 @@ namespace ZXTune
     //! @param replacing Character to replace invalid symbols (0 to simply skip)
     //! @return Path string
     String MakePathFromString(const String& input, Char replacing);
-
-    //! @brief Creates file
-    //! @param path Path to the file
-    //! @param overwrite Force to overwrite if file already exists
-    //! @return File stream
-    //! @note Throws exception if file is already exists and overwrite flag is not set
-    std::auto_ptr<std::ofstream> CreateFile(const String& path, bool overwrite);
-
-    //! @brief Open file
-    //! @param path Path to the file
-    //! @return File stream
-    //! @note Throws exception if file cannot be open
-    std::auto_ptr<std::ifstream> OpenFile(const String& path);
   }
 }
 

@@ -20,6 +20,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
@@ -61,7 +62,7 @@ namespace
   {
   public:
     typedef boost::shared_ptr<OggBitStream> Ptr;
-    OggBitStream(Ogg::Api::Ptr api, std::auto_ptr<std::ofstream> file)
+    OggBitStream(Ogg::Api::Ptr api, Binary::OutputStream::Ptr file)
       : Api(api)
       , File(file)
     {
@@ -102,12 +103,12 @@ namespace
   private:
     void WritePage(const ogg_page& page)
     {
-      File->write(safe_ptr_cast<const char*>(page.header), page.header_len);
-      File->write(safe_ptr_cast<const char*>(page.body), page.body_len);
+      File->ApplyData(Binary::DataAdapter(page.header, page.header_len));
+      File->ApplyData(Binary::DataAdapter(page.body, page.body_len));
     }
   private:
     const Ogg::Api::Ptr Api;
-    const std::auto_ptr<std::ofstream> File;
+    const Binary::OutputStream::Ptr File;
     ogg_stream_state Stream;
   };
 
@@ -379,13 +380,12 @@ namespace
       return ID;
     }
 
-    virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
+    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
     {
-      std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
       const VorbisInfo::Ptr info = boost::make_shared<VorbisInfo>(VorbisApi, VorbisEncApi);
       SetupInfo(*info);
-      const OggBitStream::Ptr stream(new OggBitStream(OggApi, rawFile));
-      return FileStream::Ptr(new OggVorbisStream(VorbisApi, info, stream));
+      const OggBitStream::Ptr bitStream = boost::make_shared<OggBitStream>(OggApi, stream);
+      return boost::make_shared<OggVorbisStream>(VorbisApi, info, bitStream);
     }
   private:
     void SetupInfo(VorbisInfo& info) const
@@ -483,7 +483,7 @@ namespace ZXTune
         const Vorbis::Api::Ptr vorbisApi = Vorbis::LoadDynamicApi();
         const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
         Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
-        const BackendCreator::Ptr creator(new OggBackendCreator(oggApi, vorbisApi, vorbisEncApi));
+        const BackendCreator::Ptr creator = boost::make_shared<OggBackendCreator>(oggApi, vorbisApi, vorbisEncApi);
         enumerator.RegisterCreator(creator);
       }
       catch (const Error& e)

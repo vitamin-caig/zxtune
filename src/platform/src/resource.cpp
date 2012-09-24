@@ -16,10 +16,11 @@ Author:
 //library includes
 #include <binary/container_factories.h>
 #include <formats/archived_decoders.h>
-#include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <platform/resource.h>
 #include <platform/tools.h>
+//std includes
+#include <fstream>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -123,25 +124,29 @@ namespace
 
 namespace
 {
-  String GetArchiveContainerName()
+  std::string GetArchiveContainerName()
   {
     return Platform::GetCurrentImageFilename();
   }
 
-  Binary::Container::Ptr ReadFile(const String& filename)
+  Binary::Container::Ptr ReadFile(const std::string& filename)
   {
-    const std::auto_ptr<std::ifstream> file = ZXTune::IO::OpenFile(filename);
-    file->seekg(0, std::ios_base::end);
-    const std::size_t size = file->tellg();
-    file->seekg(0);
+    std::ifstream file(filename.c_str(), std::ios::binary);
+    if (!file)
+    {
+      throw MakeFormattedError(THIS_LINE, 1, translate("Failed to load resource archive '%1%'."), filename);
+    }
+    file.seekg(0, std::ios_base::end);
+    const std::size_t size = file.tellg();
+    file.seekg(0);
     std::auto_ptr<Dump> tmp(new Dump(size));
-    file->read(safe_ptr_cast<char*>(&tmp->front()), size);
+    file.read(safe_ptr_cast<char*>(&tmp->front()), size);
     return Binary::CreateContainer(tmp);
   }
 
   Binary::Container::Ptr LoadArchiveContainer()
   {
-    const String filename = GetArchiveContainerName();
+    const std::string filename = GetArchiveContainerName();
     return ReadFile(filename);
   }
 

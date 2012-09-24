@@ -225,7 +225,7 @@ namespace
     }
   }
 
-  class OutputFileStream : public Binary::OutputStream
+  class OutputFileStream : public Binary::SeekableOutputStream
   {
   public:
     explicit OutputFileStream(const boost::filesystem::path& name)
@@ -234,7 +234,7 @@ namespace
     {
       if (!Stream)
       {
-        throw Error(THIS_LINE, ERROR_IO_ERROR, "Failed to open file.");
+        throw Error(THIS_LINE, ERROR_IO_ERROR, translate("Failed to open file."));
       }
     }
 
@@ -242,7 +242,7 @@ namespace
     {
       if (!Stream.write(static_cast<const char*>(data.Start()), data.Size()))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, "Failed to write file '%1%'", Name);
+        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Failed to write file '%1%'"), Name);
       }
     }
 
@@ -250,8 +250,21 @@ namespace
     {
       if (!Stream.flush())
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, "Failed to flush file '%1%'", Name);
+        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Failed to flush file '%1%'"), Name);
       }
+    }
+
+    virtual void Seek(uint64_t pos)
+    {
+      if (!Stream.seekp(pos))
+      {
+        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Failed to seek file '%1%'"), Name);
+      }
+    }
+
+    virtual uint64_t Position() const
+    {
+      return const_cast<boost::filesystem::ofstream&>(Stream).tellp();
     }
   private:
     const String Name;
@@ -277,7 +290,7 @@ namespace
     }
   }
 
-  Binary::OutputStream::Ptr CreateFileStream(const String& fileName, const FileCreatingParameters& params)
+  Binary::SeekableOutputStream::Ptr CreateFileStream(const String& fileName, const FileCreatingParameters& params)
   {
     const boost::filesystem::path path(fileName);
     boost::system::error_code err;
@@ -358,7 +371,7 @@ namespace ZXTune
       }
     }
 
-    Binary::OutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params)
+    Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params)
     {
       try
       {

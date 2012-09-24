@@ -37,7 +37,6 @@ namespace Parameters
           extern const NameType PREFIX = Backends::PREFIX + "file";
 
           extern const NameType FILENAME = PREFIX + "filename";
-          extern const NameType OVERWRITE = PREFIX + "overwrite";
 					extern const NameType BUFFERS = PREFIX + "buffers";
         }
 

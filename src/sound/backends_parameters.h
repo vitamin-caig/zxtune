@@ -42,10 +42,6 @@ namespace Parameters
           //! @see core/module_attrs.h for possibly supported field names
           extern const NameType FILENAME;
 
-          //! @brief Rewrite output files if exist
-          //! @note Not zero if rewrite
-          extern const NameType OVERWRITE;
-
           //! @brief Buffers count to asynchronous saving
           //! @note Not zero if use asynchronous saving
           extern const NameType BUFFERS;

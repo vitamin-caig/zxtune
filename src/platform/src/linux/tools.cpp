@@ -22,21 +22,21 @@ Author:
 
 namespace
 {
-  String GetSharedLibraryName()
+  std::string GetSharedLibraryName()
   {
     Dl_info info;
     return 0 != ::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info)
-      ? FromStdString(info.dli_fname)
-      : String();
+      ? std::string(info.dli_fname)
+      : std::string();
   }
   
-  String GetExecutableName()
+  std::string GetExecutableName()
   {
     const std::string selfPath = (boost::format("/proc/%1%/exe") % ::getpid()).str();
     struct stat sb;
     if (-1 == ::lstat(selfPath.c_str(), &sb))
     {
-      return String();
+      return std::string();
     }
     
     std::vector<char> filename(sb.st_size + 1);
@@ -44,25 +44,25 @@ namespace
     if (len > 0)
     {
       filename[len] = 0;
-      return FromStdString(&filename[0]);
+      return std::string(&filename[0]);
     }
     else
     {
-      return String();
+      return std::string();
     }
   }
 }
 
 namespace Platform
 {
-  String GetCurrentImageFilename()
+  std::string GetCurrentImageFilename()
   {
-    static const String soName = GetSharedLibraryName();
+    static const std::string soName = GetSharedLibraryName();
     if (!soName.empty())
     {
       return soName;
     }
-    static const String binName = GetExecutableName();
+    static const std::string binName = GetExecutableName();
     return binName;
   }
 }

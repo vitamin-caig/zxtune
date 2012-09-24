@@ -132,32 +132,5 @@ namespace ZXTune
       const String res = replacing != '\0' ? result.substr(0, 1 + result.find_last_not_of(replacing)) : result;
       return ApplyOSFilenamesRestrictions(res);
     }
-
-    std::auto_ptr<std::ofstream> CreateFile(const String& path, bool overwrite)
-    {
-      const std::string& pathC = ConvertToFilename(path);
-      //check if file exists and overwriting is disabled
-      if (!overwrite && std::ifstream(pathC.c_str()))
-      {
-        throw MakeFormattedError(THIS_LINE, ERROR_FILE_EXISTS, translate("File '%1%' already exists."), path);
-      }
-      std::auto_ptr<std::ofstream> res(new std::ofstream(pathC.c_str(), std::ios::binary));
-      if (res.get() && res->good())
-      {
-        return res;
-      }
-      throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, translate("Failed to create file '%1%'."), path);
-    }
-
-    std::auto_ptr<std::ifstream> OpenFile(const String& path)
-    {
-      const std::string& pathC = ConvertToFilename(path);
-      std::auto_ptr<std::ifstream> res(new std::ifstream(pathC.c_str(), std::ios::binary));
-      if (res.get() && res->good())
-      {
-        return res;
-      }
-      throw MakeFormattedError(THIS_LINE, ERROR_NOT_FOUND, translate("Failed to open file '%1%'."), path);
-    }
   }
 }

@@ -106,6 +106,6 @@ msgid "Invalid frequency table '%1%'."
 msgstr "Ќеправильное значение частотной таблицы '%1%'."
 
 #: plugins/players/ay/vortex_io_txt.cpp:860
-#, fuzzy, boost-format
+#, boost-format
 msgid "Invalid string while parsing: '%1%'."
-msgstr "Ќеправильное значение канала дл€ задани€ скважности: '%1%'."
+msgstr "Ќеправильна€ строка: '%1%'."

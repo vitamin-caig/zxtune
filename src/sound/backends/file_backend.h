@@ -15,6 +15,8 @@ Author:
 
 //local includes
 #include "backend_impl.h"
+//library includes
+#include <binary/output_stream.h>
 
 namespace ZXTune
 {
@@ -42,7 +44,7 @@ namespace ZXTune
       virtual ~FileStreamFactory() {}
 
       virtual String GetId() const = 0;
-      virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const = 0;
+      virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const = 0;
     };
 
     BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory);

@@ -37,7 +37,7 @@ namespace ZXTune
       virtual bool CreateDirectories() const = 0;
     };
 
-    Binary::OutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params);
+    Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params);
   }
 }
 
