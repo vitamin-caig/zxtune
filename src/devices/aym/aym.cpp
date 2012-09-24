@@ -80,7 +80,6 @@ namespace
   public:
     BaseGenerator()
       : Counter()
-      , Flipped()
       , Masked(true)
     {
     }
@@ -88,32 +87,22 @@ namespace
     void Reset()
     {
       Counter = 0;
-      Flipped = false;
       Masked = true;
     }
 
-    void Tick(uint_t period)
+    bool SingleTick(uint_t period)
     {
       if (++Counter >= period)
       {
         Counter = 0;
-        Flipped = !Flipped;
+        return true;
       }
-    }
-
-    uint_t GetCounter() const
-    {
-      return Counter;
+      return false;
     }
 
     void ResetCounter()
     {
       Counter = 0;
-    }
-
-    bool GetFlip() const
-    {
-      return Flipped;
     }
 
     bool IsMasked() const
@@ -127,11 +116,42 @@ namespace
     }
   private:
     uint_t Counter;
-    bool Flipped;
     bool Masked;
   };
 
-  class DutedGenerator : public BaseGenerator
+  class FlipFlop : public BaseGenerator
+  {
+  public:
+    FlipFlop()
+      : Flip()
+    {
+    }
+
+    void Reset()
+    {
+      BaseGenerator::Reset();
+      Flip = false;
+    }
+
+    bool SingleTick(uint_t period)
+    {
+      if (BaseGenerator::SingleTick(period))
+      {
+        Flip = !Flip;
+        return true;
+      }
+      return false;
+    }
+
+    bool GetFlip() const
+    {
+      return Flip;
+    }
+  private:
+    bool Flip;
+  };
+
+  class DutedGenerator : public FlipFlop
   {
   public:
     DutedGenerator()
@@ -143,7 +163,7 @@ namespace
     void Reset()
     {
       SetPeriod(0);
-      BaseGenerator::Reset();
+      FlipFlop::Reset();
     }
 
     /*
@@ -157,9 +177,9 @@ namespace
 
     positive pulse width is 1/4 of period value
     */
-    void Tick()
+    bool SingleTick()
     {
-      BaseGenerator::Tick(GetFlip() ? FirstHalfPeriod : SecondHalfPeriod);
+      return FlipFlop::SingleTick(GetFlip() ? FirstHalfPeriod : SecondHalfPeriod);
     }
 
     void SetDutyCycle(uint_t dutyCycle)
@@ -201,9 +221,9 @@ namespace
       BaseGenerator::Reset();
     }
 
-    void Tick()
+    bool SingleTick()
     {
-      BaseGenerator::Tick(Period);
+      return BaseGenerator::SingleTick(Period);
     }
 
     void SetPeriod(uint_t period)
@@ -219,12 +239,57 @@ namespace
   };
   
   template<class Generator>
-  class ToneGenerator : public Generator
+  class ToneGenerator;
+
+  template<>
+  class ToneGenerator<SimpleGenerator> : public FlipFlop
   {
   public:
+    ToneGenerator()
+      : Period()
+    {
+    }
+
+    void Reset()
+    {
+      SetPeriod(0);
+      FlipFlop::Reset();
+    }
+
+    void Tick()
+    {
+      SingleTick(Period);
+    }
+
+    void SetPeriod(uint_t period)
+    {
+      Period = period;
+    }
+
+    void SetDutyCycle(uint_t /*dutyCycle*/)
+    {
+    }
+
     bool GetLevel() const
     {
-      return Generator::IsMasked() || Generator::GetFlip();
+      return IsMasked() || GetFlip();
+    }
+  private:
+    uint_t Period;
+  };
+
+  template<>
+  class ToneGenerator<DutedGenerator> : public DutedGenerator
+  {
+  public:
+    void Tick()
+    {
+      SingleTick();
+    }
+
+    bool GetLevel() const
+    {
+      return IsMasked() || GetFlip();
     }
   };
 
@@ -245,8 +310,7 @@ namespace
 
     void Tick()
     {
-      Generator::Tick();
-      if (!Generator::GetCounter())
+      if (Generator::SingleTick())
       {
         Seed = (Seed * 2 + 1) ^ (((Seed >> 16) ^ (Seed >> 13)) & 1);
       }
@@ -281,8 +345,7 @@ namespace
 
     void Tick()
     {
-      Generator::Tick();
-      if (Generator::GetCounter() || !Decay)
+      if (!Generator::SingleTick() || !Decay)
       {
         return;
       }
