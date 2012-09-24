@@ -460,9 +460,19 @@ extern const Char INFO_OPTIONS_CORE_Z80_INT_TICKS[] = {
   'Z','8','0',' ','p','r','o','c','e','s','s','o','r',' ','I','N','T',' ','s','i','g','n','a','l',' ','d','u',
   'r','a','t','i','o','n',' ','i','n',' ','t','i','c','k','s',0
 };
+extern const Char INFO_OPTIONS_IO_PROVIDERS_FILE_CREATE_DIRECTORIES[] = {
+  'c','r','e','a','t','e',' ','a','l','l',' ','i','n','t','e','r','m','e','d','i','a','t','e',' ','d','i','r',
+  'e','c','t','o','r','i','e','s',' ','(','a','p','p','l','i','c','a','b','l','e',' ','f','o','r',' ','f','o',
+  'r',' ','f','i','l','e','-','b','a','s','e','d',' ','b','a','c','k','e','n','d','s',')',0
+};
 extern const Char INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD[] = {
   'm','i','n','i','m','a','l',' ','s','i','z','e',' ','f','o','r',' ','u','s','e',' ','m','e','m','o','r','y',
   ' ','m','a','p','p','i','n','g',0
+};
+extern const Char INFO_OPTIONS_IO_PROVIDERS_FILE_OVERWRITE_EXISTING[] = {
+  'o','v','e','r','w','r','i','t','e',' ','t','a','r','g','e','t',' ','f','i','l','e',' ','i','f',' ','a','l',
+  'r','e','a','d','y',' ','e','x','i','s','t','s',' ','(','a','p','p','l','i','c','a','b','l','e',' ','f','o',
+  'r',' ','f','o','r',' ','f','i','l','e','-','b','a','s','e','d',' ','b','a','c','k','e','n','d','s',')',0
 };
 extern const Char INFO_OPTIONS_IO_PROVIDERS_TITLE[] = {
   ' ','I','O',' ','p','r','o','v','i','d','e','r','s',' ','o','p','t','i','o','n','s',':',0
@@ -497,13 +507,6 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_FILE_FILENAME[] = {
   'a','t','t','r','i','b','u','t','e','s',' ','c','o','m','m','a','n','d',')','.',' ','A','l','s','o',' ','d',
   'u','p','l','i','c','a','t','e','d',' ','i','n',' ','b','a','c','k','e','n','d','-','s','p','e','c','i','f',
   'i','c',' ','n','a','m','e','s','p','a','c','e',0
-};
-extern const Char INFO_OPTIONS_SOUND_BACKENDS_FILE_OVERWRITE[] = {
-  'o','v','e','r','w','r','i','t','e',' ','t','a','r','g','e','t',' ','f','i','l','e',' ','i','f',' ','a','l',
-  'r','e','a','d','y',' ','e','x','i','s','t','s',' ','f','o','r',' ','f','i','l','e','-','b','a','s','e','d',
-  ' ','b','a','c','k','e','n','d','s','.',' ','A','l','s','o',' ','d','u','p','l','i','c','a','t','e','d',' ',
-  'i','n',' ','b','a','c','k','e','n','d','-','s','p','e','c','i','f','i','c',' ','n','a','m','e','s','p','a',
-  'c','e',0
 };
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_FLAC_BLOCKSIZE[] = {
   's','p','e','c','y','f','y',' ','b','l','o','c','k','s','i','z','e',' ','i','n',' ','s','a','m','p','l','e',

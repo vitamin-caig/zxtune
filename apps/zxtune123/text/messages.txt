@@ -127,6 +127,12 @@
 < INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD
 > "minimal size for use memory mapping"
 
+< INFO_OPTIONS_IO_PROVIDERS_FILE_OVERWRITE_EXISTING
+> "overwrite target file if already exists (applicable for for file-based backends)"
+
+< INFO_OPTIONS_IO_PROVIDERS_FILE_CREATE_DIRECTORIES
+> "create all intermediate directories (applicable for for file-based backends)"
+
 < INFO_OPTIONS_SOUND_TITLE
 > " Sound options:"
 
@@ -144,9 +150,6 @@
 
 < INFO_OPTIONS_SOUND_BACKENDS_FILE_FILENAME
 > "filename template for file-based backends (see --" INFO_LIST_ATTRIBUTES_KEY " command). Also duplicated in backend-specific namespace"
-
-< INFO_OPTIONS_SOUND_BACKENDS_FILE_OVERWRITE
-> "overwrite target file if already exists for file-based backends. Also duplicated in backend-specific namespace"
 
 < INFO_OPTIONS_SOUND_BACKENDS_FILE_BUFFERS
 > "use asynchronous conversing with specified queue size for file-based backends. Also duplicated in backend-specific namespace"

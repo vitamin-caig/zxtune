@@ -351,16 +351,36 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="42"/>
-        <source>Overwrite files</source>
-        <translation>Заменять существующие</translation>
+        <source>Overwrite</source>
+        <translation>Перезаписывать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="52"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="45"/>
+        <source>Force to overwrite existing files</source>
+        <translation>Перезаписывать существующие файлы</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="55"/>
+        <source>Create path</source>
+        <translation>Создавать путь</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="58"/>
+        <source>Force to create all intermediate directories of target files</source>
+        <translation>Создавать промежуточные директории для файлов результата</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="71"/>
+        <source>Save data in separate thread. Speedup for 20..100%</source>
+        <translation>Сохранять данные в отдельном потоке. Улучшает скорость работы на 20..100%</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.ui" line="68"/>
         <source>Use multithread conversion</source>
         <translation>Многопоточная конверсия</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.cpp" line="168"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.cpp" line="171"/>
         <source>No options</source>
         <translation>Нет настроек</translation>
     </message>

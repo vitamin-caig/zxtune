@@ -20,6 +20,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/container.h>
+#include <binary/container_factories.h>
 #include <core/core_parameters.h>
 #include <core/module_detect.h>
 #include <core/module_holder.h>

@@ -24,6 +24,7 @@ Author:
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
 //library includes
+#include <io/providers_parameters.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -78,7 +79,8 @@ namespace
       useMultithreading->setEnabled(HasMultithreadEnvironment());
       using namespace Parameters;
       BooleanValue::Bind(*useMultithreading, *Options, ZXTune::Sound::Backends::File::BUFFERS, false, MULTITHREAD_BUFFERS_COUNT);
-      BooleanValue::Bind(*overwriteTarget, *Options, ZXTune::Sound::Backends::File::OVERWRITE, false);
+      BooleanValue::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING, ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
+      BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES, ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
 
       UpdateDescriptions();
       State->Load();
@@ -94,7 +96,8 @@ namespace
         const QString filename = TargetTemplate->GetFilenameTemplate();
         options->SetValue(ZXTune::Sound::Backends::File::FILENAME, FromQString(filename));
         CopyExistingValue<IntType>(*Options, *options, ZXTune::Sound::Backends::File::BUFFERS);
-        CopyExistingValue<IntType>(*Options, *options, ZXTune::Sound::Backends::File::OVERWRITE);
+        CopyExistingValue<IntType>(*Options, *options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING);
+        CopyExistingValue<IntType>(*Options, *options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES);
         return options;
       }
       else

@@ -402,7 +402,7 @@ namespace
       {
         static const SaveParameters PARAMS;
         const String filePath = result->Name();
-        const Binary::OutputStream::Ptr target = ZXTune::IO::CreateLocalFile(filePath, Params);
+        const Binary::OutputStream::Ptr target = ZXTune::IO::CreateLocalFile(filePath, PARAMS);
         const Binary::Container::Ptr data = result->Data();
         target->ApplyData(*data);
       }
