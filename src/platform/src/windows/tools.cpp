@@ -21,8 +21,10 @@ namespace
   HMODULE GetCurrentModule()
   {
     HMODULE res = NULL;
-    ::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+#if _WIN32_WINNT > 0x500
+    ::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
       reinterpret_cast<LPCTSTR>(&GetCurrentModule), &res);
+#endif
     return res;
   }
 }
