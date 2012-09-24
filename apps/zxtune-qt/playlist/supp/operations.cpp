@@ -447,13 +447,6 @@ namespace
     const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
-  class CollectingVisitor : public Playlist::Item::Visitor
-                          , public Playlist::TextNotification
-  {
-  public:
-    typedef boost::shared_ptr<CollectingVisitor> Ptr;
-  };
-
   class ProgressModelVisitor : public Playlist::Item::Visitor
   {
   public:
@@ -489,6 +482,63 @@ namespace
       stor.ForAllItems(progressed);
     }
   }
+
+  class InvalidModulesCollection : public Playlist::Item::Visitor
+  {
+  public:
+    InvalidModulesCollection()
+      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+    {
+    }
+
+    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    {
+      //check for the data first to define is data valid or not
+      const String type = data->GetType();
+      if (!data->IsValid())
+      {
+        Result->insert(index);
+      }
+    }
+
+    Playlist::Model::IndexSetPtr GetResult() const
+    {
+      return Result;
+    }
+  private:
+    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
+  };
+
+  class SelectUnavailableOperation : public Playlist::Item::SelectionOperation
+  {
+  public:
+    explicit SelectUnavailableOperation(QObject& parent)
+      : Playlist::Item::SelectionOperation(parent)
+    {
+    }
+
+    SelectUnavailableOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+      : Playlist::Item::SelectionOperation(parent)
+      , SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      InvalidModulesCollection invalids;
+      ExecuteOperation(stor, SelectedItems, invalids, cb);
+      emit ResultAcquired(invalids.GetResult());
+    }
+  private:
+    const Playlist::Model::IndexSetPtr SelectedItems;
+  };
+
+  class CollectingVisitor : public Playlist::Item::Visitor
+                          , public Playlist::TextNotification
+  {
+  public:
+    typedef boost::shared_ptr<CollectingVisitor> Ptr;
+  };
 
   // Statistic
   class CollectStatisticOperation : public Playlist::Item::TextResultOperation
@@ -702,6 +752,16 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
     {
       return boost::make_shared<SelectTypesOfSelectedOperation>(boost::ref(parent), items);
+    }
+
+    SelectionOperation::Ptr CreateSelectAllUnavailableOperation(QObject& parent)
+    {
+      return boost::make_shared<SelectUnavailableOperation>(boost::ref(parent));
+    }
+
+    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+    {
+      return boost::make_shared<SelectUnavailableOperation>(boost::ref(parent), items);
     }
 
     TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, StatisticTextNotification::Ptr result)

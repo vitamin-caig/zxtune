@@ -8,6 +8,7 @@
   <addaction name="GroupAction"/>
   <addaction name="separator"/>
   <addaction name="DelDupsAction"/>
+  <addaction name="DelUnavailableAction"/>
   <addaction name="SelectionSubmenu"/>
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
@@ -62,6 +63,16 @@
    </property>
    <property name="text">
     <string>Remove duplicates in</string>
+   </property>
+  </action>
+  <action name="DelUnavailableAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/delete.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Delete unavailable in</string>
    </property>
   </action>
   <widget class="QMenu" name="SelectionSubmenu">

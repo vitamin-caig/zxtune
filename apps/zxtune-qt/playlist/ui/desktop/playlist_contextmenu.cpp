@@ -53,6 +53,7 @@ namespace
       setupUi(this);
 
       Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates())));
+      Require(receiver.connect(DelUnavailableAction, SIGNAL(triggered()), SLOT(RemoveAllUnavailable())));
       Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs())));
       Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFound())));
       Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic())));
@@ -103,6 +104,7 @@ namespace
       Require(receiver.connect(CropAction, SIGNAL(triggered()), SLOT(CropSelected())));
       Require(receiver.connect(GroupAction, SIGNAL(triggered()), SLOT(GroupSelected())));
       Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesInSelected())));
+      Require(receiver.connect(DelUnavailableAction, SIGNAL(triggered()), SLOT(RemoveUnavailableInSelected())));
       Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected())));
       Require(receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected())));
       Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFoundInSelected())));
@@ -305,6 +307,22 @@ namespace
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
       const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesInSelectedOperation(*model, SelectedItems);
+      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
+      model->PerformOperation(op);
+    }
+
+    virtual void RemoveAllUnavailable() const
+    {
+      const Playlist::Model::Ptr model = Controller.GetModel();
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllUnavailableOperation(*model);
+      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
+      model->PerformOperation(op);
+    }
+
+    virtual void RemoveUnavailableInSelected() const
+    {
+      const Playlist::Model::Ptr model = Controller.GetModel();
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectUnavailableInSelectedOperation(*model, SelectedItems);
       Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }

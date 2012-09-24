@@ -59,6 +59,8 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
     //other
     SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectAllUnavailableOperation(QObject& parent);
+    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
 
     //statistic
     class StatisticTextNotification : public Playlist::TextNotification
