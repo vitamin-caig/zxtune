@@ -29,8 +29,6 @@ namespace Playlist
                              , public Playlist::Item::StorageAccessOperation
     {
       Q_OBJECT
-    protected:
-      explicit SelectionOperation(QObject& parent);
     public:
       typedef boost::shared_ptr<SelectionOperation> Ptr;
     signals:
@@ -41,8 +39,6 @@ namespace Playlist
                               , public Playlist::Item::StorageAccessOperation
     {
       Q_OBJECT
-    protected:
-      explicit TextResultOperation(QObject& parent);
     public:
       typedef boost::shared_ptr<TextResultOperation> Ptr;
     signals:
@@ -50,17 +46,17 @@ namespace Playlist
     };
 
     //rip-offs
-    SelectionOperation::Ptr CreateSelectAllRipOffsOperation(QObject& parent);
-    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
-    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectAllRipOffsOperation();
+    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSetPtr items);
     //duplicates
-    SelectionOperation::Ptr CreateSelectAllDuplicatesOperation(QObject& parent);
-    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
-    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectAllDuplicatesOperation();
+    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSetPtr items);
     //other
-    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
-    SelectionOperation::Ptr CreateSelectAllUnavailableOperation(QObject& parent);
-    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectAllUnavailableOperation();
+    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items);
 
     //statistic
     class StatisticTextNotification : public Playlist::TextNotification
@@ -72,8 +68,8 @@ namespace Playlist
       virtual void AddValid(const String& type, const Time::MillisecondsDuration& duration, std::size_t size) = 0;
     };
 
-    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, StatisticTextNotification::Ptr result);
-    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result);
+    TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result);
+    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result);
 
     //export
     class ConversionResultNotification : public Playlist::TextNotification
@@ -85,12 +81,12 @@ namespace Playlist
       virtual void AddFailedToOpen(const String& path) = 0;
       virtual void AddFailedToConvert(const String& path, const Error& err) = 0;
     };
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate,
+    TextResultOperation::Ptr CreateExportOperation(const String& nameTemplate,
       Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
+    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSetPtr items,
       const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
     //convert
-    TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
+    TextResultOperation::Ptr CreateConvertOperation(Playlist::Model::IndexSetPtr items,
       const String& type, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
   }
 }

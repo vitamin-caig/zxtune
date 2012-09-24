@@ -18,7 +18,7 @@ namespace Playlist
 {
   namespace UI
   {
-    void ExecuteSearchDialog(TableView& /*view*/, Controller& /*controller*/)
+    void ExecuteSearchDialog(QWidget& /*parent*/)
     {
     }
   }

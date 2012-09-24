@@ -120,10 +120,9 @@ namespace
   class ConvertOperation : public Playlist::Item::TextResultOperation
   {
   public:
-    ConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
+    ConvertOperation(Playlist::Model::IndexSetPtr items,
       const String& type, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
-      : Playlist::Item::TextResultOperation(parent)
-      , SelectedItems(items)
+      : SelectedItems(items)
       , Creator(FindBackendCreator(type))
       , Params(params)
       , Result(result)
@@ -157,10 +156,10 @@ namespace Playlist
 {
   namespace Item
   {
-    TextResultOperation::Ptr CreateConvertOperation(QObject& parent, Playlist::Model::IndexSetPtr items,
+    TextResultOperation::Ptr CreateConvertOperation(Playlist::Model::IndexSetPtr items,
       const String& type, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ConvertOperation>(boost::ref(parent), items, type, params, result);
+      return boost::make_shared<ConvertOperation>(items, type, params, result);
     }
   }
 }

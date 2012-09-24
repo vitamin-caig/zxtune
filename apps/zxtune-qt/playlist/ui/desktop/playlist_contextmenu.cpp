@@ -289,74 +289,56 @@ namespace
 
     virtual void RemoveAllDuplicates() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllDuplicatesOperation(*model);
-      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllDuplicatesOperation();
+      ExecuteRemoveOperation(op);
     }
 
     virtual void RemoveDuplicatesOfSelected() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesOfSelectedOperation(*model, SelectedItems);
-      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesOfSelectedOperation(SelectedItems);
+      ExecuteRemoveOperation(op);
     }
 
     virtual void RemoveDuplicatesInSelected() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesInSelectedOperation(*model, SelectedItems);
-      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectDuplicatesInSelectedOperation(SelectedItems);
+      ExecuteRemoveOperation(op);
     }
 
     virtual void RemoveAllUnavailable() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllUnavailableOperation(*model);
-      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllUnavailableOperation();
+      ExecuteRemoveOperation(op);
     }
 
     virtual void RemoveUnavailableInSelected() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectUnavailableInSelectedOperation(*model, SelectedItems);
-      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectUnavailableInSelectedOperation(SelectedItems);
+      ExecuteRemoveOperation(op);
     }
 
     virtual void SelectAllRipOffs() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllRipOffsOperation(*model);
-      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectAllRipOffsOperation();
+      ExecuteSelectOperation(op);
     }
 
     virtual void SelectRipOffsOfSelected() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsOfSelectedOperation(*model, SelectedItems);
-      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsOfSelectedOperation(SelectedItems);
+      ExecuteSelectOperation(op);
     }
 
     virtual void SelectRipOffsInSelected() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsInSelectedOperation(*model, SelectedItems);
-      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectRipOffsInSelectedOperation(SelectedItems);
+      ExecuteSelectOperation(op);
     }
 
     virtual void SelectSameTypesOfSelected() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectTypesOfSelectedOperation(*model, SelectedItems);
-      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectTypesOfSelectedOperation(SelectedItems);
+      ExecuteSelectOperation(op);
     }
 
     virtual void CopyPathToClipboard() const
@@ -368,22 +350,16 @@ namespace
 
     virtual void ShowAllStatistic() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
       const Playlist::Item::StatisticTextNotification::Ptr result = CreateStatisticNotification();
-      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model, result);
-      Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
-        SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
-      model->PerformOperation(op);
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(result);
+      ExecuteNotificationOperation(op);
     }
 
     virtual void ShowStatisticOfSelected() const
     {
-      const Playlist::Model::Ptr model = Controller.GetModel();
       const Playlist::Item::StatisticTextNotification::Ptr result = CreateStatisticNotification();
-      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(*model, SelectedItems, result);
-      Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
-        SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
-      model->PerformOperation(op);
+      const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateCollectStatisticOperation(SelectedItems, result);
+      ExecuteNotificationOperation(op);
     }
 
     virtual void ExportAll() const
@@ -392,12 +368,9 @@ namespace
       if (UI::GetFilenameTemplate(View, nameTemplate))
       {
         const Parameters::Accessor::Ptr allParams = GlobalOptions::Instance().Get();
-        const Playlist::Model::Ptr model = Controller.GetModel();
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, FromQString(nameTemplate), allParams, result);
-        Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
-          SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
-        model->PerformOperation(op);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(FromQString(nameTemplate), allParams, result);
+        ExecuteNotificationOperation(op);
       }
     }
 
@@ -407,12 +380,9 @@ namespace
       if (UI::GetFilenameTemplate(View, nameTemplate))
       {
         const Parameters::Accessor::Ptr allParams = GlobalOptions::Instance().Get();
-        const Playlist::Model::Ptr model = Controller.GetModel();
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(*model, SelectedItems, FromQString(nameTemplate), allParams, result);
-        Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
-          SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
-        model->PerformOperation(op);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateExportOperation(SelectedItems, FromQString(nameTemplate), allParams, result);
+        ExecuteNotificationOperation(op);
       }
     }
 
@@ -423,28 +393,31 @@ namespace
       {
         //TODO: copy parameters
         const Parameters::Accessor::Ptr allParams = Parameters::CreateMergedAccessor(params, GlobalOptions::Instance().Get());
-        const Playlist::Model::Ptr model = Controller.GetModel();
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(*model, SelectedItems, type, allParams, result);
-        Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
-          SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
-        model->PerformOperation(op);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, type, allParams, result);
+        ExecuteNotificationOperation(op);
       }
     }
 
     virtual void SelectFound() const
     {
-      Playlist::UI::ExecuteSearchDialog(View, Controller);
+      if (Playlist::Item::SelectionOperation::Ptr op = Playlist::UI::ExecuteSearchDialog(View))
+      {
+        ExecuteSelectOperation(op);
+      }
     }
 
     virtual void SelectFoundInSelected() const
     {
-      Playlist::UI::ExecuteSearchDialog(View, SelectedItems, Controller);
+      if (Playlist::Item::SelectionOperation::Ptr op = Playlist::UI::ExecuteSearchDialog(View, SelectedItems))
+      {
+        ExecuteSelectOperation(op);
+      }
     }
 
     virtual void ShowPropertiesOfSelected() const
     {
-      Playlist::UI::ExecutePropertiesDialog(View, SelectedItems, Controller);
+      Playlist::UI::ExecutePropertiesDialog(View, Controller.GetModel(), SelectedItems);
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()
@@ -458,6 +431,31 @@ namespace
       default:
         return std::auto_ptr<QMenu>(new MultipleItemsContextMenu(View, *this, items));
       }
+    }
+
+    void ExecuteRemoveOperation(Playlist::Item::SelectionOperation::Ptr op) const
+    {
+      const Playlist::Model::Ptr model = Controller.GetModel();
+      op->setParent(model);
+      Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
+      model->PerformOperation(op);
+    }
+
+    void ExecuteSelectOperation(Playlist::Item::SelectionOperation::Ptr op) const
+    {
+      const Playlist::Model::Ptr model = Controller.GetModel();
+      op->setParent(model);
+      Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+      model->PerformOperation(op);
+    }
+
+    void ExecuteNotificationOperation(Playlist::Item::TextResultOperation::Ptr op) const
+    {
+      const Playlist::Model::Ptr model = Controller.GetModel();
+      op->setParent(model);
+      Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
+        SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
+      model->PerformOperation(op);
     }
   private:
     Playlist::UI::TableView& View;

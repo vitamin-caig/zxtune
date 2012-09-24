@@ -52,8 +52,8 @@ namespace Playlist
       };
     }
 
-    SelectionOperation::Ptr CreateSearchOperation(QObject& parent, const Search::Data& data);
-    SelectionOperation::Ptr CreateSearchOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const Search::Data& data);
+    SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data);
+    SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSetPtr items, const Search::Data& data);
   }
 }
 

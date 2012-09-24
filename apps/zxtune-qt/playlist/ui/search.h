@@ -15,13 +15,15 @@ Author:
 #ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_SEARCH_H_DEFINED
 #define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_SEARCH_H_DEFINED
 
+#include <playlist/supp/operations.h>
+
+class QWidget;
+
 namespace Playlist
 {
-  class Controller;
   namespace UI
   {
-    class TableView;
-    void ExecuteSearchDialog(TableView& view, Controller& controller);
+    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent);
   }
 }
 

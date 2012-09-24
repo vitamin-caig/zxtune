@@ -646,7 +646,7 @@ namespace
 
     void SearchItems()
     {
-      Playlist::UI::ExecuteSearchDialog(*View, *Controller);
+      Playlist::UI::ExecuteSearchDialog(*View);
     }
   private:
     const UI::State::Ptr LayoutState;

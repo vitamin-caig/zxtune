@@ -19,7 +19,6 @@ Author:
 #include <contract.h>
 //boost includes
 #include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
 //qt includes
 #include <QtCore/QRegExp>
 
@@ -68,16 +67,14 @@ namespace
   class SearchOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    SearchOperation(QObject& parent, Predicate::Ptr pred)
-      : Playlist::Item::SelectionOperation(parent)
-      , Pred(pred)
+    explicit SearchOperation(Predicate::Ptr pred)
+      : Pred(pred)
     {
       Require(Pred);
     }
 
-    SearchOperation(QObject& parent, Playlist::Model::IndexSetPtr items, Predicate::Ptr pred)
-      : Playlist::Item::SelectionOperation(parent)
-      , SelectedItems(items)
+    SearchOperation(Playlist::Model::IndexSetPtr items, Predicate::Ptr pred)
+      : SelectedItems(items)
       , Pred(pred)
     {
       Require(Pred);
@@ -206,16 +203,16 @@ namespace Playlist
 {
   namespace Item
   {
-    SelectionOperation::Ptr CreateSearchOperation(QObject& parent, const Search::Data& data)
+    SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data)
     {
       const Predicate::Ptr pred = CreatePredicate(data);
-      return boost::make_shared<SearchOperation>(boost::ref(parent), pred);
+      return boost::make_shared<SearchOperation>(pred);
     }
 
-    SelectionOperation::Ptr CreateSearchOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const Search::Data& data)
+    SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSetPtr items, const Search::Data& data)
     {
       const Predicate::Ptr pred = CreatePredicate(data);
-      return boost::make_shared<SearchOperation>(boost::ref(parent), items, pred);
+      return boost::make_shared<SearchOperation>(items, pred);
     }
   }
 }

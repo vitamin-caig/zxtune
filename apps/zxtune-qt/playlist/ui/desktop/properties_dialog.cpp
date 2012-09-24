@@ -212,17 +212,16 @@ namespace Playlist
       return boost::make_shared<PropertiesDialogImpl>(boost::ref(parent), item);
     }
 
-    void ExecutePropertiesDialog(TableView& view, Model::IndexSetPtr scope, Controller& controller)
+    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSetPtr scope)
     {
       if (scope->size() != 1)
       {
         return;
       }
-      const Model::Ptr model = controller.GetModel();
       const Item::Data::Ptr item = model->GetItem(*scope->begin());
       if (item->IsValid())
       {
-        const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(view, item);
+        const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, item);
         dialog->exec();
       }
     }
