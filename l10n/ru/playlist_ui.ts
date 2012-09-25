@@ -75,37 +75,37 @@
 <context>
     <name>Playlist::UI::View</name>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="406"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="405"/>
         <source>Add files</source>
         <translation>Добавить файлы</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="407"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="406"/>
         <source>All files (*.*)</source>
         <translation>Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="417"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="416"/>
         <source>Add folder</source>
         <translation>Добавить папку</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="427"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="426"/>
         <source>Rename playlist</source>
         <translation>Переименовать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="437"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="436"/>
         <source>Simple playlist (*.xspf)</source>
         <translation>Обычный список (*.xspf)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="438"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="437"/>
         <source>Playlist with module&apos;s attributes (*.xspf)</source>
         <translation>Список с полными атрибутами модулей (*.xspf)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="442"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="441"/>
         <source>Save playlist</source>
         <translation>Сохранить</translation>
     </message>

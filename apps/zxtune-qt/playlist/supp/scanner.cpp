@@ -290,6 +290,8 @@ namespace
   public:
     virtual ~ScannerCallback() {}
 
+    virtual void OnItems(Playlist::IO::Container::Ptr items) = 0;
+
     virtual void OnScanStart(Playlist::ScanStatus::Ptr status) = 0;
     virtual void OnProgress(unsigned progress) = 0;
     virtual void OnMessage(const QString& message) = 0;
@@ -403,7 +405,7 @@ namespace
       {
         return false;
       }
-      playlist->ForAllItems(Callback);
+      Callback.OnItems(playlist);
       return true;
     }
 
@@ -427,6 +429,7 @@ namespace
   public:
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
+      , Provider(provider)
       , Routine(boost::make_shared<ScanRoutine>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
       , ScanJob(Async::CreateJob(Routine))
     {
@@ -443,6 +446,13 @@ namespace
       Dbg("Added %1% items to %2%", items.size(), this);
       Routine->Add(items);
       ThrowIfError(ScanJob->Start());
+    }
+
+    virtual void PasteItems(const QStringList& items)
+    {
+      Dbg("Paste %1% items to %2%", items.size(), this);
+      const Playlist::IO::Container::Ptr container = Playlist::IO::OpenPlainList(Provider, items);
+      emit ItemsFound(container);
     }
 
     virtual void Pause(bool pause)
@@ -462,6 +472,11 @@ namespace
     virtual void OnItem(Playlist::Item::Data::Ptr item)
     {
       emit ItemFound(item);
+    }
+
+    virtual void OnItems(Playlist::IO::Container::Ptr items)
+    {
+      emit ItemsFound(items);
     }
 
     virtual void OnScanStart(Playlist::ScanStatus::Ptr status)
@@ -495,6 +510,7 @@ namespace
       emit ScanStopped();
     }
   private:
+    const Playlist::Item::DataProvider::Ptr Provider;
     const ScanRoutine::Ptr Routine;
     const Async::Job::Ptr ScanJob;
     EventFilter NotificationFilter;
@@ -510,6 +526,7 @@ namespace Playlist
   Scanner::Ptr Scanner::Create(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::Item::Data::Ptr);
+    REGISTER_METATYPE(Playlist::IO::Container::Ptr);
     REGISTER_METATYPE(Playlist::ScanStatus::Ptr);
     return new ScannerImpl(parent, provider);
   }

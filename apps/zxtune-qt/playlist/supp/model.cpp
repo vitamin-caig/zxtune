@@ -285,6 +285,22 @@ namespace
     QStringList Paths;
   };
 
+  class AddItemsCallback : public Playlist::Item::Callback
+  {
+  public:
+    explicit AddItemsCallback(Playlist::Item::Storage& storage)
+      : Storage(storage)
+    {
+    }
+
+    virtual void OnItem(Playlist::Item::Data::Ptr data)
+    {
+      Storage.AddItem(data);
+    }
+  private:
+    Playlist::Item::Storage& Storage;
+  };
+
   class ModelImpl : public Playlist::Model
                   , public OperationTarget<Playlist::Item::StorageAccessOperation>
                   , public OperationTarget<Playlist::Item::StorageModifyOperation>
@@ -406,6 +422,19 @@ namespace
       boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
       const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
       Container->AddItem(item);
+    }
+
+    virtual void AddItems(Playlist::IO::Container::Ptr items)
+    {
+      Playlist::Model::OldToNewIndexMap::Ptr remapping;
+      {
+        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        AddItemsCallback copyToContainer(*Container);
+        items->ForAllItems(copyToContainer);
+        remapping = GetIndicesChanges();
+      }
+      NotifyAboutIndexChanged(remapping);
     }
 
     virtual void CancelLongOperation()

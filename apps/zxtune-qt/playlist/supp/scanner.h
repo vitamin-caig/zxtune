@@ -46,6 +46,7 @@ namespace Playlist
     static Ptr Create(QObject& parent, Item::DataProvider::Ptr provider);
 
     virtual void AddItems(const QStringList& items) = 0;
+    virtual void PasteItems(const QStringList& items) = 0;
   public slots:
     virtual void Pause(bool pause) = 0;
     virtual void Stop() = 0;
@@ -57,6 +58,7 @@ namespace Playlist
     void ScanStopped();
     //for BL
     void ItemFound(Playlist::Item::Data::Ptr item);
+    void ItemsFound(Playlist::IO::Container::Ptr items);
     void ErrorOccurred(const Error& e);
   };
 }

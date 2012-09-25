@@ -310,7 +310,6 @@ namespace
       Require(connect(Controller.get(), SIGNAL(Renamed(const QString&)), SIGNAL(Renamed(const QString&))));
       Require(connect(iter, SIGNAL(ItemActivated(unsigned, Playlist::Item::Data::Ptr)),
         SLOT(ActivateItem(unsigned, Playlist::Item::Data::Ptr))));
-      Require(View->connect(Controller->GetScanner(), SIGNAL(ScanStopped()), SLOT(updateGeometries())));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
       Require(connect(model, SIGNAL(OperationStarted()), SLOT(LongOperationStart())));
@@ -630,8 +629,9 @@ namespace
           QDataStream stream(encodedData);
           stream >> items;
         }
+        //pasting is done immediately, so update UI right here
         const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
-        scanner->AddItems(items);
+        scanner->PasteItems(items);
       }
       else if (data.hasText())
       {

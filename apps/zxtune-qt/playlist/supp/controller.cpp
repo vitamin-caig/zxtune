@@ -180,6 +180,7 @@ namespace
       //setup connections
       //use direct connection due to possible model locking
       Require(Model->connect(Scanner, SIGNAL(ItemFound(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
+      Require(Model->connect(Scanner, SIGNAL(ItemsFound(Playlist::IO::Container::Ptr)), SLOT(AddItems(Playlist::IO::Container::Ptr)), Qt::DirectConnection));
       Require(Iterator->connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
         SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
 
