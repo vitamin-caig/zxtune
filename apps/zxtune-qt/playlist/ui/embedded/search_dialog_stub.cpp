@@ -18,8 +18,9 @@ namespace Playlist
 {
   namespace UI
   {
-    void ExecuteSearchDialog(QWidget& /*parent*/)
+    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& /*parent*/)
     {
+      return Playlist::Item::SelectionOperation::Ptr();
     }
   }
 }

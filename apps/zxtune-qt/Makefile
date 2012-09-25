@@ -43,6 +43,7 @@ libraries += l10n ui_desktop playlist_ui_desktop ui_conversion ui_preferences
 depends += src/l10n apps/zxtune-qt/ui/desktop apps/zxtune-qt/playlist/ui/desktop apps/zxtune-qt/ui/conversion apps/zxtune-qt/ui/preferences
 boost_libraries += locale
 mingw_libraries += iconv
+embedded_files = $(qm_translation_data) $(mo_translation_data)
 endif
 
 theme_resources = res/theme_$(gui_theme)
@@ -53,7 +54,6 @@ qrc_files := res/icons $(theme_resources)/theme
 #platform-specific resources
 windows_resources := res/zxtune-qt
 mingw_resources := res/zxtune-qt
-embedded_files = $(qm_translation_data) $(mo_translation_data)
 
 $(platform)_definitions += GUI_THEME=$(gui_theme)
 
