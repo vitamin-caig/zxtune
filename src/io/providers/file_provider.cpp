@@ -199,16 +199,61 @@ namespace
     return Binary::CreateContainer(res);
   }
 
+  //since dingux platform does not support wide strings(???) that boost.filesystem v3 requires, specify adapters in return-style
+  boost::uintmax_t FileSize(const boost::filesystem::path& filePath, Error::LocationRef loc)
+  {
+    try
+    {
+      return boost::filesystem::file_size(filePath);
+    }
+    catch (const boost::system::system_error& err)
+    {
+      throw Error(loc, ERROR_NO_ACCESS, ToStdString(err.code().message()));
+    }
+  }
+  
+  bool IsDirectory(const boost::filesystem::path& filePath)
+  {
+    try
+    {
+      return boost::filesystem::is_directory(filePath);
+    }
+    catch (const boost::system::system_error&)
+    {
+      return false;
+    }
+  }
+  
+  bool IsExists(const boost::filesystem::path& filePath)
+  {
+    try
+    {
+      return boost::filesystem::exists(filePath);
+    }
+    catch (const boost::system::system_error&)
+    {
+      return false;
+    }
+  }
+  
+  void CreateDirectory(const boost::filesystem::path& path, Error::LocationRef loc)
+  {
+    try
+    {
+      //do not check result
+      boost::filesystem::create_directory(path);
+    }
+    catch (const boost::system::system_error& err)
+    {
+      throw Error(loc, ERROR_IO_ERROR, ToStdString(err.code().message()));
+    }
+  }
+
   Binary::Data::Ptr OpenFileData(const String& path, std::size_t mmapThreshold)
   {
     const boost::filesystem::path fileName(path);
-    boost::system::error_code err;
-    const boost::uintmax_t size = boost::filesystem::file_size(fileName, err);
-    if (size == static_cast<boost::uintmax_t>(-1))
-    {
-      throw Error(THIS_LINE, ERROR_NO_ACCESS, ToStdString(err.message()));
-    }
-    else if (size == 0)
+    const boost::uintmax_t size = FileSize(fileName, THIS_LINE);
+    if (size == 0)
     {
       throw Error(THIS_LINE, ERROR_IO_ERROR, translate("File is empty."));
     }
@@ -229,7 +274,7 @@ namespace
   {
   public:
     explicit OutputFileStream(const boost::filesystem::path& name)
-      : Name(name.string<String>())
+      : Name(name.string())
       , Stream(name, std::ios::binary)
     {
       if (!Stream)
@@ -274,8 +319,7 @@ namespace
   //standard implementation does not work in mingw
   void CreateDirectoryRecursive(const boost::filesystem::path& dir)
   {
-    boost::system::error_code err;
-    if (boost::filesystem::is_directory(dir, err))
+    if (IsDirectory(dir))
     {
       return;
     }
@@ -284,21 +328,17 @@ namespace
     {
       CreateDirectoryRecursive(parent);
     }
-    if (!boost::filesystem::create_directory(dir, err))
-    {
-      throw Error(THIS_LINE, ERROR_IO_ERROR, ToStdString(err.message()));
-    }
+    CreateDirectory(dir, THIS_LINE);
   }
 
   Binary::SeekableOutputStream::Ptr CreateFileStream(const String& fileName, const FileCreatingParameters& params)
   {
     const boost::filesystem::path path(fileName);
-    boost::system::error_code err;
     if (params.CreateDirectories() && path.has_parent_path())
     {
       CreateDirectoryRecursive(path.parent_path());
     }
-    if (!params.Overwrite() && boost::filesystem::exists(path, err))
+    if (!params.Overwrite() && IsExists(path))
     {
       throw Error(THIS_LINE, ERROR_FILE_EXISTS, translate("File already exists."));
     }

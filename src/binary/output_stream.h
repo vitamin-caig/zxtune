@@ -13,6 +13,7 @@
 
 //common includes
 #include <data_streaming.h>
+#include <types.h>
 //library includes
 #include <binary/data.h>
 
