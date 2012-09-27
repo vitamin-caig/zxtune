@@ -74,20 +74,23 @@ namespace
   const uint_t MAX_DUTYCYCLE = 100;
   const uint_t NO_DUTYCYCLE = MAX_DUTYCYCLE / 2;
 
+  const uint_t LOW_LEVEL = 0;
+  const uint_t HIGH_LEVEL = ~LOW_LEVEL;
+
   //PSG-related functionality
   class BaseGenerator
   {
   public:
     BaseGenerator()
       : Counter()
-      , Masked(true)
+      , Mask(HIGH_LEVEL)
     {
     }
 
     void Reset()
     {
       Counter = 0;
-      Masked = true;
+      Mask = HIGH_LEVEL;
     }
 
     bool SingleTick(uint_t period)
@@ -105,50 +108,50 @@ namespace
       Counter = 0;
     }
 
-    bool IsMasked() const
+    uint_t GetMask() const
     {
-      return Masked;
+      return Mask;
     }
 
-    void SetMask(bool masked)
+    void SetMask(uint_t masked)
     {
-      Masked = masked;
+      Mask = masked;
     }
   private:
     uint_t Counter;
-    bool Masked;
+    uint_t Mask;
   };
 
   class FlipFlop : public BaseGenerator
   {
   public:
     FlipFlop()
-      : Flip()
+      : Flip(LOW_LEVEL)
     {
     }
 
     void Reset()
     {
       BaseGenerator::Reset();
-      Flip = false;
+      Flip = LOW_LEVEL;
     }
 
     bool SingleTick(uint_t period)
     {
       if (BaseGenerator::SingleTick(period))
       {
-        Flip = !Flip;
+        Flip = ~Flip;
         return true;
       }
       return false;
     }
 
-    bool GetFlip() const
+    uint_t GetFlip() const
     {
       return Flip;
     }
   private:
-    bool Flip;
+    uint_t Flip;
   };
 
   class DutedGenerator : public FlipFlop
@@ -270,9 +273,9 @@ namespace
     {
     }
 
-    bool GetLevel() const
+    uint_t GetLevel() const
     {
-      return IsMasked() || GetFlip();
+      return GetMask() | GetFlip();
     }
   private:
     uint_t Period;
@@ -287,9 +290,9 @@ namespace
       SingleTick();
     }
 
-    bool GetLevel() const
+    uint_t GetLevel() const
     {
-      return IsMasked() || GetFlip();
+      return GetMask() | GetFlip();
     }
   };
 
@@ -316,9 +319,9 @@ namespace
       }
     }
 
-    bool GetLevel() const
+    uint_t GetLevel() const
     {
-      return 0 != (Seed & 0x10000);
+      return 0 != (Seed & 0x10000) ? HIGH_LEVEL : LOW_LEVEL;
     }
   private:
     uint32_t Seed;
@@ -435,8 +438,8 @@ namespace
   public:
     AYMBaseDevice()
       : LevelA(), LevelB(), LevelC()
-      , MaskNoiseA(true), MaskNoiseB(true), MaskNoiseC(true)
-      , MaskEnvA(true), MaskEnvB(true), MaskEnvC(true)
+      , MaskNoiseA(HIGH_LEVEL), MaskNoiseB(HIGH_LEVEL), MaskNoiseC(HIGH_LEVEL)
+      , MaskEnvA(HIGH_LEVEL), MaskEnvB(HIGH_LEVEL), MaskEnvC(HIGH_LEVEL)
       , VolTable(&AYVolumeTab)
     {
     }
@@ -457,13 +460,13 @@ namespace
 
     virtual void SetMixer(uint_t mixer)
     {
-      GenA.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEA));
-      GenB.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEB));
-      GenC.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEC));
-      MaskNoiseA = 0 != (mixer & DataChunk::REG_MASK_NOISEA);
-      MaskNoiseB = 0 != (mixer & DataChunk::REG_MASK_NOISEB);
-      MaskNoiseC = 0 != (mixer & DataChunk::REG_MASK_NOISEC);
-      GenN.SetMask(MaskNoiseA && MaskNoiseB && MaskNoiseC);
+      GenA.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEA) ? HIGH_LEVEL : LOW_LEVEL);
+      GenB.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEB) ? HIGH_LEVEL : LOW_LEVEL);
+      GenC.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEC) ? HIGH_LEVEL : LOW_LEVEL);
+      MaskNoiseA = 0 != (mixer & DataChunk::REG_MASK_NOISEA) ? HIGH_LEVEL : LOW_LEVEL;
+      MaskNoiseB = 0 != (mixer & DataChunk::REG_MASK_NOISEB) ? HIGH_LEVEL : LOW_LEVEL;
+      MaskNoiseC = 0 != (mixer & DataChunk::REG_MASK_NOISEC) ? HIGH_LEVEL : LOW_LEVEL;
+      GenN.SetMask(MaskNoiseA & MaskNoiseB & MaskNoiseC);
     }
 
     virtual void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE)
@@ -482,13 +485,13 @@ namespace
 
     virtual void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC)
     {
-      MaskEnvA = 0 == (levelA & DataChunk::REG_MASK_ENV);
-      MaskEnvB = 0 == (levelB & DataChunk::REG_MASK_ENV);
-      MaskEnvC = 0 == (levelC & DataChunk::REG_MASK_ENV);
-      GenE.SetMask(MaskEnvA && MaskEnvB && MaskEnvC);
-      LevelA = ((levelA & DataChunk::REG_MASK_VOL) << 1) + 1;
-      LevelB = ((levelB & DataChunk::REG_MASK_VOL) << 1) + 1;
-      LevelC = ((levelC & DataChunk::REG_MASK_VOL) << 1) + 1;
+      MaskEnvA = 0 != (levelA & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
+      MaskEnvB = 0 != (levelB & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
+      MaskEnvC = 0 != (levelC & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
+      GenE.SetMask(MaskEnvA & MaskEnvB & MaskEnvC);
+      LevelA = (((levelA & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvA;
+      LevelB = (((levelB & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvB;
+      LevelC = (((levelC & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvC;
     }
 
     virtual void Reset()
@@ -499,8 +502,8 @@ namespace
       GenN.Reset();
       GenE.Reset();
       LevelA = LevelB = LevelC = 0;
-      MaskNoiseA = MaskNoiseB = MaskNoiseC = true;
-      MaskEnvA = MaskEnvB = MaskEnvC = true;
+      MaskNoiseA = MaskNoiseB = MaskNoiseC = HIGH_LEVEL;
+      MaskEnvA = MaskEnvB = MaskEnvC = HIGH_LEVEL;
       VolTable = &AYVolumeTab;
     }
 
@@ -518,21 +521,18 @@ namespace
 
     virtual void GetLevels(MultiSample& result) const
     {
-      const bool triggeredNoise = GenN.GetLevel();
+      const uint_t noiseLevel = GenN.GetLevel();
       const uint_t envelope = GenE.GetLevel();
-      //references to mixered bits. updated automatically
-      const bool maskedNoiseA = triggeredNoise || MaskNoiseA;
-      const uint_t outA = MaskEnvA ? LevelA : envelope;
-      const bool maskedNoiseB = triggeredNoise || MaskNoiseB;
-      const uint_t outB = MaskEnvB ? LevelB : envelope;
-      const bool maskedNoiseC = triggeredNoise || MaskNoiseC;
-      const uint_t outC = MaskEnvC ? LevelC : envelope;
+
+      const uint_t outA = ((MaskEnvA & envelope) | LevelA) & GenA.GetLevel() & (noiseLevel | MaskNoiseA);
+      const uint_t outB = ((MaskEnvB & envelope) | LevelB) & GenB.GetLevel() & (noiseLevel | MaskNoiseB);
+      const uint_t outC = ((MaskEnvC & envelope) | LevelC) & GenC.GetLevel() & (noiseLevel | MaskNoiseC);
 
       const VolumeTable& table = *VolTable;
       assert(outA < 32 && outB < 32 && outC < 32);
-      result[0] = maskedNoiseA && GenA.GetLevel() ? table[outA] : 0;
-      result[1] = maskedNoiseB && GenB.GetLevel() ? table[outB] : 0;
-      result[2] = maskedNoiseC && GenC.GetLevel() ? table[outC] : 0;
+      result[0] = table[outA];
+      result[1] = table[outB];
+      result[2] = table[outC];
     }
   private:
     ToneGenerator<Generator> GenA;
@@ -543,12 +543,12 @@ namespace
     uint_t LevelA;
     uint_t LevelB;
     uint_t LevelC;
-    bool MaskNoiseA;
-    bool MaskNoiseB;
-    bool MaskNoiseC;
-    bool MaskEnvA;
-    bool MaskEnvB;
-    bool MaskEnvC;
+    uint_t MaskNoiseA;
+    uint_t MaskNoiseB;
+    uint_t MaskNoiseC;
+    uint_t MaskEnvA;
+    uint_t MaskEnvB;
+    uint_t MaskEnvC;
     const VolumeTable* VolTable;
   };
 
