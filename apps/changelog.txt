@@ -7,6 +7,19 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Stereo mode setup for mp3 encoding
+[*] Slight speedup for ay/ym rendering (~15%) and interpolated rendering (~60%)
+[*] Fix for OSS that doesn't support unsigned samples (Dingux)
+[*] Reduce size of gcc-based builds
+[+] zxtune-qt: scan pausing support
+[+] zxtune-qt: support for creating all intermediate directories while convert/export
+[+] zxtune-qt: 'remove all unavailable' operation in context menu
+[-] zxtune-qt: removed 'deep scanning' option: always enabled by default
+[*] zxtune-qt: do not resolve all the directories before scanning
+[*] zxtune-qt: fix and speedup inserting of previously copied playlist items
+
+--- Rev2000 from 11.09.2012
+
 [+] Localization and internationalization support
 [+] Russian translation for zxtune-qt and core libraries
 [+] ARM platform support
