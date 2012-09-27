@@ -16,6 +16,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_SUPP_DATA_H_DEFINED
 
 //common includes
+#include <iterator.h>
 #include <parameters.h>
 #include <time_duration.h>
 //library includes
@@ -50,13 +51,7 @@ namespace Playlist
       virtual std::size_t GetSize() const = 0;
     };
 
-    class Callback
-    {
-    public:
-      virtual ~Callback() {}
-
-      virtual void OnItem(Item::Data::Ptr data) = 0;
-    };
+    typedef ObjectIterator<Data::Ptr> Collection;
   }
 }
 

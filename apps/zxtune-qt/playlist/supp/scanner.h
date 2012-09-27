@@ -17,7 +17,6 @@ Author:
 
 //local includes
 #include "data_provider.h"
-#include "playlist/io/container.h"
 //qt includes
 #include <QtCore/QThread>
 
@@ -58,7 +57,7 @@ namespace Playlist
     void ScanStopped();
     //for BL
     void ItemFound(Playlist::Item::Data::Ptr item);
-    void ItemsFound(Playlist::IO::Container::Ptr items);
+    void ItemsFound(Playlist::Item::Collection::Ptr items);
     void ErrorOccurred(const Error& e);
   };
 }

@@ -58,27 +58,10 @@ namespace
       return Storage.CountItems();
     }
 
-    virtual void ForAllItems(Playlist::Item::Callback& callback) const
+    virtual Playlist::Item::Collection::Ptr GetItems() const
     {
-      ItemCallbackAdapter adapter(callback);
-      Storage.ForAllItems(adapter);
+      return Storage.GetItems();
     }
-  private:
-    class ItemCallbackAdapter : public Playlist::Item::Visitor
-    {
-    public:
-      explicit ItemCallbackAdapter(Playlist::Item::Callback& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
-      {
-        return Delegate.OnItem(data);
-      }
-    private:
-      Playlist::Item::Callback& Delegate;
-    };
   private:
     const Parameters::Container::Ptr Properties;
     const Playlist::Item::Storage& Storage;
@@ -148,30 +131,13 @@ namespace
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString name = GetPlaylistName(*plParams);
         Controller.SetName(name);
-        CallbackWrapper callback(storage);
-        container->ForAllItems(callback);
+        storage.AddItems(container->GetItems());
       }
       else
       {
         //TODO: handle error
       }
     }
-  private:
-    class CallbackWrapper : public Playlist::Item::Callback
-    {
-    public:
-      explicit CallbackWrapper(Playlist::Item::Storage& stor)
-        : Storage(stor)
-      {
-      }
-
-      virtual void OnItem(Playlist::Item::Data::Ptr data)
-      {
-        Storage.AddItem(data);
-      }
-    private:
-      Playlist::Item::Storage& Storage;
-    };
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
     const QString Filename;

@@ -15,6 +15,7 @@ Author:
 #include "container_impl.h"
 #include <apps/base/playitem.h>
 //common includes
+#include <contract.h>
 #include <debug_log.h>
 #include <error.h>
 //boost includes
@@ -287,6 +288,42 @@ namespace
     mutable Playlist::Item::Data::Ptr Delegate;
   };
 
+  class DelayLoadItemsIterator : public Playlist::Item::Collection
+  {
+  public:
+    DelayLoadItemsIterator(Playlist::Item::DataProvider::Ptr provider,
+      Parameters::Accessor::Ptr properties, Playlist::IO::ContainerItemsPtr items)
+      : Provider(provider)
+      , Properties(properties)
+      , Items(items)
+      , Current(Items->begin())
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current != Items->end();
+    }
+
+    virtual Playlist::Item::Data::Ptr Get() const
+    {
+      Require(Current != Items->end());
+      DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *Current));
+      return boost::make_shared<DelayLoadItemData>(boost::ref(provider));
+    }
+
+    virtual void Next()
+    {
+      Require(Current != Items->end());
+      ++Current;
+    }
+  private:
+    const Playlist::Item::DataProvider::Ptr Provider;
+    const Parameters::Accessor::Ptr Properties;
+    const Playlist::IO::ContainerItemsPtr Items;
+    Playlist::IO::ContainerItems::const_iterator Current;
+  };
+
   class ContainerImpl : public Playlist::IO::Container
   {
   public:
@@ -309,14 +346,9 @@ namespace
       return static_cast<unsigned>(Items->size());
     }
 
-    virtual void ForAllItems(Playlist::Item::Callback& callback) const
+    virtual Playlist::Item::Collection::Ptr GetItems() const
     {
-      for (Playlist::IO::ContainerItems::const_iterator it = Items->begin(), lim = Items->end(); it != lim; ++it)
-      {
-        DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *it));
-        const Playlist::Item::Data::Ptr item = boost::make_shared<DelayLoadItemData>(boost::ref(provider));
-        callback.OnItem(item);
-      }
+      return boost::make_shared<DelayLoadItemsIterator>(Provider, Properties, Items);
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;

@@ -203,6 +203,34 @@ namespace
 
   using namespace Playlist;
 
+  class ItemsCollection : public Item::Collection
+  {
+  public:
+    ItemsCollection(ItemsContainer::const_iterator begin, ItemsContainer::const_iterator end)
+      : Current(begin)
+      , Limit(end)
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current != Limit;
+    }
+
+    virtual Item::Data::Ptr Get() const
+    {
+      return Current->first;
+    }
+
+    virtual void Next()
+    {
+      ++Current;
+    }
+  private:
+    ItemsContainer::const_iterator Current;
+    const ItemsContainer::const_iterator Limit;
+  };
+
   const std::size_t CACHE_THRESHOLD = 200;
 
   class LinearStorage : public Item::Storage
@@ -246,6 +274,16 @@ namespace
       Modify();
     }
 
+    virtual void AddItems(Item::Collection::Ptr items)
+    {
+      for (Model::IndexType idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
+      {
+        const IndexedItem idxItem(items->Get(), idx);
+        Items.push_back(idxItem);
+      }
+      Modify();
+    }
+
     virtual std::size_t CountItems() const
     {
       return Items.size();
@@ -261,7 +299,12 @@ namespace
       return it->first;
     }
 
-    virtual void ForAllItems(Playlist::Item::Visitor& visitor) const
+    virtual Item::Collection::Ptr GetItems() const
+    {
+      return boost::make_shared<ItemsCollection>(Items.begin(), Items.end());
+    }
+
+    virtual void ForAllItems(Item::Visitor& visitor) const
     {
       for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {

@@ -11,9 +11,14 @@
 #ifndef __ITERATOR_H_DEFINED__
 #define __ITERATOR_H_DEFINED__
 
+//common includes
+#include <tools.h>
+//std includes
 #include <cassert>
 #include <iterator>
 #include <memory>
+//boost includes
+#include <boost/shared_ptr.hpp>
 
 //! @brief Cycled iterator implementation
 //! @code
@@ -180,7 +185,7 @@ class ObjectIterator
   };
 
 public:
-  typedef typename std::auto_ptr<ObjectIterator<T> > Ptr;
+  typedef typename boost::shared_ptr<ObjectIterator<T> > Ptr;
 
   //! Virtual destructor
   virtual ~ObjectIterator() {}
@@ -195,7 +200,8 @@ public:
 
   static Ptr CreateStub()
   {
-    return Ptr(new Stub());
+    static Stub STUB_INSTANCE;
+    return Ptr(&STUB_INSTANCE, NullDeleter<Stub>());
   }
 };
 

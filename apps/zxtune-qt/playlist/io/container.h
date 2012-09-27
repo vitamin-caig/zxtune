@@ -40,7 +40,7 @@ namespace Playlist
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual unsigned GetItemsCount() const = 0;
-      virtual void ForAllItems(Item::Callback& callback) const = 0;
+      virtual Item::Collection::Ptr GetItems() const = 0;
     };
   }
 }

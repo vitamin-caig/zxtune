@@ -285,13 +285,13 @@ namespace
     QString Current;
   };
 
-  class ScannerCallback : public Playlist::Item::Callback
+  class ScannerCallback
   {
   public:
     virtual ~ScannerCallback() {}
 
-    virtual void OnItems(Playlist::IO::Container::Ptr items) = 0;
-
+    virtual void OnItem(Playlist::Item::Data::Ptr item) = 0;
+    virtual void OnItems(Playlist::Item::Collection::Ptr items) = 0;
     virtual void OnScanStart(Playlist::ScanStatus::Ptr status) = 0;
     virtual void OnProgress(unsigned progress) = 0;
     virtual void OnMessage(const QString& message) = 0;
@@ -405,7 +405,7 @@ namespace
       {
         return false;
       }
-      Callback.OnItems(playlist);
+      Callback.OnItems(playlist->GetItems());
       return true;
     }
 
@@ -451,8 +451,9 @@ namespace
     virtual void PasteItems(const QStringList& items)
     {
       Dbg("Paste %1% items to %2%", items.size(), this);
+      //TODO: optimize
       const Playlist::IO::Container::Ptr container = Playlist::IO::OpenPlainList(Provider, items);
-      emit ItemsFound(container);
+      emit ItemsFound(container->GetItems());
     }
 
     virtual void Pause(bool pause)
@@ -474,7 +475,7 @@ namespace
       emit ItemFound(item);
     }
 
-    virtual void OnItems(Playlist::IO::Container::Ptr items)
+    virtual void OnItems(Playlist::Item::Collection::Ptr items)
     {
       emit ItemsFound(items);
     }
@@ -526,7 +527,7 @@ namespace Playlist
   Scanner::Ptr Scanner::Create(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::Item::Data::Ptr);
-    REGISTER_METATYPE(Playlist::IO::Container::Ptr);
+    REGISTER_METATYPE(Playlist::Item::Collection::Ptr);
     REGISTER_METATYPE(Playlist::ScanStatus::Ptr);
     return new ScannerImpl(parent, provider);
   }

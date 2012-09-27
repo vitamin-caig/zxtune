@@ -264,28 +264,7 @@ namespace
     QXmlStreamWriter& XML;
   };
 
-  class CallbackAdapter : public Playlist::Item::Callback
-  {
-  public:
-    CallbackAdapter(Playlist::Item::Callback& delegate, Playlist::IO::ExportCallback& cb)
-      : Delegate(delegate)
-      , Report(cb)
-      , DoneItems()
-    {
-    }
-
-    virtual void OnItem(Playlist::Item::Data::Ptr data)
-    {
-      Delegate.OnItem(data);
-      Report.Progress(++DoneItems);
-    }
-  private:
-    Playlist::Item::Callback& Delegate;
-    Playlist::IO::ExportCallback& Report;
-    unsigned DoneItems;
-  };
-
-  class XSPFWriter : private Playlist::Item::Callback
+  class XSPFWriter
   {
   public:
     XSPFWriter(QIODevice& device, bool saveAttributes)
@@ -311,8 +290,13 @@ namespace
     void WriteItems(const Playlist::IO::Container& container, Playlist::IO::ExportCallback& cb)
     {
       XML.writeStartElement(QLatin1String(XSPF::TRACKLIST_TAG));
-      CallbackAdapter adapter(*this, cb);
-      container.ForAllItems(adapter);
+      unsigned doneItems = 0;
+      for (Playlist::Item::Collection::Ptr items = container.GetItems(); items->IsValid(); items->Next())
+      {
+        const Playlist::Item::Data::Ptr item = items->Get();
+        WriteItem(item);
+        cb.Progress(++doneItems);
+      }
       XML.writeEndElement();
     }
 
@@ -321,7 +305,7 @@ namespace
       XML.writeEndDocument();
     }
   private:
-    virtual void OnItem(Playlist::Item::Data::Ptr item)
+    void WriteItem(Playlist::Item::Data::Ptr item)
     {
       Dbg("Save playitem");
       ItemPropertiesSaver saver(XML);

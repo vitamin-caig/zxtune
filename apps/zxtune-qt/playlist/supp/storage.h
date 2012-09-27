@@ -53,9 +53,11 @@ namespace Playlist
 
       //create
       virtual void AddItem(Data::Ptr item) = 0;
+      virtual void AddItems(Collection::Ptr items) = 0;
       //read
       virtual std::size_t CountItems() const = 0;
       virtual Data::Ptr GetItem(Model::IndexType idx) const = 0;
+      virtual Collection::Ptr GetItems() const = 0;
 
       virtual void ForAllItems(Visitor& visitor) const = 0;
       virtual void ForSpecifiedItems(const Model::IndexSet& indices, Visitor& visitor) const = 0;
