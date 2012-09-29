@@ -6,7 +6,7 @@ msgstr ""
 "Language-Team: Russian\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CP1251\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
@@ -14,98 +14,96 @@ msgstr ""
 #: plugins/containers/container_supp_common.cpp:214
 #, boost-format
 msgid "%1% processing"
-msgstr "Анализ %1%"
+msgstr "РђРЅР°Р»РёР· %1%"
 
 #: plugins/containers/container_supp_common.cpp:215
 #, boost-format
 msgid "%1% processing at %2%"
-msgstr "Анализ %1% в %2%"
+msgstr "РђРЅР°Р»РёР· %1% РІ %2%"
 
 #: plugins/containers/container_supp_common.cpp:221
 #, boost-format
 msgid "%1% processing for %2%"
-msgstr "Анализ %1% для %2%"
+msgstr "РђРЅР°Р»РёР· %1% РґР»СЏ %2%"
 
 #: plugins/containers/container_supp_common.cpp:222
 #, boost-format
 msgid "%1% processing for %2% at %3%"
-msgstr "Анализ %1% для %2% в %3%"
+msgstr "РђРЅР°Р»РёР· %1% РґР»СЏ %2% РІ %3%"
 
 #: plugins/containers/raw_supp.cpp:261
 #, boost-format
 msgid "Specified minimal scan size (%1%). Should be more than %2%."
-msgstr "Неправильный минимальный размер блока для анализа (%1%). Должен быть больше %2%."
+msgstr ""
+"РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ РјРёРЅРёРјР°Р»СЊРЅС‹Р№ СЂР°Р·РјРµСЂ Р±Р»РѕРєР° РґР»СЏ Р°РЅР°Р»РёР·Р° (%1%). Р”РѕР»Р¶РµРЅ Р±С‹С‚СЊ Р±РѕР»СЊС€Рµ "
+"%2%."
 
-#: plugins/enumerator.cpp:185 plugins/enumerator.cpp:213
+#: plugins/enumerator.cpp:185 plugins/enumerator.cpp:209
 msgid "Invalid parameters specified."
-msgstr "Неправильные параметры."
+msgstr "РќРµРїСЂР°РІРёР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹."
 
-#: plugins/enumerator.cpp:196 plugins/enumerator.cpp:226
+#: plugins/enumerator.cpp:196 plugins/enumerator.cpp:220
 #, boost-format
 msgid "Failed to find specified submodule starting from path '%1%'."
-msgstr "Модуль не найден при поиске начиная с '%1%'."
-
-#: plugins/enumerator.cpp:204 plugins/enumerator.cpp:230
-msgid "Failed to allocate memory while processing modules."
-msgstr "Ошибка выделения памяти при работе с модулями"
+msgstr "РњРѕРґСѓР»СЊ РЅРµ РЅР°Р№РґРµРЅ РїСЂРё РїРѕРёСЃРєРµ РЅР°С‡РёРЅР°СЏ СЃ '%1%'."
 
 #: plugins/players/ay/ay_conversion.cpp:134
 msgid "Failed to convert to PSG format."
-msgstr "Ошибка конверсии в PSG."
+msgstr "РћС€РёР±РєР° РєРѕРЅРІРµСЂСЃРёРё РІ PSG."
 
 #: plugins/players/ay/ay_conversion.cpp:141
 msgid "Failed to convert to ZX50 format."
-msgstr "Ошибка конверсии в ZX50."
+msgstr "РћС€РёР±РєР° РєРѕРЅРІРµСЂСЃРёРё РІ ZX50."
 
 #: plugins/players/ay/ay_conversion.cpp:148
 msgid "Failed to convert to debug ay format."
-msgstr "Ошибка конверсии в отладочный формат."
+msgstr "РћС€РёР±РєР° РєРѕРЅРІРµСЂСЃРёРё РІ РѕС‚Р»Р°РґРѕС‡РЅС‹Р№ С„РѕСЂРјР°С‚."
 
 #: plugins/players/ay/ay_conversion.cpp:155
 msgid "Failed to convert to raw ay dump."
-msgstr "Ошибка конверсии в сырой дамп регистров."
+msgstr "РћС€РёР±РєР° РєРѕРЅРІРµСЂСЃРёРё РІ СЃС‹СЂРѕР№ РґР°РјРї СЂРµРіРёСЃС‚СЂРѕРІ."
 
 #: plugins/players/ay/ay_conversion.cpp:162
 msgid "Failed to convert to FYM format."
-msgstr "Ошибка конверсии в FYM."
+msgstr "РћС€РёР±РєР° РєРѕРЅРІРµСЂСЃРёРё РІ FYM."
 
 #: plugins/players/ay/ay_conversion.cpp:213
 #, c-format, boost-format
 msgid "Unsupported conversion mode (%1$08x)."
-msgstr "Неподдерживаемый режим конверсии (%1$08x)."
+msgstr "РќРµРїРѕРґРґРµСЂР¶РёРІР°РµРјС‹Р№ СЂРµР¶РёРј РєРѕРЅРІРµСЂСЃРёРё (%1$08x)."
 
 #: plugins/players/ay/aym_parameters.cpp:56
 #, boost-format
 msgid "Invalid duty cycle mask item: '%1%'."
-msgstr "Неправильное значение канала для задания скважности: '%1%'."
+msgstr "РќРµРїСЂР°РІРёР»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ РєР°РЅР°Р»Р° РґР»СЏ Р·Р°РґР°РЅРёСЏ СЃРєРІР°Р¶РЅРѕСЃС‚Рё: '%1%'."
 
 #: plugins/players/ay/aym_parameters.cpp:99
 #: plugins/players/ay/aym_parameters.cpp:180
 #, boost-format
 msgid "Invalid layout value (%1%)."
-msgstr "Неправильное значение раскладки каналов (%1%)."
+msgstr "РќРµРїСЂР°РІРёР»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ СЂР°СЃРєР»Р°РґРєРё РєР°РЅР°Р»РѕРІ (%1%)."
 
 #: plugins/players/ay/aym_parameters.cpp:119
 #, boost-format
 msgid "Invalid clock frequency (%1%)."
-msgstr "Неправильное значение тактовой частоты (%1%)."
+msgstr "РќРµРїСЂР°РІРёР»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ С‚Р°РєС‚РѕРІРѕР№ С‡Р°СЃС‚РѕС‚С‹ (%1%)."
 
 #: plugins/players/ay/aym_parameters.cpp:151
 #, boost-format
 msgid "Invalid duty cycle value (%1%)."
-msgstr "Неправильное значение скважности (%1%)."
+msgstr "РќРµРїСЂР°РІРёР»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ СЃРєРІР°Р¶РЅРѕСЃС‚Рё (%1%)."
 
 #: plugins/players/ay/aym_parameters.cpp:246
 #, boost-format
 msgid "Invalid frequency table size (%1%)."
-msgstr "Неправильный размер частотной таблицы (%1%)."
+msgstr "РќРµРїСЂР°РІРёР»СЊРЅС‹Р№ СЂР°Р·РјРµСЂ С‡Р°СЃС‚РѕС‚РЅРѕР№ С‚Р°Р±Р»РёС†С‹ (%1%)."
 
 #: plugins/players/ay/freq_tables.cpp:244
 #, boost-format
 msgid "Invalid frequency table '%1%'."
-msgstr "Неправильное значение частотной таблицы '%1%'."
+msgstr "РќРµРїСЂР°РІРёР»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ С‡Р°СЃС‚РѕС‚РЅРѕР№ С‚Р°Р±Р»РёС†С‹ '%1%'."
 
 #: plugins/players/ay/vortex_io_txt.cpp:860
 #, boost-format
 msgid "Invalid string while parsing: '%1%'."
-msgstr "Неправильная строка: '%1%'."
+msgstr "РќРµРїСЂР°РІРёР»СЊРЅР°СЏ СЃС‚СЂРѕРєР°: '%1%'."

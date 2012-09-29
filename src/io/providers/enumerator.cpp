@@ -178,14 +178,7 @@ namespace ZXTune
 
     Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
     {
-      try
-      {
-        return ProvidersEnumerator::Instance().OpenData(path, params, cb);
-      }
-      catch (const std::bad_alloc&)
-      {
-        throw Error(THIS_LINE, ERROR_NO_MEMORY, translate("Failed to allocate memory to open data."));
-      }
+      return ProvidersEnumerator::Instance().OpenData(path, params, cb);
     }
 
     Provider::Iterator::Ptr EnumerateProviders()

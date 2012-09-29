@@ -56,16 +56,8 @@ msgstr "Поддержка подсистемы ALSA"
 msgid "Failed to create backend '%1%'."
 msgstr "Ошибка создания подсистемы вывода '%1%'."
 
-#: backends/alsa_backend.cpp:859 backends/dsound_backend.cpp:555
-#: backends/flac_backend.cpp:328 backends/mp3_backend.cpp:396
-#: backends/null_backend.cpp:113 backends/ogg_backend.cpp:464
-#: backends/oss_backend.cpp:423 backends/sdl_backend.cpp:337
-#: backends/wav_backend.cpp:225 backends/win32_backend.cpp:560
-msgid "Failed to allocate memory for backend."
-msgstr "Ошибка выделения памяти для звуковой подсистемы."
-
-#: backends/alsa_backend.cpp:1128 backends/dsound_backend.cpp:656
-#: backends/win32_backend.cpp:657
+#: backends/alsa_backend.cpp:1124 backends/dsound_backend.cpp:652
+#: backends/win32_backend.cpp:653
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 

@@ -199,10 +199,6 @@ namespace ZXTune
     {
       return e;
     }
-    catch (const std::bad_alloc&)
-    {
-      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, translate("Failed to allocate memory while processing modules."));
-    }
   }
 
   Error OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath,
@@ -212,22 +208,15 @@ namespace ZXTune
     {
       return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, translate("Invalid parameters specified."));
     }
-    try
+    if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, subpath))
     {
-      if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, subpath))
+      if (Module::Holder::Ptr holder = Module::Open(location))
       {
-        if (Module::Holder::Ptr holder = Module::Open(location))
-        {
-          result = holder;
-          return Error();
-        }
+        result = holder;
+        return Error();
       }
-      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE,
-        translate("Failed to find specified submodule starting from path '%1%'."), subpath);
     }
-    catch (const std::bad_alloc&)
-    {
-      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, translate("Failed to allocate memory while processing modules."));
-    }
+    return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE,
+      translate("Failed to find specified submodule starting from path '%1%'."), subpath);
   }
 }

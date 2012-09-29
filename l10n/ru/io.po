@@ -20,11 +20,7 @@ msgstr "Ошибка анализа идентификатора '%1%'."
 msgid "Specified uri scheme is not supported."
 msgstr "Данная схема идентификатора не поддерживается."
 
-#: providers/enumerator.cpp:187
-msgid "Failed to allocate memory to open data."
-msgstr "Ошибка выделения памяти."
-
-#: providers/enumerator.cpp:198
+#: providers/enumerator.cpp:191
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 

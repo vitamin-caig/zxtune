@@ -391,10 +391,6 @@ namespace
         return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
-      catch (const std::bad_alloc&)
-      {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
-      }
     }
   private:
     const Mp3::Api::Ptr Api;
