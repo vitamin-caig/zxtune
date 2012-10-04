@@ -1,19 +1,19 @@
 /**
 *
-* @file     time_duration.h
-* @brief    Time::Duration itnerface
+* @file     duration.h
+* @brief    Time duration interface
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
 *
 **/
 
 #pragma once
-#ifndef __TIME_DURATION_H_DEFINED__
-#define __TIME_DURATION_H_DEFINED__
+#ifndef TIME_DURATION_H_DEFINED
+#define TIME_DURATION_H_DEFINED
 
 //common includes
 #include <format.h>
-#include <time_stamp.h>
+#include <time/stamp.h>
 //boost includes
 #include <boost/math/common_factor_rt.hpp>
 
@@ -134,4 +134,4 @@ namespace Time
   typedef Duration<uint_t, Nanoseconds> NanosecondsDuration;
 }
 
-#endif //__TIME_DURATION_H_DEFINED__
+#endif //TIME_DURATION_H_DEFINED

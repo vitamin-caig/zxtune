@@ -16,7 +16,8 @@ Author:
 //common includes
 #include <data_streaming.h>
 #include <types.h>
-#include <time_stamp.h>
+//library includes
+#include <time/stamp.h>
 //boost includes
 #include <boost/array.hpp>
 

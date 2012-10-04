@@ -5,9 +5,6 @@
 #include <parameters.h>
 #include <range_checker.h>
 #include <messages_collector.h>
-#include <time_duration.h>
-#include <time_oscillator.h>
-#include <time_stamp.h>
 #include <tools.h>
 
 #include <iostream>
@@ -256,62 +253,6 @@ int main()
     TestScale<uint64_t>("uint64_t giant up overhead", UINT64_C(4000000000), UINT64_C(3000000000), UINT64_C(20000000000), UINT64_C(26666666666));
     TestScale<uint64_t>("uint64_t giant down", UINT64_C(10000000000), UINT64_C(20000000000), UINT64_C(30000000000), UINT64_C(15000000000));
     TestScale<uint64_t>("uint64_t giant down overhead", UINT64_C(4000000000), UINT64_C(2000000000), UINT64_C(3000000000), UINT64_C(6000000000));
-  }
-  std::cout << "---- Test for time tools ----" << std::endl;
-  {
-    Time::Nanoseconds ns(UINT64_C(10000000));
-    {
-      const Time::Nanoseconds ons(ns);
-      Test<uint64_t>("Ns => Ns", ons.Get(), ns.Get());
-      const Time::Microseconds ous(ns);
-      Test<uint64_t>("Ns => Us", ous.Get(), ns.Get() / 1000);
-      const Time::Milliseconds oms(ns);
-      Test<uint64_t>("Ns => Ms", oms.Get(), ns.Get() / 1000000);
-    }
-    Time::Microseconds us(2000000);
-    {
-      const Time::Nanoseconds ons(us);
-      Test<uint64_t>("Us => Ns", ons.Get(), uint64_t(us.Get()) * 1000);
-      const Time::Microseconds ous(us);
-      Test<uint64_t>("Us => Us", ous.Get(), us.Get());
-      const Time::Milliseconds oms(us);
-      Test<uint64_t>("Us => Ms", oms.Get(), us.Get() / 1000);
-    }
-    Time::Milliseconds ms(3000000);
-    {
-      const Time::Nanoseconds ons(ms);                         
-      Test<uint64_t>("Ms => Ns", ons.Get(), uint64_t(ms.Get()) * 1000000);
-      const Time::Microseconds ous(ms);
-      Test<uint64_t>("Ms => Us", ous.Get(), ms.Get() * 1000);
-      const Time::Milliseconds oms(ms);
-      Test<uint64_t>("Ms => Ms", oms.Get(), ms.Get());
-    }
-    /*disabled due to float calculation threshold
-    Time::Stamp<uint32_t, 1> s(10000);
-    {
-      const Time::Nanoseconds ons(s);                         
-      Test<uint64_t>("S => Ns", ons.Get(), uint64_t(s.Get()) * UINT64_C(1000000000));
-      const Time::Microseconds ous(s);
-      Test<uint64_t>("S => Us", ous.Get(), uint64_t(s.Get()) * 1000000);
-      const Time::Milliseconds oms(s);
-      Test<uint64_t>("S => Ms", oms.Get(), s.Get() * 1000);
-    }
-    */
-    {
-      Time::Milliseconds period1(20), period2(30);
-      Time::MillisecondsDuration msd1(12345, period1);
-      Time::MillisecondsDuration msd2(5678, period2);
-      //246900ms = 246.9s = 4m6s + 900ms/20
-      Test<String>("MillisecondsDuration1 ToString()", msd1.ToString(), "4:06.45");
-      //170340ms = 170.34s = 2m50s + 340ms/30
-      Test<String>("MillisecondsDuration2 ToString()", msd2.ToString(), "2:50.11");
-      Test("MillisecondsDuration compare", msd2 < msd1);
-      msd1 += msd2;
-      //period == 10
-      //value == 12345 * 2 + 5678 * 3 = 41724
-      //417240ms = 417.24s = 6m57s + 240/10
-      Test<String>("MillisecondsDuration sum", msd1.ToString(), "6:57.24");
-    }
   }
   std::cout << "---- Test for iterators ----" << std::endl;
   {

@@ -22,7 +22,6 @@ Author:
 //common includes
 #include <debug_log.h>
 #include <format.h>
-#include <time_oscillator.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -34,6 +33,7 @@ Author:
 #include <devices/z80.h>
 #include <formats/chiptune/ay.h>
 #include <sound/sound_parameters.h>
+#include <time/oscillator.h>
 //std includes
 #include <list>
 //boost includes

@@ -1,15 +1,15 @@
 /**
 *
-* @file     time_tools.h
-* @brief    Time tools interface
+* @file     stamp.h
+* @brief    Time stamp interface
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
 *
 **/
 
 #pragma once
-#ifndef __TIME_TOOLS_H_DEFINED__
-#define __TIME_TOOLS_H_DEFINED__
+#ifndef TIME_STAMP_H_DEFINED
+#define TIME_STAMP_H_DEFINED
 
 //common includes
 #include <tools.h>
@@ -111,4 +111,4 @@ namespace Time
   }
 }
 
-#endif //__TIME_TOOLS_H_DEFINED__
+#endif //TIME_STAMP_H_DEFINED

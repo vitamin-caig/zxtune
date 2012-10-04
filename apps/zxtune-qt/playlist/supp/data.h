@@ -18,9 +18,9 @@ Author:
 //common includes
 #include <iterator.h>
 #include <parameters.h>
-#include <time_duration.h>
 //library includes
 #include <core/module_holder.h>
+#include <time/duration.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 

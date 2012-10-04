@@ -1,21 +1,20 @@
 /**
 *
-* @file     time_oscillator.h
-* @brief    Time tools interface
+* @file     oscillator.h
+* @brief    Oscillator interface
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
 *
 **/
 
 #pragma once
-#ifndef __TIME_OSCILLATOR_H_DEFINED__
-#define __TIME_OSCILLATOR_H_DEFINED__
+#ifndef TIME_OSCILLATOR_H_DEFINED
+#define TIME_OSCILLATOR_H_DEFINED
 
 //common includes
-#include <time_stamp.h>
 #include <tools.h>
-//std includes
-#include <cassert>
+//library includes
+#include <time/stamp.h>
 
 namespace Time
 {
@@ -97,4 +96,4 @@ namespace Time
   typedef Oscillator<uint64_t, Nanoseconds> NanosecOscillator;
 }
 
-#endif //__TIME_OSCILLATOR_H_DEFINED__
+#endif //TIME_OSCILLATOR_H_DEFINED

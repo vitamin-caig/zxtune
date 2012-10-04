@@ -11,10 +11,9 @@ Author:
 
 //local includes
 #include "Ym2203_Emu.h"
-//common includes
-#include <time_oscillator.h>
 //library includes
 #include <devices/fm.h>
+#include <time/oscillator.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
