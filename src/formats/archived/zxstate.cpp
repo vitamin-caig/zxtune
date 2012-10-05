@@ -14,18 +14,18 @@ Author:
 //common includes
 #include <contract.h>
 #include <debug_log.h>
-#include <format.h>
-#include <string_helpers.h>
 #include <tools.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/input_stream.h>
 #include <formats/archived.h>
+#include <strings/format.h>
 //std includes
 #include <cstring>
 #include <list>
 #include <map>
 #include <numeric>
+#include <sstream>
 //3rd-party includes
 #include <3rdparty/zlib/zlib.h>
 //boost includes
@@ -610,8 +610,8 @@ namespace ZXState
     }
     else
     {
-      OutStringStream str;
-      str << base << '.' << suffix;
+      std::basic_ostringstream<Char> str;
+      str << base << Char('.') << suffix;
       return str.str();
     }
   }

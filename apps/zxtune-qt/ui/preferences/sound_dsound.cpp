@@ -20,7 +20,6 @@ Author:
 //common includes
 #include <contract.h>
 #include <debug_log.h>
-#include <format.h>
 #include <tools.h>
 //library includes
 #include <sound/backends_parameters.h>

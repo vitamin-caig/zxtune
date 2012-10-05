@@ -103,7 +103,7 @@ msgstr "Неправильный размер частотной таблицы 
 msgid "Invalid frequency table '%1%'."
 msgstr "Неправильное значение частотной таблицы '%1%'."
 
-#: plugins/players/ay/vortex_io_txt.cpp:860
+#: plugins/players/ay/vortex_io_txt.cpp:862
 #, boost-format
 msgid "Invalid string while parsing: '%1%'."
 msgstr "Неправильная строка: '%1%'."

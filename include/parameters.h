@@ -11,8 +11,8 @@
 #ifndef __PARAMETERS_TYPES_H_DEFINED__
 #define __PARAMETERS_TYPES_H_DEFINED__
 
-//common includes
-#include <string_helpers.h>
+//library includes
+#include <strings/map.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -163,7 +163,7 @@ namespace Parameters
     virtual void SetValue(const NameType& name, const DataType& val) = 0;
   };
 
-  void ParseStringMap(const StringMap& map, Visitor& visitor);
+  void ParseStringMap(const Strings::Map& map, Visitor& visitor);
 
   class Modifier : public Visitor
   {
@@ -213,7 +213,7 @@ namespace Parameters
   };
 
   //other functions
-  void Convert(const Accessor& ac, StringMap& strings);
+  void Convert(const Accessor& ac, Strings::Map& strings);
 
 
   class PropertyChangedCallback

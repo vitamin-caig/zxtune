@@ -16,7 +16,6 @@ Author:
 #include "storage.h"
 //common includes
 #include <error_tools.h>
-#include <format.h>
 #include <template_parameters.h>
 //library includes
 #include <binary/data_adapter.h>
@@ -24,6 +23,8 @@ Author:
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <io/providers/file_provider.h>
+#include <strings/format.h>
+#include <strings/template.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -596,7 +597,7 @@ namespace
   public:
     ExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems()
-      , NameTemplate(StringTemplate::Create(nameTemplate))
+      , NameTemplate(Strings::Template::Create(nameTemplate))
       , Params(params)
       , Result(result)
     {
@@ -604,7 +605,7 @@ namespace
 
     ExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems(items)
-      , NameTemplate(StringTemplate::Create(nameTemplate))
+      , NameTemplate(Strings::Template::Create(nameTemplate))
       , Params(params)
       , Result(result)
     {
@@ -654,7 +655,7 @@ namespace
       stream->ApplyData(toSave);
     }
   private:
-    class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+    class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
     {
     public:
       typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
@@ -670,7 +671,7 @@ namespace
     };
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
-    const StringTemplate::Ptr NameTemplate;
+    const Strings::Template::Ptr NameTemplate;
     const SaveParameters Params;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };

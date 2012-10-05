@@ -11,8 +11,8 @@ Author:
 
 //local includes
 #include <apps/version/api.h>
-//common includes
-#include <format.h>
+//library includes
+#include <strings/format.h>
 //text includes
 #include "../text/text.h"
 

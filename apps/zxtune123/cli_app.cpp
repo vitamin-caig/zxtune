@@ -35,6 +35,7 @@ Author:
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <sound/sound_parameters.h>
+#include <strings/template.h>
 //std includes
 #include <algorithm>
 #include <cctype>
@@ -65,7 +66,7 @@ namespace
     return res;
   }
 
-  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
   {
   public:
     typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
@@ -83,7 +84,7 @@ namespace
   class ConvertEndpoint : public DataReceiver<ZXTune::Module::Holder::Ptr>
   {
   public:
-    ConvertEndpoint(DisplayComponent& display, std::auto_ptr<ZXTune::Module::Conversion::Parameter> param, uint_t capMask, StringTemplate::Ptr templ)
+    ConvertEndpoint(DisplayComponent& display, std::auto_ptr<ZXTune::Module::Conversion::Parameter> param, uint_t capMask, Strings::Template::Ptr templ)
       : Display(display)
       , ConversionParameter(param)
       , CapabilityMask(capMask)
@@ -124,7 +125,7 @@ namespace
     DisplayComponent& Display;
     const std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
     const uint_t CapabilityMask;
-    const StringTemplate::Ptr FileNameTemplate;
+    const Strings::Template::Ptr FileNameTemplate;
   };
 
 
@@ -188,7 +189,7 @@ namespace
         throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
       }
 
-      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, param, mask, StringTemplate::Create(nameTemplate)));
+      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, param, mask, Strings::Template::Create(nameTemplate)));
       Pipe = Async::DataReceiver<ZXTune::Module::Holder::Ptr>::Create(1, 1000, target);
     }
 

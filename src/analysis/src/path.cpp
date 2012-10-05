@@ -11,9 +11,9 @@ Author:
 
 //common includes
 #include <contract.h>
-#include <string_helpers.h>
 //library includes
 #include <analysis/path.h>
+#include <strings/array.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -24,17 +24,17 @@ Author:
 
 namespace
 {
-  StringArray SplitPath(const String& str, Char separator)
+  Strings::Array SplitPath(const String& str, Char separator)
   {
     const String delimiter(1, separator);
-    StringArray parts;
+    Strings::Array parts;
     boost::algorithm::split(parts, str, boost::algorithm::is_any_of(delimiter), boost::algorithm::token_compress_on);
-    const StringArray::iterator newEnd = std::remove_if(parts.begin(), parts.end(),
+    const Strings::Array::iterator newEnd = std::remove_if(parts.begin(), parts.end(),
       std::mem_fun_ref(&String::empty));
-    return StringArray(parts.begin(), newEnd);
+    return Strings::Array(parts.begin(), newEnd);
   }
 
-  String JoinPath(const StringArray& arr, Char separator)
+  String JoinPath(const Strings::Array& arr, Char separator)
   {
     const String delimiter(1, separator);
     return boost::algorithm::join(arr, delimiter);
@@ -71,8 +71,8 @@ namespace
 
     virtual Ptr Append(const String& element) const
     {
-      const StringArray& newOne = SplitPath(element, Separator);
-      StringArray result(Components.size() + newOne.size());
+      const Strings::Array& newOne = SplitPath(element, Separator);
+      Strings::Array result(Components.size() + newOne.size());
       std::copy(newOne.begin(), newOne.end(),
         std::copy(Components.begin(), Components.end(), result.begin()));
       return CreatePath(Separator, result.begin(), result.end());
@@ -80,12 +80,12 @@ namespace
 
     virtual Ptr Extract(const String& startPath) const
     {
-      const StringArray& subSplitted = SplitPath(startPath, Separator);
+      const Strings::Array& subSplitted = SplitPath(startPath, Separator);
       if (subSplitted.size() > Components.size())
       {
         return Ptr();
       }
-      const std::pair<StringArray::const_iterator, StringArray::const_iterator> iters =
+      const std::pair<Strings::Array::const_iterator, Strings::Array::const_iterator> iters =
         std::mismatch(subSplitted.begin(), subSplitted.end(), Components.begin());
       if (iters.first != subSplitted.end())
       {
@@ -94,7 +94,7 @@ namespace
       return CreatePath(Separator, iters.second, Components.end());
     }
   private:
-    const StringArray Components;
+    const Strings::Array Components;
     const Char Separator;
   };
 
@@ -154,7 +154,7 @@ namespace Analysis
 {
   Path::Ptr ParsePath(const String& str, Char separator)
   {
-    const StringArray parsed = SplitPath(str, separator);
+    const Strings::Array parsed = SplitPath(str, separator);
     return CreatePath(separator, parsed.begin(), parsed.end());
   }
 }

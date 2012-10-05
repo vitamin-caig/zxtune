@@ -1,5 +1,5 @@
 #include <tools.h>
-#include <format.h>
+#include <error_tools.h>
 #include <src/sound/mixer.h>
 #include <src/sound/error_codes.h>
 
@@ -104,9 +104,8 @@ namespace
       }
       else
       {
-        const String txt = Strings::Format("Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
+        throw MakeFormattedError(THIS_LINE, 1, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
           data[0], data[1], ToCompare[0], ToCompare[1]);
-        throw Error(THIS_LINE, 1, txt);
       }
     }
     

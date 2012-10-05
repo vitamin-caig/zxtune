@@ -13,6 +13,7 @@ Author:
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
+#include <strings/array.h>
 //std includes
 #include <list>
 //boost includes
@@ -42,11 +43,11 @@ namespace
     return available;
   }
 
-  CreatorsList GetSortedBackends(const StringArray& order)
+  CreatorsList GetSortedBackends(const Strings::Array& order)
   {
     CreatorsList available = GetAvailableSystemBackends();
     CreatorsList items;
-    for (StringArray::const_iterator it = order.begin(), lim = order.end(); it != lim; ++it)
+    for (Strings::Array::const_iterator it = order.begin(), lim = order.end(); it != lim; ++it)
     {
       const String& val = *it;
       const CreatorsList::iterator avIt = std::find_if(available.begin(), available.end(),
@@ -63,7 +64,7 @@ namespace
   class SystemBackendsScope : public BackendsScope
   {
   public:
-    explicit SystemBackendsScope(const StringArray& order)
+    explicit SystemBackendsScope(const Strings::Array& order)
       : Creators(GetSortedBackends(order))
     {
     }
@@ -85,7 +86,7 @@ namespace ZXTune
     {
       Parameters::StringType order;
       params->FindValue(Parameters::ZXTune::Sound::Backends::ORDER, order);
-      StringArray ordered;
+      Strings::Array ordered;
       boost::algorithm::split(ordered, order, !boost::algorithm::is_alnum());
       return boost::make_shared<SystemBackendsScope>(ordered);
     }

@@ -21,8 +21,10 @@ Author:
 #include <core/freq_tables.h>
 #include <core/module_attrs.h>
 #include <l10n/api.h>
+#include <strings/array.h>
 //std includes
 #include <cctype>
+#include <sstream>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
@@ -436,9 +438,9 @@ namespace
     {
       return false;
     }
-    StringArray parts;
+    Strings::Array parts;
     boost::algorithm::split(parts, str, boost::algorithm::is_any_of(","));
-    StringArray::iterator loopIt = std::find_if(parts.begin(), parts.end(), IsLooped);
+    Strings::Array::iterator loopIt = std::find_if(parts.begin(), parts.end(), IsLooped);
 
     if (loopIt != parts.end())
     {
@@ -458,7 +460,7 @@ namespace
   template<class T>
   inline std::string UnparseLoopedList(const std::vector<T>& list, uint_t loop)
   {
-    OutStringStream result;
+    std::basic_ostringstream<Char> result;
     for (uint_t idx = 0; idx != list.size(); ++idx)
     {
       if (idx)
@@ -529,7 +531,7 @@ namespace
   {
     static const std::string DELIMITER("|");
     uint_t envBase = 0;
-    StringArray channels(line.Channels.size());
+    Strings::Array channels(line.Channels.size());
     uint_t tempo = line.Tempo ? *line.Tempo : 0;
     std::string result;
     int_t newNoiseBase = -1;
@@ -907,7 +909,7 @@ namespace ZXTune
           else if (SampleHeaderFromString(string, idx))
           {
             data.Samples.resize(idx + 1);
-            const StringArray::const_iterator stop = SampleFromStrings(it, next, data.Samples[idx]);
+            const Strings::Array::const_iterator stop = SampleFromStrings(it, next, data.Samples[idx]);
             if (next != stop)
             {
               return CreateInvalidStringError(THIS_LINE, *stop);

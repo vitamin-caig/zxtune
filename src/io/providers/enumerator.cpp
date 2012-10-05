@@ -21,6 +21,7 @@ Author:
 //std includes
 #include <algorithm>
 #include <list>
+#include <map>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -49,7 +50,7 @@ namespace
     {
       Providers.push_back(provider);
       Dbg("Registered provider '%1%'", provider->Id());
-      const StringSet& schemes = provider->Schemes();
+      const Strings::Set& schemes = provider->Schemes();
       std::transform(schemes.begin(), schemes.end(), std::inserter(Schemes, Schemes.end()),
         boost::bind(&std::make_pair<String, DataProvider::Ptr>, _1, provider));
     }
@@ -145,9 +146,9 @@ namespace
       throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Specified uri scheme is not supported."));
     }
 
-    virtual StringSet Schemes() const
+    virtual Strings::Set Schemes() const
     {
-      return StringSet();
+      return Strings::Set();
     }
 
     virtual Identifier::Ptr Resolve(const String& /*uri*/) const

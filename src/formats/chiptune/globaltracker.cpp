@@ -18,11 +18,11 @@ Author:
 #include <contract.h>
 #include <crc.h>
 #include <debug_log.h>
-#include <format.h>
 #include <iterator.h>
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
+#include <strings/format.h>
 //std includes
 #include <cstring>
 #include <set>

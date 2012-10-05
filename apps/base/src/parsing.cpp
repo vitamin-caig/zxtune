@@ -43,9 +43,9 @@ namespace
     return Text::CONFIG_FILENAME;
   }
 
-  Error ParseParametersString(const Parameters::NameType& prefix, const String& str, StringMap& result)
+  Error ParseParametersString(const Parameters::NameType& prefix, const String& str, Strings::Map& result)
   {
-    StringMap res;
+    Strings::Map res;
   
     enum
     {
@@ -120,14 +120,14 @@ namespace
 
       if (doApply)
       {
-        res.insert(StringMap::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
+        res.insert(Strings::Map::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
         paramName.clear();
         paramValue.clear();
       }
     }
     if (IN_VALUE == mode)
     {
-      res.insert(StringMap::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
+      res.insert(Strings::Map::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
     }
     else if (IN_NOWHERE != mode)
     {
@@ -203,7 +203,7 @@ Error ParseConfigFile(const String& filename, Parameters::Modifier& result)
 
 Error ParseParametersString(const Parameters::NameType& pfx, const String& str, Parameters::Modifier& result)
 {
-  StringMap strMap;
+  Strings::Map strMap;
   if (const Error& err = ParseParametersString(pfx, str, strMap))
   {
     return err;

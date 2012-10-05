@@ -13,11 +13,10 @@ Author:
 #ifndef __IO_ENUMERATOR_H_DEFINED__
 #define __IO_ENUMERATOR_H_DEFINED__
 
-//common includes
-#include <string_helpers.h>
 //libary includes
 #include <io/identifier.h>
 #include <io/provider.h>  // for ProviderInfoArray
+#include <strings/set.h>
 
 namespace ZXTune
 {
@@ -29,7 +28,7 @@ namespace ZXTune
     public:
       typedef boost::shared_ptr<const DataProvider> Ptr;
 
-      virtual StringSet Schemes() const = 0;
+      virtual Strings::Set Schemes() const = 0;
       virtual Identifier::Ptr Resolve(const String& uri) const = 0;
       virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& parameters, Log::ProgressCallback& callback) const = 0;
     };

@@ -32,6 +32,7 @@ Author:
 #include <io/fs_tools.h>
 #include <io/provider.h>
 #include <io/providers_parameters.h>
+#include <strings/array.h>
 //std includes
 #include <iomanip>
 #include <iostream>
@@ -50,8 +51,6 @@ Author:
 namespace
 {
   const Char DELIMITERS[] = {',', ';', ':', '\0'};
-
-  typedef std::set<String> StringSet;
 
   void OutputString(uint_t width, const String& text)
   {
@@ -109,58 +108,6 @@ namespace
     const Console& Cons;
   };
 
-  void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint_t& caps)
-  {
-    typedef std::pair<uint32_t, String> CapsPair;
-    static const CapsPair CAPABILITIES[] =
-    {
-      CapsPair(ZXTune::CAP_DEV_AYM, Text::INFO_CAP_AYM),
-      CapsPair(ZXTune::CAP_DEV_TS, Text::INFO_CAP_TS),
-      CapsPair(ZXTune::CAP_DEV_BEEPER, Text::INFO_CAP_BEEPER),
-      CapsPair(ZXTune::CAP_DEV_FM, Text::INFO_CAP_FM),
-      CapsPair(ZXTune::CAP_DEV_1DAC | ZXTune::CAP_DEV_2DAC | ZXTune::CAP_DEV_4DAC, Text::INFO_CAP_DAC),
-
-      //remove module capability- it cannot be enabled or disabled
-      CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),
-      CapsPair(ZXTune::CAP_STOR_MULTITRACK, Text::INFO_CAP_MULTITRACK),
-      CapsPair(ZXTune::CAP_STOR_SCANER, Text::INFO_CAP_SCANER),
-      CapsPair(ZXTune::CAP_STOR_PLAIN, Text::INFO_CAP_PLAIN),
-      CapsPair(ZXTune::CAP_STOR_DIRS, Text::INFO_CAP_DIRS),
-
-      CapsPair(ZXTune::CAP_CONV_RAW, Text::INFO_CONV_RAW),
-      CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG)
-    };
-
-    StringSet tmpPlugs;
-    uint32_t tmpCaps = 0;
-
-    if (!str.empty())
-    {
-      StringArray splitted;
-      boost::algorithm::split(splitted, str, boost::algorithm::is_any_of(DELIMITERS));
-      for (StringArray::const_iterator it = splitted.begin(), lim = splitted.end(); it != lim; ++it)
-      {
-        //check if capability
-        const CapsPair* const capIter = std::find_if(CAPABILITIES, ArrayEnd(CAPABILITIES),
-          boost::bind(&CapsPair::second, _1) == *it);
-        if (ArrayEnd(CAPABILITIES) != capIter)
-        {
-          tmpCaps |= capIter->first;
-        }
-        else if (allplugs.count(*it))
-        {
-          tmpPlugs.insert(*it);
-        }
-        else
-        {
-          throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::ERROR_INVALID_PARAMETER, *it, str);
-        }
-      }
-    }
-    plugs.swap(tmpPlugs);
-    caps = tmpCaps;
-  }
-
   class DetectParametersImpl : public ZXTune::DetectParameters
   {
   public:
@@ -200,7 +147,7 @@ namespace
       , YM(false)
     {
       OptionsDescription.add_options()
-        (Text::INPUT_FILE_KEY, boost::program_options::value<StringArray>(&Files), Text::INPUT_FILE_DESC)
+        (Text::INPUT_FILE_KEY, boost::program_options::value<Strings::Array>(&Files), Text::INPUT_FILE_DESC)
         (Text::IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&ProvidersOptions), Text::IO_PROVIDERS_OPTS_DESC)
         (Text::INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), Text::INPUT_PROGRESS_DESC)
         (Text::CORE_OPTS_KEY, boost::program_options::value<String>(&CoreOptions), Text::CORE_OPTS_DESC)
@@ -252,7 +199,7 @@ namespace
     {
       assert(callback);
 
-      for (StringArray::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      for (Strings::Array::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
         ProcessItem(*it, callback);
       }
@@ -280,7 +227,7 @@ namespace
   private:
     const Parameters::Container::Ptr Params;
     boost::program_options::options_description OptionsDescription;
-    StringArray Files;
+    Strings::Array Files;
     String ProvidersOptions;
     bool ShowProgress;
     String CoreOptions;

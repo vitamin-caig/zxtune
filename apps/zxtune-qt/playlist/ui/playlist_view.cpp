@@ -35,6 +35,8 @@ Author:
 #include <debug_log.h>
 #include <error.h>
 #include <template_parameters.h>
+//library includes
+#include <strings/template.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -111,9 +113,9 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
   {
-    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
+    typedef Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> Parent;
   public:
     explicit HTMLEscapedFieldsSourceAdapter(const Parameters::Accessor& props)
       : Parent(props)
@@ -142,7 +144,7 @@ namespace
       return GetTemplate().Instantiate(adapter);
     }
   private:
-    const StringTemplate& GetTemplate() const
+    const Strings::Template& GetTemplate() const
     {
       const QString view = Playlist::UI::View::tr(
         "<html>"
@@ -157,18 +159,18 @@ namespace
       return GetTemplate(view);
     }
 
-    const StringTemplate& GetTemplate(const QString& view) const
+    const Strings::Template& GetTemplate(const QString& view) const
     {
       if (view != TemplateView)
       {
-        TemplateData = StringTemplate::Create(FromQString(view));
+        TemplateData = Strings::Template::Create(FromQString(view));
         TemplateView = view;
       }
       return *TemplateData;
     }
   private:
     mutable QString TemplateView;
-    mutable StringTemplate::Ptr TemplateData;
+    mutable Strings::Template::Ptr TemplateData;
   };
 
   class RetranslateModel : public QProxyModel

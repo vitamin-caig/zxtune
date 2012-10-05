@@ -179,7 +179,7 @@ namespace
     explicit AlsaIdentifier(const String& id)
     {
       static const Char DELIMITERS[] = {':', ',', 0};
-      StringArray elements;
+      Strings::Array elements;
       boost::algorithm::split(elements, id, boost::algorithm::is_any_of(DELIMITERS));
       elements.resize(3);
       Interface = elements[0];
@@ -1014,13 +1014,13 @@ namespace
       return CardNameValue;
     }
 
-    virtual StringArray Mixers() const
+    virtual Strings::Array Mixers() const
     {
       try
       {
         const AlsaIdentifier id(IdValue);
         const AttachedMixer attached(Api, id.GetCard());
-        StringArray result;
+        Strings::Array result;
         for (MixerElementsIterator iter(attached.GetElements()); iter.IsValid(); iter.Next())
         {
           const String mixName = iter.GetName();
@@ -1030,7 +1030,7 @@ namespace
       }
       catch (const Error&)
       {
-        return StringArray();
+        return Strings::Array();
       }
     }
 

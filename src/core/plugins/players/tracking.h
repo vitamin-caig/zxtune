@@ -16,8 +16,6 @@ Author:
 //local includes
 #include "iterator.h"
 #include <core/plugins/enumerator.h>
-//common includes
-#include <messages_collector.h>
 //library includes
 #include <core/module_attrs.h>
 #include <core/module_types.h>

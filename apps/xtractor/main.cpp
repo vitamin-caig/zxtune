@@ -13,10 +13,8 @@ Author:
 #include <apps/version/api.h>
 //common includes
 #include <debug_log.h>
-#include <format.h>
 #include <parameters.h>
 #include <progress_callback.h>
-#include <template.h>
 //library includes
 #include <analysis/path.h>
 #include <analysis/result.h>
@@ -26,6 +24,10 @@ Author:
 #include <io/fs_tools.h>
 #include <io/provider.h>
 #include <io/providers/file_provider.h>
+#include <strings/array.h>
+#include <strings/fields.h>
+#include <strings/format.h>
+#include <strings/template.h>
 //std includes
 #include <iostream>
 #include <locale>
@@ -997,7 +999,7 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  class PathTemplate : public FieldsSource
+  class PathTemplate : public Strings::FieldsSource
   {
   public:
     explicit PathTemplate(Analysis::Node::Ptr node)
@@ -1026,14 +1028,14 @@ namespace
       }
       else if (fieldName == Text::TEMPLATE_FIELD_SUBPATH)
       {
-        StringArray subPath = GetSubpath();
+        Strings::Array subPath = GetSubpath();
         std::transform(subPath.begin(), subPath.end(), subPath.begin(),
           boost::bind(&ZXTune::IO::MakePathFromString, _1, '_'));
         return std::accumulate(subPath.begin(), subPath.end(), String(), std::ptr_fun(&ZXTune::IO::AppendPath));
       }
       else if (fieldName == Text::TEMPLATE_FIELD_FLATSUBPATH)
       {
-        const StringArray& subPath = GetSubpath();
+        const Strings::Array& subPath = GetSubpath();
         const String& subPathStr = std::accumulate(subPath.begin(), subPath.end(), String(), std::ptr_fun(&ZXTune::IO::AppendPath));
         return ZXTune::IO::MakePathFromString(subPathStr, '_');
       }
@@ -1052,7 +1054,7 @@ namespace
       return *RootNode;
     }
 
-    const StringArray& GetSubpath() const
+    const Strings::Array& GetSubpath() const
     {
       if (!Subpath.get())
       {
@@ -1064,7 +1066,7 @@ namespace
     void FillCache() const
     {
       assert(!RootNode && !Subpath.get());
-      StringArray subpath;
+      Strings::Array subpath;
       for (Analysis::Node::Ptr node = Node; node;)
       {
         if (const Analysis::Node::Ptr prevNode = node->Parent())
@@ -1075,7 +1077,7 @@ namespace
         else
         {
           RootNode = node;
-          Subpath.reset(new StringArray(subpath.rbegin(), subpath.rend()));
+          Subpath.reset(new Strings::Array(subpath.rbegin(), subpath.rend()));
           break;
         }
       }
@@ -1084,14 +1086,14 @@ namespace
   private:
     const Analysis::Node::Ptr Node;
     mutable Analysis::Node::Ptr RootNode;
-    mutable std::auto_ptr<StringArray> Subpath;
+    mutable std::auto_ptr<Strings::Array> Subpath;
   };
 
   class TargetNamePoint : public Analysis::NodeReceiver
   {
   public:
     TargetNamePoint(const String& nameTemplate, Parsing::Target::Ptr target)
-      : Template(StringTemplate::Create(nameTemplate))
+      : Template(Strings::Template::Create(nameTemplate))
       , Target(target)
     {
     }
@@ -1109,7 +1111,7 @@ namespace
       Target->Flush();
     }
   private:
-    const StringTemplate::Ptr Template;
+    const Strings::Template::Ptr Template;
     const Parsing::Target::Ptr Target;
   };
 
@@ -1412,7 +1414,7 @@ int main(int argc, char* argv[])
     */
 
     const Options opts;
-    StringArray paths;
+    Strings::Array paths;
     {
       using namespace boost::program_options;
       options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
@@ -1422,7 +1424,7 @@ int main(int argc, char* argv[])
       ;
       options.add(opts.GetOptionsDescription());
       options.add_options()
-        (Text::INPUT_KEY, value<StringArray>(&paths), Text::INPUT_DESC)
+        (Text::INPUT_KEY, value<Strings::Array>(&paths), Text::INPUT_DESC)
       ;
       positional_options_description inputPositional;
       inputPositional.add(Text::INPUT_KEY, -1);

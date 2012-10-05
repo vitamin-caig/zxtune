@@ -60,11 +60,6 @@ namespace Strings
     return (boost::basic_format<Char>(format) % p1 % p2 % p3 % p4 % p5 % p6).str();
   }
 
-  //! @brief Format time
-  //! @param timeInFrames frames quantity
-  //! @param frameDurationMicrosec frame duration in microseconds
-  //! @return Formatted time
-  String FormatTime(uint_t timeInFrames, uint_t frameDurationMicrosec);
   String FormatTime(uint_t hours, uint_t minutes, uint_t seconds, uint_t frames);
 }
 

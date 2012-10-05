@@ -17,6 +17,8 @@ Author:
 
 //common includes
 #include <parameters.h>
+//library includes
+#include <strings/array.h>
 //qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
@@ -27,7 +29,7 @@ public:
   virtual ~WidgetsFactory() {}
   
   //main window
-  virtual QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const StringArray& cmdline) const = 0;
+  virtual QPointer<QMainWindow> CreateMainWindow(Parameters::Container::Ptr options, const Strings::Array& cmdline) const = 0;
 
   //singleton
   static WidgetsFactory& Instance();

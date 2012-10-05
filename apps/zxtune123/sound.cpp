@@ -19,7 +19,6 @@ Author:
 //common includes
 #include <debug_log.h>
 #include <error_tools.h>
-#include <string_helpers.h>
 #include <tools.h>
 //library includes
 #include <core/core_parameters.h>
@@ -27,11 +26,14 @@ Author:
 #include <sound/filter.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/array.h>
+#include <strings/map.h>
 //std includes
 #include <algorithm>
 #include <cctype>
 #include <list>
 #include <iostream>
+#include <sstream>
 //boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -78,7 +80,7 @@ namespace
   template<class T>
   inline T FromString(const String& str)
   {
-    InStringStream stream(str);
+    std::basic_istringstream<Char> stream(str);
     T res = 0;
     if (stream >> res)
     {
@@ -120,7 +122,7 @@ namespace
       }
       return result;
     }
-    StringArray splitted;
+    Strings::Array splitted;
     boost::algorithm::split(splitted, str, boost::algorithm::is_any_of(MATRIX_DELIMITERS));
     if (splitted.size() <= MAX_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS ||
         splitted.size() >= MIN_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS)
@@ -171,11 +173,11 @@ namespace
         options, *Params));
     }
 
-    void SetSoundParameters(const StringMap& options)
+    void SetSoundParameters(const Strings::Map& options)
     {
-      StringMap optimized;
+      Strings::Map optimized;
       std::remove_copy_if(options.begin(), options.end(), std::inserter(optimized, optimized.end()),
-        boost::bind(&String::empty, boost::bind(&StringMap::value_type::second, _1)));
+        boost::bind(&String::empty, boost::bind(&Strings::Map::value_type::second, _1)));
       if (!optimized.empty())
       {
         Parameters::ParseStringMap(optimized, *Params);
@@ -190,7 +192,7 @@ namespace
       }
     }
 
-    void SetMixers(const StringArray& mixers)
+    void SetMixers(const Strings::Array& mixers)
     {
       std::for_each(mixers.begin(), mixers.end(), boost::bind(&CommonBackendParameters::AddMixer, this, _1));
     }
@@ -311,7 +313,7 @@ namespace
         (Text::FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION.FullPath()]), Text::FRAMEDURATION_DESC)
         (Text::FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE.FullPath()]), Text::FREQTABLE_DESC)
         (Text::LOOP_KEY, bool_switch(&Looped), Text::LOOP_DESC)
-        (Text::MIXER_KEY, value<StringArray>(&Mixers), Text::MIXER_DESC)
+        (Text::MIXER_KEY, value<Strings::Array>(&Mixers), Text::MIXER_DESC)
         (Text::FILTER_KEY, value<String>(&Filter), Text::FILTER_DESC)
       ;
     }
@@ -407,10 +409,10 @@ namespace
     const std::auto_ptr<CommonBackendParameters> Params;
     boost::program_options::options_description OptionsDescription;
     PerBackendOptions BackendOptions;
-    StringMap SoundOptions;
+    Strings::Map SoundOptions;
 
     bool Looped;
-    StringArray Mixers;
+    Strings::Array Mixers;
     String Filter;
 
     ZXTune::Sound::BackendCreator::Ptr Creator;

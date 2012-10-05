@@ -18,8 +18,6 @@ Author:
 #include "supp/mixer.h"
 #include "supp/options.h"
 #include "ui/utils.h"
-//common includes
-#include <format.h>
 //qt includes
 #include <QtGui/QLabel>
 //text includes

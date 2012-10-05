@@ -68,7 +68,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/aboutdialog.cpp" line="29"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/aboutdialog.cpp" line="27"/>
         <source>&lt;a href=&quot;mailto:%1?subject=Feedback for %2&quot;&gt;Send feedback&lt;/a&gt;</source>
         <translation>&lt;a href=&quot;mailto:%1?subject=Отзыв на %2&quot;&gt;Отправить отзыв&lt;/a&gt;</translation>
     </message>

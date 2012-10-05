@@ -11,10 +11,9 @@ Author:
 
 //local includes
 #include "trdos_catalogue.h"
-//common includes
-#include <format.h>
 //library includes
 #include <binary/container_factories.h>
+#include <strings/format.h>
 //std includes
 #include <cstring>
 #include <numeric>

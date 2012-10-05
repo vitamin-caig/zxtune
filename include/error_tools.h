@@ -14,7 +14,8 @@
 
 //common includes
 #include <error.h>
-#include <format.h>
+//library includes
+#include <strings/format.h>
 
 //! @brief Building error object with formatted text using up to 5 parameters
 template<class P1>

@@ -16,8 +16,6 @@ Author:
 #include "aboutdialog.ui.h"
 #include "ui/utils.h"
 #include <apps/version/api.h>
-//common includes
-#include <format.h>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QDialog>

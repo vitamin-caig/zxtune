@@ -11,8 +11,8 @@
 #ifndef TIME_DURATION_H_DEFINED
 #define TIME_DURATION_H_DEFINED
 
-//common includes
-#include <format.h>
+//library includes
+#include <strings/format.h>
 #include <time/stamp.h>
 //boost includes
 #include <boost/math/common_factor_rt.hpp>

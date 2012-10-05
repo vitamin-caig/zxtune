@@ -287,7 +287,7 @@ namespace
       {
         return;
       }
-      StringMap strings;
+      Strings::Map strings;
       while (XML.readNextStartElement())
       {
         const QStringRef& tagName = XML.name();

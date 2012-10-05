@@ -73,7 +73,7 @@ namespace
                                , private Ui::MainWindowEmbedded
   {
   public:
-    EmbeddedMainWindowImpl(Parameters::Container::Ptr options, const StringArray& /*cmdline*/)
+    EmbeddedMainWindowImpl(Parameters::Container::Ptr options, const Strings::Array& /*cmdline*/)
       : Options(options)
       , Playback(PlaybackSupport::Create(*this, Options))
       , Controls(PlaybackControls::Create(*this, *Playback))
@@ -170,7 +170,7 @@ namespace
   };
 }
 
-QPointer<EmbeddedMainWindow> EmbeddedMainWindow::Create(Parameters::Container::Ptr options, const StringArray& cmdline)
+QPointer<EmbeddedMainWindow> EmbeddedMainWindow::Create(Parameters::Container::Ptr options, const Strings::Array& cmdline)
 {
   //TODO: create proper window
   QPointer<EmbeddedMainWindow> res(new EmbeddedMainWindowImpl(options, cmdline));

@@ -18,10 +18,3 @@ __cpp> "#endif //__TEXT_TOOLS_H_DEFINED__\n"
 
 < ERROR_LOCATION_FORMAT_DEBUG
 > ERROR_LOCATION_FORMAT " (%2%:%3%, %4%)"
-
-< TIME_FORMAT
-> "%1%:%2$02u.%3$02u"
-
-< TIME_FORMAT_HOURS
-> "%1%:%2$02u:%3$02u.%4$02u"
-

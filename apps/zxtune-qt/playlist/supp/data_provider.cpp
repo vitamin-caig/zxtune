@@ -18,7 +18,6 @@ Author:
 #include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
-#include <format.h>
 #include <progress_callback.h>
 #include <template_parameters.h>
 //library includes
@@ -30,6 +29,8 @@ Author:
 #include <io/fs_tools.h>
 #include <io/provider.h>
 #include <sound/sound_parameters.h>
+#include <strings/format.h>
+#include <strings/template.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -308,14 +309,14 @@ namespace
     typedef boost::shared_ptr<const DynamicAttributesProvider> Ptr;
 
     DynamicAttributesProvider()
-      : DisplayNameTemplate(StringTemplate::Create(Text::MODULE_PLAYLIST_FORMAT))
-      , DummyDisplayName(DisplayNameTemplate->Instantiate(SkipFieldsSource()))
+      : DisplayNameTemplate(Strings::Template::Create(Text::MODULE_PLAYLIST_FORMAT))
+      , DummyDisplayName(DisplayNameTemplate->Instantiate(Strings::SkipFieldsSource()))
     {
     }
 
     String GetDisplayName(const Parameters::Accessor& properties) const
     {
-      const Parameters::FieldsSourceAdapter<SkipFieldsSource> adapter(properties);
+      const Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> adapter(properties);
       String result = DisplayNameTemplate->Instantiate(adapter);
       if (result == DummyDisplayName)
       {
@@ -327,7 +328,7 @@ namespace
       return result;
     }
   private:
-    const StringTemplate::Ptr DisplayNameTemplate;
+    const Strings::Template::Ptr DisplayNameTemplate;
     const String DummyDisplayName;
   };
 

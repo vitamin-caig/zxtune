@@ -1,7 +1,5 @@
 #include <byteorder.h>
 #include <iterator.h>
-#include <template.h>
-#include <template_tools.h>
 #include <parameters.h>
 #include <range_checker.h>
 #include <tools.h>
@@ -48,40 +46,6 @@ namespace
     }
   }
   
-  template<class Policy>
-  class FieldsSourceFromMap : public Policy
-  {
-  public:
-    explicit FieldsSourceFromMap(const StringMap& map)
-      : Map(map)
-    {
-    }
-    
-    virtual String GetFieldValue(const String& name) const
-    {
-      const StringMap::const_iterator it = Map.find(name);
-      return it == Map.end() ? Policy::GetFieldValue(name) : it->second;
-    }
-  private:
-    const StringMap& Map;
-  };
-  
-  template<class Policy>
-  void TestTemplate(const String& templ, const StringMap& params, const String& reference)
-  {
-    const FieldsSourceFromMap<Policy> source(params);
-    const String res = InstantiateTemplate(templ, source);
-    if (res == reference)
-    {
-      std::cout << "Passed test for '" << templ << '\'' << std::endl;
-    }
-    else
-    {
-      std::cout << "Failed test for '" << templ << "' (result is '" << res << "')" << std::endl;
-      throw 1;
-    }
-  }
-
   enum AreaTypes
   {
     BEGIN,
@@ -125,23 +89,6 @@ int main()
   //0xfedcab9876543210
   TestOrder<int64_t>(-INT64_C(81985529216486896), UINT64_C(0x1032547698badcfe));
   TestOrder<uint64_t>(UINT64_C(0x123456789abcdef0), UINT64_C(0xf0debc9a78563412));
-
-  std::cout << "---- Test for string template ----" << std::endl;
-  {
-    TestTemplate<SkipFieldsSource>("without template", StringMap(), "without template");
-    TestTemplate<KeepFieldsSource<'[', ']'> >("no [mapped] template", StringMap(), "no [mapped] template");
-    TestTemplate<SkipFieldsSource>("no [nonexisting] template", StringMap(), "no  template");
-    TestTemplate<FillFieldsSource>("no [tabulated] template", StringMap(), "no             template");
-    StringMap params;
-    params["name"] = "value";
-    TestTemplate<SkipFieldsSource>("single [name] test", params, "single value test");
-    TestTemplate<SkipFieldsSource>("duplicate [name] and [name] test", params, "duplicate value and value test");
-    params["value"] = "name";
-    TestTemplate<SkipFieldsSource>("multiple [name] and [value] test", params, "multiple value and name test");
-    TestTemplate<SkipFieldsSource>("syntax error [name test", params, "syntax error [name test");
-    TestTemplate<SkipFieldsSource>("[name] at the beginning", params, "value at the beginning");
-    TestTemplate<SkipFieldsSource>("at the end [name]", params, "at the end value");
-  }
 
   std::cout << "---- Test for ranges map ----" << std::endl;
   {

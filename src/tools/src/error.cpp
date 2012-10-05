@@ -11,12 +11,12 @@ Author:
 
 //common includes
 #include <error_tools.h>
-#include <string_helpers.h>
 //library includes
 #include <l10n/api.h>
 //std includes
 #include <cctype>
 #include <iomanip>
+#include <sstream>
 //boost includes
 #include <boost/bind.hpp>
 //text includes
@@ -152,7 +152,7 @@ String Error::CodeToString(CodeType code)
   const Char p1 = static_cast<Char>(syms & 0xff);
   const Char p2 = static_cast<Char>((syms >> 8) & 0xff);
   const Char p3 = static_cast<Char>((syms >> 16) & 0xff);
-  OutStringStream str;
+  std::basic_ostringstream<Char> str;
   if (std::isalnum(p1) && std::isalnum(p2) && std::isalnum(p3))
   {
     str << p1 << p2 << p3 << Char('#') << std::setw(2 * codeBytes) << std::setfill(Char('0')) << std::hex << (code & ((uint_t(1) << 8 * codeBytes) - 1));

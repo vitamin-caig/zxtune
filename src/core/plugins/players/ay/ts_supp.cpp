@@ -21,7 +21,6 @@ Author:
 #include <byteorder.h>
 #include <debug_log.h>
 #include <error_tools.h>
-#include <messages_collector.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>

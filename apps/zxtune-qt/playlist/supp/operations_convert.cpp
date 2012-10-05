@@ -18,10 +18,10 @@ Author:
 //common includes
 #include <contract.h>
 #include <error_tools.h>
-#include <format.h>
 //library includes
 #include <async/signals_collector.h>
 #include <sound/backend.h>
+#include <strings/format.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -106,11 +106,10 @@ namespace
     for (BackendCreator::Iterator::Ptr backends = EnumerateBackends(); backends->IsValid(); backends->Next())
     {
       const BackendCreator::Ptr creator = backends->Get();
-      if (creator->Id() != id)
+      if (creator->Id() == id)
       {
-        continue;
+        return creator;
       }
-      return creator;
     }
     return BackendCreator::Ptr();
   }

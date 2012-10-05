@@ -14,7 +14,8 @@ Author:
 
 //common includes
 #include <iterator.h>
-#include <string_helpers.h>
+//library includes
+#include <strings/array.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -35,7 +36,7 @@ namespace ZXTune
         virtual String Name() const = 0;
         virtual String CardName() const = 0;
 
-        virtual StringArray Mixers() const = 0;
+        virtual Strings::Array Mixers() const = 0;
       };
 
       Device::Iterator::Ptr EnumerateDevices();

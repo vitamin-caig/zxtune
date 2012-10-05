@@ -19,7 +19,6 @@ Author:
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
 //common includes
-#include <string_helpers.h>
 #include <tools.h>
 //library includes
 #include <sound/backend.h>

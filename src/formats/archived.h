@@ -11,6 +11,8 @@
 #ifndef __FORMATS_ARCHIVED_H_DEFINED__
 #define __FORMATS_ARCHIVED_H_DEFINED__
 
+//common includes
+#include <types.h>
 //library includes
 #include <binary/container.h>
 #include <binary/format.h>

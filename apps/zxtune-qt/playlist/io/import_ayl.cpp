@@ -22,10 +22,11 @@ Author:
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
+#include <core/plugins/utils.h>
 #include <devices/aym.h>
 #include <io/provider.h>
 #include <sound/sound_parameters.h>
-#include <core/plugins/utils.h>
+#include <strings/array.h>
 //std includes
 #include <cctype>
 //boost includes
@@ -104,12 +105,12 @@ namespace
     struct AYLEntry
     {
       String Path;
-      StringMap Parameters;
+      Strings::Map Parameters;
     };
     typedef std::vector<AYLEntry> AYLEntries;
-    typedef RangeIterator<StringArray::const_iterator> LinesIterator;
+    typedef RangeIterator<Strings::Array::const_iterator> LinesIterator;
   public:
-    explicit AYLContainer(const StringArray& lines)
+    explicit AYLContainer(const Strings::Array& lines)
       : Container(boost::make_shared<AYLEntries>())
       , Parameters()
     {
@@ -146,7 +147,7 @@ namespace
         return Delegate->Path;
       }
 
-      const StringMap& GetParameters() const
+      const Strings::Map& GetParameters() const
       {
         return Delegate->Parameters;
       }
@@ -165,12 +166,12 @@ namespace
       return Iterator(Container);
     }
 
-    const StringMap& GetParameters() const
+    const Strings::Map& GetParameters() const
     {
       return Parameters;
     }
   private:
-    static bool ParseParameters(LinesIterator& iter, StringMap& parameters)
+    static bool ParseParameters(LinesIterator& iter, Strings::Map& parameters)
     {
       if (!iter || !CheckForParametersBegin(*iter))
       {
@@ -201,19 +202,19 @@ namespace
       return line == PARAMETERS_END;
     }
 
-    static void SplitParametersString(const String& line, StringMap& parameters)
+    static void SplitParametersString(const String& line, Strings::Map& parameters)
     {
       const String::size_type delim = line.find_first_of('=');
       if (delim != String::npos)
       {
         const String& name = line.substr(0, delim);
         const String& value = line.substr(delim + 1);
-        parameters.insert(StringMap::value_type(name, value));
+        parameters.insert(Strings::Map::value_type(name, value));
       }
     }
   private:
     const boost::shared_ptr<AYLEntries> Container;
-    StringMap Parameters;
+    Strings::Map Parameters;
   };
 
   class ParametersFilter : public Parameters::Visitor
@@ -357,7 +358,7 @@ namespace
   {
     const Parameters::Container::Ptr properties = Parameters::Container::Create();
     ParametersFilter filter(version, *properties);
-    const StringMap& listParams = aylItems.GetParameters();
+    const Strings::Map& listParams = aylItems.GetParameters();
     Parameters::ParseStringMap(listParams, filter);
     return properties;
   }
@@ -408,7 +409,7 @@ namespace
       Playlist::IO::ContainerItem item;
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
       ParametersFilter filter(version, *adjustedParams);
-      const StringMap& itemParams = iter.GetParameters();
+      const Strings::Map& itemParams = iter.GetParameters();
       Parameters::ParseStringMap(itemParams, filter);
       item.AdjustedParameters = adjustedParams;
       const QString absItemPath = baseDir.absoluteFilePath(ToQString(itemPath));
@@ -460,7 +461,7 @@ namespace Playlist
       }
       Dbg("Processing AYL version %1%", vers);
       const VersionLayer version(vers);
-      StringArray lines;
+      Strings::Array lines;
       while (!stream.atEnd())
       {
         const QString line = stream.readLine(0).trimmed();

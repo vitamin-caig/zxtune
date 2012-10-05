@@ -19,10 +19,10 @@ include_dirs = .
 
 text_files := text/text
 
-libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io platform sound tools \
+libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io platform sound strings tools \
             playlist_ui playlist_supp playlist_io ui_common
 
-depends = apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/platform src/sound src/tools \
+depends = apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/platform src/sound src/strings src/tools \
           apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io \
           apps/zxtune-qt/ui
 

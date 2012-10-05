@@ -364,13 +364,13 @@ namespace
       return Error();
     }
 
-    virtual StringSet Schemes() const
+    virtual Strings::Set Schemes() const
     {
       static const Char* SCHEMES[] = 
       {
         SCHEME_FILE
       };
-      return StringSet(SCHEMES, ArrayEnd(SCHEMES));
+      return Strings::Set(SCHEMES, ArrayEnd(SCHEMES));
     }
 
     virtual Identifier::Ptr Resolve(const String& uri) const

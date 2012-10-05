@@ -30,6 +30,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
+#include <strings/array.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -48,9 +49,9 @@ namespace
     48000
   };
 
-  StringArray GetSystemBackends(Parameters::Accessor::Ptr params)
+  Strings::Array GetSystemBackends(Parameters::Accessor::Ptr params)
   {
-    StringArray result;
+    Strings::Array result;
     const ZXTune::Sound::BackendsScope::Ptr scope = ZXTune::Sound::BackendsScope::CreateSystemScope(params);
     for (ZXTune::Sound::BackendCreator::Iterator::Ptr it = scope->Enumerate(); it->IsValid(); it->Next())
     {
@@ -204,7 +205,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
-    StringArray Backends;
+    Strings::Array Backends;
     std::map<String, QWidget*> SetupPages;
   };
 }

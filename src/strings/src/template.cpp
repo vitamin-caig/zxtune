@@ -1,6 +1,6 @@
 /*
 Abstract:
-  String template working implementation
+  String template implementation
 
 Last changed:
   $Id$
@@ -9,22 +9,24 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//common includes
-#include <template.h>
-#include <string_helpers.h>
+//library includes
+#include <strings/array.h>
+#include <strings/fields.h>
+#include <strings/template.h>
 //std includes
 #include <algorithm>
 #include <cassert>
 //boost includes
 #include <boost/bind.hpp>
 
-namespace
+namespace Strings
 {
-  class StringTemplateImpl : public StringTemplate
+  class PreprocessingTemplate : public Template
   {
   public:
-    StringTemplateImpl(const String& templ, Char beginMark, Char endMark)
-      : BeginMark(beginMark), EndMark(endMark)
+    PreprocessingTemplate(const String& templ, Char beginMark, Char endMark)
+      : BeginMark(beginMark)
+      , EndMark(endMark)
     {
       const std::size_t fieldsAvg = std::count(templ.begin(), templ.end(), beginMark);
       FixedStrings.reserve(fieldsAvg);
@@ -33,9 +35,9 @@ namespace
       ParseTemplate(templ);
     }
 
-    String Instantiate(const FieldsSource& src) const
+    virtual String Instantiate(const FieldsSource& src) const
     {
-      StringArray resultFields(Fields.size());
+      Array resultFields(Fields.size());
       std::transform(Fields.begin(), Fields.end(), resultFields.begin(), boost::bind(&FieldsSource::GetFieldValue, &src, _1));
       return SubstFields(resultFields);
     }
@@ -80,7 +82,7 @@ namespace
       }
     }
     
-    String SubstFields(const StringArray& fields) const
+    String SubstFields(const Array& fields) const
     {
       String res;
       for (PartEntries::const_iterator it = Entries.begin(), lim = Entries.end(); it != lim; ++it)
@@ -92,20 +94,20 @@ namespace
   private:
     const Char BeginMark;
     const Char EndMark;
-    StringArray FixedStrings;
-    StringArray Fields;
+    Array FixedStrings;
+    Array Fields;
     typedef std::pair<std::size_t, bool> PartEntry; //index => isField
     typedef std::vector<PartEntry> PartEntries;
     PartEntries Entries;
   };
-}
 
-String InstantiateTemplate(const String& templ, const FieldsSource& source, Char beginMark, Char endMark)
-{
-  return StringTemplateImpl(templ, beginMark, endMark).Instantiate(source);
-}
+  Template::Ptr Template::Create(const String& templ, Char beginMark, Char endMark)
+  {
+    return Template::Ptr(new PreprocessingTemplate(templ, beginMark, endMark));
+  }
 
-StringTemplate::Ptr StringTemplate::Create(const String& templ, Char beginMark, Char endMark)
-{
-  return StringTemplate::Ptr(new StringTemplateImpl(templ, beginMark, endMark));
+  String Template::Instantiate(const String& templ, const FieldsSource& source, Char beginMark, Char endMark)
+  {
+    return PreprocessingTemplate(templ, beginMark, endMark).Instantiate(source);
+  }
 }

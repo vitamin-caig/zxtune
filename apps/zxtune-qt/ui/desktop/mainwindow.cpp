@@ -35,9 +35,9 @@ Author:
 //common includes
 #include <contract.h>
 #include <debug_log.h>
-#include <format.h>
 //library includes
 #include <core/module_attrs.h>
+#include <strings/format.h>
 //boost includes
 #include <boost/bind.hpp>
 //qt includes
@@ -67,7 +67,7 @@ namespace
                        , public Ui::MainWindow
   {
   public:
-    MainWindowImpl(Parameters::Container::Ptr options, const StringArray& cmdline)
+    MainWindowImpl(Parameters::Container::Ptr options, const Strings::Array& cmdline)
       : Options(options)
       , Language(CreateLanguage(*options))
       , Playback(PlaybackSupport::Create(*this, Options))
@@ -284,7 +284,7 @@ namespace
   };
 }
 
-QPointer<MainWindow> MainWindow::Create(Parameters::Container::Ptr options, const StringArray& cmdline)
+QPointer<MainWindow> MainWindow::Create(Parameters::Container::Ptr options, const Strings::Array& cmdline)
 {
   QPointer<MainWindow> res(new MainWindowImpl(options, cmdline));
   res->show();

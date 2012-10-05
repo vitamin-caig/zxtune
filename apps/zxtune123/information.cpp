@@ -16,7 +16,6 @@ Author:
 #include <apps/base/app.h>
 //common includes
 #include <tools.h>
-#include <format.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
@@ -31,6 +30,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
+#include <strings/format.h>
 //std includes
 #include <iostream>
 //boost includes

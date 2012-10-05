@@ -29,7 +29,6 @@ Author:
 //common includes
 #include <contract.h>
 #include <error.h>
-#include <format.h>
 //library includes
 #include <core/module_attrs.h>
 #include <sound/backends_parameters.h>

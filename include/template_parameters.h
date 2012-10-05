@@ -1,7 +1,7 @@
 /**
 *
 * @file     template_parameters.h
-* @brief    StringTemplate adapter for Parameters interface
+* @brief    Strings::Template adapter for Parameters interface
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
 *
@@ -13,12 +13,13 @@
 
 //common includes
 #include <parameters.h>
-#include <template_tools.h>
+//library includes
+#include <strings/fields.h>
 
 namespace Parameters
 {
   //! @brief Parameters::Accessor adapter to FieldsSource (@see StringTemplate)
-  template<class Policy = SkipFieldsSource>
+  template<class Policy = Strings::SkipFieldsSource>
   class FieldsSourceAdapter : public Policy
   {
   public:

@@ -25,7 +25,7 @@ class EmbeddedMainWindow : public QMainWindow
 {
   Q_OBJECT
 public:
-  static QPointer<EmbeddedMainWindow> Create(Parameters::Container::Ptr options, const StringArray& cmdline);
+  static QPointer<EmbeddedMainWindow> Create(Parameters::Container::Ptr options, const Strings::Array& cmdline);
 };
 
 #endif //ZXTUNE_QT_MAINWINDOW_H_DEFINED

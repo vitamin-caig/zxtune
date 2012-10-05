@@ -12,8 +12,9 @@ Author:
 //local includes
 #include "dump_builder.h"
 //common includes
-#include <format.h>
 #include <tools.h>
+//library includes
+#include <strings/format.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //std includes

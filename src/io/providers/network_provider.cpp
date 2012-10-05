@@ -312,7 +312,7 @@ namespace
       return Error();
     }
 
-    virtual StringSet Schemes() const
+    virtual Strings::Set Schemes() const
     {
       return SupportedSchemes;
     }
@@ -359,7 +359,7 @@ namespace
     }
   private:
     const Curl::Api::Ptr Api;
-    const StringSet SupportedSchemes;
+    const Strings::Set SupportedSchemes;
   };
 }
 

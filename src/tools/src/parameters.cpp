@@ -354,7 +354,7 @@ namespace
     const Accessor::Ptr Third;
   };
 
-  class StringConvertor : public StringMap
+  class StringConvertor : public Strings::Map
                         , public Visitor
   {
   public:
@@ -374,7 +374,7 @@ namespace
     }
   };
 
-  void SetValue(Visitor& visitor, const StringMap::value_type& pair)
+  void SetValue(Visitor& visitor, const Strings::Map::value_type& pair)
   {
     const NameType& name = pair.first;
     const String& val = pair.second;
@@ -500,7 +500,7 @@ namespace Parameters
     return false;
   }
 
-  void ParseStringMap(const StringMap& map, Visitor& visitor)
+  void ParseStringMap(const Strings::Map& map, Visitor& visitor)
   {
     std::for_each(map.begin(), map.end(), 
       boost::bind(&SetValue, boost::ref(visitor), _1));
@@ -521,7 +521,7 @@ namespace Parameters
     return boost::make_shared<ContainerImpl>();
   }
 
-  void Convert(const Accessor& ac, StringMap& strings)
+  void Convert(const Accessor& ac, Strings::Map& strings)
   {
     StringConvertor cnv;
     ac.Process(cnv);

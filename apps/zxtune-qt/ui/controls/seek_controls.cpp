@@ -17,8 +17,6 @@ Author:
 #include "supp/playback_supp.h"
 #include "ui/styles.h"
 #include "ui/utils.h"
-//common includes
-#include <format.h>
 //qt includes
 #include <QtGui/QCursor>
 #include <QtGui/QToolTip>

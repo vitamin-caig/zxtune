@@ -14,7 +14,6 @@ Author:
 //common includes
 #include <debug_log.h>
 #include <template_parameters.h>
-#include <template_tools.h>
 //library includes
 #include <async/data_receiver.h>
 #include <core/module_attrs.h>
@@ -24,6 +23,7 @@ Author:
 #include <l10n/api.h>
 #include <sound/backends_parameters.h>
 #include <sound/error_codes.h>
+#include <strings/template.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -47,7 +47,7 @@ namespace
 
   const Char COMMON_FILE_BACKEND_ID[] = {'f', 'i', 'l', 'e', '\0'};
 
-  class StateFieldsSource : public SkipFieldsSource
+  class StateFieldsSource : public Strings::SkipFieldsSource
   {
   public:
     explicit StateFieldsSource(const Module::TrackState& state)
@@ -69,7 +69,7 @@ namespace
       {
         return Parameters::ConvertToString(State.Line());
       }
-      return SkipFieldsSource::GetFieldValue(fieldName);
+      return Strings::SkipFieldsSource::GetFieldValue(fieldName);
     }
   private:
     const Module::TrackState& State;
@@ -79,11 +79,11 @@ namespace
   {
   public:
     explicit TrackStateTemplate(const String& templ)
-      : Template(StringTemplate::Create(templ))
+      : Template(Strings::Template::Create(templ))
       , CurPosition(HasField(templ, Module::ATTR_CURRENT_POSITION))
       , CurPattern(HasField(templ, Module::ATTR_CURRENT_PATTERN))
       , CurLine(HasField(templ, Module::ATTR_CURRENT_LINE))
-      , Result(Template->Instantiate(SkipFieldsSource()))
+      , Result(Template->Instantiate(Strings::SkipFieldsSource()))
     {
     }
 
@@ -128,7 +128,7 @@ namespace
       int_t Value;
     };
   private:
-    const StringTemplate::Ptr Template;
+    const Strings::Template::Ptr Template;
     mutable TrackableValue CurPosition;
     mutable TrackableValue CurPattern;
     mutable TrackableValue CurLine;
@@ -208,10 +208,10 @@ namespace
   };
 
   //keep only fields that not covered by modules' properties
-  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<KeepFieldsSource<'[', ']'> >
+  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource<'[', ']'> >
   {
   public:
-    typedef Parameters::FieldsSourceAdapter<KeepFieldsSource<'[', ']'> > Parent;
+    typedef Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource<'[', ']'> > Parent;
     explicit ModuleFieldsSource(const Parameters::Accessor& params)
       : Parent(params)
     {
@@ -227,7 +227,7 @@ namespace
   {
     Dbg("Original filename template: '%1%'", nameTemplate);
     const ModuleFieldsSource moduleFields(props);
-    const String nameTemplateWithRuntimeFields = InstantiateTemplate(nameTemplate, moduleFields);
+    const String nameTemplateWithRuntimeFields = Strings::Template::Instantiate(nameTemplate, moduleFields);
     Dbg("Fixed filename template: '%1%'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;
   }

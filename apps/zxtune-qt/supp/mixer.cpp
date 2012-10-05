@@ -17,7 +17,8 @@ Author:
 #include "playback_supp.h"
 //common includes
 #include <contract.h>
-#include <format.h>
+//library includes
+#include <strings/format.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>

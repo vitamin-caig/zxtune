@@ -21,7 +21,6 @@ Author:
 #include "core/src/core.h"
 //common includes
 #include <debug_log.h>
-#include <format.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>

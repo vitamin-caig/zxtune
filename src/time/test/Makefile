@@ -3,7 +3,7 @@ path_step := ../../..
 source_files := test
 
 #TODO
-libraries := tools
-depends := src/tools
+libraries := strings tools
+depends := src/strings src/tools
 
 include $(path_step)/makefile.mak

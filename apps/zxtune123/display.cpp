@@ -17,8 +17,11 @@ Author:
 #include <apps/base/app.h>
 //common includes
 #include <error.h>
-#include <format.h>
 #include <template_parameters.h>
+//library includes
+#include <strings/format.h>
+#include <strings/template.h>
+#include <time/duration.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
@@ -33,11 +36,6 @@ namespace
   const std::size_t INFORMATION_HEIGHT = 5;
   const std::size_t TRACKING_HEIGHT = 3;
   const std::size_t PLAYING_HEIGHT = 2;
-
-  inline void OutProp(const StringMap::value_type& prop)
-  {
-    StdOut << prop.first << '=' << prop.second << std::endl;
-  }
 
   inline void ShowTrackingStatus(const ZXTune::Module::TrackState& state)
   {
@@ -76,10 +74,10 @@ namespace
       , Quiet(false)
       , ShowAnalyze(false)
       , Updatefps(10)
-      , InformationTemplate(StringTemplate::Create(Text::ITEM_INFO))
+      , InformationTemplate(Strings::Template::Create(Text::ITEM_INFO))
       , ScrSize(Console::Self().GetSize())
       , TotalFrames(0)
-      , FrameDuration(0)
+      , FrameDuration()
     {
       using namespace boost::program_options;
       Options.add_options()
@@ -108,7 +106,7 @@ namespace
       const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
       const Parameters::Accessor::Ptr props = player->GetModuleProperties();
       TotalFrames = info->FramesCount();
-      FrameDuration = frameDuration;
+      FrameDuration = Time::Microseconds(frameDuration);
       TrackState = player->GetTrackState();
       if (!Silent && ShowAnalyze)
       {
@@ -123,15 +121,11 @@ namespace
       {
         return;
       }
-#if 1
       StdOut
         << std::endl
-        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<FillFieldsSource>(*props))
-        << Strings::Format(Text::ITEM_INFO_ADDON, Strings::FormatTime(info->FramesCount(), frameDuration),
+        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props))
+        << Strings::Format(Text::ITEM_INFO_ADDON, Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(),
           info->LogicalChannels(), info->PhysicalChannels());
-#else
-      std::for_each(strProps.begin(), strProps.end(), &OutProp);
-#endif
     }
 
     virtual uint_t BeginFrame(ZXTune::Sound::Backend::State state)
@@ -186,7 +180,7 @@ namespace
     void ShowPlaybackStatus(uint_t frame, ZXTune::Sound::Backend::State state) const
     {
       const Char MARKER = '\x1';
-      String data = Strings::Format(Text::PLAYBACK_STATUS, Strings::FormatTime(frame, FrameDuration), MARKER);
+      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::MicrosecondsDuration(frame, FrameDuration).ToString(), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
 
@@ -231,11 +225,11 @@ namespace
     bool Quiet;
     bool ShowAnalyze;
     uint_t Updatefps;
-    const StringTemplate::Ptr InformationTemplate;
+    const Strings::Template::Ptr InformationTemplate;
     //context
     Console::SizeType ScrSize;
     uint_t TotalFrames;
-    uint_t FrameDuration;
+    Time::Microseconds FrameDuration;
     ZXTune::Module::TrackState::Ptr TrackState;
     ZXTune::Module::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
