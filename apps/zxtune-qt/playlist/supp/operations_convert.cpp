@@ -19,7 +19,6 @@ Author:
 #include <contract.h>
 #include <error_tools.h>
 #include <format.h>
-#include <messages_collector.h>
 //library includes
 #include <async/signals_collector.h>
 #include <sound/backend.h>

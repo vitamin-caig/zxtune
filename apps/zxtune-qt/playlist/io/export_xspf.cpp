@@ -237,8 +237,6 @@ namespace
         name != ZXTune::Module::ATTR_TITLE &&
         name != ZXTune::Module::ATTR_COMMENT &&
         //skip redundand properties
-        name != ZXTune::Module::ATTR_WARNINGS_COUNT &&
-        name != ZXTune::Module::ATTR_WARNINGS &&
         //skip all the parameters
         !IsParameter(name)
       ;

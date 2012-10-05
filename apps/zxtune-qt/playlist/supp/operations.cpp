@@ -17,7 +17,6 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <format.h>
-#include <messages_collector.h>
 #include <template_parameters.h>
 //library includes
 #include <binary/data_adapter.h>

@@ -39,10 +39,6 @@ namespace ZXTune
     const std::string ATTR_DATE("Date");
     //! %Module comment
     const std::string ATTR_COMMENT("Comment");
-    //! %Module structure warnings
-    const std::string ATTR_WARNINGS("Warnings");
-    //! %Module structure warnings count
-    const std::string ATTR_WARNINGS_COUNT("WarningsCount");
     //! Raw module data crc32 checksum
     const std::string ATTR_CRC("CRC");
     //! Constant (without any headers) module data crc32 checksum

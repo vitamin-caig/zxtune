@@ -227,14 +227,6 @@ extern const Char INFO_ATTRIBUTES_TITLE[] = {
 extern const Char INFO_ATTRIBUTES_TYPE[] = {
   'm','o','d','u','l','e',' ','t','y','p','e',' ','(','p','l','u','g','i','n',' ','i','d',')',0
 };
-extern const Char INFO_ATTRIBUTES_WARNINGS[] = {
-  'w','a','r','n','i','n','g','s',' ','a','b','o','u','t',' ','m','o','d','u','l','e',' ','s','t','r','u','c',
-  't','u','r','e',' ','(','m','u','l','t','i','s','t','r','i','n','g',')',0
-};
-extern const Char INFO_ATTRIBUTES_WARNINGS_COUNT[] = {
-  'm','o','d','u','l','e',' ','s','t','r','u','c','t','u','r','e',' ','w','a','r','n','i','n','g','s',' ','c',
-  'o','u','n','t',0
-};
 extern const Char INFO_ATTRIBUTE_INFO[] = {
   ' ','%','|','1','$','-','2','0','|','-',' ','%','2','%','\n',
   0

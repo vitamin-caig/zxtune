@@ -65,8 +65,6 @@ extern const Char INFO_ATTRIBUTES_SIZE[];
 extern const Char INFO_ATTRIBUTES_SUBPATH[];
 extern const Char INFO_ATTRIBUTES_TITLE[];
 extern const Char INFO_ATTRIBUTES_TYPE[];
-extern const Char INFO_ATTRIBUTES_WARNINGS[];
-extern const Char INFO_ATTRIBUTES_WARNINGS_COUNT[];
 extern const Char INFO_ATTRIBUTE_INFO[];
 extern const Char INFO_BACKEND_INFO[];
 extern const Char INFO_CAP_AYM[];

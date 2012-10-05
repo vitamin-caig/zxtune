@@ -301,12 +301,6 @@
 < INFO_ATTRIBUTES_COMMENT
 > "embedded module comment"
 
-< INFO_ATTRIBUTES_WARNINGS
-> "warnings about module structure (multistring)"
-
-< INFO_ATTRIBUTES_WARNINGS_COUNT
-> "module structure warnings count"
-
 < INFO_ATTRIBUTES_CRC
 > "original module data crc32 checksum"
 

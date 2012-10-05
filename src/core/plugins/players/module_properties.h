@@ -16,7 +16,6 @@ Author:
 //local includes
 #include "core/plugins/enumerator.h"
 //common includes
-#include <messages_collector.h>
 #include <parameters.h>
 //library includes
 #include <formats/chiptune.h>
@@ -35,7 +34,6 @@ namespace ZXTune
       virtual void SetAuthor(const String& author) = 0;
       virtual void SetComment(const String& comment) = 0;
       virtual void SetProgram(const String& program) = 0;
-      virtual void SetWarnings(Log::MessagesCollector::Ptr warns) = 0;
       virtual void SetFreqtable(const String& table) = 0;
       virtual void SetVersion(uint_t major, uint_t minor) = 0;
       virtual void SetSource(std::size_t usedSize, const struct ModuleRegion& fixedRegion) = 0;

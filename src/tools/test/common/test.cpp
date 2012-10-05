@@ -4,7 +4,6 @@
 #include <template_tools.h>
 #include <parameters.h>
 #include <range_checker.h>
-#include <messages_collector.h>
 #include <tools.h>
 
 #include <iostream>
@@ -127,16 +126,6 @@ int main()
   TestOrder<int64_t>(-INT64_C(81985529216486896), UINT64_C(0x1032547698badcfe));
   TestOrder<uint64_t>(UINT64_C(0x123456789abcdef0), UINT64_C(0xf0debc9a78563412));
 
-  std::cout << "---- Test for messages collector ----" << std::endl;
-  {
-    Log::MessagesCollector::Ptr msg = Log::MessagesCollector::Create();
-    Test("Empty messages", !msg->CountMessages() && msg->GetMessages('\n') == String());
-    msg->AddMessage("1");
-    Test("Single message", msg->CountMessages() && msg->GetMessages('\n') == "1");
-    msg->AddMessage("2");
-    Test("Multiple message", msg->CountMessages() && msg->GetMessages('\n') == "1\n2");
-  }
-  
   std::cout << "---- Test for string template ----" << std::endl;
   {
     TestTemplate<SkipFieldsSource>("without template", StringMap(), "without template");

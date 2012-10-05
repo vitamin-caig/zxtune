@@ -378,8 +378,6 @@ namespace
       AttrType(ZXTune::Module::ATTR_COMPUTER, Text::INFO_ATTRIBUTES_COMPUTER),
       AttrType(ZXTune::Module::ATTR_DATE, Text::INFO_ATTRIBUTES_DATE),
       AttrType(ZXTune::Module::ATTR_COMMENT, Text::INFO_ATTRIBUTES_COMMENT),
-      AttrType(ZXTune::Module::ATTR_WARNINGS, Text::INFO_ATTRIBUTES_WARNINGS),
-      AttrType(ZXTune::Module::ATTR_WARNINGS_COUNT, Text::INFO_ATTRIBUTES_WARNINGS_COUNT),
       AttrType(ZXTune::Module::ATTR_CRC, Text::INFO_ATTRIBUTES_CRC),
       AttrType(ZXTune::Module::ATTR_SIZE, Text::INFO_ATTRIBUTES_SIZE),
       //runtime

@@ -64,11 +64,6 @@ namespace
       }
     }
 
-    virtual void SetWarnings(Log::MessagesCollector::Ptr warns)
-    {
-      Warnings = warns;
-    }
-
     virtual void SetFreqtable(const String& table)
     {
       assert(!table.empty());
@@ -121,7 +116,6 @@ namespace
         val = UsedRegion.Size;
         return true;
       }
-      CheckWarningsProperties(name);
       CheckLocationProperties(name);
       return Container->FindValue(name, val);
     }
@@ -133,7 +127,6 @@ namespace
         val = Plug->Id();
         return true;
       }
-      CheckWarningsProperties(name);
       CheckLocationProperties(name);
       return Container->FindValue(name, val);
     }
@@ -147,36 +140,11 @@ namespace
     {
       visitor.SetValue(ATTR_SIZE, UsedRegion.Size);
       visitor.SetValue(ATTR_TYPE, Plug->Id());
-      FillWarningsProperties();
       FillLocationProperties();
       Container->Process(visitor);
     }
 
   private:
-    void CheckWarningsProperties(const Parameters::NameType& name) const
-    {
-      if (Warnings.get() && 
-          (name == ATTR_WARNINGS_COUNT ||
-           name == ATTR_WARNINGS))
-      {
-        FillWarningsProperties();
-      }
-    }
-
-    void FillWarningsProperties() const
-    {
-      if (!Warnings.get())
-      {
-        return;
-      }
-      if (const uint_t msgs = Warnings->CountMessages())
-      {
-        Container->SetValue(ATTR_WARNINGS_COUNT, msgs);
-        Container->SetValue(ATTR_WARNINGS, Warnings->GetMessages('\n'));
-      }
-      Warnings.reset();
-    }
-
     void CheckLocationProperties(const Parameters::NameType& name) const
     {
       if (!Location.get())
@@ -232,7 +200,6 @@ namespace
   private:
     const Parameters::Container::Ptr Container;
     const Plugin::Ptr Plug;
-    mutable Log::MessagesCollector::Ptr Warnings;
     mutable DataLocation::Ptr Location;
     mutable Formats::Chiptune::Container::Ptr Source;
     ModuleRegion UsedRegion;
