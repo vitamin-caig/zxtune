@@ -22,7 +22,6 @@ Author:
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //platform-specific includes
@@ -83,7 +82,7 @@ namespace
     {
       if (!res)
       {
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
+        throw MakeFormattedError(loc,
           translate("Error in OSS backend while working with device '%1%': %2%."), Name, ::strerror(errno));
       }
     }
@@ -205,7 +204,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Failed to set volume: gain is out of range."));
+        return Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
       try
       {
@@ -348,7 +347,7 @@ namespace
       const SoundFormat format(tmp);
       if (!format.IsSupported())
       {
-        throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable formats supported by OSS."));
+        throw Error(THIS_LINE, translate("No suitable formats supported by OSS."));
       }
       tmp = format.Get();
       Dbg("Setting format to %1%", tmp);
@@ -415,7 +414,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+        return MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

@@ -21,7 +21,6 @@ Author:
 //library includes
 #include <zxtune.h>
 #include <core/module_attrs.h>
-#include <io/error_codes.h>
 #include <sound/sound_parameters.h>
 #include <io/text/io.h>
 //boost includes
@@ -368,7 +367,7 @@ namespace Playlist
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
       {
-        return Error(THIS_LINE, ZXTune::IO::ERROR_IO_ERROR, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
+        return Error(THIS_LINE, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
       }
       try
       {

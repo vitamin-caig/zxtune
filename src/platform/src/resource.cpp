@@ -134,7 +134,7 @@ namespace
     std::ifstream file(filename.c_str(), std::ios::binary);
     if (!file)
     {
-      throw MakeFormattedError(THIS_LINE, 1, translate("Failed to load resource archive '%1%'."), filename);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to load resource archive '%1%'."), filename);
     }
     file.seekg(0, std::ios_base::end);
     const std::size_t size = file.tellg();
@@ -187,7 +187,7 @@ namespace
     switch (archives.size())
     {
     case 0:
-      throw Error(THIS_LINE, 1, translate("Failed to find resource archive."));
+      throw Error(THIS_LINE, translate("Failed to find resource archive."));
     case 1:
       return archives.front();
     default:
@@ -216,7 +216,7 @@ namespace
       {
         return file->GetData();
       }
-      throw MakeFormattedError(THIS_LINE, 1, translate("Failed to load resource file '%1%'."), name);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to load resource file '%1%'."), name);
     }
 
     void Enumerate(Platform::Resource::Visitor& visitor) const

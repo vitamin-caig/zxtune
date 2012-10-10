@@ -21,7 +21,6 @@ Author:
 #include <debug_log.h>
 #include <tools.h>
 //library includes
-#include <core/error_codes.h>
 #include <core/module_detect.h>
 #include <l10n/api.h>
 //std includes
@@ -182,7 +181,7 @@ namespace ZXTune
   {
     if (!data.get())
     {
-      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, translate("Invalid parameters specified."));
+      return Error(THIS_LINE, translate("Invalid parameters specified."));
     }
     try
     {
@@ -192,7 +191,7 @@ namespace ZXTune
         Module::Detect(location, callback);
         return Error();
       }
-      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE,
+      return MakeFormattedError(THIS_LINE,
         translate("Failed to find specified submodule starting from path '%1%'."), startSubpath);
     }
     catch (const Error& e)
@@ -206,7 +205,7 @@ namespace ZXTune
   {
     if (!data.get())
     {
-      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, translate("Invalid parameters specified."));
+      return Error(THIS_LINE, translate("Invalid parameters specified."));
     }
     if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, subpath))
     {
@@ -216,7 +215,7 @@ namespace ZXTune
         return Error();
       }
     }
-    return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE,
+    return MakeFormattedError(THIS_LINE,
       translate("Failed to find specified submodule starting from path '%1%'."), subpath);
   }
 }

@@ -110,7 +110,7 @@ namespace
     void Set(const Error& err)
     {
       setText(ToQString(err.GetText()));
-      setToolTip(ToQString(Error::ToString(err)));
+      setToolTip(ToQString(err.ToString()));
     }
 
     void paintEvent(QPaintEvent*)

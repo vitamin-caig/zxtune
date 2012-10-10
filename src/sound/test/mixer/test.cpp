@@ -1,7 +1,6 @@
 #include <tools.h>
 #include <error_tools.h>
 #include <src/sound/mixer.h>
-#include <src/sound/error_codes.h>
 
 #include <iostream>
 #include <iomanip>
@@ -75,16 +74,11 @@ namespace
     return std::vector<T>(chans, mg);
   }
 
-  void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
-  {
-    std::cerr << Error::AttributesToString(loc, code, text) << std::endl;
-  }
-  
   bool ShowIfError(const Error& e)
   {
     if (e)
     {
-      e.WalkSuberrors(ErrOuter);
+      std::cerr << e.ToString();
     }
     return e;
   }
@@ -104,7 +98,7 @@ namespace
       }
       else
       {
-        throw MakeFormattedError(THIS_LINE, 1, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
+        throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
           data[0], data[1], ToCompare[0], ToCompare[1]);
       }
     }
@@ -147,11 +141,11 @@ int main()
       catch (const Error& e)
       {
         std::cout << " Passed\n";
-        e.WalkSuberrors(ErrOuter);
+        std::cerr << e.ToString();
       }
       catch (const std::string& str)
       {
-        throw Error(THIS_LINE, 1, str);
+        throw Error(THIS_LINE, str);
       }
       
       assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
@@ -175,6 +169,6 @@ int main()
   }
   catch (const Error& e)
   {
-    e.WalkSuberrors(ErrOuter);
+    std::cerr << e.ToString();
   }
 }

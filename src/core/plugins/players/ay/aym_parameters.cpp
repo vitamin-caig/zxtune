@@ -16,14 +16,14 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
-#include <core/error_codes.h>
 #include <core/core_parameters.h>
 #include <l10n/api.h>
 #include <sound/render_params.h>
+//std includes
+#include <cstring>
+#include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
-//std includes
-#include <numeric>
 //text includes
 #include <core/text/core.h>
 
@@ -52,7 +52,7 @@ namespace
     const std::size_t pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;
     if (pos == ArraySize(LETTERS))
     {
-      throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+      throw MakeFormattedError(THIS_LINE,
         translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));
     }
     return val | MASKS[pos];
@@ -95,7 +95,7 @@ namespace
     }
     else
     {
-      throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+      throw MakeFormattedError(THIS_LINE,
         translate("Invalid layout value (%1%)."), str);
     }
   }
@@ -115,7 +115,7 @@ namespace
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val) &&
           !in_range(val, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+        throw MakeFormattedError(THIS_LINE,
           translate("Invalid clock frequency (%1%)."), val);
       }
       return val;
@@ -147,7 +147,7 @@ namespace
       //duty cycle in percents should be in range 1..99 inc
       if (found && (intVal < 1 || intVal > 99))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+        throw MakeFormattedError(THIS_LINE,
           translate("Invalid duty cycle value (%1%)."), intVal);
       }
       return static_cast<uint_t>(intVal);
@@ -176,7 +176,7 @@ namespace
         if (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||
             intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST))
         {
-          throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+          throw MakeFormattedError(THIS_LINE,
             translate("Invalid layout value (%1%)."), intVal);
         }
         return static_cast<Devices::AYM::LayoutType>(intVal);
@@ -242,7 +242,7 @@ namespace
         // as dump
         if (newData.size() != Table.size() * sizeof(Table.front()))
         {
-          throw MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS,
+          throw MakeFormattedError(THIS_LINE,
             translate("Invalid frequency table size (%1%)."), newData.size());
         }
         std::memcpy(&Table.front(), &newData.front(), newData.size());

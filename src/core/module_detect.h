@@ -56,7 +56,6 @@ namespace ZXTune
   //! @param data Input data container
   //! @param startSubpath Path in input data to start detecting
   //! @return Error() in case of success
-  //! @return ERROR_DETECT_CANCELED with suberror, throwed from DetectParameters#Callback
   Error DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
     Binary::Container::Ptr data, const String& startSubpath);
 
@@ -66,7 +65,6 @@ namespace ZXTune
   //! @param subpath Path in input data to open
   //! @param result Reference to result module
   //! @return Error() in case of success and module is found
-  //! @return ERROR_FIND_SUBMODULE in case if module is not found
   Error OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath,
     Module::Holder::Ptr& result);
 }

@@ -43,11 +43,6 @@ Author:
 
 namespace
 {
-  void ShowError(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
-  {
-    std::cout << Error::AttributesToString(loc, code, text);
-  }
-
   const Debug::Stream Dbg("XTractor");
 }
 
@@ -410,7 +405,7 @@ namespace
       }
       catch (const Error& e)
       {
-        e.WalkSuberrors(&ShowError);
+        std::cout << e.ToString();
       }
     }
 
@@ -980,7 +975,7 @@ namespace
       }
       catch (const Error& e)
       {
-        e.WalkSuberrors(&ShowError);
+        std::cout << e.ToString();
       }
     }
 
@@ -1461,6 +1456,6 @@ int main(int argc, char* argv[])
   }
   catch (const Error& e)
   {
-    e.WalkSuberrors(&ShowError);
+    std::cout << e.ToString();
   }
 }

@@ -17,7 +17,6 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/error_codes.h>
 #include <core/plugin_attrs.h>
 #include <l10n/api.h>
 #include <sound/render_params.h>
@@ -176,7 +175,7 @@ namespace ZXTune
       }
       catch (const Error& err)
       {
-        result = Error(THIS_LINE, ERROR_MODULE_CONVERT, errMessage).AddSuberror(err);
+        result = Error(THIS_LINE, errMessage).AddSuberror(err);
       }
       return true;
     }
@@ -210,7 +209,7 @@ namespace ZXTune
 
     Error CreateUnsupportedConversionError(Error::LocationRef loc, const Conversion::Parameter& param)
     {
-      return MakeFormattedError(loc, ERROR_MODULE_CONVERT, translate("Unsupported conversion mode (%1$08x)."), param.ID);
+      return MakeFormattedError(loc, translate("Unsupported conversion mode (%1$08x)."), param.ID);
     }
   }
 }

@@ -4,6 +4,8 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <cstring>
+#include <stdexcept>
 
 namespace
 {
@@ -74,7 +76,7 @@ int main()
   }
   catch (const Error& e)
   {
-    std::cout << Error::ToString(e) << std::endl;
+    std::cout << e.ToString();
     return 1;
   }
   catch (...)

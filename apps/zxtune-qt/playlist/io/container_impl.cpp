@@ -20,6 +20,7 @@ Author:
 #include <error.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 
 namespace
 {

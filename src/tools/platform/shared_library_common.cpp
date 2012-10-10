@@ -25,7 +25,6 @@ namespace
 {
   const Debug::Stream Dbg("Platform");
 
-  const unsigned THIS_MODULE_CODE = Error::ModuleCode<'C', 'S', 'O'>::Value;
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("tools");
 }
 
@@ -41,7 +40,7 @@ SharedLibrary::Ptr SharedLibrary::Load(const std::string& name)
 SharedLibrary::Ptr SharedLibrary::Load(const SharedLibrary::Name& name)
 {
   const std::vector<std::string> filenames = GetSharedLibraryFilenames(name);
-  Error resError = MakeFormattedError(THIS_LINE, THIS_MODULE_CODE,
+  Error resError = MakeFormattedError(THIS_LINE,
     translate("Failed to load dynamic library '%1%' by any of the alternative names."), FromStdString(name.Base()));
   for (std::vector<std::string>::const_iterator it = filenames.begin(), lim = filenames.end(); it != lim; ++it)
   {

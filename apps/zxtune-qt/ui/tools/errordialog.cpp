@@ -31,7 +31,7 @@ void ShowErrorMessage(const QString& title, const Error& err)
   {
     msgBox.setText(errorText);
   }
-  msgBox.setDetailedText(ToQString(Error::ToString(err)));
+  msgBox.setDetailedText(ToQString(err.ToString()));
   msgBox.setIcon(QMessageBox::Critical);
   msgBox.setStandardButtons(QMessageBox::Ok);
   msgBox.exec();

@@ -14,13 +14,13 @@ namespace
     THIS_LINE,
     THIS_LINE
   };
-  
-  const Error::CodeType CODES[] = {
-    1,
-    Error::ModuleCode<'C', 'P', 'L'>::Value,
-    Error::ModuleCode<'a', 'b', '#'>::Value
-  };
 
+  const String TEXTS[] = {
+    "Error1",
+    "Error2",
+    "Error3"
+  };
+  
   void Test(bool res, const String& text, unsigned line)
   {
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
@@ -28,70 +28,53 @@ namespace
       throw 1;
   }
 
-  void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
-  {
-    std::cout << Error::AttributesToString(loc, code, text);
-  }
-  
   Error GetError()
   {
-    return Error(LOCATIONS[2], CODES[2], "Error3");
+    return Error(LOCATIONS[2], TEXTS[2]);
   }
-  
-  void TestError(unsigned level, Error::LocationRef loc, Error::CodeType code, const String& /*text*/)
+
+  void TestSuccess(const Error& err)
   {
-    Test(code == CODES[level], "Nested errors code test", __LINE__);
-    Test(loc == LOCATIONS[level], "Nested errors location test", __LINE__);
+    Test(!err, "Success checking test", __LINE__);
+    Test(err.GetLocation() == Error::Location(), "Success location test", __LINE__);
+    Test(err.GetText() == String(), "Success text test", __LINE__);
   }
-  
-  void CountDepth(unsigned& maxlevel, unsigned level, Error::LocationRef /*loc*/, Error::CodeType /*code*/, const String& /*text*/)
+
+  void TestError(unsigned idx, const Error& err)
   {
-    maxlevel = std::max(maxlevel, level);
+    Test(err && !!err, "Errors checking test", __LINE__);
+    Test(err.GetLocation() == LOCATIONS[idx], "Errors location test", __LINE__);
+    Test(err.GetText() == TEXTS[idx], "Error text test", __LINE__);
   }
-  
-  unsigned GetDepth(const Error& e)
-  {
-    unsigned lvl(0);
-    e.WalkSuberrors(boost::bind(CountDepth, boost::ref(lvl), _1, _2, _3, _4));
-    return lvl + 1;
-  }
-  
+ 
   void ShowError(const Error& e)
   {
-    e.WalkSuberrors(ErrOuter);
+    std::cout << e.ToString();
   }
-  
-  #define TEST(a) \
-    Test(a, # a, __LINE__)
 }
 
 int main()
 {
   try
   {
-    Test(Error::ModuleCode<'0', '0', '0'>::Value == 0x30303000, "ModuleCode#1", __LINE__);
-    Test(Error::ModuleCode<'A', 'B', 'C'>::Value == 0x43424100, "ModuleCode#2", __LINE__);
     Error err0;
-    TEST(!err0);
-    Error err1(LOCATIONS[0], CODES[0], "Error1");
-    TEST(err1 == CODES[0]);
-    Error err2(LOCATIONS[1], CODES[1], "Error2");
-    TEST(err2 == CODES[1]);
-    TEST(err2 != err1);
+    TestSuccess(err0);
+    Error err1(LOCATIONS[0], TEXTS[0]);
+    TestError(0, err1);
+    Error err2(LOCATIONS[1], TEXTS[1]);
+    TestError(1, err2);
     err1.AddSuberror(err2);
     const Error& err3 = GetError();
-    TEST(err3 == CODES[2]);
+    TestError(2, err3);
     err1.AddSuberror(err3);
-    TEST(err1.FindSuberror(CODES[0]) == CODES[0]);
-    TEST(err1.FindSuberror(CODES[1]) == err2);
-    TEST(err1.FindSuberror(100) == 0);
-    TEST(!err0);
-    TEST(err1);
-    err1.WalkSuberrors(TestError);
-    const unsigned curDepth(GetDepth(err1));
-    TEST(curDepth == 3);
-    TEST(GetDepth(err1.AddSuberror(Error())) == curDepth);
-    TEST(GetDepth(Error().AddSuberror(err1)) == 1);
+    {
+      const Error& sub1 = err1.GetSuberror();
+      TestError(1, sub1);
+      const Error& sub2 = sub1.GetSuberror();
+      TestError(2, sub2);
+      const Error& sub3 = sub2.GetSuberror();
+      TestSuccess(sub3);
+    }
     throw err1;
   }
   catch (const Error& e)

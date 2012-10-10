@@ -16,7 +16,6 @@ Author:
 #include <error_tools.h>
 //library includes
 #include <l10n/api.h>
-#include <sound/error_codes.h>
 #include <sound/mixer.h>
 //std includes
 #include <algorithm>
@@ -140,13 +139,13 @@ namespace
     {
       if (data.size() != InChannels)
       {
-        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, translate("Failed to set mixer matrix: invalid channels count specified."));
+        throw Error(THIS_LINE, translate("Failed to set mixer matrix: invalid channels count specified."));
       }
       const std::vector<MultiGain>::const_iterator it = std::find_if(data.begin(), data.end(),
         FindOverloadedGain);
       if (it != data.end())
       {
-        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, translate("Failed to set mixer matrix: gain is out of range."));
+        throw Error(THIS_LINE, translate("Failed to set mixer matrix: gain is out of range."));
       }
       boost::array<MultiFixed, InChannels> tmpMatrix;
       std::transform(data.begin(), data.end(), tmpMatrix.begin(), MultiGain2MultiFixed<NativeType>);
@@ -180,8 +179,7 @@ namespace ZXTune
       case 4:
         return boost::make_shared<FastMixer<4> >();
       default:
-        assert(!"Mixer: invalid channels count specified");
-        throw MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, translate("Failed to create unsupported mixer with %1% channels."), channels);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to create unsupported mixer with %1% channels."), channels);
       }
     }
   }

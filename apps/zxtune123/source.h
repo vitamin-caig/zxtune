@@ -19,6 +19,7 @@ Author:
 #include <core/module_holder.h>
 //std includes
 #include <memory>
+#include <stdexcept>
 //boost includes
 #include <boost/function.hpp>
 
@@ -30,6 +31,8 @@ namespace boost
     class options_description;
   }
 }
+
+class CancelError : public std::exception {};
 
 typedef boost::function<void(ZXTune::Module::Holder::Ptr)> OnItemCallback;
 

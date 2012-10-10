@@ -25,7 +25,6 @@ Author:
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
@@ -54,7 +53,7 @@ namespace
   {
     if (res < 0)
     {
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in OGG backend: code %1%."), res);
+      throw MakeFormattedError(loc, translate("Error in OGG backend: code %1%."), res);
     }
   }
 
@@ -328,7 +327,7 @@ namespace
       }
       else
       {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+        throw MakeFormattedError(THIS_LINE,
           translate("OGG backend error: invalid mode '%1%'."), mode);
       }
     }
@@ -339,7 +338,7 @@ namespace
       if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::BITRATE, bitrate) &&
         !in_range<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+        throw MakeFormattedError(THIS_LINE,
           translate("OGG backend error: bitrate (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
       }
       return static_cast<uint_t>(bitrate);
@@ -351,7 +350,7 @@ namespace
       if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::QUALITY, quality) &&
         !in_range<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+        throw MakeFormattedError(THIS_LINE,
           translate("OGG backend error: quality (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
       }
       return static_cast<uint_t>(quality);
@@ -456,7 +455,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+        return MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

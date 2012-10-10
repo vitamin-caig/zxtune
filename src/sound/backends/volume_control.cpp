@@ -13,7 +13,6 @@ Author:
 #include "volume_control.h"
 //library includes
 #include <l10n/api.h>
-#include <sound/error_codes.h>
 //boost includes
 #include <boost/ref.hpp>
 #include <boost/make_shared.hpp>
@@ -40,7 +39,7 @@ namespace
       {
         return delegate->GetVolume(volume);
       }
-      return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to get volume in invalid state."));
+      return Error(THIS_LINE, translate("Failed to get volume in invalid state."));
     }
 
     virtual Error SetVolume(const MultiGain& volume)
@@ -49,7 +48,7 @@ namespace
       {
         return delegate->SetVolume(volume);
       }
-      return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to set volume in invalid state."));
+      return Error(THIS_LINE, translate("Failed to set volume in invalid state."));
     }
   private:
     const VolumeControl::Ptr& Delegate;

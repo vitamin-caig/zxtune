@@ -17,7 +17,6 @@ Author:
 #include <error_tools.h>
 //library includes
 #include <l10n/api.h>
-#include <sound/error_codes.h>
 //std includes
 #include <cassert>
 #include <list>
@@ -93,7 +92,7 @@ namespace
 
     virtual Error CreateBackend(CreateBackendParameters::Ptr, Backend::Ptr&) const
     {
-      return Error(THIS_LINE, BACKEND_NOT_FOUND, translate("Requested backend is not supported."));
+      return Error(THIS_LINE, translate("Requested backend is not supported."));
     }
   private:
     const String IdValue;
@@ -120,7 +119,7 @@ namespace ZXTune
 
     BackendCreator::Ptr CreateDisabledBackendStub(const String& id, const char* description, uint_t caps)
     {
-      return CreateUnavailableBackendStub(id, description, caps, Error(THIS_LINE, BACKEND_NOT_FOUND, translate("Not supported in current configuration")));
+      return CreateUnavailableBackendStub(id, description, caps, Error(THIS_LINE, translate("Not supported in current configuration")));
     }
 
     BackendCreator::Ptr CreateUnavailableBackendStub(const String& id, const char* description, uint_t caps, const Error& status)

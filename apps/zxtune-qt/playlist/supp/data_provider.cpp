@@ -21,7 +21,6 @@ Author:
 #include <progress_callback.h>
 #include <template_parameters.h>
 //library includes
-#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/plugin.h>

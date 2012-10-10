@@ -17,7 +17,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/core_parameters.h>
-#include <core/error_codes.h>
 #include <core/freq_tables.h>
 #include <core/module_attrs.h>
 #include <l10n/api.h>
@@ -859,7 +858,7 @@ namespace
 
   Error CreateInvalidStringError(Error::LocationRef loc, const std::string& txt)
   {
-    return MakeFormattedError(loc, ERROR_INVALID_FORMAT, translate("Invalid string while parsing: '%1%'."), txt);
+    return MakeFormattedError(loc, translate("Invalid string while parsing: '%1%'."), txt);
   }
 }
 

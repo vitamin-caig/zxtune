@@ -27,8 +27,6 @@ Author:
 
 namespace
 {
-  const unsigned THIS_MODULE = Error::ModuleCode<'L', 'S', 'O'>::Value;
-
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("tools");
 
   class LinuxSharedLibrary : public SharedLibrary
@@ -54,7 +52,7 @@ namespace
       {
         return res;
       }
-      throw MakeFormattedError(THIS_LINE, THIS_MODULE, 
+      throw MakeFormattedError(THIS_LINE,
         translate("Failed to find symbol '%1%' in shared object."), FromStdString(name));
     }
   private:
@@ -76,7 +74,7 @@ Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
     res = boost::make_shared<LinuxSharedLibrary>(handle);
     return Error();
   }
-  return MakeFormattedError(THIS_LINE, THIS_MODULE,
+  return MakeFormattedError(THIS_LINE,
     translate("Failed to load shared object '%1%' (%2%)."), FromStdString(fileName), FromStdString(::dlerror()));
 }
   

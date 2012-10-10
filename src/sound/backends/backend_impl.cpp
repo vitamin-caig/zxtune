@@ -18,7 +18,6 @@ Author:
 //library includes
 #include <async/worker.h>
 #include <l10n/api.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
@@ -43,7 +42,7 @@ namespace
     {
       if (!Delegate.get())
       {
-        throw Error(THIS_LINE, BACKEND_FAILED_CREATE, translate("Invalid module specified for backend."));
+        throw Error(THIS_LINE, translate("Invalid module specified for backend."));
       }
     }
 
@@ -207,7 +206,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to initialize playback.")).AddSuberror(e);
+        return Error(THIS_LINE, translate("Failed to initialize playback.")).AddSuberror(e);
       }
     }
 
@@ -224,7 +223,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to finalize playback.")).AddSuberror(e);
+        return Error(THIS_LINE, translate("Failed to finalize playback.")).AddSuberror(e);
       }
     }
 
@@ -240,7 +239,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to pause playback.")).AddSuberror(e);
+        return Error(THIS_LINE, translate("Failed to pause playback.")).AddSuberror(e);
       }
     }
 
@@ -256,7 +255,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to resume playback.")).AddSuberror(e);
+        return Error(THIS_LINE, translate("Failed to resume playback.")).AddSuberror(e);
       }
     }
 
@@ -344,7 +343,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to stop playback.")).AddSuberror(e);
+        return Error(THIS_LINE, translate("Failed to stop playback.")).AddSuberror(e);
       }
     }
 
@@ -358,7 +357,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to set playback position.")).AddSuberror(e);
+        return Error(THIS_LINE, translate("Failed to set playback position.")).AddSuberror(e);
       }
     }
 

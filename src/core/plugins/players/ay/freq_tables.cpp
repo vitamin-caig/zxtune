@@ -15,7 +15,6 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
-#include <core/error_codes.h>
 #include <l10n/api.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -241,7 +240,7 @@ namespace ZXTune
         boost::bind(&FreqTableEntry::Name, _1) == idNormal);
       if (entry == ArrayEnd(TABLES))
       {
-        return MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, translate("Invalid frequency table '%1%'."), id);
+        return MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);
       }
       //copy result forward (normal) or backward (reverted)
       if (doRevert)

@@ -24,11 +24,11 @@ Author:
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <algorithm>
+#include <cstring>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -92,7 +92,7 @@ namespace
       if (!val)
       {
         //TODO: convert code to string
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in Win32 backend: code %1%."), ::GetLastError());
+        throw MakeFormattedError(loc, translate("Error in Win32 backend: code %1%."), ::GetLastError());
       }
     }
   private:
@@ -123,7 +123,7 @@ namespace
       }
       catch (const Error& e)
       {
-        Dbg("Failed to close device: %1%", Error::ToString(e));
+        Dbg("Failed to close device: %1%", e.ToString());
       }
     }
 
@@ -190,12 +190,12 @@ namespace
         std::vector<char> buffer(1024);
         if (MMSYSERR_NOERROR == Api->waveOutGetErrorTextA(res, &buffer[0], static_cast<UINT>(buffer.size())))
         {
-          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in Win32 backend: %1%."),
+          throw MakeFormattedError(loc, translate("Error in Win32 backend: %1%."),
             String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
         }
         else
         {
-          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in Win32 backend: code %1%."), res);
+          throw MakeFormattedError(loc, translate("Error in Win32 backend: code %1%."), res);
         }
       }
     }
@@ -233,7 +233,7 @@ namespace
       }
       catch (const Error& e)
       {
-        Dbg("Failed to reset buffer: %1%", Error::ToString(e));
+        Dbg("Failed to reset buffer: %1%", e.ToString());
       }
     }
 
@@ -301,7 +301,7 @@ namespace
       }
       catch (const Error& e)
       {
-        Dbg("Failed to reset cycle buffer: %1%", Error::ToString(e));
+        Dbg("Failed to reset cycle buffer: %1%", e.ToString());
       }
     }
 
@@ -362,7 +362,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Failed to set volume: gain is out of range."));
+        return Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
       // use exceptions for simplification
       try
@@ -403,7 +403,7 @@ namespace
       if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers) &&
           !in_range<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+        throw MakeFormattedError(THIS_LINE,
           translate("Win32 backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<std::size_t>(buffers);
@@ -552,7 +552,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+        return MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }
@@ -650,7 +650,7 @@ namespace ZXTune
         }
         else
         {
-          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable output devices found"));
+          throw Error(THIS_LINE, translate("No suitable output devices found"));
         }
       }
       catch (const Error& e)
@@ -670,7 +670,7 @@ namespace ZXTune
         }
         catch (const Error& e)
         {
-          Dbg("%1%", Error::ToString(e));
+          Dbg("%1%", e.ToString());
           return Device::Iterator::CreateStub();
         }
       }

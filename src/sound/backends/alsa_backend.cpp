@@ -26,7 +26,6 @@ Author:
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
@@ -56,7 +55,7 @@ namespace
   {
     if (res < 0)
     {
-      throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
+      throw MakeFormattedError(loc,
         translate("Error in ALSA backend: %1%."), api.snd_strerror(res));
     }
   }
@@ -163,7 +162,7 @@ namespace
     {
       if (res < 0)
       {
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
+        throw MakeFormattedError(loc,
           translate("Error in ALSA backend while working with device '%1%': %2%."), Name, Api->snd_strerror(res));
       }
     }
@@ -331,7 +330,7 @@ namespace
       const SoundFormat fmt(*Api, fmtMask.get());
       if (!fmt.IsSupported())
       {
-        throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable formats supported by ALSA."));
+        throw Error(THIS_LINE, translate("No suitable formats supported by ALSA."));
       }
       Dbg("Setting format");
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params_set_format, hwParams.get(), fmt.Get(), THIS_LINE);
@@ -565,7 +564,7 @@ namespace
       }
       if (!MixerElement)
       {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+        throw MakeFormattedError(THIS_LINE,
           translate("Failed to found mixer '%1%' for ALSA backend."), mixer);
       }
     }
@@ -618,7 +617,7 @@ namespace
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Failed to set volume: gain is out of range."));
+        return Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
       if (!MixerElement)
       {
@@ -710,7 +709,7 @@ namespace
       if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+        throw MakeFormattedError(THIS_LINE,
           translate("ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
@@ -851,7 +850,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+        return MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }
@@ -1121,7 +1120,7 @@ namespace ZXTune
         }
         else
         {
-          throw Error(THIS_LINE, BACKEND_SETUP_ERROR, translate("No suitable output devices found"));
+          throw Error(THIS_LINE, translate("No suitable output devices found"));
         }
       }
       catch (const Error& e)
@@ -1147,7 +1146,7 @@ namespace ZXTune
         }
         catch (const Error& e)
         {
-          Dbg("%1%", Error::ToString(e));
+          Dbg("%1%", e.ToString());
           return Device::Iterator::CreateStub();
         }
       }

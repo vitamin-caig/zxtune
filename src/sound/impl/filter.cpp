@@ -17,7 +17,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <l10n/api.h>
-#include <sound/error_codes.h>
 #include <sound/filter.h>
 //std includes
 #include <cassert>
@@ -75,7 +74,7 @@ namespace
   {
     if (!in_range<T>(val, min, max))
     {
-      throw MakeFormattedError(loc, FILTER_INVALID_PARAMETER, text, val, min, max);
+      throw MakeFormattedError(loc, text, val, min, max);
     }
   }
 

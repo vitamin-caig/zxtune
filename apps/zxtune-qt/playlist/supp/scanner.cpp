@@ -20,11 +20,11 @@ Author:
 #include <error.h>
 //library includes
 #include <async/coroutine.h>
-#include <core/error_codes.h>
 //std includes
 #include <ctime>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 #include <boost/thread/mutex.hpp>
 //qt includes
 #include <QtCore/QDirIterator>

@@ -22,7 +22,6 @@ Author:
 #include <io/providers/file_provider.h>
 #include <l10n/api.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <strings/template.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -150,7 +149,7 @@ namespace
       if (nameTemplate.empty())
       {
         // Filename parameter is required
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Output filename template is not specified."));
+        throw Error(THIS_LINE, translate("Output filename template is not specified."));
       }
       // check if required to add extension
       const String extension = Char('.') + Id;

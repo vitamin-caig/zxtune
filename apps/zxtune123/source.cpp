@@ -15,7 +15,6 @@ Author:
 #include "console.h"
 #include "source.h"
 #include <apps/base/app.h>
-#include <apps/base/error_codes.h>
 #include <apps/base/parsing.h>
 #include <apps/base/playitem.h>
 //common includes
@@ -24,7 +23,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/core_parameters.h>
-#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/plugin.h>
@@ -79,6 +77,7 @@ namespace
       static const Char EMPTY[] = {0};
       OnProgress(current, EMPTY);
     }
+
     virtual void OnProgress(uint_t current, const String& message)
     {
       CheckForExit();
@@ -95,7 +94,7 @@ namespace
       if (Cons.GetPressedKey() == Console::INPUT_KEY_CANCEL)
       {
         Cons.WaitForKeyRelease();
-        throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+        throw std::exception();
       }
     }
 
@@ -191,7 +190,7 @@ namespace
     {
       if (Files.empty())
       {
-        throw Error(THIS_LINE, NO_INPUT_FILES, Text::INPUT_ERROR_NO_FILES);
+        throw Error(THIS_LINE, Text::INPUT_ERROR_NO_FILES);
       }
     }
 
@@ -221,7 +220,7 @@ namespace
       }
       catch (const Error& e)
       {
-        StdOut << Error::ToString(e) << std::endl;
+        StdOut << e.ToString();
       }
     }
   private:

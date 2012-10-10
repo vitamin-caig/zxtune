@@ -21,7 +21,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/container.h>
-#include <core/error_codes.h>
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
@@ -257,7 +256,7 @@ namespace
       if (Accessor.FindValue(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, minRawSize) &&
           minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
       {
-        throw MakeFormattedError(THIS_LINE, Module::ERROR_INVALID_PARAMETERS,
+        throw MakeFormattedError(THIS_LINE,
           translate("Specified minimal scan size (%1%). Should be more than %2%."), minRawSize, MIN_MINIMAL_RAW_SIZE);
       }
       return static_cast<std::size_t>(minRawSize);

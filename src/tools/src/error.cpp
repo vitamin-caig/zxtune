@@ -14,86 +14,69 @@ Author:
 //library includes
 #include <l10n/api.h>
 //std includes
-#include <cctype>
-#include <iomanip>
-#include <sstream>
+//#include <cctype>
 //boost includes
-#include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 //text includes
 #include <tools/text/tools.h>
 
 namespace
 {
-  void CollectErrorDetails(Error::LocationRef location, Error::CodeType code, const String& text, String& resultStr)
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("tools");
+
+  String LocationToString(Error::LocationRef loc)
   {
-    resultStr += Error::AttributesToString(location, code, text);
+  #ifdef NDEBUG
+    return Strings::Format(Text::ERROR_LOCATION_FORMAT, loc);
+  #else
+    return Strings::Format(Text::ERROR_LOCATION_FORMAT_DEBUG, loc.Tag, loc.File, loc.Line, loc.Function);
+  #endif
   }
 
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("tools");
+  String AttributesToString(Error::LocationRef loc, const String& text)
+  {
+    return Strings::Format(translate("%1%\n\nAt: %2%\n--------\n"), text, LocationToString(loc));
+  }
 }
 
 // implementation of error's core used to keep data
 struct Error::Meta
 {
-  Meta() : Location(), Code(), Text()
+  Meta() : Location(), Text()
   {
   }
   
-  Meta(LocationRef loc, CodeType code, const String& txt)
-    : Location(loc), Code(code), Text(txt)
+  Meta(LocationRef loc, const String& txt)
+    : Location(loc), Text(txt)
   {
-    assert(Code);
   }
-  Meta(LocationRef loc, CodeType code)
-    : Location(loc), Code(code)
+
+  explicit Meta(LocationRef loc)
+    : Location(loc)
   {
-    assert(Code);
   }
 
   // source error location
   Error::Location Location;
-  // error code
-  Error::CodeType Code;
   // error text message
   String Text;
   // suberror
   MetaPtr Suberror;
-
-  // static reference to 'success' error instance
-  static Meta* Success()
-  {
-    static Meta Success;
-    return &Success;
-  }
-
-  // static destructor to release error in allocate place (workaround against multiple runtimes)
-  static void Delete(Meta* obj)
-  {
-    if (obj != Success())
-    {
-      delete obj;
-    }
-  }
 };
 
-Error::Error() : ErrorMeta(Meta::Success(), Meta::Delete)
+Error::Error() : ErrorMeta()
 {
 }
 
-Error::Error(LocationRef loc, CodeType code)
-  : ErrorMeta(new Meta(loc, code), Meta::Delete)
-{
-}
-
-Error::Error(LocationRef loc, CodeType code, const String& txt)
-  : ErrorMeta(new Meta(loc, code, txt), Meta::Delete)
+Error::Error(LocationRef loc, const String& txt)
+  : ErrorMeta(boost::make_shared<Meta>(loc, txt))
 {
 }
 
 Error& Error::AddSuberror(const Error& e)
 {
   //do not add/add to 'success' error
-  if (e.GetCode() && GetCode())
+  if (e && *this)
   {
     MetaPtr ptr = ErrorMeta;
     while (ptr->Suberror)
@@ -105,82 +88,37 @@ Error& Error::AddSuberror(const Error& e)
   return *this;
 }
 
-Error Error::FindSuberror(CodeType code) const
+Error Error::GetSuberror() const
 {
-  MetaPtr ptr = ErrorMeta;
-  while (ptr && ptr->Code != code)
-  {
-    ptr = ptr->Suberror;
-  }
-  return ptr ? Error(ptr) : Error();
-}
-
-void Error::WalkSuberrors(const boost::function<void(uint_t, LocationRef, CodeType, const String&)>& callback) const
-{
-  MetaPtr ptr = ErrorMeta;
-  for (uint_t level = 0; ptr; ++level, ptr = ptr->Suberror)
-  {
-    const Meta& meta = *ptr;
-    callback(level, meta.Location, meta.Code, meta.Text);
-  }
+  return ErrorMeta && ErrorMeta->Suberror ? Error(ErrorMeta->Suberror) : Error();
 }
 
 String Error::GetText() const
 {
-  return ErrorMeta->Text;
+  return ErrorMeta ? ErrorMeta->Text : String();
 }
 
-Error::CodeType Error::GetCode() const
+Error::Location Error::GetLocation() const
 {
-  return ErrorMeta->Code;
+  return ErrorMeta ? ErrorMeta->Location : Error::Location();
 }
 
-Error::operator Error::CodeType () const
+Error::operator Error::BoolType() const
 {
-  return ErrorMeta->Code;
+  return ErrorMeta ? &Error::TrueFunc : 0;
 }
 
 bool Error::operator ! () const
 {
-  return ErrorMeta->Code == 0;
+  return !ErrorMeta;
 }
 
-String Error::CodeToString(CodeType code)
-{
-  const std::size_t codeBytes = sizeof(code) - 3;
-  const CodeType syms = code >> (8 * codeBytes);
-  const Char p1 = static_cast<Char>(syms & 0xff);
-  const Char p2 = static_cast<Char>((syms >> 8) & 0xff);
-  const Char p3 = static_cast<Char>((syms >> 16) & 0xff);
-  std::basic_ostringstream<Char> str;
-  if (std::isalnum(p1) && std::isalnum(p2) && std::isalnum(p3))
-  {
-    str << p1 << p2 << p3 << Char('#') << std::setw(2 * codeBytes) << std::setfill(Char('0')) << std::hex << (code & ((uint_t(1) << 8 * codeBytes) - 1));
-  }
-  else
-  {
-    str << Char('0') << Char('x') << std::setw(2 * sizeof(code)) << std::setfill(Char('0')) << std::hex << code;
-  }
-  return str.str();
-}
-
-String Error::AttributesToString(LocationRef loc, CodeType code, const String& text)
-{
-  return Strings::Format(translate("%1%\n\nCode: %2%\nAt: %3%\n--------\n"), text, CodeToString(code), LocationToString(loc));
-}
-
-String Error::LocationToString(Error::LocationRef loc)
-{
-#ifdef NDEBUG
-  return Strings::Format(Text::ERROR_LOCATION_FORMAT, loc);
-#else
-  return Strings::Format(Text::ERROR_LOCATION_FORMAT_DEBUG, loc.Tag, loc.File, loc.Line, loc.Function);
-#endif
-}
-
-String Error::ToString(const Error& err)
+String Error::ToString() const
 {
   String details;
-  err.WalkSuberrors(boost::bind(&CollectErrorDetails, _2, _3, _4, boost::ref(details)));
+  for (MetaPtr meta = ErrorMeta; meta; meta = meta->Suberror)
+  {
+    details += AttributesToString(meta->Location, meta->Text);
+  }
   return details;
 }

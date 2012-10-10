@@ -14,7 +14,6 @@ Author:
 //local includes
 #include "sound.h"
 #include <apps/base/app.h>
-#include <apps/base/error_codes.h>
 #include <apps/base/parsing.h>
 //common includes
 #include <debug_log.h>
@@ -61,11 +60,6 @@ namespace
 
   const Char MATRIX_DELIMITERS[] = {';', ',', '-', '\0'};
 
-  void ErrOuter(uint_t /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
-  {
-    StdOut << Error::AttributesToString(loc, code, text);
-  }
-
   inline bool InvalidChannelLetter(uint_t channels, Char letter)
   {
     if (channels < MIN_CHANNELS || channels > MAX_CHANNELS)
@@ -86,7 +80,7 @@ namespace
     {
       return res;
     }
-    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::ERROR_INVALID_FORMAT, str);
+    throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
   }
 
   //ABC: 1.0,0.0,0.5,0.5,0.0,1.0
@@ -131,7 +125,7 @@ namespace
       std::transform(splitted.begin(), splitted.end(), result.begin()->begin(), &FromString<double>);
       return result;
     }
-    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::SOUND_ERROR_INVALID_MIXER, str);
+    throw MakeFormattedError(THIS_LINE, Text::SOUND_ERROR_INVALID_MIXER, str);
   }
 
   ZXTune::Sound::Converter::Ptr CreateFilter(uint_t freq, const String& str)
@@ -156,7 +150,7 @@ namespace
         return filter;
       }
     }
-    throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::SOUND_ERROR_INVALID_FILTER, str);
+    throw MakeFormattedError(THIS_LINE, Text::SOUND_ERROR_INVALID_FILTER, str);
   }
 
   class CommonBackendParameters
@@ -386,7 +380,7 @@ namespace
             {
               throw e;
             }
-            e.WalkSuberrors(ErrOuter);
+            StdOut << e.ToString();
             continue;
           }
           Dbg("Success!");
@@ -396,7 +390,7 @@ namespace
       }
       if (!backend.get())
       {
-        throw Error(THIS_LINE, NO_BACKENDS, Text::SOUND_ERROR_NO_BACKEND);
+        throw Error(THIS_LINE, Text::SOUND_ERROR_NO_BACKEND);
       }
       return backend;
     }

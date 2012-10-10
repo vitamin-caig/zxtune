@@ -18,7 +18,6 @@ Author:
 #include "sound.h"
 #include "source.h"
 #include <apps/base/app.h>
-#include <apps/base/error_codes.h>
 #include <apps/base/parsing.h>
 #include <apps/version/api.h>
 //common includes
@@ -28,7 +27,6 @@ Author:
 #include <async/data_receiver.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
@@ -54,11 +52,6 @@ Author:
 
 namespace
 {
-  inline void ErrOuter(uint_t /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
-  {
-    StdOut << Error::AttributesToString(loc, code, text);
-  }
-
   String GetModuleId(const Parameters::Accessor& props)
   {
     String res;
@@ -112,8 +105,7 @@ namespace
       file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
       if (!file)
       {
-        throw MakeFormattedError(THIS_LINE, CONVERT_PARAMETERS,
-          Text::CONVERT_ERROR_WRITE_FILE, filename);
+        throw MakeFormattedError(THIS_LINE, Text::CONVERT_ERROR_WRITE_FILE, filename);
       }
       Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
     }
@@ -138,12 +130,12 @@ namespace
       Parameters::StringType mode;
       if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_MODE), mode))
       {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_MODE);
+        throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_MODE);
       }
       String nameTemplate;
       if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_FILENAME), nameTemplate))
       {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_NO_FILENAME);
+        throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_FILENAME);
       }
       Parameters::IntType optimization = ZXTune::Module::Conversion::DEFAULT_OPTIMIZATION;
       params.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
@@ -186,7 +178,7 @@ namespace
       }
       else
       {
-        throw Error(THIS_LINE, CONVERT_PARAMETERS, Text::CONVERT_ERROR_INVALID_MODE);
+        throw Error(THIS_LINE, Text::CONVERT_ERROR_INVALID_MODE);
       }
 
       const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, param, mask, Strings::Template::Create(nameTemplate)));
@@ -244,13 +236,8 @@ namespace
           Sourcer->ProcessItems(boost::bind(&CLIApplication::PlayItem, this, _1));
         }
       }
-      catch (const Error& e)
+      catch (const CancelError&)
       {
-        if (!e.FindSuberror(ZXTune::Module::ERROR_DETECT_CANCELED))
-        {
-          e.WalkSuberrors(ErrOuter);
-        }
-        return -1;
       }
       return 0;
     }
@@ -312,7 +299,7 @@ namespace
       }
       catch (const std::exception& e)
       {
-        throw MakeFormattedError(THIS_LINE, UNKNOWN_ERROR, Text::COMMON_ERROR, e.what());
+        throw MakeFormattedError(THIS_LINE, Text::COMMON_ERROR, e.what());
       }
     }
 
@@ -350,7 +337,7 @@ namespace
           {
           case Console::INPUT_KEY_CANCEL:
           case 'Q':
-            throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+            throw CancelError();
           case Console::INPUT_KEY_LEFT:
             ThrowIfError(backend->SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
             break;

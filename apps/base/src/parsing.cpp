@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include <apps/base/parsing.h>
-#include <apps/base/error_codes.h>
 //common includes
 #include <error_tools.h>
 //library includes
@@ -85,8 +84,7 @@ namespace
         }
         else
         {
-          return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-            Text::ERROR_INVALID_FORMAT, str);
+          return MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
         }
         break;
       case IN_VALUE:
@@ -131,8 +129,7 @@ namespace
     }
     else if (IN_NOWHERE != mode)
     {
-      return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-        Text::ERROR_INVALID_FORMAT, str);
+      return MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
     }
     result.swap(res);
     return Error();
@@ -148,7 +145,7 @@ namespace
     {
       if (!filename.empty())
       {
-        return Error(THIS_LINE, CONFIG_FILE, Text::ERROR_CONFIG_FILE);
+        return Error(THIS_LINE, Text::ERROR_CONFIG_FILE);
       }
       configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
     }

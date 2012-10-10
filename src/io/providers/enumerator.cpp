@@ -16,7 +16,6 @@ Author:
 #include <debug_log.h>
 #include <error_tools.h>
 //library includes
-#include <io/error_codes.h>
 #include <l10n/api.h>
 //std includes
 #include <algorithm>
@@ -63,7 +62,7 @@ namespace
         return id;
       }
       Dbg(" No suitable provider found");
-      throw MakeFormattedError(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Failed to resolve uri '%1%'."), uri);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to resolve uri '%1%'."), uri);
     }
 
     virtual Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
@@ -78,7 +77,7 @@ namespace
         }
       }
       Dbg(" No suitable provider found");
-      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Specified uri scheme is not supported."));
+      throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
     virtual Provider::Iterator::Ptr Enumerate() const
@@ -143,7 +142,7 @@ namespace
 
     virtual Binary::Container::Ptr Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const
     {
-      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Specified uri scheme is not supported."));
+      throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
     virtual Strings::Set Schemes() const
@@ -189,7 +188,7 @@ namespace ZXTune
 
     DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description)
     {
-      return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Not supported in current configuration")));
+      return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, translate("Not supported in current configuration")));
     }
 
     DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)

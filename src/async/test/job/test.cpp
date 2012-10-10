@@ -9,39 +9,31 @@
 
 namespace
 {
-	void ShowError(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
-	{
-		std::cout << Error::AttributesToString(loc, code, text);
-	}
-}
-
-namespace
-{
 	using namespace Async;
 	
 	Error FailedToInitializeError()
   {
-    return Error(THIS_LINE, 1, "Failed to initialize");
+    return Error(THIS_LINE, "Failed to initialize");
   }
 
 	Error FailedToFinalizeError()
   {
-    return Error(THIS_LINE, 2, "Failed to finalize");
+    return Error(THIS_LINE, "Failed to finalize");
   }
 
 	Error FailedToSuspendError()
   {
-    return Error(THIS_LINE, 3, "Failed to suspend");
+    return Error(THIS_LINE, "Failed to suspend");
   }
 
 	Error FailedToResumeError()
   {
-    return Error(THIS_LINE, 4, "Failed to resume");
+    return Error(THIS_LINE, "Failed to resume");
   }
 
 	Error FailedToExecuteError()
   {
-    return Error(THIS_LINE, 5, "Failed to execute");
+    return Error(THIS_LINE, "Failed to execute");
   }
 
 	class TempWorker : public Worker
@@ -104,7 +96,7 @@ namespace
   {
     if (!job.IsActive())
     {
-      throw Error(loc, 1000, "Job should be active");
+      throw Error(loc, "Job should be active");
     }
   }
 
@@ -112,7 +104,7 @@ namespace
   {
     if (job.IsActive())
     {
-      throw Error(loc, 1001, "Job should not be active");
+      throw Error(loc, "Job should not be active");
     }
   }
 
@@ -120,7 +112,7 @@ namespace
   {
     if (!job.IsPaused())
     {
-      throw Error(loc, 1002, "Job should be paused");
+      throw Error(loc, "Job should be paused");
     }
   }
 
@@ -128,7 +120,7 @@ namespace
   {
     if (job.IsPaused())
     {
-      throw Error(loc, 1003, "Job should not be paused");
+      throw Error(loc, "Job should not be paused");
     }
   }
 
@@ -143,12 +135,12 @@ namespace
     {
       if (err != initErr)
       {
-        throw Error(THIS_LINE, 100, "Invalid error returned for initialize").AddSuberror(err);
+        throw Error(THIS_LINE, "Invalid error returned for initialize").AddSuberror(err);
       }
     }
 		else
 		{
-			throw Error(THIS_LINE, 101, "Should not start job");
+			throw Error(THIS_LINE, "Should not start job");
 		}
     CheckNotActive(*job, THIS_LINE);
     std::cout << "Succeed\n";
@@ -184,12 +176,12 @@ namespace
     {
       if (err != execErr)
       {
-        throw Error(THIS_LINE, 103, "Invalid error returned for stop failed").AddSuberror(err);
+        throw Error(THIS_LINE, "Invalid error returned for stop failed").AddSuberror(err);
       }
     }
     else
     {
-      throw Error(THIS_LINE, 104, "Should not stop failed job");
+      throw Error(THIS_LINE, "Should not stop failed job");
     }
     CheckNotActive(*job, THIS_LINE);
     std::cout << "Succeed\n";
@@ -209,12 +201,12 @@ namespace
     {
       if (err != finErr)
       {
-        throw Error(THIS_LINE, 103, "Invalid error returned for stop failed").AddSuberror(err);
+        throw Error(THIS_LINE, "Invalid error returned for stop failed").AddSuberror(err);
       }
     }
     else
     {
-      throw Error(THIS_LINE, 104, "Should not stop failed job");
+      throw Error(THIS_LINE, "Should not stop failed job");
     }
     CheckNotActive(*job, THIS_LINE);
     std::cout << "Succeed\n";
@@ -234,12 +226,12 @@ namespace
     {
       if (err != suspErr)
       {
-        throw Error(THIS_LINE, 103, "Invalid error returned for pause failed").AddSuberror(err);
+        throw Error(THIS_LINE, "Invalid error returned for pause failed").AddSuberror(err);
       }
     }
     else
     {
-      throw Error(THIS_LINE, 104, "Should not pause failed job");
+      throw Error(THIS_LINE, "Should not pause failed job");
     }
     CheckNotActive(*job, THIS_LINE);
     std::cout << "Succeed\n";
@@ -261,12 +253,12 @@ namespace
     {
       if (err != resErr)
       {
-        throw Error(THIS_LINE, 103, "Invalid error returned for resume failed").AddSuberror(err);
+        throw Error(THIS_LINE, "Invalid error returned for resume failed").AddSuberror(err);
       }
     }
     else
     {
-      throw Error(THIS_LINE, 104, "Should not resume failed job");
+      throw Error(THIS_LINE, "Should not resume failed job");
     }
     CheckNotActive(*job, THIS_LINE);
     ThrowIfError(job->Start());
@@ -277,12 +269,12 @@ namespace
     {
       if (err != resErr)
       {
-        throw Error(THIS_LINE, 103, "Invalid error returned for resume while stopping failed").AddSuberror(err);
+        throw Error(THIS_LINE, "Invalid error returned for resume while stopping failed").AddSuberror(err);
       }
     }
     else
     {
-      throw Error(THIS_LINE, 104, "Job::Worker::Resume is not called");
+      throw Error(THIS_LINE, "Job::Worker::Resume is not called");
     }
     CheckNotActive(*job, THIS_LINE);
 
@@ -399,6 +391,6 @@ int main()
   catch (const Error& err)
   {
 		std::cout << "Failed: \n";
-		err.WalkSuberrors(ShowError);
+		std::cerr << err.ToString();
   }
 }

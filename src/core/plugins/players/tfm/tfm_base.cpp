@@ -15,7 +15,6 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/error_codes.h>
 #include <sound/sample_convert.h>
 //boost includes
 #include <boost/bind.hpp>

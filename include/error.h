@@ -8,13 +8,12 @@
 **/
 
 #pragma once
-#ifndef __ERROR_H_DEFINED__
-#define __ERROR_H_DEFINED__
+#ifndef ERROR_H_DEFINED
+#define ERROR_H_DEFINED
 
 //common includes
 #include <types.h>
 //boost includes
-#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 
 //! @class Error
@@ -24,24 +23,15 @@ class Error
   // internal types
   struct Meta;
   typedef boost::shared_ptr<Meta> MetaPtr;
+
+  void TrueFunc() const
+  {
+  }
 public:
   //! @brief Datatype for source text line identification\n
   //! LineTag = FILE_TAG + __LINE__\n
   //! assume __LINE__ < 65536
   typedef uint32_t LineTag;
-  //! @brief Type for code
-  typedef uint32_t CodeType;
-
-  //! @struct ModuleCode
-  //! @brief Template used for generate per-module base error code:
-  //! @code
-  //! const Error::CodeType ThisModuleCode = Error::ModuleCode<'A', 'B', 'C'>::Value;
-  //! @endcode
-  template<uint8_t p1, uint8_t p2, uint8_t p3>
-  struct ModuleCode
-  {
-    static const CodeType Value = (CodeType(p1) | (CodeType(p2) << 8) | (CodeType(p3) << 16)) << (8 * (sizeof(CodeType) - 3));
-  };
 
 #ifndef NDEBUG
   //! @struct Location
@@ -85,18 +75,16 @@ public:
   //@{
   //! @name Error initializers
   Error();//success
-  Error(LocationRef loc, CodeType code);
+
   //! @code
-  //! return Error(THIS_LINE, Error::ModuleCode<'A', 'B', 'C'>::Value, ERROR_TEXT);
+  //! return Error(THIS_LINE, ERROR_TEXT);
   //! @endcode
-  Error(LocationRef loc, CodeType code, const String& text);
-  ~Error()
-  {
-  }
+  Error(LocationRef loc, const String& text);
 
   Error(const Error& rh) : ErrorMeta(rh.ErrorMeta)
   {
   }
+
   Error& operator = (const Error& rh)
   {
     ErrorMeta = rh.ErrorMeta;
@@ -112,13 +100,7 @@ public:
   //! @return Modified current object
   //! @note Error uses shared references scheme, so it's safe to use parameter again
   Error& AddSuberror(const Error& e);
-  //! @brief Searching for suberror in stack by code
-  //! @param code %Error code
-  //! @return Empty object in case of fail or new object with specified code
-  Error FindSuberror(CodeType code) const;
-  //! @brief Walking through all nested suberrors
-  //! @param callback Callback which will be called on each level by stack starting from 0
-  void WalkSuberrors(const boost::function<void(uint_t, LocationRef, CodeType, const String&)>& callback) const;
+  Error GetSuberror() const;
   //@}
 
   //@{
@@ -126,42 +108,23 @@ public:
 
   //! @brief Text accessor
   String GetText() const;
-  //! @brief Code accessor
-  CodeType GetCode() const;
+  //! @brief Location accessor
+  Location GetLocation() const;
 
-  //! @brief Implicit casting to error code
-  operator CodeType () const;
-  //! @brief Checking if %Code != 0
+  typedef void (Error::*BoolType)() const;
+
+  //! @brief Check if error not empty
+  operator BoolType () const;
+
+  //! @brief Checking if error is empty
   bool operator ! () const;
   //@}
 
   //@{
   //! @name Serialization-related functions
 
-  //! @brief Converting location to string
-  //! @note Location#Tag (hex) format is used for release
-  //! @note Location#Tag (hex) (Location#File : Location#Line, Location#Function) format is used for debug
-  static String LocationToString(LocationRef loc);
-  //! @brief Converting code to string
-  //! @note ABC\#HHHH if code is composed using ModuleCode<'A', 'B', 'C'> :: Value + DDD
-  //! @note 0xHHHHHHHH else
-  static String CodeToString(CodeType code);
-  //! @brief Converts all the attributes to single string using internal format
-  //! @param loc %Error location (debug or release)
-  //! @param code %Error code
-  //! @param text %Error text
-  //! @return
-  //! @code
-  //! ${text}
-  //!
-  //! Code: ${code}
-  //! At: ${loc}
-  //! ------
-  //! @endcode
-  static String AttributesToString(LocationRef loc, CodeType code, const String& text);
-
   //! @brief Convert error and all suberrors to single string using AttributesToString function
-  static String ToString(const Error& err);
+  String ToString() const;
   //@}
 private:
   Error(MetaPtr ptr) : ErrorMeta(ptr)
@@ -192,4 +155,4 @@ inline void ThrowIfError(const Error& e)
   #define THIS_LINE (Error::Location(MAKETAG))
 #endif
 
-#endif //__ERROR_H_DEFINED__
+#endif //ERROR_H_DEFINED

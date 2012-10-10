@@ -21,10 +21,10 @@ Author:
 #include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
+#include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -176,7 +176,7 @@ namespace
       {
         return boost::make_shared<WavStream>(RenderingParameters->SoundFreq(), seekable);
       }
-      throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("WAV conversion is not supported on non-seekable streams."));
+      throw Error(THIS_LINE, translate("WAV conversion is not supported on non-seekable streams."));
     }
   private:
     const RenderParameters::Ptr RenderingParameters;
@@ -217,7 +217,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+        return MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

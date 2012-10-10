@@ -24,7 +24,6 @@ Author:
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
@@ -62,7 +61,7 @@ namespace
       if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, val) &&
           (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+        throw MakeFormattedError(THIS_LINE,
           translate("SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
@@ -267,10 +266,10 @@ namespace
       {
         if (const char* txt = Api->SDL_GetError())
         {
-          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
+          throw MakeFormattedError(loc,
             translate("Error in SDL backend: %1%."), FromStdString(txt));
         }
-        throw Error(loc, BACKEND_PLATFORM_ERROR, translate("Unknown error in SDL backend."));
+        throw Error(loc, translate("Unknown error in SDL backend."));
       }
     }
 
@@ -329,7 +328,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+        return MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

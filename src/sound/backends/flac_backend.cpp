@@ -23,7 +23,6 @@ Author:
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
@@ -49,7 +48,7 @@ namespace
   {
     if (!res)
     {
-      throw Error(loc, BACKEND_PLATFORM_ERROR, translate("Error in FLAC backend."));
+      throw Error(loc, translate("Error in FLAC backend."));
     }
   }
 
@@ -188,7 +187,7 @@ namespace
       if (!res)
       {
         const FLAC__StreamEncoderState state = Api->FLAC__stream_encoder_get_state(Encoder.get());
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in FLAC backend (code %1%)."), state);
+        throw MakeFormattedError(loc, translate("Error in FLAC backend (code %1%)."), state);
       }
     }
   private:
@@ -320,7 +319,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+        return MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

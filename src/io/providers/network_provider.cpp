@@ -9,9 +9,6 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//include first due to strange problems with curl includes
-#include <io/error_codes.h>
-
 //local includes
 #include "curl_api.h"
 #include "enumerator.h"
@@ -26,6 +23,8 @@ Author:
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
+//std includes
+#include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -101,7 +100,7 @@ namespace
     {
       if (code != CURLE_OK)
       {
-        throw MakeFormattedError(loc, ERROR_IO_ERROR, translate("Network error happends: %1%"), Api->curl_easy_strerror(code));
+        throw MakeFormattedError(loc, translate("Network error happends: %1%"), Api->curl_easy_strerror(code));
       }
     }
   private:
@@ -158,7 +157,7 @@ namespace
       Object.GetInfo(CURLINFO_RESPONSE_CODE, &retCode, THIS_LINE);
       if (IsHttpErrorCode(retCode))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Http error happends: %1%."), retCode);
+        throw MakeFormattedError(THIS_LINE, translate("Http error happends: %1%."), retCode);
       }
       return Binary::CreateContainer(result);
     }
@@ -354,7 +353,7 @@ namespace
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to open network resource '%1%'."), path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to open network resource '%1%'."), path).AddSuberror(e);
       }
     }
   private:

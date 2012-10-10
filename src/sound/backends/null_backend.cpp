@@ -17,7 +17,6 @@ Author:
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 //text includes
 #include <sound/text/backends.h>
@@ -105,7 +104,7 @@ namespace
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
+        return MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

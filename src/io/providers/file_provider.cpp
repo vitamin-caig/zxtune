@@ -9,9 +9,6 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//include first due to strange problems with curl includes
-#include <io/error_codes.h>
-
 //local includes
 #include "enumerator.h"
 #include "file_provider.h"
@@ -25,8 +22,6 @@ Author:
 #include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
-//std includes
-#include <fstream>
 //boost includes
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -165,7 +160,7 @@ namespace
     }
     catch (const boost::interprocess::interprocess_exception& e)
     {
-      throw Error(THIS_LINE, ERROR_IO_ERROR, FromStdString(e.what()));
+      throw Error(THIS_LINE, FromStdString(e.what()));
     }
 
     virtual const void* Start() const
@@ -193,7 +188,7 @@ namespace
     const std::streampos read = stream.read(safe_ptr_cast<char*>(&res->front()), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {
-      throw MakeFormattedError(THIS_LINE, ERROR_NO_ACCESS, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);
     }
     //TODO: Binary::CreateData
     return Binary::CreateContainer(res);
@@ -208,7 +203,7 @@ namespace
     }
     catch (const boost::system::system_error& err)
     {
-      throw Error(loc, ERROR_NO_ACCESS, ToStdString(err.code().message()));
+      throw Error(loc, ToStdString(err.code().message()));
     }
   }
   
@@ -245,7 +240,7 @@ namespace
     }
     catch (const boost::system::system_error& err)
     {
-      throw Error(loc, ERROR_IO_ERROR, ToStdString(err.code().message()));
+      throw Error(loc, ToStdString(err.code().message()));
     }
   }
 
@@ -255,7 +250,7 @@ namespace
     const boost::uintmax_t size = FileSize(fileName, THIS_LINE);
     if (size == 0)
     {
-      throw Error(THIS_LINE, ERROR_IO_ERROR, translate("File is empty."));
+      throw Error(THIS_LINE, translate("File is empty."));
     }
     else if (size >= mmapThreshold)
     {
@@ -279,7 +274,7 @@ namespace
     {
       if (!Stream)
       {
-        throw Error(THIS_LINE, ERROR_IO_ERROR, translate("Failed to open file."));
+        throw Error(THIS_LINE, translate("Failed to open file."));
       }
     }
 
@@ -287,7 +282,7 @@ namespace
     {
       if (!Stream.write(static_cast<const char*>(data.Start()), data.Size()))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Failed to write file '%1%'"), Name);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to write file '%1%'"), Name);
       }
     }
 
@@ -295,7 +290,7 @@ namespace
     {
       if (!Stream.flush())
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Failed to flush file '%1%'"), Name);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to flush file '%1%'"), Name);
       }
     }
 
@@ -303,7 +298,7 @@ namespace
     {
       if (!Stream.seekp(pos))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Failed to seek file '%1%'"), Name);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to seek file '%1%'"), Name);
       }
     }
 
@@ -340,7 +335,7 @@ namespace
     }
     if (!params.Overwrite() && IsExists(path))
     {
-      throw Error(THIS_LINE, ERROR_FILE_EXISTS, translate("File already exists."));
+      throw Error(THIS_LINE, translate("File already exists."));
     }
     return boost::make_shared<OutputFileStream>(path);
   }
@@ -407,7 +402,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to open file '%1%'."), path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to open file '%1%'."), path).AddSuberror(e);
       }
     }
 
@@ -419,7 +414,7 @@ namespace ZXTune
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to create file '%1%'."), path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to create file '%1%'."), path).AddSuberror(e);
       }
     }
 

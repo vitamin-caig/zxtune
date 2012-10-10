@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   }
   catch (const Error& e)
   {
-    StdOut << Error::ToString(e) << std::endl;
+    StdOut << e.ToString();
     return 1;
   }
 }
