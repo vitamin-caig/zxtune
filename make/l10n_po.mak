@@ -8,11 +8,13 @@ getlang = $(lastword $(subst /, ,$(dir $(1))))
 
 .PRECIOUS: %.po
 
-ifndef po_source_dirs
-po_source_dirs = $(sort $(dir $(source_files)))
+ifdef po_source_dirs
+po_source_files = $(addsuffix /*$(src_suffix),$(po_source_dirs))
+else
+po_source_files = $(addsuffix *$(src_suffix),$(sort $(dir $(source_files))))
 endif
 
-$(po_dir)/messages.pot: $(sort $(wildcard $(addsuffix /*$(src_suffix),$(po_source_dirs)))) | $(po_dir)
+$(po_dir)/messages.pot: $(sort $(wildcard $(po_source_files))) | $(po_dir)
 		xgettext --c++ --escape --boost --from-code=UTF-8 --omit-header \
 		  --keyword=translate:1,1t --keyword=translate:1,2,3t \
 		  --keyword=translate:1c,2,2t --keyword=translate:1c,2,3,4t \
