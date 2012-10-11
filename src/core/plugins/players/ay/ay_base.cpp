@@ -16,6 +16,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
+#include <math/numeric.h>
 #include <sound/receiver.h>
 #include <sound/sample_convert.h>
 //boost includes
@@ -263,7 +264,7 @@ namespace ZXTune
     {
       void ChannelBuilder::SetTone(int_t halfTones, int_t offset)
       {
-        const int_t halftone = clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
+        const int_t halftone = Math::Clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
         const uint_t tone = (Table[halftone] + offset) & 0xfff;
         SetTone(tone);
       }
@@ -279,7 +280,7 @@ namespace ZXTune
       void ChannelBuilder::SetLevel(int_t level)
       {
         const uint_t reg = Devices::AYM::DataChunk::REG_VOLA + Channel;
-        Chunk.Data[reg] = static_cast<uint8_t>(clamp<int_t>(level, 0, 15));
+        Chunk.Data[reg] = static_cast<uint8_t>(Math::Clamp<int_t>(level, 0, 15));
         Chunk.Mask |= 1 << reg;
       }
 
@@ -328,8 +329,8 @@ namespace ZXTune
 
       int_t TrackBuilder::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const
       {
-        const int_t halfFrom = clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(Table.size()) - 1);
-        const int_t halfTo = clamp<int_t>(halfToneTo, 0, static_cast<int_t>(Table.size()) - 1);
+        const int_t halfFrom = Math::Clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(Table.size()) - 1);
+        const int_t halfTo = Math::Clamp<int_t>(halfToneTo, 0, static_cast<int_t>(Table.size()) - 1);
         const int_t toneFrom = Table[halfFrom];
         const int_t toneTo = Table[halfTo];
         return toneTo - toneFrom;

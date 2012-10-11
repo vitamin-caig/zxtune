@@ -22,6 +22,7 @@ Author:
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
+#include <math/numeric.h>
 #include <strings/format.h>
 //std includes
 #include <cstring>
@@ -423,7 +424,7 @@ namespace Chiptune
     bool IsInvalidPosEntry(uint8_t entry)
     {
       return entry % sizeof(RawPattern) != 0
-          || !in_range<uint_t>(entry / sizeof(RawPattern) + 1, 1, MAX_PATTERNS_COUNT);
+          || !Math::InRange<uint_t>(entry / sizeof(RawPattern) + 1, 1, MAX_PATTERNS_COUNT);
     }
 
     class Format
@@ -490,9 +491,9 @@ namespace Chiptune
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
-          Require(in_range<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
+          Require(Math::InRange<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           const std::size_t samOffset = GetSampleOffset(samIdx);
-          Require(in_range(samOffset, minOffset, maxOffset));
+          Require(Math::InRange(samOffset, minOffset, maxOffset));
           const std::size_t availSize = Delegate.GetSize() - samOffset;
           const RawSample* const src = Delegate.GetField<RawSample>(samOffset);
           Require(src != 0);
@@ -525,7 +526,7 @@ namespace Chiptune
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(in_range<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
+          Require(Math::InRange<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
           Ornament result;
           if (const std::size_t ornOffset = GetOrnamentOffset(ornIdx))
           {
@@ -897,7 +898,7 @@ namespace Chiptune
     bool FastCheck(const Binary::TypedContainer& data)
     {
       const std::size_t hdrSize = GetHeaderSize(data);
-      if (!in_range<std::size_t>(hdrSize, sizeof(RawHeader), data.GetSize()))
+      if (!Math::InRange<std::size_t>(hdrSize, sizeof(RawHeader), data.GetSize()))
       {
         return false;
       }

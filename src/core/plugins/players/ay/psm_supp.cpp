@@ -30,6 +30,7 @@ Author:
 #include <formats/chiptune_decoders.h>
 #include <formats/packed_decoders.h>
 #include <formats/chiptune/prosoundmaker.h>
+#include <math/numeric.h>
 
 #define FILE_TAG B74E7B96
 
@@ -531,8 +532,8 @@ namespace ProSoundMaker
 
       dst.Slide += curSampleLine.Gliss;
       const int_t curNote = dst.Note ? int_t(*dst.Note) + Data->Transpositions[state.Position()] : 0;
-      const int_t halftones = clamp<int_t>(curNote + ornamentLine, 0, 95);
-      const int_t tone = clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
+      const int_t halftones = Math::Clamp<int_t>(curNote + ornamentLine, 0, 95);
+      const int_t tone = Math::Clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
       channel.SetTone(tone);
       
       //emulate level construction due to possibility of envelope bit reset
@@ -570,7 +571,7 @@ namespace ProSoundMaker
           if (!--dst.Smp.LoopsCount)
           {
             dst.Smp.LoopsCount = curSample.VolumeDeltaPeriod;
-            dst.VolumeDelta = clamp<int_t>(int_t(dst.VolumeDelta) + curSample.VolumeDeltaValue, 0, 15);
+            dst.VolumeDelta = Math::Clamp<int_t>(int_t(dst.VolumeDelta) + curSample.VolumeDeltaValue, 0, 15);
           }
         }
         else

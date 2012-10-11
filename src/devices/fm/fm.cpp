@@ -11,6 +11,8 @@ Author:
 
 //local includes
 #include "Ym2203_Emu.h"
+//common includes
+#include <tools.h>
 //library includes
 #include <devices/fm.h>
 #include <time/oscillator.h>

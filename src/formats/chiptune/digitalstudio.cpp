@@ -21,6 +21,7 @@ Author:
 //library includes
 #include <binary/container_factories.h>
 #include <binary/typed_container.h>
+#include <math/numeric.h>
 //std includes
 #include <set>
 //boost includes
@@ -238,7 +239,7 @@ namespace Chiptune
 
       void ParsePositions(Builder& target) const
       {
-        Require(in_range<std::size_t>(Source.Length, MIN_POSITIONS_COUNT, MAX_POSITIONS_COUNT));
+        Require(Math::InRange<std::size_t>(Source.Length, MIN_POSITIONS_COUNT, MAX_POSITIONS_COUNT));
         const std::vector<uint_t> positions(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
         target.SetPositions(positions, Source.Loop);
         Dbg("Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
@@ -250,7 +251,7 @@ namespace Chiptune
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
-          Require(in_range<uint_t>(patIndex + 1, 1, PATTERNS_COUNT));
+          Require(Math::InRange<uint_t>(patIndex + 1, 1, PATTERNS_COUNT));
           Dbg("Parse pattern %1%", patIndex);
           target.StartPattern(patIndex);
           ParsePattern(Source.Patterns[patIndex], target);
@@ -263,7 +264,7 @@ namespace Chiptune
         for (Indices::const_iterator it = sams.begin(), lim = sams.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
-          Require(in_range<uint_t>(samIdx + 1, 1, SAMPLES_COUNT));
+          Require(Math::InRange<uint_t>(samIdx + 1, 1, SAMPLES_COUNT));
           const SampleInfo& info = Source.Samples[samIdx];
           if (!ParseSample(samIdx, info, target))
           {

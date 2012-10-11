@@ -23,6 +23,7 @@ Author:
 #include <binary/data_adapter.h>
 #include <io/fs_tools.h>
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
@@ -336,7 +337,7 @@ namespace
     {
       Parameters::IntType bitrate = Parameters::ZXTune::Sound::Backends::Ogg::BITRATE_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::BITRATE, bitrate) &&
-        !in_range<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
+        !Math::InRange<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
           translate("OGG backend error: bitrate (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
@@ -348,7 +349,7 @@ namespace
     {
       Parameters::IntType quality = Parameters::ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::QUALITY, quality) &&
-        !in_range<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
+        !Math::InRange<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
           translate("OGG backend error: quality (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);

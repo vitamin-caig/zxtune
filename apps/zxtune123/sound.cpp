@@ -21,6 +21,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/core_parameters.h>
+#include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/filter.h>
 #include <sound/render_params.h>
@@ -106,7 +107,7 @@ namespace
         for (uint_t outChannel = 0; outChannel != res.size(); ++outChannel)
         {
           const double outPos(1.0 * outChannel / (res.size() - 1));
-          res[outChannel] += (gained ? 1.0 : 0.6) * (1.0 - absolute(inPos - outPos));
+          res[outChannel] += (gained ? 1.0 : 0.6) * (1.0 - Math::Absolute(inPos - outPos));
         }
       }
       const double maxGain(*std::max_element(result.front().begin(), result.back().end()));

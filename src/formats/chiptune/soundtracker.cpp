@@ -20,6 +20,7 @@ Author:
 #include <debug_log.h>
 //library includes
 #include <binary/typed_container.h>
+#include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
@@ -205,7 +206,7 @@ namespace Chiptune
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
-          Require(in_range<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
+          Require(Math::InRange<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
           if (patIndex < MaxPatterns)
           {
             Dbg("Parse pattern %1%", patIndex);
@@ -228,7 +229,7 @@ namespace Chiptune
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
-          Require(in_range<uint_t>(samIdx + 1, 1, MAX_SAMPLES_COUNT));
+          Require(Math::InRange<uint_t>(samIdx + 1, 1, MAX_SAMPLES_COUNT));
           Dbg("Parse sample %1%", samIdx);
           if (samIdx)
           {
@@ -253,7 +254,7 @@ namespace Chiptune
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(in_range<uint_t>(ornIdx + 1, 1, MAX_ORNAMENTS_COUNT));
+          Require(Math::InRange<uint_t>(ornIdx + 1, 1, MAX_ORNAMENTS_COUNT));
           Dbg("Parse ornament %1%", ornIdx);
           const RawOrnament& src = Source.Ornaments[ornIdx];
           const Ornament result(src.Offsets.begin(), src.Offsets.end());

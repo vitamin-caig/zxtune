@@ -27,6 +27,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <math/numeric.h>
 //std includes
 #include <utility>
 //boost includes
@@ -427,7 +428,7 @@ namespace
           continue;
         }
         const std::size_t bankSize = bankEnd - DMM::SAMPLES_ADDR;
-        const std::size_t alignedBankSize = align<std::size_t>(bankSize, 256);
+        const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
         const std::size_t realSize = is4bitSamples
           ? 256 * (1 + alignedBankSize / 512)
           : alignedBankSize;
@@ -1054,7 +1055,7 @@ namespace
         continue;
       }
       const std::size_t bankSize = bankEnd - DMM::SAMPLES_ADDR;
-      const std::size_t alignedBankSize = align<std::size_t>(bankSize, 256);
+      const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
       const std::size_t realSize = is4bitSamples
         ? 256 * (1 + alignedBankSize / 512)
         : alignedBankSize;

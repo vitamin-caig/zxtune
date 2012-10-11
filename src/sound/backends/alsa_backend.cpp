@@ -24,6 +24,7 @@ Author:
 //library includes
 #include <io/fs_tools.h>
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
@@ -707,7 +708,7 @@ namespace
     {
       Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Alsa::BUFFERS_DEFAULT;
       if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::BUFFERS, val) &&
-          (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
+          (!Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
         throw MakeFormattedError(THIS_LINE,
           translate("ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);

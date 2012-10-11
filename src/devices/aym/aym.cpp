@@ -11,6 +11,8 @@ Author:
   Based on sources of UnrealSpeccy by SMT
 */
 
+//common includes
+#include <tools.h>
 //library includes
 #include <devices/aym.h>
 #include <time/oscillator.h>

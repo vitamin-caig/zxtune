@@ -12,11 +12,13 @@ Author:
 //local includes
 #include "internal_types.h"
 //common includes
+#include <contract.h>
 #include <error_tools.h>
 #include <iterator.h>
 #include <tools.h>
 //library includes
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/filter.h>
 //std includes
 #include <cassert>
@@ -72,7 +74,7 @@ namespace
   template<class T>
   inline void CheckParams(T val, T min, T max, Error::LocationRef loc, const String& text)
   {
-    if (!in_range<T>(val, min, max))
+    if (!Math::InRange<T>(val, min, max))
     {
       throw MakeFormattedError(loc, text, val, min, max);
     }
@@ -107,7 +109,7 @@ namespace
       : Matrix(order), Delegate(Receiver::CreateStub())
       , History(order), Position(&History[0], &History.back() + 1)
     {
-      assert(in_range<uint_t>(order, MIN_ORDER, MAX_ORDER));
+      Require(Math::InRange<uint_t>(order, MIN_ORDER, MAX_ORDER));
     }
 
     virtual void ApplyData(const MultiSample& data)

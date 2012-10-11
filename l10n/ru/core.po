@@ -72,28 +72,28 @@ msgstr "Ошибка конверсии в FYM."
 msgid "Unsupported conversion mode (%1$08x)."
 msgstr "Неподдерживаемый режим конверсии (%1$08x)."
 
-#: plugins/players/ay/aym_parameters.cpp:56
+#: plugins/players/ay/aym_parameters.cpp:57
 #, boost-format
 msgid "Invalid duty cycle mask item: '%1%'."
 msgstr "Неправильное значение канала для задания скважности: '%1%'."
 
-#: plugins/players/ay/aym_parameters.cpp:99
-#: plugins/players/ay/aym_parameters.cpp:180
+#: plugins/players/ay/aym_parameters.cpp:100
+#: plugins/players/ay/aym_parameters.cpp:181
 #, boost-format
 msgid "Invalid layout value (%1%)."
 msgstr "Неправильное значение раскладки каналов (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:119
+#: plugins/players/ay/aym_parameters.cpp:120
 #, boost-format
 msgid "Invalid clock frequency (%1%)."
 msgstr "Неправильное значение тактовой частоты (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:151
+#: plugins/players/ay/aym_parameters.cpp:152
 #, boost-format
 msgid "Invalid duty cycle value (%1%)."
 msgstr "Неправильное значение скважности (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:246
+#: plugins/players/ay/aym_parameters.cpp:247
 #, boost-format
 msgid "Invalid frequency table size (%1%)."
 msgstr "Неправильный размер частотной таблицы (%1%)."
@@ -103,7 +103,7 @@ msgstr "Неправильный размер частотной таблицы 
 msgid "Invalid frequency table '%1%'."
 msgstr "Неправильное значение частотной таблицы '%1%'."
 
-#: plugins/players/ay/vortex_io_txt.cpp:861
+#: plugins/players/ay/vortex_io_txt.cpp:862
 #, boost-format
 msgid "Invalid string while parsing: '%1%'."
 msgstr "Неправильная строка: '%1%'."

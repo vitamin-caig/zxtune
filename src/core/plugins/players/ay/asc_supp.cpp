@@ -27,6 +27,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/ascsoundmaster.h>
 #include <formats/packed_decoders.h>
+#include <math/numeric.h>
 
 #define FILE_TAG 45B26E38
 
@@ -615,7 +616,7 @@ namespace ASCSoundMaster
         dst.VolSlideCounter = dst.VolSlideDelay;
       }
       dst.VolumeAddon += curSampleLine.VolSlide;
-      dst.VolumeAddon = clamp<int_t>(dst.VolumeAddon, -15, 15);
+      dst.VolumeAddon = Math::Clamp<int_t>(dst.VolumeAddon, -15, 15);
 
       //calculate tone
       dst.ToneDeviation += curSampleLine.ToneDeviation;
@@ -626,7 +627,7 @@ namespace ASCSoundMaster
       channel.SetTone(halfTone, toneAddon);
 
       //apply level
-      channel.SetLevel((dst.Volume + 1) * clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
+      channel.SetLevel((dst.Volume + 1) * Math::Clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
       //apply envelope
       if (dst.Envelope && curSampleLine.EnableEnvelope)
       {

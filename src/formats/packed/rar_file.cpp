@@ -20,6 +20,7 @@ Author:
 //library includes
 #include <binary/typed_container.h>
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <cassert>
 #include <memory>
@@ -603,17 +604,17 @@ namespace RarFile
           var.K[4] * Audio.ChannelDelta) >> 3) & 0xff;
       const uint_t val = predicted - delta;
       const int_t idx = static_cast<int8_t>(delta) << 3;
-      var.Dif[0] += absolute(idx);
-      var.Dif[1] += absolute(idx - var.D[0]);
-      var.Dif[2] += absolute(idx + var.D[0]);
-      var.Dif[3] += absolute(idx - var.D[1]);
-      var.Dif[4] += absolute(idx + var.D[1]);
-      var.Dif[5] += absolute(idx - var.D[2]);
-      var.Dif[6] += absolute(idx + var.D[2]);
-      var.Dif[7] += absolute(idx - var.D[3]);
-      var.Dif[8] += absolute(idx + var.D[3]);
-      var.Dif[9] += absolute(idx - Audio.ChannelDelta);
-      var.Dif[10] += absolute(idx + Audio.ChannelDelta);
+      var.Dif[0] += Math::Absolute(idx);
+      var.Dif[1] += Math::Absolute(idx - var.D[0]);
+      var.Dif[2] += Math::Absolute(idx + var.D[0]);
+      var.Dif[3] += Math::Absolute(idx - var.D[1]);
+      var.Dif[4] += Math::Absolute(idx + var.D[1]);
+      var.Dif[5] += Math::Absolute(idx - var.D[2]);
+      var.Dif[6] += Math::Absolute(idx + var.D[2]);
+      var.Dif[7] += Math::Absolute(idx - var.D[3]);
+      var.Dif[8] += Math::Absolute(idx + var.D[3]);
+      var.Dif[9] += Math::Absolute(idx - Audio.ChannelDelta);
+      var.Dif[10] += Math::Absolute(idx + Audio.ChannelDelta);
 
       Audio.ChannelDelta = var.LastDelta = static_cast<int8_t>(val - var.LastChar);
       var.LastChar = val;
@@ -873,7 +874,7 @@ namespace Formats
           return false;
         }
         //skip invalid version
-        if (!in_range<uint_t>(DepackerVersion, MIN_VERSION, MAX_VERSION))
+        if (!Math::InRange<uint_t>(DepackerVersion, MIN_VERSION, MAX_VERSION))
         {
           return false;
         }

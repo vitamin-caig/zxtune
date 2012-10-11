@@ -20,6 +20,7 @@ Author:
 #include <core/freq_tables.h>
 #include <core/module_attrs.h>
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <strings/array.h>
 //std includes
 #include <cctype>
@@ -182,7 +183,7 @@ namespace
   {
     std::string res(width + 1, '0');
     res[0] = val < 0 ? '-' : '+';
-    val = absolute(val);
+    val = Math::Absolute(val);
     for (std::string::iterator it = res.end(); val; val >>= 4)
     {
       *--it = ToHex(val & 15);
@@ -358,12 +359,12 @@ namespace
       //1,2 or 9,10
         commands[0] = (Vortex::SLIDEENV == it->Type ? '9' : '1') + (it->Param2 >= 0 ? 0 : 1);
         commands[1] = ToHexSym(it->Param1);
-        ToHexPair(absolute(it->Param2), commands);
+        ToHexPair(Math::Absolute(it->Param2), commands);
         break;
       case Vortex::GLISS_NOTE:
         commands[0] = '3';
         commands[1] = ToHexSym(it->Param1);
-        ToHexPair(absolute(it->Param2), commands);
+        ToHexPair(Math::Absolute(it->Param2), commands);
         targetNote = it->Param3;
         break;
       case Vortex::SAMPLEOFFSET:
@@ -968,7 +969,7 @@ namespace ZXTune
         String freqTable = TABLE_PROTRACKER3_3;
         props.FindValue(Parameters::ZXTune::Core::AYM::TABLE, freqTable);
         {
-          const uint_t resVersion = 30 + (in_range<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
+          const uint_t resVersion = 30 + (Math::InRange<uint_t>(version, 1, 9) ? version : GetVortexVersion(freqTable));
           *iter = MODULE_VERSION + MODULE_DELIMITER +
               char('0' + resVersion / 10) + '.' + char('0' + resVersion % 10);
         }

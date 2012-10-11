@@ -82,17 +82,17 @@
         <translation>Моно</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="148"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="149"/>
         <source>%1 kbps</source>
         <translation>%1 кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="149"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="150"/>
         <source>~ %1 kbps</source>
         <translation>В среднем %1 кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="153"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="154"/>
         <source>Quality %1</source>
         <translation>Качество %1</translation>
     </message>

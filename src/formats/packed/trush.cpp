@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <cstring>
 //boost includes
@@ -104,7 +105,7 @@ namespace TRUSH
       }
       const RawHeader& header = GetHeader();
       const std::size_t usedSize = GetUsedSize();
-      return in_range(usedSize, sizeof(header), Size);
+      return Math::InRange(usedSize, sizeof(header), Size);
     }
 
     uint_t GetUsedSize() const

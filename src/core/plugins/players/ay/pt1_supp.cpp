@@ -30,6 +30,7 @@ Author:
 #include <formats/chiptune_decoders.h>
 #include <formats/packed_decoders.h>
 #include <formats/chiptune/protracker1.h>
+#include <math/numeric.h>
 
 #define FILE_TAG 2500AED2
 
@@ -397,7 +398,7 @@ namespace ProTracker1
       const Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
       //apply tone
-      const int_t halftones = clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInSample), 0, 95);
+      const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInSample), 0, 95);
       channel.SetTone(halftones, curSampleLine.Vibrato + (halftones == 46));
       if (curSampleLine.ToneMask)
       {

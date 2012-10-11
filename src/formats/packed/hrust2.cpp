@@ -20,6 +20,7 @@ Author:
 //library includes
 #include <binary/typed_container.h>
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <numeric>
 #include <cstring>
@@ -309,7 +310,7 @@ namespace Hrust2
           return false;
         }
         const std::size_t usedSize = GetUsedSize();
-        return in_range(usedSize, sizeof(header), Size);
+        return Math::InRange(usedSize, sizeof(header), Size);
       }
 
       uint_t GetUsedSize() const
@@ -321,7 +322,7 @@ namespace Hrust2
       std::size_t GetUsedSizeWithPadding() const
       {
         const std::size_t usefulSize = GetUsedSize();
-        const std::size_t sizeOnDisk = align<std::size_t>(usefulSize, 256);
+        const std::size_t sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
         const std::size_t resultSize = std::min(sizeOnDisk, Size);
         const std::size_t paddingSize = resultSize - usefulSize;
         const std::size_t MIN_SIGNATURE_MATCH = 10;
@@ -437,7 +438,7 @@ namespace Hrust2
         {
           return false;
         }
-        return in_range(header.GetTotalSize(), sizeof(header), Size);
+        return Math::InRange(header.GetTotalSize(), sizeof(header), Size);
       }
    private:
       const FormatHeader& GetHeader() const

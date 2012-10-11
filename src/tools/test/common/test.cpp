@@ -64,14 +64,6 @@ namespace
     Test(test + ": size of end", area.GetAreaSize(END), esize);
     Test(test + ": size of unspec", area.GetAreaSize(UNSPECIFIED), uint_t(0));
   }
-
-  template<class T>
-  void TestScale(const std::string& test, T val, T inScale, T outScale, T result)
-  {
-    Test<T>("Scale " + test, Scale(val, inScale, outScale), result);
-    const ScaleFunctor<T> scaler(inScale, outScale);
-    Test<T>("ScaleFunctor " + test, scaler(val), result);
-  }
 }
 
 int main()
@@ -155,40 +147,6 @@ int main()
       areas.AddArea(END, 10);
       TestAreaSizes("Duplicated", areas, 10, 0, 0, 20);
     }
-  }
-  std::cout << "---- Test for Scale -----" << std::endl;
-  {
-    Test<uint8_t>("Log2(uint8_t)", Log2(uint8_t(0xff)), 8);
-    Test<uint16_t>("Log2(uint16_t)", Log2(uint16_t(0xffff)), 16);
-    Test<uint32_t>("Log2(uint32_t)", Log2(uint32_t(0xffffffff)), 32);
-    Test<uint64_t>("Log2(uint64_t)", Log2(UINT64_C(0xffffffffffffffff)), 64);
-    TestScale<uint32_t>("uint32_t small up", 1000, 3000, 2000, 666);
-    TestScale<uint32_t>("uint32_t small up overhead", 4000, 3000, 2000, 2666);
-    TestScale<uint32_t>("uint32_t small down", 1000, 2000, 3000, 1500);
-    TestScale<uint32_t>("uint32_t small down overhead", 4000, 2000, 3000, 6000);
-    TestScale<uint32_t>("uint32_t medium up", 10000, 30000, 20000, 6666);
-    TestScale<uint32_t>("uint32_t medium up overhead", 40000, 30000, 20000, 26666);
-    TestScale<uint32_t>("uint32_t medium down", 10000, 20000, 30000, 15000);
-    TestScale<uint32_t>("uint32_t medium down overhead", 40000, 20000, 30000, 60000);
-    TestScale<uint32_t>("uint32_t big up", 1000000, 3000000, 2000000, 666666);
-    TestScale<uint32_t>("uint32_t big up overhead", 4000000, 3000000, 2000000, 2666666);
-
-    TestScale<uint64_t>("uint64_t small up", 1000, 3000, 2000, 666);
-    TestScale<uint64_t>("uint64_t small up overhead", 4000, 3000, 2000, 2666);
-    TestScale<uint64_t>("uint64_t small down", 1000, 2000, 3000, 1500);
-    TestScale<uint64_t>("uint64_t small down overhead", 4000, 2000, 3000, 6000);
-    TestScale<uint64_t>("uint64_t medium up", 10000, 30000, 20000, 6666);
-    TestScale<uint64_t>("uint64_t medium up overhead", 40000, 30000, 20000, 26666);
-    TestScale<uint64_t>("uint64_t medium down", 10000, 20000, 30000, 15000);
-    TestScale<uint64_t>("uint64_t medium down overhead", 40000, 20000, 30000, 60000);
-    TestScale<uint64_t>("uint64_t big up", 1000000, 3000000, 2000000, 666666);
-    TestScale<uint64_t>("uint64_t big up overhead", 4000000, 3000000, 2000000, 2666666);
-    TestScale<uint64_t>("uint64_t big down", 1000000, 2000000, 3000000, 1500000);
-    TestScale<uint64_t>("uint64_t big down overhead", 4000000, 2000000, 3000000, 6000000);
-    TestScale<uint64_t>("uint64_t giant up", UINT64_C(10000000000), UINT64_C(30000000000), UINT64_C(20000000000), UINT64_C(6666666666));
-    TestScale<uint64_t>("uint64_t giant up overhead", UINT64_C(4000000000), UINT64_C(3000000000), UINT64_C(20000000000), UINT64_C(26666666666));
-    TestScale<uint64_t>("uint64_t giant down", UINT64_C(10000000000), UINT64_C(20000000000), UINT64_C(30000000000), UINT64_C(15000000000));
-    TestScale<uint64_t>("uint64_t giant down overhead", UINT64_C(4000000000), UINT64_C(2000000000), UINT64_C(3000000000), UINT64_C(6000000000));
   }
   std::cout << "---- Test for iterators ----" << std::endl;
   {

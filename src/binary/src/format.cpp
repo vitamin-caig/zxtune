@@ -16,6 +16,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/format.h>
+#include <math/numeric.h>
 //std includes
 #include <limits>
 #include <vector>
@@ -256,7 +257,7 @@ namespace
           }
           else
           {
-            Require(in_range<std::size_t>(offset, 0, std::numeric_limits<PatternRow::value_type>::max()));
+            Require(Math::InRange<std::size_t>(offset, 0, std::numeric_limits<PatternRow::value_type>::max()));
             tmp[pos][sym] = static_cast<PatternRow::value_type>(offset);
           }
         }

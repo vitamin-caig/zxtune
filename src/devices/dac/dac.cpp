@@ -13,6 +13,8 @@ Author:
 #include <devices/dac.h>
 //common includes
 #include <tools.h>
+//library includes
+#include <math/numeric.h>
 //std includes
 #include <cmath>
 #include <limits>
@@ -65,7 +67,7 @@ namespace
 
   inline uint_t GainAdder(uint_t sum, uint8_t sample)
   {
-    return sum + absolute(int_t(sample) - SILENT);
+    return sum + Math::Absolute(int_t(sample) - SILENT);
   }
 
   inline Sample scale(uint8_t inSample)
@@ -230,7 +232,7 @@ namespace
       const int_t mid = scale(SILENT);
       const int64_t delta = int_t(val) - mid;
       const int_t scaledDelta = static_cast<int_t>(delta * int_t(Level) / int_t(MAX_LEVEL));
-      assert(absolute(scaledDelta) <= absolute(delta));
+      assert(Math::Absolute(scaledDelta) <= Math::Absolute(delta));
       return static_cast<Sample>(mid + scaledDelta);
     }
   };
@@ -372,10 +374,10 @@ namespace
         //determine maximal notes count by zero limiter in table
         MaxNotes = static_cast<uint_t>(std::distance(FreqTable.begin(), std::find(FreqTable.begin(), FreqTable.end(), 0)));
       }
-      const int_t toneStep = static_cast<int_t>(FreqTable[clamp<int_t>(int_t(state.Note) + state.NoteSlide,
+      const int_t toneStep = static_cast<int_t>(FreqTable[Math::Clamp<int_t>(int_t(state.Note) + state.NoteSlide,
         0, MaxNotes - 1)]);
       state.SampleStep = state.FreqSlide
-        ? clamp<int_t>(toneStep + sign(state.FreqSlide) * static_cast<int_t>(GetStepByFrequency(double(absolute(state.FreqSlide)), TableFreq, SampleFreq)),
+        ? Math::Clamp<int_t>(toneStep + sign(state.FreqSlide) * static_cast<int_t>(GetStepByFrequency(double(Math::Absolute(state.FreqSlide)), TableFreq, SampleFreq)),
           int_t(FreqTable.front()), int_t(FreqTable.back()))
         : toneStep;
       assert(state.SampleStep);

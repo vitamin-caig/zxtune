@@ -22,6 +22,7 @@ Author:
 #include <binary/typed_container.h>
 #include <formats/packed.h>
 #include <formats/packed/lha_supp.h>
+#include <math/numeric.h>
 //std includes
 #include <cstring>
 #include <numeric>
@@ -299,7 +300,7 @@ namespace TeleDiskImage
       {
         break;
       }
-      Require(in_range<uint_t>(track.Cylinder, 0, MAX_CYLINDERS_COUNT));
+      Require(Math::InRange<uint_t>(track.Cylinder, 0, MAX_CYLINDERS_COUNT));
       for (uint_t sect = 0; sect != track.Sectors; ++sect)
       {
         const RawSector& sector = stream.Get<RawSector>();
@@ -307,10 +308,10 @@ namespace TeleDiskImage
         {
           continue;
         }
-        Require(in_range<uint_t>(sector.Size, 0, 6));
+        Require(Math::InRange<uint_t>(sector.Size, 0, 6));
         const std::size_t sectorSize = 128 << sector.Size;
         const RawData& srcDataDesc = stream.Get<RawData>();
-        Require(in_range<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
+        Require(Math::InRange<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
         const std::size_t dataSize = fromLE(srcDataDesc.Size) - 1;
         const uint8_t* const rawData = stream.GetData(dataSize);
         //use track parameters for layout
@@ -332,7 +333,7 @@ namespace TeleDiskImage
       const uint_t id = fromLE(header.ID);
       Require(id == ID_OLD || id == ID_NEW);
       Require(header.Sequence == 0);
-      Require(in_range<uint_t>(header.Sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT));
+      Require(Math::InRange<uint_t>(header.Sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT));
       if (header.HasComment())
       {
         const RawComment& comment = stream.Get<RawComment>();

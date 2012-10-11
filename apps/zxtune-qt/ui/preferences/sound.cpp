@@ -26,6 +26,7 @@ Author:
 #include <contract.h>
 #include <tools.h>
 //library includes
+#include <math/numeric.h>
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -115,7 +116,7 @@ namespace
     virtual void MoveBackendDown()
     {
       const int row = backendsList->currentRow();
-      if (in_range<int>(row, 0, Backends.size() - 1))
+      if (Math::InRange<int>(row, 0, Backends.size() - 1))
       {
         SwapItems(row, row + 1);
         backendsList->setCurrentRow(row + 1);

@@ -18,6 +18,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <algorithm>
 #include <iterator>
@@ -258,7 +259,7 @@ namespace ESVCruncher
         return false;
       }
       const RawHeader& header = GetHeader();
-      if (!in_range<uint_t>(header.WindowSize, 0x0b, 0x0f))
+      if (!Math::InRange<uint_t>(header.WindowSize, 0x0b, 0x0f))
       {
         return false;
       }

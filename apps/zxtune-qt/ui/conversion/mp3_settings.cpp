@@ -21,6 +21,7 @@ Author:
 #include <contract.h>
 #include <tools.h>
 //library includes
+#include <math/numeric.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -61,7 +62,7 @@ namespace
 
     virtual void Set(int val)
     {
-      if (in_range<int>(val, 0, ArraySize(CHANNEL_MODES) - 1))
+      if (Math::InRange<int>(val, 0, ArraySize(CHANNEL_MODES) - 1))
       {
         Ctr->SetValue(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS, CHANNEL_MODES[val]);
       }

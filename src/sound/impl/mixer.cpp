@@ -16,6 +16,7 @@ Author:
 #include <error_tools.h>
 //library includes
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/mixer.h>
 //std includes
 #include <algorithm>
@@ -51,7 +52,7 @@ namespace
   
   inline bool FindOverloadedGain(const MultiGain& mg)
   {
-    return mg.end() != std::find_if(mg.begin(), mg.end(), !boost::bind(in_range<Gain>, _1, 0.0f, 1.0f));
+    return mg.end() != std::find_if(mg.begin(), mg.end(), !boost::bind(&Math::InRange<Gain>, _1, 0.0f, 1.0f));
   }
    
   template<uint_t InChannels>

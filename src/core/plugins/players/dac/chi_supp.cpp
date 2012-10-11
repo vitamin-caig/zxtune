@@ -27,6 +27,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <math/numeric.h>
 //std includes
 #include <utility>
 //boost includes
@@ -273,7 +274,7 @@ namespace
           Sample& dstSample(Data->Samples[samIdx]);
           dstSample.Loop = fromLE(srcSample.Loop);
           dstSample.Data.assign(sampleData, sampleData + size);
-          const std::size_t alignedSize(align<std::size_t>(size, 256));
+          const std::size_t alignedSize(Math::Align<std::size_t>(size, 256));
           sampleData += alignedSize;
           if (size != fromLE(srcSample.Length))
           {

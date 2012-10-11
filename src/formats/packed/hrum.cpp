@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -134,7 +135,7 @@ namespace Hrum
     std::size_t GetUsedSizeWithPadding() const
     {
       const std::size_t usefulSize = GetUsedSize();
-      const std::size_t sizeOnDisk = align<std::size_t>(usefulSize, 256);
+      const std::size_t sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
       const std::size_t resultSize = std::min(sizeOnDisk, Size);
       const std::size_t paddingSize = resultSize - usefulSize;
       const std::size_t MIN_SIGNATURE_MATCH = 9;

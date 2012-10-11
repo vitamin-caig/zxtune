@@ -13,6 +13,8 @@ Author:
 #include "dump_builder.h"
 //common includes
 #include <tools.h>
+//library includes
+#include <math/bitops.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //std includes
@@ -63,7 +65,7 @@ namespace
       const uint_t SKIP_GROUP_SIZE = 4;
       const uint_t groupsSkipped = framesPassed / SKIP_GROUP_SIZE;
       const uint_t remainInts = framesPassed % SKIP_GROUP_SIZE;
-      frame.reserve(groupsSkipped + remainInts + 2 * CountBits(update.Mask) + 1);
+      frame.reserve(groupsSkipped + remainInts + 2 * Math::CountBits(update.Mask) + 1);
       if (groupsSkipped)
       {
         *inserter = SKIP_INTS;

@@ -15,6 +15,8 @@ Author:
 #include "storage.h"
 //common includes
 #include <debug_log.h>
+//library includes
+#include <math/numeric.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -394,7 +396,7 @@ namespace
       if (const std::ptrdiff_t delta = std::ptrdiff_t(idx) - entry.first)
       {
         std::advance(entry.second, delta);
-        if (absolute(delta) > std::ptrdiff_t(CACHE_THRESHOLD))
+        if (Math::Absolute(delta) > std::ptrdiff_t(CACHE_THRESHOLD))
         {
           Dbg("Cached iterator for idx=%1%. Nearest idx=%2%, delta=%3%", idx, entry.first, delta);
           entry.first += delta;
@@ -407,13 +409,13 @@ namespace
     IndexToIterator::value_type GetNearestIterator(Model::IndexType idx) const
     {
       const IndexToIterator::value_type predefinedEntry = GetNearestPredefinedIterator(idx);
-      const std::size_t predefinedDelta = absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - predefinedEntry.first);
+      const std::size_t predefinedDelta = Math::Absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - predefinedEntry.first);
       if (predefinedDelta <= CACHE_THRESHOLD || IteratorsCache.empty())
       {
         return predefinedEntry;
       }
       const IndexToIterator::value_type cachedEntry = GetNearestCachedIterator(idx);
-      const std::size_t cachedDelta = absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - cachedEntry.first);
+      const std::size_t cachedDelta = Math::Absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - cachedEntry.first);
       if (cachedDelta <= CACHE_THRESHOLD)
       {
         return cachedEntry;

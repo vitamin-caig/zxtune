@@ -23,6 +23,7 @@ Author:
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
+#include <math/numeric.h>
 //std includes
 #include <cstring>
 //boost includes
@@ -215,7 +216,7 @@ namespace Chiptune
         {
           const RawPositions::PosEntry& src = *iter;
           Require(0 == src.PatternOffset % sizeof(RawPattern));
-          Require(in_range<uint_t>(src.PatternOffset / sizeof(RawPattern) + 1, 1, MAX_PATTERNS_COUNT));
+          Require(Math::InRange<uint_t>(src.PatternOffset / sizeof(RawPattern) + 1, 1, MAX_PATTERNS_COUNT));
           PositionEntry dst;
           dst.PatternIndex = src.PatternOffset / sizeof(RawPattern);
           dst.Transposition = src.Transposition;
@@ -547,7 +548,7 @@ namespace Chiptune
 
       bool CheckPositions(uint_t count) const
       {
-        if (!in_range<uint_t>(count, 1, MAX_POSITIONS_COUNT))
+        if (!Math::InRange<uint_t>(count, 1, MAX_POSITIONS_COUNT))
         {
           return false;
         }
@@ -558,7 +559,7 @@ namespace Chiptune
 
       bool CheckSamples(uint_t count) const
       {
-        if (!in_range<uint_t>(count, 1, MAX_SAMPLES_COUNT))
+        if (!Math::InRange<uint_t>(count, 1, MAX_SAMPLES_COUNT))
         {
           return false;
         }
@@ -579,7 +580,7 @@ namespace Chiptune
 
       bool CheckOrnaments(uint_t count) const
       {
-        if (!in_range<uint_t>(count, 1, MAX_ORNAMENTS_COUNT))
+        if (!Math::InRange<uint_t>(count, 1, MAX_ORNAMENTS_COUNT))
         {
           return false;
         }

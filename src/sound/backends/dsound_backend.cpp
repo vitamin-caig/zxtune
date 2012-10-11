@@ -21,6 +21,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
@@ -406,7 +407,7 @@ namespace
     {
       Parameters::IntType latency = Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT;
       if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, latency) &&
-          !in_range<Parameters::IntType>(latency, LATENCY_MIN, LATENCY_MAX))
+          !Math::InRange<Parameters::IntType>(latency, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
           translate("DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(latency), LATENCY_MIN, LATENCY_MAX);

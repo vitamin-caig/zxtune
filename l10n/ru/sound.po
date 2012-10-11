@@ -11,53 +11,53 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: backends/alsa_backend.cpp:59
+#: backends/alsa_backend.cpp:60
 #, boost-format
 msgid "Error in ALSA backend: %1%."
 msgstr "Ошибка в подсистеме ALSA: %1%."
 
-#: backends/alsa_backend.cpp:166
+#: backends/alsa_backend.cpp:167
 #, boost-format
 msgid "Error in ALSA backend while working with device '%1%': %2%."
 msgstr "Ошибка при работе с ALSA устройством '%1%': %2%."
 
-#: backends/alsa_backend.cpp:333
+#: backends/alsa_backend.cpp:334
 msgid "No suitable formats supported by ALSA."
 msgstr ""
 "Ни один подходящий формат вывода звука не поддерживается подсистемой ALSA."
 
-#: backends/alsa_backend.cpp:568
+#: backends/alsa_backend.cpp:569
 #, boost-format
 msgid "Failed to found mixer '%1%' for ALSA backend."
 msgstr "Микшер '%1%' не найден в подсистеме ALSA."
 
-#: backends/alsa_backend.cpp:620 backends/dsound_backend.cpp:352
-#: backends/oss_backend.cpp:207 backends/win32_backend.cpp:365
+#: backends/alsa_backend.cpp:621 backends/dsound_backend.cpp:353
+#: backends/oss_backend.cpp:207 backends/win32_backend.cpp:366
 msgid "Failed to set volume: gain is out of range."
 msgstr "Ошибка установки громкости: превышение допустимого значения."
 
-#: backends/alsa_backend.cpp:713
+#: backends/alsa_backend.cpp:714
 #, boost-format
 msgid "ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: backends/alsa_backend.cpp:812 backends/alsa_stub.cpp:27
+#: backends/alsa_backend.cpp:813 backends/alsa_stub.cpp:27
 msgid "ALSA sound system backend"
 msgstr "Поддержка подсистемы ALSA"
 
-#: backends/alsa_backend.cpp:854 backends/dsound_backend.cpp:550
-#: backends/flac_backend.cpp:323 backends/mp3_backend.cpp:391
-#: backends/null_backend.cpp:108 backends/ogg_backend.cpp:459
-#: backends/oss_backend.cpp:418 backends/sdl_backend.cpp:332
-#: backends/wav_backend.cpp:221 backends/win32_backend.cpp:556
+#: backends/alsa_backend.cpp:855 backends/dsound_backend.cpp:551
+#: backends/flac_backend.cpp:323 backends/mp3_backend.cpp:392
+#: backends/null_backend.cpp:108 backends/ogg_backend.cpp:460
+#: backends/oss_backend.cpp:418 backends/sdl_backend.cpp:333
+#: backends/wav_backend.cpp:221 backends/win32_backend.cpp:557
 #, boost-format
 msgid "Failed to create backend '%1%'."
 msgstr "Ошибка создания подсистемы вывода '%1%'."
 
-#: backends/alsa_backend.cpp:1123 backends/dsound_backend.cpp:651
-#: backends/win32_backend.cpp:653
+#: backends/alsa_backend.cpp:1124 backends/dsound_backend.cpp:652
+#: backends/win32_backend.cpp:654
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
@@ -89,19 +89,19 @@ msgstr "Ошибка останова воспроизведения."
 msgid "Failed to set playback position."
 msgstr "Ошибка позиционирования воспроизведения."
 
-#: backends/dsound_backend.cpp:71
+#: backends/dsound_backend.cpp:72
 #, boost-format
 msgid "Error in DirectSound backend: %1%."
 msgstr "Ошибка в подсистеме DirectSound: %1%."
 
-#: backends/dsound_backend.cpp:412
+#: backends/dsound_backend.cpp:413
 #, boost-format
 msgid "DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме DirectSound: задержка звука (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: backends/dsound_backend.cpp:508 backends/dsound_stub.cpp:26
+#: backends/dsound_backend.cpp:509 backends/dsound_stub.cpp:26
 msgid "DirectSound support backend."
 msgstr "Поддержка подсистемы DirectSound"
 
@@ -130,36 +130,36 @@ msgstr "Ошибка в подсистеме вывода FLAC: код %1%."
 msgid "FLAC support backend."
 msgstr "Поддержка вывода FLAC"
 
-#: backends/mp3_backend.cpp:56
+#: backends/mp3_backend.cpp:57
 #, boost-format
 msgid "Error in MP3 backend: %1%."
 msgstr "Ошибка в подсистеме вывода MP3: %1%."
 
-#: backends/mp3_backend.cpp:201
+#: backends/mp3_backend.cpp:202
 #, boost-format
 msgid "MP3 backend error: invalid bitrate mode '%1%'."
 msgstr "Ошибка в подсистеме вывода MP3: неправильный режим битрейта '%1%'."
 
-#: backends/mp3_backend.cpp:212
+#: backends/mp3_backend.cpp:213
 #, boost-format
 msgid "MP3 backend error: bitrate (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода MP3: битрейт (%1%) превышает допустимые значения "
 "(%2%..%3%)."
 
-#: backends/mp3_backend.cpp:224
+#: backends/mp3_backend.cpp:225
 #, boost-format
 msgid "MP3 backend error: quality (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода MP3: уровень качества (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: backends/mp3_backend.cpp:252
+#: backends/mp3_backend.cpp:253
 #, boost-format
 msgid "MP3 backend error: invalid channels mode '%1%'."
 msgstr "Ошибка в подсистеме вывода MP3: неправильный режим каналов '%1%'."
 
-#: backends/mp3_backend.cpp:260 backends/mp3_stub.cpp:26
+#: backends/mp3_backend.cpp:261 backends/mp3_stub.cpp:26
 msgid "MP3 support backend"
 msgstr "Поддержка вывода MP3"
 
@@ -167,31 +167,31 @@ msgstr "Поддержка вывода MP3"
 msgid "Null output backend"
 msgstr "Поддержка NULL-вывода"
 
-#: backends/ogg_backend.cpp:56
+#: backends/ogg_backend.cpp:57
 #, boost-format
 msgid "Error in OGG backend: code %1%."
 msgstr "Ошибка в подсистеме вывода OGG: код %1%."
 
-#: backends/ogg_backend.cpp:331
+#: backends/ogg_backend.cpp:332
 #, boost-format
 msgid "OGG backend error: invalid mode '%1%'."
 msgstr "Ошибка в подсистеме вывода OGG: неправильный режим '%1%'."
 
-#: backends/ogg_backend.cpp:342
+#: backends/ogg_backend.cpp:343
 #, boost-format
 msgid "OGG backend error: bitrate (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода OGG: битрейт (%1%) превышает допустимые значения "
 "(%2%..%3%)."
 
-#: backends/ogg_backend.cpp:354
+#: backends/ogg_backend.cpp:355
 #, boost-format
 msgid "OGG backend error: quality (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме вывода OGG: уровень качества (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: backends/ogg_backend.cpp:363 backends/ogg_stub.cpp:26
+#: backends/ogg_backend.cpp:364 backends/ogg_stub.cpp:26
 msgid "OGG support backend"
 msgstr "Поддержка вывода OGG"
 
@@ -209,23 +209,23 @@ msgstr ""
 msgid "OSS sound system backend"
 msgstr "Поддержка подсистемы OSS"
 
-#: backends/sdl_backend.cpp:65
+#: backends/sdl_backend.cpp:66
 #, boost-format
 msgid "SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме SDL: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: backends/sdl_backend.cpp:270
+#: backends/sdl_backend.cpp:271
 #, boost-format
 msgid "Error in SDL backend: %1%."
 msgstr "Ошибка в подсистеме SDL: %1%."
 
-#: backends/sdl_backend.cpp:272
+#: backends/sdl_backend.cpp:273
 msgid "Unknown error in SDL backend."
 msgstr "Неизвестная ошибка в подсистеме SDL."
 
-#: backends/sdl_backend.cpp:290 backends/sdl_stub.cpp:26
+#: backends/sdl_backend.cpp:291 backends/sdl_stub.cpp:26
 msgid "SDL support backend"
 msgstr "Поддержка подсистемы SDL"
 
@@ -245,33 +245,33 @@ msgstr "Поддержка вывода WAV"
 msgid "WAV conversion is not supported on non-seekable streams."
 msgstr "Конверсия в WAV не поддерживается для непозиционируемых потоков."
 
-#: backends/win32_backend.cpp:95 backends/win32_backend.cpp:198
+#: backends/win32_backend.cpp:96 backends/win32_backend.cpp:199
 #, boost-format
 msgid "Error in Win32 backend: code %1%."
 msgstr "Ошибка в подсистеме Win32: код %1%."
 
-#: backends/win32_backend.cpp:193
+#: backends/win32_backend.cpp:194
 #, boost-format
 msgid "Error in Win32 backend: %1%."
 msgstr "Ошибка в подсистеме Win32: %1%."
 
-#: backends/win32_backend.cpp:407
+#: backends/win32_backend.cpp:408
 #, boost-format
 msgid "Win32 backend error: buffers count (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме Win32: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: backends/win32_backend.cpp:514 backends/win32_stub.cpp:26
+#: backends/win32_backend.cpp:515 backends/win32_stub.cpp:26
 msgid "Win32 sound system backend"
 msgstr "Поддержка подистемы Win32"
 
-#: impl/filter.cpp:153 impl/filter.cpp:213
+#: impl/filter.cpp:155 impl/filter.cpp:215
 #, boost-format
 msgid "Specified filter order (%1%) is out of range (%2%...%3%)."
 msgstr "Уровень фильтрации (%1%) превысил допустимые значения (%2%...%3%)."
 
-#: impl/filter.cpp:154
+#: impl/filter.cpp:156
 #, boost-format
 msgid ""
 "Specified filter high cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."
@@ -279,7 +279,7 @@ msgstr ""
 "Верхняя частота среза фильтра (%1%Гц) превысила допустимые значения (%2%..."
 "%3%Гц)."
 
-#: impl/filter.cpp:155
+#: impl/filter.cpp:157
 #, boost-format
 msgid ""
 "Specified filter low cutoff frequency (%1%Hz) is out of range (%2%...%3%Hz)."
@@ -287,15 +287,15 @@ msgstr ""
 "Нижняя частота среза фильтра (%1%Гц) превысила допустимые значения (%2%..."
 "%3%Гц)."
 
-#: impl/mixer.cpp:142
+#: impl/mixer.cpp:143
 msgid "Failed to set mixer matrix: invalid channels count specified."
 msgstr "Ошибка установки микширования: неправильное число каналов."
 
-#: impl/mixer.cpp:148
+#: impl/mixer.cpp:149
 msgid "Failed to set mixer matrix: gain is out of range."
 msgstr "Ошибка установки микширования: превышение допустимого значения уровня."
 
-#: impl/mixer.cpp:182
+#: impl/mixer.cpp:183
 #, boost-format
 msgid "Failed to create unsupported mixer with %1% channels."
 msgstr "Ошибка создания микшера с неподдерживаемым (%1%) числом каналов."

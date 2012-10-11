@@ -18,6 +18,7 @@ Author:
 //library includes
 #include <core/core_parameters.h>
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/render_params.h>
 //std includes
 #include <cstring>
@@ -113,7 +114,7 @@ namespace
     {
       Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val) &&
-          !in_range(val, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX))
+          !Math::InRange(val, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
           translate("Invalid clock frequency (%1%)."), val);

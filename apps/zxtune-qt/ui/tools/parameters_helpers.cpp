@@ -18,6 +18,8 @@ Author:
 #include <contract.h>
 #include <debug_log.h>
 #include <tools.h>
+//library includes
+#include <math/numeric.h>
 //qt includes
 #include <QtGui/QAbstractButton>
 #include <QtGui/QAction>
@@ -250,7 +252,7 @@ namespace
     virtual void Set(const QString& value)
     {
       const Parameters::IntType val = value.toLongLong();
-      if (in_range(val, Traits.Min, Traits.Max))
+      if (Math::InRange(val, Traits.Min, Traits.Max))
       {
         Dbg("%1%=%2%", Traits.Name.FullPath(), val);
         Container.SetValue(Traits.Name, val);
@@ -267,7 +269,7 @@ namespace
     virtual void Reload()
     {
       const Parameters::IntType val = GetValue();
-      if (in_range(val, Traits.Min, Traits.Max))
+      if (Math::InRange(val, Traits.Min, Traits.Max))
       {
         Parent.setText(QString::number(val));
       }

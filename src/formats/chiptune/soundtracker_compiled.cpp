@@ -22,6 +22,7 @@ Author:
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
+#include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
@@ -202,7 +203,7 @@ namespace Chiptune
         for (RangeIterator<const RawPositions::PosEntry*> iter = GetPositions(); iter; ++iter)
         {
           const RawPositions::PosEntry& src = *iter;
-          Require(in_range<uint_t>(src.PatternNum, 1, MAX_PATTERNS_COUNT));
+          Require(Math::InRange<uint_t>(src.PatternNum, 1, MAX_PATTERNS_COUNT));
           PositionEntry dst;
           dst.PatternIndex = src.PatternNum - 1;
           dst.Transposition = src.Transposition;
@@ -219,7 +220,7 @@ namespace Chiptune
         for (uint_t patEntryIdx = 0; patEntryIdx < MAX_PATTERNS_COUNT && !restPats.empty(); ++patEntryIdx)
         {
           const RawPattern& src = GetPattern(patEntryIdx);
-          if (!in_range<uint_t>(src.Number, 1, MAX_PATTERNS_COUNT))
+          if (!Math::InRange<uint_t>(src.Number, 1, MAX_PATTERNS_COUNT))
           {
             break;
           }
@@ -254,7 +255,7 @@ namespace Chiptune
           {
             continue;
           }
-          Require(in_range<uint_t>(samIdx + 1, 1, MAX_SAMPLES_COUNT));
+          Require(Math::InRange<uint_t>(samIdx + 1, 1, MAX_SAMPLES_COUNT));
           Dbg("Parse sample %1%", samIdx);
           Sample result;
           ParseSample(src, result);
@@ -286,7 +287,7 @@ namespace Chiptune
           {
             continue;
           }
-          Require(in_range<uint_t>(ornIdx + 1, 1, MAX_ORNAMENTS_COUNT));
+          Require(Math::InRange<uint_t>(ornIdx + 1, 1, MAX_ORNAMENTS_COUNT));
           Dbg("Parse ornament %1%", ornIdx);
           const Ornament result(src.Data.begin(), src.Data.end());
           builder.SetOrnament(ornIdx, result);

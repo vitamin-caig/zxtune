@@ -22,6 +22,7 @@ Author:
 //library includes
 #include <binary/container_factories.h>
 #include <binary/typed_container.h>
+#include <math/numeric.h>
 //std includes
 #include <cstring>
 #include <set>
@@ -565,7 +566,7 @@ namespace Chiptune
 
     void CheckTempo(uint_t tempo)
     {
-      Require(in_range<uint_t>(tempo, 3, 50));
+      Require(Math::InRange<uint_t>(tempo, 3, 50));
     }
 
     template<class Version>
@@ -681,7 +682,7 @@ namespace Chiptune
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
-          Require(in_range<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
+          Require(Math::InRange<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
           Dbg("Parse pattern %1%", patIndex);
           const RawPattern& src = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
           builder.StartPattern(patIndex);
@@ -702,7 +703,7 @@ namespace Chiptune
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
-          Require(in_range<uint_t>(samIdx, 0, SAMPLES_COUNT - 1));
+          Require(Math::InRange<uint_t>(samIdx, 0, SAMPLES_COUNT - 1));
           Dbg("Parse sample %1%", samIdx);
           const Sample& result = ParseSample(baseOffset + fromLE(list.Offsets[samIdx]));
           builder.SetSample(samIdx, result);
@@ -719,7 +720,7 @@ namespace Chiptune
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(in_range<uint_t>(ornIdx, 0, ORNAMENTS_COUNT - 1));
+          Require(Math::InRange<uint_t>(ornIdx, 0, ORNAMENTS_COUNT - 1));
           const std::size_t ornOffset = baseOffset + fromLE(list.Offsets[ornIdx]);
           Dbg("Parse ornament %1% at %2%", ornIdx, ornOffset);
           Require(usedOffsets.insert(ornOffset).second);

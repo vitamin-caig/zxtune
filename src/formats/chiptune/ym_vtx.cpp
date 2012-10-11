@@ -21,6 +21,7 @@ Author:
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>
 #include <formats/packed/lha_supp.h>
+#include <math/numeric.h>
 //std includes
 #include <cstring>
 //boost includes
@@ -439,19 +440,19 @@ namespace Chiptune
     template<class HeaderType>
     bool FastCheck(const HeaderType& hdr)
     {
-      if (!in_range<uint_t>(hdr.LayoutMode & LAYOUT_MASK, LAYOUT_MIN, LAYOUT_MAX))
+      if (!Math::InRange<uint_t>(hdr.LayoutMode & LAYOUT_MASK, LAYOUT_MIN, LAYOUT_MAX))
       {
         return false;
       }
-      if (!in_range<uint_t>(hdr.IntFreq, INTFREQ_MIN, INTFREQ_MAX))
+      if (!Math::InRange<uint_t>(hdr.IntFreq, INTFREQ_MIN, INTFREQ_MAX))
       {
         return false;
       }
-      if (!in_range<uint_t>(fromLE(hdr.Clockrate), CLOCKRATE_MIN, CLOCKRATE_MAX))
+      if (!Math::InRange<uint_t>(fromLE(hdr.Clockrate), CLOCKRATE_MIN, CLOCKRATE_MAX))
       {
         return false;
       }
-      if (!in_range<uint_t>(fromLE(hdr.UnpackedSize), UNPACKED_MIN, UNPACKED_MAX))
+      if (!Math::InRange<uint_t>(fromLE(hdr.UnpackedSize), UNPACKED_MIN, UNPACKED_MAX))
       {
         return false;
       }

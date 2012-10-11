@@ -20,6 +20,7 @@ Author:
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
+#include <math/numeric.h>
 //std includes
 #include <set>
 //boost includes
@@ -519,13 +520,13 @@ namespace Chiptune
             Require(loop < positions.size());
             break;
           }
-          Require(in_range<uint_t>(patNum, 0, MAX_PATTERNS_COUNT - 1));
+          Require(Math::InRange<uint_t>(patNum, 0, MAX_PATTERNS_COUNT - 1));
           PositionEntry res;
           res.PatternIndex = patNum;
           res.Transposition = static_cast<int8_t>(pos.TranspositionOrLoop);
-          Require(in_range<int_t>(res.Transposition, -36, 36));
+          Require(Math::InRange<int_t>(res.Transposition, -36, 36));
           positions.push_back(res);
-          Require(in_range<std::size_t>(positions.size(), 1, MAX_POSITIONS_COUNT));
+          Require(Math::InRange<std::size_t>(positions.size(), 1, MAX_POSITIONS_COUNT));
         }
         builder.SetPositions(positions, loop);
         Dbg("Positions: %1% entries, loop to %2%", positions.size(), loop);
@@ -540,10 +541,10 @@ namespace Chiptune
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
-          Require(in_range<uint_t>(patIndex, 0, MAX_PATTERNS_COUNT - 1));
+          Require(Math::InRange<uint_t>(patIndex, 0, MAX_PATTERNS_COUNT - 1));
           Dbg("Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
-          Require(in_range<uint_t>(src.Tempo, 2, 50));
+          Require(Math::InRange<uint_t>(src.Tempo, 2, 50));
           builder.StartPattern(patIndex);
           builder.StartLine(0);
           builder.SetTempo(src.Tempo);
@@ -564,10 +565,10 @@ namespace Chiptune
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
-          Require(in_range<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
+          Require(Math::InRange<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           Sample result;
           const std::size_t samOffset = GetSampleOffset(samIdx);
-          Require(in_range(samOffset, minOffset, maxOffset));
+          Require(Math::InRange(samOffset, minOffset, maxOffset));
           const std::size_t availSize = maxOffset - samOffset;
           const RawSample* const src = Delegate.GetField<RawSample>(samOffset);
           Require(src != 0);
@@ -605,10 +606,10 @@ namespace Chiptune
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(in_range<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
+          Require(Math::InRange<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
           Ornament result;
           const std::size_t ornOffset = GetOrnamentOffset(ornIdx);
-          Require(in_range(ornOffset, minOffset, maxOffset));
+          Require(Math::InRange(ornOffset, minOffset, maxOffset));
           const std::size_t availSize = Delegate.GetSize() - ornOffset;
           const RawOrnament* src = Delegate.GetField<RawOrnament>(ornOffset);
           Require(src != 0);

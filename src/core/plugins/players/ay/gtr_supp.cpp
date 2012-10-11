@@ -30,6 +30,7 @@ Author:
 #include <formats/chiptune_decoders.h>
 #include <formats/packed_decoders.h>
 #include <formats/chiptune/globaltracker.h>
+#include <math/numeric.h>
 
 #define FILE_TAG 1F7CDD7C
 
@@ -396,7 +397,7 @@ namespace GlobalTracker
       const Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
       //apply tone
-      const int_t halftones = clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95);
+      const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95);
       const uint_t freq = (track.GetFrequency(halftones) + curSampleLine.Vibrato) & 0xfff;
       channel.SetTone(freq);
 
@@ -404,7 +405,7 @@ namespace GlobalTracker
       {
         channel.DisableTone();
       }
-      const int_t level = clamp<int_t>(int_t(curSampleLine.Level) - dst.Volume, 0, 255);
+      const int_t level = Math::Clamp<int_t>(int_t(curSampleLine.Level) - dst.Volume, 0, 255);
       //apply level
       channel.SetLevel(level & 0xf);
       //apply envelope

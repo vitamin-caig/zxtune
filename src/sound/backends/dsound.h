@@ -14,6 +14,7 @@ Author:
 
 //common includes
 #include <iterator.h>
+#include <types.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 

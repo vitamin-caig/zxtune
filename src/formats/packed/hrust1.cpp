@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -69,7 +70,7 @@ namespace Hrust1
       }
       const RawHeader& header = GetHeader();
       const std::size_t usedSize = GetUsedSize();
-      return in_range(usedSize, sizeof(header), Size);
+      return Math::InRange(usedSize, sizeof(header), Size);
     }
 
     uint_t GetUsedSize() const
@@ -81,7 +82,7 @@ namespace Hrust1
     std::size_t GetUsedSizeWithPadding() const
     {
       const std::size_t usefulSize = GetUsedSize();
-      const std::size_t sizeOnDisk = align<std::size_t>(usefulSize, 256);
+      const std::size_t sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
       const std::size_t resultSize = std::min(sizeOnDisk, Size);
       const std::size_t paddingSize = resultSize - usefulSize;
       const std::size_t TRDOS_ENTRY_SIZE = 16;

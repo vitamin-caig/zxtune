@@ -11,10 +11,8 @@
 #ifndef TIME_STAMP_H_DEFINED
 #define TIME_STAMP_H_DEFINED
 
-//common includes
-#include <tools.h>
-//std includes
-#include <cassert>
+//library includes
+#include <math/scale.h>
 
 namespace Time
 {
@@ -61,8 +59,8 @@ namespace Time
     template<class T1, T1 OtherResolution>
     Stamp(const Stamp<T1, OtherResolution>& rh)
       : Value(sizeof(T1) >= sizeof(T)
-        ? static_cast<T>(Scale(rh.Get(), OtherResolution, T1(Resolution)))
-        : Scale(T(rh.Get()), T(OtherResolution), Resolution))
+        ? static_cast<T>(Math::Scale(rh.Get(), OtherResolution, T1(Resolution)))
+        : Math::Scale(T(rh.Get()), T(OtherResolution), Resolution))
     {
     }
 
@@ -70,7 +68,7 @@ namespace Time
     const Stamp<T, Resolution>& operator += (const Stamp<T1, OtherResolution>& rh)
     {
       Value += Stamp<T, Resolution>(rh).Get();
-      assert(Resolution >= OtherResolution || !"It's unsafe to add timestamp with lesser resolution");
+      BOOST_STATIC_ASSERT(Resolution >= OtherResolution);
       return *this;
     }
 

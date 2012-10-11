@@ -13,6 +13,8 @@ Author:
 #include "dump_builder.h"
 //common includes
 #include <tools.h>
+//library includes
+#include <math/bitops.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //std includes
@@ -45,7 +47,7 @@ namespace
       assert(framesPassed);
 
       Dump frame;
-      frame.reserve(framesPassed * sizeof(uint16_t) + CountBits(update.Mask));
+      frame.reserve(framesPassed * sizeof(uint16_t) + Math::CountBits(update.Mask));
       std::back_insert_iterator<Dump> inserter(frame);
       //skipped frames
       std::fill_n(inserter, sizeof(uint16_t) * (framesPassed - 1), 0);

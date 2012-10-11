@@ -21,6 +21,7 @@ Author:
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
+#include <math/numeric.h>
 //std includes
 #include <cctype>
 #include <set>
@@ -343,7 +344,7 @@ namespace Chiptune
         }
         const uint_t version = std::isdigit(Source.Subversion) ? Source.Subversion - '0' : 6;
         builder.SetVersion(version);
-        if (in_range<uint_t>(Source.FreqTableNum, PROTRACKER, NATURAL))
+        if (Math::InRange<uint_t>(Source.FreqTableNum, PROTRACKER, NATURAL))
         {
           builder.SetNoteTable(static_cast<NoteTable>(Source.FreqTableNum));
         }
@@ -366,7 +367,7 @@ namespace Chiptune
           Require(0 == patNum % 3);
           positions.push_back(patNum / 3);
         }
-        Require(in_range<std::size_t>(positions.size(), 1, MAX_POSITIONS_COUNT));
+        Require(Math::InRange<std::size_t>(positions.size(), 1, MAX_POSITIONS_COUNT));
         const uint_t loop = Source.Loop;
         builder.SetPositions(positions, loop);
         Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.size(), loop, uint_t(Source.Length));
@@ -381,7 +382,7 @@ namespace Chiptune
         for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
-          Require(in_range<uint_t>(patIndex, 0, MAX_PATTERNS_COUNT - 1));
+          Require(Math::InRange<uint_t>(patIndex, 0, MAX_PATTERNS_COUNT - 1));
           Dbg("Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
           builder.StartPattern(patIndex);
@@ -402,7 +403,7 @@ namespace Chiptune
         for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
-          Require(in_range<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
+          Require(Math::InRange<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           Sample result;
           if (const std::size_t samOffset = fromLE(Source.SamplesOffsets[samIdx]))
           {
@@ -444,7 +445,7 @@ namespace Chiptune
         for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(in_range<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
+          Require(Math::InRange<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
           Ornament result;
           if (const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]))
           {
@@ -541,7 +542,7 @@ namespace Chiptune
       bool ParsePattern(const RawPattern& pat, std::size_t minOffset, Builder& builder) const
       {
         const DataCursors rangesStarts(pat);
-        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), !boost::bind(&in_range<std::size_t>, _1, minOffset, Delegate.GetSize() - 1)));
+        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), !boost::bind(&Math::InRange<std::size_t>, _1, minOffset, Delegate.GetSize() - 1)));
 
         ParserState state(rangesStarts);
         uint_t lineIdx = 0;
@@ -854,7 +855,7 @@ namespace Chiptune
     bool FastCheck(const Binary::TypedContainer& data)
     {
       const std::size_t hdrSize = GetHeaderSize(data);
-      if (!in_range<std::size_t>(hdrSize, sizeof(RawHeader) + 1, sizeof(RawHeader) + MAX_POSITIONS_COUNT))
+      if (!Math::InRange<std::size_t>(hdrSize, sizeof(RawHeader) + 1, sizeof(RawHeader) + MAX_POSITIONS_COUNT))
       {
         return false;
       }

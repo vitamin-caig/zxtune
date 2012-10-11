@@ -20,6 +20,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
 //std includes
@@ -89,7 +90,7 @@ namespace ZXZip
     const uint_t calcSize = header.Type == 'B' || header.Type == 'b'
       ? 4 + fromLE(header.StartOrSize)
       : fromLE(header.SourceSize);
-    const std::size_t calcSectors = align(calcSize, uint_t(256)) / 256;
+    const std::size_t calcSectors = Math::Align(calcSize, uint_t(256)) / 256;
     return calcSectors == header.SourceSectors
       ? calcSize
       : 256 * header.SourceSectors;

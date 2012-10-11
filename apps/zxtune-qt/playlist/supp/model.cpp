@@ -21,6 +21,7 @@ Author:
 //library includes
 #include <async/activity.h>
 #include <core/module_attrs.h>
+#include <math/bitops.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -222,7 +223,7 @@ namespace
     {
       const uint_t totalItems = storage.CountItems();
       //according to STL spec: The number of comparisons is approximately N log N, where N is the list's size. Assume that log is binary.
-      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems * Log2(totalItems), cb);
+      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems * Math::Log2(totalItems), cb);
       const ComparisonsCounter countingComparer(*Comparer, *progress);
       storage.Sort(countingComparer);
     }

@@ -11,8 +11,6 @@
 #ifndef TIME_OSCILLATOR_H_DEFINED
 #define TIME_OSCILLATOR_H_DEFINED
 
-//common includes
-#include <tools.h>
 //library includes
 #include <time/stamp.h>
 
@@ -37,8 +35,8 @@ namespace Time
     {
       LastFreqChangeTime = CurTimeCache = 0;
       Frequency = 0;
-      ScaleToTime = ScaleFunctor<typename TimeStamp::ValueType>(0, TimeStamp::PER_SECOND);
-      ScaleToTick = ScaleFunctor<typename TimeStamp::ValueType>(TimeStamp::PER_SECOND, 0);
+      ScaleToTime = Math::ScaleFunctor<typename TimeStamp::ValueType>(0, TimeStamp::PER_SECOND);
+      ScaleToTick = Math::ScaleFunctor<typename TimeStamp::ValueType>(TimeStamp::PER_SECOND, 0);
       LastFreqChangeTick = CurTick = 0;
     }
 
@@ -49,8 +47,8 @@ namespace Time
         LastFreqChangeTime = GetCurrentTime().Get();
         LastFreqChangeTick = GetCurrentTick();
         Frequency = freq;
-        ScaleToTime = ScaleFunctor<typename TimeStamp::ValueType>(Frequency, TimeStamp::PER_SECOND);
-        ScaleToTick = ScaleFunctor<typename TimeStamp::ValueType>(TimeStamp::PER_SECOND, Frequency);
+        ScaleToTime = Math::ScaleFunctor<typename TimeStamp::ValueType>(Frequency, TimeStamp::PER_SECOND);
+        ScaleToTick = Math::ScaleFunctor<typename TimeStamp::ValueType>(TimeStamp::PER_SECOND, Frequency);
       }
     }
 
@@ -87,8 +85,8 @@ namespace Time
     T LastFreqChangeTick;
     T Frequency;
     T CurTick;
-    ScaleFunctor<typename TimeStamp::ValueType> ScaleToTime;
-    ScaleFunctor<typename TimeStamp::ValueType> ScaleToTick;
+    Math::ScaleFunctor<typename TimeStamp::ValueType> ScaleToTime;
+    Math::ScaleFunctor<typename TimeStamp::ValueType> ScaleToTick;
     mutable typename TimeStamp::ValueType CurTimeCache;
   };
 

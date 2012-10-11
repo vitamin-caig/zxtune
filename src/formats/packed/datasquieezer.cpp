@@ -19,6 +19,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <algorithm>
 #include <iterator>
@@ -267,7 +268,7 @@ namespace DataSquieezer
         return false;
       }
       const RawHeader& header = GetHeader();
-      if (!in_range<uint_t>(header.LongOffsetBits, 0x00, 0x10))
+      if (!Math::InRange<uint_t>(header.LongOffsetBits, 0x00, 0x10))
       {
         return false;
       }

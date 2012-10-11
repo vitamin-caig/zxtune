@@ -16,6 +16,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <numeric>
 //text includes
@@ -52,9 +53,9 @@ namespace Hobeta
     const Header* const header = static_cast<const Header*>(rawData);
     const std::size_t dataSize = fromLE(header->Length);
     const std::size_t fullSize = fromLE(header->FullLength);
-    if (!in_range(dataSize, MIN_SIZE, MAX_SIZE) ||
+    if (!Math::InRange(dataSize, MIN_SIZE, MAX_SIZE) ||
         dataSize + sizeof(*header) > limit ||
-        fullSize != align<std::size_t>(dataSize, 256) ||
+        fullSize != Math::Align<std::size_t>(dataSize, 256) ||
         //check for valid name
         ArrayEnd(header->Filename) != std::find_if(header->Filename, ArrayEnd(header->Filename),
           std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))

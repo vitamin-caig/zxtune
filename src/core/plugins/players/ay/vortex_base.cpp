@@ -17,6 +17,8 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <tools.h>
+//library includes
+#include <math/numeric.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -342,8 +344,8 @@ namespace
         channel.DisableTone();
       }
       //apply level
-      dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
-      channel.SetLevel(GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15)));
+      dst.VolSlide = Math::Clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
+      channel.SetLevel(GetVolume(dst.Volume, Math::Clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15)));
       //apply envelope
       if (dst.Envelope && !curSampleLine.EnvMask)
       {
