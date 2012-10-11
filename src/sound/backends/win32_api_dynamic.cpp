@@ -13,7 +13,8 @@ Author:
 #include "win32_api.h"
 //common includes
 #include <debug_log.h>
-#include <shared_library_adapter.h>
+//library includes
+#include <platform/shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -26,7 +27,7 @@ namespace
   class DynamicApi : public Api
   {
   public:
-    explicit DynamicApi(SharedLibrary::Ptr lib)
+    explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
       : Lib(lib)
     {
       Dbg("Library loaded");
@@ -143,7 +144,7 @@ namespace
     }
     
   private:
-    const SharedLibraryAdapter Lib;
+    const Platform::SharedLibraryAdapter Lib;
   };
 
 }
@@ -156,7 +157,7 @@ namespace ZXTune
     {
       Api::Ptr LoadDynamicApi()
       {
-        const SharedLibrary::Ptr lib = SharedLibrary::Load("winmm");
+        const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load("winmm");
         return boost::make_shared<DynamicApi>(lib);
       }
     }

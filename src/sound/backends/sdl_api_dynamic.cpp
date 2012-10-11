@@ -13,8 +13,9 @@ Author:
 #include "sdl_api.h"
 //common includes
 #include <debug_log.h>
-#include <shared_library_adapter.h>
 #include <tools.h>
+//library includes
+#include <platform/shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -22,7 +23,7 @@ namespace
 {
   using namespace ZXTune::Sound::Sdl;
 
-  class SdlName : public SharedLibrary::Name
+  class SdlName : public Platform::SharedLibrary::Name
   {
   public:
     virtual std::string Base() const
@@ -50,7 +51,7 @@ namespace
   class DynamicApi : public Api
   {
   public:
-    explicit DynamicApi(SharedLibrary::Ptr lib)
+    explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
       : Lib(lib)
     {
       Dbg("Library loaded");
@@ -143,7 +144,7 @@ namespace
     }
     
   private:
-    const SharedLibraryAdapter Lib;
+    const Platform::SharedLibraryAdapter Lib;
   };
 
 }
@@ -157,7 +158,7 @@ namespace ZXTune
       Api::Ptr LoadDynamicApi()
       {
         static const SdlName NAME;
-        const SharedLibrary::Ptr lib = SharedLibrary::Load(NAME);
+        const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
         return boost::make_shared<DynamicApi>(lib);
       }
     }

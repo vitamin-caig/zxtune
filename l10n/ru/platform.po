@@ -24,3 +24,26 @@ msgstr "Архив ресурсов не найден."
 #, boost-format
 msgid "Failed to load resource file '%1%'."
 msgstr "Ошибка загрузки файла ресурсов '%1%'."
+
+#: src/shared_library_common.cpp:44
+#, boost-format
+msgid "Failed to load dynamic library '%1%' by any of the alternative names."
+msgstr ""
+"Динамическая библиотека '%1%' не может быть загружена ни по одному из "
+"известных имен."
+
+#: src/windows/shared_library.cpp:54
+#, boost-format
+msgid "Failed to find symbol '%1%' in dynamic library."
+msgstr "Символ '%1%' не найден в динамической библиотеке."
+
+#: src/windows/shared_library.cpp:86
+#, boost-format
+msgid "Failed to load dynamic library '%1%' (error code is %2%)."
+msgstr "Ошибка загрузки динамической библиотеки '%1%' (код %2%)."
+
+#~ msgid "Failed to find symbol '%1%' in shared object."
+#~ msgstr "Символ '%1%' не найден в динамической библиотеке."
+
+#~ msgid "Failed to load shared object '%1%' (%2%)."
+#~ msgstr "Ошибка загрузки динамической библиотеки '%1%' (%2%)."
