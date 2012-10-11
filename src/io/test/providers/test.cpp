@@ -114,6 +114,7 @@ namespace
       "some_subpath",
       "//network-path/share/some_file.ext?Complex/Subpath"
     },
+#ifdef _WIN32
     {
       "Windows file",
       "C:\\folder\\some_file.ext?some_subpath",
@@ -124,6 +125,7 @@ namespace
       "some_subpath",
       "C:\\folder\\some_file.ext?Complex/Subpath"
     },
+#endif
     {
       "Posix file",
       "/folder/some_file.ext?some_subpath",
@@ -144,6 +146,7 @@ namespace
       "some_subpath",
       "folder/some_file.ext?Complex/Subpath"
     },
+#ifdef _WIN32
     {
       "Schemed windows file",
       "file://C:\\folder\\some_file.ext?some_subpath",
@@ -154,6 +157,7 @@ namespace
       "some_subpath",
       "C:\\folder\\some_file.ext?Complex/Subpath"
     },
+#endif
     {
       "Schemed posix file",
       "file:///folder/some_file.ext?some_subpath",

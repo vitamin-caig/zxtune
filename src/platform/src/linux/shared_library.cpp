@@ -67,7 +67,7 @@ namespace
 
 namespace Platform
 {
-  namespace Detail
+  namespace Details
   {
     Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
     {

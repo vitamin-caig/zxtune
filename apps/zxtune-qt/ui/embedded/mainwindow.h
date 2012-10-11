@@ -20,6 +20,8 @@ Author:
 #include <QtGui/QMainWindow>
 //common includes
 #include <parameters.h>
+//library includes
+#include <strings/array.h>
 
 class EmbeddedMainWindow : public QMainWindow
 {

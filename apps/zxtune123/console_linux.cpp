@@ -14,9 +14,12 @@ Author:
 //local includes
 #include "console.h"
 #include <apps/base/app.h>
+//common includes
+#include <error.h>
 //platform-dependent includes
 #include <errno.h>
 #include <stdio.h>
+#include <string.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 //std includes
