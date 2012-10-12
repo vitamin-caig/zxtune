@@ -5,7 +5,7 @@
 
 namespace Text
 {
-extern const Char ERROR_LOCATION_FORMAT[];
-extern const Char ERROR_LOCATION_FORMAT_DEBUG[];
+extern const Char ERROR_FORMAT[];
+extern const Char ERROR_FORMAT_DEBUG[];
 }//namespace Text
 #endif //__TEXT_TOOLS_H_DEFINED__

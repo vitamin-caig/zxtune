@@ -8,7 +8,7 @@ makeres_cmd = rc $(addprefix /d, $(DEFINITIONS)) /r /fo$(2) $(1)
 host=windows
 compiler := msvs
 
-windows_libraries += oldnames
+#windows_libraries += oldnames
 
 # installable boost names convention used
 # [prefix]boost_[lib]-mt[-gd].lib

@@ -22,7 +22,7 @@ Author:
 #include <cassert>
 #include <memory>
 //3rd-party includes
-#include <3rdparty/zlib/zlib.h>
+#include <zlib/zlib.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes

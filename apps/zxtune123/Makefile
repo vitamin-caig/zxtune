@@ -21,7 +21,9 @@ depends := src/analysis src/async src/binary src/tools src/core src/devices src/
 libraries += lhasa z z80ex
 depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
 
-windows_libraries = advapi32
+#platform
+windows_libraries = advapi32 ole32 oldnames user32
+mingw_libraries = ole32
 boost_libraries = thread program_options system filesystem
 
 manual_format := txt

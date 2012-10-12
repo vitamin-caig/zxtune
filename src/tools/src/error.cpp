@@ -11,10 +11,6 @@ Author:
 
 //common includes
 #include <error_tools.h>
-//library includes
-#include <l10n/api.h>
-//std includes
-//#include <cctype>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -22,20 +18,13 @@ Author:
 
 namespace
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("tools");
-
-  String LocationToString(Error::LocationRef loc)
-  {
-  #ifdef NDEBUG
-    return Strings::Format(Text::ERROR_LOCATION_FORMAT, loc);
-  #else
-    return Strings::Format(Text::ERROR_LOCATION_FORMAT_DEBUG, loc.Tag, loc.File, loc.Line, loc.Function);
-  #endif
-  }
-
   String AttributesToString(Error::LocationRef loc, const String& text)
   {
-    return Strings::Format(translate("%1%\n\nAt: %2%\n--------\n"), text, LocationToString(loc));
+  #ifdef NDEBUG
+    return Strings::Format(Text::ERROR_FORMAT, text, loc);
+  #else
+    return Strings::Format(Text::ERROR_FORMAT_DEBUG, text, loc.Tag, loc.File, loc.Line, loc.Function);
+  #endif
   }
 }
 

@@ -10,6 +10,7 @@ Author:
 */
 
 #include <contract.h>
+#include <tools.h>
 #include <devices/aym.h>
 #include <devices/z80.h>
 #include <sound/mixer.h>

@@ -2,8 +2,8 @@ binary_name := async_test_activity
 path_step := ../../../..
 source_files := test
 
-libraries := async l10n_stub tools
-depends := src/async src/l10n/stub src/tools
+libraries := async tools
+depends := src/async src/tools
 
 boost_libraries := thread
 

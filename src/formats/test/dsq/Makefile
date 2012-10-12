@@ -2,9 +2,7 @@ binary_name := formats_test_dsq
 path_step := ../../../..
 source_files := test
 
-libraries := io formats binary
-depends := src/formats src/binary src/io
-
-windows_libraries := advapi32
+libraries := formats binary
+depends := src/formats src/binary
 
 include $(path_step)/makefile.mak
