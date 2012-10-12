@@ -10,8 +10,8 @@ Author:
 */
 
 #pragma once
-#ifndef __CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED__
-#define __CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED__
+#ifndef CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED
+#define CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED
 
 namespace ZXTune
 {
@@ -19,28 +19,8 @@ namespace ZXTune
   class PluginsRegistrator;
 
   void RegisterRawContainer(PluginsRegistrator& registrator);
-  void RegisterTRDContainer(PluginsRegistrator& registrator);
-  void RegisterSCLContainer(PluginsRegistrator& registrator);
-  void RegisterHRIPContainer(PluginsRegistrator& registrator);
-  void RegisterZXZipContainer(PluginsRegistrator& registrator);
-  void RegisterZipContainer(PluginsRegistrator& registrator);
-  void RegisterRarContainer(PluginsRegistrator& registrator);
-  void RegisterLhaContainer(PluginsRegistrator& registrator);
-  void RegisterZXStateContainer(PluginsRegistrator& registrator);
 
-  void RegisterContainerPlugins(PluginsRegistrator& registrator)
-  {
-    //process raw container first
-    RegisterRawContainer(registrator);
-    RegisterTRDContainer(registrator);
-    RegisterSCLContainer(registrator);
-    RegisterHRIPContainer(registrator);
-    RegisterZXZipContainer(registrator);
-    RegisterZipContainer(registrator);
-    RegisterRarContainer(registrator);
-    RegisterLhaContainer(registrator);
-    RegisterZXStateContainer(registrator);
-  }
+  void RegisterContainerPlugins(PluginsRegistrator& registrator);
 }
 
-#endif //__CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED__
+#endif //CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED
