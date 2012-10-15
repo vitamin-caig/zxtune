@@ -26,7 +26,6 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <io/container.h>
 //std includes
 #include <cctype>
 //boost includes

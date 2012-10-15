@@ -17,7 +17,7 @@ Author:
 #include <parameters.h>
 //library includes
 #include <analysis/path.h>
-#include <io/container.h>
+#include <binary/container.h>
 
 namespace ZXTune
 {

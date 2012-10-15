@@ -23,6 +23,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/typed_container.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -381,22 +382,22 @@ namespace
       , Info(CreateTrackInfo(Data, DMM::CHANNELS_COUNT))
     {
       //assume data is correct
-      const IO::FastDump& data(*rawData);
-      const DMM::Header* const header(safe_ptr_cast<const DMM::Header*>(data.Data()));
+      const Binary::TypedContainer& data(*rawData);
+      const DMM::Header& header = *data.GetField<DMM::Header>(0);
 
       //fill order
-      const uint_t positionsCount = header->Length + 1;
+      const uint_t positionsCount = header.Length + 1;
       Data->Positions.resize(positionsCount);
-      std::copy(header->Positions.begin(), header->Positions.begin() + positionsCount, Data->Positions.begin());
+      std::copy(header.Positions.begin(), header.Positions.begin() + positionsCount, Data->Positions.begin());
 
       //fill patterns
       const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
-      const uint_t patternSize = header->PatternSize;
+      const uint_t patternSize = header.PatternSize;
       {
         Data->Patterns.resize(patternsCount);
         for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, DMM::PATTERNS_COUNT); ++patIdx)
         {
-          const DMM::Pattern* const pattern = safe_ptr_cast<const DMM::Pattern*>(header + 1) + patIdx * patternSize;
+          const DMM::Pattern* const pattern = safe_ptr_cast<const DMM::Pattern*>(&header + 1) + patIdx * patternSize;
           ParsePattern(patternSize, *pattern, Data->Patterns[patIdx]);
         }
       }
@@ -404,24 +405,24 @@ namespace
       //big mixins amount support
       for (std::size_t mixIdx = 0; mixIdx != 64; ++mixIdx)
       {
-        const DMM::MixedLine& src = header->Mixings[mixIdx];
+        const DMM::MixedLine& src = header.Mixings[mixIdx];
         DMM::ModuleData::MixedChannel& dst = Data->Mixes[mixIdx];
         ParseChannel(src.Mixin, dst.Mixin);
         dst.Period = src.Period;
       }
 
       const bool is4bitSamples = true;//TODO: detect
-      std::size_t lastData = 256 * header->HeaderSizeSectors;
+      std::size_t lastData = 256 * header.HeaderSizeSectors;
 
       //bank => <offset, size>
       typedef std::map<std::size_t, Dump> Bank2Data;
       Bank2Data regions;
-      for (std::size_t layIdx = 0; layIdx != header->EndOfBanks.size(); ++layIdx)
+      for (std::size_t layIdx = 0; layIdx != header.EndOfBanks.size(); ++layIdx)
       {
         static const std::size_t BANKS[] = {0x50, 0x51, 0x53, 0x54, 0x56, 0x57};
 
         const uint_t bankNum = BANKS[layIdx];
-        const std::size_t bankEnd = fromLE(header->EndOfBanks[layIdx]);
+        const std::size_t bankEnd = fromLE(header.EndOfBanks[layIdx]);
         if (bankEnd <= DMM::SAMPLES_ADDR)
         {
           Dbg("Skipping bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
@@ -432,7 +433,7 @@ namespace
         const std::size_t realSize = is4bitSamples
           ? 256 * (1 + alignedBankSize / 512)
           : alignedBankSize;
-        const uint8_t* const bankStart = &data[lastData];
+        const uint8_t* const bankStart = data.GetField<uint8_t>(lastData);
         regions[bankNum] = Dump(bankStart, bankStart + realSize);
         if (is4bitSamples)
         {
@@ -445,7 +446,7 @@ namespace
       Data->Samples.resize(DMM::SAMPLES_COUNT);
       for (uint_t samIdx = 1; samIdx != DMM::SAMPLES_COUNT; ++samIdx)
       {
-        const DMM::SampleInfo& srcSample = header->SampleDescriptions[samIdx - 1];
+        const DMM::SampleInfo& srcSample = header.SampleDescriptions[samIdx - 1];
         if (srcSample.Name[0] == '.')
         {
           Dbg("No sample %1%", samIdx);
@@ -486,14 +487,14 @@ namespace
         }
         dstSample.Loop = sampleLoop - sampleStart;
       }
-      Data->LoopPosition = header->Loop;
-      Data->InitialTempo = header->Tempo;
+      Data->LoopPosition = header.Loop;
+      Data->InitialTempo = header.Tempo;
 
       usedSize = lastData;
 
       //meta properties
       {
-        const ModuleRegion fixedRegion(sizeof(*header), sizeof(DMM::Pattern::Line) * patternsCount * patternSize);
+        const ModuleRegion fixedRegion(sizeof(header), sizeof(DMM::Pattern::Line) * patternsCount * patternSize);
         Properties->SetSource(usedSize, fixedRegion);
       }
       Properties->SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);

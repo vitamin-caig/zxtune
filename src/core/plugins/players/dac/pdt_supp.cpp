@@ -23,6 +23,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/typed_container.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -295,26 +296,26 @@ namespace
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
     {
       //assume that data is ok
-      const IO::FastDump& data(*rawData);
-      const PDTHeader* const header(safe_ptr_cast<const PDTHeader*>(data.Data()));
+      const Binary::TypedContainer& data(*rawData);
+      const PDTHeader& header = *data.GetField<PDTHeader>(0);
 
       //fill order
-      Data->Positions.resize(header->Length);
-      std::copy(header->Positions.begin(), header->Positions.begin() + header->Length, Data->Positions.begin());
+      Data->Positions.resize(header.Length);
+      std::copy(header.Positions.begin(), header.Positions.begin() + header.Length, Data->Positions.begin());
 
       //fill patterns
-      Data->Patterns.resize(header->Patterns.size());
-      for (uint_t patIdx = 0; patIdx != header->Patterns.size(); ++patIdx)
+      Data->Patterns.resize(header.Patterns.size());
+      for (uint_t patIdx = 0; patIdx != header.Patterns.size(); ++patIdx)
       {
-        ParsePattern(header->Patterns[patIdx], Data->Patterns[patIdx]);
+        ParsePattern(header.Patterns[patIdx], Data->Patterns[patIdx]);
       }
 
       //fill samples
-      const uint8_t* samplesData(safe_ptr_cast<const uint8_t*>(header) + sizeof(*header));
-      Data->Samples.resize(header->Samples.size());
-      for (uint_t samIdx = 0; samIdx != header->Samples.size(); ++samIdx)
+      const uint8_t* const samplesData = data.GetField<uint8_t>(sizeof(header));
+      Data->Samples.resize(header.Samples.size());
+      for (uint_t samIdx = 0; samIdx != header.Samples.size(); ++samIdx)
       {
-        const PDTSample& srcSample(header->Samples[samIdx]);
+        const PDTSample& srcSample(header.Samples[samIdx]);
         Sample& dstSample(Data->Samples[samIdx]);
         const uint_t start(fromLE(srcSample.Start));
         if (srcSample.Page < PAGES_COUNT && start >= 0xc000 && srcSample.Size)
@@ -336,18 +337,18 @@ namespace
       //fill ornaments
       Data->Ornaments.reserve(ORNAMENTS_COUNT + 1);
       Data->Ornaments.push_back(Ornament());//first empty ornament
-      std::transform(header->Ornaments.begin(), header->Ornaments.end(), header->OrnLoops.begin(),
+      std::transform(header.Ornaments.begin(), header.Ornaments.end(), header.OrnLoops.begin(),
         std::back_inserter(Data->Ornaments), MakeOrnament);
 
-      Data->LoopPosition = header->Loop;
-      Data->InitialTempo = header->Tempo;
+      Data->LoopPosition = header.Loop;
+      Data->InitialTempo = header.Tempo;
 
       usedSize = MODULE_SIZE;
       {
-        const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header->Patterns), sizeof(header->Patterns));
+        const ModuleRegion fixedRegion(sizeof(PDTHeader) - sizeof(header.Patterns), sizeof(header.Patterns));
         Properties->SetSource(usedSize, fixedRegion);
       }
-      Properties->SetTitle(OptimizeString(FromCharArray(header->Title)));
+      Properties->SetTitle(OptimizeString(FromCharArray(header.Title)));
       Properties->SetProgram(Text::PRODIGITRACKER_DECODER_DESCRIPTION);
     }
 

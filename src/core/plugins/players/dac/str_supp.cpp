@@ -23,6 +23,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/typed_container.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -185,13 +186,13 @@ namespace
       , Info(CreateTrackInfo(Data, STR::CHANNELS_COUNT))
     {
       //assume data is correct
-      const IO::FastDump& data(*rawData);
-      const STR::Header* const header(safe_ptr_cast<const STR::Header*>(data.Data()));
+      const Binary::TypedContainer& data(*rawData);
+      const STR::Header& header = *data.GetField<STR::Header>(0);
 
       //fill order
-      const uint_t positionsCount = header->LastPositionDoubled / 2;
+      const uint_t positionsCount = header.LastPositionDoubled / 2;
       Data->Positions.resize(positionsCount);
-      std::transform(header->Positions.begin(), header->Positions.begin() + positionsCount, Data->Positions.begin(),
+      std::transform(header.Positions.begin(), header.Positions.begin() + positionsCount, Data->Positions.begin(),
         std::bind2nd(std::minus<uint8_t>(), uint8_t(1)));
 
       //fill patterns
@@ -199,39 +200,39 @@ namespace
       Data->Patterns.resize(patternsCount);
       for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, STR::PATTERNS_COUNT); ++patIdx)
       {
-        ParsePattern(header->Patterns[patIdx], Data->Patterns[patIdx]);
+        ParsePattern(header.Patterns[patIdx], Data->Patterns[patIdx]);
       }
       //fill samples
       std::size_t lastData = 0;
       Data->Samples.resize(STR::SAMPLES_COUNT);
       for (uint_t samIdx = 0; samIdx != STR::SAMPLES_COUNT; ++samIdx)
       {
-        const uint_t absAddr = 256 * header->SampleDescriptions[samIdx].AddrHi;
+        const uint_t absAddr = 256 * header.SampleDescriptions[samIdx].AddrHi;
         if (!absAddr)
         {
           continue;
         }
-        const std::size_t maxSize = 128 * header->SampleDescriptions[samIdx].SizeHiDoubled;
+        const std::size_t maxSize = 128 * header.SampleDescriptions[samIdx].SizeHiDoubled;
         if (absAddr + maxSize > STR::SAMPLES_LIMIT_ADDR)
         {
           continue;
         }
-        const uint8_t* const sampleStart = header->Samples + (absAddr - STR::SAMPLES_ADDR);
+        const uint8_t* const sampleStart = header.Samples + (absAddr - STR::SAMPLES_ADDR);
         const uint8_t* const sampleEnd = sampleStart + maxSize;
         Data->Samples[samIdx].assign(sampleStart, std::find(sampleStart, sampleEnd, 0));
         lastData = std::max(lastData, std::size_t(absAddr - STR::MODULE_BASE + maxSize));
       }
       Data->LoopPosition = 0;
-      Data->InitialTempo = header->Tempo;
+      Data->InitialTempo = header.Tempo;
 
       usedSize = lastData;
 
       //meta properties
       {
-        const ModuleRegion fixedRegion(offsetof(STR::Header, Patterns), sizeof(header->Patterns));
+        const ModuleRegion fixedRegion(offsetof(STR::Header, Patterns), sizeof(header.Patterns));
         Properties->SetSource(usedSize, fixedRegion);
       }
-      Properties->SetTitle(OptimizeString(FromCharArray(header->Title)));
+      Properties->SetTitle(OptimizeString(FromCharArray(header.Title)));
       Properties->SetProgram(Text::SAMPLETRACKER_DECODER_DESCRIPTION);
     }
 

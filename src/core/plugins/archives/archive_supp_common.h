@@ -17,7 +17,6 @@ Author:
 #include "core/plugins/plugins_types.h"
 //library includes
 #include <formats/packed.h>
-#include <io/container.h>
 
 namespace ZXTune
 {

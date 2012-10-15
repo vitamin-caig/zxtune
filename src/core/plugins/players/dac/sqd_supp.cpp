@@ -23,6 +23,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/typed_container.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -283,29 +284,29 @@ namespace
       , Info(CreateTrackInfo(Data, SQD::CHANNELS_COUNT))
     {
       //assume data is correct
-      const IO::FastDump& data(*rawData);
-      const SQD::Header* const header(safe_ptr_cast<const SQD::Header*>(data.Data()));
+      const Binary::TypedContainer& data(*rawData);
+      const SQD::Header& header = *data.GetField<SQD::Header>(0);
 
       //fill order
-      const uint_t positionsCount = header->Length;
+      const uint_t positionsCount = header.Length;
       Data->Positions.resize(positionsCount);
-      std::copy(header->Positions.begin(), header->Positions.begin() + positionsCount, Data->Positions.begin());
+      std::copy(header.Positions.begin(), header.Positions.begin() + positionsCount, Data->Positions.begin());
 
       //fill patterns
       const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
       Data->Patterns.resize(patternsCount);
       for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, SQD::PATTERNS_COUNT); ++patIdx)
       {
-        ParsePattern(header->Patterns[patIdx], Data->Patterns[patIdx]);
+        ParsePattern(header.Patterns[patIdx], Data->Patterns[patIdx]);
       }
 
-      std::size_t lastData = sizeof(*header);
+      std::size_t lastData = sizeof(header);
       //bank => <offset, size>
       typedef std::map<std::size_t, std::pair<std::size_t, std::size_t> > Bank2OffsetAndSize;
       Bank2OffsetAndSize regions;
-      for (std::size_t layIdx = 0; layIdx != header->Layouts.size(); ++layIdx)
+      for (std::size_t layIdx = 0; layIdx != header.Layouts.size(); ++layIdx)
       {
-        const SQD::LayoutInfo& layout = header->Layouts[layIdx];
+        const SQD::LayoutInfo& layout = header.Layouts[layIdx];
         const std::size_t addr = fromLE(layout.Address);
         const std::size_t size = 256 * layout.Sectors;
         if (addr >= SQD::BIG_SAMPLE_ADDR && addr + size <= SQD::SAMPLES_LIMIT)
@@ -319,7 +320,7 @@ namespace
       Data->Samples.resize(SQD::SAMPLES_COUNT);
       for (uint_t samIdx = 0; samIdx != SQD::SAMPLES_COUNT; ++samIdx)
       {
-        const SQD::SampleInfo& srcSample = header->Samples[samIdx];
+        const SQD::SampleInfo& srcSample = header.Samples[samIdx];
         const std::size_t addr = fromLE(srcSample.Start);
         if (addr < SQD::BIG_SAMPLE_ADDR)
         {
@@ -340,25 +341,25 @@ namespace
         }
         const std::size_t size = std::min(SQD::SAMPLES_LIMIT - addr, it->second.second);//TODO: get from samples layout
         const std::size_t sampleOffset = it->second.first + addr - sampleBase;
-        const uint8_t* const sampleStart = &data[sampleOffset];
+        const uint8_t* const sampleStart = data.GetField<uint8_t>(sampleOffset);
         const uint8_t* const sampleEnd = sampleStart + size;
         SQD::Sample& dstSample = Data->Samples[samIdx];
         dstSample.Data.assign(sampleStart, std::find(sampleStart, sampleEnd, 0));
         dstSample.Loop = srcSample.IsLooped ? loop - sampleBase : dstSample.Data.size();
       }
-      Data->LoopPosition = header->Loop;
-      Data->InitialTempo = header->Tempo;
+      Data->LoopPosition = header.Loop;
+      Data->InitialTempo = header.Tempo;
 
       usedSize = lastData;
 
       //meta properties
       {
-        const ModuleRegion fixedRegion(offsetof(SQD::Header, Patterns), sizeof(header->Patterns));
+        const ModuleRegion fixedRegion(offsetof(SQD::Header, Patterns), sizeof(header.Patterns));
         Properties->SetSource(usedSize, fixedRegion);
       }
-      const String title = *header->Title.begin() == '|' && *header->Title.rbegin() == '|'
-        ? String(header->Title.begin() + 1, header->Title.end() - 1)
-        : String(header->Title.begin(), header->Title.end());
+      const String title = *header.Title.begin() == '|' && *header.Title.rbegin() == '|'
+        ? String(header.Title.begin() + 1, header.Title.end() - 1)
+        : String(header.Title.begin(), header.Title.end());
       Properties->SetTitle(OptimizeString(title));
       Properties->SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
     }

@@ -29,7 +29,6 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <devices/aym.h>
-#include <io/container.h>
 //std includes
 #include <set>
 //boost includes

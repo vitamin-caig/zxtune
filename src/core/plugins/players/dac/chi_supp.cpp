@@ -23,6 +23,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/typed_container.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -247,28 +248,28 @@ namespace
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
     {
       //assume data is correct
-      const IO::FastDump& data(*rawData);
-      const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Data()));
+      const Binary::TypedContainer data(*rawData);
+      const CHIHeader& header = *data.GetField<CHIHeader>(0);
 
       //fill order
-      Data->Positions.resize(header->Length + 1);
-      std::copy(header->Positions, header->Positions + header->Length + 1, Data->Positions.begin());
+      Data->Positions.resize(header.Length + 1);
+      std::copy(header.Positions, header.Positions + header.Length + 1, Data->Positions.begin());
 
       //fill patterns
       const uint_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
       Data->Patterns.resize(patternsCount);
-      const CHIPattern* const patBegin(safe_ptr_cast<const CHIPattern*>(&data[sizeof(CHIHeader)]));
+      const CHIPattern* const patBegin = data.GetField<CHIPattern>(sizeof(header));
       for (const CHIPattern* pat = patBegin; pat != patBegin + patternsCount; ++pat)
       {
         ParsePattern(*pat, Data->Patterns[pat - patBegin]);
       }
       //fill samples
-      const uint8_t* sampleData(safe_ptr_cast<const uint8_t*>(patBegin + patternsCount));
-      std::size_t memLeft(data.Size() - (sampleData - &data[0]));
-      Data->Samples.resize(header->Samples.size());
-      for (uint_t samIdx = 0; samIdx != header->Samples.size(); ++samIdx)
+      const uint8_t* sampleData = (safe_ptr_cast<const uint8_t*>(patBegin + patternsCount));
+      std::size_t memLeft(data.GetSize() - (sampleData - data.GetField<uint8_t>(0)));
+      Data->Samples.resize(header.Samples.size());
+      for (uint_t samIdx = 0; samIdx != header.Samples.size(); ++samIdx)
       {
-        const CHIHeader::SampleDescr& srcSample(header->Samples[samIdx]);
+        const CHIHeader::SampleDescr& srcSample(header.Samples[samIdx]);
         if (const std::size_t size = std::min<std::size_t>(memLeft, fromLE(srcSample.Length)))
         {
           Sample& dstSample(Data->Samples[samIdx]);
@@ -283,19 +284,19 @@ namespace
           memLeft -= alignedSize;
         }
       }
-      Data->LoopPosition = header->Loop;
-      Data->InitialTempo = header->Tempo;
+      Data->LoopPosition = header.Loop;
+      Data->InitialTempo = header.Tempo;
 
-      usedSize = data.Size() - memLeft;
+      usedSize = data.GetSize() - memLeft;
 
       //meta properties
       {
         const ModuleRegion fixedRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount);
         Properties->SetSource(usedSize, fixedRegion);
       }
-      Properties->SetTitle(OptimizeString(FromCharArray(header->Name)));
+      Properties->SetTitle(OptimizeString(FromCharArray(header.Name)));
       Properties->SetProgram(Text::CHIPTRACKER_DECODER_DESCRIPTION);
-      Properties->SetVersion(header->Version[0] - '0', header->Version[2] - '0');
+      Properties->SetVersion(header.Version[0] - '0', header.Version[2] - '0');
     }
 
     virtual Plugin::Ptr GetPlugin() const
