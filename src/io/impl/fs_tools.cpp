@@ -57,7 +57,7 @@ namespace
     };
     const String::size_type dotPos = in.find('.');
     const String filename = in.substr(0, dotPos);
-    if (ArrayEnd(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, ArrayEnd(DEPRECATED_NAMES), ZXTune::IO::ConvertToFilename(filename)))
+    if (ArrayEnd(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, ArrayEnd(DEPRECATED_NAMES), ToStdString(filename)))
     {
       const String restPart = dotPos != String::npos ? in.substr(dotPos) : String();
       return filename + '~' + restPart;
@@ -76,44 +76,6 @@ namespace ZXTune
 {
   namespace IO
   {
-    std::string ConvertToFilename(const String& str)
-    {
-#ifdef UNICODE
-      //TODO: use utf8 convertor if required
-      return std::string(str.begin(), str.end());
-#else
-      return str;
-#endif
-    }
-    
-    String ExtractLastPathComponent(const String& path, String& restPart)
-    {
-      const String::size_type delimPos = path.find_last_of(FS_DELIMITERS);
-      if (String::npos == delimPos)
-      {
-        restPart.clear();
-        return path;
-      }
-      else
-      {
-        restPart = path.substr(0, delimPos);
-        return path.substr(delimPos + 1);
-      }
-    }
-    
-    String AppendPath(const String& path1, const String& path2)
-    {
-      static const String DELIMS(FS_DELIMITERS);
-      String result = path1;
-      if (!path1.empty() && String::npos == DELIMS.find(*path1.rbegin()) &&
-          !path2.empty() && String::npos == DELIMS.find(*path2.begin()))
-      {
-        result += FS_DELIMITERS[0];
-      }
-      result += path2;
-      return result;
-    }
-
     String MakePathFromString(const String& input, Char replacing)
     {
       String result;

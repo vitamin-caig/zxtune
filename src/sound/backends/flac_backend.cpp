@@ -19,7 +19,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
-#include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -80,8 +79,8 @@ namespace
 
     void AddTag(const String& name, const String& value)
     {
-      const std::string nameC = IO::ConvertToFilename(name);
-      const std::string valueC = IO::ConvertToFilename(value);
+      const std::string& nameC = name;//TODO
+      const std::string& valueC = value;//TODO
       FLAC__StreamMetadata_VorbisComment_Entry entry;
       CheckFlacCall(Api->FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, nameC.c_str(), valueC.c_str()), THIS_LINE);
       CheckFlacCall(Api->FLAC__metadata_object_vorbiscomment_append_comment(Tags.get(), entry, false), THIS_LINE);

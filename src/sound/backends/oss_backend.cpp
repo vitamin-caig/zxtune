@@ -18,7 +18,6 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
-#include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -59,9 +58,9 @@ namespace
       : Handle(-1)
     {
     }
-    AutoDescriptor(const String& name, int mode)
+    AutoDescriptor(const std::string& name, int mode)
       : Name(name)
-      , Handle(::open(IO::ConvertToFilename(name).c_str(), mode, 0))
+      , Handle(::open(name.c_str(), mode, 0))
     {
       CheckResult(-1 != Handle, THIS_LINE);
       Dbg("Opened device '%1%'", Name);
@@ -110,7 +109,7 @@ namespace
       return Handle;
     }
   private:
-    String Name;
+    std::string Name;
     //leave handle as int
     int Handle;
   };

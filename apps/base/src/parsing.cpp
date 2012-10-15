@@ -13,10 +13,9 @@ Author:
 #include <apps/base/parsing.h>
 //common includes
 #include <error_tools.h>
-//library includes
-#include <io/fs_tools.h>
 //std includes
 #include <cctype>
+#include <fstream>
 //text includes
 #include "../text/base_text.h"
 
@@ -26,20 +25,33 @@ namespace
 {
   static const Char PARAMETERS_DELIMITER = ',';
 
+  String GetDefaultConfigFileWindows()
+  {
+    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_WIN).c_str()))
+    {
+      return FromStdString(homeDir) + '\\' + Text::CONFIG_PATH_WIN;
+    }
+    return Text::CONFIG_FILENAME;
+  }
+
+  String GetDefaultConfigFileNix()
+  {
+    const String configPath(Text::CONFIG_PATH_NIX);
+    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_NIX).c_str()))
+    {
+      return FromStdString(homeDir) + '/' + Text::CONFIG_PATH_NIX;
+    }
+    return Text::CONFIG_FILENAME;
+  }
+
   //try to search config in homedir, if defined
   inline String GetDefaultConfigFile()
   {
 #ifdef _WIN32
-    const String configPath(Text::CONFIG_PATH_WIN);
-    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_WIN).c_str()))
+    return GetDefaultConfigFileWindows();
 #else
-    const String configPath(Text::CONFIG_PATH_NIX);
-    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_NIX).c_str()))
+    return GetDefaultConfigFileNix();
 #endif
-    {
-      return ZXTune::IO::AppendPath(FromStdString(homeDir), configPath);
-    }
-    return Text::CONFIG_FILENAME;
   }
 
   Error ParseParametersString(const Parameters::NameType& prefix, const String& str, Strings::Map& result)

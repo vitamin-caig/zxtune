@@ -18,7 +18,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
-#include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/render_params.h>

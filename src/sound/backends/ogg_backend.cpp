@@ -21,7 +21,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
-#include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
@@ -129,8 +128,8 @@ namespace
 
     void AddTag(const String& name, const String& value)
     {
-      const std::string nameC = IO::ConvertToFilename(name);
-      const std::string valueC = IO::ConvertToFilename(value);
+      const std::string nameC = name;//TODO
+      const std::string valueC = value;//TODO
       Api->vorbis_comment_add_tag(&Data, nameC.c_str(), valueC.c_str());
     }
 

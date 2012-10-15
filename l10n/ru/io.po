@@ -24,67 +24,67 @@ msgstr "Данная схема идентификатора не поддерж
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
-#: providers/file_provider.cpp:191
+#: providers/file_provider.cpp:189
 #, boost-format
 msgid "Failed to read %1% bytes. Actually got %2% bytes."
 msgstr "Ошибка чтения %1% байт. Прочитано %2%."
 
-#: providers/file_provider.cpp:253
+#: providers/file_provider.cpp:251
 msgid "File is empty."
 msgstr "Файл пуст."
 
-#: providers/file_provider.cpp:277
+#: providers/file_provider.cpp:275
 msgid "Failed to open file."
 msgstr "Ошибка открытия файла."
 
-#: providers/file_provider.cpp:285
+#: providers/file_provider.cpp:283
 #, boost-format
 msgid "Failed to write file '%1%'"
 msgstr "Ошибка записи файла '%1%'."
 
-#: providers/file_provider.cpp:293
+#: providers/file_provider.cpp:291
 #, boost-format
 msgid "Failed to flush file '%1%'"
 msgstr "Ошибка синхронизации файла '%1%'."
 
-#: providers/file_provider.cpp:301
+#: providers/file_provider.cpp:299
 #, boost-format
 msgid "Failed to seek file '%1%'"
 msgstr "Ошибка позиционирования файла '%1%'."
 
-#: providers/file_provider.cpp:338
+#: providers/file_provider.cpp:336
 msgid "File already exists."
 msgstr "Файл существует."
 
-#: providers/file_provider.cpp:354
+#: providers/file_provider.cpp:352
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 
-#: providers/file_provider.cpp:405
+#: providers/file_provider.cpp:403
 #, boost-format
 msgid "Failed to open file '%1%'."
 msgstr "Ошибка открытия файла '%1%'."
 
-#: providers/file_provider.cpp:417
+#: providers/file_provider.cpp:415
 #, boost-format
 msgid "Failed to create file '%1%'."
 msgstr "Ошибка создания файла '%1%'."
 
-#: providers/network_provider.cpp:103
+#: providers/network_provider.cpp:102
 #, boost-format
 msgid "Network error happends: %1%"
 msgstr "Сетевая ошибка: %1%"
 
-#: providers/network_provider.cpp:160
+#: providers/network_provider.cpp:159
 #, boost-format
 msgid "Http error happends: %1%."
 msgstr "Ошибка HTTP: %1%."
 
-#: providers/network_provider.cpp:288 providers/network_stub.cpp:24
+#: providers/network_provider.cpp:287 providers/network_stub.cpp:24
 msgid "Network files access via different schemes support"
 msgstr "Поддержка доступа к сетевым файлам"
 
-#: providers/network_provider.cpp:356
+#: providers/network_provider.cpp:355
 #, boost-format
 msgid "Failed to open network resource '%1%'."
 msgstr "Ошибка открытия сетевого ресурса '%1%'."

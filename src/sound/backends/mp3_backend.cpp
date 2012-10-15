@@ -19,7 +19,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
-#include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
@@ -79,19 +78,19 @@ namespace
 
     virtual void SetTitle(const String& title)
     {
-      const std::string titleC = IO::ConvertToFilename(title);
+      const std::string titleC = title;//TODO
       Api->id3tag_set_title(Context.get(), titleC.c_str());
     }
 
     virtual void SetAuthor(const String& author)
     {
-      const std::string authorC = IO::ConvertToFilename(author);
+      const std::string authorC = author;//TODO
       Api->id3tag_set_artist(Context.get(), authorC.c_str());
     }
 
     virtual void SetComment(const String& comment)
     {
-      const std::string commentC = IO::ConvertToFilename(comment);
+      const std::string commentC = comment;//TODO
       Api->id3tag_set_comment(Context.get(), commentC.c_str());
     }
 

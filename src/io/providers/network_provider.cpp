@@ -20,7 +20,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/container_factories.h>
-#include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
 //std includes
@@ -126,7 +125,7 @@ namespace
 
     void SetSource(const String& url)
     {
-      Object.SetOption(CURLOPT_URL, ZXTune::IO::ConvertToFilename(url).c_str(), THIS_LINE);
+      Object.SetOption(CURLOPT_URL, url.c_str(), THIS_LINE);
     }
 
     void SetOptions(const NetworkProviderParameters& params)
@@ -134,7 +133,7 @@ namespace
       const String useragent = params.GetHttpUseragent();
       if (!useragent.empty())
       {
-        Object.SetOption(CURLOPT_USERAGENT, ZXTune::IO::ConvertToFilename(useragent).c_str(), THIS_LINE);
+        Object.SetOption(CURLOPT_USERAGENT, useragent.c_str(), THIS_LINE);
       }
       Object.SetOption(CURLOPT_FOLLOWLOCATION, 1, THIS_LINE);
     }

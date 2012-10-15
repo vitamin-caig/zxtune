@@ -84,7 +84,7 @@ namespace
   class FileIdentifier : public Identifier
   {
   public:
-    FileIdentifier(const String& path, const String& subpath)
+    FileIdentifier(const boost::filesystem::path& path, const String& subpath)
       : PathValue(path)
       , SubpathValue(subpath)
       , FullValue(Serialize())
@@ -104,22 +104,20 @@ namespace
 
     virtual String Path() const
     {
-      return PathValue;
+      return PathValue.string();
     }
 
     virtual String Filename() const
     {
-      String rest;
-      return ZXTune::IO::ExtractLastPathComponent(PathValue, rest);
+      return PathValue.filename().string();
     }
 
     virtual String Extension() const
     {
-      const String& filename = Filename();
-      const String::size_type dotPos = filename.find_last_of('.');
-      return dotPos != String::npos
-        ? filename.substr(dotPos + 1)
-        : String();
+      const String result = PathValue.extension().string();
+      return result.empty()
+        ? result
+        : result.substr(1);//skip initial dot
     }
 
     virtual String Subpath() const
@@ -135,7 +133,7 @@ namespace
     String Serialize() const
     {
       //do not place scheme
-      String res = PathValue;
+      String res = PathValue.string();
       if (!SubpathValue.empty())
       {
         res += SUBPATH_DELIMITER;
@@ -144,7 +142,7 @@ namespace
       return res;
     }
   private:
-    const String PathValue;
+    const boost::filesystem::path PathValue;
     const String SubpathValue;
     const String FullValue;
   };

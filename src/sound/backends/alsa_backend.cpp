@@ -22,7 +22,6 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
-#include <io/fs_tools.h>
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
@@ -245,7 +244,7 @@ namespace
     {
       Require(Handle == 0);
       Dbg("Opening PCM device '%1%'", Name);
-      CheckResult(Api->snd_pcm_open(&Handle, IO::ConvertToFilename(Name).c_str(),
+      CheckResult(Api->snd_pcm_open(&Handle, Name.c_str(),
         SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
     }
     
@@ -486,7 +485,7 @@ namespace
   public:
     AttachedMixer(Alsa::Api::Ptr api, const String& card)
       : Api(api)
-      , Name(IO::ConvertToFilename(card))
+      , Name(card)
       , MixDev(api, card)
     {
       Open();

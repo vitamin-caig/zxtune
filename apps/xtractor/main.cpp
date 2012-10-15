@@ -38,6 +38,7 @@ Author:
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string/join.hpp>
 //text includes
 #include "text/text.h"
 
@@ -1004,34 +1005,34 @@ namespace
 
     virtual String GetFieldValue(const String& fieldName) const
     {
+      static const Char SUBPATH_DELIMITER[] = {'/', 0};
+
       if (fieldName == Text::TEMPLATE_FIELD_FILENAME)
       {
-        const Analysis::Node& rootNode = GetRootNode();
-        const String path = rootNode.Name();
-        String dir;
-        return ZXTune::IO::ExtractLastPathComponent(path, dir);
+        const ZXTune::IO::Identifier& id = GetRootIdentifier();
+        return id.Filename();
       }
       else if (fieldName == Text::TEMPLATE_FIELD_PATH)
       {
-        const Analysis::Node& rootNode = GetRootNode();
-        return rootNode.Name();
+        const ZXTune::IO::Identifier& id = GetRootIdentifier();
+        return id.Path();
       }
       else if (fieldName == Text::TEMPLATE_FIELD_FLATPATH)
       {
-        const Analysis::Node& rootNode = GetRootNode();
-        return ZXTune::IO::MakePathFromString(rootNode.Name(), '_');
+        const ZXTune::IO::Identifier& id = GetRootIdentifier();
+        return ZXTune::IO::MakePathFromString(id.Path(), '_');
       }
       else if (fieldName == Text::TEMPLATE_FIELD_SUBPATH)
       {
         Strings::Array subPath = GetSubpath();
         std::transform(subPath.begin(), subPath.end(), subPath.begin(),
           boost::bind(&ZXTune::IO::MakePathFromString, _1, '_'));
-        return std::accumulate(subPath.begin(), subPath.end(), String(), std::ptr_fun(&ZXTune::IO::AppendPath));
+        return boost::algorithm::join(subPath, SUBPATH_DELIMITER);
       }
       else if (fieldName == Text::TEMPLATE_FIELD_FLATSUBPATH)
       {
         const Strings::Array& subPath = GetSubpath();
-        const String& subPathStr = std::accumulate(subPath.begin(), subPath.end(), String(), std::ptr_fun(&ZXTune::IO::AppendPath));
+        const String& subPathStr = boost::algorithm::join(subPath, SUBPATH_DELIMITER);
         return ZXTune::IO::MakePathFromString(subPathStr, '_');
       }
       else
@@ -1040,13 +1041,13 @@ namespace
       }
     }
   private:
-    const Analysis::Node& GetRootNode() const
+    const ZXTune::IO::Identifier& GetRootIdentifier() const
     {
-      if (!RootNode)
+      if (!RootIdentifier)
       {
         FillCache();
       }
-      return *RootNode;
+      return *RootIdentifier;
     }
 
     const Strings::Array& GetSubpath() const
@@ -1071,7 +1072,8 @@ namespace
         }
         else
         {
-          RootNode = node;
+          const String fileName = node->Name();
+          RootIdentifier = ZXTune::IO::ResolveUri(fileName);
           Subpath.reset(new Strings::Array(subpath.rbegin(), subpath.rend()));
           break;
         }
@@ -1080,7 +1082,7 @@ namespace
 
   private:
     const Analysis::Node::Ptr Node;
-    mutable Analysis::Node::Ptr RootNode;
+    mutable ZXTune::IO::Identifier::Ptr RootIdentifier;
     mutable std::auto_ptr<Strings::Array> Subpath;
   };
 
