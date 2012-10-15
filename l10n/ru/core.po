@@ -38,11 +38,11 @@ msgstr ""
 "Неправильный минимальный размер блока для анализа (%1%). Должен быть больше "
 "%2%."
 
-#: plugins/enumerator.cpp:184 plugins/enumerator.cpp:208
+#: plugins/enumerator.cpp:184 plugins/enumerator.cpp:199
 msgid "Invalid parameters specified."
 msgstr "Неправильные параметры."
 
-#: plugins/enumerator.cpp:195 plugins/enumerator.cpp:219
+#: plugins/enumerator.cpp:192 plugins/enumerator.cpp:206
 #, boost-format
 msgid "Failed to find specified submodule starting from path '%1%'."
 msgstr "Модуль не найден при поиске начиная с '%1%'."
@@ -67,7 +67,7 @@ msgstr "Ошибка конверсии в сырой дамп регистро�
 msgid "Failed to convert to FYM format."
 msgstr "Ошибка конверсии в FYM."
 
-#: plugins/players/ay/ay_conversion.cpp:212
+#: plugins/players/ay/ay_conversion.cpp:210
 #, c-format, boost-format
 msgid "Unsupported conversion mode (%1$08x)."
 msgstr "Неподдерживаемый режим конверсии (%1$08x)."

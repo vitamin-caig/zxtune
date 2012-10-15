@@ -15,6 +15,7 @@ Author:
 //common includes
 #include <error_tools.h>
 //library includes
+#include <binary/container_factories.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
@@ -117,8 +118,7 @@ namespace ZXTune
   namespace Module
   {
     //aym-based conversion
-    bool ConvertAYMFormat(const AYM::Chiptune& chiptune, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params,
-      Dump& dst, Error& result)
+    Binary::Data::Ptr ConvertAYMFormat(const AYM::Chiptune& chiptune, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
     {
       using namespace Conversion;
 
@@ -163,21 +163,21 @@ namespace ZXTune
 
       if (!dumper)
       {
-        return false;
+        return Binary::Data::Ptr();
       }
 
       try
       {
         const Renderer::Ptr renderer = chiptune.CreateRenderer(params, dumper);
         while (renderer->RenderFrame()) {}
-        dumper->GetDump(dst);
-        result = Error();
+        std::auto_ptr<Dump> dst(new Dump());
+        dumper->GetDump(*dst);
+        return Binary::CreateContainer(dst);
       }
       catch (const Error& err)
       {
-        result = Error(THIS_LINE, errMessage).AddSuberror(err);
+        throw Error(THIS_LINE, errMessage).AddSuberror(err);
       }
-      return true;
     }
 
     uint_t GetSupportedAYMFormatConvertors()
@@ -186,8 +186,8 @@ namespace ZXTune
     }
 
     //vortex-based conversion
-    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, const Conversion::Parameter& param,
-      Dump& dst, Error& result)
+    Binary::Data::Ptr ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props,
+      const Conversion::Parameter& param)
     {
       using namespace Conversion;
 
@@ -195,11 +195,9 @@ namespace ZXTune
       if (parameter_cast<TXTConvertParam>(&param))
       {
         const std::string& asString = Vortex::ConvertToText(data, info, props);
-        dst.assign(asString.begin(), asString.end());
-        result = Error();
-        return true;
+        return Binary::CreateContainer(asString.data(), asString.size());
       }
-      return false;
+      return Binary::Data::Ptr();
     }
 
     uint_t GetSupportedVortexFormatConvertors()

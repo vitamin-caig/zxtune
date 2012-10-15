@@ -16,8 +16,6 @@
 #include <core/module_holder.h>//for Module::Holder::Ptr
 
 //forward declarations
-class Error;
-
 namespace Parameters
 {
   class Accessor;
@@ -55,18 +53,17 @@ namespace ZXTune
   //! @param detectParams %Parameters set
   //! @param data Input data container
   //! @param startSubpath Path in input data to start detecting
-  //! @return Error() in case of success
-  Error DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
+  //! @throw Error in case of error
+  void DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
     Binary::Container::Ptr data, const String& startSubpath);
 
   //! @brief Perform single module opening
   //! @param pluginsParams Opening parameters
   //! @param data Input data container
   //! @param subpath Path in input data to open
-  //! @param result Reference to result module
-  //! @return Error() in case of success and module is found
-  Error OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath,
-    Module::Holder::Ptr& result);
+  //! @return Result module
+  //! @throw Error in case of error
+  Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath);
 }
 
 #endif //__CORE_MODULE_DETECT_H_DEFINED__

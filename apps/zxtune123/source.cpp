@@ -216,7 +216,7 @@ namespace
         const Binary::Container::Ptr data = ZXTune::IO::OpenData(path, *Params, progress);
 
         const String subpath = id->Subpath();
-        ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));
+        ZXTune::DetectModules(Params, params, data, subpath);
       }
       catch (const Error& e)
       {

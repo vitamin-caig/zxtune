@@ -41,7 +41,7 @@ namespace ZXTune
 
       virtual Parameters::Modifier::Ptr GetInternalContainer() const = 0;
       virtual Plugin::Ptr GetPlugin() const = 0;
-      virtual void GetData(Dump& dump) const = 0;
+      virtual Binary::Data::Ptr GetData() const = 0;
 
       static RWPtr Create(Plugin::Ptr plugin, DataLocation::Ptr location);
     };

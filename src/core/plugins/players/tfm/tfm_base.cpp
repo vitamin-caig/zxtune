@@ -177,18 +177,14 @@ namespace
       return Tune->CreateRenderer(params, chip);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
+    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/) const
     {
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&spec))
       {
-        Tune->GetProperties()->GetData(dst);
-        return Error();
+        return Tune->GetProperties()->GetData();
       }
-      else
-      {
-        return CreateUnsupportedConversionError(THIS_LINE, spec);
-      }
+      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const TFM::Chiptune::Ptr Tune;

@@ -32,10 +32,7 @@ namespace ZXTune
 
     //! @brief Simple helper for conversion to AYM-related formats
     //! @param spec Input convertion parameter
-    //! @param result Result state
-    //! @return true if parameter is processed
-    bool ConvertAYMFormat(const AYM::Chiptune& chiptune, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params,
-      Dump& dst, Error& result);
+    Binary::Data::Ptr ConvertAYMFormat(const AYM::Chiptune& chiptune, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params);
 
     //! @brief Mask for supported AYM-related formats
     uint_t GetSupportedAYMFormatConvertors();
@@ -44,11 +41,7 @@ namespace ZXTune
     //! @param data Source data for Vortex track
     //! @param info %Module information
     //! @param param Input convertion parameter
-    //! @param dst Destination data
-    //! @param result Result state
-    //! @return true if parameter is processed
-    bool ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, const Conversion::Parameter& param,
-      Dump& dst, Error& result);
+    Binary::Data::Ptr ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, const Conversion::Parameter& param);
 
     //! @brief Mask for supported Vortex-related formats
     uint_t GetSupportedVortexFormatConvertors();

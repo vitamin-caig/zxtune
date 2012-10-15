@@ -105,9 +105,9 @@ namespace
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }
 
-    virtual Error Convert(const Module::Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
+    virtual Binary::Data::Ptr Convert(const Module::Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const
     {
-      return Delegate->Convert(spec, Parameters::CreateMergedAccessor(params, Properties), dst);
+      return Delegate->Convert(spec, Parameters::CreateMergedAccessor(params, Properties));
     }
   private:
     const Module::Holder::Ptr Delegate;

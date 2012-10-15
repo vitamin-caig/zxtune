@@ -472,17 +472,14 @@ namespace
       return Delegate->CreateRenderer(params, target);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
+    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const
     {
-      Error result;
-      if (ConvertVortexFormat(*Data, *GetModuleInformation(), *Parameters::CreateMergedAccessor(params, Delegate->GetModuleProperties()), spec, dst, result))
+      const Parameters::Accessor::Ptr mergedParams = Parameters::CreateMergedAccessor(params, Delegate->GetModuleProperties());
+      if (const Binary::Data::Ptr res = ConvertVortexFormat(*Data, *GetModuleInformation(), *mergedParams, spec))
       {
-        return result;
+        return res;
       }
-      else
-      {
-        return Delegate->Convert(spec, params, dst);
-      }
+      return Delegate->Convert(spec, params);
     }
   protected:
     const Vortex::Track::ModuleData::Ptr Data;

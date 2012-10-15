@@ -237,19 +237,18 @@ namespace
       return Tune->CreateRenderer(params, chip);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
+    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const
     {
       using namespace Conversion;
-      Error result;
       if (parameter_cast<RawConvertParam>(&spec))
       {
-        Tune->GetProperties()->GetData(dst);
+        return Tune->GetProperties()->GetData();
       }
-      else if (!ConvertAYMFormat(*Tune, spec, Parameters::CreateMergedAccessor(params, Tune->GetProperties()), dst, result))
+      else if (const Binary::Data::Ptr res = ConvertAYMFormat(*Tune, spec, Parameters::CreateMergedAccessor(params, Tune->GetProperties())))
       {
-        return CreateUnsupportedConversionError(THIS_LINE, spec);
+        return res;
       }
-      return result;
+      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const AYM::Chiptune::Ptr Tune;

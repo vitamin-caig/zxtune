@@ -398,14 +398,14 @@ namespace PT3
       return CreateTSRenderer(renderer1, renderer2, mixer);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
+    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const
     {
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&spec))
       {
-        return Delegate->Convert(spec, params, dst);
+        return Delegate->Convert(spec, params);
       }
-      return CreateUnsupportedConversionError(THIS_LINE, spec);
+      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const Vortex::Track::ModuleData::Ptr Data;

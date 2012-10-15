@@ -283,18 +283,14 @@ namespace
       return CreateDSTRenderer(params, Info, Data, chip);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
+    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/) const
     {
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&spec))
       {
-        Properties->GetData(dst);
+        return Properties->GetData();
       }
-      else
-      {
-        return CreateUnsupportedConversionError(THIS_LINE, spec);
-      }
-      return Error();
+      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const DSTTrack::ModuleData::Ptr Data;

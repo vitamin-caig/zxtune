@@ -13,6 +13,7 @@
 
 //library includes
 #include "plugins/players/renderer.h"
+#include <binary/data.h>
 #include <core/plugin.h>
 #include <sound/receiver.h>
 
@@ -52,9 +53,9 @@ namespace ZXTune
 
       //! @brief Converting to specified format
       //! @param param Specify format to convert
-      //! @param dst Result data
-      //! @return Error() in case of success
-      virtual Error Convert(const Conversion::Parameter& param, Parameters::Accessor::Ptr params, Dump& dst) const = 0;
+      //! @return Result data
+      //! @throw Error in case of error
+      virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const = 0;
     };
 
     Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props);

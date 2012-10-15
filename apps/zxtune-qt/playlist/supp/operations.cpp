@@ -636,10 +636,9 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr props = item.GetModuleProperties();
-        Dump result;
-        ThrowIfError(item.Convert(RAW_CONVERSION, props, result));
+        const Binary::Data::Ptr result = item.Convert(RAW_CONVERSION, props);
         const String filename = NameTemplate->Instantiate(ModuleFieldsSource(*props));
-        Save(result, filename);
+        Save(*result, filename);
         Result->AddSucceed();
       }
       catch (const Error& err)
@@ -648,11 +647,10 @@ namespace
       }
     }
 
-    void Save(const Dump& data, const String& filename) const
+    void Save(const Binary::Data& data, const String& filename) const
     {
       const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(filename, Params);
-      const Binary::DataAdapter toSave(&data[0], data.size());
-      stream->ApplyData(toSave);
+      stream->ApplyData(data);
     }
   private:
     class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>

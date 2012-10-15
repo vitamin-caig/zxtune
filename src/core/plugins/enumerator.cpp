@@ -176,46 +176,33 @@ namespace ZXTune
     return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
   }
 
-  Error DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
+  void DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
     Binary::Container::Ptr data, const String& startSubpath)
   {
     if (!data.get())
     {
-      return Error(THIS_LINE, translate("Invalid parameters specified."));
+      throw Error(THIS_LINE, translate("Invalid parameters specified."));
     }
-    try
+    if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, startSubpath))
     {
-      if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, startSubpath))
-      {
-        const DetectCallbackAdapter callback(detectParams, pluginsParams);
-        Module::Detect(location, callback);
-        return Error();
-      }
-      return MakeFormattedError(THIS_LINE,
-        translate("Failed to find specified submodule starting from path '%1%'."), startSubpath);
+      const DetectCallbackAdapter callback(detectParams, pluginsParams);
+      Module::Detect(location, callback);
     }
-    catch (const Error& e)
-    {
-      return e;
-    }
+    throw MakeFormattedError(THIS_LINE,
+      translate("Failed to find specified submodule starting from path '%1%'."), startSubpath);
   }
 
-  Error OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath,
-      Module::Holder::Ptr& result)
+  Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath)
   {
     if (!data.get())
     {
-      return Error(THIS_LINE, translate("Invalid parameters specified."));
+      throw Error(THIS_LINE, translate("Invalid parameters specified."));
     }
     if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, subpath))
     {
-      if (Module::Holder::Ptr holder = Module::Open(location))
-      {
-        result = holder;
-        return Error();
-      }
+      return Module::Open(location);
     }
-    return MakeFormattedError(THIS_LINE,
+    throw MakeFormattedError(THIS_LINE,
       translate("Failed to find specified submodule starting from path '%1%'."), subpath);
   }
 }

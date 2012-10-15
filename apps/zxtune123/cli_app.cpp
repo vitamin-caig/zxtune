@@ -97,12 +97,11 @@ namespace
           return;
         }
       }
-      Dump result;
-      ThrowIfError(holder->Convert(*ConversionParameter, props, result));
+      const Binary::Data::Ptr result = holder->Convert(*ConversionParameter, props);
       //prepare result filename
       const String& filename = FileNameTemplate->Instantiate(ModuleFieldsSource(*props));
       std::ofstream file(filename.c_str(), std::ios::binary);
-      file.write(safe_ptr_cast<const char*>(&result[0]), static_cast<std::streamsize>(result.size() * sizeof(result.front())));
+      file.write(static_cast<const char*>(result->Start()), result->Size());
       if (!file)
       {
         throw MakeFormattedError(THIS_LINE, Text::CONVERT_ERROR_WRITE_FILE, filename);

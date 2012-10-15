@@ -99,13 +99,11 @@ namespace
       return Plug;
     }
 
-    virtual void GetData(Dump& dump) const
+    virtual Binary::Data::Ptr GetData() const
     {
-      const Binary::Container::Ptr data = Location.get()
+      return Location.get()
         ? UsedRegion.Extract(*Location->GetData())
         : Data;
-      const uint8_t* const rawData = static_cast<const uint8_t*>(data->Start());
-      dump.assign(rawData, rawData + data->Size());
     }
 
     // accessor virtuals

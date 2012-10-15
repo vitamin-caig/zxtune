@@ -266,18 +266,14 @@ namespace
       return CreateTSRenderer(params, Holder1, Holder2, target);
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
+    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/) const
     {
       using namespace Conversion;
       if (parameter_cast<RawConvertParam>(&spec))
       {
-        Properties->GetData(dst);
-        return Error();
+        return Properties->GetData();
       }
-      else
-      {
-        return CreateUnsupportedConversionError(THIS_LINE, spec);
-      }
+      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const ModuleProperties::Ptr Properties;

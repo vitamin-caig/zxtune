@@ -263,16 +263,18 @@ namespace
 
     ZXTune::Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
-      const Binary::Container::Ptr data = Source->GetData();
-      ZXTune::Module::Holder::Ptr module;
-      ZXTune::OpenModule(CoreParams, data, ModuleId->Subpath(), module);
-      if (module)
+      try
       {
+        const Binary::Container::Ptr data = Source->GetData();
+        const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(CoreParams, data, ModuleId->Subpath());
         const Parameters::Accessor::Ptr pathParams = CreatePathProperties(ModuleId);
         const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams);
         return ZXTune::Module::CreateMixedPropertiesHolder(module, moduleParams);
       }
-      return module;
+      catch (const Error&)
+      {
+        return ZXTune::Module::Holder::Ptr();
+      }
     }
 
     String GetFullPath() const
@@ -549,7 +551,7 @@ namespace
         const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
 
         const String subPath = id->Subpath();
-        ThrowIfError(ZXTune::DetectModules(CoreParams, params, data, subPath));
+        ZXTune::DetectModules(CoreParams, params, data, subPath);
         return Error();
       }
       catch (const Error& e)
@@ -568,9 +570,8 @@ namespace
         const Binary::Container::Ptr data = Provider->GetData(dataPath);
         const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
 
-        ZXTune::Module::Holder::Ptr result;
         const String subPath = id->Subpath();
-        ThrowIfError(ZXTune::OpenModule(CoreParams, data, subPath, result));
+        const ZXTune::Module::Holder::Ptr result = ZXTune::OpenModule(CoreParams, data, subPath);
         params.ProcessModule(subPath, result);
         return Error();
       }
