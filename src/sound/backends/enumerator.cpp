@@ -90,9 +90,9 @@ namespace
       return StatusValue;
     }
 
-    virtual Error CreateBackend(CreateBackendParameters::Ptr, Backend::Ptr&) const
+    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr) const
     {
-      return Error(THIS_LINE, translate("Requested backend is not supported."));
+      throw Error(THIS_LINE, translate("Requested backend is not supported."));
     }
   private:
     const String IdValue;

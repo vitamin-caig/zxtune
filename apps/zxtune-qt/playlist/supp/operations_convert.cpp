@@ -65,8 +65,7 @@ namespace
         const ZXTune::Module::Information::Ptr info = item->GetModuleInformation();
         const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
         const ZXTune::Sound::CreateBackendParameters::Ptr params = CreateBackendParameters(BackendParameters, item);
-        ZXTune::Sound::Backend::Ptr backend;
-        ThrowIfError(Creator->CreateBackend(params, backend));
+        const ZXTune::Sound::Backend::Ptr backend = Creator->CreateBackend(params);
         Convert(*backend, *framesProgress);
         curItemProgress->OnProgress(100);
         Result->AddSucceed();
@@ -83,12 +82,12 @@ namespace
       const uint_t flags = Backend::MODULE_STOP | Backend::MODULE_FINISH;
       const Async::Signals::Collector::Ptr collector = backend.CreateSignalsCollector(flags);
       const ZXTune::Module::TrackState::Ptr state = backend.GetTrackState();
-      ThrowIfError(backend.Play());
+      backend.Play();
       while (!collector->WaitForSignals(100))
       {
         callback.OnProgress(state->Frame());
       }
-      ThrowIfError(backend.Stop());
+      backend.Stop();
     }
 
   private:

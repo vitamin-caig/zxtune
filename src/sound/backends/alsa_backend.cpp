@@ -587,14 +587,13 @@ namespace
       Attached.Close();
     }
 
-    Error GetVolume(MultiGain& volume) const
+    MultiGain GetVolume() const
     {
       if (!MixerElement)
       {
-        volume = MultiGain();
-        return Error();
+        return MultiGain();
       }
-      try
+      else
       {
         BOOST_STATIC_ASSERT(MultiGain::static_size == 2);
         long minVol = 0, maxVol = 0;
@@ -604,27 +603,18 @@ namespace
         long leftVol = 0, rightVol = 0;
         CheckResult(*Api, Api->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, &leftVol), THIS_LINE);
         CheckResult(*Api, Api->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, &rightVol), THIS_LINE);
-        volume[0] = Gain(leftVol - minVol) / volRange;
-        volume[1] = Gain(rightVol - minVol) / volRange;
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
+        const MultiGain result = { {Gain(leftVol - minVol) / volRange, Gain(rightVol - minVol) / volRange} };
+        return result;
       }
     }
 
-    Error SetVolume(const MultiGain& volume)
+    void SetVolume(const MultiGain& volume)
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
+        throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
-      if (!MixerElement)
-      {
-        return Error();
-      }
-      try
+      if (MixerElement)
       {
         BOOST_STATIC_ASSERT(MultiGain::static_size == 2);
         long minVol = 0, maxVol = 0;
@@ -635,12 +625,6 @@ namespace
         const long rightVol = static_cast<long>(volume[1] * volRange) + minVol;
         CheckResult(*Api, Api->snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, leftVol), THIS_LINE);
         CheckResult(*Api, Api->snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, rightVol), THIS_LINE);
-
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
       }
     }
   private:
@@ -657,7 +641,7 @@ namespace
     {
     }
 
-    virtual Error GetVolume(MultiGain& volume) const
+    virtual void GetVolume(MultiGain& volume) const
     {
       Dbg("GetVolume");
       if (Mixer::Ptr obj = Mix.lock())
@@ -665,10 +649,9 @@ namespace
         return obj->GetVolume(volume);
       }
       Dbg("Volume control is expired");
-      return Error();
     }
 
-    virtual Error SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const MultiGain& volume)
     {
       Dbg("SetVolume");
       if (Mixer::Ptr obj = Mix.lock())
@@ -676,7 +659,6 @@ namespace
         return obj->SetVolume(volume);
       }
       Dbg("Volume control is expired");
-      return Error();
     }
   private:
     const boost::weak_ptr<Mixer> Mix;
@@ -840,18 +822,17 @@ namespace
       return Error();
     }
 
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
+    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
     {
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
         const BackendWorker::Ptr worker(new AlsaBackendWorker(Api, allParams));
-        result = Sound::CreateBackend(params, worker);
-        return Error();
+        return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE,
+        throw MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

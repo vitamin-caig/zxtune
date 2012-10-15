@@ -323,41 +323,39 @@ namespace
       return Renderer->GetAnalyzer();
     }
 
-    virtual Error Play()
+    virtual void Play()
     {
-      return Job->Start();
+      ThrowIfError(Job->Start());
     }
 
-    virtual Error Pause()
+    virtual void Pause()
     {
-      return Job->Pause();
+      ThrowIfError(Job->Pause());
     }
 
-    virtual Error Stop()
+    virtual void Stop()
     {
       try
       {
         ThrowIfError(Job->Stop());
         Renderer->Reset();
-        return Error();
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, translate("Failed to stop playback.")).AddSuberror(e);
+        throw Error(THIS_LINE, translate("Failed to stop playback.")).AddSuberror(e);
       }
     }
 
-    virtual Error SetPosition(uint_t frame)
+    virtual void SetPosition(uint_t frame)
     {
       try
       {
         Renderer->SetPosition(frame);
         Signaller->Notify(Backend::MODULE_SEEK);
-        return Error();
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, translate("Failed to set playback position.")).AddSuberror(e);
+        throw Error(THIS_LINE, translate("Failed to set playback position.")).AddSuberror(e);
       }
     }
 

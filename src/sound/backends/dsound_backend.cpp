@@ -325,53 +325,37 @@ namespace
     {
     }
 
-    virtual Error GetVolume(MultiGain& volume) const
+    virtual MultiGain GetVolume() const
     {
-      try
-      {
-        const VolPan vols = GetVolume();
-        BOOST_STATIC_ASSERT(OUTPUT_CHANNELS == 2);
-        //in hundredths of a decibel
-        const int_t attLeft = vols.first - (vols.second > 0 ? vols.second : 0);
-        const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);
-        volume[0] = AttenuationToGain(attLeft);
-        volume[1] = AttenuationToGain(attRight);
-        Dbg("GetVolume(vol=%1% pan=%2%) = {%3%, %4%}", 
-          vols.first, vols.second, volume[0], volume[1]);
-        return Error();
-      }
-      catch (const Error& err)
-      {
-        return err;
-      }
+      const VolPan vols = GetVolumeImpl();
+      BOOST_STATIC_ASSERT(OUTPUT_CHANNELS == 2);
+      //in hundredths of a decibel
+      const int_t attLeft = vols.first - (vols.second > 0 ? vols.second : 0);
+      const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);
+      const MultiGain volume = { {AttenuationToGain(attLeft), AttenuationToGain(attRight)} };
+      Dbg("GetVolume(vol=%1% pan=%2%) = {%3%, %4%}", 
+        vols.first, vols.second, volume[0], volume[1]);
+      return volume;
     }
 
-    virtual Error SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const MultiGain& volume)
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
+        throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
-      try
-      {
-        const int_t attLeft = GainToAttenuation(volume[0]);
-        const int_t attRight = GainToAttenuation(volume[1]);
-        const LONG vol = std::max(attLeft, attRight);
-        //pan is negative for left
-        const LONG pan = attLeft < vol ? vol - attLeft : vol - attRight;
-        Dbg("SetVolume(%1%, %2%) => vol=%3% pan=%4%", volume[0], volume[1], vol, pan);
-        SetVolume(VolPan(vol, pan));
-        return Error();
-      }
-      catch (const Error& err)
-      {
-        return err;
-      }
+      const int_t attLeft = GainToAttenuation(volume[0]);
+      const int_t attRight = GainToAttenuation(volume[1]);
+      const LONG vol = std::max(attLeft, attRight);
+      //pan is negative for left
+      const LONG pan = attLeft < vol ? vol - attLeft : vol - attRight;
+      Dbg("SetVolume(%1%, %2%) => vol=%3% pan=%4%", volume[0], volume[1], vol, pan);
+      SetVolumeImpl(VolPan(vol, pan));
     }
   private:
     typedef std::pair<LONG, LONG> VolPan;
 
-    VolPan GetVolume() const
+    VolPan GetVolumeImpl() const
     {
       VolPan res;
       CheckWin32Error(Buffer->GetVolume(&res.first), THIS_LINE);
@@ -379,7 +363,7 @@ namespace
       return res;
     }
 
-    void SetVolume(const VolPan& vols) const
+    void SetVolumeImpl(const VolPan& vols) const
     {
       CheckWin32Error(Buffer->SetVolume(vols.first), THIS_LINE);
       CheckWin32Error(Buffer->SetPan(vols.second), THIS_LINE);
@@ -536,18 +520,17 @@ namespace
       return Error();
     }
 
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
+    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
     {
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
         const BackendWorker::Ptr worker(new DirectSoundBackendWorker(Api, allParams));
-        result = Sound::CreateBackend(params, worker);
-        return Error();
+        return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE,
+        throw MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

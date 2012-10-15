@@ -93,18 +93,17 @@ namespace
       return Error();
     }
 
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
+    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
     {
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
         const BackendWorker::Ptr worker(new NullBackendWorker());
-        result = Sound::CreateBackend(params, worker);
-        return Error();
+        return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE,
+        throw MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

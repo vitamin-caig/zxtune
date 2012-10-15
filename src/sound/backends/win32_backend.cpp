@@ -342,42 +342,26 @@ namespace
       Dbg("Created volume controller");
     }
 
-    virtual Error GetVolume(MultiGain& volume) const
+    virtual MultiGain GetVolume() const
     {
-      // use exceptions for simplification
-      try
-      {
-        boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
-        BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
-        Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
-        std::transform(buffer.begin(), buffer.end(), volume.begin(), std::bind2nd(std::divides<Gain>(), MAX_WIN32_VOLUME));
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
+      BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+      Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
+      MultiGain volume;
+      std::transform(buffer.begin(), buffer.end(), volume.begin(), std::bind2nd(std::divides<Gain>(), MAX_WIN32_VOLUME));
+      return volume;
     }
 
-    virtual Error SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const MultiGain& volume)
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
+        throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
-      // use exceptions for simplification
-      try
-      {
-        boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
-        std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
-        BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
-        Device->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      boost::array<uint16_t, OUTPUT_CHANNELS> buffer;
+      std::transform(volume.begin(), volume.end(), buffer.begin(), std::bind2nd(std::multiplies<Gain>(), Gain(MAX_WIN32_VOLUME)));
+      BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
+      Device->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
     }
   private:
     const WaveOutDevice::Ptr Device;
@@ -542,18 +526,17 @@ namespace
       return Error();
     }
 
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
+    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
     {
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
         const BackendWorker::Ptr worker(new Win32BackendWorker(Api, allParams));
-        result = Sound::CreateBackend(params, worker);
-        return Error();
+        return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE,
+        throw MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }

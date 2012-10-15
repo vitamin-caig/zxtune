@@ -33,22 +33,22 @@ namespace
     {
     }
 
-    virtual Error GetVolume(MultiGain& volume) const
+    virtual MultiGain GetVolume() const
     {
       if (VolumeControl::Ptr delegate = VolumeControl::Ptr(Delegate))
       {
-        return delegate->GetVolume(volume);
+        return delegate->GetVolume();
       }
-      return Error(THIS_LINE, translate("Failed to get volume in invalid state."));
+      throw Error(THIS_LINE, translate("Failed to get volume in invalid state."));
     }
 
-    virtual Error SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const MultiGain& volume)
     {
       if (VolumeControl::Ptr delegate = VolumeControl::Ptr(Delegate))
       {
         return delegate->SetVolume(volume);
       }
-      return Error(THIS_LINE, translate("Failed to set volume in invalid state."));
+      throw Error(THIS_LINE, translate("Failed to set volume in invalid state."));
     }
   private:
     const VolumeControl::Ptr& Delegate;

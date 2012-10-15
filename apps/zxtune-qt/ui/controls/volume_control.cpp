@@ -60,9 +60,7 @@ namespace
       LastUpdateTime = thisTime;
       if (Controller && !volumeLevel->isSliderDown())
       {
-        ZXTune::Sound::MultiGain vol;
-        //TODO: check result
-        Controller->GetVolume(vol);
+        const ZXTune::Sound::MultiGain vol = Controller->GetVolume();
         const ZXTune::Sound::Gain gain = *std::max_element(vol.begin(), vol.end());
         volumeLevel->setValue(static_cast<int>(gain * volumeLevel->maximum() + 0.5));
       }
@@ -75,7 +73,6 @@ namespace
         const ZXTune::Sound::Gain gain = ZXTune::Sound::Gain(level) / volumeLevel->maximum();
         ZXTune::Sound::MultiGain vol;
         vol.assign(gain);
-        //TODO: check result
         Controller->SetVolume(vol);
       }
     }

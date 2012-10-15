@@ -101,7 +101,7 @@ namespace
           Item = item;
           OnSetBackend(Backend);
           this->wait();
-          ThrowIfError(Backend->Play());
+          Backend->Play();
           this->start();
         }
       }
@@ -120,7 +120,7 @@ namespace
       }
       try
       {
-        ThrowIfError(Backend->Play());
+        Backend->Play();
         this->start();
       }
       catch (const Error& e)
@@ -137,7 +137,7 @@ namespace
       }
       try
       {
-        ThrowIfError(Backend->Stop());
+        Backend->Stop();
         this->wait();
       }
       catch (const Error& e)
@@ -157,11 +157,11 @@ namespace
         const ZXTune::Sound::Backend::State curState = Backend->GetCurrentState();
         if (ZXTune::Sound::Backend::STARTED == curState)
         {
-          ThrowIfError(Backend->Pause());
+          Backend->Pause();
         }
         else if (ZXTune::Sound::Backend::PAUSED == curState)
         {
-          ThrowIfError(Backend->Play());
+          Backend->Play();
         }
       }
       catch (const Error& e)
@@ -178,7 +178,7 @@ namespace
       }
       try
       {
-        ThrowIfError(Backend->SetPosition(frame));
+        Backend->SetPosition(frame);
       }
       catch (const Error& e)
       {
@@ -251,13 +251,13 @@ namespace
       {
         const Sound::BackendCreator::Ptr creator = backends->Get();
         Sound::Backend::Ptr result;
-        if (const Error& err = creator->CreateBackend(createParams, result))
+        try
+        {
+          return creator->CreateBackend(createParams);
+        }
+        catch (const Error& err)
         {
           errors.push_back(err);
-        }
-        else
-        {
-          return result;
         }
       }
       ReportErrors(errors);

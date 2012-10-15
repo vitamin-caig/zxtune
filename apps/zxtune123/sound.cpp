@@ -350,7 +350,7 @@ namespace
     {
       const ZXTune::Sound::CreateBackendParameters::Ptr createParams(new CreateBackendParams(*Params, module));
       ZXTune::Sound::Backend::Ptr backend;
-      if (!Creator || Creator->CreateBackend(createParams, backend))
+      if (!Creator)
       {
         std::list<ZXTune::Sound::BackendCreator::Ptr> backends;
         {
@@ -374,19 +374,22 @@ namespace
           backends.begin(), lim = backends.end(); it != lim; ++it)
         {
           Dbg("Trying backend %1%", (*it)->Id());
-          if (const Error& e = (*it)->CreateBackend(createParams, backend))
+          try
+          {
+            backend = (*it)->CreateBackend(createParams);
+            Dbg("Success!");
+            Creator = *it;
+            break;
+          }
+          catch (const Error& e)
           {
             Dbg(" failed");
             if (1 == backends.size())
             {
-              throw e;
+              throw;
             }
             StdOut << e.ToString();
-            continue;
           }
-          Dbg("Success!");
-          Creator = *it;
-          break;
         }
       }
       if (!backend.get())

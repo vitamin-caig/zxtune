@@ -54,14 +54,14 @@ namespace ZXTune
       virtual ~VolumeControl() {}
 
       //! @brief Getting current hardware mixer volume
-      //! @param volume Reference to return value
-      //! @return Error() in case of success
-      virtual Error GetVolume(MultiGain& volume) const = 0;
+      //! @return Result volume
+      //! throw Error in case of success
+      virtual MultiGain GetVolume() const = 0;
 
       //! @brief Setting hardware mixer volume
       //! @param volume Levels value
-      //! @return Error() in case of success
-      virtual Error SetVolume(const MultiGain& volume) = 0;
+      //! @throw Error in case of success
+      virtual void SetVolume(const MultiGain& volume) = 0;
     };
 
     //! @brief %Sound backend interface
@@ -86,25 +86,25 @@ namespace ZXTune
       virtual Module::Analyzer::Ptr GetAnalyzer() const = 0;
 
       //! @brief Starting playback after stop or pause
-      //! @return Error() in case of success
+      //! @throw Error in case of error
       //! @note No effect if module is currently played
-      virtual Error Play() = 0;
+      virtual void Play() = 0;
 
       //! @brief Pausing the playback
-      //! @result Error() in case of success
+      //! @throw Error in case of error
       //! @note No effect if module is currently paused or stopped
-      virtual Error Pause() = 0;
+      virtual void Pause() = 0;
 
       //! @brief Stopping the playback
-      //! @result Error() in case of success
+      //! @throw Error in case of error
       //! @note No effect if module is already stopped
-      virtual Error Stop() = 0;
+      virtual void Stop() = 0;
 
       //! @brief Seeking
       //! @param frame Number of specified frame
-      //! @return Error() in case of success
+      //! @throw Error in case of error
       //! @note If parameter is out of range, playback will be stopped
-      virtual Error SetPosition(uint_t frame) = 0;
+      virtual void SetPosition(uint_t frame) = 0;
 
       //! @brief Current playback state
       enum State
@@ -176,9 +176,9 @@ namespace ZXTune
 
       //! @brief Create backend using specified parameters
       //! @param params %Backend-related parameters
-      //! @param result Reference to result value
-      //! @return Error() in case of success
-      virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const = 0;
+      //! @return Result backend
+      //! @throw Error in case of error
+      virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const = 0;
     };
 
     //! @brief Enumerating supported sound backends

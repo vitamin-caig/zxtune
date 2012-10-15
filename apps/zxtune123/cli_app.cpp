@@ -311,17 +311,15 @@ namespace
 
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
-      ThrowIfError(backend->Play());
+      backend->Play();
 
       Display->SetModule(backend, static_cast<uint_t>(frameDuration));
 
       ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
-      ZXTune::Sound::MultiGain allVolume;
-      ZXTune::Sound::VolumeControl::Ptr volCtrl(backend->GetVolumeControl());
-      const bool noVolume = volCtrl.get() == 0;
-      if (!noVolume)
+      const ZXTune::Sound::VolumeControl::Ptr volCtrl = backend->GetVolumeControl();
+      if (volCtrl)
       {
-        ThrowIfError(volCtrl->GetVolume(allVolume));
+        const ZXTune::Sound::MultiGain allVolume = volCtrl->GetVolume();
         curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
       }
 
@@ -339,43 +337,43 @@ namespace
           case 'Q':
             throw CancelError();
           case Console::INPUT_KEY_LEFT:
-            ThrowIfError(backend->SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames));
+            backend->SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames);
             break;
           case Console::INPUT_KEY_RIGHT:
-            ThrowIfError(backend->SetPosition(curFrame + seekStepFrames));
+            backend->SetPosition(curFrame + seekStepFrames);
             break;
           case Console::INPUT_KEY_DOWN:
-            if (!noVolume)
+            if (volCtrl)
             {
               curVolume = std::max(0.0, curVolume - 0.05);
               ZXTune::Sound::MultiGain allVol;
               allVol.assign(curVolume);
-              ThrowIfError(volCtrl->SetVolume(allVol));
+              volCtrl->SetVolume(allVol);
             }
             break;
           case Console::INPUT_KEY_UP:
-            if (!noVolume)
+            if (volCtrl)
             {
               curVolume = std::min(1.0, curVolume + 0.05);
               ZXTune::Sound::MultiGain allVol;
               allVol.assign(curVolume);
-              ThrowIfError(volCtrl->SetVolume(allVol));
+              volCtrl->SetVolume(allVol);
             }
             break;
           case Console::INPUT_KEY_ENTER:
             if (ZXTune::Sound::Backend::STARTED == state)
             {
-              ThrowIfError(backend->Pause());
+              backend->Pause();
               Console::Self().WaitForKeyRelease();
             }
             else
             {
               Console::Self().WaitForKeyRelease();
-              ThrowIfError(backend->Play());
+              backend->Play();
             }
             break;
           case ' ':
-            ThrowIfError(backend->Stop());
+            backend->Stop();
             state = ZXTune::Sound::Backend::STOPPED;
             Console::Self().WaitForKeyRelease();
             break;

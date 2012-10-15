@@ -174,55 +174,37 @@ namespace
     {
     }
 
-    virtual Error GetVolume(MultiGain& volume) const
+    virtual MultiGain GetVolume() const
     {
-      try
+      Dbg("GetVolume");
+      boost::mutex::scoped_lock lock(StateMutex);
+      MultiGain volume;
+      if (-1 != MixHandle.Get())
       {
-        Dbg("GetVolume");
-        boost::mutex::scoped_lock lock(StateMutex);
-        if (-1 != MixHandle.Get())
-        {
-          boost::array<uint8_t, sizeof(int)> buf;
-          MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_READ_VOLUME,
-            safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
-          std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
-            std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
-        }
-        else
-        {
-          volume = MultiGain();
-        }
-        return Error();
+        boost::array<uint8_t, sizeof(int)> buf;
+        MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_READ_VOLUME,
+          safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+        std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
+          std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
       }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      return volume;
     }
 
-    virtual Error SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const MultiGain& volume)
     {
       if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
       {
-        return Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
+        throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
-      try
+      Dbg("SetVolume");
+      boost::mutex::scoped_lock lock(StateMutex);
+      if (-1 != MixHandle.Get())
       {
-        Dbg("SetVolume");
-        boost::mutex::scoped_lock lock(StateMutex);
-        if (-1 != MixHandle.Get())
-        {
-          boost::array<uint8_t, sizeof(int)> buf = { {0} };
-          std::transform(volume.begin(), volume.end(), buf.begin(),
-            std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
-          MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_WRITE_VOLUME,
-            safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
-        }
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
+        boost::array<uint8_t, sizeof(int)> buf = { {0} };
+        std::transform(volume.begin(), volume.end(), buf.begin(),
+          std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
+        MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_WRITE_VOLUME,
+          safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
       }
     }
   private:
@@ -403,18 +385,17 @@ namespace
       return Error();
     }
 
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
+    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
     {
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
         const BackendWorker::Ptr worker(new OssBackendWorker(allParams));
-        result = Sound::CreateBackend(params, worker);
-        return Error();
+        return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
       {
-        return MakeFormattedError(THIS_LINE,
+        throw MakeFormattedError(THIS_LINE,
           translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
       }
     }
