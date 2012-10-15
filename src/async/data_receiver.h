@@ -17,7 +17,7 @@
 //library includes
 #include <async/activity.h>
 #include <async/progress.h>
-#include <async/queue.h>
+#include <async/sized_queue.h>
 //std includes
 #include <list>
 
