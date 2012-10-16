@@ -57,6 +57,14 @@ namespace Parameters
           //! @Parameter full path
           extern const NameType OVERWRITE_EXISTING;
           //@}
+
+          //@{
+          //! @name Sanitize name's components
+
+          //! Default value
+          const IntType SANITIZE_NAMES_DEFAULT = 1;
+          //! @Parameter full path
+          extern const NameType SANITIZE_NAMES;
         }
 
         //! @brief %Network provider parameters namespace

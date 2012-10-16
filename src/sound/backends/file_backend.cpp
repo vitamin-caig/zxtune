@@ -17,7 +17,6 @@ Author:
 //library includes
 #include <async/data_receiver.h>
 #include <core/module_attrs.h>
-#include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <io/providers/file_provider.h>
 #include <l10n/api.h>
@@ -180,6 +179,13 @@ namespace
       Params->FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, intParam);
       return intParam != 0;
     }
+
+    virtual bool SanitizeNames() const
+    {
+      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, intVal);
+      return intVal != 0;
+    }
   private:
     template<class T>
     T GetProperty(const std::string& name) const
@@ -206,26 +212,10 @@ namespace
     const String Id;
   };
 
-  //keep only fields that not covered by modules' properties
-  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource<'[', ']'> >
-  {
-  public:
-    typedef Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource<'[', ']'> > Parent;
-    explicit ModuleFieldsSource(const Parameters::Accessor& params)
-      : Parent(params)
-    {
-    }
-
-    String GetFieldValue(const String& fieldName) const
-    {
-      return IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
-    }
-  };
-
   String InstantiateModuleFields(const String& nameTemplate, const Parameters::Accessor& props)
   {
     Dbg("Original filename template: '%1%'", nameTemplate);
-    const ModuleFieldsSource moduleFields(props);
+    const Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource<'[', ']'> > moduleFields(props);
     const String nameTemplateWithRuntimeFields = Strings::Template::Instantiate(nameTemplate, moduleFields);
     Dbg("Fixed filename template: '%1%'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;

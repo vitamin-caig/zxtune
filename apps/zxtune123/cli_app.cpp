@@ -30,16 +30,14 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <io/fs_tools.h>
 #include <io/providers_parameters.h>
+#include <io/providers/file_provider.h>
 #include <sound/sound_parameters.h>
 #include <strings/template.h>
 //std includes
 #include <algorithm>
 #include <cctype>
 #include <functional>
-#include <fstream>
-#include <iostream>
 #include <limits>
 #include <numeric>
 //boost includes
@@ -59,18 +57,22 @@ namespace
     return res;
   }
 
-  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
+  class SaveParameters : public ZXTune::IO::FileCreatingParameters
   {
   public:
-    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
-    explicit ModuleFieldsSource(const Parameters::Accessor& params)
-      : Parent(params)
+    virtual bool Overwrite() const
     {
+      return true;
     }
 
-    String GetFieldValue(const String& fieldName) const
+    virtual bool CreateDirectories() const
     {
-      return ZXTune::IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
+      return true;
+    }
+
+    virtual bool SanitizeNames() const
+    {
+      return true;
     }
   };
 
@@ -87,6 +89,7 @@ namespace
 
     virtual void ApplyData(const ZXTune::Module::Holder::Ptr& holder)
     {
+      static SaveParameters SAVE_PARAMS;
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       const String id = GetModuleId(*props);
       {
@@ -99,13 +102,9 @@ namespace
       }
       const Binary::Data::Ptr result = holder->Convert(*ConversionParameter, props);
       //prepare result filename
-      const String& filename = FileNameTemplate->Instantiate(ModuleFieldsSource(*props));
-      std::ofstream file(filename.c_str(), std::ios::binary);
-      file.write(static_cast<const char*>(result->Start()), result->Size());
-      if (!file)
-      {
-        throw MakeFormattedError(THIS_LINE, Text::CONVERT_ERROR_WRITE_FILE, filename);
-      }
+      const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
+      const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(filename, SAVE_PARAMS);
+      stream->ApplyData(*result);
       Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
     }
 

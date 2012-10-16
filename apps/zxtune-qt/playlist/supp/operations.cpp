@@ -20,7 +20,6 @@ Author:
 //library includes
 #include <binary/data_adapter.h>
 #include <core/convert_parameters.h>
-#include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <io/providers/file_provider.h>
 #include <strings/format.h>
@@ -572,9 +571,11 @@ namespace
     explicit SaveParameters(Parameters::Accessor::Ptr params)
       : OverwriteValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT)
       , CreateDirectoriesValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT)
+      , SanitizeNamesValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES_DEFAULT)
     {
       params->FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteValue);
       params->FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, CreateDirectoriesValue);
+      params->FindValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, CreateDirectoriesValue);
     }
 
     virtual bool Overwrite() const
@@ -586,9 +587,15 @@ namespace
     {
       return CreateDirectoriesValue != 0;
     }
+
+    virtual bool SanitizeNames() const
+    {
+      return SanitizeNamesValue != 0;
+    }
   private:
     Parameters::IntType OverwriteValue;
     Parameters::IntType CreateDirectoriesValue;
+    Parameters::IntType SanitizeNamesValue;
   };
 
   class ExportOperation : public Playlist::Item::TextResultOperation
@@ -637,7 +644,7 @@ namespace
       {
         const Parameters::Accessor::Ptr props = item.GetModuleProperties();
         const Binary::Data::Ptr result = item.Convert(RAW_CONVERSION, props);
-        const String filename = NameTemplate->Instantiate(ModuleFieldsSource(*props));
+        const String filename = NameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
         Save(*result, filename);
         Result->AddSucceed();
       }
@@ -652,21 +659,6 @@ namespace
       const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(filename, Params);
       stream->ApplyData(data);
     }
-  private:
-    class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
-    {
-    public:
-      typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
-      explicit ModuleFieldsSource(const Parameters::Accessor& params)
-        : Parent(params)
-      {
-      }
-
-      String GetFieldValue(const String& fieldName) const
-      {
-        return ZXTune::IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
-      }
-    };
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
     const Strings::Template::Ptr NameTemplate;

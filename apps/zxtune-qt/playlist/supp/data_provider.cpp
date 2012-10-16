@@ -25,7 +25,6 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <io/fs_tools.h>
 #include <io/provider.h>
 #include <sound/sound_parameters.h>
 #include <strings/format.h>

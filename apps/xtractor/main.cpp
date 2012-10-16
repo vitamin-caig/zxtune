@@ -21,7 +21,6 @@ Author:
 #include <async/data_receiver.h>
 #include <formats/archived_decoders.h>
 #include <formats/packed_decoders.h>
-#include <io/fs_tools.h>
 #include <io/provider.h>
 #include <io/providers/file_provider.h>
 #include <strings/array.h>
@@ -386,6 +385,11 @@ namespace
     }
 
     virtual bool CreateDirectories() const
+    {
+      return true;
+    }
+
+    virtual bool SanitizeNames() const
     {
       return true;
     }
@@ -1006,6 +1010,7 @@ namespace
     virtual String GetFieldValue(const String& fieldName) const
     {
       static const Char SUBPATH_DELIMITER[] = {'/', 0};
+      static const Char FLATPATH_DELIMITER[] = {'_', 0};
 
       if (fieldName == Text::TEMPLATE_FIELD_FILENAME)
       {
@@ -1020,20 +1025,23 @@ namespace
       else if (fieldName == Text::TEMPLATE_FIELD_FLATPATH)
       {
         const ZXTune::IO::Identifier& id = GetRootIdentifier();
-        return ZXTune::IO::MakePathFromString(id.Path(), '_');
+        const boost::filesystem::path path(id.Path());
+        Strings::Array components;
+        for (boost::filesystem::path::const_iterator it = path.begin(), lim = path.end(); it != lim; ++it)
+        {
+          components.push_back(it->string());
+        }
+        return boost::algorithm::join(components, FLATPATH_DELIMITER);
       }
       else if (fieldName == Text::TEMPLATE_FIELD_SUBPATH)
       {
-        Strings::Array subPath = GetSubpath();
-        std::transform(subPath.begin(), subPath.end(), subPath.begin(),
-          boost::bind(&ZXTune::IO::MakePathFromString, _1, '_'));
+        const Strings::Array& subPath = GetSubpath();
         return boost::algorithm::join(subPath, SUBPATH_DELIMITER);
       }
       else if (fieldName == Text::TEMPLATE_FIELD_FLATSUBPATH)
       {
         const Strings::Array& subPath = GetSubpath();
-        const String& subPathStr = boost::algorithm::join(subPath, SUBPATH_DELIMITER);
-        return ZXTune::IO::MakePathFromString(subPathStr, '_');
+        return boost::algorithm::join(subPath, FLATPATH_DELIMITER);
       }
       else
       {

@@ -19,10 +19,10 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/container_factories.h>
-#include <io/fs_tools.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
 //boost includes
+#include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
@@ -35,6 +35,42 @@ Author:
 #define FILE_TAG 0D4CB3DA
 
 #undef min
+
+namespace
+{
+//TODO
+#ifdef _WIN32
+  String ApplyOSFilenamesRestrictions(const String& in)
+  {
+    static const std::string DEPRECATED_NAMES[] =
+    {
+      "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+      "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    };
+    const String::size_type dotPos = in.find('.');
+    const String filename = in.substr(0, dotPos);
+    if (ArrayEnd(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, ArrayEnd(DEPRECATED_NAMES), ToStdString(filename)))
+    {
+      const String restPart = dotPos != String::npos ? in.substr(dotPos) : String();
+      return filename + '~' + restPart;
+    }
+    return in;
+  }
+#else
+  String ApplyOSFilenamesRestrictions(const String& in)
+  {
+    return in;
+  }
+#endif
+
+  inline bool IsNotFSSymbol(Char sym)
+  {
+    return std::iscntrl(sym) || 
+      sym == '*' || sym == '\?' || sym == '%' || 
+      sym == ':' || sym == '|' || sym == '\"' || sym == '<' || sym == '>' || 
+      sym == '\\' || sym == '/';
+  }
+}
 
 namespace
 {
@@ -70,6 +106,13 @@ namespace
     {
       Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT;
       Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, intVal);
+      return intVal != 0;
+    }
+
+    virtual bool SanitizeNames() const
+    {
+      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES_DEFAULT;
+      Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, intVal);
       return intVal != 0;
     }
   private:
@@ -324,9 +367,36 @@ namespace
     CreateDirectory(dir, THIS_LINE);
   }
 
+  String SanitizePathComponent(const String& input)
+  {
+    String result = boost::algorithm::trim_copy_if(input, &IsNotFSSymbol);
+    std::replace_if(result.begin(), result.end(), &IsNotFSSymbol, Char('_'));
+    return ApplyOSFilenamesRestrictions(result);
+  }
+
+  boost::filesystem::path CreateSanitizedPath(const String& fileName)
+  {
+    const boost::filesystem::path initial(fileName);
+    boost::filesystem::path result;
+    for (boost::filesystem::path::const_iterator it = initial.begin(), lim = initial.end(); it != lim; ++it)
+    {
+      const boost::filesystem::path node(*it);
+      const boost::filesystem::path sanitized(SanitizePathComponent(node.string()));
+      result /= sanitized;
+    }
+    if (initial != result)
+    {
+      Dbg("Sanitized path '%1%' to '%2%'", fileName, result.string());
+    }
+    return result;
+  }
+
   Binary::SeekableOutputStream::Ptr CreateFileStream(const String& fileName, const FileCreatingParameters& params)
   {
-    const boost::filesystem::path path(fileName);
+    const boost::filesystem::path path = params.SanitizeNames()
+      ? CreateSanitizedPath(fileName)
+      : boost::filesystem::path(fileName);
+
     if (params.CreateDirectories() && path.has_parent_path())
     {
       CreateDirectoryRecursive(path.parent_path());

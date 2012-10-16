@@ -113,7 +113,7 @@ msgstr "Запрашиваемая подсистема вывода звука 
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
-#: backends/file_backend.cpp:152
+#: backends/file_backend.cpp:151
 msgid "Output filename template is not specified."
 msgstr "Шаблон имени результирующего файла не задан."
 
