@@ -4,8 +4,8 @@
 #include <tools.h>
 #include <types.h>
 #include <binary/container_factories.h>
-#include <formats/archived_decoders.h>
-#include <formats/packed_decoders.h>
+#include <formats/archived/decoders.h>
+#include <formats/packed/decoders.h>
 #include <list>
 #include <map>
 #include <cstring>

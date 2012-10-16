@@ -3,8 +3,8 @@ path_step := ../../../..
 source_files := test
 embedded_files := resource.zip test.cpp
 
-libraries := binary formats l10n_stub platform tools z
-depends := src/binary src/formats src/l10n/stub src/platform src/tools 3rdparty/zlib
+libraries := binary formats_archived formats_packed l10n_stub platform tools z
+depends := src/binary src/formats/archived src/formats/packed src/l10n/stub src/platform src/tools 3rdparty/zlib
 
 include $(path_step)/makefile.mak
 

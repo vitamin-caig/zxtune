@@ -19,8 +19,8 @@ Author:
 #include <analysis/path.h>
 #include <analysis/result.h>
 #include <async/data_receiver.h>
-#include <formats/archived_decoders.h>
-#include <formats/packed_decoders.h>
+#include <formats/archived/decoders.h>
+#include <formats/packed/decoders.h>
 #include <io/api.h>
 #include <io/providers/file_provider.h>
 #include <strings/array.h>

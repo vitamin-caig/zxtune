@@ -10,7 +10,7 @@ Author:
 */
 
 //library includes
-#include <formats/archived_decoders.h>
+#include <formats/archived/decoders.h>
 #include <formats/chiptune/ay.h>
 //std includes
 #include <sstream>

@@ -1,6 +1,6 @@
 /**
 *
-* @file     formats/chiptune_decoders.h
+* @file     formats/chiptune/decoders.h
 * @brief    Chiptune analyzers factories
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
@@ -8,8 +8,8 @@
 **/
 
 #pragma once
-#ifndef __FORMATS_CHIPTUNE_DECODERS_H_DEFINED__
-#define __FORMATS_CHIPTUNE_DECODERS_H_DEFINED__
+#ifndef FORMATS_CHIPTUNE_DECODERS_H_DEFINED
+#define FORMATS_CHIPTUNE_DECODERS_H_DEFINED
 
 //library includes
 #include <formats/chiptune.h>
@@ -38,4 +38,4 @@ namespace Formats
   }
 }
 
-#endif //__FORMATS_CHIPTUNE_DECODERS_H_DEFINED__
+#endif //FORMATS_CHIPTUNE_DECODERS_H_DEFINED

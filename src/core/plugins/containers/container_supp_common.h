@@ -16,7 +16,7 @@ Author:
 //local includes
 #include "core/plugins/plugins_types.h"
 //library includes
-#include <formats/archived_decoders.h>
+#include <formats/archived.h>
 
 namespace ZXTune
 {

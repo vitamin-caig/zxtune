@@ -27,8 +27,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <formats/chiptune_decoders.h>
-#include <formats/packed_decoders.h>
+#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/protracker1.h>
 #include <math/numeric.h>
 

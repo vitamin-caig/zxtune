@@ -20,7 +20,7 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <formats/chiptune_decoders.h>
+#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/tfd.h>
 //boost includes
 #include <boost/make_shared.hpp>

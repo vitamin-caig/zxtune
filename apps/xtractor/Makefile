@@ -4,8 +4,12 @@ source_files := main
 
 text_files := text/text
 
-libraries := analysis async binary formats io l10n_stub platform strings tools zxtune_app_version lhasa z
-depends := src/analysis src/async src/binary src/formats src/io src/l10n/stub src/platform src/strings src/tools apps/version 3rdparty/lhasa/lib 3rdparty/zlib
+libraries := analysis async binary formats_archived formats_packed io l10n_stub platform strings tools zxtune_app_version
+depends := $(addprefix src/,analysis async binary formats/archived formats/packed io l10n/stub platform strings tools) apps/version
+
+#3rdparty
+libraries +=  lhasa z
+depends += 3rdparty/lhasa/lib 3rdparty/zlib
 
 boost_libraries := filesystem program_options thread system
 windows_libraries := advapi32

@@ -30,6 +30,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <devices/z80.h>
+#include <formats/archived/decoders.h>
 #include <formats/chiptune/ay.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>

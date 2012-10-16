@@ -15,7 +15,7 @@ Author:
 //library includes
 #include <binary/typed_container.h>
 #include <formats/archived.h>
-#include <formats/packed_decoders.h>
+#include <formats/packed/decoders.h>
 #include <formats/packed/zip_supp.h>
 //std includes
 #include <map>

@@ -268,9 +268,9 @@ namespace
     }
   }
 
-  void TestProvider(const ZXTune::IO::DataProvider& provider, const Case& cs)
+  void TestProvider(const IO::DataProvider& provider, const Case& cs)
   {
-    if (const ZXTune::IO::Identifier::Ptr id = provider.Resolve(cs.Uri))
+    if (const IO::Identifier::Ptr id = provider.Resolve(cs.Uri))
     {
       const std::string pid = provider.Id() + ' ';
       Test(pid + cs.Name + " (scheme)", id->Scheme(), cs.Scheme);
@@ -289,14 +289,14 @@ namespace
   void TestFileProvider()
   {
     std::cout << "Test for file provider" << std::endl;
-    const ZXTune::IO::DataProvider::Ptr prov = ZXTune::IO::CreateFileDataProvider();
+    const IO::DataProvider::Ptr prov = IO::CreateFileDataProvider();
     std::for_each(FILE_PROVIDER_CASES, ArrayEnd(FILE_PROVIDER_CASES), boost::bind(&TestProvider, boost::cref(*prov), _1));
   }
 
   void TestNetworkProvider()
   {
     std::cout << "Test for network provider" << std::endl;
-    const ZXTune::IO::DataProvider::Ptr prov = ZXTune::IO::CreateNetworkDataProvider(ZXTune::IO::Curl::Api::Ptr());
+    const IO::DataProvider::Ptr prov = IO::CreateNetworkDataProvider(IO::Curl::Api::Ptr());
     std::for_each(NETWORK_PROVIDER_CASES, ArrayEnd(NETWORK_PROVIDER_CASES), boost::bind(&TestProvider, boost::cref(*prov), _1));
   }
 }

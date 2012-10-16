@@ -11,7 +11,7 @@ Author:
 
 //library includes
 #include "container.h"
-#include <formats/chiptune_decoders.h>
+#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/metainfo.h>
 #include <formats/chiptune/protracker2.h>
 //common includes

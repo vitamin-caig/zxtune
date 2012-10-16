@@ -1,6 +1,6 @@
 /**
 *
-* @file     formats/archived_decoders.h
+* @file     formats/archived/decoders.h
 * @brief    Archived data accessors factories
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
@@ -8,8 +8,8 @@
 **/
 
 #pragma once
-#ifndef __FORMATS_ARCHIVED_DECODERS_H_DEFINED__
-#define __FORMATS_ARCHIVED_DECODERS_H_DEFINED__
+#ifndef FORMATS_ARCHIVED_DECODERS_H_DEFINED
+#define FORMATS_ARCHIVED_DECODERS_H_DEFINED
 
 //library includes
 #include <formats/archived.h>
@@ -30,4 +30,4 @@ namespace Formats
   }
 }
 
-#endif //__FORMATS_ARCHIVED_DECODERS_H_DEFINED__
+#endif //FORMATS_ARCHIVED_DECODERS_H_DEFINED

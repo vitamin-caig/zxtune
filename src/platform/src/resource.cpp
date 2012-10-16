@@ -15,7 +15,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <binary/container_factories.h>
-#include <formats/archived_decoders.h>
+#include <formats/archived/decoders.h>
 #include <l10n/api.h>
 #include <platform/resource.h>
 #include <platform/tools.h>

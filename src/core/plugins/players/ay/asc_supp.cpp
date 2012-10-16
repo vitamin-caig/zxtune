@@ -26,7 +26,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/ascsoundmaster.h>
-#include <formats/packed_decoders.h>
+#include <formats/packed/decoders.h>
 #include <math/numeric.h>
 
 #define FILE_TAG 45B26E38

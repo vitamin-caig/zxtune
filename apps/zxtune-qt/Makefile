@@ -19,12 +19,17 @@ include_dirs = .
 
 text_files := text/text
 
-libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io platform sound strings tools \
-            playlist_ui playlist_supp playlist_io ui_common
+#base
+libraries := analysis async binary core devices formats_archived formats_chiptune formats_packed platform sound tools io strings
+depends := $(addprefix src/,analysis async binary core devices formats/archived formats/chiptune formats/packed io sound strings tools)
 
-depends = apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/platform src/sound src/strings src/tools \
-          apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io \
-          apps/zxtune-qt/ui
+#apps
+libraries += zxtune_app_base zxtune_app_version
+depends += $(addprefix apps/,base version)
+
+#ui
+libraries += playlist_ui playlist_supp playlist_io ui_common
+depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui /playlist/io ui)
 
 #3rdparty
 libraries += lhasa z z80ex

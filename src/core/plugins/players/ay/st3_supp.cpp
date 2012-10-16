@@ -18,8 +18,8 @@ Author:
 #include "core/plugins/players/creation_result.h"
 //library includes
 #include <core/plugin_attrs.h>
-#include <formats/chiptune_decoders.h>
-#include <formats/packed_decoders.h>
+#include <formats/chiptune/decoders.h>
+#include <formats/packed/decoders.h>
 //boost includes
 #include <boost/make_shared.hpp>
 

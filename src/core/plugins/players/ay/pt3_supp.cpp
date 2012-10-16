@@ -28,9 +28,9 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <formats/chiptune_decoders.h>
-#include <formats/packed_decoders.h>
+#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/protracker3.h>
+#include <formats/packed/decoders.h>
 //text includes
 #include <core/text/plugins.h>
 

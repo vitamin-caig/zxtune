@@ -15,7 +15,7 @@ Author:
 #include "core/plugins/registrator.h"
 //library includes
 #include <core/plugin_attrs.h>
-#include <formats/archived_decoders.h>
+#include <formats/archived/decoders.h>
 
 namespace
 {

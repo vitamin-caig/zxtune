@@ -15,7 +15,7 @@ Author:
 //common includes
 #include <byteorder.h>
 //library includes
-#include <formats/packed_decoders.h>
+#include <formats/packed/decoders.h>
 //std includes
 #include <cstring>
 //boost includes

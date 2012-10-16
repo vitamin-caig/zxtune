@@ -14,8 +14,12 @@ endif
 text_files := text/text
 other_text_files := text/cmdline text/messages text/conversion text/cmd_keys_local
 
-libraries := analysis async binary core devices formats platform sound tools io l10n_stub strings zxtune_app_base zxtune_app_version
-depends := src/analysis src/async src/binary src/tools src/core src/devices src/l10n/stub src/platform src/formats src/sound src/strings src/io apps/base apps/version
+libraries := analysis async binary core devices formats_archived formats_chiptune formats_packed platform sound tools io l10n_stub strings
+depends := $(addprefix src/,analysis async binary core devices formats/archived formats/chiptune formats/packed io l10n/stub sound strings tools)
+
+#apps
+libraries += zxtune_app_base zxtune_app_version
+depends += $(addprefix apps/,base version)
 
 #3rdparty
 libraries += lhasa z z80ex
