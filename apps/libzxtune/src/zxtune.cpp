@@ -365,8 +365,7 @@ ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data, const char* subname)
     const Binary::Container::Ptr src = ContainersCache::Instance().Get(data);
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
     const String subpath = subname ? String(subname) : String();
-    ZXTune::Module::Holder::Ptr result;
-    ThrowIfError(ZXTune::OpenModule(params, src, subpath, result));
+    const ZXTune::Module::Holder::Ptr result = ZXTune::OpenModule(params, src, subpath);
     return ModulesCache::Instance().Add(result);
   }
   catch (const Error&)

@@ -21,6 +21,8 @@ Author:
 #include <binary/container_factories.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
+//std includes
+#include <cctype>
 //boost includes
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/fstream.hpp>
