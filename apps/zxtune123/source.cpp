@@ -27,7 +27,7 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <io/provider.h>
+#include <io/api.h>
 #include <io/providers_parameters.h>
 #include <strings/array.h>
 //std includes
@@ -207,12 +207,12 @@ namespace
     {
       try
       {
-        const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(uri);
+        const IO::Identifier::Ptr id = IO::ResolveUri(uri);
         const String path = id->Path();
 
         const DetectParametersImpl params(Params, path, callback, ShowProgress);
         Log::ProgressCallback& progress = ShowProgress ? *params.GetProgressCallback() : Log::ProgressCallback::Stub();
-        const Binary::Container::Ptr data = ZXTune::IO::OpenData(path, *Params, progress);
+        const Binary::Container::Ptr data = IO::OpenData(path, *Params, progress);
 
         const String subpath = id->Subpath();
         ZXTune::DetectModules(Params, params, data, subpath);

@@ -25,7 +25,7 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <io/provider.h>
+#include <io/api.h>
 #include <sound/sound_parameters.h>
 #include <strings/format.h>
 #include <strings/template.h>
@@ -60,7 +60,7 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
-      return ZXTune::IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
+      return IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -225,7 +225,7 @@ namespace
   public:
     typedef boost::shared_ptr<const DataSource> Ptr;
 
-    DataSource(CachedDataProvider::Ptr provider, ZXTune::IO::Identifier::Ptr id)
+    DataSource(CachedDataProvider::Ptr provider, IO::Identifier::Ptr id)
       : Provider(provider)
       , DataId(id)
     {
@@ -241,19 +241,19 @@ namespace
       return Provider->GetData(DataId->Path());
     }
 
-    ZXTune::IO::Identifier::Ptr GetDataIdentifier() const
+    IO::Identifier::Ptr GetDataIdentifier() const
     {
       return DataId;
     }
   private:
     const CachedDataProvider::Ptr Provider;
-    const ZXTune::IO::Identifier::Ptr DataId;
+    const IO::Identifier::Ptr DataId;
   };
 
   class ModuleSource
   {
   public:
-    ModuleSource(Parameters::Accessor::Ptr coreParams, DataSource::Ptr source, ZXTune::IO::Identifier::Ptr moduleId)
+    ModuleSource(Parameters::Accessor::Ptr coreParams, DataSource::Ptr source, IO::Identifier::Ptr moduleId)
       : CoreParams(coreParams)
       , Source(source)
       , ModuleId(moduleId)
@@ -283,7 +283,7 @@ namespace
   private:
     const Parameters::Accessor::Ptr CoreParams;
     const DataSource::Ptr Source;
-    const ZXTune::IO::Identifier::Ptr ModuleId;
+    const IO::Identifier::Ptr ModuleId;
   };
 
   String GetStringProperty(const Parameters::Accessor& props, const Parameters::NameType& propName)
@@ -492,7 +492,7 @@ namespace
   public:
     DetectParametersAdapter(Playlist::Item::DetectParameters& delegate,
                             DynamicAttributesProvider::Ptr attributes,
-                            CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, ZXTune::IO::Identifier::Ptr dataId)
+                            CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, IO::Identifier::Ptr dataId)
       : Delegate(delegate)
       , ProgressCallback(Delegate)
       , Attributes(attributes)
@@ -507,7 +507,7 @@ namespace
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
-      const ZXTune::IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
+      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
       const Parameters::Accessor::Ptr pathProps = CreatePathProperties(moduleId);
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
@@ -525,7 +525,7 @@ namespace
     mutable ProgressCallbackAdapter ProgressCallback;
     const DynamicAttributesProvider::Ptr Attributes;
     const Parameters::Accessor::Ptr CoreParams;
-    const ZXTune::IO::Identifier::Ptr DataId;
+    const IO::Identifier::Ptr DataId;
     const DataSource::Ptr Source;
   };
 
@@ -543,7 +543,7 @@ namespace
     {
       try
       {
-        const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
+        const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
         const String dataPath = id->Path();
         const Binary::Container::Ptr data = Provider->GetData(dataPath);
@@ -563,7 +563,7 @@ namespace
     {
       try
       {
-        const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
+        const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
         const String dataPath = id->Path();
         const Binary::Container::Ptr data = Provider->GetData(dataPath);

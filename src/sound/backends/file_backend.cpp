@@ -133,7 +133,7 @@ namespace
     mutable String Result;
   };
 
-  class FileParameters : public ZXTune::IO::FileCreatingParameters
+  class FileParameters : public IO::FileCreatingParameters
   {
   public:
     FileParameters(Parameters::Accessor::Ptr params, const String& id)
@@ -238,7 +238,7 @@ namespace
       if (Filename != newFilename)
       {
         //TODO: use most common API to create stream
-        const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(newFilename, Params);
+        const Binary::OutputStream::Ptr stream = IO::CreateLocalFile(newFilename, Params);
         Filename = newFilename;
         const FileStream::Ptr result = Factory->CreateStream(stream);
         SetProperties(*result);

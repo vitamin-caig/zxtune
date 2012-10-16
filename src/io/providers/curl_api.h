@@ -18,12 +18,10 @@ Author:
 //boost includes
 #include <boost/shared_ptr.hpp>
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  namespace Curl
   {
-    namespace Curl
-    {
       class Api
       {
       public:
@@ -45,7 +43,6 @@ namespace ZXTune
       //throw exception in case of error
       Api::Ptr LoadDynamicApi();
 
-    }
   }
 }
 

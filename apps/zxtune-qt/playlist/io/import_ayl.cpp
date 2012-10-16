@@ -24,7 +24,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugins/utils.h>
 #include <devices/aym.h>
-#include <io/provider.h>
+#include <io/api.h>
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
 //std includes
@@ -367,7 +367,7 @@ namespace
   {
     try
     {
-      const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
+      const IO::Identifier::Ptr id = IO::ResolveUri(path);
       return id->WithSubpath(subpath)->Full();
     }
     catch (const Error&)

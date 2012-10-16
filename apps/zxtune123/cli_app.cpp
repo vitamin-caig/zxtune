@@ -57,7 +57,7 @@ namespace
     return res;
   }
 
-  class SaveParameters : public ZXTune::IO::FileCreatingParameters
+  class SaveParameters : public IO::FileCreatingParameters
   {
   public:
     virtual bool Overwrite() const
@@ -103,7 +103,7 @@ namespace
       const Binary::Data::Ptr result = holder->Convert(*ConversionParameter, props);
       //prepare result filename
       const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
-      const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(filename, SAVE_PARAMS);
+      const Binary::OutputStream::Ptr stream = IO::CreateLocalFile(filename, SAVE_PARAMS);
       stream->ApplyData(*result);
       Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
     }

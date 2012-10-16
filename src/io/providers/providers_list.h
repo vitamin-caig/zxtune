@@ -10,25 +10,22 @@ Author:
 */
 
 #pragma once
-#ifndef __IO_PROVIDERS_LIST_H_DEFINED__
-#define __IO_PROVIDERS_LIST_H_DEFINED__
+#ifndef IO_PROVIDERS_LIST_H_DEFINED
+#define IO_PROVIDERS_LIST_H_DEFINED
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  class ProvidersEnumerator;
+
+  //forward declarations of supported providers
+  void RegisterFileProvider(ProvidersEnumerator& enumerator);
+  void RegisterNetworkProvider(ProvidersEnumerator& enumerator);
+
+  inline void RegisterProviders(ProvidersEnumerator& enumerator)
   {
-    class ProvidersEnumerator;
-
-    //forward declarations of supported providers
-    void RegisterFileProvider(ProvidersEnumerator& enumerator);
-    void RegisterNetworkProvider(ProvidersEnumerator& enumerator);
-
-    inline void RegisterProviders(ProvidersEnumerator& enumerator)
-    {
-      RegisterFileProvider(enumerator);
-      RegisterNetworkProvider(enumerator);
-    }
+    RegisterFileProvider(enumerator);
+    RegisterNetworkProvider(enumerator);
   }
 }
 
-#endif //__IO_PROVIDERS_LIST_H_DEFINED__
+#endif //IO_PROVIDERS_LIST_H_DEFINED

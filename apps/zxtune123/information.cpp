@@ -140,7 +140,7 @@ namespace
     }
   }
   
-  inline void ShowProvider(const ZXTune::IO::Provider& provider)
+  inline void ShowProvider(const IO::Provider& provider)
   {
     const Error& status = provider.Status();
     StdOut << Strings::Format(Text::INFO_PROVIDER_INFO,
@@ -149,9 +149,8 @@ namespace
   
   inline void ShowProviders()
   {
-    using namespace ZXTune::IO;
     StdOut << Text::INFO_LIST_PROVIDERS_TITLE << std::endl;
-    for (Provider::Iterator::Ptr providers = EnumerateProviders(); 
+    for (IO::Provider::Iterator::Ptr providers = IO::EnumerateProviders(); 
       providers->IsValid(); providers->Next())
     {
       ShowProvider(*providers->Get());

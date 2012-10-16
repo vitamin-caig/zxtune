@@ -13,7 +13,7 @@ Author:
 #include "apps/base/playitem.h"
 //library includes
 #include <core/module_attrs.h>
-#include <io/provider.h>
+#include <io/api.h>
 //common includes
 #include <error_tools.h>
 //boost includes
@@ -21,8 +21,6 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-
   class UnresolvedPathPropertiesAccessor : public Parameters::Accessor
   {
   public:
@@ -38,7 +36,7 @@ namespace
 
     virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
-      if (name == Module::ATTR_FULLPATH)
+      if (name == ZXTune::Module::ATTR_FULLPATH)
       {
         val = Uri;
         return true;
@@ -53,7 +51,7 @@ namespace
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
-      visitor.SetValue(Module::ATTR_FULLPATH, Uri);
+      visitor.SetValue(ZXTune::Module::ATTR_FULLPATH, Uri);
     }
   private:
     const String Uri;
@@ -62,7 +60,7 @@ namespace
   class PathPropertiesAccessor : public Parameters::Accessor
   {
   public:
-    PathPropertiesAccessor(ZXTune::IO::Identifier::Ptr id)
+    explicit PathPropertiesAccessor(IO::Identifier::Ptr id)
       : Id(id)
     {
     }
@@ -74,27 +72,27 @@ namespace
 
     virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
-      if (name == Module::ATTR_SUBPATH)
+      if (name == ZXTune::Module::ATTR_SUBPATH)
       {
         val = Id->Subpath();
         return true;
       }
-      else if (name == Module::ATTR_FILENAME)
+      else if (name == ZXTune::Module::ATTR_FILENAME)
       {
         val = Id->Filename();
         return true;
       }
-      else if (name == Module::ATTR_EXTENSION)
+      else if (name == ZXTune::Module::ATTR_EXTENSION)
       {
         val = Id->Extension();
         return true;
       }
-      else if (name == Module::ATTR_PATH)
+      else if (name == ZXTune::Module::ATTR_PATH)
       {
         val = Id->Path();
         return true;
       }
-      else if (name == Module::ATTR_FULLPATH)
+      else if (name == ZXTune::Module::ATTR_FULLPATH)
       {
         val = Id->Full();
         return true;
@@ -109,14 +107,14 @@ namespace
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
-      visitor.SetValue(Module::ATTR_SUBPATH, Id->Subpath());
-      visitor.SetValue(Module::ATTR_FILENAME, Id->Filename());
-      visitor.SetValue(Module::ATTR_EXTENSION, Id->Extension());
-      visitor.SetValue(Module::ATTR_PATH, Id->Path());
-      visitor.SetValue(Module::ATTR_FULLPATH, Id->Full());
+      visitor.SetValue(ZXTune::Module::ATTR_SUBPATH, Id->Subpath());
+      visitor.SetValue(ZXTune::Module::ATTR_FILENAME, Id->Filename());
+      visitor.SetValue(ZXTune::Module::ATTR_EXTENSION, Id->Extension());
+      visitor.SetValue(ZXTune::Module::ATTR_PATH, Id->Path());
+      visitor.SetValue(ZXTune::Module::ATTR_FULLPATH, Id->Full());
     }
   private:
-    const ZXTune::IO::Identifier::Ptr Id;
+    const IO::Identifier::Ptr Id;
   };
 }
 
@@ -124,8 +122,8 @@ Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String&
 {
   try
   {
-    const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
-    const ZXTune::IO::Identifier::Ptr subId = id->WithSubpath(subpath);
+    const IO::Identifier::Ptr id = IO::ResolveUri(path);
+    const IO::Identifier::Ptr subId = id->WithSubpath(subpath);
     return CreatePathProperties(subId);
   }
   catch (const Error&)
@@ -139,7 +137,7 @@ Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
 {
   try
   {
-    const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(fullpath);
+    const IO::Identifier::Ptr id = IO::ResolveUri(fullpath);
     return CreatePathProperties(id);
   }
   catch (const Error&)
@@ -148,7 +146,7 @@ Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
   }
 }
 
-Parameters::Accessor::Ptr CreatePathProperties(ZXTune::IO::Identifier::Ptr id)
+Parameters::Accessor::Ptr CreatePathProperties(IO::Identifier::Ptr id)
 {
   return boost::make_shared<PathPropertiesAccessor>(id);
 }

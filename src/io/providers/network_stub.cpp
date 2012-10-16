@@ -15,13 +15,10 @@ Author:
 //text includes
 #include <io/text/io.h>
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
   {
-    void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
-    {
-      enumerator.RegisterProvider(CreateDisabledProviderStub(Text::IO_NETWORK_PROVIDER_ID, L10n::translate("Network files access via different schemes support")));
-    }
+    enumerator.RegisterProvider(CreateDisabledProviderStub(Text::IO_NETWORK_PROVIDER_ID, L10n::translate("Network files access via different schemes support")));
   }
 }

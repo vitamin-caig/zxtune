@@ -33,12 +33,12 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::IO;
-
   const Debug::Stream Dbg("IO::Provider::Network");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
+}
 
+namespace IO
+{
   class NetworkProviderParameters
   {
   public:
@@ -361,27 +361,24 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
   {
-    DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
-    {
-      return boost::make_shared<NetworkDataProvider>(api);
-    }
+    return boost::make_shared<NetworkDataProvider>(api);
+  }
 
-    void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
+  void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
+  {
+    try
     {
-      try
-      {
-        const Curl::Api::Ptr api = Curl::LoadDynamicApi();
-        Dbg("Detected CURL library %1%", api->curl_version());
-        enumerator.RegisterProvider(CreateNetworkDataProvider(api));
-      }
-      catch (const Error& e)
-      {
-        enumerator.RegisterProvider(CreateUnavailableProviderStub(ID, DESCRIPTION, e));
-      }
+      const Curl::Api::Ptr api = Curl::LoadDynamicApi();
+      Dbg("Detected CURL library %1%", api->curl_version());
+      enumerator.RegisterProvider(CreateNetworkDataProvider(api));
+    }
+    catch (const Error& e)
+    {
+      enumerator.RegisterProvider(CreateUnavailableProviderStub(ID, DESCRIPTION, e));
     }
   }
 }

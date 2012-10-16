@@ -565,7 +565,7 @@ namespace
 
   // Exporting
   //cache parameter value
-  class SaveParameters : public ZXTune::IO::FileCreatingParameters
+  class SaveParameters : public IO::FileCreatingParameters
   {
   public:
     explicit SaveParameters(Parameters::Accessor::Ptr params)
@@ -656,7 +656,7 @@ namespace
 
     void Save(const Binary::Data& data, const String& filename) const
     {
-      const Binary::OutputStream::Ptr stream = ZXTune::IO::CreateLocalFile(filename, Params);
+      const Binary::OutputStream::Ptr stream = IO::CreateLocalFile(filename, Params);
       stream->ApplyData(data);
     }
   private:

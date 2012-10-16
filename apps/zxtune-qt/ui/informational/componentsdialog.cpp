@@ -312,7 +312,7 @@ namespace
     {
     }
 
-    void AddProvider(const ZXTune::IO::Provider& provider)
+    void AddProvider(const IO::Provider& provider)
     {
       //root
       CreateRootItem(Widget, provider.Description(), provider.Status());
@@ -360,9 +360,9 @@ namespace
     {
       ProvidersTreeHelper tree(*providersTree);
 
-      for (ZXTune::IO::Provider::Iterator::Ptr providers = ZXTune::IO::EnumerateProviders(); providers->IsValid(); providers->Next())
+      for (IO::Provider::Iterator::Ptr providers = IO::EnumerateProviders(); providers->IsValid(); providers->Next())
       {
-        const ZXTune::IO::Provider::Ptr provider = providers->Get();
+        const IO::Provider::Ptr provider = providers->Get();
         tree.AddProvider(*provider);
       }
     }

@@ -16,6 +16,7 @@ Author:
 #include <debug_log.h>
 #include <error_tools.h>
 //library includes
+#include <io/api.h>
 #include <l10n/api.h>
 //std includes
 #include <algorithm>
@@ -29,11 +30,12 @@ Author:
 
 namespace
 {
-  using namespace ZXTune::IO;
-
   const Debug::Stream Dbg("IO::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
+}
 
+namespace IO
+{
   typedef std::vector<DataProvider::Ptr> ProvidersList;
 
   //implementation of IO providers enumerator
@@ -161,39 +163,36 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  ProvidersEnumerator& ProvidersEnumerator::Instance()
   {
-    ProvidersEnumerator& ProvidersEnumerator::Instance()
-    {
-      static ProvidersEnumeratorImpl instance;
-      return instance;
-    }
+    static ProvidersEnumeratorImpl instance;
+    return instance;
+  }
 
-    Identifier::Ptr ResolveUri(const String& uri)
-    {
-      return ProvidersEnumerator::Instance().ResolveUri(uri);
-    }
+  Identifier::Ptr ResolveUri(const String& uri)
+  {
+    return ProvidersEnumerator::Instance().ResolveUri(uri);
+  }
 
-    Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
-    {
-      return ProvidersEnumerator::Instance().OpenData(path, params, cb);
-    }
+  Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
+  {
+    return ProvidersEnumerator::Instance().OpenData(path, params, cb);
+  }
 
-    Provider::Iterator::Ptr EnumerateProviders()
-    {
-      return ProvidersEnumerator::Instance().Enumerate();
-    }
+  Provider::Iterator::Ptr EnumerateProviders()
+  {
+    return ProvidersEnumerator::Instance().Enumerate();
+  }
 
-    DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description)
-    {
-      return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, translate("Not supported in current configuration")));
-    }
+  DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description)
+  {
+    return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, translate("Not supported in current configuration")));
+  }
 
-    DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)
-    {
-      return boost::make_shared<UnavailableProvider>(id, description, status);
-    }
+  DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)
+  {
+    return boost::make_shared<UnavailableProvider>(id, description, status);
   }
 }

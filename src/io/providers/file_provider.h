@@ -22,24 +22,21 @@ namespace Parameters
   class Accessor;
 }
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  Binary::Data::Ptr OpenLocalFile(const String& path, std::size_t mmapThreshold);
+
+  class FileCreatingParameters
   {
-    Binary::Data::Ptr OpenLocalFile(const String& path, std::size_t mmapThreshold);
+  public:
+    virtual ~FileCreatingParameters() {}
 
-    class FileCreatingParameters
-    {
-    public:
-      virtual ~FileCreatingParameters() {}
+    virtual bool Overwrite() const = 0;
+    virtual bool CreateDirectories() const = 0;
+    virtual bool SanitizeNames() const = 0;
+  };
 
-      virtual bool Overwrite() const = 0;
-      virtual bool CreateDirectories() const = 0;
-      virtual bool SanitizeNames() const = 0;
-    };
-
-    Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params);
-  }
+  Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params);
 }
 
 #endif //IO_FILE_PROVIDER_H_DEFINED

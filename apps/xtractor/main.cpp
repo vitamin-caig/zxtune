@@ -21,7 +21,7 @@ Author:
 #include <async/data_receiver.h>
 #include <formats/archived_decoders.h>
 #include <formats/packed_decoders.h>
-#include <io/provider.h>
+#include <io/api.h>
 #include <io/providers/file_provider.h>
 #include <strings/array.h>
 #include <strings/fields.h>
@@ -376,7 +376,7 @@ namespace Parsing
 
 namespace
 {
-  class SaveParameters : public ZXTune::IO::FileCreatingParameters
+  class SaveParameters : public IO::FileCreatingParameters
   {
   public:
     virtual bool Overwrite() const
@@ -404,7 +404,7 @@ namespace
       {
         static const SaveParameters PARAMS;
         const String filePath = result->Name();
-        const Binary::OutputStream::Ptr target = ZXTune::IO::CreateLocalFile(filePath, PARAMS);
+        const Binary::OutputStream::Ptr target = IO::CreateLocalFile(filePath, PARAMS);
         const Binary::Container::Ptr data = result->Data();
         target->ApplyData(*data);
       }
@@ -974,7 +974,7 @@ namespace
       try
       {
         Dbg("Opening '%1%'", filename);
-        const Binary::Container::Ptr data = ZXTune::IO::OpenData(filename, *Params, Log::ProgressCallback::Stub());
+        const Binary::Container::Ptr data = IO::OpenData(filename, *Params, Log::ProgressCallback::Stub());
         const Analysis::Node::Ptr root = Analysis::CreateRootNode(data, filename);
         Analyse->ApplyData(root);
       }
@@ -1014,17 +1014,17 @@ namespace
 
       if (fieldName == Text::TEMPLATE_FIELD_FILENAME)
       {
-        const ZXTune::IO::Identifier& id = GetRootIdentifier();
+        const IO::Identifier& id = GetRootIdentifier();
         return id.Filename();
       }
       else if (fieldName == Text::TEMPLATE_FIELD_PATH)
       {
-        const ZXTune::IO::Identifier& id = GetRootIdentifier();
+        const IO::Identifier& id = GetRootIdentifier();
         return id.Path();
       }
       else if (fieldName == Text::TEMPLATE_FIELD_FLATPATH)
       {
-        const ZXTune::IO::Identifier& id = GetRootIdentifier();
+        const IO::Identifier& id = GetRootIdentifier();
         const boost::filesystem::path path(id.Path());
         Strings::Array components;
         for (boost::filesystem::path::const_iterator it = path.begin(), lim = path.end(); it != lim; ++it)
@@ -1049,7 +1049,7 @@ namespace
       }
     }
   private:
-    const ZXTune::IO::Identifier& GetRootIdentifier() const
+    const IO::Identifier& GetRootIdentifier() const
     {
       if (!RootIdentifier)
       {
@@ -1081,7 +1081,7 @@ namespace
         else
         {
           const String fileName = node->Name();
-          RootIdentifier = ZXTune::IO::ResolveUri(fileName);
+          RootIdentifier = IO::ResolveUri(fileName);
           Subpath.reset(new Strings::Array(subpath.rbegin(), subpath.rend()));
           break;
         }
@@ -1090,7 +1090,7 @@ namespace
 
   private:
     const Analysis::Node::Ptr Node;
-    mutable ZXTune::IO::Identifier::Ptr RootIdentifier;
+    mutable IO::Identifier::Ptr RootIdentifier;
     mutable std::auto_ptr<Strings::Array> Subpath;
   };
 

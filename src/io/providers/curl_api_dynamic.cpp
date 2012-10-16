@@ -21,7 +21,7 @@ Author:
 
 namespace
 {
-  using namespace ZXTune::IO::Curl;
+  using namespace IO::Curl;
 
   class CurlName : public Platform::SharedLibrary::Name
   {
@@ -146,18 +146,15 @@ namespace
 
 }
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  namespace Curl
   {
-    namespace Curl
+    Api::Ptr LoadDynamicApi()
     {
-      Api::Ptr LoadDynamicApi()
-      {
-        static const CurlName NAME;
-        const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
-        return boost::make_shared<DynamicApi>(lib);
-      }
+      static const CurlName NAME;
+      const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
+      return boost::make_shared<DynamicApi>(lib);
     }
   }
 }

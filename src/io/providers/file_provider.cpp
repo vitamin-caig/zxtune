@@ -76,12 +76,12 @@ namespace
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::IO;
-
   const Debug::Stream Dbg("IO::Provider::File");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
+}
 
+namespace IO
+{
   class FileProviderParameters : public FileCreatingParameters
   {
   public:
@@ -460,42 +460,39 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  Binary::Data::Ptr OpenLocalFile(const String& path, std::size_t mmapThreshold)
   {
-    Binary::Data::Ptr OpenLocalFile(const String& path, std::size_t mmapThreshold)
+    try
     {
-      try
-      {
-        return OpenFileData(path, mmapThreshold);
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE, translate("Failed to open file '%1%'."), path).AddSuberror(e);
-      }
+      return OpenFileData(path, mmapThreshold);
     }
+    catch (const Error& e)
+    {
+      throw MakeFormattedError(THIS_LINE, translate("Failed to open file '%1%'."), path).AddSuberror(e);
+    }
+  }
 
-    Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params)
+  Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params)
+  {
+    try
     {
-      try
-      {
-        return CreateFileStream(path, params);
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE, translate("Failed to create file '%1%'."), path).AddSuberror(e);
-      }
+      return CreateFileStream(path, params);
     }
+    catch (const Error& e)
+    {
+      throw MakeFormattedError(THIS_LINE, translate("Failed to create file '%1%'."), path).AddSuberror(e);
+    }
+  }
 
-    DataProvider::Ptr CreateFileDataProvider()
-    {
-      return boost::make_shared<FileDataProvider>();
-    }
+  DataProvider::Ptr CreateFileDataProvider()
+  {
+    return boost::make_shared<FileDataProvider>();
+  }
 
-    void RegisterFileProvider(ProvidersEnumerator& enumerator)
-    {
-      enumerator.RegisterProvider(CreateFileDataProvider());
-    }
+  void RegisterFileProvider(ProvidersEnumerator& enumerator)
+  {
+    enumerator.RegisterProvider(CreateFileDataProvider());
   }
 }
