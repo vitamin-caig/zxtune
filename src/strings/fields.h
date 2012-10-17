@@ -13,6 +13,8 @@
 
 //common includes
 #include <types.h>
+//library includes
+#include <strings/template.h>
 
 namespace Strings
 {
@@ -38,15 +40,14 @@ namespace Strings
   };
 
   // Kepp all the fields
-  template<Char MarkBegin = '[', Char MarkEnd = ']'>
   class KeepFieldsSource : public FieldsSource
   {
   public:
     virtual String GetFieldValue(const String& fieldName) const
     {
-      String res(1, MarkBegin);
+      String res(1, Template::FIELD_START);
       res += fieldName;
-      res += MarkEnd;
+      res += Template::FIELD_END;
       return res;
     }
   };

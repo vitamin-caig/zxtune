@@ -215,7 +215,7 @@ namespace
   String InstantiateModuleFields(const String& nameTemplate, const Parameters::Accessor& props)
   {
     Dbg("Original filename template: '%1%'", nameTemplate);
-    const Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource<'[', ']'> > moduleFields(props);
+    const Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource> moduleFields(props);
     const String nameTemplateWithRuntimeFields = Strings::Template::Instantiate(nameTemplate, moduleFields);
     Dbg("Fixed filename template: '%1%'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;

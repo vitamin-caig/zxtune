@@ -22,6 +22,9 @@ namespace Strings
   class Template
   {
   public:
+    static const Char FIELD_START = '[';
+    static const Char FIELD_END = ']';
+
     //! @brief Pointer type
     typedef std::auto_ptr<const Template> Ptr;
     //! @brief Virtual destructor
@@ -30,13 +33,13 @@ namespace Strings
     virtual String Instantiate(const class FieldsSource& source) const = 0;
 
     //! @brief Factory
-    static Ptr Create(const String& templ, Char beginMark = '[', Char endMark = ']');
+    static Ptr Create(const String& templ);
 
     //! @param templ Input string
     //! @param source Fields provider
     //! @param beginMark Placeholders' start marker
     //! @param endMark Placeholders' end marker
-    static String Instantiate(const String& templ, const FieldsSource& source, Char beginMark = '[', Char endMark = ']');
+    static String Instantiate(const String& templ, const FieldsSource& source);
   };
 }
 

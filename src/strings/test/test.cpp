@@ -48,7 +48,7 @@ int main()
     std::cout << "---- Test for string template ----" << std::endl;
     {
       TestTemplate<Strings::SkipFieldsSource>("without template", Strings::Map(), "without template");
-      TestTemplate<Strings::KeepFieldsSource<'[', ']'> >("no [mapped] template", Strings::Map(), "no [mapped] template");
+      TestTemplate<Strings::KeepFieldsSource>("no [mapped] template", Strings::Map(), "no [mapped] template");
       TestTemplate<Strings::SkipFieldsSource>("no [nonexisting] template", Strings::Map(), "no  template");
       TestTemplate<Strings::FillFieldsSource>("no [tabulated] template", Strings::Map(), "no             template");
       Strings::Map params;

@@ -20,8 +20,8 @@ include_dirs = .
 text_files := text/text
 
 #base
-libraries := analysis async binary core devices formats_archived formats_chiptune formats_packed platform sound tools io strings
-depends := $(addprefix src/,analysis async binary core devices formats/archived formats/chiptune formats/packed io sound strings tools)
+libraries := analysis async binary core devices formats_archived formats_chiptune formats_packed io platform sound strings tools
+depends := $(addprefix src/,analysis async binary core devices formats/archived formats/chiptune formats/packed io platform sound strings tools)
 
 #apps
 libraries += zxtune_app_base zxtune_app_version

@@ -24,11 +24,9 @@ namespace Strings
   class PreprocessingTemplate : public Template
   {
   public:
-    PreprocessingTemplate(const String& templ, Char beginMark, Char endMark)
-      : BeginMark(beginMark)
-      , EndMark(endMark)
+    explicit PreprocessingTemplate(const String& templ)
     {
-      const std::size_t fieldsAvg = std::count(templ.begin(), templ.end(), beginMark);
+      const std::size_t fieldsAvg = std::count(templ.begin(), templ.end(), FIELD_START);
       FixedStrings.reserve(fieldsAvg);
       Fields.reserve(fieldsAvg);
       Entries.reserve(fieldsAvg * 2);
@@ -47,12 +45,12 @@ namespace Strings
       String::size_type textBegin = 0;
       for (;;)
       {
-        const String::size_type fieldBegin = templ.find(BeginMark, textBegin);
+        const String::size_type fieldBegin = templ.find(FIELD_START, textBegin);
         if (String::npos == fieldBegin)
         {
           break;//no more fields
         }
-        const String::size_type fieldEnd = templ.find(EndMark, fieldBegin);
+        const String::size_type fieldEnd = templ.find(FIELD_END, fieldBegin);
         if (String::npos == fieldEnd)
         {
           break;//invalid syntax
@@ -92,8 +90,6 @@ namespace Strings
       return res;
     }
   private:
-    const Char BeginMark;
-    const Char EndMark;
     Array FixedStrings;
     Array Fields;
     typedef std::pair<std::size_t, bool> PartEntry; //index => isField
@@ -101,13 +97,13 @@ namespace Strings
     PartEntries Entries;
   };
 
-  Template::Ptr Template::Create(const String& templ, Char beginMark, Char endMark)
+  Template::Ptr Template::Create(const String& templ)
   {
-    return Template::Ptr(new PreprocessingTemplate(templ, beginMark, endMark));
+    return Template::Ptr(new PreprocessingTemplate(templ));
   }
 
-  String Template::Instantiate(const String& templ, const FieldsSource& source, Char beginMark, Char endMark)
+  String Template::Instantiate(const String& templ, const FieldsSource& source)
   {
-    return PreprocessingTemplate(templ, beginMark, endMark).Instantiate(source);
+    return PreprocessingTemplate(templ).Instantiate(source);
   }
 }
