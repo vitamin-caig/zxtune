@@ -187,6 +187,7 @@ namespace ZXTune
     {
       const DetectCallbackAdapter callback(detectParams, pluginsParams);
       Module::Detect(location, callback);
+      return;
     }
     throw MakeFormattedError(THIS_LINE,
       translate("Failed to find specified submodule starting from path '%1%'."), startSubpath);
@@ -200,7 +201,10 @@ namespace ZXTune
     }
     if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, subpath))
     {
-      return Module::Open(location);
+      if (const Module::Holder::Ptr res = Module::Open(location))
+      {
+        return res;
+      }
     }
     throw MakeFormattedError(THIS_LINE,
       translate("Failed to find specified submodule starting from path '%1%'."), subpath);

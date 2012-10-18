@@ -25,6 +25,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <l10n/api.h>
+#include <time/duration.h>
 //std includes
 #include <list>
 //boost includes
@@ -122,13 +123,17 @@ namespace
     ~Statistic()
     {
       const Debug::Stream Dbg("Core::RawScaner::Statistic");
-      const std::time_t spent = Timer.Elapsed();
+      typedef Time::Stamp<std::clock_t, CLOCKS_PER_SEC> Stamp;
+      typedef Time::Duration<std::clock_t, Stamp> Duration;
+      const Stamp RESOLUTION(1);
+      const Duration spent = Duration(Timer.Elapsed(), RESOLUTION);
       Dbg("Total processed: %1%", TotalData);
+      Dbg("Time spent: %1%", spent.ToString());
       const uint64_t useful = ArchivedData + ModulesData;
       Dbg("Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
       Dbg("Coverage: %1%%%", useful * 100 / TotalData);
-      Dbg("Speed: %1% b/s", spent ? (TotalData * CLOCKS_PER_SEC / spent) : TotalData);
-      StatisticBuilder<5> builder;
+      Dbg("Speed: %1% b/s", spent.GetCount() ? (TotalData * RESOLUTION.PER_SECOND / spent.GetCount()) : TotalData);
+      StatisticBuilder<7> builder;
       builder.Add(MakeStatLine());
       StatItem total;
       for (DetectMap::const_iterator it = Detection.begin(), lim = Detection.end(); it != lim; ++it)
@@ -155,17 +160,18 @@ namespace
       ModulesData += size;
     }
 
-    void Add(const String& type)
-    {
-      ++Detection[type].Used;
-    }
-
-    void Add(const String& type, const AutoTimer& scanTimer, bool missed)
+    void AddAimed(const String& type, const AutoTimer& scanTimer)
     {
       StatItem& item = Detection[type];
-      ++item.Used;
-      item.Missed += missed;
-      item.TimeInSearch += scanTimer.Elapsed();
+      ++item.Aimed;
+      item.AimedTime += scanTimer.Elapsed();
+    }
+
+    void AddMissed(const String& type, const AutoTimer& scanTimer)
+    {
+      StatItem& item = Detection[type];
+      ++item.Missed;
+      item.MissedTime += scanTimer.Elapsed();
     }
 
     static Statistic& Self()
@@ -176,45 +182,52 @@ namespace
   private:
     struct StatItem
     {
-      std::size_t Used;
+      std::size_t Aimed;
       std::size_t Missed;
-      std::clock_t TimeInSearch;
+      std::clock_t AimedTime;
+      std::clock_t MissedTime;
 
       StatItem()
-        : Used()
+        : Aimed()
         , Missed()
-        , TimeInSearch()
+        , AimedTime()
+        , MissedTime()
       {
       }
 
       StatItem& operator += (const StatItem& rh)
       {
-        Used += rh.Used;
+        Aimed += rh.Aimed;
         Missed += rh.Missed;
-        TimeInSearch += rh.TimeInSearch;
+        AimedTime += rh.AimedTime;
+        MissedTime += rh.MissedTime;
         return *this;
       }
     };
 
-    static boost::array<std::string, 5> MakeStatLine()
+    static boost::array<std::string, 7> MakeStatLine()
     {
-      boost::array<std::string, 5> res;
+      boost::array<std::string, 7> res;
       res[0] = "\nDetector";
-      res[1] = "Missed";
-      res[2] = "Used";
-      res[3] = "Eff,%";
-      res[4] = "Time,ms";
+      res[1] = "Missed detect";
+      res[2] = "Total detect";
+      res[3] = "DEff,%";
+      res[4] = "Missed time,ms";
+      res[5] = "Total time,ms";
+      res[6] = "TEff,%";
       return res;
     }
 
-    static boost::array<std::string, 5> MakeStatLine(const String& id, const StatItem& item)
+    static boost::array<std::string, 7> MakeStatLine(const String& id, const StatItem& item)
     {
-      boost::array<std::string, 5> res;
+      boost::array<std::string, 7> res;
       res[0] = ToStdString(id);
       res[1] = boost::lexical_cast<std::string>(item.Missed);
-      res[2] = boost::lexical_cast<std::string>(item.Used);
-      res[3] = boost::lexical_cast<std::string>(uint64_t(100) * (item.Used - item.Missed) / item.Used);
-      res[4] = boost::lexical_cast<std::string>(item.TimeInSearch * 1000 / CLOCKS_PER_SEC);
+      res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);
+      res[3] = boost::lexical_cast<std::string>(uint64_t(100) * item.Aimed / (item.Aimed + item.Missed));
+      res[4] = boost::lexical_cast<std::string>(item.MissedTime * 1000 / CLOCKS_PER_SEC);
+      res[5] = boost::lexical_cast<std::string>((item.MissedTime + item.AimedTime) * 1000 / CLOCKS_PER_SEC);
+      res[6] = boost::lexical_cast<std::string>(uint64_t(100) * item.AimedTime / (item.AimedTime + item.MissedTime));
       return res;
     }
   private:
@@ -623,19 +636,26 @@ namespace
     {
       for (typename T::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
+        const AutoTimer timer;
         const typename T::Ptr plugin = iter->Get();
         const Analysis::Result::Ptr result = plugin->Detect(input, callback);
         const String id = plugin->GetDescription()->Id();
         if (std::size_t usedSize = result->GetMatchedDataSize())
         {
-          Statistic::Self().Add(id);
+          Statistic::Self().AddAimed(id, timer);
           Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
-        const AutoTimer timer;
-        const std::size_t lookahead = result->GetLookaheadOffset();
-        Statistic::Self().Add(id, timer, 0 == lookahead);
-        container.SetPluginLookahead(id, std::max<std::size_t>(lookahead, SCAN_STEP));
+        if (const std::size_t lookahead = result->GetLookaheadOffset())
+        {
+          Statistic::Self().AddAimed(id, timer);
+          container.SetPluginLookahead(id, lookahead);
+        }
+        else
+        {
+          Statistic::Self().AddMissed(id, timer);
+          container.SetPluginLookahead(id, SCAN_STEP);
+        }
       }
       const std::size_t minLookahead = container.GetMinimalPluginLookahead();
       return Analysis::CreateUnmatchedResult(minLookahead);
