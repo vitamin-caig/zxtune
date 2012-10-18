@@ -1,4 +1,4 @@
-#include <platform/resource.h>
+#include <resource/api.h>
 #include <error.h>
 #include <tools.h>
 #include <fstream>
@@ -33,7 +33,7 @@ namespace
     return tmp;
   }
 
-  class LoadEachFileVisitor : public Platform::Resource::Visitor
+  class LoadEachFileVisitor : public Resource::Visitor
   {
   public:
     LoadEachFileVisitor()
@@ -46,7 +46,7 @@ namespace
     {
       std::cout << "Found resource file " << name << std::endl;
       Test("Test file exists", 1 == Etalons.count(name));
-      const Binary::Container::Ptr data = Platform::Resource::Load(name);
+      const Binary::Container::Ptr data = Resource::Load(name);
       const Dump& ref = Etalons[name];
       Test("Test file is expected", ref.size() == data->Size() && 0 == std::memcmp(&ref[0], data->Start(), ref.size()));
       Etalons.erase(name);
@@ -71,7 +71,7 @@ int main()
   try
   {
     LoadEachFileVisitor visitor;
-    Platform::Resource::Enumerate(visitor);
+    Resource::Enumerate(visitor);
     visitor.CheckEmpty();
   }
   catch (const Error& e)

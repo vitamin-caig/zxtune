@@ -31,18 +31,18 @@ msgstr "Анализ %1% для %2%"
 msgid "%1% processing for %2% at %3%"
 msgstr "Анализ %1% для %2% в %3%"
 
-#: plugins/containers/raw_supp.cpp:260
+#: plugins/containers/raw_supp.cpp:273
 #, boost-format
 msgid "Specified minimal scan size (%1%). Should be more than %2%."
 msgstr ""
 "Неправильный минимальный размер блока для анализа (%1%). Должен быть больше "
 "%2%."
 
-#: plugins/enumerator.cpp:184 plugins/enumerator.cpp:199
+#: plugins/enumerator.cpp:184 plugins/enumerator.cpp:200
 msgid "Invalid parameters specified."
 msgstr "Неправильные параметры."
 
-#: plugins/enumerator.cpp:192 plugins/enumerator.cpp:206
+#: plugins/enumerator.cpp:193 plugins/enumerator.cpp:210
 #, boost-format
 msgid "Failed to find specified submodule starting from path '%1%'."
 msgstr "Модуль не найден при поиске начиная с '%1%'."

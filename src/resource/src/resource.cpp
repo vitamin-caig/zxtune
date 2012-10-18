@@ -17,7 +17,7 @@ Author:
 #include <binary/container_factories.h>
 #include <formats/archived/decoders.h>
 #include <l10n/api.h>
-#include <platform/resource.h>
+#include <resource/api.h>
 #include <platform/tools.h>
 //std includes
 #include <fstream>
@@ -28,8 +28,8 @@ Author:
 
 namespace
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("platform");
-  const Debug::Stream Dbg("Platform");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("resource");
+  const Debug::Stream Dbg("Resource");
 }
 
 namespace
@@ -219,7 +219,7 @@ namespace
       throw MakeFormattedError(THIS_LINE, translate("Failed to load resource file '%1%'."), name);
     }
 
-    void Enumerate(Platform::Resource::Visitor& visitor) const
+    void Enumerate(Resource::Visitor& visitor) const
     {
       ResourceVisitorAdapter adapter(visitor);
       Archive->ExploreFiles(adapter);
@@ -234,7 +234,7 @@ namespace
     class ResourceVisitorAdapter : public Formats::Archived::Container::Walker
     {
     public:
-      explicit ResourceVisitorAdapter(Platform::Resource::Visitor& delegate)
+      explicit ResourceVisitorAdapter(Resource::Visitor& delegate)
         : Delegate(delegate)
       {
       }
@@ -244,25 +244,22 @@ namespace
         return Delegate.OnResource(file.GetName());
       }
     private:
-      Platform::Resource::Visitor& Delegate;
+      Resource::Visitor& Delegate;
     };
   private:
     const Formats::Archived::Container::Ptr Archive;
   };
 }
 
-namespace Platform
+namespace Resource
 {
-  namespace Resource
+  Binary::Container::Ptr Load(const String& name)
   {
-    Binary::Container::Ptr Load(const String& name)
-    {
-      return EmbeddedArchive::Instance().Load(name);
-    }
+    return EmbeddedArchive::Instance().Load(name);
+  }
 
-    void Enumerate(Visitor& visitor)
-    {
-      return EmbeddedArchive::Instance().Enumerate(visitor);
-    }
+  void Enumerate(Visitor& visitor)
+  {
+    return EmbeddedArchive::Instance().Enumerate(visitor);
   }
 }

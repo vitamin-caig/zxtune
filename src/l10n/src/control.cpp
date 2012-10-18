@@ -12,7 +12,7 @@ Author:
 //library includes
 #include <l10n/api.h>
 #include <l10n/control.h>
-#include <platform/resource.h>
+#include <resource/api.h>
 //boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -48,12 +48,12 @@ namespace
 
   Dump LoadResource(const String& name)
   {
-    const Binary::Container::Ptr data = Platform::Resource::Load(name);
+    const Binary::Container::Ptr data = Resource::Load(name);
     const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
     return Dump(begin, begin + data->Size());
   }
 
-  class ResourceFilesVisitor : public Platform::Resource::Visitor
+  class ResourceFilesVisitor : public Resource::Visitor
   {
   public:
     explicit ResourceFilesVisitor(L10n::Library& lib)
@@ -80,6 +80,6 @@ namespace L10n
   void LoadTranslationsFromResources(Library& lib)
   {
     ResourceFilesVisitor visitor(lib);
-    Platform::Resource::Enumerate(visitor);
+    Resource::Enumerate(visitor);
   }
 }
