@@ -15,6 +15,7 @@ Author:
 #include <contract.h>
 #include <tools.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <binary/format.h>
 #include <math/numeric.h>
 //std includes
@@ -318,9 +319,78 @@ namespace
 
 namespace Binary
 {
+  class CompositeFormat : public Format
+  {
+  public:
+    CompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t maxFooterOffset)
+      : Header(header)
+      , Footer(footer)
+      , MaxFooterOffset(maxFooterOffset)
+    {
+    }
+
+    virtual bool Match(const Data& data) const
+    {
+      if (!Header->Match(data))
+      {
+        return false;
+      }
+      const std::size_t limit = std::min(MaxFooterOffset, data.Size());
+      return Footer->Search(DataAdapter(data.Start(), limit)) != limit;
+    }
+
+    virtual std::size_t Search(const Data& data) const
+    {
+      const std::size_t lookup = Header->Search(data);
+      const std::size_t limit = data.Size();
+      if (lookup == limit)
+      {
+        return limit;
+      }
+      const uint8_t* const start = static_cast<const uint8_t*>(data.Start());
+      for (std::size_t offset = lookup;;)
+      {
+        const uint8_t* const footerStart = start + offset;
+        const std::size_t restForFooter = limit - offset;
+        const std::size_t footerOffset = Footer->Search(DataAdapter(footerStart, restForFooter));
+        if (footerOffset == restForFooter)
+        {
+          break;
+        }
+        if (footerOffset < MaxFooterOffset)
+        {
+          return offset;
+        }
+        offset += footerOffset - MaxFooterOffset;
+
+        const uint8_t* const headerStart = start + offset;
+        const std::size_t restForHeader = limit - offset;
+        const std::size_t headerOffset = Header->Search(DataAdapter(headerStart, restForHeader));
+        if (headerOffset == restForHeader)
+        {
+          break;
+        }
+        offset += headerOffset;
+      }
+      return limit;
+    }
+  private:
+    const Format::Ptr Header;
+    const Format::Ptr Footer;
+    const std::size_t MaxFooterOffset;
+  };
+}
+
+namespace Binary
+{
   Format::Ptr Format::Create(const std::string& pattern, std::size_t minSize)
   {
     const Expression::Ptr expr = Expression::Parse(pattern);
     return FastSearchFormat::Create(*expr, minSize);
+  }
+
+  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t maxFooterOffset)
+  {
+    return boost::make_shared<CompositeFormat>(header, footer, maxFooterOffset);
   }
 }

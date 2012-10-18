@@ -167,12 +167,29 @@ namespace
     FormatResult Result;
   };
 
+  const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+
   FormatResult CheckFormat(const std::string& notation)
   {
-    static const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
     try
     {
       const Binary::Format::Ptr format = Binary::Format::Create(notation);
+      const Binary::DataAdapter sample(SAMPLE, ArraySize(SAMPLE));
+      return FormatResult(format->Match(sample), format->Search(sample));
+    }
+    catch (const std::exception&)
+    {
+      return INVALID_FORMAT;
+    }
+  }
+
+  FormatResult CheckCompositeFormat(const std::string& header, const std::string footer, std::size_t minSize, std::size_t maxSize)
+  {
+    try
+    {
+      const Binary::Format::Ptr hdr = Binary::Format::Create(header, minSize);
+      const Binary::Format::Ptr foot = Binary::Format::Create(footer);
+      const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, maxSize);
       const Binary::DataAdapter sample(SAMPLE, ArraySize(SAMPLE));
       return FormatResult(format->Match(sample), format->Search(sample));
     }
@@ -787,7 +804,7 @@ namespace
     }
   };
 
-  void Execute(const FormatTest& tst)
+  void ExecuteTest(const FormatTest& tst)
   {
     std::cout << "Testing for " << tst.Name << " (#" << &tst - TESTS << ')' << std::endl;
     Test("grammar", GetGrammar(tst.Notation), tst.GrammarReport);
@@ -798,13 +815,96 @@ namespace
     Test("match", res.first, tst.Result.first);
     Test("lookahead", res.second, tst.Result.second);
   }
+
+  struct CompositeFormatTest
+  {
+    std::string Name;
+    std::string Header;
+    std::string Footer;
+    std::size_t MinSize;
+    std::size_t MaxFooterOffset;
+    FormatResult Result;
+  };
+
+  const CompositeFormatTest COMPOSITE_TESTS[] =
+  {
+    {
+      "whole matching",
+      "0001", "1e1f",
+      4, 32,
+      FormatResult(true, 0)
+    },
+    {
+      "matched from begin",
+      "0001", "1011",
+      4, 32,
+      FormatResult(true, 0)
+    },
+    {
+      "matched at end",
+      "0203", "1e1f",
+      4, 32,
+      FormatResult(false, 2)
+    },
+    {
+      "matched at middle",
+      "0203", "1011",
+      4, 32,
+      FormatResult(false, 2)
+    },
+    {
+      "not matched header",
+      "0002", "1e1f",
+      4, 32,
+      FormatResult(false, 32)
+    },
+    {
+      "not matched footer",
+      "0001", "1e20",
+      4, 32,
+      FormatResult(false, 32)
+    },
+    {
+      "not matched max footer offset",
+      "0001", "1e1f",
+      4, 29,
+      FormatResult(false, 32)
+    },
+    {
+      "not matched minsize",
+      "0001", "1e1f",
+      33, 33,
+      FormatResult(false, 32)
+    },
+    {
+      "matched with overlap",
+      "0203040506070809", "x8x9",
+      4, 32,
+      FormatResult(false, 2)
+    },
+    {
+      "matched with iterations",
+      "x2x3x4", "1e1f",
+      4, 16,
+      FormatResult(false, 0x12)
+    },
+};
+
+  void ExecuteCompositeTest(const CompositeFormatTest& tst)
+  {
+    std::cout << "Testing for composite format: " << tst.Name << std::endl;
+    const FormatResult res = CheckCompositeFormat(tst.Header, tst.Footer, tst.MinSize, tst.MaxFooterOffset);
+    Test("match", res.first, tst.Result.first);
+    Test("lookahead", res.second, tst.Result.second);
+  }
 }
 
 int main()
 {
   try
   {
-    std::for_each(TESTS, ArrayEnd(TESTS), std::ptr_fun(&Execute));
+    std::for_each(TESTS, ArrayEnd(TESTS), std::ptr_fun(&ExecuteTest));
+    std::for_each(COMPOSITE_TESTS, ArrayEnd(COMPOSITE_TESTS), std::ptr_fun(&ExecuteCompositeTest));
   }
   catch (int code)
   {
