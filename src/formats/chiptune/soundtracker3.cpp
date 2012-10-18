@@ -691,11 +691,11 @@ namespace Chiptune
     }
 
     const std::string FORMAT(
-    "01-0f"       // uint8_t Tempo; 1..15
-    "?00-09"      // uint16_t PositionsOffset;
-    "?00-09"      // uint16_t SamplesOffset;
-    "?00-0b"      // uint16_t OrnamentsOffset;
-    "?01-17"      // uint16_t PatternsOffset;
+    "03-0f"       // uint8_t Tempo; 1..15
+    "?01-08"      // uint16_t PositionsOffset;
+    "?01-08"      // uint16_t SamplesOffset;
+    "?01-0a"      // uint16_t OrnamentsOffset;
+    "?02-16"      // uint16_t PatternsOffset;
     );
 
     class Decoder : public Formats::Chiptune::Decoder

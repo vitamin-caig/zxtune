@@ -1031,14 +1031,15 @@ namespace Chiptune
       return FastCheck(data);
     }
 
+    //Statistic-based format description (~55 modules)
     const std::string FORMAT(
-      "08-9d 00"  //uint16_t PositionsOffset;
-      //0x9d + 7 * MAX_POSITIONS_COUNT = 359
-      "? 00-03"      //uint16_t SamplesOffset;
-      //0x2F9 + MAX_SAMPLES_COUNT * (2 + 2 + 3 * MAX_SAMPLE_SIZE) = 935
-      "? 00-09"       //uint16_t OrnamentsOffset;
-      //0x8d5 + MAX_ORNAMENTS_COUNT * (2 + 2 + MAX_ORNAMENT_SIZE) = d75
-      "? 00-0d" //uint16_t PatternsOffset;
+      "(08-88)&%x0xxxxxx 00"  //uint16_t PositionsOffset;
+      //0x9d + 2 * MAX_POSITIONS_COUNT(0x64) = 0x165
+      "? 00-01"   //uint16_t SamplesOffset;
+      //0x165 + MAX_SAMPLES_COUNT(0xf) * (2 + 2 + 3 * MAX_SAMPLE_SIZE(0x22)) = 0x79b
+      "? 00-02"   //uint16_t OrnamentsOffset;
+      //0x79b + MAX_ORNAMENTS_COUNT(0x20) * (2 + 2 + MAX_ORNAMENT_SIZE(0x22)) = 0xc1b
+      "? 00-03"   //uint16_t PatternsOffset;
     );
 
     class Decoder : public Formats::Chiptune::Decoder

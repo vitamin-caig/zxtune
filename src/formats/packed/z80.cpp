@@ -70,8 +70,10 @@ namespace Z80
     } PACK_POST;
 
     static const String DESCRIPTION;
-    static const std::string FORMAT;
+    static const std::string HEADER;
+    static const std::string FOOTER;
     static const std::size_t MIN_SIZE;
+    static const std::size_t MAX_SIZE;
 
     static Formats::Packed::Container::Ptr Decode(Binary::InputStream& stream);
   };
@@ -170,7 +172,7 @@ namespace Z80
 #endif
 
   const String Version1_45::DESCRIPTION = Text::Z80V145_DECODER_DESCRIPTION;
-  const std::string Version1_45::FORMAT(
+  const std::string Version1_45::HEADER(
     "(\?\?){6}"    //skip registers
     "%001xxxxx"  //take into account only compressed data
     "(\?\?){7}"    //skip registers
@@ -178,9 +180,11 @@ namespace Z80
     "00|01|ff"      //iff2
     "%xxxxxx00|%xxxxxx01|%xxxxxx10" //im3 cannot be
   );
+  const std::string Version1_45::FOOTER("00eded00");
 
   //even if all 48kb are compressed, minimal compressed size is 4 bytes for each 255 sequenced bytes + final marker
   const std::size_t Version1_45::MIN_SIZE = sizeof(Version1_45::Header) + 4 * (49152 / 255) + 4;
+  const std::size_t Version1_45::MAX_SIZE = sizeof(Version1_45::Header) + 49152 + 4;
 
   const String Version2_0::DESCRIPTION = Text::Z80V20_DECODER_DESCRIPTION;
   const std::string Version2_0::FORMAT(
@@ -548,6 +552,11 @@ namespace Formats
       {
       }
 
+      explicit Z80Decoder(Binary::Format::Ptr format)
+        : Format(format)
+      {
+      }
+
       virtual String GetDescription() const
       {
         return Version::DESCRIPTION;
@@ -580,7 +589,10 @@ namespace Formats
 
     Decoder::Ptr CreateZ80V145Decoder()
     {
-      return boost::make_shared<Z80Decoder<Z80::Version1_45> >();
+      const Binary::Format::Ptr header = Binary::Format::Create(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
+      const Binary::Format::Ptr footer = Binary::Format::Create(Z80::Version1_45::FOOTER);
+      const Binary::Format::Ptr format = Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MAX_SIZE - 4);
+      return boost::make_shared<Z80Decoder<Z80::Version1_45> >(format);
     }
 
     Decoder::Ptr CreateZ80V20Decoder()
