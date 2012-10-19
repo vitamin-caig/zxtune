@@ -65,7 +65,7 @@ namespace
       State->Load();
 
       using namespace Parameters;
-      BooleanValue::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING, ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
+      IntegerValue::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING, ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
       BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES, ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
     }
 

@@ -338,21 +338,31 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="359"/>
-        <source>Overwrite</source>
-        <translation>Перезаписывать</translation>
+        <source>Existing files</source>
+        <translation>Существующие файлы</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="362"/>
-        <source>Force to overwrite existing files</source>
-        <translation>Перезаписывать существующие файлы</translation>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="373"/>
+        <source>skip</source>
+        <translation>пропускать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="372"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="378"/>
+        <source>overwrite</source>
+        <translation>перезаписывать</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="383"/>
+        <source>generate new name</source>
+        <translation>создавать новое имя</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="391"/>
         <source>Create path</source>
         <translation>Создавать путь</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="375"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.ui" line="394"/>
         <source>Force to create all intermediate directories of target files</source>
         <translation>Создавать промежуточные директории для файлов результата</translation>
     </message>
