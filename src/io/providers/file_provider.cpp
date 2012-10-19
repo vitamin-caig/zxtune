@@ -379,11 +379,15 @@ namespace IO
   boost::filesystem::path CreateSanitizedPath(const String& fileName)
   {
     const boost::filesystem::path initial(fileName);
+    boost::filesystem::path::const_iterator it = initial.begin(), lim = initial.end();
     boost::filesystem::path result;
-    for (boost::filesystem::path::const_iterator it = initial.begin(), lim = initial.end(); it != lim; ++it)
+    for (const boost::filesystem::path root(initial.root_path()); result != root && it != lim; ++it)
     {
-      const boost::filesystem::path node(*it);
-      const boost::filesystem::path sanitized(SanitizePathComponent(node.string()));
+      result /= *it;
+    }
+    for (; it != lim; ++it)
+    {
+      const boost::filesystem::path sanitized(SanitizePathComponent(it->string()));
       result /= sanitized;
     }
     if (initial != result)

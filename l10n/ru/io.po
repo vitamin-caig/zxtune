@@ -52,20 +52,20 @@ msgstr "Ошибка синхронизации файла '%1%'."
 msgid "Failed to seek file '%1%'"
 msgstr "Ошибка позиционирования файла '%1%'."
 
-#: providers/file_provider.cpp:408
+#: providers/file_provider.cpp:412
 msgid "File already exists."
 msgstr "Файл существует."
 
-#: providers/file_provider.cpp:424
+#: providers/file_provider.cpp:428
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 
-#: providers/file_provider.cpp:473
+#: providers/file_provider.cpp:477
 #, boost-format
 msgid "Failed to open file '%1%'."
 msgstr "Ошибка открытия файла '%1%'."
 
-#: providers/file_provider.cpp:485
+#: providers/file_provider.cpp:489
 #, boost-format
 msgid "Failed to create file '%1%'."
 msgstr "Ошибка создания файла '%1%'."
