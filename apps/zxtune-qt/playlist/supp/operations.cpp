@@ -20,8 +20,7 @@ Author:
 //library includes
 #include <binary/data_adapter.h>
 #include <core/convert_parameters.h>
-#include <io/providers_parameters.h>
-#include <io/providers/file_provider.h>
+#include <io/api.h>
 #include <strings/format.h>
 #include <strings/template.h>
 //std includes
@@ -564,40 +563,6 @@ namespace
   };
 
   // Exporting
-  //cache parameter value
-  class SaveParameters : public IO::FileCreatingParameters
-  {
-  public:
-    explicit SaveParameters(Parameters::Accessor::Ptr params)
-      : OverwriteValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT)
-      , CreateDirectoriesValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT)
-      , SanitizeNamesValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES_DEFAULT)
-    {
-      params->FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteValue);
-      params->FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, CreateDirectoriesValue);
-      params->FindValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, CreateDirectoriesValue);
-    }
-
-    virtual bool Overwrite() const
-    {
-      return OverwriteValue != 0;
-    }
-
-    virtual bool CreateDirectories() const
-    {
-      return CreateDirectoriesValue != 0;
-    }
-
-    virtual bool SanitizeNames() const
-    {
-      return SanitizeNamesValue != 0;
-    }
-  private:
-    Parameters::IntType OverwriteValue;
-    Parameters::IntType CreateDirectoriesValue;
-    Parameters::IntType SanitizeNamesValue;
-  };
-
   class ExportOperation : public Playlist::Item::TextResultOperation
                         , private Playlist::Item::Visitor
   {
@@ -656,13 +621,13 @@ namespace
 
     void Save(const Binary::Data& data, const String& filename) const
     {
-      const Binary::OutputStream::Ptr stream = IO::CreateLocalFile(filename, Params);
+      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, *Params, Log::ProgressCallback::Stub());
       stream->ApplyData(data);
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
     const Strings::Template::Ptr NameTemplate;
-    const SaveParameters Params;
+    const Parameters::Accessor::Ptr Params;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 }

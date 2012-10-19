@@ -22,7 +22,7 @@ Author:
 #include <formats/archived/decoders.h>
 #include <formats/packed/decoders.h>
 #include <io/api.h>
-#include <io/providers/file_provider.h>
+#include <io/providers_parameters.h>
 #include <strings/array.h>
 #include <strings/fields.h>
 #include <strings/format.h>
@@ -376,35 +376,21 @@ namespace Parsing
 
 namespace
 {
-  class SaveParameters : public IO::FileCreatingParameters
-  {
-  public:
-    virtual bool Overwrite() const
-    {
-      return true;
-    }
-
-    virtual bool CreateDirectories() const
-    {
-      return true;
-    }
-
-    virtual bool SanitizeNames() const
-    {
-      return true;
-    }
-  };
-
   class SaveTarget : public Parsing::Target
   {
   public:
+    SaveTarget()
+      : Params(Parameters::Container::Create())
+    {
+      Params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 2);
+    }
+
     virtual void ApplyData(const Parsing::Result::Ptr& result)
     {
       try
       {
-        static const SaveParameters PARAMS;
         const String filePath = result->Name();
-        const Binary::OutputStream::Ptr target = IO::CreateLocalFile(filePath, PARAMS);
+        const Binary::OutputStream::Ptr target = IO::CreateStream(filePath, *Params, Log::ProgressCallback::Stub());
         const Binary::Container::Ptr data = result->Data();
         target->ApplyData(*data);
       }
@@ -417,6 +403,8 @@ namespace
     virtual void Flush()
     {
     }
+  private:
+    const Parameters::Container::Ptr Params;
   };
 
   class StatisticTarget : public Parsing::Target

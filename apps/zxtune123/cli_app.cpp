@@ -22,6 +22,7 @@ Author:
 #include <apps/version/api.h>
 //common includes
 #include <error_tools.h>
+#include <progress_callback.h>
 #include <template_parameters.h>
 //library includes
 #include <async/data_receiver.h>
@@ -30,8 +31,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <io/providers_parameters.h>
-#include <io/providers/file_provider.h>
+#include <io/api.h>
 #include <sound/sound_parameters.h>
 #include <strings/template.h>
 //std includes
@@ -57,30 +57,12 @@ namespace
     return res;
   }
 
-  class SaveParameters : public IO::FileCreatingParameters
-  {
-  public:
-    virtual bool Overwrite() const
-    {
-      return true;
-    }
-
-    virtual bool CreateDirectories() const
-    {
-      return true;
-    }
-
-    virtual bool SanitizeNames() const
-    {
-      return true;
-    }
-  };
-
   class ConvertEndpoint : public DataReceiver<ZXTune::Module::Holder::Ptr>
   {
   public:
-    ConvertEndpoint(DisplayComponent& display, std::auto_ptr<ZXTune::Module::Conversion::Parameter> param, uint_t capMask, Strings::Template::Ptr templ)
+    ConvertEndpoint(DisplayComponent& display, const Parameters::Accessor& params, std::auto_ptr<ZXTune::Module::Conversion::Parameter> param, uint_t capMask, Strings::Template::Ptr templ)
       : Display(display)
+      , Params(params)
       , ConversionParameter(param)
       , CapabilityMask(capMask)
       , FileNameTemplate(templ)
@@ -89,7 +71,6 @@ namespace
 
     virtual void ApplyData(const ZXTune::Module::Holder::Ptr& holder)
     {
-      static SaveParameters SAVE_PARAMS;
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       const String id = GetModuleId(*props);
       {
@@ -103,7 +84,7 @@ namespace
       const Binary::Data::Ptr result = holder->Convert(*ConversionParameter, props);
       //prepare result filename
       const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
-      const Binary::OutputStream::Ptr stream = IO::CreateLocalFile(filename, SAVE_PARAMS);
+      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
       stream->ApplyData(*result);
       Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
     }
@@ -113,6 +94,7 @@ namespace
     }
   private:
     DisplayComponent& Display;
+    const Parameters::Accessor& Params;
     const std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
     const uint_t CapabilityMask;
     const Strings::Template::Ptr FileNameTemplate;
@@ -179,7 +161,7 @@ namespace
         throw Error(THIS_LINE, Text::CONVERT_ERROR_INVALID_MODE);
       }
 
-      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, param, mask, Strings::Template::Create(nameTemplate)));
+      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, params, param, mask, Strings::Template::Create(nameTemplate)));
       Pipe = Async::DataReceiver<ZXTune::Module::Holder::Ptr>::Create(1, 1000, target);
     }
 
