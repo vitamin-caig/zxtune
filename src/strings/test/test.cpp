@@ -1,4 +1,5 @@
 #include <strings/fields.h>
+#include <strings/fields_filter.h>
 #include <strings/map.h>
 #include <strings/template.h>
 
@@ -24,10 +25,8 @@ namespace
     const Strings::Map& Map;
   };
   
-  template<class Policy>
-  void TestTemplate(const String& templ, const Strings::Map& params, const String& reference)
+  void TestTemplate(const Strings::FieldsSource& source, const String& templ, const String& reference)
   {
-    const FieldsSourceFromMap<Policy> source(params);
     const String res = Strings::Template::Instantiate(templ, source);
     if (res == reference)
     {
@@ -38,6 +37,13 @@ namespace
       std::cout << "Failed test for '" << templ << "' (result is '" << res << "')" << std::endl;
       throw 1;
     }
+  }
+
+  template<class Policy>
+  void TestTemplate(const String& templ, const Strings::Map& params, const String& reference)
+  {
+    const FieldsSourceFromMap<Policy> source(params);
+    TestTemplate(source, templ, reference);
   }
 }
 
@@ -60,6 +66,11 @@ int main()
       TestTemplate<Strings::SkipFieldsSource>("syntax error [name test", params, "syntax error [name test");
       TestTemplate<Strings::SkipFieldsSource>("[name] at the beginning", params, "value at the beginning");
       TestTemplate<Strings::SkipFieldsSource>("at the end [name]", params, "at the end value");
+      const FieldsSourceFromMap<Strings::SkipFieldsSource> source(params);
+      const Strings::FilterFieldsSource replaceToChar(source, "abcde", '%');
+      TestTemplate(replaceToChar, "Replace bunch of symbols to single in [name] and [value]", "Replace bunch of symbols to single in v%lu% and n%m%");
+      const Strings::FilterFieldsSource replaceToCharsSet(source, "abcde", "ABCDE");
+      TestTemplate(replaceToCharsSet, "Replace bunch of symbols to multiple in [name] and [value]", "Replace bunch of symbols to multiple in vAluE and nAmE");
     }
   }
   catch (int code)
