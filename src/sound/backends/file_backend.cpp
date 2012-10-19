@@ -13,12 +13,13 @@ Author:
 #include "file_backend.h"
 //common includes
 #include <debug_log.h>
+#include <progress_callback.h>
 #include <template_parameters.h>
 //library includes
 #include <async/data_receiver.h>
 #include <core/module_attrs.h>
+#include <io/api.h>
 #include <io/providers_parameters.h>
-#include <io/providers/file_provider.h>
 #include <l10n/api.h>
 #include <sound/backends_parameters.h>
 #include <strings/template.h>
@@ -39,9 +40,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace Sound;
-
-  const Char FILENAME_PARAM[] = {'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'};
-  const Char OVERWRITE_PARAM[] = {'o', 'v', 'e', 'r', 'w', 'r', 'i', 't', 'e', '\0'};
 
   const Char COMMON_FILE_BACKEND_ID[] = {'f', 'i', 'l', 'e', '\0'};
 
@@ -133,7 +131,7 @@ namespace
     mutable String Result;
   };
 
-  class FileParameters : public IO::FileCreatingParameters
+  class FileParameters
   {
   public:
     FileParameters(Parameters::Accessor::Ptr params, const String& id)
@@ -164,27 +162,6 @@ namespace
     {
       const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS.Name());
       return static_cast<uint_t>(intParam);
-    }
-
-    virtual bool Overwrite() const
-    {
-      Parameters::IntType intParam = Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, intParam);
-      return intParam != 0;
-    }
-
-    virtual bool CreateDirectories() const
-    {
-      Parameters::IntType intParam = Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, intParam);
-      return intParam != 0;
-    }
-
-    virtual bool SanitizeNames() const
-    {
-      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, intVal);
-      return intVal != 0;
     }
   private:
     template<class T>
@@ -225,10 +202,11 @@ namespace
   {
   public:
     StreamSource(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory, Parameters::Accessor::Ptr properties)
-      : Params(params, factory->GetId())
+      : Params(params)
+      , FileParams(params, factory->GetId())
       , Factory(factory)
       , Properties(properties)
-      , FilenameTemplate(InstantiateModuleFields(Params.GetFilenameTemplate(), *properties))
+      , FilenameTemplate(InstantiateModuleFields(FileParams.GetFilenameTemplate(), *properties))
     {
     }
 
@@ -237,12 +215,11 @@ namespace
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
       {
-        //TODO: use most common API to create stream
-        const Binary::OutputStream::Ptr stream = IO::CreateLocalFile(newFilename, Params);
+        const Binary::OutputStream::Ptr stream = IO::CreateStream(newFilename, *Params, Log::ProgressCallback::Stub());
         Filename = newFilename;
         const FileStream::Ptr result = Factory->CreateStream(stream);
         SetProperties(*result);
-        if (const uint_t buffers = Params.GetBuffersCount())
+        if (const uint_t buffers = FileParams.GetBuffersCount())
         {
           return Async::DataReceiver<ChunkPtr>::Create(1, buffers, result);
         }
@@ -276,7 +253,8 @@ namespace
       stream.FlushMetadata();
     }
   private:
-    const FileParameters Params;
+    const Parameters::Accessor::Ptr Params;
+    const FileParameters FileParams;
     const FileStreamFactory::Ptr Factory;
     const Parameters::Accessor::Ptr Properties;
     const TrackStateTemplate FilenameTemplate;

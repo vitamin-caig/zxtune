@@ -16,11 +16,12 @@ msgstr ""
 msgid "Failed to resolve uri '%1%'."
 msgstr "Ошибка анализа идентификатора '%1%'."
 
-#: providers/enumerator.cpp:82 providers/enumerator.cpp:147
+#: providers/enumerator.cpp:82 providers/enumerator.cpp:97
+#: providers/enumerator.cpp:162 providers/enumerator.cpp:167
 msgid "Specified uri scheme is not supported."
 msgstr "Данная схема идентификатора не поддерживается."
 
-#: providers/enumerator.cpp:191
+#: providers/enumerator.cpp:216
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
@@ -52,20 +53,20 @@ msgstr "Ошибка синхронизации файла '%1%'."
 msgid "Failed to seek file '%1%'"
 msgstr "Ошибка позиционирования файла '%1%'."
 
-#: providers/file_provider.cpp:412
+#: providers/file_provider.cpp:415
 msgid "File already exists."
 msgstr "Файл существует."
 
-#: providers/file_provider.cpp:428
+#: providers/file_provider.cpp:447
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 
-#: providers/file_provider.cpp:477
+#: providers/file_provider.cpp:502
 #, boost-format
 msgid "Failed to open file '%1%'."
 msgstr "Ошибка открытия файла '%1%'."
 
-#: providers/file_provider.cpp:489
+#: providers/file_provider.cpp:514
 #, boost-format
 msgid "Failed to create file '%1%'."
 msgstr "Ошибка создания файла '%1%'."
@@ -88,3 +89,7 @@ msgstr "Поддержка доступа к сетевым файлам"
 #, boost-format
 msgid "Failed to open network resource '%1%'."
 msgstr "Ошибка открытия сетевого ресурса '%1%'."
+
+#: providers/network_provider.cpp:361
+msgid "Not supported."
+msgstr "Не поддерживается."

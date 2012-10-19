@@ -13,6 +13,7 @@
 
 //library includes
 #include <binary/container.h>
+#include <binary/output_stream.h>
 #include <io/identifier.h>
 
 //forward declarations
@@ -40,6 +41,12 @@ namespace IO
   //! @param cb Callback for long-time controllable operations
   //! @throw Error if failed to open
   Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb);
+
+  //! @brief Performs creating output stream with specified path
+  //! @param path Data identifier
+  //! @param %Parameters accessor
+  //! @param cb Callback for long-time operations
+  Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb);
 }
 
 #endif //IO_API_H_DEFINED

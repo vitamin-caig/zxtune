@@ -26,12 +26,19 @@ namespace IO
 {
   Binary::Data::Ptr OpenLocalFile(const String& path, std::size_t mmapThreshold);
 
+  enum OverwriteMode
+  {
+    STOP_IF_EXISTS,
+    OVERWRITE_EXISTING,
+    RENAME_NEW
+  };
+
   class FileCreatingParameters
   {
   public:
     virtual ~FileCreatingParameters() {}
 
-    virtual bool Overwrite() const = 0;
+    virtual OverwriteMode Overwrite() const = 0;
     virtual bool CreateDirectories() const = 0;
     virtual bool SanitizeNames() const = 0;
   };

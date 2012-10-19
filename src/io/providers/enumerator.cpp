@@ -82,6 +82,21 @@ namespace IO
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
+    virtual Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
+    {
+      Dbg("Creating stream '%1%'", path);
+      if (Identifier::Ptr id = Resolve(path))
+      {
+        if (const DataProvider* provider = FindProvider(id->Scheme()))
+        {
+          Dbg(" Used provider '%1%'", provider->Id());
+          return provider->Create(id->Path(), params, cb);
+        }
+      }
+      Dbg(" No suitable provider found");
+      throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
+    }
+
     virtual Provider::Iterator::Ptr Enumerate() const
     {
       return Provider::Iterator::Ptr(new RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr>(Providers.begin(), Providers.end()));
@@ -147,6 +162,11 @@ namespace IO
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
+    virtual Binary::OutputStream::Ptr Create(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const
+    {
+      throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
+    }
+
     virtual Strings::Set Schemes() const
     {
       return Strings::Set();
@@ -179,6 +199,11 @@ namespace IO
   Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
   {
     return ProvidersEnumerator::Instance().OpenData(path, params, cb);
+  }
+
+  Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
+  {
+    return ProvidersEnumerator::Instance().CreateStream(path, params, cb);
   }
 
   Provider::Iterator::Ptr EnumerateProviders()

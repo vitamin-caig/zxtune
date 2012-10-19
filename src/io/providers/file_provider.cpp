@@ -97,11 +97,11 @@ namespace IO
       return static_cast<std::size_t>(intVal);
     }
 
-    virtual bool Overwrite() const
+    virtual OverwriteMode Overwrite() const
     {
       Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT;
       Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, intVal);
-      return intVal != 0;
+      return static_cast<OverwriteMode>(intVal);
     }
 
     virtual bool CreateDirectories() const
@@ -399,7 +399,7 @@ namespace IO
 
   Binary::SeekableOutputStream::Ptr CreateFileStream(const String& fileName, const FileCreatingParameters& params)
   {
-    const boost::filesystem::path path = params.SanitizeNames()
+    boost::filesystem::path path = params.SanitizeNames()
       ? CreateSanitizedPath(fileName)
       : boost::filesystem::path(fileName);
 
@@ -407,9 +407,28 @@ namespace IO
     {
       CreateDirectoryRecursive(path.parent_path());
     }
-    if (!params.Overwrite() && IsExists(path))
+    switch (params.Overwrite())
     {
-      throw Error(THIS_LINE, translate("File already exists."));
+    case STOP_IF_EXISTS:
+      if (IsExists(path))
+      {
+        throw Error(THIS_LINE, translate("File already exists."));
+      }
+      break;
+    case RENAME_NEW:
+      {
+        const std::string oldFilename = path.filename().string();
+        for (uint_t idx = 1; IsExists(path); ++idx)
+        {
+          const std::string newFilename = (boost::format("%1% (%2%)") % oldFilename % idx).str();
+          path.remove_filename();
+          path /= newFilename;
+        }
+      }
+    case OVERWRITE_EXISTING:
+      break;
+    default:
+      Require(false);
     }
     return boost::make_shared<OutputFileStream>(path);
   }
@@ -460,6 +479,12 @@ namespace IO
     {
       const FileProviderParameters parameters(params);
       return Binary::CreateContainer(OpenLocalFile(path, parameters.MemoryMappingThreshold()));
+    }
+
+    virtual Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback&) const
+    {
+      const FileProviderParameters parameters(params);
+      return CreateLocalFile(path, parameters);
     }
   };
 }

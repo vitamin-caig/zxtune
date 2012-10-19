@@ -1,4 +1,4 @@
-#include <src/io/provider.h>
+#include <src/io/api.h>
 #include <src/io/providers_parameters.h>
 #include <src/io/providers/file_provider.h>
 
@@ -8,40 +8,12 @@
 #include <iostream>
 #include <limits>
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  Binary::OutputStream::Ptr CreateStream(const String& name, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/)
   {
-    class LocalFileParameters : public FileCreatingParameters
-    {
-    public:
-      explicit LocalFileParameters(const Parameters::Accessor& params)
-        : Params(params)
-      {
-      }
-
-      virtual bool Overwrite() const
-      {
-        Parameters::IntType intParam = Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT;
-        Params.FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, intParam);
-        return intParam != 0;
-      }
-
-      virtual bool CreateDirectories() const
-      {
-        Parameters::IntType intParam = Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT;
-        Params.FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, intParam);
-        return intParam != 0;
-      }
-    private:
-      const Parameters::Accessor& Params;
-    };
-
-    Binary::OutputStream::Ptr CreateStream(const String& name, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/)
-    {
-      const LocalFileParameters localParams(params);
-      return CreateLocalFile(name, localParams);
-    }
+    const std::auto_ptr<const FileCreatingParameters> localParams = CreateFileCreatingParameters(params);
+    return CreateLocalFile(name, *localParams);
   }
 }
 
@@ -52,9 +24,11 @@ namespace
 #ifdef _WIN32
   const char LOCKED_FILE[] = "C:\\pagefile.sys";
   const char FOLDER[] = "C:\\windows";
+  const char INVALID_NAME[] = "COM1";
 #else
   const char LOCKED_FILE[] = "/etc/shadow";
   const char FOLDER[] = "/bin";
+  const char INVALID_NAME[] = "Invalid?Name!";
 #endif
   const char EMPTY_FILE[] = "empty";
   
@@ -89,7 +63,7 @@ namespace
   {
     try
     {
-      ZXTune::IO::OpenData(name, params, Log::ProgressCallback::Stub());
+      IO::OpenData(name, params, Log::ProgressCallback::Stub());
       return Error();
     }
     catch (const Error& e)
@@ -102,7 +76,7 @@ namespace
   {
     try
     {
-      ZXTune::IO::CreateStream(name, params, Log::ProgressCallback::Stub());
+      IO::CreateStream(name, params, Log::ProgressCallback::Stub());
       return Error();
     }
     catch (const Error& e)
@@ -116,7 +90,7 @@ int main()
 {
   try
   {
-    using namespace ZXTune::IO;
+    using namespace IO;
     std::cout << "------ test for openers --------\n";
     Parameters::Container::Ptr params = Parameters::Container::Create();
     params->SetValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, std::numeric_limits<int64_t>::max());//set always buffered
@@ -133,7 +107,7 @@ int main()
     CheckError(OpenData(EMPTY_FILE, *params), "Open empty file in shared mode", __LINE__);
     std::cout << "------ test for creators ---------\n";
     params->SetValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, 0);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 0);
+    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, STOP_IF_EXISTS);
     const String fileName = "file1";
     const String folder = "folder1";
     const String nestedFile = folder + '/' + "folder2" + '/' + "file2";
@@ -144,11 +118,27 @@ int main()
     Test(CreateData(nestedFile, *params), "Create file with intermediate dirs", __LINE__);
     CheckError(CreateData(nestedFile, *params), "Create existing non-overwritable file with intermediate dirs", __LINE__);
     CheckError(CreateData(folder, *params), "Create file as existing folder", __LINE__);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 1);
+    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OVERWRITE_EXISTING);
     Test(CreateData(fileName, *params), "Overwrite file", __LINE__);
     Test(CreateData(nestedFile, *params), "Overwrite file with intermediate dirs", __LINE__);
+    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, RENAME_NEW);
+    for (uint_t retry = 0; retry != 3; ++retry)
+    {
+      Test(CreateData(fileName, *params), "Renamed new file file step", __LINE__);
+      Test(CreateData(nestedFile, *params), "Renamed file with intermediate dirs", __LINE__);
+    }
     const String dirOnFile = fileName + '/' + "file3";
     CheckError(CreateData(dirOnFile, *params), "Create file nested to file", __LINE__);
+    {
+      params->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 0);
+      params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, STOP_IF_EXISTS);
+      CheckError(CreateData(INVALID_NAME, *params), "Create file with invalid name", __LINE__);
+      params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OVERWRITE_EXISTING);
+      CheckError(CreateData(INVALID_NAME, *params), "Overwrite file with invalid name", __LINE__);
+      params->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 1);
+      Test(CreateData(INVALID_NAME, *params), "Create file with invalid name (sanitized)", __LINE__);
+      Test(CreateData(INVALID_NAME, *params), "Create file with the same invalid name (sanitized)", __LINE__);
+    }
   }
   catch (const Error& e)
   {

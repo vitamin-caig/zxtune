@@ -29,6 +29,7 @@ namespace IO
     virtual Strings::Set Schemes() const = 0;
     virtual Identifier::Ptr Resolve(const String& uri) const = 0;
     virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& parameters, Log::ProgressCallback& callback) const = 0;
+    virtual Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& callback) const = 0;
   };
 
   // internal enumerator interface
@@ -42,6 +43,8 @@ namespace IO
     virtual Identifier::Ptr ResolveUri(const String& uri) const = 0;
 
     virtual Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const = 0;
+
+    virtual Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const = 0;
 
     virtual Provider::Iterator::Ptr Enumerate() const = 0;
 

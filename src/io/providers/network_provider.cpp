@@ -355,6 +355,11 @@ namespace IO
         throw MakeFormattedError(THIS_LINE, translate("Failed to open network resource '%1%'."), path).AddSuberror(e);
       }
     }
+
+    virtual Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback&) const
+    {
+      throw Error(THIS_LINE, translate("Not supported."));
+    }
   private:
     const Curl::Api::Ptr Api;
     const Strings::Set SupportedSchemes;
