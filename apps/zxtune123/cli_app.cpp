@@ -32,8 +32,8 @@ Author:
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/api.h>
+#include <io/template.h>
 #include <sound/sound_parameters.h>
-#include <strings/template.h>
 //std includes
 #include <algorithm>
 #include <cctype>
@@ -160,8 +160,8 @@ namespace
       {
         throw Error(THIS_LINE, Text::CONVERT_ERROR_INVALID_MODE);
       }
-
-      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, params, param, mask, Strings::Template::Create(nameTemplate)));
+      Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
+      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, params, param, mask, templ));
       Pipe = Async::DataReceiver<ZXTune::Module::Holder::Ptr>::Create(1, 1000, target);
     }
 

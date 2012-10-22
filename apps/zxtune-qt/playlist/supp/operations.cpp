@@ -21,8 +21,7 @@ Author:
 #include <binary/data_adapter.h>
 #include <core/convert_parameters.h>
 #include <io/api.h>
-#include <strings/format.h>
-#include <strings/template.h>
+#include <io/template.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -569,7 +568,7 @@ namespace
   public:
     ExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems()
-      , NameTemplate(Strings::Template::Create(nameTemplate))
+      , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
       , Params(params)
       , Result(result)
     {
@@ -577,7 +576,7 @@ namespace
 
     ExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems(items)
-      , NameTemplate(Strings::Template::Create(nameTemplate))
+      , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
       , Params(params)
       , Result(result)
     {

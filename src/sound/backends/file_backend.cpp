@@ -20,9 +20,9 @@ Author:
 #include <core/module_attrs.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
+#include <io/template.h>
 #include <l10n/api.h>
 #include <sound/backends_parameters.h>
-#include <strings/template.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -193,7 +193,8 @@ namespace
   {
     Dbg("Original filename template: '%1%'", nameTemplate);
     const Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource> moduleFields(props);
-    const String nameTemplateWithRuntimeFields = Strings::Template::Instantiate(nameTemplate, moduleFields);
+    const Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
+    const String nameTemplateWithRuntimeFields = templ->Instantiate(moduleFields);
     Dbg("Fixed filename template: '%1%'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;
   }
