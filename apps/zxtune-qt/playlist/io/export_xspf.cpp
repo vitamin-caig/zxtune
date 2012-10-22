@@ -230,6 +230,7 @@ namespace
         name != ZXTune::Module::ATTR_FULLPATH &&
         name != ZXTune::Module::ATTR_PATH &&
         name != ZXTune::Module::ATTR_FILENAME &&
+        name != ZXTune::Module::ATTR_EXTENSION &&
         name != ZXTune::Module::ATTR_SUBPATH &&
         //skip existing properties
         name != ZXTune::Module::ATTR_AUTHOR &&
