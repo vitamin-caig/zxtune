@@ -25,7 +25,7 @@ Author:
 #include <core/module_detect.h>
 #include <core/module_holder.h>
 #include <core/module_player.h>
-#include <io/provider.h>
+#include <io/api.h>
 #include <sound/mixer.h>
 #include <sound/sound_parameters.h>
 //std includes
@@ -178,6 +178,7 @@ namespace
       return CreateMixer(MIXER4, chans);
     default:
       Require(!"Unsupported channels count");
+      return ZXTune::Sound::Mixer::Ptr();
     }
   }
 
@@ -290,9 +291,9 @@ ZXTuneHandle ZXTune_OpenData(const char* filename, const char** subname)
   try
   {
     const String uri(filename);
-    const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(uri);
+    const IO::Identifier::Ptr id = IO::ResolveUri(uri);
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
-    const Binary::Container::Ptr result = ZXTune::IO::OpenData(id->Path(), *params, Log::ProgressCallback::Stub());
+    const Binary::Container::Ptr result = IO::OpenData(id->Path(), *params, Log::ProgressCallback::Stub());
     Require(result->Size() != 0);
     if (subname)
     {

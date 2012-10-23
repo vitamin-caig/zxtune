@@ -1,9 +1,10 @@
 #include <error_tools.h>
 #include <progress_callback.h>
 #include <template_parameters.h>
+#include <binary/container_factories.h>
 #include <core/module_detect.h>
 #include <core/module_holder.h>
-#include <io/provider.h>
+#include <io/api.h>
 #include <iostream>
 
 namespace
@@ -12,12 +13,11 @@ namespace
 
   Module::Holder::Ptr OpenModuleByPath(const String& fullPath)
   {
-    const Parameters::Accessor::Ptr emptyParams = Parameters::Container::Create();
+    const Parameters::Container::Ptr emptyParams = Parameters::Container::Create();
     const String filename = fullPath;//TODO: split if required
     const String subpath = String();
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
-    Module::Holder::Ptr module;
-    ThrowIfError(OpenModule(emptyParams, data, subpath, module));
+    const Module::Holder::Ptr module = OpenModule(emptyParams, data, subpath);
     return module;
   }
 
@@ -42,8 +42,8 @@ namespace
       "[Comment]\n"
     ;
    
-    const Parameters::FieldsSourceAdapter<SkipFieldsSource> fields(props);
-    std::cout << InstantiateTemplate(TEMPLATE, fields) << std::endl;
+    const Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> fields(props);
+    std::cout << Strings::Template::Instantiate(TEMPLATE, fields) << std::endl;
   }
 
   void ShowModuleProperties(const Module::Holder& module)
@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
   }
   catch (const Error& e)
   {
-    return e.GetCode();
+    std::cout << e.ToString() << std::endl;
+    return -1;
   }
 }

@@ -2,8 +2,8 @@ dynamic_name := zxtune
 path_step := ../..
 source_dirs := src
 
-libraries := analysis binary core devices formats io l10n_stub platform sound tools zxtune_app_version
-depends := src/analysis src/binary src/core src/devices src/formats src/io src/l10n/stub src/platform src/sound src/tools apps/version
+libraries := analysis binary core devices formats_archived formats_packed formats_chiptune io l10n_stub platform sound strings tools zxtune_app_version
+depends := $(addprefix src/,analysis binary core devices formats/archived formats/packed formats/chiptune io l10n/stub platform sound strings tools) apps/version
 
 #3rdparty
 libraries += lhasa z z80ex
