@@ -224,11 +224,23 @@ namespace
       res[0] = ToStdString(id);
       res[1] = boost::lexical_cast<std::string>(item.Missed);
       res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);
-      res[3] = boost::lexical_cast<std::string>(uint64_t(100) * item.Aimed / (item.Aimed + item.Missed));
+      res[3] = boost::lexical_cast<std::string>(Percent(item.Aimed, item.Missed));
       res[4] = boost::lexical_cast<std::string>(item.MissedTime * 1000 / CLOCKS_PER_SEC);
       res[5] = boost::lexical_cast<std::string>((item.MissedTime + item.AimedTime) * 1000 / CLOCKS_PER_SEC);
-      res[6] = boost::lexical_cast<std::string>(uint64_t(100) * item.AimedTime / (item.AimedTime + item.MissedTime));
+      res[6] = boost::lexical_cast<std::string>(Percent(item.AimedTime, item.MissedTime));
       return res;
+    }
+
+    static uint_t Percent(uint_t aimed, uint_t missed)
+    {
+      if (const uint_t total = aimed + missed)
+      {
+        return static_cast<uint_t>(uint64_t(100) * aimed / total);
+      }
+      else
+      {
+        return 0;
+      }
     }
   private:
     const AutoTimer Timer;

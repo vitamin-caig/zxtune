@@ -23,7 +23,7 @@ namespace IO
   namespace Details
   {
     //to distinguish difference between boost::filesystem v2 and v3
-    inline String ToString(const boost::filesystem::path::string_type& str)
+    inline boost::filesystem::path::string_type ToString(const boost::filesystem::path::string_type& str)
     {
       return str;
     }

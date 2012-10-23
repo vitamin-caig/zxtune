@@ -43,11 +43,13 @@ namespace IO
 
       const boost::filesystem::path path(val);
       const boost::filesystem::path root(path.root_directory());
+      const boost::filesystem::path thisDir(".");
+      const boost::filesystem::path parentDir("..");
       Strings::Array res;
       for (boost::filesystem::path::const_iterator it = path.begin(), lim = path.end(); it != lim; ++it)
       {
         //root directory is usually mentioned while iterations. For windows-based platforms it can be placed not on the first position
-        if (*it != root)
+        if (*it != root && *it != thisDir && *it != parentDir)
         {
           res.push_back(Details::ToString(*it));
         }
