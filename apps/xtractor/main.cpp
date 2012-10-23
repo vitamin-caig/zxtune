@@ -23,6 +23,7 @@ Author:
 #include <formats/packed/decoders.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
+#include <io/impl/boost_filesystem_path.h>
 #include <strings/array.h>
 #include <strings/fields.h>
 #include <strings/format.h>
@@ -1012,12 +1013,17 @@ namespace
       }
       else if (fieldName == Text::TEMPLATE_FIELD_FLATPATH)
       {
+        //TODO: use IO::FilenameTemplate
         const IO::Identifier& id = GetRootIdentifier();
         const boost::filesystem::path path(id.Path());
+        const boost::filesystem::path root(path.root_directory());
         Strings::Array components;
         for (boost::filesystem::path::const_iterator it = path.begin(), lim = path.end(); it != lim; ++it)
         {
-          components.push_back(it->string());
+          if (*it != root)
+          {
+            components.push_back(IO::Details::ToString(*it));
+          }
         }
         return boost::algorithm::join(components, FLATPATH_DELIMITER);
       }

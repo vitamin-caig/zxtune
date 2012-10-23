@@ -25,48 +25,48 @@ msgstr "Данная схема идентификатора не поддерж
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
-#: providers/file_provider.cpp:234
+#: providers/file_provider.cpp:235
 #, boost-format
 msgid "Failed to read %1% bytes. Actually got %2% bytes."
 msgstr "Ошибка чтения %1% байт. Прочитано %2%."
 
-#: providers/file_provider.cpp:296
+#: providers/file_provider.cpp:297
 msgid "File is empty."
 msgstr "Файл пуст."
 
-#: providers/file_provider.cpp:320
+#: providers/file_provider.cpp:321
 msgid "Failed to open file."
 msgstr "Ошибка открытия файла."
 
-#: providers/file_provider.cpp:328
+#: providers/file_provider.cpp:329
 #, boost-format
 msgid "Failed to write file '%1%'"
 msgstr "Ошибка записи файла '%1%'."
 
-#: providers/file_provider.cpp:336
+#: providers/file_provider.cpp:337
 #, boost-format
 msgid "Failed to flush file '%1%'"
 msgstr "Ошибка синхронизации файла '%1%'."
 
-#: providers/file_provider.cpp:344
+#: providers/file_provider.cpp:345
 #, boost-format
 msgid "Failed to seek file '%1%'"
 msgstr "Ошибка позиционирования файла '%1%'."
 
-#: providers/file_provider.cpp:415
+#: providers/file_provider.cpp:416
 msgid "File already exists."
 msgstr "Файл существует."
 
-#: providers/file_provider.cpp:447
+#: providers/file_provider.cpp:448
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 
-#: providers/file_provider.cpp:502
+#: providers/file_provider.cpp:503
 #, boost-format
 msgid "Failed to open file '%1%'."
 msgstr "Ошибка открытия файла '%1%'."
 
-#: providers/file_provider.cpp:514
+#: providers/file_provider.cpp:515
 #, boost-format
 msgid "Failed to create file '%1%'."
 msgstr "Ошибка создания файла '%1%'."

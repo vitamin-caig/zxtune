@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "enumerator.h"
 #include "file_provider.h"
+#include <io/impl/boost_filesystem_path.h>
 //common includes
 #include <contract.h>
 #include <debug_log.h>
@@ -149,17 +150,17 @@ namespace IO
 
     virtual String Path() const
     {
-      return PathValue.string();
+      return IO::Details::ToString(PathValue.string());
     }
 
     virtual String Filename() const
     {
-      return PathValue.filename().string();
+      return IO::Details::ToString(PathValue.filename());
     }
 
     virtual String Extension() const
     {
-      const String result = PathValue.extension().string();
+      const String result = IO::Details::ToString(PathValue.extension());
       return result.empty()
         ? result
         : result.substr(1);//skip initial dot
@@ -387,7 +388,7 @@ namespace IO
     }
     for (; it != lim; ++it)
     {
-      const boost::filesystem::path sanitized(SanitizePathComponent(it->string()));
+      const boost::filesystem::path sanitized(SanitizePathComponent(IO::Details::ToString(*it)));
       result /= sanitized;
     }
     if (initial != result)
@@ -417,7 +418,7 @@ namespace IO
       break;
     case RENAME_NEW:
       {
-        const std::string oldFilename = path.filename().string();
+        const std::string oldFilename = IO::Details::ToString(path.filename());
         for (uint_t idx = 1; IsExists(path); ++idx)
         {
           const std::string newFilename = (boost::format("%1% (%2%)") % oldFilename % idx).str();

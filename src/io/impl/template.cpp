@@ -9,6 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
+#include "boost_filesystem_path.h"
 //library includes
 #include <io/template.h>
 #include <strings/array.h>
@@ -47,7 +49,7 @@ namespace IO
         //root directory is usually mentioned while iterations. For windows-based platforms it can be placed not on the first position
         if (*it != root)
         {
-          res.push_back(it->string());
+          res.push_back(Details::ToString(*it));
         }
       }
       return boost::algorithm::join(res, DELIMITER);
