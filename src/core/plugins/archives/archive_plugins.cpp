@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "archive_supp_common.h"
 #include "plugins_list.h"
-#include <core/plugins/registrator.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed/decoders.h>
@@ -33,6 +32,7 @@ namespace
 
   const ArchivePluginDescription PLUGINS[] =
   {
+    //archives
     {"HOBETA",   &CreateHobetaDecoder,                   CAP_STOR_CONTAINER | CAP_STOR_PLAIN},
     {"HRUST1",   &CreateHrust1Decoder,                   CAP_STOR_CONTAINER},
     {"HRUST2",   &CreateHrust21Decoder,                  CAP_STOR_CONTAINER},
@@ -62,13 +62,22 @@ namespace
     {"Z80V145",  &CreateZ80V145Decoder ,                 CAP_STOR_CONTAINER},
     {"Z80V20",   &CreateZ80V20Decoder,                   CAP_STOR_CONTAINER},
     {"Z80V30",   &CreateZ80V30Decoder,                   CAP_STOR_CONTAINER},
-    {"MEGALZ",   &CreateMegaLZDecoder,                   CAP_STOR_CONTAINER}
+    {"MEGALZ",   &CreateMegaLZDecoder,                   CAP_STOR_CONTAINER},
+    //players
+    {"COMPILEDASC0", &CreateCompiledASC0Decoder, CAP_STOR_CONTAINER},
+    {"COMPILEDASC1", &CreateCompiledASC1Decoder, CAP_STOR_CONTAINER},
+    {"COMPILEDASC2", &CreateCompiledASC2Decoder, CAP_STOR_CONTAINER},
+    {"COMPILEDPT24", &CreateCompiledPT24Decoder, CAP_STOR_CONTAINER},
+    {"COMPILEDPTU13", &CreateCompiledPTU13Decoder, CAP_STOR_CONTAINER},
+    {"COMPILEDST3", &CreateCompiledST3Decoder, CAP_STOR_CONTAINER},
+    {"COMPILEDSTP1", &CreateCompiledSTP1Decoder, CAP_STOR_CONTAINER},
+    {"COMPILEDSTP2", &CreateCompiledSTP2Decoder, CAP_STOR_CONTAINER},
   };
 }
 
 namespace ZXTune
 {
-  void RegisterArchivePlugins(PluginsRegistrator& registrator)
+  void RegisterArchivePlugins(ArchivePluginsRegistrator& registrator)
   {
     for (const ArchivePluginDescription* it = PLUGINS; it != ArrayEnd(PLUGINS); ++it)
     {

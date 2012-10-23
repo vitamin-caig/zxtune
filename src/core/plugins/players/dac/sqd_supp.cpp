@@ -724,7 +724,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterSQDSupport(PluginsRegistrator& registrator)
+  void RegisterSQDSupport(PlayerPluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<SQDModulesFactory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);

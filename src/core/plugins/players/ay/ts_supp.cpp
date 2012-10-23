@@ -380,7 +380,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterTSSupport(PluginsRegistrator& registrator)
+  void RegisterTSSupport(PlayerPluginsRegistrator& registrator)
   {
     const PlayerPlugin::Ptr plugin(new TSPlugin());
     registrator.RegisterPlugin(plugin);

@@ -13,9 +13,12 @@ Author:
 #ifndef CORE_PLUGINS_ARCHIVES_LIST_H_DEFINED
 #define CORE_PLUGINS_ARCHIVES_LIST_H_DEFINED
 
+//local includes
+#include <core/plugins/registrator.h>
+
 namespace ZXTune
 {
-  void RegisterArchivePlugins(class PluginsRegistrator& registrator);
+  void RegisterArchivePlugins(ArchivePluginsRegistrator& registrator);
 }
 
 #endif //CORE_PLUGINS_ARCHIVES_LIST_H_DEFINED

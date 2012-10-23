@@ -689,7 +689,7 @@ namespace PSM
 
 namespace ZXTune
 {
-  void RegisterPSMSupport(PluginsRegistrator& registrator)
+  void RegisterPSMSupport(PlayerPluginsRegistrator& registrator)
   {
     //direct modules
     {

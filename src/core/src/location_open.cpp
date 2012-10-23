@@ -64,9 +64,9 @@ namespace
     const Binary::Container::Ptr Data;
   };
 
-  DataLocation::Ptr TryToOpenLocation(const PluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const Analysis::Path& subPath)
+  DataLocation::Ptr TryToOpenLocation(const ArchivePluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const Analysis::Path& subPath)
   {
-    for (ArchivePlugin::Iterator::Ptr iter = plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
+    for (ArchivePlugin::Iterator::Ptr iter = plugins.Enumerate(); iter->IsValid(); iter->Next())
     {
       const ArchivePlugin::Ptr plugin = iter->Get();
       if (DataLocation::Ptr result = plugin->Open(coreParams, location, subPath))
@@ -87,7 +87,7 @@ namespace ZXTune
 
   DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, Binary::Container::Ptr data, const String& subpath)
   {
-    const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+    const ArchivePluginsEnumerator::Ptr usedPlugins = ArchivePluginsEnumerator::Create();
     DataLocation::Ptr resolvedLocation = boost::make_shared<UnresolvedLocation>(data);
     const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath, Text::MODULE_SUBPATH_DELIMITER[0]);
     for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty(); unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))

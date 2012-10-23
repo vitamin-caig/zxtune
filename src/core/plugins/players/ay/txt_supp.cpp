@@ -123,7 +123,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterTXTSupport(PluginsRegistrator& registrator)
+  void RegisterTXTSupport(PlayerPluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<TXTModulesFactory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);

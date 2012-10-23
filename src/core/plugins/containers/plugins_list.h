@@ -13,14 +13,12 @@ Author:
 #ifndef CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED
 #define CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED
 
+//local includes
+#include <core/plugins/registrator.h>
+
 namespace ZXTune
 {
-  //forward declaration
-  class PluginsRegistrator;
-
-  void RegisterRawContainer(PluginsRegistrator& registrator);
-
-  void RegisterContainerPlugins(PluginsRegistrator& registrator);
+  void RegisterContainerPlugins(ArchivePluginsRegistrator& registrator);
 }
 
 #endif //CORE_PLUGINS_CONTAINERS_LIST_H_DEFINED

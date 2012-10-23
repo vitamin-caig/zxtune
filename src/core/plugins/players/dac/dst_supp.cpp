@@ -478,7 +478,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterDSTSupport(PluginsRegistrator& registrator)
+  void RegisterDSTSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateDigitalStudioDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<DSTModulesFactory>(decoder);

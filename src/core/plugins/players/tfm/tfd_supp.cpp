@@ -291,7 +291,7 @@ namespace TFD
 
 namespace ZXTune
 {
-  void RegisterTFDSupport(PluginsRegistrator& registrator)
+  void RegisterTFDSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFDDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<TFD::Factory>(decoder);

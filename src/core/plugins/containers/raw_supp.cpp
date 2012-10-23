@@ -703,12 +703,11 @@ namespace
       const Log::ProgressCallback::Ptr progress(new RawProgressCallback(callback, static_cast<uint_t>(size), currentPath));
       const Module::DetectCallback& noProgressCallback = Module::CustomProgressDetectCallbackAdapter(callback);
 
-      const PluginsEnumerator::Ptr availablePlugins = PluginsEnumerator::Create();
-      ArchivePlugin::Iterator::Ptr availableArchives = availablePlugins->EnumerateArchives();
-      ArchivePlugin::Iterator::Ptr usedArchives = scanParams.GetDoubleAnalysis()
+      const ArchivePlugin::Iterator::Ptr availableArchives = ArchivePluginsEnumerator::Create()->Enumerate();
+      const ArchivePlugin::Iterator::Ptr usedArchives = scanParams.GetDoubleAnalysis()
         ? ArchivePlugin::Iterator::Ptr(new DoubleAnalysisArchivePlugins(availableArchives))
         : availableArchives;
-      RawDetectionPlugins usedPlugins(availablePlugins->EnumeratePlayers(), usedArchives, Description->Id());
+      RawDetectionPlugins usedPlugins(PlayerPluginsEnumerator::Create()->Enumerate(), usedArchives, Description->Id());
 
       ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, Description->Id(), 0);
 
@@ -748,7 +747,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterRawContainer(PluginsRegistrator& registrator)
+  void RegisterRawContainer(ArchivePluginsRegistrator& registrator)
   {
     const ArchivePlugin::Ptr plugin(new RawScaner());
     registrator.RegisterPlugin(plugin);

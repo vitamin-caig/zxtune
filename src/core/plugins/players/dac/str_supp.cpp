@@ -507,7 +507,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterSTRSupport(PluginsRegistrator& registrator)
+  void RegisterSTRSupport(PlayerPluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<STRModulesFactory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);

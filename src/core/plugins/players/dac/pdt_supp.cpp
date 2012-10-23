@@ -705,7 +705,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterPDTSupport(PluginsRegistrator& registrator)
+  void RegisterPDTSupport(PlayerPluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<PDTModulesFactory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);

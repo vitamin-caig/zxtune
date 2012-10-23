@@ -408,7 +408,7 @@ namespace TFC
 
 namespace ZXTune
 {
-  void RegisterTFCSupport(PluginsRegistrator& registrator)
+  void RegisterTFCSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFCDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<TFC::Factory>(decoder);

@@ -14,7 +14,6 @@ Author:
 #include "ay_conversion.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
-#include "core/plugins/containers/container_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/streaming.h"
@@ -30,7 +29,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <devices/z80.h>
-#include <formats/archived/decoders.h>
 #include <formats/chiptune/ay.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
@@ -653,27 +651,14 @@ namespace AYModule
   };
 }
 
-namespace AYContainer
-{
-  using namespace ZXTune;
-
-  const uint_t CAPS = CAP_STOR_MULTITRACK;
-}
-
 namespace ZXTune
 {
-  void RegisterAYSupport(PluginsRegistrator& registrator)
+  void RegisterAYSupport(PlayerPluginsRegistrator& registrator)
   {
     //module
     {
       const ModulesFactory::Ptr factory = boost::make_shared<AYModule::Factory>();
       const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(AYPlugin::ID, AYPlugin::INFO, AYModule::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
-    //container
-    {
-      const Formats::Archived::Decoder::Ptr decoder = Formats::Archived::CreateAYDecoder();
-      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AYPlugin::ID, AYContainer::CAPS, decoder);
       registrator.RegisterPlugin(plugin);
     }
   }

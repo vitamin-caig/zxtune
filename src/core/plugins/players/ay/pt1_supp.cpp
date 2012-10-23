@@ -523,7 +523,7 @@ namespace PT1
 
 namespace ZXTune
 {
-  void RegisterPT1Support(PluginsRegistrator& registrator)
+  void RegisterPT1Support(PlayerPluginsRegistrator& registrator)
   {
     //direct modules
     {

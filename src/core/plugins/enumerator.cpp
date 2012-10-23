@@ -39,62 +39,43 @@ namespace
   const Debug::Stream Dbg("Core::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
-  typedef std::vector<Plugin::Ptr> PluginsArray;
-  typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
-  typedef std::vector<ArchivePlugin::Ptr> ArchivePluginsArray;
- 
-  void RegisterAllPlugins(PluginsRegistrator& registrator)
-  {
-    RegisterContainerPlugins(registrator);
-    RegisterArchivePlugins(registrator);
-    RegisterPlayerPlugins(registrator);
-  }
-
-  class PluginsContainer : public PluginsRegistrator
-                         , public PluginsEnumerator
+  template<class PluginType>
+  class PluginsContainer : public PluginsRegistrator<PluginType>
+                         , public PluginsEnumerator<PluginType>
   {
   public:
-    PluginsContainer()
-    {
-      RegisterAllPlugins(*this);
-    }
-
-    virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
+    virtual void RegisterPlugin(typename PluginType::Ptr plugin)
     {
       const Plugin::Ptr description = plugin->GetDescription();
-      AllPlugins.push_back(description);
-      PlayerPlugins.push_back(plugin);
-      Dbg("Registered player %1%", description->Id());
+      Plugins.push_back(plugin);
+      Dbg("Registered %1%", description->Id());
     }
 
-    virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
+    virtual typename PluginType::Iterator::Ptr Enumerate() const
     {
-      const Plugin::Ptr description = plugin->GetDescription();
-      AllPlugins.push_back(description);
-      ArchivePlugins.push_back(plugin);
-      Dbg("Registered archive container %1%", description->Id());
-    }
-
-    //public interface
-    virtual Plugin::Iterator::Ptr Enumerate() const
-    {
-      return CreateRangedObjectIteratorAdapter(AllPlugins.begin(), AllPlugins.end());
-    }
-
-    //private interface
-    virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const
-    {
-      return CreateRangedObjectIteratorAdapter(PlayerPlugins.begin(), PlayerPlugins.end());
-    }
-
-    virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const
-    {
-      return CreateRangedObjectIteratorAdapter(ArchivePlugins.begin(), ArchivePlugins.end());
+      return CreateRangedObjectIteratorAdapter(Plugins.begin(), Plugins.end());
     }
   private:
-    PluginsArray AllPlugins;
-    ArchivePluginsArray ArchivePlugins;
-    PlayerPluginsArray PlayerPlugins;
+    std::vector<typename PluginType::Ptr> Plugins;
+  };
+
+  class ArchivePluginsContainer : public PluginsContainer<ArchivePlugin>
+  {
+  public:
+    ArchivePluginsContainer()
+    {
+      RegisterContainerPlugins(*this);
+      RegisterArchivePlugins(*this);
+    }
+  };
+
+  class PlayerPluginsContainer : public PluginsContainer<PlayerPlugin>
+  {
+  public:
+    PlayerPluginsContainer()
+    {
+      RegisterPlayerPlugins(*this);
+    }
   };
 
   class DetectCallbackAdapter : public Module::DetectCallback
@@ -155,20 +136,74 @@ namespace
     const String Info;
     const uint_t Caps;
   };
+
+  class CompositePluginsIterator : public Plugin::Iterator
+  {
+  public:
+    CompositePluginsIterator(ArchivePlugin::Iterator::Ptr archives, PlayerPlugin::Iterator::Ptr players)
+      : Archives(archives)
+      , Players(players)
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Archives || Players;
+    }
+
+    virtual Plugin::Ptr Get() const
+    {
+      return (Archives ? Archives->Get()->GetDescription() : Players->Get()->GetDescription());
+    }
+
+    virtual void Next()
+    {
+      if (Archives)
+      {
+        Next(Archives);
+      }
+      else
+      {
+        Next(Players);
+      }
+    }
+  private:
+    template<class T>
+    void Next(T& iter)
+    {
+      iter->Next();
+      if (!iter->IsValid())
+      {
+        iter = T();
+      }
+    }
+  private:
+    ArchivePlugin::Iterator::Ptr Archives;
+    PlayerPlugin::Iterator::Ptr Players;
+  };
 }
 
 namespace ZXTune
 {
-  PluginsEnumerator::Ptr PluginsEnumerator::Create()
+  template<>
+  ArchivePluginsEnumerator::Ptr ArchivePluginsEnumerator::Create()
   {
-    static PluginsContainer instance;
-    return PluginsEnumerator::Ptr(&instance, NullDeleter<PluginsEnumerator>());
+    static ArchivePluginsContainer instance;
+    return ArchivePluginsEnumerator::Ptr(&instance, NullDeleter<ArchivePluginsEnumerator>());
+  }
+
+  template<>
+  PlayerPluginsEnumerator::Ptr PlayerPluginsEnumerator::Create()
+  {
+    static PlayerPluginsContainer instance;
+    return PlayerPluginsEnumerator::Ptr(&instance, NullDeleter<PlayerPluginsEnumerator>());
   }
 
   Plugin::Iterator::Ptr EnumeratePlugins()
   {
-    //TODO: remove
-    return PluginsEnumerator::Create()->Enumerate();
+    const ArchivePlugin::Iterator::Ptr archives = ArchivePluginsEnumerator::Create()->Enumerate();
+    const PlayerPlugin::Iterator::Ptr players = PlayerPluginsEnumerator::Create()->Enumerate();
+    return boost::make_shared<CompositePluginsIterator>(archives, players);
   }
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)

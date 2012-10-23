@@ -18,16 +18,17 @@ Author:
 
 namespace ZXTune
 {
+  template<class PluginType>
   class PluginsRegistrator
   {
   public:
     virtual ~PluginsRegistrator() {}
 
-    //endpoint modules support
-    virtual void RegisterPlugin(PlayerPlugin::Ptr plugin) = 0;
-    //archives containers support
-    virtual void RegisterPlugin(ArchivePlugin::Ptr plugin) = 0;
+    virtual void RegisterPlugin(typename PluginType::Ptr plugin) = 0;
   };
+
+  typedef PluginsRegistrator<ArchivePlugin> ArchivePluginsRegistrator;
+  typedef PluginsRegistrator<PlayerPlugin> PlayerPluginsRegistrator;
 }
 
 #endif //__CORE_PLUGINS_REGISTRATOR_H_DEFINED__

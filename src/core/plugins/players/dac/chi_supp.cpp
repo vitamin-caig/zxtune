@@ -597,7 +597,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterCHISupport(PluginsRegistrator& registrator)
+  void RegisterCHISupport(PlayerPluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<CHIModulesFactory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);

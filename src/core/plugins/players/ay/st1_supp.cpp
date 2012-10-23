@@ -68,7 +68,7 @@ namespace ST1
 
 namespace ZXTune
 {
-  void RegisterST1Support(PluginsRegistrator& registrator)
+  void RegisterST1Support(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSoundTrackerDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<ST1::Factory>(decoder);

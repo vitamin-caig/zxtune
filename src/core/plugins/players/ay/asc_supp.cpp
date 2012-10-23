@@ -14,7 +14,6 @@ Author:
 #include "ay_conversion.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
-#include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
@@ -26,7 +25,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/ascsoundmaster.h>
-#include <formats/packed/decoders.h>
 #include <math/numeric.h>
 
 #define FILE_TAG 45B26E38
@@ -791,35 +789,10 @@ namespace ASC
   };
 }
 
-namespace ASC
-{
-  const Char IDC_0[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', '0', 0};
-  const Char IDC_1[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', '1', 0};
-  const Char IDC_2[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'A', 'S', 'C', '2', 0};
-  const uint_t CCAPS = CAP_STOR_CONTAINER;
-}
-
 namespace ZXTune
 {
-  void RegisterASCSupport(PluginsRegistrator& registrator)
+  void RegisterASCSupport(PlayerPluginsRegistrator& registrator)
   {
-    //modules with players
-    {
-      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledASC0Decoder();
-      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ASC::IDC_0, ASC::CCAPS, decoder);
-      registrator.RegisterPlugin(plugin);
-    }
-    {
-      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledASC1Decoder();
-      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ASC::IDC_1, ASC::CCAPS, decoder);
-      registrator.RegisterPlugin(plugin);
-    }
-    {
-      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledASC2Decoder();
-      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(ASC::IDC_2, ASC::CCAPS, decoder);
-      registrator.RegisterPlugin(plugin);
-    }
-    //direct modules
     {
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder();
       const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder);

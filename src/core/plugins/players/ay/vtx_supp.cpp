@@ -400,7 +400,7 @@ namespace YM
 
 namespace ZXTune
 {
-  void RegisterVTXSupport(PluginsRegistrator& registrator)
+  void RegisterVTXSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateVTXDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<VTX::Factory>(decoder);
@@ -408,7 +408,7 @@ namespace ZXTune
     registrator.RegisterPlugin(plugin);
   }
 
-  void RegisterYMSupport(PluginsRegistrator& registrator)
+  void RegisterYMSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateYMDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<YM::Factory>(decoder);

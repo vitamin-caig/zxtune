@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "container_supp_common.h"
 #include "plugins_list.h"
-#include "core/plugins/registrator.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/archived/decoders.h>
@@ -40,13 +39,16 @@ namespace
     {"ZIP",     &CreateZipDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
     {"RAR",     &CreateRarDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
     {"LHA",     &CreateLhaDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
-    {"ZXSTATE", &CreateZXStateDecoder, CAP_STOR_MULTITRACK}
+    {"ZXSTATE", &CreateZXStateDecoder, CAP_STOR_MULTITRACK},
+    {"AY",      &CreateAYDecoder,      CAP_STOR_MULTITRACK},
   };
 }
 
 namespace ZXTune
 {
-  void RegisterContainerPlugins(PluginsRegistrator& registrator)
+  void RegisterRawContainer(ArchivePluginsRegistrator& registrator);
+
+  void RegisterContainerPlugins(ArchivePluginsRegistrator& registrator)
   {
     //process raw container first
     RegisterRawContainer(registrator);

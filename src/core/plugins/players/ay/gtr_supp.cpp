@@ -526,7 +526,7 @@ namespace GTR
 
 namespace ZXTune
 {
-  void RegisterGTRSupport(PluginsRegistrator& registrator)
+  void RegisterGTRSupport(PlayerPluginsRegistrator& registrator)
   {
     //direct modules
     {

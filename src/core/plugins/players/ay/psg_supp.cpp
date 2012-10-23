@@ -259,7 +259,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterPSGSupport(PluginsRegistrator& registrator)
+  void RegisterPSGSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSGDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<PSGModulesFactory>(decoder);

@@ -121,20 +121,19 @@ namespace ZXTune
   {
     Holder::Ptr Open(DataLocation::Ptr location)
     {
-      const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+      const PlayerPluginsEnumerator::Ptr usedPlugins = PlayerPluginsEnumerator::Create();
       const OpenModuleCallback callback;
-      DetectByPlugins<PlayerPlugin>(usedPlugins->EnumeratePlayers(), location, callback);
+      DetectByPlugins<PlayerPlugin>(usedPlugins->Enumerate(), location, callback);
       return callback.GetResult();
     }
 
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
     {
-      const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
-      if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedPlugins->EnumerateArchives(), location, callback))
+      if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(ArchivePluginsEnumerator::Create()->Enumerate(), location, callback))
       {
         return usedSize;
       }
-      return DetectByPlugins<PlayerPlugin>(usedPlugins->EnumeratePlayers(), location, callback);
+      return DetectByPlugins<PlayerPlugin>(PlayerPluginsEnumerator::Create()->Enumerate(), location, callback);
     }
 
     Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)

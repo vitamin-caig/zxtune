@@ -68,7 +68,7 @@ namespace STC
 
 namespace ZXTune
 {
-  void RegisterSTCSupport(PluginsRegistrator& registrator)
+  void RegisterSTCSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSoundTrackerCompiledDecoder();
     const ModulesFactory::Ptr factory = boost::make_shared<STC::Factory>(decoder);

@@ -1162,7 +1162,7 @@ namespace
 
 namespace ZXTune
 {
-  void RegisterDMMSupport(PluginsRegistrator& registrator)
+  void RegisterDMMSupport(PlayerPluginsRegistrator& registrator)
   {
     const ModulesFactory::Ptr factory = boost::make_shared<DMMModulesFactory>();
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
