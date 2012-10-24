@@ -3,7 +3,7 @@
 SET VS_PATH=%PROGRAMFILES%\Microsoft Visual Studio 8
 ECHO %PATH% | FIND "%VS_PATH%" > NUL && GOTO Quit
 
-call "%VS_PATH%\VC\vcvarsall.bat" x86_amd64
+call "%VS_PATH%\VC\vcvarsall.bat" x64
 SET TOOLSET=vc80
 
 SET BUILD_ARCH=x86_64
