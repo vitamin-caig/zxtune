@@ -37,12 +37,6 @@ namespace ZXTune
     //! @brief Mask for supported AYM-related formats
     uint_t GetSupportedAYMFormatConvertors();
 
-    //! @brief Simple helper for conversion to Vortex-related formats
-    //! @param data Source data for Vortex track
-    //! @param info %Module information
-    //! @param param Input convertion parameter
-    Binary::Data::Ptr ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props, const Conversion::Parameter& param);
-
     //! @brief Mask for supported Vortex-related formats
     uint_t GetSupportedVortexFormatConvertors();
 

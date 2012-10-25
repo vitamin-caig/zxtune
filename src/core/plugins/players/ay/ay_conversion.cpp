@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_conversion.h"
-#include "vortex_io.h"
 //common includes
 #include <error_tools.h>
 //library includes
@@ -185,24 +184,9 @@ namespace ZXTune
       return CAP_CONV_PSG | CAP_CONV_ZX50 | CAP_CONV_AYDUMP | CAP_CONV_FYM;
     }
 
-    //vortex-based conversion
-    Binary::Data::Ptr ConvertVortexFormat(const Vortex::Track::ModuleData& data, const Information& info, const Parameters::Accessor& props,
-      const Conversion::Parameter& param)
-    {
-      using namespace Conversion;
-
-      //convert to TXT
-      if (parameter_cast<TXTConvertParam>(&param))
-      {
-        const std::string& asString = Vortex::ConvertToText(data, info, props);
-        return Binary::CreateContainer(asString.data(), asString.size());
-      }
-      return Binary::Data::Ptr();
-    }
-
     uint_t GetSupportedVortexFormatConvertors()
     {
-      return CAP_CONV_TXT;
+      return 0/*CAP_CONV_TXT*/;
     }
 
     Error CreateUnsupportedConversionError(Error::LocationRef loc, const Conversion::Parameter& param)

@@ -474,11 +474,6 @@ namespace
 
     virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const
     {
-      const Parameters::Accessor::Ptr mergedParams = Parameters::CreateMergedAccessor(params, Delegate->GetModuleProperties());
-      if (const Binary::Data::Ptr res = ConvertVortexFormat(*Data, *GetModuleInformation(), *mergedParams, spec))
-      {
-        return res;
-      }
       return Delegate->Convert(spec, params);
     }
   protected:

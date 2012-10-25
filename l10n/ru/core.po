@@ -47,27 +47,27 @@ msgstr "Неправильные параметры."
 msgid "Failed to find specified submodule starting from path '%1%'."
 msgstr "Модуль не найден при поиске начиная с '%1%'."
 
-#: plugins/players/ay/ay_conversion.cpp:133
+#: plugins/players/ay/ay_conversion.cpp:132
 msgid "Failed to convert to PSG format."
 msgstr "Ошибка конверсии в PSG."
 
-#: plugins/players/ay/ay_conversion.cpp:140
+#: plugins/players/ay/ay_conversion.cpp:139
 msgid "Failed to convert to ZX50 format."
 msgstr "Ошибка конверсии в ZX50."
 
-#: plugins/players/ay/ay_conversion.cpp:147
+#: plugins/players/ay/ay_conversion.cpp:146
 msgid "Failed to convert to debug ay format."
 msgstr "Ошибка конверсии в отладочный формат."
 
-#: plugins/players/ay/ay_conversion.cpp:154
+#: plugins/players/ay/ay_conversion.cpp:153
 msgid "Failed to convert to raw ay dump."
 msgstr "Ошибка конверсии в сырой дамп регистров."
 
-#: plugins/players/ay/ay_conversion.cpp:161
+#: plugins/players/ay/ay_conversion.cpp:160
 msgid "Failed to convert to FYM format."
 msgstr "Ошибка конверсии в FYM."
 
-#: plugins/players/ay/ay_conversion.cpp:210
+#: plugins/players/ay/ay_conversion.cpp:194
 #, c-format, boost-format
 msgid "Unsupported conversion mode (%1$08x)."
 msgstr "Неподдерживаемый режим конверсии (%1$08x)."
@@ -103,7 +103,5 @@ msgstr "Неправильный размер частотной таблицы 
 msgid "Invalid frequency table '%1%'."
 msgstr "Неправильное значение частотной таблицы '%1%'."
 
-#: plugins/players/ay/vortex_io_txt.cpp:862
-#, boost-format
-msgid "Invalid string while parsing: '%1%'."
-msgstr "Неправильная строка: '%1%'."
+#~ msgid "Invalid string while parsing: '%1%'."
+#~ msgstr "Неправильная строка: '%1%'."
