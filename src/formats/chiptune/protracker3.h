@@ -121,6 +121,7 @@ namespace Formats
       };
 
       Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
+      Formats::Chiptune::Container::Ptr ParseVortexTracker2(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
     }
   }

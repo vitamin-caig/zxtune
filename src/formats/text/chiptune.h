@@ -33,6 +33,8 @@ extern const Char SOUNDTRACKER_DECODER_DESCRIPTION[];
 extern const Char SQDIGITALTRACKER_DECODER_DESCRIPTION[];
 extern const Char TFC_DECODER_DESCRIPTION[];
 extern const Char TFD_DECODER_DESCRIPTION[];
+extern const Char VORTEXTRACKER2_DECODER_DESCRIPTION[];
+extern const Char VORTEX_EDITOR[];
 extern const Char VTX_DECODER_DESCRIPTION[];
 extern const Char YM_DECODER_DESCRIPTION[];
 }//namespace Text

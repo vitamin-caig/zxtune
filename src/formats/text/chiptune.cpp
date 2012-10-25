@@ -91,6 +91,13 @@ extern const Char TFC_DECODER_DESCRIPTION[] = {
 extern const Char TFD_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','F','M',' ','D','u','m','p',0
 };
+extern const Char VORTEXTRACKER2_DECODER_DESCRIPTION[] = {
+  'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','I','I',0
+};
+extern const Char VORTEX_EDITOR[] = {
+  'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','(','P','r','o','T','r','a','c','k','e','r',' ','v',
+  '%','1','%','.','%','2','%',')',0
+};
 extern const Char VTX_DECODER_DESCRIPTION[] = {
   'V','T','X',' ','(','V','o','r','t','e','x',' ','P','r','o','j','e','c','t',')',0
 };

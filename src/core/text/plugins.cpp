@@ -29,12 +29,5 @@ extern const Char TFC_COMPILER_VERSION[] = {
 extern const Char TS_PLUGIN_INFO[] = {
   'T','u','r','b','o','S','o','u','n','d',0
 };
-extern const Char TXT_PLUGIN_INFO[] = {
-  'T','e','x','t',' ','(','V','o','r','t','e','x','T','r','a','c','k','e','r',')',0
-};
-extern const Char VORTEX_EDITOR[] = {
-  'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','(','P','r','o','T','r','a','c','k','e','r',' ','v',
-  '%','1','%','.','%','2','%',')',0
-};
 }//namespace Text
 #endif //__TEXT_PLUGINS_H_DEFINED__

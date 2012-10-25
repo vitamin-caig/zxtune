@@ -39,10 +39,3 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 #TS
 < TS_PLUGIN_INFO
 > "TurboSound"
-
-#TXT
-< TXT_PLUGIN_INFO
-> "Text (VortexTracker)"
-
-< VORTEX_EDITOR
-> "VortexTracker (ProTracker v%1%.%2%)"

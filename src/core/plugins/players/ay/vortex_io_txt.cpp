@@ -30,7 +30,7 @@ Author:
 #include <boost/algorithm/string.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 //text includes
-#include <core/text/plugins.h>
+#include <src/formats/text/chiptune.h>
 
 #define FILE_TAG E2C3F588
 

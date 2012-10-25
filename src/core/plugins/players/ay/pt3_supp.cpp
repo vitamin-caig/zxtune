@@ -414,8 +414,6 @@ namespace PT3
 
 namespace PT3
 {
-  using namespace ZXTune;
-
   //plugin attributes
   const Char ID[] = {'P', 'T', '3', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
@@ -470,15 +468,67 @@ namespace PT3
   };
 }
 
+namespace Vortex2
+{
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
+  const Char ID[] = {'T', 'X', 'T', 0};
+  const uint_t CAPS = PT3::CAPS;
+
+  class Factory : public ModulesFactory
+  {
+  public:
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+      : Decoder(decoder)
+    {
+    }
+
+    virtual bool Check(const Binary::Container& inputData) const
+    {
+      return Decoder->Check(inputData);
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Decoder->GetFormat();
+    }
+
+    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    {
+      const ::ProTracker3::Track::ModuleData::RWPtr modData = ::ProTracker3::Track::ModuleData::Create();
+      uint_t patOffset = 0;
+      const std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> dataBuilder = ::ProTracker3::CreateDataBuilder(modData, properties, patOffset);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseVortexTracker2(*rawData, *dataBuilder))
+      {
+        usedSize = container->Size();
+        properties->SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties,  Devices::AYM::CHANNELS);
+        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
+        return Vortex::CreateHolder(modData, nativeHolder);
+      }
+      return Holder::Ptr();
+    }
+  private:
+    const Formats::Chiptune::Decoder::Ptr Decoder;
+  };
+}
+
 namespace ZXTune
 {
   void RegisterPT3Support(PlayerPluginsRegistrator& registrator)
   {
-    {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker3Decoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<PT3::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription(), PT3::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker3Decoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<PT3::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription(), PT3::CAPS, factory);
+    registrator.RegisterPlugin(plugin);
+  }
+
+  void RegisterTXTSupport(PlayerPluginsRegistrator& registrator)
+  {
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateVortexTracker2Decoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<Vortex2::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(Vortex2::ID, decoder->GetDescription(), Vortex2::CAPS, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }

@@ -13,7 +13,5 @@ extern const Char RAW_PLUGIN_INFO[];
 extern const Char RAW_PLUGIN_PREFIX[];
 extern const Char TFC_COMPILER_VERSION[];
 extern const Char TS_PLUGIN_INFO[];
-extern const Char TXT_PLUGIN_INFO[];
-extern const Char VORTEX_EDITOR[];
 }//namespace Text
 #endif //__TEXT_PLUGINS_H_DEFINED__

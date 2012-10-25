@@ -51,6 +51,29 @@ namespace Binary
       return res;
     }
 
+    //! @brief Read string till EOL
+    std::string ReadString()
+    {
+      const uint8_t CR = 0x0d;
+      const uint8_t LF = 0x0a;
+      const uint8_t EOT = 0x00;
+      static const uint8_t EOLCODES[] = {CR, LF, EOT};
+
+      Require(Cursor != Finish);
+      const uint8_t* const eolPos = std::find_first_of(Cursor, Finish, EOLCODES, ArrayEnd(EOLCODES));
+      const uint8_t* nextLine = eolPos;
+      if (nextLine != Finish && CR == *nextLine++)
+      {
+        if (nextLine != Finish && LF == *nextLine)
+        {
+          ++nextLine;
+        }
+      }
+      const std::string result(Cursor, eolPos);
+      Cursor = nextLine;
+      return result;
+    }
+
     //! @brief Read raw data
     const uint8_t* ReadData(std::size_t size)
     {
