@@ -6,8 +6,6 @@
 namespace Text
 {
 extern const Char ARCHIVE_PLUGIN_PREFIX[];
-extern const Char DST_EDITOR_AY[];
-extern const Char DST_EDITOR_DAC[];
 extern const Char PT3_TURBOSOUND_MODULE[];
 extern const Char RAW_PLUGIN_INFO[];
 extern const Char RAW_PLUGIN_PREFIX[];

@@ -31,9 +31,10 @@ namespace Formats
 
         //common properties
         virtual void SetTitle(const String& title) = 0;
+        virtual void SetProgram(const String& program) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
-        virtual void SetSample(uint_t index, std::size_t loop, Binary::Container::Ptr part1, Binary::Container::Ptr part2 = Binary::Container::Ptr()) = 0;
+        virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) = 0;
         //patterns
         virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
         //building pattern -> line -> channel

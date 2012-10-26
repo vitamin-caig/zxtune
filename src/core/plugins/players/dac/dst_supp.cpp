@@ -30,8 +30,6 @@ Author:
 #include <formats/chiptune/digitalstudio.h>
 //std includes
 #include <set>
-//text includes
-#include <core/text/plugins.h>
 
 #define FILE_TAG 3226C730
 
@@ -44,34 +42,12 @@ namespace DST
 
   struct Sample
   {
-    Dump Data;
+    Binary::Data::Ptr Content;
     std::size_t Loop;
 
     Sample()
       : Loop()
     {
-    }
-
-    bool Is4Bit() const
-    {
-      if (Data.empty())
-      {
-        return false;
-      }
-      for (Dump::const_iterator it = Data.begin(), lim = Data.end(); it != lim; ++it)
-      {
-        const uint_t hiVal = *it >> 4;
-        if (hiVal != 0xa)
-        {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    void Convert4bitTo8Bit()
-    {
-      std::transform(Data.begin(), Data.end(), Data.begin(), std::bind2nd(std::multiplies<uint8_t>(), 16));
     }
   };
 }
@@ -93,21 +69,8 @@ namespace
     Builder(DSTTrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , FourBitSamples(0)
-      , EightBitSamples(0)
       , Context(*Data)
     {
-    }
-
-    bool IsOldVersion() const
-    {
-      return FourBitSamples != 0;
-    }
-
-    void ConvertSamples()
-    {
-      assert(IsOldVersion());
-      std::for_each(Data->Samples.begin(), Data->Samples.end(), std::mem_fun_ref(&DST::Sample::Convert4bitTo8Bit));
     }
 
     virtual void SetTitle(const String& title)
@@ -115,32 +78,23 @@ namespace
       Properties->SetTitle(OptimizeString(title));
     }
 
+    virtual void SetProgram(const String& program)
+    {
+      Properties->SetProgram(program);
+    }
+
     virtual void SetInitialTempo(uint_t tempo)
     {
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, std::size_t loop, Binary::Container::Ptr part1, Binary::Container::Ptr part2)
+    virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content)
     {
       Data->Samples.resize(index + 1);
       DST::Sample& res = Data->Samples[index];
 
       res.Loop = loop;
-      if (part2)
-      {
-        const std::size_t firstSize = part1->Size();
-        const std::size_t secondSize = part2->Size();
-        res.Data.resize(firstSize + secondSize);
-        std::memcpy(&res.Data[0], part1->Start(), firstSize);
-        std::memcpy(&res.Data[0] + firstSize, part2->Start(), secondSize);
-      }
-      else
-      {
-        const std::size_t size = part1->Size();
-        res.Data.resize(size);
-        std::memcpy(&res.Data[0], part1->Start(), size);
-      }
-      ++(res.Is4Bit() ? FourBitSamples : EightBitSamples);
+      res.Content = content;
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -275,9 +229,10 @@ namespace
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
         const DST::Sample& smp(Data->Samples[idx]);
-        if (const std::size_t size = smp.Data.size())
+        if (const Binary::Data::Ptr content = smp.Content)
         {
-          chip->SetSample(idx, smp.Data, smp.Loop);
+          const uint8_t* const start = static_cast<const uint8_t*>(content->Start());
+          chip->SetSample(idx, Dump(start, start + content->Size()), smp.Loop);
         }
       }
       return CreateDSTRenderer(params, Info, Data, chip);
@@ -458,15 +413,6 @@ namespace
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        if (builder.IsOldVersion())
-        {
-          properties->SetProgram(Decoder->GetDescription() + Text::DST_EDITOR_AY);
-          builder.ConvertSamples();
-        }
-        else
-        {
-          properties->SetProgram(Decoder->GetDescription() + Text::DST_EDITOR_DAC);
-        }
         return boost::make_shared<DSTHolder>(modData, properties);
       }
       return Holder::Ptr();

@@ -8,12 +8,6 @@ namespace Text
 extern const Char ARCHIVE_PLUGIN_PREFIX[] = {
   '+','u','n',0
 };
-extern const Char DST_EDITOR_AY[] = {
-  ' ','(','A','Y',')',0
-};
-extern const Char DST_EDITOR_DAC[] = {
-  ' ','(','C','o','v','o','x','/','S','D',')',0
-};
 extern const Char PT3_TURBOSOUND_MODULE[] = {
   'T','u','r','b','o','S','o','u','n','d',' ','m','o','d','u','l','e',0
 };

@@ -26,6 +26,12 @@ extern const Char DIGITALMUSICMAKER_DECODER_DESCRIPTION[] = {
 extern const Char DIGITALSTUDIO_DECODER_DESCRIPTION[] = {
   'D','i','g','i','t','a','l',' ','S','t','u','d','i','o',0
 };
+extern const Char DIGITALSTUDIO_VERSION_AY[] = {
+  ' ','(','A','Y',')',0
+};
+extern const Char DIGITALSTUDIO_VERSION_DAC[] = {
+  ' ','(','C','o','v','o','x','/','S','D',')',0
+};
 extern const Char FASTTRACKER_DECODER_DESCRIPTION[] = {
   'F','a','s','t',' ','T','r','a','c','k','e','r',0
 };

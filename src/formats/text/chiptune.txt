@@ -36,6 +36,12 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < DIGITALSTUDIO_DECODER_DESCRIPTION
 > "Digital Studio"
 
+< DIGITALSTUDIO_VERSION_AY
+> " (AY)"
+
+< DIGITALSTUDIO_VERSION_DAC
+> " (Covox/SD)"
+
 #DigitalMusicMaker
 < DIGITALMUSICMAKER_DECODER_DESCRIPTION
 > "Digital Music Maker v1.x"

@@ -17,13 +17,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < RAW_PLUGIN_PREFIX
 > "+"
 
-#DST
-< DST_EDITOR_AY
-> " (AY)"
-
-< DST_EDITOR_DAC
-> " (Covox/SD)"
-
 #PT3
 < PT3_TURBOSOUND_MODULE
 > "TurboSound module"
