@@ -78,7 +78,7 @@ namespace Chiptune
       uint8_t Page;
       uint8_t NumberInBank;
       uint16_t Size;
-      char Name[8];
+	    char Name[8];
     } PACK_POST;
 
     typedef boost::array<uint8_t, 0x38> ZeroesArray;
@@ -231,6 +231,7 @@ namespace Chiptune
       void Add(uint_t idx, std::size_t loop, Binary::Data::Ptr data)
       {
         const bool is4bit = CheckIfSample4Bit(static_cast<const uint8_t*>(data->Start()), data->Size());
+        Dbg(" size #%1$05x, loop #%2$04x%3%", data->Size(), loop, is4bit ? " 4bit" : "");
         Samples.push_back(Description(idx, loop, data, is4bit));
       }
 
@@ -255,12 +256,13 @@ namespace Chiptune
     private:
       static bool CheckIfSample4Bit(const uint8_t* start, std::size_t size)
       {
-        return start + size == std::find_if(start, start + size, &Not4BitSample);
+        const std::size_t specific = std::count_if(start, start + size, &Is4BitSample);
+        return specific >= size / 2;
       }
 
-      static bool Not4BitSample(uint8_t val)
+      static bool Is4BitSample(uint8_t val)
       {
-        return (val & 0xf0) != 0xa0;
+        return (val & 0xf0) == 0xa0;
       }
       
       struct Description
@@ -355,7 +357,6 @@ namespace Chiptune
           std::size_t loop = 0;
           if (const Binary::Data::Ptr sam = ParseSample(info, loop))
           {
-            Dbg(" total size #%1$05x", sam->Size());
             samples.Add(samIdx, loop, sam);
           }
           else
@@ -421,6 +422,7 @@ namespace Chiptune
           target.StartChannel(chanNum);
           if (note >= NOTE_PAUSE)
           {
+            Require((note & 0xf0) == (NOTE_PAUSE & 0xf0));
             if (NOTE_PAUSE == note)
             {
               target.SetRest();
@@ -450,7 +452,7 @@ namespace Chiptune
             && srcLine.Channels[2].Note == NOTE_EMPTY;
       }
 
-      Binary::Data::Ptr ParseSample(const SampleInfo& info, std::size_t& sampleLoop) const
+      Binary::Data::Ptr ParseSample(const SampleInfo& info, std::size_t& loop) const
       {
         const std::size_t PAGE_SIZE = 0x4000;
         const std::size_t LO_MEM_ADDR = 0x8000;
@@ -475,12 +477,13 @@ namespace Chiptune
 
         const std::size_t sampleStart = fromLE(info.Start);
         const std::size_t sampleSize = fromLE(info.Size);
+        const std::size_t sampleLoop = fromLE(info.Loop);
 
         Require(sampleStart >= BASE_ADDR);
-        Require(fromLE(info.Loop) >= BASE_ADDR);
         Require(sampleSize <= MAX_SIZE);
+        Require(Math::InRange(sampleLoop, sampleStart, sampleStart + sampleSize));
 
-        sampleLoop = fromLE(info.Loop) - BASE_ADDR;
+        loop = sampleLoop - sampleStart;
         const std::size_t sampleOffsetInPage = sampleStart - BASE_ADDR;
         if (isLoMemSample)
         {
