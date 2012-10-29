@@ -648,7 +648,14 @@ namespace
 
     void SearchItems()
     {
-      Playlist::UI::ExecuteSearchDialog(*View);
+      if (const Playlist::Item::SelectionOperation::Ptr op = Playlist::UI::ExecuteSearchDialog(*View))
+      {
+        //TODO: extract
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        op->setParent(model);
+        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+        model->PerformOperation(op);
+      }
     }
   private:
     const UI::State::Ptr LayoutState;
