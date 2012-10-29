@@ -16,12 +16,12 @@ msgstr ""
 msgid "Failed to resolve uri '%1%'."
 msgstr "Ошибка анализа идентификатора '%1%'."
 
-#: providers/enumerator.cpp:82 providers/enumerator.cpp:97
-#: providers/enumerator.cpp:162 providers/enumerator.cpp:167
+#: providers/enumerator.cpp:82 providers/enumerator.cpp:98
+#: providers/enumerator.cpp:163 providers/enumerator.cpp:168
 msgid "Specified uri scheme is not supported."
 msgstr "Данная схема идентификатора не поддерживается."
 
-#: providers/enumerator.cpp:216
+#: providers/enumerator.cpp:217
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 

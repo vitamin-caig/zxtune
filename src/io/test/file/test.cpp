@@ -8,15 +8,6 @@
 #include <iostream>
 #include <limits>
 
-namespace IO
-{
-  Binary::OutputStream::Ptr CreateStream(const String& name, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/)
-  {
-    const std::auto_ptr<const FileCreatingParameters> localParams = CreateFileCreatingParameters(params);
-    return CreateLocalFile(name, *localParams);
-  }
-}
-
 namespace
 {
   const char EXISTING_FILE[] = "Makefile";
@@ -24,12 +15,13 @@ namespace
 #ifdef _WIN32
   const char LOCKED_FILE[] = "C:\\pagefile.sys";
   const char FOLDER[] = "C:\\windows";
-  const char INVALID_NAME[] = "COM1";
+  const char INVALID_NAME_PLATFORM[] = "COM1";
 #else
   const char LOCKED_FILE[] = "/etc/shadow";
   const char FOLDER[] = "/bin";
-  const char INVALID_NAME[] = "Invalid?Name!";
+  const char INVALID_NAME_PLATFORM[] = "*test*";
 #endif
+  const char INVALID_NAME[] = "Invalid?Name!";
   const char EMPTY_FILE[] = "empty";
   
   bool ShowIfError(const Error& e)

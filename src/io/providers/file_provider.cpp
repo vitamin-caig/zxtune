@@ -403,7 +403,7 @@ namespace IO
     boost::filesystem::path path = params.SanitizeNames()
       ? CreateSanitizedPath(fileName)
       : boost::filesystem::path(fileName);
-
+    Dbg("CreateStream: input='%1%' path='%2%'", fileName, IO::Details::ToString(path));
     if (params.CreateDirectories() && path.has_parent_path())
     {
       CreateDirectoryRecursive(path.parent_path());

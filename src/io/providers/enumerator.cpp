@@ -90,7 +90,8 @@ namespace IO
         if (const DataProvider* provider = FindProvider(id->Scheme()))
         {
           Dbg(" Used provider '%1%'", provider->Id());
-          return provider->Create(id->Path(), params, cb);
+          //pass nonchanged parameter to lower level
+          return provider->Create(path, params, cb);
         }
       }
       Dbg(" No suitable provider found");
