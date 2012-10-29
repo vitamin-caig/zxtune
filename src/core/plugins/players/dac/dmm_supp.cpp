@@ -23,11 +23,13 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/typed_container.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <formats/chiptune/digital_sample.h>
 #include <math/numeric.h>
 //std includes
 #include <utility>
@@ -161,20 +163,9 @@ namespace DMM
     {
     }
 
-    Dump Data;
+    Binary::Data::Ptr Content;
     std::size_t Loop;
   };
-
-  void ConvertFrom4Bit(Dump& data)
-  {
-    Dump res(data.size() * 2);
-    for (std::size_t idx = 0, lim = data.size(); idx != lim; ++idx)
-    {
-      res[idx * 2] = (data[idx] & 15) << 4;
-      res[idx * 2 + 1] = data[idx] & 240;
-    }
-    data.swap(res);
-  }
 
   enum
   {
@@ -414,8 +405,8 @@ namespace
       const bool is4bitSamples = true;//TODO: detect
       std::size_t lastData = 256 * header.HeaderSizeSectors;
 
-      //bank => <offset, size>
-      typedef std::map<std::size_t, Dump> Bank2Data;
+      //bank => Data
+      typedef std::map<std::size_t, Binary::Container::Ptr> Bank2Data;
       Bank2Data regions;
       for (std::size_t layIdx = 0; layIdx != header.EndOfBanks.size(); ++layIdx)
       {
@@ -430,17 +421,20 @@ namespace
         }
         const std::size_t bankSize = bankEnd - DMM::SAMPLES_ADDR;
         const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
-        const std::size_t realSize = is4bitSamples
-          ? 256 * (1 + alignedBankSize / 512)
-          : alignedBankSize;
-        const uint8_t* const bankStart = data.GetField<uint8_t>(lastData);
-        regions[bankNum] = Dump(bankStart, bankStart + realSize);
         if (is4bitSamples)
         {
-          DMM::ConvertFrom4Bit(regions[bankNum]);
+          const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
+          const Binary::Data::Ptr packedSample = rawData->GetSubcontainer(lastData, realSize);
+          regions[bankNum] = Binary::CreateContainer(Formats::Chiptune::Unpack4BitSample(*packedSample));
+          Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
+          lastData += realSize;
         }
-        Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
-        lastData += realSize;
+        else
+        {
+          regions[bankNum] = rawData->GetSubcontainer(lastData, alignedBankSize);
+          Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize, lastData);
+          lastData += alignedBankSize;
+        }
       }
 
       Data->Samples.resize(DMM::SAMPLES_COUNT);
@@ -468,23 +462,17 @@ namespace
           Dbg("Skipped. No data");
           continue;
         }
-        const Dump& bankData = regions[srcSample.Bank];
+        const Binary::Container::Ptr bankData = regions[srcSample.Bank];
         const std::size_t offsetInBank = sampleStart - DMM::SAMPLES_ADDR;
         const std::size_t limitInBank = sampleEnd - DMM::SAMPLES_ADDR;
         const std::size_t sampleSize = limitInBank - offsetInBank;
-        if (limitInBank > bankData.size())
+        if (limitInBank > bankData->Size())
         {
           Dbg("Skipped. Not enough data");
           continue;
         }
-        const uint8_t* const sampleDataStart = &bankData[offsetInBank];
-        const uint8_t* const sampleDataEnd = sampleDataStart + sampleSize;
         DMM::Sample& dstSample = Data->Samples[samIdx];
-        dstSample.Data.assign(sampleDataStart, sampleDataEnd);
-        if (dstSample.Data.size() >= 12)
-        {
-          dstSample.Data.resize(dstSample.Data.size() - 12);
-        }
+        dstSample.Content = bankData->GetSubcontainer(offsetInBank, sampleSize >= 12 ? sampleSize - 12 : sampleSize);
         dstSample.Loop = sampleLoop - sampleStart;
       }
       Data->LoopPosition = header.Loop;
@@ -525,9 +513,10 @@ namespace
       for (uint_t idx = 0; idx != totalSamples; ++idx)
       {
         const DMM::Sample& smp(Data->Samples[idx]);
-        if (const std::size_t size = smp.Data.size())
+        if (const Binary::Data::Ptr content = smp.Content)
         {
-          chip->SetSample(idx, smp.Data, smp.Loop);
+          const uint8_t* const start = static_cast<const uint8_t*>(content->Start());
+          chip->SetSample(idx, Dump(start, start + content->Size()), smp.Loop);
         }
       }
       return CreateDMMRenderer(params, Info, Data, chip);

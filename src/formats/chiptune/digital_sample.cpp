@@ -11,10 +11,14 @@ Author:
 
 //local includes
 #include "digital_sample.h"
+//common includes
+#include <tools.h>
 //library includes
 #include <binary/container_factories.h>
 //std includes
 #include <algorithm>
+//boost includes
+#include <boost/array.hpp>
 
 namespace
 {
@@ -32,6 +36,14 @@ namespace
   {
     return Convert(in & 15);
   }
+
+  typedef boost::array<uint8_t, 2> DoubleSample;
+
+  inline DoubleSample UnpackAndConvert(uint8_t in)
+  {
+    const DoubleSample res = { {Convert(in & 15), Convert(in >> 4)} };
+    return res;
+  }
 }
 
 namespace Formats
@@ -43,6 +55,15 @@ namespace Formats
       std::auto_ptr<Dump> res(new Dump(sample.Size()));
       const uint8_t* const start = static_cast<const uint8_t*>(sample.Start());
       std::transform(start, start + sample.Size(), &res->front(), &MaskAndConvert);
+      return Binary::CreateContainer(res);
+    }
+
+    Binary::Data::Ptr Unpack4BitSample(const Binary::Data& sample)
+    {
+      std::auto_ptr<Dump> res(new Dump(sample.Size() * 2));
+      const uint8_t* const src = static_cast<const uint8_t*>(sample.Start());
+      DoubleSample* const dst = safe_ptr_cast<DoubleSample*>(&res->front());
+      std::transform(src, src + sample.Size(), dst, &UnpackAndConvert);
       return Binary::CreateContainer(res);
     }
   }

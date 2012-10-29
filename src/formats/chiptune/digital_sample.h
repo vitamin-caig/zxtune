@@ -17,5 +17,6 @@ namespace Formats
   namespace Chiptune
   {
     Binary::Data::Ptr Convert4BitSample(const Binary::Data& sample);
+    Binary::Data::Ptr Unpack4BitSample(const Binary::Data& sample);
   }
 }
