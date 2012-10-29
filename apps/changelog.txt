@@ -7,6 +7,17 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Possibility to autorename files while save/convert in case of existing
+[*] Speedup for Z80, STC, ST3 and PSM formats detection
+[*] Reworked VortexTracker II (TXT) files parsing. Fixed crash
+[*] Using AY volume table to play 4-bit digital samples in DST and DMM modules
+[*] Fixed loop processing for some samples in DigitalStudio modules
+[-] Temporary removed conversion to VortexTracker II (TXT) format
+[*] zxtune-qt: fixed redundand property saving to playlist
+[*] zxtune-qt: fixed broken search while called via hotkey
+
+--- Rev2035 from 27.09.2012
+
 [+] Stereo mode setup for mp3 encoding
 [*] Slight speedup for ay/ym rendering (~15%) and interpolated rendering (~60%)
 [*] Fix for OSS that doesn't support unsigned samples (Dingux)
