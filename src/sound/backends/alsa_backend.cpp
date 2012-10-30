@@ -640,12 +640,12 @@ namespace
     {
     }
 
-    virtual void GetVolume(MultiGain& volume) const
+    virtual MultiGain GetVolume() const
     {
       Dbg("GetVolume");
       if (Mixer::Ptr obj = Mix.lock())
       {
-        return obj->GetVolume(volume);
+        return obj->GetVolume();
       }
       Dbg("Volume control is expired");
     }
