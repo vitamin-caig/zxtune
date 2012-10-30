@@ -648,6 +648,7 @@ namespace
         return obj->GetVolume();
       }
       Dbg("Volume control is expired");
+      return MultiGain();
     }
 
     virtual void SetVolume(const MultiGain& volume)

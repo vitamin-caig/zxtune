@@ -1,5 +1,5 @@
 #package generating
-pkg_revision := $(subst :,_,$(shell svnversion $(path_step)))
+pkg_revision := $(subst :,_,$(firstword $(shell svnversion $(path_step))))
 pkg_subversion := $(if $(release),,_dbg)
 
 pkg_name ?= $(binary_name)
