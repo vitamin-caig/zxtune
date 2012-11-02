@@ -32,10 +32,10 @@ namespace
 #define TOSTRING(a) #a
 #define STR(a) TOSTRING(a)
 
-  const std::string PROGRAM_VERSION(STR(ZXTUNE_VERSION));
-  const std::string PROGRAM_DATE(__DATE__);
-  const std::string PROGRAM_PLATFORM(STR(BUILD_PLATFORM));
-  const std::string PROGRAM_ARCH(STR(BUILD_ARCH));
+  const std::string VERSION(STR(ZXTUNE_VERSION));
+  const std::string DATE(__DATE__);
+  const std::string PLATFORM(STR(BUILD_PLATFORM));
+  const std::string ARCH(STR(BUILD_ARCH));
 }
 
 namespace Text
@@ -48,12 +48,32 @@ String GetProgramTitle()
   return Text::PROGRAM_NAME;
 }
 
+String GetProgramVersion()
+{
+  return FromStdString(VERSION);
+}
+
+String GetBuildDate()
+{
+  return FromStdString(DATE);
+}
+
+String GetBuildPlatform()
+{
+  return FromStdString(PLATFORM);
+}
+
+String GetBuildArchitecture()
+{
+  return FromStdString(ARCH);
+}
+
 String GetProgramVersionString()
 {
   return Strings::Format(Text::PROGRAM_VERSION_STRING,
     GetProgramTitle(),
-    FromStdString(PROGRAM_VERSION),
-    FromStdString(PROGRAM_DATE),
-    FromStdString(PROGRAM_PLATFORM),
-    FromStdString(PROGRAM_ARCH));
+    GetProgramVersion(),
+    GetBuildDate(),
+    GetBuildPlatform(),
+    GetBuildArchitecture());
 }

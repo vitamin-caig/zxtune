@@ -19,57 +19,62 @@
         <translation>Помощь</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="94"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="96"/>
         <source>Add files</source>
         <translation>Добавить файлы</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="107"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="109"/>
         <source>Add folder</source>
         <translation>Добавить папку</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="120"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="122"/>
         <source>Preferences</source>
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="133"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="135"/>
         <source>Quit</source>
         <translation>Выход</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="143"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="145"/>
         <source>Online help</source>
         <translation>Онлайн руководство</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="156"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="158"/>
         <source>Visit web site</source>
         <translation>Сайт проекта</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="166"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="168"/>
         <source>Online FAQ</source>
         <translation>Онлайн ЧаВо</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="176"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="178"/>
         <source>Report bug online</source>
         <translation>Сообщить об ошибке</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="186"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="188"/>
+        <source>Check updates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="198"/>
         <source>Components</source>
         <translation>Компоненты</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="196"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="208"/>
         <source>About</source>
         <translation>О программе</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="206"/>
+        <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="218"/>
         <source>About QT</source>
         <translation>Об используемой версии QT</translation>
     </message>

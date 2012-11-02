@@ -5,6 +5,7 @@
 
 namespace Text
 {
+extern const Char DOWNLOADS_FEED_URL[];
 extern const Char FAQ_URL[];
 extern const Char FEEDBACK_EMAIL[];
 extern const Char HELP_URL[];

@@ -11,6 +11,7 @@ source_files = qt_app supp/options
 #ui-related
 #gui_theme ?= default
 gui_theme ?= restorer
+have_gui = 1
 
 #other
 moc_files += supp/playback_supp supp/mixer
@@ -44,8 +45,8 @@ libraries += l10n_stub ui_embedded playlist_ui_embedded
 depends += src/l10n/stub apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
 qt_libraries += Network
 else
-libraries += l10n ui_desktop playlist_ui_desktop ui_conversion ui_preferences
-depends += src/l10n apps/zxtune-qt/ui/desktop apps/zxtune-qt/playlist/ui/desktop apps/zxtune-qt/ui/conversion apps/zxtune-qt/ui/preferences
+libraries += l10n ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update
+depends += src/l10n $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
 boost_libraries += locale
 mingw_libraries += iconv
 embedded_files = $(qm_translation_data) $(mo_translation_data)

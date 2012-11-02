@@ -36,18 +36,18 @@ msgstr "Микшер '%1%' не найден в подсистеме ALSA."
 msgid "Failed to set volume: gain is out of range."
 msgstr "Ошибка установки громкости: превышение допустимого значения."
 
-#: backends/alsa_backend.cpp:695
+#: backends/alsa_backend.cpp:696
 #, boost-format
 msgid "ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: backends/alsa_backend.cpp:794 backends/alsa_stub.cpp:27
+#: backends/alsa_backend.cpp:795 backends/alsa_stub.cpp:27
 msgid "ALSA sound system backend"
 msgstr "Поддержка подсистемы ALSA"
 
-#: backends/alsa_backend.cpp:835 backends/dsound_backend.cpp:534
+#: backends/alsa_backend.cpp:836 backends/dsound_backend.cpp:534
 #: backends/flac_backend.cpp:321 backends/mp3_backend.cpp:390
 #: backends/null_backend.cpp:107 backends/ogg_backend.cpp:458
 #: backends/oss_backend.cpp:398 backends/sdl_backend.cpp:332
@@ -56,7 +56,7 @@ msgstr "Поддержка подсистемы ALSA"
 msgid "Failed to create backend '%1%'."
 msgstr "Ошибка создания подсистемы вывода '%1%'."
 
-#: backends/alsa_backend.cpp:1104 backends/dsound_backend.cpp:635
+#: backends/alsa_backend.cpp:1105 backends/dsound_backend.cpp:635
 #: backends/win32_backend.cpp:637
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."

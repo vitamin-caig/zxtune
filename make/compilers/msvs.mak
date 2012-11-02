@@ -5,7 +5,7 @@ AR := lib.exe
 #set options according to mode
 ifdef release
 CXX_MODE_FLAGS = /Ox /DNDEBUG /MD
-LD_MODE_FLAGS = /SUBSYSTEM:$(if $(qt_libraries),WINDOWS,CONSOLE)
+LD_MODE_FLAGS = /SUBSYSTEM:$(if $(have_gui),WINDOWS,CONSOLE)
 else
 CXX_MODE_FLAGS = /Od /MDd
 LD_MODE_FLAGS = /SUBSYSTEM:CONSOLE

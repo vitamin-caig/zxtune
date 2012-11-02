@@ -24,7 +24,7 @@ LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax,--kill-at
 endif
 endif
 
-ifdef use_qt
+ifdef have_gui
 LD_PLATFORM_FLAGS += -Wl,-subsystem,windows
 else
 LD_PLATFORM_FLAGS += -Wl,-subsystem,console
