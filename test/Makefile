@@ -6,6 +6,7 @@ all test:
 	$(MAKE) -C ../src/l10n/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/math/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/io/test $(MAKECMDGOALS)
+	$(MAKE) -C ../src/platform/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/resource/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/sound/test $(MAKECMDGOALS)
 	$(MAKE) -C ../src/strings/test $(MAKECMDGOALS)
