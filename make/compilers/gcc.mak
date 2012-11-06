@@ -39,7 +39,7 @@ CXX_MODE_FLAGS += --coverage
 LD_MODE_FLAGS += --coverage
 endif
 
-DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS
+DEFINITIONS = $(defines) $($(platform)_definitions)
 INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 
 #setup flags

@@ -33,6 +33,8 @@ using boost::int64_t;
 using boost::uint64_t;
 #endif
 
+#define __STDC_CONSTANT_MACROS
+
 /// Unsigned integer type
 typedef boost::uint_fast32_t uint_t;
 /// Signed integer type

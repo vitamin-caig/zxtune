@@ -36,7 +36,7 @@ build() {
   svn export "${srcdir}/${_svnmod}" "${srcdir}/${_svnmod}-build"
   cd "${srcdir}/${_svnmod}-build"
   NO_TEXTATOR=1 NO_PERL=1 \
-  make ${MAKEFLAGS} all ${_options} cxx_flags="${CXXFLAGS}" ld_flags="${LDFLAGS}" defines="ZXTUNE_VERSION=rev${pkgver}" -C ${_target}
+  make ${MAKEFLAGS} all ${_options} cxx_flags="${CXXFLAGS}" ld_flags="${LDFLAGS}" defines="BUILD_VERSION=${pkgver}" -C ${_target}
 }
 
 package() {

@@ -27,7 +27,7 @@ $(pkg_debug): | $(pkg_debug_root)
 $(pkg_build_log): | $(pkg_dir)
 	@$(call showtime_cmd)
 	$(info Compile $(pkg_name))
-	$(MAKE) defines="ZXTUNE_VERSION=rev$(pkg_revision)" > $(pkg_build_log) 2>&1
+	$(MAKE) defines="BUILD_VERSION=$(pkg_revision)" > $(pkg_build_log) 2>&1
 
 ifdef target
 install_debug: $(pkg_build_log)
