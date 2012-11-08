@@ -13,15 +13,16 @@ Author:
 
 //local includes
 #include "check.h"
-#include "async_download.h"
 #include "downloads.h"
 #include "product.h"
+#include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/text/text.h"
 #include "apps/zxtune-qt/ui/utils.h"
 #include "apps/zxtune-qt/ui/tools/errordialog.h"
 //common includes
 #include <debug_log.h>
 #include <error.h>
+#include <progress_callback.h>
 //library includes
 #include <io/api.h>
 //qt includes
@@ -41,7 +42,7 @@ namespace
 {
   const Error CANCELED(THIS_LINE, String());
 
-  class DownloadCallback : public Async::DownloadCallback
+  class DownloadCallback : public Log::ProgressCallback
   {
   public:
     explicit DownloadCallback(QProgressDialog& dlg)
@@ -63,39 +64,25 @@ namespace
     {
       OnProgress(current);
     }
-
-    virtual void Complete(Binary::Data::Ptr data)
-    {
-      Dbg("Download complete");
-      Result = data;
-      Progress.accept();
-    }
-
-    virtual void Failed()
-    {
-      Dbg("Download failed");
-      Progress.reject();
-    }
-
-    Binary::Data::Ptr GetResult() const
-    {
-      return Result;
-    }
   private:
     QProgressDialog& Progress;
-    Binary::Data::Ptr Result;
   };
+
+  Binary::Data::Ptr Download(const QUrl& url, Log::ProgressCallback& cb)
+  {
+    const String path = FromQString(url.toString());
+    const Parameters::Accessor::Ptr params = GlobalOptions::Instance().Get();
+    return IO::OpenData(path, *params, cb);
+  }
 
   Binary::Data::Ptr Download(QWidget& parent, const QUrl& url, const char* progressMsg)
   {
     QProgressDialog dialog(&parent, Qt::Dialog);
+    dialog.setMinimumDuration(1);
     dialog.setLabelText(QApplication::translate("UpdateCheck", progressMsg));
     dialog.setWindowModality(Qt::WindowModal);
     DownloadCallback cb(dialog);
-    const Async::Activity::Ptr act = Async::CreateDownloadActivity(url, cb);
-    dialog.exec();
-    ThrowIfError(act->Wait());
-    return cb.GetResult();
+    return Download(url, cb);
   }
 
   void DownloadAndSave(QWidget& parent, const QUrl& url)
@@ -222,7 +209,7 @@ namespace
     if (QMessageBox::Save == QMessageBox::question(&parent, QString(),
       text, QMessageBox::Save | QMessageBox::Cancel))
     {
-      const QUrl& download = upd.Reference.Package;
+      const QUrl& download = QString("http://dl.dropbox.com/u/2393036/Illusion.mp3");//upd.Reference.Package;
       DownloadAndSave(parent, download);
     }
   }
