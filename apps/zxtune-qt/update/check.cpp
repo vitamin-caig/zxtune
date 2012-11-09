@@ -203,13 +203,15 @@ namespace
 
   void Download(QWidget& parent, const AvailableUpdate& upd, const char* msg)
   {
-    const QString text = QApplication::translate("UpdateCheck", msg)
+    const QDate now = QDate::currentDate();
+    const int ageInDays = upd.Version.ReleaseDate.daysTo(now);
+    const QString text = QApplication::translate("UpdateCheck", msg, 0, QCoreApplication::DefaultCodec, ageInDays)
       .arg(upd.Version.Index).arg(upd.Version.ReleaseDate.toString())
       .arg(upd.Reference.Description.toString());
     if (QMessageBox::Save == QMessageBox::question(&parent, QString(),
       text, QMessageBox::Save | QMessageBox::Cancel))
     {
-      const QUrl& download = QString("http://dl.dropbox.com/u/2393036/Illusion.mp3");//upd.Reference.Package;
+      const QUrl& download = upd.Reference.Package;
       DownloadAndSave(parent, download);
     }
   }
@@ -247,11 +249,11 @@ namespace Update
       }
       else if (const AvailableUpdate* avail = state.GetLatest())
       {
-        Download(parent, *avail, QT_TRANSLATE_NOOP("UpdateCheck", "New version %1 from %2 found.<br/><a href=\"%3\">Download it manually</a>"));
+        Download(parent, *avail, QT_TRANSLATE_NOOP("UpdateCheck", "New version %1 from %2 available (%n day(s) ago).<br/><a href=\"%3\">Download it manually</a>"));
       }
       else if(const AvailableUpdate* compatible = state.GetLatestCompatible())
       {
-        Download(parent, *compatible, QT_TRANSLATE_NOOP("UpdateCheck", "New compatible version %1 from %2 found.<br/><a href=\"%3\">Download it manually</a>"));
+        Download(parent, *compatible, QT_TRANSLATE_NOOP("UpdateCheck", "New compatible version %1 from %2 available (%n day(s) ago).<br/><a href=\"%3\">Download it manually</a>"));
       }
     }
     catch (const Error& e)

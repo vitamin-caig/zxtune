@@ -61,7 +61,7 @@
     <message>
         <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="188"/>
         <source>Check updates</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверить обновления</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/desktop/mainwindow.ui" line="198"/>
