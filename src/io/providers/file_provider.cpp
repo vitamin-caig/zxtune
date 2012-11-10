@@ -314,7 +314,7 @@ namespace IO
   public:
     explicit OutputFileStream(const boost::filesystem::path& name)
       : Name(name.string())
-      , Stream(name, std::ios::binary)
+      , Stream(name, std::ios::binary | std::ios_base::out)
     {
       if (!Stream)
       {

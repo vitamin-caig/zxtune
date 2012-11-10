@@ -163,17 +163,24 @@ namespace IO
   private:
     static int DebugCallback(CURL* obj, curl_infotype type, char* data, size_t size, void* /*param*/)
     {
-      //size includes CR code
+      static const char SPACES[] = "\n\r\t ";
+      std::string str(data, data + size);
+      const std::string::size_type lastSym = str.find_last_not_of(SPACES);
+      if (lastSym == str.npos)
+      {
+        return 0;
+      }
+      str.resize(lastSym + 1);
       switch (type)
       {
       case CURLINFO_TEXT:
-        Dbg("Curl(%1%): %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): %2%", obj, str);
         break;
       case CURLINFO_HEADER_IN:
-        Dbg("Curl(%1%): -> %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): -> %2%", obj, str);
         break;
       case CURLINFO_HEADER_OUT:
-        Dbg("Curl(%1%): <- %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): <- %2%", obj, str);
         break;
       default:
         break;

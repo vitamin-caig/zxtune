@@ -81,15 +81,15 @@ msgstr "Сетевая ошибка: %1%"
 msgid "Http error happends: %1%."
 msgstr "Ошибка HTTP: %1%."
 
-#: providers/network_provider.cpp:287 providers/network_stub.cpp:22
+#: providers/network_provider.cpp:294 providers/network_stub.cpp:22
 msgid "Network files access via different schemes support"
 msgstr "Поддержка доступа к сетевым файлам"
 
-#: providers/network_provider.cpp:355
+#: providers/network_provider.cpp:362
 #, boost-format
 msgid "Failed to open network resource '%1%'."
 msgstr "Ошибка открытия сетевого ресурса '%1%'."
 
-#: providers/network_provider.cpp:361
+#: providers/network_provider.cpp:368
 msgid "Not supported."
 msgstr "Не поддерживается."
