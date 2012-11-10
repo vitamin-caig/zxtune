@@ -44,7 +44,6 @@ public slots:
   virtual void VisitSite() = 0;
   virtual void VisitFAQ() = 0;
   virtual void ReportIssue() = 0;
-  virtual void CheckUpdates() = 0;
 private slots:
   virtual void ShowError(const Error&) = 0;
 };

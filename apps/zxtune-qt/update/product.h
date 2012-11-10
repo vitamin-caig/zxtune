@@ -15,6 +15,10 @@ Author:
 #ifndef ZXTUNE_QT_UPDATE_PRODUCT_H_DEFINED
 #define ZXTUNE_QT_UPDATE_PRODUCT_H_DEFINED
 
+//std includes
+#include <vector>
+//boost includes
+#include <boost/shared_ptr.hpp>
 //qt includes
 #include <QtCore/QDate>
 #include <QtCore/QString>
@@ -22,66 +26,78 @@ Author:
 
 namespace Product
 {
-  struct Version
+  class Release
   {
-    QString Index;
-    QDate ReleaseDate;
+  public:
+    virtual ~Release() {}
 
-    Version(const QString& idx, const QDate& date)
-      : Index(idx)
-      , ReleaseDate(date)
+    enum PlatformTag
     {
-    }
+      UNKNOWN_PLATFORM,
+      WINDOWS,
+      MINGW,
+      LINUX,
+      DINGUX,
+    };
 
-    //! @return true if this refers to more recent version
-    bool IsNewerThan(const Version& rh) const;
-
-    bool operator == (const Version& rh) const
+    enum ArchitectureTag
     {
-      return Index == rh.Index && ReleaseDate == rh.ReleaseDate;
-    }
+      UNKNOWN_ARCHITECTURE,
+      X86,
+      X86_64,
+      ARM,
+      MIPSEL,
+    };
+
+    virtual PlatformTag Platform() const = 0;
+    virtual ArchitectureTag Architecture() const = 0;
+    virtual QString Version() const = 0;
+    virtual QDate Date() const = 0;
   };
 
-  struct Platform
+  class Update : public Release
   {
-    QString Architecture;
-    QString OperatingSystem;
+  public:
+    typedef boost::shared_ptr<const Update> Ptr;
 
-    Platform(const QString& arch, const QString& os)
-      : Architecture(arch)
-      , OperatingSystem(os)
+    enum PackagingTag
     {
-    }
+      UNKNOWN_PACKAGING,
+      ZIP,
+      TARGZ,
+      TARXZ,
+      DEB,
+      RPM,
+    };  
 
-    //! @return true if this can be replaced with rh
-    //! @example mingw and windows are fully compatible for the same versions
-    //! @example x86_64 can be replaced with x86 for windows
-    //! @example Debian amd64 can be replaced with Linux x86_64
-    bool IsReplaceableWith(const Platform& rh) const;
-
-    bool operator == (const Platform& rh) const
+    enum TypeTag
     {
-      return Architecture == rh.Architecture
-          && OperatingSystem == rh.OperatingSystem
-      ;
-    }
+      UNKNOWN_TYPE,
+      WINDOWS_X86,
+      WINDOWS_X86_64,
+      MINGW_X86,
+      MINGW_X86_64,
+      LINUX_X86,
+      LINUX_X86_64,
+      LINUX_ARM,
+      DINGUX_MIPSEL,
+      ARCHLINUX_X86,
+      ARCHLINUX_X86_64,
+      UBUNTU_X86,
+      UBUNTU_X86_64,
+      REDHAT_X86,
+      REDHAT_X86_64,
+    };
+
+    virtual PackagingTag Packaging() const = 0;
+    virtual QString Title() const = 0;
+    virtual QUrl Description() const = 0;
+    virtual QUrl Package() const = 0;
   };
 
-  struct Download
-  {
-    QUrl Description;
-    QUrl Package;
-
-    Download(const QUrl& desc, const QUrl& pkg)
-      : Description(desc)
-      , Package(pkg)
-    {
-    }
-  };
-
-  //Current build attrs
-  Version CurrentBuildVersion();
-  Platform CurrentBuildPlatform();
+  const Release& ThisRelease();
+  Update::TypeTag GetUpdateType(Release::PlatformTag platform, Release::ArchitectureTag architecture, Update::PackagingTag packaging);
+  std::vector<Update::TypeTag> SupportedUpdateTypes();
 }
 
 #endif //ZXTUNE_QT_UPDATE_PRODUCT_H_DEFINED

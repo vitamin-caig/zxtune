@@ -30,7 +30,7 @@ depends += $(addprefix apps/,base version)
 
 #ui
 libraries += playlist_ui playlist_supp playlist_io ui_common
-depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui /playlist/io ui)
+depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
 
 #3rdparty
 libraries += lhasa z z80ex

@@ -108,10 +108,17 @@ namespace
       this->connect(actionWebSite, SIGNAL(triggered()), SLOT(VisitSite()));
       this->connect(actionOnlineFAQ, SIGNAL(triggered()), SLOT(VisitFAQ()));
       this->connect(actionReportBug, SIGNAL(triggered()), SLOT(ReportIssue()));
-      this->connect(actionCheckUpdates, SIGNAL(triggered()), SLOT(CheckUpdates()));
       this->connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt()));
       this->connect(actionPreferences, SIGNAL(triggered()), SLOT(ShowPreferences()));
-      actionCheckUpdates->setEnabled(Update::IsCheckingAvailable());
+      if (Update::CheckOperation* op = Update::CheckOperation::Create(*this))
+      {
+        Require(op->connect(actionCheckUpdates, SIGNAL(triggered()), SLOT(Execute())));
+        Require(this->connect(op, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
+      }
+      else
+      {
+        actionCheckUpdates->setEnabled(false);
+      }
 
       MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
       MultiPlaylist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
@@ -195,11 +202,6 @@ namespace
     {
       const QLatin1String faqUrl(Text::REPORT_BUG_URL);
       QDesktopServices::openUrl(QUrl(faqUrl));
-    }
-
-    virtual void CheckUpdates()
-    {
-      Update::Check(*this);
     }
 
     virtual void ShowError(const Error& err)

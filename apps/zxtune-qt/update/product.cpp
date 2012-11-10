@@ -15,162 +15,189 @@ Author:
 #include "product.h"
 #include "apps/version/api.h"
 #include "apps/zxtune-qt/ui/utils.h"
+//common includes
+#include <tools.h>
+//qt includes
+#include <QtCore/QFileInfo>
 
 namespace
 {
-  unsigned ExtractIndex(const QString& prefix, const QString& val)
-  {
-    const QString num = val.right(val.size() - prefix.size());
-    bool ok = false;
-    const int res = num.toInt(&ok);
-    return ok ? static_cast<unsigned>(res) : 0;
-  }
-
-  unsigned ExtractRevision(const QString& rev)
-  {
-    static const QLatin1String PREFIX_REV("rev");
-    static const QLatin1String PREFIX_R("r");
-    static const QLatin1String PREFIX_EMPTY("");
-
-    if (rev.startsWith(PREFIX_REV))
-    {
-      return ExtractIndex(PREFIX_REV, rev);
-    }
-    else if (rev.startsWith(PREFIX_R))
-    {
-      return ExtractIndex(PREFIX_R, rev);
-    }
-    else
-    {
-      return ExtractIndex(PREFIX_EMPTY, rev);
-    }
-  }
-
-  class OSTraits
+  class CurrentRelease : public Product::Release
   {
   public:
-    explicit OSTraits(const QString& str)
-      : Name(str.toLower())
+    virtual Product::Release::PlatformTag Platform() const
     {
+      const String txt = GetBuildPlatform();
+      if (txt == "windows")
+      {
+        return Product::Release::WINDOWS;
+      }
+      else if (txt == "mingw")
+      {
+        return Product::Release::MINGW;
+      }
+      else if (txt == "linux")
+      {
+        return Product::Release::LINUX;
+      }
+      else if (txt == "dingux")
+      {
+        return Product::Release::DINGUX;
+      }
+      else
+      {
+        return Product::Release::UNKNOWN_PLATFORM;
+      }
     }
 
-    bool IsWindows() const
+    virtual Product::Release::ArchitectureTag Architecture() const
     {
-      static const QLatin1String WINDOWS("windows");
-      static const QLatin1String MINGW("mingw");
-      return Name == WINDOWS
-          || Name == MINGW
-      ;
+      const String txt = GetBuildArchitecture();
+      if (txt == "x86")
+      {
+        return Product::Release::X86;
+      }
+      else if (txt == "x86_64")
+      {
+        return Product::Release::X86_64;
+      }
+      else if (txt == "arm")
+      {
+        return Product::Release::ARM;
+      }
+      else if (txt == "mipsel")
+      {
+        return Product::Release::MIPSEL;
+      }
+      else
+      {
+        return Product::Release::UNKNOWN_ARCHITECTURE;
+      }
     }
 
-    bool IsLinux() const
+    virtual QString Version() const
     {
-      static const QLatin1String LINUX("linux");
-      return Name == LINUX;
+      return ToQString(GetProgramVersion());
     }
 
-    bool IsLinuxDistro() const
+    virtual QDate Date() const
     {
-      static const QLatin1String ARCHLINUX("archlinux");
-      static const QLatin1String UBUNTU("ubuntu");
-      static const QLatin1String REDHAT("redhat");
-      return Name == ARCHLINUX
-          || Name == UBUNTU
-          || Name == REDHAT
-      ;
+      return QDate::fromString(ToQString(GetBuildDate()), Qt::SystemLocaleShortDate);
     }
-  private:
-    const QString Name;
   };
 
-  class ArchTraits
+  using namespace Product;
+
+  struct PackagingTraits
   {
-  public:
-    explicit ArchTraits(const QString& str)
-      : Name(str.toLower())
-    {
-    }
+    const char* ReleaseFile;
+    Update::PackagingTag Packaging;
+  };
 
-    bool IsX86() const
-    {
-      static const QLatin1String X86("x86");
-      static const QLatin1String I386("i386");
-      static const QLatin1String I686("i686");
-      return Name == X86
-          || Name == I386
-          || Name == I686
-      ;
-    }
+  const PackagingTraits PACKAGING_TYPES[] =
+  {
+    {"arch-release",   Update::TARXZ},
+    {"debian_version", Update::DEB},
+    {"debian_release", Update::DEB},
+    {"redhat-release", Update::RPM},
+    {"redhat_version", Update::RPM},
+    {"fedora-release", Update::RPM},
+    {"centos-release", Update::RPM},
+    {"SuSE-release",   Update::RPM},
+  };
 
-    bool IsAmd64() const
+  Update::PackagingTag GetLinuxPackaging()
+  {
+    static const QLatin1String RELEASE_DIR("/etc/");
+    for (const PackagingTraits* it = PACKAGING_TYPES, *lim = ArrayEnd(PACKAGING_TYPES); it != lim; ++it)
     {
-      static const QLatin1String X86_64("x86_64");
-      static const QLatin1String AMD64("amd64");
-      return Name == X86_64
-          || Name == AMD64
-      ;
+      if (QFileInfo(RELEASE_DIR + it->ReleaseFile).exists())
+      {
+        return it->Packaging;
+      }
     }
-  private:
-    const QString Name;
+    return Update::TARGZ;
+  }
+
+  struct ReleaseTypeTraits
+  {
+    Update::TypeTag Type;
+    Release::PlatformTag Platform;
+    Release::ArchitectureTag Architecture;
+    Update::PackagingTag Packaging;
+  };
+
+  const ReleaseTypeTraits RELEASE_TYPES[] =
+  {
+    {Update::WINDOWS_X86,      Release::WINDOWS, Release::X86,    Update::ZIP},
+    {Update::WINDOWS_X86_64,   Release::WINDOWS, Release::X86_64, Update::ZIP},
+    {Update::MINGW_X86,        Release::MINGW,   Release::X86,    Update::ZIP},
+    {Update::MINGW_X86_64,     Release::MINGW,   Release::X86_64, Update::ZIP},
+    {Update::LINUX_X86,        Release::LINUX,   Release::X86,    Update::TARGZ},
+    {Update::LINUX_X86_64,     Release::LINUX,   Release::X86_64, Update::TARGZ},
+    {Update::LINUX_ARM,        Release::LINUX,   Release::ARM,    Update::TARGZ},
+    {Update::DINGUX_MIPSEL,    Release::DINGUX,  Release::MIPSEL, Update::TARGZ},
+    {Update::ARCHLINUX_X86,    Release::LINUX,   Release::X86,    Update::TARXZ},
+    {Update::ARCHLINUX_X86_64, Release::LINUX,   Release::X86_64, Update::TARXZ},
+    {Update::UBUNTU_X86,       Release::LINUX,   Release::X86,    Update::DEB},
+    {Update::UBUNTU_X86_64,    Release::LINUX,   Release::X86_64, Update::DEB},
+    {Update::REDHAT_X86,       Release::LINUX,   Release::X86,    Update::RPM},
+    {Update::REDHAT_X86_64,    Release::LINUX,   Release::X86_64, Update::RPM},
   };
 }
 
 namespace Product
 {
-  bool Version::IsNewerThan(const Version& rh) const
+  const Release& ThisRelease()
   {
-    const unsigned revision = ExtractRevision(Index);
-    const unsigned rhRevision = ExtractRevision(rh.Index);
-    if (revision && rhRevision)
-    {
-      return revision > rhRevision;
-    }
-    if (ReleaseDate.isValid() && rh.ReleaseDate.isValid())
-    {
-      return ReleaseDate > rh.ReleaseDate;
-    }
-    return false;
+    static const CurrentRelease CURRENT;
+    return CURRENT;
   }
 
-  bool Platform::IsReplaceableWith(const Platform& rh) const
+  Update::TypeTag GetUpdateType(Release::PlatformTag platform, Release::ArchitectureTag architecture, Update::PackagingTag packaging)
   {
-    if (*this == rh)
+    for (const ReleaseTypeTraits* it = RELEASE_TYPES, *lim = ArrayEnd(RELEASE_TYPES); it != lim; ++it)
     {
-      return true;
+      if (it->Platform == platform &&
+          it->Architecture == architecture &&
+          it->Packaging == packaging)
+      {
+        return it->Type;
+      }
     }
-    const OSTraits os(OperatingSystem);
-    const OSTraits rhOs(rh.OperatingSystem);
-    const ArchTraits arch(Architecture);
-    const ArchTraits rhArch(rh.Architecture);
-    if (os.IsWindows() && rhOs.IsWindows())
-    {
-      //on windows x86_64 can run any platform
-      return arch.IsAmd64() || rhArch.IsX86();
-    }
-    else if (arch.IsX86() != rhArch.IsX86())
-    {
-      //arch incompatibility
-      return false;
-    }
-    else if (os.IsLinuxDistro())
-    {
-      //distro can be replaced with common package
-      return rhOs.IsLinux();
-    }
-    else
-    {
-      return false;
-    }
+    return Update::UNKNOWN_TYPE;
   }
 
-  Version CurrentBuildVersion()
+  std::vector<Update::TypeTag> SupportedUpdateTypes()
   {
-    const QDate date = QDate::fromString(ToQString(GetBuildDate()), Qt::SystemLocaleShortDate);
-    return Version(ToQString(GetProgramVersion()), date);
-  }
+    std::vector<Update::TypeTag> result;
+    const Release::PlatformTag platform = ThisRelease().Platform();
+    const Release::ArchitectureTag architecture = ThisRelease().Architecture();
 
-  Platform CurrentBuildPlatform()
-  {
-    return Platform(ToQString(GetBuildArchitecture()), ToQString(GetBuildPlatform()));
+    //do not use cross-architecture update types
+    switch (platform)
+    {
+    case Release::MINGW:
+      result.push_back(GetUpdateType(Release::MINGW, architecture, Update::ZIP));
+    case Release::WINDOWS:
+      result.push_back(GetUpdateType(Release::WINDOWS, architecture, Update::ZIP));
+      break;
+    case Release::LINUX:
+      {
+        const Update::PackagingTag packaging = GetLinuxPackaging();
+        result.push_back(GetUpdateType(Release::LINUX, architecture, packaging));
+        if (packaging != Update::TARGZ)
+        {
+          result.push_back(GetUpdateType(Release::LINUX, architecture, Update::TARGZ));
+        }
+      };
+      break;
+    case Release::DINGUX:
+      result.push_back(GetUpdateType(platform, architecture, Update::TARGZ));
+      break;
+    default:
+      break;
+    };
+    return result;
   }
 }

@@ -1,7 +1,8 @@
 library_name := check_update
 path_step := ../../..
 
-source_dirs := .
+source_files := downloads product rss
+moc_files := check
 
 ts_files := update_check
 

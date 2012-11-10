@@ -15,12 +15,23 @@ Author:
 #ifndef ZXTUNE_QT_UPDATE_CHECK_DEFINED
 #define ZXTUNE_QT_UPDATE_CHECK_DEFINED
 
-class QWidget;
+//qt includes
+#include <QtGui/QWidget>
+
+class Error;
 
 namespace Update
 {
-  bool IsCheckingAvailable();
-  void Check(QWidget& parent);
+  class CheckOperation : public QObject
+  {
+    Q_OBJECT
+  public:
+    static CheckOperation* Create(QWidget& parent);
+  public slots:
+    virtual void Execute() = 0;
+  signals:
+    void ErrorOccurred(const Error&);
+  };
 };
 
 #endif //ZXTUNE_QT_UPDATE_CHECK_DEFINED

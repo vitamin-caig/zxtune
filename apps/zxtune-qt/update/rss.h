@@ -25,8 +25,8 @@ namespace RSS
 {
   struct Entry
   {
-    QString Id;
     QDate Updated;
+    QString Title;
     QUrl AlternateLink;
     QString HtmlContent;
   };

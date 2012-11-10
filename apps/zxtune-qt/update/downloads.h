@@ -16,16 +16,10 @@ Author:
 #define ZXTUNE_QT_UPDATE_DOWNLOADS_H_DEFINED
 
 //local includes
+#include "product.h"
 #include "rss.h"
 //std includes
 #include <memory>
-
-namespace Product
-{
-  struct Version;
-  struct Platform;
-  struct Download;
-}
 
 namespace Downloads
 {
@@ -34,7 +28,7 @@ namespace Downloads
   public:
     virtual ~Visitor() {}
 
-    virtual void OnDownload(const Product::Version& version, const Product::Platform& platform, const Product::Download& download) = 0;
+    virtual void OnDownload(Product::Update::Ptr update) = 0;
   };
 
   std::auto_ptr<RSS::Visitor> CreateFeedVisitor(const QString& project, Visitor& delegate);

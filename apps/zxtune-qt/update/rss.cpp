@@ -21,16 +21,16 @@ Author:
 
 namespace
 {
-  const Debug::Stream Dbg("UpdateCheck");
+  const Debug::Stream Dbg("UpdateCheck::RSS");
 }
 
 namespace RSS
 {
   const QLatin1String FEED("feed");
   const QLatin1String UPDATED("updated");
-  const QLatin1String ID("id");
   const QLatin1String ENTRY("entry");
   const QLatin1String LINK("link");
+  const QLatin1String TITLE("title");
   const QLatin1String CONTENT("content");
   const QLatin1String HREF("href");
   const QLatin1String REL("rel");
@@ -47,11 +47,7 @@ namespace
     while (xml.readNextStartElement())
     {
       const QStringRef tag = xml.name();
-      if (tag == RSS::ID)
-      {
-        res.Id = xml.readElementText();
-      }
-      else if (tag == RSS::UPDATED)
+      if (tag == RSS::UPDATED)
       {
         res.Updated = QDate::fromString(xml.readElementText(), Qt::ISODate);
       }
@@ -63,6 +59,10 @@ namespace
           res.AlternateLink = attributes.value(RSS::HREF).toString();
         }
         xml.readElementText();
+      }
+      else if (tag == RSS::TITLE)
+      {
+        res.Title = xml.readElementText().trimmed();
       }
       else if (tag == RSS::CONTENT)
       {

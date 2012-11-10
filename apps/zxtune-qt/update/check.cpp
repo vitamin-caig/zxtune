@@ -15,23 +15,24 @@ Author:
 #include "check.h"
 #include "downloads.h"
 #include "product.h"
-#include "apps/zxtune-qt/supp/options.h"
+#include "apps/version/fields.h"
 #include "apps/zxtune-qt/text/text.h"
 #include "apps/zxtune-qt/ui/utils.h"
-#include "apps/zxtune-qt/ui/tools/errordialog.h"
 //common includes
 #include <debug_log.h>
 #include <error.h>
+#include <parameters.h>
 #include <progress_callback.h>
 //library includes
 #include <io/api.h>
+#include <io/providers_parameters.h>
+//boost includes
+#include <boost/bind.hpp>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
 #include <QtGui/QProgressDialog>
-
-#define FILE_TAG 3AFAD500
 
 namespace
 {
@@ -40,7 +41,62 @@ namespace
 
 namespace
 {
-  const Error CANCELED(THIS_LINE, String());
+  class IOParameters : public Parameters::Accessor
+  {
+  public:
+    explicit IOParameters(const String& userAgent)
+      : UserAgent(userAgent)
+    {
+    }
+
+    IOParameters()
+    {
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    {
+      if (name == Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING)
+      {
+        val = 1;
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    {
+      if (!UserAgent.empty() && name == Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT)
+      {
+        val = UserAgent;
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const
+    {
+      return false;
+    }
+
+    virtual void Process(Parameters::Visitor& visitor) const
+    {
+      visitor.SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, 1);
+      if (!UserAgent.empty())
+      {
+        visitor.SetValue(Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT, UserAgent);
+      }
+    }
+  private:
+    const String UserAgent;
+  };
+
+  class Canceled {};
 
   class DownloadCallback : public Log::ProgressCallback
   {
@@ -48,6 +104,7 @@ namespace
     explicit DownloadCallback(QProgressDialog& dlg)
       : Progress(dlg)
     {
+      Progress.setValue(0);
     }
 
     virtual void OnProgress(uint_t current)
@@ -55,7 +112,7 @@ namespace
       if (Progress.wasCanceled())
       {
         Dbg("Cancel download");
-        throw CANCELED;
+        throw Canceled();
       }
       Progress.setValue(current);
     }
@@ -68,200 +125,318 @@ namespace
     QProgressDialog& Progress;
   };
 
+  String GetUserAgent()
+  {
+    const std::auto_ptr<Strings::FieldsSource> fields = CreateVersionFieldsSource();
+    return Strings::Template::Instantiate(Text::HTTP_USERAGENT, *fields);
+  }
+
   Binary::Data::Ptr Download(const QUrl& url, Log::ProgressCallback& cb)
   {
     const String path = FromQString(url.toString());
-    const Parameters::Accessor::Ptr params = GlobalOptions::Instance().Get();
-    return IO::OpenData(path, *params, cb);
+    const IOParameters params(GetUserAgent());
+    return IO::OpenData(path, params, cb);
   }
 
-  Binary::Data::Ptr Download(QWidget& parent, const QUrl& url, const char* progressMsg)
+  Binary::OutputStream::Ptr CreateStream(const QString& filename)
   {
-    QProgressDialog dialog(&parent, Qt::Dialog);
-    dialog.setMinimumDuration(1);
-    dialog.setLabelText(QApplication::translate("UpdateCheck", progressMsg));
-    dialog.setWindowModality(Qt::WindowModal);
-    DownloadCallback cb(dialog);
-    return Download(url, cb);
+    const String path = FromQString(filename);
+    const IOParameters params;
+    return IO::CreateStream(path, params, Log::ProgressCallback::Stub());
   }
 
-  void DownloadAndSave(QWidget& parent, const QUrl& url)
+  QDate VersionToDate(const QString& str, const QDate& fallback)
   {
-    QString filename = url.toString();
-    //do not use UI::SaveFileDialog
-    QFileDialog dialog(&parent, QString(), filename, QLatin1String("*"));
-    dialog.setOption(QFileDialog::DontUseNativeDialog, true);
-    dialog.setOption(QFileDialog::HideNameFilterDetails, true);
-    if (QDialog::Accepted == dialog.exec())
+    const QDate asDate = QDate::fromString(str, "yyyyMMdd");
+    return asDate.isValid()
+      ? asDate
+      : fallback
+    ;
+  }
+
+  unsigned short VersionToRevision(const QString& str)
+  {
+    static const QLatin1String REV_FORMAT("(\?:r(\?:ev)\?)?(\\d{4,5})");
+    QRegExp expr(REV_FORMAT);
+    if (expr.exactMatch(str))
     {
-      filename = dialog.selectedFiles().front();
-      QFile file(filename);
-      if (!file.open(QIODevice::WriteOnly))
+      bool ok = false;
+      const unsigned short val = expr.cap(1).toShort(&ok);
+      if (ok)
       {
-        return;
+        return val;
       }
-      const Binary::Data::Ptr content = Download(parent, url, QT_TRANSLATE_NOOP("UpdateCheck", "Downloading file"));
-      file.write(static_cast<const char*>(content->Start()), content->Size());
     }
+    return 0;
   }
 
-  struct AvailableUpdate
+  class Version
   {
-    Product::Download Reference;
-    Product::Version Version;
-    Product::Platform Platform;
-
-    AvailableUpdate(const Product::Download& ref, const Product::Version& ver, const Product::Platform& plat)
-      : Reference(ref)
-      , Version(ver)
-      , Platform(plat)
+  public:
+    Version()
+      : AsDate()
+      , AsRev()
     {
     }
+
+    explicit Version(const QString& ver, const QDate& date)
+      : AsDate(VersionToDate(ver, date))
+      , AsRev(VersionToRevision(ver))
+    {
+      Dbg("Version(%1%, %2%) = (date=%3%, rev=%4%)", FromQString(ver), FromQString(date.toString()), FromQString(AsDate.toString()), AsRev);
+    }
+
+    bool IsMoreRecentThan(const Version& rh) const
+    {
+      if (AsRev && rh.AsRev)
+      {
+        return AsRev > rh.AsRev;
+      }
+      else if (AsDate.isValid() && rh.AsDate.isValid())
+      {
+        return AsDate > rh.AsDate;
+      }
+      else
+      {
+        const bool thisValid = AsRev || AsDate.isValid();
+        const bool rhValid = rh.AsRev || rh.AsDate.isValid();
+        if (thisValid && !rhValid)
+        {
+          //prefer much more valid
+          return true;
+        }
+        else
+        {
+          return false;
+        }
+      }
+    }
+
+    bool EqualsTo(const Version& rh) const
+    {
+      if (AsRev && rh.AsRev)
+      {
+        return AsRev == rh.AsRev;
+      }
+      else
+      {
+        return AsDate == rh.AsDate;
+      }
+    }
+  private:
+    QDate AsDate;
+    unsigned short AsRev;
   };
 
   class UpdateState : public Downloads::Visitor
   {
   public:
     UpdateState()
-      : CurrentVersion(Product::CurrentBuildVersion())
-      , CurrentPlatform(Product::CurrentBuildPlatform())
+      : CurVersion(Product::ThisRelease().Version(), Product::ThisRelease().Date())
+      , CurTypes(Product::SupportedUpdateTypes())
+      , UpdateRank(~std::size_t(0))
     {
-      Dbg("Current version %1% from %2%", FromQString(CurrentVersion.Index), FromQString(CurrentVersion.ReleaseDate.toString()));
-      Dbg("Current platform %1%_%2%", FromQString(CurrentPlatform.OperatingSystem), FromQString(CurrentPlatform.Architecture));
-    }
-
-    virtual void OnDownload(const Product::Version& version, const Product::Platform& platform, const Product::Download& download)
-    {
-      if (CurrentPlatform == platform)
+      Dbg("Supported update types: %1% items", CurTypes.size());
+      for (std::vector<Product::Update::TypeTag>::const_iterator it = CurTypes.begin(), lim = CurTypes.end(); it != lim; ++it)
       {
-        Dbg("Update for current platform: ver=%1%", FromQString(version.Index));
-        //direct updates
-        if (Latest.get())
-        {
-          if (version.IsNewerThan(Latest->Version))
-          {
-            Dbg(" Latest now");
-            Latest->Version = version;
-          }
-        }
-        else
-        {
-          Dbg(" Latest now");
-          Latest.reset(new AvailableUpdate(download, version, platform));
-        }
-      }
-      else if (CurrentPlatform.IsReplaceableWith(platform))
-      {
-        Dbg("Compatible platform download: ver=%1%, platform=%2% %3%",
-          FromQString(version.Index), FromQString(platform.OperatingSystem), FromQString(platform.Architecture));
-        //compatible updates
-        if (LatestCompatible.get())
-        {
-          if (LatestCompatible->Version == version)
-          {
-            if (!LatestCompatible->Platform.IsReplaceableWith(platform))
-            {
-              Dbg(" Latest compatible now");
-              LatestCompatible->Platform = platform;
-              LatestCompatible->Reference = download;
-            }
-          }
-          else if (version.IsNewerThan(LatestCompatible->Version))
-          {
-            Dbg(" Latest compatible now");
-            LatestCompatible.reset(new AvailableUpdate(download, version, platform));
-          }
-        }
-        else
-        {
-          Dbg(" Latest compatible now");
-          LatestCompatible.reset(new AvailableUpdate(download, version, platform));
-        }
+        Dbg(" %1%", *it);
       }
     }
 
-    bool IsLatestVersionUsed() const
+    virtual void OnDownload(Product::Update::Ptr update)
     {
-      return Latest.get() && (CurrentVersion == Latest->Version || CurrentVersion.IsNewerThan(Latest->Version));
+      const Product::Update::TypeTag type = Product::GetUpdateType(update->Platform(), update->Architecture(), update->Packaging());
+      Dbg("Update %1%, type %2%", FromQString(update->Title()), type);
+      const std::vector<Product::Update::TypeTag>::const_iterator it = std::find(CurTypes.begin(), CurTypes.end(), type);
+      if (CurTypes.end() == it)
+      {
+        Dbg(" unsupported");
+        return;
+      }
+      const Version version(update->Version(), update->Date());
+      if (version.IsMoreRecentThan(CurVersion))
+      {
+        const std::size_t rank = std::distance(CurTypes.begin(), it);
+        if (!Update
+         || version.IsMoreRecentThan(UpdateVersion)
+         || (version.EqualsTo(UpdateVersion) && rank < UpdateRank))
+        {
+          Update = update;
+          UpdateRank = rank;
+          UpdateVersion = version;
+          Dbg(" using: rank=%1%", rank);
+        }
+        else
+        {
+          Dbg(" ignored");
+        }
+      }
+      else
+      {
+        Dbg(" outdated");
+      }
     }
 
-    const AvailableUpdate* GetLatest() const
+    Product::Update::Ptr GetUpdate()
     {
-      return Latest.get();
-    }
-
-    const AvailableUpdate* GetLatestCompatible() const
-    {
-      return LatestCompatible.get();
+      return Update;
     }
   private:
-    const Product::Version CurrentVersion;
-    const Product::Platform CurrentPlatform;
-    std::auto_ptr<AvailableUpdate> Latest;
-    std::auto_ptr<AvailableUpdate> LatestCompatible;
+    const Version CurVersion;
+    const std::vector<Product::Update::TypeTag> CurTypes;
+    Product::Update::Ptr Update;
+    std::size_t UpdateRank;
+    Version UpdateVersion;
   };
 
-  void Download(QWidget& parent, const AvailableUpdate& upd, const char* msg)
+  class FileTransaction
   {
-    const QDate now = QDate::currentDate();
-    const int ageInDays = upd.Version.ReleaseDate.daysTo(now);
-    const QString text = QApplication::translate("UpdateCheck", msg, 0, QCoreApplication::DefaultCodec, ageInDays)
-      .arg(upd.Version.Index).arg(upd.Version.ReleaseDate.toString())
-      .arg(upd.Reference.Description.toString());
-    if (QMessageBox::Save == QMessageBox::question(&parent, QString(),
-      text, QMessageBox::Save | QMessageBox::Cancel))
+  public:
+    explicit FileTransaction(const QString& name)
+      : Info(name)
     {
-      const QUrl& download = upd.Reference.Package;
-      DownloadAndSave(parent, download);
     }
-  }
+
+    ~FileTransaction()
+    {
+      Rollback();
+    }
+
+    Binary::OutputStream::Ptr Begin()
+    {
+      Rollback();
+      return Object = CreateStream(Info.absoluteFilePath());
+    }
+
+    void Commit()
+    {
+      Object = Binary::OutputStream::Ptr();
+    }
+
+    void Rollback()
+    {
+      if (Object)
+      {
+        Object = Binary::OutputStream::Ptr();
+        const bool res = Info.absoluteDir().remove(Info.fileName());
+        Dbg("Remove failed saving: %1%", res);
+      }
+    }
+  private:
+    const QFileInfo Info;
+    Binary::OutputStream::Ptr Object;
+  };
+
+  class UpdateCheckOperation : public Update::CheckOperation
+  {
+  public:
+    explicit UpdateCheckOperation(QWidget& parent)
+      : Parent(parent)
+    {
+      setParent(&parent);
+    }
+
+    virtual void Execute()
+    {
+      try
+      {
+        if (const Product::Update::Ptr update = GetAvailableUpdate())
+        {
+          if (QMessageBox::Save == ShowUpdateDialog(*update))
+          {
+            ApplyUpdate(*update);
+          }
+        }
+        else
+        {
+          QMessageBox::information(&Parent, QString(), Update::CheckOperation::tr("No new updates found"));
+        }
+      }
+      catch (const Canceled&)
+      {
+      }
+      catch (const Error& e)
+      {
+        emit ErrorOccurred(e);
+      }
+    }
+  private:
+    Product::Update::Ptr GetAvailableUpdate() const
+    {
+      const QUrl feedUrl(Text::DOWNLOADS_FEED_URL);
+      const Binary::Data::Ptr feedData = DownloadWithProgress(feedUrl, Update::CheckOperation::tr("Getting list of available updates"));
+      UpdateState state;
+      const std::auto_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
+      RSS::Parse(QByteArray(static_cast<const char*>(feedData->Start()), feedData->Size()), *rss);
+      return state.GetUpdate();
+    }
+
+    Binary::Data::Ptr DownloadWithProgress(const QUrl& url, const QString& text) const
+    {
+      QProgressDialog dialog(&Parent, Qt::Dialog);
+      dialog.setMinimumDuration(1);
+      dialog.setLabelText(text);
+      dialog.setWindowModality(Qt::WindowModal);
+      DownloadCallback cb(dialog);
+      return Download(url, cb);
+    }
+
+    QMessageBox::StandardButton ShowUpdateDialog(const Product::Update& update) const
+    {
+      const QString title = Update::CheckOperation::tr("Available version %1").arg(update.Version());
+      QStringList msg;
+      msg.append(update.Title());
+      if (const int ageInDays = update.Date().daysTo(QDate::currentDate()))
+      {
+        msg.append(Update::CheckOperation::tr("%1 (%n day(s) ago)", 0, ageInDays).arg(update.Date().toString(Qt::DefaultLocaleLongDate)));
+      }
+      msg.append(Update::CheckOperation::tr("<a href=\"%1\">Download manually</a>").arg(update.Description().toString()));
+      return QMessageBox::question(&Parent, title, msg.join("<br/>"), QMessageBox::Save | QMessageBox::Cancel);
+    }
+
+    void ApplyUpdate(const Product::Update& update) const
+    {
+      const QUrl packageUrl = update.Package();
+      //do not use UI::SaveFileDialog
+      QFileDialog dialog(&Parent, QString(), packageUrl.toString(), QLatin1String("*"));
+      dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+      dialog.setOption(QFileDialog::HideNameFilterDetails, true);
+      if (QDialog::Accepted == dialog.exec())
+      {
+        DownloadAndSave(packageUrl, dialog.selectedFiles().front());
+      }
+    }
+
+    void DownloadAndSave(const QUrl& url, const QString& filename) const
+    {
+      FileTransaction transaction(filename);
+      const Binary::OutputStream::Ptr target = transaction.Begin();
+      const Binary::Data::Ptr content = DownloadWithProgress(url, Update::CheckOperation::tr("Downloading file"));
+      target->ApplyData(*content);
+      target->Flush();
+      transaction.Commit();
+    }
+  private:
+    QWidget& Parent;
+  };
 }
 
 namespace Update
 {
-  bool IsCheckingAvailable()
+  CheckOperation* CheckOperation::Create(QWidget& parent)
   {
     try
     {
-      const IO::Identifier::Ptr id = IO::ResolveUri(Text::DOWNLOADS_FEED_URL);
-      return id;
+      if (IO::ResolveUri(Text::DOWNLOADS_FEED_URL))
+      {
+        std::auto_ptr<CheckOperation> res(new UpdateCheckOperation(parent));
+        res->setParent(&parent);
+        return res.release();
+      }
     }
     catch (const Error&)
     {
-      return false;
     }
-  }
-
-  void Check(QWidget& parent)
-  {
-    try
-    {
-      const QUrl feedUrl(Text::DOWNLOADS_FEED_URL);
-      const Binary::Data::Ptr feedData = Download(parent, feedUrl,
-        QT_TRANSLATE_NOOP("UpdateCheck", "Getting list of currently available downloads"));
-      UpdateState state;
-      const std::auto_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor("zxtune", state);
-      RSS::Parse(QByteArray(static_cast<const char*>(feedData->Start()), feedData->Size()), *rss);
-      if (state.IsLatestVersionUsed())
-      {
-        QMessageBox::information(&parent, QString(),
-          QApplication::translate("UpdateCheck", QT_TRANSLATE_NOOP("UpdateCheck", "The current version is the latest one")));
-      }
-      else if (const AvailableUpdate* avail = state.GetLatest())
-      {
-        Download(parent, *avail, QT_TRANSLATE_NOOP("UpdateCheck", "New version %1 from %2 available (%n day(s) ago).<br/><a href=\"%3\">Download it manually</a>"));
-      }
-      else if(const AvailableUpdate* compatible = state.GetLatestCompatible())
-      {
-        Download(parent, *compatible, QT_TRANSLATE_NOOP("UpdateCheck", "New compatible version %1 from %2 available (%n day(s) ago).<br/><a href=\"%3\">Download it manually</a>"));
-      }
-    }
-    catch (const Error& e)
-    {
-      if (e.GetSuberror().GetLocation() != CANCELED.GetLocation())
-      {
-        ShowErrorMessage(QApplication::translate("UpdateCheck", QT_TRANSLATE_NOOP("UpdateCheck", "Failed to check updates")), e);
-      }
-    }
+    return 0;
   }
 };

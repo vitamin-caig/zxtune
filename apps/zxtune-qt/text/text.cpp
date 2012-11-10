@@ -9,6 +9,9 @@ extern const Char DOWNLOADS_FEED_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','f','e','e','d',
   's','/','p','/','z','x','t','u','n','e','/','d','o','w','n','l','o','a','d','s','/','b','a','s','i','c',0
 };
+extern const Char DOWNLOADS_PROJECT_NAME[] = {
+  'z','x','t','u','n','e',0
+};
 extern const Char FAQ_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e','/','w','i','k','i','/','F','A','Q',0
@@ -23,6 +26,10 @@ extern const Char HELP_URL[] = {
 extern const Char HOMEPAGE_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e',0
+};
+extern const Char HTTP_USERAGENT[] = {
+  '[','P','r','o','g','r','a','m',']','/','[','V','e','r','s','i','o','n',']',' ','(','[','P','l','a','t','f',
+  'o','r','m',']','-','[','A','r','c','h',']',')',0
 };
 extern const Char MODULE_PLAYLIST_FORMAT[] = {
   '[','A','u','t','h','o','r',']',' ','-',' ','[','T','i','t','l','e',']',0

@@ -19,13 +19,16 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 > "zxtune-qt"
 
 < PROGRAM_SITE
-> "http://zxtune.googlecode.com"
+> "http://" GOOGLECODE_PROJECT_NAME ".googlecode.com"
 
 = GOOGLECODE_URL
 > "http://code.google.com"
 
+= GOOGLECODE_PROJECT_NAME
+> "zxtune"
+
 = PROJECT_PATH
-> "/p/zxtune"
+> "/p/" GOOGLECODE_PROJECT_NAME
 
 < HOMEPAGE_URL
 > GOOGLECODE_URL PROJECT_PATH
@@ -41,6 +44,9 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < DOWNLOADS_FEED_URL
 > GOOGLECODE_URL "/feeds" PROJECT_PATH "/downloads/basic"
+
+< DOWNLOADS_PROJECT_NAME
+> GOOGLECODE_PROJECT_NAME
 
 < FEEDBACK_EMAIL
 > "vitamin.caig@gmail.com"
@@ -63,3 +69,6 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < PLAYLIST_LOADING_HEADER
 > "..."
+
+< HTTP_USERAGENT
+> "[Program]/[Version] ([Platform]-[Arch])"
