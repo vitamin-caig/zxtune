@@ -24,3 +24,7 @@ $(po_dir):
 	$(call makedir_cmd,$@)
 
 mo_files = $(foreach lng,$(l10n_languages),$(foreach file,$(po_files),$(l10n_dir)/$(lng)/$(file).mo ))
+
+%.mo: %.po
+		msgfmt --output $@ $^
+
