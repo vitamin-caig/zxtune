@@ -7,6 +7,12 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] zxtune-qt: check updates functionality
+[+] zxtune-qt: playlist cache parameters setup
+[*] zxtune-qt: fixed startup of $PATH-located binary by name
+
+--- Rev2086 from 29.10.2012
+
 [+] Possibility to autorename files while save/convert in case of existing
 [*] Speedup for Z80, STC, ST3 and PSM formats detection
 [*] Reworked VortexTracker II (TXT) files parsing. Fixed crash
