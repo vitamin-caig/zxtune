@@ -27,15 +27,13 @@ namespace Playlist
   class Container : public QObject
   {
     Q_OBJECT
-  protected:
-    explicit Container(QObject& parent);
   public:
     typedef boost::shared_ptr<Container> Ptr;
 
     //creator
-    static Ptr Create(QObject& parent, Parameters::Accessor::Ptr parameters);
+    static Ptr Create(Parameters::Accessor::Ptr parameters);
 
-    virtual Controller::Ptr CreatePlaylist(const QString& name) = 0;
+    virtual Controller::Ptr CreatePlaylist(const QString& name) const = 0;
     virtual void OpenPlaylist(const QString& filename) = 0;
   signals:
     void PlaylistCreated(Playlist::Controller::Ptr);

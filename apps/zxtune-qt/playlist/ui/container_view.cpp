@@ -89,7 +89,7 @@ namespace
     ContainerViewImpl(QWidget& parent, Parameters::Container::Ptr parameters)
       : Playlist::UI::ContainerView(parent)
       , Options(parameters)
-      , Container(Playlist::Container::Create(*this, parameters))
+      , Container(Playlist::Container::Create(parameters))
       , Session(Playlist::Session::Create())
       , ActionsMenu(new QMenu(this))
       , ActivePlaylistView(0)

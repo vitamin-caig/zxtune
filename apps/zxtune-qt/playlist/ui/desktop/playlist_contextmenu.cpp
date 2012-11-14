@@ -435,7 +435,6 @@ namespace
     void ExecuteRemoveOperation(Playlist::Item::SelectionOperation::Ptr op) const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      op->setParent(model);
       Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(RemoveItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
@@ -443,7 +442,6 @@ namespace
     void ExecuteSelectOperation(Playlist::Item::SelectionOperation::Ptr op) const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      op->setParent(model);
       Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
       model->PerformOperation(op);
     }
@@ -451,7 +449,6 @@ namespace
     void ExecuteNotificationOperation(Playlist::Item::TextResultOperation::Ptr op) const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      op->setParent(model);
       Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
         SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
       model->PerformOperation(op);

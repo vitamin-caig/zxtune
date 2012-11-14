@@ -264,8 +264,11 @@ namespace
     void FlushCachedData(const String& dataPath)
     {
       const boost::mutex::scoped_lock lock(Mutex);
-      Cache.Del(dataPath);
-      ReportCache();
+      if (Cache.GetItemsCount())
+      {
+        Cache.Del(dataPath);
+        ReportCache();
+      }
     }
   private:
     Binary::Container::Ptr GetCachedData(const String& dataPath, std::size_t filesLimit, std::size_t memLimit) const

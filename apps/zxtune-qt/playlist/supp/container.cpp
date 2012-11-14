@@ -147,23 +147,22 @@ namespace
   class PlaylistContainer : public Playlist::Container
   {
   public:
-    PlaylistContainer(QObject& parent, Parameters::Accessor::Ptr parameters)
-      : Playlist::Container(parent)
-      , Params(parameters)
+    explicit PlaylistContainer(Parameters::Accessor::Ptr parameters)
+      : Params(parameters)
     {
     }
 
-    virtual Playlist::Controller::Ptr CreatePlaylist(const QString& name)
+    virtual Playlist::Controller::Ptr CreatePlaylist(const QString& name) const
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
-      const Playlist::Controller::Ptr ctrl = Playlist::Controller::Create(*this, name, provider);
+      const Playlist::Controller::Ptr ctrl = Playlist::Controller::Create(name, provider);
       return ctrl;
     }
 
     virtual void OpenPlaylist(const QString& filename)
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
-      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(*this, QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
+      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
       const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<LoadPlaylistOperation>(provider, filename, boost::ref(*playlist));
       playlist->GetModel()->PerformOperation(op);
       emit PlaylistCreated(playlist);
@@ -175,13 +174,9 @@ namespace
 
 namespace Playlist
 {
-  Container::Container(QObject& parent) : QObject(&parent)
+  Container::Ptr Container::Create(Parameters::Accessor::Ptr parameters)
   {
-  }
-
-  Container::Ptr Container::Create(QObject& parent, Parameters::Accessor::Ptr parameters)
-  {
-    return boost::make_shared<PlaylistContainer>(boost::ref(parent), parameters);
+    return boost::make_shared<PlaylistContainer>(parameters);
   }
 
   void Save(Controller::Ptr ctrl, const QString& filename, uint_t flags)

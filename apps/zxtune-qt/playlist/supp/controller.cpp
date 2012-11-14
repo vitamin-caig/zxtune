@@ -21,7 +21,6 @@ Author:
 #include <debug_log.h>
 //boost includes
 #include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
 //qt includes
 #include <QtGui/QMessageBox>
 
@@ -170,9 +169,8 @@ namespace
   class ControllerImpl : public Playlist::Controller
   {
   public:
-    ControllerImpl(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
-      : Playlist::Controller(parent)
-      , Name(name)
+    ControllerImpl(const QString& name, Playlist::Item::DataProvider::Ptr provider)
+      : Name(name)
       , Scanner(Playlist::Scanner::Create(*this, provider))
       , Model(Playlist::Model::Create(*this))
       , Iterator(new ItemIteratorImpl(*this, Model))
@@ -249,13 +247,9 @@ namespace Playlist
     }
   }
 
-  Controller::Controller(QObject& parent) : QObject(&parent)
-  {
-  }
-
-  Controller::Ptr Controller::Create(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
+  Controller::Ptr Controller::Create(const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::TextNotification::Ptr);
-    return boost::make_shared<ControllerImpl>(boost::ref(parent), name, provider);
+    return boost::make_shared<ControllerImpl>(name, provider);
   }
 }

@@ -241,12 +241,19 @@ namespace
     LinearStorage()
       : Version(0)
     {
+      Dbg("Created at %1%", this);
     }
 
     LinearStorage(const LinearStorage& rh)
       : Version(0)
       , Items(rh.Items)
     {
+      Dbg("Created at %1% (cloned from %2% with %3% items)", this, &rh, Items.size());
+    }
+
+    virtual ~LinearStorage()
+    {
+      Dbg("Destroyed at %1% with %2% items", this, Items.size());
     }
 
     virtual Item::Storage::Ptr Clone() const
