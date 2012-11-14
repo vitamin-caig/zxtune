@@ -15,8 +15,10 @@ Author:
 #include "data_provider.h"
 #include "ui/format.h"
 #include "ui/utils.h"
+#include "playlist/parameters.h"
 #include <apps/base/playitem.h>
 //common includes
+#include <debug_log.h>
 #include <error_tools.h>
 #include <progress_callback.h>
 #include <template_parameters.h>
@@ -29,6 +31,8 @@ Author:
 #include <sound/sound_parameters.h>
 #include <strings/format.h>
 #include <strings/template.h>
+//std includes
+#include <deque>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -37,6 +41,11 @@ Author:
 #include "text/text.h"
 
 #define FILE_TAG 0C9BBC6E
+
+namespace
+{
+  const Debug::Stream Dbg("Playlist::DataProvider");
+}
 
 namespace
 {
@@ -109,7 +118,7 @@ namespace
       }
     };
 
-    typedef std::list<Item> ItemsList;
+    typedef std::deque<Item> ItemsList;
   public:
     ObjectsCache()
       : TotalWeight()
@@ -148,6 +157,7 @@ namespace
         boost::bind(&Item::Id, _1) == id);
       if (it != Items.end())
       {
+        TotalWeight -= ObjectTraits<T>::Weight(it->Value);
         Items.erase(it);
       }
     }
@@ -161,6 +171,22 @@ namespace
         Items.pop_back();
         TotalWeight -= entry.Weight;
       }
+    }
+
+    void Clear()
+    {
+      ItemsList().swap(Items);
+      TotalWeight = 0;
+    }
+
+    std::size_t GetItemsCount() const
+    {
+      return Items.size();
+    }
+
+    W GetItemsWeight() const
+    {
+      return TotalWeight;
     }
   private:
     Item* FindItem(const String& id)
@@ -182,39 +208,85 @@ namespace
     W TotalWeight;
   };
 
+  class CacheParameters
+  {
+  public:
+    explicit CacheParameters(Parameters::Accessor::Ptr params)
+      : Params(params)
+    {
+    }
+
+    std::size_t MemoryLimit() const
+    {
+      Parameters::IntType res = Parameters::ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT;
+      Params->FindValue(Parameters::ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB, res);
+      return static_cast<std::size_t>(res * 1048576);
+    }
+
+    std::size_t FilesLimit() const
+    {
+      Parameters::IntType res = Parameters::ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT;
+      Params->FindValue(Parameters::ZXTuneQT::Playlist::Cache::FILES_LIMIT, res);
+      return static_cast<std::size_t>(res);
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+  };
+
   //cached data provider
   class CachedDataProvider : public DataProvider
   {
-    //TODO: parametrize
-    static const uint64_t MAX_CACHE_SIZE = 1048576 * 10;//10Mb
-    static const uint_t MAX_CACHE_ITEMS = 1000;
   public:
     typedef boost::shared_ptr<CachedDataProvider> Ptr;
 
     explicit CachedDataProvider(Parameters::Accessor::Ptr ioParams)
-      : Delegate(CreateSimpleDataProvider(ioParams))
+      : Params(ioParams)
+      , Delegate(CreateSimpleDataProvider(ioParams))
     {
     }
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
       const boost::mutex::scoped_lock lock(Mutex);
-      if (const Binary::Container::Ptr cached = Cache.Find(dataPath))
+      const std::size_t filesLimit = Params.FilesLimit();
+      const std::size_t memLimit = Params.MemoryLimit();
+      if (filesLimit != 0 && memLimit != 0)
       {
-        return cached;
+        return GetCachedData(dataPath, filesLimit, memLimit);
       }
-      const Binary::Container::Ptr data = Delegate->GetData(dataPath);
-      Cache.Add(dataPath, data);
-      Cache.Fit(MAX_CACHE_ITEMS, MAX_CACHE_SIZE);
-      return data;
+      else
+      {
+        Cache.Clear();
+        return Delegate->GetData(dataPath);
+      }
     }
 
     void FlushCachedData(const String& dataPath)
     {
       const boost::mutex::scoped_lock lock(Mutex);
       Cache.Del(dataPath);
+      ReportCache();
     }
   private:
+    Binary::Container::Ptr GetCachedData(const String& dataPath, std::size_t filesLimit, std::size_t memLimit) const
+    {
+      if (const Binary::Container::Ptr cached = Cache.Find(dataPath))
+      {
+        return cached;
+      }
+      const Binary::Container::Ptr data = Delegate->GetData(dataPath);
+      Cache.Add(dataPath, data);
+      Cache.Fit(filesLimit, memLimit);
+      ReportCache();
+      return data;
+    }
+    
+    void ReportCache() const
+    {
+      Dbg("Cache(%1%): %2% files, %3% bytes", this, Cache.GetItemsCount(), Cache.GetItemsWeight());
+    }
+  private:
+    const CacheParameters Params;
     const DataProvider::Ptr Delegate;
     mutable boost::mutex Mutex;
     mutable ObjectsCache<Binary::Container::Ptr> Cache;

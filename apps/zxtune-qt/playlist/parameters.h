@@ -45,6 +45,31 @@ namespace Parameters
       //! Default value
       const IntType RANDOMIZED_DEFAULT = 0;
       //@}
+
+      namespace Cache
+      {
+        const std::string NAMESPACE_NAME("Cache");
+
+        const NameType PREFIX = Playlist::PREFIX + NAMESPACE_NAME;
+
+        //@{
+        //! @name Cache size limit in bytes
+
+        //! Parameter name
+        const NameType MEMORY_LIMIT_MB = PREFIX + "Memory";
+        //! Default value
+        const IntType MEMORY_LIMIT_MB_DEFAULT = 10;
+        //@}
+
+        //@{
+        //! @name Cache size limit in files
+
+        //! Parameter name
+        const NameType FILES_LIMIT = PREFIX + "Files";
+        //! Default value
+        const IntType FILES_LIMIT_DEFAULT = 1000;
+        //@}
+      }
     }
   }
 }

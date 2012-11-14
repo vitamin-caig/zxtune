@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>320</width>
+    <width>338</width>
     <height>209</height>
    </rect>
   </property>
@@ -20,8 +20,72 @@
       <string>Language</string>
      </property>
      <layout class="QVBoxLayout" name="languagesLayout">
+      <property name="spacing">
+       <number>4</number>
+      </property>
+      <property name="margin">
+       <number>4</number>
+      </property>
       <item>
        <widget class="QComboBox" name="languageSelect"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="playlistGroupBox">
+     <property name="title">
+      <string>Playlist</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout">
+      <property name="horizontalSpacing">
+       <number>4</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="labelPlaylistCachedFiles">
+        <property name="toolTip">
+         <string>Specifies how many opened files can be cached per playlist</string>
+        </property>
+        <property name="text">
+         <string>Cache size, files</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QSpinBox" name="playlistCachedFiles">
+        <property name="maximum">
+         <number>10000</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="labelPlaylistCachedMemory">
+        <property name="toolTip">
+         <string>Specifies per playlist cache memory usage limit</string>
+        </property>
+        <property name="text">
+         <string>Cache size, MiB</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="playlistCacheLimit">
+        <property name="maximum">
+         <number>100</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

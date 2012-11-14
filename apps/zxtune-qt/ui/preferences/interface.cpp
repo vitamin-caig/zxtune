@@ -14,6 +14,7 @@ Author:
 //local includes
 #include "interface.h"
 #include "interface.ui.h"
+#include "playlist/parameters.h"
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/parameters.h"
@@ -40,6 +41,9 @@ namespace
       SetupLanguages();
 
       Require(connect(languageSelect, SIGNAL(currentIndexChanged(int)), SLOT(OnLanguageChanged(int))));
+      using namespace Parameters;
+      IntegerValue::Bind(*playlistCachedFiles, *Options, ZXTuneQT::Playlist::Cache::FILES_LIMIT, ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT);
+      IntegerValue::Bind(*playlistCacheLimit, *Options, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT);
     }
 
     virtual void OnLanguageChanged(int idx)

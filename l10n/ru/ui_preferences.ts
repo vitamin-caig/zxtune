@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0">
+<TS version="2.0" language="ru">
 <context>
     <name>AYMOptions</name>
     <message>
@@ -140,6 +140,31 @@
         <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="20"/>
         <source>Language</source>
         <translation>Язык</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="38"/>
+        <source>Playlist</source>
+        <translation>Список</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="59"/>
+        <source>Specifies how many opened files can be cached per playlist</source>
+        <translation>Сколько файлов может быть максимально закэшировано для каждого списка</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="62"/>
+        <source>Cache size, files</source>
+        <translation>Размер кэша, файлов</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="76"/>
+        <source>Specifies per playlist cache memory usage limit</source>
+        <translation>Сколько памяти может максимально занимать кэш файлов для каждого списка</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="79"/>
+        <source>Cache size, MiB</source>
+        <translation>Размер кэша, Мб</translation>
     </message>
 </context>
 <context>
