@@ -201,6 +201,8 @@ namespace
         Delegate->OnStartup(*Holder);
         Playing = true;
         Signaller.Notify(Backend::MODULE_START);
+        //initial frame rendering
+        RenderFrame();
         Dbg("Initialized");
         return Error();
       }
@@ -263,9 +265,7 @@ namespace
     {
       try
       {
-        Delegate->OnFrame(Render->GetState());
-        Playing = Render->ApplyFrame();
-        Delegate->OnBufferReady(Render->GetBuffer());
+        RenderFrame();
         if (IsFinished())
         {
           Signaller.Notify(Backend::MODULE_FINISH);
@@ -281,6 +281,13 @@ namespace
     virtual bool IsFinished() const
     {
       return !Playing;
+    }
+  private:
+    void RenderFrame()
+    {
+      Delegate->OnFrame(Render->GetState());
+      Playing = Render->ApplyFrame();
+      Delegate->OnBufferReady(Render->GetBuffer());
     }
   private:
     const Module::Holder::Ptr Holder;
