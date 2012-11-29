@@ -78,6 +78,32 @@ namespace
   const uint_t LOW_LEVEL = 0;
   const uint_t HIGH_LEVEL = ~LOW_LEVEL;
 
+  class NoiseLookup
+  {
+  public:
+    static const uint_t INDEX_MASK = 0x1ffff;
+
+    NoiseLookup()
+    {
+      uint_t seed = 0xffff;
+      for (std::size_t idx = 0; idx != Lookup.size(); ++idx)
+      {
+        const bool level = 0 != (seed & 0x10000);
+        seed = (seed * 2 + (level != (0 != (seed & 0x2000)))) & INDEX_MASK;
+        Lookup[idx] = level ? HIGH_LEVEL : LOW_LEVEL;
+      }
+    }
+
+    uint_t operator[] (uint_t idx) const
+    {
+      return Lookup[idx];
+    }
+  private:
+    boost::array<uint_t, INDEX_MASK + 1> Lookup;
+  };
+
+  const NoiseLookup NoiseTable;
+
   //PSG-related functionality
   class BaseGenerator
   {
@@ -302,13 +328,13 @@ namespace
   {
   public:
     NoiseGenerator()
-      : Seed()
+      : Index()
     {
     }
 
     void Reset()
     {
-      Seed = 0;
+      Index = 0;
       Generator::Reset();
     }
 
@@ -316,16 +342,17 @@ namespace
     {
       if (Generator::SingleTick())
       {
-        Seed = (Seed * 2 + 1) ^ (((Seed >> 16) ^ (Seed >> 13)) & 1);
+        ++Index;
+        Index &= NoiseTable.INDEX_MASK;
       }
     }
 
     uint_t GetLevel() const
     {
-      return 0 != (Seed & 0x10000) ? HIGH_LEVEL : LOW_LEVEL;
+      return NoiseTable[Index];
     }
   private:
-    uint32_t Seed;
+    uint_t Index;
   };
 
   template<class Generator>
