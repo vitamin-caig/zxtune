@@ -28,6 +28,7 @@ Author:
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
+#include <sys/poll.h>
 #include <sys/soundcard.h>
 //std includes
 #include <algorithm>
@@ -58,11 +59,12 @@ namespace
       : Handle(-1)
     {
     }
+
     AutoDescriptor(const std::string& name, int mode)
       : Name(name)
       , Handle(::open(name.c_str(), mode, 0))
     {
-      CheckResult(-1 != Handle, THIS_LINE);
+      CheckResult(Valid(), THIS_LINE);
       Dbg("Opened device '%1%'", Name);
     }
 
@@ -76,14 +78,10 @@ namespace
       {
       }
     }
-
-    void CheckResult(bool res, Error::LocationRef loc) const
+    
+    bool Valid() const
     {
-      if (!res)
-      {
-        throw MakeFormattedError(loc,
-          translate("Error in OSS backend while working with device '%1%': %2%."), Name, ::strerror(errno));
-      }
+      return -1 != Handle;
     }
 
     void Swap(AutoDescriptor& rh)
@@ -94,7 +92,7 @@ namespace
 
     void Close()
     {
-      if (-1 != Handle)
+      if (Valid())
       {
         Dbg("Close device '%1%'", Name);
         int tmpHandle = -1;
@@ -103,10 +101,39 @@ namespace
         CheckResult(0 == ::close(tmpHandle), THIS_LINE);
       }
     }
-
-    int Get() const
+    
+    void Ioctl(int request, void* param, Error::LocationRef loc)
     {
-      return Handle;
+      const int res = ::ioctl(Handle, request, param);
+      CheckResult(res != -1, loc);
+    }
+
+    int WriteAsync(const void* data, std::size_t size)
+    {
+      for (;;)
+      {
+        const int res = ::write(Handle, data, size);
+        if (-1 == res && errno == EAGAIN)
+        {
+          struct pollfd wait;
+          wait.fd = Handle;
+          wait.events = POLLOUT;
+          const int pollerr = ::poll(&wait, 1, -1);
+          CheckResult(pollerr > 0, THIS_LINE);
+          continue;
+        }
+        CheckResult(res >= 0, THIS_LINE);
+        return res;
+      }
+    }
+  private:
+    void CheckResult(bool res, Error::LocationRef loc) const
+    {
+      if (!res)
+      {
+        throw MakeFormattedError(loc,
+          translate("Error in OSS backend while working with device '%1%': %2%."), Name, ::strerror(errno));
+      }
     }
   private:
     std::string Name;
@@ -178,11 +205,10 @@ namespace
       Dbg("GetVolume");
       boost::mutex::scoped_lock lock(StateMutex);
       MultiGain volume;
-      if (-1 != MixHandle.Get())
+      if (MixHandle.Valid())
       {
         boost::array<uint8_t, sizeof(int)> buf;
-        MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_READ_VOLUME,
-          safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+        MixHandle.Ioctl(SOUND_MIXER_READ_VOLUME, &buf[0], THIS_LINE);
         std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
           std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
       }
@@ -197,13 +223,12 @@ namespace
       }
       Dbg("SetVolume");
       boost::mutex::scoped_lock lock(StateMutex);
-      if (-1 != MixHandle.Get())
+      if (MixHandle.Valid())
       {
         boost::array<uint8_t, sizeof(int)> buf = { {0} };
         std::transform(volume.begin(), volume.end(), buf.begin(),
           std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
-        MixHandle.CheckResult(-1 != ::ioctl(MixHandle.Get(), SOUND_MIXER_WRITE_VOLUME,
-          safe_ptr_cast<int*>(&buf[0])), THIS_LINE);
+        MixHandle.Ioctl(SOUND_MIXER_WRITE_VOLUME, &buf[0], THIS_LINE);
       }
     }
   private:
@@ -244,14 +269,13 @@ namespace
       : BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
       , ChangeSign(false)
-      , CurrentBuffer(Buffers.begin(), Buffers.end())
       , VolumeController(new OssVolumeControl(StateMutex, MixHandle))
     {
     }
 
     virtual ~OssBackendWorker()
     {
-      assert(-1 == DevHandle.Get() || !"OssBackend should be stopped before destruction.");
+      assert(!DevHandle.Valid() || !"OssBackend should be stopped before destruction.");
     }
 
     virtual void Test()
@@ -270,7 +294,7 @@ namespace
 
     virtual void OnStartup(const Module::Holder& /*module*/)
     {
-      assert(-1 == MixHandle.Get() && -1 == DevHandle.Get());
+      assert(!MixHandle.Valid() && !DevHandle.Valid());
       SetupDevices(DevHandle, MixHandle, ChangeSign);
       Dbg("Successfully opened");
     }
@@ -300,19 +324,15 @@ namespace
       {
         std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
       }
-      Chunk& buf(*CurrentBuffer);
-      buf.swap(buffer);
-      assert(-1 != DevHandle.Get());
-      std::size_t toWrite(buf.size() * sizeof(buf.front()));
-      const uint8_t* data(safe_ptr_cast<const uint8_t*>(&buf[0]));
+      assert(DevHandle.Valid());
+      std::size_t toWrite(buffer.size() * sizeof(buffer.front()));
+      const uint8_t* data(safe_ptr_cast<const uint8_t*>(&buffer[0]));
       while (toWrite)
       {
-        const int res = ::write(DevHandle.Get(), data, toWrite * sizeof(*data));
-        DevHandle.CheckResult(res >= 0, THIS_LINE);
+        const int res = DevHandle.WriteAsync(data, toWrite * sizeof(*data));
         toWrite -= res;
         data += res;
       }
-      ++CurrentBuffer;
     }
   private:
     void SetupDevices(AutoDescriptor& device, AutoDescriptor& mixer, bool& changeSign) const
@@ -320,10 +340,10 @@ namespace
       const OssBackendParameters params(*BackendParams);
 
       AutoDescriptor tmpMixer(params.GetMixerName(), O_RDWR);
-      AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY);
+      AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY | O_NONBLOCK);
       BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
       int tmp = 0;
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_GETFMTS, &tmp), THIS_LINE);
+      tmpDevice.Ioctl(SNDCTL_DSP_GETFMTS, &tmp, THIS_LINE);
       Dbg("Supported formats %1%", tmp);
       const SoundFormat format(tmp);
       if (!format.IsSupported())
@@ -332,15 +352,15 @@ namespace
       }
       tmp = format.Get();
       Dbg("Setting format to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SETFMT, &tmp), THIS_LINE);
+      tmpDevice.Ioctl(SNDCTL_DSP_SETFMT, &tmp, THIS_LINE);
 
       tmp = OUTPUT_CHANNELS;
       Dbg("Setting channels to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_CHANNELS, &tmp), THIS_LINE);
+      tmpDevice.Ioctl(SNDCTL_DSP_CHANNELS, &tmp, THIS_LINE);
 
       tmp = RenderingParameters->SoundFreq();
       Dbg("Setting frequency to %1%", tmp);
-      tmpDevice.CheckResult(-1 != ::ioctl(tmpDevice.Get(), SNDCTL_DSP_SPEED, &tmp), THIS_LINE);
+      tmpDevice.Ioctl(SNDCTL_DSP_SPEED, &tmp, THIS_LINE);
 
       device.Swap(tmpDevice);
       mixer.Swap(tmpMixer);
@@ -353,8 +373,6 @@ namespace
     AutoDescriptor MixHandle;
     AutoDescriptor DevHandle;
     bool ChangeSign;
-    boost::array<Chunk, 2> Buffers;
-    CycledIterator<Chunk*> CurrentBuffer;
     const VolumeControl::Ptr VolumeController;
   };
 
