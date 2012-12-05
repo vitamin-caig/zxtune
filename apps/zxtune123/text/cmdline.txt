@@ -59,6 +59,12 @@
 > " " CONVERSION_PARAM_FILENAME " - filename template with any module's attributes\n"
 > "."
 
+< BENCHMARK_KEY
+> CMD_BENCHMARK_KEY
+
+< BENCHMARK_DESC
+> "Switch on benchmark mode with specified iterations count.\n"
+
 < INFORMATIONAL_SECTION
 > "Information keys"
 

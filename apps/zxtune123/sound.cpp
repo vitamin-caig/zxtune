@@ -222,11 +222,11 @@ namespace
       return Filter;
     }
 
-    uint_t GetFrameDuration() const
+    Time::Microseconds GetFrameDuration() const
     {
       Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
-      return static_cast<uint_t>(frameDuration);
+      return Time::Microseconds(static_cast<Time::Microseconds::ValueType>(frameDuration));
     }
   private:
     void AddMixer(const String& txt)
@@ -346,7 +346,7 @@ namespace
     {
     }
 
-    virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module)
+    virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint)
     {
       const ZXTune::Sound::CreateBackendParameters::Ptr createParams(new CreateBackendParams(*Params, module));
       ZXTune::Sound::Backend::Ptr backend;
@@ -356,9 +356,9 @@ namespace
         {
           for (PerBackendOptions::const_iterator it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; ++it)
           {
-            if (it->second != NOTUSED_MARK)
+            const ZXTune::Sound::BackendCreator::Ptr creator = it->first;
+            if (it->second != NOTUSED_MARK || creator->Id() == typeHint)
             {
-              const ZXTune::Sound::BackendCreator::Ptr creator = it->first;
               backends.push_back(creator);
             }
           }
@@ -392,6 +392,10 @@ namespace
           }
         }
       }
+      else
+      {
+        backend = Creator->CreateBackend(createParams);
+      }
       if (!backend.get())
       {
         throw Error(THIS_LINE, Text::SOUND_ERROR_NO_BACKEND);
@@ -399,7 +403,7 @@ namespace
       return backend;
     }
 
-    virtual uint_t GetFrameDuration() const
+    virtual Time::Microseconds GetFrameDuration() const
     {
       return Params->GetFrameDuration();
     }

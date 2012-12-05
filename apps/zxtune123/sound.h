@@ -19,6 +19,7 @@ Author:
 #include <parameters.h>
 //library includes
 #include <sound/backend.h>
+#include <time/stamp.h>
 //std includes
 #include <memory>
 
@@ -40,10 +41,10 @@ public:
   virtual void ParseParameters() = 0;
   virtual void Initialize() = 0;
   // functional part
-  virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module) = 0;
+  virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint = String()) = 0;
 
   //parameters
-  virtual uint_t GetFrameDuration() const = 0;
+  virtual Time::Microseconds GetFrameDuration() const = 0;
 
   static std::auto_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
 };

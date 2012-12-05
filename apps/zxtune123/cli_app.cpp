@@ -34,6 +34,7 @@ Author:
 #include <io/api.h>
 #include <io/template.h>
 #include <sound/sound_parameters.h>
+#include <time/duration.h>
 //std includes
 #include <algorithm>
 #include <cctype>
@@ -178,6 +179,63 @@ namespace
     DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr Pipe;
   };
 
+  class AutoTimer
+  {
+  public:
+    AutoTimer()
+      : Start(std::clock())
+    {
+    }
+
+    template<class StampType>
+    StampType Elapsed() const
+    {
+      const Time::Stamp<typename StampType::ValueType, CLOCKS_PER_SEC> local(std::clock() - Start);
+      return StampType(local);
+    }
+  private:
+    const std::clock_t Start;
+  };
+
+  class Benchmark
+  {
+  public:
+    Benchmark(unsigned iterations, SoundComponent& sound, DisplayComponent& display)
+      : Iterations(iterations)
+      , Sounder(sound)
+      , Display(display)
+    {
+    }
+
+    void ProcessItem(ZXTune::Module::Holder::Ptr holder) const
+    {
+      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
+      String path, type;
+      props->FindValue(ZXTune::Module::ATTR_FULLPATH, path);
+      props->FindValue(ZXTune::Module::ATTR_TYPE, type);
+
+      Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
+
+      const ZXTune::Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null");
+      const Async::Signals::Collector::Ptr signals = backend->CreateSignalsCollector(ZXTune::Sound::Backend::MODULE_FINISH);
+      const AutoTimer timer;
+      for (unsigned i = 0; i != Iterations; ++i)
+      {
+        backend->SetPosition(0);
+        backend->Play();
+        while (0 == signals->WaitForSignals(100)) {}
+      }
+      const Time::Microseconds real = timer.Elapsed<Time::Microseconds>();
+      const double relSpeed = double(total.Get()) / real.Get();
+      Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed));
+    }
+  private:
+    const unsigned Iterations;
+    SoundComponent& Sounder;
+    DisplayComponent& Display;
+  };
+
   class CLIApplication : public Application
   {
   public:
@@ -188,6 +246,7 @@ namespace
       , Sounder(SoundComponent::Create(ConfigParams))
       , Display(DisplayComponent::Create())
       , SeekStep(10)
+      , BenchmarkIterations(0)
     {
     }
 
@@ -209,6 +268,11 @@ namespace
           ThrowIfError(ParseParametersString(Parameters::NameType(), ConvertParams, *cnvParams));
           Convertor cnv(*cnvParams, *Display);
           Sourcer->ProcessItems(boost::bind(&Convertor::ProcessItem, &cnv, _1));
+        }
+        else if (0 != BenchmarkIterations)
+        {
+          const Benchmark benchmark(BenchmarkIterations, *Sounder, *Display);
+          Sourcer->ProcessItems(boost::bind(&Benchmark::ProcessItem, &benchmark, _1));
         }
         else
         {
@@ -237,6 +301,7 @@ namespace
           (Text::ABOUT_KEY, Text::ABOUT_DESC)
           (Text::CONFIG_KEY, boost::program_options::value<String>(&configFile), Text::CONFIG_DESC)
           (Text::CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), Text::CONVERT_DESC)
+          (Text::BENCHMARK_KEY, boost::program_options::value<uint_t>(&BenchmarkIterations), Text::BENCHMARK_DESC)
         ;
 
         options.add(Informer->GetOptionsDescription());
@@ -287,13 +352,13 @@ namespace
     {
       const ZXTune::Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
 
-      const uint_t frameDuration = Sounder->GetFrameDuration();
+      const Time::Microseconds frameDuration = Sounder->GetFrameDuration();
 
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
       backend->Play();
 
-      Display->SetModule(backend, static_cast<uint_t>(frameDuration));
+      Display->SetModule(backend, frameDuration);
 
       ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
       const ZXTune::Sound::VolumeControl::Ptr volCtrl = backend->GetVolumeControl();
@@ -375,6 +440,7 @@ namespace
     std::auto_ptr<SoundComponent> Sounder;
     std::auto_ptr<DisplayComponent> Display;
     uint_t SeekStep;
+    uint_t BenchmarkIterations;
   };
 }
 

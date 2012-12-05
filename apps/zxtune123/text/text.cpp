@@ -30,6 +30,18 @@ extern const Char ANALYZER_DESC[] = {
 extern const Char ANALYZER_KEY[] = {
   'a','n','a','l','y','z','e','r',0
 };
+extern const Char BENCHMARK_DESC[] = {
+  'S','w','i','t','c','h',' ','o','n',' ','b','e','n','c','h','m','a','r','k',' ','m','o','d','e',' ','w','i',
+  't','h',' ','s','p','e','c','i','f','i','e','d',' ','i','t','e','r','a','t','i','o','n','s',' ','c','o','u',
+  'n','t','.','\n',
+  0
+};
+extern const Char BENCHMARK_KEY[] = {
+  'b','e','n','c','h','m','a','r','k',0
+};
+extern const Char BENCHMARK_RESULT[] = {
+  'x','%','|','3','$','.','2','f','|',' ','(','%','2','%',')',' ','%','1','%',0
+};
 extern const Char CLI_SECTION[] = {
   'O','t','h','e','r',' ','o','p','t','i','o','n','s',0
 };

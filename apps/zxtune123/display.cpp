@@ -101,12 +101,12 @@ namespace
       }
     }
 
-    virtual void SetModule(ZXTune::Sound::Backend::Ptr player, uint_t frameDuration)
+    virtual void SetModule(ZXTune::Sound::Backend::Ptr player, Time::Microseconds frameDuration)
     {
       const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
       const Parameters::Accessor::Ptr props = player->GetModuleProperties();
       TotalFrames = info->FramesCount();
-      FrameDuration = Time::Microseconds(frameDuration);
+      FrameDuration = frameDuration;
       TrackState = player->GetTrackState();
       if (!Silent && ShowAnalyze)
       {

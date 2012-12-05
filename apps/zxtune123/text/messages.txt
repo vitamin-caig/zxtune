@@ -376,3 +376,6 @@
 
 < PROGRESS_FORMAT
 > " [%1%%%]"
+
+< BENCHMARK_RESULT
+> "x%|3$.2f| (%2%) %1%"
