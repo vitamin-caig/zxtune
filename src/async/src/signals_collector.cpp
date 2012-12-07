@@ -49,7 +49,7 @@ namespace
 
     virtual uint_t WaitForSignals(uint_t timeoutMs)
     {
-      uint_t result = 0;
+      volatile uint_t result = 0;
       boost::mutex::scoped_lock locker(Mutex);
       if (Event.timed_wait(locker, boost::posix_time::milliseconds(timeoutMs)))
       {
@@ -74,7 +74,7 @@ namespace
     const uint_t Mask;
     boost::mutex Mutex;
     boost::condition_variable Event;
-    uint_t Signals;
+    volatile uint_t Signals;
   };
 
   class DispatcherImpl : public Dispatcher

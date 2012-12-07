@@ -266,7 +266,8 @@ namespace
         {
           const Parameters::Container::Ptr cnvParams = Parameters::Container::Create();
           ThrowIfError(ParseParametersString(Parameters::NameType(), ConvertParams, *cnvParams));
-          Convertor cnv(*cnvParams, *Display);
+          const Parameters::Accessor::Ptr mergedParams = Parameters::CreateMergedAccessor(cnvParams, ConfigParams);
+          Convertor cnv(*mergedParams, *Display);
           Sourcer->ProcessItems(boost::bind(&Convertor::ProcessItem, &cnv, _1));
         }
         else if (0 != BenchmarkIterations)
