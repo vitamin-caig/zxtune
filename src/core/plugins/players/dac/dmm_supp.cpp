@@ -156,17 +156,6 @@ namespace DMM
     MIX_SAMPLE,
   };
 
-  struct Sample
-  {
-    Sample()
-      : Loop()
-    {
-    }
-
-    Binary::Data::Ptr Content;
-    std::size_t Loop;
-  };
-
   enum
   {
     NOTE_BASE = 1,
@@ -199,7 +188,7 @@ namespace DMM
   //stub for ornament
   struct VoidType {};
 
-  typedef ZXTune::Module::TrackingSupport<CHANNELS_COUNT, CmdType, Sample, VoidType> Track;
+  typedef ZXTune::Module::TrackingSupport<CHANNELS_COUNT, CmdType, Devices::DAC::Sample::Ptr, VoidType> Track;
 
   class ModuleData : public Track::ModuleData
   {
@@ -471,9 +460,11 @@ namespace
           Dbg("Skipped. Not enough data");
           continue;
         }
-        DMM::Sample& dstSample = Data->Samples[samIdx];
-        dstSample.Content = bankData->GetSubcontainer(offsetInBank, sampleSize >= 12 ? sampleSize - 12 : sampleSize);
-        dstSample.Loop = sampleLoop - sampleStart;
+        if (const Binary::Data::Ptr content = bankData->GetSubcontainer(offsetInBank, sampleSize >= 12 ? sampleSize - 12 : sampleSize))
+        {
+          const std::size_t loop = sampleLoop - sampleStart;
+          Data->Samples[samIdx] = ZXTune::Module::DAC::CreateSample(content, loop);
+        }
       }
       Data->LoopPosition = header.Loop;
       Data->InitialTempo = header.Tempo;
@@ -505,19 +496,12 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
     {
-      const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target, DMM::CHANNELS_COUNT);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DMM::CHANNELS_COUNT, totalSamples, DMM::BASE_FREQ, chipParams, receiver));
-      for (uint_t idx = 0; idx != totalSamples; ++idx)
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DMM::CHANNELS_COUNT, DMM::BASE_FREQ, chipParams, receiver));
+      for (std::size_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
       {
-        const DMM::Sample& smp(Data->Samples[idx]);
-        if (const Binary::Data::Ptr content = smp.Content)
-        {
-          const uint8_t* const start = static_cast<const uint8_t*>(content->Start());
-          chip->SetSample(idx, Dump(start, start + content->Size()), smp.Loop);
-        }
+        chip->SetSample(idx, Data->Samples[idx]);
       }
       return CreateDMMRenderer(params, Info, Data, chip);
     }
@@ -576,7 +560,7 @@ namespace
         LastRenderTime += Params->FrameDurationMicrosec();
         Devices::DAC::DataChunk chunk;
         RenderData(chunk);
-        chunk.TimeInUs = LastRenderTime;
+        chunk.TimeStamp = Time::Microseconds(LastRenderTime);
         Device->RenderData(chunk);
         Iterator->NextFrame(Params->Looped());
       }

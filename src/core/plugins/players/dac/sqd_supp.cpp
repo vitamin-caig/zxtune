@@ -194,17 +194,6 @@ namespace SQD
   const std::size_t BIG_SAMPLE_ADDR = 0x8000;
   const std::size_t SAMPLES_ADDR = 0xc000;
   const std::size_t SAMPLES_LIMIT = 0x10000;
-
-  struct Sample
-  {
-    Dump Data;
-    std::size_t Loop;
-
-    Sample()
-      : Loop()
-    {
-    }
-  };
 }
 
 namespace
@@ -215,7 +204,7 @@ namespace
   //stub for ornament
   struct VoidType {};
 
-  typedef TrackingSupport<SQD::CHANNELS_COUNT, SQD::CmdType, SQD::Sample, VoidType> SQDTrack;
+  typedef TrackingSupport<SQD::CHANNELS_COUNT, SQD::CmdType, Devices::DAC::Sample::Ptr, VoidType> SQDTrack;
 
   // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG
@@ -329,8 +318,8 @@ namespace
         const std::size_t sampleBase = addr < SQD::SAMPLES_ADDR
           ? SQD::BIG_SAMPLE_ADDR
           : SQD::SAMPLES_ADDR;
-        const std::size_t loop = fromLE(srcSample.Loop);
-        if (loop < addr)
+        const std::size_t rawLoop = fromLE(srcSample.Loop);
+        if (rawLoop < addr)
         {
           continue;
         }
@@ -342,10 +331,12 @@ namespace
         const std::size_t size = std::min(SQD::SAMPLES_LIMIT - addr, it->second.second);//TODO: get from samples layout
         const std::size_t sampleOffset = it->second.first + addr - sampleBase;
         const uint8_t* const sampleStart = data.GetField<uint8_t>(sampleOffset);
-        const uint8_t* const sampleEnd = sampleStart + size;
-        SQD::Sample& dstSample = Data->Samples[samIdx];
-        dstSample.Data.assign(sampleStart, std::find(sampleStart, sampleEnd, 0));
-        dstSample.Loop = srcSample.IsLooped ? loop - sampleBase : dstSample.Data.size();
+        const uint8_t* const sampleEnd = std::find(sampleStart, sampleStart + size, 0);
+        if (const Binary::Data::Ptr content = rawData->GetSubcontainer(sampleStart - data.GetField<uint8_t>(0), sampleEnd - sampleStart))
+        {
+          const std::size_t loop = srcSample.IsLooped ? rawLoop - sampleBase : content->Size();
+          Data->Samples[samIdx] = ZXTune::Module::DAC::CreateSample(content, loop);
+        }
       }
       Data->LoopPosition = header.Loop;
       Data->InitialTempo = header.Tempo;
@@ -381,18 +372,12 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
     {
-      const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target, SQD::CHANNELS_COUNT);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(SQD::CHANNELS_COUNT, totalSamples, SQD::BASE_FREQ, chipParams, receiver));
-      for (uint_t idx = 0; idx != totalSamples; ++idx)
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(SQD::CHANNELS_COUNT, SQD::BASE_FREQ, chipParams, receiver));
+      for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
       {
-        const SQD::Sample& smp(Data->Samples[idx]);
-        if (const std::size_t size = smp.Data.size())
-        {
-          chip->SetSample(idx, smp.Data, smp.Loop);
-        }
+        chip->SetSample(idx, Data->Samples[idx]);
       }
       return CreateSQDRenderer(params, Info, Data, chip);
     }
@@ -466,7 +451,7 @@ namespace
         LastRenderTime += Params->FrameDurationMicrosec();
         Devices::DAC::DataChunk chunk;
         RenderData(chunk);
-        chunk.TimeInUs = LastRenderTime;
+        chunk.TimeStamp = Time::Microseconds(LastRenderTime);
         Device->RenderData(chunk);
         Iterator->NextFrame(Params->Looped());
       }

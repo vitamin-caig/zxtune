@@ -153,21 +153,10 @@ namespace
     SLIDE
   };
 
-  //digital sample type
-  struct Sample
-  {
-    Sample() : Loop()
-    {
-    }
-
-    uint_t Loop;
-    Dump Data;
-  };
-
   //stub for ornament
   struct VoidType {};
 
-  typedef TrackingSupport<CHANNELS_COUNT, CmdType, Sample, VoidType> CHITrack;
+  typedef TrackingSupport<CHANNELS_COUNT, CmdType, Devices::DAC::Sample::Ptr, VoidType> CHITrack;
 
   // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG
@@ -272,9 +261,11 @@ namespace
         const CHIHeader::SampleDescr& srcSample(header.Samples[samIdx]);
         if (const std::size_t size = std::min<std::size_t>(memLeft, fromLE(srcSample.Length)))
         {
-          Sample& dstSample(Data->Samples[samIdx]);
-          dstSample.Loop = fromLE(srcSample.Loop);
-          dstSample.Data.assign(sampleData, sampleData + size);
+          if (const Binary::Data::Ptr content = rawData->GetSubcontainer(sampleData - data.GetField<uint8_t>(0), size))
+          {
+            const std::size_t loop = fromLE(srcSample.Loop);
+            Data->Samples[samIdx] = ZXTune::Module::DAC::CreateSample(content, loop);
+          }
           const std::size_t alignedSize(Math::Align<std::size_t>(size, 256));
           sampleData += alignedSize;
           if (size != fromLE(srcSample.Length))
@@ -316,18 +307,12 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
     {
-      const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target, CHANNELS_COUNT);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, totalSamples, BASE_FREQ, chipParams, receiver));
-      for (uint_t idx = 0; idx != totalSamples; ++idx)
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, BASE_FREQ, chipParams, receiver));
+      for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
       {
-        const Sample& smp(Data->Samples[idx]);
-        if (smp.Data.size())
-        {
-          chip->SetSample(idx, smp.Data, smp.Loop);
-        }
+        chip->SetSample(idx, Data->Samples[idx]);
       }
       return CreateCHIRenderer(params, Info, Data, chip);
     }
@@ -399,7 +384,7 @@ namespace
         LastRenderTime += Params->FrameDurationMicrosec();
         Devices::DAC::DataChunk chunk;
         RenderData(chunk);
-        chunk.TimeInUs = LastRenderTime;
+        chunk.TimeStamp = Time::Microseconds(LastRenderTime);
         Device->RenderData(chunk);
         Iterator->NextFrame(Params->Looped());
       }

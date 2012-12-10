@@ -15,7 +15,8 @@ Author:
 
 //common includes
 #include <data_streaming.h>
-#include <types.h>
+//library includes
+#include <time/stamp.h>
 //boost includes
 #include <boost/optional.hpp>
 
@@ -24,6 +25,17 @@ namespace Devices
 {
   namespace DAC
   {
+    class Sample
+    {
+    public:
+      typedef boost::shared_ptr<const Sample> Ptr;
+      virtual ~Sample() {}
+
+      virtual const uint8_t* Data() const = 0;
+      virtual std::size_t Size() const = 0;
+      virtual std::size_t Loop() const = 0;
+    };
+
     struct DataChunk
     {
       struct ChannelData
@@ -42,10 +54,7 @@ namespace Devices
         boost::optional<uint_t> LevelInPercents;
       };
 
-      DataChunk() : TimeInUs()
-      {
-      }
-      uint64_t TimeInUs;
+      Time::Microseconds TimeStamp;
       std::vector<ChannelData> Channels;
     };
 
@@ -74,7 +83,7 @@ namespace Devices
       virtual ~Chip() {}
 
       /// Set sample for work
-      virtual void SetSample(uint_t idx, const Dump& data, uint_t loop) = 0;
+      virtual void SetSample(uint_t idx, Sample::Ptr sample) = 0;
 
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
@@ -87,11 +96,11 @@ namespace Devices
     };
 
     // Sound is rendered in unsigned 16-bit values
-    typedef uint16_t Sample;
+    typedef uint16_t SoundSample;
     // Variable channels per sample
-    typedef std::vector<Sample> MultiSample;
+    typedef std::vector<SoundSample> MultiSoundSample;
     // Result sound stream receiver
-    typedef DataReceiver<MultiSample> Receiver;
+    typedef DataReceiver<MultiSoundSample> Receiver;
 
     class ChipParameters
     {
@@ -105,7 +114,7 @@ namespace Devices
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target);
+    Chip::Ptr CreateChip(uint_t channels, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target);
   }
 }
 

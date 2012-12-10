@@ -14,6 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
 
 //library includes
+#include <binary/data.h>
 #include <core/module_types.h>
 #include <devices/dac.h>
 #include <sound/receiver.h>
@@ -39,6 +40,7 @@ namespace ZXTune
       Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target, uint_t channels);
       Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device);
       Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+      Devices::DAC::Sample::Ptr CreateSample(Binary::Data::Ptr content, std::size_t loop);
     }
   }
 }

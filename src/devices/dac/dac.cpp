@@ -22,6 +22,7 @@ Author:
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
+#include <boost/make_shared.hpp>
 
 namespace
 {
@@ -65,34 +66,135 @@ namespace
       sampleFreq / (FREQ_TABLE[0] * soundFreq * 2));
   }
 
-  inline uint_t GainAdder(uint_t sum, uint8_t sample)
-  {
-    return sum + Math::Absolute(int_t(sample) - SILENT);
-  }
-
-  inline Sample scale(uint8_t inSample)
+  inline SoundSample scale(uint8_t inSample)
   {
     //simply shift bits
-    return Sample(inSample) << (8 * (sizeof(Sample) - sizeof(inSample)));
+    return SoundSample(inSample) << (8 * (sizeof(SoundSample) - sizeof(inSample)));
   }
 
-  //digital sample type
-  struct DigitalSample
+  const SoundSample SCALED_SILENT = scale(SILENT);
+
+  class DigitalSample
   {
-    DigitalSample() : Size(1), Loop(1), Data(1), Gain(0)//safe sample
+  public:
+    typedef boost::shared_ptr<const DigitalSample> Ptr;
+    virtual ~DigitalSample() {}
+
+    virtual SoundSample Read(uint_t pos) const = 0;
+
+    virtual uint_t Size() const = 0;
+    virtual uint_t Loop() const = 0;
+    virtual uint_t Gain() const = 0;
+  };
+
+  class StubSample : public DigitalSample
+  {
+  public:
+    StubSample()
     {
     }
 
-    DigitalSample(const Dump& data, uint_t loop)
-      : Size(static_cast<uint_t>(data.size())), Loop(loop), Data(data)
-      , Gain(MAX_LEVEL * (std::accumulate(&Data[0], &Data[0] + Size, uint_t(0), GainAdder) / Size) / std::numeric_limits<Dump::value_type>::max())
+    virtual SoundSample Read(uint_t /*pos*/) const
+    {
+      return SCALED_SILENT;
+    }
+
+    virtual uint_t Size() const
+    {
+      return 1;
+    }
+
+    virtual uint_t Loop() const
+    {
+      return 1;
+    }
+
+    virtual uint_t Gain() const
+    {
+      return 0;
+    }
+  };
+
+  uint_t CalculateGain(const uint8_t* start, std::size_t size)
+  {
+    const int_t sum = std::accumulate(start, start + size, uint_t(0)) / size;
+    return Math::Absolute(sum - SILENT);
+  }
+
+  class SampleAdapter : public DigitalSample
+  {
+  public:
+    explicit SampleAdapter(Sample::Ptr delegate)
+      : Delegate(delegate)
+      , DataValue(Delegate->Data())
+      , SizeValue(Delegate->Size())
+      , LoopValue(Delegate->Loop())
+      , GainValue(CalculateGain(DataValue, SizeValue))
     {
     }
 
-    uint_t Size;
-    uint_t Loop;
-    Dump Data;
-    uint_t Gain;
+    virtual SoundSample Read(uint_t pos) const
+    {
+      return scale(pos < SizeValue ? DataValue[pos] : SILENT);
+    }
+
+    virtual uint_t Size() const
+    {
+      return SizeValue;
+    }
+
+    virtual uint_t Loop() const
+    {
+      return LoopValue;
+    }
+
+    virtual uint_t Gain() const
+    {
+      return GainValue;
+    }
+  private:
+    const Sample::Ptr Delegate;
+    const uint8_t* const DataValue;
+    const uint_t SizeValue;
+    const uint_t LoopValue;
+    const uint_t GainValue;
+  };
+
+  class SamplesStorage
+  {
+  public:
+    SamplesStorage()
+      : MaxGain()
+    {
+    }
+
+    void Add(std::size_t idx, Sample::Ptr sample)
+    {
+      if (sample)
+      {
+        Content.resize(std::max(Content.size(), idx + 1));
+        const DigitalSample::Ptr adapted = boost::make_shared<SampleAdapter>(sample);
+        Content[idx] = adapted;
+        MaxGain = std::max(MaxGain, adapted->Gain());
+      }
+    }
+
+    const DigitalSample* Get(std::size_t idx) const
+    {
+      static const StubSample STUB;
+      const DigitalSample::Ptr val = idx < Content.size() ? Content[idx] : DigitalSample::Ptr();
+      return val
+        ? val.get()
+        : &STUB;
+    }
+
+    uint_t GetMaxGain() const
+    {
+      return MaxGain;
+    }
+  private:
+    uint_t MaxGain;
+    std::vector<DigitalSample::Ptr> Content;
   };
 
   struct LinearInterpolation
@@ -119,7 +221,7 @@ namespace
         for (uint_t idx = 0; idx != FIXED_POINT_PRECISION; ++idx)
         {
           const double rad = idx * 3.14159265358 / FIXED_POINT_PRECISION;
-          Table[idx] = static_cast<uint_t>(FIXED_POINT_PRECISION * (1 - cos(rad)) / 2);
+          Table[idx] = static_cast<uint_t>(FIXED_POINT_PRECISION * (1.0 - cos(rad)) / 2.0);
         }
       }
 
@@ -135,8 +237,8 @@ namespace
   //channel state type
   struct ChannelState
   {
-    explicit ChannelState(const DigitalSample* sample = 0)
-      : Enabled(), Level(MAX_LEVEL), Note(), NoteSlide(), FreqSlide(), CurSample(sample), PosInSample(), SampleStep(1)
+    ChannelState(const DigitalSample* sample = 0, uint_t sampleIndex = 0)
+      : Enabled(), Level(MAX_LEVEL), Note(), NoteSlide(), FreqSlide(), CurSample(sample), CurSampleIndex(sampleIndex), PosInSample(), SampleStep(1)
     {
     }
 
@@ -149,6 +251,7 @@ namespace
     int_t FreqSlide;
     //using pointer for performance
     const DigitalSample* CurSample;
+    uint_t CurSampleIndex;
     //in fixed point
     uint_t PosInSample;
     //in fixed point
@@ -159,48 +262,48 @@ namespace
       assert(CurSample);
       PosInSample += SampleStep;
       const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
-      if (pos >= CurSample->Size)
+      if (pos >= CurSample->Size())
       {
-        if (CurSample->Loop >= CurSample->Size)
+        if (CurSample->Loop() >= CurSample->Size())
         {
           Enabled = false;
           PosInSample = 0;
         }
         else
         {
-          PosInSample = CurSample->Loop * FIXED_POINT_PRECISION;
+          PosInSample = CurSample->Loop() * FIXED_POINT_PRECISION;
         }
       }
     }
 
-    Sample GetValue() const
+    SoundSample GetValue() const
     {
       if (Enabled)
       {
         const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
-        assert(CurSample && pos < CurSample->Size);
-        return Amplify(scale(CurSample->Data[pos]));
+        assert(CurSample);
+        return Amplify(CurSample->Read(pos));
       }
       else
       {
-        return scale(SILENT);
+        return SCALED_SILENT;
       }
     }
 
     template<class Policy>
-    Sample GetInterpolatedValue() const
+    SoundSample GetInterpolatedValue() const
     {
       if (Enabled)
       {
         const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
-        assert(CurSample && pos < CurSample->Size);
-        const Sample cur = scale(CurSample->Data[pos]);
+        assert(CurSample);
+        const SoundSample cur = CurSample->Read(pos);
         if (const uint_t fract = PosInSample % FIXED_POINT_PRECISION)
         {
-          const Sample next = pos + 1 >= CurSample->Size ? cur : scale(CurSample->Data[pos + 1]);
+          const SoundSample next = CurSample->Read(pos + 1);
           const int_t delta = int_t(next) - int_t(cur);
           const int_t mappedFract = Policy::MapInterpolation(fract);
-          const Sample value = static_cast<Sample>(int_t(cur) + delta * mappedFract / int_t(FIXED_POINT_PRECISION));
+          const SoundSample value = static_cast<SoundSample>(int_t(cur) + delta * mappedFract / int_t(FIXED_POINT_PRECISION));
           return Amplify(value);
         }
         else
@@ -210,7 +313,7 @@ namespace
       }
       else
       {
-        return scale(SILENT);
+        return SCALED_SILENT;
       }
     }
 
@@ -221,46 +324,41 @@ namespace
       {
         result.Band = Note;
         assert(CurSample);
-        result.LevelInPercents = CurSample->Gain * Level / maxGain;
+        result.LevelInPercents = CurSample->Gain() * Level / maxGain;
       }
       return result;
     }
   private:
-    Sample Amplify(Sample val) const
+    SoundSample Amplify(SoundSample val) const
     {
       assert(Level <= MAX_LEVEL);
       const int_t mid = scale(SILENT);
       const int64_t delta = int_t(val) - mid;
       const int_t scaledDelta = static_cast<int_t>(delta * int_t(Level) / int_t(MAX_LEVEL));
       assert(Math::Absolute(scaledDelta) <= Math::Absolute(delta));
-      return static_cast<Sample>(mid + scaledDelta);
+      return static_cast<SoundSample>(mid + scaledDelta);
     }
   };
 
-  const uint_t MICROSECONDS_PER_SECOND = 1000000;
-
-  template<uint_t Channels>
   class ChipImpl : public Chip
   {
   public:
-    ChipImpl(uint_t samples, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
-      : Params(params)
-      , Target(target)
-      , Samples(samples), MaxGain(0), CurrentTime(0)
+    ChipImpl(uint_t channels, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
+      : Channels(channels)
       , SampleFreq(sampleFreq)
+      , Params(params)
+      , Target(target)
+      , CurrentTime(0)
+      , State(Channels)
       , TableFreq(0)
     {
       Reset();
     }
 
     /// Set sample for work
-    virtual void SetSample(uint_t idx, const Dump& data, uint_t loop)
+    virtual void SetSample(uint_t idx, Sample::Ptr sample)
     {
-      assert(idx < Samples.size());
-      assert(!Samples[idx].Gain);
-      const DigitalSample& res = Samples[idx] = DigitalSample(data, loop);
-      // used for analyze level normalization prior to maximal
-      MaxGain = std::max(MaxGain, res.Gain);
+      Samples.Add(idx, sample);
     }
 
     virtual void RenderData(const DataChunk& src)
@@ -276,19 +374,19 @@ namespace
         boost::bind(&ChipImpl::CalcSampleStep, this, soundFreq, _1));
 
       // samples to apply
-      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.TimeInUs - CurrentTime) * soundFreq / MICROSECONDS_PER_SECOND);
+      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.TimeStamp.Get() - CurrentTime.Get()) * soundFreq / CurrentTime.PER_SECOND);
 
-      const std::const_mem_fun_ref_t<Sample, ChannelState> getter = Params->Interpolate()
-        ? std::const_mem_fun_ref_t<Sample, ChannelState>(&ChannelState::GetInterpolatedValue<CosineInterpolation>)
+      const std::const_mem_fun_ref_t<SoundSample, ChannelState> getter = Params->Interpolate()
+        ? std::const_mem_fun_ref_t<SoundSample, ChannelState>(&ChannelState::GetInterpolatedValue<CosineInterpolation>)
         : std::mem_fun_ref(&ChannelState::GetValue);
-      MultiSample result(Channels);
+      MultiSoundSample result(Channels);
       for (uint_t smp = 0; smp != doSamples; ++smp)
       {
         std::transform(State.begin(), State.end(), result.begin(), getter);
         std::for_each(State.begin(), State.end(), std::mem_fun_ref(&ChannelState::SkipStep));
         Target->ApplyData(result);
       }
-      CurrentTime = src.TimeInUs;
+      CurrentTime = src.TimeStamp;
     }
 
     virtual void GetChannelState(uint_t chan, DataChunk::ChannelData& dst) const
@@ -298,7 +396,7 @@ namespace
       dst.Note = src.Note;
       dst.NoteSlide = src.NoteSlide;
       dst.FreqSlideHz = src.FreqSlide;
-      dst.SampleNum = src.CurSample - &Samples.front();
+      dst.SampleNum = src.CurSampleIndex;
       dst.PosInSample = src.PosInSample / FIXED_POINT_PRECISION;
       dst.LevelInPercents = src.Level;
     }
@@ -307,14 +405,14 @@ namespace
     {
       state.resize(State.size());
       std::transform(State.begin(), State.end(), state.begin(),
-        std::bind2nd(std::mem_fun_ref(&ChannelState::Analyze), MaxGain));
+        std::bind2nd(std::mem_fun_ref(&ChannelState::Analyze), Samples.GetMaxGain()));
     }
 
     /// reset internal state to initial
     virtual void Reset()
     {
-      CurrentTime = 0;
-      std::fill(State.begin(), State.end(), ChannelState(&Samples.front()));
+      CurrentTime = Time::Microseconds();
+      std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0), 0));
     }
 
   private:
@@ -345,15 +443,15 @@ namespace
       //sample changed
       if (state.SampleNum)
       {
-        assert(*state.SampleNum < Samples.size());
-        chan.CurSample = &Samples[*state.SampleNum];
-        chan.PosInSample = std::min(chan.PosInSample, FIXED_POINT_PRECISION * chan.CurSample->Size - 1);
+        chan.CurSampleIndex = *state.SampleNum;
+        chan.CurSample = Samples.Get(chan.CurSampleIndex);
+        chan.PosInSample = std::min(chan.PosInSample, FIXED_POINT_PRECISION * chan.CurSample->Size() - 1);
       }
       //position in sample changed
       if (state.PosInSample)
       {
         assert(chan.CurSample);
-        chan.PosInSample = FIXED_POINT_PRECISION * std::min(*state.PosInSample, chan.CurSample->Size - 1);
+        chan.PosInSample = FIXED_POINT_PRECISION * std::min(*state.PosInSample, chan.CurSample->Size() - 1);
       }
       //level changed
       if (state.LevelInPercents)
@@ -383,14 +481,14 @@ namespace
       assert(state.SampleStep);
     }
   private:
+    const uint_t Channels;
+    const uint_t SampleFreq;
     const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
-    std::vector<DigitalSample> Samples;
-    uint_t MaxGain;
-    uint64_t CurrentTime;
-    boost::array<ChannelState, Channels> State;
+    SamplesStorage Samples;
+    Time::Microseconds CurrentTime;
+    std::vector<ChannelState> State;
 
-    const uint_t SampleFreq;
     //steps calc
     uint_t TableFreq;
     uint_t MaxNotes;
@@ -402,18 +500,9 @@ namespace Devices
 {
   namespace DAC
   {
-    Chip::Ptr CreateChip(uint_t channels, uint_t samples, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
+    Chip::Ptr CreateChip(uint_t channels, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
     {
-      switch (channels)
-      {
-      case 3:
-        return Chip::Ptr(new ChipImpl<3>(samples, sampleFreq, params, target));
-      case 4:
-        return Chip::Ptr(new ChipImpl<4>(samples, sampleFreq, params, target));
-      default:
-        assert(!"Invalid channels count");
-        return Chip::Ptr();
-      }
+      return boost::make_shared<ChipImpl>(channels, sampleFreq, params, target);
     }
   }
 }
