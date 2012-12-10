@@ -32,8 +32,6 @@ namespace
 
   const uint_t MAX_LEVEL = 100;
 
-  const int_t SILENT = 128;
-
   const uint_t NOTES = 64;
   //table in Hz
   const boost::array<double, NOTES> FREQ_TABLE =
@@ -66,99 +64,34 @@ namespace
       sampleFreq / (FREQ_TABLE[0] * soundFreq * 2));
   }
 
-  inline SoundSample scale(uint8_t inSample)
-  {
-    //simply shift bits
-    return SoundSample(inSample) << (8 * (sizeof(SoundSample) - sizeof(inSample)));
-  }
-
-  const SoundSample SCALED_SILENT = scale(SILENT);
-
-  class DigitalSample
+  class StubSample : public Sample
   {
   public:
-    typedef boost::shared_ptr<const DigitalSample> Ptr;
-    virtual ~DigitalSample() {}
-
-    virtual SoundSample Read(uint_t pos) const = 0;
-
-    virtual uint_t Size() const = 0;
-    virtual uint_t Loop() const = 0;
-    virtual uint_t Gain() const = 0;
-  };
-
-  class StubSample : public DigitalSample
-  {
-  public:
-    StubSample()
+    virtual SoundSample Get(std::size_t /*pos*/) const
     {
+      return SILENT;
     }
 
-    virtual SoundSample Read(uint_t /*pos*/) const
-    {
-      return SCALED_SILENT;
-    }
-
-    virtual uint_t Size() const
+    virtual std::size_t Size() const
     {
       return 1;
     }
 
-    virtual uint_t Loop() const
+    virtual std::size_t Loop() const
     {
       return 1;
     }
 
-    virtual uint_t Gain() const
+    virtual SoundSample Average() const
     {
-      return 0;
+      return SILENT;
     }
   };
 
-  uint_t CalculateGain(const uint8_t* start, std::size_t size)
+  inline uint_t AvgToGain(SoundSample avg)
   {
-    const int_t sum = std::accumulate(start, start + size, uint_t(0)) / size;
-    return Math::Absolute(sum - SILENT);
+    return Math::Absolute(int_t(avg) - SILENT);
   }
-
-  class SampleAdapter : public DigitalSample
-  {
-  public:
-    explicit SampleAdapter(Sample::Ptr delegate)
-      : Delegate(delegate)
-      , DataValue(Delegate->Data())
-      , SizeValue(Delegate->Size())
-      , LoopValue(Delegate->Loop())
-      , GainValue(CalculateGain(DataValue, SizeValue))
-    {
-    }
-
-    virtual SoundSample Read(uint_t pos) const
-    {
-      return scale(pos < SizeValue ? DataValue[pos] : SILENT);
-    }
-
-    virtual uint_t Size() const
-    {
-      return SizeValue;
-    }
-
-    virtual uint_t Loop() const
-    {
-      return LoopValue;
-    }
-
-    virtual uint_t Gain() const
-    {
-      return GainValue;
-    }
-  private:
-    const Sample::Ptr Delegate;
-    const uint8_t* const DataValue;
-    const uint_t SizeValue;
-    const uint_t LoopValue;
-    const uint_t GainValue;
-  };
 
   class SamplesStorage
   {
@@ -173,16 +106,16 @@ namespace
       if (sample)
       {
         Content.resize(std::max(Content.size(), idx + 1));
-        const DigitalSample::Ptr adapted = boost::make_shared<SampleAdapter>(sample);
-        Content[idx] = adapted;
-        MaxGain = std::max(MaxGain, adapted->Gain());
+        const uint_t gain = AvgToGain(sample->Average());
+        Content[idx] = sample;
+        MaxGain = std::max(MaxGain, gain);
       }
     }
 
-    const DigitalSample* Get(std::size_t idx) const
+    const Sample* Get(std::size_t idx) const
     {
       static const StubSample STUB;
-      const DigitalSample::Ptr val = idx < Content.size() ? Content[idx] : DigitalSample::Ptr();
+      const Sample::Ptr val = idx < Content.size() ? Content[idx] : Sample::Ptr();
       return val
         ? val.get()
         : &STUB;
@@ -194,7 +127,7 @@ namespace
     }
   private:
     uint_t MaxGain;
-    std::vector<DigitalSample::Ptr> Content;
+    std::vector<Sample::Ptr> Content;
   };
 
   struct LinearInterpolation
@@ -237,7 +170,7 @@ namespace
   //channel state type
   struct ChannelState
   {
-    ChannelState(const DigitalSample* sample = 0, uint_t sampleIndex = 0)
+    ChannelState(const Sample* sample = 0, uint_t sampleIndex = 0)
       : Enabled(), Level(MAX_LEVEL), Note(), NoteSlide(), FreqSlide(), CurSample(sample), CurSampleIndex(sampleIndex), PosInSample(), SampleStep(1)
     {
     }
@@ -250,7 +183,7 @@ namespace
     //current slide in Hz
     int_t FreqSlide;
     //using pointer for performance
-    const DigitalSample* CurSample;
+    const Sample* CurSample;
     uint_t CurSampleIndex;
     //in fixed point
     uint_t PosInSample;
@@ -282,11 +215,11 @@ namespace
       {
         const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
         assert(CurSample);
-        return Amplify(CurSample->Read(pos));
+        return Amplify(CurSample->Get(pos));
       }
       else
       {
-        return SCALED_SILENT;
+        return SILENT;
       }
     }
 
@@ -297,10 +230,10 @@ namespace
       {
         const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
         assert(CurSample);
-        const SoundSample cur = CurSample->Read(pos);
+        const SoundSample cur = CurSample->Get(pos);
         if (const uint_t fract = PosInSample % FIXED_POINT_PRECISION)
         {
-          const SoundSample next = CurSample->Read(pos + 1);
+          const SoundSample next = CurSample->Get(pos + 1);
           const int_t delta = int_t(next) - int_t(cur);
           const int_t mappedFract = Policy::MapInterpolation(fract);
           const SoundSample value = static_cast<SoundSample>(int_t(cur) + delta * mappedFract / int_t(FIXED_POINT_PRECISION));
@@ -313,7 +246,7 @@ namespace
       }
       else
       {
-        return SCALED_SILENT;
+        return SILENT;
       }
     }
 
@@ -324,7 +257,8 @@ namespace
       {
         result.Band = Note;
         assert(CurSample);
-        result.LevelInPercents = CurSample->Gain() * Level / maxGain;
+        const uint_t gain = AvgToGain(CurSample->Average());
+        result.LevelInPercents = gain * Level / maxGain;
       }
       return result;
     }
@@ -332,7 +266,7 @@ namespace
     SoundSample Amplify(SoundSample val) const
     {
       assert(Level <= MAX_LEVEL);
-      const int_t mid = scale(SILENT);
+      const int_t mid = SILENT;
       const int64_t delta = int_t(val) - mid;
       const int_t scaledDelta = static_cast<int_t>(delta * int_t(Level) / int_t(MAX_LEVEL));
       assert(Math::Absolute(scaledDelta) <= Math::Absolute(delta));
@@ -445,13 +379,13 @@ namespace
       {
         chan.CurSampleIndex = *state.SampleNum;
         chan.CurSample = Samples.Get(chan.CurSampleIndex);
-        chan.PosInSample = std::min(chan.PosInSample, FIXED_POINT_PRECISION * chan.CurSample->Size() - 1);
+        chan.PosInSample = std::min<uint_t>(chan.PosInSample, FIXED_POINT_PRECISION * chan.CurSample->Size() - 1);
       }
       //position in sample changed
       if (state.PosInSample)
       {
         assert(chan.CurSample);
-        chan.PosInSample = FIXED_POINT_PRECISION * std::min(*state.PosInSample, chan.CurSample->Size() - 1);
+        chan.PosInSample = FIXED_POINT_PRECISION * std::min<uint_t>(*state.PosInSample, chan.CurSample->Size() - 1);
       }
       //level changed
       if (state.LevelInPercents)

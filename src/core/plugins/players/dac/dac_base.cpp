@@ -123,34 +123,6 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
   };
-
-  class Sample : public Devices::DAC::Sample
-  {
-  public:
-    Sample(Binary::Data::Ptr content, std::size_t loop)
-      : Content(content)
-      , LoopValue(loop)
-    {
-    }
-
-    virtual const uint8_t* Data() const
-    {
-      return static_cast<const uint8_t*>(Content->Start());
-    }
-
-    virtual std::size_t Size() const
-    {
-      return Content->Size();
-    }
-
-    virtual std::size_t Loop() const
-    {
-      return LoopValue;
-    }
-  private:
-    const Binary::Data::Ptr Content;
-    const std::size_t LoopValue;
-  };
 }
 
 namespace ZXTune
@@ -177,11 +149,6 @@ namespace ZXTune
       Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
       {
         return boost::make_shared<ChipParametersImpl>(params);
-      }
-
-      Devices::DAC::Sample::Ptr CreateSample(Binary::Data::Ptr content, std::size_t loop)
-      {
-        return boost::make_shared<Sample>(content, loop);
       }
     }
   }

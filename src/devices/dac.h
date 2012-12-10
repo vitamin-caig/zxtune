@@ -16,6 +16,7 @@ Author:
 //common includes
 #include <data_streaming.h>
 //library includes
+#include <devices/dac_sample.h>
 #include <time/stamp.h>
 //boost includes
 #include <boost/optional.hpp>
@@ -25,17 +26,6 @@ namespace Devices
 {
   namespace DAC
   {
-    class Sample
-    {
-    public:
-      typedef boost::shared_ptr<const Sample> Ptr;
-      virtual ~Sample() {}
-
-      virtual const uint8_t* Data() const = 0;
-      virtual std::size_t Size() const = 0;
-      virtual std::size_t Loop() const = 0;
-    };
-
     struct DataChunk
     {
       struct ChannelData
@@ -95,8 +85,6 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
-    // Sound is rendered in unsigned 16-bit values
-    typedef uint16_t SoundSample;
     // Variable channels per sample
     typedef std::vector<SoundSample> MultiSoundSample;
     // Result sound stream receiver

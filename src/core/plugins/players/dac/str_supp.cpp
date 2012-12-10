@@ -28,6 +28,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/dac_sample_factories.h>
 //std includes
 #include <utility>
 //boost includes
@@ -221,7 +222,7 @@ namespace
         const uint8_t* const sampleEnd = std::find(sampleStart, sampleStart + maxSize, 0);
         if (const Binary::Data::Ptr content = rawData->GetSubcontainer(sampleStart - data.GetField<const uint8_t>(0), sampleEnd - sampleStart))
         {
-          Data->Samples[samIdx] = ZXTune::Module::DAC::CreateSample(content, content->Size());
+          Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, content->Size());
           lastData = std::max(lastData, std::size_t(absAddr - STR::MODULE_BASE + maxSize));
         }
       }

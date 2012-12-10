@@ -29,6 +29,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/dac_sample_factories.h>
 #include <formats/chiptune/digital_sample.h>
 #include <math/numeric.h>
 //std includes
@@ -463,7 +464,7 @@ namespace
         if (const Binary::Data::Ptr content = bankData->GetSubcontainer(offsetInBank, sampleSize >= 12 ? sampleSize - 12 : sampleSize))
         {
           const std::size_t loop = sampleLoop - sampleStart;
-          Data->Samples[samIdx] = ZXTune::Module::DAC::CreateSample(content, loop);
+          Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, loop);
         }
       }
       Data->LoopPosition = header.Loop;

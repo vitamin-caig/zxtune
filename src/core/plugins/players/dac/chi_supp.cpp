@@ -28,6 +28,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/dac_sample_factories.h>
 #include <math/numeric.h>
 //std includes
 #include <utility>
@@ -264,7 +265,7 @@ namespace
           if (const Binary::Data::Ptr content = rawData->GetSubcontainer(sampleData - data.GetField<uint8_t>(0), size))
           {
             const std::size_t loop = fromLE(srcSample.Loop);
-            Data->Samples[samIdx] = ZXTune::Module::DAC::CreateSample(content, loop);
+            Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, loop);
           }
           const std::size_t alignedSize(Math::Align<std::size_t>(size, 256));
           sampleData += alignedSize;

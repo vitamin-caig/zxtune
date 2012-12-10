@@ -28,6 +28,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/dac_sample_factories.h>
 //std includes
 #include <set>
 #include <utility>
@@ -335,7 +336,7 @@ namespace
         if (const Binary::Data::Ptr content = rawData->GetSubcontainer(sampleStart - data.GetField<uint8_t>(0), sampleEnd - sampleStart))
         {
           const std::size_t loop = srcSample.IsLooped ? rawLoop - sampleBase : content->Size();
-          Data->Samples[samIdx] = ZXTune::Module::DAC::CreateSample(content, loop);
+          Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, loop);
         }
       }
       Data->LoopPosition = header.Loop;

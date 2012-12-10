@@ -18,7 +18,6 @@ Author:
 #include "core/plugins/players/tracking.h"
 #include "core/plugins/players/ay/ay_conversion.h"
 //common includes
-//#include <byteorder.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
@@ -26,6 +25,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/dac_sample_factories.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digitalstudio.h>
 //std includes
@@ -80,7 +80,7 @@ namespace
     virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content)
     {
       Data->Samples.resize(index + 1);
-      Data->Samples[index] = ZXTune::Module::DAC::CreateSample(content, loop);
+      Data->Samples[index] = Devices::DAC::CreateU8Sample(content, loop);
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)

@@ -28,6 +28,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/dac_sample_factories.h>
 //boost includes
 #include <boost/bind.hpp>
 //text includes
@@ -321,7 +322,7 @@ namespace
           {
             const uint_t rawLoop = fromLE(srcSample.Loop);
             const uint_t loop = rawLoop >= start ? rawLoop - start : size;
-            Data->Samples[samIdx] = ZXTune::Module::DAC::CreateSample(content, loop);
+            Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, loop);
           }
         }
       }
