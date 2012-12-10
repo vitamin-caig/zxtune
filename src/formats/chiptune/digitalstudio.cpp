@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "container.h"
 #include "digitalstudio.h"
-#include "digital_sample.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -127,7 +126,7 @@ namespace Chiptune
       virtual void SetTitle(const String& /*title*/) {}
       virtual void SetProgram(const String& /*program*/) {}
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
+      virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/, bool /*is4Bit*/) {}
       virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
       virtual void StartPattern(uint_t /*index*/) {}
       virtual void StartLine(uint_t /*index*/) {}
@@ -163,9 +162,9 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data)
+      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data, bool is4Bit)
       {
-        return Delegate.SetSample(index, loop, data);
+        return Delegate.SetSample(index, loop, data, is4Bit);
       }
 
       virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -244,13 +243,10 @@ namespace Chiptune
 
       void Apply(Builder& builder)
       {
-        const bool shouldConvert = Is4Bit();
+        const bool is4Bit = Is4Bit();
         for (std::vector<Description>::const_iterator it = Samples.begin(), lim = Samples.end(); it != lim; ++it)
         {
-          const Binary::Data::Ptr content = shouldConvert && it->Is4Bit
-            ? Convert4BitSample(*it->Content)
-            : it->Content;
-          builder.SetSample(it->Index, it->Loop, content);
+          builder.SetSample(it->Index, it->Loop, it->Content, is4Bit && it->Is4Bit);
         }
       }
     private:

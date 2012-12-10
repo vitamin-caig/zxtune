@@ -30,7 +30,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <devices/dac_sample_factories.h>
-#include <formats/chiptune/digital_sample.h>
 #include <math/numeric.h>
 //std includes
 #include <utility>
@@ -414,8 +413,8 @@ namespace
         if (is4bitSamples)
         {
           const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
-          const Binary::Data::Ptr packedSample = rawData->GetSubcontainer(lastData, realSize);
-          regions[bankNum] = Binary::CreateContainer(Formats::Chiptune::Unpack4BitSample(*packedSample));
+          const Binary::Container::Ptr packedSample = rawData->GetSubcontainer(lastData, realSize);
+          regions[bankNum] = packedSample;
           Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
           lastData += realSize;
         }
@@ -456,15 +455,19 @@ namespace
         const std::size_t offsetInBank = sampleStart - DMM::SAMPLES_ADDR;
         const std::size_t limitInBank = sampleEnd - DMM::SAMPLES_ADDR;
         const std::size_t sampleSize = limitInBank - offsetInBank;
-        if (limitInBank > bankData->Size())
+        const uint_t multiplier = is4bitSamples ? 2 : 1;
+        if (limitInBank > multiplier * bankData->Size())
         {
           Dbg("Skipped. Not enough data");
           continue;
         }
-        if (const Binary::Data::Ptr content = bankData->GetSubcontainer(offsetInBank, sampleSize >= 12 ? sampleSize - 12 : sampleSize))
+        const std::size_t realSampleSize = sampleSize >= 12 ? (sampleSize - 12) : sampleSize;
+        if (const Binary::Data::Ptr content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
         {
           const std::size_t loop = sampleLoop - sampleStart;
-          Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, loop);
+          Data->Samples[samIdx] = is4bitSamples
+            ? Devices::DAC::CreateU4PackedSample(content, loop)
+            : Devices::DAC::CreateU8Sample(content, loop);
         }
       }
       Data->LoopPosition = header.Loop;

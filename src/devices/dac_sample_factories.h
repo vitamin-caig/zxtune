@@ -22,6 +22,8 @@ namespace Devices
   namespace DAC
   {
     Sample::Ptr CreateU8Sample(Binary::Data::Ptr content, std::size_t loop);
+    Sample::Ptr CreateU4Sample(Binary::Data::Ptr content, std::size_t loop);
+    Sample::Ptr CreateU4PackedSample(Binary::Data::Ptr content, std::size_t loop);
   }
 }
 

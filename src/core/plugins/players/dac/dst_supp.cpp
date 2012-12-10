@@ -77,10 +77,12 @@ namespace
       Data->InitialTempo = tempo;
     }
 
-    virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content)
+    virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit)
     {
       Data->Samples.resize(index + 1);
-      Data->Samples[index] = Devices::DAC::CreateU8Sample(content, loop);
+      Data->Samples[index] = is4Bit
+        ? Devices::DAC::CreateU4Sample(content, loop)
+        : Devices::DAC::CreateU8Sample(content, loop);
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
