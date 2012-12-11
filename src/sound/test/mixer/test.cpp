@@ -1,5 +1,6 @@
 #include <tools.h>
 #include <error_tools.h>
+#include <math/numeric.h>
 #include <src/sound/mixer.h>
 
 #include <iostream>
@@ -12,6 +13,8 @@ namespace
   using namespace ZXTune::Sound;
 
   BOOST_STATIC_ASSERT(SAMPLE_MIN == 0 && SAMPLE_MID == 32768 && SAMPLE_MAX == 65535);
+
+  const int_t THRESHOLD = 5 * (SAMPLE_MAX - SAMPLE_MIN) / 1000;//0.5%
   
   const MultiGain GAINS[] = {
     { {0.0f, 0.0f} },
@@ -63,9 +66,9 @@ namespace
      //left=25 right=230
      //(25*32768)/256, (230*32768)/256
      //(25*65535)/256, (230*65535)/256
-     { {SAMPLE_MID+25*(SAMPLE_MIN-SAMPLE_MID)/256,SAMPLE_MID+230*(SAMPLE_MIN-SAMPLE_MID)/256} },
+     { {Sample(SAMPLE_MID+0.1f*(SAMPLE_MIN-SAMPLE_MID)),Sample(SAMPLE_MID+0.9f*(SAMPLE_MIN-SAMPLE_MID))} },
      { {SAMPLE_MID,SAMPLE_MID} },
-     { {SAMPLE_MID+25*(SAMPLE_MAX-SAMPLE_MID)/256,SAMPLE_MID+230*(SAMPLE_MAX-SAMPLE_MID)/256} }
+     { {Sample(SAMPLE_MID+0.1f*(SAMPLE_MAX-SAMPLE_MID)),Sample(SAMPLE_MID+0.9f*(SAMPLE_MAX-SAMPLE_MID))} }
   };
 
   template<class T>
@@ -92,15 +95,13 @@ namespace
     
     virtual void ApplyData(const MultiSample& data)
     {
-      if (const bool passed = data == ToCompare)
+      for (uint_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
       {
-        std::cout << "Passed";
+        if (Math::Absolute(int_t(data[chan]) - ToCompare[chan]) > THRESHOLD)
+          throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
+            data[0], data[1], ToCompare[0], ToCompare[1]);
       }
-      else
-      {
-        throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
-          data[0], data[1], ToCompare[0], ToCompare[1]);
-      }
+      std::cout << "Passed";
     }
     
     virtual void Flush()

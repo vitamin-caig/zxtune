@@ -287,15 +287,15 @@ msgstr ""
 "Нижняя частота среза фильтра (%1%Гц) превысила допустимые значения (%2%..."
 "%3%Гц)."
 
-#: impl/mixer.cpp:143
+#: impl/mixer.cpp:126
 msgid "Failed to set mixer matrix: invalid channels count specified."
 msgstr "Ошибка установки микширования: неправильное число каналов."
 
-#: impl/mixer.cpp:149
+#: impl/mixer.cpp:131
 msgid "Failed to set mixer matrix: gain is out of range."
 msgstr "Ошибка установки микширования: превышение допустимого значения уровня."
 
-#: impl/mixer.cpp:183
+#: impl/mixer.cpp:164
 #, boost-format
 msgid "Failed to create unsupported mixer with %1% channels."
 msgstr "Ошибка создания микшера с неподдерживаемым (%1%) числом каналов."
