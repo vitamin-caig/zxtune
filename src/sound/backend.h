@@ -73,12 +73,6 @@ namespace ZXTune
 
       virtual ~Backend() {}
 
-      //! @brief Current module information
-      virtual Module::Information::Ptr GetModuleInformation() const = 0;
-
-      //! @brief Current module properties
-      virtual Parameters::Accessor::Ptr GetModuleProperties() const = 0;
-
       //! @brief Current tracking status
       virtual Module::TrackState::Ptr GetTrackState() const = 0;
 

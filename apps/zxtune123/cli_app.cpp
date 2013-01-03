@@ -359,7 +359,7 @@ namespace
       const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
       backend->Play();
 
-      Display->SetModule(backend, frameDuration);
+      Display->SetModule(holder, backend, frameDuration);
 
       ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
       const ZXTune::Sound::VolumeControl::Ptr volCtrl = backend->GetVolumeControl();

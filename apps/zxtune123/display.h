@@ -42,7 +42,7 @@ public:
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
 
   virtual void Message(const String& msg) = 0;
-  virtual void SetModule(ZXTune::Sound::Backend::Ptr player, Time::Microseconds frameDuration) = 0;
+  virtual void SetModule(ZXTune::Module::Holder::Ptr module, ZXTune::Sound::Backend::Ptr player, Time::Microseconds frameDuration) = 0;
 
   // begin frame, returns current frame number
   virtual uint_t BeginFrame(ZXTune::Sound::Backend::State state) = 0;

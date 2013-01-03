@@ -310,16 +310,6 @@ namespace
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
-    {
-      return Holder->GetModuleInformation();
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Holder->GetModuleProperties();
-    }
-
     virtual Module::TrackState::Ptr GetTrackState() const
     {
       return Renderer->GetTrackState();
