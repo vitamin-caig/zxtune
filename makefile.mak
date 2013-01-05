@@ -44,6 +44,9 @@ include $(path_step)/make/platforms/$(platform).mak
 #set host-specific parameters
 include $(path_step)/make/hosts/$(host).mak
 
+#set environment
+include $(path_step)/make/environment.mak
+
 #set features
 include $(path_step)/make/features.mak
 
@@ -85,6 +88,9 @@ endif
 ifdef use_qt
 include $(path_step)/make/qt.mak
 endif
+
+#process boost
+include $(path_step)/make/boost.mak
 
 #process l10n files
 include $(path_step)/make/l10n.mak
