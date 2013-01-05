@@ -32,6 +32,10 @@ msgstr ""
 "Нижняя частота среза фильтра (%1%Гц) превысила допустимые значения (%2%..."
 "%3%Гц)."
 
+#: impl/gainer.cpp:74
+msgid "Failed to set gain value: out of range."
+msgstr "Ошибка установки уровня: превышение допустимого значения."
+
 #: impl/mixer.cpp:126
 msgid "Failed to set mixer matrix: invalid channels count specified."
 msgstr "Ошибка установки микширования: неправильное число каналов."
