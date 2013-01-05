@@ -27,7 +27,7 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG EF5CB4C6
 
@@ -36,7 +36,7 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Sound;
 
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)

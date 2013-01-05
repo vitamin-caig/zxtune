@@ -31,7 +31,7 @@ Author:
 #include <boost/noncopyable.hpp>
 #include <boost/thread/condition_variable.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG 608CF986
 
@@ -41,7 +41,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Sdl");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 

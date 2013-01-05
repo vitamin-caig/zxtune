@@ -30,7 +30,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG 3B251603
 
@@ -40,7 +40,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Mp3");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   const uint_t BITRATE_MIN = 32;
   const uint_t BITRATE_MAX = 320;

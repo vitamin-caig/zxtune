@@ -26,14 +26,14 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG B4CB6B0C
 
 namespace
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 }
 
 namespace

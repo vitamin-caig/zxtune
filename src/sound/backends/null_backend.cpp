@@ -19,13 +19,13 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/render_params.h>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG 9A6FD87F
 
 namespace
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 }
 
 namespace

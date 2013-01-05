@@ -23,7 +23,7 @@ namespace
 {
   using namespace ZXTune::Sound;
 
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   class VolumeControlDelegate : public VolumeControl
   {

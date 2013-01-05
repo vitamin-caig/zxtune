@@ -36,7 +36,7 @@ Author:
 #include <boost/noncopyable.hpp>
 #include <boost/thread/thread.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG 69200152
 
@@ -46,7 +46,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Oss");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   const uint_t MAX_OSS_VOLUME = 100;
 

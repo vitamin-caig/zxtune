@@ -29,7 +29,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG 6575CD3F
 
@@ -39,7 +39,7 @@ namespace
   using namespace ZXTune::Sound;
 
   const Debug::Stream Dbg("Sound::Backend::Flac");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   typedef boost::shared_ptr<FLAC__StreamEncoder> FlacEncoderPtr;
 

@@ -15,7 +15,7 @@ Author:
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
-#include <sound/text/backends.h> 
+#include "text/backends.h"
 
 namespace ZXTune
 {
