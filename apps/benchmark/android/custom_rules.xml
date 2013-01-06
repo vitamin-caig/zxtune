@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="benchmark.so">
+  <property name="cpu.cores" value="1" />
+
   <macrodef name="buildlib-helper">
     <attribute name="arch" />
     <sequential>
@@ -9,7 +11,9 @@
         <arg value="platform=android" />
         <arg value="arch=@{arch}" />
         <arg value="-C" />
-        <arg line="jni" />
+        <arg value="jni" />
+        <arg value="-j" />
+        <arg value="${cpu.cores}" />
       </exec>
     </sequential>
   </macrodef>
@@ -31,6 +35,21 @@
     </sequential>
   </macrodef>
   
+  <target name="svnrevision">
+    <exec executable="svnversion" outputproperty="svn.revision">
+      <arg value="${top.dir}"/>
+    </exec>
+    <echo level="info">Current svn revision is ${svn.revision}</echo>
+  </target>
+  
+  <target name="injectrevision" depends="svnrevision">
+    <copy file="version.tmpl" tofile="res/values/version.xml" overwrite="yes" >
+      <filterset>
+        <filter token="svn.revision" value="${svn.revision}" />
+      </filterset>
+    </copy>
+  </target>
+  
   <target name="nativelibs">
     <makelib-helper arch="x86" />
     <makelib-helper arch="armeabi" />
@@ -39,12 +58,12 @@
   
   <target name="-post-compile" depends="nativelibs" />
 
-  <target name="-pre-build">
-    <exec executable="svnversion" outputproperty="svn.revision">
-     <arg value="${top.dir}"/>
-    </exec>
-    <echo level="info">Current svn revision is ${svn.revision}</echo>
-    <copy file="version.tmpl" tofile="res/values/version.xml" />
-    <replace file="res/values/version.xml" token="@svn.revision@" value="${svn.revision}" />
+  <target name="-pre-build" depends="injectrevision" />
+  
+  <!-- Single public build target -->
+  <target name="public-build" depends="svnrevision, release">
+    <property name="build.dir" value="${builds.dir}/Revision${svn.revision}_android" />
+    <delete dir="${build.dir}" />
+    <copy file="${out.final.file}" toFile="${build.dir}/${ant.project.name}_r${svn.revision}.apk" />
   </target>
 </project>
