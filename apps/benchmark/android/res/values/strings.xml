@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Benchmark</string>
+    <string name="start">Start tests</string>
+    <string name="exit">Exit</string>
+</resources>
