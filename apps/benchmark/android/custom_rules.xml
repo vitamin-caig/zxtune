@@ -39,12 +39,17 @@
     <exec executable="svnversion" outputproperty="svn.revision">
       <arg value="${top.dir}"/>
     </exec>
-    <echo level="info">Current svn revision is ${svn.revision}</echo>
+    <script language="javascript">
+      var rev = project.getProperty("svn.revision");
+      project.setProperty("svn.revision.base", parseInt(rev));
+    </script>
+    <echo level="info">Current svn revision is ${svn.revision} (${svn.revision.base})</echo>
   </target>
   
   <target name="injectrevision" depends="svnrevision">
     <copy file="version.tmpl" tofile="res/values/version.xml" overwrite="yes" >
       <filterset>
+        <filter token="svn.revision.base" value="${svn.revision.base}" />
         <filter token="svn.revision" value="${svn.revision}" />
       </filterset>
     </copy>

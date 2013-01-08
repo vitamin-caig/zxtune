@@ -11,5 +11,5 @@ public class Benchmark {
     System.loadLibrary("benchmark");
   }
 
-  public static native void ForAllTests(TestVisitor visitor);
+  public static native synchronized void ForAllTests(TestVisitor visitor);
 }

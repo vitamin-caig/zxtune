@@ -1,9 +1,10 @@
 package app.zxtune.benchmark;
 
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ArrayAdapter;
 import android.util.Log;
@@ -13,65 +14,82 @@ import app.zxtune.benchmark.Benchmark;
 public class MainActivity extends Activity {
 
   static final private String TAG = "zxtune.benchmark";
-  static final private int START_ID = Menu.FIRST;
-  static final private int EXIT_ID = START_ID + 1;
+
+  private TestsTask Task;
+  private ArrayAdapter<String> Report;
   
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
-  }
 
-  public boolean onCreateOptionsMenu(Menu menu) {
-    super.onCreateOptionsMenu(menu);
-
-    menu.add(0, START_ID, 0, R.string.start);
-    menu.add(0, EXIT_ID, 0, R.string.exit);
-    return true;
-  }
-
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-    case START_ID:
-      StartTests();
-      return true;
-    case EXIT_ID:
-      finish();
-      return true;
+    if (Report == null) {
+      final ArrayList<String> reportData = new ArrayList<String>();
+      Report = new ArrayAdapter<String>(this, android.R.layout.test_list_item, reportData);
+      Report.setNotifyOnChange(true);
     }
-    return super.onOptionsItemSelected(item);
+    final ListView view = (ListView)findViewById(R.id.test_results);
+    view.setAdapter(Report);
   }
 
-  private void StartTests() {
-    ListView view = (ListView)findViewById(R.id.test_results);
-    ArrayList<String> res = new ArrayList<String>();
-    ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.test_list_item, res);
-    adapter.setNotifyOnChange(true);
-    view.setAdapter(adapter);
-    Benchmark.ForAllTests(new AllTestsVisitor(res));
-  }
-
-  private class AllTestsVisitor implements Benchmark.TestVisitor {
-  
-    private String LastCategory;
-    private ArrayList<String> Result;
-    
-    AllTestsVisitor(ArrayList<String> result) {
-      Result = result;
-    }
-    
-    public boolean OnTest(String category, String name) {
-      Log.d(TAG, String.format("Enabling test (%s : %s)", category, name));
-      return true;
-    }
-    
-    public void OnTestResult(String category, String name, double res) {
-      Log.d(TAG, String.format("Finished test (%s : %s): %f", category, name, res));
-      if (LastCategory == null || !LastCategory.equals(category)) {
-        Result.add(category);
-        LastCategory = category;
+  public void onClick(View v) {
+    switch (v.getId()) {
+    case R.id.test_start:
+      Task = new TestsTask();
+      Task.execute();
+      break;
+    case R.id.app_exit:
+      if (Task != null) {
+        Task.cancel(false);
       }
-      Result.add(String.format("  %s: x%f", name, res));
+      finish();
+      break;
+    }
+  }
+
+  private class TestsTask extends AsyncTask<Void, String, Void> {
+
+    private String LastCategory;
+
+    @Override
+    protected void onPreExecute() {
+      super.onPreExecute();
+      ((Button)findViewById(R.id.test_start)).setEnabled(false);
+      Report.clear();
+    }
+
+    @Override
+    protected Void doInBackground(Void... params) {
+      Benchmark.ForAllTests(new TestsVisitor());
+      return null;
+    }
+
+    @Override
+    protected void onProgressUpdate(String... values) {
+      super.onProgressUpdate(values);
+      Report.add(values[0]);
+    }
+
+    @Override
+    protected void onPostExecute(Void result) {
+      super.onPostExecute(result);
+      ((Button)findViewById(R.id.test_start)).setEnabled(true);
+    }
+
+    private class TestsVisitor implements Benchmark.TestVisitor {
+
+      public boolean OnTest(String category, String name) {
+        return !isCancelled();
+      }
+
+      public void OnTestResult(String category, String name, double res) {
+        Log.d(TAG, String.format("Finished test (%s : %s): %f", category, name, res));
+        if (LastCategory == null || !LastCategory.equals(category)) {
+          publishProgress(category);
+          LastCategory = category;
+        }
+        publishProgress(String.format("  %s: x%f", name, res));
+      }
     }
   }
 }
