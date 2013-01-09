@@ -184,17 +184,12 @@ namespace
       }
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
-    {
-      return VolumeControl::Ptr();
-    }
-
     virtual void Test()
     {
       //TODO: implement
     }
 
-    virtual void OnStartup(const Module::Holder& /*module*/)
+    virtual void Startup()
     {
       Dbg("Starting playback");
 
@@ -233,32 +228,32 @@ namespace
       Api->SDL_PauseAudio(0);
     }
 
-    virtual void OnShutdown()
+    virtual void Shutdown()
     {
       Dbg("Shutdown");
       Api->SDL_CloseAudio();
     }
 
-    virtual void OnPause()
+    virtual void Pause()
     {
       Dbg("Pause");
       Api->SDL_PauseAudio(1);
     }
 
-    virtual void OnResume()
+    virtual void Resume()
     {
       Dbg("Resume");
       Api->SDL_PauseAudio(0);
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
-    {
-    }
-
-
-    virtual void OnBufferReady(Chunk& buffer)
+    virtual void BufferReady(Chunk& buffer)
     {
       Queue.AddData(buffer);
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
+    {
+      return VolumeControl::Ptr();
     }
   private:
     void CheckCall(bool ok, Error::LocationRef loc) const

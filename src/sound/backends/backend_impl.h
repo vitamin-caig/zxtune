@@ -27,15 +27,15 @@ namespace ZXTune
       virtual ~BackendWorker() {}
 
       virtual void Test() = 0;
-      virtual void OnStartup(const Module::Holder& module) = 0;
-      virtual void OnShutdown() = 0;
-      virtual void OnPause() = 0;
-      virtual void OnResume() = 0;
-      virtual void OnFrame(const Module::TrackState& state) = 0;
-      virtual void OnBufferReady(Chunk& buffer) = 0;
+      virtual void Startup() = 0;
+      virtual void Shutdown() = 0;
+      virtual void Pause() = 0;
+      virtual void Resume() = 0;
+      virtual void BufferReady(Chunk& buffer) = 0;
       virtual VolumeControl::Ptr GetVolumeControl() const = 0;
     };
 
+    //worker can implement BackendCallback interface
     Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker);
   }
 }

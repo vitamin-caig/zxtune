@@ -419,14 +419,14 @@ namespace
       obj.Device->Close();
     }
 
-    virtual void OnStartup(const Module::Holder& /*module*/)
+    virtual void Startup()
     {
       Dbg("Starting");
       Objects = OpenDevices();
       Dbg("Started");
     }
 
-    virtual void OnShutdown()
+    virtual void Shutdown()
     {
       Dbg("Stopping");
       Objects.Volume.reset();
@@ -435,21 +435,17 @@ namespace
       Dbg("Stopped");
     }
 
-    virtual void OnPause()
+    virtual void Pause()
     {
       Objects.Device->Pause();
     }
 
-    virtual void OnResume()
+    virtual void Resume()
     {
       Objects.Device->Resume();
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
-    {
-    }
-
-    virtual void OnBufferReady(Chunk& buffer)
+    virtual void BufferReady(Chunk& buffer)
     {
       Objects.Target->Write(&buffer.front(), buffer.size());
     }

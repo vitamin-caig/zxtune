@@ -153,8 +153,9 @@ namespace
       return Renderer::Ptr(new Renderer(renderer, mixer));
     }
 
-    bool ApplyFrame()
+    bool RenderFrame(BackendCallback& callback, BackendWorker& worker)
     {
+      callback.OnFrame(*State);
       Buffer.clear();
       Buffer.reserve(1000);//seems to be enough in most cases
       const bool res = Source->RenderFrame();
@@ -162,17 +163,8 @@ namespace
       {
         Mix->Flush();
       }
+      worker.BufferReady(Buffer);
       return res;
-    }
-
-    Chunk& GetBuffer()
-    {
-      return Buffer;
-    }
-
-    const Module::TrackState& GetState() const
-    {
-      return *State;
     }
   private:
     const Module::Renderer::Ptr Source;
@@ -184,10 +176,10 @@ namespace
   class AsyncWrapper : public Async::Worker
   {
   public:
-    AsyncWrapper(Module::Holder::Ptr holder, BackendWorker::Ptr worker, Async::Signals::Dispatcher& signaller, Renderer::Ptr render)
+    AsyncWrapper(Module::Holder::Ptr holder, BackendWorker::Ptr worker, BackendCallback::Ptr callback, Renderer::Ptr render)
       : Holder(holder)
       , Delegate(worker)
-      , Signaller(signaller)
+      , Callback(callback)
       , Render(render)
       , Playing(false)
     {
@@ -198,9 +190,9 @@ namespace
       try
       {
         Dbg("Initializing");
-        Delegate->OnStartup(*Holder);
+        Callback->OnStart(Holder);
+        Delegate->Startup();
         Playing = true;
-        Signaller.Notify(Backend::MODULE_START);
         //initial frame rendering
         RenderFrame();
         Dbg("Initialized");
@@ -218,8 +210,8 @@ namespace
       {
         Dbg("Finalizing");
         Playing = false;
-        Signaller.Notify(Backend::MODULE_STOP);
-        Delegate->OnShutdown();
+        Delegate->Shutdown();
+        Callback->OnStop();
         Dbg("Finalized");
         return Error();
       }
@@ -234,8 +226,8 @@ namespace
       try
       {
         Dbg("Suspending");
-        Delegate->OnPause();
-        Signaller.Notify(Backend::MODULE_PAUSE);
+        Callback->OnPause();
+        Delegate->Pause();
         Dbg("Suspended");
         return Error();
       }
@@ -250,8 +242,8 @@ namespace
       try
       {
         Dbg("Resuming");
-        Delegate->OnResume();
-        Signaller.Notify(Backend::MODULE_RESUME);
+        Callback->OnResume();
+        Delegate->Resume();
         Dbg("Resumed");
         return Error();
       }
@@ -268,7 +260,7 @@ namespace
         RenderFrame();
         if (IsFinished())
         {
-          Signaller.Notify(Backend::MODULE_FINISH);
+          Callback->OnFinish();
         }
         return Error();
       }
@@ -285,28 +277,125 @@ namespace
   private:
     void RenderFrame()
     {
-      Delegate->OnFrame(Render->GetState());
-      Playing = Render->ApplyFrame();
-      Delegate->OnBufferReady(Render->GetBuffer());
+      Playing = Render->RenderFrame(*Callback, *Delegate);
     }
   private:
     const Module::Holder::Ptr Holder;
     const BackendWorker::Ptr Delegate;
-    Async::Signals::Dispatcher& Signaller;
+    const BackendCallback::Ptr Callback;
     const Renderer::Ptr Render;
     bool Playing;
   };
+
+  class CompositeBackendCallback : public BackendCallback
+  {
+  public:
+    CompositeBackendCallback(BackendCallback::Ptr first, BackendCallback::Ptr second)
+      : First(first)
+      , Second(second)
+    {
+    }
+
+    virtual void OnStart(Module::Holder::Ptr module)
+    {
+      First->OnStart(module);
+      Second->OnStart(module);
+    }
+
+    virtual void OnFrame(const Module::TrackState& state)
+    {
+      First->OnFrame(state);
+      Second->OnFrame(state);
+    }
+
+    virtual void OnStop()
+    {
+      First->OnStop();
+      Second->OnStop();
+    }
+
+    virtual void OnPause()
+    {
+      First->OnPause();
+      Second->OnPause();
+    }
+
+    virtual void OnResume()
+    {
+      First->OnResume();
+      Second->OnResume();
+    }
+
+    virtual void OnFinish()
+    {
+      First->OnFinish();
+      Second->OnFinish();
+    }
+  private:
+    const BackendCallback::Ptr First;
+    const BackendCallback::Ptr Second;
+  };
+
+  class StubBackendCallback : public BackendCallback
+  {
+  public:
+    virtual void OnStart(Module::Holder::Ptr /*module*/)
+    {
+    }
+
+    virtual void OnFrame(const Module::TrackState& /*state*/)
+    {
+    }
+
+    virtual void OnStop()
+    {
+    }
+
+    virtual void OnPause()
+    {
+    }
+
+    virtual void OnResume()
+    {
+    }
+
+    virtual void OnFinish()
+    {
+    }
+  };
+
+  BackendCallback::Ptr CreateCallback(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
+  {
+    const BackendCallback::Ptr user = params->GetCallback();
+    const BackendCallback::Ptr work = boost::dynamic_pointer_cast<BackendCallback>(worker);
+    if (user && work)
+    {
+      return boost::make_shared<CompositeBackendCallback>(user, work);
+    }
+    else if (user)
+    {
+      return user;
+    }
+    else if (work)
+    {
+      return work;
+    }
+    else
+    {
+      static StubBackendCallback STUB;
+      return BackendCallback::Ptr(&STUB, NullDeleter<BackendCallback>());
+    }
+  }
 
   class BackendInternal : public Backend
   {
   public:
     BackendInternal(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
       : Worker(worker)
-      , Signaller(Async::Signals::Dispatcher::Create())
       , Mix(CreateMixer(*params))
       , Holder(params->GetModule())
       , Renderer(new SafeRendererWrapper(Holder->CreateRenderer(params->GetParameters(), Mix)))
-      , Job(Async::CreateJob(Async::Worker::Ptr(new AsyncWrapper(Holder, Worker, *Signaller, Renderer::Create(Renderer, Mix)))))
+      , Job(Async::CreateJob(Async::Worker::Ptr(new AsyncWrapper(Holder, Worker, CreateCallback(params, Worker), Renderer::Create(Renderer, Mix)))))
     {
     }
 
@@ -348,7 +437,6 @@ namespace
       try
       {
         Renderer->SetPosition(frame);
-        Signaller->Notify(Backend::MODULE_SEEK);
       }
       catch (const Error& e)
       {
@@ -363,18 +451,12 @@ namespace
         : Backend::STOPPED;
     }
 
-    virtual Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const
-    {
-      return Signaller->CreateCollector(signalsMask);
-    }
-
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
       return Worker->GetVolumeControl();
     }
   private:
     const BackendWorker::Ptr Worker;
-    const Async::Signals::Dispatcher::Ptr Signaller;
     const Mixer::Ptr Mix;
     const Module::Holder::Ptr Holder;
     const Module::Renderer::Ptr Renderer;
@@ -390,6 +472,11 @@ namespace ZXTune
     {
       worker->Test();
       return boost::make_shared<BackendInternal>(params, worker);
+    }
+
+    BackendCallback::Ptr CreateCompositeCallback(BackendCallback::Ptr first, BackendCallback::Ptr second)
+    {
+      return boost::make_shared<CompositeBackendCallback>(first, second);
     }
   }
 }

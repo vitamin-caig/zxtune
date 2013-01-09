@@ -40,27 +40,23 @@ namespace
     {
     }
 
-    virtual void OnStartup(const Module::Holder& /*module*/)
+    virtual void Startup()
     {
     }
 
-    virtual void OnShutdown()
+    virtual void Shutdown()
     {
     }
 
-    virtual void OnPause()
+    virtual void Pause()
     {
     }
 
-    virtual void OnResume()
+    virtual void Resume()
     {
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
-    {
-    }
-
-    virtual void OnBufferReady(Chunk& /*buffer*/)
+    virtual void BufferReady(Chunk& /*buffer*/)
     {
     }
 

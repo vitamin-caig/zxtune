@@ -262,7 +262,7 @@ namespace
     mutable String Filename;
   };
 
-  class FileBackendWorker : public BackendWorker
+  class FileBackendWorker : public BackendWorker, public BackendCallback
   {
   public:
     FileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
@@ -272,24 +272,58 @@ namespace
     {
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
-    {
-      // Does not support volume control
-      return VolumeControl::Ptr();
-    }
-
+    //BackendWorker
     virtual void Test()
     {
       //TODO: check for write permissions
     }
 
-    virtual void OnStartup(const Module::Holder& module)
+    virtual void Startup()
     {
-      const Parameters::Accessor::Ptr props = module.GetModuleProperties();
+    }
+
+    virtual void Shutdown()
+    {
+    }
+
+    virtual void Pause()
+    {
+    }
+
+    virtual void Resume()
+    {
+    }
+
+    virtual void BufferReady(Chunk& buffer)
+    {
+      assert(Stream);
+      const ChunkPtr chunk = boost::make_shared<Chunk>();
+      chunk->swap(buffer);
+      Stream->ApplyData(chunk);
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
+    {
+      // Does not support volume control
+      return VolumeControl::Ptr();
+    }
+
+    //BackendCallback
+    virtual void OnStart(Module::Holder::Ptr module)
+    {
+      const Parameters::Accessor::Ptr props = module->GetModuleProperties();
       Source.reset(new StreamSource(Params, Factory, props));
     }
 
-    virtual void OnShutdown()
+    virtual void OnFrame(const Module::TrackState& state)
+    {
+      if (ChunkStream::Ptr newStream = Source->GetStream(state))
+      {
+        SetStream(newStream);
+      }
+    }
+
+    virtual void OnStop()
     {
       SetStream(ChunkStream::CreateStub());
       Source.reset();
@@ -303,20 +337,8 @@ namespace
     {
     }
 
-    virtual void OnFrame(const Module::TrackState& state)
+    virtual void OnFinish()
     {
-      if (ChunkStream::Ptr newStream = Source->GetStream(state))
-      {
-        SetStream(newStream);
-      }
-    }
-
-    virtual void OnBufferReady(Chunk& buffer)
-    {
-      assert(Stream);
-      const ChunkPtr chunk = boost::make_shared<Chunk>();
-      chunk->swap(buffer);
-      Stream->ApplyData(chunk);
     }
   private:
     void SetStream(ChunkStream::Ptr str)

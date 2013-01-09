@@ -13,7 +13,6 @@
 
 //common includes
 #include <iterator.h>
-#include <async/signals_collector.h>
 //library includes
 #include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
 #include <sound/mixer.h>
@@ -114,35 +113,23 @@ namespace ZXTune
       //! @return Current state
       virtual State GetCurrentState() const = 0;
 
-      //! @brief Signals specification
-      enum Signal
-      {
-        //@{
-        //! @name Module-related signals
-
-        //! Starting playback after stop
-        MODULE_START =  0x01,
-        //! Starting playback after pause
-        MODULE_RESUME = 0x02,
-        //! Pausing
-        MODULE_PAUSE =  0x04,
-        //! Stopping
-        MODULE_STOP  =  0x08,
-        //! Playback is finished
-        MODULE_FINISH = 0x10,
-        //! Seeking performed
-        MODULE_SEEK   = 0x20,
-        //@}
-      };
-
-      //! @brief Creating new signals collector
-      //! @param signalsMask Required signals mask
-      //! @return Pointer to new collector registered in backend. Automatically unregistered when expired
-      virtual Async::Signals::Collector::Ptr CreateSignalsCollector(uint_t signalsMask) const = 0;
-
       //! @brief Getting volume controller
       //! @return Pointer to volume control object if supported, empty pointer if not
       virtual VolumeControl::Ptr GetVolumeControl() const = 0;
+    };
+
+    class BackendCallback
+    {
+    public:
+      typedef boost::shared_ptr<BackendCallback> Ptr;
+      virtual ~BackendCallback() {}
+
+      virtual void OnStart(Module::Holder::Ptr module) = 0;
+      virtual void OnFrame(const Module::TrackState& state) = 0;
+      virtual void OnStop() = 0;
+      virtual void OnPause() = 0;
+      virtual void OnResume() = 0;
+      virtual void OnFinish() = 0;
     };
 
     class CreateBackendParameters
@@ -157,6 +144,7 @@ namespace ZXTune
       virtual Module::Holder::Ptr GetModule() const = 0;
       virtual Mixer::Ptr GetMixer() const = 0;
       virtual Converter::Ptr GetFilter() const = 0;
+      virtual BackendCallback::Ptr GetCallback() const = 0;
     };
 
     //! @brief Backend creator interface

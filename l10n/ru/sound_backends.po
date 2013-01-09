@@ -43,19 +43,19 @@ msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: alsa_backend.cpp:795 alsa_stub.cpp:27
+#: alsa_backend.cpp:791 alsa_stub.cpp:27
 msgid "ALSA sound system backend"
 msgstr "Поддержка подсистемы ALSA"
 
-#: alsa_backend.cpp:836 dsound_backend.cpp:534 flac_backend.cpp:321
-#: mp3_backend.cpp:390 null_backend.cpp:107 ogg_backend.cpp:458
-#: oss_backend.cpp:416 sdl_backend.cpp:332 wav_backend.cpp:219
-#: win32_backend.cpp:540
+#: alsa_backend.cpp:832 dsound_backend.cpp:530 flac_backend.cpp:321
+#: mp3_backend.cpp:390 null_backend.cpp:103 ogg_backend.cpp:458
+#: oss_backend.cpp:416 sdl_backend.cpp:327 wav_backend.cpp:219
+#: win32_backend.cpp:536
 #, boost-format
 msgid "Failed to create backend '%1%'."
 msgstr "Ошибка создания подсистемы вывода '%1%'."
 
-#: alsa_backend.cpp:1105 dsound_backend.cpp:635 win32_backend.cpp:637
+#: alsa_backend.cpp:1101 dsound_backend.cpp:631 win32_backend.cpp:633
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
@@ -63,27 +63,27 @@ msgstr "Не найдено ни одного подходящего устро�
 msgid "Invalid module specified for backend."
 msgstr "Неправильный модуль."
 
-#: backend_impl.cpp:211
+#: backend_impl.cpp:203
 msgid "Failed to initialize playback."
 msgstr "Ошибка инициализации воспроизведения."
 
-#: backend_impl.cpp:228
+#: backend_impl.cpp:220
 msgid "Failed to finalize playback."
 msgstr "Ошибка завершения воспроизведения."
 
-#: backend_impl.cpp:244
+#: backend_impl.cpp:236
 msgid "Failed to pause playback."
 msgstr "Ошибка приостановки воспроизведения."
 
-#: backend_impl.cpp:260
+#: backend_impl.cpp:252
 msgid "Failed to resume playback."
 msgstr "Ошибка возобновления воспроизведения."
 
-#: backend_impl.cpp:342
+#: backend_impl.cpp:431
 msgid "Failed to stop playback."
 msgstr "Ошибка останова воспроизведения."
 
-#: backend_impl.cpp:355
+#: backend_impl.cpp:443
 msgid "Failed to set playback position."
 msgstr "Ошибка позиционирования воспроизведения."
 
@@ -99,7 +99,7 @@ msgstr ""
 "Ошибка в подсистеме DirectSound: задержка звука (%1%) превышает допустимые "
 "значения (%2%..%3%)."
 
-#: dsound_backend.cpp:493 dsound_stub.cpp:26
+#: dsound_backend.cpp:489 dsound_stub.cpp:26
 msgid "DirectSound support backend."
 msgstr "Поддержка подсистемы DirectSound"
 
@@ -161,7 +161,7 @@ msgstr "Ошибка в подсистеме вывода MP3: неправил�
 msgid "MP3 support backend"
 msgstr "Поддержка вывода MP3"
 
-#: null_backend.cpp:83
+#: null_backend.cpp:79
 msgid "Null output backend"
 msgstr "Поддержка NULL-вывода"
 
@@ -214,16 +214,16 @@ msgstr ""
 "Ошибка в подсистеме SDL: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: sdl_backend.cpp:271
+#: sdl_backend.cpp:266
 #, boost-format
 msgid "Error in SDL backend: %1%."
 msgstr "Ошибка в подсистеме SDL: %1%."
 
-#: sdl_backend.cpp:273
+#: sdl_backend.cpp:268
 msgid "Unknown error in SDL backend."
 msgstr "Неизвестная ошибка в подсистеме SDL."
 
-#: sdl_backend.cpp:291 sdl_stub.cpp:26
+#: sdl_backend.cpp:286 sdl_stub.cpp:26
 msgid "SDL support backend"
 msgstr "Поддержка подсистемы SDL"
 
@@ -260,6 +260,6 @@ msgstr ""
 "Ошибка в подсистеме Win32: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: win32_backend.cpp:499 win32_stub.cpp:26
+#: win32_backend.cpp:495 win32_stub.cpp:26
 msgid "Win32 sound system backend"
 msgstr "Поддержка подистемы Win32"
