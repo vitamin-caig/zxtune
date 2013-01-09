@@ -35,7 +35,7 @@ namespace
     static const uint_t MIN_LEVEL_BITS =
       2 * boost::static_log2<FIXED_POINT_PRECISION>::value +  //divider
       8 * sizeof(Sample);                                     //sample
-    typedef typename boost::mpl::if_c<
+    typedef boost::mpl::if_c<
       MIN_LEVEL_BITS <= 8 * sizeof(uint_t),
       uint_t,
       uint64_t
