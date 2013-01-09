@@ -292,33 +292,29 @@ namespace
       return VolumeController;
     }
 
-    virtual void OnStartup(const Module::Holder& /*module*/)
+    virtual void Startup()
     {
       assert(!MixHandle.Valid() && !DevHandle.Valid());
       SetupDevices(DevHandle, MixHandle, ChangeSign);
       Dbg("Successfully opened");
     }
 
-    virtual void OnShutdown()
+    virtual void Shutdown()
     {
       DevHandle.Close();
       MixHandle.Close();
       Dbg("Successfully closed");
     }
 
-    virtual void OnPause()
+    virtual void Pause()
     {
     }
 
-    virtual void OnResume()
+    virtual void Resume()
     {
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
-    {
-    }
-
-    virtual void OnBufferReady(Chunk& buffer)
+    virtual void BufferReady(Chunk& buffer)
     {
       if (ChangeSign)
       {
