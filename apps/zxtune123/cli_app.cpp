@@ -26,6 +26,7 @@ Author:
 #include <template_parameters.h>
 //library includes
 #include <async/data_receiver.h>
+#include <async/src/event.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -197,6 +198,43 @@ namespace
     const std::clock_t Start;
   };
 
+  class FinishPlaybackCallback : public ZXTune::Sound::BackendCallback
+  {
+  public:
+    virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
+    {
+      Event.Reset();
+    }
+
+    virtual void OnFrame(const ZXTune::Module::TrackState& /*state*/)
+    {
+    }
+
+    virtual void OnStop()
+    {
+    }
+
+    virtual void OnPause()
+    {
+    }
+
+    virtual void OnResume()
+    {
+    }
+
+    virtual void OnFinish()
+    {
+      Event.Set(1);
+    }
+
+    void Wait()
+    {
+      Event.Wait(1);
+    }
+  private:
+    Async::Event<uint_t> Event;
+  };
+
   class Benchmark
   {
   public:
@@ -217,14 +255,14 @@ namespace
 
       Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
 
-      const ZXTune::Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null");
-      const Async::Signals::Collector::Ptr signals = backend->CreateSignalsCollector(ZXTune::Sound::Backend::MODULE_FINISH);
+      FinishPlaybackCallback cb;
+      const ZXTune::Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null", ZXTune::Sound::BackendCallback::Ptr(&cb, NullDeleter<ZXTune::Sound::BackendCallback>()));
       const AutoTimer timer;
       for (unsigned i = 0; i != Iterations; ++i)
       {
         backend->SetPosition(0);
         backend->Play();
-        while (0 == signals->WaitForSignals(100)) {}
+        cb.Wait();
       }
       const Time::Microseconds real = timer.Elapsed<Time::Microseconds>();
       const double relSpeed = double(total.Get()) / real.Get();

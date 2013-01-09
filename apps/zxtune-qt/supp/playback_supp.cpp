@@ -29,15 +29,17 @@ Author:
 
 namespace
 {
+  //TODO: simplify this shitcode
+
   class BackendParams : public ZXTune::Sound::CreateBackendParameters
   {
   public:
-    BackendParams(PlaybackSupport* supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
-      : Supp(supp)
-      , Params(params)
+    BackendParams(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback)
+      : Params(params)
       , Module(module)
       , Info(Module->GetModuleInformation())
       , Properties(Module->GetModuleProperties())
+      , Callback(callback)
     {
     }
 
@@ -53,35 +55,80 @@ namespace
 
     virtual ZXTune::Sound::Mixer::Ptr GetMixer() const
     {
-      return Supp
-        ? CreateMixer(*Supp, Params, Info->PhysicalChannels())
-        : CreateMixer(Params, Info->PhysicalChannels());
+      return CreateMixer(Params, Info->PhysicalChannels());
     }
 
     virtual ZXTune::Sound::Converter::Ptr GetFilter() const
     {
       return ZXTune::Sound::Converter::Ptr();
     }
+
+    virtual ZXTune::Sound::BackendCallback::Ptr GetCallback() const
+    {
+      return Callback;
+    }
   private:
-    PlaybackSupport* const Supp;
     const Parameters::Accessor::Ptr Params;
     const ZXTune::Module::Holder::Ptr Module;
     const ZXTune::Module::Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
+    const ZXTune::Sound::BackendCallback::Ptr Callback;
+  };
+
+  class PlaybackBackendParameters : public ZXTune::Sound::CreateBackendParameters
+  {
+  public:
+    PlaybackBackendParameters(PlaybackSupport& supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback& cb)
+      : Supp(supp)
+      , Params(params)
+      , Module(module)
+      , Info(Module->GetModuleInformation())
+      , Properties(Module->GetModuleProperties())
+      , Callback(cb)
+    {
+    }
+
+    virtual Parameters::Accessor::Ptr GetParameters() const
+    {
+      return Parameters::CreateMergedAccessor(Properties, Params);
+    }
+
+    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    {
+      return Module;
+    }
+
+    virtual ZXTune::Sound::Mixer::Ptr GetMixer() const
+    {
+      return CreateMixer(Supp, Params, Info->PhysicalChannels());
+    }
+
+    virtual ZXTune::Sound::Converter::Ptr GetFilter() const
+    {
+      return ZXTune::Sound::Converter::Ptr();
+    }
+
+    virtual ZXTune::Sound::BackendCallback::Ptr GetCallback() const
+    {
+      return ZXTune::Sound::BackendCallback::Ptr(&Callback, NullDeleter<ZXTune::Sound::BackendCallback>());
+    }
+  private:
+    PlaybackSupport& Supp;
+    const Parameters::Accessor::Ptr Params;
+    const ZXTune::Module::Holder::Ptr Module;
+    const ZXTune::Module::Information::Ptr Info;
+    const Parameters::Accessor::Ptr Properties;
+    ZXTune::Sound::BackendCallback& Callback;
   };
 
   class PlaybackSupportImpl : public PlaybackSupport
+                            , private ZXTune::Sound::BackendCallback
   {
   public:
     PlaybackSupportImpl(QObject& parent, Parameters::Accessor::Ptr sndOptions)
       : PlaybackSupport(parent)
       , Params(sndOptions)
     {
-    }
-
-    virtual ~PlaybackSupportImpl()
-    {
-      this->wait();
     }
 
     virtual void SetItem(Playlist::Item::Data::Ptr item)
@@ -100,9 +147,7 @@ namespace
         {
           Item = item;
           OnSetBackend(Backend);
-          this->wait();
           Backend->Play();
-          this->start();
         }
       }
       catch (const Error& e)
@@ -121,7 +166,6 @@ namespace
       try
       {
         Backend->Play();
-        this->start();
       }
       catch (const Error& e)
       {
@@ -138,7 +182,6 @@ namespace
       try
       {
         Backend->Stop();
-        this->wait();
       }
       catch (const Error& e)
       {
@@ -186,64 +229,50 @@ namespace
       }
     }
 
-    virtual void run()
+    //BackendCallback
+    virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
     {
-      try
-      {
-        using namespace ZXTune;
+      LastUpdateTime = std::clock();
+      emit OnStartModule(Backend, Item);
+    }
 
-        //notify about start
-        OnStartModule(Backend, Item);
-
-        const Async::Signals::Collector::Ptr signaller = Backend->CreateSignalsCollector(
-          Sound::Backend::MODULE_RESUME | Sound::Backend::MODULE_PAUSE |
-          Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH);
-        for (;;)
-        {
-          if (uint_t sigmask = signaller->WaitForSignals(100/*10fps*/))
-          {
-            if (sigmask & (Sound::Backend::MODULE_STOP | Sound::Backend::MODULE_FINISH))
-            {
-              if (sigmask & Sound::Backend::MODULE_FINISH)
-              {
-                OnFinishModule();
-              }
-              break;
-            }
-            else if (sigmask & Sound::Backend::MODULE_RESUME)
-            {
-              OnResumeModule();
-            }
-            else if (sigmask & Sound::Backend::MODULE_PAUSE)
-            {
-              OnPauseModule();
-            }
-            else
-            {
-              assert(!"Invalid signal");
-            }
-          }
-          const Sound::Backend::State curState = Backend->GetCurrentState();
-          if (Sound::Backend::STARTED != curState)
-          {
-            continue;
-          }
-          OnUpdateState();
-        }
-        //notify about stop
-        OnStopModule();
-      }
-      catch (const Error& e)
+    virtual void OnFrame(const ZXTune::Module::TrackState& /*state*/)
+    {
+      const std::clock_t curTime = std::clock();
+      if (curTime - LastUpdateTime >= CLOCKS_PER_SEC / 10/*fps*/)
       {
-        emit ErrorOccurred(e);
+        LastUpdateTime = curTime;
+        emit OnUpdateState();
       }
+    }
+
+    virtual void OnStop()
+    {
+      emit OnStopModule();
+    }
+
+    virtual void OnPause()
+    {
+      emit OnPauseModule();
+    }
+
+    virtual void OnResume()
+    {
+      emit OnResumeModule();
+    }
+
+    virtual void OnFinish()
+    {
+      emit OnFinishModule();
     }
   private:
     ZXTune::Sound::Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
     {
       using namespace ZXTune;
       //create backend
-      const Sound::CreateBackendParameters::Ptr createParams = CreateBackendParameters(*this, params, module);
+      PlaybackSupport& supp = *this;
+      ZXTune::Sound::BackendCallback& cb = *this;
+      const Sound::CreateBackendParameters::Ptr createParams = boost::make_shared<PlaybackBackendParameters>(boost::ref(supp), params, module, boost::ref(cb));
       std::list<Error> errors;
       const Sound::BackendsScope::Ptr systemBackends = Sound::BackendsScope::CreateSystemScope(params);
       for (Sound::BackendCreator::Iterator::Ptr backends = systemBackends->Enumerate();
@@ -275,10 +304,11 @@ namespace
     const Parameters::Accessor::Ptr Params;
     Playlist::Item::Data::Ptr Item;
     ZXTune::Sound::Backend::Ptr Backend;
+    std::clock_t LastUpdateTime;
   };
 }
 
-PlaybackSupport::PlaybackSupport(QObject& parent) : QThread(&parent)
+PlaybackSupport::PlaybackSupport(QObject& parent) : QObject(&parent)
 {
 }
 
@@ -289,12 +319,7 @@ PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::
   return new PlaybackSupportImpl(parent, sndOptions);
 }
 
-ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(PlaybackSupport& supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
+ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback)
 {
-  return boost::make_shared<BackendParams>(&supp, params, module);
-}
-
-ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module)
-{
-  return boost::make_shared<BackendParams>(static_cast<PlaybackSupport*>(0), params, module);
+  return boost::make_shared<BackendParams>(params, module, callback);
 }

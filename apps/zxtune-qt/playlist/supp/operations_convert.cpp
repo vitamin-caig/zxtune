@@ -19,7 +19,7 @@ Author:
 #include <contract.h>
 #include <error_tools.h>
 //library includes
-#include <async/signals_collector.h>
+#include <async/src/event.h>
 #include <sound/backend.h>
 #include <strings/format.h>
 //std includes
@@ -30,6 +30,67 @@ Author:
 
 namespace
 {
+  //TODO: rework
+  class ConvertCallback : public ZXTune::Sound::BackendCallback
+  {
+    enum EventType
+    {
+      STOPPED = 1,
+      CANCELED = 2
+    };
+  public:
+    explicit ConvertCallback(Log::ProgressCallback& callback)
+      : Callback(callback)
+      , Event()
+    {
+    }
+
+    virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
+    {
+      Event.Reset();
+    }
+
+    virtual void OnFrame(const ZXTune::Module::TrackState& state)
+    {
+      try
+      {
+        Callback.OnProgress(state.Frame());
+      }
+      catch (const std::exception&)
+      {
+        Event.Set(CANCELED);
+      }
+    }
+
+    virtual void OnStop()
+    {
+      Event.Set(STOPPED);
+    }
+
+    virtual void OnPause()
+    {
+    }
+
+    virtual void OnResume()
+    {
+    }
+
+    virtual void OnFinish()
+    {
+    }
+
+    void WaitForFinish()
+    {
+      if (Event.WaitForAny(STOPPED, CANCELED) == CANCELED)
+      {
+        throw std::exception();
+      }
+    }
+  private:
+    Log::ProgressCallback& Callback;
+    Async::Event<uint_t> Event;
+  };
+
   class ConvertVisitor : public Playlist::Item::Visitor
   {
   public:
@@ -64,9 +125,13 @@ namespace
         const Log::ProgressCallback::Ptr curItemProgress = Log::CreateNestedPercentProgressCallback(TotalItems, DoneItems, Callback);
         const ZXTune::Module::Information::Ptr info = item->GetModuleInformation();
         const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
-        const ZXTune::Sound::CreateBackendParameters::Ptr params = CreateBackendParameters(BackendParameters, item);
+        ConvertCallback cb(*framesProgress);
+        const ZXTune::Sound::CreateBackendParameters::Ptr params = CreateBackendParameters(BackendParameters, item,
+          ZXTune::Sound::BackendCallback::Ptr(&cb, NullDeleter<ZXTune::Sound::BackendCallback>()));
         const ZXTune::Sound::Backend::Ptr backend = Creator->CreateBackend(params);
-        Convert(*backend, *framesProgress);
+        backend->Play();
+        cb.WaitForFinish();
+        backend->Stop();
         curItemProgress->OnProgress(100);
         Result->AddSucceed();
       }
@@ -75,21 +140,6 @@ namespace
         Result->AddFailedToConvert(path, err);
       }
     }
-
-    void Convert(ZXTune::Sound::Backend& backend, Log::ProgressCallback& callback) const
-    {
-      using namespace ZXTune::Sound;
-      const uint_t flags = Backend::MODULE_STOP | Backend::MODULE_FINISH;
-      const Async::Signals::Collector::Ptr collector = backend.CreateSignalsCollector(flags);
-      const ZXTune::Module::TrackState::Ptr state = backend.GetTrackState();
-      backend.Play();
-      while (!collector->WaitForSignals(100))
-      {
-        callback.OnProgress(state->Frame());
-      }
-      backend.Stop();
-    }
-
   private:
     const uint_t TotalItems;
     uint_t DoneItems;

@@ -23,7 +23,7 @@ Author:
 //qt includes
 #include <QtCore/QThread>
 
-class PlaybackSupport : public QThread
+class PlaybackSupport : public QObject
 {
   Q_OBJECT
 protected:
@@ -48,7 +48,6 @@ signals:
   void ErrorOccurred(const Error&);
 };
 
-ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module);
-ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(PlaybackSupport& supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module);
+ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback);
 
 #endif //ZXTUNE_PLAYBACK_SUPP_H_DEFINED

@@ -41,7 +41,7 @@ public:
   virtual void ParseParameters() = 0;
   virtual void Initialize() = 0;
   // functional part
-  virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint = String()) = 0;
+  virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint = String(), ZXTune::Sound::BackendCallback::Ptr callback = ZXTune::Sound::BackendCallback::Ptr()) = 0;
 
   //parameters
   virtual Time::Microseconds GetFrameDuration() const = 0;

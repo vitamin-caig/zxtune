@@ -246,10 +246,11 @@ namespace
   class CreateBackendParams : public ZXTune::Sound::CreateBackendParameters
   {
   public:
-    CreateBackendParams(const CommonBackendParameters& params, ZXTune::Module::Holder::Ptr module)
+    CreateBackendParams(const CommonBackendParameters& params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback)
       : Params(params)
       , Module(module)
       , Channels(Module->GetModuleInformation()->PhysicalChannels())
+      , Callback(callback)
     {
     }
 
@@ -272,10 +273,16 @@ namespace
     {
       return Params.GetFilter();
     }
+
+    virtual ZXTune::Sound::BackendCallback::Ptr GetCallback() const
+    {
+      return Callback;
+    }
   private:
     const CommonBackendParameters& Params;
     const ZXTune::Module::Holder::Ptr Module;
     const uint_t Channels;
+    const ZXTune::Sound::BackendCallback::Ptr Callback;
   };
 
   class Sound : public SoundComponent
@@ -346,9 +353,9 @@ namespace
     {
     }
 
-    virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint)
+    virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint, ZXTune::Sound::BackendCallback::Ptr callback)
     {
-      const ZXTune::Sound::CreateBackendParameters::Ptr createParams(new CreateBackendParams(*Params, module));
+      const ZXTune::Sound::CreateBackendParameters::Ptr createParams(new CreateBackendParams(*Params, module, callback));
       ZXTune::Sound::Backend::Ptr backend;
       if (!Creator)
       {
