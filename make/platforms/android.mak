@@ -25,14 +25,15 @@ OBJCOPY = $($(platform).$(arch).execprefix)objcopy
 STRIP = $($(platform).$(arch).execprefix)strip
 
 CXX_PLATFORM_FLAGS += -no-canonical-prefixes -fvisibility-inlines-hidden -funwind-tables -fstack-protector -fomit-frame-pointer -finline-limit=300 -Wa,--noexecstack 
-LD_PLATFORM_FLAGS +=  -no-canonical-prefixes --sysroot=$($(platform).$(arch).sysroot) -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now
+LD_PLATFORM_FLAGS +=  -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now
 ifdef release
 LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
 endif
 
-#defines without spaces
-$(platform)_definitions += ANDROID __ANDROID__ 'BOOST_FILESYSTEM_VERSION=2'
-ifeq ($(platform_arch),arm)
+#assume that all the platforms are little-endian
+#this required to use boost which doesn't know anything about __armel__ or __mipsel__
+$(platform)_definitions += ANDROID __ANDROID__ __LITTLE_ENDIAN__ 'BOOST_FILESYSTEM_VERSION=2'
+ifneq ($(findstring $(arch),armeabi),)
 $(platform)_definitions += __ARM_ARCH_5__ __ARM_ARCH_5T__ __ARM_ARCH_5E__ __ARM_ARCH_5TE__
 endif
 $(platform)_libraries += c m
