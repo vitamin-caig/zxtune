@@ -51,7 +51,7 @@ namespace
   const uint_t CHANNELS_COUNT = 4;
   const uint_t PATTERN_SIZE = 64;
   const uint_t PATTERNS_COUNT = 32;
-  const std::size_t PAGE_SIZE = 0x4000;
+  const std::size_t ZX_PAGE_SIZE = 0x4000;
 
   //all samples has base freq at 4kHz (C-1)
   const uint_t BASE_FREQ = 4000;
@@ -160,7 +160,7 @@ namespace
   BOOST_STATIC_ASSERT(sizeof(PDTPattern) == 512);
   BOOST_STATIC_ASSERT(sizeof(PDTHeader) == 0x4300);
 
-  const std::size_t MODULE_SIZE = sizeof(PDTHeader) + PAGES_COUNT * PAGE_SIZE;
+  const std::size_t MODULE_SIZE = sizeof(PDTHeader) + PAGES_COUNT * ZX_PAGE_SIZE;
 
   // ornament type, differs from default
   struct Ornament
@@ -310,7 +310,7 @@ namespace
         const uint_t start(fromLE(srcSample.Start));
         if (srcSample.Page < PAGES_COUNT && start >= 0xc000 && srcSample.Size)
         {
-          const uint8_t* const sampleData(samplesData + PAGE_SIZE * GetPageOrder(srcSample.Page) +
+          const uint8_t* const sampleData(samplesData + ZX_PAGE_SIZE * GetPageOrder(srcSample.Page) +
             (start - 0xc000));
           uint_t size = fromLE(srcSample.Size) - 1;
           while (size && sampleData[size] == 0)

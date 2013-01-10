@@ -326,7 +326,7 @@ namespace ZXState
       romBlk.Content = ch.Data;
       romBlk.Size = fromLE(ch.FlashSize);
       romBlk.IsCompressed = 0 != (fromLE(ch.Flags) & ch.COMPRESSED);
-      romBlk.UncompressedSize = ch.PAGESIZE;
+      romBlk.UncompressedSize = ch.DUMPSIZE;
       if (!visitor.Visit(ch, ROM_SUFFIX, romBlk))
       {
         return false;
@@ -336,7 +336,7 @@ namespace ZXState
       ramBlk.Content = romDescr + 1;
       ramBlk.Size = *romDescr;
       ramBlk.IsCompressed = 0 != (fromLE(ch.Flags) & ch.COMPRESSED_RAM);
-      ramBlk.UncompressedSize = ch.PAGESIZE;
+      ramBlk.UncompressedSize = ch.DUMPSIZE;
       return visitor.Visit(ch, RAM_SUFFIX, ramBlk);
     }
 

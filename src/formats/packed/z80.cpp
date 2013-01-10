@@ -487,15 +487,15 @@ namespace Z80
 
   Formats::Packed::Container::Ptr DecodeNew(Binary::InputStream& stream)
   {
-    const std::size_t PAGE_SIZE = 16384;
+    const std::size_t ZX_PAGE_SIZE = 16384;
     const Version2_0::Header hdr = stream.ReadField<Version2_0::Header>();
     const std::size_t additionalSize = fromLE(hdr.AdditionalSize);
     const std::size_t readAdditionalSize = sizeof(hdr) - sizeof(Version1_45::Header) - sizeof(hdr.AdditionalSize);
     Require(additionalSize >= readAdditionalSize);
     stream.ReadData(additionalSize - readAdditionalSize);
     const PlatformTraits traits(additionalSize, hdr.HardwareMode, hdr.Port7ffd);
-    std::auto_ptr<Dump> res(new Dump(PAGE_SIZE * traits.PagesCount()));
-    Dump curPage(PAGE_SIZE);
+    std::auto_ptr<Dump> res(new Dump(ZX_PAGE_SIZE * traits.PagesCount()));
+    Dump curPage(ZX_PAGE_SIZE);
     for (uint_t idx = 0; idx != traits.PagesCount(); ++idx)
     {
       const bool isPageRequired = idx < traits.MinimalPagesCount();
@@ -515,7 +515,7 @@ namespace Z80
       const uint8_t* pageSource = 0;
       if (pageSize == page.UNCOMPRESSED)
       {
-        pageSource = stream.ReadData(PAGE_SIZE);
+        pageSource = stream.ReadData(ZX_PAGE_SIZE);
       }
       else
       {
@@ -523,7 +523,7 @@ namespace Z80
         DecodeBlock(stream, pageSize, curPage);
         pageSource = &curPage.front();
       }
-      std::memcpy(&res->front() + pageNumber * PAGE_SIZE, pageSource, PAGE_SIZE);
+      std::memcpy(&res->front() + pageNumber * ZX_PAGE_SIZE, pageSource, ZX_PAGE_SIZE);
     }
     return CreatePackedContainer(res, stream.GetPosition());
   }
