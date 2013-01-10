@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="benchmark.so">
+<project name="build_rules">
+  <!-- default properties -->
   <property name="cpu.cores" value="1" />
+  
+  <property file="${top.dir}/make/android/build.properties" />
 
   <macrodef name="buildlib-helper">
     <attribute name="arch" />
     <sequential>
-      <echo level="info">Building</echo>
       <exec executable="make" failonerror="true">
         <arg value="release=1" />
         <arg value="platform=android" />
         <arg value="arch=@{arch}" />
         <arg value="-C" />
-        <arg value="jni" />
+        <arg value="${native.libs.source.dir}" />
         <arg value="-j" />
         <arg value="${cpu.cores}" />
       </exec>
@@ -21,7 +23,6 @@
   <macrodef name="installib-helper">
     <attribute name="arch" />
     <sequential>
-      <echo level="info">Installing</echo>
       <copy file="${top.dir}/bin/android_@{arch}/release/libbenchmark.so" todir="${native.libs.absolute.dir}/@{arch}" />
     </sequential>
   </macrodef>
@@ -34,8 +35,15 @@
       <installib-helper arch="@{arch}" />
     </sequential>
   </macrodef>
+
+  <target name="svnupdate">
+    <exec executable="svn">
+      <arg value="up" />
+      <arg value="${top.dir}" />
+    </exec>
+  </target>
   
-  <target name="svnrevision">
+  <target name="svnrevision" depends="svnupdate">
     <exec executable="svnversion" outputproperty="svn.revision">
       <arg value="${top.dir}"/>
     </exec>
@@ -47,7 +55,7 @@
   </target>
   
   <target name="injectrevision" depends="svnrevision">
-    <copy file="version.tmpl" tofile="res/values/version.xml" overwrite="yes" >
+    <copy file="${top.dir}/make/android/version.tmpl" tofile="res/values/version.xml" overwrite="yes" >
       <filterset>
         <filter token="svn.revision.base" value="${svn.revision.base}" />
         <filter token="svn.revision" value="${svn.revision}" />
