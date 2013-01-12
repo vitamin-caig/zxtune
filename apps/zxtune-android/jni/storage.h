@@ -18,36 +18,6 @@ Author:
 //std includes
 #include <set>
 
-#include <android/log.h>
-
-namespace
-{
-  const char libname[] = "zxtune.so";
-
-  inline void Debug(const char* msg)
-  {
-    __android_log_print(ANDROID_LOG_DEBUG, libname, msg);
-  }
-
-  template<class T>
-  void Debug(const char* msg, T arg)
-  {
-    __android_log_print(ANDROID_LOG_DEBUG, libname, msg, arg);
-  }
-
-  template<class T1, class T2>
-  void Debug(const char* msg, T1 arg1, T2 arg2)
-  {
-    __android_log_print(ANDROID_LOG_DEBUG, libname, msg, arg1, arg2);
-  }
-
-  template<class T1, class T2, class T3>
-  void Debug(const char* msg, T1 arg1, T2 arg2, T3 arg3)
-  {
-    __android_log_print(ANDROID_LOG_DEBUG, libname, msg, arg1, arg2, arg3);
-  }
-}
-
 template<class PtrType>
 class ObjectsStorage
 {

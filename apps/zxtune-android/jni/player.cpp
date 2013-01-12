@@ -10,6 +10,7 @@ Author:
 */
 
 //local includes
+#include "debug.h"
 #include "module.h"
 #include "player.h"
 #include "zxtune.h"

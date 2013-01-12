@@ -1,7 +1,7 @@
 dynamic_name := zxtune
 path_step := ../../..
 
-source_files := data module player
+source_dirs := .
 
 libraries = analysis binary core devices formats_archived formats_chiptune formats_packed l10n_stub sound strings tools
 depends = $(addprefix src/,analysis binary core devices formats/archived formats/chiptune formats/packed l10n/stub sound strings tools)

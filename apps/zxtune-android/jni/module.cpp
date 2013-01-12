@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "data.h"
+#include "debug.h"
 #include "module.h"
 #include "zxtune.h"
 //library includes
@@ -20,13 +21,13 @@ extern "C"
 {
   JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create(JNIEnv* /*env*/, jclass /*self*/, jint dataHandle)
   {
-    Debug("Module::Create(handle=%x)", dataHandle);
+    Dbg("Module::Create(handle=%x)", dataHandle);
     if (const Binary::Container::Ptr data = Data::Storage::Instance().Get(dataHandle))
     {
-      Debug("Module::Create(data=%p)", data.get());
+      Dbg("Module::Create(data=%p)", data.get());
       const Parameters::Accessor::Ptr params = Parameters::Container::Create();
       const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(params, data, String());
-      Debug("Module::Create(data=%p)=%p", data.get(), module.get());
+      Dbg("Module::Create(data=%p)=%p", data.get(), module.get());
       return Module::Storage::Instance().Add(module);
     }
     return 0;
