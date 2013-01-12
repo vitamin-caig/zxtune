@@ -11,10 +11,11 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
+//local includes
 #include "downloads.h"
 #include "apps/zxtune-qt/ui/utils.h"
-//common includes
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //qt includes

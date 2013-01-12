@@ -14,9 +14,9 @@ Author:
 #include "container.h"
 #include "zip_supp.h"
 //common includes
-#include <debug_log.h>
 #include <tools.h>
 //library includes
+#include <debug/log.h>
 #include <formats/packed.h>
 //std includes
 #include <cassert>

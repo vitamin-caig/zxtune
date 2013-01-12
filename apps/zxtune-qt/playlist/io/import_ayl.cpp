@@ -17,12 +17,12 @@ Author:
 #include "ui/utils.h"
 #include "tags/ayl.h"
 //common includes
-#include <debug_log.h>
 #include <error.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugins/utils.h>
+#include <debug/log.h>
 #include <devices/aym.h>
 #include <io/api.h>
 #include <sound/sound_parameters.h>

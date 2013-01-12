@@ -13,9 +13,9 @@ Author:
 #include "enumerator.h"
 #include "providers_list.h"
 //common includes
-#include <debug_log.h>
 #include <error_tools.h>
 //library includes
+#include <debug/log.h>
 #include <io/api.h>
 #include <l10n/api.h>
 //std includes

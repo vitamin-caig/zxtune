@@ -11,8 +11,8 @@ Author:
 
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 //library includes
+#include <debug/log.h>
 #include <l10n/api.h>
 //boost includes
 #include <boost/make_shared.hpp>

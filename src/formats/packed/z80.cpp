@@ -288,7 +288,6 @@ namespace Z80
     const std::size_t restSize = stream.GetRestSize();
     const std::size_t TARGET_SIZE = 49152;
     const uint32_t FOOTER = 0x00eded00;
-    const std::size_t FOOTER_SIZE = 4;
     if (0 == (hdr.Flag1 & hdr.COMPRESSED))
     {
       Require(restSize >= TARGET_SIZE);

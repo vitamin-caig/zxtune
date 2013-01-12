@@ -4,8 +4,8 @@ source_files := test
 
 include $(path_step)/make/default.mak
 
-libraries := l10n tools
-depends := src/l10n src/tools
+libraries := debug l10n tools
+depends := src/debug src/l10n src/tools
 
 boost_libraries := locale
 mingw_libraries := iconv

@@ -16,6 +16,7 @@
 //common includes
 #include <contract.h>
 #include <tools.h>
+#include <types.h>
 //std includes
 #include <cstring>
 

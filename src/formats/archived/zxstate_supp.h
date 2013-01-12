@@ -544,11 +544,6 @@ namespace Formats
         static const uint16_t COMPRESSED_RAM = 256;
         static const std::size_t DUMPSIZE = 0x20000;
 
-        static std::size_t GetUncompressedSize()
-        {
-          return PAGESIZE;
-        }
-
         uint16_t Flags;
         uint8_t PageA;
         uint8_t PageB;

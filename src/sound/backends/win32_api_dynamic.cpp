@@ -11,9 +11,8 @@ Author:
 
 //local includes
 #include "win32_api.h"
-//common includes
-#include <debug_log.h>
 //library includes
+#include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>

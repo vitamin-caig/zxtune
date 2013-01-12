@@ -19,7 +19,6 @@ Author:
 #include "core/src/callback.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
@@ -28,6 +27,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
+#include <debug/log.h>
 #include <devices/aym.h>
 //std includes
 #include <set>

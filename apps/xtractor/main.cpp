@@ -12,13 +12,13 @@ Author:
 //local includes
 #include <apps/version/api.h>
 //common includes
-#include <debug_log.h>
 #include <parameters.h>
 #include <progress_callback.h>
 //library includes
 #include <analysis/path.h>
 #include <analysis/result.h>
 #include <async/data_receiver.h>
+#include <debug/log.h>
 #include <formats/archived/decoders.h>
 #include <formats/packed/decoders.h>
 #include <io/api.h>

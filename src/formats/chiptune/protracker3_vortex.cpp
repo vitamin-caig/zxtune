@@ -16,11 +16,11 @@ Author:
 //common includes
 #include <contract.h>
 #include <crc.h>
-#include <debug_log.h>
 #include <iterator.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/input_stream.h>
+#include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
 //std includes

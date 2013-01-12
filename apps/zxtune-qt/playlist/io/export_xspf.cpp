@@ -16,11 +16,11 @@ Author:
 #include "tags/xspf.h"
 #include "ui/utils.h"
 //common includes
-#include <debug_log.h>
 #include <error_tools.h>
 //library includes
 #include <zxtune.h>
 #include <core/module_attrs.h>
+#include <debug/log.h>
 #include <sound/sound_parameters.h>
 #include <io/text/io.h>
 //boost includes

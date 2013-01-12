@@ -12,9 +12,9 @@ Author:
 //local includes
 #include "vorbisenc_api.h"
 //common includes
-#include <debug_log.h>
 #include <tools.h>
 //library includes
+#include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>

@@ -11,10 +11,10 @@ Author:
 
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/input_stream.h>
+#include <debug/log.h>
 #include <formats/archived.h>
 #include <formats/packed/lha_supp.h>
 #include <formats/packed/pack_utils.h>

@@ -16,9 +16,9 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
+#include <debug/log.h>
 #include <math/numeric.h>
 //qt includes
 #include <QtGui/QAbstractButton>

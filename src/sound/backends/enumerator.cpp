@@ -13,9 +13,9 @@ Author:
 #include "enumerator.h"
 #include "backends_list.h"
 //common includes
-#include <debug_log.h>
 #include <error_tools.h>
 //library includes
+#include <debug/log.h>
 #include <l10n/api.h>
 //std includes
 #include <cassert>

@@ -14,10 +14,9 @@ Author:
 #include "core/src/callback.h"
 #include "core/src/core.h"
 #include "core/plugins/utils.h"
-//common includes
-#include <debug_log.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <debug/log.h>
 #include <l10n/api.h>
 #include <strings/format.h>
 //boost includes

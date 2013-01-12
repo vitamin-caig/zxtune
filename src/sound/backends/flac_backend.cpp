@@ -14,11 +14,11 @@ Author:
 #include "enumerator.h"
 #include "file_backend.h"
 //common includes
-#include <debug_log.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
+#include <debug/log.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>

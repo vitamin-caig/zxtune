@@ -15,10 +15,10 @@ Author:
 #include "rar_supp.h"
 #include "pack_utils.h"
 //common includes
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes

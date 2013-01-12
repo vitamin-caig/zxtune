@@ -14,8 +14,9 @@ Author:
 #include "core.h"
 #include "core/plugins/plugins_types.h"
 //common includes
-#include <debug_log.h>
 #include <error.h>
+//library includes
+#include <debug/log.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes

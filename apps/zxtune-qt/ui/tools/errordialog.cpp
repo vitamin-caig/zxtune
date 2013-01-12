@@ -20,7 +20,7 @@ Author:
 void ShowErrorMessage(const QString& title, const Error& err)
 {
   QMessageBox msgBox;
-  msgBox.setWindowTitle(msgBox.tr("Error"));
+  msgBox.setWindowTitle(QMessageBox::tr("Error"));
   const QString& errorText = ToQString(err.GetText());
   if (title.size() != 0)
   {

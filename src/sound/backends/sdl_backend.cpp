@@ -17,10 +17,10 @@ Author:
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <debug/log.h>
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>

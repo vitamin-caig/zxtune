@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//common includes
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
 //std includes
 #include <cstdio>
 #include <cstring>

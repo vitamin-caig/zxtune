@@ -17,7 +17,8 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
 //std includes
 #include <algorithm>
 #include <list>

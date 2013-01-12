@@ -18,10 +18,10 @@ Author:
 #include "core/src/core.h"
 //common includes
 #include <error_tools.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <core/module_detect.h>
+#include <debug/log.h>
 #include <l10n/api.h>
 //std includes
 #include <list>

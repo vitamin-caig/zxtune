@@ -10,9 +10,9 @@ Author:
 */
 
 //common includes
-#include <debug_log.h>
 #include <tools.h>
 //library includes
+#include <debug/log.h>
 #include <platform/tools.h>
 //platform includes
 #include <dlfcn.h>

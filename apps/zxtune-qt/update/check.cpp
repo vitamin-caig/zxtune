@@ -19,11 +19,11 @@ Author:
 #include "apps/zxtune-qt/text/text.h"
 #include "apps/zxtune-qt/ui/utils.h"
 //common includes
-#include <debug_log.h>
 #include <error.h>
 #include <parameters.h>
 #include <progress_callback.h>
 //library includes
+#include <debug/log.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
 //boost includes

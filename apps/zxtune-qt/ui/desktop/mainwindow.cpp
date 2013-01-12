@@ -35,9 +35,9 @@ Author:
 #include <apps/version/api.h>
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 //library includes
 #include <core/module_attrs.h>
+#include <debug/log.h>
 #include <strings/format.h>
 //boost includes
 #include <boost/bind.hpp>

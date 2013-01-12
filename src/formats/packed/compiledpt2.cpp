@@ -16,10 +16,10 @@ Author:
 #include <formats/chiptune/protracker2.h>
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 //boost includes
 #include <boost/array.hpp>
 //text includes

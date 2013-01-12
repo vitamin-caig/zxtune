@@ -17,13 +17,13 @@ Author:
 #include <core/plugins/utils.h>
 //common includes
 #include <error_tools.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/container.h>
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
+#include <debug/log.h>
 #include <l10n/api.h>
 #include <time/duration.h>
 //std includes

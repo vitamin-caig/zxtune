@@ -18,7 +18,8 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //qt includes

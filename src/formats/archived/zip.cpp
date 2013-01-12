@@ -10,10 +10,10 @@ Author:
 */
 
 //common includes
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 #include <formats/archived.h>
 #include <formats/packed/decoders.h>
 #include <formats/packed/zip_supp.h>

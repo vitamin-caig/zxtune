@@ -17,11 +17,11 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
-#include <debug_log.h>
 #include <iterator.h>
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 #include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>

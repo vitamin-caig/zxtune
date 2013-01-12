@@ -32,10 +32,10 @@ Author:
 #include "ui/tools/filedialog.h"
 //local includes
 #include <contract.h>
-#include <debug_log.h>
 #include <error.h>
 #include <template_parameters.h>
 //library includes
+#include <debug/log.h>
 #include <strings/template.h>
 //boost includes
 #include <boost/bind.hpp>

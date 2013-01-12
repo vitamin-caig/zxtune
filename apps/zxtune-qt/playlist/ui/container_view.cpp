@@ -26,8 +26,9 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <error.h>
+//library includes
+#include <debug/log.h>
 //std includes
 #include <cassert>
 //qt includes

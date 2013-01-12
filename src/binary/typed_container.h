@@ -14,6 +14,7 @@
 //library includes
 #include <binary/data.h>
 //common includes
+#include <types.h>
 #include <tools.h>
 
 namespace Binary

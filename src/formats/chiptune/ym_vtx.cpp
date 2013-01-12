@@ -16,10 +16,10 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
-#include <debug_log.h>
 //library includes
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>
+#include <debug/log.h>
 #include <formats/packed/lha_supp.h>
 #include <math/numeric.h>
 //std includes

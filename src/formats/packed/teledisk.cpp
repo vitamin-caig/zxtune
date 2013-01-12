@@ -16,10 +16,10 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 #include <formats/packed.h>
 #include <formats/packed/lha_supp.h>
 #include <math/numeric.h>

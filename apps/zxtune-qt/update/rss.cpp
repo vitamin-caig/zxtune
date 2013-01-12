@@ -14,8 +14,8 @@ Author:
 //local includes
 #include "rss.h"
 #include "apps/zxtune-qt/ui/utils.h"
-//common includes
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
 //qt includes
 #include <QtCore/QXmlStreamReader>
 

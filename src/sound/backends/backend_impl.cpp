@@ -13,10 +13,10 @@ Author:
 #include "backend_impl.h"
 //common includes
 #include <tools.h>
-#include <debug_log.h>
 #include <error_tools.h>
 //library includes
 #include <async/worker.h>
+#include <debug/log.h>
 #include <l10n/api.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>

@@ -17,10 +17,10 @@ Author:
 #include "tags/xspf.h"
 #include "ui/utils.h"
 //common includes
-#include <debug_log.h>
 #include <error.h>
 //library includes
 #include <core/module_attrs.h>
+#include <debug/log.h>
 //std includes
 #include <cctype>
 #include <set>

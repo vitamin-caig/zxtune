@@ -13,11 +13,11 @@ Author:
 #include "zxstate_supp.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/input_stream.h>
+#include <debug/log.h>
 #include <formats/archived.h>
 #include <strings/format.h>
 //std includes

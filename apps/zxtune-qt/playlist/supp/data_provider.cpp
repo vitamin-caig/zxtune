@@ -18,7 +18,6 @@ Author:
 #include "playlist/parameters.h"
 #include <apps/base/playitem.h>
 //common includes
-#include <debug_log.h>
 #include <error_tools.h>
 #include <progress_callback.h>
 #include <template_parameters.h>
@@ -27,6 +26,7 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <debug/log.h>
 #include <io/api.h>
 #include <sound/sound_parameters.h>
 #include <strings/format.h>

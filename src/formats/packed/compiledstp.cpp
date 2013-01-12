@@ -14,10 +14,10 @@ Author:
 #include <formats/chiptune/soundtrackerpro.h>
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 //std includes
 #include <cstring>
 //boost includes

@@ -13,8 +13,8 @@ Author:
 #include "shared_library_common.h"
 //common includes
 #include <error_tools.h>
-#include <debug_log.h>
 //library includes
+#include <debug/log.h>
 #include <l10n/api.h>
 
 #define FILE_TAG 098808A4

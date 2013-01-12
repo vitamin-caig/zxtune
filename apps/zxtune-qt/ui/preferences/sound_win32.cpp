@@ -19,9 +19,9 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <tools.h>
 //library includes
+#include <debug/log.h>
 #include <sound/backends_parameters.h>
 #include <sound/backends/win32.h>
 //boost includes

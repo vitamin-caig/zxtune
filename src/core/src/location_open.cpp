@@ -13,8 +13,9 @@ Author:
 #include "location.h"
 #include "core/plugins/enumerator.h"
 //common includes
-#include <debug_log.h>
 #include <tools.h>
+//library includes
+#include <debug/log.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes

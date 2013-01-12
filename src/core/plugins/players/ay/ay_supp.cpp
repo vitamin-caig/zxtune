@@ -19,7 +19,6 @@ Author:
 #include "core/plugins/players/streaming.h"
 #include "core/src/core.h"
 //common includes
-#include <debug_log.h>
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
@@ -28,6 +27,7 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
+#include <debug/log.h>
 #include <devices/z80.h>
 #include <formats/chiptune/ay.h>
 #include <sound/sound_parameters.h>

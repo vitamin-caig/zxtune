@@ -16,8 +16,9 @@ Author:
 #include <apps/base/playitem.h>
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <error.h>
+//library includes
+#include <debug/log.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>

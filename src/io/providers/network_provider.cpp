@@ -14,12 +14,12 @@ Author:
 #include "enumerator.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <error_tools.h>
 #include <progress_callback.h>
 #include <tools.h>
 //library includes
 #include <binary/container_factories.h>
+#include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
 //std includes

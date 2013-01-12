@@ -16,11 +16,11 @@ Author:
 #include <apps/base/app.h>
 #include <apps/base/parsing.h>
 //common includes
-#include <debug_log.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
 #include <core/core_parameters.h>
+#include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/filter.h>

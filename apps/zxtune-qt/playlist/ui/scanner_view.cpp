@@ -17,7 +17,8 @@ Author:
 #include "playlist/supp/scanner.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
 
 namespace
 {

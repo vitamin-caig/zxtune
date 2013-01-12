@@ -19,7 +19,6 @@ Author:
 #include "core/plugins/players/ay/ay_conversion.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
@@ -28,6 +27,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <debug/log.h>
 #include <devices/dac_sample_factories.h>
 //boost includes
 #include <boost/bind.hpp>
