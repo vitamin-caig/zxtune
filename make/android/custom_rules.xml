@@ -2,6 +2,7 @@
 <project name="build_rules">
   <!-- default properties -->
   <property name="cpu.cores" value="1" />
+  <property name="native.libs.source.dir" value="jni" />
   
   <property file="${top.dir}/make/android/build.properties" />
 
@@ -23,7 +24,7 @@
   <macrodef name="installib-helper">
     <attribute name="arch" />
     <sequential>
-      <copy file="${top.dir}/bin/android_@{arch}/release/libbenchmark.so" todir="${native.libs.absolute.dir}/@{arch}" />
+      <copy file="${top.dir}/bin/android_@{arch}/release/lib${native.libs}.so" todir="${native.libs.absolute.dir}/@{arch}" />
     </sequential>
   </macrodef>
   
@@ -43,7 +44,7 @@
     </exec>
   </target>
   
-  <target name="svnrevision" depends="svnupdate">
+  <target name="svnrevision">
     <exec executable="svnversion" outputproperty="svn.revision">
       <arg value="${top.dir}"/>
     </exec>
@@ -74,7 +75,7 @@
   <target name="-pre-build" depends="injectrevision" />
   
   <!-- Single public build target -->
-  <target name="public-build" depends="svnrevision, release">
+  <target name="public-build" depends="svnupdate, svnrevision, release">
     <property name="build.dir" value="${builds.dir}/Revision${svn.revision}_android" />
     <delete dir="${build.dir}" />
     <copy file="${out.final.file}" toFile="${build.dir}/${ant.project.name}_r${svn.revision}.apk" />

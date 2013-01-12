@@ -51,7 +51,7 @@ CCFLAGS = -g3 $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
 
 CXXFLAGS = $(CCFLAGS) -ansi
 
-ARFLAGS := cru
+ARFLAGS := crus
 LDFLAGS = $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
 
 #specify endpoint commands
