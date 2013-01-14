@@ -109,91 +109,65 @@ namespace
   {
   public:
     BaseGenerator()
-      : Counter()
-      , Mask(HIGH_LEVEL)
+      : Period()
+      , Counter()
     {
     }
 
     void Reset()
     {
-      Counter = 0;
-      Mask = HIGH_LEVEL;
+      Period = Counter = 0;
     }
 
-    bool SingleTick(uint_t period)
+    void SetPeriod(uint_t period)
     {
-      if (++Counter >= period)
+      Period = period;
+    }
+
+    uint_t Tick(uint_t ticks)
+    {
+      if (Period <= 1)
       {
-        Counter = 0;
-        return true;
+        return ticks;
       }
-      return false;
+      Counter += ticks;
+      const uint_t res = Counter / Period;
+      Counter %= Period;
+      return res;
     }
 
     void ResetCounter()
     {
       Counter = 0;
     }
-
-    uint_t GetMask() const
-    {
-      return Mask;
-    }
-
-    void SetMask(uint_t masked)
-    {
-      Mask = masked;
-    }
-  private:
+  protected:
+    uint_t Period;
     uint_t Counter;
-    uint_t Mask;
   };
 
-  class FlipFlop : public BaseGenerator
+  class SimpleGenerator : public BaseGenerator
   {
   public:
-    FlipFlop()
-      : Flip(LOW_LEVEL)
+    void SetDutyCycle(uint_t /*dutyCycle*/)
     {
-    }
-
-    void Reset()
-    {
-      BaseGenerator::Reset();
-      Flip = LOW_LEVEL;
-    }
-
-    bool SingleTick(uint_t period)
-    {
-      if (BaseGenerator::SingleTick(period))
-      {
-        Flip = ~Flip;
-        return true;
-      }
-      return false;
-    }
-
-    uint_t GetFlip() const
-    {
-      return Flip;
     }
   private:
-    uint_t Flip;
+    uint_t Period;
   };
 
-  class DutedGenerator : public FlipFlop
+  class DutedGenerator : public BaseGenerator
   {
   public:
     DutedGenerator()
       : DutyCycle(NO_DUTYCYCLE)
-      , FullPeriod(), FirstHalfPeriod(), SecondHalfPeriod()
+      , HalfPeriod()
     {
     }
 
     void Reset()
     {
       SetPeriod(0);
-      FlipFlop::Reset();
+      BaseGenerator::Reset();
     }
 
     /*
@@ -207,120 +181,74 @@ namespace
 
     positive pulse width is 1/4 of period value
     */
-    bool SingleTick()
+    uint_t Tick(uint_t ticks)
     {
-      return FlipFlop::SingleTick(GetFlip() ? FirstHalfPeriod : SecondHalfPeriod);
+      const bool prevLoPart = Counter < HalfPeriod;
+      const uint_t doubleRounds = BaseGenerator::Tick(ticks);
+      const bool nowLoPart = Counter < HalfPeriod;
+      return 2 * doubleRounds + (prevLoPart != nowLoPart);
     }
 
     void SetDutyCycle(uint_t dutyCycle)
     {
       assert(dutyCycle > 0 && dutyCycle < MAX_DUTYCYCLE);
       DutyCycle = dutyCycle;
-      UpdateHalfPeriods();
+      UpdateHalfPeriod();
     }
 
     void SetPeriod(uint_t period)
     {
-      FullPeriod = period * 2;
-      UpdateHalfPeriods();
+      BaseGenerator::SetPeriod(period * 2);
+      UpdateHalfPeriod();
     }
   private:
-    void UpdateHalfPeriods()
+    void UpdateHalfPeriod()
     {
-      FirstHalfPeriod = DutyCycle * FullPeriod / MAX_DUTYCYCLE;
-      SecondHalfPeriod = FullPeriod - FirstHalfPeriod;
+      HalfPeriod = DutyCycle * Period / MAX_DUTYCYCLE;
     }
   private:
     uint_t DutyCycle;
-    uint_t FullPeriod;
-    uint_t FirstHalfPeriod;
-    uint_t SecondHalfPeriod;
+    uint_t HalfPeriod;
   };
 
-  class SimpleGenerator : public BaseGenerator
-  {
-  public:
-    SimpleGenerator()
-      : Period()
-    {
-    }
-
-    void Reset()
-    {
-      SetPeriod(0);
-      BaseGenerator::Reset();
-    }
-
-    bool SingleTick()
-    {
-      return BaseGenerator::SingleTick(Period);
-    }
-
-    void SetPeriod(uint_t period)
-    {
-      Period = period;
-    }
-
-    void SetDutyCycle(uint_t /*dutyCycle*/)
-    {
-    }
-  private:
-    uint_t Period;
-  };
-  
   template<class Generator>
-  class ToneGenerator;
-
-  template<>
-  class ToneGenerator<SimpleGenerator> : public FlipFlop
+  class ToneGenerator : public Generator
   {
   public:
     ToneGenerator()
-      : Period()
+      : Flip(LOW_LEVEL)
+      , Mask(HIGH_LEVEL)
     {
     }
 
     void Reset()
     {
-      SetPeriod(0);
-      FlipFlop::Reset();
+      Flip = LOW_LEVEL;
+      Mask = HIGH_LEVEL;
+      Generator::Reset();
     }
 
-    void Tick()
+    void Tick(uint_t ticks)
     {
-      SingleTick(Period);
+      const uint_t rounds = Generator::Tick(ticks);
+      if (0 != (rounds & 1))
+      {
+        Flip = ~Flip;
+      }
     }
 
-    void SetPeriod(uint_t period)
+    void SetMask(uint_t val)
     {
-      Period = period;
-    }
-
-    void SetDutyCycle(uint_t /*dutyCycle*/)
-    {
+      Mask = val;
     }
 
     uint_t GetLevel() const
     {
-      return GetMask() | GetFlip();
+      return Mask | Flip;
     }
   private:
-    uint_t Period;
-  };
-
-  template<>
-  class ToneGenerator<DutedGenerator> : public DutedGenerator
-  {
-  public:
-    void Tick()
-    {
-      SingleTick();
-    }
-
-    uint_t GetLevel() const
-    {
-      return GetMask() | GetFlip();
-    }
+    uint_t Flip;
+    uint_t Mask;
   };
 
   template<class Generator>
@@ -338,13 +266,10 @@ namespace
       Generator::Reset();
     }
 
-    void Tick()
+    void Tick(uint_t ticks)
     {
-      if (Generator::SingleTick())
-      {
-        ++Index;
-        Index &= NoiseTable.INDEX_MASK;
-      }
+      Index += Generator::Tick(ticks);
+      Index &= NoiseTable.INDEX_MASK;
     }
 
     uint_t GetLevel() const
@@ -374,12 +299,37 @@ namespace
       Generator::Reset();
     }
 
-    void Tick()
+    void Tick(uint_t ticks)
     {
-      if (!Generator::SingleTick() || !Decay)
+      for (uint_t rounds = Generator::Tick(ticks); rounds && Decay; --rounds)
       {
-        return;
+        Update();
       }
+    }
+
+    void SetType(uint_t type)
+    {
+      Generator::ResetCounter();
+      Type = type;
+      if (Type & 4) //down-up envelopes
+      {
+        Level = 0;
+        Decay = 1;
+      }
+      else //up-down envelopes
+      {
+        Level = 31;
+        Decay = -1;
+      }
+    }
+
+    uint_t GetLevel() const
+    {
+      return Level;
+    }
+  private:
+    void Update()
+    {
       Level += Decay;
       if (0 == (Level & ~31u))
       {
@@ -405,27 +355,6 @@ namespace
         Level = 31;
         Decay = 0; //11, 13
       }
-    }
-
-    void SetType(uint_t type)
-    {
-      Generator::ResetCounter();
-      Type = type;
-      if (Type & 4) //down-up envelopes
-      {
-        Level = 0;
-        Decay = 1;
-      }
-      else //up-down envelopes
-      {
-        Level = 31;
-        Decay = -1;
-      }
-    }
-
-    uint_t GetLevel() const
-    {
-      return Level;
     }
   private:
     uint_t Type;
@@ -494,7 +423,6 @@ namespace
       MaskNoiseA = 0 != (mixer & DataChunk::REG_MASK_NOISEA) ? HIGH_LEVEL : LOW_LEVEL;
       MaskNoiseB = 0 != (mixer & DataChunk::REG_MASK_NOISEB) ? HIGH_LEVEL : LOW_LEVEL;
       MaskNoiseC = 0 != (mixer & DataChunk::REG_MASK_NOISEC) ? HIGH_LEVEL : LOW_LEVEL;
-      GenN.SetMask(MaskNoiseA & MaskNoiseB & MaskNoiseC);
     }
 
     virtual void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE)
@@ -516,7 +444,6 @@ namespace
       MaskEnvA = 0 != (levelA & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
       MaskEnvB = 0 != (levelB & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
       MaskEnvC = 0 != (levelC & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
-      GenE.SetMask(MaskEnvA & MaskEnvB & MaskEnvC);
       LevelA = (((levelA & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvA;
       LevelB = (((levelB & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvB;
       LevelC = (((levelC & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvC;
@@ -537,14 +464,11 @@ namespace
 
     virtual void Tick(uint_t ticks)
     {
-      while (ticks--)
-      {
-        GenA.Tick();
-        GenB.Tick();
-        GenC.Tick();
-        GenN.Tick();
-        GenE.Tick();
-      }
+      GenA.Tick(ticks);
+      GenB.Tick(ticks);
+      GenC.Tick(ticks);
+      GenN.Tick(ticks);
+      GenE.Tick(ticks);
     }
 
     virtual void GetLevels(MultiSample& result) const
@@ -987,7 +911,7 @@ namespace
     virtual void GetLevels(MultiSample& result) const
     {
       Delegate.GetLevels(result);
-      const Sample average(std::accumulate(result.begin(), result.end(), uint_t(0)) / result.size());
+      const Sample average = static_cast<Sample>(std::accumulate(result.begin(), result.end(), uint_t(0)) / result.size());
       std::fill(result.begin(), result.end(), average);
     }
   private:
@@ -1044,14 +968,14 @@ namespace
     uint_t GetTicksToFrameEnd() const
     {
       return LastTick > PsgOscillator.GetCurrentTick()
-        ? (LastTick - PsgOscillator.GetCurrentTick()) / AYM_CLOCK_DIVISOR
+        ? uint_t((LastTick - PsgOscillator.GetCurrentTick()) / AYM_CLOCK_DIVISOR)
         : 0;
     }
 
     uint_t GetTicksToSample() const
     {
       return NextSoundTick > PsgOscillator.GetCurrentTick()
-        ? (NextSoundTick - PsgOscillator.GetCurrentTick()) / AYM_CLOCK_DIVISOR
+        ? uint_t((NextSoundTick - PsgOscillator.GetCurrentTick()) / AYM_CLOCK_DIVISOR)
         : 0;
     }
   private:
