@@ -586,6 +586,21 @@ extern const Char INFO_OPTIONS_SOUND_FREQUENCY[] = {
 extern const Char INFO_OPTIONS_SOUND_LOOPED[] = {
   'l','o','o','p',' ','p','l','a','y','b','a','c','k',0
 };
+extern const Char INFO_OPTIONS_SOUND_MIXER[] = {
+  's','p','e','c','i','f','y',' ','l','e','v','e','l',' ','i','n',' ','p','e','r','c','e','n','t',' ','(','A',
+  '-',' ','t','o','t','a','l',' ','c','h','a','n','n','e','l','s',' ','c','o','u','n','t',',',' ','B','-',' ',
+  'i','n','p','u','t',' ','c','h','a','n','n','e','l',',',' ','C','-',' ','o','u','t','p','u','t',' ','c','h',
+  'a','n','n','e','l',')','.',' ','E','.','g','.',' ','w','h','e','n',' ','A','=','3',',',' ','B','=','0',',',
+  ' ','C','=','1',' ','w','i','l','l',' ','s','p','e','c','i','f','y',' ','A',' ','c','h','a','n','n','e','l',
+  ' ','l','e','v','e','l',' ','o','f',' ','A','Y','/','Y','M','-','l','i','k','e',' ','c','h','i','p','t','u',
+  'n','e','s',' ','t','o',' ','r','i','g','h','t',' ','s','t','e','r','e','o','c','h','a','n','n','e','l',0
+};
+extern const Char INFO_OPTIONS_SOUND_MIXER_TEMPLATE[] = {
+  'A','.','B','_','C',0
+};
+extern const Char INFO_OPTIONS_SOUND_MIXER_TITLE[] = {
+  ' ','M','i','x','e','r',' ','o','p','t','i','o','n','s',':',0
+};
 extern const Char INFO_OPTIONS_SOUND_TITLE[] = {
   ' ','S','o','u','n','d',' ','o','p','t','i','o','n','s',':',0
 };
@@ -666,13 +681,6 @@ extern const Char LOOP_DESC[] = {
 extern const Char LOOP_KEY[] = {
   'l','o','o','p',0
 };
-extern const Char MIXER_DESC[] = {
-  's','p','e','c','i','f','y',' ','m','i','x','e','r',' ','b','y',' ','l','a','y','o','u','t',' ','o','r',' ',
-  'm','a','t','r','i','x',0
-};
-extern const Char MIXER_KEY[] = {
-  'm','i','x','e','r',0
-};
 extern const Char PLAYBACK_STATUS[] = {
   '[','%','1','%',']',' ','[','%','2','%',']','\n',
   '\n',
@@ -708,10 +716,6 @@ extern const Char SOUND_BACKEND_PARAMS[] = {
 extern const Char SOUND_ERROR_INVALID_FILTER[] = {
   'I','n','v','a','l','i','d',' ','f','i','l','t','e','r',' ','p','a','r','a','m','e','t','e','r',':',' ','\'',
   '%','1','%','\'','.',0
-};
-extern const Char SOUND_ERROR_INVALID_MIXER[] = {
-  'I','n','v','a','l','i','d',' ','m','i','x','e','r',' ','p','a','r','a','m','e','t','e','r',':',' ','\'','%',
-  '1','%','\'','.',0
 };
 extern const Char SOUND_ERROR_NO_BACKEND[] = {
   'F','a','i','l','e','d',' ','t','o',' ','c','r','e','a','t','e',' ','a','n','y',' ','b','a','c','k','e','n',

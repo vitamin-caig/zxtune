@@ -24,6 +24,7 @@ Author:
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/filter.h>
+#include <sound/mixer_factory.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
@@ -48,29 +49,13 @@ Author:
 
 namespace
 {
-  const Char DEFAULT_MIXER_3[] = {'A', 'B', 'C', '\0'};
-  const Char DEFAULT_MIXER_4[] = {'A', 'B', 'C', 'D', '\0'};
-
   const Debug::Stream Dbg("zxtune123::Sound");
 
   static const String NOTUSED_MARK("\x01\x02");
 
-  const uint_t MIN_CHANNELS = 2;
-  const uint_t MAX_CHANNELS = 6;
   const uint_t DEFAULT_FILTER_ORDER = 10;
 
   const Char MATRIX_DELIMITERS[] = {';', ',', '-', '\0'};
-
-  inline bool InvalidChannelLetter(uint_t channels, Char letter)
-  {
-    if (channels < MIN_CHANNELS || channels > MAX_CHANNELS)
-    {
-      return true;
-    }
-    return (letter < Char('A') || letter > Char('A' + channels)) &&
-           (letter < Char('a') || letter > Char('a' + channels)) &&
-           letter != Char('-');
-  }
 
   template<class T>
   inline T FromString(const String& str)
@@ -82,51 +67,6 @@ namespace
       return res;
     }
     throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
-  }
-
-  //ABC: 1.0,0.0,0.5,0.5,0.0,1.0
-  std::vector<ZXTune::Sound::MultiGain> ParseMixerMatrix(const String& str)
-  {
-    //check for layout
-    if (str.end() == std::find_if(str.begin(), str.end(), std::bind1st(std::ptr_fun(&InvalidChannelLetter), static_cast<uint_t>(str.size()))))
-    {
-      const std::size_t channels = str.size();
-      //letter- position in result matrix
-      //letter position- output channel
-      //letter case- level
-      std::vector<ZXTune::Sound::MultiGain> result(channels);
-      for (uint_t inChannel = 0; inChannel != channels; ++inChannel)
-      {
-        if (str[inChannel] == '-')
-        {
-          continue;
-        }
-        const double inPos(1.0 * inChannel / (channels - 1));
-        const bool gained(str[inChannel] < 'a');
-        ZXTune::Sound::MultiGain& res(result[toupper(str[inChannel]) - 'A']);
-        for (uint_t outChannel = 0; outChannel != res.size(); ++outChannel)
-        {
-          const double outPos(1.0 * outChannel / (res.size() - 1));
-          res[outChannel] += (gained ? 1.0 : 0.6) * (1.0 - Math::Absolute(inPos - outPos));
-        }
-      }
-      const double maxGain(*std::max_element(result.front().begin(), result.back().end()));
-      if (maxGain > 0)
-      {
-        std::transform(result.front().begin(), result.back().end(), result.front().begin(), std::bind2nd(std::divides<double>(), maxGain));
-      }
-      return result;
-    }
-    Strings::Array splitted;
-    boost::algorithm::split(splitted, str, boost::algorithm::is_any_of(MATRIX_DELIMITERS));
-    if (splitted.size() <= MAX_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS ||
-        splitted.size() >= MIN_CHANNELS * ZXTune::Sound::OUTPUT_CHANNELS)
-    {
-      std::vector<ZXTune::Sound::MultiGain> result(splitted.size() / ZXTune::Sound::OUTPUT_CHANNELS);
-      std::transform(splitted.begin(), splitted.end(), result.begin()->begin(), &FromString<double>);
-      return result;
-    }
-    throw MakeFormattedError(THIS_LINE, Text::SOUND_ERROR_INVALID_MIXER, str);
   }
 
   ZXTune::Sound::Converter::Ptr CreateFilter(uint_t freq, const String& str)
@@ -187,11 +127,6 @@ namespace
       }
     }
 
-    void SetMixers(const Strings::Array& mixers)
-    {
-      std::for_each(mixers.begin(), mixers.end(), boost::bind(&CommonBackendParameters::AddMixer, this, _1));
-    }
-
     void SetFilter(const String& filter)
     {
       if (!filter.empty())
@@ -209,12 +144,7 @@ namespace
 
     ZXTune::Sound::Mixer::Ptr GetMixer(uint_t channels) const
     {
-      ZXTune::Sound::MatrixMixer::Ptr& mixer = Mixers[channels];
-      if (!mixer)
-      {
-        mixer = ZXTune::Sound::CreateMatrixMixer(channels);
-      }
-      return mixer;
+      return ZXTune::Sound::CreateMixer(channels, Params);
     }
 
     ZXTune::Sound::Converter::Ptr GetFilter() const
@@ -229,17 +159,7 @@ namespace
       return Time::Microseconds(static_cast<Time::Microseconds::ValueType>(frameDuration));
     }
   private:
-    void AddMixer(const String& txt)
-    {
-      const std::vector<ZXTune::Sound::MultiGain>& matrix = ParseMixerMatrix(txt);
-      const uint_t chans = matrix.size();
-      ZXTune::Sound::MatrixMixer::Ptr& newMixer = Mixers[chans];
-      newMixer = ZXTune::Sound::CreateMatrixMixer(chans);
-      newMixer->SetMatrix(matrix);
-    }
-  private:
     const Parameters::Container::Ptr Params;
-    mutable std::map<uint_t, ZXTune::Sound::MatrixMixer::Ptr> Mixers;
     ZXTune::Sound::Converter::Ptr Filter;
   };
 
@@ -315,7 +235,6 @@ namespace
         (Text::FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION.FullPath()]), Text::FRAMEDURATION_DESC)
         (Text::FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE.FullPath()]), Text::FREQTABLE_DESC)
         (Text::LOOP_KEY, bool_switch(&Looped), Text::LOOP_DESC)
-        (Text::MIXER_KEY, value<Strings::Array>(&Mixers), Text::MIXER_DESC)
         (Text::FILTER_KEY, value<String>(&Filter), Text::FILTER_DESC)
       ;
     }
@@ -340,12 +259,6 @@ namespace
       }
       Params->SetSoundParameters(SoundOptions);
       Params->SetLooped(Looped);
-      if (Mixers.empty())
-      {
-        Mixers.push_back(DEFAULT_MIXER_3);
-        Mixers.push_back(DEFAULT_MIXER_4);
-      }
-      Params->SetMixers(Mixers);
       Params->SetFilter(Filter);
     }
 
@@ -421,7 +334,6 @@ namespace
     Strings::Map SoundOptions;
 
     bool Looped;
-    Strings::Array Mixers;
     String Filter;
 
     ZXTune::Sound::BackendCreator::Ptr Creator;

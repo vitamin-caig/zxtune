@@ -58,9 +58,6 @@
 = CMD_LOOP_KEY
 > "loop"
 
-= CMD_MIXER_KEY
-> "mixer"
-
 = CMD_FILTER_KEY
 > "filter"
 

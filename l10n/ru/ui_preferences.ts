@@ -183,7 +183,7 @@
 <context>
     <name>UI::MixingSettingsWidget</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="74"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="75"/>
         <source>%1-channels mixer</source>
         <translation>%1-канальный микшер</translation>
     </message>

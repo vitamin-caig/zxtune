@@ -15,13 +15,13 @@ Author:
 #include "mixing.h"
 #include "mixing.ui.h"
 #include "mixer.h"
-#include "supp/mixer.h"
 #include "supp/options.h"
 #include "ui/utils.h"
+//library includes
+#include <sound/sound_types.h>
+#include <sound/mixer_parameters.h>
 //qt includes
 #include <QtGui/QLabel>
-//text includes
-#include "text/text.h"
 
 namespace
 {
@@ -46,15 +46,16 @@ namespace
       setupUi(this);
       SetTitle();
 
-      for (int inChan = 0; inChan != channels; ++inChan)
+      for (uint_t inChan = 0; inChan != channels; ++inChan)
       {
         channelNames->addWidget(new QLabel(QLatin1String(INPUT_CHANNEL_NAMES[inChan]), this));
         for (uint_t outChan = 0; outChan != ZXTune::Sound::OUTPUT_CHANNELS; ++outChan)
         {
           UI::MixerWidget* const mixer = UI::MixerWidget::Create(*this, static_cast<UI::MixerWidget::Channel>(outChan));
           channelValues->addWidget(mixer);
-          const int defLevel = GetMixerChannelDefaultValue(channels, inChan, outChan);
-          Parameters::MixerValue::Bind(*mixer, *Options, GetMixerChannelParameterName(channels, inChan, outChan), defLevel);
+          const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(channels, inChan, outChan);
+          const int defVal = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
+          Parameters::MixerValue::Bind(*mixer, *Options, name, defVal);
         }
       }
     }

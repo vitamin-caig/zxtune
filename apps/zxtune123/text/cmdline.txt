@@ -158,12 +158,6 @@
 < LOOP_DESC
 > "loop playback"
 
-< MIXER_KEY
-> CMD_MIXER_KEY
-
-< MIXER_DESC
-> "specify mixer by layout or matrix"
-
 < FILTER_KEY
 > CMD_FILTER_KEY
 

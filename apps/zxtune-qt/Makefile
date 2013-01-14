@@ -14,7 +14,7 @@ gui_theme ?= restorer
 have_gui = 1
 
 #other
-moc_files += supp/playback_supp supp/mixer
+moc_files += supp/playback_supp
 
 include_dirs = .
 

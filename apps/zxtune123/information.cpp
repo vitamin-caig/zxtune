@@ -29,6 +29,7 @@ Author:
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
+#include <sound/mixer_parameters.h>
 #include <sound/sound_parameters.h>
 #include <strings/format.h>
 //std includes
@@ -229,6 +230,11 @@ namespace
                  Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
       OptionDesc(Parameters::ZXTune::Sound::LOOPED,
                  Text::INFO_OPTIONS_SOUND_LOOPED,
+                 EMPTY),
+      //Mixer parameters
+      OptionDesc(Text::INFO_OPTIONS_SOUND_MIXER_TITLE, EMPTY, 0),
+      OptionDesc(Parameters::ZXTune::Sound::Mixer::PREFIX + Text::INFO_OPTIONS_SOUND_MIXER_TEMPLATE,
+                 Text::INFO_OPTIONS_SOUND_MIXER,
                  EMPTY),
       //Sound backend parameters
       OptionDesc(Text::INFO_OPTIONS_SOUND_BACKENDS_TITLE, EMPTY, 0),

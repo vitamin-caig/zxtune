@@ -145,6 +145,15 @@
 < INFO_OPTIONS_SOUND_LOOPED
 > "loop playback"
 
+< INFO_OPTIONS_SOUND_MIXER_TITLE
+> " Mixer options:"
+
+< INFO_OPTIONS_SOUND_MIXER
+> "specify level in percent (A- total channels count, B- input channel, C- output channel). E.g. when A=3, B=0, C=1 will specify A channel level of AY/YM-like chiptunes to right stereochannel"
+
+< INFO_OPTIONS_SOUND_MIXER_TEMPLATE
+> "A.B_C"
+
 < INFO_OPTIONS_SOUND_BACKENDS_TITLE
 > " Sound backends options:"
 
@@ -346,9 +355,6 @@
 
 < SOUND_ERROR_NO_BACKEND
 > "Failed to create any backend."
-
-< SOUND_ERROR_INVALID_MIXER
-> "Invalid mixer parameter: '%1%'."
 
 < SOUND_ERROR_INVALID_FILTER
 > "Invalid filter parameter: '%1%'."

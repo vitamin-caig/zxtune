@@ -102,16 +102,6 @@ html> "</pre>\n"
 > SAMPLE_BEGIN "1/FILE_trd_FILE1_C_+125.wav" SAMPLE_END
 > SAMPLE_SECT_END
 
-= SAMPLE_MIXER_LAYOUT
-> SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "--" CMD_MIXER_KEY " ABC" SAMPLE_END
-> SAMPLE_SECT_END
-
-= SAMPLE_MIXER_MATRIX
-> SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "--" CMD_MIXER_KEY " 1-0,0.9-0.1,0.6-0.4,0.4-0.6,0.1-0.9,0-1" SAMPLE_END
-> SAMPLE_SECT_END
-
 = SAMPLE_CONVERT_COMMON
 > SAMPLE_SECT_BEGIN
 > SAMPLE_BEGIN "--" CMD_CONVERT_KEY " mode=${mode},filename=${filename}" SAMPLE_END
@@ -320,20 +310,6 @@ en> "file (if extension is not specified exactly, it's added automatically).\n"
 en> "Non-existing fields are skipped.\n"
 
 en> HEAD_BEGIN "OTHER SOUND OPTIONS" HEAD_END
-en> PRE_BEGIN "--" CMD_MIXER_KEY PRE_END " used to specify mixer. It can be done by two ways- specifying symbolic channels layout "
-en> "or explicit matrix:"
-
-en> SAMPLE_MIXER_LAYOUT
-
-en> "specifies mixer for three channels modules (three letters in set). Every letter can be uppercase to use normal gain, "
-en> "lowercase to use lower gain or '-' to switch off the specified channel. Also letters can be duplicated.\n"
-
-en> SAMPLE_MIXER_MATRIX
-
-en> "specifies mixer for four channels modules (for stereo output - eight coefficients). Symbols ';', ',', '-' can be used "
-en> "as a delimiters without any restrictions- difference (as in sample) is just for usability.\n"
-en> "Multiple " PRE_BEGIN "--" CMD_MIXER_KEY PRE_END " can be used to specify mixers for different channels count.\n"
-
 en> PRE_BEGIN "--" CMD_FILTER_KEY PRE_END " used to specify bandpass filter with specified order and frequency range."
 
 en> SAMPLE_FILTER
