@@ -85,6 +85,7 @@ namespace
   public:
     explicit BufferRenderer(Chunk& buf) : Buffer(buf)
     {
+      Buffer.reserve(1000);//seems to be enough in most cases
     }
 
     virtual void ApplyData(const MultiSample& samp)
@@ -92,7 +93,7 @@ namespace
       Buffer.push_back(samp);
     }
 
-    void Flush()
+    virtual void Flush()
     {
     }
   private:
@@ -140,10 +141,9 @@ namespace
     Renderer(Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
       : Source(renderer)
       , State(Source->GetTrackState())
-      , Mix(mixer)
     {
       const Receiver::Ptr target(new BufferRenderer(Buffer));
-      Mix->SetTarget(target);
+      mixer->SetTarget(target);
     }
   public:
     typedef boost::shared_ptr<Renderer> Ptr;
@@ -157,12 +157,7 @@ namespace
     {
       callback.OnFrame(*State);
       Buffer.clear();
-      Buffer.reserve(1000);//seems to be enough in most cases
       const bool res = Source->RenderFrame();
-      if (!res)
-      {
-        Mix->Flush();
-      }
       worker.BufferReady(Buffer);
       return res;
     }

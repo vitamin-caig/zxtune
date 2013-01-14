@@ -35,8 +35,6 @@ namespace
     return res;
   }
 
-  const uint_t UPDATE_PERIOD = 1000;//TODO
-
   class PollingMixer : public Sound::Mixer
   {
   public:
@@ -44,23 +42,19 @@ namespace
       : Channels(channels)
       , Params(params)
       , Delegate(Sound::CreateMatrixMixer(Channels))
-      , UpdateCountdown(0)
     {
+      UpdateMatrix();
     }
 
     virtual void ApplyData(const std::vector<Sound::Sample>& inData)
     {
-      if (0 == UpdateCountdown--)
-      {
-        UpdateMatrix();
-        UpdateCountdown = UPDATE_PERIOD;
-      }
       Delegate->ApplyData(inData);
     }
 
     virtual void Flush()
     {
       Delegate->Flush();
+      UpdateMatrix();
     }
     
     virtual void SetTarget(Sound::Receiver::Ptr rcv)
@@ -82,7 +76,6 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const Sound::MatrixMixer::Ptr Delegate;
     Sound::MatrixMixer::Matrix LastMatrix;
-    uint_t UpdateCountdown;
   };
 }
 

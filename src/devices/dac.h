@@ -77,6 +77,7 @@ namespace Devices
 
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
+      virtual void Flush() = 0;
       virtual void GetChannelState(uint_t chan, DataChunk::ChannelData& dst) const = 0;
 
       virtual void GetState(ChannelsState& state) const = 0;

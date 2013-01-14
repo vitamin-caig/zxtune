@@ -454,6 +454,7 @@ namespace
         RenderData(chunk);
         chunk.TimeStamp = Time::Microseconds(LastRenderTime);
         Device->RenderData(chunk);
+        Device->Flush();
         Iterator->NextFrame(Params->Looped());
       }
       return Iterator->IsValid();

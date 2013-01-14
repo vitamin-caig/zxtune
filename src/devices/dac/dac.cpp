@@ -323,6 +323,11 @@ namespace
       CurrentTime = src.TimeStamp;
     }
 
+    virtual void Flush()
+    {
+      Target->Flush();
+    }
+
     virtual void GetChannelState(uint_t chan, DataChunk::ChannelData& dst) const
     {
       const ChannelState& src = State[chan];

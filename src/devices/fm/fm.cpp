@@ -155,6 +155,7 @@ namespace
       ApplyParameters();
       std::for_each(Buffer.begin(), Buffer.end(), boost::bind(&MameChip::RenderSingleChunk, this, _1));
       Buffer.clear();
+      Target->Flush();
     }
 
     virtual void Reset()

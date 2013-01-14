@@ -63,27 +63,27 @@ msgstr "Не найдено ни одного подходящего устро�
 msgid "Invalid module specified for backend."
 msgstr "Неправильный модуль."
 
-#: backend_impl.cpp:203
+#: backend_impl.cpp:198
 msgid "Failed to initialize playback."
 msgstr "Ошибка инициализации воспроизведения."
 
-#: backend_impl.cpp:220
+#: backend_impl.cpp:215
 msgid "Failed to finalize playback."
 msgstr "Ошибка завершения воспроизведения."
 
-#: backend_impl.cpp:236
+#: backend_impl.cpp:231
 msgid "Failed to pause playback."
 msgstr "Ошибка приостановки воспроизведения."
 
-#: backend_impl.cpp:252
+#: backend_impl.cpp:247
 msgid "Failed to resume playback."
 msgstr "Ошибка возобновления воспроизведения."
 
-#: backend_impl.cpp:431
+#: backend_impl.cpp:426
 msgid "Failed to stop playback."
 msgstr "Ошибка останова воспроизведения."
 
-#: backend_impl.cpp:443
+#: backend_impl.cpp:438
 msgid "Failed to set playback position."
 msgstr "Ошибка позиционирования воспроизведения."
 

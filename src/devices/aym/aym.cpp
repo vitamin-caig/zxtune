@@ -1075,6 +1075,7 @@ namespace
         RelayoutRenderer relayoutRender(targetRender, layout);
         RenderChunks(relayoutRender);
       }
+      Target->Flush();
     }
 
     virtual void GetState(ChannelsState& state) const
