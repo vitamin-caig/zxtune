@@ -12,6 +12,7 @@
 #define __SOUND_BACKEND_H_DEFINED__
 
 //common includes
+#include <error.h>
 #include <iterator.h>
 //library includes
 #include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other

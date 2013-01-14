@@ -1,7 +1,8 @@
 #include <tools.h>
 #include <error_tools.h>
 #include <math/numeric.h>
-#include <src/sound/mixer.h>
+#include <sound/matrix_mixer.h>
+#include <sound/mixer_parameters.h>
 
 #include <iostream>
 #include <iomanip>
@@ -163,6 +164,16 @@ int main()
           tgt->SetData(*result);
           mixer->ApplyData(MakeMatrix(chans, INPUTS[input]));
           std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
+        }
+      }
+      std::cout << "Parameters:" << std::endl;
+      for (uint_t inChan = 0; inChan != chans; ++inChan)
+      {
+        for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
+        {
+          const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(chans, inChan, outChan);
+          const Parameters::IntType val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(chans, inChan, outChan);
+          std::cout << name.FullPath() << ": " << val << std::endl;
         }
       }
     }

@@ -17,7 +17,7 @@ Author:
 //library includes
 #include <l10n/api.h>
 #include <math/numeric.h>
-#include <sound/mixer.h>
+#include <sound/matrix_mixer.h>
 //std includes
 #include <algorithm>
 #include <numeric>
