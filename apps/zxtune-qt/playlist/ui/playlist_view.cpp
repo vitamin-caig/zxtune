@@ -78,7 +78,7 @@ namespace
         }
         //TODO: do not access item
         const Playlist::Item::Data::Ptr item = Model.GetItem(row);
-        if (item && item->IsValid())
+        if (item && !item->GetState())
         {
           return Playlist::Item::STOPPED;
         }
@@ -232,15 +232,16 @@ namespace
 
     QVariant GetTooltip(const Playlist::Item::Data& item) const
     {
-      if (item.IsValid())
+      if (const Error& err = item.GetState())
       {
-        if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
-        {
-          const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
-          return ToQString(Tooltip.Get(*properties));
-        }
+        return ToQString(err.ToString());
       }
-      return ToQString(item.GetFullPath());
+      else
+      {
+        const ZXTune::Module::Holder::Ptr holder = item.GetModule();
+        const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
+        return ToQString(Tooltip.Get(*properties));
+      }
     }
 
     QVariant GetHeaderText(unsigned column) const

@@ -422,7 +422,6 @@ namespace
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_FIXEDCRC)))
       , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_SIZE)))
-      , Valid(true)
     {
       Duration.SetCount(frames);
       LoadProperties(moduleProps);
@@ -430,9 +429,16 @@ namespace
 
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
-      const ZXTune::Module::Holder::Ptr res = Source.GetModule(AdjustedParams);
-      Valid = res;
-      return res;
+      try
+      {
+        State = Error();
+        return Source.GetModule(AdjustedParams);
+      }
+      catch (const Error& e)
+      {
+        State = e;
+      }
+      return ZXTune::Module::Holder::Ptr();
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
@@ -442,9 +448,9 @@ namespace
     }
 
     //playlist-related properties
-    virtual bool IsValid() const
+    virtual Error GetState() const
     {
-      return Valid;
+      return State;
     }
 
     virtual String GetFullPath() const
@@ -536,7 +542,7 @@ namespace
     mutable String Author;
     mutable String Title;
     mutable Time::MillisecondsDuration Duration;
-    mutable bool Valid;
+    mutable Error State;
   };
 
   class ProgressCallbackAdapter : public Log::ProgressCallback
@@ -614,45 +620,29 @@ namespace
     {
     }
 
-    virtual Error DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const
+    virtual void DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const
     {
-      try
-      {
-        const IO::Identifier::Ptr id = IO::ResolveUri(path);
+      const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
-        const String dataPath = id->Path();
-        const Binary::Container::Ptr data = Provider->GetData(dataPath);
-        const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
+      const String dataPath = id->Path();
+      const Binary::Container::Ptr data = Provider->GetData(dataPath);
+      const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
 
-        const String subPath = id->Subpath();
-        ZXTune::DetectModules(CoreParams, params, data, subPath);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      const String subPath = id->Subpath();
+      ZXTune::DetectModules(CoreParams, params, data, subPath);
     }
 
-    virtual Error OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const
+    virtual void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const
     {
-      try
-      {
-        const IO::Identifier::Ptr id = IO::ResolveUri(path);
+      const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
-        const String dataPath = id->Path();
-        const Binary::Container::Ptr data = Provider->GetData(dataPath);
-        const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
+      const String dataPath = id->Path();
+      const Binary::Container::Ptr data = Provider->GetData(dataPath);
+      const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
 
-        const String subPath = id->Subpath();
-        const ZXTune::Module::Holder::Ptr result = ZXTune::OpenModule(CoreParams, data, subPath);
-        params.ProcessModule(subPath, result);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      const String subPath = id->Subpath();
+      const ZXTune::Module::Holder::Ptr result = ZXTune::OpenModule(CoreParams, data, subPath);
+      params.ProcessModule(subPath, result);
     }
   private:
     const CachedDataProvider::Ptr Provider;

@@ -272,7 +272,7 @@ namespace
   public:
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
     {
-      if (data->IsValid())
+      if (!data->GetState())
       {
         Paths.push_back(ToQString(data->GetFullPath()));
       }
@@ -446,7 +446,7 @@ namespace
       }
       //TODO: do not access item
       const Playlist::Item::Data::Ptr item = GetItem(index.row());
-      return item && item->IsValid()
+      return item && !item->GetState()
         ? validFlags
         : invalidFlags;
     }

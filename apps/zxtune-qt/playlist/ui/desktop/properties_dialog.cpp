@@ -20,6 +20,7 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
+#include <error.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -219,7 +220,7 @@ namespace Playlist
         return;
       }
       const Item::Data::Ptr item = model->GetItem(*scope->begin());
-      if (item->IsValid())
+      if (!item->GetState())
       {
         const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, item);
         dialog->exec();

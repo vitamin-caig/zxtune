@@ -40,9 +40,9 @@ namespace Playlist
 
       virtual ~DataProvider() {}
 
-      virtual Error DetectModules(const String& path, DetectParameters& detectParams) const = 0;
+      virtual void DetectModules(const String& path, DetectParameters& detectParams) const = 0;
 
-      virtual Error OpenModule(const String& path, DetectParameters& detectParams) const = 0;
+      virtual void OpenModule(const String& path, DetectParameters& detectParams) const = 0;
 
       static Ptr Create(Parameters::Accessor::Ptr parameters);
     };

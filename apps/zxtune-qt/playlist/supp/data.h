@@ -39,7 +39,7 @@ namespace Playlist
       virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
       virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
       //playlist-related
-      virtual bool IsValid() const = 0;
+      virtual Error GetState() const = 0;
       virtual String GetFullPath() const = 0;
       virtual String GetType() const = 0;
       virtual String GetDisplayName() const = 0;

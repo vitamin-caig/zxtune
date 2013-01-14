@@ -18,6 +18,7 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
+#include <error.h>
 //library includes
 #include <debug/log.h>
 //boost includes
@@ -121,14 +122,14 @@ namespace
         Dbg("Iterator: selected %1%", idx);
         Item = item;
         Index = idx;
-        if (Item->IsValid())
+        if (Item->GetState())
         {
-          State = Playlist::Item::STOPPED;
-          emit ItemActivated(Index, item);
+          State = Playlist::Item::ERROR;
         }
         else
         {
-          State = Playlist::Item::ERROR;
+          State = Playlist::Item::STOPPED;
+          emit ItemActivated(Index, item);
         }
         return true;
       }

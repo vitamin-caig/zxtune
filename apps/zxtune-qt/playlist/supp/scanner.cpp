@@ -411,8 +411,12 @@ namespace
 
     void DetectSubitems(const QString& itemPath, Async::Scheduler& sched)
     {
-      DetectParamsAdapter params(Callback, sched);
-      if (const Error& e = Provider->DetectModules(FromQString(itemPath), params))
+      try
+      {
+        DetectParamsAdapter params(Callback, sched);
+        Provider->DetectModules(FromQString(itemPath), params);
+      }
+      catch (const Error& e)
       {
         Callback.OnError(e);
       }

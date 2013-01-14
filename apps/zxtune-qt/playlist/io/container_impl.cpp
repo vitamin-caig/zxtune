@@ -68,9 +68,10 @@ namespace
   class StubData : public Playlist::Item::Data
   {
   public:
-    StubData(const String& path, const Parameters::Accessor& params)
+    StubData(const String& path, const Parameters::Accessor& params, const Error state)
       : Path(path)
       , Params(Parameters::Container::Create())
+      , State(state)
     {
       params.Process(*Params);
     }
@@ -87,9 +88,9 @@ namespace
     }
 
     //playlist-related
-    virtual bool IsValid() const
+    virtual Error GetState() const
     {
-      return false;
+      return State;
     }
 
     virtual String GetFullPath() const
@@ -139,6 +140,7 @@ namespace
   private:
     const String Path;
     const Parameters::Container::Ptr Params;
+    const Error State;
   };
 
   class DelayLoadItemProvider
@@ -155,14 +157,16 @@ namespace
 
     Playlist::Item::Data::Ptr OpenItem() const
     {
-      CollectorStub collector(*Params);
-      Provider->OpenModule(Path, collector);
-      return collector.GetItem();
-    }
-
-    Playlist::Item::Data::Ptr OpenStub() const
-    {
-      return boost::make_shared<StubData>(Path, *Params);
+      try
+      {
+        CollectorStub collector(*Params);
+        Provider->OpenModule(Path, collector);
+        return collector.GetItem();
+      }
+      catch (const Error& e)
+      {
+        return boost::make_shared<StubData>(Path, *Params, e);
+      }
     }
 
     String GetPath() const
@@ -187,7 +191,6 @@ namespace
   public:
     explicit DelayLoadItemData(DelayLoadItemProvider::Ptr provider)
       : Provider(provider)
-      , Valid(true)
     {
     }
 
@@ -195,9 +198,7 @@ namespace
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
       AcquireDelegate();
-      const ZXTune::Module::Holder::Ptr res = Delegate->GetModule();
-      Valid = res;
-      return res;
+      return Delegate->GetModule();
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
@@ -206,9 +207,10 @@ namespace
     }
 
     //playlist-related
-    virtual bool IsValid() const
+    virtual Error GetState() const
     {
-      return Valid;
+      AcquireDelegate();
+      return Delegate->GetState();
     }
 
     virtual String GetFullPath() const
@@ -268,25 +270,12 @@ namespace
     {
       if (!Delegate)
       {
-        const String& path = Provider->GetPath();
-        if (const Playlist::Item::Data::Ptr realItem = Provider->OpenItem())
-        {
-          Dbg("Opened '%1%'", path);
-          Delegate = realItem;
-        }
-        else
-        {
-          Dbg("Failed to open '%1%'", path);
-          Delegate = Provider->OpenStub();
-          Valid = false;
-        }
-        //release unneed
+        Delegate = Provider->OpenItem();
         Provider.reset();
       }
     }
   private:
     mutable DelayLoadItemProvider::Ptr Provider;
-    mutable bool Valid;
     mutable Playlist::Item::Data::Ptr Delegate;
   };
 

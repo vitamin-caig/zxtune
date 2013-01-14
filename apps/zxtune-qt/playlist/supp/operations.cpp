@@ -65,7 +65,7 @@ namespace
 
     virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
     {
-      if (!data->IsValid())
+      if (data->GetState())
       {
         return;
       }
@@ -476,7 +476,7 @@ namespace
     {
       //check for the data first to define is data valid or not
       const String type = data->GetType();
-      if (!data->IsValid())
+      if (data->GetState())
       {
         Result->insert(index);
       }
@@ -546,7 +546,7 @@ namespace
     {
       //check for the data first to define is data valid or not
       const String type = data->GetType();
-      if (!data->IsValid())
+      if (data->GetState())
       {
         Result->AddInvalid();
       }
