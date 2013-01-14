@@ -13,11 +13,10 @@ Author:
 #include "debug.h"
 #include "module.h"
 #include "player.h"
+#include "properties.h"
 #include "zxtune.h"
-//common includes
-#include <parameters.h>
 //library includes
-#include <sound/mixer.h>
+#include <sound/mixer_factory.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -59,41 +58,6 @@ namespace
     typedef std::vector<ZXTune::Sound::MultiSample> BufferType;
     BufferType Buffer;
   };
-
-  const ZXTune::Sound::MultiGain MIXER3[] =
-  {
-    { {1.0, 0.0} },
-    { {0.5, 0.5} },
-    { {0.0, 1.0} }
-  };
-  const ZXTune::Sound::MultiGain MIXER4[] =
-  {
-    { {1.0, 0.0} },
-    { {0.7, 0.3} },
-    { {0.3, 0.7} },
-    { {0.0, 1.0} }
-  };
-
-  ZXTune::Sound::Mixer::Ptr CreateMixer(const ZXTune::Sound::MultiGain* matrix, uint_t chans)
-  {
-    const ZXTune::Sound::MatrixMixer::Ptr res = ZXTune::Sound::CreateMatrixMixer(chans);
-    std::vector<ZXTune::Sound::MultiGain> mtx(matrix, matrix + chans);
-    res->SetMatrix(mtx);
-    return res;
-  }
-
-  ZXTune::Sound::Mixer::Ptr CreateMixer(uint_t chans)
-  {
-    switch (chans)
-    {
-    case 3:
-      return CreateMixer(MIXER3, chans);
-    case 4:
-      return CreateMixer(MIXER4, chans);
-    default:
-      return ZXTune::Sound::Mixer::Ptr();
-    }
-  }
 
   class PlayerControl : public Player::Control
   {
@@ -137,116 +101,95 @@ namespace
 
   Player::Control::Ptr CreateControl(const ZXTune::Module::Holder::Ptr module)
   {
-    const ZXTune::Module::Information::Ptr info = module->GetModuleInformation();
-    const uint_t channels = info->PhysicalChannels();
-    const ZXTune::Sound::Mixer::Ptr mixer = CreateMixer(channels);
-    const Parameters::Accessor::Ptr props = module->GetModuleProperties();
     const Parameters::Container::Ptr params = Parameters::Container::Create();
-    const ZXTune::Module::Renderer::Ptr renderer = module->CreateRenderer(Parameters::CreateMergedAccessor(params, props), mixer);
+    const ZXTune::Module::Information::Ptr info = module->GetModuleInformation();
+    const ZXTune::Sound::Mixer::Ptr mixer = ZXTune::Sound::CreateMixer(info->PhysicalChannels(), params);
+    const Parameters::Accessor::Ptr props = module->GetModuleProperties();
+    const Parameters::Accessor::Ptr allProps = Parameters::CreateMergedAccessor(params, props);
+    const ZXTune::Module::Renderer::Ptr renderer = module->CreateRenderer(allProps, mixer);
     const BufferTarget::Ptr buffer = boost::make_shared<BufferTarget>();
     mixer->SetTarget(buffer);
     return boost::make_shared<PlayerControl>(params, renderer, buffer);
   }
+}
 
-  String GetString(JNIEnv* env, jstring str)
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Create(JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
+{
+  if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
   {
-    const std::size_t size = env->GetStringUTFLength(str);
-    const char* const syms = env->GetStringUTFChars(str, 0);
-    const String res(syms, syms + size);
-    env->ReleaseStringUTFChars(str, syms);
-    return res;
+    const Player::Control::Ptr ctrl = CreateControl(module);
+    return Player::Storage::Instance().Add(ctrl);
+  }
+  return 0;
+}
+
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Destroy(JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)
+{
+  Player::Storage::Instance().Fetch(playerHandle);
+}
+
+JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render(JNIEnv* env, jclass /*self*/, jint playerHandle, jobject buffer)
+{
+  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  {
+    int16_t* buf = static_cast<int16_t*>(env->GetDirectBufferAddress(buffer));
+    const std::size_t size = env->GetDirectBufferCapacity(buffer);
+    return player->Render(size / sizeof(*buf), buf);
+  }
+  return false;
+}
+
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition(JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)
+{
+  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  {
+    return player->GetPosition();
+  }
+  return -1;
+}
+
+JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2J
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong defVal)
+{
+  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  {
+    const Parameters::Container::Ptr params = player->GetParameters();
+    const Jni::PropertiesReadHelper props(env, *params);
+    return props.Get(propName, defVal);
+  }
+  return defVal;
+}
+
+JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2Ljava_lang_String_2
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jstring defVal)
+{
+  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  {
+    const Parameters::Container::Ptr params = player->GetParameters();
+    const Jni::PropertiesReadHelper props(env, *params);
+    return props.Get(propName, defVal);
+  }
+  return defVal;
+}
+
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2J
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong value)
+{
+  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  {
+    const Parameters::Container::Ptr params = player->GetParameters();
+    Jni::PropertiesWriteHelper props(env, *params);
+    props.Set(propName, value);
   }
 }
 
-extern "C"
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2Ljava_lang_String_2
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jstring value)
 {
-  JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Create(JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
+  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
   {
-    if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
-    {
-      const Player::Control::Ptr ctrl = CreateControl(module);
-      return Player::Storage::Instance().Add(ctrl);
-    }
-    return 0;
-  }
-
-  JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Destroy(JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)
-  {
-    Player::Storage::Instance().Fetch(playerHandle);
-  }
-
-  JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render(JNIEnv* env, jclass /*self*/, jint playerHandle, jobject buffer)
-  {
-    if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
-    {
-      int16_t* buf = static_cast<int16_t*>(env->GetDirectBufferAddress(buffer));
-      const std::size_t size = env->GetDirectBufferCapacity(buffer);
-      return player->Render(size / sizeof(*buf), buf);
-    }
-    return false;
-  }
-
-  JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition(JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)
-  {
-    if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
-    {
-      return player->GetPosition();
-    }
-    return -1;
-  }
-
-  JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2J
-    (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong defVal)
-  {
-    if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
-    {
-      const Parameters::Container::Ptr params = player->GetParameters();
-      const Parameters::NameType name = GetString(env, propName);
-      Parameters::IntType val;
-      if (params->FindValue(name, val))
-      {
-        return val;
-      }
-    }
-    return defVal;
-  }
-
-  JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2Ljava_lang_String_2
-    (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jstring defVal)
-  {
-    if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
-    {
-      const Parameters::Container::Ptr params = player->GetParameters();
-      const Parameters::NameType name = GetString(env, propName);
-      Parameters::StringType val;
-      if (params->FindValue(name, val))
-      {
-        return env->NewStringUTF(val.c_str());
-      }
-    }
-    return defVal;
-  }
-
-  JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2J
-    (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong value)
-  {
-    if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
-    {
-      const Parameters::Container::Ptr params = player->GetParameters();
-      const Parameters::NameType name = GetString(env, propName);
-      params->SetValue(name, value);
-    }
-  }
-
-  JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2Ljava_lang_String_2
-    (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jstring value)
-  {
-    if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
-    {
-      const Parameters::Container::Ptr params = player->GetParameters();
-      const Parameters::NameType name = GetString(env, propName);
-      const Parameters::StringType val = GetString(env, value);
-      params->SetValue(name, val);
-    }
+    const Parameters::Container::Ptr params = player->GetParameters();
+    Jni::PropertiesWriteHelper props(env, *params);
+    props.Set(propName, value);
   }
 }

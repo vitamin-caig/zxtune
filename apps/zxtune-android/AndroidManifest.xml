@@ -3,14 +3,28 @@
       package="app.zxtune"
       android:versionCode="@integer/versionCode"
       android:versionName="@string/versionName">
-    <uses-sdk android:minSdkVersion="7" />
-    <application android:label="@string/app_name" android:icon="@drawable/ic_launcher">
-        <activity android:name="PlayFileActivity"
-                  android:label="@string/app_name">
+    <uses-sdk android:minSdkVersion="8" />
+    <application
+          android:label="@string/app_name"
+          android:icon="@drawable/ic_launcher"
+          android:allowBackup="true">
+        <activity
+              android:name=".PlayFileActivity"
+              android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"></action>
+                <category android:name="android.intent.category.DEFAULT"></category>
+                <category android:name="android.intent.category.BROWSABLE"></category>
+                <data android:host="*" android:scheme="file" android:mimeType="*/*" android:pathPattern=".*" />
+            </intent-filter> 
         </activity>
+        <service
+              android:process=":service"
+              android:name=".Service"
+        />
     </application>
 </manifest>

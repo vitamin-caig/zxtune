@@ -49,6 +49,22 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_ModuleInfo_1GetFramesCount
 
 /*
  * Class:     app_zxtune_ZXTune
+ * Method:    Module_GetProperty
+ * Signature: (ILjava/lang/String;J)J
+ */
+JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lang_String_2J
+  (JNIEnv *, jclass, jint, jstring, jlong);
+
+/*
+ * Class:     app_zxtune_ZXTune
+ * Method:    Module_GetProperty
+ * Signature: (ILjava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lang_String_2Ljava_lang_String_2
+  (JNIEnv *, jclass, jint, jstring, jstring);
+
+/*
+ * Class:     app_zxtune_ZXTune
  * Method:    Player_Create
  * Signature: (I)I
  */
@@ -66,7 +82,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Destroy
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Player_Render
- * Signature: (ILjava/nio/ShortBuffer;)Z
+ * Signature: (ILjava/nio/ByteBuffer;)Z
  */
 JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
   (JNIEnv *, jclass, jint, jobject);
@@ -115,6 +131,50 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_S
 }
 #endif
 #endif
+/* Header for class app_zxtune_ZXTune_Properties */
+
+#ifndef _Included_app_zxtune_ZXTune_Properties
+#define _Included_app_zxtune_ZXTune_Properties
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Properties_Accessor */
+
+#ifndef _Included_app_zxtune_ZXTune_Properties_Accessor
+#define _Included_app_zxtune_ZXTune_Properties_Accessor
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Properties_Modifier */
+
+#ifndef _Included_app_zxtune_ZXTune_Properties_Modifier
+#define _Included_app_zxtune_ZXTune_Properties_Modifier
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_NativeObject */
+
+#ifndef _Included_app_zxtune_ZXTune_NativeObject
+#define _Included_app_zxtune_ZXTune_NativeObject
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
 /* Header for class app_zxtune_ZXTune_Data */
 
 #ifndef _Included_app_zxtune_ZXTune_Data
@@ -130,6 +190,17 @@ extern "C" {
 
 #ifndef _Included_app_zxtune_ZXTune_Module
 #define _Included_app_zxtune_ZXTune_Module
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Module_Attributes */
+
+#ifndef _Included_app_zxtune_ZXTune_Module_Attributes
+#define _Included_app_zxtune_ZXTune_Module_Attributes
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -1,104 +1,155 @@
 /*
-* @file
-* @brief Gate to native ZXTune library code
-* @version $Id:$
-* @author (C) Vitamin/CAIG
-*/
+ * @file
+ * 
+ * @brief Gate to native ZXTune library code
+ * 
+ * @version $Id:$
+ * 
+ * @author (C) Vitamin/CAIG
+ */
 
 package app.zxtune;
 
 import java.nio.ByteBuffer;
 import java.lang.RuntimeException;
 
-public class ZXTune {
+public final class ZXTune {
 
-  public static class Data {
+  public static final class Properties {
 
-    private int Handle;
+    public static interface Accessor {
 
-    Data(ByteBuffer data) {
-      if (data == null) {
-        throw new RuntimeException("Failed to create empty data");
+      long getProperty(String name, long defVal);
+
+      String getProperty(String name, String defVal);
+    }
+
+    public static interface Modifier {
+
+      void setProperty(String name, long value);
+
+      void setProperty(String name, String value);
+    }
+
+    public final static String SOUND_FREQUENCY = "zxtune.sound.frequency";
+    public final static String FRAME_DURATION = "zxtune.sound.frameduration";
+  }
+
+  private static class NativeObject {
+
+    protected int handle;
+
+    protected NativeObject(int handle) {
+      if (0 == handle) {
+        throw new RuntimeException();
       }
-      Handle = Data_Create(data);
-      if (Handle == 0) {
-        throw new RuntimeException("Failed to create data");
-      }
+      this.handle = handle;
+    }
+  }
+
+  public static final class Data extends NativeObject {
+
+    Data(byte[] data) {
+      super(Data_Create(toByteBuffer(data)));
     }
 
     @Override
     protected void finalize() {
-      Data_Destroy(Handle);
+      Data_Destroy(handle);
     }
 
-    Module CreateModule() {
-      return new Module(Module_Create(Handle));
+    public Module createModule() {
+      return new Module(Module_Create(handle));
+    }
+
+    private static ByteBuffer toByteBuffer(byte[] data) {
+      final ByteBuffer result = ByteBuffer.allocateDirect(data.length);
+      result.put(data);
+      return result;
     }
   }
 
-  public static class Module {
+  public static final class Module extends NativeObject implements Properties.Accessor {
 
-    private int Handle;
+    public static final class Attributes {
+      public final static String TITLE = "Title";
+      public final static String AUTHOR = "Author";
+    }
 
     Module(int handle) {
-      Handle = handle;
-      if (Handle == 0) {
-        throw new RuntimeException("Failed to create module");
-      }
+      super(handle);
     }
 
     @Override
     protected void finalize() {
-      Module_Destroy(Handle);
+      Module_Destroy(handle);
     }
 
-    int GetFramesCount() {
-      return ModuleInfo_GetFramesCount(Handle);
+    int getFramesCount() {
+      return ModuleInfo_GetFramesCount(handle);
     }
 
-    Player CreatePlayer() {
-      return new Player(Player_Create(Handle));
+    public long getProperty(String name, long defVal) {
+      return Module_GetProperty(handle, name, defVal);
+    }
+
+    public String getProperty(String name, String defVal) {
+      return Module_GetProperty(handle, name, defVal);
+    }
+    
+    Player createPlayer() {
+      return new Player(Player_Create(handle));
     }
   }
 
-  public static class Player {
+  public static final class Player extends NativeObject
+      implements
+        Properties.Accessor,
+        Properties.Modifier {
 
-    private int Handle;
+    private ByteBuffer renderBuffer;
 
     Player(int handle) {
-      Handle = handle;
-      if (Handle == 0) {
-        throw new RuntimeException("Failed to create player");
-      }
+      super(handle);
     }
 
     @Override
     protected void finalize() {
-      Player_Destroy(Handle);
+      Player_Destroy(handle);
     }
 
-    boolean Render(ByteBuffer result) {
-      return Player_Render(Handle, result);
+    boolean render(byte[] result) {
+      allocateBuffer(result.length);
+      final boolean res = Player_Render(handle, renderBuffer);
+      renderBuffer.get(result, 0, result.length);
+      renderBuffer.rewind();
+      return res;
     }
 
-    int GetPosition() {
-      return Player_GetPosition(Handle);
+    int getPosition() {
+      return Player_GetPosition(handle);
     }
 
-    long GetProperty(String name, long defVal) {
-      return Player_GetProperty(Handle, name, defVal);
+    public long getProperty(String name, long defVal) {
+      return Player_GetProperty(handle, name, defVal);
     }
 
-    String GetProperty(String name, String defVal) {
-      return Player_GetProperty(Handle, name, defVal);
+    public String getProperty(String name, String defVal) {
+      return Player_GetProperty(handle, name, defVal);
     }
 
-    void SetProperty(String name, long val) {
-      Player_SetProperty(Handle, name, val);
+    public void setProperty(String name, long val) {
+      Player_SetProperty(handle, name, val);
     }
 
-    void SetProperty(String name, String val) {
-      Player_SetProperty(Handle, name, val);
+    public void setProperty(String name, String val) {
+      Player_SetProperty(handle, name, val);
+    }
+
+    private void allocateBuffer(int size) {
+      if (renderBuffer == null || renderBuffer.capacity() < size) {
+        renderBuffer = ByteBuffer.allocateDirect(size);
+      }
     }
   }
 
@@ -106,22 +157,36 @@ public class ZXTune {
     System.loadLibrary("zxtune");
   }
 
-  //working with data
+  // working with data
   private static native int Data_Create(ByteBuffer data);
+
   private static native void Data_Destroy(int handle);
-  
-  //working with module
+
+  // working with module
   private static native int Module_Create(int data);
+
   private static native void Module_Destroy(int module);
+
   private static native int ModuleInfo_GetFramesCount(int module);
+
+  private static native long Module_GetProperty(int module, String name, long defVal);
+
+  private static native String Module_GetProperty(int module, String name, String defVal);
   
-  //working with player
+  // working with player
   private static native int Player_Create(int module);
+
   private static native void Player_Destroy(int player);
+
   private static native boolean Player_Render(int player, ByteBuffer result);
+
   private static native int Player_GetPosition(int player);
+
   private static native long Player_GetProperty(int player, String name, long defVal);
+
   private static native String Player_GetProperty(int player, String name, String defVal);
+
   private static native void Player_SetProperty(int player, String name, long val);
+
   private static native void Player_SetProperty(int player, String name, String val);
 }
