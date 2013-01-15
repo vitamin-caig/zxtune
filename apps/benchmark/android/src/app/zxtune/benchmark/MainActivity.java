@@ -1,8 +1,11 @@
 package app.zxtune.benchmark;
 
 import android.app.Activity;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Build;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -56,6 +59,15 @@ public class MainActivity extends Activity {
       super.onPreExecute();
       ((Button)findViewById(R.id.test_start)).setEnabled(false);
       Report.clear();
+      try {
+        final PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+        Report.add(String.format("Benchmark %s (%d)", info.versionName, info.versionCode));
+      }
+      catch (NameNotFoundException e) {
+        Report.add("Unknown version of program!");
+      }
+      Report.add(String.format("Android %s (%s-%s)", Build.VERSION.RELEASE, Build.VERSION.INCREMENTAL, Build.VERSION.CODENAME));
+      Report.add(String.format("Device %s (%s/%s)", Build.MODEL, Build.CPU_ABI, Build.CPU_ABI2));
     }
 
     @Override

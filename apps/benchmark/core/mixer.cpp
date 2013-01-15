@@ -13,7 +13,7 @@ Author:
 #include "mixer.h"
 #include "timer.h"
 //library includes
-#include <sound/mixer.h>
+#include <sound/matrix_mixer.h>
 
 namespace Benchmark
 {
