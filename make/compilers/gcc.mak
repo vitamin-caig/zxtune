@@ -43,7 +43,7 @@ DEFINITIONS = $(defines) $($(platform)_definitions)
 INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 
 #setup flags
-CCFLAGS = -g3 $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
+CCFLAGS = -g $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
 	$(addprefix -D,$(DEFINITIONS)) \
 	-funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -pipe \
