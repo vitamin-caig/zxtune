@@ -67,7 +67,7 @@ namespace
     }
   private:
     const Sound::MultichannelReceiver::Ptr Target;
-    std::vector<Sound::Sample> Data;
+    Sound::MultichannelSample Data;
   };
 
   class DACAnalyzer : public Analyzer

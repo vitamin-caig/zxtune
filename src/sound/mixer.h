@@ -19,7 +19,7 @@ namespace ZXTune
   namespace Sound
   {
     //! @brief Abstract mixer interface
-    typedef DataTransceiver<std::vector<Sample>, MultiSample> Mixer;
+    typedef DataTransceiver<MultichannelSample, MultiSample> Mixer;
   }
 }
 

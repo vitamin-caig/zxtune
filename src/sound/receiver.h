@@ -15,8 +15,6 @@
 #include <data_streaming.h>
 //library includes
 #include <sound/sound_types.h>
-//std includes
-#include <vector>
 
 namespace ZXTune
 {
@@ -29,7 +27,7 @@ namespace ZXTune
     //! @brief Simle sound stream converter
     typedef DataTransceiver<MultiSample> Converter;
     //! @brief Multichannel stream receiver
-    typedef DataReceiver<std::vector<Sample> > MultichannelReceiver;
+    typedef DataReceiver<MultichannelSample> MultichannelReceiver;
   }
 }
 

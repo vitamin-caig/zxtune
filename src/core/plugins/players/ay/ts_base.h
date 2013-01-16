@@ -34,7 +34,7 @@ namespace ZXTune
 
     typedef DoubleReceiver<Devices::AYM::MultiSample> AYMTSMixer;
     typedef DoubleReceiver<Devices::FM::Sample> TFMMixer;
-    typedef DoubleReceiver<std::vector<Sound::Sample> > TSMixer;
+    typedef DoubleReceiver<Sound::MultichannelSample> TSMixer;
 
     TrackState::Ptr CreateTSTrackState(TrackState::Ptr first, TrackState::Ptr second);
     Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second);

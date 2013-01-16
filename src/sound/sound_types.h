@@ -30,6 +30,8 @@ namespace ZXTune
     //! @brief All-channels sample type
     typedef boost::array<Sample, OUTPUT_CHANNELS> MultiSample;
 
+    typedef std::vector<Sample> MultichannelSample;
+
     // Sample attributes (better to specify exactly)
     const Sample SAMPLE_MIN = 0;
     const Sample SAMPLE_MID = 32768;

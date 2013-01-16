@@ -254,7 +254,7 @@ namespace ZXTune
 
     TSMixer::Ptr CreateTSMixer(Sound::MultichannelReceiver::Ptr delegate)
     {
-      typedef DoubleReceiverImpl<std::vector<Sound::Sample> > Impl;
+      typedef DoubleReceiverImpl<Sound::MultichannelSample> Impl;
       return boost::make_shared<Impl>(delegate);
     }
 
@@ -273,7 +273,7 @@ namespace ZXTune
     Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
     {
       const TSMixer::Ptr mixer = CreateTSMixer(target);
-      typedef TSRenderer<std::vector<Sound::Sample> > Impl;
+      typedef TSRenderer<Sound::MultichannelSample> Impl;
       return boost::make_shared<Impl>(first->CreateRenderer(params, mixer), second->CreateRenderer(params, mixer), mixer);
     }
 

@@ -87,7 +87,7 @@ namespace
       }
     }
 
-    virtual void ApplyData(const std::vector<Sample>& inData)
+    virtual void ApplyData(const MultichannelSample& inData)
     {
       assert(inData.size() == InChannels || !"Mixer::ApplyData channels mismatch");
       // pass along input channels due to input data structure

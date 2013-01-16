@@ -51,7 +51,7 @@ namespace
     }
   private:
     const Sound::MultichannelReceiver::Ptr Target;
-    std::vector<Sound::Sample> Data;
+    Sound::MultichannelSample Data;
   };
 
   class TFMAnalyzer : public Analyzer
