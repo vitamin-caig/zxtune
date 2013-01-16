@@ -8,7 +8,7 @@ Last changed:
 Author:
   (C) Vitamin/CAIG/2001
 
-  Based on sources of UnrealSpeccy by SMT
+  Based on sources of UnrealSpeccy by SMT and Xpeccy sources by SamStyle
 */
 
 //common includes
@@ -105,189 +105,214 @@ namespace
   const NoiseLookup NoiseTable;
 
   //PSG-related functionality
-  class BaseGenerator
+  class Generator
   {
   public:
-    BaseGenerator()
-      : Period()
+    Generator()
+      : DoublePeriod(2)
+      , DutyCycle(NO_DUTYCYCLE)
+      , MiddlePeriod(1)
       , Counter()
     {
     }
 
     void Reset()
     {
-      Period = Counter = 0;
+      SetPeriod(0);
+      ResetCounter();
     }
 
     void SetPeriod(uint_t period)
     {
-      Period = period;
-    }
-
-    uint_t Tick(uint_t ticks)
-    {
-      if (Period <= 1)
-      {
-        return ticks;
-      }
-      Counter += ticks;
-      const uint_t res = Counter / Period;
-      Counter %= Period;
-      return res;
-    }
-
-    void ResetCounter()
-    {
-      Counter = 0;
-    }
-  protected:
-    uint_t Period;
-    uint_t Counter;
-  };
-
-  class SimpleGenerator : public BaseGenerator
-  {
-  public:
-    void SetDutyCycle(uint_t /*dutyCycle*/)
-    {
-    }
-  private:
-    uint_t Period;
-  };
-
-  class DutedGenerator : public BaseGenerator
-  {
-  public:
-    DutedGenerator()
-      : DutyCycle(NO_DUTYCYCLE)
-      , HalfPeriod()
-    {
-    }
-
-    void Reset()
-    {
-      SetPeriod(0);
-      BaseGenerator::Reset();
-    }
-
-    /*
-    Perform square pulse width according to current state and duty parameter
-    e.g. if duty == 25
-      _     _
-     | |   | |
-    _| |___| |_
-
-     |1| 3 |1| ...
-
-    positive pulse width is 1/4 of period value
-    */
-    uint_t Tick(uint_t ticks)
-    {
-      const bool prevLoPart = Counter < HalfPeriod;
-      const uint_t doubleRounds = BaseGenerator::Tick(ticks);
-      const bool nowLoPart = Counter < HalfPeriod;
-      return 2 * doubleRounds + (prevLoPart != nowLoPart);
+      DoublePeriod = 2 * std::max<uint_t>(1, period);
+      UpdateMiddle();
     }
 
     void SetDutyCycle(uint_t dutyCycle)
     {
       assert(dutyCycle > 0 && dutyCycle < MAX_DUTYCYCLE);
       DutyCycle = dutyCycle;
-      UpdateHalfPeriod();
+      UpdateMiddle();
     }
 
-    void SetPeriod(uint_t period)
+    void Tick(uint_t ticks)
     {
-      BaseGenerator::SetPeriod(period * 2);
-      UpdateHalfPeriod();
+      Counter += ticks;
+    }
+
+    void ResetCounter()
+    {
+      Counter = 0;
     }
   private:
-    void UpdateHalfPeriod()
+    void UpdateMiddle()
     {
-      HalfPeriod = DutyCycle * Period / MAX_DUTYCYCLE;
+      MiddlePeriod = DutyCycle * DoublePeriod / MAX_DUTYCYCLE;
     }
-  private:
+  protected:
+    uint_t DoublePeriod;
     uint_t DutyCycle;
-    uint_t HalfPeriod;
+    uint_t MiddlePeriod;
+    mutable uint_t Counter;
   };
 
-  template<class Generator>
-  class ToneGenerator : public Generator
+  //Some of the hardware platforms has no native div/mod operations, so it's better to substract.
+  //In any case, it's better than sequental incremental/comparing
+  class FlipFlopGenerator : public Generator
+  {
+  protected:
+    bool GetFlip() const
+    {
+      const uint_t mask = DoublePeriod - 1;
+      //if power of two
+      if (0 == (DoublePeriod & mask))
+      {
+        Counter &= mask;
+      }
+      else
+      {
+        while (Counter >= DoublePeriod)
+        {
+          Counter -= DoublePeriod;
+        }
+      }
+      return Counter >= MiddlePeriod;
+    }
+  };
+
+  class CountingGenerator : public Generator
+  {
+  public:
+    //for counting generators use duty cycle >= 50% for valid periods calculating
+    void SetDutyCycle(uint_t dutyCycle)
+    {
+      Generator::SetDutyCycle(std::max(dutyCycle, MAX_DUTYCYCLE - dutyCycle));
+    }
+  protected:
+    uint_t GetPeriodsPassed() const
+    {
+      uint_t res = 0;
+      uint_t mask = DoublePeriod - 1;
+      //if power of two
+      if (0 == (DoublePeriod & mask))
+      {
+        res = Counter & ~mask;
+        Counter &= mask;
+        while (mask != 1)
+        {
+          res >>= 1;
+          mask >>= 1;
+        }
+      }
+      else
+      {
+        while (Counter >= DoublePeriod)
+        {
+          Counter -= DoublePeriod;
+          res += 2;
+        }
+      }
+      if (Counter >= MiddlePeriod)
+      {
+        //additional 'modulo' to take into account half of period
+        ++res;
+        Counter = MiddlePeriod - (DoublePeriod - Counter);
+      }
+      return res;
+    }
+  };
+
+  class ToneGenerator : public FlipFlopGenerator
   {
   public:
     ToneGenerator()
-      : Flip(LOW_LEVEL)
-      , Mask(HIGH_LEVEL)
+      : Masked(true)
     {
     }
 
     void Reset()
     {
-      Flip = LOW_LEVEL;
-      Mask = HIGH_LEVEL;
-      Generator::Reset();
+      Masked = true;
+      FlipFlopGenerator::Reset();
     }
 
-    void Tick(uint_t ticks)
+    void SetPeriod(uint_t period)
     {
-      const uint_t rounds = Generator::Tick(ticks);
-      if (0 != (rounds & 1))
-      {
-        Flip = ~Flip;
-      }
+      GetFlip();
+      FlipFlopGenerator::SetPeriod(period);
     }
 
-    void SetMask(uint_t val)
+    void SetMasked(bool masked)
     {
-      Mask = val;
+      Masked = masked;
     }
 
     uint_t GetLevel() const
     {
-      return Mask | Flip;
+      return Masked || GetFlip() ? HIGH_LEVEL : LOW_LEVEL;
     }
   private:
-    uint_t Flip;
-    uint_t Mask;
+    bool Masked;
   };
 
-  template<class Generator>
-  class NoiseGenerator : public Generator
+  class NoiseGenerator : public CountingGenerator
   {
   public:
     NoiseGenerator()
       : Index()
+      , Masked(true)
     {
     }
 
     void Reset()
     {
       Index = 0;
-      Generator::Reset();
+      Masked = true;
+      CountingGenerator::Reset();
     }
 
-    void Tick(uint_t ticks)
+    void SetPeriod(uint_t period)
     {
-      Index += Generator::Tick(ticks);
-      Index &= NoiseTable.INDEX_MASK;
+      UpdateIndex();
+      CountingGenerator::SetPeriod(period);
+    }
+
+    void SetMasked(bool masked)
+    {
+      Masked = masked;
     }
 
     uint_t GetLevel() const
     {
-      return NoiseTable[Index];
+      if (Masked)
+      {
+        return HIGH_LEVEL;
+      }
+      else
+      {
+        UpdateIndex();
+        return NoiseTable[Index];
+      }
     }
   private:
-    uint_t Index;
+    void UpdateIndex() const
+    {
+      Index += GetPeriodsPassed();
+      Index &= NoiseTable.INDEX_MASK;
+    }
+  private:
+    mutable uint_t Index;
+    bool Masked;
   };
 
-  template<class Generator>
-  class EnvelopeGenerator : public Generator
+  class EnvelopeGenerator : public CountingGenerator
   {
   public:
     EnvelopeGenerator()
       : Type()
       , Level()
       , Decay()
+      , Enabled(false)
     {
     }
 
@@ -296,20 +321,13 @@ namespace
       Type = 0;
       Level = 0;
       Decay = 0;
-      Generator::Reset();
-    }
-
-    void Tick(uint_t ticks)
-    {
-      for (uint_t rounds = Generator::Tick(ticks); rounds && Decay; --rounds)
-      {
-        Update();
-      }
+      Enabled = false;
+      CountingGenerator::Reset();
     }
 
     void SetType(uint_t type)
     {
-      Generator::ResetCounter();
+      CountingGenerator::ResetCounter();
       Type = type;
       if (Type & 4) //down-up envelopes
       {
@@ -323,12 +341,42 @@ namespace
       }
     }
 
+    void SetPeriod(uint_t period)
+    {
+      Update();
+      CountingGenerator::SetPeriod(period);
+    }
+
+    void SetEnabled(bool enabled)
+    {
+      Enabled = enabled;
+    }
+
     uint_t GetLevel() const
     {
-      return Level;
+      if (Enabled)
+      {
+        Update();
+        return Level;
+      }
+      else
+      {
+        return LOW_LEVEL;
+      }
     }
   private:
-    void Update()
+    void Update() const
+    {
+      if (Decay)
+      {
+        for (uint_t rounds = GetPeriodsPassed(); rounds && Decay; --rounds)
+        {
+          UpdateStep();
+        }
+      }
+    }
+
+    void UpdateStep() const
     {
       Level += Decay;
       if (0 == (Level & ~31u))
@@ -339,7 +387,8 @@ namespace
       if (envTypeMask & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
                          (1 << 5) | (1 << 6) | (1 << 7) | (1 << 9) | (1 << 15)))
       {
-        Level = Decay = 0;
+        Level = 0;
+        Decay = 0;
       }
       else if (envTypeMask & ((1 << 8) | (1 << 12)))
       {
@@ -358,8 +407,9 @@ namespace
     }
   private:
     uint_t Type;
-    uint_t Level;
-    int_t Decay;
+    mutable uint_t Level;
+    mutable int_t Decay;
+    bool Enabled;
   };
 
   class Renderer
@@ -376,37 +426,20 @@ namespace
   class AYMDevice
   {
   public:
-    virtual ~AYMDevice() {}
-
-    virtual void SetType(bool isYM) = 0;
-    virtual void SetDutyCycle(uint_t value, uint_t mask) = 0;
-    virtual void SetMixer(uint_t mixer) = 0;
-    virtual void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE) = 0;
-    virtual void SetEnvType(uint_t type) = 0;
-    virtual void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC) = 0;
-    virtual void Reset() = 0;
-    virtual void Tick(uint_t ticks) = 0;
-    virtual void GetLevels(MultiSample& result) const = 0;
-  };
-
-  template<class Generator>
-  class AYMBaseDevice : public AYMDevice
-  {
-  public:
-    AYMBaseDevice()
+    AYMDevice()
       : LevelA(), LevelB(), LevelC()
       , MaskNoiseA(HIGH_LEVEL), MaskNoiseB(HIGH_LEVEL), MaskNoiseC(HIGH_LEVEL)
-      , MaskEnvA(HIGH_LEVEL), MaskEnvB(HIGH_LEVEL), MaskEnvC(HIGH_LEVEL)
+      , UseEnvA(LOW_LEVEL), UseEnvB(LOW_LEVEL), UseEnvC(LOW_LEVEL)
       , VolTable(&AYVolumeTab)
     {
     }
 
-    virtual void SetType(bool isYM)
+    void SetType(bool isYM)
     {
       VolTable = isYM ? &YMVolumeTab : &AYVolumeTab;
     }
 
-    virtual void SetDutyCycle(uint_t value, uint_t mask)
+    void SetDutyCycle(uint_t value, uint_t mask)
     {
       GenA.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_A) ? value : NO_DUTYCYCLE);
       GenB.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_B) ? value : NO_DUTYCYCLE);
@@ -415,17 +448,18 @@ namespace
       GenE.SetDutyCycle(0 != (mask & DataChunk::CHANNEL_MASK_E) ? value : NO_DUTYCYCLE);
     }
 
-    virtual void SetMixer(uint_t mixer)
+    void SetMixer(uint_t mixer)
     {
-      GenA.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEA) ? HIGH_LEVEL : LOW_LEVEL);
-      GenB.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEB) ? HIGH_LEVEL : LOW_LEVEL);
-      GenC.SetMask(0 != (mixer & DataChunk::REG_MASK_TONEC) ? HIGH_LEVEL : LOW_LEVEL);
+      GenA.SetMasked(0 != (mixer & DataChunk::REG_MASK_TONEA));
+      GenB.SetMasked(0 != (mixer & DataChunk::REG_MASK_TONEB));
+      GenC.SetMasked(0 != (mixer & DataChunk::REG_MASK_TONEC));
       MaskNoiseA = 0 != (mixer & DataChunk::REG_MASK_NOISEA) ? HIGH_LEVEL : LOW_LEVEL;
       MaskNoiseB = 0 != (mixer & DataChunk::REG_MASK_NOISEB) ? HIGH_LEVEL : LOW_LEVEL;
       MaskNoiseC = 0 != (mixer & DataChunk::REG_MASK_NOISEC) ? HIGH_LEVEL : LOW_LEVEL;
+      GenN.SetMasked(0 != (MaskNoiseA & MaskNoiseB & MaskNoiseC));
     }
 
-    virtual void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE)
+    void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE)
     {
       GenA.SetPeriod(toneA);
       GenB.SetPeriod(toneB);
@@ -434,22 +468,23 @@ namespace
       GenE.SetPeriod(toneE);
     }
 
-    virtual void SetEnvType(uint_t type)
+    void SetEnvType(uint_t type)
     {
       GenE.SetType(type);
     }
 
-    virtual void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC)
+    void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC)
     {
-      MaskEnvA = 0 != (levelA & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
-      MaskEnvB = 0 != (levelB & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
-      MaskEnvC = 0 != (levelC & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
-      LevelA = (((levelA & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvA;
-      LevelB = (((levelB & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvB;
-      LevelC = (((levelC & DataChunk::REG_MASK_VOL) << 1) + 1) & ~MaskEnvC;
+      UseEnvA = 0 != (levelA & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
+      UseEnvB = 0 != (levelB & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
+      UseEnvC = 0 != (levelC & DataChunk::REG_MASK_ENV) ? HIGH_LEVEL : LOW_LEVEL;
+      GenE.SetEnabled(0 != (UseEnvA | UseEnvB | UseEnvC));
+      LevelA = (((levelA & DataChunk::REG_MASK_VOL) << 1) + 1) & ~UseEnvA;
+      LevelB = (((levelB & DataChunk::REG_MASK_VOL) << 1) + 1) & ~UseEnvB;
+      LevelC = (((levelC & DataChunk::REG_MASK_VOL) << 1) + 1) & ~UseEnvC;
     }
 
-    virtual void Reset()
+    void Reset()
     {
       GenA.Reset();
       GenB.Reset();
@@ -458,11 +493,11 @@ namespace
       GenE.Reset();
       LevelA = LevelB = LevelC = 0;
       MaskNoiseA = MaskNoiseB = MaskNoiseC = HIGH_LEVEL;
-      MaskEnvA = MaskEnvB = MaskEnvC = HIGH_LEVEL;
+      UseEnvA = UseEnvB = UseEnvC = LOW_LEVEL;
       VolTable = &AYVolumeTab;
     }
 
-    virtual void Tick(uint_t ticks)
+    void Tick(uint_t ticks)
     {
       GenA.Tick(ticks);
       GenB.Tick(ticks);
@@ -471,14 +506,14 @@ namespace
       GenE.Tick(ticks);
     }
 
-    virtual void GetLevels(MultiSample& result) const
+    void GetLevels(MultiSample& result) const
     {
       const uint_t noiseLevel = GenN.GetLevel();
       const uint_t envelope = GenE.GetLevel();
 
-      const uint_t outA = ((MaskEnvA & envelope) | LevelA) & GenA.GetLevel() & (noiseLevel | MaskNoiseA);
-      const uint_t outB = ((MaskEnvB & envelope) | LevelB) & GenB.GetLevel() & (noiseLevel | MaskNoiseB);
-      const uint_t outC = ((MaskEnvC & envelope) | LevelC) & GenC.GetLevel() & (noiseLevel | MaskNoiseC);
+      const uint_t outA = ((UseEnvA & envelope) | LevelA) & GenA.GetLevel() & (noiseLevel | MaskNoiseA);
+      const uint_t outB = ((UseEnvB & envelope) | LevelB) & GenB.GetLevel() & (noiseLevel | MaskNoiseB);
+      const uint_t outC = ((UseEnvC & envelope) | LevelC) & GenC.GetLevel() & (noiseLevel | MaskNoiseC);
 
       const VolumeTable& table = *VolTable;
       assert(outA < 32 && outB < 32 && outC < 32);
@@ -487,20 +522,20 @@ namespace
       result[2] = table[outC];
     }
   private:
-    ToneGenerator<Generator> GenA;
-    ToneGenerator<Generator> GenB;
-    ToneGenerator<Generator> GenC;
-    NoiseGenerator<Generator> GenN;
-    EnvelopeGenerator<Generator> GenE;
+    ToneGenerator GenA;
+    ToneGenerator GenB;
+    ToneGenerator GenC;
+    NoiseGenerator GenN;
+    EnvelopeGenerator GenE;
     uint_t LevelA;
     uint_t LevelB;
     uint_t LevelC;
     uint_t MaskNoiseA;
     uint_t MaskNoiseB;
     uint_t MaskNoiseC;
-    uint_t MaskEnvA;
-    uint_t MaskEnvB;
-    uint_t MaskEnvC;
+    uint_t UseEnvA;
+    uint_t UseEnvB;
+    uint_t UseEnvC;
     const VolumeTable* VolTable;
   };
 
@@ -510,40 +545,25 @@ namespace
     AYMRenderer()
       : Mixer(State.Data[DataChunk::REG_MIXER])
       , VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
-      , IsDuted(false)
-      , Device(new AYMBaseDevice<SimpleGenerator>())
     {
       Mixer = 0xff;
     }
 
     void SetType(bool isYM)
     {
-      Device->SetType(isYM);
+      Device.SetType(isYM);
     }
 
     void SetDutyCycle(uint_t value, uint_t mask)
     {
-      const bool newDuted = mask && value != NO_DUTYCYCLE;
-      if (newDuted != IsDuted)
-      {
-        if (newDuted)
-        {
-          Device.reset(new AYMBaseDevice<DutedGenerator>());
-        }
-        else
-        {
-          Device.reset(new AYMBaseDevice<SimpleGenerator>());
-        }
-        IsDuted = newDuted;
-      }
-      Device->SetDutyCycle(value, mask);
+      Device.SetDutyCycle(value, mask);
     }
 
     virtual void Reset()
     {
       State = DataChunk();
       Mixer = 0xff;
-      Device->Reset();
+      Device.Reset();
     }
 
     virtual void SetNewData(const DataChunk& data)
@@ -570,7 +590,7 @@ namespace
       }
       if (data.Mask & (1 << DataChunk::REG_MIXER))
       {
-        Device->SetMixer(Mixer);
+        Device.SetMixer(Mixer);
       }
       if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H) |
                        (1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H) |
@@ -579,26 +599,26 @@ namespace
                        (1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)
                        ))
       {
-        Device->SetPeriods(GetToneA(), GetToneB(), GetToneC(), GetToneN(), GetToneE());
+        Device.SetPeriods(GetToneA(), GetToneB(), GetToneC(), GetToneN(), GetToneE());
       }
       if (data.Mask & (1 << DataChunk::REG_ENV))
       {
-        Device->SetEnvType(GetEnvType());
+        Device.SetEnvType(GetEnvType());
       }
       if (data.Mask & ((1 << DataChunk::REG_VOLA) | (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC)))
       {
-        Device->SetLevel(VolA, VolB, VolC);
+        Device.SetLevel(VolA, VolB, VolC);
       }
     }
 
     virtual void Tick(uint_t ticks)
     {
-      Device->Tick(ticks);
+      Device.Tick(ticks);
     }
 
     virtual void GetLevels(MultiSample& result) const
     {
-      return Device->GetLevels(result);
+      return Device.GetLevels(result);
     }
 
     void GetState(uint64_t ticksPerSec, ChannelsState& state) const
@@ -715,8 +735,7 @@ namespace
     uint8_t& VolB;
     uint8_t& VolC;
     //device
-    bool IsDuted;
-    boost::scoped_ptr<AYMDevice> Device;
+    AYMDevice Device;
   };
 
   class BeeperRenderer : public Renderer
