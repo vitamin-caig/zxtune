@@ -1,3 +1,4 @@
+#android
 # x86
 android.x86.toolchain = /opt/x86-linux-android
 android.x86.execprefix = $(android.x86.toolchain)/bin/i686-linux-android-
@@ -14,3 +15,8 @@ android.armeabi-v7a.boost.version = 1.49.0
 android.mips.toolchain = /opt/mipsel-linux-android
 android.mips.execprefix = $(android.mips.toolchain)/bin/mipsel-linux-android-
 android.mips.boost.version = 1.49.0
+
+#dingux
+dingux.mipsel.toolchain = /opt/mipsel-linux-uclibc
+dingux.mipsel.execprefix = $(dingux.mipsel.toolchain)/usr/bin/mipsel-linux-
+dingux.mipsel.boost.version = 1.49.0

@@ -5,27 +5,22 @@ makeobj_name = $(1).o
 
 host=linux
 compiler=gcc
-CXX = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-g++
-CC = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-cc
-CXX_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH} -B${TOOLCHAIN_PATH} -mips32 -fvisibility=hidden -fvisibility-inlines-hidden
-LDD = $(CXX)
-LD_PLATFORM_FLAGS = --sysroot=${TOOLCHAIN_PATH}
+CXX = $($(platform).$(arch).execprefix)g++
+CC = $($(platform).$(arch).execprefix)gcc
+LDD = $($(platform).$(arch).execprefix)g++
+AR = $($(platform).$(arch).execprefix)ar
+OBJCOPY = $($(platform).$(arch).execprefix)objcopy
+STRIP = $($(platform).$(arch).execprefix)strip
+CXX_PLATFORM_FLAGS = --sysroot=$($(platform).$(arch).toolchain) -B$($(platform).$(arch).toolchain) -mips32 -fvisibility=hidden -fvisibility-inlines-hidden
+LD_PLATFORM_FLAGS = --sysroot=$($(platform).$(arch).toolchain)
 ifdef release
 LD_PLATFORM_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
 endif
-AR = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-ar
-OBJCOPY = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-objcopy
-STRIP = ${TOOLCHAIN_PATH}/usr/bin/mipsel-linux-strip
 
 #defines without spaces
 dingux_definitions += 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' 'BOOST_FILESYSTEM_VERSION=2'
 dingux_libraries += stdc++ gcc c m dl pthread
-dingux_libraries_dirs += ${TOOLCHAIN_PATH}/usr/mipsel-linux/lib
-
-ifdef STATIC_BOOST_PATH
-include_dirs += $(STATIC_BOOST_PATH)/include
-dingux_libraries_dirs += $(STATIC_BOOST_PATH)/lib
-endif
+#dingux_libraries_dirs += ${TOOLCHAIN_PATH}/usr/mipsel-linux/lib
 
 #support only static multithread release libraries
 dingux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
