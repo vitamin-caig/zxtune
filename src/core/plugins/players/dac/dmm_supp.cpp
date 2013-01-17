@@ -561,10 +561,10 @@ namespace
     {
       if (Iterator->IsValid())
       {
-        LastRenderTime += Params->FrameDurationMicrosec();
+        LastRenderTime += Params->FrameDuration();
         Devices::DAC::DataChunk chunk;
         RenderData(chunk);
-        chunk.TimeStamp = Time::Microseconds(LastRenderTime);
+        chunk.TimeStamp = LastRenderTime;
         Device->RenderData(chunk);
         Device->Flush();
         Iterator->NextFrame(Params->Looped());
@@ -576,7 +576,7 @@ namespace
     {
       Device->Reset();
       Iterator->Reset();
-      LastRenderTime = 0;
+      LastRenderTime = Time::Microseconds();
       std::fill(Chans.begin(), Chans.end(), ChannelState());
     }
 
@@ -989,7 +989,7 @@ namespace
     const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
     boost::array<ChannelState, DMM::CHANNELS_COUNT> Chans;
-    uint64_t LastRenderTime;
+    Time::Microseconds LastRenderTime;
   };
 
   Renderer::Ptr CreateDMMRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)

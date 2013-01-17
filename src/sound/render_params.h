@@ -13,6 +13,8 @@
 
 //common includes
 #include <parameters.h>
+//library includes
+#include <time/stamp.h>
 
 namespace ZXTune
 {
@@ -29,7 +31,7 @@ namespace ZXTune
       //! Rendering sound frequency
       virtual uint_t SoundFreq() const = 0;
       //! Frame duration in us
-      virtual uint_t FrameDurationMicrosec() const = 0;
+      virtual Time::Microseconds FrameDuration() const = 0;
       //! Loop mode
       virtual bool Looped() const = 0;
       //! Sound samples count per one frame

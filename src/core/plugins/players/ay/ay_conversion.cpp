@@ -44,7 +44,7 @@ namespace
 
     virtual Time::Microseconds FrameDuration() const
     {
-      return Time::Microseconds(SndParams->FrameDurationMicrosec());
+      return SndParams->FrameDuration();
     }
 
     virtual Devices::AYM::DumperParameters::Optimization OptimizationLevel() const

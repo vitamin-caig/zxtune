@@ -472,8 +472,8 @@ namespace
       res.Device = OpenDevice(*Api, device);
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
-      const uint_t frameDurationMs = RenderingParameters->FrameDurationMicrosec() / 1000;
-      res.Stream = boost::make_shared<StreamBuffer>(buffer, boost::posix_time::millisec(frameDurationMs));
+      const Time::Milliseconds frameDuration = RenderingParameters->FrameDuration();
+      res.Stream = boost::make_shared<StreamBuffer>(buffer, boost::posix_time::millisec(frameDuration.Get()));
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
       res.Volume = boost::make_shared<DirectSoundVolumeControl>(primary);
       return res;

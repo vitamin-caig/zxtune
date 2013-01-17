@@ -135,7 +135,7 @@ namespace
     void CommitChunk(const Devices::TFM::DataChunk& chunk)
     {
       Device->RenderData(chunk);
-      FlushChunk.TimeStamp += Time::Microseconds(Params->FrameDurationMicrosec());
+      FlushChunk.TimeStamp += Params->FrameDuration();
       Device->RenderData(FlushChunk);
       Device->Flush();
     }

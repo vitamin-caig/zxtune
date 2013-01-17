@@ -35,7 +35,7 @@ namespace ZXTune
 
         virtual ~TrackParameters() {}
 
-        virtual uint_t FrameDurationMicrosec() const = 0;
+        virtual Time::Microseconds FrameDuration() const = 0;
         virtual bool Looped() const = 0;
         virtual const Module::FrequencyTable& FreqTable() const = 0;
 

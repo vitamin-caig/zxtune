@@ -31,7 +31,7 @@ namespace ZXTune
         virtual ~TrackParameters() {}
 
         virtual bool Looped() const = 0;
-        virtual uint_t FrameDurationMicrosec() const = 0;
+        virtual Time::Microseconds FrameDuration() const = 0;
 
         static Ptr Create(Parameters::Accessor::Ptr params);
       };

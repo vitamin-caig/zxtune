@@ -374,7 +374,7 @@ namespace
     {
       if (Iterator->IsValid())
       {
-        LastTime += Time::Microseconds(Params->FrameDurationMicrosec());
+        LastTime += Params->FrameDuration();
         Comp->NextFrame(LastTime);
         Device->RenderFrame(LastTime);
         Iterator->NextFrame(Params->Looped());
@@ -397,7 +397,7 @@ namespace
         //rewind
         Iterator->Reset();
       }
-      const Devices::Z80::Stamp period = Time::Microseconds(Params->FrameDurationMicrosec());
+      const Devices::Z80::Stamp period = Params->FrameDuration();
       Devices::Z80::Stamp newTime = LastTime; 
       while (State->Frame() < frame && Iterator->IsValid())
       {

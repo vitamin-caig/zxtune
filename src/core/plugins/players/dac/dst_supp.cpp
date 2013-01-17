@@ -270,10 +270,10 @@ namespace
     {
       if (Iterator->IsValid())
       {
-        LastRenderTime += Params->FrameDurationMicrosec();
+        LastRenderTime += Params->FrameDuration();
         Devices::DAC::DataChunk chunk;
         RenderData(chunk);
-        chunk.TimeStamp = Time::Microseconds(LastRenderTime);
+        chunk.TimeStamp = LastRenderTime;
         Device->RenderData(chunk);
         Device->Flush();
         Iterator->NextFrame(Params->Looped());
@@ -285,7 +285,7 @@ namespace
     {
       Device->Reset();
       Iterator->Reset();
-      LastRenderTime = 0;
+      LastRenderTime = Time::Microseconds();
     }
 
     virtual void SetPosition(uint_t frame)
@@ -351,7 +351,7 @@ namespace
     const DAC::TrackParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
     const StateIterator::Ptr Iterator;
-    uint64_t LastRenderTime;
+    Time::Microseconds LastRenderTime;
   };
 
   Renderer::Ptr CreateDSTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, DSTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)

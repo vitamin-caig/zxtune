@@ -195,7 +195,7 @@ namespace
     void CommitChunk(const Devices::AYM::DataChunk& chunk)
     {
       Device->RenderData(chunk);
-      FlushChunk.TimeStamp += Time::Microseconds(Params->FrameDurationMicrosec());
+      FlushChunk.TimeStamp += Params->FrameDuration();
       Device->RenderData(FlushChunk);
       Device->Flush();
     }

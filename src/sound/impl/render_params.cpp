@@ -31,10 +31,10 @@ namespace
       return static_cast<uint_t>(FoundProperty(FREQUENCY, FREQUENCY_DEFAULT));
     }
 
-    virtual uint_t FrameDurationMicrosec() const
+    virtual Time::Microseconds FrameDuration() const
     {
       using namespace Parameters::ZXTune::Sound;
-      return static_cast<uint_t>(FoundProperty(FRAMEDURATION, FRAMEDURATION_DEFAULT));
+      return Time::Microseconds(FoundProperty(FRAMEDURATION, FRAMEDURATION_DEFAULT));
     }
 
     virtual bool Looped() const
@@ -45,9 +45,9 @@ namespace
 
     virtual uint_t SamplesPerFrame() const
     {
-      const uint_t sound = SoundFreq();
-      const uint_t frameDuration = FrameDurationMicrosec();
-      return static_cast<uint_t>(sound * frameDuration / 1000000);
+      const uint_t freq = SoundFreq();
+      const Time::Microseconds frameDuration = FrameDuration();
+      return static_cast<uint_t>(frameDuration.Get() * freq / frameDuration.PER_SECOND);
     }
   private:
     Parameters::IntType FoundProperty(const Parameters::NameType& name, Parameters::IntType defVal) const

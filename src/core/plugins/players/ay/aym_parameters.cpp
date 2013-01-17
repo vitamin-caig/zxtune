@@ -204,9 +204,9 @@ namespace
       UpdateParameters();
     }
 
-    virtual uint_t FrameDurationMicrosec() const
+    virtual Time::Microseconds FrameDuration() const
     {
-      return Delegate->FrameDurationMicrosec();
+      return Delegate->FrameDuration();
     }
 
     virtual bool Looped() const
