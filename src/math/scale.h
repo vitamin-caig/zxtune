@@ -44,22 +44,20 @@ namespace Math
 
   inline uint64_t Scale(uint64_t value, uint64_t inRange, uint64_t outRange)
   {
-    const std::size_t valBits = Log2(value);
-    const std::size_t outBits = Log2(outRange);
-    const std::size_t availBits = 8 * sizeof(uint64_t);
-    if (valBits + outBits < availBits)
+    //really reverseBits(significantBits(val))
+    const uint64_t unsafeScaleMask = HiBitsMask<uint64_t>(Log2(outRange));
+    if (0 == (value & unsafeScaleMask))
     {
       return (value * outRange) / inRange;
     }
-    if (valBits + outBits - Log2(inRange) > availBits)
+    else
     {
-      return ~uint64_t(0);//maximal value
+      const std::pair<uint64_t, uint64_t> valIn = OptimizeRatio(value, inRange);
+      const std::pair<uint64_t, uint64_t> outIn = OptimizeRatio(outRange, valIn.second);
+      return outIn.second != inRange
+          ? Scale(valIn.first, outIn.second, outIn.first)
+          : static_cast<uint64_t>(double(value) * outRange / inRange);
     }
-    const std::pair<uint64_t, uint64_t> valIn = OptimizeRatio(value, inRange);
-    const std::pair<uint64_t, uint64_t> outIn = OptimizeRatio(outRange, valIn.second);
-    return outIn.second != inRange
-        ? Scale(valIn.first, outIn.second, outIn.first)
-        : static_cast<uint64_t>(double(value) * outRange / inRange);
   }
 
   template<class T>
@@ -93,33 +91,30 @@ namespace Math
   public:
     ScaleFunctor(uint64_t inRange, uint64_t outRange)
       : Range(OptimizeRatio(inRange, outRange))
-      , RangeBits(std::make_pair(Log2(Range.first), Log2(Range.second)))
+      , UnsafeScaleMask(HiBitsMask<uint64_t>(Log2(Range.second)))
     {
     }
 
     ScaleFunctor(const ScaleFunctor<uint64_t>& rh)
       : Range(rh.Range)
-      , RangeBits(rh.RangeBits)
+      , UnsafeScaleMask(rh.UnsafeScaleMask)
     {
     }
 
     uint64_t operator()(uint64_t value) const
     {
-      const std::size_t valBits = Log2(value);
-      const std::size_t availBits = 8 * sizeof(uint64_t);
-      if (valBits + RangeBits.second < availBits)
+      if (0 == (value & UnsafeScaleMask))
       {
         return (value * Range.second) / Range.first;
       }
-      if (valBits + RangeBits.second - RangeBits.first > availBits)
+      else
       {
-        return ~uint64_t(0);//maximal value
+        return static_cast<uint64_t>(double(value) * Range.second / Range.first);
       }
-      return static_cast<uint64_t>(double(value) * Range.second / Range.first);
     }
   private:
     std::pair<uint64_t, uint64_t> Range;
-    std::pair<std::size_t, std::size_t> RangeBits;
+    uint64_t UnsafeScaleMask;
   };
 }
 #endif //MATH_SCALE_H_DEFINED

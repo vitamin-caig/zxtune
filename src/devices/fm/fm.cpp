@@ -191,7 +191,7 @@ namespace
     const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
     ChipAdapter Render;
-    Time::NanosecOscillator Clock;
+    Time::Oscillator<uint64_t, Stamp> Clock;
     std::vector<DataChunk> Buffer;
   };
 }

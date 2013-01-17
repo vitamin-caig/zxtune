@@ -961,12 +961,12 @@ namespace
       NextSoundTick = 0;
     }
 
-    bool HasOutputBefore(const Time::Nanoseconds& time) const
+    bool HasOutputBefore(const Stamp& time) const
     {
       return SndOscillator.GetCurrentTime() < time;
     }
 
-    void SetFrameEnd(const Time::Nanoseconds& time)
+    void SetFrameEnd(const Stamp& time)
     {
       LastTick = PsgOscillator.GetTickAtTime(time);
     }
@@ -1000,13 +1000,13 @@ namespace
   private:
     void UpdateSoundTick()
     {
-      const Time::Nanoseconds nextSoundTime = SndOscillator.GetCurrentTime();
+      const Stamp nextSoundTime = SndOscillator.GetCurrentTime();
       NextSoundTick = PsgOscillator.GetTickAtTime(nextSoundTime); 
     }
   private:
     uint64_t LastTick;
-    Time::NanosecOscillator PsgOscillator;
-    Time::NanosecOscillator SndOscillator;
+    Time::Oscillator<uint64_t, Stamp> PsgOscillator;
+    Time::Oscillator<uint64_t, Stamp> SndOscillator;
     uint64_t NextSoundTick;
   };
 

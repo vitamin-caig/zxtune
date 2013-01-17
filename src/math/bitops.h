@@ -78,6 +78,12 @@ namespace Math
     }
     return 1 + res;
   }
+
+  template<class T>
+  inline T HiBitsMask(std::size_t hiBits)
+  {
+    return ~((T(1) << (8 * sizeof(T) - hiBits)) - 1);
+  }
 }
 
 #endif //MATH_BITOPS_H_DEFINED

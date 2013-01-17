@@ -89,8 +89,8 @@ namespace Benchmark
       chunk.Data[DataChunk::REG_VOLB] = DataChunk::REG_MASK_VOL;
       chunk.Data[DataChunk::REG_VOLC] = DataChunk::REG_MASK_ENV | DataChunk::REG_MASK_VOL;
       chunk.Mask = (1 << DataChunk::REG_BEEPER) - 1;
-      const Time::Nanoseconds period = frameDuration;
-      const uint_t frames = Time::Nanoseconds(duration).Get() / period.Get();
+      const Stamp period = frameDuration;
+      const uint_t frames = Stamp(duration).Get() / period.Get();
       for (uint_t val = 0; val != frames; ++val)
       {
         const uint_t tonLo = (val &    0xff);
@@ -109,7 +109,7 @@ namespace Benchmark
         dev.RenderData(chunk);
         dev.Flush();
       }
-      const Time::Nanoseconds elapsed = timer.Elapsed<Time::Nanoseconds>();
+      const Stamp elapsed = timer.Elapsed<Stamp>();
       return double(chunk.TimeStamp.Get()) / elapsed.Get();
     }
   }

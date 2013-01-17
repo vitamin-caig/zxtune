@@ -138,14 +138,14 @@ namespace Benchmark
           return 0x00;
         }
 
-        virtual void Write(const Time::NanosecOscillator& stamp, uint16_t addr, uint8_t data)
+        virtual void Write(const Devices::Z80::Oscillator& stamp, uint16_t addr, uint8_t data)
         {
           Require(addr == 0);
           Require(data == 0x00);
           Dummy = stamp.GetCurrentTime();
         }
       private:
-        Time::Nanoseconds Dummy;
+        Devices::Z80::Stamp Dummy;
       };
     };
 

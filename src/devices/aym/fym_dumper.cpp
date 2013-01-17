@@ -71,7 +71,7 @@ namespace
 
     virtual void Initialize()
     {
-      LastTime = Time::Nanoseconds();
+      LastTime = Stamp();
       return Delegate->Initialize();
     }
 
@@ -124,7 +124,7 @@ namespace
   private:
     const FYMDumperParameters::Ptr Params;
     const FramedDumpBuilder::Ptr Delegate;
-    Time::Nanoseconds LastTime;
+    Stamp LastTime;
   };
 }
 

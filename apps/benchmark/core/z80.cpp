@@ -55,15 +55,15 @@ namespace Benchmark
     {
       using namespace Devices::Z80;
       const Timer timer;
-      const Time::Nanoseconds period = frameDuration;
-      const uint_t frames = Time::Nanoseconds(duration).Get() / period.Get();
-      Time::Nanoseconds stamp;
+      const Stamp period = frameDuration;
+      const uint_t frames = Stamp(duration).Get() / period.Get();
+      Stamp stamp;
       for (uint_t frame = 0; frame != frames; ++frame)
       {
         dev.Interrupt();
         dev.Execute(stamp += period);
       }
-      const Time::Nanoseconds elapsed = timer.Elapsed<Time::Nanoseconds>();
+      const Stamp elapsed = timer.Elapsed<Stamp>();
       return double(stamp.Get()) / elapsed.Get();
     }
   }

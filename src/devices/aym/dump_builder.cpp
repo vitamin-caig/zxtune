@@ -27,7 +27,7 @@ namespace
     virtual void Reset() = 0;
 
     virtual void Update(const DataChunk& delta) = 0;
-    virtual void Flush(const Time::Nanoseconds& stamp) = 0;
+    virtual void Flush(const Stamp& stamp) = 0;
 
     virtual DataChunk GetCurrent() const = 0;
     virtual DataChunk GetDeltaFromPrevious() const = 0;
@@ -64,7 +64,7 @@ namespace
       ApplyMerge(Delta, delta);
     }
 
-    void Flush(const Time::Nanoseconds& stamp)
+    void Flush(const Stamp& stamp)
     {
       Delta.Mask = 0;
       Current.TimeStamp = stamp;
@@ -120,7 +120,7 @@ namespace
       ApplyOptimizedMerge(Delta, delta);
     }
 
-    void Flush(const Time::Nanoseconds& stamp)
+    void Flush(const Stamp& stamp)
     {
       Delta.Mask = 0;
       Current.TimeStamp = stamp;
@@ -185,7 +185,7 @@ namespace
       }
     }
 
-    void Flush(const Time::Nanoseconds& stamp)
+    void Flush(const Stamp& stamp)
     {
       const DataChunk& delta = GetDeltaFromPrevious();
       ApplyOptimizedMerge(Previous, delta);
@@ -268,7 +268,7 @@ namespace
     virtual void Flush()
     {
       const DataChunk& current = State->GetCurrent();
-      Time::Nanoseconds nextFrame = current.TimeStamp;
+      Stamp nextFrame = current.TimeStamp;
       nextFrame += FrameDuration;
       for (std::vector<DataChunk>::iterator it = Buffer.begin(), lim = Buffer.end(); it != lim; ++it)
       {
@@ -305,7 +305,7 @@ namespace
       Builder->GetResult(result);
     }
   private:
-    const Time::Nanoseconds FrameDuration;
+    const Stamp FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     const std::auto_ptr<RenderState> State;
     std::vector<DataChunk> Buffer;

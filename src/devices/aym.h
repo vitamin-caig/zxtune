@@ -29,6 +29,9 @@ namespace Devices
     const uint_t CHANNELS = 3;
     const uint_t VOICES = 5;
 
+    // Use optimized stamp type- 5% accuracy
+    typedef Time::Stamp<uint64_t, 1 << 20> Stamp;
+
     struct DataChunk
     {
       //registers offsets in data
@@ -86,7 +89,8 @@ namespace Devices
       DataChunk() : TimeStamp(), Mask(), Data()
       {
       }
-      Time::Nanoseconds TimeStamp;
+
+      Stamp TimeStamp;
       uint32_t Mask;
       boost::array<uint8_t, REG_LAST> Data;
     };

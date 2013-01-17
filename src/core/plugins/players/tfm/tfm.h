@@ -30,7 +30,7 @@ namespace Devices
       {
       }
 
-      Time::Nanoseconds TimeStamp;
+      FM::Stamp TimeStamp;
       boost::array<Devices::FM::DataChunk::Registers, CHIPS> Data;
     };
 

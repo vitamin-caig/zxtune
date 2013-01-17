@@ -28,6 +28,9 @@ namespace Devices
     const uint_t CHANNELS = 1;
     const uint_t VOICES = 3;
 
+    // Use optimized stamp type- 5% accuracy
+    typedef Time::Stamp<uint64_t, 1 << 20> Stamp;
+
     struct DataChunk
     {
       DataChunk() : TimeStamp()
@@ -53,7 +56,7 @@ namespace Devices
       };
       typedef std::vector<Register> Registers;
 
-      Time::Nanoseconds TimeStamp;
+      Stamp TimeStamp;
       Registers Data;
     };
 

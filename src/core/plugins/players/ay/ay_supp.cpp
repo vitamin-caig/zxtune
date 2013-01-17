@@ -78,7 +78,7 @@ namespace
       return Register < Devices::AYM::DataChunk::REG_BEEPER;
     }
 
-    bool SetValue(const Time::Nanoseconds& timeStamp, uint8_t val)
+    bool SetValue(const Devices::AYM::Stamp& timeStamp, uint8_t val)
     {
       if (Register < Devices::AYM::DataChunk::REG_BEEPER)
       {
@@ -92,7 +92,7 @@ namespace
       return false;
     }
 
-    void SetBeeper(const Time::Nanoseconds& timeStamp, uint8_t val)
+    void SetBeeper(const Devices::AYM::Stamp& timeStamp, uint8_t val)
     {
       Devices::AYM::DataChunk data;
       data.TimeStamp = timeStamp;
@@ -101,7 +101,7 @@ namespace
       Chip->RenderData(data);
     }
 
-    void RenderFrame(const Time::Nanoseconds& till)
+    void RenderFrame(const Devices::AYM::Stamp& till)
     {
       FrameStub.TimeStamp = till;
       Chip->RenderData(FrameStub);
@@ -126,7 +126,7 @@ namespace
     virtual ~SoundPort() {}
 
     virtual void Reset() = 0;
-    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data) = 0;
+    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data) = 0;
   };
 
   class ZXAYPort : public SoundPort
@@ -142,7 +142,7 @@ namespace
       AyData->SelectRegister(0);
     }
 
-    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
+    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (IsSelRegPort(port))
       {
@@ -201,7 +201,7 @@ namespace
       Selector = 0;
     }
 
-    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
+    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (IsDataPort(port))
       {
@@ -281,7 +281,7 @@ namespace
       return 0xff;
     }
 
-    virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
+    virtual void Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (Blocked)
       {
@@ -344,8 +344,8 @@ namespace
     virtual ~Computer() {}
 
     virtual void Reset() = 0;
-    virtual void NextFrame(const Time::Nanoseconds& til) = 0;
-    virtual void SeekState(const Time::Nanoseconds& til, const Time::Nanoseconds& frameStep) = 0;
+    virtual void NextFrame(const Devices::Z80::Stamp& til) = 0;
+    virtual void SeekState(const Devices::Z80::Stamp& til, const Devices::Z80::Stamp& frameStep) = 0;
   };
 
   class AYRenderer : public Renderer
@@ -387,7 +387,7 @@ namespace
       Iterator->Reset();
       Comp->Reset();
       Device->Reset();
-      LastTime = Time::Nanoseconds();
+      LastTime = Devices::Z80::Stamp();
     }
 
     virtual void SetPosition(uint_t frame)
@@ -397,8 +397,8 @@ namespace
         //rewind
         Iterator->Reset();
       }
-      const Time::Nanoseconds period = Time::Microseconds(Params->FrameDurationMicrosec());
-      Time::Nanoseconds newTime = LastTime; 
+      const Devices::Z80::Stamp period = Time::Microseconds(Params->FrameDurationMicrosec());
+      Devices::Z80::Stamp newTime = LastTime; 
       while (State->Frame() < frame && Iterator->IsValid())
       {
         newTime += period;
@@ -412,7 +412,7 @@ namespace
     const Computer::Ptr Comp;
     const AYDataChannel::Ptr Device;
     const TrackState::Ptr State;
-    Time::Nanoseconds LastTime;
+    Devices::Z80::Stamp LastTime;
   };
 
   class AYData : public Formats::Chiptune::AY::Builder
@@ -515,21 +515,21 @@ namespace
       CPUPorts->Reset();
     }
 
-    void NextFrame(const Time::Nanoseconds& til)
+    void NextFrame(const Devices::Z80::Stamp& til)
     {
       CPU->Interrupt();
       CPU->Execute(til);
     }
 
-    void SeekState(const Time::Nanoseconds& til, const Time::Nanoseconds& frameStep)
+    void SeekState(const Devices::Z80::Stamp& til, const Devices::Z80::Stamp& frameStep)
     {
-      const Time::Nanoseconds curTime = CPU->GetTime();
+      const Devices::Z80::Stamp curTime = CPU->GetTime();
       if (til < curTime)
       {
         Reset();
       }
       CPUPorts->SetBlocked(true);
-      Time::Nanoseconds pos = curTime;
+      Devices::Z80::Stamp pos = curTime;
       while ((pos += frameStep) < til)
       {
         CPU->Interrupt();

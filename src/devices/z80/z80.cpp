@@ -34,8 +34,8 @@ namespace
   class ExtendedIOBus : public IOBus
   {
   public:
-    ExtendedIOBus(const Time::NanosecOscillator& oscillator, ChipIO::Ptr memory, ChipIO::Ptr ports)
-      : Oscillator(oscillator)
+    ExtendedIOBus(const Oscillator& clock, ChipIO::Ptr memory, ChipIO::Ptr ports)
+      : Clock(clock)
       , Memory(memory)
       , Ports(ports)
     {
@@ -86,10 +86,10 @@ namespace
 
     void Write(ChipIO& io, Z80EX_WORD addr, Z80EX_BYTE value) const
     {
-      return io.Write(Oscillator, addr, value);
+      return io.Write(Clock, addr, value);
     }
   private:
-    const Time::NanosecOscillator& Oscillator;
+    const Oscillator& Clock;
     const ChipIO::Ptr Memory;
     const ChipIO::Ptr Ports;
   };
@@ -97,8 +97,8 @@ namespace
   class SimpleIOBus : public IOBus
   {
   public:
-    SimpleIOBus(const Time::NanosecOscillator& oscillator, const Dump& memory, ChipIO::Ptr ports)
-      : Oscillator(oscillator)
+    SimpleIOBus(const Oscillator& clock, const Dump& memory, ChipIO::Ptr ports)
+      : Clock(clock)
       , Memory(memory)
       , RawMemory(&Memory.front())
       , Ports(ports)
@@ -155,7 +155,7 @@ namespace
     static void OutByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD port, Z80EX_BYTE value, void* userData)
     {
       const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
-      return self->Ports->Write(self->Oscillator, port, value);
+      return self->Ports->Write(self->Clock, port, value);
     }
 
     static Z80EX_BYTE IntRead(Z80EX_CONTEXT* /*cpu*/, void* /*userData*/)
@@ -163,7 +163,7 @@ namespace
       return 0xff;
     }
   private:
-    const Time::NanosecOscillator& Oscillator;
+    const Oscillator& Clock;
     Dump Memory;
     uint8_t* const RawMemory;
     const ChipIO::Ptr Ports;
@@ -174,14 +174,14 @@ namespace
   public:
     Z80Chip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
       : Params(params)
-      , Bus(new ExtendedIOBus(Oscillator, memory, ports))
+      , Bus(new ExtendedIOBus(Clock, memory, ports))
       , Context(Bus->ConnectCPU())
     {
     }
 
     Z80Chip(ChipParameters::Ptr params, const Dump& memory, ChipIO::Ptr ports)
       : Params(params)
-      , Bus(new SimpleIOBus(Oscillator, memory, ports))
+      , Bus(new SimpleIOBus(Clock, memory, ports))
       , Context(Bus->ConnectCPU())
     {
     }
@@ -189,31 +189,31 @@ namespace
     virtual void Reset()
     {
       z80ex_reset(Context.get());
-      Oscillator.Reset();
+      Clock.Reset();
     }
 
     virtual void Interrupt()
     {
-      Oscillator.SetFrequency(Params->ClockFreq());
-      const uint64_t limit = Oscillator.GetCurrentTick() + Params->IntTicks();
-      while (Oscillator.GetCurrentTick() < limit)
+      Clock.SetFrequency(Params->ClockFreq());
+      const uint64_t limit = Clock.GetCurrentTick() + Params->IntTicks();
+      while (Clock.GetCurrentTick() < limit)
       {
         if (uint_t tick = z80ex_int(Context.get()))
         {
-          Oscillator.AdvanceTick(tick);
+          Clock.AdvanceTick(tick);
           continue;
         }
-        Oscillator.AdvanceTick(z80ex_step(Context.get()));
+        Clock.AdvanceTick(z80ex_step(Context.get()));
       }
     }
 
-    virtual void Execute(const Time::Nanoseconds& till)
+    virtual void Execute(const Stamp& till)
     {
-      Oscillator.SetFrequency(Params->ClockFreq());
-      const uint64_t endTick = Oscillator.GetTickAtTime(till);
-      while (Oscillator.GetCurrentTick() < endTick)
+      Clock.SetFrequency(Params->ClockFreq());
+      const uint64_t endTick = Clock.GetTickAtTime(till);
+      while (Clock.GetCurrentTick() < endTick)
       {
-        Oscillator.AdvanceTick(z80ex_step(Context.get()));
+        Clock.AdvanceTick(z80ex_step(Context.get()));
       }
     }
 
@@ -296,28 +296,28 @@ namespace
       regs.swap(tmp);
     }
 
-    virtual Time::Nanoseconds GetTime() const
+    virtual Stamp GetTime() const
     {
-      return Oscillator.GetCurrentTime();
+      return Clock.GetCurrentTime();
     }
 
     virtual uint64_t GetTick() const
     {
-      return Oscillator.GetCurrentTick();
+      return Clock.GetCurrentTick();
     }
 
-    virtual void SetTime(const Time::Nanoseconds& time)
+    virtual void SetTime(const Stamp& time)
     {
-      Oscillator.Reset();
-      const uint64_t tick = Oscillator.GetTickAtTime(time);
-      Oscillator.SetFrequency(Params->ClockFreq());
-      Oscillator.AdvanceTick(tick);
+      Clock.Reset();
+      const uint64_t tick = Clock.GetTickAtTime(time);
+      Clock.SetFrequency(Params->ClockFreq());
+      Clock.AdvanceTick(tick);
     }
   private:
     const ChipParameters::Ptr Params;
     const boost::scoped_ptr<IOBus> Bus;
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
-    Time::NanosecOscillator Oscillator;
+    Oscillator Clock;
   };
 }
 
