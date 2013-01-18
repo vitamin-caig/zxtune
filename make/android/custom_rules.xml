@@ -76,8 +76,8 @@
   
   <!-- Single public build target -->
   <target name="public-build" depends="svnupdate, svnrevision, release">
-    <property name="build.dir" value="${builds.dir}/Revision${svn.revision}_android" />
-    <delete dir="${build.dir}" />
-    <copy file="${out.final.file}" toFile="${build.dir}/${ant.project.name}_r${svn.revision}.apk" />
+    <property name="build.result" value="${builds.dir}/Revision${svn.revision}_android/${ant.project.name}_r${svn.revision}.apk" />
+    <delete file="${build.result}" />
+    <copy file="${out.final.file}" toFile="${build.result}" />
   </target>
 </project>
