@@ -12,86 +12,111 @@
 #define TIME_OSCILLATOR_H_DEFINED
 
 //library includes
+#include <math/fixedpoint.h>
 #include <time/stamp.h>
 
 namespace Time
 {
-  template<class T, class TimeStamp>
+  template<class TimeStamp, class Tick = typename TimeStamp::ValueType, unsigned Precision = 65536>
   class Oscillator
   {
+    typedef Math::FixedPoint<Tick, Precision> FixedPoint;
   public:
     Oscillator()
-      : LastFreqChangeTime()
-      , LastFreqChangeTick()
-      , Frequency()
-      , CurTick()
-      , ScaleToTime(0, TimeStamp::PER_SECOND)
-      , ScaleToTick(TimeStamp::PER_SECOND, 0)
-      , CurTimeCache()
+      : CurTick()
     {
     }
 
     void Reset()
     {
-      LastFreqChangeTime = CurTimeCache = 0;
-      Frequency = 0;
-      ScaleToTime = Math::ScaleFunctor<typename TimeStamp::ValueType>(0, TimeStamp::PER_SECOND);
-      ScaleToTick = Math::ScaleFunctor<typename TimeStamp::ValueType>(TimeStamp::PER_SECOND, 0);
-      LastFreqChangeTick = CurTick = 0;
+      CurTick = 0;
+      CurTime = 0;
+      TimeSlicesPerTick = 0;
+      TicksPerTimeSlice = 0;
     }
 
-    void SetFrequency(T freq)
+    void SetFrequency(Tick freq)
     {
-      if (freq != Frequency)
-      {
-        LastFreqChangeTime = GetCurrentTime().Get();
-        LastFreqChangeTick = GetCurrentTick();
-        Frequency = freq;
-        ScaleToTime = Math::ScaleFunctor<typename TimeStamp::ValueType>(Frequency, TimeStamp::PER_SECOND);
-        ScaleToTick = Math::ScaleFunctor<typename TimeStamp::ValueType>(TimeStamp::PER_SECOND, Frequency);
-      }
+      TimeSlicesPerTick = FixedPoint(TimeStamp::PER_SECOND, freq);
+      TicksPerTimeSlice = FixedPoint(freq, TimeStamp::PER_SECOND);
     }
 
-    void AdvanceTick(T delta)
+    void AdvanceTick()
+    {
+      ++CurTick;
+      CurTime += TimeSlicesPerTick;
+    }
+
+    void AdvanceTick(Tick delta)
     {
       CurTick += delta;
-      CurTimeCache = 0;
+      CurTime += TimeSlicesPerTick * delta;
     }
 
-    T GetCurrentTick() const
+    Tick GetCurrentTick() const
     {
       return CurTick;
     }
 
     TimeStamp GetCurrentTime() const
     {
-      if (!CurTimeCache && CurTick)
-      {
-        const T relTick = CurTick - LastFreqChangeTick;
-        const typename TimeStamp::ValueType relTime = ScaleToTime(relTick);
-        CurTimeCache = LastFreqChangeTime + relTime;
-      }
-      return TimeStamp(CurTimeCache);
+      return TimeStamp(CurTime.Integer());
     }
 
-    T GetTickAtTime(const TimeStamp& time) const
+    Tick GetTickAtTime(const TimeStamp& time) const
     {
-      const typename TimeStamp::ValueType relTime = time.Get() - LastFreqChangeTime;
-      const T relTick = ScaleToTick(relTime);
-      return LastFreqChangeTick + relTick;
+      FixedPoint relTime(time.Get());
+      relTime -= CurTime;
+      const Tick relTick = (TicksPerTimeSlice * relTime).Integer();
+      return CurTick + relTick;
     }
   private:
-    typename TimeStamp::ValueType LastFreqChangeTime;
-    T LastFreqChangeTick;
-    T Frequency;
-    T CurTick;
-    Math::ScaleFunctor<typename TimeStamp::ValueType> ScaleToTime;
-    Math::ScaleFunctor<typename TimeStamp::ValueType> ScaleToTick;
-    mutable typename TimeStamp::ValueType CurTimeCache;
+    Tick CurTick;
+    FixedPoint CurTime;
+    FixedPoint TimeSlicesPerTick;
+    FixedPoint TicksPerTimeSlice;
   };
 
-  typedef Oscillator<uint64_t, Microseconds> MicrosecOscillator;
-  typedef Oscillator<uint64_t, Nanoseconds> NanosecOscillator;
+  typedef Oscillator<Microseconds> MicrosecOscillator;
+  typedef Oscillator<Nanoseconds> NanosecOscillator;
+
+  template<class TimeStamp, class Tick = typename TimeStamp::ValueType, unsigned Precision = 65536>
+  class TimedOscillator
+  {
+    typedef Math::FixedPoint<Tick, Precision> FixedPoint;
+  public:
+    void Reset()
+    {
+      CurTime = TimeStamp();
+      CurTick = 0;
+      TicksPerTimeSlice = 0;
+    }
+
+    void SetFrequency(typename FixedPoint::ValueType freq)
+    {
+      TicksPerTimeSlice = FixedPoint(freq, TimeStamp::PER_SECOND);
+    }
+
+    void AdvanceTime(typename TimeStamp::ValueType delta)
+    {
+      CurTick += TicksPerTimeSlice * delta;
+      CurTime = TimeStamp(CurTime.Get() + delta);
+    }
+
+    Tick GetCurrentTick() const
+    {
+      return CurTick.Integer();
+    }
+
+    TimeStamp GetCurrentTime() const
+    {
+      return CurTime;
+    }
+  private:
+    TimeStamp CurTime;
+    FixedPoint CurTick;
+    FixedPoint TicksPerTimeSlice;
+  };
 }
 
 #endif //TIME_OSCILLATOR_H_DEFINED

@@ -15,6 +15,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <devices/aym.h>
+#include <math/fixedpoint.h>
 #include <time/oscillator.h>
 //std includes
 #include <cassert>
@@ -940,74 +941,38 @@ namespace
   class ClockSource
   {
   public:
-    ClockSource()
-      : LastTick()
-      , NextSoundTick()
-    {
-    }
-
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
     {
-      PsgOscillator.SetFrequency(clockFreq);
       SndOscillator.SetFrequency(soundFreq);
-      UpdateSoundTick();
+      PsgOscillator.SetFrequency(clockFreq / AYM_CLOCK_DIVISOR);
     }
 
     void Reset()
     {
-      LastTick = 0;
       PsgOscillator.Reset();
       SndOscillator.Reset();
-      NextSoundTick = 0;
     }
 
-    bool HasOutputBefore(const Stamp& time) const
+    Stamp GetNextSampleTime() const
     {
-      return SndOscillator.GetCurrentTime() < time;
+      return SndOscillator.GetCurrentTime();
     }
 
-    void SetFrameEnd(const Stamp& time)
+    void NextSample()
     {
-      LastTick = PsgOscillator.GetTickAtTime(time);
+      SndOscillator.AdvanceTick();
     }
 
-    bool Tick(uint_t ticks)
+    uint_t NextTime(const Stamp& stamp)
     {
-      PsgOscillator.AdvanceTick(AYM_CLOCK_DIVISOR * ticks);
-      if (PsgOscillator.GetCurrentTick() > NextSoundTick)
-      {
-        SndOscillator.AdvanceTick(1);
-        UpdateSoundTick();
-        assert(PsgOscillator.GetCurrentTick() < NextSoundTick);
-        return true;
-      }
-      return false;
-    }
-
-    uint_t GetTicksToFrameEnd() const
-    {
-      return LastTick > PsgOscillator.GetCurrentTick()
-        ? uint_t((LastTick - PsgOscillator.GetCurrentTick()) / AYM_CLOCK_DIVISOR)
-        : 0;
-    }
-
-    uint_t GetTicksToSample() const
-    {
-      return NextSoundTick > PsgOscillator.GetCurrentTick()
-        ? uint_t((NextSoundTick - PsgOscillator.GetCurrentTick()) / AYM_CLOCK_DIVISOR)
-        : 0;
+      const Stamp prevStamp = PsgOscillator.GetCurrentTime();
+      const uint64_t prevTick = PsgOscillator.GetCurrentTick();
+      PsgOscillator.AdvanceTime(stamp.Get() - prevStamp.Get());
+      return static_cast<uint_t>(PsgOscillator.GetCurrentTick() - prevTick);
     }
   private:
-    void UpdateSoundTick()
-    {
-      const Stamp nextSoundTime = SndOscillator.GetCurrentTime();
-      NextSoundTick = PsgOscillator.GetTickAtTime(nextSoundTime); 
-    }
-  private:
-    uint64_t LastTick;
-    Time::Oscillator<uint64_t, Stamp> PsgOscillator;
-    Time::Oscillator<uint64_t, Stamp> SndOscillator;
-    uint64_t NextSoundTick;
+    Time::Oscillator<Stamp> SndOscillator;
+    Time::TimedOscillator<Stamp> PsgOscillator;
   };
 
   class DataCache
@@ -1140,24 +1105,23 @@ namespace
 
     void RenderSingleChunk(const DataChunk& src, Renderer& render)
     {
-      render.SetNewData(src);
-      if (!Clock.HasOutputBefore(src.TimeStamp))
-      {
-        return;
-      }
-      Clock.SetFrameEnd(src.TimeStamp);
       MultiSample result;
-      while (const uint_t toEnd = Clock.GetTicksToFrameEnd())
+      for (;;)
       {
-        const uint_t toSound = Clock.GetTicksToSample();
-        const uint_t toTick = 1 + std::min(toSound, toEnd);
-        render.Tick(toTick);
-        if (Clock.Tick(toTick))
+        const Stamp point = std::min(Clock.GetNextSampleTime(), src.TimeStamp);
+        if (const uint_t ticksPassed = Clock.NextTime(point))
         {
-          render.GetLevels(result);
-          Target->ApplyData(result);
+          render.Tick(ticksPassed);
         }
+        if (point == src.TimeStamp)
+        {
+          break;
+        }
+        render.GetLevels(result);
+        Target->ApplyData(result);
+        Clock.NextSample();
       }
+      render.SetNewData(src);
     }
   private:
     const ChipParameters::Ptr Params;

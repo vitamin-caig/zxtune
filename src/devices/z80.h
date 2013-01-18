@@ -27,7 +27,7 @@ namespace Devices
   {
     // Use optimized stamp and oscillator types- 7% accuracy
     typedef Time::Stamp<uint64_t, 1 << 30> Stamp;
-    typedef Time::Oscillator<uint64_t, Stamp> Oscillator;
+    typedef Time::Oscillator<Stamp> Oscillator;
 
     class ChipIO
     {

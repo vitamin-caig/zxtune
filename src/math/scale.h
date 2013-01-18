@@ -32,7 +32,8 @@ namespace Math
     return static_cast<uint32_t>(uint64_t(value) * outRange / inRange);
   }
 
-  inline std::pair<uint64_t, uint64_t> OptimizeRatio(uint64_t first, uint64_t second)
+  template<class T1, class T2>
+  inline std::pair<T1, T2> OptimizeRatio(T1 first, T2 second)
   {
     while (0 == ((first | second) & 1))
     {
