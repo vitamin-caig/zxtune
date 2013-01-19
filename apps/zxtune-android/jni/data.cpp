@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "data.h"
 #include "debug.h"
+#include "module.h"
 #include "zxtune.h"
 //library includes
 #include <binary/container_factories.h>
@@ -25,8 +26,13 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Data_1Create(JNIEnv* env, jclass /
   return Data::Storage::Instance().Add(data);
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Data_1Destroy(JNIEnv* /*env*/, jclass /*self*/, jint dataHandle)
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Data_1CreateModule
+  (JNIEnv* /*env*/, jclass /*self*/, jint dataHandle)
 {
-  Dbg("Data::Destroy(%x)", dataHandle);
-  Data::Storage::Instance().Fetch(dataHandle);
+  Dbg("Data::CreateModule(handle=%x)", dataHandle);
+  if (const Binary::Container::Ptr data = Data::Storage::Instance().Get(dataHandle))
+  {
+    return Module::Create(data);
+  }
+  return 0;
 }

@@ -13,30 +13,21 @@ Author:
 #include "data.h"
 #include "debug.h"
 #include "module.h"
+#include "player.h"
 #include "properties.h"
 #include "zxtune.h"
 //library includes
 #include <core/module_detect.h>
 
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
-  (JNIEnv* /*env*/, jclass /*self*/, jint dataHandle)
+namespace Module
 {
-  Dbg("Module::Create(handle=%x)", dataHandle);
-  if (const Binary::Container::Ptr data = Data::Storage::Instance().Get(dataHandle))
+  int Create(Binary::Container::Ptr data)
   {
-    Dbg("Module::Create(data=%p)", data.get());
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
     const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(params, data, String());
     Dbg("Module::Create(data=%p)=%p", data.get(), module.get());
-    return Module::Storage::Instance().Add(module);
+    return Storage::Instance().Add(module);
   }
-  return 0;
-}
-
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Destroy
-  (JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
-{
-  Module::Storage::Instance().Fetch(moduleHandle);
 }
 
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_ModuleInfo_1GetFramesCount
@@ -71,4 +62,15 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lan
     return props.Get(propName, defVal);
   }
   return defVal;
+}
+
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
+  (JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
+{
+  Dbg("Module::CreatePlayer(handle=%x)", moduleHandle);
+  if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  {
+    return Player::Create(module);
+  }
+  return 0;
 }

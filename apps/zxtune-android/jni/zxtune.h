@@ -9,6 +9,14 @@ extern "C" {
 #endif
 /*
  * Class:     app_zxtune_ZXTune
+ * Method:    Handle_Close
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Handle_1Close
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     app_zxtune_ZXTune
  * Method:    Data_Create
  * Signature: (Ljava/nio/ByteBuffer;)I
  */
@@ -17,26 +25,10 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Data_1Create
 
 /*
  * Class:     app_zxtune_ZXTune
- * Method:    Data_Destroy
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Data_1Destroy
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     app_zxtune_ZXTune
- * Method:    Module_Create
+ * Method:    Data_CreateModule
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     app_zxtune_ZXTune
- * Method:    Module_Destroy
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Destroy
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Data_1CreateModule
   (JNIEnv *, jclass, jint);
 
 /*
@@ -65,18 +57,10 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lan
 
 /*
  * Class:     app_zxtune_ZXTune
- * Method:    Player_Create
+ * Method:    Module_CreatePlayer
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Create
-  (JNIEnv *, jclass, jint);
-
-/*
- * Class:     app_zxtune_ZXTune
- * Method:    Player_Destroy
- * Signature: (I)V
- */
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Destroy
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
   (JNIEnv *, jclass, jint);
 
 /*

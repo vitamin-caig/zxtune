@@ -33,9 +33,10 @@ public final class ZXTune {
 
     public final static String SOUND_FREQUENCY = "zxtune.sound.frequency";
     public final static String FRAME_DURATION = "zxtune.sound.frameduration";
+    public final static String AYM_INTERPOLATION = "zxtune.core.aym.interpolation";
   }
 
-  private static class NativeObject {
+  public static class NativeObject {
 
     protected int handle;
 
@@ -45,6 +46,15 @@ public final class ZXTune {
       }
       this.handle = handle;
     }
+
+    @Override
+    protected void finalize() {
+      close();
+    }
+
+    public void close() {
+      Handle_Close(handle);
+    }
   }
 
   public static final class Data extends NativeObject {
@@ -53,13 +63,8 @@ public final class ZXTune {
       super(Data_Create(toByteBuffer(data)));
     }
 
-    @Override
-    protected void finalize() {
-      Data_Destroy(handle);
-    }
-
     public Module createModule() {
-      return new Module(Module_Create(handle));
+      return new Module(Data_CreateModule(handle));
     }
 
     private static ByteBuffer toByteBuffer(byte[] data) {
@@ -80,11 +85,6 @@ public final class ZXTune {
       super(handle);
     }
 
-    @Override
-    protected void finalize() {
-      Module_Destroy(handle);
-    }
-
     int getFramesCount() {
       return ModuleInfo_GetFramesCount(handle);
     }
@@ -98,7 +98,7 @@ public final class ZXTune {
     }
     
     Player createPlayer() {
-      return new Player(Player_Create(handle));
+      return new Player(Module_CreatePlayer(handle));
     }
   }
 
@@ -111,11 +111,6 @@ public final class ZXTune {
 
     Player(int handle) {
       super(handle);
-    }
-
-    @Override
-    protected void finalize() {
-      Player_Destroy(handle);
     }
 
     boolean render(byte[] result) {
@@ -157,15 +152,15 @@ public final class ZXTune {
     System.loadLibrary("zxtune");
   }
 
+  // working with handles
+  private static native void Handle_Close(int handle);
+
   // working with data
   private static native int Data_Create(ByteBuffer data);
 
-  private static native void Data_Destroy(int handle);
+  private static native int Data_CreateModule(int data);
 
   // working with module
-  private static native int Module_Create(int data);
-
-  private static native void Module_Destroy(int module);
 
   private static native int ModuleInfo_GetFramesCount(int module);
 
@@ -173,11 +168,9 @@ public final class ZXTune {
 
   private static native String Module_GetProperty(int module, String name, String defVal);
   
+  private static native int Module_CreatePlayer(int module);
+
   // working with player
-  private static native int Player_Create(int module);
-
-  private static native void Player_Destroy(int player);
-
   private static native boolean Player_Render(int player, ByteBuffer result);
 
   private static native int Player_GetPosition(int player);

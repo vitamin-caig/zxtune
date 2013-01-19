@@ -15,8 +15,8 @@ Author:
 
 //local includes
 #include "storage.h"
-//common includes
-#include <parameters.h>
+//library includes
+#include <core/module_holder.h>
 
 namespace Player
 {
@@ -34,6 +34,8 @@ namespace Player
   };
 
   typedef ObjectsStorage<Control::Ptr> Storage;
+
+  Storage::HandleType Create(ZXTune::Module::Holder::Ptr module);
 }
 
 #endif //PLAYER_H_DEFINED

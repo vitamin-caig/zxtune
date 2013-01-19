@@ -27,6 +27,7 @@ public class PlayFileActivity extends Activity {
   static final private String TAG = "zxtune";
 
   private String fileToPlay;
+  private BroadcastReceiver receiver;
   private ProgressBar position;
 
   @Override
@@ -39,7 +40,7 @@ public class PlayFileActivity extends Activity {
 
     position = (ProgressBar) findViewById(R.id.play_position);
 
-    final BroadcastReceiver receiver = new EventReceiver();
+    receiver = new EventReceiver();
     final IntentFilter filter = new IntentFilter(Service.POSITION_UPDATE);
 
     registerReceiver(receiver, filter);
@@ -47,6 +48,12 @@ public class PlayFileActivity extends Activity {
     if (fileToPlay.length() != 0) {
       play();
     }
+  }
+
+  @Override
+  public void onDestroy() {
+    super.onDestroy();
+    unregisterReceiver(receiver);
   }
 
   public void onClick(View v) {

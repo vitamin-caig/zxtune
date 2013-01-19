@@ -32,31 +32,63 @@ namespace
   public:
     typedef boost::shared_ptr<BufferTarget> Ptr;
 
+    BufferTarget()
+      : ExternalBuffer()
+      , ExternalBufferSize()
+    {
+    }
+
     virtual void ApplyData(const ZXTune::Sound::MultiSample& data)
     {
-      Buffer.push_back(data);
+      if (0 != ExternalBufferSize)
+      {
+        std::transform(data.begin(), data.end(), ExternalBuffer, &ToNativeSample);
+        ExternalBuffer += data.size();
+        ExternalBufferSize -= data.size();
+      }
+      else
+      {
+        InternalBuffer.push_back(data);
+      }
     }
 
     virtual void Flush()
     {
     }
 
-    std::size_t GetSamples(std::size_t count, int16_t* target)
+    void SetExternalBuffer(int16_t* target, std::size_t count)
     {
-      const std::size_t toGet = std::min(count / ZXTune::Sound::OUTPUT_CHANNELS, Buffer.size());
-      const BufferType::iterator endToCopy = Buffer.begin() + toGet;
-      std::transform(&Buffer.begin()->front(), &endToCopy->front(), target, &ToNativeSample);
-      Buffer.erase(Buffer.begin(), endToCopy);
-      return toGet * ZXTune::Sound::OUTPUT_CHANNELS;
+      if (!InternalBuffer.empty())
+      {
+        const std::size_t toCopy = std::min(count / ZXTune::Sound::OUTPUT_CHANNELS, InternalBuffer.size());
+        const BufferType::iterator endToCopy = InternalBuffer.begin() + toCopy;
+        std::transform(&InternalBuffer.begin()->front(), &endToCopy->front(), target, &ToNativeSample);
+        InternalBuffer.erase(InternalBuffer.begin(), endToCopy);
+        count -= toCopy * ZXTune::Sound::OUTPUT_CHANNELS;
+        target += toCopy * ZXTune::Sound::OUTPUT_CHANNELS;
+      }
+      if (count != 0)
+      {
+        ExternalBufferSize = count;
+        ExternalBuffer = target;
+      }
     }
 
-    std::size_t AvailSamples() const
+    bool HasExternalBuffer() const
     {
-      return Buffer.size() * ZXTune::Sound::OUTPUT_CHANNELS;
+      return 0 != ExternalBufferSize;
+    }
+
+    void FlushExternalBuffer()
+    {
+      std::fill_n(ExternalBuffer, ExternalBufferSize, 0);
+      ExternalBufferSize = 0;
     }
   private:
     typedef std::vector<ZXTune::Sound::MultiSample> BufferType;
-    BufferType Buffer;
+    BufferType InternalBuffer;
+    int16_t* ExternalBuffer;
+    std::size_t ExternalBufferSize;
   };
 
   class PlayerControl : public Player::Control
@@ -81,12 +113,16 @@ namespace
     
     virtual bool Render(std::size_t samples, int16_t* buffer)
     {
-      while (samples > Buffer->AvailSamples() && Renderer->RenderFrame())
+      Buffer->SetExternalBuffer(buffer, samples);
+      while (Buffer->HasExternalBuffer())
       {
+        if (!Renderer->RenderFrame())
+        {
+          Buffer->FlushExternalBuffer();
+          return false;
+        }
       }
-      const std::size_t done = Buffer->GetSamples(samples, buffer);
-      std::fill(buffer + done, buffer + samples, 0);
-      return done == samples;
+      return true;
     }
 
     virtual void Seek(uint_t frame)
@@ -113,14 +149,14 @@ namespace
   }
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Create(JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
+namespace Player
 {
-  if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  int Create(ZXTune::Module::Holder::Ptr module)
   {
     const Player::Control::Ptr ctrl = CreateControl(module);
+    Dbg("Player::Create(module=%p)=%p", module.get(), ctrl.get());
     return Player::Storage::Instance().Add(ctrl);
   }
-  return 0;
 }
 
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Destroy(JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)

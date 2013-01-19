@@ -59,8 +59,10 @@ public class Service extends android.app.Service {
     final byte[] content = LoadFile(fileName);
     final ZXTune.Data data = new ZXTune.Data(content);
     final ZXTune.Module module = data.createModule();
+    data.close();
     if (playback != null) {
       playback.stop();
+      playback.release();
     }
     showNotification(module);
     playback = new Playback(module);
@@ -88,6 +90,7 @@ public class Service extends android.app.Service {
     Log.d(TAG, "Stop");
     if (playback != null) {
       playback.stop();
+      playback.release();
       playback = null;
     }
     stopForeground(true);
@@ -127,6 +130,7 @@ public class Service extends android.app.Service {
       buffer = new byte[bufSize];
       output = new AudioTrack(STREAM_TYPE, soundFreq, CHANNELS, ENCODING, bufSize, AudioTrack.MODE_STREAM);
       player.setProperty(ZXTune.Properties.SOUND_FREQUENCY, soundFreq);
+      player.setProperty(ZXTune.Properties.AYM_INTERPOLATION, 1);
       Log.d(TAG, String.format("Initialized playback. Freq=%dHz Buf=%d samples", soundFreq, bufSize / 4));
     }
 
@@ -154,6 +158,12 @@ public class Service extends android.app.Service {
         return;
       }
       output.stop();
+    }
+
+    public void release() {
+      output.release();
+      player.close();
+      module.close();
     }
     
     private boolean isStopped() {

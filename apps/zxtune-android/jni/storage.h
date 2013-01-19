@@ -22,7 +22,7 @@ template<class PtrType>
 class ObjectsStorage
 {
 public:
-  typedef uint32_t HandleType;
+  typedef int32_t HandleType;
 
   ObjectsStorage()
     : Storage(&Compare)

@@ -16,11 +16,14 @@ Author:
 //local includes
 #include "storage.h"
 //library includes
+#include <binary/container.h>
 #include <core/module_holder.h>
 
 namespace Module
 {
   typedef ObjectsStorage<ZXTune::Module::Holder::Ptr> Storage;
+
+  Storage::HandleType Create(Binary::Container::Ptr data);
 }
 
 #endif //MODULE_H_DEFINED
