@@ -313,6 +313,14 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
     </message>
 </context>
 <context>
+    <name>QMessageBox</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/tools/errordialog.cpp" line="23"/>
+        <source>Error</source>
+        <translation>Ошибка</translation>
+    </message>
+</context>
+<context>
     <name>SeekControls</name>
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/seek_controls.ui" line="20"/>
