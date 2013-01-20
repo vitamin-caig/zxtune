@@ -30,7 +30,7 @@ namespace Module
   }
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_ModuleInfo_1GetFramesCount
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1GetDuration
   (JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
 {
   if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))

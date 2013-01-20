@@ -33,10 +33,10 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Data_1CreateModule
 
 /*
  * Class:     app_zxtune_ZXTune
- * Method:    ModuleInfo_GetFramesCount
+ * Method:    Module_GetDuration
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_ModuleInfo_1GetFramesCount
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1GetDuration
   (JNIEnv *, jclass, jint);
 
 /*
@@ -66,10 +66,10 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Player_Render
- * Signature: (ILjava/nio/ByteBuffer;)Z
+ * Signature: (IILjava/nio/ByteBuffer;)Z
  */
 JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
-  (JNIEnv *, jclass, jint, jobject);
+  (JNIEnv *, jclass, jint, jint, jobject);
 
 /*
  * Class:     app_zxtune_ZXTune
@@ -148,10 +148,43 @@ extern "C" {
 }
 #endif
 #endif
-/* Header for class app_zxtune_ZXTune_NativeObject */
+/* Header for class app_zxtune_ZXTune_Properties_Sound */
 
-#ifndef _Included_app_zxtune_ZXTune_NativeObject
-#define _Included_app_zxtune_ZXTune_NativeObject
+#ifndef _Included_app_zxtune_ZXTune_Properties_Sound
+#define _Included_app_zxtune_ZXTune_Properties_Sound
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Properties_Core */
+
+#ifndef _Included_app_zxtune_ZXTune_Properties_Core
+#define _Included_app_zxtune_ZXTune_Properties_Core
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Properties_Core_Aym */
+
+#ifndef _Included_app_zxtune_ZXTune_Properties_Core_Aym
+#define _Included_app_zxtune_ZXTune_Properties_Core_Aym
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Object */
+
+#ifndef _Included_app_zxtune_ZXTune_Object
+#define _Included_app_zxtune_ZXTune_Object
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -196,6 +229,50 @@ extern "C" {
 
 #ifndef _Included_app_zxtune_ZXTune_Player
 #define _Included_app_zxtune_ZXTune_Player
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_NativeObject */
+
+#ifndef _Included_app_zxtune_ZXTune_NativeObject
+#define _Included_app_zxtune_ZXTune_NativeObject
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_NativeData */
+
+#ifndef _Included_app_zxtune_ZXTune_NativeData
+#define _Included_app_zxtune_ZXTune_NativeData
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_NativeModule */
+
+#ifndef _Included_app_zxtune_ZXTune_NativeModule
+#define _Included_app_zxtune_ZXTune_NativeModule
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_NativePlayer */
+
+#ifndef _Included_app_zxtune_ZXTune_NativePlayer
+#define _Included_app_zxtune_ZXTune_NativePlayer
 #ifdef __cplusplus
 extern "C" {
 #endif

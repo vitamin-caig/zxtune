@@ -31,64 +31,47 @@ namespace
   {
   public:
     typedef boost::shared_ptr<BufferTarget> Ptr;
-
+    
     BufferTarget()
-      : ExternalBuffer()
-      , ExternalBufferSize()
+      : Taken()
     {
     }
 
     virtual void ApplyData(const ZXTune::Sound::MultiSample& data)
     {
-      if (0 != ExternalBufferSize)
-      {
-        std::transform(data.begin(), data.end(), ExternalBuffer, &ToNativeSample);
-        ExternalBuffer += data.size();
-        ExternalBufferSize -= data.size();
-      }
-      else
-      {
-        InternalBuffer.push_back(data);
-      }
+      Buffer.push_back(data);
     }
 
     virtual void Flush()
     {
     }
 
-    void SetExternalBuffer(int16_t* target, std::size_t count)
+    std::size_t GetSamples(std::size_t count, int16_t* target)
     {
-      if (!InternalBuffer.empty())
+      const std::size_t toGet = std::min(count / ZXTune::Sound::OUTPUT_CHANNELS, Buffer.size() - Taken);
+      const BufferType::const_iterator beginToCopy = Buffer.begin() + Taken;
+      const BufferType::const_iterator endToCopy = beginToCopy + toGet;
+      std::transform(&beginToCopy->front(), &endToCopy->front(), target, &ToNativeSample);
+      if (endToCopy == Buffer.end())
       {
-        const std::size_t toCopy = std::min(count / ZXTune::Sound::OUTPUT_CHANNELS, InternalBuffer.size());
-        const BufferType::iterator endToCopy = InternalBuffer.begin() + toCopy;
-        std::transform(&InternalBuffer.begin()->front(), &endToCopy->front(), target, &ToNativeSample);
-        InternalBuffer.erase(InternalBuffer.begin(), endToCopy);
-        count -= toCopy * ZXTune::Sound::OUTPUT_CHANNELS;
-        target += toCopy * ZXTune::Sound::OUTPUT_CHANNELS;
+        Buffer.clear();
+        Taken = 0;
       }
-      if (count != 0)
+      else
       {
-        ExternalBufferSize = count;
-        ExternalBuffer = target;
+        Taken += toGet;
       }
+      return toGet * ZXTune::Sound::OUTPUT_CHANNELS;
     }
 
-    bool HasExternalBuffer() const
+    std::size_t AvailSamples() const
     {
-      return 0 != ExternalBufferSize;
-    }
-
-    void FlushExternalBuffer()
-    {
-      std::fill_n(ExternalBuffer, ExternalBufferSize, 0);
-      ExternalBufferSize = 0;
+      return Buffer.size() * ZXTune::Sound::OUTPUT_CHANNELS;
     }
   private:
     typedef std::vector<ZXTune::Sound::MultiSample> BufferType;
-    BufferType InternalBuffer;
-    int16_t* ExternalBuffer;
-    std::size_t ExternalBufferSize;
+    BufferType Buffer;
+    std::size_t Taken;
   };
 
   class PlayerControl : public Player::Control
@@ -100,7 +83,7 @@ namespace
       , Buffer(buffer)
     {
     }
-
+    
     virtual uint_t GetPosition() const
     {
       return Renderer->GetTrackState()->Frame();
@@ -113,16 +96,17 @@ namespace
     
     virtual bool Render(std::size_t samples, int16_t* buffer)
     {
-      Buffer->SetExternalBuffer(buffer, samples);
-      while (Buffer->HasExternalBuffer())
+      for (;;)
       {
-        if (!Renderer->RenderFrame())
+        const std::size_t got = Buffer->GetSamples(samples, buffer);
+        buffer += got;
+        if (0 == (samples -= got) || !Renderer->RenderFrame())
         {
-          Buffer->FlushExternalBuffer();
-          return false;
+          break;
         }
       }
-      return true;
+      std::fill_n(buffer, samples, 0);
+      return samples == 0;
     }
 
     virtual void Seek(uint_t frame)
@@ -159,17 +143,12 @@ namespace Player
   }
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Destroy(JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)
-{
-  Player::Storage::Instance().Fetch(playerHandle);
-}
-
-JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render(JNIEnv* env, jclass /*self*/, jint playerHandle, jobject buffer)
+JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jint size, jobject buffer)
 {
   if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
   {
     int16_t* buf = static_cast<int16_t*>(env->GetDirectBufferAddress(buffer));
-    const std::size_t size = env->GetDirectBufferCapacity(buffer);
     return player->Render(size / sizeof(*buf), buf);
   }
   return false;
