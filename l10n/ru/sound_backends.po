@@ -243,12 +243,12 @@ msgstr "Поддержка вывода WAV"
 msgid "WAV conversion is not supported on non-seekable streams."
 msgstr "Конверсия в WAV не поддерживается для непозиционируемых потоков."
 
-#: win32_backend.cpp:96 win32_backend.cpp:199
+#: win32_backend.cpp:89 win32_backend.cpp:192
 #, boost-format
 msgid "Error in Win32 backend: code %1%."
 msgstr "Ошибка в подсистеме Win32: код %1%."
 
-#: win32_backend.cpp:194
+#: win32_backend.cpp:187
 #, boost-format
 msgid "Error in Win32 backend: %1%."
 msgstr "Ошибка в подсистеме Win32: %1%."

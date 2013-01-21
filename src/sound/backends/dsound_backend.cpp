@@ -447,7 +447,7 @@ namespace
     {
       if (SamplesShouldBeConverted)
       {
-        std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
+        buffer.ChangeSign();
       }
       Objects.Stream->Add(buffer);
     }

@@ -121,10 +121,10 @@ namespace
       std::size_t part2Size = 0;
       if (const std::size_t toGet = Buffer.Peek(count, part1, part1Size, part2, part2Size))
       {
-        std::transform(part1->begin(), (part1 + part1Size - 1)->end(), target->begin(), &ZXTune::Sound::ToSignedSample);
+        ZXTune::Sound::ChangeSignCopy(part1, part1 + part1Size, target);
         if (part2)
         {
-          std::transform(part2->begin(), (part2 + part2Size - 1)->end(), (target + part1Size)->begin(), &ZXTune::Sound::ToSignedSample);
+          ZXTune::Sound::ChangeSignCopy(part2, part2 + part2Size, target + part1Size);
         }
         Buffer.Consume(toGet);
         DoneSamples += toGet;

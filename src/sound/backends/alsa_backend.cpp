@@ -368,7 +368,7 @@ namespace
     {
       if (ChangeSign)
       {
-        std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
+        buffer.ChangeSign();
       }
       Pcm.Write(buffer);
     }

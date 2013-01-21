@@ -318,7 +318,7 @@ namespace
     {
       if (ChangeSign)
       {
-        std::transform(buffer.front().begin(), buffer.back().end(), buffer.front().begin(), &ToSignedSample);
+        buffer.ChangeSign();
       }
       assert(DevHandle.Valid());
       std::size_t toWrite(buffer.size() * sizeof(buffer.front()));

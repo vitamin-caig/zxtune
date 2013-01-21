@@ -130,7 +130,7 @@ namespace
     {
       if (SamplesShouldBeConverted)
       {
-        std::transform(data->front().begin(), data->back().end(), data->front().begin(), &ToSignedSample);
+        data->ChangeSign();
       }
       const std::size_t sizeInBytes = data->size() * sizeof(data->front());
       Stream->ApplyData(Binary::DataAdapter(&data->front(), sizeInBytes));

@@ -22,11 +22,6 @@ Author:
 
 namespace
 {
-  inline int16_t ToNativeSample(ZXTune::Sound::Sample in)
-  {
-    return static_cast<int16_t>(ZXTune::Sound::ToSignedSample(in));
-  }
-
   class BufferTarget : public ZXTune::Sound::Receiver
   {
   public:
@@ -51,7 +46,7 @@ namespace
       const std::size_t toGet = std::min(count / ZXTune::Sound::OUTPUT_CHANNELS, Buffer.size() - Taken);
       const BufferType::const_iterator beginToCopy = Buffer.begin() + Taken;
       const BufferType::const_iterator endToCopy = beginToCopy + toGet;
-      std::transform(&beginToCopy->front(), &endToCopy->front(), target, &ToNativeSample);
+      ZXTune::Sound::ChangeSignCopy(&*beginToCopy, &*beginToCopy + toGet, safe_ptr_cast<ZXTune::Sound::MultiSample*>(target));
       if (endToCopy == Buffer.end())
       {
         Buffer.clear();

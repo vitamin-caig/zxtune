@@ -63,13 +63,6 @@ namespace
 
   const bool SamplesShouldBeConverted = (sizeof(Sample) > 1) != SAMPLE_SIGNED;
 
-  inline Sample ConvertSample(Sample in)
-  {
-    return SamplesShouldBeConverted
-      ? ToSignedSample(in)
-      : in;
-  }
-
   class SharedEvent
   {
   public:
@@ -244,7 +237,14 @@ namespace
       assert(Header.dwFlags & WHDR_DONE);
       const std::size_t toWrite = std::min<std::size_t>(samples, Buffer.size());
       Header.dwBufferLength = static_cast< ::DWORD>(toWrite * sizeof(Buffer.front()));
-      std::transform(&buf->front(), &(buf + toWrite)->front(), safe_ptr_cast<Sample*>(Header.lpData), &ConvertSample);
+      if (SamplesShouldBeConverted)
+      {
+        ChangeSignCopy(buf, buf + toWrite, safe_ptr_cast<MultiSample*>(Header.lpData));
+      }
+      else
+      {
+        std::memcpy(Header.lpData, buf, toWrite * sizeof(*buf));
+      }
       Header.dwFlags &= ~WHDR_DONE;
       Device->Write(Header);
       return toWrite;

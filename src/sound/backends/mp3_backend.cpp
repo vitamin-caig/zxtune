@@ -102,7 +102,7 @@ namespace
     {
       if (SamplesShouldBeConverted)
       {
-        std::transform(data->front().begin(), data->back().end(), data->front().begin(), &ToSignedSample);
+        data->ChangeSign();
       }
       while (const int res = Api->lame_encode_buffer_interleaved(Context.get(),
         safe_ptr_cast<short int*>(&data->front()), data->size(), &Encoded[0], Encoded.size()))

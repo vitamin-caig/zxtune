@@ -13,6 +13,7 @@
 
 //common includes
 #include <types.h>
+#include <tools.h>
 //std includes
 #include <vector>
 //boost includes
@@ -39,14 +40,17 @@ namespace ZXTune
 
     const bool SAMPLE_SIGNED = SAMPLE_MID == 0;
 
-    inline Sample ToSignedSample(Sample in)
+    inline void ChangeSignCopy(const MultiSample* begin, const MultiSample* end, MultiSample* to)
     {
-      return in ^ (1 << (8 * sizeof(in) - 1));
-    }
-
-    inline Sample ToUnsignedSample(Sample in)
-    {
-      return in;
+      BOOST_STATIC_ASSERT(sizeof(MultiSample) == 4);
+      const uint32_t SIGN_MASK = 0x80008000;
+      const uint32_t* it = safe_ptr_cast<const uint32_t*>(begin);
+      const uint32_t* const lim = safe_ptr_cast<const uint32_t*>(end);
+      uint32_t* res = safe_ptr_cast<uint32_t*>(to);
+      for (; it != lim; ++it, ++res)
+      {
+        *res = *it ^ SIGN_MASK;
+      }
     }
 
     //! @brief Gain type
@@ -55,7 +59,22 @@ namespace ZXTune
     typedef boost::array<Gain, OUTPUT_CHANNELS> MultiGain;
 
     //! @brief Block of sound data
-    typedef std::vector<MultiSample> Chunk;
+    struct Chunk : public std::vector<MultiSample>
+    {
+      Chunk()
+      {
+      }
+
+      explicit Chunk(std::size_t size)
+        : std::vector<MultiSample>(size)
+      {
+      }
+
+      void ChangeSign()
+      {
+        ChangeSignCopy(&front(), &back() + 1, &front());
+      }
+    };
   }
 }
 
