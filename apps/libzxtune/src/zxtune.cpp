@@ -15,6 +15,7 @@ Author:
 #include <apps/version/api.h>
 //common includes
 #include <contract.h>
+#include <cycle_buffer.h>
 #include <error_tools.h>
 #include <progress_callback.h>
 #include <tools.h>
@@ -26,7 +27,7 @@ Author:
 #include <core/module_holder.h>
 #include <core/module_player.h>
 #include <io/api.h>
-#include <sound/mixer.h>
+#include <sound/mixer_factory.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <map>
@@ -93,13 +94,14 @@ namespace
     typedef boost::shared_ptr<BufferRender> Ptr;
 
     BufferRender()
-      : DoneSamples()
+      : Buffer(32768)
+      , DoneSamples()
     {
     }
 
     virtual void ApplyData(const ZXTune::Sound::MultiSample& data)
     {
-      Buffer.push_back(data);
+      Buffer.Put(&data, 1);
     }
 
     virtual void Flush()
@@ -111,76 +113,42 @@ namespace
       return DoneSamples;
     }
 
-    std::size_t SamplesCount() const
-    {
-      return Buffer.size();
-    }
-
     std::size_t GetSamples(std::size_t count, ZXTune::Sound::MultiSample* target)
     {
-      const std::size_t toGet = std::min(count, Buffer.size());
-      const BufferType::iterator endToCopy = Buffer.begin() + toGet;
-      std::transform(Buffer.begin()->begin(), (endToCopy - 1)->end(), target->begin(), &ZXTune::Sound::ToSignedSample);
-      Buffer.erase(Buffer.begin(), endToCopy);
-      DoneSamples += toGet;
-      return toGet;
+      const ZXTune::Sound::MultiSample* part1 = 0;
+      std::size_t part1Size = 0;
+      const ZXTune::Sound::MultiSample* part2 = 0;
+      std::size_t part2Size = 0;
+      if (const std::size_t toGet = Buffer.Peek(count, part1, part1Size, part2, part2Size))
+      {
+        std::transform(part1->begin(), (part1 + part1Size - 1)->end(), target->begin(), &ZXTune::Sound::ToSignedSample);
+        if (part2)
+        {
+          std::transform(part2->begin(), (part2 + part2Size - 1)->end(), (target + part1Size)->begin(), &ZXTune::Sound::ToSignedSample);
+        }
+        Buffer.Consume(toGet);
+        DoneSamples += toGet;
+        return toGet;
+      }
+      return 0;
     }
 
     std::size_t DropSamples(std::size_t count)
     {
-      const std::size_t toDrop = std::min(count, Buffer.size());
-      BufferType::iterator endToDrop = Buffer.begin() + toDrop;
-      Buffer.erase(Buffer.begin(), endToDrop);
+      const std::size_t toDrop = Buffer.Consume(count);
       DoneSamples += toDrop;
       return toDrop;
     }
 
     void Reset()
     {
-      Buffer.clear();
+      Buffer.Reset();
       DoneSamples = 0;
     }
   private:
-    typedef std::vector<ZXTune::Sound::MultiSample> BufferType;
-    BufferType Buffer;
+    CycleBuffer<ZXTune::Sound::MultiSample> Buffer;
     std::size_t DoneSamples;
   };
-
-  const ZXTune::Sound::MultiGain MIXER3[] =
-  {
-    { {1.0, 0.0} },
-    { {0.5, 0.5} },
-    { {0.0, 1.0} }
-  };
-  const ZXTune::Sound::MultiGain MIXER4[] =
-  {
-    { {1.0, 0.0} },
-    { {0.7, 0.3} },
-    { {0.3, 0.7} },
-    { {0.0, 1.0} }
-  };
-
-  ZXTune::Sound::Mixer::Ptr CreateMixer(const ZXTune::Sound::MultiGain* matrix, uint_t chans)
-  {
-    const ZXTune::Sound::MatrixMixer::Ptr res = ZXTune::Sound::CreateMatrixMixer(chans);
-    std::vector<ZXTune::Sound::MultiGain> mtx(matrix, matrix + chans);
-    res->SetMatrix(mtx);
-    return res;
-  }
-
-  ZXTune::Sound::Mixer::Ptr CreateMixer(uint_t chans)
-  {
-    switch (chans)
-    {
-    case 3:
-      return CreateMixer(MIXER3, chans);
-    case 4:
-      return CreateMixer(MIXER4, chans);
-    default:
-      Require(!"Unsupported channels count");
-      return ZXTune::Sound::Mixer::Ptr();
-    }
-  }
 
   class PlayerWrapper
   {
@@ -196,16 +164,19 @@ namespace
 
     std::size_t RenderSound(ZXTune::Sound::MultiSample* target, std::size_t samples)
     {
-      std::size_t readySamples = Buffer->SamplesCount();
-      while (readySamples < samples)
+      std::size_t result = 0;
+      while (samples)
       {
-        if (!Renderer->RenderFrame())
+        const std::size_t got = Buffer->GetSamples(samples, target);
+        target += got;
+        samples -= got;
+        result += got;
+        if (0 == samples || !Renderer->RenderFrame())
         {
           break;
         }
-        readySamples = Buffer->SamplesCount();
       }
-      return Buffer->GetSamples(std::min(readySamples, samples), target);
+      return result;
     }
 
     std::size_t Seek(std::size_t samples)
@@ -247,7 +218,7 @@ namespace
       const Parameters::Container::Ptr params = Parameters::Container::Create();
       //copy initial properties
       holder->GetModuleProperties()->Process(*params);
-      const ZXTune::Sound::Mixer::Ptr mixer = CreateMixer(channels);
+      const ZXTune::Sound::Mixer::Ptr mixer = ZXTune::Sound::CreateMixer(channels, params);
       const ZXTune::Module::Renderer::Ptr renderer = holder->CreateRenderer(params, mixer);
       const BufferRender::Ptr buffer = boost::make_shared<BufferRender>();
       mixer->SetTarget(buffer);
