@@ -11,9 +11,13 @@ include_dirs += $(ui_dir)
 qrc_sources = $(qrc_files:=.qrc)
 generated_sources += $(qrc_sources)
 
-ifdef STATIC_QT_PATH
-include_dirs += $(STATIC_QT_PATH)/include
-$(platform)_libraries_dirs += $(STATIC_QT_PATH)/lib
+prebuilt_dir ?= $(path_step)/../Build
+
+ifneq ($($(platform).$(arch).qt.version),)
+qt.version = $($(platform).$(arch).qt.version)
+qt.dir = $(prebuilt_dir)/qt-$(qt.version)-$(platform)-$(arch)
+include_dirs += $(qt.dir)/include
+$(platform)_libraries_dirs += $(qt.dir)/lib
 endif
 
 ifneq (,$(findstring Core,$(qt_libraries)))
@@ -23,7 +27,7 @@ endif
 ifneq (,$(findstring Gui,$(qt_libraries)))
 windows_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
 mingw_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
-ifdef STATIC_QT_PATH
+ifneq ($($(platform).$(arch).qt.version),)
 linux_libraries += freetype SM ICE Xext Xrender Xrandr Xfixes X11 fontconfig z
 dingux_libraries += png
 endif

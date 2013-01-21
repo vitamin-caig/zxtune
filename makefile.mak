@@ -38,14 +38,14 @@ objs_dir = $(path_step)/obj/$(platform_pathname)/$(mode_pathname)$(suffix)
 libs_dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(suffix)
 bins_dir = $(path_step)/bin/$(platform_pathname)/$(mode_pathname)
 
+#set environment
+include $(path_step)/make/environment.mak
+
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
 
 #set host-specific parameters
 include $(path_step)/make/hosts/$(host).mak
-
-#set environment
-include $(path_step)/make/environment.mak
 
 #set features
 include $(path_step)/make/features.mak

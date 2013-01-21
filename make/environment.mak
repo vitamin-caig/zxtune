@@ -20,3 +20,12 @@ android.mips.boost.version = 1.49.0
 dingux.mipsel.toolchain = /opt/mipsel-linux-uclibc
 dingux.mipsel.execprefix = $(dingux.mipsel.toolchain)/usr/bin/mipsel-linux-
 dingux.mipsel.boost.version = 1.49.0
+dingux.mipsel.qt.version = 4.7.1
+
+#linux arm
+linux.arm.toolchain = /opt/arm-linux
+linux.arm.execprefix = $(linux.arm.toolchain)/bin/arm-none-linux-gnueabi-
+linux.arm.boost.version = 1.49.0
+linux.arm.boost.libs.model = -mt
+linux.arm.qt.version = 4.8.1
+linux.arm.crossroot = $(path_step)/../Build/linux-arm
