@@ -18,10 +18,10 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Handle_1Close
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Data_Create
- * Signature: (Ljava/nio/ByteBuffer;)I
+ * Signature: ([B)I
  */
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Data_1Create
-  (JNIEnv *, jclass, jobject);
+  (JNIEnv *, jclass, jbyteArray);
 
 /*
  * Class:     app_zxtune_ZXTune

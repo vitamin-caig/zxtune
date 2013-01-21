@@ -15,6 +15,8 @@ Author:
 #include "player.h"
 #include "properties.h"
 #include "zxtune.h"
+//common includes
+#include <cycle_buffer.h>
 //library includes
 #include <sound/mixer_factory.h>
 //boost includes
@@ -26,15 +28,15 @@ namespace
   {
   public:
     typedef boost::shared_ptr<BufferTarget> Ptr;
-    
+
     BufferTarget()
-      : Taken()
+      : Buffer(32768)
     {
     }
-
+    
     virtual void ApplyData(const ZXTune::Sound::MultiSample& data)
     {
-      Buffer.push_back(data);
+      Buffer.Put(&data, 1);
     }
 
     virtual void Flush()
@@ -43,30 +45,24 @@ namespace
 
     std::size_t GetSamples(std::size_t count, int16_t* target)
     {
-      const std::size_t toGet = std::min(count / ZXTune::Sound::OUTPUT_CHANNELS, Buffer.size() - Taken);
-      const BufferType::const_iterator beginToCopy = Buffer.begin() + Taken;
-      const BufferType::const_iterator endToCopy = beginToCopy + toGet;
-      ZXTune::Sound::ChangeSignCopy(&*beginToCopy, &*beginToCopy + toGet, safe_ptr_cast<ZXTune::Sound::MultiSample*>(target));
-      if (endToCopy == Buffer.end())
+      using namespace ZXTune;
+      const Sound::MultiSample* part1 = 0;
+      std::size_t part1Size = 0;
+      const Sound::MultiSample* part2 = 0;
+      std::size_t part2Size = 0;
+      if (const std::size_t got = Buffer.Peek(count / Sound::OUTPUT_CHANNELS, part1, part1Size, part2, part2Size))
       {
-        Buffer.clear();
-        Taken = 0;
+        Sound::ChangeSignCopy(part1, part1 + part1Size, safe_ptr_cast<Sound::MultiSample*>(target));
+        if (part2)
+        {
+          Sound::ChangeSignCopy(part2, part2 + part2Size, safe_ptr_cast<Sound::MultiSample*>(target) + part1Size);
+        }
+        return Buffer.Consume(got) * Sound::OUTPUT_CHANNELS;
       }
-      else
-      {
-        Taken += toGet;
-      }
-      return toGet * ZXTune::Sound::OUTPUT_CHANNELS;
-    }
-
-    std::size_t AvailSamples() const
-    {
-      return Buffer.size() * ZXTune::Sound::OUTPUT_CHANNELS;
+      return 0;
     }
   private:
-    typedef std::vector<ZXTune::Sound::MultiSample> BufferType;
-    BufferType Buffer;
-    std::size_t Taken;
+    CycleBuffer<ZXTune::Sound::MultiSample> Buffer;
   };
 
   class PlayerControl : public Player::Control

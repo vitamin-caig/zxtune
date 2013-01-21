@@ -134,18 +134,12 @@ public final class ZXTune {
   private static final class NativeData extends NativeObject implements Data {
 
     NativeData(byte[] data) {
-      super(Data_Create(toByteBuffer(data)));
+      super(Data_Create(data));
     }
 
     @Override
     public Module createModule() {
       return new NativeModule(Data_CreateModule(handle));
-    }
-
-    private static ByteBuffer toByteBuffer(byte[] data) {
-      final ByteBuffer result = ByteBuffer.allocateDirect(data.length);
-      result.put(data);
-      return result;
     }
   }
 
@@ -233,7 +227,7 @@ public final class ZXTune {
   private static native void Handle_Close(int handle);
 
   // working with data
-  private static native int Data_Create(ByteBuffer data);
+  private static native int Data_Create(byte[] data);
 
   private static native int Data_CreateModule(int data);
 
