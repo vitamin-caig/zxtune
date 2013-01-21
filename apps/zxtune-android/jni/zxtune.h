@@ -66,10 +66,10 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Player_Render
- * Signature: (IILjava/nio/ByteBuffer;)Z
+ * Signature: (II[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
-  (JNIEnv *, jclass, jint, jint, jobject);
+  (JNIEnv *, jclass, jint, jint, jbyteArray);
 
 /*
  * Class:     app_zxtune_ZXTune

@@ -13,6 +13,7 @@ package app.zxtune.sound;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
+import android.os.Process;
 import android.util.Log;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -31,7 +32,7 @@ public class AsyncPlayback {
   }
 
   private final static String TAG = "app.zxtune.sound.AsyncPlayback";
-  private final static int DEFAULT_LATENCY = 200; 
+  private final static int DEFAULT_LATENCY = 60;//minimal is ~55
 
   private SyncPlayback sync;
   private Thread renderThread;
@@ -46,6 +47,7 @@ public class AsyncPlayback {
     this.playbackThread = new Thread(new Runnable() {
       public void run() {
         try {
+          Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
           sync.consumeCycle();
         } catch (InterruptedException e) {}
       }
@@ -53,6 +55,7 @@ public class AsyncPlayback {
     this.renderThread = new Thread(new Runnable() {
       public void run() {
         try {
+          Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
           sync.produceCycle();
         } catch (InterruptedException e) {}
       }
@@ -137,6 +140,9 @@ public class AsyncPlayback {
         final byte[] buf = freeQueue.take();
         if (source.getNextSoundChunk(buf)) {
           busyQueue.put(buf);
+        }
+        else {
+          target.stop();
         }
       }
       Log.d(TAG, "Stop producing sound data");

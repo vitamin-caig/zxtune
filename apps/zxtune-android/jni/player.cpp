@@ -89,9 +89,16 @@ namespace
     {
       for (;;)
       {
-        const std::size_t got = Buffer->GetSamples(samples, buffer);
-        buffer += got;
-        if (0 == (samples -= got) || !Renderer->RenderFrame())
+        if (const std::size_t got = Buffer->GetSamples(samples, buffer))
+        {
+          buffer += got;
+          samples -= got;
+          if (!samples)
+          {
+            break;
+          }
+        }
+        if (!Renderer->RenderFrame())
         {
           break;
         }
@@ -135,12 +142,16 @@ namespace Player
 }
 
 JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jint size, jobject buffer)
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jint size, jbyteArray buffer)
 {
   if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
   {
-    int16_t* buf = static_cast<int16_t*>(env->GetDirectBufferAddress(buffer));
-    return player->Render(size / sizeof(*buf), buf);
+    if (int16_t* buf = static_cast<int16_t*>(env->GetPrimitiveArrayCritical(buffer, 0)))
+    {
+      const bool res = player->Render(size / sizeof(*buf), buf);
+      env->ReleasePrimitiveArrayCritical(buffer, buf, 0);
+      return res;
+    }
   }
   return false;
 }

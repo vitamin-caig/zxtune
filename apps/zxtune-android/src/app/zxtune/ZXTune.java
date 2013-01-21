@@ -10,7 +10,6 @@
 
 package app.zxtune;
 
-import java.nio.ByteBuffer;
 import java.lang.RuntimeException;
 
 public final class ZXTune {
@@ -172,19 +171,13 @@ public final class ZXTune {
 
   private static final class NativePlayer extends NativeObject implements Player {
 
-    private ByteBuffer buffer;
-
     NativePlayer(int handle) {
       super(handle);
     }
 
     @Override
     public boolean render(byte[] result) {
-      allocateBuffer(result.length);
-      final boolean res = Player_Render(handle, result.length, buffer);
-      buffer.get(result, 0, result.length);
-      buffer.rewind();
-      return res;
+      return Player_Render(handle, result.length, result);
     }
 
     @Override
@@ -211,12 +204,6 @@ public final class ZXTune {
     public void setProperty(String name, String val) {
       Player_SetProperty(handle, name, val);
     }
-
-    private void allocateBuffer(int size) {
-      if (buffer == null || buffer.capacity() < size) {
-        buffer = ByteBuffer.allocateDirect(size);
-      }
-    }
   }
 
   static {
@@ -241,7 +228,7 @@ public final class ZXTune {
   private static native int Module_CreatePlayer(int module);
 
   // working with player
-  private static native boolean Player_Render(int player, int bytes, ByteBuffer result);
+  private static native boolean Player_Render(int player, int bytes, byte[] result);
 
   private static native int Player_GetPosition(int player);
 
