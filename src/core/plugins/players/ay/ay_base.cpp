@@ -17,8 +17,11 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <math/numeric.h>
+#include <sound/gainer.h>
 #include <sound/mixer_factory.h>
+#include <sound/sound_parameters.h>
 #include <sound/receiver.h>
+#include <sound/render_params.h>
 #include <sound/sample_convert.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -177,8 +180,9 @@ namespace
         chunk.TimeStamp = FlushChunk.TimeStamp;
         CommitChunk(chunk);
         Iterator->NextFrame(Params->Looped());
+        return Iterator->IsValid();
       }
-      return Iterator->IsValid();
+      return false;
     }
 
     virtual void Reset()
@@ -207,6 +211,74 @@ namespace
     Devices::AYM::DataChunk FlushChunk;
   };
 
+  class FadeoutFilter : public Sound::Receiver
+  {
+  public:
+    FadeoutFilter(TrackState::Ptr state, uint_t startFrame, uint_t samplesToFade, Sound::FadeGainer::Ptr target)
+      : State(state)
+      , Start(startFrame)
+      , Fading(samplesToFade)
+      , Target(target)
+    {
+    }
+
+    virtual void ApplyData(const Sound::MultiSample& sample)
+    {
+      Target->ApplyData(sample);
+    }
+
+    virtual void Flush()
+    {
+      if (Start == State->Frame())
+      {
+        Target->SetFading(Sound::Gain(-1), Fading);
+      }
+      Target->Flush();
+    }
+  private:
+    const TrackState::Ptr State;
+    uint_t Start;
+    const uint_t Fading;
+    const Sound::FadeGainer::Ptr Target;
+  };
+
+  Sound::Receiver::Ptr CreateFadingTarget(Parameters::Accessor::Ptr params, Information::Ptr info, TrackState::Ptr state, Sound::Receiver::Ptr target)
+  {
+    Parameters::IntType fadeIn = Parameters::ZXTune::Sound::FADEIN_DEFAULT;
+    Parameters::IntType fadeOut = Parameters::ZXTune::Sound::FADEOUT_DEFAULT;
+    params->FindValue(Parameters::ZXTune::Sound::FADEIN, fadeIn);
+    params->FindValue(Parameters::ZXTune::Sound::FADEOUT, fadeOut);
+    if (fadeIn == 0 && fadeOut == 0)
+    {
+      return target;
+    }
+    const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+    const Sound::FadeGainer::Ptr gainer = Sound::CreateFadeGainer();
+    gainer->SetTarget(target);
+    const Time::Microseconds frameDuration = renderParams->FrameDuration();
+    if (fadeIn != 0)
+    {
+      gainer->SetGain(Sound::Gain());
+      const uint_t fadeInSamples = fadeIn * renderParams->SoundFreq() / frameDuration.PER_SECOND;
+      gainer->SetFading(Sound::Gain(1), fadeInSamples);
+    }
+    else
+    {
+      gainer->SetGain(Sound::Gain(1));
+    }
+    if (fadeOut != 0)
+    {
+      const uint_t fadeOutFrames = 1 + fadeOut / frameDuration.Get();
+      const uint_t fadeOutSamples = fadeOut * renderParams->SoundFreq() / frameDuration.PER_SECOND;
+      const uint_t totalFrames = info->FramesCount();
+      return boost::make_shared<FadeoutFilter>(state, totalFrames - fadeOutFrames, fadeOutSamples, gainer);
+    }
+    else
+    {
+      return gainer;
+    }
+  }
+
   class AYMHolder : public Holder
   {
   public:
@@ -233,11 +305,13 @@ namespace
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
       const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::AYM::CHANNELS, Tune->GetProperties());
-      mixer->SetTarget(target);
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      return Tune->CreateRenderer(params, chip);
+      const Renderer::Ptr result = Tune->CreateRenderer(params, chip);
+      const Sound::Receiver::Ptr fading = CreateFadingTarget(params, Tune->GetInformation(), result->GetTrackState(), target);
+      mixer->SetTarget(fading);
+      return result;
     }
 
     virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const

@@ -42,12 +42,31 @@ namespace Parameters
       const IntType FRAMEDURATION_MAX = 1000000;
       //! Parameter name
       extern const NameType FRAMEDURATION;
+      //@}
 
       //@{
       //! @name Looped playback
 
       //! Parameter name
       extern const NameType LOOPED;
+      //@}
+
+      //@{
+      //! @name Fadein in microseconds
+
+      //! Default value- 1 frame
+      const IntType FADEIN_DEFAULT = FRAMEDURATION_DEFAULT;
+      //! Parameter name
+      extern const NameType FADEIN;
+      //@}
+
+      //@{
+      //! @name Fadeout in microseconds
+
+      //! Default value- 1 frame
+      const IntType FADEOUT_DEFAULT = FRAMEDURATION_DEFAULT;
+      //! Parameter name
+      extern const NameType FADEOUT;
       //@}
     }
   }

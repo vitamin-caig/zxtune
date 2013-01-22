@@ -49,7 +49,7 @@ msgstr "Поддержка подсистемы ALSA"
 
 #: alsa_backend.cpp:832 dsound_backend.cpp:530 flac_backend.cpp:321
 #: mp3_backend.cpp:390 null_backend.cpp:103 ogg_backend.cpp:458
-#: oss_backend.cpp:413 sdl_backend.cpp:327 wav_backend.cpp:219
+#: oss_backend.cpp:413 sdl_backend.cpp:327 wav_backend.cpp:220
 #: win32_backend.cpp:536
 #, boost-format
 msgid "Failed to create backend '%1%'."
@@ -235,11 +235,11 @@ msgstr "Ошибка получения уровня громкости."
 msgid "Failed to set volume in invalid state."
 msgstr "Ошибка установки уровня громкости."
 
-#: wav_backend.cpp:157
+#: wav_backend.cpp:158
 msgid "WAV support backend"
 msgstr "Поддержка вывода WAV"
 
-#: wav_backend.cpp:178
+#: wav_backend.cpp:179
 msgid "WAV conversion is not supported on non-seekable streams."
 msgstr "Конверсия в WAV не поддерживается для непозиционируемых потоков."
 

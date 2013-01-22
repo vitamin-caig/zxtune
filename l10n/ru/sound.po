@@ -32,7 +32,7 @@ msgstr ""
 "Нижняя частота среза фильтра (%1%Гц) превысила допустимые значения (%2%..."
 "%3%Гц)."
 
-#: impl/gainer.cpp:74
+#: impl/gainer.cpp:64
 msgid "Failed to set gain value: out of range."
 msgstr "Ошибка установки уровня: превышение допустимого значения."
 

@@ -69,6 +69,8 @@ namespace Parameters
       extern const NameType FREQUENCY = PREFIX + "frequency";
       extern const NameType FRAMEDURATION = PREFIX + "frameduration";
       extern const NameType LOOPED = PREFIX + "looped";
+      extern const NameType FADEIN = PREFIX + "fadein";
+      extern const NameType FADEOUT = PREFIX + "fadeout";
 
       namespace Mixer
       {
