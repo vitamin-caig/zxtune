@@ -29,6 +29,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/protracker3.h>
+#include <sound/mixer_factory.h>
 //text includes
 #include <core/text/plugins.h>
 
@@ -381,19 +382,21 @@ namespace PT3
       return Delegate->GetModuleProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
-      const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
+      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::AYM::CHANNELS, Delegate->GetModuleProperties());
+      mixer->SetTarget(target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
+      const AYMTSMixer::Ptr tsMixer = CreateTSMixer(receiver);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, mixer);
-      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, mixer);
+      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, tsMixer);
+      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, tsMixer);
 
       const Information::Ptr info = GetModuleInformation();
       const uint_t version = Vortex::ExtractVersion(*Delegate->GetModuleProperties());
       const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, info, Data, version, chip1);
       const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), version, chip2);
-      return CreateTSRenderer(renderer1, renderer2, mixer);
+      return CreateTSRenderer(renderer1, renderer2, tsMixer);
     }
 
     virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const

@@ -20,7 +20,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <sound/backend.h>
-#include <sound/mixer_factory.h>
 //boost inlcudes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -33,11 +32,9 @@ namespace
   class BackendParams : public ZXTune::Sound::CreateBackendParameters
   {
   public:
-    BackendParams(bool forPlayback, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback)
-      : ForPlayback(forPlayback)
-      , Params(params)
+    BackendParams(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback)
+      : Params(params)
       , Module(module)
-      , Info(Module->GetModuleInformation())
       , Properties(Module->GetModuleProperties())
       , Callback(callback)
     {
@@ -53,13 +50,6 @@ namespace
       return Module;
     }
 
-    virtual ZXTune::Sound::Mixer::Ptr GetMixer() const
-    {
-      return ForPlayback
-        ? ZXTune::Sound::CreatePollingMixer(Info->PhysicalChannels(), Params)
-        : ZXTune::Sound::CreateMixer(Info->PhysicalChannels(), Params);
-    }
-
     virtual ZXTune::Sound::Converter::Ptr GetFilter() const
     {
       return ZXTune::Sound::Converter::Ptr();
@@ -70,10 +60,8 @@ namespace
       return Callback;
     }
   private:
-    const bool ForPlayback;
     const Parameters::Accessor::Ptr Params;
     const ZXTune::Module::Holder::Ptr Module;
-    const ZXTune::Module::Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
     const ZXTune::Sound::BackendCallback::Ptr Callback;
   };
@@ -228,7 +216,7 @@ namespace
       using namespace ZXTune;
       //create backend
       const ZXTune::Sound::BackendCallback::Ptr cb(static_cast<ZXTune::Sound::BackendCallback*>(this), NullDeleter<ZXTune::Sound::BackendCallback>());
-      const Sound::CreateBackendParameters::Ptr createParams = boost::make_shared<BackendParams>(true, params, module, cb);
+      const Sound::CreateBackendParameters::Ptr createParams = CreateBackendParameters(params, module, cb);
       std::list<Error> errors;
       const Sound::BackendsScope::Ptr systemBackends = Sound::BackendsScope::CreateSystemScope(params);
       for (Sound::BackendCreator::Iterator::Ptr backends = systemBackends->Enumerate();
@@ -277,5 +265,5 @@ PlaybackSupport* PlaybackSupport::Create(QObject& parent, Parameters::Accessor::
 
 ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback)
 {
-  return boost::make_shared<BackendParams>(false, params, module, callback);
+  return boost::make_shared<BackendParams>(params, module, callback);
 }

@@ -11,11 +11,12 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "ts_base.h"
 //common includes
 #include <error.h>
 #include <iterator.h>
-//local includes
-#include "ts_base.h"
+//library includes
+#include <sound/mixer_factory.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -252,9 +253,9 @@ namespace ZXTune
       return boost::make_shared<TSAnalyzer>(first, second);
     }
 
-    TSMixer::Ptr CreateTSMixer(Sound::MultichannelReceiver::Ptr delegate)
+    TSMixer::Ptr CreateTSMixer(Sound::Receiver::Ptr delegate)
     {
-      typedef DoubleReceiverImpl<Sound::MultichannelSample> Impl;
+      typedef DoubleReceiverImpl<Sound::MultiSample> Impl;
       return boost::make_shared<Impl>(delegate);
     }
 
@@ -270,11 +271,11 @@ namespace ZXTune
       return boost::make_shared<Impl>(delegate);
     }
 
-    Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target)
+    Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::Receiver::Ptr target)
     {
-      const TSMixer::Ptr mixer = CreateTSMixer(target);
-      typedef TSRenderer<Sound::MultichannelSample> Impl;
-      return boost::make_shared<Impl>(first->CreateRenderer(params, mixer), second->CreateRenderer(params, mixer), mixer);
+      const TSMixer::Ptr tsMixer = CreateTSMixer(target);
+      typedef TSRenderer<Sound::MultiSample> Impl;
+      return boost::make_shared<Impl>(first->CreateRenderer(params, tsMixer), second->CreateRenderer(params, tsMixer), tsMixer);
     }
 
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer)

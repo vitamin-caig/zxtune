@@ -260,7 +260,7 @@ namespace
       return Parameters::CreateMergedAccessor(Properties, mixProps);
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
       return CreateTSRenderer(params, Holder1, Holder2, target);
     }

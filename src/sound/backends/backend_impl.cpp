@@ -100,72 +100,32 @@ namespace
     Chunk& Buffer;
   };
 
-  class MixerWithFilter : public Mixer
-  {
-  public:
-    MixerWithFilter(Mixer::Ptr mixer, Converter::Ptr filter)
-      : Delegate(mixer)
-      , Filter(filter)
-    {
-      Delegate->SetTarget(Filter);
-    }
-    
-    virtual void ApplyData(const Mixer::InDataType& data)
-    {
-      Delegate->ApplyData(data);
-    }
-
-    virtual void Flush()
-    {
-      Delegate->Flush();
-    }
-
-    virtual void SetTarget(DataReceiver<Mixer::OutDataType>::Ptr target)
-    {
-      Filter->SetTarget(target);
-    }
-  private:
-    const Mixer::Ptr Delegate;
-    const Converter::Ptr Filter;
-  };
-
-  Mixer::Ptr CreateMixer(const CreateBackendParameters& params)
-  {
-    const Mixer::Ptr mixer = params.GetMixer();
-    const Converter::Ptr filter = params.GetFilter();
-    return filter ? boost::make_shared<MixerWithFilter>(mixer, filter) : mixer;
-  }
+  typedef boost::shared_ptr<Chunk> ChunkPtr;
 
   class Renderer
   {
-    Renderer(Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
-      : Source(renderer)
-      , State(Source->GetTrackState())
-    {
-      const Receiver::Ptr target(new BufferRenderer(Buffer));
-      mixer->SetTarget(target);
-    }
   public:
     typedef boost::shared_ptr<Renderer> Ptr;
 
-    static Ptr Create(Module::Renderer::Ptr renderer, Mixer::Ptr mixer)
+    Renderer(Module::Renderer::Ptr renderer, ChunkPtr buffer)
+      : Source(renderer)
+      , State(Source->GetTrackState())
+      , Buffer(buffer)
     {
-      return Renderer::Ptr(new Renderer(renderer, mixer));
     }
 
     bool RenderFrame(BackendCallback& callback, BackendWorker& worker)
     {
       callback.OnFrame(*State);
-      Buffer.clear();
+      Buffer->clear();
       const bool res = Source->RenderFrame();
-      worker.BufferReady(Buffer);
+      worker.BufferReady(*Buffer);
       return res;
     }
   private:
     const Module::Renderer::Ptr Source;
     const Module::TrackState::Ptr State;
-    const Mixer::Ptr Mix;
-    Chunk Buffer;
+    const ChunkPtr Buffer;
   };
 
   class AsyncWrapper : public Async::Worker
@@ -385,12 +345,10 @@ namespace
   class BackendInternal : public Backend
   {
   public:
-    BackendInternal(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
+    BackendInternal(BackendWorker::Ptr worker, Module::Renderer::Ptr renderer, Async::Job::Ptr job)
       : Worker(worker)
-      , Mix(CreateMixer(*params))
-      , Holder(params->GetModule())
-      , Renderer(new SafeRendererWrapper(Holder->CreateRenderer(params->GetParameters(), Mix)))
-      , Job(Async::CreateJob(Async::Worker::Ptr(new AsyncWrapper(Holder, Worker, CreateCallback(params, Worker), Renderer::Create(Renderer, Mix)))))
+      , Renderer(renderer)
+      , Job(job)
     {
     }
 
@@ -452,11 +410,19 @@ namespace
     }
   private:
     const BackendWorker::Ptr Worker;
-    const Mixer::Ptr Mix;
-    const Module::Holder::Ptr Holder;
     const Module::Renderer::Ptr Renderer;
     const Async::Job::Ptr Job;
   };
+
+  Receiver::Ptr CreateRenderTarget(Converter::Ptr filter, Receiver::Ptr endpoint)
+  {
+    if (filter)
+    {
+      filter->SetTarget(endpoint);
+      return filter;
+    }
+    return endpoint;
+  }
 }
 
 namespace ZXTune
@@ -466,7 +432,15 @@ namespace ZXTune
     Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
     {
       worker->Test();
-      return boost::make_shared<BackendInternal>(params, worker);
+      const Module::Holder::Ptr holder = params->GetModule();
+      const ChunkPtr buffer = boost::make_shared<Chunk>();
+      const Receiver::Ptr bufferTarget = boost::make_shared<BufferRenderer>(boost::ref(*buffer));
+      const Receiver::Ptr target = CreateRenderTarget(params->GetFilter(), bufferTarget);
+      const Module::Renderer::Ptr moduleRenderer = boost::make_shared<SafeRendererWrapper>(holder->CreateRenderer(params->GetParameters(), target));
+      const Renderer::Ptr renderer = boost::make_shared<Renderer>(moduleRenderer, buffer);
+      const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(holder, worker, CreateCallback(params, worker), renderer);
+      const Async::Job::Ptr job = Async::CreateJob(asyncWorker);
+      return boost::make_shared<BackendInternal>(worker, moduleRenderer, job);
     }
 
     BackendCallback::Ptr CreateCompositeCallback(BackendCallback::Ptr first, BackendCallback::Ptr second)

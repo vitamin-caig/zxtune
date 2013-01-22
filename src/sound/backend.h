@@ -143,7 +143,6 @@ namespace ZXTune
 
       virtual Parameters::Accessor::Ptr GetParameters() const = 0;
       virtual Module::Holder::Ptr GetModule() const = 0;
-      virtual Mixer::Ptr GetMixer() const = 0;
       virtual Converter::Ptr GetFilter() const = 0;
       virtual BackendCallback::Ptr GetCallback() const = 0;
     };

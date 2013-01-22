@@ -27,7 +27,6 @@ Author:
 #include <core/module_holder.h>
 #include <core/module_player.h>
 #include <io/api.h>
-#include <sound/mixer_factory.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <map>
@@ -213,15 +212,11 @@ namespace
 
     static Ptr Create(ZXTune::Module::Holder::Ptr holder)
     {
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-      const uint_t channels = info->PhysicalChannels();
       const Parameters::Container::Ptr params = Parameters::Container::Create();
       //copy initial properties
       holder->GetModuleProperties()->Process(*params);
-      const ZXTune::Sound::Mixer::Ptr mixer = ZXTune::Sound::CreateMixer(channels, params);
-      const ZXTune::Module::Renderer::Ptr renderer = holder->CreateRenderer(params, mixer);
       const BufferRender::Ptr buffer = boost::make_shared<BufferRender>();
-      mixer->SetTarget(buffer);
+      const ZXTune::Module::Renderer::Ptr renderer = holder->CreateRenderer(params, buffer);
       return boost::make_shared<PlayerWrapper>(params, renderer, buffer);
     }
   private:

@@ -120,13 +120,10 @@ namespace
   Player::Control::Ptr CreateControl(const ZXTune::Module::Holder::Ptr module)
   {
     const Parameters::Container::Ptr params = Parameters::Container::Create();
-    const ZXTune::Module::Information::Ptr info = module->GetModuleInformation();
-    const ZXTune::Sound::Mixer::Ptr mixer = ZXTune::Sound::CreateMixer(info->PhysicalChannels(), params);
     const Parameters::Accessor::Ptr props = module->GetModuleProperties();
     const Parameters::Accessor::Ptr allProps = Parameters::CreateMergedAccessor(params, props);
-    const ZXTune::Module::Renderer::Ptr renderer = module->CreateRenderer(allProps, mixer);
     const BufferTarget::Ptr buffer = boost::make_shared<BufferTarget>();
-    mixer->SetTarget(buffer);
+    const ZXTune::Module::Renderer::Ptr renderer = module->CreateRenderer(allProps, buffer);
     return boost::make_shared<PlayerControl>(params, renderer, buffer);
   }
 }

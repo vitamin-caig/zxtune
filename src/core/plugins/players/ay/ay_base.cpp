@@ -17,6 +17,7 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <math/numeric.h>
+#include <sound/mixer_factory.h>
 #include <sound/receiver.h>
 #include <sound/sample_convert.h>
 //boost includes
@@ -229,9 +230,11 @@ namespace
       return Tune->GetProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
+      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::AYM::CHANNELS, Tune->GetProperties());
+      mixer->SetTarget(target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
       return Tune->CreateRenderer(params, chip);

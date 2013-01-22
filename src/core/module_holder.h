@@ -49,7 +49,7 @@ namespace ZXTune
 
       //! @brief Creating new renderer instance
       //! @return New player
-      virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const = 0;
+      virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const = 0;
 
       //! @brief Converting to specified format
       //! @param param Specify format to convert

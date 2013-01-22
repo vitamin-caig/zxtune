@@ -29,6 +29,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/dac_sample_factories.h>
+#include <sound/mixer_factory.h>
 //std includes
 #include <set>
 #include <utility>
@@ -371,9 +372,11 @@ namespace
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target, SQD::CHANNELS_COUNT);
+      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(SQD::CHANNELS_COUNT, Properties);
+      mixer->SetTarget(target);
+      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer, SQD::CHANNELS_COUNT);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(SQD::CHANNELS_COUNT, SQD::BASE_FREQ, chipParams, receiver));
       for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)

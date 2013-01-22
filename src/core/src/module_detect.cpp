@@ -101,7 +101,7 @@ namespace
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }

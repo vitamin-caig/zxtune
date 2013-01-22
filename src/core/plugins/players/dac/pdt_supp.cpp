@@ -29,6 +29,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/dac_sample_factories.h>
+#include <sound/mixer_factory.h>
 //boost includes
 #include <boost/bind.hpp>
 //text includes
@@ -360,9 +361,11 @@ namespace
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target, CHANNELS_COUNT);
+      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(CHANNELS_COUNT, Properties);
+      mixer->SetTarget(target);
+      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer, CHANNELS_COUNT);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, BASE_FREQ, chipParams, receiver));
       for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)

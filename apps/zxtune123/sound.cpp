@@ -24,7 +24,6 @@ Author:
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/filter.h>
-#include <sound/mixer_factory.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
@@ -142,11 +141,6 @@ namespace
       return Params;
     }
 
-    ZXTune::Sound::Mixer::Ptr GetMixer(uint_t channels) const
-    {
-      return ZXTune::Sound::CreateMixer(channels, Params);
-    }
-
     ZXTune::Sound::Converter::Ptr GetFilter() const
     {
       return Filter;
@@ -169,7 +163,6 @@ namespace
     CreateBackendParams(const CommonBackendParameters& params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback)
       : Params(params)
       , Module(module)
-      , Channels(Module->GetModuleInformation()->PhysicalChannels())
       , Callback(callback)
     {
     }
@@ -184,11 +177,6 @@ namespace
       return Module;
     }
 
-    virtual ZXTune::Sound::Mixer::Ptr GetMixer() const
-    {
-      return Params.GetMixer(Channels);
-    }
-
     virtual ZXTune::Sound::Converter::Ptr GetFilter() const
     {
       return Params.GetFilter();
@@ -201,7 +189,6 @@ namespace
   private:
     const CommonBackendParameters& Params;
     const ZXTune::Module::Holder::Ptr Module;
-    const uint_t Channels;
     const ZXTune::Sound::BackendCallback::Ptr Callback;
   };
 

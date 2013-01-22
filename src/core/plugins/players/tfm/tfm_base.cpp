@@ -16,6 +16,7 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <sound/sample_convert.h>
+#include <sound/mixer_factory.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -169,9 +170,11 @@ namespace
       return Tune->GetProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Devices::TFM::Receiver::Ptr receiver = TFM::CreateReceiver(target);
+      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::TFM::CHANNELS, Tune->GetProperties());
+      mixer->SetTarget(target);
+      const Devices::TFM::Receiver::Ptr receiver = TFM::CreateReceiver(mixer);
       const Devices::TFM::ChipParameters::Ptr chipParams = TFM::CreateChipParameters(params);
       const Devices::TFM::Chip::Ptr chip = Devices::TFM::CreateChip(chipParams, receiver);
       return Tune->CreateRenderer(params, chip);

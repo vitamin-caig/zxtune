@@ -28,6 +28,7 @@ Author:
 #include <devices/dac_sample_factories.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digitalstudio.h>
+#include <sound/mixer_factory.h>
 //std includes
 #include <set>
 
@@ -207,9 +208,11 @@ namespace
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target, DST::CHANNELS_COUNT);
+      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(DST::CHANNELS_COUNT, Properties);
+      mixer->SetTarget(target);
+      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer, DST::CHANNELS_COUNT);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DST::CHANNELS_COUNT, DST::BASE_FREQ, chipParams, receiver));
       for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)

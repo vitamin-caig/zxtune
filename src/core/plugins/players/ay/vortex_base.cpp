@@ -467,7 +467,7 @@ namespace
       return Delegate->GetModuleProperties();
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
       return Delegate->CreateRenderer(params, target);
     }

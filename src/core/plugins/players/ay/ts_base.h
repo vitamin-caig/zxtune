@@ -34,14 +34,14 @@ namespace ZXTune
 
     typedef DoubleReceiver<Devices::AYM::MultiSample> AYMTSMixer;
     typedef DoubleReceiver<Devices::FM::Sample> TFMMixer;
-    typedef DoubleReceiver<Sound::MultichannelSample> TSMixer;
+    typedef DoubleReceiver<Sound::MultiSample> TSMixer;
 
     TrackState::Ptr CreateTSTrackState(TrackState::Ptr first, TrackState::Ptr second);
     Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second);
-    TSMixer::Ptr CreateTSMixer(Sound::MultichannelReceiver::Ptr delegate);
+    TSMixer::Ptr CreateTSMixer(Sound::Receiver::Ptr delegate);
     AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate);
     TFMMixer::Ptr CreateTFMMixer(Devices::FM::Receiver::Ptr delegate);
-    Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target);
+    Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::Receiver::Ptr target);
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer);
   }
 }
