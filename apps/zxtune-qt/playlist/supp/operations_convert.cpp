@@ -126,7 +126,7 @@ namespace
         const ZXTune::Module::Information::Ptr info = item->GetModuleInformation();
         const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
         ConvertCallback cb(*framesProgress);
-        const ZXTune::Sound::CreateBackendParameters::Ptr params = ::CreateBackendParameters(BackendParameters, item,
+        const ZXTune::Sound::CreateBackendParameters::Ptr params = MakeBackendParameters(BackendParameters, item,
           ZXTune::Sound::BackendCallback::Ptr(&cb, NullDeleter<ZXTune::Sound::BackendCallback>()));
         const ZXTune::Sound::Backend::Ptr backend = Creator->CreateBackend(params);
         backend->Play();
