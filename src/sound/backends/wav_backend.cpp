@@ -14,6 +14,7 @@ Author:
 #include "enumerator.h"
 //common includes
 #include <byteorder.h>
+#include <contract.h>
 #include <error_tools.h>
 #include <tools.h>
 //library includes
@@ -139,13 +140,13 @@ namespace
 
     virtual void Flush()
     {
-      const uint64_t oldPos = Stream->Position();
+      Stream->Flush();
       // write header
       Stream->Seek(0);
       Format.Size = fromLE<uint32_t>(sizeof(Format) - 8 + DoneBytes);
       Format.DataSize = fromLE<uint32_t>(DoneBytes);
       Stream->ApplyData(Binary::DataAdapter(&Format, sizeof(Format)));
-      Stream->Seek(oldPos);
+      Stream->Seek(DoneBytes + sizeof(Format));
     }
   private:
     const Binary::SeekableOutputStream::Ptr Stream;
