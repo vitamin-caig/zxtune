@@ -31,7 +31,7 @@ msgstr ""
 msgid "Failed to found mixer '%1%' for ALSA backend."
 msgstr "Микшер '%1%' не найден в подсистеме ALSA."
 
-#: alsa_backend.cpp:614 dsound_backend.cpp:345 oss_backend.cpp:222
+#: alsa_backend.cpp:614 dsound_backend.cpp:345 oss_backend.cpp:223
 #: win32_backend.cpp:359
 msgid "Failed to set volume: gain is out of range."
 msgstr "Ошибка установки громкости: превышение допустимого значения."
@@ -49,7 +49,7 @@ msgstr "Поддержка подсистемы ALSA"
 
 #: alsa_backend.cpp:832 dsound_backend.cpp:530 flac_backend.cpp:321
 #: mp3_backend.cpp:390 null_backend.cpp:103 ogg_backend.cpp:458
-#: oss_backend.cpp:412 sdl_backend.cpp:327 wav_backend.cpp:219
+#: oss_backend.cpp:413 sdl_backend.cpp:327 wav_backend.cpp:219
 #: win32_backend.cpp:536
 #, boost-format
 msgid "Failed to create backend '%1%'."
@@ -193,17 +193,17 @@ msgstr ""
 msgid "OGG support backend"
 msgstr "Поддержка вывода OGG"
 
-#: oss_backend.cpp:135
+#: oss_backend.cpp:136
 #, boost-format
 msgid "Error in OSS backend while working with device '%1%': %2%."
 msgstr "Ошибка при работе с OSS устройством '%1%': %2%."
 
-#: oss_backend.cpp:347
+#: oss_backend.cpp:348
 msgid "No suitable formats supported by OSS."
 msgstr ""
 "Ни один подходящий формат вывода звука не поддерживается подсистемой OSS."
 
-#: oss_backend.cpp:376 oss_stub.cpp:26
+#: oss_backend.cpp:377 oss_stub.cpp:26
 msgid "OSS sound system backend"
 msgstr "Поддержка подсистемы OSS"
 

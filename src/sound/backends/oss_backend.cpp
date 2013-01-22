@@ -32,6 +32,7 @@ Author:
 #include <sys/soundcard.h>
 //std includes
 #include <algorithm>
+#include <cstring>
 //boost includes
 #include <boost/noncopyable.hpp>
 #include <boost/thread/thread.hpp>
