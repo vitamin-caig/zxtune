@@ -214,7 +214,7 @@ namespace AY
     virtual void SetTitle(const String& /*title*/) {}
     virtual void SetAuthor(const String& /*author*/) {}
     virtual void SetComment(const String& /*comment*/) {}
-    virtual void SetDuration(uint_t /*duration*/) {}
+    virtual void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) {}
     virtual void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) {}
     virtual void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) {}
     virtual void AddBlock(uint16_t /*addr*/, const void* /*data*/, std::size_t /*size*/) {}
@@ -283,7 +283,7 @@ namespace AY
     {
     }
 
-    virtual void SetDuration(uint_t /*duration*/)
+    virtual void SetDuration(uint_t /*total*/, uint_t /*fadeout*/)
     {
     }
 
@@ -385,7 +385,7 @@ namespace AY
     }
   public:
     FileBuilder()
-      : Duration()
+      : Duration(), Fadeout()
       , Register(), StackPointer()
       , InitRoutine(), PlayRoutine()
     {
@@ -406,9 +406,10 @@ namespace AY
       Comment = comment;
     }
 
-    virtual void SetDuration(uint_t duration)
+    virtual void SetDuration(uint_t total, uint_t fadeout)
     {
-      Duration = static_cast<uint16_t>(duration);
+      Duration = static_cast<uint16_t>(total);
+      Fadeout = static_cast<uint16_t>(fadeout);
     }
 
     virtual void SetRegisters(uint16_t reg, uint16_t sp)
@@ -447,6 +448,7 @@ namespace AY
       EMUL::ModuleData* const data = result->Add(EMUL::ModuleData());
       SetPointer(&descr->DataOffset, data);
       data->TotalLength = fromBE(Duration);
+      data->FadeLength = fromBE(Fadeout);
       data->RegValue = fromBE(Register);
       //init pointers
       EMUL::ModulePointers* const pointers = result->Add(EMUL::ModulePointers());
@@ -477,6 +479,7 @@ namespace AY
     String Author;
     String Comment;
     uint16_t Duration;
+    uint16_t Fadeout;
     uint16_t Register;
     uint16_t StackPointer;
     uint16_t InitRoutine;
@@ -523,7 +526,7 @@ namespace AY
       const EMUL::ModuleData& moddata = data.GetField<EMUL::ModuleData>(&description.DataOffset);
       if (const uint_t duration = fromBE(moddata.TotalLength))
       {
-        target.SetDuration(duration);
+        target.SetDuration(duration, fromBE(moddata.FadeLength));
       }
       const EMUL::ModulePointers& modpointers = data.GetField<EMUL::ModulePointers>(&moddata.PointersOffset);
       target.SetRegisters(fromBE(moddata.RegValue), fromBE(modpointers.SP));

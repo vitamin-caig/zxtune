@@ -16,6 +16,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/convert_parameters.h>
+#include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/gainer.h>
 #include <sound/mixer_factory.h>
@@ -35,6 +36,8 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
+
+  const Debug::Stream Dbg("Core::AYBase");
 
   class AYMDataIterator : public AYM::DataIterator
   {
@@ -252,6 +255,7 @@ namespace
     {
       return target;
     }
+    Dbg("Using fade in for %1% uS, fade out for %2% uS", fadeIn, fadeOut);
     const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
     const Sound::FadeGainer::Ptr gainer = Sound::CreateFadeGainer();
     gainer->SetTarget(target);
@@ -260,6 +264,7 @@ namespace
     {
       gainer->SetGain(Sound::Gain());
       const uint_t fadeInSamples = fadeIn * renderParams->SoundFreq() / frameDuration.PER_SECOND;
+      Dbg("Fade in for %1% samples", fadeInSamples);
       gainer->SetFading(Sound::Gain(1), fadeInSamples);
     }
     else
@@ -271,7 +276,9 @@ namespace
       const uint_t fadeOutFrames = 1 + fadeOut / frameDuration.Get();
       const uint_t fadeOutSamples = fadeOut * renderParams->SoundFreq() / frameDuration.PER_SECOND;
       const uint_t totalFrames = info->FramesCount();
-      return boost::make_shared<FadeoutFilter>(state, totalFrames - fadeOutFrames, fadeOutSamples, gainer);
+      const uint_t startFadingFrame = totalFrames - fadeOutFrames;
+      Dbg("Fade out for %1% samples starting from %2% frame out of %3%", fadeOutSamples, startFadingFrame, totalFrames);
+      return boost::make_shared<FadeoutFilter>(state, startFadingFrame, fadeOutSamples, gainer);
     }
     else
     {

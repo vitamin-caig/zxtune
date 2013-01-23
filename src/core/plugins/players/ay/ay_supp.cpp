@@ -470,9 +470,15 @@ namespace
       Properties->SetComment(comment);
     }
 
-    virtual void SetDuration(uint_t duration)
+    virtual void SetDuration(uint_t duration, uint_t fadeout)
     {
       Frames = duration;
+      if (fadeout)
+      {
+        Dbg("Using fadeout of %1% frames", fadeout);
+        static const Time::Microseconds FADING_STEP(20000);
+        Properties->GetInternalContainer()->SetValue(Parameters::ZXTune::Sound::FADEOUT, FADING_STEP.Get() * fadeout);
+      }
     }
 
     virtual void SetRegisters(uint16_t reg, uint16_t sp)

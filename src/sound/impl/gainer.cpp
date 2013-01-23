@@ -31,9 +31,9 @@ namespace
 
   class GainCore
   {
-    typedef uint_t LevelType;
-    typedef int_t StepType;
-    static const LevelType DIVIDER = FIXED_POINT_PRECISION * FIXED_POINT_PRECISION;
+    typedef uint64_t LevelType;
+    typedef int64_t StepType;
+    static const LevelType DIVIDER = LevelType(1) << 32;
     BOOST_STATIC_ASSERT(8 * sizeof(LevelType) >= boost::static_log2<DIVIDER>::value + 8 * sizeof(Sample));
   public:
     GainCore()

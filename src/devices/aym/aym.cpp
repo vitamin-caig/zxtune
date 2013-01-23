@@ -328,6 +328,7 @@ namespace
 
     void SetType(uint_t type)
     {
+      Update();
       CountingGenerator::ResetCounter();
       Type = type;
       if (Type & 4) //down-up envelopes
