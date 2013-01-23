@@ -20,6 +20,7 @@ Author:
 //library includes
 #include <binary/data_adapter.h>
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/render_params.h>
 //std includes
@@ -59,6 +60,20 @@ namespace
     uint8_t DataId[4];      //'data'
     uint32_t DataSize;
   } PACK_POST;
+
+  PACK_PRE struct ListHeader
+  {
+    uint8_t Id[4];   //LIST
+    uint32_t Size;   //next content size
+    uint8_t Type[4]; //INFO
+  } PACK_POST;
+
+  PACK_PRE struct InfoElement
+  {
+    uint8_t Id[4];
+    uint32_t Size; //next content size - 1
+    uint8_t Content[1];
+  } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
@@ -67,6 +82,12 @@ namespace
   const uint8_t RIFX[] = {'R', 'I', 'F', 'X'};
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
+
+  const uint8_t LIST[] = {'L', 'I', 'S', 'T'};
+  const uint8_t INFO[] = {'I', 'N', 'F', 'O'};
+  const uint8_t INAM[] = {'I', 'N', 'A', 'M'};
+  const uint8_t IART[] = {'I', 'A', 'R', 'T'};
+  const uint8_t ICMT[] = {'I', 'C', 'M', 'T'};
 
   /*
   From https://ccrma.stanford.edu/courses/422/projects/WaveFormat :
@@ -82,6 +103,64 @@ namespace
   */
  
   const bool SamplesShouldBeConverted = sizeof(Sample) > 1 && !SAMPLE_SIGNED;
+
+  class ListMetadata : public Dump
+  {
+  public:
+    ListMetadata()
+    {
+      reserve(1024);
+    }
+
+    void SetTitle(const String& title)
+    {
+      AddElement(INAM, ToStdString(title));
+    }
+
+    void SetAuthor(const String& author)
+    {
+      AddElement(IART, ToStdString(author));
+    }
+
+    void SetComment(const String& comment)
+    {
+      AddElement(ICMT, ToStdString(comment));
+    }
+  private:
+    void AddElement(const uint8_t* id, const std::string& str)
+    {
+      ListHeader* const hdr = GetHeader();
+      const std::size_t strSize = str.size() + 1;
+      InfoElement* const elem = AddElement(strSize);
+      std::memcpy(elem->Id, id, sizeof(elem->Id));
+      elem->Size = fromLE(strSize);
+      std::memcpy(elem->Content, str.c_str(), strSize);
+      elem->Content[strSize] = 0;
+      hdr->Size = fromLE(size() - offsetof(ListHeader, Type));
+    }
+
+    ListHeader* GetHeader()
+    {
+      if (empty())
+      {
+        resize(sizeof(ListHeader));
+        ListHeader* const hdr = safe_ptr_cast<ListHeader*>(&front());
+        std::memcpy(hdr->Id, LIST, sizeof(LIST));
+        std::memcpy(hdr->Type, INFO, sizeof(INFO));
+        hdr->Size = 0;
+        return hdr;
+      }
+      return safe_ptr_cast<ListHeader*>(&front());
+    }
+
+    InfoElement* AddElement(std::size_t contentSize)
+    {
+      const std::size_t oldSize = size();
+      const std::size_t elemSize = Math::Align<std::size_t>(offsetof(InfoElement, Content) + contentSize, 2);
+      resize(oldSize + elemSize);
+      return safe_ptr_cast<InfoElement*>(&at(oldSize));
+    }
+  };
 
   class WavStream : public FileStream
   {
@@ -111,16 +190,19 @@ namespace
       Flush();
     }
 
-    virtual void SetTitle(const String& /*title*/)
+    virtual void SetTitle(const String& title)
     {
+      Meta.SetTitle(title);
     }
 
-    virtual void SetAuthor(const String& /*author*/)
+    virtual void SetAuthor(const String& author)
     {
+      Meta.SetAuthor(author);
     }
 
-    virtual void SetComment(const String& /*comment*/)
+    virtual void SetComment(const String& comment)
     {
+      Meta.SetComment(comment);
     }
 
     virtual void FlushMetadata()
@@ -140,10 +222,14 @@ namespace
 
     virtual void Flush()
     {
+      if (!Meta.empty())
+      {
+        Stream->ApplyData(Binary::DataAdapter(&Meta.front(), Meta.size()));
+      }
       Stream->Flush();
       // write header
       Stream->Seek(0);
-      Format.Size = fromLE<uint32_t>(sizeof(Format) - 8 + DoneBytes);
+      Format.Size = fromLE<uint32_t>(sizeof(Format) - offsetof(WaveFormat, Type) + DoneBytes + Meta.size());
       Format.DataSize = fromLE<uint32_t>(DoneBytes);
       Stream->ApplyData(Binary::DataAdapter(&Format, sizeof(Format)));
       Stream->Seek(DoneBytes + sizeof(Format));
@@ -152,6 +238,7 @@ namespace
     const Binary::SeekableOutputStream::Ptr Stream;
     uint32_t DoneBytes;
     WaveFormat Format;
+    ListMetadata Meta;
   };
 
   const String ID = Text::WAV_BACKEND_ID;
