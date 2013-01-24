@@ -54,8 +54,8 @@ namespace Parameters
       //@{
       //! @name Fadein in microseconds
 
-      //! Default value- 1 frame
-      const IntType FADEIN_DEFAULT = FRAMEDURATION_DEFAULT;
+      //! Default value- no fading
+      const IntType FADEIN_DEFAULT = 0;
       //! Parameter name
       extern const NameType FADEIN;
       //@}
@@ -63,8 +63,8 @@ namespace Parameters
       //@{
       //! @name Fadeout in microseconds
 
-      //! Default value- 1 frame
-      const IntType FADEOUT_DEFAULT = FRAMEDURATION_DEFAULT;
+      //! Default value- no fading
+      const IntType FADEOUT_DEFAULT = 0;
       //! Parameter name
       extern const NameType FADEOUT;
       //@}
