@@ -116,6 +116,15 @@ namespace ZXTune
         virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const;
       };
 
+      //TODO: refactor
+      class Holder : public ZXTune::Module::Holder
+      {
+      public:
+        typedef boost::shared_ptr<const Holder> Ptr;
+
+        virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const = 0;
+      };
+
       Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device);
 
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);

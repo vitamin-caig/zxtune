@@ -442,44 +442,6 @@ namespace
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
-
-  class VortexHolder : public Holder
-  {
-  public:
-    VortexHolder(Vortex::Track::ModuleData::Ptr data, Holder::Ptr delegate)
-      : Data(data)
-      , Delegate(delegate)
-    {
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Delegate->GetPlugin();
-    } 
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Delegate->GetModuleInformation();
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Delegate->GetModuleProperties();
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
-    {
-      return Delegate->CreateRenderer(params, target);
-    }
-
-    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const
-    {
-      return Delegate->Convert(spec, params);
-    }
-  protected:
-    const Vortex::Track::ModuleData::Ptr Data;
-    const Holder::Ptr Delegate;
-  };
 }
 
 namespace ZXTune
@@ -532,11 +494,6 @@ namespace ZXTune
       AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)
       {
         return boost::make_shared<VortexChiptune>(data, properties, channels);
-      }
-
-      Holder::Ptr CreateHolder(Track::ModuleData::Ptr data, Holder::Ptr delegate)
-      {
-        return boost::make_shared<VortexHolder>(data, delegate);
       }
     }
   }

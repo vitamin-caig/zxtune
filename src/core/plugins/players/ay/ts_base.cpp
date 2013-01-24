@@ -253,12 +253,6 @@ namespace ZXTune
       return boost::make_shared<TSAnalyzer>(first, second);
     }
 
-    TSMixer::Ptr CreateTSMixer(Sound::Receiver::Ptr delegate)
-    {
-      typedef DoubleReceiverImpl<Sound::MultiSample> Impl;
-      return boost::make_shared<Impl>(delegate);
-    }
-
     AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate)
     {
       typedef DoubleReceiverImpl<Devices::AYM::MultiSample> Impl;
@@ -269,13 +263,6 @@ namespace ZXTune
     {
       typedef DoubleReceiverImpl<Devices::FM::Sample> Impl;
       return boost::make_shared<Impl>(delegate);
-    }
-
-    Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::Receiver::Ptr target)
-    {
-      const TSMixer::Ptr tsMixer = CreateTSMixer(target);
-      typedef TSRenderer<Sound::MultiSample> Impl;
-      return boost::make_shared<Impl>(first->CreateRenderer(params, tsMixer), second->CreateRenderer(params, tsMixer), tsMixer);
     }
 
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer)

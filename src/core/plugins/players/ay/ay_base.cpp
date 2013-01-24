@@ -286,7 +286,7 @@ namespace
     }
   }
 
-  class AYMHolder : public Holder
+  class AYMHolder : public AYM::Holder
   {
   public:
     explicit AYMHolder(AYM::Chiptune::Ptr chiptune)
@@ -333,6 +333,11 @@ namespace
         return res;
       }
       throw CreateUnsupportedConversionError(THIS_LINE, spec);
+    }
+
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
+    {
+      return Tune->CreateRenderer(params, chip);
     }
   private:
     const AYM::Chiptune::Ptr Tune;

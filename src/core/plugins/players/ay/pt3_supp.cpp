@@ -460,8 +460,7 @@ namespace PT3
         else
         {
           const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties,  Devices::AYM::CHANNELS);
-          const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
-          return Vortex::CreateHolder(modData, nativeHolder);
+          return AYM::CreateHolder(chiptune);
         }
       }
       return Holder::Ptr();
@@ -507,8 +506,7 @@ namespace Vortex2
         usedSize = container->Size();
         properties->SetSource(container);
         const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties,  Devices::AYM::CHANNELS);
-        const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
-        return Vortex::CreateHolder(modData, nativeHolder);
+        return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();
     }

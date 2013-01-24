@@ -29,8 +29,10 @@ Author:
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/aym.h>
+#include <sound/mixer_factory.h>
 //std includes
 #include <set>
+#include <typeinfo>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -236,7 +238,7 @@ namespace
   class TSHolder : public Holder
   {
   public:
-    TSHolder(ModuleProperties::Ptr props, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
+    TSHolder(ModuleProperties::Ptr props, const AYM::Holder::Ptr& holder1, const AYM::Holder::Ptr& holder2)
       : Properties(props)
       , Holder1(holder1), Holder2(holder2)
       , Info(new MergedModuleInfo(Holder1->GetModuleInformation(), Holder2->GetModuleInformation()))
@@ -253,7 +255,6 @@ namespace
       return Info;
     }
 
-
     virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
       const Parameters::Accessor::Ptr mixProps = boost::make_shared<MergedModuleProperties>(Holder1->GetModuleProperties(), Holder2->GetModuleProperties());
@@ -262,7 +263,18 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      return CreateTSRenderer(params, Holder1, Holder2, target);
+      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::AYM::CHANNELS, GetModuleProperties());
+      mixer->SetTarget(target);
+      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
+      const AYMTSMixer::Ptr tsMixer = CreateTSMixer(receiver);
+      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
+      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, tsMixer);
+      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, tsMixer);
+
+      const Information::Ptr info = GetModuleInformation();
+      const Renderer::Ptr renderer1 = Holder1->CreateRenderer(params, chip1);
+      const Renderer::Ptr renderer2 = Holder2->CreateRenderer(params, chip2);
+      return CreateTSRenderer(renderer1, renderer2, tsMixer);
     }
 
     virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/) const
@@ -276,12 +288,12 @@ namespace
     }
   private:
     const ModuleProperties::Ptr Properties;
-    const Holder::Ptr Holder1;
-    const Holder::Ptr Holder2;
+    const AYM::Holder::Ptr Holder1;
+    const AYM::Holder::Ptr Holder2;
     const Information::Ptr Info;
   };
 
-  inline bool InvalidHolder(Module::Holder::Ptr holder)
+  inline bool InvalidHolder(Module::AYM::Holder::Ptr holder)
   {
     if (!holder)
     {
@@ -353,14 +365,16 @@ namespace
       }
 
       const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
-      const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation);
+      const Module::Holder::Ptr nativeHolder1 = Module::Open(firstSubLocation);
+      Dbg("Holder1: %1%", typeid(*nativeHolder1).name());
+      const Module::AYM::Holder::Ptr holder1 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(nativeHolder1);
       if (InvalidHolder(holder1))
       {
         Dbg("Invalid first module holder");
         return Analysis::CreateUnmatchedResult(dataSize);
       }
       const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
-      const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation);
+      const Module::AYM::Holder::Ptr holder2 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(secondSubLocation));
       if (InvalidHolder(holder2))
       {
         Dbg("Failed to create second module holder");
