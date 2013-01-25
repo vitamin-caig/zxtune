@@ -52,10 +52,8 @@ namespace ZXTune
   //! @param pluginsParams Detection parameters
   //! @param detectParams %Parameters set
   //! @param data Input data container
-  //! @param startSubpath Path in input data to start detecting
   //! @throw Error in case of error
-  void DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
-    Binary::Container::Ptr data, const String& startSubpath);
+  void DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams, Binary::Container::Ptr data);
 
   //! @brief Perform single module opening
   //! @param pluginsParams Opening parameters

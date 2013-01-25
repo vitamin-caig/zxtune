@@ -629,7 +629,14 @@ namespace
       const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
 
       const String subPath = id->Subpath();
-      ZXTune::DetectModules(CoreParams, params, data, subPath);
+      if (subPath.empty())
+      {
+        ZXTune::DetectModules(CoreParams, params, data);
+      }
+      else if (const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(CoreParams, data, subPath))
+      {
+        params.ProcessModule(subPath, module);
+      }
     }
 
     virtual void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const

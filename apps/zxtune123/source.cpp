@@ -215,7 +215,14 @@ namespace
         const Binary::Container::Ptr data = IO::OpenData(path, *Params, progress);
 
         const String subpath = id->Subpath();
-        ZXTune::DetectModules(Params, params, data, subpath);
+        if (subpath.empty())
+        {
+          ZXTune::DetectModules(Params, params, data);
+        }
+        else if (const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(Params, data, subpath))
+        {
+          params.ProcessModule(subpath, module);
+        }
       }
       catch (const Error& e)
       {

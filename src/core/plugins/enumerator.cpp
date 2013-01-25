@@ -211,21 +211,15 @@ namespace ZXTune
     return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
   }
 
-  void DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
-    Binary::Container::Ptr data, const String& startSubpath)
+  void DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams, Binary::Container::Ptr data)
   {
     if (!data.get())
     {
       throw Error(THIS_LINE, translate("Invalid parameters specified."));
     }
-    if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, startSubpath))
-    {
-      const DetectCallbackAdapter callback(detectParams, pluginsParams);
-      Module::Detect(location, callback);
-      return;
-    }
-    throw MakeFormattedError(THIS_LINE,
-      translate("Failed to find specified submodule starting from path '%1%'."), startSubpath);
+    const DataLocation::Ptr location = CreateLocation(pluginsParams, data);
+    const DetectCallbackAdapter callback(detectParams, pluginsParams);
+    Module::Detect(location, callback);
   }
 
   Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath)
