@@ -83,12 +83,14 @@ namespace ZXTune
 
       virtual ~Analyzer() {}
 
-      //! Currently active channels count
-      virtual uint_t ActiveChannels() const = 0;
+      struct ChannelState
+      {
+        bool Enabled;
+        uint_t Band;
+        uint_t Level;
+      };
 
-      typedef std::pair<uint_t, uint_t> BandAndLevel;
-      //! Band => Level correspondence
-      virtual void BandLevels(std::vector<BandAndLevel>& bandLevels) const = 0;
+      virtual void GetState(std::vector<ChannelState>& channels) const = 0;
     };
   }
 }

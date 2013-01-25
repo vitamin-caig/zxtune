@@ -156,9 +156,8 @@ namespace
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
-          std::vector<ZXTune::Module::Analyzer::BandAndLevel> curAnalyze;
-          Analyzer->BandLevels(curAnalyze);
-
+          std::vector<ZXTune::Module::Analyzer::ChannelState> curAnalyze;
+          Analyzer->GetState(curAnalyze);
           AnalyzerData.resize(ScrSize.first);
           UpdateAnalyzer(curAnalyze, 10);
           ShowAnalyzer(spectrumHeight);
@@ -205,15 +204,15 @@ namespace
       StdOut << std::flush;
     }
 
-    void UpdateAnalyzer(const std::vector<ZXTune::Module::Analyzer::BandAndLevel>& inState, int_t fallspeed)
+    void UpdateAnalyzer(const std::vector<ZXTune::Module::Analyzer::ChannelState>& inState, int_t fallspeed)
     {
       std::transform(AnalyzerData.begin(), AnalyzerData.end(), AnalyzerData.begin(),
         std::bind2nd(std::minus<int_t>(), fallspeed));
-      for (std::vector<ZXTune::Module::Analyzer::BandAndLevel>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
+      for (std::vector<ZXTune::Module::Analyzer::ChannelState>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
       {
-        if (it->first < AnalyzerData.size())
+        if (it->Enabled && it->Band < AnalyzerData.size())
         {
-          AnalyzerData[it->first] = it->second;
+          AnalyzerData[it->Band] = it->Level;
         }
       }
       std::replace_if(AnalyzerData.begin(), AnalyzerData.end(), std::bind2nd(std::less<int_t>(), 0), 0);

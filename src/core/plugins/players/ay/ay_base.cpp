@@ -24,9 +24,6 @@ Author:
 #include <sound/receiver.h>
 #include <sound/render_params.h>
 #include <sound/sample_convert.h>
-//boost includes
-#include <boost/bind.hpp>
-#include <boost/mem_fn.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -128,22 +125,21 @@ namespace
     {
     }
 
-    //analyzer virtuals
-    virtual uint_t ActiveChannels() const
+    virtual void GetState(std::vector<Analyzer::ChannelState>& channels) const
     {
       Devices::AYM::ChannelsState state;
       Device->GetState(state);
-      return static_cast<uint_t>(std::count_if(state.begin(), state.end(),
-        boost::mem_fn(&Devices::AYM::ChanState::Enabled)));
+      channels.resize(state.size());
+      std::transform(state.begin(), state.end(), channels.begin(), &ConvertChannelsState);
     }
-
-    virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
+  private:
+    static Analyzer::ChannelState ConvertChannelsState(const Devices::AYM::ChanState& in)
     {
-      Devices::AYM::ChannelsState state;
-      Device->GetState(state);
-      bandLevels.resize(state.size());
-      std::transform(state.begin(), state.end(), bandLevels.begin(),
-        boost::bind(&std::make_pair<uint_t, uint_t>, boost::bind(&Devices::AYM::ChanState::Band, _1), boost::bind(&Devices::AYM::ChanState::LevelInPercents, _1)));
+      Analyzer::ChannelState out;
+      out.Enabled = in.Enabled;
+      out.Band = in.Band;
+      out.Level = in.LevelInPercents;
+      return out;
     }
   private:
     const Devices::AYM::Chip::Ptr Device;

@@ -58,11 +58,11 @@ namespace
 
   typedef boost::array<BandLevel, MAX_BANDS> Analyzed;
 
-  inline void StoreValue(const ZXTune::Module::Analyzer::BandAndLevel& chan, Analyzed& result)
+  inline void StoreValue(const ZXTune::Module::Analyzer::ChannelState& chan, Analyzed& result)
   {
-    if (chan.first < MAX_BANDS)
+    if (chan.Enabled && chan.Band < MAX_BANDS)
     {
-      result[chan.first].Set(chan.second);
+      result[chan.Band].Set(chan.Level);
     }
   }
   
@@ -96,7 +96,7 @@ namespace
       if (isVisible())
       {
         std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Fall), LEVELS_FALLBACK));
-        Analyzer->BandLevels(State);
+        Analyzer->GetState(State);
         std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
         repaint();
       }
@@ -163,7 +163,7 @@ namespace
   private:
     const QPalette Palette;
     ZXTune::Module::Analyzer::Ptr Analyzer;
-    std::vector<ZXTune::Module::Analyzer::BandAndLevel> State;
+    std::vector<ZXTune::Module::Analyzer::ChannelState> State;
     Analyzed Levels;
   };
 }

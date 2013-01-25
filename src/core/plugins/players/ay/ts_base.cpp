@@ -85,19 +85,14 @@ namespace
     {
     }
 
-    virtual uint_t ActiveChannels() const
+    virtual void GetState(std::vector<Analyzer::ChannelState>& channels) const
     {
-      return First->ActiveChannels() + Second->ActiveChannels();
-    }
-
-    virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
-    {
-      std::vector<std::pair<uint_t, uint_t> > firstLevels, secondLevels;
-      First->BandLevels(firstLevels);
-      Second->BandLevels(secondLevels);
-      bandLevels.resize(firstLevels.size() + secondLevels.size());
+      std::vector<Analyzer::ChannelState> firstLevels, secondLevels;
+      First->GetState(firstLevels);
+      Second->GetState(secondLevels);
+      channels.resize(firstLevels.size() + secondLevels.size());
       std::copy(secondLevels.begin(), secondLevels.end(),
-        std::copy(firstLevels.begin(), firstLevels.end(), bandLevels.begin()));
+        std::copy(firstLevels.begin(), firstLevels.end(), channels.begin()));
     }
   private:
     const Analyzer::Ptr First;
