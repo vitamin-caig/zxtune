@@ -29,8 +29,7 @@ namespace Devices
     const uint_t CHANNELS = 3;
     const uint_t VOICES = 5;
 
-    // Use optimized stamp type- 5% accuracy
-    typedef Time::Stamp<uint64_t, 1 << 20> Stamp;
+    typedef Time::Microseconds Stamp;
 
     struct DataChunk
     {

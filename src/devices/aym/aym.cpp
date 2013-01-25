@@ -125,8 +125,11 @@ namespace
 
     void SetPeriod(uint_t period)
     {
+      const bool lowPart = Counter < MiddlePeriod;
+      const uint_t correction = lowPart ? Counter : Counter - MiddlePeriod;
       DoublePeriod = 2 * std::max<uint_t>(1, period);
       UpdateMiddle();
+      Counter = lowPart ? correction : MiddlePeriod + correction;
     }
 
     void SetDutyCycle(uint_t dutyCycle)
