@@ -29,7 +29,7 @@ public class Service extends android.app.Service {
   public final static String CURRENT_FRAME = "frame";
   public final static String TOTAL_FRAMES = "total";
   public final static String FILE_NAME = "filename";
-
+  
   private final static String TAG = "zxtune";
 
   private AsyncPlayback playback;
@@ -70,7 +70,7 @@ public class Service extends android.app.Service {
   private void showNotification(ZXTune.Module module) {
     final String description = describeModule(module);
     final Notification note =
-        new Notification(android.R.drawable.ic_media_play, "Playing", System.currentTimeMillis());
+        new Notification(R.drawable.ic_stat_notify_play, "Playing", System.currentTimeMillis());
     final Intent intent = new Intent(this, PlayFileActivity.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
     final PendingIntent pi = PendingIntent.getActivity(this, 0, intent, 0);
@@ -108,14 +108,17 @@ public class Service extends android.app.Service {
     }
   }
 
-  private static class PlaybackSource implements AsyncPlayback.Source {
+  private class PlaybackSource implements AsyncPlayback.Source {
 
     private ZXTune.Module module;
     private ZXTune.Player player;
+    private Intent progressUpdate;
 
     public PlaybackSource(ZXTune.Module module) {
       this.module = module;
       this.player = module.createPlayer();
+      this.progressUpdate = new Intent(POSITION_UPDATE);
+      progressUpdate.putExtra(TOTAL_FRAMES, module.getDuration());
     }
 
     @Override
@@ -126,6 +129,8 @@ public class Service extends android.app.Service {
 
     @Override
     public boolean getNextSoundChunk(byte[] buf) {
+      progressUpdate.putExtra(CURRENT_FRAME, player.getPosition());
+      sendBroadcast(progressUpdate);
       return player.render(buf);
     }
 

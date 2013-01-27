@@ -32,7 +32,7 @@ public class AsyncPlayback {
   }
 
   private final static String TAG = "app.zxtune.sound.AsyncPlayback";
-  private final static int DEFAULT_LATENCY = 60;//minimal is ~55
+  private final static int DEFAULT_LATENCY = 100;//minimal is ~55
 
   private SyncPlayback sync;
   private Thread renderThread;

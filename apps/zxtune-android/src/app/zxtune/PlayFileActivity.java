@@ -19,7 +19,7 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.util.Log;
 
 public class PlayFileActivity extends Activity {
@@ -28,7 +28,7 @@ public class PlayFileActivity extends Activity {
 
   private String fileToPlay;
   private BroadcastReceiver receiver;
-  private ProgressBar position;
+  private SeekBar position;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -38,7 +38,7 @@ public class PlayFileActivity extends Activity {
     fileToPlay = Uri.parse(getIntent().toUri(0)).getPath();
     Log.d(TAG, "Passed intent with file " + fileToPlay);
 
-    position = (ProgressBar) findViewById(R.id.play_position);
+    position = (SeekBar) findViewById(R.id.play_position);
 
     receiver = new EventReceiver();
     final IntentFilter filter = new IntentFilter(Service.POSITION_UPDATE);
