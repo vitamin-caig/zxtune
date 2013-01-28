@@ -59,11 +59,11 @@ namespace
   class FYMDumperParameters : public Devices::AYM::FYMDumperParameters
   {
   public:
-    FYMDumperParameters(Parameters::Accessor::Ptr params, const Module::AYM::Chiptune& chiptune, uint_t opt)
+    FYMDumperParameters(Parameters::Accessor::Ptr params, const Module::AYM::Holder& holder, uint_t opt)
       : Base(params, opt)
       , Params(params)
-      , Info(chiptune.GetInformation())
-      , Properties(chiptune.GetProperties())
+      , Info(holder.GetModuleInformation())
+      , Properties(holder.GetModuleProperties())
       , Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
     {
     }
@@ -117,7 +117,7 @@ namespace ZXTune
   namespace Module
   {
     //aym-based conversion
-    Binary::Data::Ptr ConvertAYMFormat(const AYM::Chiptune& chiptune, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
+    Binary::Data::Ptr ConvertAYMFormat(const AYM::Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
     {
       using namespace Conversion;
 
@@ -155,7 +155,7 @@ namespace ZXTune
       //convert to fym
       else if (const FYMConvertParam* fym = parameter_cast<FYMConvertParam>(&spec))
       {
-        const Devices::AYM::FYMDumperParameters::Ptr dumpParams = boost::make_shared<FYMDumperParameters>(params, boost::cref(chiptune), fym->Optimization);
+        const Devices::AYM::FYMDumperParameters::Ptr dumpParams = boost::make_shared<FYMDumperParameters>(params, boost::cref(holder), fym->Optimization);
         dumper = Devices::AYM::CreateFYMDumper(dumpParams);
         errMessage = translate("Failed to convert to FYM format.");;
       }
@@ -167,7 +167,7 @@ namespace ZXTune
 
       try
       {
-        const Renderer::Ptr renderer = chiptune.CreateRenderer(params, dumper);
+        const Renderer::Ptr renderer = holder.CreateRenderer(params, dumper);
         while (renderer->RenderFrame()) {}
         std::auto_ptr<Dump> dst(new Dump());
         dumper->GetDump(*dst);

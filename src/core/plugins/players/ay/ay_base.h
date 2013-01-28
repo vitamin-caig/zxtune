@@ -111,9 +111,6 @@ namespace ZXTune
         virtual Information::Ptr GetInformation() const = 0;
         virtual ModuleProperties::Ptr GetProperties() const = 0;
         virtual AYM::DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
-
-        //TODO: temporary solution
-        virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const;
       };
 
       //TODO: refactor

@@ -316,7 +316,7 @@ namespace
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
       const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      const Renderer::Ptr result = Tune->CreateRenderer(params, chip);
+      const Renderer::Ptr result = CreateRenderer(params, chip);
       const Sound::Receiver::Ptr fading = CreateFadingTarget(params, Tune->GetInformation(), result->GetTrackState(), target);
       mixer->SetTarget(fading);
       return result;
@@ -329,7 +329,7 @@ namespace
       {
         return Tune->GetProperties()->GetData();
       }
-      else if (const Binary::Data::Ptr res = ConvertAYMFormat(*Tune, spec, Parameters::CreateMergedAccessor(params, Tune->GetProperties())))
+      else if (const Binary::Data::Ptr res = ConvertAYMFormat(*this, spec, Parameters::CreateMergedAccessor(params, Tune->GetProperties())))
       {
         return res;
       }
@@ -338,7 +338,9 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
     {
-      return Tune->CreateRenderer(params, chip);
+      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+      const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(trackParams);
+      return AYM::CreateRenderer(trackParams, iterator, chip);
     }
   private:
     const AYM::Chiptune::Ptr Tune;
@@ -423,13 +425,6 @@ namespace ZXTune
         const int_t toneFrom = Table[halfFrom];
         const int_t toneTo = Table[halfTo];
         return toneTo - toneFrom;
-      }
-
-      Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
-      {
-        const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-        const AYM::DataIterator::Ptr iterator = CreateDataIterator(trackParams);
-        return AYM::CreateRenderer(trackParams, iterator, chip);
       }
 
       Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)

@@ -32,7 +32,7 @@ namespace ZXTune
 
     //! @brief Simple helper for conversion to AYM-related formats
     //! @param spec Input convertion parameter
-    Binary::Data::Ptr ConvertAYMFormat(const AYM::Chiptune& chiptune, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params);
+    Binary::Data::Ptr ConvertAYMFormat(const AYM::Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params);
 
     //! @brief Mask for supported AYM-related formats
     uint_t GetSupportedAYMFormatConvertors();
