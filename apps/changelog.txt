@@ -12,7 +12,9 @@ Annotation:
 [*] Fixed first 44 bytes missing while converting to .wav
 [+] Store metadata while convert to .wav
 [*] Support fadeout for .ay files
+[*] Reduced AYM dynamic range to avoid clicks at start/finish of tracks
 [+] zxtune123: benchmark mode
+[-] zxtune123: removed --mixer option
 [*] zxtune-qt: speedup of copy/paste operations
 
 --- Rev2101 from 14.11.2012
