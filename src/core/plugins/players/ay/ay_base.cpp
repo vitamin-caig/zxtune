@@ -104,13 +104,18 @@ namespace
 
     virtual void ApplyData(const Devices::AYM::MultiSample& data)
     {
-      std::transform(data.begin(), data.end(), Data.begin(), &Sound::ToSample<Devices::AYM::Sample>);
+      std::transform(data.begin(), data.end(), Data.begin(), &ToSample);
       Target->ApplyData(Data);
     }
 
     virtual void Flush()
     {
       Target->Flush();
+    }
+  private:
+    static Sound::Sample ToSample(Devices::AYM::Sample in)
+    {
+      return Sound::SAMPLE_MID + in / 2;
     }
   private:
     const Sound::MultichannelReceiver::Ptr Target;

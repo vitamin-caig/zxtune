@@ -111,13 +111,6 @@ namespace
     val1 = avg(val1, val2);
   }
 
-  template<class T>
-  void PerformMix(std::vector<T>& val1, const std::vector<T>& val2)
-  {
-    assert(val1.size() == val2.size());
-    std::transform(val1.begin(), val1.end(), val2.begin(), val1.begin(), &avg<T>);
-  }
-
   template<class T, std::size_t N>
   void PerformMix(boost::array<T, N>& val1, const boost::array<T, N>& val2)
   {
