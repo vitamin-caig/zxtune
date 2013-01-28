@@ -7,6 +7,16 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Sound rendering pipeline speedup
+[*] Non-blocking mode in OSS backend
+[*] Fixed first 44 bytes missing while converting to .wav
+[+] Store metadata while convert to .wav
+[*] Support fadeout for .ay files
+[+] zxtune123: benchmark mode
+[*] zxtune-qt: speedup of copy/paste operations
+
+--- Rev2101 from 14.11.2012
+
 [+] zxtune-qt: check updates functionality
 [+] zxtune-qt: playlist cache parameters setup
 [*] zxtune-qt: fixed startup of $PATH-located binary by name
