@@ -33,6 +33,7 @@ Author:
 #include <boost/algorithm/string/split.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/noncopyable.hpp>
 //text includes
 #include "text/backends.h"
 
