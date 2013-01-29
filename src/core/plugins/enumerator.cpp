@@ -20,6 +20,9 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <binary/container_factories.h>
+#include <core/convert_parameters.h>
+#include <core/module_attrs.h>
 #include <core/module_detect.h>
 #include <debug/log.h>
 #include <l10n/api.h>
@@ -237,5 +240,18 @@ namespace ZXTune
     }
     throw MakeFormattedError(THIS_LINE,
       translate("Failed to find specified submodule starting from path '%1%'."), subpath);
+  }
+
+  namespace Module
+  {
+    Binary::Data::Ptr GetRawData(const Holder& holder)
+    {
+      std::auto_ptr<Parameters::DataType> data(new Parameters::DataType());
+      if (holder.GetModuleProperties()->FindValue(ATTR_CONTENT, *data))
+      {
+        return Binary::CreateContainer(data);
+      }
+      throw Error(THIS_LINE, translate("Invalid parameters specified."));
+    }
   }
 }

@@ -49,7 +49,7 @@ namespace Benchmark
 
       virtual double Execute() const
       {
-        const Devices::AYM::Device::Ptr dev = CreateDevice(1750000, SOUND_FREQ, Interpolate);
+        const Devices::AYM::Chip::Ptr dev = CreateDevice(1750000, SOUND_FREQ, Interpolate);
         return Test(*dev, TEST_DURATION, FRAME_DURATION);
       }
     private:

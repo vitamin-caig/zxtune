@@ -16,7 +16,7 @@ Author:
 //library includes
 #include <core/module_holder.h>
 #include <core/module_types.h>
-#include <devices/aym.h>
+#include <devices/aym/chip.h>
 #include <devices/fm.h>
 
 namespace ZXTune

@@ -11,10 +11,11 @@ Author:
   Based on sources of UnrealSpeccy by SMT and Xpeccy sources by SamStyle
 */
 
+//local includes
+#include "chip.h"
 //common includes
 #include <tools.h>
 //library includes
-#include <devices/aym.h>
 #include <math/fixedpoint.h>
 #include <time/oscillator.h>
 //std includes

@@ -10,11 +10,10 @@ Author:
 */
 
 #pragma once
-#ifndef __DEVICES_AYM_H_DEFINED__
-#define __DEVICES_AYM_H_DEFINED__
+#ifndef DEVICES_AYM_H_DEFINED
+#define DEVICES_AYM_H_DEFINED
 
 //common includes
-#include <data_streaming.h>
 #include <types.h>
 //library includes
 #include <time/stamp.h>
@@ -94,19 +93,6 @@ namespace Devices
       boost::array<uint8_t, REG_LAST> Data;
     };
 
-    enum LayoutType
-    {
-      LAYOUT_ABC = 0,
-      LAYOUT_ACB = 1,
-      LAYOUT_BAC = 2,
-      LAYOUT_BCA = 3,
-      LAYOUT_CAB = 4,
-      LAYOUT_CBA = 5,
-      LAYOUT_MONO = 6,
-
-      LAYOUT_LAST
-    };
-
     class Device
     {
     public:
@@ -122,109 +108,7 @@ namespace Devices
       /// reset internal state to initial
       virtual void Reset() = 0;
     };
-
-    //channels state
-    struct ChanState
-    {
-      ChanState()
-        : Name(' '), Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      explicit ChanState(Char name)
-        : Name(name), Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      //Short channel abbreviation
-      Char Name;
-      //Is channel enabled to output
-      bool Enabled;
-      //Currently played tone band (up to 96)
-      uint_t Band;
-      //Currently played tone level percentage
-      uint_t LevelInPercents;
-    };
-    typedef boost::array<ChanState, VOICES> ChannelsState;
-
-    // Describes real device
-    class Chip : public Device
-    {
-    public:
-      typedef boost::shared_ptr<Chip> Ptr;
-
-      virtual void GetState(ChannelsState& state) const = 0;
-    };
-
-    // Describes dump converter
-    class Dumper : public Device
-    {
-    public:
-      typedef boost::shared_ptr<Dumper> Ptr;
-
-      virtual void GetDump(Dump& result) const = 0;
-    };
-
-    // Sound is rendered in unsigned 16-bit values
-    typedef uint16_t Sample;
-    // 3 channels per sample
-    typedef boost::array<Sample, CHANNELS> MultiSample;
-    // Result sound stream receiver
-    typedef DataReceiver<MultiSample> Receiver;
-
-    class ChipParameters
-    {
-    public:
-      typedef boost::shared_ptr<const ChipParameters> Ptr;
-
-      virtual ~ChipParameters() {}
-
-      virtual uint64_t ClockFreq() const = 0;
-      virtual uint_t SoundFreq() const = 0;
-      virtual bool IsYM() const = 0;
-      virtual bool Interpolate() const = 0;
-      virtual uint_t DutyCycleValue() const = 0;
-      virtual uint_t DutyCycleMask() const = 0;
-      virtual LayoutType Layout() const = 0;
-    };
-
-    /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
-
-    class DumperParameters
-    {
-    public:
-      typedef boost::shared_ptr<const DumperParameters> Ptr;
-      virtual ~DumperParameters() {}
-
-      enum Optimization
-      {
-        NONE,
-        NORMAL,
-        MAXIMUM
-      };
-
-      virtual Time::Microseconds FrameDuration() const = 0;
-      virtual Optimization OptimizationLevel() const = 0;
-    };
-
-    Dumper::Ptr CreatePSGDumper(DumperParameters::Ptr params);
-    Dumper::Ptr CreateZX50Dumper(DumperParameters::Ptr params);
-    Dumper::Ptr CreateDebugDumper(DumperParameters::Ptr params);
-    Dumper::Ptr CreateRawStreamDumper(DumperParameters::Ptr params);
-
-    class FYMDumperParameters : public DumperParameters
-    {
-    public:
-      typedef boost::shared_ptr<const FYMDumperParameters> Ptr;
-
-      virtual uint64_t ClockFreq() const = 0;
-      virtual String Title() const = 0;
-      virtual String Author() const = 0;
-      virtual uint_t LoopFrame() const = 0;
-    };
-    Dumper::Ptr CreateFYMDumper(FYMDumperParameters::Ptr params);
   }
 }
 
-#endif //__DEVICES_AYM_H_DEFINED__
+#endif //DEVICES_AYM_H_DEFINED

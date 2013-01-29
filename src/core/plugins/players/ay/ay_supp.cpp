@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "ay_conversion.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/players/creation_result.h"
@@ -27,6 +26,7 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
+#include <core/conversion/aym.h>
 #include <debug/log.h>
 #include <devices/z80.h>
 #include <formats/chiptune/ay.h>
@@ -603,7 +603,7 @@ namespace AYModule
   using namespace ZXTune;
 
   //plugin attributes
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
 
   const std::string HEADER_FORMAT(
     "'Z'X'A'Y" // uint8_t Signature[4];

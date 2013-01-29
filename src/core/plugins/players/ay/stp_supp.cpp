@@ -10,13 +10,13 @@ Author:
 */
 
 //local includes
-#include "ay_conversion.h"
 #include "soundtrackerpro.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 //library includes
 #include <core/plugin_attrs.h>
+#include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/soundtrackerpro.h>
 //boost includes
@@ -29,7 +29,7 @@ namespace STP
 
   //plugin attributes
   const Char ID[] = {'S', 'T', 'P', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::GetSupportedAYMFormatConvertors();
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
 
   class Factory : public ModulesFactory
   {

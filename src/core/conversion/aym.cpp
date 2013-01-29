@@ -10,14 +10,17 @@ Author:
 */
 
 //local includes
-#include "ay_conversion.h"
+#include "api.h"
+#include "core/plugins/players/ay/ay_base.h"
 //common includes
 #include <error_tools.h>
 //library includes
 #include <binary/container_factories.h>
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
+#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <devices/aym/dumper.h>
 #include <l10n/api.h>
 #include <sound/render_params.h>
 //boost includes
@@ -177,31 +180,6 @@ namespace ZXTune
       }
     }
 
-    uint_t GetSupportedAYMFormatConvertors()
-    {
-      return CAP_CONV_PSG | CAP_CONV_ZX50 | CAP_CONV_AYDUMP | CAP_CONV_FYM;
-    }
-
-    uint_t GetSupportedVortexFormatConvertors()
-    {
-      return 0/*CAP_CONV_TXT*/;
-    }
-
-    Error CreateUnsupportedConversionError(Error::LocationRef loc, const Conversion::Parameter& param)
-    {
-      return MakeFormattedError(loc, translate("Unsupported conversion mode (%1$08x)."), param.ID);
-    }
-
-    Binary::Data::Ptr GetRawData(const Holder& holder)
-    {
-      std::auto_ptr<Parameters::DataType> data(new Parameters::DataType());
-      if (holder.GetModuleProperties()->FindValue(ATTR_CONTENT, *data))
-      {
-        return Binary::CreateContainer(data);
-      }
-      throw CreateUnsupportedConversionError(THIS_LINE, Conversion::RawConvertParam());
-    }
-
     Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
     {
       using namespace Conversion;
@@ -216,7 +194,7 @@ namespace ZXTune
           return res;
         }
       }
-      throw CreateUnsupportedConversionError(THIS_LINE, spec);
+      throw MakeFormattedError(THIS_LINE, translate("Unsupported conversion mode (%1$08x)."), spec.ID);
     }
   }
 }

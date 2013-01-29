@@ -3,8 +3,8 @@ path_step := ../../..
 
 source_dirs := .
 
-libraries = analysis binary core devices formats_archived formats_chiptune formats_packed l10n_stub sound strings tools
-depends = $(addprefix src/,analysis binary core devices formats/archived formats/chiptune formats/packed l10n/stub sound strings tools)
+libraries = analysis binary core devices devices_aym formats_archived formats_chiptune formats_packed l10n_stub sound strings tools
+depends = $(addprefix src/,analysis binary core devices/aym dformats/archived formats/chiptune formats/packed l10n/stub sound strings tools)
 
 libraries += lhasa z80ex z
 depends += $(addprefix 3rdparty/,lhasa/lib z80ex zlib)

@@ -38,39 +38,15 @@ msgstr ""
 "Неправильный минимальный размер блока для анализа (%1%). Должен быть больше "
 "%2%."
 
-#: plugins/enumerator.cpp:218 plugins/enumerator.cpp:229
+#: plugins/enumerator.cpp:221 plugins/enumerator.cpp:232
+#: plugins/enumerator.cpp:254
 msgid "Invalid parameters specified."
 msgstr "Неправильные параметры."
 
-#: plugins/enumerator.cpp:239
+#: plugins/enumerator.cpp:242
 #, boost-format
 msgid "Failed to find specified submodule starting from path '%1%'."
 msgstr "Модуль не найден при поиске начиная с '%1%'."
-
-#: plugins/players/ay/ay_conversion.cpp:130
-msgid "Failed to convert to PSG format."
-msgstr "Ошибка конверсии в PSG."
-
-#: plugins/players/ay/ay_conversion.cpp:137
-msgid "Failed to convert to ZX50 format."
-msgstr "Ошибка конверсии в ZX50."
-
-#: plugins/players/ay/ay_conversion.cpp:144
-msgid "Failed to convert to debug ay format."
-msgstr "Ошибка конверсии в отладочный формат."
-
-#: plugins/players/ay/ay_conversion.cpp:151
-msgid "Failed to convert to raw ay dump."
-msgstr "Ошибка конверсии в сырой дамп регистров."
-
-#: plugins/players/ay/ay_conversion.cpp:158
-msgid "Failed to convert to FYM format."
-msgstr "Ошибка конверсии в FYM."
-
-#: plugins/players/ay/ay_conversion.cpp:192
-#, c-format, boost-format
-msgid "Unsupported conversion mode (%1$08x)."
-msgstr "Неподдерживаемый режим конверсии (%1$08x)."
 
 #: plugins/players/ay/aym_parameters.cpp:57
 #, boost-format

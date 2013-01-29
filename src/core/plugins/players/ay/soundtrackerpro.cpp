@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "soundtrackerpro.h"
 #include "ay_base.h"
-#include "ay_conversion.h"
 #include "core/plugins/utils.h"
 //library includes
 #include <formats/chiptune/soundtrackerpro.h>

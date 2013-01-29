@@ -14,8 +14,8 @@ endif
 text_files := text/text
 other_text_files := text/cmdline text/messages text/conversion text/cmd_keys_local
 
-libraries := analysis async binary core debug devices formats_archived formats_chiptune formats_packed platform sound sound_backends tools io l10n_stub strings
-depends := $(addprefix src/,analysis async binary core debug devices formats/archived formats/chiptune formats/packed io l10n/stub platform sound sound/backends strings tools)
+libraries := analysis async binary core core_conversion debug devices devices_aym devices_aym_dumper formats_archived formats_chiptune formats_packed platform sound sound_backends tools io l10n_stub strings
+depends := $(addprefix src/,analysis async binary core core/conversion debug devices devices/aym devices/aym/dumper formats/archived formats/chiptune formats/packed io l10n/stub platform sound sound/backends strings tools)
 
 #apps
 libraries += zxtune_app_base zxtune_app_version

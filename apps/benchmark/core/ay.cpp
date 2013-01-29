@@ -73,13 +73,13 @@ namespace Benchmark
 {
   namespace AY
   {
-    Devices::AYM::Device::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq, bool interpolate)
+    Devices::AYM::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq, bool interpolate)
     {
       const Devices::AYM::ChipParameters::Ptr params = boost::make_shared<AYParameters>(clockFreq, soundFreq, interpolate);
       return Devices::AYM::CreateChip(params, Devices::AYM::Receiver::CreateStub());
     }
 
-    double Test(Devices::AYM::Device& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)
+    double Test(Devices::AYM::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)
     {
       using namespace Devices::AYM;
       const Timer timer;

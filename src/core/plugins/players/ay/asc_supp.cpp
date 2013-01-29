@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "ay_conversion.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/players/creation_result.h"
@@ -20,10 +19,10 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
-#include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <core/conversion/aym.h>
 #include <formats/chiptune/ascsoundmaster.h>
 #include <math/numeric.h>
 
@@ -751,7 +750,7 @@ namespace ASC
   //plugin attributes
   const Char ID_0[] = {'A', 'S', '0', 0};
   const Char ID_1[] = {'A', 'S', 'C', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
 
   class Factory : public ModulesFactory
   {

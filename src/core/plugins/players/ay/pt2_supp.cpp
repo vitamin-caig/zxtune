@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "ay_conversion.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
@@ -26,6 +25,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/protracker2.h>
 
@@ -571,7 +571,7 @@ namespace PT2
 
   //plugin attributes
   const Char ID[] = {'P', 'T', '2', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
 
   class Factory : public ModulesFactory
   {

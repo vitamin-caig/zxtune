@@ -24,11 +24,6 @@ namespace ZXTune
 {
   namespace Module
   {
-    namespace Conversion
-    {
-      struct Parameter;
-    }
-
     //! @brief %Module holder interface
     class Holder
     {
@@ -54,7 +49,6 @@ namespace ZXTune
 
     //TODO: remove
     Binary::Data::Ptr GetRawData(const Holder& holder);
-    Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params);
 
     Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props);
   }

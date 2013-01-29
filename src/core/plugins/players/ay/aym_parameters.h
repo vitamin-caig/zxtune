@@ -18,7 +18,7 @@ Author:
 //library includes
 #include <core/freq_tables.h>
 #include <core/module_types.h>
-#include <devices/aym.h>
+#include <devices/aym/chip.h>
 
 namespace ZXTune
 {

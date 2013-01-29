@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "ay_conversion.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
@@ -21,6 +20,7 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
+#include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/psg.h>
 //boost includes
@@ -215,7 +215,7 @@ namespace
 
   //plugin attributes
   const Char ID[] = {'P', 'S', 'G', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
 
   class PSGModulesFactory : public ModulesFactory
   {

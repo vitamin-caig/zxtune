@@ -32,6 +32,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <core/conversion/api.h>
 #include <io/api.h>
 #include <io/template.h>
 #include <sound/sound_parameters.h>

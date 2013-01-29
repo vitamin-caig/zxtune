@@ -10,11 +10,11 @@ Author:
 */
 
 #pragma once
-#ifndef __DEVICES_AYM_DUMP_BUILDER_DEFINED__
-#define __DEVICES_AYM_DUMP_BUILDER_DEFINED__
+#ifndef DEVICES_AYM_DUMP_BUILDER_DEFINED
+#define DEVICES_AYM_DUMP_BUILDER_DEFINED
 
 //library includes
-#include <devices/aym.h>
+#include <devices/aym/dumper.h>
 
 namespace Devices
 {
@@ -45,4 +45,4 @@ namespace Devices
   }
 }
 
-#endif //__DEVICES_AYM_DUMP_BUILDER_DEFINED__
+#endif //DEVICES_AYM_DUMP_BUILDER_DEFINED
