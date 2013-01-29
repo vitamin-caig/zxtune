@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "ay_conversion.h"
 //common includes
 #include <tools.h>
 //library includes
@@ -320,20 +319,6 @@ namespace
       const Sound::Receiver::Ptr fading = CreateFadingTarget(params, Tune->GetInformation(), result->GetTrackState(), target);
       mixer->SetTarget(fading);
       return result;
-    }
-
-    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
-      {
-        return Tune->GetProperties()->GetData();
-      }
-      else if (const Binary::Data::Ptr res = ConvertAYMFormat(*this, spec, Parameters::CreateMergedAccessor(params, Tune->GetProperties())))
-      {
-        return res;
-      }
-      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const

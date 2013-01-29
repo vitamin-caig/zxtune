@@ -131,6 +131,13 @@ namespace
 
     virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
     {
+      if (name == ATTR_CONTENT)
+      {
+        const Binary::Data::Ptr data = GetData();
+        const uint8_t* const start = static_cast<const uint8_t*>(data->Start());
+        val = Parameters::DataType(start, start + data->Size());
+        return true;
+      }
       return Container->FindValue(name, val);
     }
 

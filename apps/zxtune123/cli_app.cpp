@@ -83,7 +83,7 @@ namespace
           return;
         }
       }
-      const Binary::Data::Ptr result = holder->Convert(*ConversionParameter, props);
+      const Binary::Data::Ptr result = ZXTune::Module::Convert(*holder, *ConversionParameter, props);
       //prepare result filename
       const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
       const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());

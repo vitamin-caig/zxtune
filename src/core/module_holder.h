@@ -50,13 +50,11 @@ namespace ZXTune
       //! @brief Creating new renderer instance
       //! @return New player
       virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const = 0;
-
-      //! @brief Converting to specified format
-      //! @param param Specify format to convert
-      //! @return Result data
-      //! @throw Error in case of error
-      virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const = 0;
     };
+
+    //TODO: remove
+    Binary::Data::Ptr GetRawData(const Holder& holder);
+    Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params);
 
     Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props);
   }

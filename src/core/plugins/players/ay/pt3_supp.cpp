@@ -398,16 +398,6 @@ namespace PT3
       const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), version, chip2);
       return CreateTSRenderer(renderer1, renderer2, tsMixer);
     }
-
-    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
-      {
-        return Delegate->Convert(spec, params);
-      }
-      throw CreateUnsupportedConversionError(THIS_LINE, spec);
-    }
   private:
     const Vortex::Track::ModuleData::Ptr Data;
     const Holder::Ptr Delegate;

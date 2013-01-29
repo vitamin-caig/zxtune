@@ -13,7 +13,6 @@ Author:
 #include "dac_base.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
-#include "core/plugins/players/ay/ay_conversion.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
@@ -319,16 +318,6 @@ namespace
         chip->SetSample(idx, Data->Samples[idx]);
       }
       return CreateCHIRenderer(params, Info, Data, chip);
-    }
-
-    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
-      {
-        return Properties->GetData();
-      }
-      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const CHITrack::ModuleData::RWPtr Data;

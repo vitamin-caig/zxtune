@@ -16,7 +16,6 @@ Author:
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
-#include "core/plugins/players/ay/ay_conversion.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -268,16 +267,6 @@ namespace
         chip->SetSample(idx, Data->Samples[idx]);
       }
       return CreateSTRRenderer(params, Info, Data, chip);
-    }
-
-    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
-      {
-        return Properties->GetData();
-      }
-      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const STRTrack::ModuleData::RWPtr Data;

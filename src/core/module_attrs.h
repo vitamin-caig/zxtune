@@ -23,14 +23,10 @@ namespace ZXTune
 
     //! %Module type attribute @see PluginInformation#Id
     const std::string ATTR_TYPE("Type");
-    //! %Module containers chain
-    const std::string ATTR_CONTAINER("Container");
-    //! %Module path in top-level data dump
-    const std::string ATTR_SUBPATH("Subpath");
-    //! %Module author
-    const std::string ATTR_AUTHOR("Author");
     //! %Module title
     const std::string ATTR_TITLE("Title");
+    //! %Module author
+    const std::string ATTR_AUTHOR("Author");
     //! %Module program produced at
     const std::string ATTR_PROGRAM("Program");
     //! %Module computer (hardware platform)
@@ -39,19 +35,30 @@ namespace ZXTune
     const std::string ATTR_DATE("Date");
     //! %Module comment
     const std::string ATTR_COMMENT("Comment");
+    //! Internal format version 10 * major + minor
+    const std::string ATTR_VERSION("Version");
+    //@}
+
+    //@{
+    //! @name Storage-related attributes
+
     //! Raw module data crc32 checksum
     const std::string ATTR_CRC("CRC");
     //! Constant (without any headers) module data crc32 checksum
     const std::string ATTR_FIXEDCRC("FixedCRC");
     //! Raw module size in bytes
     const std::string ATTR_SIZE("Size");
-    //! Internal format version 10 * major + minor
-    const std::string ATTR_VERSION("Version");
+    //! Raw module content
+    const std::string ATTR_CONTENT("Content");
     //@}
 
     //@{
-    //! @name External attributes
+    //! @name Named storage-related attributes
 
+    //! %Module containers chain
+    const std::string ATTR_CONTAINER("Container");
+    //! %Module path in top-level data dump
+    const std::string ATTR_SUBPATH("Subpath");
     //! Module's input data filename extension
     const std::string ATTR_EXTENSION("Extension");
     //! Module's input data filename

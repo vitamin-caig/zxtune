@@ -59,11 +59,10 @@ namespace
   class FYMDumperParameters : public Devices::AYM::FYMDumperParameters
   {
   public:
-    FYMDumperParameters(Parameters::Accessor::Ptr params, const Module::AYM::Holder& holder, uint_t opt)
+    FYMDumperParameters(Parameters::Accessor::Ptr params, uint_t loopFrame, uint_t opt)
       : Base(params, opt)
       , Params(params)
-      , Info(holder.GetModuleInformation())
-      , Properties(holder.GetModuleProperties())
+      , Loop(loopFrame)
       , Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
     {
     }
@@ -88,26 +87,25 @@ namespace
     virtual String Title() const
     {
       String title;
-      Properties->FindValue(Module::ATTR_TITLE, title);
+      Params->FindValue(Module::ATTR_TITLE, title);
       return title;
     }
 
     virtual String Author() const
     {
       String author;
-      Properties->FindValue(Module::ATTR_AUTHOR, author);
+      Params->FindValue(Module::ATTR_AUTHOR, author);
       return author;
     }
 
     virtual uint_t LoopFrame() const
     {
-      return Info->LoopFrame();
+      return Loop;
     }
   private:
     const BaseDumperParameters Base;
     const Parameters::Accessor::Ptr Params;
-    const Module::Information::Ptr Info;
-    const Parameters::Accessor::Ptr Properties;
+    const uint_t Loop;
     const Devices::AYM::DumperParameters::Optimization Optimization;
   };
 }
@@ -155,7 +153,7 @@ namespace ZXTune
       //convert to fym
       else if (const FYMConvertParam* fym = parameter_cast<FYMConvertParam>(&spec))
       {
-        const Devices::AYM::FYMDumperParameters::Ptr dumpParams = boost::make_shared<FYMDumperParameters>(params, boost::cref(holder), fym->Optimization);
+        const Devices::AYM::FYMDumperParameters::Ptr dumpParams = boost::make_shared<FYMDumperParameters>(params, holder.GetModuleInformation()->LoopFrame(), fym->Optimization);
         dumper = Devices::AYM::CreateFYMDumper(dumpParams);
         errMessage = translate("Failed to convert to FYM format.");;
       }
@@ -192,6 +190,33 @@ namespace ZXTune
     Error CreateUnsupportedConversionError(Error::LocationRef loc, const Conversion::Parameter& param)
     {
       return MakeFormattedError(loc, translate("Unsupported conversion mode (%1$08x)."), param.ID);
+    }
+
+    Binary::Data::Ptr GetRawData(const Holder& holder)
+    {
+      std::auto_ptr<Parameters::DataType> data(new Parameters::DataType());
+      if (holder.GetModuleProperties()->FindValue(ATTR_CONTENT, *data))
+      {
+        return Binary::CreateContainer(data);
+      }
+      throw CreateUnsupportedConversionError(THIS_LINE, Conversion::RawConvertParam());
+    }
+
+    Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
+    {
+      using namespace Conversion;
+      if (parameter_cast<RawConvertParam>(&spec))
+      {
+        return GetRawData(holder);
+      }
+      else if (const AYM::Holder* aymHolder = dynamic_cast<const AYM::Holder*>(&holder))
+      {
+        if (const Binary::Data::Ptr res = ConvertAYMFormat(*aymHolder, spec, params))
+        {
+          return res;
+        }
+      }
+      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   }
 }

@@ -10,8 +10,8 @@ Author:
 */
 
 //local includes
+#include "ay_base.h"
 #include "ts_base.h"
-#include "ay_conversion.h"
 #include "core/src/core.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/module_properties.h"
@@ -275,16 +275,6 @@ namespace
       const Renderer::Ptr renderer1 = Holder1->CreateRenderer(params, chip1);
       const Renderer::Ptr renderer2 = Holder2->CreateRenderer(params, chip2);
       return CreateTSRenderer(renderer1, renderer2, tsMixer);
-    }
-
-    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
-      {
-        return Properties->GetData();
-      }
-      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const ModuleProperties::Ptr Properties;

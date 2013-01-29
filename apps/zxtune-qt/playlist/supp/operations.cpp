@@ -603,11 +603,10 @@ namespace
 
     void ExportItem(const String& path, const ZXTune::Module::Holder& item)
     {
-      static const ZXTune::Module::Conversion::RawConvertParam RAW_CONVERSION;
       try
       {
+        const Binary::Data::Ptr result = ZXTune::Module::GetRawData(item);
         const Parameters::Accessor::Ptr props = item.GetModuleProperties();
-        const Binary::Data::Ptr result = item.Convert(RAW_CONVERSION, props);
         const String filename = NameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
         Save(*result, filename);
         Result->AddSucceed();

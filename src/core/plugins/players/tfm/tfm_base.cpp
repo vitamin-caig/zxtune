@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "tfm_base.h"
-#include "core/plugins/players/ay/ay_conversion.h"
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -175,16 +174,6 @@ namespace
       const Devices::TFM::ChipParameters::Ptr chipParams = TFM::CreateChipParameters(params);
       const Devices::TFM::Chip::Ptr chip = Devices::TFM::CreateChip(chipParams, receiver);
       return Tune->CreateRenderer(params, chip);
-    }
-
-    virtual Binary::Data::Ptr Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
-      {
-        return Tune->GetProperties()->GetData();
-      }
-      throw CreateUnsupportedConversionError(THIS_LINE, spec);
     }
   private:
     const TFM::Chiptune::Ptr Tune;
