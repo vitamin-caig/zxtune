@@ -551,29 +551,33 @@ namespace
     Devices::Z80::Chip::Ptr CPU;
   };
 
-  class AYChiptune : public AYM::Chiptune
+  class AYHolder : public AYM::Holder
   {
   public:
-    explicit AYChiptune(AYData::Ptr data)
+    explicit AYHolder(AYData::Ptr data)
       : Data(data)
       , Info(CreateStreamInfo(Data->GetFramesCount(), Devices::AYM::CHANNELS))
     {
     }
 
-    virtual Information::Ptr GetInformation() const
+    virtual Plugin::Ptr GetPlugin() const
+    {
+      return Data->GetProperties()->GetPlugin();
+    }
+
+    virtual Information::Ptr GetModuleInformation() const
     {
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
       return Data->GetProperties();
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr /*trackParams*/) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      assert(!"Should not be called");
-      return AYM::DataIterator::Ptr();
+      return AYM::CreateRenderer(*this, params, target);
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
@@ -642,8 +646,7 @@ namespace AYModule
         {
           usedSize = container->Size();
           properties->SetSource(container);
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<AYChiptune>(result);
-          return AYM::CreateHolder(chiptune);
+          return boost::make_shared<AYHolder>(result);
         }
       }
       catch (const Error&/*e*/)

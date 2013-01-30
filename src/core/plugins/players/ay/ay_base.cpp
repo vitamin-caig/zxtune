@@ -311,14 +311,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::AYM::CHANNELS, Tune->GetProperties());
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
-      const Renderer::Ptr result = CreateRenderer(params, chip);
-      const Sound::Receiver::Ptr fading = CreateFadingTarget(params, Tune->GetInformation(), result->GetTrackState(), target);
-      mixer->SetTarget(fading);
-      return result;
+      return AYM::CreateRenderer(*this, params, target);
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
@@ -429,6 +422,18 @@ namespace ZXTune
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
       {
         return boost::make_shared<AYMRenderer>(trackParams, iterator, device);
+      }
+
+      Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+      {
+        const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::AYM::CHANNELS, holder.GetModuleProperties());
+        const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
+        const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
+        const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
+        const Renderer::Ptr result = holder.CreateRenderer(params, chip);
+        const Sound::Receiver::Ptr fading = CreateFadingTarget(params, holder.GetModuleInformation(), result->GetTrackState(), target);
+        mixer->SetTarget(fading);
+        return result;
       }
 
       Devices::AYM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)
