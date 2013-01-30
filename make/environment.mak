@@ -29,3 +29,13 @@ linux.arm.boost.version = 1.49.0
 linux.arm.boost.libs.model = -mt
 linux.arm.qt.version = 4.8.1
 linux.arm.crossroot = $(path_step)/../Build/linux-arm
+
+#linux armhf
+linux.armhf.toolchain = /opt/armhf-linux
+linux.armhf.execprefix = $(linux.armhf.toolchain)/bin/arm-linux-gnueabihf-
+linux.armhf.crossroot = $(path_step)/../Build/root-linux-armhf
+linux.armhf.boost.version = 1.49.0
+linux.armhf.qt.version = 4.8.1
+linux.armhf.qt.libs = $(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf
+linux.armhf.qt.libraries = expat
+linux.armhf.cxx.flags = -march=armv6 -mfpu=vfp -mfloat-abi=hard -Wa,--no-warn

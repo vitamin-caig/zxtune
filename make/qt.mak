@@ -18,6 +18,7 @@ qt.version = $($(platform).$(arch).qt.version)
 qt.dir = $(prebuilt_dir)/qt-$(qt.version)-$(platform)-$(arch)
 include_dirs += $(qt.dir)/include
 $(platform)_libraries_dirs += $(qt.dir)/lib
+qt.bin = $(qt.dir)/bin/
 endif
 
 ifneq (,$(findstring Core,$(qt_libraries)))
@@ -40,9 +41,9 @@ vpath %.h $(sort $(dir $(moc_files) $(ui_files)))
 $(ui_dir):
 	$(call makedir_cmd,$@)
 
-UIC := uic
-MOC := moc
-RCC := rcc
+UIC := $(qt.bin)uic
+MOC := $(qt.bin)moc
+RCC := $(qt.bin)rcc
 
 $(ui_dir)/%.ui.h: %.ui | $(ui_dir)
 	$(UIC) $< -o $@
