@@ -63,11 +63,10 @@ namespace
   class ConvertEndpoint : public DataReceiver<ZXTune::Module::Holder::Ptr>
   {
   public:
-    ConvertEndpoint(DisplayComponent& display, const Parameters::Accessor& params, std::auto_ptr<ZXTune::Module::Conversion::Parameter> param, uint_t capMask, Strings::Template::Ptr templ)
+    ConvertEndpoint(DisplayComponent& display, const Parameters::Accessor& params, std::auto_ptr<ZXTune::Module::Conversion::Parameter> param, Strings::Template::Ptr templ)
       : Display(display)
       , Params(params)
       , ConversionParameter(param)
-      , CapabilityMask(capMask)
       , FileNameTemplate(templ)
     {
     }
@@ -76,20 +75,20 @@ namespace
     {
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       const String id = GetModuleId(*props);
+      if (const Binary::Data::Ptr result = ZXTune::Module::Convert(*holder, *ConversionParameter, props))
       {
-        const ZXTune::Plugin::Ptr plugin = holder->GetPlugin();
-        if (!(plugin->Capabilities() & CapabilityMask))
-        {
-          Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, plugin->Id()));
-          return;
-        }
+        //prepare result filename
+        const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
+        const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
+        stream->ApplyData(*result);
+        Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
       }
-      const Binary::Data::Ptr result = ZXTune::Module::Convert(*holder, *ConversionParameter, props);
-      //prepare result filename
-      const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
-      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
-      stream->ApplyData(*result);
-      Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
+      else
+      {
+        Parameters::StringType type;
+        props->FindValue(ZXTune::Module::ATTR_TYPE, type);
+        Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, type));
+      }
     }
 
     virtual void Flush()
@@ -99,7 +98,6 @@ namespace
     DisplayComponent& Display;
     const Parameters::Accessor& Params;
     const std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
-    const uint_t CapabilityMask;
     const Strings::Template::Ptr FileNameTemplate;
   };
 
@@ -123,48 +121,40 @@ namespace
       Parameters::IntType optimization = ZXTune::Module::Conversion::DEFAULT_OPTIMIZATION;
       params.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
       std::auto_ptr<ZXTune::Module::Conversion::Parameter> param;
-      uint_t mask = 0;
       if (mode == Text::CONVERSION_MODE_RAW)
       {
         param.reset(new ZXTune::Module::Conversion::RawConvertParam());
-        mask = ZXTune::CAP_CONV_RAW;
       }
       else if (mode == Text::CONVERSION_MODE_PSG)
       {
         param.reset(new ZXTune::Module::Conversion::PSGConvertParam(optimization));
-        mask = ZXTune::CAP_CONV_PSG;
       }
       else if (mode == Text::CONVERSION_MODE_ZX50)
       {
         param.reset(new ZXTune::Module::Conversion::ZX50ConvertParam(optimization));
-        mask = ZXTune::CAP_CONV_ZX50;
       }
       else if (mode == Text::CONVERSION_MODE_TXT)
       {
         param.reset(new ZXTune::Module::Conversion::TXTConvertParam());
-        mask = ZXTune::CAP_CONV_TXT;
       }
       else if (mode == Text::CONVERSION_MODE_DEBUGAY)
       {
         param.reset(new ZXTune::Module::Conversion::DebugAYConvertParam(optimization));
-        mask = ZXTune::CAP_CONV_AYDUMP;
       }
       else if (mode == Text::CONVERSION_MODE_AYDUMP)
       {
         param.reset(new ZXTune::Module::Conversion::AYDumpConvertParam(optimization));
-        mask = ZXTune::CAP_CONV_AYDUMP;
       }
       else if (mode == Text::CONVERSION_MODE_FYM)
       {
         param.reset(new ZXTune::Module::Conversion::FYMConvertParam(optimization));
-        mask = ZXTune::CAP_CONV_FYM;
       }
       else
       {
         throw Error(THIS_LINE, Text::CONVERT_ERROR_INVALID_MODE);
       }
       Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
-      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, params, param, mask, templ));
+      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, params, param, templ));
       Pipe = Async::DataReceiver<ZXTune::Module::Holder::Ptr>::Create(1, 1000, target);
     }
 

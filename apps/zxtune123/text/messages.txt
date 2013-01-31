@@ -375,7 +375,7 @@
 > "Failed to write file '%1%'."
 
 < CONVERT_SKIPPED
-> "Skipping '%1%' (plugin '%2%') due to convert impossibility."
+> "Skipping '%1%' (type '%2%') due to convert impossibility."
 
 < CONVERT_DONE
 > "Converted '%1%' => '%2%'"

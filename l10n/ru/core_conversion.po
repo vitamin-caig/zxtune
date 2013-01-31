@@ -11,7 +11,6 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-
 #: aym.cpp:133
 msgid "Failed to convert to PSG format."
 msgstr "Ошибка конверсии в PSG."
@@ -32,7 +31,5 @@ msgstr "Ошибка конверсии в сырой дамп регистро�
 msgid "Failed to convert to FYM format."
 msgstr "Ошибка конверсии в FYM."
 
-#: aym.cpp:197
-#, c-format, boost-format
-msgid "Unsupported conversion mode (%1$08x)."
-msgstr "Неподдерживаемый режим конверсии (%1$08x)."
+#~ msgid "Unsupported conversion mode (%1$08x)."
+#~ msgstr "Неподдерживаемый режим конверсии (%1$08x)."

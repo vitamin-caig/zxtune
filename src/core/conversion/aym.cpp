@@ -189,12 +189,9 @@ namespace ZXTune
       }
       else if (const AYM::Holder* aymHolder = dynamic_cast<const AYM::Holder*>(&holder))
       {
-        if (const Binary::Data::Ptr res = ConvertAYMFormat(*aymHolder, spec, params))
-        {
-          return res;
-        }
+        return ConvertAYMFormat(*aymHolder, spec, params);
       }
-      throw MakeFormattedError(THIS_LINE, translate("Unsupported conversion mode (%1$08x)."), spec.ID);
+      return Binary::Data::Ptr();
     }
   }
 }
