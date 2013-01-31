@@ -151,11 +151,6 @@ namespace
     {
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Tune->GetProperties()->GetPlugin();
-    }
-
     virtual Information::Ptr GetModuleInformation() const
     {
       return Tune->GetInformation();

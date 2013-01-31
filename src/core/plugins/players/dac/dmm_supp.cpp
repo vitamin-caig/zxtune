@@ -483,11 +483,6 @@ namespace
       Properties->SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
     virtual Information::Ptr GetModuleInformation() const
     {
       return Info;

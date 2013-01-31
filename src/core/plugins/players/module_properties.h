@@ -14,7 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_MODULE_PROPERTIES_H_DEFINED__
 
 //local includes
-#include "core/plugins/enumerator.h"
+#include "core/src/location.h"
 //common includes
 #include <parameters.h>
 //library includes
@@ -22,6 +22,8 @@ Author:
 
 namespace ZXTune
 {
+  struct ModuleRegion;
+
   namespace Module
   {
     class ModuleProperties : public Parameters::Accessor
@@ -36,14 +38,12 @@ namespace ZXTune
       virtual void SetProgram(const String& program) = 0;
       virtual void SetFreqtable(const String& table) = 0;
       virtual void SetVersion(uint_t major, uint_t minor) = 0;
-      virtual void SetSource(std::size_t usedSize, const struct ModuleRegion& fixedRegion) = 0;
+      virtual void SetSource(std::size_t usedSize, const ModuleRegion& fixedRegion) = 0;
       virtual void SetSource(Formats::Chiptune::Container::Ptr source) = 0;
 
       virtual Parameters::Modifier::Ptr GetInternalContainer() const = 0;
-      virtual Plugin::Ptr GetPlugin() const = 0;
-      virtual Binary::Data::Ptr GetData() const = 0;
 
-      static RWPtr Create(Plugin::Ptr plugin, DataLocation::Ptr location);
+      static RWPtr Create(const String& type, DataLocation::Ptr location);
     };
   }
 }

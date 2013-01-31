@@ -86,11 +86,6 @@ namespace
     {
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Delegate->GetPlugin();
-    }
-
     virtual Module::Information::Ptr GetModuleInformation() const
     {
       return Delegate->GetModuleInformation();

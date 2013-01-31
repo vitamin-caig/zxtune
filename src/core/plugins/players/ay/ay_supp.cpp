@@ -560,11 +560,6 @@ namespace
     {
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Data->GetProperties()->GetPlugin();
-    }
-
     virtual Information::Ptr GetModuleInformation() const
     {
       return Info;

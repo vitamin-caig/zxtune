@@ -245,11 +245,6 @@ namespace
     {
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
     virtual Information::Ptr GetModuleInformation() const
     {
       return Info;
@@ -282,17 +277,6 @@ namespace
     const AYM::Holder::Ptr Holder2;
     const Information::Ptr Info;
   };
-
-  inline bool InvalidHolder(Module::AYM::Holder::Ptr holder)
-  {
-    if (!holder)
-    {
-      return true;
-    }
-    const uint_t caps = holder->GetPlugin()->Capabilities();
-    return 0 != (caps & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
-           0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
-  }
 }
 
 namespace
@@ -355,22 +339,20 @@ namespace
       }
 
       const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
-      const Module::Holder::Ptr nativeHolder1 = Module::Open(firstSubLocation);
-      Dbg("Holder1: %1%", typeid(*nativeHolder1).name());
-      const Module::AYM::Holder::Ptr holder1 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(nativeHolder1);
-      if (InvalidHolder(holder1))
+      const Module::AYM::Holder::Ptr holder1 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(firstSubLocation));
+      if (!holder1)
       {
         Dbg("Invalid first module holder");
         return Analysis::CreateUnmatchedResult(dataSize);
       }
       const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
       const Module::AYM::Holder::Ptr holder2 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(secondSubLocation));
-      if (InvalidHolder(holder2))
+      if (!holder2)
       {
         Dbg("Failed to create second module holder");
         return Analysis::CreateUnmatchedResult(dataSize);
       }
-      const ModuleProperties::RWPtr properties = ModuleProperties::Create(Description, inputData);
+      const ModuleProperties::RWPtr properties = ModuleProperties::Create(ID, inputData);
       properties->SetSource(dataSize, ModuleRegion(0, dataSize));
       const Module::Holder::Ptr holder(new TSHolder(properties, holder1, holder2));
       callback.ProcessModule(inputData, holder);

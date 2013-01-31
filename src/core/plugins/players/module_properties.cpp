@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "module_properties.h"
+#include "core/plugins/enumerator.h"
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -25,9 +26,9 @@ namespace
   class ModulePropertiesImpl : public ModuleProperties
   {
   public:
-    ModulePropertiesImpl(Plugin::Ptr plugin, DataLocation::Ptr location)
+    ModulePropertiesImpl(const String& type, DataLocation::Ptr location)
       : Container(Parameters::Container::Create())
-      , Plug(plugin)
+      , Type(type)
       , Location(location)
     {
     }
@@ -94,18 +95,6 @@ namespace
       return Container;
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Plug;
-    }
-
-    virtual Binary::Data::Ptr GetData() const
-    {
-      return Location.get()
-        ? UsedRegion.Extract(*Location->GetData())
-        : Data;
-    }
-
     // accessor virtuals
     virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
@@ -122,7 +111,7 @@ namespace
     {
       if (name == ATTR_TYPE)
       {
-        val = Plug->Id();
+        val = Type;
         return true;
       }
       CheckLocationProperties(name);
@@ -144,12 +133,19 @@ namespace
     virtual void Process(Parameters::Visitor& visitor) const
     {
       visitor.SetValue(ATTR_SIZE, UsedRegion.Size);
-      visitor.SetValue(ATTR_TYPE, Plug->Id());
+      visitor.SetValue(ATTR_TYPE, Type);
       FillLocationProperties();
       Container->Process(visitor);
     }
 
   private:
+    Binary::Data::Ptr GetData() const
+    {
+      return Location.get()
+        ? UsedRegion.Extract(*Location->GetData())
+        : Data;
+    }
+
     void CheckLocationProperties(const Parameters::NameType& name) const
     {
       if (!Location.get())
@@ -204,7 +200,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Container;
-    const Plugin::Ptr Plug;
+    const String Type;
     mutable DataLocation::Ptr Location;
     mutable Formats::Chiptune::Container::Ptr Source;
     ModuleRegion UsedRegion;
@@ -217,9 +213,9 @@ namespace ZXTune
 {
   namespace Module
   {
-    ModuleProperties::RWPtr ModuleProperties::Create(Plugin::Ptr plugin, DataLocation::Ptr location)
+    ModuleProperties::RWPtr ModuleProperties::Create(const String& type, DataLocation::Ptr location)
     {
-      return boost::make_shared<ModulePropertiesImpl>(plugin, location);
+      return boost::make_shared<ModulePropertiesImpl>(type, location);
     }
   }
 }

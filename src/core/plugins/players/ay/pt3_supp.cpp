@@ -368,11 +368,6 @@ namespace PT3
     {
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Delegate->GetPlugin();
-    } 
-
     virtual Information::Ptr GetModuleInformation() const
     {
       return Delegate->GetModuleInformation();

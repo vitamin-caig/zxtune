@@ -291,11 +291,6 @@ namespace
       Properties->SetVersion(header.Version[0] - '0', header.Version[2] - '0');
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
     virtual Information::Ptr GetModuleInformation() const
     {
       return Info;

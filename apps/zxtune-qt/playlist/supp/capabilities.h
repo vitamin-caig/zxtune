@@ -18,6 +18,7 @@ Author:
 //local includes
 #include "data.h"
 //library includes
+#include <core/plugin.h>
 #include <core/plugin_attrs.h>
 
 namespace Playlist

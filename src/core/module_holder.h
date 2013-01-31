@@ -14,7 +14,6 @@
 //library includes
 #include "plugins/players/renderer.h"
 #include <binary/data.h>
-#include <core/plugin.h>
 #include <sound/receiver.h>
 
 //forward declaration
@@ -32,9 +31,6 @@ namespace ZXTune
       typedef boost::shared_ptr<const Holder> Ptr;
 
       virtual ~Holder() {}
-
-      //! @brief Retrieving plugin info
-      virtual Plugin::Ptr GetPlugin() const = 0;
 
       //! @brief Retrieving info about loaded module
       virtual Information::Ptr GetModuleInformation() const = 0;

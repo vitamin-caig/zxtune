@@ -356,11 +356,6 @@ namespace
       Properties->SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
     virtual Information::Ptr GetModuleInformation() const
     {
       return Info;

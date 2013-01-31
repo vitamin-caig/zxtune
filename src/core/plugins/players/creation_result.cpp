@@ -19,7 +19,7 @@ namespace
 {
   using namespace ZXTune;
 
-  Analysis::Result::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, Plugin::Ptr plugin, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
+  Analysis::Result::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, const String& type, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
   {
     const Binary::Container::Ptr data = inputData->GetData();
     const Binary::Format::Ptr format = factory->GetFormat();
@@ -27,7 +27,7 @@ namespace
     {
       return Analysis::CreateUnmatchedResult(format, data);
     }
-    const Module::ModuleProperties::RWPtr properties = Module::ModuleProperties::Create(plugin, inputData);
+    const Module::ModuleProperties::RWPtr properties = Module::ModuleProperties::Create(type, inputData);
     std::size_t usedSize = 0;
     if (Module::Holder::Ptr holder = factory->CreateModule(properties, data, usedSize))
     {
@@ -53,7 +53,7 @@ namespace
 
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
-      return DetectModuleInLocation(Factory, Description, inputData, callback);
+      return DetectModuleInLocation(Factory, Description->Id(), inputData, callback);
     }
   private:
     const Plugin::Ptr Description;
