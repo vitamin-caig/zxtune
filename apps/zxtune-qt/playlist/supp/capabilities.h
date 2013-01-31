@@ -28,12 +28,7 @@ namespace Playlist
     {
     public:
       explicit Capabilities(Data::Ptr data)
-        : PluginCaps(data->GetModule()->GetPlugin()->Capabilities())
-      {
-      }
-
-      explicit Capabilities(ZXTune::Module::Holder::Ptr holder)
-        : PluginCaps(holder->GetPlugin()->Capabilities())
+        : PluginCaps(ZXTune::FindPlugin(data->GetType())->Capabilities())
       {
       }
 

@@ -42,6 +42,7 @@ namespace ZXTune
   };
 
   Plugin::Iterator::Ptr EnumeratePlugins();
+  Plugin::Ptr FindPlugin(const String& id);
 }
 
 #endif //__CORE_PLUGIN_H_DEFINED__

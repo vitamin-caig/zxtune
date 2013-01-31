@@ -38,12 +38,12 @@ msgstr ""
 "Неправильный минимальный размер блока для анализа (%1%). Должен быть больше "
 "%2%."
 
-#: plugins/enumerator.cpp:221 plugins/enumerator.cpp:232
-#: plugins/enumerator.cpp:254
+#: plugins/enumerator.cpp:248 plugins/enumerator.cpp:259
+#: plugins/enumerator.cpp:281
 msgid "Invalid parameters specified."
 msgstr "Неправильные параметры."
 
-#: plugins/enumerator.cpp:242
+#: plugins/enumerator.cpp:269
 #, boost-format
 msgid "Failed to find specified submodule starting from path '%1%'."
 msgstr "Модуль не найден при поиске начиная с '%1%'."

@@ -107,7 +107,7 @@ namespace
       const Parameters::Container::Ptr adjustedProps = item->GetAdjustedParameters();
       Properties = boost::make_shared<ItemPropertiesContainer>(adjustedProps, nativeProps);
 
-      const Playlist::Item::Capabilities caps(module);
+      const Playlist::Item::Capabilities caps(item);
       FillProperties(caps);
       itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding), itemsLayout->rowCount(), 0);
 

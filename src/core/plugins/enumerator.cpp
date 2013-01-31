@@ -28,6 +28,7 @@ Author:
 #include <l10n/api.h>
 //std includes
 #include <list>
+#include <map>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -52,14 +53,24 @@ namespace
       const Plugin::Ptr description = plugin->GetDescription();
       Plugins.push_back(plugin);
       Dbg("Registered %1%", description->Id());
+      TypeToPlugin[description->Id()] = plugin;
     }
 
     virtual typename PluginType::Iterator::Ptr Enumerate() const
     {
       return CreateRangedObjectIteratorAdapter(Plugins.begin(), Plugins.end());
     }
+
+    virtual typename PluginType::Ptr Find(const String& id) const
+    {
+      const typename std::map<String, typename PluginType::Ptr>::const_iterator it = TypeToPlugin.find(id);
+      return it != TypeToPlugin.end()
+        ? it->second
+        : typename PluginType::Ptr();
+    }
   private:
     std::vector<typename PluginType::Ptr> Plugins;
+    std::map<String, typename PluginType::Ptr> TypeToPlugin;
   };
 
   class ArchivePluginsContainer : public PluginsContainer<ArchivePlugin>
@@ -207,6 +218,22 @@ namespace ZXTune
     const ArchivePlugin::Iterator::Ptr archives = ArchivePluginsEnumerator::Create()->Enumerate();
     const PlayerPlugin::Iterator::Ptr players = PlayerPluginsEnumerator::Create()->Enumerate();
     return boost::make_shared<CompositePluginsIterator>(archives, players);
+  }
+
+  Plugin::Ptr FindPlugin(const String& id)
+  {
+    if (const PlayerPlugin::Ptr player = PlayerPluginsEnumerator::Create()->Find(id))
+    {
+      return player->GetDescription();
+    }
+    else if (const ArchivePlugin::Ptr archive = ArchivePluginsEnumerator::Create()->Find(id))
+    {
+      return archive->GetDescription();
+    }
+    else
+    {
+      return Plugin::Ptr();
+    }
   }
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)

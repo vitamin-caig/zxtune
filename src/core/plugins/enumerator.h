@@ -26,6 +26,7 @@ namespace ZXTune
     virtual ~PluginsEnumerator() {}
 
     virtual typename PluginType::Iterator::Ptr Enumerate() const = 0;
+    virtual typename PluginType::Ptr Find(const String& id) const = 0;
 
     //! Enumerate all supported plugins
     static Ptr Create();
