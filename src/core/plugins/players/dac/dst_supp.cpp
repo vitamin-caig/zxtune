@@ -14,19 +14,10 @@ Author:
 #include "digital.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
-//common includes
-#include <error_tools.h>
-#include <tools.h>
 //library includes
-#include <core/convert_parameters.h>
-#include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digitalstudio.h>
-#include <sound/mixer_factory.h>
-//std includes
-#include <set>
 
 #define FILE_TAG 3226C730
 

@@ -37,6 +37,7 @@ namespace Formats
     Decoder::Ptr CreateTFCDecoder();
     Decoder::Ptr CreateVortexTracker2Decoder();
     Decoder::Ptr CreateChipTrackerDecoder();
+    Decoder::Ptr CreateSampleTrackerDecoder();
   }
 }
 
