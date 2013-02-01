@@ -349,65 +349,56 @@ namespace ZXTune
         std::vector<SampleType> Samples;
         std::vector<OrnamentType> Ornaments;
       };
+
+      struct BuildContext
+      {
+        ModuleData& Data;
+        Pattern* CurPattern;
+        Line* CurLine;
+        typename Line::Chan* CurChannel;
+
+        explicit BuildContext(ModuleData& data)
+          : Data(data)
+          , CurPattern()
+          , CurLine()
+          , CurChannel()
+        {
+        }
+
+        void SetPattern(uint_t idx)
+        {
+          Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
+          CurPattern = &Data.Patterns[idx];
+          CurLine = 0;
+          CurChannel = 0;
+        }
+
+        void SetLine(uint_t idx)
+        {
+          if (const std::size_t skipped = idx - CurPattern->GetSize())
+          {
+            CurPattern->AddLines(skipped);
+          }
+          CurLine = &CurPattern->AddLine();
+          CurChannel = 0;
+        }
+
+        void SetChannel(uint_t idx)
+        {
+          CurChannel = &CurLine->Channels[idx];
+        }
+
+        void FinishPattern(uint_t size)
+        {
+          if (const std::size_t skipped = size - CurPattern->GetSize())
+          {
+            CurPattern->AddLines(skipped);
+          }
+          CurLine = 0;
+          CurPattern = 0;
+        }
+      };
     };
-
-    //helper class to easy parse patterns
-    struct PatternCursor
-    {
-      /*explicit*/PatternCursor(uint_t offset = 0)
-        : Offset(offset), Period(), Counter()
-      {
-      }
-      uint_t Offset;
-      uint_t Period;
-      uint_t Counter;
-
-      void SkipLines(uint_t lines)
-      {
-        Counter -= lines;
-      }
-
-      static bool CompareByOffset(const PatternCursor& lh, const PatternCursor& rh)
-      {
-        return lh.Offset < rh.Offset;
-      }
-
-      static bool CompareByCounter(const PatternCursor& lh, const PatternCursor& rh)
-      {
-        return lh.Counter < rh.Counter;
-      }
-    };
-
-    template<uint_t Channels>
-    class PatternCursorSet : public boost::array<PatternCursor, Channels>
-    {
-      typedef boost::array<PatternCursor, Channels> Parent;
-    public:
-      uint_t GetMinCounter() const
-      {
-        return std::min_element(Parent::begin(), Parent::end(),
-          Parent::value_type::CompareByCounter)->Counter;
-      }
-
-      uint_t GetMaxCounter() const
-      {
-        return std::max_element(Parent::begin(), Parent::end(),
-          Parent::value_type::CompareByCounter)->Counter;
-      }
-
-      uint_t GetMaxOffset() const
-      {
-        return std::max_element(Parent::begin(), Parent::end(),
-          Parent::value_type::CompareByOffset)->Offset;
-      }
-
-      void SkipLines(uint_t linesToSkip)
-      {
-        std::for_each(Parent::begin(), Parent::end(),
-          std::bind2nd(std::mem_fun_ref(&Parent::value_type::SkipLines), linesToSkip));
-      }
-    };
-
   }
 }
 

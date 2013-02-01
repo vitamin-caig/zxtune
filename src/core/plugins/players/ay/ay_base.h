@@ -81,8 +81,6 @@ namespace ZXTune
         Devices::AYM::DataChunk Chunk;
       };
 
-      typedef PatternCursorSet<Devices::AYM::CHANNELS> PatternCursors;
-
       class DataRenderer
       {
       public:

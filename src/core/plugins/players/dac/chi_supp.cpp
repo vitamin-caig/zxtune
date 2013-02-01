@@ -141,59 +141,10 @@ namespace ChipTracker
       Context.CurChannel->Commands.push_back(CHITrack::Command(SAMPLE_OFFSET, offset));
     }
   private:
-    struct BuildContext
-    {
-      CHITrack::ModuleData& Data;
-      CHITrack::Pattern* CurPattern;
-      CHITrack::Line* CurLine;
-      CHITrack::Line::Chan* CurChannel;
-
-      explicit BuildContext(CHITrack::ModuleData& data)
-        : Data(data)
-        , CurPattern()
-        , CurLine()
-        , CurChannel()
-      {
-      }
-
-      void SetPattern(uint_t idx)
-      {
-        Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
-        CurPattern = &Data.Patterns[idx];
-        CurLine = 0;
-        CurChannel = 0;
-      }
-
-      void SetLine(uint_t idx)
-      {
-        if (const std::size_t skipped = idx - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = &CurPattern->AddLine();
-        CurChannel = 0;
-      }
-
-      void SetChannel(uint_t idx)
-      {
-        CurChannel = &CurLine->Channels[idx];
-      }
-
-      void FinishPattern(uint_t size)
-      {
-        if (const std::size_t skipped = size - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = 0;
-        CurPattern = 0;
-      }
-    };
-  private:
     const CHITrack::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
 
-    BuildContext Context;
+    CHITrack::BuildContext Context;
   };
 
   // perform module 'playback' right after creating (debug purposes)

@@ -127,51 +127,12 @@ namespace
       Context.CurChannel->SetSample(sample);
     }
   private:
-    struct BuildContext
-    {
-      DSTTrack::ModuleData& Data;
-      DSTTrack::Pattern* CurPattern;
-      DSTTrack::Line* CurLine;
-      DSTTrack::Line::Chan* CurChannel;
-
-      explicit BuildContext(DSTTrack::ModuleData& data)
-        : Data(data)
-        , CurPattern()
-        , CurLine()
-        , CurChannel()
-      {
-      }
-
-      void SetPattern(uint_t idx)
-      {
-        Data.Patterns.resize(idx + 1);
-        CurPattern = &Data.Patterns[idx];
-        CurLine = 0;
-        CurChannel = 0;
-      }
-
-      void SetLine(uint_t idx)
-      {
-        if (const std::size_t skipped = idx - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = &CurPattern->AddLine();
-        CurChannel = 0;
-      }
-
-      void SetChannel(uint_t idx)
-      {
-        CurChannel = &CurLine->Channels[idx];
-      }
-    };
-  private:
     const DSTTrack::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     std::size_t FourBitSamples;
     std::size_t EightBitSamples;
 
-    BuildContext Context;
+    DSTTrack::BuildContext Context;
   };
 
 

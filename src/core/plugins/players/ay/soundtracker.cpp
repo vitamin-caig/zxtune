@@ -118,59 +118,10 @@ namespace SoundTracker
       Context.CurChannel->Commands.push_back(SoundTracker::Track::Command(SoundTracker::NOENVELOPE));
     }
   private:
-    struct BuildContext
-    {
-      SoundTracker::Track::ModuleData& Data;
-      SoundTracker::Track::Pattern* CurPattern;
-      SoundTracker::Track::Line* CurLine;
-      SoundTracker::Track::Line::Chan* CurChannel;
-
-      explicit BuildContext(SoundTracker::Track::ModuleData& data)
-        : Data(data)
-        , CurPattern()
-        , CurLine()
-        , CurChannel()
-      {
-      }
-
-      void SetPattern(uint_t idx)
-      {
-        Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
-        CurPattern = &Data.Patterns[idx];
-        CurLine = 0;
-        CurChannel = 0;
-      }
-
-      void SetLine(uint_t idx)
-      {
-        if (const std::size_t skipped = idx - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = &CurPattern->AddLine();
-        CurChannel = 0;
-      }
-
-      void SetChannel(uint_t idx)
-      {
-        CurChannel = &CurLine->Channels[idx];
-      }
-
-      void FinishPattern(uint_t size)
-      {
-        if (const std::size_t skipped = size - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = 0;
-        CurPattern = 0;
-      }
-    };
-  private:
     const SoundTracker::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
 
-    BuildContext Context;
+    Track::BuildContext Context;
   };
 
   class ChannelBuilder
