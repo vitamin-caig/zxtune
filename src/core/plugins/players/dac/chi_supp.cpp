@@ -21,136 +21,30 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
-#include <binary/typed_container.h>
-#include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <debug/log.h>
 #include <devices/dac_sample_factories.h>
-#include <math/numeric.h>
+#include <formats/chiptune/decoders.h>
+#include <formats/chiptune/chiptracker.h>
 #include <sound/mixer_factory.h>
-//std includes
-#include <utility>
-//boost includes
-#include <boost/bind.hpp>
-//text includes
-#include <formats/text/chiptune.h>
 
 #define FILE_TAG AB8BEC8B
 
-namespace
+namespace ChipTracker
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  const Debug::Stream Dbg("Core::CHISupp");
+  const std::size_t CHANNELS_COUNT = 4;
+  const std::size_t BASE_FREQ = 4000;
 
-  //////////////////////////////////////////////////////////////////////////
-  const uint8_t CHI_SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
-
-  const std::size_t MAX_MODULE_SIZE = 65536;
-  const std::size_t MAX_PATTERN_SIZE = 64;
-  const uint_t CHANNELS_COUNT = 4;
-  const uint_t SAMPLES_COUNT = 16;
-
-  //all samples has base freq at 4kHz (C-1)
-  const uint_t BASE_FREQ = 4000;
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct CHIHeader
-  {
-    uint8_t Signature[5];
-    char Version[3];
-    char Name[32];
-    uint8_t Tempo;
-    uint8_t Length;
-    uint8_t Loop;
-    PACK_PRE struct SampleDescr
-    {
-      uint16_t Loop;
-      uint16_t Length;
-    } PACK_POST;
-    boost::array<SampleDescr, SAMPLES_COUNT> Samples;
-    uint8_t Reserved[21];
-    uint8_t SampleNames[SAMPLES_COUNT][8];//unused
-    uint8_t Positions[256];
-  } PACK_POST;
-
-  const uint_t NOTE_EMPTY = 0;
-  const uint_t NOTE_BASE = 1;
-  const uint_t PAUSE = 63;
-  PACK_PRE struct CHINote
-  {
-    //NNNNNNCC
-    //N - note
-    //C - cmd
-    uint_t GetNote() const
-    {
-      return (NoteCmd & 252) >> 2;
-    }
-
-    uint_t GetCommand() const
-    {
-      return NoteCmd & 3;
-    }
-
-    uint8_t NoteCmd;
-  } PACK_POST;
-
-  typedef boost::array<CHINote, CHANNELS_COUNT> CHINoteRow;
-
-  //format commands
-  enum
-  {
-    SOFFSET = 0,
-    SLIDEDN = 1,
-    SLIDEUP = 2,
-    SPECIAL = 3
-  };
-
-  PACK_PRE struct CHINoteParam
-  {
-    // SSSSPPPP
-    //S - sample
-    //P - param
-    uint_t GetParameter() const
-    {
-      return SampParam & 15;
-    }
-
-    uint_t GetSample() const
-    {
-      return (SampParam & 240) >> 4;
-    }
-
-    uint8_t SampParam;
-  } PACK_POST;
-
-  typedef boost::array<CHINoteParam, CHANNELS_COUNT> CHINoteParamRow;
-
-  PACK_PRE struct CHIPattern
-  {
-    boost::array<CHINoteRow, MAX_PATTERN_SIZE> Notes;
-    boost::array<CHINoteParamRow, MAX_PATTERN_SIZE> Params;
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  BOOST_STATIC_ASSERT(sizeof(CHIHeader) == 512);
-  BOOST_STATIC_ASSERT(sizeof(CHIPattern) == 512);
-
-  //supported tracking commands
   enum CmdType
   {
-    //no parameters
     EMPTY,
-    //sample offset in samples
+    //offset in bytes
     SAMPLE_OFFSET,
-    //slide in Hz
+    //step
     SLIDE
   };
 
@@ -158,6 +52,149 @@ namespace
   struct VoidType {};
 
   typedef TrackingSupport<CHANNELS_COUNT, CmdType, Devices::DAC::Sample::Ptr, VoidType> CHITrack;
+
+  std::auto_ptr<Formats::Chiptune::ChipTracker::Builder> CreateDataBuilder(CHITrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props);
+}
+
+namespace ChipTracker
+{
+  class Builder : public Formats::Chiptune::ChipTracker::Builder
+  {
+  public:
+    Builder(CHITrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+      : Data(data)
+      , Properties(props)
+      , Context(*Data)
+    {
+    }
+
+    virtual void SetTitle(const String& title)
+    {
+      Properties->SetTitle(OptimizeString(title));
+    }
+
+    virtual void SetVersion(uint_t major, uint_t minor)
+    {
+      Properties->SetVersion(major, minor);
+    }
+
+    virtual void SetInitialTempo(uint_t tempo)
+    {
+      Data->InitialTempo = tempo;
+    }
+
+    virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
+    {
+      Data->Samples.resize(index + 1);
+      Data->Samples[index] = Devices::DAC::CreateU8Sample(sample, loop);
+    }
+
+    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    {
+      Data->Positions.assign(positions.begin(), positions.end());
+      Data->LoopPosition = loop;
+    }
+
+    virtual void StartPattern(uint_t index)
+    {
+      Context.SetPattern(index);
+    }
+
+    virtual void StartLine(uint_t index)
+    {
+      Context.SetLine(index);
+    }
+
+    virtual void SetTempo(uint_t tempo)
+    {
+      Context.CurLine->SetTempo(tempo);
+    }
+
+    virtual void StartChannel(uint_t index)
+    {
+      Context.SetChannel(index);
+    }
+
+    virtual void SetRest()
+    {
+      Context.CurChannel->SetEnabled(false);
+    }
+
+    virtual void SetNote(uint_t note)
+    {
+      Context.CurChannel->SetEnabled(true);
+      Context.CurChannel->SetNote(note);
+    }
+
+    virtual void SetSample(uint_t sample)
+    {
+      Context.CurChannel->SetSample(sample);
+    }
+
+    virtual void SetSlide(int_t step)
+    {
+      Context.CurChannel->Commands.push_back(CHITrack::Command(SLIDE, step));
+    }
+
+    virtual void SetSampleOffset(uint_t offset)
+    {
+      Context.CurChannel->Commands.push_back(CHITrack::Command(SAMPLE_OFFSET, offset));
+    }
+  private:
+    struct BuildContext
+    {
+      CHITrack::ModuleData& Data;
+      CHITrack::Pattern* CurPattern;
+      CHITrack::Line* CurLine;
+      CHITrack::Line::Chan* CurChannel;
+
+      explicit BuildContext(CHITrack::ModuleData& data)
+        : Data(data)
+        , CurPattern()
+        , CurLine()
+        , CurChannel()
+      {
+      }
+
+      void SetPattern(uint_t idx)
+      {
+        Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
+        CurPattern = &Data.Patterns[idx];
+        CurLine = 0;
+        CurChannel = 0;
+      }
+
+      void SetLine(uint_t idx)
+      {
+        if (const std::size_t skipped = idx - CurPattern->GetSize())
+        {
+          CurPattern->AddLines(skipped);
+        }
+        CurLine = &CurPattern->AddLine();
+        CurChannel = 0;
+      }
+
+      void SetChannel(uint_t idx)
+      {
+        CurChannel = &CurLine->Channels[idx];
+      }
+
+      void FinishPattern(uint_t size)
+      {
+        if (const std::size_t skipped = size - CurPattern->GetSize())
+        {
+          CurPattern->AddLines(skipped);
+        }
+        CurLine = 0;
+        CurPattern = 0;
+      }
+    };
+  private:
+    const CHITrack::ModuleData::RWPtr Data;
+    const ModuleProperties::RWPtr Properties;
+
+    BuildContext Context;
+  };
 
   // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG
@@ -168,127 +205,12 @@ namespace
 
   class CHIHolder : public Holder
   {
-    static void ParsePattern(const CHIPattern& src, CHITrack::Pattern& res)
-    {
-      CHITrack::Pattern result;
-      bool end = false;
-      for (uint_t lineNum = 0; lineNum != MAX_PATTERN_SIZE && !end; ++lineNum)
-      {
-        CHITrack::Line& dstLine = result.AddLine();
-        for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
-        {
-          CHITrack::Line::Chan& dstChan = dstLine.Channels[chanNum];
-          const CHINote& metaNote = src.Notes[lineNum][chanNum];
-          const uint_t note = metaNote.GetNote();
-          const CHINoteParam& param = src.Params[lineNum][chanNum];
-          if (NOTE_EMPTY != note)
-          {
-            if (PAUSE == note)
-            {
-              dstChan.Enabled = false;
-            }
-            else
-            {
-              dstChan.Enabled = true;
-              dstChan.Note = note - NOTE_BASE;
-              dstChan.SampleNum = param.GetSample();
-            }
-          }
-          switch (metaNote.GetCommand())
-          {
-          case SOFFSET:
-            if (const uint_t off = param.GetParameter())
-            {
-              dstChan.Commands.push_back(CHITrack::Command(SAMPLE_OFFSET, 512 * off));
-            }
-            break;
-          case SLIDEDN:
-            if (const uint_t sld = param.GetParameter())
-            {
-              dstChan.Commands.push_back(CHITrack::Command(SLIDE, -static_cast<int8_t>(2 * sld)));
-            }
-            break;
-          case SLIDEUP:
-            if (const uint_t sld = param.GetParameter())
-            {
-              dstChan.Commands.push_back(CHITrack::Command(SLIDE, static_cast<int8_t>(2 * sld)));
-            }
-            break;
-          case SPECIAL:
-            //first channel - tempo
-            if (0 == chanNum)
-            {
-              dstLine.Tempo = param.GetParameter();
-            }
-            //last channel - stop
-            else if (3 == chanNum)
-            {
-              end = true;
-            }
-          }
-        }
-      }
-      result.Swap(res);
-    }
-
   public:
-    CHIHolder(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
-      : Data(CHITrack::ModuleData::Create())
+    CHIHolder(CHITrack::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+      : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
     {
-      //assume data is correct
-      const Binary::TypedContainer data(*rawData);
-      const CHIHeader& header = *data.GetField<CHIHeader>(0);
-
-      //fill order
-      Data->Positions.resize(header.Length + 1);
-      std::copy(header.Positions, header.Positions + header.Length + 1, Data->Positions.begin());
-
-      //fill patterns
-      const uint_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
-      Data->Patterns.resize(patternsCount);
-      const CHIPattern* const patBegin = data.GetField<CHIPattern>(sizeof(header));
-      for (const CHIPattern* pat = patBegin; pat != patBegin + patternsCount; ++pat)
-      {
-        ParsePattern(*pat, Data->Patterns[pat - patBegin]);
-      }
-      //fill samples
-      const uint8_t* sampleData = (safe_ptr_cast<const uint8_t*>(patBegin + patternsCount));
-      std::size_t memLeft(data.GetSize() - (sampleData - data.GetField<uint8_t>(0)));
-      Data->Samples.resize(header.Samples.size());
-      for (uint_t samIdx = 0; samIdx != header.Samples.size(); ++samIdx)
-      {
-        const CHIHeader::SampleDescr& srcSample(header.Samples[samIdx]);
-        if (const std::size_t size = std::min<std::size_t>(memLeft, fromLE(srcSample.Length)))
-        {
-          if (const Binary::Data::Ptr content = rawData->GetSubcontainer(sampleData - data.GetField<uint8_t>(0), size))
-          {
-            const std::size_t loop = fromLE(srcSample.Loop);
-            Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, loop);
-          }
-          const std::size_t alignedSize(Math::Align<std::size_t>(size, 256));
-          sampleData += alignedSize;
-          if (size != fromLE(srcSample.Length))
-          {
-            break;
-          }
-          memLeft -= alignedSize;
-        }
-      }
-      Data->LoopPosition = header.Loop;
-      Data->InitialTempo = header.Tempo;
-
-      usedSize = data.GetSize() - memLeft;
-
-      //meta properties
-      {
-        const ModuleRegion fixedRegion(sizeof(CHIHeader), sizeof(CHIPattern) * patternsCount);
-        Properties->SetSource(usedSize, fixedRegion);
-      }
-      Properties->SetTitle(OptimizeString(FromCharArray(header.Name)));
-      Properties->SetProgram(Text::CHIPTRACKER_DECODER_DESCRIPTION);
-      Properties->SetVersion(header.Version[0] - '0', header.Version[2] - '0');
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -315,8 +237,8 @@ namespace
       return CreateCHIRenderer(params, Info, Data, chip);
     }
   private:
-    const CHITrack::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    const CHITrack::ModuleData::Ptr Data;
+    const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
 
@@ -484,88 +406,49 @@ namespace
   {
     return Renderer::Ptr(new CHIRenderer(params, info, data, device));
   }
-
-  bool CheckCHI(const Binary::Container& data)
-  {
-    //check for header
-    const std::size_t size(data.Size());
-    if (sizeof(CHIHeader) > size)
-    {
-      return false;
-    }
-    const CHIHeader* const header(safe_ptr_cast<const CHIHeader*>(data.Start()));
-    if (0 != std::memcmp(header->Signature, CHI_SIGNATURE, sizeof(CHI_SIGNATURE)))
-    {
-      return false;
-    }
-    const uint_t patternsCount = 1 + *std::max_element(header->Positions, header->Positions + header->Length + 1);
-    if (sizeof(*header) + patternsCount * sizeof(CHIPattern) > size)
-    {
-      return false;
-    }
-    //TODO: additional checks
-    return true;
-  }
 }
 
-namespace
+namespace ChipTracker
 {
   using namespace ZXTune;
+  using namespace ZXTune::Module;
 
   //plugin attributes
   const Char ID[] = {'C', 'H', 'I', 0};
-  const Char* const INFO = Text::CHIPTRACKER_DECODER_DESCRIPTION;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
-
-
-  const std::string CHI_FORMAT(
-    "'C'H'I'P'v"    // uint8_t Signature[5];
-    "3x2e3x"        // char Version[3];
-    "20-7f{32}"     // char Name[32];
-    "01-0f"         // uint8_t Tempo;
-    "??"            // len,loop
-    "(?00-bb?00-bb){16}"//samples descriptions
-    "?{21}"         // uint8_t Reserved[21];
-    "(20-7f{8}){16}"// sample names
-  );
 
   class CHIModulesFactory : public ModulesFactory
   {
   public:
-    CHIModulesFactory()
-      : Format(Binary::Format::Create(CHI_FORMAT, sizeof(CHIHeader)))
+    explicit CHIModulesFactory(Formats::Chiptune::Decoder::Ptr decoder)
+      : Decoder(decoder)
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
+    virtual bool Check(const Binary::Container& data) const
     {
-      return Format->Match(inputData) && CheckCHI(inputData);
+      return Decoder->Check(data);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
     {
-      return Format;
+      return Decoder->GetFormat();
     }
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
-      if (!Check(*data))
+      const CHITrack::ModuleData::RWPtr modData = CHITrack::ModuleData::Create();
+      Builder builder(modData, properties);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(*data, builder))
       {
-        return Holder::Ptr();
-      }
-      try
-      {
-        const Holder::Ptr holder(new CHIHolder(properties, data, usedSize));
-        return holder;
-      }
-      catch (const Error&/*e*/)
-      {
-        Dbg("Failed to create holder");
+        usedSize = container->Size();
+        properties->SetSource(container);
+        return boost::make_shared<CHIHolder>(modData, properties);
       }
       return Holder::Ptr();
     }
   private:
-    const Binary::Format::Ptr Format;
+    const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
 
@@ -573,8 +456,9 @@ namespace ZXTune
 {
   void RegisterCHISupport(PlayerPluginsRegistrator& registrator)
   {
-    const ModulesFactory::Ptr factory = boost::make_shared<CHIModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateChipTrackerDecoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<ChipTracker::CHIModulesFactory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ChipTracker::ID, decoder->GetDescription(), ChipTracker::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }
