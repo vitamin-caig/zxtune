@@ -16,6 +16,7 @@ Author:
 #include "playlist/supp/data.h"
 #include "ui/utils.h"
 //common includes
+#include <contract.h>
 #include <error.h>
 #include <tools.h>
 //library includes
@@ -24,7 +25,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 //qt includes
-#include <QtCore/QMutex>
+#include <QtCore/QTimer>
 
 namespace
 {
@@ -74,6 +75,9 @@ namespace
       : PlaybackSupport(parent)
       , Params(sndOptions)
     {
+      const unsigned UPDATE_FPS = 10;
+      Require(connect(&Timer, SIGNAL(timeout()), SIGNAL(OnUpdateState())));
+      Timer.setInterval(1000 / UPDATE_FPS);
     }
 
     virtual void SetItem(Playlist::Item::Data::Ptr item)
@@ -177,22 +181,17 @@ namespace
     //BackendCallback
     virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
     {
-      LastUpdateTime = std::clock();
       emit OnStartModule(Backend, Item);
+      Timer.start();
     }
 
     virtual void OnFrame(const ZXTune::Module::TrackState& /*state*/)
     {
-      const std::clock_t curTime = std::clock();
-      if (curTime - LastUpdateTime >= CLOCKS_PER_SEC / 10/*fps*/)
-      {
-        LastUpdateTime = curTime;
-        emit OnUpdateState();
-      }
     }
 
     virtual void OnStop()
     {
+      Timer.stop();
       emit OnStopModule();
     }
 
@@ -246,9 +245,9 @@ namespace
     }
   private:
     const Parameters::Accessor::Ptr Params;
+    QTimer Timer;
     Playlist::Item::Data::Ptr Item;
     ZXTune::Sound::Backend::Ptr Backend;
-    std::clock_t LastUpdateTime;
   };
 }
 
