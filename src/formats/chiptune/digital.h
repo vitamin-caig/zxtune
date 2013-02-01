@@ -1,6 +1,6 @@
 /*
 Abstract:
-  ChipTracker format description
+  Base interfaces for simple digital trackers (only samples, without effects)
 
 Last changed:
   $Id$
@@ -10,19 +10,20 @@ Author:
 */
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_CHIPTRACKER_H_DEFINED
-#define FORMATS_CHIPTUNE_CHIPTRACKER_H_DEFINED
+#ifndef FORMATS_CHIPTUNE_DIGITAL_H_DEFINED
+#define FORMATS_CHIPTUNE_DIGITAL_H_DEFINED
 
 //common includes
-#include <binary/container.h>
+#include <string.h>
+#include <types.h>
 //library includes
-#include <formats/chiptune.h>
+#include <binary/container.h>
 
 namespace Formats
 {
   namespace Chiptune
   {
-    namespace ChipTracker
+    namespace Digital
     {
       class Builder
       {
@@ -32,10 +33,9 @@ namespace Formats
         //common properties
         virtual void SetTitle(const String& title) = 0;
         virtual void SetProgram(const String& program) = 0;
-        virtual void SetVersion(uint_t major, uint_t minor) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
-        virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample) = 0;
+        virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample, bool is4Bit) = 0;
         //patterns
         virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
         //building pattern -> line -> channel
@@ -49,14 +49,11 @@ namespace Formats
         virtual void SetRest() = 0;
         virtual void SetNote(uint_t note) = 0;
         virtual void SetSample(uint_t sample) = 0;
-        virtual void SetSlide(int_t step) = 0;
-        virtual void SetSampleOffset(uint_t offset) = 0;
       };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
     }
   }
 }
 
-#endif //FORMATS_CHIPTUNE_CHIPTRACKER_H_DEFINED
+#endif //FORMATS_CHIPTUNE_DIGITAL_H_DEFINED

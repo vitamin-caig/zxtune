@@ -155,6 +155,7 @@ namespace Chiptune
     {
     public:
       virtual void SetTitle(const String& /*title*/) {}
+      virtual void SetProgram(const String& /*program*/) {}
       virtual void SetVersion(uint_t /*major*/, uint_t /*minor*/) {}
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
@@ -183,6 +184,11 @@ namespace Chiptune
       virtual void SetTitle(const String& title)
       {
         return Delegate.SetTitle(title);
+      }
+
+      virtual void SetProgram(const String& program)
+      {
+        return Delegate.SetProgram(program);
       }
 
       virtual void SetVersion(uint_t major, uint_t minor)
@@ -284,6 +290,7 @@ namespace Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         target.SetTitle(FromCharArray(Source.Title));
+        target.SetProgram(Text::CHIPTRACKER_DECODER_DESCRIPTION);
         target.SetVersion(Source.Version[0] - '0', Source.Version[2] - '0');
       }
 

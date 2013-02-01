@@ -73,6 +73,11 @@ namespace ChipTracker
       Properties->SetTitle(OptimizeString(title));
     }
 
+    virtual void SetProgram(const String& program)
+    {
+      Properties->SetProgram(program);
+    }
+
     virtual void SetVersion(uint_t major, uint_t minor)
     {
       Properties->SetVersion(major, minor);

@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "container.h"
 #include "digitalstudio.h"
+#include "digital_detail.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -120,110 +121,6 @@ namespace Chiptune
     const uint_t NOTE_SPEED = 0x81;
     const uint_t NOTE_END = 0x82;
 
-    class StubBuilder : public Builder
-    {
-    public:
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/, bool /*is4Bit*/) {}
-      virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
-      virtual void StartPattern(uint_t /*index*/) {}
-      virtual void StartLine(uint_t /*index*/) {}
-      virtual void SetTempo(uint_t /*tempo*/) {}
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-    };
-
-    typedef std::set<uint_t> Indices;
-
-    class StatisticCollectionBuilder : public Builder
-    {
-    public:
-      explicit StatisticCollectionBuilder(Builder& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual void SetTitle(const String& title)
-      {
-        return Delegate.SetTitle(title);
-      }
-
-      virtual void SetProgram(const String& program)
-      {
-        return Delegate.SetProgram(program);
-      }
-
-      virtual void SetInitialTempo(uint_t tempo)
-      {
-        return Delegate.SetInitialTempo(tempo);
-      }
-
-      virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data, bool is4Bit)
-      {
-        return Delegate.SetSample(index, loop, data, is4Bit);
-      }
-
-      virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
-      {
-        UsedPatterns = Indices(positions.begin(), positions.end());
-        return Delegate.SetPositions(positions, loop);
-      }
-
-      virtual void StartPattern(uint_t index)
-      {
-        return Delegate.StartPattern(index);
-      }
-
-      virtual void StartLine(uint_t index)
-      {
-        return Delegate.StartLine(index);
-      }
-
-      virtual void SetTempo(uint_t tempo)
-      {
-        return Delegate.SetTempo(tempo);
-      }
-
-      virtual void StartChannel(uint_t index)
-      {
-        return Delegate.StartChannel(index);
-      }
-
-      virtual void SetRest()
-      {
-        return Delegate.SetRest();
-      }
-
-      virtual void SetNote(uint_t note)
-      {
-        return Delegate.SetNote(note);
-      }
-
-      virtual void SetSample(uint_t sample)
-      {
-        UsedSamples.insert(sample);
-        return Delegate.SetSample(sample);
-      }
-
-      const Indices& GetUsedPatterns() const
-      {
-        return UsedPatterns;
-      }
-
-      const Indices& GetUsedSamples() const
-      {
-        return UsedSamples;
-      }
-    private:
-      Builder& Delegate;
-      Indices UsedPatterns;
-      Indices UsedSamples;
-    };
-
     class SamplesSet
     {
     public:
@@ -327,10 +224,10 @@ namespace Chiptune
         Dbg("Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
       }
 
-      void ParsePatterns(const Indices& pats, Builder& target) const
+      void ParsePatterns(const Digital::Indices& pats, Builder& target) const
       {
         Require(!pats.empty());
-        for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Digital::Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
         {
           const uint_t patIndex = *it;
           Require(Math::InRange<uint_t>(patIndex + 1, 1, PATTERNS_COUNT));
@@ -340,10 +237,10 @@ namespace Chiptune
         }
       }
 
-      void ParseSamples(const Indices& sams, SamplesSet& samples) const
+      void ParseSamples(const Digital::Indices& sams, SamplesSet& samples) const
       {
         Require(!sams.empty());
-        for (Indices::const_iterator it = sams.begin(), lim = sams.end(); it != lim; ++it)
+        for (Digital::Indices::const_iterator it = sams.begin(), lim = sams.end(); it != lim; ++it)
         {
           const uint_t samIdx = *it;
           Require(Math::InRange<uint_t>(samIdx + 1, 1, SAMPLES_COUNT));
@@ -576,7 +473,7 @@ namespace Chiptune
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        Builder& stub = GetStubBuilder();
+        Builder& stub = Digital::GetStubBuilder();
         return Parse(rawData, stub);
       }
     private:
@@ -596,11 +493,11 @@ namespace Chiptune
 
         format.ParseCommonProperties(target);
 
-        StatisticCollectionBuilder statistic(target);
+        Digital::StatisticCollectionBuilder statistic(target);
         format.ParsePositions(statistic);
-        const Indices& usedPatterns = statistic.GetUsedPatterns();
+        const Digital::Indices& usedPatterns = statistic.GetUsedPatterns();
         format.ParsePatterns(usedPatterns, statistic);
-        const Indices& usedSamples = statistic.GetUsedSamples();
+        const Digital::Indices& usedSamples = statistic.GetUsedSamples();
         SamplesSet samples;
         format.ParseSamples(usedSamples, samples);
 
@@ -617,12 +514,6 @@ namespace Chiptune
         Dbg("Failed to create");
         return Formats::Chiptune::Container::Ptr();
       }
-    }
-
-    Builder& GetStubBuilder()
-    {
-      static StubBuilder stub;
-      return stub;
     }
   }//namespace DigitalStudio
 
