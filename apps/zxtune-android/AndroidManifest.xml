@@ -20,11 +20,11 @@
                 <category android:name="android.intent.category.DEFAULT"></category>
                 <category android:name="android.intent.category.BROWSABLE"></category>
                 <data android:host="*" android:scheme="file" android:mimeType="*/*" android:pathPattern=".*" />
-            </intent-filter> 
+            </intent-filter>
         </activity>
-        <service
-              android:process=":service"
-              android:name=".Service"
-        />
+        <service 
+              android:name=".PlaybackService"
+              android:process=":remote">
+        </service>
     </application>
 </manifest>
