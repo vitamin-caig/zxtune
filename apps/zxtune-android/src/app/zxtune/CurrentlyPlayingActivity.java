@@ -11,11 +11,6 @@
 package app.zxtune;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.SeekBar;
@@ -23,7 +18,7 @@ import android.widget.SeekBar;
 public class CurrentlyPlayingActivity extends Activity {
 
   private Playback.Control control;
-  private BroadcastReceiver receiver;
+  private final Playback.Callback callback = new StatusCallback();
   private SeekBar position;
 
   @Override
@@ -31,19 +26,26 @@ public class CurrentlyPlayingActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.currently_playing);
 
-    control = MessengerRPC.ControlClient.create(this); 
+    control = MessengerRPC.ControlClient.create(this);
     position = (SeekBar) findViewById(R.id.play_position);
-    receiver = new EventReceiver();
-    final IntentFilter filter = new IntentFilter(PlaybackService.POSITION_UPDATE);
-
-    registerReceiver(receiver, filter);
   }
-  
+
+  @Override
+  public void onStart() {
+    super.onStart();
+    control.registerCallback(callback);
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    control.unregisterCallback(callback);
+  }
+
   @Override
   public void onDestroy() {
     super.onDestroy();
     MessengerRPC.ControlClient.destroy(control);
-    unregisterReceiver(receiver);
   }
 
   public void onClick(View v) {
@@ -60,12 +62,20 @@ public class CurrentlyPlayingActivity extends Activity {
     }
   }
 
-  class EventReceiver extends BroadcastReceiver {
+  class StatusCallback implements Playback.Callback {
+    public void started(String description, int duration) {
+      position.setMax(duration);
+    }
 
-    public void onReceive(Context context, Intent intent) {
-      final int curFrame = intent.getIntExtra(PlaybackService.CURRENT_FRAME, 0);
-      final int allFrames = intent.getIntExtra(PlaybackService.TOTAL_FRAMES, 0);
-      position.setMax(allFrames);
+    public void paused(String description) {
+
+    }
+
+    public void stopped() {
+
+    }
+
+    public void positionChanged(int curFrame, String curTime) {
       position.setProgress(curFrame);
     }
   }

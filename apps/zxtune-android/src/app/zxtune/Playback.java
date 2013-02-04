@@ -11,7 +11,7 @@
 package app.zxtune;
 
 public final class Playback {
-  
+
   static interface Control {
     public void open(String moduleId);
 
@@ -20,5 +20,20 @@ public final class Playback {
     public void pause();
 
     public void stop();
+    
+    //after registration one of the first three methods will be called according to current state
+    public void registerCallback(Callback cb);
+    
+    public void unregisterCallback(Callback cb);
+  }
+
+  static interface Callback {
+    public void started(String description, int duration);
+
+    public void paused(String description);
+
+    public void stopped();
+
+    public void positionChanged(int curFrame, String curTime);
   }
 }

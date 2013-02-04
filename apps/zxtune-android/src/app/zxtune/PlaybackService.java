@@ -10,52 +10,40 @@
 
 package app.zxtune;
 
-import app.zxtune.sound.AsyncPlayback;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.IBinder;
-import android.os.Messenger;
 import android.util.Log;
+import app.zxtune.sound.AsyncPlayback;
 
 public class PlaybackService extends Service {
-    
-  public final static String POSITION_UPDATE = "app.zxtune.playback.position_update";
-  public final static String CURRENT_FRAME = "frame";
-  public final static String TOTAL_FRAMES = "total";
-  
+
   private final static String TAG = "app.zxtune.Service";
 
-  private NotificationManager notificationManager;
-  private Notification notification;
-  private PendingIntent content;
-  
   private final Playback.Control ctrl = new PlaybackControl();
+  private Playback.Callback callback;
   private final IBinder binder = MessengerRPC.ControlServer.createBinder(ctrl);
 
   @Override
   public void onCreate() {
     Log.d(TAG, "Creating");
-    this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-    this.notification = new Notification();
-    notification.flags |= Notification.FLAG_NO_CLEAR;
-    final Intent intent = new Intent(this, CurrentlyPlayingActivity.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    content = PendingIntent.getActivity(this, 0, intent, 0);
+    callback = new NotificationCallback();
+    ctrl.registerCallback(callback);
   }
 
   @Override
   public void onDestroy() {
     Log.d(TAG, "Destroying");
+    ctrl.unregisterCallback(callback);
     ctrl.stop();
     stopSelf();
   }
@@ -78,25 +66,49 @@ public class PlaybackService extends Service {
     return binder;
   }
 
-  private void showPlayingNotification() {
-    notification.icon = R.drawable.ic_stat_notify_play;
-    showNotification();
-  }
-
-  private void showPausedNotification() {
-    notification.icon = R.drawable.ic_stat_notify_pause;
-    showNotification();
-  }
-
-  private void showNotification() {
-    notification.when = System.currentTimeMillis();
-    notificationManager.notify(R.string.app_name, notification);
-  }
-
-  private class PlaybackControl implements Playback.Control {
+  private class NotificationCallback implements Playback.Callback {
     
+    private NotificationManager notificationManager;
+    private PendingIntent content;
+    
+    public NotificationCallback() {
+      this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+      final Intent intent = new Intent(PlaybackService.this, CurrentlyPlayingActivity.class);
+      intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+      content = PendingIntent.getActivity(PlaybackService.this, 0, intent, 0);
+    }
+
+    public void started(String description, int duration) {
+      startForeground(R.string.app_name, showNotification(R.drawable.ic_stat_notify_play, description));
+    }
+
+    public void paused(String description) {
+      startForeground(R.string.app_name, showNotification(R.drawable.ic_stat_notify_pause, description));
+    }
+
+    public void stopped() {
+      stopForeground(true);
+    }
+
+    public void positionChanged(int curFrame, String curTime) {
+
+    }
+    
+    private Notification showNotification(int icon, String description) {
+      final Notification notification = new Notification(icon, description, System.currentTimeMillis());
+      notification.setLatestEventInfo(PlaybackService.this, getString(R.string.app_name),
+          description, content);
+      notification.flags |= Notification.FLAG_NO_CLEAR;
+      notificationManager.notify(R.string.app_name, notification);
+      return notification;
+    }
+  }
+
+  private static class PlaybackControl implements Playback.Control {
+
     private AsyncPlayback playback;
-    
+    private final CompositeCallback callback = new CompositeCallback();
+
     public void open(String moduleId) {
       Log.d(TAG, String.format("Play %s", moduleId));
       final byte[] content = LoadFile(moduleId);
@@ -121,13 +133,22 @@ public class PlaybackService extends Service {
         playback = null;
       }
     }
-    
+
+    public void registerCallback(Playback.Callback cb) {
+      callback.add(cb);
+    }
+
+    public void unregisterCallback(Playback.Callback cb) {
+      callback.delete(cb);
+    }
+
     private void play(ZXTune.Module module) {
       stop();
-      final String title = describeModule(module);
-      notification.setLatestEventInfo(PlaybackService.this, getText(R.string.app_name), title, content);
-      final AsyncPlayback.Source src = new PlaybackSource(module);
-      final AsyncPlayback.Callback cb = new PlaybackCallback();
+      final String description = describeModule(module);
+      final AsyncPlayback.Source src = new PlaybackSource(module.createPlayer(), callback);
+      final AsyncPlayback.Callback cb =
+          new PlaybackCallback(callback, description, module.getDuration());
+      module.release();
       playback = new AsyncPlayback(src);
       playback.setCallback(cb);
       play();
@@ -152,19 +173,52 @@ public class PlaybackService extends Service {
         return null;
       }
     }
+
+    private class CompositeCallback implements Playback.Callback {
+      private ArrayList<Playback.Callback> delegates = new ArrayList<Playback.Callback>();
+
+      public void started(String description, int duration) {
+        for (Playback.Callback cb : delegates) {
+          cb.started(description, duration);
+        }
+      }
+
+      public void paused(String description) {
+        for (Playback.Callback cb : delegates) {
+          cb.paused(description);
+        }
+      }
+
+      public void stopped() {
+        for (Playback.Callback cb : delegates) {
+          cb.stopped();
+        }
+      }
+
+      public void positionChanged(int curFrame, String curTime) {
+        for (Playback.Callback cb : delegates) {
+          cb.positionChanged(curFrame, curTime);
+        }
+      }
+
+      public void add(Playback.Callback cb) {
+        delegates.add(cb);
+      }
+
+      public void delete(Playback.Callback cb) {
+        delegates.remove(cb);
+      }
+    }
   }
 
-  private class PlaybackSource implements AsyncPlayback.Source {
+  private static class PlaybackSource implements AsyncPlayback.Source {
 
-    private ZXTune.Module module;
     private ZXTune.Player player;
-    private Intent progressUpdate;
+    private Playback.Callback callback;
 
-    public PlaybackSource(ZXTune.Module module) {
-      this.module = module;
-      this.player = module.createPlayer();
-      this.progressUpdate = new Intent(POSITION_UPDATE);
-      progressUpdate.putExtra(TOTAL_FRAMES, module.getDuration());
+    public PlaybackSource(ZXTune.Player player, Playback.Callback callback) {
+      this.player = player;
+      this.callback = callback;
     }
 
     @Override
@@ -175,47 +229,50 @@ public class PlaybackService extends Service {
 
     @Override
     public boolean getNextSoundChunk(byte[] buf) {
-      progressUpdate.putExtra(CURRENT_FRAME, player.getPosition());
-      sendBroadcast(progressUpdate);
+      callback.positionChanged(player.getPosition(), "");
       return player.render(buf);
     }
 
     @Override
     public void release() {
       player.release();
-      module.release();
     }
   }
 
-  private class PlaybackCallback implements AsyncPlayback.Callback {
+  private static class PlaybackCallback implements AsyncPlayback.Callback {
 
     private final static String TAG = PlaybackService.TAG + ".AsyncPlaybackCallback";
-    @Override
+
+    private Playback.Callback callback;
+    private String description;
+    private int duration;
+
+    public PlaybackCallback(Playback.Callback callback, String description, int duration) {
+      this.callback = callback;
+      this.description = description;
+      this.duration = duration;
+    }
+
     public void onStart() {
       Log.d(TAG, "onStart");
-      showPlayingNotification();
-      startForeground(R.string.app_name, notification);
+      callback.started(description, duration);
     }
 
-    @Override
     public void onStop() {
       Log.d(TAG, "onStop");
-      stopForeground(true);
+      callback.stopped();
     }
 
-    @Override
     public void onPause() {
       Log.d(TAG, "onPause");
-      showPausedNotification();
+      callback.paused(description);
     }
 
-    @Override
     public void onResume() {
       Log.d(TAG, "onResume");
-      showPlayingNotification();
+      callback.started(description, duration);
     }
 
-    @Override
     public void onFinish() {
       Log.d(TAG, "onFinish");
     }
