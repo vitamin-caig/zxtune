@@ -76,8 +76,10 @@ namespace
       , Params(sndOptions)
     {
       const unsigned UPDATE_FPS = 10;
-      Require(connect(&Timer, SIGNAL(timeout()), SIGNAL(OnUpdateState())));
       Timer.setInterval(1000 / UPDATE_FPS);
+      Require(Timer.connect(this, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(start())));
+      Require(Timer.connect(this, SIGNAL(OnStopModule()), SLOT(stop())));
+      Require(connect(&Timer, SIGNAL(timeout()), SIGNAL(OnUpdateState())));
     }
 
     virtual void SetItem(Playlist::Item::Data::Ptr item)
@@ -182,7 +184,6 @@ namespace
     virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
     {
       emit OnStartModule(Backend, Item);
-      Timer.start();
     }
 
     virtual void OnFrame(const ZXTune::Module::TrackState& /*state*/)
@@ -191,7 +192,6 @@ namespace
 
     virtual void OnStop()
     {
-      Timer.stop();
       emit OnStopModule();
     }
 
