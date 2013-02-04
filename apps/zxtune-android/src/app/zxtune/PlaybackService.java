@@ -40,7 +40,7 @@ public class PlaybackService extends Service {
   private PendingIntent content;
   
   private final Playback.Control ctrl = new PlaybackControl();
-  private final Messenger messenger = MessengerRPC.Server.createMessenger(ctrl);
+  private final IBinder binder = MessengerRPC.Server.createBinder(ctrl);
 
   @Override
   public void onCreate() {
@@ -48,7 +48,7 @@ public class PlaybackService extends Service {
     this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     this.notification = new Notification();
     notification.flags |= Notification.FLAG_NO_CLEAR;
-    final Intent intent = new Intent(this, PlayFileActivity.class);
+    final Intent intent = new Intent(this, CurrentlyPlayingActivity.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
     content = PendingIntent.getActivity(this, 0, intent, 0);
   }
@@ -75,7 +75,7 @@ public class PlaybackService extends Service {
   @Override
   public IBinder onBind(Intent intent) {
     Log.d(TAG, "onBind called");
-    return messenger.getBinder();
+    return binder;
   }
 
   private void showPlayingNotification() {

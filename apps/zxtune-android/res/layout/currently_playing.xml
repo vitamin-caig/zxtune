@@ -16,8 +16,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-		android:paddingLeft="2px"
-		android:paddingRight="2px"
+		android:paddingLeft="2dp"
+		android:paddingRight="2dp"
       />
       <TextView
         android:id="@+id/play_time"
@@ -25,8 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="0"
         android:text="@string/stub_time"
-		android:paddingLeft="2px"
-		android:paddingRight="2px"
+		android:paddingLeft="2dp"
+		android:paddingRight="2dp"
       />
     </LinearLayout>
     <LinearLayout
