@@ -22,7 +22,7 @@ import android.widget.SeekBar;
 
 public class CurrentlyPlayingActivity extends Activity {
 
-  private MessengerRPC.Client service;
+  private Playback.Control control;
   private BroadcastReceiver receiver;
   private SeekBar position;
 
@@ -31,7 +31,7 @@ public class CurrentlyPlayingActivity extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.currently_playing);
 
-    service = MessengerRPC.Client.create(this); 
+    control = MessengerRPC.ControlClient.create(this); 
     position = (SeekBar) findViewById(R.id.play_position);
     receiver = new EventReceiver();
     final IntentFilter filter = new IntentFilter(PlaybackService.POSITION_UPDATE);
@@ -42,20 +42,20 @@ public class CurrentlyPlayingActivity extends Activity {
   @Override
   public void onDestroy() {
     super.onDestroy();
-    service.disconnect();
+    MessengerRPC.ControlClient.destroy(control);
     unregisterReceiver(receiver);
   }
 
   public void onClick(View v) {
     switch (v.getId()) {
       case R.id.play_button:
-        service.play();
+        control.play();
         break;
       case R.id.pause_button:
-        service.pause();
+        control.pause();
         break;
       case R.id.stop_button:
-        service.stop();
+        control.stop();
         break;
     }
   }

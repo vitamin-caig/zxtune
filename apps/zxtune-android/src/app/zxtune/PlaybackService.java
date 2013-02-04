@@ -40,7 +40,7 @@ public class PlaybackService extends Service {
   private PendingIntent content;
   
   private final Playback.Control ctrl = new PlaybackControl();
-  private final IBinder binder = MessengerRPC.Server.createBinder(ctrl);
+  private final IBinder binder = MessengerRPC.ControlServer.createBinder(ctrl);
 
   @Override
   public void onCreate() {

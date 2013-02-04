@@ -31,7 +31,7 @@ public final class MessengerRPC {
   protected final static int MSG_STOP = 4;
   protected final static String KEY_MODULEID = "module_id";
 
-  static class Client implements Playback.Control {
+  static class ControlClient implements Playback.Control {
 
     private static String TAG = "app.zxtune.MessengerRPC.Client";
 
@@ -39,32 +39,25 @@ public final class MessengerRPC {
     private final ServiceConnection handler = new ConnectionHandler();
     private Messenger service;
 
-    public static Client create(Context ctx) {
-      return new Client(ctx);
+    public static Playback.Control create(Context ctx) {
+      return new ControlClient(ctx);
     }
 
-    public static Client create(Context ctx, String moduleId) {
-      return new Client(ctx, moduleId);
+    public static void destroy(Playback.Control control) {
+      final ControlClient client = (ControlClient) control;
+      client.context.unbindService(client.handler);
     }
-    
-    private Client(Context ctx) {
+
+    private ControlClient(Context ctx) {
       this(ctx, new Intent(ctx, PlaybackService.class));
     }
 
-    private Client(Context ctx, String moduleId) {
-      this(ctx, new Intent(Intent.ACTION_VIEW, Uri.parse(moduleId), ctx, PlaybackService.class));
-    }
-    
-    private Client(Context ctx, Intent intent) {
+    private ControlClient(Context ctx, Intent intent) {
       this.context = ctx;
       context.startService(intent);
       if (context.bindService(intent, handler, Context.BIND_AUTO_CREATE)) {
         Log.d(TAG, "Bound to service");
       }
-    }
-    
-    public void disconnect() {
-      context.unbindService(handler);
     }
 
     public void open(String moduleId) {
@@ -111,15 +104,15 @@ public final class MessengerRPC {
     }
   }
 
-  static class Server extends Handler {
+  static class ControlServer extends Handler {
 
     private Playback.Control control;
 
     public static IBinder createBinder(Playback.Control ctrl) {
-      return new Messenger(new Server(ctrl)).getBinder();
+      return new Messenger(new ControlServer(ctrl)).getBinder();
     }
 
-    private Server(Playback.Control control) {
+    private ControlServer(Playback.Control control) {
       this.control = control;
     }
 
@@ -127,7 +120,7 @@ public final class MessengerRPC {
     public void handleMessage(Message msg) {
       switch (msg.what) {
         case MSG_OPEN:
-          control.open((String) ((Bundle)msg.obj).getString(KEY_MODULEID));
+          control.open((String) ((Bundle) msg.obj).getString(KEY_MODULEID));
           break;
         case MSG_PLAY:
           control.play();
