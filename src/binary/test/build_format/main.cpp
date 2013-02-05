@@ -1,5 +1,5 @@
 #include <strings/format.h>
-#include <debug_log.h>
+#include <debug/log.h>
 #include <tools.h>
 #include <types.h>
 #include <binary/format.h>

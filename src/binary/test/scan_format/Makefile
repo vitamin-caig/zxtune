@@ -2,7 +2,8 @@ binary_name := scan_format
 path_step := ../../../..
 source_files := main
 
-libraries := binary io l10n_stub tools 
-depends := src/binary src/io src/l10n/stub src/tools
+libraries := binary debug io l10n_stub platform tools 
+depends := src/binary src/debug src/io src/l10n/stub src/platform src/tools
+boost_libraries := filesystem system
 
 include $(path_step)/makefile.mak
