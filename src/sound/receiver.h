@@ -26,6 +26,15 @@ namespace ZXTune
     typedef DataTransmitter<OutputSample> Transmitter;
     //! @brief Simle sound stream converter
     typedef DataTransceiver<OutputSample> Converter;
+    //! @brief Channel count-specific receivers
+    template<unsigned Channels>
+    class FixedChannelsReceiver : public DataReceiver<FixedChannelsSample<Channels> > {};
+
+    typedef FixedChannelsReceiver<1> OneChannelReceiver;
+    typedef FixedChannelsReceiver<2> TwoChannelsReceiver;
+    typedef FixedChannelsReceiver<3> ThreeChannelsReceiver;
+    typedef FixedChannelsReceiver<4> FourChannelsReceiver;
+
     //! @brief Multichannel stream receiver
     typedef DataReceiver<MultichannelSample> MultichannelReceiver;
   }

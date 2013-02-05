@@ -31,14 +31,14 @@ namespace
   class TFMReceiver : public Devices::TFM::Receiver
   {
   public:
-    TFMReceiver(Sound::MultichannelReceiver::Ptr target)
+    TFMReceiver(Sound::OneChannelReceiver::Ptr target)
       : Target(target)
-      , Data(Devices::TFM::CHANNELS)
     {
     }
 
     virtual void ApplyData(const Devices::TFM::Sample& data)
     {
+      BOOST_STATIC_ASSERT(Sound::OneChannelReceiver::InDataType::static_size == 1);
       Data[0] = Sound::ToSample(data);
       Target->ApplyData(Data);
     }
@@ -48,8 +48,8 @@ namespace
       Target->Flush();
     }
   private:
-    const Sound::MultichannelReceiver::Ptr Target;
-    Sound::MultichannelSample Data;
+    const Sound::OneChannelReceiver::Ptr Target;
+    Sound::OneChannelReceiver::InDataType Data;
   };
 
   class TFMAnalyzer : public Analyzer
@@ -163,7 +163,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::TFM::CHANNELS, Tune->GetProperties());
+      const Sound::OneChannelMixer::Ptr mixer = Sound::CreateOneChannelMixer(params);
       mixer->SetTarget(target);
       const Devices::TFM::Receiver::Ptr receiver = TFM::CreateReceiver(mixer);
       const Devices::TFM::ChipParameters::Ptr chipParams = TFM::CreateChipParameters(params);
@@ -202,7 +202,7 @@ namespace ZXTune
         return boost::make_shared<TFMRenderer>(trackParams, iterator, device);
       }
 
-      Devices::TFM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)
+      Devices::TFM::Receiver::Ptr CreateReceiver(Sound::OneChannelReceiver::Ptr target)
       {
         return boost::make_shared<TFMReceiver>(target);
       }

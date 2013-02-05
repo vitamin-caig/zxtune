@@ -262,7 +262,7 @@ namespace ZXTune
 
           virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
           {
-            const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Channels, Properties);
+            const Sound::MultichannelMixer::Ptr mixer = Sound::CreateMultichannelMixer(Channels, params);
             mixer->SetTarget(target);
             const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer, Channels);
             const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);

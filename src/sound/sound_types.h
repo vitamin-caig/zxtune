@@ -31,6 +31,9 @@ namespace ZXTune
     //! @brief All-channels sample type
     typedef boost::array<Sample, OUTPUT_CHANNELS> OutputSample;
 
+    template<unsigned Channels>
+    class FixedChannelsSample : public boost::array<Sample, Channels> {};
+
     typedef std::vector<Sample> MultichannelSample;
 
     // Sample attributes (better to specify exactly)

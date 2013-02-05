@@ -128,6 +128,7 @@ namespace ZXTune
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
 
       Devices::AYM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target);
+      Devices::AYM::Receiver::Ptr CreateReceiver(Sound::ThreeChannelsReceiver::Ptr target);
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
     }

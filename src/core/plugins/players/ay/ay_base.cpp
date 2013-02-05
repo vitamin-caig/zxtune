@@ -92,12 +92,13 @@ namespace
     Devices::AYM::DataChunk CurrentChunk;
   };
 
+  template<class Receiver>
   class AYMReceiver : public Devices::AYM::Receiver
   {
   public:
-    explicit AYMReceiver(Sound::MultichannelReceiver::Ptr target)
+    AYMReceiver(typename Receiver::Ptr target, const typename Receiver::InDataType& data)
       : Target(target)
-      , Data(Devices::AYM::CHANNELS)
+      , Data(data)
     {
     }
 
@@ -117,8 +118,8 @@ namespace
       return Sound::SAMPLE_MID + in / 2;
     }
   private:
-    const Sound::MultichannelReceiver::Ptr Target;
-    Sound::MultichannelSample Data;
+    const typename Receiver::Ptr Target;
+    typename Receiver::InDataType Data;
   };
 
   class AYMAnalyzer : public Analyzer
@@ -421,7 +422,7 @@ namespace ZXTune
 
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
       {
-        const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::AYM::CHANNELS, holder.GetModuleProperties());
+        const Sound::ThreeChannelsMixer::Ptr mixer = Sound::CreateThreeChannelsMixer(params);
         const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
         const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
         const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
@@ -433,7 +434,12 @@ namespace ZXTune
 
       Devices::AYM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)
       {
-        return boost::make_shared<AYMReceiver>(target);
+        return boost::make_shared<AYMReceiver<Sound::MultichannelReceiver> >(target, Sound::MultichannelSample(Devices::AYM::CHANNELS));
+      }
+
+      Devices::AYM::Receiver::Ptr CreateReceiver(Sound::ThreeChannelsReceiver::Ptr target)
+      {
+        return boost::make_shared<AYMReceiver<Sound::ThreeChannelsReceiver> >(target, Sound::FixedChannelsSample<Devices::AYM::CHANNELS>());
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)

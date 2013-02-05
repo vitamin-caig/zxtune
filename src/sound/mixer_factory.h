@@ -20,8 +20,15 @@ namespace ZXTune
 {
   namespace Sound
   {
-    Mixer::Ptr CreateMixer(uint_t channels, Parameters::Accessor::Ptr params);
-    Mixer::Ptr CreatePollingMixer(uint_t channels, Parameters::Accessor::Ptr params);
+    OneChannelMixer::Ptr CreateOneChannelMixer(Parameters::Accessor::Ptr params);
+    TwoChannelsMixer::Ptr CreateTwoChannelsMixer(Parameters::Accessor::Ptr params);
+    ThreeChannelsMixer::Ptr CreateThreeChannelsMixer(Parameters::Accessor::Ptr params);
+    FourChannelsMixer::Ptr CreateFourChannelsMixer(Parameters::Accessor::Ptr params);
+
+    template<unsigned Channels>
+    typename FixedChannelsMixer<Channels>::Ptr CreateMixer(Parameters::Accessor::Ptr params);
+
+    MultichannelMixer::Ptr CreateMultichannelMixer(uint_t channels, Parameters::Accessor::Ptr params);
   }
 }
 

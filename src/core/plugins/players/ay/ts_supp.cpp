@@ -258,7 +258,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::Mixer::Ptr mixer = Sound::CreatePollingMixer(Devices::AYM::CHANNELS, GetModuleProperties());
+      const Sound::ThreeChannelsMixer::Ptr mixer = Sound::CreateThreeChannelsMixer(params);
       mixer->SetTarget(target);
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
       const AYMTSMixer::Ptr tsMixer = CreateTSMixer(receiver);

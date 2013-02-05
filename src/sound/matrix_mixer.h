@@ -18,12 +18,24 @@ namespace ZXTune
 {
   namespace Sound
   {
+    template<unsigned Channels>
+    class FixedChannelsMatrixMixer : public FixedChannelsMixer<Channels>
+    {
+    public:
+      typedef boost::shared_ptr<FixedChannelsMatrixMixer> Ptr;
+      typedef boost::array<MultiGain, Channels> Matrix;
+
+      virtual void SetMatrix(const Matrix& data) = 0;
+
+      static Ptr Create();
+    };
+
     //! @brief Matrix-based mixer interface
-    class MatrixMixer : public Mixer
+    class MultichannelMatrixMixer : public MultichannelMixer
     {
     public:
       //! @brief Pointer type
-      typedef boost::shared_ptr<MatrixMixer> Ptr;
+      typedef boost::shared_ptr<MultichannelMatrixMixer> Ptr;
       //! @brief Matrix type
       typedef std::vector<MultiGain> Matrix;
 
@@ -31,12 +43,12 @@ namespace ZXTune
       //! @param data Mixing matrix
       //! @return Error() in case of success
       virtual void SetMatrix(const Matrix& data) = 0;
-    };
 
-    //! @brief Creating mixer instance
-    //! @param channels Input channels count
-    //! @note For any of the created mixers, SetMatrix parameter size should be equal to channels parameter while creating
-    MatrixMixer::Ptr CreateMatrixMixer(uint_t channels);
+      //! @brief Creating mixer instance
+      //! @param channels Input channels count
+      //! @note For any of the created mixers, SetMatrix parameter size should be equal to channels parameter while creating
+      static Ptr Create(uint_t channels);
+    };
   }
 }
 

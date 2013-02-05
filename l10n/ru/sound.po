@@ -44,7 +44,7 @@ msgstr "Ошибка установки микширования: неправи
 msgid "Failed to set mixer matrix: gain is out of range."
 msgstr "Ошибка установки микширования: превышение допустимого значения уровня."
 
-#: impl/mixer.cpp:167
+#: impl/mixer.cpp:197
 #, boost-format
 msgid "Failed to create unsupported mixer with %1% channels."
 msgstr "Ошибка создания микшера с неподдерживаемым (%1%) числом каналов."
