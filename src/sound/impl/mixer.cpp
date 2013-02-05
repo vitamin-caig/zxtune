@@ -80,9 +80,10 @@ namespace
       const NativeType val = static_cast<NativeType>(FIXED_POINT_PRECISION / InChannels);
       for (uint_t inChan = 0; inChan != InChannels; ++inChan)
       {
-        for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
+        MultiFixed& out = Matrix[inChan];
+        for (uint_t outChan = 0; outChan != out.size(); ++outChan)
         {
-          Matrix[inChan][outChan] = val;
+          out[outChan] = val;
         }
       }
     }
@@ -96,13 +97,13 @@ namespace
       {
         const NativeType in = NativeType(inData[inChan]) - SAMPLE_MID;
         const MultiFixed& inChanMix = Matrix[inChan];
-        for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
+        for (uint_t outChan = 0; outChan != res.size(); ++outChan)
         {
           res[outChan] += inChanMix[outChan] * in;
         }
       }
-      MultiSample result;
-      for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
+      OutputSample result;
+      for (uint_t outChan = 0; outChan != result.size(); ++outChan)
       {
         result[outChan] = static_cast<Sample>(res[outChan] / FIXED_POINT_PRECISION + SAMPLE_MID);
       }
@@ -132,9 +133,11 @@ namespace
       }
       for (uint_t inChan = 0; inChan != InChannels; ++inChan)
       {
-        for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
+        const MultiGain& in = data[inChan];
+        MultiFixed& out = Matrix[inChan];
+        for (uint_t outChan = 0; outChan != out.size(); ++outChan)
         {
-          Matrix[inChan][outChan] = Gain2Fixed<NativeType>(data[inChan][outChan] / InChannels);
+          out[outChan] = Gain2Fixed<NativeType>(in[outChan] / InChannels);
         }
       }
     }

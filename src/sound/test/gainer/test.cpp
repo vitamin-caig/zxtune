@@ -79,9 +79,9 @@ namespace
     {
     }
     
-    virtual void ApplyData(const MultiSample& data)
+    virtual void ApplyData(const OutputSample& data)
     {
-      for (uint_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
+      for (uint_t chan = 0; chan != data.size(); ++chan)
       {
         if (Math::Absolute(int_t(data[chan]) - ToCompare) > THRESHOLD)
           throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%3%>",
@@ -138,7 +138,7 @@ int main()
       for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
       {
         tgt->SetData(*result);
-        MultiSample in;
+        OutputSample in;
         in.fill(INPUTS[input]);
         gainer->ApplyData(in);
         std::cout << " checking for " << INPUT_NAMES[input] << " input\n";

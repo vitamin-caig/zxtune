@@ -34,7 +34,7 @@ namespace
     {
     }
     
-    virtual void ApplyData(const ZXTune::Sound::MultiSample& data)
+    virtual void ApplyData(const ZXTune::Sound::OutputSample& data)
     {
       Buffer.Put(&data, 1);
     }
@@ -46,23 +46,23 @@ namespace
     std::size_t GetSamples(std::size_t count, int16_t* target)
     {
       using namespace ZXTune;
-      const Sound::MultiSample* part1 = 0;
+      const Sound::OutputSample* part1 = 0;
       std::size_t part1Size = 0;
-      const Sound::MultiSample* part2 = 0;
+      const Sound::OutputSample* part2 = 0;
       std::size_t part2Size = 0;
       if (const std::size_t got = Buffer.Peek(count / Sound::OUTPUT_CHANNELS, part1, part1Size, part2, part2Size))
       {
-        Sound::ChangeSignCopy(part1, part1 + part1Size, safe_ptr_cast<Sound::MultiSample*>(target));
+        Sound::ChangeSignCopy(part1, part1 + part1Size, safe_ptr_cast<Sound::OutputSample*>(target));
         if (part2)
         {
-          Sound::ChangeSignCopy(part2, part2 + part2Size, safe_ptr_cast<Sound::MultiSample*>(target) + part1Size);
+          Sound::ChangeSignCopy(part2, part2 + part2Size, safe_ptr_cast<Sound::OutputSample*>(target) + part1Size);
         }
         return Buffer.Consume(got) * Sound::OUTPUT_CHANNELS;
       }
       return 0;
     }
   private:
-    CycleBuffer<ZXTune::Sound::MultiSample> Buffer;
+    CycleBuffer<ZXTune::Sound::OutputSample> Buffer;
   };
 
   class PlayerControl : public Player::Control

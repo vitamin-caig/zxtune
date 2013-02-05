@@ -184,8 +184,8 @@ namespace
       Format.Channels = fromLE<uint16_t>(OUTPUT_CHANNELS);
       std::memcpy(Format.DataId, DATA, sizeof(DATA));
       Format.Samplerate = fromLE(static_cast<uint32_t>(soundFreq));
-      Format.BytesPerSec = fromLE(static_cast<uint32_t>(soundFreq * sizeof(MultiSample)));
-      Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
+      Format.BytesPerSec = fromLE(static_cast<uint32_t>(soundFreq * sizeof(OutputSample)));
+      Format.Align = fromLE<uint16_t>(sizeof(OutputSample));
       Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
       Flush();
     }

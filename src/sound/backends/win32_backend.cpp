@@ -205,7 +205,7 @@ namespace
     typedef boost::shared_ptr<WaveTarget> Ptr;
     virtual ~WaveTarget() {}
 
-    virtual std::size_t Write(const MultiSample* buf, std::size_t samples) = 0;
+    virtual std::size_t Write(const OutputSample* buf, std::size_t samples) = 0;
   };
 
   class WaveBuffer : public WaveTarget
@@ -231,7 +231,7 @@ namespace
       }
     }
 
-    virtual std::size_t Write(const MultiSample* buf, std::size_t samples)
+    virtual std::size_t Write(const OutputSample* buf, std::size_t samples)
     {
       WaitForBufferDone();
       assert(Header.dwFlags & WHDR_DONE);
@@ -239,7 +239,7 @@ namespace
       Header.dwBufferLength = static_cast< ::DWORD>(toWrite * sizeof(Buffer.front()));
       if (SamplesShouldBeConverted)
       {
-        ChangeSignCopy(buf, buf + toWrite, safe_ptr_cast<MultiSample*>(Header.lpData));
+        ChangeSignCopy(buf, buf + toWrite, safe_ptr_cast<OutputSample*>(Header.lpData));
       }
       else
       {
@@ -306,7 +306,7 @@ namespace
       }
     }
 
-    virtual std::size_t Write(const MultiSample* buf, std::size_t samples)
+    virtual std::size_t Write(const OutputSample* buf, std::size_t samples)
     {
       // split big buffer
       // small buffer is covered by adjusting of subbuffers
@@ -462,7 +462,7 @@ namespace
       format.wFormatTag = WAVE_FORMAT_PCM;
       format.nChannels = OUTPUT_CHANNELS;
       format.nSamplesPerSec = static_cast< ::DWORD>(RenderingParameters->SoundFreq());
-      format.nBlockAlign = sizeof(MultiSample);
+      format.nBlockAlign = sizeof(OutputSample);
       format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
       format.wBitsPerSample = 8 * sizeof(Sample);
       return format;

@@ -225,7 +225,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Sound::MultiSample& sample)
+    virtual void ApplyData(const Sound::OutputSample& sample)
     {
       Target->ApplyData(sample);
     }

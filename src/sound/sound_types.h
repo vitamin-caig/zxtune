@@ -29,7 +29,7 @@ namespace ZXTune
     //! @brief Sample type
     typedef uint16_t Sample;
     //! @brief All-channels sample type
-    typedef boost::array<Sample, OUTPUT_CHANNELS> MultiSample;
+    typedef boost::array<Sample, OUTPUT_CHANNELS> OutputSample;
 
     typedef std::vector<Sample> MultichannelSample;
 
@@ -40,9 +40,9 @@ namespace ZXTune
 
     const bool SAMPLE_SIGNED = SAMPLE_MID == 0;
 
-    inline void ChangeSignCopy(const MultiSample* begin, const MultiSample* end, MultiSample* to)
+    inline void ChangeSignCopy(const OutputSample* begin, const OutputSample* end, OutputSample* to)
     {
-      BOOST_STATIC_ASSERT(sizeof(MultiSample) == 4);
+      BOOST_STATIC_ASSERT(sizeof(OutputSample) == 4);
       const uint32_t SIGN_MASK = 0x80008000;
       const uint32_t* it = safe_ptr_cast<const uint32_t*>(begin);
       const uint32_t* const lim = safe_ptr_cast<const uint32_t*>(end);
@@ -59,14 +59,14 @@ namespace ZXTune
     typedef boost::array<Gain, OUTPUT_CHANNELS> MultiGain;
 
     //! @brief Block of sound data
-    struct Chunk : public std::vector<MultiSample>
+    struct Chunk : public std::vector<OutputSample>
     {
       Chunk()
       {
       }
 
       explicit Chunk(std::size_t size)
-        : std::vector<MultiSample>(size)
+        : std::vector<OutputSample>(size)
       {
       }
 

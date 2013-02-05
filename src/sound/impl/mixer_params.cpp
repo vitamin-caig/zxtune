@@ -24,12 +24,13 @@ namespace
     Sound::MatrixMixer::Matrix res(channels);
     for (uint_t inChan = 0; inChan != channels; ++inChan)
     {
-      for (uint_t outChan = 0; outChan != Sound::OUTPUT_CHANNELS; ++outChan)
+      Sound::MultiGain& out = res[inChan];
+      for (uint_t outChan = 0; outChan != out.size(); ++outChan)
       {
         const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(channels, inChan, outChan);
         Parameters::IntType val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
         params.FindValue(name, val);
-        res[inChan][outChan] = Sound::Gain(val) / 100;
+        out[outChan] = Sound::Gain(val) / 100;
       }
     }
     return res;

@@ -97,10 +97,10 @@ namespace
     {
     }
 
-    virtual void ApplyData(const MultiSample& data)
+    virtual void ApplyData(const OutputSample& data)
     {
-      MultiSample result;
-      for (uint_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
+      OutputSample result;
+      for (uint_t chan = 0; chan != result.size(); ++chan)
       {
         result[chan] = Core.Apply(data[chan]);
       }

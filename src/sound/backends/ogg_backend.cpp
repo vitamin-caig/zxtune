@@ -196,7 +196,7 @@ namespace
       return &State;
     }
   private:
-    static float SampleToFloat(const MultiSample& smp, uint_t channel)
+    static float SampleToFloat(const OutputSample& smp, uint_t channel)
     {
       return ToFloat(smp[channel]);
     }

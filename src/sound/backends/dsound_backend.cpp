@@ -128,7 +128,7 @@ namespace
     format.wFormatTag = WAVE_FORMAT_PCM;
     format.nChannels = OUTPUT_CHANNELS;
     format.nSamplesPerSec = static_cast< ::DWORD>(sampleRate);
-    format.nBlockAlign = sizeof(MultiSample);
+    format.nBlockAlign = sizeof(OutputSample);
     format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
     format.wBitsPerSample = 8 * sizeof(Sample);
 

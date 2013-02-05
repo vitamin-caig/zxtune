@@ -42,7 +42,7 @@ namespace
     "zero", "half", "maximum"
   };
   
-  const MultiSample OUTS[] = {
+  const OutputSample OUTS[] = {
   //zero matrix
      { {SAMPLE_MID,SAMPLE_MID} },
      { {SAMPLE_MID,SAMPLE_MID} },
@@ -94,9 +94,9 @@ namespace
     {
     }
     
-    virtual void ApplyData(const MultiSample& data)
+    virtual void ApplyData(const OutputSample& data)
     {
-      for (uint_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
+      for (uint_t chan = 0; chan != data.size(); ++chan)
       {
         if (Math::Absolute(int_t(data[chan]) - ToCompare[chan]) > THRESHOLD)
           throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
@@ -109,12 +109,12 @@ namespace
     {
     }
     
-    void SetData(const MultiSample& tc)
+    void SetData(const OutputSample& tc)
     {
       ToCompare = tc;
     }
   private:
-    MultiSample ToCompare;
+    OutputSample ToCompare;
   };
 }
 
@@ -154,7 +154,7 @@ int main()
       assert(ArraySize(GAINS) == ArraySize(GAIN_NAMES));
       assert(ArraySize(INPUTS) == ArraySize(INPUT_NAMES));
       
-      const MultiSample* result(OUTS);
+      const OutputSample* result(OUTS);
       for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
       {
         std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";

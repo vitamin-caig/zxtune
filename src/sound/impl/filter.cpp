@@ -112,7 +112,7 @@ namespace
       Require(Math::InRange<uint_t>(order, MIN_ORDER, MAX_ORDER));
     }
 
-    virtual void ApplyData(const MultiSample& data)
+    virtual void ApplyData(const OutputSample& data)
     {
       std::transform(data.begin(), data.end(), Position->begin(), std::bind2nd(std::minus<IntSample>(), SAMPLE_MID));
       MultiBigSample res = { {0} };
@@ -121,12 +121,12 @@ namespace
       {
         const typename MatrixType::value_type val = *it;
         const MultiIntSample& src = *Position;
-        for (uint_t chan = 0; chan != OUTPUT_CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != res.size(); ++chan)
         {
           res[chan] += val * src[chan];
         }
       }
-      MultiSample result;
+      OutputSample result;
       std::transform(res.begin(), res.end(), result.begin(), &Integral2Sample);
       ++Position;
       return Delegate->ApplyData(result);

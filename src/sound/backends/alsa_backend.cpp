@@ -263,7 +263,7 @@ namespace
 
     void Write(Chunk& buffer)
     {
-      const MultiSample* data = &buffer[0];
+      const OutputSample* data = &buffer[0];
       std::size_t size = buffer.size();
       while (size)
       {

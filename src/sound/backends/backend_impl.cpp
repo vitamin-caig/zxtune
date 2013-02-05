@@ -88,7 +88,7 @@ namespace
       Buffer.reserve(1000);//seems to be enough in most cases
     }
 
-    virtual void ApplyData(const MultiSample& samp)
+    virtual void ApplyData(const OutputSample& samp)
     {
       Buffer.push_back(samp);
     }

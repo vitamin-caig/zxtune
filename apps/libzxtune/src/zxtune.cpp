@@ -98,7 +98,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const ZXTune::Sound::MultiSample& data)
+    virtual void ApplyData(const ZXTune::Sound::OutputSample& data)
     {
       Buffer.Put(&data, 1);
     }
@@ -112,11 +112,11 @@ namespace
       return DoneSamples;
     }
 
-    std::size_t GetSamples(std::size_t count, ZXTune::Sound::MultiSample* target)
+    std::size_t GetSamples(std::size_t count, ZXTune::Sound::OutputSample* target)
     {
-      const ZXTune::Sound::MultiSample* part1 = 0;
+      const ZXTune::Sound::OutputSample* part1 = 0;
       std::size_t part1Size = 0;
-      const ZXTune::Sound::MultiSample* part2 = 0;
+      const ZXTune::Sound::OutputSample* part2 = 0;
       std::size_t part2Size = 0;
       if (const std::size_t toGet = Buffer.Peek(count, part1, part1Size, part2, part2Size))
       {
@@ -145,7 +145,7 @@ namespace
       DoneSamples = 0;
     }
   private:
-    CycleBuffer<ZXTune::Sound::MultiSample> Buffer;
+    CycleBuffer<ZXTune::Sound::OutputSample> Buffer;
     std::size_t DoneSamples;
   };
 
@@ -161,7 +161,7 @@ namespace
     {
     }
 
-    std::size_t RenderSound(ZXTune::Sound::MultiSample* target, std::size_t samples)
+    std::size_t RenderSound(ZXTune::Sound::OutputSample* target, std::size_t samples)
     {
       std::size_t result = 0;
       while (samples)
@@ -407,7 +407,7 @@ int ZXTune_RenderSound(ZXTuneHandle player, void* buffer, size_t samples)
   try
   {
     const PlayerWrapper::Ptr wrapper = PlayersCache::Instance().Get(player);
-    return wrapper->RenderSound(static_cast<ZXTune::Sound::MultiSample*>(buffer), samples);
+    return wrapper->RenderSound(static_cast<ZXTune::Sound::OutputSample*>(buffer), samples);
   }
   catch (const Error&)
   {
