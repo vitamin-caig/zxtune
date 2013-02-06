@@ -72,10 +72,20 @@ namespace
      { {Sample(SAMPLE_MID+0.1f*(SAMPLE_MAX-SAMPLE_MID)),Sample(SAMPLE_MID+0.9f*(SAMPLE_MAX-SAMPLE_MID))} }
   };
 
-  template<class T>
-  std::vector<T> MakeMatrix(unsigned chans, const T& mg)
+  template<unsigned Channels>
+  FixedChannelsSample<Channels> MakeSample(Sample in)
   {
-    return std::vector<T>(chans, mg);
+    FixedChannelsSample<Channels> res;
+    res.assign(in);
+    return res;
+  }
+
+  template<unsigned Channels>
+  typename FixedChannelsMatrixMixer<Channels>::Matrix MakeMatrix(const MultiGain& mg)
+  {
+    typename FixedChannelsMatrixMixer<Channels>::Matrix res;
+    res.assign(mg);
+    return res;
   }
 
   bool ShowIfError(const Error& e)
@@ -116,6 +126,61 @@ namespace
   private:
     OutputSample ToCompare;
   };
+
+  template<unsigned Channels>
+  void TestMixer()
+  {
+    std::cout << "**** Testing for " << Channels << " channels ****\n";
+    Target* tgt = 0;
+    Receiver::Ptr receiver(tgt = new Target);
+  
+    const typename FixedChannelsMatrixMixer<Channels>::Ptr mixer = FixedChannelsMatrixMixer<Channels>::Create();
+    
+    mixer->SetTarget(receiver);
+  
+    std::cout << "--- Test for invalid matrix---\n";
+    try
+    {
+      mixer->SetMatrix(MakeMatrix<Channels>(INVALID_GAIN));
+      throw "Failed";
+    }
+    catch (const Error& e)
+    {
+      std::cout << " Passed\n";
+      std::cerr << e.ToString();
+    }
+    catch (const std::string& str)
+    {
+      throw Error(THIS_LINE, str);
+    }
+    
+    assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
+    assert(ArraySize(GAINS) == ArraySize(GAIN_NAMES));
+    assert(ArraySize(INPUTS) == ArraySize(INPUT_NAMES));
+    
+    const OutputSample* result(OUTS);
+    for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
+    {
+      std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
+      mixer->SetMatrix(MakeMatrix<Channels>(GAINS[matrix]));
+      for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
+      {
+        tgt->SetData(*result);
+        mixer->ApplyData(MakeSample<Channels>(INPUTS[input]));
+        std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
+      }
+    }
+    std::cout << "Parameters:" << std::endl;
+    for (uint_t inChan = 0; inChan != Channels; ++inChan)
+    {
+      for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
+      {
+        const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(Channels, inChan, outChan);
+        const Parameters::IntType val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(Channels, inChan, outChan);
+        std::cout << name.FullPath() << ": " << val << std::endl;
+      }
+    }
+  }
 }
 
 int main()
@@ -124,59 +189,10 @@ int main()
   
   try
   {
-    for (unsigned chans = 1; chans <= 4; ++chans)
-    {
-      std::cout << "**** Testing for " << chans << " channels ****\n";
-      Target* tgt = 0;
-      Receiver::Ptr receiver(tgt = new Target);
-    
-      const MatrixMixer::Ptr mixer = CreateMatrixMixer(chans);
-      
-      mixer->SetTarget(receiver);
-    
-      std::cout << "--- Test for invalid matrix---\n";
-      try
-      {
-        mixer->SetMatrix(MakeMatrix(chans, INVALID_GAIN));
-        throw "Failed";
-      }
-      catch (const Error& e)
-      {
-        std::cout << " Passed\n";
-        std::cerr << e.ToString();
-      }
-      catch (const std::string& str)
-      {
-        throw Error(THIS_LINE, str);
-      }
-      
-      assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
-      assert(ArraySize(GAINS) == ArraySize(GAIN_NAMES));
-      assert(ArraySize(INPUTS) == ArraySize(INPUT_NAMES));
-      
-      const OutputSample* result(OUTS);
-      for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
-      {
-        std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
-        mixer->SetMatrix(MakeMatrix(chans, GAINS[matrix]));
-        for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
-        {
-          tgt->SetData(*result);
-          mixer->ApplyData(MakeMatrix(chans, INPUTS[input]));
-          std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
-        }
-      }
-      std::cout << "Parameters:" << std::endl;
-      for (uint_t inChan = 0; inChan != chans; ++inChan)
-      {
-        for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
-        {
-          const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(chans, inChan, outChan);
-          const Parameters::IntType val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(chans, inChan, outChan);
-          std::cout << name.FullPath() << ": " << val << std::endl;
-        }
-      }
-    }
+    TestMixer<1>();
+    TestMixer<2>();
+    TestMixer<3>();
+    TestMixer<4>();
     std::cout << " Succeed!" << std::endl;
   }
   catch (const Error& e)

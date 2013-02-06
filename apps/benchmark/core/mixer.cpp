@@ -19,11 +19,12 @@ namespace Benchmark
 {
   namespace Mixer
   {
-    double Test(uint_t channels, const Time::Milliseconds& duration, uint_t soundFreq)
+    template<unsigned Channels>
+    double Test(const Time::Milliseconds& duration, uint_t soundFreq)
     {
-      const ZXTune::Sound::Mixer::Ptr mixer = ZXTune::Sound::CreateMatrixMixer(channels);
+      const typename ZXTune::Sound::FixedChannelsMixer<Channels>::Ptr mixer = ZXTune::Sound::FixedChannelsMatrixMixer<Channels>::Create();
 
-      std::vector<ZXTune::Sound::Sample> input(channels);
+      ZXTune::Sound::FixedChannelsSample<Channels> input;
       const Timer timer;
       const uint_t totalFrames = uint64_t(duration.Get()) * soundFreq / duration.PER_SECOND;
       for (uint_t frame = 0; frame != totalFrames; ++frame)
@@ -34,7 +35,23 @@ namespace Benchmark
       const Time::Nanoseconds elapsed = timer.Elapsed<Time::Nanoseconds>();
       const Time::Nanoseconds emulated(duration);
       return double(emulated.Get()) / elapsed.Get();
+    }
 
+    double Test(uint_t channels, const Time::Milliseconds& duration, uint_t soundFreq)
+    {
+      switch (channels)
+      {
+      case 1:
+        return Test<1>(duration, soundFreq);
+      case 2:
+        return Test<2>(duration, soundFreq);
+      case 3:
+        return Test<3>(duration, soundFreq);
+      case 4:
+        return Test<4>(duration, soundFreq);
+      default:
+        return 0;
+      }
     }
   }
 }
