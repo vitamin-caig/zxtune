@@ -19,7 +19,7 @@ namespace ZXTune
   namespace Sound
   {
     template<unsigned Channels>
-    class FixedChannelsMixer : public DataTransceiver<FixedChannelsSample<Channels>, OutputSample> {};
+    class FixedChannelsMixer : public DataTransceiver<typename FixedChannelsSample<Channels>::Type, OutputSample> {};
 
     typedef FixedChannelsMixer<1> OneChannelMixer;
     typedef FixedChannelsMixer<2> TwoChannelsMixer;

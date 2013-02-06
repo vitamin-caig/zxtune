@@ -42,17 +42,15 @@ namespace
 
   BOOST_STATIC_ASSERT(DataChunk::REG_LAST < 8 * sizeof(uint_t));
 
-  typedef boost::array<Sample, 32> VolumeTable;
-
   // chip-specific volume tables- ym supports 32 volume steps, ay - only 16
-  const VolumeTable AYVolumeTab =
+  const VolTable AYVolumeTab =
   { {
     0x0000, 0x0000, 0x0340, 0x0340, 0x04C0, 0x04C0, 0x06F2, 0x06F2,
     0x0A44, 0x0A44, 0x0F13, 0x0F13, 0x1510, 0x1510, 0x227E, 0x227E,
     0x289F, 0x289F, 0x414E, 0x414E, 0x5B21, 0x5B21, 0x7258, 0x7258,
     0x905E, 0x905E, 0xB550, 0xB550, 0xD7A0, 0xD7A0, 0xFFFF, 0xFFFF
   } };
-  const VolumeTable YMVolumeTab =
+  const VolTable YMVolumeTab =
   { {
     0x0000, 0x0000, 0x00EF, 0x01D0, 0x0290, 0x032A, 0x03EE, 0x04D2,
     0x0611, 0x0782, 0x0912, 0x0A36, 0x0C31, 0x0EB6, 0x1130, 0x13A0,
@@ -435,13 +433,13 @@ namespace
       : LevelA(), LevelB(), LevelC()
       , MaskNoiseA(HIGH_LEVEL), MaskNoiseB(HIGH_LEVEL), MaskNoiseC(HIGH_LEVEL)
       , UseEnvA(LOW_LEVEL), UseEnvB(LOW_LEVEL), UseEnvC(LOW_LEVEL)
-      , VolTable(&AYVolumeTab)
+      , VolumeTable(&AYVolumeTab)
     {
     }
 
-    void SetType(bool isYM)
+    void SetVolumeTable(const VolTable& table)
     {
-      VolTable = isYM ? &YMVolumeTab : &AYVolumeTab;
+      VolumeTable = &table;
     }
 
     void SetDutyCycle(uint_t value, uint_t mask)
@@ -499,7 +497,7 @@ namespace
       LevelA = LevelB = LevelC = 0;
       MaskNoiseA = MaskNoiseB = MaskNoiseC = HIGH_LEVEL;
       UseEnvA = UseEnvB = UseEnvC = LOW_LEVEL;
-      VolTable = &AYVolumeTab;
+      VolumeTable = &AYVolumeTab;
     }
 
     void Tick(uint_t ticks)
@@ -520,7 +518,7 @@ namespace
       const uint_t outB = ((UseEnvB & envelope) | LevelB) & GenB.GetLevel() & (noiseLevel | MaskNoiseB);
       const uint_t outC = ((UseEnvC & envelope) | LevelC) & GenC.GetLevel() & (noiseLevel | MaskNoiseC);
 
-      const VolumeTable& table = *VolTable;
+      const VolTable& table = *VolumeTable;
       assert(outA < 32 && outB < 32 && outC < 32);
       result[0] = table[outA];
       result[1] = table[outB];
@@ -541,7 +539,7 @@ namespace
     uint_t UseEnvA;
     uint_t UseEnvB;
     uint_t UseEnvC;
-    const VolumeTable* VolTable;
+    const VolTable* VolumeTable;
   };
 
   class AYMRenderer : public Renderer
@@ -554,9 +552,9 @@ namespace
       Mixer = 0xff;
     }
 
-    void SetType(bool isYM)
+    void SetVolumeTable(const VolTable& table)
     {
-      Device.SetType(isYM);
+      Device.SetVolumeTable(table);
     }
 
     void SetDutyCycle(uint_t value, uint_t mask)
@@ -748,12 +746,19 @@ namespace
   public:
     BeeperRenderer()
       : Beeper()
+      , VolumeTable(&AYVolumeTab)
     {
+    }
+
+    void SetVolumeTable(const VolTable& table)
+    {
+      VolumeTable = &table;
     }
 
     virtual void Reset()
     {
       Beeper = 0;
+      VolumeTable = &AYVolumeTab;
     }
 
     virtual void SetNewData(const DataChunk& data)
@@ -761,7 +766,7 @@ namespace
       if (data.Mask & (1 << DataChunk::REG_BEEPER))
       {
         const std::size_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
-        Beeper = AYVolumeTab[inLevel];
+        Beeper = VolumeTable->at(inLevel);
       }
     }
 
@@ -775,6 +780,7 @@ namespace
     }
   private:
     Sample Beeper;
+    const VolTable* VolumeTable;
   };
 
   static Sample Average(Sample first, Sample second)
@@ -1081,8 +1087,9 @@ namespace
   private:
     void ApplyParameters()
     {
-      PSG.SetType(Params->IsYM());
+      PSG.SetVolumeTable(Params->VolumeTable());
       PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
+      Beeper.SetVolumeTable(Params->VolumeTable());
       Clock.SetFrequency(Params->ClockFreq(), Params->SoundFreq());
     }
 
@@ -1143,6 +1150,16 @@ namespace Devices
 {
   namespace AYM
   {
+    const VolTable& GetAY38910VolTable()
+    {
+      return AYVolumeTab;
+    }
+
+    const VolTable& GetYM2149FVolTable()
+    {
+      return YMVolumeTab;
+    }
+
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target)
     {
       return Chip::Ptr(new RegularAYMChip(params, target));

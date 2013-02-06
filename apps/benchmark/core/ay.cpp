@@ -37,9 +37,9 @@ namespace
       return Sound;
     }
 
-    virtual bool IsYM() const
+    virtual const Devices::AYM::VolTable& VolumeTable() const
     {
-      return false;
+      return Devices::AYM::GetAY38910VolTable();
     }
 
     virtual bool Interpolate() const

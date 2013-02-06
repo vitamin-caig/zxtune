@@ -17,9 +17,11 @@ Author:
 #include <tools.h>
 //library includes
 #include <core/core_parameters.h>
+#include <devices/aym/chip.h>
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/render_params.h>
+#include <sound/sound_types.h>
 //std includes
 #include <cstring>
 #include <numeric>
@@ -101,6 +103,28 @@ namespace
     }
   }
 
+  Sound::Sample ToSample(Devices::AYM::Sample in)
+  {
+    return Sound::SAMPLE_MID + in / 2;
+  }
+
+  Devices::AYM::VolTable PrepareVolumeTable(const Devices::AYM::VolTable& in)
+  {
+    Devices::AYM::VolTable res;
+    for (uint_t idx = 0; idx != res.size(); ++idx)
+    {
+      //should be compilation error in case of different types
+      res[idx] = ToSample(in[idx]);
+    }
+    return res;
+  }
+
+  const Devices::AYM::VolTable VolumeTables[] = 
+  {
+    PrepareVolumeTable(Devices::AYM::GetAY38910VolTable()),
+    PrepareVolumeTable(Devices::AYM::GetYM2149FVolTable())
+  };
+
   class ChipParametersImpl : public Devices::AYM::ChipParameters
   {
   public:
@@ -127,11 +151,11 @@ namespace
       return SoundParams->SoundFreq();
     }
 
-    virtual bool IsYM() const
+    virtual const Devices::AYM::VolTable& VolumeTable() const
     {
       Parameters::IntType intVal = 0;
       Params->FindValue(Parameters::ZXTune::Core::AYM::TYPE, intVal);
-      return intVal != 0;
+      return VolumeTables[intVal != 0];
     }
 
     virtual bool Interpolate() const

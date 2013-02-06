@@ -28,7 +28,7 @@ namespace ZXTune
     typedef DataTransceiver<OutputSample> Converter;
     //! @brief Channel count-specific receivers
     template<unsigned Channels>
-    class FixedChannelsReceiver : public DataReceiver<FixedChannelsSample<Channels> > {};
+    class FixedChannelsReceiver : public DataReceiver<typename FixedChannelsSample<Channels>::Type> {};
 
     typedef FixedChannelsReceiver<1> OneChannelReceiver;
     typedef FixedChannelsReceiver<2> TwoChannelsReceiver;

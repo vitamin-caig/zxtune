@@ -63,6 +63,11 @@ namespace Devices
     // Result sound stream receiver
     typedef DataReceiver<MultiSample> Receiver;
 
+    typedef boost::array<Sample, 32> VolTable;
+
+    const VolTable& GetAY38910VolTable();
+    const VolTable& GetYM2149FVolTable();
+
     enum LayoutType
     {
       LAYOUT_ABC = 0,
@@ -85,7 +90,7 @@ namespace Devices
 
       virtual uint64_t ClockFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
-      virtual bool IsYM() const = 0;
+      virtual const VolTable& VolumeTable() const = 0;
       virtual bool Interpolate() const = 0;
       virtual uint_t DutyCycleValue() const = 0;
       virtual uint_t DutyCycleMask() const = 0;

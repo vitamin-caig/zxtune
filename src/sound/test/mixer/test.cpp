@@ -73,9 +73,9 @@ namespace
   };
 
   template<unsigned Channels>
-  FixedChannelsSample<Channels> MakeSample(Sample in)
+  FixedChannelsSample<Channels>::Type MakeSample(Sample in)
   {
-    FixedChannelsSample<Channels> res;
+    FixedChannelsSample<Channels>::Type res;
     res.assign(in);
     return res;
   }

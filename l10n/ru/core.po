@@ -48,28 +48,28 @@ msgstr "Неправильные параметры."
 msgid "Failed to find specified submodule starting from path '%1%'."
 msgstr "Модуль не найден при поиске начиная с '%1%'."
 
-#: plugins/players/ay/aym_parameters.cpp:57
+#: plugins/players/ay/aym_parameters.cpp:59
 #, boost-format
 msgid "Invalid duty cycle mask item: '%1%'."
 msgstr "Неправильное значение канала для задания скважности: '%1%'."
 
-#: plugins/players/ay/aym_parameters.cpp:100
-#: plugins/players/ay/aym_parameters.cpp:181
+#: plugins/players/ay/aym_parameters.cpp:102
+#: plugins/players/ay/aym_parameters.cpp:205
 #, boost-format
 msgid "Invalid layout value (%1%)."
 msgstr "Неправильное значение раскладки каналов (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:120
+#: plugins/players/ay/aym_parameters.cpp:144
 #, boost-format
 msgid "Invalid clock frequency (%1%)."
 msgstr "Неправильное значение тактовой частоты (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:152
+#: plugins/players/ay/aym_parameters.cpp:176
 #, boost-format
 msgid "Invalid duty cycle value (%1%)."
 msgstr "Неправильное значение скважности (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:247
+#: plugins/players/ay/aym_parameters.cpp:271
 #, boost-format
 msgid "Invalid frequency table size (%1%)."
 msgstr "Неправильный размер частотной таблицы (%1%)."

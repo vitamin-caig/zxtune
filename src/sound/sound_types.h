@@ -32,7 +32,10 @@ namespace ZXTune
     typedef boost::array<Sample, OUTPUT_CHANNELS> OutputSample;
 
     template<unsigned Channels>
-    class FixedChannelsSample : public boost::array<Sample, Channels> {};
+    struct FixedChannelsSample
+    {
+      typedef boost::array<Sample, Channels> Type;
+    };
 
     // Sample attributes (better to specify exactly)
     const Sample SAMPLE_MIN = 0;
