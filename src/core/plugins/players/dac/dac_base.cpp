@@ -56,7 +56,7 @@ namespace
     virtual void ApplyData(const Devices::DAC::MultiSoundSample& data)
     {
       assert(data.size() == Channels);
-      Sound::FixedChannelsSample<Channels>::Type out;
+      typename Sound::FixedChannelsSample<Channels>::Type out;
       std::transform(data.begin(), data.end(), out.begin(), &Sound::ToSample<Devices::DAC::SoundSample>);
       Target->ApplyData(out);
     }

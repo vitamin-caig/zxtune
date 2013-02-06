@@ -24,7 +24,7 @@ namespace Benchmark
     {
       const typename ZXTune::Sound::FixedChannelsMixer<Channels>::Ptr mixer = ZXTune::Sound::FixedChannelsMatrixMixer<Channels>::Create();
 
-      ZXTune::Sound::FixedChannelsSample<Channels>::Type input;
+      typename ZXTune::Sound::FixedChannelsSample<Channels>::Type input;
       const Timer timer;
       const uint_t totalFrames = uint64_t(duration.Get()) * soundFreq / duration.PER_SECOND;
       for (uint_t frame = 0; frame != totalFrames; ++frame)
