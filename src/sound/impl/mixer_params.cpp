@@ -39,19 +39,19 @@ namespace
     }
   }
 
-  template<class MatrixMixer>
-  class PollingMixer : public DataTransceiver<typename MatrixMixer::InDataType, Sound::OutputSample>
+  template<unsigned Channels>
+  class PollingMixer : public Sound::FixedChannelsMixer<Channels>
   {
+    typedef Sound::FixedChannelsMatrixMixer<Channels> MixerType;
   public:
-    PollingMixer(Parameters::Accessor::Ptr params, typename MatrixMixer::Ptr delegate, const typename MatrixMixer::Matrix& matrix)
+    explicit PollingMixer(Parameters::Accessor::Ptr params)
       : Params(params)
-      , Delegate(delegate)
-      , LastMatrix(matrix)
+      , Delegate(MixerType::Create())
     {
       UpdateMatrix();
     }
 
-    virtual void ApplyData(const typename MatrixMixer::InDataType& inData)
+    virtual void ApplyData(const typename MixerType::InDataType& inData)
     {
       Delegate->ApplyData(inData);
     }
@@ -69,7 +69,7 @@ namespace
   private:
     void UpdateMatrix()
     {
-      const typename MatrixMixer::Matrix oldMatrix = LastMatrix;
+      const typename MixerType::Matrix oldMatrix = LastMatrix;
       GetMatrix(*Params, &LastMatrix.front(), &LastMatrix.back() + 1);
       if (oldMatrix != LastMatrix)
       {
@@ -78,8 +78,8 @@ namespace
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    const typename MatrixMixer::Ptr Delegate;
-    typename MatrixMixer::Matrix LastMatrix;
+    const typename MixerType::Ptr Delegate;
+    typename MixerType::Matrix LastMatrix;
   };
 }
 
@@ -87,40 +87,24 @@ namespace ZXTune
 {
   namespace Sound
   {
-    template<unsigned Channels>
-    typename FixedChannelsMixer<Channels>::Ptr CreateMixer(Parameters::Accessor::Ptr params)
-    {
-      typedef FixedChannelsMatrixMixer<Channels> MixerType;
-      const typename MixerType::Ptr mixer = MixerType::Create();
-      typename MixerType::Matrix matrix;
-      return boost::make_shared<PollingMixer<MixerType> >(params, mixer, matrix);
-    }
-
     OneChannelMixer::Ptr CreateOneChannelMixer(Parameters::Accessor::Ptr params)
     {
-      return CreateMixer<1>(params);
+      return boost::make_shared<PollingMixer<1> >(params);
     }
 
     TwoChannelsMixer::Ptr CreateTwoChannelsMixer(Parameters::Accessor::Ptr params)
     {
-      return CreateMixer<2>(params);
+      return boost::make_shared<PollingMixer<2> >(params);
     }
 
     ThreeChannelsMixer::Ptr CreateThreeChannelsMixer(Parameters::Accessor::Ptr params)
     {
-      return CreateMixer<3>(params);
+      return boost::make_shared<PollingMixer<3> >(params);
     }
 
     FourChannelsMixer::Ptr CreateFourChannelsMixer(Parameters::Accessor::Ptr params)
     {
-      return CreateMixer<4>(params);
-    }
-
-    MultichannelMixer::Ptr CreateMultichannelMixer(uint_t channels, Parameters::Accessor::Ptr params)
-    {
-      const MultichannelMatrixMixer::Ptr mixer = MultichannelMatrixMixer::Create(channels);
-      MultichannelMatrixMixer::Matrix matrix(channels);
-      return boost::make_shared<PollingMixer<MultichannelMatrixMixer> >(params, mixer, matrix);
+      return boost::make_shared<PollingMixer<4> >(params);
     }
   }
 }

@@ -34,9 +34,6 @@ namespace ZXTune
     typedef FixedChannelsReceiver<2> TwoChannelsReceiver;
     typedef FixedChannelsReceiver<3> ThreeChannelsReceiver;
     typedef FixedChannelsReceiver<4> FourChannelsReceiver;
-
-    //! @brief Multichannel stream receiver
-    typedef DataReceiver<MultichannelSample> MultichannelReceiver;
   }
 }
 

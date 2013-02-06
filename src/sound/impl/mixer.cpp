@@ -55,14 +55,14 @@ namespace
     return mg.end() != std::find_if(mg.begin(), mg.end(), !boost::bind(&Math::InRange<Gain>, _1, 0.0f, 1.0f));
   }
    
-  template<uint_t InChannels, class Base>
-  class FastMixer : public Base
+  template<unsigned Channels>
+  class FastMixer : public FixedChannelsMatrixMixer<Channels>
   {
     //determine type for intermediate value
     static const uint_t INTERMEDIATE_BITS_MIN =
       SignificantBits<Sample>::Value +                   //input sample
       boost::static_log2<FIXED_POINT_PRECISION>::value + //mixer
-      boost::static_log2<InChannels>::value;             //channels count
+      boost::static_log2<Channels>::value;             //channels count
 
     // calculate most suitable type for intermediate value storage
     typedef typename boost::mpl::if_c<
@@ -73,12 +73,14 @@ namespace
     typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
     
     typedef boost::array<NativeType, OUTPUT_CHANNELS> MultiFixed;
+
+    typedef FixedChannelsMatrixMixer<Channels> Base;
   public:
     FastMixer()
       : Endpoint(Receiver::CreateStub())
     {
-      const NativeType val = static_cast<NativeType>(FIXED_POINT_PRECISION / InChannels);
-      for (uint_t inChan = 0; inChan != InChannels; ++inChan)
+      const NativeType val = static_cast<NativeType>(FIXED_POINT_PRECISION / Channels);
+      for (uint_t inChan = 0; inChan != Channels; ++inChan)
       {
         MultiFixed& out = Matrix[inChan];
         for (uint_t outChan = 0; outChan != out.size(); ++outChan)
@@ -90,10 +92,9 @@ namespace
 
     virtual void ApplyData(const typename Base::InDataType& inData)
     {
-      assert(inData.size() == InChannels || !"Mixer::ApplyData channels mismatch");
       // pass along input channels due to input data structure
       MultiBigSample res = { {0} };
-      for (uint_t inChan = 0; inChan != InChannels; ++inChan)
+      for (uint_t inChan = 0; inChan != Channels; ++inChan)
       {
         const NativeType in = NativeType(inData[inChan]) - SAMPLE_MID;
         const MultiFixed& inChanMix = Matrix[inChan];
@@ -122,35 +123,25 @@ namespace
     
     virtual void SetMatrix(const typename Base::Matrix& data)
     {
-      if (data.size() != InChannels)
-      {
-        throw Error(THIS_LINE, translate("Failed to set mixer matrix: invalid channels count specified."));
-      }
       const typename Base::Matrix::const_iterator it = std::find_if(data.begin(), data.end(), &IsOverloadedGain);
       if (it != data.end())
       {
         throw Error(THIS_LINE, translate("Failed to set mixer matrix: gain is out of range."));
       }
-      for (uint_t inChan = 0; inChan != InChannels; ++inChan)
+      for (uint_t inChan = 0; inChan != Channels; ++inChan)
       {
         const MultiGain& in = data[inChan];
         MultiFixed& out = Matrix[inChan];
         for (uint_t outChan = 0; outChan != out.size(); ++outChan)
         {
-          out[outChan] = Gain2Fixed<NativeType>(in[outChan] / InChannels);
+          out[outChan] = Gain2Fixed<NativeType>(in[outChan] / Channels);
         }
       }
     }
   private:
     Receiver::Ptr Endpoint;
-    boost::array<MultiFixed, InChannels> Matrix;
+    boost::array<MultiFixed, Channels> Matrix;
   };
-
-  template<unsigned Channels>
-  class FastFixedChannelsMixer : public FastMixer<Channels, FixedChannelsMatrixMixer<Channels> > {};
-
-  template<unsigned Channels>
-  class FastMultichannelMixer : public FastMixer<Channels, MultichannelMatrixMixer> {};
 }
 
 namespace ZXTune
@@ -160,42 +151,25 @@ namespace ZXTune
     template<>
     typename FixedChannelsMatrixMixer<1>::Ptr FixedChannelsMatrixMixer<1>::Create()
     {
-      return boost::make_shared<FastFixedChannelsMixer<1> >();
+      return boost::make_shared<FastMixer<1> >();
     }
 
     template<>
     typename FixedChannelsMatrixMixer<2>::Ptr FixedChannelsMatrixMixer<2>::Create()
     {
-      return boost::make_shared<FastFixedChannelsMixer<2> >();
+      return boost::make_shared<FastMixer<2> >();
     }
 
     template<>
     typename FixedChannelsMatrixMixer<3>::Ptr FixedChannelsMatrixMixer<3>::Create()
     {
-      return boost::make_shared<FastFixedChannelsMixer<3> >();
+      return boost::make_shared<FastMixer<3> >();
     }
 
     template<>
     typename FixedChannelsMatrixMixer<4>::Ptr FixedChannelsMatrixMixer<4>::Create()
     {
-      return boost::make_shared<FastFixedChannelsMixer<4> >();
-    }
-
-    MultichannelMatrixMixer::Ptr MultichannelMatrixMixer::Create(uint_t channels)
-    {
-      switch (channels)
-      {
-      case 1:
-        return boost::make_shared<FastMultichannelMixer<1> >();
-      case 2:
-        return boost::make_shared<FastMultichannelMixer<2> >();
-      case 3:
-        return boost::make_shared<FastMultichannelMixer<3> >();
-      case 4:
-        return boost::make_shared<FastMultichannelMixer<4> >();
-      default:
-        throw MakeFormattedError(THIS_LINE, translate("Failed to create unsupported mixer with %1% channels."), channels);
-      }
+      return boost::make_shared<FastMixer<4> >();
     }
   }
 }

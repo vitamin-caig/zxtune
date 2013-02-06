@@ -25,10 +25,26 @@ namespace ZXTune
     ThreeChannelsMixer::Ptr CreateThreeChannelsMixer(Parameters::Accessor::Ptr params);
     FourChannelsMixer::Ptr CreateFourChannelsMixer(Parameters::Accessor::Ptr params);
 
-    template<unsigned Channels>
-    typename FixedChannelsMixer<Channels>::Ptr CreateMixer(Parameters::Accessor::Ptr params);
+    //tag is used to make set of functions, else they will differs only by return type that is prohibited
+    OneChannelMixer::Ptr CreateMixer(Parameters::Accessor::Ptr params, const FixedChannelsSample<1>& /*tag*/)
+    {
+      return CreateOneChannelMixer(params);
+    }
 
-    MultichannelMixer::Ptr CreateMultichannelMixer(uint_t channels, Parameters::Accessor::Ptr params);
+    TwoChannelsMixer::Ptr CreateMixer(Parameters::Accessor::Ptr params, const FixedChannelsSample<2>& /*tag*/)
+    {
+      return CreateTwoChannelsMixer(params);
+    }
+
+    ThreeChannelsMixer::Ptr CreateMixer(Parameters::Accessor::Ptr params, const FixedChannelsSample<3>& /*tag*/)
+    {
+      return CreateThreeChannelsMixer(params);
+    }
+
+    FourChannelsMixer::Ptr CreateMixer(Parameters::Accessor::Ptr params, const FixedChannelsSample<4>& /*tag*/)
+    {
+      return CreateFourChannelsMixer(params);
+    }
   }
 }
 

@@ -92,20 +92,19 @@ namespace
     Devices::AYM::DataChunk CurrentChunk;
   };
 
-  template<class Receiver>
   class AYMReceiver : public Devices::AYM::Receiver
   {
   public:
-    AYMReceiver(typename Receiver::Ptr target, const typename Receiver::InDataType& data)
+    explicit AYMReceiver(Sound::FixedChannelsReceiver<Devices::AYM::CHANNELS>::Ptr target)
       : Target(target)
-      , Data(data)
     {
     }
 
     virtual void ApplyData(const Devices::AYM::MultiSample& data)
     {
-      std::transform(data.begin(), data.end(), Data.begin(), &ToSample);
-      Target->ApplyData(Data);
+      Sound::FixedChannelsSample<Devices::AYM::CHANNELS> out;
+      std::transform(data.begin(), data.end(), out.begin(), &ToSample);
+      Target->ApplyData(out);
     }
 
     virtual void Flush()
@@ -118,8 +117,7 @@ namespace
       return Sound::SAMPLE_MID + in / 2;
     }
   private:
-    const typename Receiver::Ptr Target;
-    typename Receiver::InDataType Data;
+    const Sound::FixedChannelsReceiver<Devices::AYM::CHANNELS>::Ptr Target;
   };
 
   class AYMAnalyzer : public Analyzer
@@ -432,14 +430,9 @@ namespace ZXTune
         return result;
       }
 
-      Devices::AYM::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target)
-      {
-        return boost::make_shared<AYMReceiver<Sound::MultichannelReceiver> >(target, Sound::MultichannelSample(Devices::AYM::CHANNELS));
-      }
-
       Devices::AYM::Receiver::Ptr CreateReceiver(Sound::ThreeChannelsReceiver::Ptr target)
       {
-        return boost::make_shared<AYMReceiver<Sound::ThreeChannelsReceiver> >(target, Sound::FixedChannelsSample<Devices::AYM::CHANNELS>());
+        return boost::make_shared<AYMReceiver>(target);
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)

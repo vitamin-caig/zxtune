@@ -25,9 +25,6 @@ namespace ZXTune
     typedef FixedChannelsMixer<2> TwoChannelsMixer;
     typedef FixedChannelsMixer<3> ThreeChannelsMixer;
     typedef FixedChannelsMixer<4> FourChannelsMixer;
-
-    //! @brief Abstract mixer interface
-    typedef DataTransceiver<MultichannelSample, OutputSample> MultichannelMixer;
   }
 }
 

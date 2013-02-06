@@ -29,26 +29,6 @@ namespace ZXTune
 
       static Ptr Create();
     };
-
-    //! @brief Matrix-based mixer interface
-    class MultichannelMatrixMixer : public MultichannelMixer
-    {
-    public:
-      //! @brief Pointer type
-      typedef boost::shared_ptr<MultichannelMatrixMixer> Ptr;
-      //! @brief Matrix type
-      typedef std::vector<MultiGain> Matrix;
-
-      //! @brief Setting up the mixing matrix
-      //! @param data Mixing matrix
-      //! @return Error() in case of success
-      virtual void SetMatrix(const Matrix& data) = 0;
-
-      //! @brief Creating mixer instance
-      //! @param channels Input channels count
-      //! @note For any of the created mixers, SetMatrix parameter size should be equal to channels parameter while creating
-      static Ptr Create(uint_t channels);
-    };
   }
 }
 

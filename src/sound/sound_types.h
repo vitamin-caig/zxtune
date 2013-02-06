@@ -34,8 +34,6 @@ namespace ZXTune
     template<unsigned Channels>
     class FixedChannelsSample : public boost::array<Sample, Channels> {};
 
-    typedef std::vector<Sample> MultichannelSample;
-
     // Sample attributes (better to specify exactly)
     const Sample SAMPLE_MIN = 0;
     const Sample SAMPLE_MID = 32768;

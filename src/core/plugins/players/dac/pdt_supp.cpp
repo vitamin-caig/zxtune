@@ -357,9 +357,9 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::MultichannelMixer::Ptr mixer = Sound::CreateMultichannelMixer(CHANNELS_COUNT, params);
+      const Sound::FourChannelsMixer::Ptr mixer = Sound::CreateFourChannelsMixer(params);
       mixer->SetTarget(target);
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer, CHANNELS_COUNT);
+      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver<CHANNELS_COUNT>(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, BASE_FREQ, chipParams, receiver));
       for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
