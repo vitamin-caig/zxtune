@@ -420,9 +420,6 @@ namespace
   public:
     virtual ~Renderer() {}
 
-    virtual void Reset() = 0;
-    virtual void SetNewData(const DataChunk& data) = 0;
-    virtual void Tick(uint_t ticks) = 0;
     virtual void GetLevels(MultiSample& result) const = 0;
   };
 
@@ -562,14 +559,14 @@ namespace
       Device.SetDutyCycle(value, mask);
     }
 
-    virtual void Reset()
+    void Reset()
     {
       State = DataChunk();
       Mixer = 0xff;
       Device.Reset();
     }
 
-    virtual void SetNewData(const DataChunk& data)
+    void SetNewData(const DataChunk& data)
     {
       for (uint_t idx = 0, mask = 1; idx != data.Data.size(); ++idx, mask <<= 1)
       {
@@ -614,7 +611,7 @@ namespace
       }
     }
 
-    virtual void Tick(uint_t ticks)
+    void Tick(uint_t ticks)
     {
       Device.Tick(ticks);
     }
@@ -755,23 +752,19 @@ namespace
       VolumeTable = &table;
     }
 
-    virtual void Reset()
+    void Reset()
     {
       Beeper = 0;
       VolumeTable = &AYVolumeTab;
     }
 
-    virtual void SetNewData(const DataChunk& data)
+    void SetNewData(const DataChunk& data)
     {
       if (data.Mask & (1 << DataChunk::REG_BEEPER))
       {
         const std::size_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
         Beeper = VolumeTable->at(inLevel);
       }
-    }
-
-    virtual void Tick(uint_t /*ticks*/)
-    {
     }
 
     virtual void GetLevels(MultiSample& result) const
@@ -795,24 +788,6 @@ namespace
       : First(first)
       , Second(second)
     {
-    }
-
-    virtual void Reset()
-    {
-      First.Reset();
-      Second.Reset();
-    }
-
-    virtual void SetNewData(const DataChunk& data)
-    {
-      First.SetNewData(data);
-      Second.SetNewData(data);
-    }
-
-    virtual void Tick(uint_t ticks)
-    {
-      First.Tick(ticks);
-      Second.Tick(ticks);
     }
 
     virtual void GetLevels(MultiSample& result) const
@@ -844,25 +819,6 @@ namespace
       Delegate = delegate;
     }
 
-    virtual void Reset()
-    {
-      if (Delegate)
-      {
-        Delegate->Reset();
-      }
-      PrevValues = CurValues = MultiSample();
-    }
-
-    virtual void SetNewData(const DataChunk &data)
-    {
-      Delegate->SetNewData(data);
-    }
-
-    virtual void Tick(uint_t ticks)
-    {
-      Delegate->Tick(ticks);
-    }
-
     virtual void GetLevels(MultiSample& result) const
     {
       PrevValues = CurValues;
@@ -883,21 +839,6 @@ namespace
       : Delegate(delegate)
       , Layout(LAYOUTS[layout])
     {
-    }
-
-    virtual void Reset()
-    {
-      return Delegate.Reset();
-    }
-
-    virtual void SetNewData(const DataChunk &data)
-    {
-      return Delegate.SetNewData(data);
-    }
-
-    virtual void Tick(uint_t ticks)
-    {
-      return Delegate.Tick(ticks);
     }
 
     virtual void GetLevels(MultiSample& result) const
@@ -923,21 +864,6 @@ namespace
     {
     }
 
-    virtual void Reset()
-    {
-      return Delegate.Reset();
-    }
-
-    virtual void SetNewData(const DataChunk &data)
-    {
-      return Delegate.SetNewData(data);
-    }
-
-    virtual void Tick(uint_t ticks)
-    {
-      return Delegate.Tick(ticks);
-    }
-
     virtual void GetLevels(MultiSample& result) const
     {
       Delegate.GetLevels(result);
@@ -961,6 +887,11 @@ namespace
     {
       PsgOscillator.Reset();
       SndOscillator.Reset();
+    }
+
+    Stamp GetCurrentTime() const
+    {
+      return PsgOscillator.GetCurrentTime();
     }
 
     Stamp GetNextSampleTime() const
@@ -1079,8 +1010,8 @@ namespace
 
     virtual void Reset()
     {
-      Filter.Reset();
-      PSGWithBeeper.Reset();
+      PSG.Reset();
+      Beeper.Reset();
       Clock.Reset();
       BufferedData.Reset();
     }
@@ -1109,7 +1040,13 @@ namespace
     {
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
-        RenderSingleChunk(*it, render);
+        const DataChunk& src = *it;
+        if (Clock.GetCurrentTime() < src.TimeStamp)
+        {
+          RenderSingleChunk(src, render);
+        }
+        PSG.SetNewData(src);
+        Beeper.SetNewData(src);
       }
       BufferedData.Reset();
     }
@@ -1117,22 +1054,21 @@ namespace
     void RenderSingleChunk(const DataChunk& src, Renderer& render)
     {
       MultiSample result;
-      for (;;)
+      Receiver& target = *Target;
+      while (Clock.GetNextSampleTime() < src.TimeStamp)
       {
-        const Stamp point = std::min(Clock.GetNextSampleTime(), src.TimeStamp);
-        if (const uint_t ticksPassed = Clock.NextTime(point))
+        if (const uint_t ticksPassed = Clock.NextTime(Clock.GetNextSampleTime()))
         {
-          render.Tick(ticksPassed);
-        }
-        if (point == src.TimeStamp)
-        {
-          break;
+          PSG.Tick(ticksPassed);
         }
         render.GetLevels(result);
-        Target->ApplyData(result);
+        target.ApplyData(result);
         Clock.NextSample();
       }
-      render.SetNewData(src);
+      if (const uint_t ticksPassed = Clock.NextTime(src.TimeStamp))
+      {
+        PSG.Tick(ticksPassed);
+      }
     }
   private:
     const ChipParameters::Ptr Params;
