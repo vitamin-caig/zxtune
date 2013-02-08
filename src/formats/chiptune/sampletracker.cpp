@@ -191,7 +191,7 @@ namespace Chiptune
             }
           }
           Dbg(" Stub sample %1%", samIdx);
-          const char dummy = 0;
+          const uint8_t dummy = 128;
           target.SetSample(samIdx, 0, Binary::CreateContainer(&dummy, sizeof(dummy)), false);
         }
         Require(validSamples != 0);

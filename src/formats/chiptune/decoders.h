@@ -38,6 +38,7 @@ namespace Formats
     Decoder::Ptr CreateVortexTracker2Decoder();
     Decoder::Ptr CreateChipTrackerDecoder();
     Decoder::Ptr CreateSampleTrackerDecoder();
+    Decoder::Ptr CreateProDigiTrackerDecoder();
   }
 }
 
