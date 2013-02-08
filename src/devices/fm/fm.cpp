@@ -119,6 +119,7 @@ namespace
       for (uint_t idx = 0; idx != VOICES; ++idx)
       {
         res[idx] = ChanState('A' + idx);
+        res[idx].Enabled = vols[idx] < 1024;
         res[idx].Band = GetBandByFreq(freqs[idx]);
         res[idx].LevelInPercents = vols[idx] > 1024 ? 0 : (100 * (1024 - vols[idx])) / 1024;
       }
