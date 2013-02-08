@@ -109,7 +109,10 @@ namespace
   boost::array<T, N> Avg(const boost::array<T, N>& val1, const boost::array<T, N>& val2)
   {
     boost::array<T, N> res;
-    std::transform(val1.begin(), val1.end(), val2.begin(), res.begin(), &Avg<T>);
+    for (uint_t chan = 0; chan != N; ++chan)
+    {
+      res[chan] = Avg(val1[chan], val2[chan]);
+    }
     return res;
   }
 
@@ -132,7 +135,7 @@ namespace
 
     SampleType Mix(const SampleType& in)
     {
-      return Avg(Buffer[OutCursor++], in);
+      return Avg(static_cast<const SampleType&>(Buffer[OutCursor++]), in);
     }
   private:
     boost::array<SampleType, 65536> Buffer;
