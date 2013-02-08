@@ -23,23 +23,11 @@ namespace ZXTune
 {
   namespace Module
   {
-    template<class Type>
-    class DoubleReceiver : public DataReceiver<Type>
-    {
-    public:
-      typedef boost::shared_ptr<DoubleReceiver<Type> > Ptr;
-
-      virtual void SetStream(uint_t idx) = 0;
-    };
-
-    typedef DoubleReceiver<Devices::AYM::MultiSample> AYMTSMixer;
-    typedef DoubleReceiver<Devices::FM::Sample> TFMMixer;
-
     TrackState::Ptr CreateTSTrackState(TrackState::Ptr first, TrackState::Ptr second);
     Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second);
-    AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate);
-    TFMMixer::Ptr CreateTFMMixer(Devices::FM::Receiver::Ptr delegate);
-    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer);
+    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second);
+    boost::array<Devices::AYM::Receiver::Ptr, 2> CreateTSAYMixer(Devices::AYM::Receiver::Ptr target);
+    boost::array<Devices::FM::Receiver::Ptr, 2> CreateTFMMixer(Devices::FM::Receiver::Ptr target);
   }
 }
 #endif //__CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__

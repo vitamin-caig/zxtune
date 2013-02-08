@@ -100,92 +100,110 @@ namespace
   };
 
   template<class T>
-  inline T avg(T val1, T val2)
+  inline T Avg(T val1, T val2)
   {
     return (val1 + val2) / 2;
   }
 
-  template<class T>
-  void PerformMix(T& val1, T val2)
-  {
-    val1 = avg(val1, val2);
-  }
-
   template<class T, std::size_t N>
-  void PerformMix(boost::array<T, N>& val1, const boost::array<T, N>& val2)
+  boost::array<T, N> Avg(const boost::array<T, N>& val1, const boost::array<T, N>& val2)
   {
-    std::transform(val1.begin(), val1.end(), val2.begin(), val1.begin(), &avg<T>);
+    boost::array<T, N> res;
+    std::transform(val1.begin(), val1.end(), val2.begin(), res.begin(), &Avg<T>);
+    return res;
   }
 
   template<class SampleType>
-  class DoubleReceiverImpl : public DoubleReceiver<SampleType>
+  class DoubleMixer
   {
   public:
-    explicit DoubleReceiverImpl(typename DataReceiver<SampleType>::Ptr delegate)
-      : Delegate(delegate)
-      , Stream()
+    typedef boost::shared_ptr<DoubleMixer> Ptr;
+
+    DoubleMixer()
+      : InCursor()
+      , OutCursor()
+    {
+    }
+
+    void Store(const SampleType& in)
+    {
+      Buffer[InCursor++] = in;
+    }
+
+    SampleType Mix(const SampleType& in)
+    {
+      return Avg(Buffer[OutCursor++], in);
+    }
+  private:
+    boost::array<SampleType, 65536> Buffer;
+    uint16_t InCursor;
+    uint16_t OutCursor;
+  };
+
+  template<class SampleType>
+  class FirstReceiver : public DataReceiver<SampleType>
+  {
+  public:
+    explicit FirstReceiver(typename DoubleMixer<SampleType>::Ptr mixer)
+      : Mixer(mixer)
     {
     }
 
     virtual void ApplyData(const SampleType& data)
     {
-      if (Stream)
-      {
-        Mix(data);
-      }
-      else
-      {
-        Store(data);
-      }
+      Mixer->Store(data);
     }
 
     virtual void Flush()
     {
-      if (Stream)
-      {
-        Delegate->Flush();
-      }
-    }
-
-    virtual void SetStream(uint_t idx)
-    {
-      if ((Stream = idx))
-      {
-        MixCursor = CycledIterator<SampleType*>(&Buffer.front(), &Buffer.back() + 1);
-      }
-      else
-      {
-        Buffer.clear();
-      }
     }
   private:
-    void Store(const SampleType& data)
-    {
-      Buffer.push_back(data);
-    }
-
-    void Mix(const SampleType& data)
-    {
-      SampleType& src = *MixCursor;
-      PerformMix(src, data);
-      Delegate->ApplyData(src);
-      ++MixCursor;
-    }
-  private:
-    const typename DataReceiver<SampleType>::Ptr Delegate;
-    uint_t Stream;
-    typedef std::vector<SampleType> BufferType;
-    BufferType Buffer;
-    CycledIterator<SampleType*> MixCursor;
+    const typename DoubleMixer<SampleType>::Ptr Mixer;
   };
 
-  template<class Type>
+  template<class SampleType>
+  class SecondReceiver : public DataReceiver<SampleType>
+  {
+  public:
+    SecondReceiver(typename DoubleMixer<SampleType>::Ptr mixer, typename DataReceiver<SampleType>::Ptr delegate)
+      : Mixer(mixer)
+      , Delegate(delegate)
+    {
+    }
+
+    virtual void ApplyData(const SampleType& data)
+    {
+      Delegate->ApplyData(Mixer->Mix(data));
+    }
+
+    virtual void Flush()
+    {
+      Delegate->Flush();
+    }
+  private:
+    const typename DoubleMixer<SampleType>::Ptr Mixer;
+    const typename DataReceiver<SampleType>::Ptr Delegate;
+  };
+
+  template<class SampleType>
+  boost::array<typename DataReceiver<SampleType>::Ptr, 2> CreateTSMixer(typename DataReceiver<SampleType>::Ptr target)
+  {
+    const typename DoubleMixer<SampleType>::Ptr mixer = boost::make_shared<DoubleMixer<SampleType> >();
+    const boost::array<typename DataReceiver<SampleType>::Ptr, 2> res =
+    {
+      {
+        boost::make_shared<FirstReceiver<SampleType> >(mixer),
+        boost::make_shared<SecondReceiver<SampleType> >(mixer, target)
+      }
+    };
+    return res;
+  }
+
   class TSRenderer : public Renderer
   {
   public:
-    TSRenderer(Renderer::Ptr first, Renderer::Ptr second, typename DoubleReceiver<Type>::Ptr mixer)
-      : Mixer(mixer)
-      , Renderer1(first)
+    TSRenderer(Renderer::Ptr first, Renderer::Ptr second)
+      : Renderer1(first)
       , Renderer2(second)
     {
     }
@@ -202,9 +220,7 @@ namespace
 
     virtual bool RenderFrame()
     {
-      Mixer->SetStream(0);
       const bool res1 = Renderer1->RenderFrame();
-      Mixer->SetStream(1);
       const bool res2 = Renderer2->RenderFrame();
       return res1 && res2;
     }
@@ -221,7 +237,6 @@ namespace
       Renderer2->SetPosition(frame);
     }
   private:
-    const typename DoubleReceiver<Type>::Ptr Mixer;
     const Renderer::Ptr Renderer1;
     const Renderer::Ptr Renderer2;
   };
@@ -241,22 +256,19 @@ namespace ZXTune
       return boost::make_shared<TSAnalyzer>(first, second);
     }
 
-    AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate)
+    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second)
     {
-      typedef DoubleReceiverImpl<Devices::AYM::MultiSample> Impl;
-      return boost::make_shared<Impl>(delegate);
+      return boost::make_shared<TSRenderer>(first, second);
     }
 
-    TFMMixer::Ptr CreateTFMMixer(Devices::FM::Receiver::Ptr delegate)
+    boost::array<Devices::AYM::Receiver::Ptr, 2> CreateTSAYMixer(Devices::AYM::Receiver::Ptr target)
     {
-      typedef DoubleReceiverImpl<Devices::FM::Sample> Impl;
-      return boost::make_shared<Impl>(delegate);
+      return CreateTSMixer<Devices::AYM::MultiSample>(target);
     }
 
-    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer)
+    boost::array<Devices::FM::Receiver::Ptr, 2> CreateTFMMixer(Devices::FM::Receiver::Ptr target)
     {
-      typedef TSRenderer<Devices::AYM::MultiSample> Impl;
-      return boost::make_shared<Impl>(first, second, mixer);
+      return CreateTSMixer<Devices::FM::Sample>(target);
     }
   }
 }

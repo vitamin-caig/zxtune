@@ -261,15 +261,15 @@ namespace
       const Sound::ThreeChannelsMixer::Ptr mixer = Sound::CreateThreeChannelsMixer(params);
       mixer->SetTarget(target);
       const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
-      const AYMTSMixer::Ptr tsMixer = CreateTSMixer(receiver);
+      const boost::array<Devices::AYM::Receiver::Ptr, 2> tsMixer = CreateTSAYMixer(receiver);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, tsMixer);
-      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, tsMixer);
+      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, tsMixer[0]);
+      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, tsMixer[1]);
 
       const Information::Ptr info = GetModuleInformation();
       const Renderer::Ptr renderer1 = Holder1->CreateRenderer(params, chip1);
       const Renderer::Ptr renderer2 = Holder2->CreateRenderer(params, chip2);
-      return CreateTSRenderer(renderer1, renderer2, tsMixer);
+      return CreateTSRenderer(renderer1, renderer2);
     }
   private:
     const ModuleProperties::Ptr Properties;

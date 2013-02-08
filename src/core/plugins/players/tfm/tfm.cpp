@@ -24,11 +24,11 @@ namespace
   {
   public:
     TurboChip(ChipParameters::Ptr params, Receiver::Ptr target)
-      : Target(ZXTune::Module::CreateTFMMixer(target))
     {
+      const boost::array<Devices::FM::Receiver::Ptr, 2> mixer = ZXTune::Module::CreateTFMMixer(target);
       for (uint_t idx = 0; idx != Delegates.size(); ++idx)
       {
-        Delegates[idx] = Devices::FM::CreateChip(params, Target);
+        Delegates[idx] = Devices::FM::CreateChip(params, mixer[idx]);
       }
     }
 
@@ -47,7 +47,6 @@ namespace
     {
       for (uint_t idx = 0; idx != Delegates.size(); ++idx)
       {
-        Target->SetStream(idx);
         Delegates[idx]->Flush();
       }
     }
@@ -74,7 +73,6 @@ namespace
       }
     }
   private:
-    const ZXTune::Module::TFMMixer::Ptr Target;
     boost::array<Devices::FM::Chip::Ptr, CHIPS> Delegates;
   };
 }
