@@ -270,21 +270,29 @@ namespace
         const snd_pcm_sframes_t res = Api->snd_pcm_writei(Handle, data, size);
         if (-EAGAIN == res)
         {
-          ::poll(&PollFds[0], PollFds.size(), -1);
-          unsigned short revents = 0;
-          CheckedCall(&Alsa::Api::snd_pcm_poll_descriptors_revents, &PollFds[0], unsigned(PollFds.size()), &revents, THIS_LINE);
-          if (0 != (revents & POLLERR))
-          {
-            CheckResult(-EIO, THIS_LINE);
-          }
-          else if (0 != (revents & POLLOUT))
-          {
-            continue;
-          }
-          CheckResult(-EIO, THIS_LINE);
+          WaitForReady();
+          continue;
         }
         CheckResult(res, THIS_LINE);
         return res;
+      }
+    }
+  private:
+    void WaitForReady()
+    {
+      for (;;)
+      {
+        ::poll(&PollFds[0], PollFds.size(), -1);
+        unsigned short revents = 0;
+        CheckedCall(&Alsa::Api::snd_pcm_poll_descriptors_revents, &PollFds[0], unsigned(PollFds.size()), &revents, THIS_LINE);
+        if (0 != (revents & POLLERR))
+        {
+          CheckResult(-EIO, THIS_LINE);
+        }
+        else if (0 != (revents & POLLOUT))
+        {
+          break;
+        }
       }
     }
   private:
