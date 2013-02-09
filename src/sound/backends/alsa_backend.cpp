@@ -246,7 +246,9 @@ namespace
       Require(Handle == 0);
       Dbg("Opening PCM device '%1%'", Name);
       CheckResult(Api->snd_pcm_open(&Handle, Name.c_str(),
-        SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
+        SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK), THIS_LINE);
+      PollFds.resize(Api->snd_pcm_poll_descriptors_count(Handle));
+      CheckedCall(&Alsa::Api::snd_pcm_poll_descriptors, &PollFds[0], unsigned(PollFds.size()), THIS_LINE);
     }
     
     void Close()
@@ -261,24 +263,33 @@ namespace
       }
     }
 
-    void Write(Chunk& buffer)
+    std::size_t WriteAsync(const OutputSample* data, std::size_t size)
     {
-      const OutputSample* data = &buffer[0];
-      std::size_t size = buffer.size();
-      while (size)
+      for (;;)
       {
         const snd_pcm_sframes_t res = Api->snd_pcm_writei(Handle, data, size);
-        if (res < 0)
+        if (-EAGAIN == res)
         {
-          CheckedCall(&Alsa::Api::snd_pcm_prepare, THIS_LINE);
-          continue;
+          ::poll(&PollFds[0], PollFds.size(), -1);
+          unsigned short revents = 0;
+          CheckedCall(&Alsa::Api::snd_pcm_poll_descriptors_revents, &PollFds[0], unsigned(PollFds.size()), &revents, THIS_LINE);
+          if (0 != (revents & POLLERR))
+          {
+            CheckResult(-EIO, THIS_LINE);
+          }
+          else if (0 != (revents & POLLOUT))
+          {
+            continue;
+          }
+          CheckResult(-EIO, THIS_LINE);
         }
-        data += res;
-        size -= res;
+        CheckResult(res, THIS_LINE);
+        return res;
       }
     }
   private:
     const Alsa::Api::Ptr Api;
+    std::vector<struct pollfd> PollFds;
   };
   
   template<class T>
@@ -371,7 +382,15 @@ namespace
       {
         buffer.ChangeSign();
       }
-      Pcm.Write(buffer);
+
+      const OutputSample* data = &buffer[0];
+      std::size_t size = buffer.size();
+      while (size)
+      {
+        const std::size_t res = Pcm.WriteAsync(data, size);
+        data += res;
+        size -= res;
+      }
     }
     
     void Pause()

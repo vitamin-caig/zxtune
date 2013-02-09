@@ -21,33 +21,33 @@ msgstr "Ошибка в подсистеме ALSA: %1%."
 msgid "Error in ALSA backend while working with device '%1%': %2%."
 msgstr "Ошибка при работе с ALSA устройством '%1%': %2%."
 
-#: alsa_backend.cpp:334
+#: alsa_backend.cpp:345
 msgid "No suitable formats supported by ALSA."
 msgstr ""
 "Ни один подходящий формат вывода звука не поддерживается подсистемой ALSA."
 
-#: alsa_backend.cpp:569
+#: alsa_backend.cpp:588
 #, boost-format
 msgid "Failed to found mixer '%1%' for ALSA backend."
 msgstr "Микшер '%1%' не найден в подсистеме ALSA."
 
-#: alsa_backend.cpp:615 dsound_backend.cpp:345 oss_backend.cpp:223
+#: alsa_backend.cpp:634 dsound_backend.cpp:345 oss_backend.cpp:223
 #: win32_backend.cpp:359
 msgid "Failed to set volume: gain is out of range."
 msgstr "Ошибка установки громкости: превышение допустимого значения."
 
-#: alsa_backend.cpp:697
+#: alsa_backend.cpp:716
 #, boost-format
 msgid "ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: alsa_backend.cpp:792 alsa_stub.cpp:27
+#: alsa_backend.cpp:811 alsa_stub.cpp:27
 msgid "ALSA sound system backend"
 msgstr "Поддержка подсистемы ALSA"
 
-#: alsa_backend.cpp:833 dsound_backend.cpp:530 flac_backend.cpp:321
+#: alsa_backend.cpp:852 dsound_backend.cpp:530 flac_backend.cpp:321
 #: mp3_backend.cpp:390 null_backend.cpp:103 ogg_backend.cpp:458
 #: oss_backend.cpp:413 sdl_backend.cpp:327 wav_backend.cpp:307
 #: win32_backend.cpp:536
@@ -55,7 +55,7 @@ msgstr "Поддержка подсистемы ALSA"
 msgid "Failed to create backend '%1%'."
 msgstr "Ошибка создания подсистемы вывода '%1%'."
 
-#: alsa_backend.cpp:1102 dsound_backend.cpp:631 win32_backend.cpp:633
+#: alsa_backend.cpp:1121 dsound_backend.cpp:631 win32_backend.cpp:633
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
