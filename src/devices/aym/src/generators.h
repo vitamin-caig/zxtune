@@ -180,34 +180,16 @@ namespace Devices
     class ToneGenerator : public FlipFlopGenerator
     {
     public:
-      ToneGenerator()
-        : Masked(true)
-      {
-      }
-
-      void Reset()
-      {
-        Masked = true;
-        FlipFlopGenerator::Reset();
-      }
-
       void SetPeriod(uint_t period)
       {
         GetFlip();
         FlipFlopGenerator::SetPeriod(period);
       }
 
-      void SetMasked(bool masked)
-      {
-        Masked = masked;
-      }
-
       uint_t GetLevel() const
       {
-        return Masked || GetFlip() ? HIGH_LEVEL : LOW_LEVEL;
+        return GetFlip() ? HIGH_LEVEL : LOW_LEVEL;
       }
-    private:
-      bool Masked;
     };
 
     class NoiseGenerator : public CountingGenerator
@@ -215,14 +197,12 @@ namespace Devices
     public:
       NoiseGenerator()
         : Index()
-        , Masked(true)
       {
       }
 
       void Reset()
       {
         Index = 0;
-        Masked = true;
         CountingGenerator::Reset();
       }
 
@@ -232,22 +212,10 @@ namespace Devices
         CountingGenerator::SetPeriod(period);
       }
 
-      void SetMasked(bool masked)
-      {
-        Masked = masked;
-      }
-
       uint_t GetLevel() const
       {
-        if (Masked)
-        {
-          return HIGH_LEVEL;
-        }
-        else
-        {
-          UpdateIndex();
-          return NoiseTable[Index];
-        }
+        UpdateIndex();
+        return NoiseTable[Index];
       }
     private:
       void UpdateIndex() const
@@ -267,7 +235,6 @@ namespace Devices
         : Type()
         , Level()
         , Decay()
-        , Enabled(false)
       {
       }
 
@@ -276,7 +243,6 @@ namespace Devices
         Type = 0;
         Level = 0;
         Decay = 0;
-        Enabled = false;
         CountingGenerator::Reset();
       }
 
@@ -302,22 +268,10 @@ namespace Devices
         CountingGenerator::SetPeriod(period);
       }
 
-      void SetEnabled(bool enabled)
-      {
-        Enabled = enabled;
-      }
-
       uint_t GetLevel() const
       {
-        if (Enabled)
-        {
-          Update();
-          return Level;
-        }
-        else
-        {
-          return LOW_LEVEL;
-        }
+        Update();
+        return Level;
       }
     private:
       void Update() const
@@ -364,7 +318,6 @@ namespace Devices
       uint_t Type;
       mutable uint_t Level;
       mutable int_t Decay;
-      bool Enabled;
     };
   }
 }
