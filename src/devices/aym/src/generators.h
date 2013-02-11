@@ -273,15 +273,17 @@ namespace Devices
         Update();
         return Level;
       }
+
+      bool Stopped() const
+      {
+        return Decay == 0;
+      }
     private:
       void Update() const
       {
-        if (Decay)
+        for (uint_t rounds = GetPeriodsPassed(); rounds && Decay; --rounds)
         {
-          for (uint_t rounds = GetPeriodsPassed(); rounds && Decay; --rounds)
-          {
-            UpdateStep();
-          }
+          UpdateStep();
         }
       }
 

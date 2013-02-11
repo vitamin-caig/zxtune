@@ -14,13 +14,13 @@ sub RoutineName
 sub NoiseVar
 {
   my $idx = shift;
-  return 0 != ($idx & 56) ? 'const uint_t noise = GenN.GetLevel();' : '';
+  return 0 != ($idx & 56) ? 'const uint_t noise = self.GenN.GetLevel();' : '';
 }
 
 sub EnvelopeVar
 {
   my $idx = shift;
-  return 0 != ($idx & 448) ? 'const uint_t envelope = GenE.GetLevel();' : '';
+  return 0 != ($idx & 448) ? 'const uint_t envelope = self.GenE.GetLevel();' : '';
 }
 
 sub OutVar
@@ -28,9 +28,9 @@ sub OutVar
   my $flag = shift;
   my $chan = shift;
   my $name = chr(ord('A') + $chan);
-  my $res = (0 != ($flag & (64 << $chan))) ? 'envelope' : 'Level'.$name;
+  my $res = (0 != ($flag & (64 << $chan))) ? 'envelope' : 'self.Level'.$name;
   $res .= ' & noise' if (0 != ($flag & (8 << $chan)));
-  $res .= ' & Gen'.$name.'.GetLevel()' if (0 != ($flag & (1 << $chan)));
+  $res .= ' & self.Gen'.$name.'.GetLevel()' if (0 != ($flag & (1 << $chan)));
   return $res;
 }
 

@@ -30,9 +30,9 @@ namespace Devices
       AYMDevice()
         : LevelA(), LevelB(), LevelC()
         , VolumeTable(&GetAY38910VolTable())
-        , State()
-        , GetLevelsFunc(&AYMDevice::GetLevels000)
+        , GeneratorIndex(0)
       {
+        UpdateGenerator();
       }
 
       void SetVolumeTable(const VolTable& table)
@@ -53,8 +53,8 @@ namespace Devices
       {
         const uint_t mixMask = DataChunk::REG_MASK_TONEA | DataChunk::REG_MASK_TONEB | DataChunk::REG_MASK_TONEC | 
           DataChunk::REG_MASK_NOISEA | DataChunk::REG_MASK_NOISEB | DataChunk::REG_MASK_NOISEC;
-        State = (State & ~mixMask) | (~mixer & mixMask);
-        ApplyState();
+        GeneratorIndex = (GeneratorIndex & ~mixMask) | (~mixer & mixMask);
+        UpdateGenerator();
       }
 
       void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE)
@@ -69,6 +69,7 @@ namespace Devices
       void SetEnvType(uint_t type)
       {
         GenE.SetType(type);
+        UpdateGenerator();
       }
 
       void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC)
@@ -82,8 +83,8 @@ namespace Devices
           (0 != (levelB & DataChunk::REG_MASK_ENV) ? 128 : 0) |
           (0 != (levelC & DataChunk::REG_MASK_ENV) ? 256 : 0)
         ;
-        State = (State & ~envMask) | envFlags;
-        ApplyState();
+        GeneratorIndex = (GeneratorIndex & ~envMask) | envFlags;
+        UpdateGenerator();
       }
 
       void Reset()
@@ -95,8 +96,8 @@ namespace Devices
         GenE.Reset();
         LevelA = LevelB = LevelC = 0;
         VolumeTable = &GetAY38910VolTable();
-        State = 0;
-        GetLevelsFunc = &AYMDevice::GetLevels000;
+        GeneratorIndex = 0;
+        UpdateGenerator();
       }
 
       void Tick(uint_t ticks)
@@ -110,7182 +111,7183 @@ namespace Devices
 
       void GetLevels(MultiSample& result) const
       {
-        (this->*GetLevelsFunc)(result);
+        (*GetLevelsFunc)(*this, result);
       }
     private:
-      void ApplyState()
+      void UpdateGenerator()
       {
         static const GetLevelsFuncType FUNCTIONS[] =
         {
-          &AYMDevice::GetLevels000,
-          &AYMDevice::GetLevels001,
-          &AYMDevice::GetLevels002,
-          &AYMDevice::GetLevels003,
-          &AYMDevice::GetLevels004,
-          &AYMDevice::GetLevels005,
-          &AYMDevice::GetLevels006,
-          &AYMDevice::GetLevels007,
-          &AYMDevice::GetLevels010,
-          &AYMDevice::GetLevels011,
-          &AYMDevice::GetLevels012,
-          &AYMDevice::GetLevels013,
-          &AYMDevice::GetLevels014,
-          &AYMDevice::GetLevels015,
-          &AYMDevice::GetLevels016,
-          &AYMDevice::GetLevels017,
-          &AYMDevice::GetLevels020,
-          &AYMDevice::GetLevels021,
-          &AYMDevice::GetLevels022,
-          &AYMDevice::GetLevels023,
-          &AYMDevice::GetLevels024,
-          &AYMDevice::GetLevels025,
-          &AYMDevice::GetLevels026,
-          &AYMDevice::GetLevels027,
-          &AYMDevice::GetLevels030,
-          &AYMDevice::GetLevels031,
-          &AYMDevice::GetLevels032,
-          &AYMDevice::GetLevels033,
-          &AYMDevice::GetLevels034,
-          &AYMDevice::GetLevels035,
-          &AYMDevice::GetLevels036,
-          &AYMDevice::GetLevels037,
-          &AYMDevice::GetLevels040,
-          &AYMDevice::GetLevels041,
-          &AYMDevice::GetLevels042,
-          &AYMDevice::GetLevels043,
-          &AYMDevice::GetLevels044,
-          &AYMDevice::GetLevels045,
-          &AYMDevice::GetLevels046,
-          &AYMDevice::GetLevels047,
-          &AYMDevice::GetLevels050,
-          &AYMDevice::GetLevels051,
-          &AYMDevice::GetLevels052,
-          &AYMDevice::GetLevels053,
-          &AYMDevice::GetLevels054,
-          &AYMDevice::GetLevels055,
-          &AYMDevice::GetLevels056,
-          &AYMDevice::GetLevels057,
-          &AYMDevice::GetLevels060,
-          &AYMDevice::GetLevels061,
-          &AYMDevice::GetLevels062,
-          &AYMDevice::GetLevels063,
-          &AYMDevice::GetLevels064,
-          &AYMDevice::GetLevels065,
-          &AYMDevice::GetLevels066,
-          &AYMDevice::GetLevels067,
-          &AYMDevice::GetLevels070,
-          &AYMDevice::GetLevels071,
-          &AYMDevice::GetLevels072,
-          &AYMDevice::GetLevels073,
-          &AYMDevice::GetLevels074,
-          &AYMDevice::GetLevels075,
-          &AYMDevice::GetLevels076,
-          &AYMDevice::GetLevels077,
-          &AYMDevice::GetLevels100,
-          &AYMDevice::GetLevels101,
-          &AYMDevice::GetLevels102,
-          &AYMDevice::GetLevels103,
-          &AYMDevice::GetLevels104,
-          &AYMDevice::GetLevels105,
-          &AYMDevice::GetLevels106,
-          &AYMDevice::GetLevels107,
-          &AYMDevice::GetLevels110,
-          &AYMDevice::GetLevels111,
-          &AYMDevice::GetLevels112,
-          &AYMDevice::GetLevels113,
-          &AYMDevice::GetLevels114,
-          &AYMDevice::GetLevels115,
-          &AYMDevice::GetLevels116,
-          &AYMDevice::GetLevels117,
-          &AYMDevice::GetLevels120,
-          &AYMDevice::GetLevels121,
-          &AYMDevice::GetLevels122,
-          &AYMDevice::GetLevels123,
-          &AYMDevice::GetLevels124,
-          &AYMDevice::GetLevels125,
-          &AYMDevice::GetLevels126,
-          &AYMDevice::GetLevels127,
-          &AYMDevice::GetLevels130,
-          &AYMDevice::GetLevels131,
-          &AYMDevice::GetLevels132,
-          &AYMDevice::GetLevels133,
-          &AYMDevice::GetLevels134,
-          &AYMDevice::GetLevels135,
-          &AYMDevice::GetLevels136,
-          &AYMDevice::GetLevels137,
-          &AYMDevice::GetLevels140,
-          &AYMDevice::GetLevels141,
-          &AYMDevice::GetLevels142,
-          &AYMDevice::GetLevels143,
-          &AYMDevice::GetLevels144,
-          &AYMDevice::GetLevels145,
-          &AYMDevice::GetLevels146,
-          &AYMDevice::GetLevels147,
-          &AYMDevice::GetLevels150,
-          &AYMDevice::GetLevels151,
-          &AYMDevice::GetLevels152,
-          &AYMDevice::GetLevels153,
-          &AYMDevice::GetLevels154,
-          &AYMDevice::GetLevels155,
-          &AYMDevice::GetLevels156,
-          &AYMDevice::GetLevels157,
-          &AYMDevice::GetLevels160,
-          &AYMDevice::GetLevels161,
-          &AYMDevice::GetLevels162,
-          &AYMDevice::GetLevels163,
-          &AYMDevice::GetLevels164,
-          &AYMDevice::GetLevels165,
-          &AYMDevice::GetLevels166,
-          &AYMDevice::GetLevels167,
-          &AYMDevice::GetLevels170,
-          &AYMDevice::GetLevels171,
-          &AYMDevice::GetLevels172,
-          &AYMDevice::GetLevels173,
-          &AYMDevice::GetLevels174,
-          &AYMDevice::GetLevels175,
-          &AYMDevice::GetLevels176,
-          &AYMDevice::GetLevels177,
-          &AYMDevice::GetLevels200,
-          &AYMDevice::GetLevels201,
-          &AYMDevice::GetLevels202,
-          &AYMDevice::GetLevels203,
-          &AYMDevice::GetLevels204,
-          &AYMDevice::GetLevels205,
-          &AYMDevice::GetLevels206,
-          &AYMDevice::GetLevels207,
-          &AYMDevice::GetLevels210,
-          &AYMDevice::GetLevels211,
-          &AYMDevice::GetLevels212,
-          &AYMDevice::GetLevels213,
-          &AYMDevice::GetLevels214,
-          &AYMDevice::GetLevels215,
-          &AYMDevice::GetLevels216,
-          &AYMDevice::GetLevels217,
-          &AYMDevice::GetLevels220,
-          &AYMDevice::GetLevels221,
-          &AYMDevice::GetLevels222,
-          &AYMDevice::GetLevels223,
-          &AYMDevice::GetLevels224,
-          &AYMDevice::GetLevels225,
-          &AYMDevice::GetLevels226,
-          &AYMDevice::GetLevels227,
-          &AYMDevice::GetLevels230,
-          &AYMDevice::GetLevels231,
-          &AYMDevice::GetLevels232,
-          &AYMDevice::GetLevels233,
-          &AYMDevice::GetLevels234,
-          &AYMDevice::GetLevels235,
-          &AYMDevice::GetLevels236,
-          &AYMDevice::GetLevels237,
-          &AYMDevice::GetLevels240,
-          &AYMDevice::GetLevels241,
-          &AYMDevice::GetLevels242,
-          &AYMDevice::GetLevels243,
-          &AYMDevice::GetLevels244,
-          &AYMDevice::GetLevels245,
-          &AYMDevice::GetLevels246,
-          &AYMDevice::GetLevels247,
-          &AYMDevice::GetLevels250,
-          &AYMDevice::GetLevels251,
-          &AYMDevice::GetLevels252,
-          &AYMDevice::GetLevels253,
-          &AYMDevice::GetLevels254,
-          &AYMDevice::GetLevels255,
-          &AYMDevice::GetLevels256,
-          &AYMDevice::GetLevels257,
-          &AYMDevice::GetLevels260,
-          &AYMDevice::GetLevels261,
-          &AYMDevice::GetLevels262,
-          &AYMDevice::GetLevels263,
-          &AYMDevice::GetLevels264,
-          &AYMDevice::GetLevels265,
-          &AYMDevice::GetLevels266,
-          &AYMDevice::GetLevels267,
-          &AYMDevice::GetLevels270,
-          &AYMDevice::GetLevels271,
-          &AYMDevice::GetLevels272,
-          &AYMDevice::GetLevels273,
-          &AYMDevice::GetLevels274,
-          &AYMDevice::GetLevels275,
-          &AYMDevice::GetLevels276,
-          &AYMDevice::GetLevels277,
-          &AYMDevice::GetLevels300,
-          &AYMDevice::GetLevels301,
-          &AYMDevice::GetLevels302,
-          &AYMDevice::GetLevels303,
-          &AYMDevice::GetLevels304,
-          &AYMDevice::GetLevels305,
-          &AYMDevice::GetLevels306,
-          &AYMDevice::GetLevels307,
-          &AYMDevice::GetLevels310,
-          &AYMDevice::GetLevels311,
-          &AYMDevice::GetLevels312,
-          &AYMDevice::GetLevels313,
-          &AYMDevice::GetLevels314,
-          &AYMDevice::GetLevels315,
-          &AYMDevice::GetLevels316,
-          &AYMDevice::GetLevels317,
-          &AYMDevice::GetLevels320,
-          &AYMDevice::GetLevels321,
-          &AYMDevice::GetLevels322,
-          &AYMDevice::GetLevels323,
-          &AYMDevice::GetLevels324,
-          &AYMDevice::GetLevels325,
-          &AYMDevice::GetLevels326,
-          &AYMDevice::GetLevels327,
-          &AYMDevice::GetLevels330,
-          &AYMDevice::GetLevels331,
-          &AYMDevice::GetLevels332,
-          &AYMDevice::GetLevels333,
-          &AYMDevice::GetLevels334,
-          &AYMDevice::GetLevels335,
-          &AYMDevice::GetLevels336,
-          &AYMDevice::GetLevels337,
-          &AYMDevice::GetLevels340,
-          &AYMDevice::GetLevels341,
-          &AYMDevice::GetLevels342,
-          &AYMDevice::GetLevels343,
-          &AYMDevice::GetLevels344,
-          &AYMDevice::GetLevels345,
-          &AYMDevice::GetLevels346,
-          &AYMDevice::GetLevels347,
-          &AYMDevice::GetLevels350,
-          &AYMDevice::GetLevels351,
-          &AYMDevice::GetLevels352,
-          &AYMDevice::GetLevels353,
-          &AYMDevice::GetLevels354,
-          &AYMDevice::GetLevels355,
-          &AYMDevice::GetLevels356,
-          &AYMDevice::GetLevels357,
-          &AYMDevice::GetLevels360,
-          &AYMDevice::GetLevels361,
-          &AYMDevice::GetLevels362,
-          &AYMDevice::GetLevels363,
-          &AYMDevice::GetLevels364,
-          &AYMDevice::GetLevels365,
-          &AYMDevice::GetLevels366,
-          &AYMDevice::GetLevels367,
-          &AYMDevice::GetLevels370,
-          &AYMDevice::GetLevels371,
-          &AYMDevice::GetLevels372,
-          &AYMDevice::GetLevels373,
-          &AYMDevice::GetLevels374,
-          &AYMDevice::GetLevels375,
-          &AYMDevice::GetLevels376,
-          &AYMDevice::GetLevels377,
-          &AYMDevice::GetLevels400,
-          &AYMDevice::GetLevels401,
-          &AYMDevice::GetLevels402,
-          &AYMDevice::GetLevels403,
-          &AYMDevice::GetLevels404,
-          &AYMDevice::GetLevels405,
-          &AYMDevice::GetLevels406,
-          &AYMDevice::GetLevels407,
-          &AYMDevice::GetLevels410,
-          &AYMDevice::GetLevels411,
-          &AYMDevice::GetLevels412,
-          &AYMDevice::GetLevels413,
-          &AYMDevice::GetLevels414,
-          &AYMDevice::GetLevels415,
-          &AYMDevice::GetLevels416,
-          &AYMDevice::GetLevels417,
-          &AYMDevice::GetLevels420,
-          &AYMDevice::GetLevels421,
-          &AYMDevice::GetLevels422,
-          &AYMDevice::GetLevels423,
-          &AYMDevice::GetLevels424,
-          &AYMDevice::GetLevels425,
-          &AYMDevice::GetLevels426,
-          &AYMDevice::GetLevels427,
-          &AYMDevice::GetLevels430,
-          &AYMDevice::GetLevels431,
-          &AYMDevice::GetLevels432,
-          &AYMDevice::GetLevels433,
-          &AYMDevice::GetLevels434,
-          &AYMDevice::GetLevels435,
-          &AYMDevice::GetLevels436,
-          &AYMDevice::GetLevels437,
-          &AYMDevice::GetLevels440,
-          &AYMDevice::GetLevels441,
-          &AYMDevice::GetLevels442,
-          &AYMDevice::GetLevels443,
-          &AYMDevice::GetLevels444,
-          &AYMDevice::GetLevels445,
-          &AYMDevice::GetLevels446,
-          &AYMDevice::GetLevels447,
-          &AYMDevice::GetLevels450,
-          &AYMDevice::GetLevels451,
-          &AYMDevice::GetLevels452,
-          &AYMDevice::GetLevels453,
-          &AYMDevice::GetLevels454,
-          &AYMDevice::GetLevels455,
-          &AYMDevice::GetLevels456,
-          &AYMDevice::GetLevels457,
-          &AYMDevice::GetLevels460,
-          &AYMDevice::GetLevels461,
-          &AYMDevice::GetLevels462,
-          &AYMDevice::GetLevels463,
-          &AYMDevice::GetLevels464,
-          &AYMDevice::GetLevels465,
-          &AYMDevice::GetLevels466,
-          &AYMDevice::GetLevels467,
-          &AYMDevice::GetLevels470,
-          &AYMDevice::GetLevels471,
-          &AYMDevice::GetLevels472,
-          &AYMDevice::GetLevels473,
-          &AYMDevice::GetLevels474,
-          &AYMDevice::GetLevels475,
-          &AYMDevice::GetLevels476,
-          &AYMDevice::GetLevels477,
-          &AYMDevice::GetLevels500,
-          &AYMDevice::GetLevels501,
-          &AYMDevice::GetLevels502,
-          &AYMDevice::GetLevels503,
-          &AYMDevice::GetLevels504,
-          &AYMDevice::GetLevels505,
-          &AYMDevice::GetLevels506,
-          &AYMDevice::GetLevels507,
-          &AYMDevice::GetLevels510,
-          &AYMDevice::GetLevels511,
-          &AYMDevice::GetLevels512,
-          &AYMDevice::GetLevels513,
-          &AYMDevice::GetLevels514,
-          &AYMDevice::GetLevels515,
-          &AYMDevice::GetLevels516,
-          &AYMDevice::GetLevels517,
-          &AYMDevice::GetLevels520,
-          &AYMDevice::GetLevels521,
-          &AYMDevice::GetLevels522,
-          &AYMDevice::GetLevels523,
-          &AYMDevice::GetLevels524,
-          &AYMDevice::GetLevels525,
-          &AYMDevice::GetLevels526,
-          &AYMDevice::GetLevels527,
-          &AYMDevice::GetLevels530,
-          &AYMDevice::GetLevels531,
-          &AYMDevice::GetLevels532,
-          &AYMDevice::GetLevels533,
-          &AYMDevice::GetLevels534,
-          &AYMDevice::GetLevels535,
-          &AYMDevice::GetLevels536,
-          &AYMDevice::GetLevels537,
-          &AYMDevice::GetLevels540,
-          &AYMDevice::GetLevels541,
-          &AYMDevice::GetLevels542,
-          &AYMDevice::GetLevels543,
-          &AYMDevice::GetLevels544,
-          &AYMDevice::GetLevels545,
-          &AYMDevice::GetLevels546,
-          &AYMDevice::GetLevels547,
-          &AYMDevice::GetLevels550,
-          &AYMDevice::GetLevels551,
-          &AYMDevice::GetLevels552,
-          &AYMDevice::GetLevels553,
-          &AYMDevice::GetLevels554,
-          &AYMDevice::GetLevels555,
-          &AYMDevice::GetLevels556,
-          &AYMDevice::GetLevels557,
-          &AYMDevice::GetLevels560,
-          &AYMDevice::GetLevels561,
-          &AYMDevice::GetLevels562,
-          &AYMDevice::GetLevels563,
-          &AYMDevice::GetLevels564,
-          &AYMDevice::GetLevels565,
-          &AYMDevice::GetLevels566,
-          &AYMDevice::GetLevels567,
-          &AYMDevice::GetLevels570,
-          &AYMDevice::GetLevels571,
-          &AYMDevice::GetLevels572,
-          &AYMDevice::GetLevels573,
-          &AYMDevice::GetLevels574,
-          &AYMDevice::GetLevels575,
-          &AYMDevice::GetLevels576,
-          &AYMDevice::GetLevels577,
-          &AYMDevice::GetLevels600,
-          &AYMDevice::GetLevels601,
-          &AYMDevice::GetLevels602,
-          &AYMDevice::GetLevels603,
-          &AYMDevice::GetLevels604,
-          &AYMDevice::GetLevels605,
-          &AYMDevice::GetLevels606,
-          &AYMDevice::GetLevels607,
-          &AYMDevice::GetLevels610,
-          &AYMDevice::GetLevels611,
-          &AYMDevice::GetLevels612,
-          &AYMDevice::GetLevels613,
-          &AYMDevice::GetLevels614,
-          &AYMDevice::GetLevels615,
-          &AYMDevice::GetLevels616,
-          &AYMDevice::GetLevels617,
-          &AYMDevice::GetLevels620,
-          &AYMDevice::GetLevels621,
-          &AYMDevice::GetLevels622,
-          &AYMDevice::GetLevels623,
-          &AYMDevice::GetLevels624,
-          &AYMDevice::GetLevels625,
-          &AYMDevice::GetLevels626,
-          &AYMDevice::GetLevels627,
-          &AYMDevice::GetLevels630,
-          &AYMDevice::GetLevels631,
-          &AYMDevice::GetLevels632,
-          &AYMDevice::GetLevels633,
-          &AYMDevice::GetLevels634,
-          &AYMDevice::GetLevels635,
-          &AYMDevice::GetLevels636,
-          &AYMDevice::GetLevels637,
-          &AYMDevice::GetLevels640,
-          &AYMDevice::GetLevels641,
-          &AYMDevice::GetLevels642,
-          &AYMDevice::GetLevels643,
-          &AYMDevice::GetLevels644,
-          &AYMDevice::GetLevels645,
-          &AYMDevice::GetLevels646,
-          &AYMDevice::GetLevels647,
-          &AYMDevice::GetLevels650,
-          &AYMDevice::GetLevels651,
-          &AYMDevice::GetLevels652,
-          &AYMDevice::GetLevels653,
-          &AYMDevice::GetLevels654,
-          &AYMDevice::GetLevels655,
-          &AYMDevice::GetLevels656,
-          &AYMDevice::GetLevels657,
-          &AYMDevice::GetLevels660,
-          &AYMDevice::GetLevels661,
-          &AYMDevice::GetLevels662,
-          &AYMDevice::GetLevels663,
-          &AYMDevice::GetLevels664,
-          &AYMDevice::GetLevels665,
-          &AYMDevice::GetLevels666,
-          &AYMDevice::GetLevels667,
-          &AYMDevice::GetLevels670,
-          &AYMDevice::GetLevels671,
-          &AYMDevice::GetLevels672,
-          &AYMDevice::GetLevels673,
-          &AYMDevice::GetLevels674,
-          &AYMDevice::GetLevels675,
-          &AYMDevice::GetLevels676,
-          &AYMDevice::GetLevels677,
-          &AYMDevice::GetLevels700,
-          &AYMDevice::GetLevels701,
-          &AYMDevice::GetLevels702,
-          &AYMDevice::GetLevels703,
-          &AYMDevice::GetLevels704,
-          &AYMDevice::GetLevels705,
-          &AYMDevice::GetLevels706,
-          &AYMDevice::GetLevels707,
-          &AYMDevice::GetLevels710,
-          &AYMDevice::GetLevels711,
-          &AYMDevice::GetLevels712,
-          &AYMDevice::GetLevels713,
-          &AYMDevice::GetLevels714,
-          &AYMDevice::GetLevels715,
-          &AYMDevice::GetLevels716,
-          &AYMDevice::GetLevels717,
-          &AYMDevice::GetLevels720,
-          &AYMDevice::GetLevels721,
-          &AYMDevice::GetLevels722,
-          &AYMDevice::GetLevels723,
-          &AYMDevice::GetLevels724,
-          &AYMDevice::GetLevels725,
-          &AYMDevice::GetLevels726,
-          &AYMDevice::GetLevels727,
-          &AYMDevice::GetLevels730,
-          &AYMDevice::GetLevels731,
-          &AYMDevice::GetLevels732,
-          &AYMDevice::GetLevels733,
-          &AYMDevice::GetLevels734,
-          &AYMDevice::GetLevels735,
-          &AYMDevice::GetLevels736,
-          &AYMDevice::GetLevels737,
-          &AYMDevice::GetLevels740,
-          &AYMDevice::GetLevels741,
-          &AYMDevice::GetLevels742,
-          &AYMDevice::GetLevels743,
-          &AYMDevice::GetLevels744,
-          &AYMDevice::GetLevels745,
-          &AYMDevice::GetLevels746,
-          &AYMDevice::GetLevels747,
-          &AYMDevice::GetLevels750,
-          &AYMDevice::GetLevels751,
-          &AYMDevice::GetLevels752,
-          &AYMDevice::GetLevels753,
-          &AYMDevice::GetLevels754,
-          &AYMDevice::GetLevels755,
-          &AYMDevice::GetLevels756,
-          &AYMDevice::GetLevels757,
-          &AYMDevice::GetLevels760,
-          &AYMDevice::GetLevels761,
-          &AYMDevice::GetLevels762,
-          &AYMDevice::GetLevels763,
-          &AYMDevice::GetLevels764,
-          &AYMDevice::GetLevels765,
-          &AYMDevice::GetLevels766,
-          &AYMDevice::GetLevels767,
-          &AYMDevice::GetLevels770,
-          &AYMDevice::GetLevels771,
-          &AYMDevice::GetLevels772,
-          &AYMDevice::GetLevels773,
-          &AYMDevice::GetLevels774,
-          &AYMDevice::GetLevels775,
-          &AYMDevice::GetLevels776,
-          &AYMDevice::GetLevels777,
+          &GetLevels000,
+          &GetLevels001,
+          &GetLevels002,
+          &GetLevels003,
+          &GetLevels004,
+          &GetLevels005,
+          &GetLevels006,
+          &GetLevels007,
+          &GetLevels010,
+          &GetLevels011,
+          &GetLevels012,
+          &GetLevels013,
+          &GetLevels014,
+          &GetLevels015,
+          &GetLevels016,
+          &GetLevels017,
+          &GetLevels020,
+          &GetLevels021,
+          &GetLevels022,
+          &GetLevels023,
+          &GetLevels024,
+          &GetLevels025,
+          &GetLevels026,
+          &GetLevels027,
+          &GetLevels030,
+          &GetLevels031,
+          &GetLevels032,
+          &GetLevels033,
+          &GetLevels034,
+          &GetLevels035,
+          &GetLevels036,
+          &GetLevels037,
+          &GetLevels040,
+          &GetLevels041,
+          &GetLevels042,
+          &GetLevels043,
+          &GetLevels044,
+          &GetLevels045,
+          &GetLevels046,
+          &GetLevels047,
+          &GetLevels050,
+          &GetLevels051,
+          &GetLevels052,
+          &GetLevels053,
+          &GetLevels054,
+          &GetLevels055,
+          &GetLevels056,
+          &GetLevels057,
+          &GetLevels060,
+          &GetLevels061,
+          &GetLevels062,
+          &GetLevels063,
+          &GetLevels064,
+          &GetLevels065,
+          &GetLevels066,
+          &GetLevels067,
+          &GetLevels070,
+          &GetLevels071,
+          &GetLevels072,
+          &GetLevels073,
+          &GetLevels074,
+          &GetLevels075,
+          &GetLevels076,
+          &GetLevels077,
+          &GetLevels100,
+          &GetLevels101,
+          &GetLevels102,
+          &GetLevels103,
+          &GetLevels104,
+          &GetLevels105,
+          &GetLevels106,
+          &GetLevels107,
+          &GetLevels110,
+          &GetLevels111,
+          &GetLevels112,
+          &GetLevels113,
+          &GetLevels114,
+          &GetLevels115,
+          &GetLevels116,
+          &GetLevels117,
+          &GetLevels120,
+          &GetLevels121,
+          &GetLevels122,
+          &GetLevels123,
+          &GetLevels124,
+          &GetLevels125,
+          &GetLevels126,
+          &GetLevels127,
+          &GetLevels130,
+          &GetLevels131,
+          &GetLevels132,
+          &GetLevels133,
+          &GetLevels134,
+          &GetLevels135,
+          &GetLevels136,
+          &GetLevels137,
+          &GetLevels140,
+          &GetLevels141,
+          &GetLevels142,
+          &GetLevels143,
+          &GetLevels144,
+          &GetLevels145,
+          &GetLevels146,
+          &GetLevels147,
+          &GetLevels150,
+          &GetLevels151,
+          &GetLevels152,
+          &GetLevels153,
+          &GetLevels154,
+          &GetLevels155,
+          &GetLevels156,
+          &GetLevels157,
+          &GetLevels160,
+          &GetLevels161,
+          &GetLevels162,
+          &GetLevels163,
+          &GetLevels164,
+          &GetLevels165,
+          &GetLevels166,
+          &GetLevels167,
+          &GetLevels170,
+          &GetLevels171,
+          &GetLevels172,
+          &GetLevels173,
+          &GetLevels174,
+          &GetLevels175,
+          &GetLevels176,
+          &GetLevels177,
+          &GetLevels200,
+          &GetLevels201,
+          &GetLevels202,
+          &GetLevels203,
+          &GetLevels204,
+          &GetLevels205,
+          &GetLevels206,
+          &GetLevels207,
+          &GetLevels210,
+          &GetLevels211,
+          &GetLevels212,
+          &GetLevels213,
+          &GetLevels214,
+          &GetLevels215,
+          &GetLevels216,
+          &GetLevels217,
+          &GetLevels220,
+          &GetLevels221,
+          &GetLevels222,
+          &GetLevels223,
+          &GetLevels224,
+          &GetLevels225,
+          &GetLevels226,
+          &GetLevels227,
+          &GetLevels230,
+          &GetLevels231,
+          &GetLevels232,
+          &GetLevels233,
+          &GetLevels234,
+          &GetLevels235,
+          &GetLevels236,
+          &GetLevels237,
+          &GetLevels240,
+          &GetLevels241,
+          &GetLevels242,
+          &GetLevels243,
+          &GetLevels244,
+          &GetLevels245,
+          &GetLevels246,
+          &GetLevels247,
+          &GetLevels250,
+          &GetLevels251,
+          &GetLevels252,
+          &GetLevels253,
+          &GetLevels254,
+          &GetLevels255,
+          &GetLevels256,
+          &GetLevels257,
+          &GetLevels260,
+          &GetLevels261,
+          &GetLevels262,
+          &GetLevels263,
+          &GetLevels264,
+          &GetLevels265,
+          &GetLevels266,
+          &GetLevels267,
+          &GetLevels270,
+          &GetLevels271,
+          &GetLevels272,
+          &GetLevels273,
+          &GetLevels274,
+          &GetLevels275,
+          &GetLevels276,
+          &GetLevels277,
+          &GetLevels300,
+          &GetLevels301,
+          &GetLevels302,
+          &GetLevels303,
+          &GetLevels304,
+          &GetLevels305,
+          &GetLevels306,
+          &GetLevels307,
+          &GetLevels310,
+          &GetLevels311,
+          &GetLevels312,
+          &GetLevels313,
+          &GetLevels314,
+          &GetLevels315,
+          &GetLevels316,
+          &GetLevels317,
+          &GetLevels320,
+          &GetLevels321,
+          &GetLevels322,
+          &GetLevels323,
+          &GetLevels324,
+          &GetLevels325,
+          &GetLevels326,
+          &GetLevels327,
+          &GetLevels330,
+          &GetLevels331,
+          &GetLevels332,
+          &GetLevels333,
+          &GetLevels334,
+          &GetLevels335,
+          &GetLevels336,
+          &GetLevels337,
+          &GetLevels340,
+          &GetLevels341,
+          &GetLevels342,
+          &GetLevels343,
+          &GetLevels344,
+          &GetLevels345,
+          &GetLevels346,
+          &GetLevels347,
+          &GetLevels350,
+          &GetLevels351,
+          &GetLevels352,
+          &GetLevels353,
+          &GetLevels354,
+          &GetLevels355,
+          &GetLevels356,
+          &GetLevels357,
+          &GetLevels360,
+          &GetLevels361,
+          &GetLevels362,
+          &GetLevels363,
+          &GetLevels364,
+          &GetLevels365,
+          &GetLevels366,
+          &GetLevels367,
+          &GetLevels370,
+          &GetLevels371,
+          &GetLevels372,
+          &GetLevels373,
+          &GetLevels374,
+          &GetLevels375,
+          &GetLevels376,
+          &GetLevels377,
+          &GetLevels400,
+          &GetLevels401,
+          &GetLevels402,
+          &GetLevels403,
+          &GetLevels404,
+          &GetLevels405,
+          &GetLevels406,
+          &GetLevels407,
+          &GetLevels410,
+          &GetLevels411,
+          &GetLevels412,
+          &GetLevels413,
+          &GetLevels414,
+          &GetLevels415,
+          &GetLevels416,
+          &GetLevels417,
+          &GetLevels420,
+          &GetLevels421,
+          &GetLevels422,
+          &GetLevels423,
+          &GetLevels424,
+          &GetLevels425,
+          &GetLevels426,
+          &GetLevels427,
+          &GetLevels430,
+          &GetLevels431,
+          &GetLevels432,
+          &GetLevels433,
+          &GetLevels434,
+          &GetLevels435,
+          &GetLevels436,
+          &GetLevels437,
+          &GetLevels440,
+          &GetLevels441,
+          &GetLevels442,
+          &GetLevels443,
+          &GetLevels444,
+          &GetLevels445,
+          &GetLevels446,
+          &GetLevels447,
+          &GetLevels450,
+          &GetLevels451,
+          &GetLevels452,
+          &GetLevels453,
+          &GetLevels454,
+          &GetLevels455,
+          &GetLevels456,
+          &GetLevels457,
+          &GetLevels460,
+          &GetLevels461,
+          &GetLevels462,
+          &GetLevels463,
+          &GetLevels464,
+          &GetLevels465,
+          &GetLevels466,
+          &GetLevels467,
+          &GetLevels470,
+          &GetLevels471,
+          &GetLevels472,
+          &GetLevels473,
+          &GetLevels474,
+          &GetLevels475,
+          &GetLevels476,
+          &GetLevels477,
+          &GetLevels500,
+          &GetLevels501,
+          &GetLevels502,
+          &GetLevels503,
+          &GetLevels504,
+          &GetLevels505,
+          &GetLevels506,
+          &GetLevels507,
+          &GetLevels510,
+          &GetLevels511,
+          &GetLevels512,
+          &GetLevels513,
+          &GetLevels514,
+          &GetLevels515,
+          &GetLevels516,
+          &GetLevels517,
+          &GetLevels520,
+          &GetLevels521,
+          &GetLevels522,
+          &GetLevels523,
+          &GetLevels524,
+          &GetLevels525,
+          &GetLevels526,
+          &GetLevels527,
+          &GetLevels530,
+          &GetLevels531,
+          &GetLevels532,
+          &GetLevels533,
+          &GetLevels534,
+          &GetLevels535,
+          &GetLevels536,
+          &GetLevels537,
+          &GetLevels540,
+          &GetLevels541,
+          &GetLevels542,
+          &GetLevels543,
+          &GetLevels544,
+          &GetLevels545,
+          &GetLevels546,
+          &GetLevels547,
+          &GetLevels550,
+          &GetLevels551,
+          &GetLevels552,
+          &GetLevels553,
+          &GetLevels554,
+          &GetLevels555,
+          &GetLevels556,
+          &GetLevels557,
+          &GetLevels560,
+          &GetLevels561,
+          &GetLevels562,
+          &GetLevels563,
+          &GetLevels564,
+          &GetLevels565,
+          &GetLevels566,
+          &GetLevels567,
+          &GetLevels570,
+          &GetLevels571,
+          &GetLevels572,
+          &GetLevels573,
+          &GetLevels574,
+          &GetLevels575,
+          &GetLevels576,
+          &GetLevels577,
+          &GetLevels600,
+          &GetLevels601,
+          &GetLevels602,
+          &GetLevels603,
+          &GetLevels604,
+          &GetLevels605,
+          &GetLevels606,
+          &GetLevels607,
+          &GetLevels610,
+          &GetLevels611,
+          &GetLevels612,
+          &GetLevels613,
+          &GetLevels614,
+          &GetLevels615,
+          &GetLevels616,
+          &GetLevels617,
+          &GetLevels620,
+          &GetLevels621,
+          &GetLevels622,
+          &GetLevels623,
+          &GetLevels624,
+          &GetLevels625,
+          &GetLevels626,
+          &GetLevels627,
+          &GetLevels630,
+          &GetLevels631,
+          &GetLevels632,
+          &GetLevels633,
+          &GetLevels634,
+          &GetLevels635,
+          &GetLevels636,
+          &GetLevels637,
+          &GetLevels640,
+          &GetLevels641,
+          &GetLevels642,
+          &GetLevels643,
+          &GetLevels644,
+          &GetLevels645,
+          &GetLevels646,
+          &GetLevels647,
+          &GetLevels650,
+          &GetLevels651,
+          &GetLevels652,
+          &GetLevels653,
+          &GetLevels654,
+          &GetLevels655,
+          &GetLevels656,
+          &GetLevels657,
+          &GetLevels660,
+          &GetLevels661,
+          &GetLevels662,
+          &GetLevels663,
+          &GetLevels664,
+          &GetLevels665,
+          &GetLevels666,
+          &GetLevels667,
+          &GetLevels670,
+          &GetLevels671,
+          &GetLevels672,
+          &GetLevels673,
+          &GetLevels674,
+          &GetLevels675,
+          &GetLevels676,
+          &GetLevels677,
+          &GetLevels700,
+          &GetLevels701,
+          &GetLevels702,
+          &GetLevels703,
+          &GetLevels704,
+          &GetLevels705,
+          &GetLevels706,
+          &GetLevels707,
+          &GetLevels710,
+          &GetLevels711,
+          &GetLevels712,
+          &GetLevels713,
+          &GetLevels714,
+          &GetLevels715,
+          &GetLevels716,
+          &GetLevels717,
+          &GetLevels720,
+          &GetLevels721,
+          &GetLevels722,
+          &GetLevels723,
+          &GetLevels724,
+          &GetLevels725,
+          &GetLevels726,
+          &GetLevels727,
+          &GetLevels730,
+          &GetLevels731,
+          &GetLevels732,
+          &GetLevels733,
+          &GetLevels734,
+          &GetLevels735,
+          &GetLevels736,
+          &GetLevels737,
+          &GetLevels740,
+          &GetLevels741,
+          &GetLevels742,
+          &GetLevels743,
+          &GetLevels744,
+          &GetLevels745,
+          &GetLevels746,
+          &GetLevels747,
+          &GetLevels750,
+          &GetLevels751,
+          &GetLevels752,
+          &GetLevels753,
+          &GetLevels754,
+          &GetLevels755,
+          &GetLevels756,
+          &GetLevels757,
+          &GetLevels760,
+          &GetLevels761,
+          &GetLevels762,
+          &GetLevels763,
+          &GetLevels764,
+          &GetLevels765,
+          &GetLevels766,
+          &GetLevels767,
+          &GetLevels770,
+          &GetLevels771,
+          &GetLevels772,
+          &GetLevels773,
+          &GetLevels774,
+          &GetLevels775,
+          &GetLevels776,
+          &GetLevels777,
           
         };
-        GetLevelsFunc = FUNCTIONS[State];
+        const uint_t realGenerator = GenE.Stopped() ? (GeneratorIndex & 63) : GeneratorIndex;
+        GetLevelsFunc = FUNCTIONS[realGenerator];
       }
 
       
-      void GetLevels000(MultiSample& result) const
+      static void GetLevels000(const AYMDevice& self, MultiSample& result)
       {
         
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels001(MultiSample& result) const
+      static void GetLevels001(const AYMDevice& self, MultiSample& result)
       {
         
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels002(MultiSample& result) const
+      static void GetLevels002(const AYMDevice& self, MultiSample& result)
       {
         
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels003(MultiSample& result) const
+      static void GetLevels003(const AYMDevice& self, MultiSample& result)
       {
         
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels004(MultiSample& result) const
+      static void GetLevels004(const AYMDevice& self, MultiSample& result)
       {
         
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels005(MultiSample& result) const
+      static void GetLevels005(const AYMDevice& self, MultiSample& result)
       {
         
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels006(MultiSample& result) const
+      static void GetLevels006(const AYMDevice& self, MultiSample& result)
       {
         
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels007(MultiSample& result) const
+      static void GetLevels007(const AYMDevice& self, MultiSample& result)
       {
         
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels010(MultiSample& result) const
+      static void GetLevels010(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels011(MultiSample& result) const
+      static void GetLevels011(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels012(MultiSample& result) const
+      static void GetLevels012(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels013(MultiSample& result) const
+      static void GetLevels013(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels014(MultiSample& result) const
+      static void GetLevels014(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels015(MultiSample& result) const
+      static void GetLevels015(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels016(MultiSample& result) const
+      static void GetLevels016(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels017(MultiSample& result) const
+      static void GetLevels017(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels020(MultiSample& result) const
+      static void GetLevels020(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels021(MultiSample& result) const
+      static void GetLevels021(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels022(MultiSample& result) const
+      static void GetLevels022(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels023(MultiSample& result) const
+      static void GetLevels023(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels024(MultiSample& result) const
+      static void GetLevels024(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels025(MultiSample& result) const
+      static void GetLevels025(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels026(MultiSample& result) const
+      static void GetLevels026(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels027(MultiSample& result) const
+      static void GetLevels027(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels030(MultiSample& result) const
+      static void GetLevels030(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels031(MultiSample& result) const
+      static void GetLevels031(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels032(MultiSample& result) const
+      static void GetLevels032(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels033(MultiSample& result) const
+      static void GetLevels033(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels034(MultiSample& result) const
+      static void GetLevels034(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels035(MultiSample& result) const
+      static void GetLevels035(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels036(MultiSample& result) const
+      static void GetLevels036(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels037(MultiSample& result) const
+      static void GetLevels037(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels040(MultiSample& result) const
+      static void GetLevels040(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels041(MultiSample& result) const
+      static void GetLevels041(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels042(MultiSample& result) const
+      static void GetLevels042(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels043(MultiSample& result) const
+      static void GetLevels043(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels044(MultiSample& result) const
+      static void GetLevels044(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels045(MultiSample& result) const
+      static void GetLevels045(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels046(MultiSample& result) const
+      static void GetLevels046(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels047(MultiSample& result) const
+      static void GetLevels047(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels050(MultiSample& result) const
+      static void GetLevels050(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels051(MultiSample& result) const
+      static void GetLevels051(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels052(MultiSample& result) const
+      static void GetLevels052(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels053(MultiSample& result) const
+      static void GetLevels053(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels054(MultiSample& result) const
+      static void GetLevels054(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels055(MultiSample& result) const
+      static void GetLevels055(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels056(MultiSample& result) const
+      static void GetLevels056(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels057(MultiSample& result) const
+      static void GetLevels057(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels060(MultiSample& result) const
+      static void GetLevels060(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels061(MultiSample& result) const
+      static void GetLevels061(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels062(MultiSample& result) const
+      static void GetLevels062(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels063(MultiSample& result) const
+      static void GetLevels063(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels064(MultiSample& result) const
+      static void GetLevels064(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels065(MultiSample& result) const
+      static void GetLevels065(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels066(MultiSample& result) const
+      static void GetLevels066(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels067(MultiSample& result) const
+      static void GetLevels067(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels070(MultiSample& result) const
+      static void GetLevels070(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels071(MultiSample& result) const
+      static void GetLevels071(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels072(MultiSample& result) const
+      static void GetLevels072(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels073(MultiSample& result) const
+      static void GetLevels073(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels074(MultiSample& result) const
+      static void GetLevels074(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels075(MultiSample& result) const
+      static void GetLevels075(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels076(MultiSample& result) const
+      static void GetLevels076(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels077(MultiSample& result) const
+      static void GetLevels077(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
         
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels100(MultiSample& result) const
+      static void GetLevels100(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels101(MultiSample& result) const
+      static void GetLevels101(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels102(MultiSample& result) const
+      static void GetLevels102(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels103(MultiSample& result) const
+      static void GetLevels103(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels104(MultiSample& result) const
+      static void GetLevels104(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels105(MultiSample& result) const
+      static void GetLevels105(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels106(MultiSample& result) const
+      static void GetLevels106(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels107(MultiSample& result) const
+      static void GetLevels107(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels110(MultiSample& result) const
+      static void GetLevels110(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels111(MultiSample& result) const
+      static void GetLevels111(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels112(MultiSample& result) const
+      static void GetLevels112(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels113(MultiSample& result) const
+      static void GetLevels113(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels114(MultiSample& result) const
+      static void GetLevels114(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels115(MultiSample& result) const
+      static void GetLevels115(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels116(MultiSample& result) const
+      static void GetLevels116(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels117(MultiSample& result) const
+      static void GetLevels117(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels120(MultiSample& result) const
+      static void GetLevels120(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels121(MultiSample& result) const
+      static void GetLevels121(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels122(MultiSample& result) const
+      static void GetLevels122(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels123(MultiSample& result) const
+      static void GetLevels123(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels124(MultiSample& result) const
+      static void GetLevels124(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels125(MultiSample& result) const
+      static void GetLevels125(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels126(MultiSample& result) const
+      static void GetLevels126(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels127(MultiSample& result) const
+      static void GetLevels127(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels130(MultiSample& result) const
+      static void GetLevels130(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels131(MultiSample& result) const
+      static void GetLevels131(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels132(MultiSample& result) const
+      static void GetLevels132(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels133(MultiSample& result) const
+      static void GetLevels133(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels134(MultiSample& result) const
+      static void GetLevels134(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels135(MultiSample& result) const
+      static void GetLevels135(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels136(MultiSample& result) const
+      static void GetLevels136(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels137(MultiSample& result) const
+      static void GetLevels137(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels140(MultiSample& result) const
+      static void GetLevels140(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels141(MultiSample& result) const
+      static void GetLevels141(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels142(MultiSample& result) const
+      static void GetLevels142(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels143(MultiSample& result) const
+      static void GetLevels143(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels144(MultiSample& result) const
+      static void GetLevels144(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels145(MultiSample& result) const
+      static void GetLevels145(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels146(MultiSample& result) const
+      static void GetLevels146(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels147(MultiSample& result) const
+      static void GetLevels147(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels150(MultiSample& result) const
+      static void GetLevels150(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels151(MultiSample& result) const
+      static void GetLevels151(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels152(MultiSample& result) const
+      static void GetLevels152(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels153(MultiSample& result) const
+      static void GetLevels153(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels154(MultiSample& result) const
+      static void GetLevels154(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels155(MultiSample& result) const
+      static void GetLevels155(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels156(MultiSample& result) const
+      static void GetLevels156(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels157(MultiSample& result) const
+      static void GetLevels157(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels160(MultiSample& result) const
+      static void GetLevels160(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels161(MultiSample& result) const
+      static void GetLevels161(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels162(MultiSample& result) const
+      static void GetLevels162(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels163(MultiSample& result) const
+      static void GetLevels163(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels164(MultiSample& result) const
+      static void GetLevels164(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels165(MultiSample& result) const
+      static void GetLevels165(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels166(MultiSample& result) const
+      static void GetLevels166(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels167(MultiSample& result) const
+      static void GetLevels167(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels170(MultiSample& result) const
+      static void GetLevels170(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels171(MultiSample& result) const
+      static void GetLevels171(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels172(MultiSample& result) const
+      static void GetLevels172(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels173(MultiSample& result) const
+      static void GetLevels173(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels174(MultiSample& result) const
+      static void GetLevels174(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels175(MultiSample& result) const
+      static void GetLevels175(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels176(MultiSample& result) const
+      static void GetLevels176(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels177(MultiSample& result) const
+      static void GetLevels177(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels200(MultiSample& result) const
+      static void GetLevels200(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels201(MultiSample& result) const
+      static void GetLevels201(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels202(MultiSample& result) const
+      static void GetLevels202(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels203(MultiSample& result) const
+      static void GetLevels203(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels204(MultiSample& result) const
+      static void GetLevels204(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels205(MultiSample& result) const
+      static void GetLevels205(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels206(MultiSample& result) const
+      static void GetLevels206(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels207(MultiSample& result) const
+      static void GetLevels207(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels210(MultiSample& result) const
+      static void GetLevels210(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels211(MultiSample& result) const
+      static void GetLevels211(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels212(MultiSample& result) const
+      static void GetLevels212(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels213(MultiSample& result) const
+      static void GetLevels213(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels214(MultiSample& result) const
+      static void GetLevels214(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels215(MultiSample& result) const
+      static void GetLevels215(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels216(MultiSample& result) const
+      static void GetLevels216(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels217(MultiSample& result) const
+      static void GetLevels217(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels220(MultiSample& result) const
+      static void GetLevels220(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels221(MultiSample& result) const
+      static void GetLevels221(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels222(MultiSample& result) const
+      static void GetLevels222(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels223(MultiSample& result) const
+      static void GetLevels223(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels224(MultiSample& result) const
+      static void GetLevels224(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels225(MultiSample& result) const
+      static void GetLevels225(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels226(MultiSample& result) const
+      static void GetLevels226(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels227(MultiSample& result) const
+      static void GetLevels227(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels230(MultiSample& result) const
+      static void GetLevels230(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels231(MultiSample& result) const
+      static void GetLevels231(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels232(MultiSample& result) const
+      static void GetLevels232(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels233(MultiSample& result) const
+      static void GetLevels233(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels234(MultiSample& result) const
+      static void GetLevels234(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels235(MultiSample& result) const
+      static void GetLevels235(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels236(MultiSample& result) const
+      static void GetLevels236(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels237(MultiSample& result) const
+      static void GetLevels237(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels240(MultiSample& result) const
+      static void GetLevels240(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels241(MultiSample& result) const
+      static void GetLevels241(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels242(MultiSample& result) const
+      static void GetLevels242(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels243(MultiSample& result) const
+      static void GetLevels243(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels244(MultiSample& result) const
+      static void GetLevels244(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels245(MultiSample& result) const
+      static void GetLevels245(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels246(MultiSample& result) const
+      static void GetLevels246(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels247(MultiSample& result) const
+      static void GetLevels247(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels250(MultiSample& result) const
+      static void GetLevels250(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels251(MultiSample& result) const
+      static void GetLevels251(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels252(MultiSample& result) const
+      static void GetLevels252(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels253(MultiSample& result) const
+      static void GetLevels253(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels254(MultiSample& result) const
+      static void GetLevels254(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels255(MultiSample& result) const
+      static void GetLevels255(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels256(MultiSample& result) const
+      static void GetLevels256(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels257(MultiSample& result) const
+      static void GetLevels257(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels260(MultiSample& result) const
+      static void GetLevels260(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels261(MultiSample& result) const
+      static void GetLevels261(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels262(MultiSample& result) const
+      static void GetLevels262(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels263(MultiSample& result) const
+      static void GetLevels263(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels264(MultiSample& result) const
+      static void GetLevels264(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels265(MultiSample& result) const
+      static void GetLevels265(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels266(MultiSample& result) const
+      static void GetLevels266(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels267(MultiSample& result) const
+      static void GetLevels267(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels270(MultiSample& result) const
+      static void GetLevels270(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels271(MultiSample& result) const
+      static void GetLevels271(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels272(MultiSample& result) const
+      static void GetLevels272(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels273(MultiSample& result) const
+      static void GetLevels273(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels274(MultiSample& result) const
+      static void GetLevels274(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels275(MultiSample& result) const
+      static void GetLevels275(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels276(MultiSample& result) const
+      static void GetLevels276(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels277(MultiSample& result) const
+      static void GetLevels277(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels300(MultiSample& result) const
+      static void GetLevels300(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels301(MultiSample& result) const
+      static void GetLevels301(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels302(MultiSample& result) const
+      static void GetLevels302(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels303(MultiSample& result) const
+      static void GetLevels303(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels304(MultiSample& result) const
+      static void GetLevels304(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels305(MultiSample& result) const
+      static void GetLevels305(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels306(MultiSample& result) const
+      static void GetLevels306(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels307(MultiSample& result) const
+      static void GetLevels307(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels310(MultiSample& result) const
+      static void GetLevels310(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels311(MultiSample& result) const
+      static void GetLevels311(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels312(MultiSample& result) const
+      static void GetLevels312(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels313(MultiSample& result) const
+      static void GetLevels313(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels314(MultiSample& result) const
+      static void GetLevels314(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels315(MultiSample& result) const
+      static void GetLevels315(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels316(MultiSample& result) const
+      static void GetLevels316(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels317(MultiSample& result) const
+      static void GetLevels317(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels320(MultiSample& result) const
+      static void GetLevels320(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels321(MultiSample& result) const
+      static void GetLevels321(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels322(MultiSample& result) const
+      static void GetLevels322(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels323(MultiSample& result) const
+      static void GetLevels323(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels324(MultiSample& result) const
+      static void GetLevels324(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels325(MultiSample& result) const
+      static void GetLevels325(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels326(MultiSample& result) const
+      static void GetLevels326(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels327(MultiSample& result) const
+      static void GetLevels327(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels330(MultiSample& result) const
+      static void GetLevels330(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels331(MultiSample& result) const
+      static void GetLevels331(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels332(MultiSample& result) const
+      static void GetLevels332(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels333(MultiSample& result) const
+      static void GetLevels333(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels334(MultiSample& result) const
+      static void GetLevels334(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels335(MultiSample& result) const
+      static void GetLevels335(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels336(MultiSample& result) const
+      static void GetLevels336(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels337(MultiSample& result) const
+      static void GetLevels337(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels340(MultiSample& result) const
+      static void GetLevels340(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels341(MultiSample& result) const
+      static void GetLevels341(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels342(MultiSample& result) const
+      static void GetLevels342(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels343(MultiSample& result) const
+      static void GetLevels343(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels344(MultiSample& result) const
+      static void GetLevels344(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels345(MultiSample& result) const
+      static void GetLevels345(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels346(MultiSample& result) const
+      static void GetLevels346(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels347(MultiSample& result) const
+      static void GetLevels347(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels350(MultiSample& result) const
+      static void GetLevels350(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels351(MultiSample& result) const
+      static void GetLevels351(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels352(MultiSample& result) const
+      static void GetLevels352(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels353(MultiSample& result) const
+      static void GetLevels353(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels354(MultiSample& result) const
+      static void GetLevels354(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels355(MultiSample& result) const
+      static void GetLevels355(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels356(MultiSample& result) const
+      static void GetLevels356(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels357(MultiSample& result) const
+      static void GetLevels357(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels360(MultiSample& result) const
+      static void GetLevels360(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels361(MultiSample& result) const
+      static void GetLevels361(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels362(MultiSample& result) const
+      static void GetLevels362(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels363(MultiSample& result) const
+      static void GetLevels363(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels364(MultiSample& result) const
+      static void GetLevels364(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels365(MultiSample& result) const
+      static void GetLevels365(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels366(MultiSample& result) const
+      static void GetLevels366(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels367(MultiSample& result) const
+      static void GetLevels367(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels370(MultiSample& result) const
+      static void GetLevels370(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels371(MultiSample& result) const
+      static void GetLevels371(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels372(MultiSample& result) const
+      static void GetLevels372(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels373(MultiSample& result) const
+      static void GetLevels373(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise;
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels374(MultiSample& result) const
+      static void GetLevels374(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels375(MultiSample& result) const
+      static void GetLevels375(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels376(MultiSample& result) const
+      static void GetLevels376(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels377(MultiSample& result) const
+      static void GetLevels377(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = LevelC & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = self.LevelC & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels400(MultiSample& result) const
+      static void GetLevels400(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels401(MultiSample& result) const
+      static void GetLevels401(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels402(MultiSample& result) const
+      static void GetLevels402(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels403(MultiSample& result) const
+      static void GetLevels403(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels404(MultiSample& result) const
+      static void GetLevels404(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels405(MultiSample& result) const
+      static void GetLevels405(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels406(MultiSample& result) const
+      static void GetLevels406(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels407(MultiSample& result) const
+      static void GetLevels407(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels410(MultiSample& result) const
+      static void GetLevels410(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels411(MultiSample& result) const
+      static void GetLevels411(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels412(MultiSample& result) const
+      static void GetLevels412(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels413(MultiSample& result) const
+      static void GetLevels413(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels414(MultiSample& result) const
+      static void GetLevels414(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels415(MultiSample& result) const
+      static void GetLevels415(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels416(MultiSample& result) const
+      static void GetLevels416(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels417(MultiSample& result) const
+      static void GetLevels417(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels420(MultiSample& result) const
+      static void GetLevels420(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels421(MultiSample& result) const
+      static void GetLevels421(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels422(MultiSample& result) const
+      static void GetLevels422(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels423(MultiSample& result) const
+      static void GetLevels423(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels424(MultiSample& result) const
+      static void GetLevels424(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels425(MultiSample& result) const
+      static void GetLevels425(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels426(MultiSample& result) const
+      static void GetLevels426(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels427(MultiSample& result) const
+      static void GetLevels427(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels430(MultiSample& result) const
+      static void GetLevels430(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels431(MultiSample& result) const
+      static void GetLevels431(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels432(MultiSample& result) const
+      static void GetLevels432(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels433(MultiSample& result) const
+      static void GetLevels433(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels434(MultiSample& result) const
+      static void GetLevels434(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels435(MultiSample& result) const
+      static void GetLevels435(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels436(MultiSample& result) const
+      static void GetLevels436(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels437(MultiSample& result) const
+      static void GetLevels437(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels440(MultiSample& result) const
+      static void GetLevels440(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels441(MultiSample& result) const
+      static void GetLevels441(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels442(MultiSample& result) const
+      static void GetLevels442(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels443(MultiSample& result) const
+      static void GetLevels443(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels444(MultiSample& result) const
+      static void GetLevels444(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels445(MultiSample& result) const
+      static void GetLevels445(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels446(MultiSample& result) const
+      static void GetLevels446(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels447(MultiSample& result) const
+      static void GetLevels447(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels450(MultiSample& result) const
+      static void GetLevels450(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels451(MultiSample& result) const
+      static void GetLevels451(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels452(MultiSample& result) const
+      static void GetLevels452(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels453(MultiSample& result) const
+      static void GetLevels453(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels454(MultiSample& result) const
+      static void GetLevels454(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels455(MultiSample& result) const
+      static void GetLevels455(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels456(MultiSample& result) const
+      static void GetLevels456(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels457(MultiSample& result) const
+      static void GetLevels457(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels460(MultiSample& result) const
+      static void GetLevels460(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels461(MultiSample& result) const
+      static void GetLevels461(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels462(MultiSample& result) const
+      static void GetLevels462(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels463(MultiSample& result) const
+      static void GetLevels463(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels464(MultiSample& result) const
+      static void GetLevels464(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels465(MultiSample& result) const
+      static void GetLevels465(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels466(MultiSample& result) const
+      static void GetLevels466(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels467(MultiSample& result) const
+      static void GetLevels467(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels470(MultiSample& result) const
+      static void GetLevels470(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels471(MultiSample& result) const
+      static void GetLevels471(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels472(MultiSample& result) const
+      static void GetLevels472(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels473(MultiSample& result) const
+      static void GetLevels473(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels474(MultiSample& result) const
+      static void GetLevels474(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels475(MultiSample& result) const
+      static void GetLevels475(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels476(MultiSample& result) const
+      static void GetLevels476(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels477(MultiSample& result) const
+      static void GetLevels477(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels500(MultiSample& result) const
+      static void GetLevels500(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB;
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels501(MultiSample& result) const
+      static void GetLevels501(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels502(MultiSample& result) const
+      static void GetLevels502(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels503(MultiSample& result) const
+      static void GetLevels503(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels504(MultiSample& result) const
+      static void GetLevels504(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels505(MultiSample& result) const
+      static void GetLevels505(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels506(MultiSample& result) const
+      static void GetLevels506(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels507(MultiSample& result) const
+      static void GetLevels507(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels510(MultiSample& result) const
+      static void GetLevels510(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB;
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels511(MultiSample& result) const
+      static void GetLevels511(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels512(MultiSample& result) const
+      static void GetLevels512(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels513(MultiSample& result) const
+      static void GetLevels513(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels514(MultiSample& result) const
+      static void GetLevels514(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels515(MultiSample& result) const
+      static void GetLevels515(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels516(MultiSample& result) const
+      static void GetLevels516(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels517(MultiSample& result) const
+      static void GetLevels517(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels520(MultiSample& result) const
+      static void GetLevels520(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise;
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels521(MultiSample& result) const
+      static void GetLevels521(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels522(MultiSample& result) const
+      static void GetLevels522(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels523(MultiSample& result) const
+      static void GetLevels523(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels524(MultiSample& result) const
+      static void GetLevels524(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels525(MultiSample& result) const
+      static void GetLevels525(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels526(MultiSample& result) const
+      static void GetLevels526(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels527(MultiSample& result) const
+      static void GetLevels527(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels530(MultiSample& result) const
+      static void GetLevels530(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise;
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels531(MultiSample& result) const
+      static void GetLevels531(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels532(MultiSample& result) const
+      static void GetLevels532(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels533(MultiSample& result) const
+      static void GetLevels533(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels534(MultiSample& result) const
+      static void GetLevels534(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels535(MultiSample& result) const
+      static void GetLevels535(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels536(MultiSample& result) const
+      static void GetLevels536(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels537(MultiSample& result) const
+      static void GetLevels537(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels540(MultiSample& result) const
+      static void GetLevels540(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB;
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels541(MultiSample& result) const
+      static void GetLevels541(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels542(MultiSample& result) const
+      static void GetLevels542(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels543(MultiSample& result) const
+      static void GetLevels543(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels544(MultiSample& result) const
+      static void GetLevels544(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels545(MultiSample& result) const
+      static void GetLevels545(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels546(MultiSample& result) const
+      static void GetLevels546(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels547(MultiSample& result) const
+      static void GetLevels547(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels550(MultiSample& result) const
+      static void GetLevels550(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB;
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels551(MultiSample& result) const
+      static void GetLevels551(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels552(MultiSample& result) const
+      static void GetLevels552(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels553(MultiSample& result) const
+      static void GetLevels553(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels554(MultiSample& result) const
+      static void GetLevels554(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels555(MultiSample& result) const
+      static void GetLevels555(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels556(MultiSample& result) const
+      static void GetLevels556(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels557(MultiSample& result) const
+      static void GetLevels557(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels560(MultiSample& result) const
+      static void GetLevels560(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise;
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels561(MultiSample& result) const
+      static void GetLevels561(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels562(MultiSample& result) const
+      static void GetLevels562(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels563(MultiSample& result) const
+      static void GetLevels563(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels564(MultiSample& result) const
+      static void GetLevels564(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels565(MultiSample& result) const
+      static void GetLevels565(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels566(MultiSample& result) const
+      static void GetLevels566(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels567(MultiSample& result) const
+      static void GetLevels567(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels570(MultiSample& result) const
+      static void GetLevels570(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise;
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels571(MultiSample& result) const
+      static void GetLevels571(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels572(MultiSample& result) const
+      static void GetLevels572(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels573(MultiSample& result) const
+      static void GetLevels573(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels574(MultiSample& result) const
+      static void GetLevels574(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels575(MultiSample& result) const
+      static void GetLevels575(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels576(MultiSample& result) const
+      static void GetLevels576(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels577(MultiSample& result) const
+      static void GetLevels577(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = LevelB & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = self.LevelB & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels600(MultiSample& result) const
+      static void GetLevels600(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels601(MultiSample& result) const
+      static void GetLevels601(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels602(MultiSample& result) const
+      static void GetLevels602(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels603(MultiSample& result) const
+      static void GetLevels603(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels604(MultiSample& result) const
+      static void GetLevels604(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels605(MultiSample& result) const
+      static void GetLevels605(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels606(MultiSample& result) const
+      static void GetLevels606(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels607(MultiSample& result) const
+      static void GetLevels607(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels610(MultiSample& result) const
+      static void GetLevels610(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels611(MultiSample& result) const
+      static void GetLevels611(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels612(MultiSample& result) const
+      static void GetLevels612(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels613(MultiSample& result) const
+      static void GetLevels613(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels614(MultiSample& result) const
+      static void GetLevels614(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels615(MultiSample& result) const
+      static void GetLevels615(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels616(MultiSample& result) const
+      static void GetLevels616(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels617(MultiSample& result) const
+      static void GetLevels617(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels620(MultiSample& result) const
+      static void GetLevels620(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels621(MultiSample& result) const
+      static void GetLevels621(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels622(MultiSample& result) const
+      static void GetLevels622(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels623(MultiSample& result) const
+      static void GetLevels623(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels624(MultiSample& result) const
+      static void GetLevels624(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels625(MultiSample& result) const
+      static void GetLevels625(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels626(MultiSample& result) const
+      static void GetLevels626(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels627(MultiSample& result) const
+      static void GetLevels627(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels630(MultiSample& result) const
+      static void GetLevels630(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels631(MultiSample& result) const
+      static void GetLevels631(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels632(MultiSample& result) const
+      static void GetLevels632(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels633(MultiSample& result) const
+      static void GetLevels633(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels634(MultiSample& result) const
+      static void GetLevels634(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels635(MultiSample& result) const
+      static void GetLevels635(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels636(MultiSample& result) const
+      static void GetLevels636(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels637(MultiSample& result) const
+      static void GetLevels637(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels640(MultiSample& result) const
+      static void GetLevels640(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels641(MultiSample& result) const
+      static void GetLevels641(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels642(MultiSample& result) const
+      static void GetLevels642(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels643(MultiSample& result) const
+      static void GetLevels643(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels644(MultiSample& result) const
+      static void GetLevels644(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels645(MultiSample& result) const
+      static void GetLevels645(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels646(MultiSample& result) const
+      static void GetLevels646(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels647(MultiSample& result) const
+      static void GetLevels647(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels650(MultiSample& result) const
+      static void GetLevels650(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels651(MultiSample& result) const
+      static void GetLevels651(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels652(MultiSample& result) const
+      static void GetLevels652(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels653(MultiSample& result) const
+      static void GetLevels653(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels654(MultiSample& result) const
+      static void GetLevels654(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels655(MultiSample& result) const
+      static void GetLevels655(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels656(MultiSample& result) const
+      static void GetLevels656(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels657(MultiSample& result) const
+      static void GetLevels657(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels660(MultiSample& result) const
+      static void GetLevels660(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels661(MultiSample& result) const
+      static void GetLevels661(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels662(MultiSample& result) const
+      static void GetLevels662(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels663(MultiSample& result) const
+      static void GetLevels663(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels664(MultiSample& result) const
+      static void GetLevels664(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels665(MultiSample& result) const
+      static void GetLevels665(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels666(MultiSample& result) const
+      static void GetLevels666(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels667(MultiSample& result) const
+      static void GetLevels667(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels670(MultiSample& result) const
+      static void GetLevels670(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels671(MultiSample& result) const
+      static void GetLevels671(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels672(MultiSample& result) const
+      static void GetLevels672(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels673(MultiSample& result) const
+      static void GetLevels673(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels674(MultiSample& result) const
+      static void GetLevels674(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels675(MultiSample& result) const
+      static void GetLevels675(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels676(MultiSample& result) const
+      static void GetLevels676(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels677(MultiSample& result) const
+      static void GetLevels677(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = LevelA & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = self.LevelA & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels700(MultiSample& result) const
+      static void GetLevels700(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels701(MultiSample& result) const
+      static void GetLevels701(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels702(MultiSample& result) const
+      static void GetLevels702(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels703(MultiSample& result) const
+      static void GetLevels703(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels704(MultiSample& result) const
+      static void GetLevels704(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels705(MultiSample& result) const
+      static void GetLevels705(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels706(MultiSample& result) const
+      static void GetLevels706(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels707(MultiSample& result) const
+      static void GetLevels707(const AYMDevice& self, MultiSample& result)
       {
         
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels710(MultiSample& result) const
+      static void GetLevels710(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels711(MultiSample& result) const
+      static void GetLevels711(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels712(MultiSample& result) const
+      static void GetLevels712(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels713(MultiSample& result) const
+      static void GetLevels713(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels714(MultiSample& result) const
+      static void GetLevels714(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels715(MultiSample& result) const
+      static void GetLevels715(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels716(MultiSample& result) const
+      static void GetLevels716(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels717(MultiSample& result) const
+      static void GetLevels717(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels720(MultiSample& result) const
+      static void GetLevels720(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels721(MultiSample& result) const
+      static void GetLevels721(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels722(MultiSample& result) const
+      static void GetLevels722(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels723(MultiSample& result) const
+      static void GetLevels723(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels724(MultiSample& result) const
+      static void GetLevels724(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels725(MultiSample& result) const
+      static void GetLevels725(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels726(MultiSample& result) const
+      static void GetLevels726(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels727(MultiSample& result) const
+      static void GetLevels727(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels730(MultiSample& result) const
+      static void GetLevels730(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels731(MultiSample& result) const
+      static void GetLevels731(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels732(MultiSample& result) const
+      static void GetLevels732(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels733(MultiSample& result) const
+      static void GetLevels733(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels734(MultiSample& result) const
+      static void GetLevels734(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels735(MultiSample& result) const
+      static void GetLevels735(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels736(MultiSample& result) const
+      static void GetLevels736(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels737(MultiSample& result) const
+      static void GetLevels737(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels740(MultiSample& result) const
+      static void GetLevels740(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels741(MultiSample& result) const
+      static void GetLevels741(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels742(MultiSample& result) const
+      static void GetLevels742(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels743(MultiSample& result) const
+      static void GetLevels743(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels744(MultiSample& result) const
+      static void GetLevels744(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels745(MultiSample& result) const
+      static void GetLevels745(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels746(MultiSample& result) const
+      static void GetLevels746(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels747(MultiSample& result) const
+      static void GetLevels747(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels750(MultiSample& result) const
+      static void GetLevels750(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels751(MultiSample& result) const
+      static void GetLevels751(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels752(MultiSample& result) const
+      static void GetLevels752(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels753(MultiSample& result) const
+      static void GetLevels753(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels754(MultiSample& result) const
+      static void GetLevels754(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels755(MultiSample& result) const
+      static void GetLevels755(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels756(MultiSample& result) const
+      static void GetLevels756(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels757(MultiSample& result) const
+      static void GetLevels757(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels760(MultiSample& result) const
+      static void GetLevels760(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels761(MultiSample& result) const
+      static void GetLevels761(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels762(MultiSample& result) const
+      static void GetLevels762(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels763(MultiSample& result) const
+      static void GetLevels763(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels764(MultiSample& result) const
+      static void GetLevels764(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels765(MultiSample& result) const
+      static void GetLevels765(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels766(MultiSample& result) const
+      static void GetLevels766(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels767(MultiSample& result) const
+      static void GetLevels767(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels770(MultiSample& result) const
+      static void GetLevels770(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels771(MultiSample& result) const
+      static void GetLevels771(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels772(MultiSample& result) const
+      static void GetLevels772(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels773(MultiSample& result) const
+      static void GetLevels773(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
         const uint_t outC = envelope & noise;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels774(MultiSample& result) const
+      static void GetLevels774(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels775(MultiSample& result) const
+      static void GetLevels775(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
         const uint_t outB = envelope & noise;
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels776(MultiSample& result) const
+      static void GetLevels776(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
         const uint_t outA = envelope & noise;
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
       }
       
-      void GetLevels777(MultiSample& result) const
+      static void GetLevels777(const AYMDevice& self, MultiSample& result)
       {
-        const uint_t noise = GenN.GetLevel();
-        const uint_t envelope = GenE.GetLevel();
-        const uint_t outA = envelope & noise & GenA.GetLevel();
-        const uint_t outB = envelope & noise & GenB.GetLevel();
-        const uint_t outC = envelope & noise & GenC.GetLevel();
-        const VolTable& table = *VolumeTable;
+        const uint_t noise = self.GenN.GetLevel();
+        const uint_t envelope = self.GenE.GetLevel();
+        const uint_t outA = envelope & noise & self.GenA.GetLevel();
+        const uint_t outB = envelope & noise & self.GenB.GetLevel();
+        const uint_t outC = envelope & noise & self.GenC.GetLevel();
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
@@ -7301,8 +7303,8 @@ namespace Devices
       uint_t LevelB;
       uint_t LevelC;
       const VolTable* VolumeTable;
-      uint_t State;
-      typedef void (AYMDevice::*GetLevelsFuncType)(MultiSample& result) const;
+      uint_t GeneratorIndex;
+      typedef void (*GetLevelsFuncType)(const AYMDevice& self, MultiSample& result);
       GetLevelsFuncType GetLevelsFunc;
     };
   }

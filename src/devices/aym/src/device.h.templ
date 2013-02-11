@@ -30,9 +30,9 @@ namespace Devices
       AYMDevice()
         : LevelA(), LevelB(), LevelC()
         , VolumeTable(&GetAY38910VolTable())
-        , State()
-        , GetLevelsFunc(&AYMDevice::GetLevels000)
+        , GeneratorIndex(0)
       {
+        UpdateGenerator();
       }
 
       void SetVolumeTable(const VolTable& table)
@@ -53,8 +53,8 @@ namespace Devices
       {
         const uint_t mixMask = DataChunk::REG_MASK_TONEA | DataChunk::REG_MASK_TONEB | DataChunk::REG_MASK_TONEC | 
           DataChunk::REG_MASK_NOISEA | DataChunk::REG_MASK_NOISEB | DataChunk::REG_MASK_NOISEC;
-        State = (State & ~mixMask) | (~mixer & mixMask);
-        ApplyState();
+        GeneratorIndex = (GeneratorIndex & ~mixMask) | (~mixer & mixMask);
+        UpdateGenerator();
       }
 
       void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE)
@@ -69,6 +69,7 @@ namespace Devices
       void SetEnvType(uint_t type)
       {
         GenE.SetType(type);
+        UpdateGenerator();
       }
 
       void SetLevel(uint_t levelA, uint_t levelB, uint_t levelC)
@@ -82,8 +83,8 @@ namespace Devices
           (0 != (levelB & DataChunk::REG_MASK_ENV) ? 128 : 0) |
           (0 != (levelC & DataChunk::REG_MASK_ENV) ? 256 : 0)
         ;
-        State = (State & ~envMask) | envFlags;
-        ApplyState();
+        GeneratorIndex = (GeneratorIndex & ~envMask) | envFlags;
+        UpdateGenerator();
       }
 
       void Reset()
@@ -95,8 +96,8 @@ namespace Devices
         GenE.Reset();
         LevelA = LevelB = LevelC = 0;
         VolumeTable = &GetAY38910VolTable();
-        State = 0;
-        GetLevelsFunc = &AYMDevice::GetLevels000;
+        GeneratorIndex = 0;
+        UpdateGenerator();
       }
 
       void Tick(uint_t ticks)
@@ -110,28 +111,29 @@ namespace Devices
 
       void GetLevels(MultiSample& result) const
       {
-        (this->*GetLevelsFunc)(result);
+        (*GetLevelsFunc)(*this, result);
       }
     private:
-      void ApplyState()
+      void UpdateGenerator()
       {
         static const GetLevelsFuncType FUNCTIONS[] =
         {
-          <TMPL_LOOP NAME=FUNCTIONS>&AYMDevice::<TMPL_VAR NAME=NAME>,
+          <TMPL_LOOP NAME=FUNCTIONS>&<TMPL_VAR NAME=NAME>,
           </TMPL_LOOP>
         };
-        GetLevelsFunc = FUNCTIONS[State];
+        const uint_t realGenerator = GenE.Stopped() ? (GeneratorIndex & 63) : GeneratorIndex;
+        GetLevelsFunc = FUNCTIONS[realGenerator];
       }
 
       <TMPL_LOOP NAME=FUNCTIONS>
-      void <TMPL_VAR NAME=NAME>(MultiSample& result) const
+      static void <TMPL_VAR NAME=NAME>(const AYMDevice& self, MultiSample& result)
       {
         <TMPL_VAR NAME=NOISE>
         <TMPL_VAR NAME=ENVELOPE>
         const uint_t outA = <TMPL_VAR NAME=OUTA>;
         const uint_t outB = <TMPL_VAR NAME=OUTB>;
         const uint_t outC = <TMPL_VAR NAME=OUTC>;
-        const VolTable& table = *VolumeTable;
+        const VolTable& table = *self.VolumeTable;
         result[0] = table[outA];
         result[1] = table[outB];
         result[2] = table[outC];
@@ -147,8 +149,8 @@ namespace Devices
       uint_t LevelB;
       uint_t LevelC;
       const VolTable* VolumeTable;
-      uint_t State;
-      typedef void (AYMDevice::*GetLevelsFuncType)(MultiSample& result) const;
+      uint_t GeneratorIndex;
+      typedef void (*GetLevelsFuncType)(const AYMDevice& self, MultiSample& result);
       GetLevelsFuncType GetLevelsFunc;
     };
   }
