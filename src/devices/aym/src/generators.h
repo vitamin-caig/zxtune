@@ -138,10 +138,9 @@ namespace Devices
     class CountingGenerator : public Generator
     {
     public:
-      //for counting generators use duty cycle >= 50% for valid periods calculating
-      void SetDutyCycle(uint_t dutyCycle)
+      //do not use duty cycle for counting generators
+      void SetDutyCycle(uint_t /*dutyCycle*/)
       {
-        Generator::SetDutyCycle(std::max(dutyCycle, MAX_DUTYCYCLE - dutyCycle));
       }
     protected:
       uint_t GetPeriodsPassed() const
@@ -169,9 +168,8 @@ namespace Devices
         }
         if (Counter >= MiddlePeriod)
         {
-          //additional 'modulo' to take into account half of period
           ++res;
-          Counter = MiddlePeriod - (DoublePeriod - Counter);
+          Counter -= MiddlePeriod;
         }
         return res;
       }
@@ -180,16 +178,35 @@ namespace Devices
     class ToneGenerator : public FlipFlopGenerator
     {
     public:
+      ToneGenerator()
+        : Masked(true)
+      {
+      }
+
+      void Reset()
+      {
+        Masked = true;
+        FlipFlopGenerator::Reset();
+      }
+
       void SetPeriod(uint_t period)
       {
         GetFlip();
         FlipFlopGenerator::SetPeriod(period);
       }
 
+      void SetMasked(bool masked)
+      {
+        Masked = masked;
+      }
+
+      template<uint_t Lo, uint_t Hi>
       uint_t GetLevel() const
       {
-        return GetFlip() ? HIGH_LEVEL : LOW_LEVEL;
+        return Masked || GetFlip() ? Hi : Lo;
       }
+    private:
+      bool Masked;
     };
 
     class NoiseGenerator : public CountingGenerator
@@ -225,7 +242,6 @@ namespace Devices
       }
     private:
       mutable uint_t Index;
-      bool Masked;
     };
 
     class EnvelopeGenerator : public CountingGenerator
@@ -273,17 +289,15 @@ namespace Devices
         Update();
         return Level;
       }
-
-      bool Stopped() const
-      {
-        return Decay == 0;
-      }
     private:
       void Update() const
       {
-        for (uint_t rounds = GetPeriodsPassed(); rounds && Decay; --rounds)
+        if (Decay)
         {
-          UpdateStep();
+          for (uint_t rounds = GetPeriodsPassed(); rounds && Decay; --rounds)
+          {
+            UpdateStep();
+          }
         }
       }
 
