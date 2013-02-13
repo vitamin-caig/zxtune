@@ -11,11 +11,9 @@ include_dirs += $(ui_dir)
 qrc_sources = $(qrc_files:=.qrc)
 generated_sources += $(qrc_sources)
 
-prebuilt_dir ?= $(path_step)/../Build
-
 ifneq ($($(platform).$(arch).qt.version),)
 qt.version = $($(platform).$(arch).qt.version)
-qt.dir = $(prebuilt_dir)/qt-$(qt.version)-$(platform)-$(arch)
+qt.dir = $(prebuilt.dir)/qt-$(qt.version)-$(platform)-$(arch)
 include_dirs += $(qt.dir)/include
 $(platform)_libraries_dirs += $(qt.dir)/lib
 qt.bin = $(qt.dir)/bin/

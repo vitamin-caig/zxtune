@@ -1,10 +1,10 @@
 #basic definitions for tools
-CXX ?= g++
-CC ?= gcc
-LDD ?= g++
-AR ?= ar
-OBJCOPY ?= objcopy
-STRIP ?= strip
+tool.cxx = $($(platform).$(arch).execprefix)g++
+tool.cc = $($(platform).$(arch).execprefix)gcc
+tool.ld ?= $($(platform).$(arch).execprefix)g++
+tool.ar ?= $($(platform).$(arch).execprefix)ar
+tool.objcopy ?= $($(platform).$(arch).execprefix)objcopy
+tool.strip ?= $($(platform).$(arch).execprefix)strip
 
 LINKER_BEGIN_GROUP ?= -Wl,'-('
 LINKER_END_GROUP ?= -Wl,'-)'
@@ -22,6 +22,9 @@ CXX_MODE_FLAGS += -pg
 LD_MODE_FLAGS += -pg
 else
 CXX_MODE_FLAGS += -fdata-sections -ffunction-sections
+ifdef release
+LD_MODE_FLAGS += -Wl,-O3,-x,--gc-sections,--relax
+endif
 endif
 
 #setup PIC code
@@ -43,23 +46,23 @@ DEFINITIONS = $(defines) $($(platform)_definitions)
 INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 
 #setup flags
-CCFLAGS = -g $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
-	$(addprefix -D,$(DEFINITIONS)) \
+CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
+	$(addprefix -D,$(DEFINITIONS) $($(platform).definitions) $($(platform).$(arch).definitions)) \
 	-funsigned-char -fno-strict-aliasing \
 	-W -Wall -Wextra -pipe \
 	$(addprefix -I,$(INCLUDES))
 
-CXXFLAGS = $(CCFLAGS) -ansi
+CXXFLAGS = $(CCFLAGS) -ansi -fvisibility=hidden -fvisibility-inlines-hidden
 
 ARFLAGS := crus
-LDFLAGS = $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags)
+LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)
 
 #specify endpoint commands
-build_obj_cmd_nodeps = $(CXX) $(CXXFLAGS) -c $1 -o $2
+build_obj_cmd_nodeps = $(tool.cxx) $(CXXFLAGS) -c $1 -o $2
 build_obj_cmd = $(build_obj_cmd_nodeps) -MMD
-build_obj_cmd_cc = $(CC) $(CCFLAGS) -c $1 -o $2
-build_lib_cmd = $(AR) $(ARFLAGS) $2 $1
-link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
+build_obj_cmd_cc = $(tool.cc) $(CCFLAGS) -c $1 -o $2
+build_lib_cmd = $(tool.ar) $(ARFLAGS) $2 $1
+link_cmd = $(tool.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 	$(if $(libraries),-L$(libs_dir)\
           $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP),)\
         $(addprefix -L,$($(platform)_libraries_dirs))\
@@ -67,9 +70,9 @@ link_cmd = $(LDD) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
 #specify postlink command- generate pdb file
-postlink_cmd = $(OBJCOPY) --only-keep-debug $@ $@.pdb && \
-	$(OBJCOPY) --strip-all $@ && \
-	$(OBJCOPY) --add-gnu-debuglink=$@.pdb $@
+postlink_cmd = $(tool.objcopy) --only-keep-debug $@ $@.pdb && \
+	$(tool.objcopy) --strip-all $@ && \
+	$(tool.objcopy) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies
 include $(wildcard $(objects_dir)/*.d)

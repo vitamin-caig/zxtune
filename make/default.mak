@@ -1,8 +1,12 @@
 #set default parameters
 
-#guess platform if not set
-platform ?= $(if $(MINGW_DIR),mingw,$(if $(VS_PATH),windows,linux))
-#set architecture from environment
-arch ?= $(BUILD_ARCH)
+ifndef platform
+$(error Required to define 'platform=windows/mingw/linux/dingux/etc')
+endif
+
+ifndef arch
+$(error Required to define 'arch=x86/x86_64/arm/armhf/mipsel/etc')
+endif
+
 #default language
 pkg_lang ?= en

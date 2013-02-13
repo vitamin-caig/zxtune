@@ -9,7 +9,7 @@ package_rpi:
 $(pkg_file): | $(pkg_root)
 	@$(call showtime_cmd)
 	$(MAKE) DESTDIR=$(pkg_root) install
-	(cd $(pkg_root) && zip -9rD $(CURDIR)/$@ .)
+	(cd $(pkg_root) && $(tools.root)zip -9rD $(CURDIR)/$@ .)
 	$(call rmdir_cmd,$(pkg_root))
 
 $(pkg_root):

@@ -1,6 +1,4 @@
 :: checking for textator
-textator --version > NUL || GOTO Error
-zip -v > NUL || GOTO Error
 
 ECHO Updating
 svn up > NUL || GOTO Error
