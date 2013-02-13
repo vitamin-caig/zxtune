@@ -149,25 +149,25 @@ namespace ZXTune
   namespace Sound
   {
     template<>
-    typename FixedChannelsMatrixMixer<1>::Ptr FixedChannelsMatrixMixer<1>::Create()
+    FixedChannelsMatrixMixer<1>::Ptr FixedChannelsMatrixMixer<1>::Create()
     {
       return boost::make_shared<FastMixer<1> >();
     }
 
     template<>
-    typename FixedChannelsMatrixMixer<2>::Ptr FixedChannelsMatrixMixer<2>::Create()
+    FixedChannelsMatrixMixer<2>::Ptr FixedChannelsMatrixMixer<2>::Create()
     {
       return boost::make_shared<FastMixer<2> >();
     }
 
     template<>
-    typename FixedChannelsMatrixMixer<3>::Ptr FixedChannelsMatrixMixer<3>::Create()
+    FixedChannelsMatrixMixer<3>::Ptr FixedChannelsMatrixMixer<3>::Create()
     {
       return boost::make_shared<FastMixer<3> >();
     }
 
     template<>
-    typename FixedChannelsMatrixMixer<4>::Ptr FixedChannelsMatrixMixer<4>::Create()
+    FixedChannelsMatrixMixer<4>::Ptr FixedChannelsMatrixMixer<4>::Create()
     {
       return boost::make_shared<FastMixer<4> >();
     }

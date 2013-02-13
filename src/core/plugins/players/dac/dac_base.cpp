@@ -135,13 +135,13 @@ namespace ZXTune
       }
 
       template<>
-      Devices::DAC::Receiver::Ptr CreateReceiver<3>(typename Sound::FixedChannelsReceiver<3>::Ptr target)
+      Devices::DAC::Receiver::Ptr CreateReceiver<3>(Sound::FixedChannelsReceiver<3>::Ptr target)
       {
         return boost::make_shared<DACReceiver<3> >(target);
       }
 
       template<>
-      Devices::DAC::Receiver::Ptr CreateReceiver<4>(typename Sound::FixedChannelsReceiver<4>::Ptr target)
+      Devices::DAC::Receiver::Ptr CreateReceiver<4>(Sound::FixedChannelsReceiver<4>::Ptr target)
       {
         return boost::make_shared<DACReceiver<4> >(target);
       }
