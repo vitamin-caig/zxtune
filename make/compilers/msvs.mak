@@ -22,7 +22,7 @@ INCLUDES = $(include_dirs) $($(platform)_include_dirs)
 windows_libraries += kernel32 $(addsuffix $(if $(release),,d), msvcrt msvcprt)
 
 #setup flags
-CXXFLAGS = /nologo /c $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
+CXXFLAGS = /nologo /c $(CXX_MODE_FLAGS) $(cxx_flags) \
 	/W3 \
 	$(addprefix /D, $(DEFINITIONS)) \
 	/J /Zc:wchar_t,forScope /Z7 /Zl /EHsc \
@@ -44,6 +44,7 @@ build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
 link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),)\
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
+	$(addprefix /LIBPATH:,$($(platform)_libraries_dirs))\
 	$(addsuffix .lib,$(sort $($(platform)_libraries)))\
 	/PDB:$@.pdb
 

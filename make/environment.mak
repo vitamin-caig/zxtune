@@ -93,3 +93,11 @@ mingw.x86_64.boost.version = 1.49.0
 mingw.x86_64.qt.version = 4.8.1
 mingw.x86_64.cxx.flags = -m64
 mingw.x86_64.ld.flags = -m64
+
+#windows
+# x86
+windows.x86.boost.version = 1.49.0
+windows.x86.qt.version = 4.8.1
+# x86_64
+windows.x86_64.boost.version = 1.49.0
+windows.x86_64.qt.version = 4.8.1

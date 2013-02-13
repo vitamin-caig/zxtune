@@ -497,7 +497,7 @@ namespace
     {
       const Sound::ThreeChannelsMixer::Ptr mixer = Sound::CreateThreeChannelsMixer(params);
       mixer->SetTarget(target);
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver<DMM::CHANNELS_COUNT>(mixer);
+      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DMM::CHANNELS_COUNT, DMM::BASE_FREQ, chipParams, receiver));
       for (std::size_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)

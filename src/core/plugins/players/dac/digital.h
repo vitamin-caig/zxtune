@@ -264,7 +264,7 @@ namespace ZXTune
           {
             const typename Sound::FixedChannelsMixer<Channels>::Ptr mixer = Sound::CreateMixer(params, Sound::FixedChannelsSample<Channels>());
             mixer->SetTarget(target);
-            const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver<Channels>(mixer);
+            const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
             const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
             const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(Channels, BaseFreq, chipParams, receiver));
             for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
