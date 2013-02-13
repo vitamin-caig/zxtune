@@ -1,10 +1,10 @@
 #basic definitions for tools
-tool.cxx = $($(platform).$(arch).execprefix)g++
-tool.cc = $($(platform).$(arch).execprefix)gcc
-tool.ld ?= $($(platform).$(arch).execprefix)g++
-tool.ar ?= $($(platform).$(arch).execprefix)ar
-tool.objcopy ?= $($(platform).$(arch).execprefix)objcopy
-tool.strip ?= $($(platform).$(arch).execprefix)strip
+tools.cxx = $($(platform).$(arch).execprefix)g++
+tools.cc = $($(platform).$(arch).execprefix)gcc
+tools.ld ?= $($(platform).$(arch).execprefix)g++
+tools.ar ?= $($(platform).$(arch).execprefix)ar
+tools.objcopy ?= $($(platform).$(arch).execprefix)objcopy
+tools.strip ?= $($(platform).$(arch).execprefix)strip
 
 LINKER_BEGIN_GROUP ?= -Wl,'-('
 LINKER_END_GROUP ?= -Wl,'-)'
@@ -58,11 +58,11 @@ ARFLAGS := crus
 LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)
 
 #specify endpoint commands
-build_obj_cmd_nodeps = $(tool.cxx) $(CXXFLAGS) -c $1 -o $2
+build_obj_cmd_nodeps = $(tools.cxx) $(CXXFLAGS) -c $1 -o $2
 build_obj_cmd = $(build_obj_cmd_nodeps) -MMD
-build_obj_cmd_cc = $(tool.cc) $(CCFLAGS) -c $1 -o $2
-build_lib_cmd = $(tool.ar) $(ARFLAGS) $2 $1
-link_cmd = $(tool.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
+build_obj_cmd_cc = $(tools.cc) $(CCFLAGS) -c $1 -o $2
+build_lib_cmd = $(tools.ar) $(ARFLAGS) $2 $1
+link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 	$(if $(libraries),-L$(libs_dir)\
           $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP),)\
         $(addprefix -L,$($(platform)_libraries_dirs))\
@@ -70,9 +70,9 @@ link_cmd = $(tool.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
 #specify postlink command- generate pdb file
-postlink_cmd = $(tool.objcopy) --only-keep-debug $@ $@.pdb && \
-	$(tool.objcopy) --strip-all $@ && \
-	$(tool.objcopy) --add-gnu-debuglink=$@.pdb $@
+postlink_cmd = $(tools.objcopy) --only-keep-debug $@ $@.pdb && \
+	$(tools.objcopy) --strip-all $@ && \
+	$(tools.objcopy) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies
 include $(wildcard $(objects_dir)/*.d)

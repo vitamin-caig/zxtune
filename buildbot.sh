@@ -12,7 +12,6 @@ svn up > /dev/null || (echo "Failed to update" && exit 1)
 
 LastPlatform=
 LastArch=
-LastPackaging=
 LastDistro=
 
 for mode in ${build_modes}
@@ -30,6 +29,5 @@ do
   skip_clearing=${skip_clearing} no_debuginfo=${no_debuginfo} ./build.sh ${mode} "${build_targets}" || exit 1
   LastPlatform=${Platform}
   LastArch=${Arch}
-  LastPackaging=${Packaging}
   LastDistro=${Distro}
 done
