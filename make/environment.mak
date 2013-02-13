@@ -1,6 +1,3 @@
-#apply optional local settings
--include $(path_step)/variables.mak
-
 #apply default values
 toolchains.root ?= /opt
 prebuilt.dir ?= $(path_step)/../Build
