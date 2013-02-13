@@ -106,7 +106,7 @@ namespace
     
     virtual void MoveBackendUp()
     {
-      if (int row = backendsList->currentRow())
+      if (const int row = backendsList->currentRow())
       {
         SwapItems(row, row - 1);
         backendsList->setCurrentRow(row - 1);
@@ -116,7 +116,7 @@ namespace
     virtual void MoveBackendDown()
     {
       const int row = backendsList->currentRow();
-      if (Math::InRange<int>(row, 0, Backends.size() - 1))
+      if (Math::InRange(row, 0, int(Backends.size() - 2)))
       {
         SwapItems(row, row + 1);
         backendsList->setCurrentRow(row + 1);
