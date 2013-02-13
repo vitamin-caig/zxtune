@@ -373,6 +373,12 @@ namespace
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params, hwParams.get(), THIS_LINE);
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_prepare, THIS_LINE);
 
+      OutputSample out;
+      out.assign(SAMPLE_MID);
+      Chunk silence(minBufSize);
+      std::fill(silence.begin(), silence.end(), out);
+      Write(silence);
+
       CanPause = Api->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
       Dbg(CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
       ChangeSign = fmt.ChangeSign();
