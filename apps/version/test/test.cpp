@@ -8,8 +8,5 @@ namespace Text
 
 int main()
 {
-  std::cout <<
-    "Platform: " << GetBuildPlatform() << std::endl <<
-    "Arch: " << GetBuildArchitecture() << std::endl
-  ;
+  std::cout << GetProgramVersionString() << std::endl;
 }

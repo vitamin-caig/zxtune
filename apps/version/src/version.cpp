@@ -54,21 +54,27 @@ namespace
 
 //detect arch
 #if defined(_M_IX86) || defined(__i386__)
-  const std::string ARCH("x86");
+  #include "x86.h"
 #elif defined(_M_AMD64) || defined(__amd64__)
   const std::string ARCH("x86_64");
+  const std::string ARCH_VERSION;
 #elif defined(_M_IA64) || defined(__ia64__)
   const std::string ARCH("ia64");
+  const std::string ARCH_VERSION;
 #elif defined(_M_ARM) || defined(__arm__)
   #include "arm.h"
 #elif defined(_MIPSEL)
   const std::string ARCH("mipsel");
+  const std::string ARCH_VERSION;
 #elif defined(__powerpc64__)
   const std::string ARCH("ppc64");
+  const std::string ARCH_VERSION;
 #elif defined(_M_PPC) || defined(__powerpc__)
   const std::string ARCH("ppc");
+  const std::string ARCH_VERSION;
 #else
   const std::string ARCH("unknown-arch");
+  const std::string ARCH_VERSION;
 #endif
 
 //detect toolset
@@ -159,6 +165,11 @@ String GetBuildArchitecture()
   return FromStdString(ARCH);
 }
 
+String GetBuildArchitectureVersion()
+{
+  return FromStdString(ARCH_VERSION);
+}
+
 String GetProgramVersionString()
 {
   return Strings::Format(Text::PROGRAM_VERSION_STRING,
@@ -166,7 +177,8 @@ String GetProgramVersionString()
     GetProgramVersion(),
     GetBuildDate(),
     GetBuildPlatform(),
-    GetBuildArchitecture());
+    GetBuildArchitecture(),
+    GetBuildArchitectureVersion());
 }
 
 std::auto_ptr<Strings::FieldsSource> CreateVersionFieldsSource()
