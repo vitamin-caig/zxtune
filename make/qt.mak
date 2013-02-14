@@ -11,6 +11,10 @@ include_dirs += $(ui_dir)
 qrc_sources = $(qrc_files:=.qrc)
 generated_sources += $(qrc_sources)
 
+ifdef release
+defines += QT_NO_DEBUG
+endif
+
 ifndef distro
 qt.version = $($(platform).$(arch).qt.version)
 endif
