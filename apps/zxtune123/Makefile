@@ -105,5 +105,7 @@ $(pkg_root)/gmenu.cfg:
 
 include $(path_step)/samples/samples.mak
 
+ifdef tools.textator
 dist/$(manual_file): dist/$(binary_name).txt
-	$(TEXTATOR) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<
+	$(tools.textator) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<
+endif

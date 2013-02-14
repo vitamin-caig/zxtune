@@ -7,8 +7,8 @@
 
 #markup
 = HEADER
-txt> "$Revision$\n"
-html> "<html>\n<head>\n<title>$Revision$</title></head>\n<body>"
+txt> ""
+html> "<html>\n<body>"
 
 = FOOTER
 txt> ""
