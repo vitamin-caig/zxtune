@@ -44,14 +44,14 @@ dingux.mipsel.definitions = 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))
 linux.i686.boost.version = 1.49.0
 linux.i686.boost.libs.model = -mt
 linux.i686.qt.version = 4.8.1
-linux.i686.cxx.flags = -march=i686 -mtune=generic -m32 -mmmx
+linux.i686.cxx.flags = -march=i686 -m32 -mmmx
 linux.i686.ld.flags = -m32
 
 #linux.x86_64
 linux.x86_64.boost.version = 1.49.0
 linux.x86_64.boost.libs.model = -mt
 linux.x86_64.qt.version = 4.8.1
-linux.x86_64.cxx.flags = -march=x86_64 -mtune=generic -m64 -mmmx
+linux.x86_64.cxx.flags = -m64 -mmmx
 linux.x86_64.ld.flags = -m64
 
 #linux arm

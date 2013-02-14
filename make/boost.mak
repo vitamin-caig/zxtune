@@ -1,5 +1,7 @@
 ifndef distro
 boost.version = $($(platform).$(arch).boost.version)
+else
+$(platform).$(arch).boost.libs.model =
 endif
 
 ifneq ($(boost.version),)
