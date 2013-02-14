@@ -72,7 +72,7 @@ link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 #specify postlink command- generate pdb file
 postlink_cmd = $(tools.objcopy) --only-keep-debug $@ $@.pdb && \
 	$(tools.objcopy) --strip-all $@ && \
-	$(tools.objcopy) --add-gnu-debuglink=$(notdir $@.pdb) $@
+	$(tools.objcopy) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies
 include $(wildcard $(objects_dir)/*.d)
