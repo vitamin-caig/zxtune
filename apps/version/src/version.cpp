@@ -60,7 +60,7 @@ namespace
 #elif defined(_M_IA64) || defined(__ia64__)
   const std::string ARCH("ia64");
 #elif defined(_M_ARM) || defined(__arm__)
-  const std::string ARCH("arm");
+  #include "arm.h"
 #elif defined(_MIPSEL)
   const std::string ARCH("mipsel");
 #elif defined(__powerpc64__)
