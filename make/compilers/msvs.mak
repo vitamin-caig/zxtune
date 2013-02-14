@@ -46,6 +46,6 @@ link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
 	$(addprefix /LIBPATH:,$($(platform)_libraries_dirs))\
 	$(addsuffix .lib,$(sort $($(platform)_libraries)))\
-	/PDB:$@.pdb
+	/PDB:$@.pdb /PDBPATH:none
 
 postlink_cmd = mt.exe -manifest $@.manifest -outputresource:$@ || ECHO No manifest
