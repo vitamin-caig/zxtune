@@ -65,6 +65,10 @@ namespace
       {
         return Product::Release::ARM;
       }
+      else if (txt == "armhf")
+      {
+        return Product::Release::ARMHF;
+      }
       else if (txt == "mipsel")
       {
         return Product::Release::MIPSEL;
@@ -136,6 +140,7 @@ namespace
     {Update::LINUX_X86,        Release::LINUX,   Release::X86,    Update::TARGZ},
     {Update::LINUX_X86_64,     Release::LINUX,   Release::X86_64, Update::TARGZ},
     {Update::LINUX_ARM,        Release::LINUX,   Release::ARM,    Update::TARGZ},
+    {Update::LINUX_ARMHF,      Release::LINUX,   Release::ARMHF,  Update::TARGZ},
     {Update::DINGUX_MIPSEL,    Release::DINGUX,  Release::MIPSEL, Update::TARGZ},
     {Update::ARCHLINUX_X86,    Release::LINUX,   Release::X86,    Update::TARXZ},
     {Update::ARCHLINUX_X86_64, Release::LINUX,   Release::X86_64, Update::TARXZ},

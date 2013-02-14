@@ -46,6 +46,7 @@ namespace Product
       X86,
       X86_64,
       ARM,
+      ARMHF,
       MIPSEL,
     };
 
@@ -80,6 +81,7 @@ namespace Product
       LINUX_X86,
       LINUX_X86_64,
       LINUX_ARM,
+      LINUX_ARMHF,
       DINGUX_MIPSEL,
       ARCHLINUX_X86,
       ARCHLINUX_X86_64,

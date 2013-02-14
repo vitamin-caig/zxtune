@@ -45,6 +45,7 @@ namespace
   const QLatin1String PLATFORM_X86("Platform-x86");
   const QLatin1String PLATFORM_X86_64("Platform-x86_64");
   const QLatin1String PLATFORM_ARM("Platform-arm");
+  const QLatin1String PLATFORM_ARMHF("Platform-armhf");
   const QLatin1String PLATFORM_MIPSEL("Platform-mipsel");
 
   const QLatin1String TYPE_ZIP(".zip");
@@ -99,6 +100,11 @@ namespace
       else if (Entry.HtmlContent.contains(PLATFORM_X86))
       {
         return Product::Release::X86;
+      }
+      //check armhf first
+      else if (Entry.HtmlContent.contains(PLATFORM_ARMHF))
+      {
+        return Product::Release::ARMHF;
       }
       else if (Entry.HtmlContent.contains(PLATFORM_ARM))
       {
