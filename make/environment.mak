@@ -36,8 +36,7 @@ dingux.mipsel.toolchain = $(toolchains.root)/mipsel-linux-uclibc
 dingux.mipsel.execprefix = $(dingux.mipsel.toolchain)/usr/bin/mipsel-linux-
 dingux.mipsel.boost.version = 1.49.0
 dingux.mipsel.qt.version = 4.7.1
-dingux.mipsel.cxx.flags = --sysroot=$(dingux.mipsel.toolchain) -B$(dingux.mipsel.toolchain) -mips32
-dingux.mipsel.ld.flags = --sysroot=$(dingux.mipsel.toolchain)
+dingux.mipsel.cxx.flags = -mips32
 dingux.mipsel.definitions = 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' 'BOOST_FILESYSTEM_VERSION=2'
 
 #linux.i686
