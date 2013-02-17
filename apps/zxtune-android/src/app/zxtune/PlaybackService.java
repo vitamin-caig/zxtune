@@ -52,7 +52,7 @@ public class PlaybackService extends Service {
   public int onStartCommand(Intent intent, int flags, int startId) {
     final String action = intent != null ? intent.getAction() : null;
     if (action != null && action.equals(Intent.ACTION_VIEW)) {
-      final String fileName = Uri.parse(intent.toUri(0)).getPath();
+      final String fileName = Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)).getPath();
       if (fileName.length() != 0) {
         ctrl.open(fileName);
       }
