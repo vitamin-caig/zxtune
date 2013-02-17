@@ -6,6 +6,8 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Build;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -52,6 +54,7 @@ public class MainActivity extends Activity {
 
   private class TestsTask extends AsyncTask<Void, String, Void> {
 
+    private PowerManager.WakeLock lock;
     private String LastCategory;
 
     @Override
@@ -59,15 +62,10 @@ public class MainActivity extends Activity {
       super.onPreExecute();
       ((Button)findViewById(R.id.test_start)).setEnabled(false);
       Report.clear();
-      try {
-        final PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
-        Report.add(String.format("Benchmark %s (%d)", info.versionName, info.versionCode));
-      }
-      catch (NameNotFoundException e) {
-        Report.add("Unknown version of program!");
-      }
-      Report.add(String.format("Android %s (%s-%s)", Build.VERSION.RELEASE, Build.VERSION.INCREMENTAL, Build.VERSION.CODENAME));
-      Report.add(String.format("Device %s (%s/%s)", Build.MODEL, Build.CPU_ABI, Build.CPU_ABI2));
+      fillEnvironmentReport();
+      final PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+      lock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, TAG);
+      lock.acquire();
     }
 
     @Override
@@ -86,6 +84,19 @@ public class MainActivity extends Activity {
     protected void onPostExecute(Void result) {
       super.onPostExecute(result);
       ((Button)findViewById(R.id.test_start)).setEnabled(true);
+      lock.release();
+    }
+
+    private void fillEnvironmentReport() {
+      try {
+        final PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+        Report.add(String.format("Benchmark %s (%d)", info.versionName, info.versionCode));
+      }
+      catch (NameNotFoundException e) {
+        Report.add("Unknown version of program!");
+      }
+      Report.add(String.format("Android %s (%s-%s)", Build.VERSION.RELEASE, Build.VERSION.INCREMENTAL, Build.VERSION.CODENAME));
+      Report.add(String.format("Device %s (%s/%s)", Build.MODEL, Build.CPU_ABI, Build.CPU_ABI2));
     }
 
     private class TestsVisitor implements Benchmark.TestVisitor {
