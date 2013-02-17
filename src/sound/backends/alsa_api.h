@@ -54,9 +54,6 @@ namespace ZXTune
         virtual int snd_pcm_pause (snd_pcm_t *pcm, int enable) = 0;
         virtual int snd_pcm_drain (snd_pcm_t *pcm) = 0;
         virtual snd_pcm_sframes_t snd_pcm_writei (snd_pcm_t *pcm, const void *buffer, snd_pcm_uframes_t size) = 0;
-        virtual int snd_pcm_poll_descriptors_count (snd_pcm_t *pcm) = 0;
-        virtual int snd_pcm_poll_descriptors (snd_pcm_t *pcm, struct pollfd * pfds, unsigned int space) = 0;
-        virtual int snd_pcm_poll_descriptors_revents (snd_pcm_t *pcm, struct pollfd *pfds, unsigned int nfds, unsigned short *revents) = 0;
         virtual int snd_pcm_format_mask_malloc (snd_pcm_format_mask_t ** ptr) = 0;
         virtual void snd_pcm_format_mask_free (snd_pcm_format_mask_t * obj) = 0;
         virtual int snd_pcm_format_mask_test (const snd_pcm_format_mask_t *mask, snd_pcm_format_t val) = 0;

@@ -248,30 +248,6 @@ namespace
       return func(pcm, buffer, size);
     }
     
-    virtual int snd_pcm_poll_descriptors_count (snd_pcm_t *pcm)
-    {
-      static const char NAME[] = "snd_pcm_poll_descriptors_count";
-      typedef int ( *FunctionType)(snd_pcm_t *);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm);
-    }
-    
-    virtual int snd_pcm_poll_descriptors (snd_pcm_t *pcm, struct pollfd * pfds, unsigned int space)
-    {
-      static const char NAME[] = "snd_pcm_poll_descriptors";
-      typedef int ( *FunctionType)(snd_pcm_t *, struct pollfd *, unsigned int);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, pfds, space);
-    }
-    
-    virtual int snd_pcm_poll_descriptors_revents (snd_pcm_t *pcm, struct pollfd *pfds, unsigned int nfds, unsigned short *revents)
-    {
-      static const char NAME[] = "snd_pcm_poll_descriptors_revents";
-      typedef int ( *FunctionType)(snd_pcm_t *, struct pollfd *, unsigned int, unsigned short *);
-      const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
-      return func(pcm, pfds, nfds, revents);
-    }
-    
     virtual int snd_pcm_format_mask_malloc (snd_pcm_format_mask_t ** ptr)
     {
       static const char NAME[] = "snd_pcm_format_mask_malloc";

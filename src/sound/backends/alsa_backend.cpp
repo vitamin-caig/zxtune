@@ -246,9 +246,7 @@ namespace
       Require(Handle == 0);
       Dbg("Opening PCM device '%1%'", Name);
       CheckResult(Api->snd_pcm_open(&Handle, Name.c_str(),
-        SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK), THIS_LINE);
-      PollFds.resize(Api->snd_pcm_poll_descriptors_count(Handle));
-      CheckedCall(&Alsa::Api::snd_pcm_poll_descriptors, &PollFds[0], unsigned(PollFds.size()), THIS_LINE);
+        SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
     }
     
     void Close()
@@ -263,41 +261,24 @@ namespace
       }
     }
 
-    std::size_t WriteAsync(const OutputSample* data, std::size_t size)
+    void Write(Chunk& buffer)
     {
-      for (;;)
+      const OutputSample* data = &buffer[0];
+      std::size_t size = buffer.size();
+      while (size)
       {
         const snd_pcm_sframes_t res = Api->snd_pcm_writei(Handle, data, size);
-        if (-EAGAIN == res)
+        if (res < 0)
         {
-          WaitForReady();
+          CheckedCall(&Alsa::Api::snd_pcm_prepare, THIS_LINE);
           continue;
         }
-        CheckResult(res, THIS_LINE);
-        return res;
-      }
-    }
-  private:
-    void WaitForReady()
-    {
-      for (;;)
-      {
-        ::poll(&PollFds[0], PollFds.size(), -1);
-        unsigned short revents = 0;
-        CheckedCall(&Alsa::Api::snd_pcm_poll_descriptors_revents, &PollFds[0], unsigned(PollFds.size()), &revents, THIS_LINE);
-        if (0 != (revents & POLLERR))
-        {
-          CheckResult(-EIO, THIS_LINE);
-        }
-        else if (0 != (revents & POLLOUT))
-        {
-          break;
-        }
+        data += res;
+        size -= res;
       }
     }
   private:
     const Alsa::Api::Ptr Api;
-    std::vector<struct pollfd> PollFds;
   };
   
   template<class T>
@@ -373,12 +354,6 @@ namespace
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_hw_params, hwParams.get(), THIS_LINE);
       Pcm.CheckedCall(&Alsa::Api::snd_pcm_prepare, THIS_LINE);
 
-      OutputSample out;
-      out.assign(SAMPLE_MID);
-      Chunk silence(minBufSize);
-      std::fill(silence.begin(), silence.end(), out);
-      Write(silence);
-
       CanPause = Api->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
       Dbg(CanPause ? "Hardware support pause" : "Hardware doesn't support pause");
       ChangeSign = fmt.ChangeSign();
@@ -396,15 +371,7 @@ namespace
       {
         buffer.ChangeSign();
       }
-
-      const OutputSample* data = &buffer[0];
-      std::size_t size = buffer.size();
-      while (size)
-      {
-        const std::size_t res = Pcm.WriteAsync(data, size);
-        data += res;
-        size -= res;
-      }
+      Pcm.Write(buffer);
     }
     
     void Pause()
