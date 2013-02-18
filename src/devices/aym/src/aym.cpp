@@ -79,7 +79,7 @@ namespace
 
     virtual void GetLevels(MultiSample& result) const = 0;
   };
-
+  
   class AYMRenderer : public Renderer
   {
   public:
@@ -162,17 +162,17 @@ namespace
       return Device.GetLevels(result);
     }
 
-    void GetState(uint64_t ticksPerSec, ChannelsState& state) const
+    void GetState(ChannelsState& state) const
     {
       const uint_t MAX_LEVEL = 100;
       //one channel is noise
       ChanState& noiseChan = state[CHANNELS];
       noiseChan = ChanState('N');
-      noiseChan.Band = GetBandByPeriod(ticksPerSec, GetToneN());
+      noiseChan.Band = GetToneN();
       //one channel is envelope    
       ChanState& envChan = state[CHANNELS + 1];
       envChan = ChanState('E');
-      envChan.Band = GetBandByPeriod(ticksPerSec, 16 * GetToneE());
+      envChan.Band = 16 * GetToneE();
       const uint_t mixer = ~Mixer;
       for (uint_t chan = 0; chan != CHANNELS; ++chan) 
       {
@@ -199,43 +199,10 @@ namespace
         {
           channel.Enabled = true;
           channel.LevelInPercents = (volReg & DataChunk::REG_MASK_VOL) * MAX_LEVEL / 15;
-          const uint_t chanTone = 256 * State.Data[DataChunk::REG_TONEA_H + chan * 2] +
+          channel.Band = 256 * State.Data[DataChunk::REG_TONEA_H + chan * 2] +
             State.Data[DataChunk::REG_TONEA_L + chan * 2];
-          channel.Band = GetBandByPeriod(ticksPerSec, chanTone);
         }
       } 
-    }
-
-  private:
-    static uint_t GetBandByPeriod(uint64_t ticksPerSec, uint_t period)
-    {
-      const uint_t FREQ_MULTIPLIER = 100;
-      //table in Hz * FREQ_MULTIPLIER
-      static const uint_t FREQ_TABLE[] =
-      {
-        //octave1
-        3270,   3465,   3671,   3889,   4120,   4365,   4625,   4900,   5191,   5500,   5827,   6173,
-        //octave2
-        6541,   6929,   7342,   7778,   8241,   8730,   9250,   9800,  10382,  11000,  11654,  12346,
-        //octave3
-        13082,  13858,  14684,  15556,  16482,  17460,  18500,  19600,  20764,  22000,  23308,  24692,
-        //octave4
-        26164,  27716,  29368,  31112,  32964,  34920,  37000,  39200,  41528,  44000,  46616,  49384,
-        //octave5
-        52328,  55432,  58736,  62224,  65928,  69840,  74000,  78400,  83056,  88000,  93232,  98768,
-        //octave6
-        104650, 110860, 117470, 124450, 131860, 139680, 148000, 156800, 166110, 176000, 186460, 197540,
-        //octave7
-        209310, 221720, 234940, 248890, 263710, 279360, 296000, 313600, 332220, 352000, 372930, 395070,
-        //octave8
-        418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140,
-        //octave9
-        837200, 886980, 939730, 995610,1054800,1117500,1184000,1254400,1329000,1408000,1491700,1580400
-      };
-      const uint_t freq = static_cast<uint_t>(ticksPerSec * FREQ_MULTIPLIER / (2 * AYM_CLOCK_DIVISOR * (period ? period : 1)));
-      const uint_t maxBand = static_cast<uint_t>(ArraySize(FREQ_TABLE) - 1);
-      const uint_t currentBand = static_cast<uint_t>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE);
-      return std::min(currentBand, maxBand);
     }
   private:
     uint_t GetToneA() const
@@ -500,6 +467,65 @@ namespace
     std::vector<DataChunk> Buffer;
     uint_t CumulativeMask;
   };
+  
+  class AnalysisMap
+  {
+  public:
+    AnalysisMap()
+      : ClockRate()
+    {
+    }
+
+    void SetClockRate(uint64_t clock)
+    {
+      //table in Hz * FREQ_MULTIPLIER
+      static const NoteTable FREQUENCIES =
+      { {
+        //octave1
+        3270,   3465,   3671,   3889,   4120,   4365,   4625,   4900,   5191,   5500,   5827,   6173,
+        //octave2
+        6541,   6929,   7342,   7778,   8241,   8730,   9250,   9800,  10382,  11000,  11654,  12346,
+        //octave3
+        13082,  13858,  14684,  15556,  16482,  17460,  18500,  19600,  20764,  22000,  23308,  24692,
+        //octave4
+        26164,  27716,  29368,  31112,  32964,  34920,  37000,  39200,  41528,  44000,  46616,  49384,
+        //octave5
+        52328,  55432,  58736,  62224,  65928,  69840,  74000,  78400,  83056,  88000,  93232,  98768,
+        //octave6
+        104650, 110860, 117470, 124450, 131860, 139680, 148000, 156800, 166110, 176000, 186460, 197540,
+        //octave7
+        209310, 221720, 234940, 248890, 263710, 279360, 296000, 313600, 332220, 352000, 372930, 395070,
+        //octave8
+        418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140,
+        //octave9
+        837200, 886980, 939730, 995610,1054800,1117500,1184000,1254400,1329000,1408000,1491700,1580400
+      } };
+      if (ClockRate == clock)
+      {
+        return;
+      }
+      ClockRate = clock;
+      std::transform(FREQUENCIES.begin(), FREQUENCIES.end(), Lookup.rbegin(), std::bind1st(std::ptr_fun(&GetPeriod), clock));
+    }
+    
+    uint_t GetBandByHalfPeriod(uint_t period) const
+    {
+      const uint_t maxBand = static_cast<uint_t>(Lookup.size() - 1);
+      const uint_t currentBand = static_cast<uint_t>(Lookup.end() - std::lower_bound(Lookup.begin(), Lookup.end(), period));
+      return std::min(currentBand, maxBand);
+    }
+  private:
+    static const uint_t FREQ_MULTIPLIER = 100;
+
+    static uint_t GetPeriod(uint64_t clock, uint_t freq)
+    {
+      return static_cast<uint_t>(clock * FREQ_MULTIPLIER / (2 * AYM_CLOCK_DIVISOR * freq));
+    }
+  private:
+    uint64_t ClockRate;
+    typedef boost::array<uint_t, 12 * 9> NoteTable;
+    NoteTable Lookup;
+  };
 
   class RegularAYMChip : public Chip
   {
@@ -546,7 +572,11 @@ namespace
 
     virtual void GetState(ChannelsState& state) const
     {
-      return PSG.GetState(Params->ClockFreq(), state);
+      PSG.GetState(state);
+      for (ChannelsState::iterator it = state.begin(), lim = state.end(); it != lim; ++it)
+      {
+        it->Band = Analyser.GetBandByHalfPeriod(it->Band);
+      }
     }
 
     virtual void Reset()
@@ -562,7 +592,9 @@ namespace
       PSG.SetVolumeTable(Params->VolumeTable());
       PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
       Beeper.SetVolumeTable(Params->VolumeTable());
-      Clock.SetFrequency(Params->ClockFreq(), Params->SoundFreq());
+      const uint64_t clock = Params->ClockFreq();
+      Clock.SetFrequency(clock, Params->SoundFreq());
+      Analyser.SetClockRate(clock);
     }
 
     Renderer& GetTargetDevice()
@@ -620,6 +652,7 @@ namespace
     InterpolatedRenderer Filter;
     ClockSource Clock;
     DataCache BufferedData;
+    AnalysisMap Analyser;
   };
 }
 
