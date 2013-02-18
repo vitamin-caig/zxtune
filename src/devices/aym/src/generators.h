@@ -57,11 +57,12 @@ namespace Devices
     const NoiseLookup NoiseTable;
 
     //PSG-related functionality
-    class Generator
+    class ToneGenerator
     {
     public:
-      Generator()
-        : DoublePeriod(2)
+      ToneGenerator()
+        : Masked(true)
+        , DoublePeriod(2)
         , DutyCycle(NO_DUTYCYCLE)
         , MiddlePeriod(1)
         , Counter()
@@ -70,12 +71,19 @@ namespace Devices
 
       void Reset()
       {
+        Masked = true;
         SetPeriod(0);
-        ResetCounter();
+        Counter = 0;
+      }
+
+      void SetMasked(bool masked)
+      {
+        Masked = masked;
       }
 
       void SetPeriod(uint_t period)
       {
+        WrapCounter();
         const bool lowPart = Counter < MiddlePeriod;
         const uint_t correction = lowPart ? Counter : Counter - MiddlePeriod;
         DoublePeriod = 2 * std::max<uint_t>(1, period);
@@ -95,29 +103,27 @@ namespace Devices
         Counter += ticks;
       }
 
-      void ResetCounter()
+      template<uint_t Lo, uint_t Hi>
+      uint_t GetLevel() const
       {
-        Counter = 0;
+        return Masked || GetFlip() ? Hi : Lo;
       }
     private:
       void UpdateMiddle()
       {
         MiddlePeriod = DutyCycle * DoublePeriod / MAX_DUTYCYCLE;
       }
-    protected:
-      uint_t DoublePeriod;
-      uint_t DutyCycle;
-      uint_t MiddlePeriod;
-      mutable uint_t Counter;
-    };
 
-    //Some of the hardware platforms has no native div/mod operations, so it's better to substract.
-    //In any case, it's better than sequental incremental/comparing
-    class FlipFlopGenerator : public Generator
-    {
-    protected:
       bool GetFlip() const
       {
+        WrapCounter();
+        return Counter >= MiddlePeriod;
+      }
+
+      void WrapCounter() const
+      {
+        //Some of the hardware platforms has no native div/mod operations, so it's better to substract.
+        //In any case, it's better than sequental incremental/comparing
         const uint_t mask = DoublePeriod - 1;
         //if power of two
         if (0 == (DoublePeriod & mask))
@@ -131,119 +137,95 @@ namespace Devices
             Counter -= DoublePeriod;
           }
         }
-        return Counter >= MiddlePeriod;
       }
+    private:
+      bool Masked;
+      uint_t DoublePeriod;
+      uint_t DutyCycle;
+      uint_t MiddlePeriod;
+      mutable uint_t Counter;
     };
 
-    class CountingGenerator : public Generator
+    class CountingGenerator
     {
     public:
-      //do not use duty cycle for counting generators
-      void SetDutyCycle(uint_t /*dutyCycle*/)
-      {
-      }
-    protected:
-      uint_t GetPeriodsPassed() const
-      {
-        uint_t res = 0;
-        uint_t mask = DoublePeriod - 1;
-        //if power of two
-        if (0 == (DoublePeriod & mask))
-        {
-          res = Counter & ~mask;
-          Counter &= mask;
-          while (mask != 1)
-          {
-            res >>= 1;
-            mask >>= 1;
-          }
-        }
-        else
-        {
-          while (Counter >= DoublePeriod)
-          {
-            Counter -= DoublePeriod;
-            res += 2;
-          }
-        }
-        if (Counter >= MiddlePeriod)
-        {
-          ++res;
-          Counter -= MiddlePeriod;
-        }
-        return res;
-      }
-    };
-
-    class ToneGenerator : public FlipFlopGenerator
-    {
-    public:
-      ToneGenerator()
-        : Masked(true)
+      CountingGenerator()
+        : Period(1)
+        , Counter(0)
+        , Index(0)
       {
       }
 
       void Reset()
       {
-        Masked = true;
-        FlipFlopGenerator::Reset();
+        Period = 1;
+        Counter = 0;
+        Index = 0;
       }
 
       void SetPeriod(uint_t period)
       {
-        GetFlip();
-        FlipFlopGenerator::SetPeriod(period);
+        UpdateIndex();
+        Period = std::max<uint_t>(1, period);
       }
 
-      void SetMasked(bool masked)
+      void Tick(uint_t ticks)
       {
-        Masked = masked;
+        Counter += ticks;
       }
-
-      template<uint_t Lo, uint_t Hi>
-      uint_t GetLevel() const
+    protected:
+      void UpdateIndex() const
       {
-        return Masked || GetFlip() ? Hi : Lo;
+        uint_t mask = Period - 1;
+        if (0 == (Period & mask))
+        {
+          uint_t delta = Counter & ~mask;
+          Counter &= mask;
+          while (mask != 0)
+          {
+            delta >>= 1;
+            mask >>= 1;
+          }
+          Index += delta;
+        }
+        else
+        {
+          while (Counter >= Period)
+          {
+            Counter -= Period;
+            ++Index;
+          }
+        }
       }
-    private:
-      bool Masked;
+    protected:
+      uint_t Period;
+      mutable uint_t Counter;
+      mutable uint_t Index;
     };
 
     class NoiseGenerator : public CountingGenerator
     {
     public:
-      NoiseGenerator()
-        : Index()
-      {
-      }
-
-      void Reset()
-      {
-        Index = 0;
-        CountingGenerator::Reset();
-      }
-
-      void SetPeriod(uint_t period)
-      {
-        UpdateIndex();
-        CountingGenerator::SetPeriod(period);
-      }
-
       uint_t GetLevel() const
       {
         UpdateIndex();
-        return NoiseTable[Index];
+        return NoiseTable[Index & NoiseTable.INDEX_MASK];
       }
-    private:
-      void UpdateIndex() const
-      {
-        Index += GetPeriodsPassed();
-        Index &= NoiseTable.INDEX_MASK;
-      }
-    private:
-      mutable uint_t Index;
     };
 
+    /*
+      Type Waveform
+      0..3 \_______
+      4..7 /|______
+      8    \|\|\|\|
+      9    \_______
+      10   \/\/\/\/
+      11   \|
+      12   /|/|/|/|
+      13   /
+      14   /\/\/\/\
+      15   /|______   
+    */
     class EnvelopeGenerator : public CountingGenerator
     {
     public:
@@ -264,8 +246,8 @@ namespace Devices
 
       void SetType(uint_t type)
       {
-        CountingGenerator::ResetCounter();
         Type = type;
+        Counter = Index = 0;
         if (Type & 4) //down-up envelopes
         {
           Level = 0;
@@ -294,7 +276,9 @@ namespace Devices
       {
         if (Decay)
         {
-          for (uint_t rounds = GetPeriodsPassed(); rounds && Decay; --rounds)
+          uint_t prevIndex = Index;
+          UpdateIndex();
+          while (prevIndex++ != Index && Decay)
           {
             UpdateStep();
           }
