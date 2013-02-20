@@ -99,7 +99,7 @@ for my $opsys qw(Redhat Ubuntu Archlinux Dingux Linux Windows)
 {
   for my $compiler qw(gcc vc80 vc71)
   {
-    for my $arch qw(mipsel arm x86_64 x86)
+    for my $arch qw(mipsel armhf arm x86_64 x86)
     {
       for my $package (@PackageNames)
       {
