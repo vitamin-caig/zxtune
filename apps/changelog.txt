@@ -7,6 +7,17 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Fixed crash while scanning
+[*] Fixed hangup while scanning
+[*] Speedup AY/YM rendering
+[*] Fixed TFM analyzer
+[+] ARMHF platform support (ARM with hardware floating point)
+[*] Reworked SampleTracker and ChipTracker parsing
+[*] zxtune-qt: fixed crash on moving down last sound backend in list
+[*] zxtune-qt: fixed UI updating while playback
+
+--- Rev2171 from 28.01.2013
+
 [*] Sound rendering pipeline speedup
 [*] Non-blocking mode in OSS backend
 [*] Fixed first 44 bytes missing while converting to .wav
