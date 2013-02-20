@@ -174,8 +174,9 @@ namespace Chiptune
           const SampleInfo& info = Source.SampleDescriptions[samIdx];
           const std::size_t absAddr = 256 * info.AddrHi;
           const std::size_t maxSize = 128 * info.SizeHiDoubled;
-          if (absAddr && absAddr + maxSize <= SAMPLES_LIMIT_ADDR)
+          if (absAddr && absAddr >= SAMPLES_ADDR && absAddr + maxSize <= SAMPLES_LIMIT_ADDR)
           {
+            Require(offsetof(Header, Samples) + (absAddr - SAMPLES_ADDR) + maxSize <= RawData.Size());
             Dbg("Sample %1%: start=#%2$04x size=#%3$04x", 
               samIdx, absAddr, maxSize);
             const uint8_t* const sampleStart = Source.Samples + (absAddr - SAMPLES_ADDR);
