@@ -68,7 +68,7 @@ namespace Binary
     static Ptr Create(const std::string& pattern, std::size_t minSize = 0);
   };
 
-  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t maxFooterOffset);
+  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset);
 }
 
 #endif //__BINARY_FORMAT_H_DEFINED__

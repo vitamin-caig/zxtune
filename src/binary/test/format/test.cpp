@@ -189,7 +189,7 @@ namespace
     {
       const Binary::Format::Ptr hdr = Binary::Format::Create(header, minSize);
       const Binary::Format::Ptr foot = Binary::Format::Create(footer);
-      const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, maxSize);
+      const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, minSize, maxSize);
       const Binary::DataAdapter sample(SAMPLE, ArraySize(SAMPLE));
       return FormatResult(format->Match(sample), format->Search(sample));
     }

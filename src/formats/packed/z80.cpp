@@ -590,7 +590,7 @@ namespace Formats
     {
       const Binary::Format::Ptr header = Binary::Format::Create(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
       const Binary::Format::Ptr footer = Binary::Format::Create(Z80::Version1_45::FOOTER);
-      const Binary::Format::Ptr format = Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MAX_SIZE - 4);
+      const Binary::Format::Ptr format = Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MIN_SIZE - 4, Z80::Version1_45::MAX_SIZE - 4);
       return boost::make_shared<Z80Decoder<Z80::Version1_45> >(format);
     }
 
