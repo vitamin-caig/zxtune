@@ -210,7 +210,7 @@ namespace
       Require(CurState != State::Error());
     }
 
-    virtual void MultipleTokensMatched(const std::string& /*lexeme*/, const std::set<LexicalAnalysis::TokenType>& /*types*/)
+    virtual void MultipleTokensMatched(const std::string& /*lexeme*/, const LexicalAnalysis::TokenTypesSet& /*types*/)
     {
       Require(false);
     }

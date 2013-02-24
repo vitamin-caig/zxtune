@@ -451,7 +451,7 @@ namespace
       {
       }
     };
-    typedef typename std::list<PluginEntry> PluginsList;
+    typedef typename std::vector<PluginEntry> PluginsList;
 
     class IteratorImpl : public P::Iterator
     {
