@@ -117,12 +117,6 @@ namespace
       }
     }
 
-    template<class T>
-    StaticPattern(T from, T to)
-      : Data(from, to)
-    {
-    }
-
     std::size_t GetSize() const
     {
       return Data.size();
@@ -133,17 +127,12 @@ namespace
       return Data[idx];
     }
 
-    StaticPattern GetSuffix(std::size_t size) const
-    {
-      Require(size <= GetSize());
-      return StaticPattern(Data.end() - size, Data.end());
-    }
-
     //return back offset
-    std::size_t FindSuffix(const StaticPattern& suffix) const
+    std::size_t FindSuffix(std::size_t suffixSize) const
     {
+      const StaticToken* const suffixBegin = End() - suffixSize;
+      const StaticToken* const suffixEnd = End();
       const std::size_t patternSize = GetSize();
-      const std::size_t suffixSize = suffix.GetSize();
       const std::size_t startOffset = 1;
       const StaticToken* start = End() - suffixSize - startOffset;
       for (std::size_t offset = startOffset; ; ++offset, --start)
@@ -154,7 +143,7 @@ namespace
           //pattern:  ......sssssss
           //suffix:        xssssss
           //offset=1
-          if (std::equal(suffix.Begin(), suffix.End(), start, &StaticToken::AreIntersected))
+          if (std::equal(suffixBegin, suffixEnd, start, &StaticToken::AreIntersected))
           {
             return offset;
           }
@@ -170,7 +159,7 @@ namespace
           //suffix:  xssssss
           //out of pattern=2
           const std::size_t outOfPattern = windowSize - patternSize;
-          if (std::equal(suffix.Begin() + outOfPattern, suffix.End(), Begin(), &StaticToken::AreIntersected))
+          if (std::equal(suffixBegin + outOfPattern, suffixEnd, Begin(), &StaticToken::AreIntersected))
           {
             return offset;
           }
@@ -276,8 +265,7 @@ namespace
       {
         PatternRow& row = tmp[pos];
         const std::size_t suffixLen = patternSize - pos - 1;
-        const StaticPattern suffix = pattern.GetSuffix(suffixLen);
-        const std::size_t offset = pattern.FindSuffix(suffix);
+        const std::size_t offset = pattern.FindSuffix(suffixLen);
         const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
         for (uint_t sym = 0; sym != 256; ++sym)
         {
