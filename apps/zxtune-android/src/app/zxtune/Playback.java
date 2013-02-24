@@ -12,7 +12,7 @@ package app.zxtune;
 
 public final class Playback {
 
-  static interface Control {
+  public static interface Control {
     public void open(String moduleId);
 
     public void play();
@@ -27,7 +27,7 @@ public final class Playback {
     public void unregisterCallback(Callback cb);
   }
 
-  static interface Callback {
+  public static interface Callback {
     public void started(String description, int duration);
 
     public void paused(String description);

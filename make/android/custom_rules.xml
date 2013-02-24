@@ -31,9 +31,17 @@
   <macrodef name="makelib-helper">
     <attribute name="arch" />
     <sequential>
-      <echo level="info">Make native library for arch @{arch}"</echo>
+      <echo level="info">Make native library for arch @{arch}</echo>
       <buildlib-helper arch="@{arch}" />
       <installib-helper arch="@{arch}" />
+    </sequential>
+  </macrodef>
+  
+  <macrodef name="instsupp-helper">
+    <attribute name="version" />
+    <sequential>
+      <echo level="info">Add support library version @{version}</echo>
+      <copy file="${sdk.dir}/extras/android/support/v@{version}/android-support-v@{version}.jar" todir="${jar.libs.absolute.dir}" />
     </sequential>
   </macrodef>
 
@@ -70,9 +78,23 @@
     <makelib-helper arch="armeabi-v7a" />
   </target>
   
+  <target name="extralibs">
+    <if>
+      <condition><isset property="libs.support.version"/></condition>
+      <then>
+        <instsupp-helper version="${libs.support.version}" />
+      </then>
+    </if>
+    <path id="project.all.jars.path">
+      <fileset dir="${jar.libs.absolute.dir}">
+        <include name="*.jar"/>
+      </fileset>
+    </path>
+  </target>
+  
   <target name="-post-compile" depends="nativelibs" />
 
-  <target name="-pre-build" depends="injectrevision" />
+  <target name="-pre-build" depends="injectrevision, extralibs" />
   
   <!-- Single public build target -->
   <target name="public-build" depends="svnupdate, svnrevision, release">

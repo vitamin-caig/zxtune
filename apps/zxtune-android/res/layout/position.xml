@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="horizontal"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  >
+  <SeekBar
+    android:id="@+id/position_seek"
+    style="@android:style/Widget.ProgressBar.Horizontal"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:paddingLeft="2dp"
+    android:paddingRight="2dp"
+    />
+  <TextView
+    android:id="@+id/position_time"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_weight="0"
+    android:text="@string/stub_time"
+    android:paddingLeft="2dp"
+    android:paddingRight="2dp"
+    />
+</LinearLayout>
