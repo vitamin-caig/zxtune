@@ -157,6 +157,12 @@ namespace Lha
       return 0 == std::strcmp(DIR_TYPE, Current->compress_method);
     }
 
+    bool IsEmpty() const
+    {
+      Require(Current != 0);
+      return 0 == Current->compressed_length;
+    }
+
     Archived::File::Ptr GetFile() const
     {
       Require(Current != 0);
@@ -271,7 +277,7 @@ namespace Formats
         std::list<Archived::File::Ptr> files;
         for (; iter.IsValid(); iter.Next())
         {
-          if (!iter.IsDir())
+          if (!iter.IsDir() && !iter.IsEmpty())
           {
             const Archived::File::Ptr file = iter.GetFile();
             files.push_back(file);
