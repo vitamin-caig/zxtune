@@ -29,14 +29,14 @@ namespace Async
     typedef boost::shared_ptr<Worker> Ptr;
     virtual ~Worker() {}
 
-    virtual Error Initialize() = 0;
-    virtual Error Finalize() = 0;
+    virtual void Initialize() = 0;
+    virtual void Finalize() = 0;
 
-    virtual Error Suspend() = 0;
-    virtual Error Resume() = 0;
+    virtual void Suspend() = 0;
+    virtual void Resume() = 0;
 
     virtual bool IsFinished() const = 0;
-    virtual Error ExecuteCycle() = 0;
+    virtual void ExecuteCycle() = 0;
   };
 
   Job::Ptr CreateJob(Worker::Ptr worker);

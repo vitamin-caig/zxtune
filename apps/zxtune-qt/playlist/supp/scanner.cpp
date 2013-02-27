@@ -352,37 +352,32 @@ namespace
       Queue->Add(items);
     }
 
-    virtual Error Initialize()
+    virtual void Initialize()
     {
       Callback.OnScanStart(Queue);
-      return Error();
     }
 
-    virtual Error Finalize()
+    virtual void Finalize()
     {
       Callback.OnScanEnd();
       CreateQueue();
-      return Error();
     }
 
-    virtual Error Suspend()
+    virtual void Suspend()
     {
-      return Error();
     }
 
-    virtual Error Resume()
+    virtual void Resume()
     {
-      return Error();
     }
 
-    virtual Error Execute(Async::Scheduler& sched)
+    virtual void Execute(Async::Scheduler& sched)
     {
       while (!Queue->Empty())
       {
         const QString file = Queue->GetNext();
         ScanFile(file, sched);
       }
-      return Error();
     }
   private:
     void CreateQueue()
@@ -449,7 +444,7 @@ namespace
     {
       Dbg("Added %1% items to %2%", items.size(), this);
       Routine->Add(items);
-      ThrowIfError(ScanJob->Start());
+      ScanJob->Start();
     }
 
     virtual void PasteItems(const QStringList& items)
@@ -463,15 +458,20 @@ namespace
     virtual void Pause(bool pause)
     {
       Dbg(pause ? "Pausing %1%" : "Resuming %1%", this);
-      ThrowIfError(pause
-        ? ScanJob->Pause()
-        : ScanJob->Start());
+      if (pause)
+      {
+        ScanJob->Pause();
+      }
+      else
+      {
+        ScanJob->Start();
+      }
     }
 
     virtual void Stop()
     {
       Dbg("Stopping %1%", this);
-      ThrowIfError(ScanJob->Stop());
+      ScanJob->Stop();
     }
   private:
     virtual void OnItem(Playlist::Item::Data::Ptr item)

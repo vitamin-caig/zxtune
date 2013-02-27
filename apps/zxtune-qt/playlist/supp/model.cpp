@@ -252,15 +252,13 @@ namespace
     {
     }
 
-    virtual Error Prepare()
+    virtual void Prepare()
     {
-      return Error();
     }
 
-    virtual Error Execute()
+    virtual void Execute()
     {
       Delegate.ExecuteOperation(Op);
-      return Error();
     }
   private:
     const typename OpType::Ptr Op;

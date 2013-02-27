@@ -19,24 +19,20 @@ Author:
 
 namespace
 {
-  Error BuildPausePausedError()
+  void PausePaused()
   {
-    return Error();
   }
 
-  Error BuildPauseStoppedError()
+  void PauseStopped()
   {
-    return Error();
   }
 
-  Error BuildStopStoppedError()
+  void StopStopped()
   {
-    return Error();
   }
 
-  Error BuildStartStartedError()
+  void StartStarted()
   {
-    return Error();
   }
 
   enum JobState
@@ -49,27 +45,7 @@ namespace
     PAUSING,
   };
 
-  struct ErrorObject
-  {
-    Error Err;
-
-    ErrorObject()
-    {
-    }
-
-    explicit ErrorObject(const Error& e)
-      : Err(e)
-    {
-    }
-  };
-
-  void TransportError(const Error& e)
-  {
-    if (e)
-    {
-      throw ErrorObject(e);
-    }
-  }
+  struct StoppingEvent {};
 
   class CoroutineOperation : public Async::Operation
                            , private Async::Scheduler
@@ -81,32 +57,33 @@ namespace
     {
     }
 
-    virtual Error Prepare()
+    virtual void Prepare()
     {
       return Routine->Initialize();
     }
     
-    virtual Error Execute()
-    {
-      Error lastError = ExecuteRoutine();
-      State.Set(STOPPED);
-      if (Error err = Routine->Finalize())
-      {
-        return err.AddSuberror(lastError);
-      }
-      return lastError;
-    }
-  private:
-    Error ExecuteRoutine()
+    virtual void Execute()
     {
       try
       {
-        return Routine->Execute(*this);
+        Routine->Execute(*this);
+        Finalize();
       }
-      catch (const ErrorObject& e)
+      catch (const StoppingEvent&)
       {
-        return e.Err;
+        Finalize();
       }
+      catch (const Error&)
+      {
+        Finalize();
+        throw;
+      }
+    }
+  private:
+    void Finalize()
+    {
+      State.Set(STOPPED);
+      Routine->Finalize();
     }
 
     virtual void Yield()
@@ -115,10 +92,10 @@ namespace
       {
       case PAUSING:
         {
-          TransportError(Routine->Suspend());
+          Routine->Suspend();
           State.Set(PAUSED);
           const JobState nextState = State.WaitForAny(STOPPING, STARTING);
-          TransportError(Routine->Resume());
+          Routine->Resume();
           if (STARTING == nextState)
           {
             State.Set(STARTED);
@@ -126,7 +103,7 @@ namespace
           }
         }
       case STOPPING:
-        throw ErrorObject();
+        throw StoppingEvent();
       default:
         break;
       }
@@ -152,31 +129,23 @@ namespace
       }
     }
 
-    virtual Error Start()
+    virtual void Start()
     {
-      try
+      const boost::mutex::scoped_lock lock(Mutex);
+      if (Act)
       {
-        const boost::mutex::scoped_lock lock(Mutex);
-        if (Act)
+        if (Act->IsExecuted())
         {
-          if (Act->IsExecuted())
-          {
-            return StartExecutingAction();
-          }
-          FinishAction();
+          return StartExecutingAction();
         }
-        const Async::Operation::Ptr jobOper = boost::make_shared<CoroutineOperation>(Routine, boost::ref(State));
-        Act = Async::Activity::Create(jobOper);
-        State.Set(STARTED);
-        return Error();
+        FinishAction();
       }
-      catch (const Error& err)
-      {
-        return err;
-      }
+      const Async::Operation::Ptr jobOper = boost::make_shared<CoroutineOperation>(Routine, boost::ref(State));
+      Act = Async::Activity::Create(jobOper);
+      State.Set(STARTED);
     }
     
-    virtual Error Pause()
+    virtual void Pause()
     {
       const boost::mutex::scoped_lock lock(Mutex);
       if (Act)
@@ -187,17 +156,17 @@ namespace
         }
         return FinishAction();
       }
-      return BuildPauseStoppedError();
+      return PauseStopped();
     }
     
-    virtual Error Stop()
+    virtual void Stop()
     {
       const boost::mutex::scoped_lock lock(Mutex);
       if (Act)
       {
         return FinishAction();//TODO: wrap error
       }
-      return BuildStopStoppedError();
+      return StopStopped();
     }
 
     virtual bool IsActive() const
@@ -212,7 +181,7 @@ namespace
       return Act && Act->IsExecuted() && State.Check(PAUSED);
     }
   private:
-    Error StartExecutingAction()
+    void StartExecutingAction()
     {
       if (State.Check(PAUSED))
       {
@@ -221,12 +190,14 @@ namespace
         {
           return FinishAction();
         }
-        return Error();
       }
-      return BuildStartStartedError();
+      else
+      {
+        return StartStarted();
+      }
     }
 
-    Error PauseExecutingAction()
+    void PauseExecutingAction()
     {
       if (!State.Check(PAUSED))
       {
@@ -235,18 +206,27 @@ namespace
         {
           return FinishAction();
         }
-        return Error();
       }
-      return BuildPausePausedError();
+      else
+      {
+        return PausePaused();
+      }
     }
     
-    Error FinishAction()
+    void FinishAction()
     {
       State.Set(STOPPING);
-      const Error err = Act->Wait();
-      Act.reset();
-      State.Reset();
-      return err;
+      try
+      {
+        Async::Activity::Ptr act;
+        act.swap(Act);
+        act->Wait();
+        State.Reset();
+      }
+      catch (const Error& err)
+      {
+        State.Reset();
+      }
     }
   private:
     const Async::Coroutine::Ptr Routine;

@@ -140,7 +140,7 @@ namespace
     {
     }
 
-    virtual Error Initialize()
+    virtual void Initialize()
     {
       try
       {
@@ -151,15 +151,14 @@ namespace
         //initial frame rendering
         RenderFrame();
         Dbg("Initialized");
-        return Error();
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, translate("Failed to initialize playback.")).AddSuberror(e);
+        throw Error(THIS_LINE, translate("Failed to initialize playback.")).AddSuberror(e);
       }
     }
 
-    virtual Error Finalize()
+    virtual void Finalize()
     {
       try
       {
@@ -168,15 +167,14 @@ namespace
         Delegate->Shutdown();
         Callback->OnStop();
         Dbg("Finalized");
-        return Error();
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, translate("Failed to finalize playback.")).AddSuberror(e);
+        throw Error(THIS_LINE, translate("Failed to finalize playback.")).AddSuberror(e);
       }
     }
 
-    virtual Error Suspend()
+    virtual void Suspend()
     {
       try
       {
@@ -184,15 +182,14 @@ namespace
         Callback->OnPause();
         Delegate->Pause();
         Dbg("Suspended");
-        return Error();
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, translate("Failed to pause playback.")).AddSuberror(e);
+        throw Error(THIS_LINE, translate("Failed to pause playback.")).AddSuberror(e);
       }
     }
 
-    virtual Error Resume() 
+    virtual void Resume() 
     {
       try
       {
@@ -200,28 +197,19 @@ namespace
         Callback->OnResume();
         Delegate->Resume();
         Dbg("Resumed");
-        return Error();
       }
       catch (const Error& e)
       {
-        return Error(THIS_LINE, translate("Failed to resume playback.")).AddSuberror(e);
+        throw Error(THIS_LINE, translate("Failed to resume playback.")).AddSuberror(e);
       }
     }
 
-    virtual Error ExecuteCycle()
+    virtual void ExecuteCycle()
     {
-      try
+      RenderFrame();
+      if (IsFinished())
       {
-        RenderFrame();
-        if (IsFinished())
-        {
-          Callback->OnFinish();
-        }
-        return Error();
-      }
-      catch (const Error& err)
-      {
-        return err;
+        Callback->OnFinish();
       }
     }
 
@@ -364,19 +352,19 @@ namespace
 
     virtual void Play()
     {
-      ThrowIfError(Job->Start());
+      Job->Start();
     }
 
     virtual void Pause()
     {
-      ThrowIfError(Job->Pause());
+      Job->Pause();
     }
 
     virtual void Stop()
     {
       try
       {
-        ThrowIfError(Job->Stop());
+        Job->Stop();
         Renderer->Reset();
       }
       catch (const Error& e)

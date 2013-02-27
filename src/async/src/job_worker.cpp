@@ -27,37 +27,33 @@ namespace
     {
     }
 
-    virtual Error Initialize()
+    virtual void Initialize()
     {
       return Delegate->Initialize();
     }
 
-    virtual Error Finalize()
+    virtual void Finalize()
     {
       return Delegate->Finalize();
     }
 
-    virtual Error Suspend()
+    virtual void Suspend()
     {
       return Delegate->Suspend();
     }
 
-    virtual Error Resume()
+    virtual void Resume()
     {
       return Delegate->Resume();
     }
 
-    virtual Error Execute(Async::Scheduler& sch)
+    virtual void Execute(Async::Scheduler& sch)
     {
       while (!Delegate->IsFinished())
       {
-        if (const Error& e = Delegate->ExecuteCycle())
-        {
-          return e;
-        }
+        Delegate->ExecuteCycle();
         sch.Yield();
       }
-      return Error();
     }
   private:
     const Async::Worker::Ptr Delegate;

@@ -30,13 +30,13 @@ namespace Async
     typedef boost::shared_ptr<Coroutine> Ptr;
     virtual ~Coroutine() {}
 
-    virtual Error Initialize() = 0;
-    virtual Error Finalize() = 0;
+    virtual void Initialize() = 0;
+    virtual void Finalize() = 0;
 
-    virtual Error Suspend() = 0;
-    virtual Error Resume() = 0;
+    virtual void Suspend() = 0;
+    virtual void Resume() = 0;
 
-    virtual Error Execute(Scheduler& sch) = 0;
+    virtual void Execute(Scheduler& sch) = 0;
   };
 
   Job::Ptr CreateJob(Coroutine::Ptr routine);

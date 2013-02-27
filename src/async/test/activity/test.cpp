@@ -22,12 +22,12 @@ namespace
 	class InvalidOperation : public Operation
 	{
 	public:
-		virtual Error Prepare()
+		virtual void Prepare()
 		{
-			return FailedToPrepareError();
+			throw FailedToPrepareError();
 		}
 		
-		virtual Error Execute()
+		virtual void Execute()
 		{
 			throw Error(THIS_LINE, "Should not be called");
 		}
@@ -36,31 +36,28 @@ namespace
 	class ErrorResultOperation : public Operation
 	{
 	public:
-		virtual Error Prepare()
+		virtual void Prepare()
 		{
-			return Error();
 		}
 		
-		virtual Error Execute()
+		virtual void Execute()
 		{
-			return FailedToExecuteError();
+			throw FailedToExecuteError();
 		}
 	};
 
   class LongOperation : public Operation
   {
   public:
-    virtual Error Prepare()
+    virtual void Prepare()
     {
-      return Error();
     }
 
-    virtual Error Execute()
+    virtual void Execute()
     {
       std::cout << "    start long activity" << std::endl;
       boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
       std::cout << "    end long activity" << std::endl;
-      return Error();
     }
   };
 
@@ -92,17 +89,18 @@ namespace
     {
       throw Error(THIS_LINE, "Activity should be finished");
     }
-		if (const Error& err = result->Wait())
+    try
+    {
+      result->Wait();
+			throw Error(THIS_LINE, "Activity should not finish successfully");
+		}
+		catch (const Error& err)
 		{
 			if (err != FailedToExecuteError())
 			{
 				throw Error(THIS_LINE, "Invalid error returned").AddSuberror(err);
 			}
 			std::cout << "Succeed\n";
-		}
-		else
-		{
-			throw Error(THIS_LINE, "Activity should not finish successfully");
 		}
 	}
 
@@ -114,7 +112,7 @@ namespace
     {
       throw Error(THIS_LINE, "Activity should be executed now");
     }
-    ThrowIfError(result->Wait());
+    result->Wait();
     if (result->IsExecuted())
     {
       throw Error(THIS_LINE, "Activity is still executed");

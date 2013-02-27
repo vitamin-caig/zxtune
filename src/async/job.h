@@ -24,9 +24,9 @@ namespace Async
     typedef boost::shared_ptr<Job> Ptr;
     virtual ~Job() {}
 
-    virtual Error Start() = 0;
-    virtual Error Pause() = 0;
-    virtual Error Stop() = 0;
+    virtual void Start() = 0;
+    virtual void Pause() = 0;
+    virtual void Stop() = 0;
 
     virtual bool IsActive() const = 0;
     virtual bool IsPaused() const = 0;

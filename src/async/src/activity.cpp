@@ -45,17 +45,16 @@ namespace
       assert(!IsExecuted() || !"Should call Activity::Wait before stop");
     }
 
-    Error Start()
+    void Start()
     {
       Thread = boost::thread(std::mem_fun(&ActivityImpl::WorkProc), this);
       if (FAILED == State.WaitForAny(INITIALIZED, FAILED))
       {
         Thread.join();
         State.Set(STOPPED);
-        return LastError;
+        throw LastError;
       }
       State.Set(STARTED);
-      return Error();
     }
 
     virtual bool IsExecuted() const
@@ -63,28 +62,33 @@ namespace
       return State.Check(STARTED);
     }
 
-    virtual Error Wait()
+    virtual void Wait()
     {
       Thread.join();
-      return LastError;
+      ThrowIfError(LastError);
     }
   private:
     void WorkProc()
     {
-      if (LastError = Oper->Prepare())
+      LastError = Error();
+      try
       {
-        State.Set(FAILED);
-        return;
+        Oper->Prepare();
+        State.Set(INITIALIZED);
+        State.Wait(STARTED);
+        Oper->Execute();
+        State.Set(STOPPED);
       }
-      State.Set(INITIALIZED);
-      State.Wait(STARTED);
-      LastError = Oper->Execute();
-      State.Set(LastError ? FAILED : STOPPED);
+      catch (const Error& err)
+      {
+        LastError = err;
+        State.Set(FAILED);
+      }
     }
   private:
     const Operation::Ptr Oper;
-    boost::thread Thread;
     Event<ActivityState> State;
+    boost::thread Thread;
     Error LastError;
   };
 
@@ -96,9 +100,8 @@ namespace
       return false;
     }
 
-    virtual Error Wait()
+    virtual void Wait()
     {
-      return Error();
     }
   };
 }
@@ -108,7 +111,7 @@ namespace Async
   Activity::Ptr Activity::Create(Operation::Ptr operation)
   {
     const ActivityImpl::Ptr result = boost::make_shared<ActivityImpl>(operation);
-    ThrowIfError(result->Start());
+    result->Start();
     return result;
   }
 
