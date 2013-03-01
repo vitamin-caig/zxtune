@@ -184,11 +184,11 @@ namespace SoundTracker
       Enabled = 0;
     }
 
-    void SetNewState(const Chan& src)
+    void SetNewState(const Cell& src)
     {
-      if (!src.Commands.empty())
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
-        ApplyCommands(src.Commands);
+        ApplyCommand(*it);
       }
     }
 
@@ -213,11 +213,6 @@ namespace SoundTracker
       }
     } 
   private:
-    void ApplyCommands(const CommandsArray& commands)
-    {
-      std::for_each(commands.begin(), commands.end(), boost::bind(&EnvelopeState::ApplyCommand, this, _1));
-    }
-
     void ApplyCommand(const Command& command)
     {
       if (command == ENVELOPE)
@@ -296,27 +291,28 @@ namespace SoundTracker
       EnvState.Reset();
     }
 
-    void SetNewState(const Chan& src)
+    void SetNewState(const Cell& src)
     {
       if (src.Empty())
       {
         return;
       }
-      if (src.Enabled)
+      if (const bool* enabled = src.GetEnabled())
       {
-        SetEnabled(*src.Enabled);
+        Cursor.CountDown = *enabled ? 32 : -1;
       }
-      if (src.Note)
+      if (const uint_t* note = src.GetNote())
       {
-        SetNote(*src.Note);
+        Note = *note;
+        Cursor.Position = 0;
       }
-      if (src.SampleNum)
+      if (const uint_t* sample = src.GetSample())
       {
-        SetSample(*src.SampleNum);
+        CurSample = *sample < Data->Samples.size() ? &Data->Samples[*sample] : GetStubSample();
       }
-      if (src.OrnamentNum)
+      if (const uint_t* ornament = src.GetOrnament())
       {
-        SetOrnament(*src.OrnamentNum);
+        CurOrnament = *ornament < Data->Ornaments.size() ? &Data->Ornaments[*ornament] : GetStubOrnament();
       }
       EnvState.SetNewState(src);
     }
@@ -373,27 +369,6 @@ namespace SoundTracker
     {
       static const Track::Ornament stubOrnament;
       return &stubOrnament;
-    }
-
-    void SetEnabled(bool enabled)
-    {
-      Cursor.CountDown = enabled ? 32 : -1;
-    }
-
-    void SetNote(uint_t note)
-    {
-      Note = note;
-      Cursor.Position = 0;
-    }
-
-    void SetSample(uint_t sampleNum)
-    {
-      CurSample = sampleNum < Data->Samples.size() ? &Data->Samples[sampleNum] : GetStubSample();
-    }
-
-    void SetOrnament(uint_t ornamentNum)
-    {
-      CurOrnament = ornamentNum < Data->Ornaments.size() ? &Data->Ornaments[ornamentNum] : GetStubOrnament();
     }
   private:
     const ModuleData::Ptr Data;

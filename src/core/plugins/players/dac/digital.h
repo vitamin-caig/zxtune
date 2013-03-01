@@ -202,25 +202,24 @@ namespace ZXTune
               //begin note
               if (line && 0 == state->Quirk())
               {
-                const Chan& src = line->Channels[chan];
+                const Cell& src = line->Channels[chan];
                 ChannelDataBuilder builder(chan);
-                if (src.Enabled)
+                if (const bool* enabled = src.GetEnabled())
                 {
-                  const bool enabled = *src.Enabled;
-                  builder.SetEnabled(enabled);
-                  if (!enabled)
+                  builder.SetEnabled(*enabled);
+                  if (!*enabled)
                   {
                     builder.SetPosInSample(0);
                   }
                 }
-                if (src.Note)
+                if (const uint_t* note = src.GetNote())
                 {
-                  builder.SetNote(*src.Note);
+                  builder.SetNote(*note);
                   builder.SetPosInSample(0);
                 }
-                if (src.SampleNum)
+                if (const uint_t* sample = src.GetSample())
                 {
-                  builder.SetSampleNum(*src.SampleNum);
+                  builder.SetSampleNum(*sample);
                   builder.SetPosInSample(0);
                 }
                 //store if smth new
@@ -268,9 +267,9 @@ namespace ZXTune
             const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
             const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
             const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(Channels, BaseFreq, chipParams, receiver));
-            for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
+            for (std::size_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
             {
-              chip->SetSample(idx, Data->Samples[idx]);
+              chip->SetSample(uint_t(idx), Data->Samples[idx]);
             }
             return boost::make_shared<Renderer>(params, Info, Data, chip);
           }

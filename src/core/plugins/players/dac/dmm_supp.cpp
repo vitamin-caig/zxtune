@@ -206,7 +206,7 @@ namespace DMM
 
     struct MixedChannel
     {
-      Chan Mixin;
+      Cell Mixin;
       uint_t Period;
 
       MixedChannel()
@@ -218,7 +218,7 @@ namespace DMM
     boost::array<MixedChannel, 64> Mixes;
   };
 
-  void ParseChannel(const Pattern::Line::Channel& srcChan, Chan& dstChan)
+  void ParseChannel(const Pattern::Line::Channel& srcChan, Cell& dstChan)
   {
     const uint_t note = srcChan.NoteCommand;
     if (NO_DATA == note)
@@ -347,7 +347,7 @@ namespace
         for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
         {
           const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          Chan& dstChan = dstLine.Channels[chanNum];
+          Cell& dstChan = dstLine.Channels[chanNum];
           DMM::ParseChannel(srcChan, dstChan);
           if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
           {
@@ -503,7 +503,7 @@ namespace
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DMM::CHANNELS_COUNT, DMM::BASE_FREQ, chipParams, receiver));
-      for (std::size_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
+      for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
       {
         chip->SetSample(idx, Data->Samples[idx]);
       }
@@ -622,18 +622,18 @@ namespace
         (this->*Effect)(dst);
       }
 
-      void OnNote(const Chan& src, const DMM::ModuleData& data, Devices::DAC::DataChunk::ChannelData& dst)
+      void OnNote(const Cell& src, const DMM::ModuleData& data, Devices::DAC::DataChunk::ChannelData& dst)
       {
         //if has new sample, start from it, else use previous sample
-        const uint_t oldPos = src.SampleNum ? 0 : dst.PosInSample;
+        const uint_t oldPos = src.GetSample() ? 0 : dst.PosInSample;
         ParseNote(src, dst);
-        if (src.Commands.empty())
+        CommandsIterator it = src.GetCommands();
+        if (!it)
         {
           return;
         }
         OldData = src;
-        OldData.Commands.clear();
-        for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+        for (; it; ++it)
         {
           switch (it->Type)
           {
@@ -731,23 +731,23 @@ namespace
         }
       }
     private:
-      void ParseNote(const Chan& src, Devices::DAC::DataChunk::ChannelData& dst)
+      void ParseNote(const Cell& src, Devices::DAC::DataChunk::ChannelData& dst)
       {
-        if (src.Note)
+        if (const uint_t* note = src.GetNote())
         {
           Counter = 0;
           VibratoStep = ArpeggioStep = 0;
-          Note = *src.Note;
+          Note = *note;
           NoteSlide = FreqSlide = 0;
         }
-        if (src.Volume)
+        if (const uint_t* volume = src.GetVolume())
         {
-          Volume = *src.Volume;
+          Volume = *volume;
         }
-        if (src.Enabled)
+        if (const bool* enabled = src.GetEnabled())
         {
           dst.Mask |= Devices::DAC::DataChunk::ChannelData::ENABLED;
-          dst.Enabled = *src.Enabled;
+          dst.Enabled = *enabled;
           if (!dst.Enabled)
           {
             NoteSlide = FreqSlide = 0;
@@ -757,9 +757,9 @@ namespace
         {
           dst.Mask &= ~Devices::DAC::DataChunk::ChannelData::ENABLED;
         }
-        if (src.SampleNum)
+        if (const uint_t* sample = src.GetSample())
         {
-          Sample = *src.SampleNum;
+          Sample = *sample;
           dst.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
           dst.PosInSample = 0;
         }
@@ -942,7 +942,7 @@ namespace
       uint_t Volume;//pVOL_x
       uint_t Sample;
 
-      Chan OldData;
+      Cell OldData;
       Devices::DAC::DataChunk::ChannelData DacState;
 
       typedef void (ChannelState::*EffectFunc)(Devices::DAC::DataChunk::ChannelData&);
@@ -964,7 +964,7 @@ namespace
         //begin note
         if (line && 0 == state->Quirk())
         {
-          const Chan& src = line->Channels[chan];
+          const Cell& src = line->Channels[chan];
           chanState.OnNote(src, *Data, dst);
         }
         res.push_back(dst);

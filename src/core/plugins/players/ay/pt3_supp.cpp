@@ -156,10 +156,9 @@ namespace ProTracker3
 
     virtual void SetNote(uint_t note)
     {
-      Chan* const channel = Context.CurChannel;
+      Cell* const channel = Context.CurChannel;
       channel->SetEnabled(true);
-      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), Vortex::GLISS_NOTE);
-      if (cmd != channel->Commands.end())
+      if (Command* cmd = channel->FindCommand(Vortex::GLISS_NOTE))
       {
         cmd->Param3 = int_t(note);
       }

@@ -242,7 +242,7 @@ namespace
             continue;
           }
 
-          Chan& dstChan = dstLine.Channels[chanNum];
+          Cell& dstChan = dstLine.Channels[chanNum];
           if (srcChan.IsRest())
           {
             dstChan.SetEnabled(false);
@@ -502,32 +502,31 @@ namespace
           vol.SlideDirection = 0;
           vol.SlideCounter = 0;
 
-          const Chan& src = line->Channels[chan];
-          if (src.Enabled)
+          const Cell& src = line->Channels[chan];
+          if (const bool* enabled = src.GetEnabled())
           {
-            const bool enabled = *src.Enabled;
-            builder.SetEnabled(enabled);
-            if (!enabled)
+            builder.SetEnabled(*enabled);
+            if (!*enabled)
             {
               builder.SetPosInSample(0);
             }
           }
-          if (src.Note)
+          if (const uint_t* note = src.GetNote())
           {
-            builder.SetNote(*src.Note);
+            builder.SetNote(*note);
             builder.SetPosInSample(0);
           }
-          if (src.SampleNum)
+          if (const uint_t* sample = src.GetSample())
           {
-            builder.SetSampleNum(*src.SampleNum);
+            builder.SetSampleNum(*sample);
             builder.SetPosInSample(0);
           }
-          if (src.Volume)
+          if (const uint_t* volume = src.GetVolume())
           {
-            vol.Value = *src.Volume;
+            vol.Value = *volume;
             builder.SetLevelInPercents(100 * vol.Value / 16);
           }
-          for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+          for (CommandsIterator it = src.GetCommands(); it; ++it)
           {
             switch (it->Type)
             {

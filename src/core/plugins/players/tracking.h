@@ -88,46 +88,78 @@ namespace ZXTune
     };
 
     typedef std::vector<Command> CommandsArray;
+    typedef RangeIterator<CommandsArray::const_iterator> CommandsIterator;
 
-    struct Chan
+    struct Cell
     {
-      Chan() : Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
+      Cell() : Mask(), Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
       {
       }
 
+      //accessors
       bool Empty() const
       {
-        return !Enabled && !Note && !SampleNum && !OrnamentNum && !Volume && Commands.empty();
+        return 0 == Mask && Commands.empty();
       }
 
-      bool FindCommand(uint_t type) const
+      const bool* GetEnabled() const
       {
-        return Commands.end() != std::find(Commands.begin(), Commands.end(), type);
+        return 0 != (Mask & ENABLED) ? &Enabled : 0;
+      }
+
+      const uint_t* GetNote() const
+      {
+        return 0 != (Mask & NOTE) ? &Note : 0;
+      }
+
+      const uint_t* GetSample() const
+      {
+        return 0 != (Mask & SAMPLENUM) ? &SampleNum : 0;
+      }
+
+      const uint_t* GetOrnament() const
+      {
+        return 0 != (Mask & ORNAMENTNUM) ? &OrnamentNum : 0;
+      }
+
+      const uint_t* GetVolume() const
+      {
+        return 0 != (Mask & VOLUME) ? &Volume : 0;
+      }
+
+      CommandsIterator GetCommands() const
+      {
+        return CommandsIterator(Commands.begin(), Commands.end());
       }
 
       //modifiers
       void SetEnabled(bool val)
       {
+        Mask |= ENABLED;
         Enabled = val;
       }
 
       void SetNote(uint_t val)
       {
+        Mask |= NOTE;
         Note = val;
       }
 
       void SetSample(uint_t val)
       {
+        Mask |= SAMPLENUM;
         SampleNum = val;
       }
 
       void SetOrnament(uint_t val)
       {
+        Mask |= ORNAMENTNUM;
         OrnamentNum = val;
       }
 
       void SetVolume(uint_t val)
       {
+        Mask |= VOLUME;
         Volume = val;
       }
 
@@ -136,11 +168,29 @@ namespace ZXTune
         Commands.push_back(Command(type, p1, p2, p3));
       }
 
-      boost::optional<bool> Enabled;
-      boost::optional<uint_t> Note;
-      boost::optional<uint_t> SampleNum;
-      boost::optional<uint_t> OrnamentNum;
-      boost::optional<uint_t> Volume;
+      Command* FindCommand(uint_t type)
+      {
+        const CommandsArray::iterator it = std::find(Commands.begin(), Commands.end(), type);
+        return it != Commands.end()
+          ? &*it
+          : 0;
+      }
+    private:
+      enum Flags
+      {
+        ENABLED = 1,
+        NOTE = 2,
+        SAMPLENUM = 4,
+        ORNAMENTNUM = 8,
+        VOLUME = 16
+      };
+
+      uint_t Mask;
+      bool Enabled;
+      uint_t Note;
+      uint_t SampleNum;
+      uint_t OrnamentNum;
+      uint_t Volume;
       CommandsArray Commands;
     };
 
@@ -191,7 +241,7 @@ namespace ZXTune
         //track attrs
         boost::optional<uint_t> Tempo;
 
-        typedef boost::array<Chan, ChannelsCount> ChannelsArray;
+        typedef boost::array<Cell, ChannelsCount> ChannelsArray;
         ChannelsArray Channels;
       };
 
@@ -336,7 +386,7 @@ namespace ZXTune
         {
           if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
-            return static_cast<uint_t>(std::count_if(lineObj->Channels.begin(), lineObj->Channels.end(), !boost::bind(&Chan::Empty, _1)));
+            return static_cast<uint_t>(std::count_if(lineObj->Channels.begin(), lineObj->Channels.end(), !boost::bind(&Cell::Empty, _1)));
           }
           return 0;
         }
@@ -354,7 +404,7 @@ namespace ZXTune
         ModuleData& Data;
         Pattern* CurPattern;
         Line* CurLine;
-        Chan* CurChannel;
+        Cell* CurChannel;
 
         explicit BuildContext(ModuleData& data)
           : Data(data)
@@ -374,7 +424,7 @@ namespace ZXTune
 
         void SetLine(uint_t idx)
         {
-          if (const std::size_t skipped = idx - CurPattern->GetSize())
+          if (const uint_t skipped = idx - CurPattern->GetSize())
           {
             CurPattern->AddLines(skipped);
           }
@@ -389,7 +439,7 @@ namespace ZXTune
 
         void FinishPattern(uint_t size)
         {
-          if (const std::size_t skipped = size - CurPattern->GetSize())
+          if (const uint_t skipped = size - CurPattern->GetSize())
           {
             CurPattern->AddLines(skipped);
           }

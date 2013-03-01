@@ -193,7 +193,7 @@ namespace
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Chan& src = line->Channels[chan];
+          const Cell& src = line->Channels[chan];
           if (!src.Empty())
           {
             GetNewChannelState(src, PlayerState.ChanState[chan], track);
@@ -202,35 +202,35 @@ namespace
       }
     }
 
-    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
-      if (src.Enabled)
+      if (const bool* enabled = src.GetEnabled())
       {
         dst.PosInSample = dst.PosInOrnament = 0;
         dst.VolSlide = dst.EnvSliding = dst.NoiseSliding = 0;
         dst.ToneSlider.Reset();
         dst.ToneAccumulator = 0;
         dst.VibrateCounter = 0;
-        dst.Enabled = *src.Enabled;
+        dst.Enabled = *enabled;
       }
-      if (src.Note)
+      if (const uint_t* note = src.GetNote())
       {
-        dst.Note = *src.Note;
+        dst.Note = *note;
       }
-      if (src.SampleNum)
+      if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleNum = *src.SampleNum;
+        dst.SampleNum = *sample;
       }
-      if (src.OrnamentNum)
+      if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentNum = *src.OrnamentNum;
+        dst.OrnamentNum = *ornament;
         dst.PosInOrnament = 0;
       }
-      if (src.Volume)
+      if (const uint_t* volume = src.GetVolume())
       {
-        dst.Volume = *src.Volume;
+        dst.Volume = *volume;
       }
-      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsIterator it = src.GetCommands(); it ; ++it)
       {
         switch (it->Type)
         {

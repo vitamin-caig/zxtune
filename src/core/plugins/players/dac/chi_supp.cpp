@@ -186,9 +186,9 @@ namespace ChipTracker
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, BASE_FREQ, chipParams, receiver));
-      for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
+      for (std::size_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
       {
-        chip->SetSample(idx, Data->Samples[idx]);
+        chip->SetSample(uint_t(idx), Data->Samples[idx]);
       }
       return CreateCHIRenderer(params, Info, Data, chip);
     }
@@ -303,28 +303,27 @@ namespace ChipTracker
         }
         if (line && newLine)
         {
-          const Chan& src = line->Channels[chan];
-          if (src.Enabled)
+          const Cell& src = line->Channels[chan];
+          if (const bool* enabled = src.GetEnabled())
           {
-            const bool enabled = *src.Enabled;
-            builder.SetEnabled(enabled);
-            if (!enabled)
+            builder.SetEnabled(*enabled);
+            if (!*enabled)
             {
               builder.SetPosInSample(0);
             }
           }
-          if (src.Note)
+          if (const uint_t* note = src.GetNote())
           {
             //start from octave 2
-            builder.SetNote(*src.Note + 12);
+            builder.SetNote(*note + 12);
             builder.SetPosInSample(0);
           }
-          if (src.SampleNum)
+          if (const uint_t* sample = src.GetSample())
           {
-            builder.SetSampleNum(*src.SampleNum);
+            builder.SetSampleNum(*sample);
             builder.SetPosInSample(0);
           }
-          for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+          for (CommandsIterator it = src.GetCommands(); it; ++it)
           {
             switch (it->Type)
             {

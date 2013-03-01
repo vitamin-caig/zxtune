@@ -219,18 +219,16 @@ namespace ASCSoundMaster
 
     virtual void SetNote(uint_t note)
     {
-      Chan* const channel = Context.CurChannel;
+      Cell* const channel = Context.CurChannel;
       if (!channel->FindCommand(BREAK_SAMPLE))
       {
         channel->SetEnabled(true);
       }
-      if (!channel->Commands.empty() &&
-          SLIDE == channel->Commands.back().Type)
+      if (Command* cmd = channel->FindCommand(SLIDE))
       {
         //set slide to note
-        Command& command = channel->Commands.back();
-        command.Type = SLIDE_NOTE;
-        command.Param2 = note;
+        cmd->Type = SLIDE_NOTE;
+        cmd->Param2 = note;
       }
       else
       {
@@ -255,30 +253,28 @@ namespace ASCSoundMaster
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      Chan* const channel = Context.CurChannel;
-      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
-      if (cmd != channel->Commands.end())
+      Cell* const channel = Context.CurChannel;
+      if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
-        cmd->Param1 = type;
+        cmd->Param1 = int_t(type);
       }
       else
       {
-        channel->AddCommand(ENVELOPE, type, -1);
+        channel->AddCommand(ENVELOPE, int_t(type), -1);
       }
     }
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      Chan* const channel = Context.CurChannel;
-      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
-      if (cmd != channel->Commands.end())
+      Cell* const channel = Context.CurChannel;
+      if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
-        cmd->Param2 = tone;
+        cmd->Param2 = int_t(tone);
       }
       else
       {
         //strange situation
-        channel->AddCommand(ENVELOPE, -1, tone);
+        channel->AddCommand(ENVELOPE, -1, int_t(tone));
       }
     }
 
@@ -411,7 +407,7 @@ namespace ASCSoundMaster
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Chan& src = line->Channels[chan];
+          const Cell& src = line->Channels[chan];
           if (src.Empty())
           {
             continue;
@@ -421,17 +417,16 @@ namespace ASCSoundMaster
       }
     }
 
-    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
-      if (src.Enabled)
+      if (const bool* enabled = src.GetEnabled())
       {
-        dst.Enabled = *src.Enabled;
+        dst.Enabled = *enabled;
       }
       dst.VolSlideCounter = 0;
       dst.SlidingSteps = 0;
       bool contSample = false, contOrnament = false;
-      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end();
-        it != lim; ++it)
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
         switch (it->Type)
         {
@@ -494,17 +489,17 @@ namespace ASCSoundMaster
           break;
         }
       }
-      if (src.OrnamentNum)
+      if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentNum = *src.OrnamentNum;
+        dst.OrnamentNum = *ornament;
       }
-      if (src.SampleNum)
+      if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleNum = *src.SampleNum;
+        dst.SampleNum = *sample;
       }
-      if (src.Note)
+      if (const uint_t* note = src.GetNote())
       {
-        dst.Note = *src.Note;
+        dst.Note = *note;
         dst.CurrentNoise = dst.BaseNoise;
         if (dst.SlidingSteps <= 0)
         {
@@ -525,9 +520,9 @@ namespace ASCSoundMaster
           dst.NoteAddon = 0;
         }
       }
-      if (src.Volume)
+      if (const uint_t* volume = src.GetVolume())
       {
-        dst.Volume = *src.Volume;
+        dst.Volume = *volume;
       }
     }
 

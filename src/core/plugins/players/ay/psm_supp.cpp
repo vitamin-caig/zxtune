@@ -222,23 +222,21 @@ namespace ProSoundMaker
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      Chan* const channel = Context.CurChannel;
-      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
-      if (cmd != channel->Commands.end())
+      Cell* const channel = Context.CurChannel;
+      if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
       }
       else
       {
-        channel->AddCommand(ENVELOPE, type, -1, -1);
+        channel->AddCommand(ENVELOPE, int_t(type), -1, -1);
       }
     }
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      Chan* const channel = Context.CurChannel;
-      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
-      if (cmd != channel->Commands.end())
+      Cell* const channel = Context.CurChannel;
+      if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);
       }
@@ -250,9 +248,8 @@ namespace ProSoundMaker
 
     virtual void SetEnvelopeNote(uint_t note)
     {
-      Chan* const channel = Context.CurChannel;
-      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
-      if (cmd != channel->Commands.end())
+      Cell* const channel = Context.CurChannel;
+      if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param3 = int_t(note);
       }
@@ -366,7 +363,7 @@ namespace ProSoundMaker
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Chan& src = line->Channels[chan];
+          const Cell& src = line->Channels[chan];
           if (!src.Empty())
           {
             GetNewChannelState(src, PlayerState[chan], track);
@@ -375,22 +372,22 @@ namespace ProSoundMaker
       }
     }
 
-    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
-      if (src.Enabled)
+      if (const bool* enabled = src.GetEnabled())
       {
-        dst.Enabled = *src.Enabled;
+        dst.Enabled = *enabled;
       }
-      if (src.SampleNum)
+      if (const uint_t* sample = src.GetSample())
       {
-        dst.Smp.Current = &Data->Samples[*src.SampleNum];
+        dst.Smp.Current = &Data->Samples[*sample];
       }
-      if (src.OrnamentNum)
+      if (const uint_t* ornament = src.GetOrnament())
       {
-        if (*src.OrnamentNum != 0x20 &&
-            *src.OrnamentNum != 0x21)
+        if (*ornament != 0x20 &&
+            *ornament != 0x21)
         {
-          dst.Orn.Current = &Data->Ornaments[*src.OrnamentNum];
+          dst.Orn.Current = &Data->Ornaments[*ornament];
           dst.Orn.Position = 0;
           dst.Orn.Finished = dst.Orn.Disabled = false;
           dst.Envelope = false;
@@ -401,11 +398,11 @@ namespace ProSoundMaker
           dst.Orn.Current = &STUB_ORNAMENT;
         }
       }
-      if (src.Volume)
+      if (const uint_t* volume = src.GetVolume())
       {
-        dst.BaseVolumeDelta = *src.Volume;
+        dst.BaseVolumeDelta = *volume;
       }
-      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
         switch (it->Type)
         {
@@ -433,9 +430,9 @@ namespace ProSoundMaker
           assert(!"Invalid command");
         }
       }
-      if (src.Note)
+      if (const uint_t* note = src.GetNote())
       {
-        dst.Note = *src.Note;
+        dst.Note = *note;
         dst.VolumeDelta = dst.BaseVolumeDelta;
         dst.Smp.Position = 0;
         dst.Slide = 0;

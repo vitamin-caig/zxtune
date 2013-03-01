@@ -55,7 +55,7 @@ namespace ProDigiTracker
     {
     }
 
-    uint_t Loop;
+    std::size_t Loop;
     std::vector<int_t> Data;
   };
 
@@ -206,7 +206,7 @@ namespace ProDigiTracker
       {
       }
       const Ornament* Object;
-      uint_t Position;
+      std::size_t Position;
 
       int_t GetOffset() const
       {
@@ -311,32 +311,30 @@ namespace ProDigiTracker
         ornament.Update();
         if (line && 0 == state->Quirk())//begin note
         {
-          const Chan& src = line->Channels[chan];
+          const Cell& src = line->Channels[chan];
 
-          //ChannelState& dst(Channels[chan]);
-          if (src.Enabled)
+          if (const bool* enabled = src.GetEnabled())
           {
-            const bool enabled = *src.Enabled;
-            builder.SetEnabled(enabled);
-            if (!enabled)
+            builder.SetEnabled(*enabled);
+            if (!*enabled)
             {
               builder.SetPosInSample(0);
             }
           }
 
-          if (src.Note)
+          if (const uint_t* note = src.GetNote())
           {
-            if (src.OrnamentNum)
+            if (const uint_t* ornament = src.GetOrnament())
             {
-              const uint_t ornIdx = *src.OrnamentNum < Data->Ornaments.size() ? *src.OrnamentNum : 0;
+              const uint_t ornIdx = *ornament < Data->Ornaments.size() ? *ornament : 0;
               Ornaments[chan].Object = &Data->Ornaments[ornIdx];
               Ornaments[chan].Position = 0;
             }
-            if (src.SampleNum)
+            if (const uint_t* sample = src.GetSample())
             {
-              builder.SetSampleNum(*src.SampleNum);
+              builder.SetSampleNum(*sample);
             }
-            builder.SetNote(*src.Note);
+            builder.SetNote(*note);
             builder.SetPosInSample(0);
           }
         }

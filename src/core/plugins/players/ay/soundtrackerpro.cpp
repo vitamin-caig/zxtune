@@ -128,7 +128,7 @@ namespace SoundTrackerPro
     
     virtual void SetVolume(uint_t vol)
     {
-      Context.CurChannel->Volume = vol;
+      Context.CurChannel->SetVolume(vol);
     }
   private:
     const ModuleData::RWPtr Data;
@@ -187,7 +187,7 @@ namespace SoundTrackerPro
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Chan& src = line->Channels[chan];
+          const Cell& src = line->Channels[chan];
           if (!src.Empty())
           {
             GetNewChannelState(src, PlayerState[chan], track);
@@ -196,36 +196,36 @@ namespace SoundTrackerPro
       }
     }
 
-    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
-      if (src.Enabled)
+      if (const bool* enabled = src.GetEnabled())
       {
-        dst.Enabled = *src.Enabled;
+        dst.Enabled = *enabled;
         dst.PosInSample = 0;
         dst.PosInOrnament = 0;
       }
-      if (src.Note)
+      if (const uint_t* note = src.GetNote())
       {
-        dst.Note = *src.Note;
+        dst.Note = *note;
         dst.PosInSample = 0;
         dst.PosInOrnament = 0;
         dst.TonSlide = 0;
       }
-      if (src.SampleNum)
+      if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleNum = *src.SampleNum;
+        dst.SampleNum = *sample;
         dst.PosInSample = 0;
       }
-      if (src.OrnamentNum)
+      if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentNum = *src.OrnamentNum;
+        dst.OrnamentNum = *ornament;
         dst.PosInOrnament = 0;
       }
-      if (src.Volume)
+      if (const uint_t* volume = src.GetVolume())
       {
-        dst.Volume = *src.Volume;
+        dst.Volume = *volume;
       }
-      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
         switch (it->Type)
         {
