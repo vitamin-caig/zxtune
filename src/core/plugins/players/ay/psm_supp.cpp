@@ -103,7 +103,7 @@ namespace ProSoundMaker
     }
   };
 
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
+  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, Sample, Ornament> Track;
 
   class ModuleData : public Track::ModuleData
   {
@@ -196,9 +196,8 @@ namespace ProSoundMaker
 
     virtual void SetNote(uint_t note)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      channel->SetEnabled(true);
-      channel->SetNote(note);
+      Context.CurChannel->SetEnabled(true);
+      Context.CurChannel->SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
@@ -218,48 +217,48 @@ namespace ProSoundMaker
 
     virtual void DisableOrnament()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(NOORNAMENT));
+      Context.CurChannel->AddCommand(NOORNAMENT);
     }
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
+      Chan* const channel = Context.CurChannel;
+      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
       if (cmd != channel->Commands.end())
       {
         cmd->Param1 = int_t(type);
       }
       else
       {
-        channel->Commands.push_back(Track::Command(ENVELOPE, type, -1, -1));
+        channel->AddCommand(ENVELOPE, type, -1, -1);
       }
     }
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
+      Chan* const channel = Context.CurChannel;
+      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
       if (cmd != channel->Commands.end())
       {
         cmd->Param2 = int_t(tone);
       }
       else
       {
-        channel->Commands.push_back(Track::Command(ENVELOPE, -1, int_t(tone), -1));
+        channel->AddCommand(ENVELOPE, -1, int_t(tone), -1);
       }
     }
 
     virtual void SetEnvelopeNote(uint_t note)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
+      Chan* const channel = Context.CurChannel;
+      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
       if (cmd != channel->Commands.end())
       {
         cmd->Param3 = int_t(note);
       }
       else
       {
-        channel->Commands.push_back(Track::Command(ENVELOPE, -1, -1, int_t(note)));
+        channel->AddCommand(ENVELOPE, -1, -1, int_t(note));
       }
     }
   private:
@@ -367,17 +366,16 @@ namespace ProSoundMaker
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Track::Line::Chan& src = line->Channels[chan];
-          if (src.Empty())
+          const Chan& src = line->Channels[chan];
+          if (!src.Empty())
           {
-            continue;
+            GetNewChannelState(src, PlayerState[chan], track);
           }
-          GetNewChannelState(src, PlayerState[chan], track);
         }
       }
     }
 
-    void GetNewChannelState(const Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -407,7 +405,7 @@ namespace ProSoundMaker
       {
         dst.BaseVolumeDelta = *src.Volume;
       }
-      for (Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
       {
         switch (it->Type)
         {

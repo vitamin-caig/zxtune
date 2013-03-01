@@ -127,7 +127,7 @@ namespace ASCSoundMaster
     }
   };
 
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
+  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, Sample, Ornament> Track;
 
   std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
   ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
@@ -219,7 +219,7 @@ namespace ASCSoundMaster
 
     virtual void SetNote(uint_t note)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
+      Chan* const channel = Context.CurChannel;
       if (!channel->FindCommand(BREAK_SAMPLE))
       {
         channel->SetEnabled(true);
@@ -228,7 +228,7 @@ namespace ASCSoundMaster
           SLIDE == channel->Commands.back().Type)
       {
         //set slide to note
-        Track::Command& command = channel->Commands.back();
+        Command& command = channel->Commands.back();
         command.Type = SLIDE_NOTE;
         command.Param2 = note;
       }
@@ -255,22 +255,22 @@ namespace ASCSoundMaster
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
+      Chan* const channel = Context.CurChannel;
+      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
       if (cmd != channel->Commands.end())
       {
         cmd->Param1 = type;
       }
       else
       {
-        channel->Commands.push_back(Track::Command(ENVELOPE, type, -1));
+        channel->AddCommand(ENVELOPE, type, -1);
       }
     }
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
+      Chan* const channel = Context.CurChannel;
+      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), ENVELOPE);
       if (cmd != channel->Commands.end())
       {
         cmd->Param2 = tone;
@@ -278,53 +278,53 @@ namespace ASCSoundMaster
       else
       {
         //strange situation
-        channel->Commands.push_back(Track::Command(ENVELOPE, -1, tone));
+        channel->AddCommand(ENVELOPE, -1, tone);
       }
     }
 
     virtual void SetEnvelope()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(ENVELOPE_ON));
+      Context.CurChannel->AddCommand(ENVELOPE_ON);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(ENVELOPE_OFF));
+      Context.CurChannel->AddCommand(ENVELOPE_OFF);
     }
 
     virtual void SetNoise(uint_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(NOISE, val));
+      Context.CurChannel->AddCommand(NOISE, val);
     }
 
     virtual void SetContinueSample()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(CONT_SAMPLE));
+      Context.CurChannel->AddCommand(CONT_SAMPLE);
     }
 
     virtual void SetContinueOrnament()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(CONT_ORNAMENT));
+      Context.CurChannel->AddCommand(CONT_ORNAMENT);
     }
 
     virtual void SetGlissade(int_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(GLISS, val));
+      Context.CurChannel->AddCommand(GLISS, val);
     }
 
     virtual void SetSlide(int_t steps)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(SLIDE, steps));
+      Context.CurChannel->AddCommand(SLIDE, steps);
     }
 
     virtual void SetVolumeSlide(uint_t period, int_t delta)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(AMPLITUDE_SLIDE, period, delta));
+      Context.CurChannel->AddCommand(AMPLITUDE_SLIDE, period, delta);
     }
 
     virtual void SetBreakSample()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(BREAK_SAMPLE));
+      Context.CurChannel->AddCommand(BREAK_SAMPLE);
     }
   private:
     const Track::ModuleData::RWPtr Data;
@@ -411,7 +411,7 @@ namespace ASCSoundMaster
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Track::Line::Chan& src = line->Channels[chan];
+          const Chan& src = line->Channels[chan];
           if (src.Empty())
           {
             continue;
@@ -421,7 +421,7 @@ namespace ASCSoundMaster
       }
     }
 
-    void GetNewChannelState(const Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -430,7 +430,7 @@ namespace ASCSoundMaster
       dst.VolSlideCounter = 0;
       dst.SlidingSteps = 0;
       bool contSample = false, contOrnament = false;
-      for (Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end();
+      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end();
         it != lim; ++it)
       {
         switch (it->Type)

@@ -205,7 +205,7 @@ namespace
   //stub for ornament
   struct VoidType {};
 
-  typedef TrackingSupport<SQD::CHANNELS_COUNT, SQD::CmdType, Devices::DAC::Sample::Ptr, VoidType> SQDTrack;
+  typedef TrackingSupport<SQD::CHANNELS_COUNT, Devices::DAC::Sample::Ptr, VoidType> SQDTrack;
 
   // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG
@@ -242,7 +242,7 @@ namespace
             continue;
           }
 
-          SQDTrack::Line::Chan& dstChan = dstLine.Channels[chanNum];
+          Chan& dstChan = dstLine.Channels[chanNum];
           if (srcChan.IsRest())
           {
             dstChan.SetEnabled(false);
@@ -255,11 +255,11 @@ namespace
             dstChan.SetVolume(srcChan.GetSampleVolume());
             if (const uint8_t* newPeriod = srcChan.GetVolumeSlidePeriod())
             {
-              dstChan.Commands.push_back(SQDTrack::Command(SQD::VOLUME_SLIDE_PERIOD, *newPeriod));
+              dstChan.AddCommand(SQD::VOLUME_SLIDE_PERIOD, *newPeriod);
             }
             if (const uint_t slideDirection = srcChan.GetVolumeSlideDirection())
             {
-              dstChan.Commands.push_back(SQDTrack::Command(SQD::VOLUME_SLIDE, 1 == slideDirection ? -1 : 1));
+              dstChan.AddCommand(SQD::VOLUME_SLIDE, 1 == slideDirection ? -1 : 1);
             }
           }
         }
@@ -502,7 +502,7 @@ namespace
           vol.SlideDirection = 0;
           vol.SlideCounter = 0;
 
-          const SQDTrack::Line::Chan& src = line->Channels[chan];
+          const Chan& src = line->Channels[chan];
           if (src.Enabled)
           {
             const bool enabled = *src.Enabled;
@@ -527,7 +527,7 @@ namespace
             vol.Value = *src.Volume;
             builder.SetLevelInPercents(100 * vol.Value / 16);
           }
-          for (SQDTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+          for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
             switch (it->Type)
             {

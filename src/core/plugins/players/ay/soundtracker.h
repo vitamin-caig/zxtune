@@ -61,30 +61,8 @@ namespace SoundTracker
     }
   };
 
-  struct Ornament : public Formats::Chiptune::SoundTracker::Ornament
-  {
-    Ornament() 
-      : Formats::Chiptune::SoundTracker::Ornament()
-    {
-    }
-
-    Ornament(const Formats::Chiptune::SoundTracker::Ornament& rh)
-      : Formats::Chiptune::SoundTracker::Ornament(rh)
-    {
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(size());
-    }
-
-    int_t GetLine(uint_t pos) const
-    {
-      return size() > pos ? at(pos) : 0;
-    }
-  };
-
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
+  //SimpleOrnament::Loop is not use
+  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, Sample> Track;
 
   class ModuleData : public Track::ModuleData
   {

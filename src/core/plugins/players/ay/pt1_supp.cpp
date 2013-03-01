@@ -75,30 +75,8 @@ namespace ProTracker1
     }
   };
 
-  struct Ornament : public Formats::Chiptune::ProTracker1::Ornament
-  {
-    Ornament()
-      : Formats::Chiptune::ProTracker1::Ornament()
-    {
-    }
-
-    Ornament(const Formats::Chiptune::ProTracker1::Ornament& rh)
-      : Formats::Chiptune::ProTracker1::Ornament(rh)
-    {
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    int_t GetLine(uint_t idx) const
-    {
-      return Lines.size() > idx ? Lines[idx] : 0;
-    }
-  };
-
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
+  //SimpleOrnament::Loop is not used
+  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, Sample> Track;
 
   std::auto_ptr<Formats::Chiptune::ProTracker1::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
   ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
@@ -144,7 +122,7 @@ namespace ProTracker1
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker1::Ornament& ornament)
     {
       Data->Ornaments.resize(index + 1);
-      Data->Ornaments[index] = Ornament(ornament);
+      Data->Ornaments[index] = Track::Ornament(0, ornament.Lines.begin(), ornament.Lines.end());
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -185,9 +163,8 @@ namespace ProTracker1
 
     virtual void SetNote(uint_t note)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      channel->SetEnabled(true);
-      channel->SetNote(note);
+      Context.CurChannel->SetEnabled(true);
+      Context.CurChannel->SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
@@ -207,12 +184,12 @@ namespace ProTracker1
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(ENVELOPE, type, value));
+      Context.CurChannel->AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(NOENVELOPE));
+      Context.CurChannel->AddCommand(NOENVELOPE);
     }
   private:
     const Track::ModuleData::RWPtr Data;
@@ -274,17 +251,16 @@ namespace ProTracker1
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Track::Line::Chan& src = line->Channels[chan];
-          if (src.Empty())
+          const Chan& src = line->Channels[chan];
+          if (!src.Empty())
           {
-            continue;
+            GetNewChannelState(src, PlayerState[chan], track);
           }
-          GetNewChannelState(src, PlayerState[chan], track);
         }
       }
     }
 
-    void GetNewChannelState(const Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -308,7 +284,7 @@ namespace ProTracker1
       {
         dst.Volume = *src.Volume;
       }
-      for (Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
       {
         switch (it->Type)
         {
@@ -345,7 +321,7 @@ namespace ProTracker1
 
       const Sample& curSample = Data->Samples[dst.SampleNum];
       const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+      const Track::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
       //apply tone
       const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInSample), 0, 95);

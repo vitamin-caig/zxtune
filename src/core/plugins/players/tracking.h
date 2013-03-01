@@ -65,6 +65,85 @@ namespace ZXTune
       std::vector<int_t> Lines;
     };
 
+    struct Command
+    {
+      Command() : Type(), Param1(), Param2(), Param3()
+      {
+      }
+
+      Command(uint_t type, int_t p1, int_t p2, int_t p3)
+        : Type(type), Param1(p1), Param2(p2), Param3(p3)
+      {
+      }
+
+      bool operator == (uint_t type) const
+      {
+        return Type == type;
+      }
+
+      uint_t Type;
+      int_t Param1;
+      int_t Param2;
+      int_t Param3;
+    };
+
+    typedef std::vector<Command> CommandsArray;
+
+    struct Chan
+    {
+      Chan() : Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
+      {
+      }
+
+      bool Empty() const
+      {
+        return !Enabled && !Note && !SampleNum && !OrnamentNum && !Volume && Commands.empty();
+      }
+
+      bool FindCommand(uint_t type) const
+      {
+        return Commands.end() != std::find(Commands.begin(), Commands.end(), type);
+      }
+
+      //modifiers
+      void SetEnabled(bool val)
+      {
+        Enabled = val;
+      }
+
+      void SetNote(uint_t val)
+      {
+        Note = val;
+      }
+
+      void SetSample(uint_t val)
+      {
+        SampleNum = val;
+      }
+
+      void SetOrnament(uint_t val)
+      {
+        OrnamentNum = val;
+      }
+
+      void SetVolume(uint_t val)
+      {
+        Volume = val;
+      }
+
+      void AddCommand(uint_t type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
+      {
+        Commands.push_back(Command(type, p1, p2, p3));
+      }
+
+      boost::optional<bool> Enabled;
+      boost::optional<uint_t> Note;
+      boost::optional<uint_t> SampleNum;
+      boost::optional<uint_t> OrnamentNum;
+      boost::optional<uint_t> Volume;
+      CommandsArray Commands;
+    };
+
     class TrackModuleData
     {
     public:
@@ -90,36 +169,13 @@ namespace ZXTune
     StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data);
 
     // Basic template class for tracking support (used as simple parametrized namespace)
-    template<uint_t ChannelsCount, class CommandType, class SampleType, class OrnamentType = SimpleOrnament>
+    template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
     class TrackingSupport
     {
     public:
       // Define common types
       typedef SampleType Sample;
       typedef OrnamentType Ornament;
-
-      struct Command
-      {
-        Command() : Type(), Param1(), Param2(), Param3()
-        {
-        }
-        Command(CommandType type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
-          : Type(type), Param1(p1), Param2(p2), Param3(p3)
-        {
-        }
-
-        bool operator == (CommandType type) const
-        {
-          return Type == type;
-        }
-
-        CommandType Type;
-        int_t Param1;
-        int_t Param2;
-        int_t Param3;
-      };
-
-      typedef std::vector<Command> CommandsArray;
 
       struct Line
       {
@@ -134,63 +190,6 @@ namespace ZXTune
 
         //track attrs
         boost::optional<uint_t> Tempo;
-
-        struct Chan
-        {
-          Chan() : Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
-          {
-          }
-
-          bool Empty() const
-          {
-            return !Enabled && !Note && !SampleNum && !OrnamentNum && !Volume && Commands.empty();
-          }
-
-          bool FindCommand(CommandType type) const
-          {
-            return Commands.end() != std::find(Commands.begin(), Commands.end(), type);
-          }
-
-          typedef bool(CommandsArray::*BoolType)() const;
-
-          operator BoolType () const
-          {
-            return Empty() ? 0 : &CommandsArray::empty;
-          }
-
-          //modifiers
-          void SetEnabled(bool val)
-          {
-            Enabled = val;
-          }
-
-          void SetNote(uint_t val)
-          {
-            Note = val;
-          }
-
-          void SetSample(uint_t val)
-          {
-            SampleNum = val;
-          }
-
-          void SetOrnament(uint_t val)
-          {
-            OrnamentNum = val;
-          }
-
-          void SetVolume(uint_t val)
-          {
-            Volume = val;
-          }
-
-          boost::optional<bool> Enabled;
-          boost::optional<uint_t> Note;
-          boost::optional<uint_t> SampleNum;
-          boost::optional<uint_t> OrnamentNum;
-          boost::optional<uint_t> Volume;
-          CommandsArray Commands;
-        };
 
         typedef boost::array<Chan, ChannelsCount> ChannelsArray;
         ChannelsArray Channels;
@@ -337,7 +336,7 @@ namespace ZXTune
         {
           if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
-            return static_cast<uint_t>(std::count_if(lineObj->Channels.begin(), lineObj->Channels.end(), !boost::bind(&Line::Chan::Empty, _1)));
+            return static_cast<uint_t>(std::count_if(lineObj->Channels.begin(), lineObj->Channels.end(), !boost::bind(&Chan::Empty, _1)));
           }
           return 0;
         }
@@ -355,7 +354,7 @@ namespace ZXTune
         ModuleData& Data;
         Pattern* CurPattern;
         Line* CurLine;
-        typename Line::Chan* CurChannel;
+        Chan* CurChannel;
 
         explicit BuildContext(ModuleData& data)
           : Data(data)

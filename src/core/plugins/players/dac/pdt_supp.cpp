@@ -59,7 +59,7 @@ namespace ProDigiTracker
     std::vector<int_t> Data;
   };
 
-  typedef TrackingSupport<CHANNELS_COUNT, uint_t, Devices::DAC::Sample::Ptr, Ornament> PDTTrack;
+  typedef TrackingSupport<CHANNELS_COUNT, Devices::DAC::Sample::Ptr, Ornament> PDTTrack;
 
   std::auto_ptr<Formats::Chiptune::ProDigiTracker::Builder> CreateDataBuilder(PDTTrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props);
 }
@@ -311,7 +311,7 @@ namespace ProDigiTracker
         ornament.Update();
         if (line && 0 == state->Quirk())//begin note
         {
-          const PDTTrack::Line::Chan& src = line->Channels[chan];
+          const Chan& src = line->Channels[chan];
 
           //ChannelState& dst(Channels[chan]);
           if (src.Enabled)

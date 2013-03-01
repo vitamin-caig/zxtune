@@ -48,6 +48,9 @@ namespace
 
 namespace DMM
 {
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
   const std::size_t MAX_POSITIONS_COUNT = 0x32;
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t PATTERNS_COUNT = 24;
@@ -188,7 +191,7 @@ namespace DMM
   //stub for ornament
   struct VoidType {};
 
-  typedef ZXTune::Module::TrackingSupport<CHANNELS_COUNT, CmdType, Devices::DAC::Sample::Ptr, VoidType> Track;
+  typedef ZXTune::Module::TrackingSupport<CHANNELS_COUNT, Devices::DAC::Sample::Ptr, VoidType> Track;
 
   class ModuleData : public Track::ModuleData
   {
@@ -203,7 +206,7 @@ namespace DMM
 
     struct MixedChannel
     {
-      Track::Line::Chan Mixin;
+      Chan Mixin;
       uint_t Period;
 
       MixedChannel()
@@ -215,7 +218,7 @@ namespace DMM
     boost::array<MixedChannel, 64> Mixes;
   };
 
-  void ParseChannel(const Pattern::Line::Channel& srcChan, Track::Line::Chan& dstChan)
+  void ParseChannel(const Pattern::Line::Channel& srcChan, Chan& dstChan)
   {
     const uint_t note = srcChan.NoteCommand;
     if (NO_DATA == note)
@@ -250,40 +253,40 @@ namespace DMM
       case 0:
         break;
       case FX_FLOAT_UP:
-        dstChan.Commands.push_back(Track::Command(FREQ_FLOAT, 1));
+        dstChan.AddCommand(FREQ_FLOAT, 1);
         break;
       case FX_FLOAT_DN:
-        dstChan.Commands.push_back(Track::Command(FREQ_FLOAT, -1));
+        dstChan.AddCommand(FREQ_FLOAT, -1);
         break;
       case FX_VIBRATO:
-        dstChan.Commands.push_back(Track::Command(VIBRATO, true));
+        dstChan.AddCommand(VIBRATO, true);
         break;
       case FX_ARPEGGIO:
-        dstChan.Commands.push_back(Track::Command(ARPEGGIO, true));
+        dstChan.AddCommand(ARPEGGIO, true);
         break;
       case FX_STEP_UP:
-        dstChan.Commands.push_back(Track::Command(TONE_SLIDE, 1));
+        dstChan.AddCommand(TONE_SLIDE, 1);
         break;
       case FX_STEP_DN:
-        dstChan.Commands.push_back(Track::Command(TONE_SLIDE, -1));
+        dstChan.AddCommand(TONE_SLIDE, -1);
         break;
       case FX_DOUBLE:
-        dstChan.Commands.push_back(Track::Command(DOUBLE_NOTE, true));
+        dstChan.AddCommand(DOUBLE_NOTE, true);
         break;
       case FX_ATTACK:
-        dstChan.Commands.push_back(Track::Command(VOL_ATTACK, true));
+        dstChan.AddCommand(VOL_ATTACK, true);
         break;
       case FX_DECAY:
-        dstChan.Commands.push_back(Track::Command(VOL_DECAY, true));
+        dstChan.AddCommand(VOL_DECAY, true);
         break;
       case FX_DISABLE:
-        dstChan.Commands.push_back(Track::Command(EMPTY_CMD));
+        dstChan.AddCommand(EMPTY_CMD);
         break;
       default:
         {
           const uint_t mixNum = srcChan.Effect - FX_MIX;
           //according to player there can be up to 64 mixins (with enabled 4)
-          dstChan.Commands.push_back(Track::Command(MIX_SAMPLE, mixNum % 64));
+          dstChan.AddCommand(MIX_SAMPLE, mixNum % 64);
         }
         break; 
       }
@@ -295,25 +298,25 @@ namespace DMM
       case SET_TEMPO:
         break;
       case SET_FREQ_FLOAT:
-        dstChan.Commands.push_back(Track::Command(FREQ_FLOAT, 0, srcChan.SampleParam));
+        dstChan.AddCommand(FREQ_FLOAT, 0, srcChan.SampleParam);
         break;
       case SET_VIBRATO:
-        dstChan.Commands.push_back(Track::Command(VIBRATO, false, srcChan.SampleParam, srcChan.Effect));
+        dstChan.AddCommand(VIBRATO, false, srcChan.SampleParam, srcChan.Effect);
         break;
       case SET_ARPEGGIO:
-        dstChan.Commands.push_back(Track::Command(ARPEGGIO, false, srcChan.SampleParam, srcChan.Effect));
+        dstChan.AddCommand(ARPEGGIO, false, srcChan.SampleParam, srcChan.Effect);
         break;
       case SET_SLIDE:
-        dstChan.Commands.push_back(Track::Command(TONE_SLIDE, 0, srcChan.SampleParam, srcChan.Effect));
+        dstChan.AddCommand(TONE_SLIDE, 0, srcChan.SampleParam, srcChan.Effect);
         break;
       case SET_DOUBLE:
-        dstChan.Commands.push_back(Track::Command(DOUBLE_NOTE, false, srcChan.SampleParam));
+        dstChan.AddCommand(DOUBLE_NOTE, false, srcChan.SampleParam);
         break;
       case SET_ATTACK:
-        dstChan.Commands.push_back(Track::Command(VOL_ATTACK, false, srcChan.SampleParam & 15, srcChan.Effect));
+        dstChan.AddCommand(VOL_ATTACK, false, srcChan.SampleParam & 15, srcChan.Effect);
         break;
       case SET_DECAY:
-        dstChan.Commands.push_back(Track::Command(VOL_DECAY, false, srcChan.SampleParam & 15, srcChan.Effect));
+        dstChan.AddCommand(VOL_DECAY, false, srcChan.SampleParam & 15, srcChan.Effect);
         break;
       }
     }
@@ -344,7 +347,7 @@ namespace
         for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
         {
           const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          DMM::Track::Line::Chan& dstChan = dstLine.Channels[chanNum];
+          Chan& dstChan = dstLine.Channels[chanNum];
           DMM::ParseChannel(srcChan, dstChan);
           if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
           {
@@ -619,7 +622,7 @@ namespace
         (this->*Effect)(dst);
       }
 
-      void OnNote(const DMM::Track::Line::Chan& src, const DMM::ModuleData& data, Devices::DAC::DataChunk::ChannelData& dst)
+      void OnNote(const Chan& src, const DMM::ModuleData& data, Devices::DAC::DataChunk::ChannelData& dst)
       {
         //if has new sample, start from it, else use previous sample
         const uint_t oldPos = src.SampleNum ? 0 : dst.PosInSample;
@@ -630,7 +633,7 @@ namespace
         }
         OldData = src;
         OldData.Commands.clear();
-        for (DMM::Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+        for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
         {
           switch (it->Type)
           {
@@ -728,7 +731,7 @@ namespace
         }
       }
     private:
-      void ParseNote(const DMM::Track::Line::Chan& src, Devices::DAC::DataChunk::ChannelData& dst)
+      void ParseNote(const Chan& src, Devices::DAC::DataChunk::ChannelData& dst)
       {
         if (src.Note)
         {
@@ -939,7 +942,7 @@ namespace
       uint_t Volume;//pVOL_x
       uint_t Sample;
 
-      DMM::Track::Line::Chan OldData;
+      Chan OldData;
       Devices::DAC::DataChunk::ChannelData DacState;
 
       typedef void (ChannelState::*EffectFunc)(Devices::DAC::DataChunk::ChannelData&);
@@ -961,7 +964,7 @@ namespace
         //begin note
         if (line && 0 == state->Quirk())
         {
-          const DMM::Track::Line::Chan& src = line->Channels[chan];
+          const Chan& src = line->Channels[chan];
           chanState.OnNote(src, *Data, dst);
         }
         res.push_back(dst);

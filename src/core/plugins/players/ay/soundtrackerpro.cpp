@@ -56,7 +56,8 @@ namespace SoundTrackerPro
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::SoundTrackerPro::Ornament& ornament)
     {
-      Data->Ornaments.resize(index + 1, ornament);
+      Data->Ornaments.resize(index + 1);
+      Data->Ornaments[index] = Track::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end());
     }
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTrackerPro::PositionEntry>& positions, uint_t loop)
@@ -112,17 +113,17 @@ namespace SoundTrackerPro
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(ENVELOPE, type, value));
+      Context.CurChannel->AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(NOENVELOPE));
+      Context.CurChannel->AddCommand(NOENVELOPE);
     }
 
     virtual void SetGliss(uint_t target)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(GLISS, target));
+      Context.CurChannel->AddCommand(GLISS, target);
     }
     
     virtual void SetVolume(uint_t vol)
@@ -186,17 +187,16 @@ namespace SoundTrackerPro
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Track::Line::Chan& src = line->Channels[chan];
-          if (src.Empty())
+          const Chan& src = line->Channels[chan];
+          if (!src.Empty())
           {
-            continue;
+            GetNewChannelState(src, PlayerState[chan], track);
           }
-          GetNewChannelState(src, PlayerState[chan], track);
         }
       }
     }
 
-    void GetNewChannelState(const Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -225,7 +225,7 @@ namespace SoundTrackerPro
       {
         dst.Volume = *src.Volume;
       }
-      for (Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
       {
         switch (it->Type)
         {

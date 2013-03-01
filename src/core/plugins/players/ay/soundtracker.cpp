@@ -56,7 +56,8 @@ namespace SoundTracker
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::SoundTracker::Ornament& ornament)
     {
-      Data->Ornaments.resize(index + 1, ornament);
+      Data->Ornaments.resize(index + 1);
+      Data->Ornaments[index] = Track::Ornament(0, ornament.begin(), ornament.end());
     }
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions)
@@ -110,12 +111,12 @@ namespace SoundTracker
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->Commands.push_back(SoundTracker::Track::Command(SoundTracker::ENVELOPE, type, value));
+      Context.CurChannel->AddCommand(SoundTracker::ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->Commands.push_back(SoundTracker::Track::Command(SoundTracker::NOENVELOPE));
+      Context.CurChannel->AddCommand(SoundTracker::NOENVELOPE);
     }
   private:
     const SoundTracker::ModuleData::RWPtr Data;
@@ -183,7 +184,7 @@ namespace SoundTracker
       Enabled = 0;
     }
 
-    void SetNewState(const Track::Line::Chan& src)
+    void SetNewState(const Chan& src)
     {
       if (!src.Commands.empty())
       {
@@ -212,12 +213,12 @@ namespace SoundTracker
       }
     } 
   private:
-    void ApplyCommands(const Track::CommandsArray& commands)
+    void ApplyCommands(const CommandsArray& commands)
     {
       std::for_each(commands.begin(), commands.end(), boost::bind(&EnvelopeState::ApplyCommand, this, _1));
     }
 
-    void ApplyCommand(const Track::Command& command)
+    void ApplyCommand(const Command& command)
     {
       if (command == ENVELOPE)
       {
@@ -295,8 +296,12 @@ namespace SoundTracker
       EnvState.Reset();
     }
 
-    void SetNewState(const Track::Line::Chan& src)
+    void SetNewState(const Chan& src)
     {
+      if (src.Empty())
+      {
+        return;
+      }
       if (src.Enabled)
       {
         SetEnabled(*src.Enabled);
@@ -472,18 +477,9 @@ namespace SoundTracker
       assert(0 == State->Quirk());
       if (const Track::Line* line = Data->Patterns[State->Pattern()].GetLine(State->Line()))
       {
-        if (const Track::Line::Chan& src = line->Channels[0])
-        {
-          StateA.SetNewState(src);
-        }
-        if (const Track::Line::Chan& src = line->Channels[1])
-        {
-          StateB.SetNewState(src);
-        }
-        if (const Track::Line::Chan& src = line->Channels[2])
-        {
-          StateC.SetNewState(src);
-        }
+        StateA.SetNewState(line->Channels[0]);
+        StateB.SetNewState(line->Channels[1]);
+        StateC.SetNewState(line->Channels[2]);
       }
     }
 

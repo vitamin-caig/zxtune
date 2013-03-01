@@ -193,17 +193,16 @@ namespace
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Vortex::Track::Line::Chan& src = line->Channels[chan];
-          if (src.Empty())
+          const Chan& src = line->Channels[chan];
+          if (!src.Empty())
           {
-            continue;
+            GetNewChannelState(src, PlayerState.ChanState[chan], track);
           }
-          GetNewChannelState(src, PlayerState.ChanState[chan], track);
         }
       }
     }
 
-    void GetNewChannelState(const Vortex::Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -231,7 +230,7 @@ namespace
       {
         dst.Volume = *src.Volume;
       }
-      for (Vortex::Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
       {
         switch (it->Type)
         {

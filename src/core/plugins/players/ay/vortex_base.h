@@ -75,41 +75,6 @@ namespace ZXTune
         }
       };
 
-      //ornament type
-      struct Ornament : public Formats::Chiptune::ProTracker3::Ornament
-      {
-        Ornament() : Formats::Chiptune::ProTracker3::Ornament()
-        {
-        }
-
-        Ornament(const Formats::Chiptune::ProTracker3::Ornament& rh)
-          : Formats::Chiptune::ProTracker3::Ornament(rh)
-        {
-        }
-
-        template<class It>
-        Ornament(uint_t loop, It from, It to)
-        {
-          Loop = loop;
-          Lines.assign(from, to);
-        }
-
-        uint_t GetLoop() const
-        {
-          return Loop;
-        }
-
-        uint_t GetSize() const
-        {
-          return static_cast<uint_t>(Lines.size());
-        }
-
-        int_t GetLine(uint_t pos) const
-        {
-          return Lines.size() > pos ? Lines[pos] : 0;
-        }
-      };
-
       //supported commands set and their parameters
       enum Commands
       {
@@ -137,7 +102,7 @@ namespace ZXTune
         TEMPO
       };
 
-      typedef TrackingSupport<Devices::AYM::CHANNELS, Commands, Sample, Ornament> Track;
+      typedef TrackingSupport<Devices::AYM::CHANNELS, Sample> Track;
 
       uint_t ExtractVersion(const Parameters::Accessor& props);
 

@@ -36,7 +36,7 @@ namespace ZXTune
       struct Digital
       {
 
-        typedef TrackingSupport<Channels, uint_t, Devices::DAC::Sample::Ptr, VoidType> Track;
+        typedef TrackingSupport<Channels, Devices::DAC::Sample::Ptr, VoidType> Track;
 
         class Builder : public Formats::Chiptune::Digital::Builder
         {
@@ -202,7 +202,7 @@ namespace ZXTune
               //begin note
               if (line && 0 == state->Quirk())
               {
-                const typename Track::Line::Chan& src = line->Channels[chan];
+                const Chan& src = line->Channels[chan];
                 ChannelDataBuilder builder(chan);
                 if (src.Enabled)
                 {

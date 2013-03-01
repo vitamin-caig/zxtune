@@ -71,35 +71,7 @@ namespace GlobalTracker
     }
   };
 
-  struct Ornament : public Formats::Chiptune::GlobalTracker::Ornament
-  {
-    Ornament()
-      : Formats::Chiptune::GlobalTracker::Ornament()
-    {
-    }
-
-    Ornament(const Formats::Chiptune::GlobalTracker::Ornament& rh)
-      : Formats::Chiptune::GlobalTracker::Ornament(rh)
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    int_t GetLine(uint_t idx) const
-    {
-      return Lines.size() > idx ? Lines[idx] : 0;
-    }
-  };
-
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
+  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, Sample> Track;
 
   std::auto_ptr<Formats::Chiptune::GlobalTracker::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
   ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
@@ -145,7 +117,7 @@ namespace GlobalTracker
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::GlobalTracker::Ornament& ornament)
     {
       Data->Ornaments.resize(index + 1);
-      Data->Ornaments[index] = Ornament(ornament);
+      Data->Ornaments[index] = Track::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end());
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -207,12 +179,12 @@ namespace GlobalTracker
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(ENVELOPE, type, value));
+      Context.CurChannel->AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(NOENVELOPE));
+      Context.CurChannel->AddCommand(NOENVELOPE);
     }
   private:
     const Track::ModuleData::RWPtr Data;
@@ -268,7 +240,7 @@ namespace GlobalTracker
       {
         for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
         {
-          const Track::Line::Chan& src = line->Channels[chan];
+          const Chan& src = line->Channels[chan];
           if (src.Empty())
           {
             continue;
@@ -278,7 +250,7 @@ namespace GlobalTracker
       }
     }
 
-    void GetNewChannelState(const Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (src.Enabled)
       {
@@ -303,7 +275,7 @@ namespace GlobalTracker
       {
         dst.Volume = *src.Volume;
       }
-      for (Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
       {
         switch (it->Type)
         {
@@ -344,7 +316,7 @@ namespace GlobalTracker
 
       const Sample& curSample = Data->Samples[dst.SampleNum];
       const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+      const Track::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
 
       //apply tone
       const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95);

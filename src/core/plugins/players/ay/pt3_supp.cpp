@@ -156,9 +156,9 @@ namespace ProTracker3
 
     virtual void SetNote(uint_t note)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
+      Chan* const channel = Context.CurChannel;
       channel->SetEnabled(true);
-      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), Vortex::GLISS_NOTE);
+      const CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), Vortex::GLISS_NOTE);
       if (cmd != channel->Commands.end())
       {
         cmd->Param3 = int_t(note);
@@ -186,48 +186,48 @@ namespace ProTracker3
 
     virtual void SetGlissade(uint_t period, int_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::GLISS, period, val));
+      Context.CurChannel->AddCommand(Vortex::GLISS, period, val);
     }
 
     virtual void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/)
     {
       //ignore limit
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::GLISS_NOTE, period, val));
+      Context.CurChannel->AddCommand(Vortex::GLISS_NOTE, period, val);
     }
 
     virtual void SetSampleOffset(uint_t offset)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::SAMPLEOFFSET, offset));
+      Context.CurChannel->AddCommand(Vortex::SAMPLEOFFSET, offset);
     }
 
     virtual void SetOrnamentOffset(uint_t offset)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::ORNAMENTOFFSET, offset));
+      Context.CurChannel->AddCommand(Vortex::ORNAMENTOFFSET, offset);
     }
 
     virtual void SetVibrate(uint_t ontime, uint_t offtime)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::VIBRATE, ontime, offtime));
+      Context.CurChannel->AddCommand(Vortex::VIBRATE, ontime, offtime);
     }
 
     virtual void SetEnvelopeSlide(uint_t period, int_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::SLIDEENV, period, val));
+      Context.CurChannel->AddCommand(Vortex::SLIDEENV, period, val);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::ENVELOPE, type, value));
+      Context.CurChannel->AddCommand(Vortex::ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::NOENVELOPE));
+      Context.CurChannel->AddCommand(Vortex::NOENVELOPE);
     }
 
     virtual void SetNoiseBase(uint_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::NOISEBASE, val));
+      Context.CurChannel->AddCommand(Vortex::NOISEBASE, val);
     }
   private:
     const Track::ModuleData::RWPtr Data;

@@ -51,7 +51,7 @@ namespace ChipTracker
   //stub for ornament
   struct VoidType {};
 
-  typedef TrackingSupport<CHANNELS_COUNT, CmdType, Devices::DAC::Sample::Ptr, VoidType> CHITrack;
+  typedef TrackingSupport<CHANNELS_COUNT, Devices::DAC::Sample::Ptr, VoidType> CHITrack;
 
   std::auto_ptr<Formats::Chiptune::ChipTracker::Builder> CreateDataBuilder(CHITrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props);
 }
@@ -138,12 +138,12 @@ namespace ChipTracker
 
     virtual void SetSlide(int_t step)
     {
-      Context.CurChannel->Commands.push_back(CHITrack::Command(SLIDE, step));
+      Context.CurChannel->AddCommand(SLIDE, step);
     }
 
     virtual void SetSampleOffset(uint_t offset)
     {
-      Context.CurChannel->Commands.push_back(CHITrack::Command(SAMPLE_OFFSET, offset));
+      Context.CurChannel->AddCommand(SAMPLE_OFFSET, offset);
     }
   private:
     const CHITrack::ModuleData::RWPtr Data;
@@ -303,7 +303,7 @@ namespace ChipTracker
         }
         if (line && newLine)
         {
-          const CHITrack::Line::Chan& src = line->Channels[chan];
+          const Chan& src = line->Channels[chan];
           if (src.Enabled)
           {
             const bool enabled = *src.Enabled;
@@ -324,7 +324,7 @@ namespace ChipTracker
             builder.SetSampleNum(*src.SampleNum);
             builder.SetPosInSample(0);
           }
-          for (CHITrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+          for (CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
             switch (it->Type)
             {
