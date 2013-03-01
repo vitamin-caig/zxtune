@@ -249,12 +249,11 @@ namespace ProTracker1
     {
       if (const Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
+        for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
         {
-          const Cell& src = line->Channels[chan];
-          if (!src.Empty())
+          if (const Cell* src = line->GetChannel(chan))
           {
-            GetNewChannelState(src, PlayerState[chan], track);
+            GetNewChannelState(*src, PlayerState[chan], track);
           }
         }
       }

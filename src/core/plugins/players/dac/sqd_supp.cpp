@@ -242,7 +242,7 @@ namespace
             continue;
           }
 
-          Cell& dstChan = dstLine.Channels[chanNum];
+          Cell& dstChan = *dstLine.AddChannel(chanNum);
           if (srcChan.IsRest())
           {
             dstChan.SetEnabled(false);
@@ -401,6 +401,31 @@ namespace
       int_t SlideDirection;
       uint_t SlideCounter;
       uint_t SlidePeriod;
+
+      bool Update()
+      {
+        if (SlideDirection && !--SlideCounter)
+        {
+          Value += SlideDirection;
+          SlideCounter = SlidePeriod;
+          if (-1 == SlideDirection && -1 == Value)
+          {
+            Value = 0;
+          }
+          else if (Value == 17)
+          {
+            Value = 16;
+          }
+          return true;
+        }
+        return false;
+      }
+
+      void Reset()
+      {
+        SlideDirection = 0;
+        SlideCounter = 0;
+      }
     };
   public:
     SQDRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
@@ -475,78 +500,89 @@ namespace
   private:
     void RenderData(Devices::DAC::DataChunk& chunk)
     {
-      std::vector<Devices::DAC::DataChunk::ChannelData> res;
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      const SQDTrack::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
+      DAC::TrackBuilder track;
+      SynthesizeData(*state, track);
+      track.GetResult(chunk.Channels);
+    }
+
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track)
+    {
+      SynthesizeChannelsData(track);
+      if (0 == state.Quirk())
+      {
+        GetNewLineState(state, track);
+      }
+    }
+
+    void SynthesizeChannelsData(DAC::TrackBuilder& track)
+    {
       for (uint_t chan = 0; chan != SQD::CHANNELS_COUNT; ++chan)
       {
-        DAC::ChannelDataBuilder builder(chan);
         VolumeState& vol = Volumes[chan];
-        if (vol.SlideDirection && !--vol.SlideCounter)
+        if (vol.Update())
         {
-          vol.Value += vol.SlideDirection;
-          vol.SlideCounter = vol.SlidePeriod;
-          if (-1 == vol.SlideDirection && -1 == vol.Value)
-          {
-            vol.Value = 0;
-          }
-          else if (vol.Value == 17)
-          {
-            vol.Value = 16;
-          }
+          DAC::ChannelDataBuilder builder = track.GetChannel(chan);
           builder.SetLevelInPercents(100 * vol.Value / 16);
         }
-        //begin note
-        if (line && 0 == state->Quirk())
-        {
-          vol.SlideDirection = 0;
-          vol.SlideCounter = 0;
+      }
+    }
 
-          const Cell& src = line->Channels[chan];
-          if (const bool* enabled = src.GetEnabled())
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
+    {
+      std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
+      if (const SQDTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      {
+        for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
+        {
+          if (const Cell* src = line->GetChannel(chan))
           {
-            builder.SetEnabled(*enabled);
-            if (!*enabled)
-            {
-              builder.SetPosInSample(0);
-            }
-          }
-          if (const uint_t* note = src.GetNote())
-          {
-            builder.SetNote(*note);
-            builder.SetPosInSample(0);
-          }
-          if (const uint_t* sample = src.GetSample())
-          {
-            builder.SetSampleNum(*sample);
-            builder.SetPosInSample(0);
-          }
-          if (const uint_t* volume = src.GetVolume())
-          {
-            vol.Value = *volume;
-            builder.SetLevelInPercents(100 * vol.Value / 16);
-          }
-          for (CommandsIterator it = src.GetCommands(); it; ++it)
-          {
-            switch (it->Type)
-            {
-            case SQD::VOLUME_SLIDE_PERIOD:
-              vol.SlideCounter = vol.SlidePeriod = it->Param1;
-              break;
-            case SQD::VOLUME_SLIDE:
-              vol.SlideDirection = it->Param1;
-              break;
-            default:
-              assert(!"Invalid command");
-            }
-          }
-          if (!builder.IsEmpty())
-          {
-            res.push_back(builder.GetResult());
+            DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+            GetNewChannelState(*src, Volumes[chan], builder);
           }
         }
       }
-      chunk.Channels.swap(res);
+    }
+
+    void GetNewChannelState(const Cell& src, VolumeState& vol, DAC::ChannelDataBuilder& builder)
+    {
+      if (const bool* enabled = src.GetEnabled())
+      {
+        builder.SetEnabled(*enabled);
+        if (!*enabled)
+        {
+          builder.SetPosInSample(0);
+        }
+      }
+      if (const uint_t* note = src.GetNote())
+      {
+        builder.SetNote(*note);
+        builder.SetPosInSample(0);
+      }
+      if (const uint_t* sample = src.GetSample())
+      {
+        builder.SetSampleNum(*sample);
+        builder.SetPosInSample(0);
+      }
+      if (const uint_t* volume = src.GetVolume())
+      {
+        vol.Value = *volume;
+        builder.SetLevelInPercents(100 * vol.Value / 16);
+      }
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      {
+        switch (it->Type)
+        {
+        case SQD::VOLUME_SLIDE_PERIOD:
+          vol.SlideCounter = vol.SlidePeriod = it->Param1;
+          break;
+        case SQD::VOLUME_SLIDE:
+          vol.SlideDirection = it->Param1;
+          break;
+        default:
+          assert(!"Invalid command");
+        }
+      }
     }
   private:
     const SQDTrack::ModuleData::Ptr Data;

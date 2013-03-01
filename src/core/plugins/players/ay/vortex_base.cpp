@@ -191,12 +191,11 @@ namespace
 
       if (const Vortex::Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
+        for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
         {
-          const Cell& src = line->Channels[chan];
-          if (!src.Empty())
+          if (const Cell* src = line->GetChannel(chan))
           {
-            GetNewChannelState(src, PlayerState.ChanState[chan], track);
+            GetNewChannelState(*src, PlayerState.ChanState[chan], track);
           }
         }
       }
@@ -285,11 +284,6 @@ namespace
         case Vortex::NOISEBASE:
           PlayerState.CommState.NoiseBase = it->Param1;
           break;
-        case Vortex::TEMPO:
-          //ignore
-          break;
-        default:
-          assert(!"Invalid command");
         }
       }
     }

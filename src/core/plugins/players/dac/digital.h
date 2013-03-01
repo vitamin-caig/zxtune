@@ -194,42 +194,55 @@ namespace ZXTune
         private:
           void RenderData(Devices::DAC::DataChunk& chunk)
           {
-            std::vector<Devices::DAC::DataChunk::ChannelData> res;
             const TrackState::Ptr state = Iterator->GetStateObserver();
-            const typename Track::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
-            for (uint_t chan = 0; chan != Channels; ++chan)
+            DAC::TrackBuilder track;
+            SynthesizeData(*state, track);
+            track.GetResult(chunk.Channels);
+          }
+
+          void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track)
+          {
+            if (0 == state.Quirk())
             {
-              //begin note
-              if (line && 0 == state->Quirk())
+              GetNewLineState(state, track);
+            }
+          }
+
+          void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
+          {
+            if (const typename Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+            {
+              for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
               {
-                const Cell& src = line->Channels[chan];
-                ChannelDataBuilder builder(chan);
-                if (const bool* enabled = src.GetEnabled())
+                if (const Cell* src = line->GetChannel(chan))
                 {
-                  builder.SetEnabled(*enabled);
-                  if (!*enabled)
-                  {
-                    builder.SetPosInSample(0);
-                  }
-                }
-                if (const uint_t* note = src.GetNote())
-                {
-                  builder.SetNote(*note);
-                  builder.SetPosInSample(0);
-                }
-                if (const uint_t* sample = src.GetSample())
-                {
-                  builder.SetSampleNum(*sample);
-                  builder.SetPosInSample(0);
-                }
-                //store if smth new
-                if (!builder.IsEmpty())
-                {
-                  res.push_back(builder.GetResult());
+                  ChannelDataBuilder builder = track.GetChannel(chan);
+                  GetNewChannelState(*src, builder);
                 }
               }
             }
-            chunk.Channels.swap(res);
+          }
+
+          void GetNewChannelState(const Cell& src, ChannelDataBuilder& builder)
+          {
+            if (const bool* enabled = src.GetEnabled())
+            {
+              builder.SetEnabled(*enabled);
+              if (!*enabled)
+              {
+                builder.SetPosInSample(0);
+              }
+            }
+            if (const uint_t* note = src.GetNote())
+            {
+              builder.SetNote(*note);
+              builder.SetPosInSample(0);
+            }
+            if (const uint_t* sample = src.GetSample())
+            {
+              builder.SetSampleNum(*sample);
+              builder.SetPosInSample(0);
+            }
           }
         private:
           const typename Track::ModuleData::Ptr Data;

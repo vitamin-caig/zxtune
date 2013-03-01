@@ -293,10 +293,6 @@ namespace SoundTracker
 
     void SetNewState(const Cell& src)
     {
-      if (src.Empty())
-      {
-        return;
-      }
       if (const bool* enabled = src.GetEnabled())
       {
         Cursor.CountDown = *enabled ? 32 : -1;
@@ -452,9 +448,18 @@ namespace SoundTracker
       assert(0 == State->Quirk());
       if (const Track::Line* line = Data->Patterns[State->Pattern()].GetLine(State->Line()))
       {
-        StateA.SetNewState(line->Channels[0]);
-        StateB.SetNewState(line->Channels[1]);
-        StateC.SetNewState(line->Channels[2]);
+        if (const Cell* chan = line->GetChannel(0))
+        {
+          StateA.SetNewState(*chan);
+        }
+        if (const Cell* chan = line->GetChannel(1))
+        {
+          StateB.SetNewState(*chan);
+        }
+        if (const Cell* chan = line->GetChannel(2))
+        {
+          StateC.SetNewState(*chan);
+        }
       }
     }
 

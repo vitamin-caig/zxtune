@@ -300,55 +300,74 @@ namespace ProDigiTracker
   private:
     void RenderData(Devices::DAC::DataChunk& chunk)
     {
-      std::vector<Devices::DAC::DataChunk::ChannelData> res;
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      const PDTTrack::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
+      DAC::TrackBuilder track;
+      SynthesizeData(*state, track);
+      track.GetResult(chunk.Channels);
+    }
+
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track)
+    {
+      SynthesizeChannelsData(track);
+      if (0 == state.Quirk())
+      {
+        GetNewLineState(state, track);
+      }
+    }  
+
+    void SynthesizeChannelsData(DAC::TrackBuilder& track)
+    {
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        DAC::ChannelDataBuilder builder(chan);
         OrnamentState& ornament = Ornaments[chan];
-        const int_t prevOffset = ornament.GetOffset();
         ornament.Update();
-        if (line && 0 == state->Quirk())//begin note
-        {
-          const Cell& src = line->Channels[chan];
+        DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+        builder.SetNoteSlide(ornament.GetOffset());
+      }
+    }
 
-          if (const bool* enabled = src.GetEnabled())
-          {
-            builder.SetEnabled(*enabled);
-            if (!*enabled)
-            {
-              builder.SetPosInSample(0);
-            }
-          }
-
-          if (const uint_t* note = src.GetNote())
-          {
-            if (const uint_t* ornament = src.GetOrnament())
-            {
-              const uint_t ornIdx = *ornament < Data->Ornaments.size() ? *ornament : 0;
-              Ornaments[chan].Object = &Data->Ornaments[ornIdx];
-              Ornaments[chan].Position = 0;
-            }
-            if (const uint_t* sample = src.GetSample())
-            {
-              builder.SetSampleNum(*sample);
-            }
-            builder.SetNote(*note);
-            builder.SetPosInSample(0);
-          }
-        }
-        const int_t newOffset = ornament.GetOffset();
-        if (newOffset != prevOffset)
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
+    {
+      if (const PDTTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      {
+        for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
         {
-          builder.SetNoteSlide(newOffset);
-        }
-        if (!builder.IsEmpty())
-        {
-          res.push_back(builder.GetResult());
+          if (const Cell* src = line->GetChannel(chan))
+          {
+            DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+            GetNewChannelState(*src, Ornaments[chan], builder);
+          }
         }
       }
-      chunk.Channels.swap(res);
+    }
+
+    void GetNewChannelState(const Cell& src, OrnamentState& ornamentState, DAC::ChannelDataBuilder& builder)
+    {
+      if (const bool* enabled = src.GetEnabled())
+      {
+        builder.SetEnabled(*enabled);
+        if (!*enabled)
+        {
+          builder.SetPosInSample(0);
+        }
+      }
+
+      if (const uint_t* note = src.GetNote())
+      {
+        if (const uint_t* ornament = src.GetOrnament())
+        {
+          const uint_t ornIdx = *ornament < Data->Ornaments.size() ? *ornament : 0;
+          ornamentState.Object = &Data->Ornaments[ornIdx];
+          ornamentState.Position = 0;
+          builder.SetNoteSlide(ornamentState.GetOffset());
+        }
+        if (const uint_t* sample = src.GetSample())
+        {
+          builder.SetSampleNum(*sample);
+        }
+        builder.SetNote(*note);
+        builder.SetPosInSample(0);
+      }
     }
   private:
     const Information::Ptr Info;

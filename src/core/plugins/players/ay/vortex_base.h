@@ -98,8 +98,6 @@ namespace ZXTune
         ENVELOPE,
         //base
         NOISEBASE,
-        //tempo
-        TEMPO
       };
 
       typedef TrackingSupport<Devices::AYM::CHANNELS, Sample> Track;

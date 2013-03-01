@@ -274,7 +274,7 @@ namespace PT3
       }
       if (const Vortex::Track::Line* lineObj = GetSecondPatternByPosition(position).GetLine(line))
       {
-        if (const boost::optional<uint_t>& tempo = lineObj->Tempo)
+        if (const uint_t* tempo = lineObj->GetTempo())
         {
           return *tempo;
         }

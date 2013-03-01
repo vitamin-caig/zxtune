@@ -90,16 +90,17 @@ namespace ZXTune
     typedef std::vector<Command> CommandsArray;
     typedef RangeIterator<CommandsArray::const_iterator> CommandsIterator;
 
-    struct Cell
+    class Cell
     {
+    public:
       Cell() : Mask(), Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
       {
       }
 
       //accessors
-      bool Empty() const
+      bool HasData() const
       {
-        return 0 == Mask && Commands.empty();
+        return 0 != Mask || !Commands.empty();
       }
 
       const bool* GetEnabled() const
@@ -194,6 +195,51 @@ namespace ZXTune
       CommandsArray Commands;
     };
 
+    template<uint_t ChannelsCount>
+    class MultichannelLine
+    {
+    public:
+      MultichannelLine() : Tempo(), Channels()
+      {
+      }
+
+      //accessors
+      uint_t CountChannels() const
+      {
+        return ChannelsCount;
+      }
+
+      const Cell* GetChannel(uint_t idx) const
+      {
+        return Channels[idx].HasData() ? &Channels[idx] : 0;
+      }
+
+      uint_t CountActiveChannels() const
+      {
+        return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(), boost::bind(&Cell::HasData, _1)));
+      }
+
+      const uint_t* GetTempo() const
+      {
+        return Tempo ? &*Tempo : 0;
+      }
+
+      //modifiers
+      void SetTempo(uint_t val)
+      {
+        Tempo = val;
+      }
+
+      Cell* AddChannel(uint_t idx)
+      {
+        return &Channels[idx];
+      }
+    private:
+      boost::optional<uint_t> Tempo;
+      typedef boost::array<Cell, ChannelsCount> ChannelsArray;
+      ChannelsArray Channels;
+    };
+
     class TrackModuleData
     {
     public:
@@ -226,24 +272,7 @@ namespace ZXTune
       // Define common types
       typedef SampleType Sample;
       typedef OrnamentType Ornament;
-
-      struct Line
-      {
-        Line() : Tempo(), Channels()
-        {
-        }
-
-        void SetTempo(uint_t val)
-        {
-          Tempo = val;
-        }
-
-        //track attrs
-        boost::optional<uint_t> Tempo;
-
-        typedef boost::array<Cell, ChannelsCount> ChannelsArray;
-        ChannelsArray Channels;
-      };
+      typedef MultichannelLine<ChannelsCount> Line;
 
       class Pattern
       {
@@ -374,7 +403,7 @@ namespace ZXTune
         {
           if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
-            if (const boost::optional<uint_t>& tempo = lineObj->Tempo)
+            if (const uint_t* tempo = lineObj->GetTempo())
             {
               return *tempo;
             }
@@ -386,7 +415,7 @@ namespace ZXTune
         {
           if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
-            return static_cast<uint_t>(std::count_if(lineObj->Channels.begin(), lineObj->Channels.end(), !boost::bind(&Cell::Empty, _1)));
+            return lineObj->CountActiveChannels();
           }
           return 0;
         }
@@ -434,7 +463,7 @@ namespace ZXTune
 
         void SetChannel(uint_t idx)
         {
-          CurChannel = &CurLine->Channels[idx];
+          CurChannel = CurLine->AddChannel(idx);
         }
 
         void FinishPattern(uint_t size)

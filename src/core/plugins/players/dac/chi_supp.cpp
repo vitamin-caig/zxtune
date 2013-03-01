@@ -208,9 +208,10 @@ namespace ChipTracker
       int_t Sliding;
       int_t Glissade;
 
-      void Update()
+      bool Update()
       {
         Sliding += Glissade;
+        return Glissade != 0;
       }
     };
   public:
@@ -287,63 +288,88 @@ namespace ChipTracker
   private:
     void RenderData(Devices::DAC::DataChunk& chunk)
     {
-      std::vector<Devices::DAC::DataChunk::ChannelData> res;
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      const CHITrack::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
-      const bool newLine = 0 == state->Quirk();
+      DAC::TrackBuilder track;
+      SynthesizeData(*state, track);
+      track.GetResult(chunk.Channels);
+    }
+
+    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track)
+    {
+      SynthesizeChannelsData(track);
+      if (0 == state.Quirk())
+      {
+        GetNewLineState(state, track);
+      }
+    }
+
+    void SynthesizeChannelsData(DAC::TrackBuilder& track)
+    {
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        DAC::ChannelDataBuilder builder(chan);
         GlissData& gliss(Gliss[chan]);
-        gliss.Update();
-        //begin note
-        if (newLine)
+        if (gliss.Update())
         {
-          gliss = GlissData();
+          DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+          //step 72 is C-1@3.5MHz for SounDrive player
+          //C-1 is 65.41Hz (real C-2)
+          builder.SetFreqSlideHz(gliss.Sliding * 6541 / 7200);
         }
-        if (line && newLine)
-        {
-          const Cell& src = line->Channels[chan];
-          if (const bool* enabled = src.GetEnabled())
-          {
-            builder.SetEnabled(*enabled);
-            if (!*enabled)
-            {
-              builder.SetPosInSample(0);
-            }
-          }
-          if (const uint_t* note = src.GetNote())
-          {
-            //start from octave 2
-            builder.SetNote(*note + 12);
-            builder.SetPosInSample(0);
-          }
-          if (const uint_t* sample = src.GetSample())
-          {
-            builder.SetSampleNum(*sample);
-            builder.SetPosInSample(0);
-          }
-          for (CommandsIterator it = src.GetCommands(); it; ++it)
-          {
-            switch (it->Type)
-            {
-            case SAMPLE_OFFSET:
-              builder.SetPosInSample(it->Param1);
-              break;
-            case SLIDE:
-              gliss.Glissade = it->Param1;
-              break;
-            default:
-              assert(!"Invalid command");
-            }
-          }
-        }
-        //step 72 is C-1@3.5MHz for SounDrive player
-        //C-1 is 65.41Hz (real C-2)
-        builder.SetFreqSlideHz(gliss.Sliding * 6541 / 7200);
-        res.push_back(builder.GetResult());
       }
-      chunk.Channels.swap(res);
+    }
+
+    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
+    {
+      Gliss.assign(GlissData());
+      if (const CHITrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      {
+        for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
+        {
+          DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+          if (const Cell* src = line->GetChannel(chan))
+          {
+            GetNewChannelState(*src, Gliss[chan], builder);
+          }
+          builder.SetFreqSlideHz(0);
+        }
+      }
+    };
+      
+    void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
+    {
+      if (const bool* enabled = src.GetEnabled())
+      {
+        builder.SetEnabled(*enabled);
+        if (!*enabled)
+        {
+          builder.SetPosInSample(0);
+        }
+      }
+      if (const uint_t* note = src.GetNote())
+      {
+        //start from octave 2
+        builder.SetNote(*note + 12);
+        builder.SetPosInSample(0);
+      }
+      if (const uint_t* sample = src.GetSample())
+      {
+        builder.SetSampleNum(*sample);
+        builder.SetPosInSample(0);
+      }
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      {
+        switch (it->Type)
+        {
+        case SAMPLE_OFFSET:
+          builder.SetPosInSample(it->Param1);
+          break;
+        case SLIDE:
+          gliss.Glissade = it->Param1;
+          break;
+        default:
+          assert(!"Invalid command");
+        }
+      }
     }
   private:
     const CHITrack::ModuleData::Ptr Data;

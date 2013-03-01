@@ -347,8 +347,8 @@ namespace
         for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
         {
           const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          Cell& dstChan = dstLine.Channels[chanNum];
-          DMM::ParseChannel(srcChan, dstChan);
+          Cell* const dstChan = dstLine.AddChannel(chanNum);
+          DMM::ParseChannel(srcChan, *dstChan);
           if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
           {
             dstLine.SetTempo(srcChan.SampleParam);
@@ -730,6 +730,18 @@ namespace
           }
         }
       }
+
+      void GetState(Devices::DAC::DataChunk::ChannelData& dst)
+      {
+        dst.Note = Note;
+        dst.NoteSlide = NoteSlide;
+        //FreqSlide in 1/256 steps
+        //step 44 is C-1@3.5Mhz AY
+        //C-1 is 32.7 Hz
+        dst.FreqSlideHz = FreqSlide * 327 / 440;
+        dst.SampleNum = Sample;
+        dst.LevelInPercents = 100 * Volume / 15;
+      }
     private:
       void ParseNote(const Cell& src, Devices::DAC::DataChunk::ChannelData& dst)
       {
@@ -767,15 +779,6 @@ namespace
         {
           dst.Mask &= ~Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
         }
-
-        dst.Note = Note;
-        dst.NoteSlide = NoteSlide;
-        //FreqSlide in 1/256 steps
-        //step 44 is C-1@3.5Mhz AY
-        //C-1 is 32.7 Hz
-        dst.FreqSlideHz = FreqSlide * 327 / 440;
-        dst.SampleNum = Sample;
-        dst.LevelInPercents = 100 * Volume / 15;
       }
 
       void NoEffect(Devices::DAC::DataChunk::ChannelData& /*dst*/)
@@ -964,9 +967,12 @@ namespace
         //begin note
         if (line && 0 == state->Quirk())
         {
-          const Cell& src = line->Channels[chan];
-          chanState.OnNote(src, *Data, dst);
+          if (const Cell* src = line->GetChannel(chan))
+          {
+            chanState.OnNote(*src, *Data, dst);
+          }
         }
+        chanState.GetState(dst);
         res.push_back(dst);
       }
       chunk.Channels.swap(res);

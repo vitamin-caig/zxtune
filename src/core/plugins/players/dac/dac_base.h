@@ -39,9 +39,9 @@ namespace ZXTune
       class ChannelDataBuilder
       {
       public:
-        explicit ChannelDataBuilder(uint_t chanNum)
+        explicit ChannelDataBuilder(Devices::DAC::DataChunk::ChannelData& data)
+          : Data(data)
         {
-          Data.Channel = chanNum;
         }
 
         void SetEnabled(bool enabled)
@@ -85,18 +85,18 @@ namespace ZXTune
           Data.LevelInPercents = levelInPercents;
           Data.Mask |= Devices::DAC::DataChunk::ChannelData::LEVELINPERCENTS;
         }
-
-        bool IsEmpty() const
-        {
-          return 0 == Data.Mask;
-        }
-
-        const Devices::DAC::DataChunk::ChannelData& GetResult() const
-        {
-          return Data;
-        }
       private:
-        Devices::DAC::DataChunk::ChannelData Data;
+        Devices::DAC::DataChunk::ChannelData& Data;
+      };
+
+      class TrackBuilder
+      {
+      public:
+        ChannelDataBuilder GetChannel(uint_t chan);
+
+        void GetResult(std::vector<Devices::DAC::DataChunk::ChannelData>& result);
+      private:
+        std::vector<Devices::DAC::DataChunk::ChannelData> Data;
       };
 
       Devices::DAC::Receiver::Ptr CreateReceiver(Sound::FixedChannelsReceiver<3>::Ptr target);
