@@ -586,16 +586,6 @@ namespace
     }
 
   private:
-    //TODO: is there standard function?
-    template<class T>
-    static void CopyValue(const boost::optional<T>& lh, boost::optional<T>& rh)
-    {
-      if (lh)
-      {
-        rh = *lh;
-      }
-    }
-
     class ChannelState
     {
     public:
@@ -632,7 +622,7 @@ namespace
       void OnNote(const DMM::Track::Line::Chan& src, const DMM::ModuleData& data, Devices::DAC::DataChunk::ChannelData& dst)
       {
         //if has new sample, start from it, else use previous sample
-        const uint_t oldPos = src.SampleNum ? 0 : *dst.PosInSample;
+        const uint_t oldPos = src.SampleNum ? 0 : dst.PosInSample;
         ParseNote(src, dst);
         if (src.Commands.empty())
         {
@@ -751,19 +741,28 @@ namespace
         {
           Volume = *src.Volume;
         }
-        dst.Enabled = src.Enabled;
-        if (dst.Enabled && !*dst.Enabled)
+        if (src.Enabled)
         {
-          NoteSlide = FreqSlide = 0;
+          dst.Mask |= Devices::DAC::DataChunk::ChannelData::ENABLED;
+          dst.Enabled = *src.Enabled;
+          if (!dst.Enabled)
+          {
+            NoteSlide = FreqSlide = 0;
+          }
+        }
+        else
+        {
+          dst.Mask &= ~Devices::DAC::DataChunk::ChannelData::ENABLED;
         }
         if (src.SampleNum)
         {
           Sample = *src.SampleNum;
+          dst.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
           dst.PosInSample = 0;
         }
         else
         {
-          dst.PosInSample = boost::optional<uint_t>();
+          dst.Mask &= ~Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
         }
 
         dst.Note = Note;
@@ -863,7 +862,8 @@ namespace
           const uint_t RENDERS_PER_SEC = 3305;
           const uint_t FPS = 50;//TODO
           const uint_t skipped = MixPeriod * prevStep * RENDERS_PER_SEC / (256 * FPS);
-          dst.PosInSample = *dst.PosInSample + skipped;
+          dst.PosInSample += skipped;
+          dst.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
 
           DisableEffect();
         }
@@ -964,8 +964,6 @@ namespace
           const DMM::Track::Line::Chan& src = line->Channels[chan];
           chanState.OnNote(src, *Data, dst);
         }
-        //store if smth new
-        dst.Channel = chan;
         res.push_back(dst);
       }
       chunk.Channels.swap(res);

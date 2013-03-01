@@ -18,8 +18,6 @@ Author:
 //library includes
 #include <devices/dac_sample.h>
 #include <time/stamp.h>
-//boost includes
-#include <boost/optional.hpp>
 
 //supporting for multichannel sample-based DAC
 namespace Devices
@@ -30,18 +28,76 @@ namespace Devices
     {
       struct ChannelData
       {
-        ChannelData() : Channel()
+        ChannelData()
+          : Channel()
+          , Mask()
+          , Enabled()
+          , Note()
+          , NoteSlide()
+          , FreqSlideHz()
+          , SampleNum()
+          , PosInSample()
+          , LevelInPercents()
         {
         }
-        uint_t Channel;
 
-        boost::optional<bool> Enabled;
-        boost::optional<uint_t> Note;
-        boost::optional<int_t> NoteSlide;
-        boost::optional<int_t> FreqSlideHz;
-        boost::optional<uint_t> SampleNum;
-        boost::optional<uint_t> PosInSample;
-        boost::optional<uint_t> LevelInPercents;
+        enum Flags
+        {
+          ENABLED = 1,
+          NOTE = 2,
+          NOTESLIDE = 4,
+          FREQSLIDEHZ = 8,
+          SAMPLENUM = 16,
+          POSINSAMPLE = 32,
+          LEVELINPERCENTS = 64,
+
+          ALL_PARAMETERS = 127
+        };
+
+        uint_t Channel;
+        uint_t Mask;
+        bool Enabled;
+        uint_t Note;
+        int_t NoteSlide;
+        int_t FreqSlideHz;
+        uint_t SampleNum;
+        uint_t PosInSample;
+        uint_t LevelInPercents;
+
+        const bool* GetEnabled() const
+        {
+          return 0 != (Mask & ENABLED) ? &Enabled : 0;
+        }
+
+        const uint_t* GetNote() const
+        {
+          return 0 != (Mask & NOTE) ? &Note : 0;
+        }
+
+        const int_t* GetNoteSlide() const
+        {
+          return 0 != (Mask & NOTESLIDE) ? &NoteSlide : 0;
+        }
+
+        const int_t* GetFreqSlideHz() const
+        {
+          return 0 != (Mask & FREQSLIDEHZ) ? &FreqSlideHz : 0;
+        }
+
+        const uint_t* GetSampleNum() const
+        {
+          return 0 != (Mask & SAMPLENUM) ? &SampleNum : 0;
+        }
+
+        const uint_t* GetPosInSample() const
+        {
+          return 0 != (Mask & POSINSAMPLE) ? &PosInSample : 0;
+        }
+
+        const uint_t* GetLevelInPercents() const
+        {
+          return 0 != (Mask & LEVELINPERCENTS) ? &LevelInPercents : 0;
+        }
       };
 
       Time::Microseconds TimeStamp;

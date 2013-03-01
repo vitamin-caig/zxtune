@@ -203,29 +203,30 @@ namespace ZXTune
               if (line && 0 == state->Quirk())
               {
                 const typename Track::Line::Chan& src = line->Channels[chan];
-                Devices::DAC::DataChunk::ChannelData dst;
-                dst.Channel = chan;
+                ChannelDataBuilder builder(chan);
                 if (src.Enabled)
                 {
-                  if (!(dst.Enabled = *src.Enabled))
+                  const bool enabled = *src.Enabled;
+                  builder.SetEnabled(enabled);
+                  if (!enabled)
                   {
-                    dst.PosInSample = 0;
+                    builder.SetPosInSample(0);
                   }
                 }
                 if (src.Note)
                 {
-                  dst.Note = *src.Note;
-                  dst.PosInSample = 0;
+                  builder.SetNote(*src.Note);
+                  builder.SetPosInSample(0);
                 }
                 if (src.SampleNum)
                 {
-                  dst.SampleNum = *src.SampleNum;
-                  dst.PosInSample = 0;
+                  builder.SetSampleNum(*src.SampleNum);
+                  builder.SetPosInSample(0);
                 }
                 //store if smth new
-                if (dst.Enabled || dst.Note || dst.SampleNum || dst.PosInSample)
+                if (!builder.IsEmpty())
                 {
-                  res.push_back(dst);
+                  res.push_back(builder.GetResult());
                 }
               }
             }

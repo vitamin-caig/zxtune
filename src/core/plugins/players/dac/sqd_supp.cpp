@@ -480,9 +480,8 @@ namespace
       const SQDTrack::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
       for (uint_t chan = 0; chan != SQD::CHANNELS_COUNT; ++chan)
       {
+        DAC::ChannelDataBuilder builder(chan);
         VolumeState& vol = Volumes[chan];
-        Devices::DAC::DataChunk::ChannelData dst;
-        dst.Channel = chan;
         if (vol.SlideDirection && !--vol.SlideCounter)
         {
           vol.Value += vol.SlideDirection;
@@ -495,7 +494,7 @@ namespace
           {
             vol.Value = 16;
           }
-          dst.LevelInPercents = 100 * vol.Value / 16;
+          builder.SetLevelInPercents(100 * vol.Value / 16);
         }
         //begin note
         if (line && 0 == state->Quirk())
@@ -504,29 +503,29 @@ namespace
           vol.SlideCounter = 0;
 
           const SQDTrack::Line::Chan& src = line->Channels[chan];
-          Devices::DAC::DataChunk::ChannelData dst;
-          dst.Channel = chan;
           if (src.Enabled)
           {
-            if (!(dst.Enabled = *src.Enabled))
+            const bool enabled = *src.Enabled;
+            builder.SetEnabled(enabled);
+            if (!enabled)
             {
-              dst.PosInSample = 0;
+              builder.SetPosInSample(0);
             }
           }
           if (src.Note)
           {
-            dst.Note = *src.Note;
-            dst.PosInSample = 0;
+            builder.SetNote(*src.Note);
+            builder.SetPosInSample(0);
           }
           if (src.SampleNum)
           {
-            dst.SampleNum = *src.SampleNum;
-            dst.PosInSample = 0;
+            builder.SetSampleNum(*src.SampleNum);
+            builder.SetPosInSample(0);
           }
           if (src.Volume)
           {
             vol.Value = *src.Volume;
-            dst.LevelInPercents = 100 * vol.Value / 16;
+            builder.SetLevelInPercents(100 * vol.Value / 16);
           }
           for (SQDTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
@@ -542,10 +541,9 @@ namespace
               assert(!"Invalid command");
             }
           }
-          //store if smth new
-          if (dst.Enabled || dst.Note || dst.SampleNum || dst.PosInSample || dst.LevelInPercents)
+          if (!builder.IsEmpty())
           {
-            res.push_back(dst);
+            res.push_back(builder.GetResult());
           }
         }
       }

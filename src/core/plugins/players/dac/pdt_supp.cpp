@@ -305,8 +305,7 @@ namespace ProDigiTracker
       const PDTTrack::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        Devices::DAC::DataChunk::ChannelData dst;
-        dst.Channel = chan;
+        DAC::ChannelDataBuilder builder(chan);
         OrnamentState& ornament = Ornaments[chan];
         const int_t prevOffset = ornament.GetOffset();
         ornament.Update();
@@ -317,9 +316,11 @@ namespace ProDigiTracker
           //ChannelState& dst(Channels[chan]);
           if (src.Enabled)
           {
-            if ( !(dst.Enabled = *src.Enabled) )
+            const bool enabled = *src.Enabled;
+            builder.SetEnabled(enabled);
+            if (!enabled)
             {
-              dst.PosInSample = 0;
+              builder.SetPosInSample(0);
             }
           }
 
@@ -333,21 +334,20 @@ namespace ProDigiTracker
             }
             if (src.SampleNum)
             {
-              dst.SampleNum = *src.SampleNum;
+              builder.SetSampleNum(*src.SampleNum);
             }
-            dst.Note = *src.Note;
-            dst.PosInSample = 0;
+            builder.SetNote(*src.Note);
+            builder.SetPosInSample(0);
           }
         }
         const int_t newOffset = ornament.GetOffset();
         if (newOffset != prevOffset)
         {
-          dst.NoteSlide = newOffset;
+          builder.SetNoteSlide(newOffset);
         }
-
-        if (dst.Enabled || dst.Note || dst.NoteSlide || dst.SampleNum || dst.PosInSample)
+        if (!builder.IsEmpty())
         {
-          res.push_back(dst);
+          res.push_back(builder.GetResult());
         }
       }
       chunk.Channels.swap(res);

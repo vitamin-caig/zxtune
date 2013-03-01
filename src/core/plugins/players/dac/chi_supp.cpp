@@ -293,9 +293,8 @@ namespace ChipTracker
       const bool newLine = 0 == state->Quirk();
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
+        DAC::ChannelDataBuilder builder(chan);
         GlissData& gliss(Gliss[chan]);
-        Devices::DAC::DataChunk::ChannelData dst;
-        dst.Channel = chan;
         gliss.Update();
         //begin note
         if (newLine)
@@ -307,28 +306,30 @@ namespace ChipTracker
           const CHITrack::Line::Chan& src = line->Channels[chan];
           if (src.Enabled)
           {
-            if (!(dst.Enabled = *src.Enabled))
+            const bool enabled = *src.Enabled;
+            builder.SetEnabled(enabled);
+            if (!enabled)
             {
-              dst.PosInSample = 0;
+              builder.SetPosInSample(0);
             }
           }
           if (src.Note)
           {
             //start from octave 2
-            dst.Note = *src.Note + 12;
-            dst.PosInSample = 0;
+            builder.SetNote(*src.Note + 12);
+            builder.SetPosInSample(0);
           }
           if (src.SampleNum)
           {
-            dst.SampleNum = *src.SampleNum;
-            dst.PosInSample = 0;
+            builder.SetSampleNum(*src.SampleNum);
+            builder.SetPosInSample(0);
           }
           for (CHITrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
           {
             switch (it->Type)
             {
             case SAMPLE_OFFSET:
-              dst.PosInSample = it->Param1;
+              builder.SetPosInSample(it->Param1);
               break;
             case SLIDE:
               gliss.Glissade = it->Param1;
@@ -340,12 +341,8 @@ namespace ChipTracker
         }
         //step 72 is C-1@3.5MHz for SounDrive player
         //C-1 is 65.41Hz (real C-2)
-        dst.FreqSlideHz = gliss.Sliding * 6541 / 7200;
-        //store if smth new
-        if (dst.Enabled || dst.Note || dst.NoteSlide || dst.FreqSlideHz || dst.SampleNum || dst.PosInSample)
-        {
-          res.push_back(dst);
-        }
+        builder.SetFreqSlideHz(gliss.Sliding * 6541 / 7200);
+        res.push_back(builder.GetResult());
       }
       chunk.Channels.swap(res);
     }

@@ -255,7 +255,7 @@ namespace
       ChanState result;
       if ( (result.Enabled = Enabled) )
       {
-        result.Band = Note;
+        result.Band = Note + NoteSlide;
         assert(CurSample);
         const uint_t gain = AvgToGain(CurSample->Average());
         result.LevelInPercents = gain * Level / maxGain;
@@ -331,6 +331,8 @@ namespace
     virtual void GetChannelState(uint_t chan, DataChunk::ChannelData& dst) const
     {
       const ChannelState& src = State[chan];
+      dst.Channel = chan;
+      dst.Mask = DataChunk::ChannelData::ALL_PARAMETERS;
       dst.Enabled = src.Enabled;
       dst.Note = src.Note;
       dst.NoteSlide = src.NoteSlide;
@@ -360,43 +362,43 @@ namespace
       assert(state.Channel < State.size());
       ChannelState& chan(State[state.Channel]);
       //'enabled' field changed
-      if (state.Enabled)
+      if (const bool* enabled = state.GetEnabled())
       {
-        chan.Enabled = *state.Enabled;
+        chan.Enabled = *enabled;
       }
       //note changed
-      if (state.Note)
+      if (const uint_t* note = state.GetNote())
       {
-        chan.Note = *state.Note;
+        chan.Note = *note;
       }
       //note slide changed
-      if (state.NoteSlide)
+      if (const int_t* noteSlide = state.GetNoteSlide())
       {
-        chan.NoteSlide = *state.NoteSlide;
+        chan.NoteSlide = *noteSlide;
       }
       //frequency slide changed
-      if (state.FreqSlideHz)
+      if (const int_t* freqSlideHz = state.GetFreqSlideHz())
       {
-        chan.FreqSlide = *state.FreqSlideHz;
+        chan.FreqSlide = *freqSlideHz;
       }
       //sample changed
-      if (state.SampleNum)
+      if (const uint_t* sampleNum = state.GetSampleNum())
       {
-        chan.CurSampleIndex = *state.SampleNum;
+        chan.CurSampleIndex = *sampleNum;
         chan.CurSample = Samples.Get(chan.CurSampleIndex);
         chan.PosInSample = std::min<uint_t>(chan.PosInSample, FIXED_POINT_PRECISION * chan.CurSample->Size() - 1);
       }
       //position in sample changed
-      if (state.PosInSample)
+      if (const uint_t* posInSample = state.GetPosInSample())
       {
         assert(chan.CurSample);
-        chan.PosInSample = FIXED_POINT_PRECISION * std::min<uint_t>(*state.PosInSample, chan.CurSample->Size() - 1);
+        chan.PosInSample = FIXED_POINT_PRECISION * std::min<uint_t>(*posInSample, chan.CurSample->Size() - 1);
       }
       //level changed
-      if (state.LevelInPercents)
+      if (const uint_t* levelInPercents = state.GetLevelInPercents())
       {
-        assert(*state.LevelInPercents <= MAX_LEVEL);
-        chan.Level = *state.LevelInPercents;
+        assert(*levelInPercents <= MAX_LEVEL);
+        chan.Level = *levelInPercents;
       }
     }
 

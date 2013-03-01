@@ -36,6 +36,69 @@ namespace ZXTune
         static Ptr Create(Parameters::Accessor::Ptr params);
       };
 
+      class ChannelDataBuilder
+      {
+      public:
+        explicit ChannelDataBuilder(uint_t chanNum)
+        {
+          Data.Channel = chanNum;
+        }
+
+        void SetEnabled(bool enabled)
+        {
+          Data.Enabled = enabled;
+          Data.Mask |= Devices::DAC::DataChunk::ChannelData::ENABLED;
+        }
+
+        void SetNote(uint_t note)
+        {
+          Data.Note = note;
+          Data.Mask |= Devices::DAC::DataChunk::ChannelData::NOTE;
+        }
+
+        void SetNoteSlide(int_t noteSlide)
+        {
+          Data.NoteSlide = noteSlide;
+          Data.Mask |= Devices::DAC::DataChunk::ChannelData::NOTESLIDE;
+        }
+
+        void SetFreqSlideHz(int_t freqSlideHz)
+        {
+          Data.FreqSlideHz = freqSlideHz;
+          Data.Mask |= Devices::DAC::DataChunk::ChannelData::FREQSLIDEHZ;
+        }
+
+        void SetSampleNum(uint_t sampleNum)
+        {
+          Data.SampleNum = sampleNum;
+          Data.Mask |= Devices::DAC::DataChunk::ChannelData::SAMPLENUM;
+        }
+
+        void SetPosInSample(uint_t posInSample)
+        {
+          Data.PosInSample = posInSample;
+          Data.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
+        }
+
+        void SetLevelInPercents(uint_t levelInPercents)
+        {
+          Data.LevelInPercents = levelInPercents;
+          Data.Mask |= Devices::DAC::DataChunk::ChannelData::LEVELINPERCENTS;
+        }
+
+        bool IsEmpty() const
+        {
+          return 0 == Data.Mask;
+        }
+
+        const Devices::DAC::DataChunk::ChannelData& GetResult() const
+        {
+          return Data;
+        }
+      private:
+        Devices::DAC::DataChunk::ChannelData Data;
+      };
+
       Devices::DAC::Receiver::Ptr CreateReceiver(Sound::FixedChannelsReceiver<3>::Ptr target);
       Devices::DAC::Receiver::Ptr CreateReceiver(Sound::FixedChannelsReceiver<4>::Ptr target);
 
