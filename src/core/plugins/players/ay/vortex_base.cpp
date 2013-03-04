@@ -189,9 +189,9 @@ namespace
         PlayerState.CommState.NoiseBase = 0;
       }
 
-      if (const Vortex::Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
+        for (uint_t chan = 0; chan != Vortex::Track::CHANNELS; ++chan)
         {
           if (const Cell* src = line->GetChannel(chan))
           {
@@ -229,7 +229,7 @@ namespace
       {
         dst.Volume = *volume;
       }
-      for (CommandsIterator it = src.GetCommands(); it ; ++it)
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
         switch (it->Type)
         {

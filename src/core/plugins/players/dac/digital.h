@@ -210,9 +210,9 @@ namespace ZXTune
 
           void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
           {
-            if (const typename Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+            if (const Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
             {
-              for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
+              for (uint_t chan = 0; chan != Track::CHANNELS; ++chan)
               {
                 if (const Cell* src = line->GetChannel(chan))
                 {

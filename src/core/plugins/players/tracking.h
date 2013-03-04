@@ -197,61 +197,68 @@ namespace ZXTune
       }
     };
 
-    template<uint_t ChannelsCount>
-    class MultichannelLine
+    class Line
     {
     public:
-      MultichannelLine() : Tempo(), Channels()
+      virtual ~Line() {}
+
+      virtual const Cell* GetChannel(uint_t idx) const = 0;
+      virtual uint_t CountActiveChannels() const = 0;
+      virtual uint_t GetTempo() const = 0;
+    };
+
+    class LineBuilder : public Line
+    {
+    public:
+      virtual void SetTempo(uint_t val) = 0;
+      virtual CellBuilder* AddChannel(uint_t idx) = 0;
+    };
+
+    template<uint_t ChannelsCount>
+    class MultichannelLineBuilder : public LineBuilder
+    {
+    public:
+      MultichannelLineBuilder()
+        : Tempo()
       {
       }
 
-      //accessors
-      uint_t CountChannels() const
-      {
-        return ChannelsCount;
-      }
-
-      const Cell* GetChannel(uint_t idx) const
+      virtual const Cell* GetChannel(uint_t idx) const
       {
         return Channels[idx].HasData() ? &Channels[idx] : 0;
       }
 
-      uint_t CountActiveChannels() const
+      virtual uint_t CountActiveChannels() const
       {
         return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(), boost::bind(&Cell::HasData, _1)));
       }
 
-      const uint_t* GetTempo() const
+      virtual uint_t GetTempo() const
       {
-        return Tempo ? &*Tempo : 0;
+        return Tempo;
       }
-    protected:
-      boost::optional<uint_t> Tempo;
+
+      virtual void SetTempo(uint_t val)
+      {
+        assert(val != 0);
+        Tempo = val;
+      }
+
+      virtual CellBuilder* AddChannel(uint_t idx)
+      {
+        return &Channels[idx];
+      }
+    private:
+      uint_t Tempo;
       typedef boost::array<CellBuilder, ChannelsCount> ChannelsArray;
       ChannelsArray Channels;
     };
 
-    template<uint_t ChannelsCount>
-    class MultichannelLineBuilder : public MultichannelLine<ChannelsCount>
+    template<class LineBuilderType>
+    class SparsedMultichannelPattern
     {
     public:
-      //modifiers
-      void SetTempo(uint_t val)
-      {
-        MultichannelLine<ChannelsCount>::Tempo = val;
-      }
-
-      CellBuilder* AddChannel(uint_t idx)
-      {
-        return &MultichannelLine<ChannelsCount>::Channels[idx];
-      }
-    };
-
-    template<class LineBuilder, class Line>
-    class SparsedPattern
-    {
-    public:
-      SparsedPattern()
+      SparsedMultichannelPattern()
         : Size(0)
       {
       }
@@ -289,13 +296,13 @@ namespace ZXTune
         return 0 == Size;
       }
 
-      void Swap(SparsedPattern<LineBuilder, Line>& rh)
+      void Swap(SparsedMultichannelPattern<LineBuilderType>& rh)
       {
         Lines.swap(rh.Lines);
         std::swap(Size, rh.Size);
       }
     private:
-      struct LineWithNumber : public LineBuilder
+      struct LineWithNumber : public LineBuilderType
       {
         LineWithNumber()
           : Number()
@@ -348,10 +355,9 @@ namespace ZXTune
     class TrackingModel
     {
     public:
+      static const uint_t CHANNELS = ChannelsCount;
       // Define common types
-      typedef MultichannelLine<ChannelsCount> Line;
-      typedef MultichannelLineBuilder<ChannelsCount> LineBuilder;
-      typedef SparsedPattern<LineBuilder, Line> Pattern;
+      typedef SparsedMultichannelPattern<MultichannelLineBuilder<ChannelsCount> > Pattern;
 
       // Holder-related types
       class ModuleData : public TrackModuleData
@@ -402,10 +408,7 @@ namespace ZXTune
         {
           if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
-            if (const uint_t* tempo = lineObj->GetTempo())
-            {
-              return *tempo;
-            }
+            return lineObj->GetTempo();
           }
           return 0;
         }

@@ -268,16 +268,13 @@ namespace PT3
 
     virtual uint_t GetNewTempo(uint_t position, uint_t line) const
     {
-      if (uint_t originalTempo = Vortex::Track::ModuleData::GetNewTempo(position, line))
+      if (const uint_t originalTempo = Vortex::Track::ModuleData::GetNewTempo(position, line))
       {
         return originalTempo;
       }
-      if (const Vortex::Track::Line* lineObj = GetSecondPatternByPosition(position).GetLine(line))
+      if (const Line* lineObj = GetSecondPatternByPosition(position).GetLine(line))
       {
-        if (const uint_t* tempo = lineObj->GetTempo())
-        {
-          return *tempo;
-        }
+        return lineObj->GetTempo();
       }
       return 0;
     }

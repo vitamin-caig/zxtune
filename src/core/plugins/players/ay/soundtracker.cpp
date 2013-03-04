@@ -446,7 +446,7 @@ namespace SoundTracker
     void SwitchToNewLine()
     {
       assert(0 == State->Quirk());
-      if (const Track::Line* line = Data->Patterns[State->Pattern()].GetLine(State->Line()))
+      if (const Line* line = Data->Patterns[State->Pattern()].GetLine(State->Line()))
       {
         if (const Cell* chan = line->GetChannel(0))
         {

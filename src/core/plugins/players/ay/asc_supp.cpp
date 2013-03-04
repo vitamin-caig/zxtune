@@ -403,9 +403,9 @@ namespace ASCSoundMaster
       {
         std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ChannelState::ResetBaseNoise));
       }
-      if (const Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
+        for (uint_t chan = 0; chan != Track::CHANNELS; ++chan)
         {
           if (const Cell* src = line->GetChannel(chan))
           {

@@ -223,7 +223,7 @@ namespace
       for (uint_t lineNum = 0; !end && lineNum != SQD::MAX_PATTERN_SIZE; ++lineNum)
       {
         const SQD::Pattern::Line& srcLine = src.Lines[lineNum];
-        SQDTrack::LineBuilder& dstLine = result.AddLine();
+        LineBuilder& dstLine = result.AddLine();
         for (uint_t chanNum = 0; chanNum != SQD::CHANNELS_COUNT; ++chanNum)
         {
           const SQD::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
@@ -531,9 +531,9 @@ namespace
     void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
       std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
-      if (const SQDTrack::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
-        for (uint_t chan = 0; chan != line->CountChannels(); ++chan)
+        for (uint_t chan = 0; chan != SQDTrack::CHANNELS; ++chan)
         {
           if (const Cell* src = line->GetChannel(chan))
           {
