@@ -219,7 +219,7 @@ namespace ASCSoundMaster
 
     virtual void SetNote(uint_t note)
     {
-      Cell* const channel = Context.CurChannel;
+      CellBuilder* const channel = Context.CurChannel;
       if (!channel->FindCommand(BREAK_SAMPLE))
       {
         channel->SetEnabled(true);
@@ -253,7 +253,7 @@ namespace ASCSoundMaster
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      Cell* const channel = Context.CurChannel;
+      CellBuilder* const channel = Context.CurChannel;
       if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
@@ -266,7 +266,7 @@ namespace ASCSoundMaster
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      Cell* const channel = Context.CurChannel;
+      CellBuilder* const channel = Context.CurChannel;
       if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);

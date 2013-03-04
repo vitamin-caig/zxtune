@@ -206,7 +206,7 @@ namespace DMM
 
     struct MixedChannel
     {
-      Cell Mixin;
+      CellBuilder Mixin;
       uint_t Period;
 
       MixedChannel()
@@ -218,7 +218,7 @@ namespace DMM
     boost::array<MixedChannel, 64> Mixes;
   };
 
-  void ParseChannel(const Pattern::Line::Channel& srcChan, Cell& dstChan)
+  void ParseChannel(const Pattern::Line::Channel& srcChan, CellBuilder& dstChan)
   {
     const uint_t note = srcChan.NoteCommand;
     if (NO_DATA == note)
@@ -343,11 +343,11 @@ namespace
       for (uint_t lineNum = 0; lineNum != size; ++lineNum)
       {
         const DMM::Pattern::Line& srcLine = src.Lines[lineNum];
-        DMM::Track::Line& dstLine = result.AddLine();
+        DMM::Track::LineBuilder& dstLine = result.AddLine();
         for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
         {
           const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          Cell* const dstChan = dstLine.AddChannel(chanNum);
+          CellBuilder* const dstChan = dstLine.AddChannel(chanNum);
           DMM::ParseChannel(srcChan, *dstChan);
           if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
           {

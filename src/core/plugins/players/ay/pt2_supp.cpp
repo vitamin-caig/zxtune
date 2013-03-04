@@ -168,7 +168,7 @@ namespace ProTracker2
 
     virtual void SetNote(uint_t note)
     {
-      Cell* const channel = Context.CurChannel;
+      CellBuilder* const channel = Context.CurChannel;
       channel->SetEnabled(true);
       if (Command* cmd = channel->FindCommand(GLISS_NOTE))
       {

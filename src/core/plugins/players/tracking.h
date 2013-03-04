@@ -97,7 +97,6 @@ namespace ZXTune
       {
       }
 
-      //accessors
       bool HasData() const
       {
         return 0 != Mask || !Commands.empty();
@@ -132,8 +131,28 @@ namespace ZXTune
       {
         return CommandsIterator(Commands.begin(), Commands.end());
       }
+    protected:
+      enum Flags
+      {
+        ENABLED = 1,
+        NOTE = 2,
+        SAMPLENUM = 4,
+        ORNAMENTNUM = 8,
+        VOLUME = 16
+      };
 
-      //modifiers
+      uint_t Mask;
+      bool Enabled;
+      uint_t Note;
+      uint_t SampleNum;
+      uint_t OrnamentNum;
+      uint_t Volume;
+      CommandsArray Commands;
+    };
+
+    class CellBuilder : public Cell
+    {
+    public:
       void SetEnabled(bool val)
       {
         Mask |= ENABLED;
@@ -176,23 +195,6 @@ namespace ZXTune
           ? &*it
           : 0;
       }
-    private:
-      enum Flags
-      {
-        ENABLED = 1,
-        NOTE = 2,
-        SAMPLENUM = 4,
-        ORNAMENTNUM = 8,
-        VOLUME = 16
-      };
-
-      uint_t Mask;
-      bool Enabled;
-      uint_t Note;
-      uint_t SampleNum;
-      uint_t OrnamentNum;
-      uint_t Volume;
-      CommandsArray Commands;
     };
 
     template<uint_t ChannelsCount>
@@ -223,21 +225,98 @@ namespace ZXTune
       {
         return Tempo ? &*Tempo : 0;
       }
+    protected:
+      boost::optional<uint_t> Tempo;
+      typedef boost::array<CellBuilder, ChannelsCount> ChannelsArray;
+      ChannelsArray Channels;
+    };
 
+    template<uint_t ChannelsCount>
+    class MultichannelLineBuilder : public MultichannelLine<ChannelsCount>
+    {
+    public:
       //modifiers
       void SetTempo(uint_t val)
       {
-        Tempo = val;
+        MultichannelLine<ChannelsCount>::Tempo = val;
       }
 
-      Cell* AddChannel(uint_t idx)
+      CellBuilder* AddChannel(uint_t idx)
       {
-        return &Channels[idx];
+        return &MultichannelLine<ChannelsCount>::Channels[idx];
+      }
+    };
+
+    template<class LineBuilder, class Line>
+    class SparsedPattern
+    {
+    public:
+      SparsedPattern()
+        : Size(0)
+      {
+      }
+
+      LineBuilder& AddLine()
+      {
+        Lines.push_back(LineWithNumber(Size++));
+        return Lines.back();
+      }
+
+      void AddLines(uint_t newLines)
+      {
+        Size += newLines;
+      }
+
+      const Line* GetLine(uint_t row) const
+      {
+        if (row >= Size)
+        {
+          return 0;
+        }
+        const typename LinesList::const_iterator it = std::lower_bound(Lines.begin(), Lines.end(), LineWithNumber(row));
+        return it == Lines.end() || it->Number != row
+          ? 0
+          : &*it;
+      }
+
+      uint_t GetSize() const
+      {
+        return Size;
+      }
+
+      bool IsEmpty() const
+      {
+        return 0 == Size;
+      }
+
+      void Swap(SparsedPattern<LineBuilder, Line>& rh)
+      {
+        Lines.swap(rh.Lines);
+        std::swap(Size, rh.Size);
       }
     private:
-      boost::optional<uint_t> Tempo;
-      typedef boost::array<Cell, ChannelsCount> ChannelsArray;
-      ChannelsArray Channels;
+      struct LineWithNumber : public LineBuilder
+      {
+        LineWithNumber()
+          : Number()
+        {
+        }
+
+        explicit LineWithNumber(uint_t num)
+          : Number(num)
+        {
+        }
+
+        uint_t Number;
+
+        bool operator < (const LineWithNumber& rh) const
+        {
+          return Number < rh.Number;
+        }
+      };
+      typedef typename std::vector<LineWithNumber> LinesList;
+      LinesList Lines;
+      uint_t Size;
     };
 
     class TrackModuleData
@@ -265,101 +344,21 @@ namespace ZXTune
     StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data);
 
     // Basic template class for tracking support (used as simple parametrized namespace)
-    template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
-    class TrackingSupport
+    template<uint_t ChannelsCount>
+    class TrackingModel
     {
     public:
       // Define common types
-      typedef SampleType Sample;
-      typedef OrnamentType Ornament;
       typedef MultichannelLine<ChannelsCount> Line;
-
-      class Pattern
-      {
-      public:
-        Pattern()
-          : Size(0)
-        {
-        }
-
-        Line& AddLine()
-        {
-          Lines.push_back(LineWithNumber(Size++));
-          return Lines.back();
-        }
-
-        void AddLines(uint_t newLines)
-        {
-          Size += newLines;
-        }
-
-        const Line* GetLine(uint_t row) const
-        {
-          if (row >= Size)
-          {
-            return 0;
-          }
-          const typename LinesList::const_iterator it = std::lower_bound(Lines.begin(), Lines.end(), LineWithNumber(row));
-          return it == Lines.end() || it->Number != row
-            ? 0
-            : &*it;
-        }
-
-        uint_t GetSize() const
-        {
-          return Size;
-        }
-
-        bool IsEmpty() const
-        {
-          return 0 == Size;
-        }
-
-        void Swap(Pattern& rh)
-        {
-          Lines.swap(rh.Lines);
-          std::swap(Size, rh.Size);
-        }
-      private:
-        struct LineWithNumber : public Line
-        {
-          LineWithNumber()
-            : Number()
-          {
-          }
-
-          explicit LineWithNumber(uint_t num)
-            : Number(num)
-          {
-          }
-
-          uint_t Number;
-
-          bool operator < (const LineWithNumber& rh) const
-          {
-            return Number < rh.Number;
-          }
-        };
-        typedef typename std::vector<LineWithNumber> LinesList;
-        LinesList Lines;
-        uint_t Size;
-      };
+      typedef MultichannelLineBuilder<ChannelsCount> LineBuilder;
+      typedef SparsedPattern<LineBuilder, Line> Pattern;
 
       // Holder-related types
       class ModuleData : public TrackModuleData
       {
       public:
-        typedef boost::shared_ptr<const ModuleData> Ptr;
-        typedef boost::shared_ptr<ModuleData> RWPtr;
-
-        static RWPtr Create()
-        {
-          return boost::make_shared<ModuleData>();
-        }
-
         ModuleData()
           : LoopPosition(), InitialTempo()
-          , Positions(), Patterns(), Samples(), Ornaments()
         {
         }
 
@@ -424,16 +423,14 @@ namespace ZXTune
         uint_t InitialTempo;
         std::vector<uint_t> Positions;
         std::vector<Pattern> Patterns;
-        std::vector<SampleType> Samples;
-        std::vector<OrnamentType> Ornaments;
       };
 
       struct BuildContext
       {
         ModuleData& Data;
         Pattern* CurPattern;
-        Line* CurLine;
-        Cell* CurChannel;
+        LineBuilder* CurLine;
+        CellBuilder* CurChannel;
 
         explicit BuildContext(ModuleData& data)
           : Data(data)
@@ -475,6 +472,29 @@ namespace ZXTune
           CurLine = 0;
           CurPattern = 0;
         }
+      };
+    };
+
+    template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
+    class TrackingSupport : public TrackingModel<ChannelsCount>
+    {
+    public:
+      typedef SampleType Sample;
+      typedef OrnamentType Ornament;
+
+      class ModuleData : public TrackingModel<ChannelsCount>::ModuleData
+      {
+      public:
+        typedef boost::shared_ptr<const ModuleData> Ptr;
+        typedef boost::shared_ptr<ModuleData> RWPtr;
+
+        static RWPtr Create()
+        {
+          return boost::make_shared<ModuleData>();
+        }
+
+        std::vector<SampleType> Samples;
+        std::vector<OrnamentType> Ornaments;
       };
     };
   }

@@ -223,7 +223,7 @@ namespace
       for (uint_t lineNum = 0; !end && lineNum != SQD::MAX_PATTERN_SIZE; ++lineNum)
       {
         const SQD::Pattern::Line& srcLine = src.Lines[lineNum];
-        SQDTrack::Line& dstLine = result.AddLine();
+        SQDTrack::LineBuilder& dstLine = result.AddLine();
         for (uint_t chanNum = 0; chanNum != SQD::CHANNELS_COUNT; ++chanNum)
         {
           const SQD::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
@@ -242,7 +242,7 @@ namespace
             continue;
           }
 
-          Cell& dstChan = *dstLine.AddChannel(chanNum);
+          CellBuilder& dstChan = *dstLine.AddChannel(chanNum);
           if (srcChan.IsRest())
           {
             dstChan.SetEnabled(false);
