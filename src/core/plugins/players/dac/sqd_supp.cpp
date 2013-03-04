@@ -216,9 +216,8 @@ namespace
 
   class SQDHolder : public Holder
   {
-    static void ParsePattern(const SQD::Pattern& src, SQDTrack::Pattern& res)
+    static void ParsePattern(const SQD::Pattern& src, PatternBuilder& result)
     {
-      SQDTrack::Pattern result;
       bool end = false;
       for (uint_t lineNum = 0; !end && lineNum != SQD::MAX_PATTERN_SIZE; ++lineNum)
       {
@@ -264,7 +263,6 @@ namespace
           }
         }
       }
-      result.Swap(res);
     }
 
   public:

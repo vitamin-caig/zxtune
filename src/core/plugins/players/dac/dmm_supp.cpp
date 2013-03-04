@@ -337,9 +337,8 @@ namespace
 
   class DMMHolder : public Holder
   {
-    static void ParsePattern(uint_t size, const DMM::Pattern& src, DMM::Track::Pattern& res)
+    static void ParsePattern(uint_t size, const DMM::Pattern& src, PatternBuilder& result)
     {
-      DMM::Track::Pattern result;
       for (uint_t lineNum = 0; lineNum != size; ++lineNum)
       {
         const DMM::Pattern::Line& srcLine = src.Lines[lineNum];
@@ -355,7 +354,6 @@ namespace
           }
         }
       }
-      result.Swap(res);
     }
 
   public:

@@ -25,7 +25,6 @@ Author:
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/optional.hpp>
 #include <boost/shared_ptr.hpp>
 
 namespace ZXTune
@@ -214,6 +213,22 @@ namespace ZXTune
       virtual CellBuilder* AddChannel(uint_t idx) = 0;
     };
 
+    class Pattern
+    {
+    public:
+      virtual ~Pattern() {}
+
+      virtual const Line* GetLine(uint_t row) const = 0;
+      virtual uint_t GetSize() const = 0;
+    };
+
+    class PatternBuilder : public Pattern
+    {
+    public:
+      virtual LineBuilder& AddLine() = 0;
+      virtual void AddLines(uint_t skip) = 0;
+    };
+
     template<uint_t ChannelsCount>
     class MultichannelLineBuilder : public LineBuilder
     {
@@ -255,26 +270,15 @@ namespace ZXTune
     };
 
     template<class LineBuilderType>
-    class SparsedMultichannelPattern
+    class SparsedMultichannelPatternBuilder : public PatternBuilder
     {
     public:
-      SparsedMultichannelPattern()
+      SparsedMultichannelPatternBuilder()
         : Size(0)
       {
       }
 
-      LineBuilder& AddLine()
-      {
-        Lines.push_back(LineWithNumber(Size++));
-        return Lines.back();
-      }
-
-      void AddLines(uint_t newLines)
-      {
-        Size += newLines;
-      }
-
-      const Line* GetLine(uint_t row) const
+      virtual const Line* GetLine(uint_t row) const
       {
         if (row >= Size)
         {
@@ -286,20 +290,20 @@ namespace ZXTune
           : &*it;
       }
 
-      uint_t GetSize() const
+      virtual uint_t GetSize() const
       {
         return Size;
       }
 
-      bool IsEmpty() const
+      virtual LineBuilder& AddLine()
       {
-        return 0 == Size;
+        Lines.push_back(LineWithNumber(Size++));
+        return Lines.back();
       }
 
-      void Swap(SparsedMultichannelPattern<LineBuilderType>& rh)
+      virtual void AddLines(uint_t newLines)
       {
-        Lines.swap(rh.Lines);
-        std::swap(Size, rh.Size);
+        Size += newLines;
       }
     private:
       struct LineWithNumber : public LineBuilderType
@@ -356,8 +360,6 @@ namespace ZXTune
     {
     public:
       static const uint_t CHANNELS = ChannelsCount;
-      // Define common types
-      typedef SparsedMultichannelPattern<MultichannelLineBuilder<ChannelsCount> > Pattern;
 
       // Holder-related types
       class ModuleData : public TrackModuleData
@@ -391,7 +393,7 @@ namespace ZXTune
         virtual uint_t GetPatternsCount() const
         {
           return static_cast<uint_t>(std::count_if(Patterns.begin(), Patterns.end(),
-            !boost::bind(&Pattern::IsEmpty, _1)));
+            !boost::bind(&Pattern::GetSize, _1) != 0));
         }
 
         virtual uint_t GetPatternIndex(uint_t position) const
@@ -425,13 +427,13 @@ namespace ZXTune
         uint_t LoopPosition;
         uint_t InitialTempo;
         std::vector<uint_t> Positions;
-        std::vector<Pattern> Patterns;
+        std::vector<SparsedMultichannelPatternBuilder<MultichannelLineBuilder<ChannelsCount> > > Patterns;
       };
 
       struct BuildContext
       {
         ModuleData& Data;
-        Pattern* CurPattern;
+        PatternBuilder* CurPattern;
         LineBuilder* CurLine;
         CellBuilder* CurChannel;
 
