@@ -229,9 +229,24 @@ namespace ZXTune
     class PatternBuilder : public Pattern
     {
     public:
-      virtual LineBuilder& AddLine() = 0;
-      virtual void AddLines(uint_t skip) = 0;
+      virtual LineBuilder& AddLine(uint_t row) = 0;
       virtual void SetSize(uint_t size) = 0;
+    };
+
+    class PatternsSet
+    {
+    public:
+      typedef boost::shared_ptr<const PatternsSet> Ptr;
+      virtual ~PatternsSet() {}
+
+      virtual Pattern::Ptr Get(uint_t idx) const = 0;
+      virtual uint_t GetSize() const = 0;
+    };
+
+    class PatternsSetBuilder : public PatternsSet
+    {
+    public:
+      virtual PatternBuilder& AddPattern(uint_t idx) = 0;
     };
 
     template<uint_t ChannelsCount>
@@ -243,7 +258,7 @@ namespace ZXTune
       {
       }
 
-      virtual const Cell* GetChannel(uint_t idx) const
+      virtual Cell::Ptr GetChannel(uint_t idx) const
       {
         return Channels[idx].HasData() ? &Channels[idx] : 0;
       }
@@ -274,73 +289,140 @@ namespace ZXTune
       ChannelsArray Channels;
     };
 
-    template<class LineBuilderType>
-    class SparsedMultichannelPatternBuilder : public PatternBuilder
+    template<class T>
+    class SparsedObjectsStorage
     {
     public:
-      SparsedMultichannelPatternBuilder()
-        : Size(0)
+      SparsedObjectsStorage()
+        : Count()
       {
       }
 
+      T Get(uint_t idx) const
+      {
+        if (idx >= Count)
+        {
+          return T();
+        }
+        const typename ObjectsList::const_iterator it = std::lower_bound(Objects.begin(), Objects.end(), idx);
+        return it == Objects.end() || it->Index != idx
+          ? T()
+          : it->Object;
+      }
+
+      uint_t Size() const
+      {
+        return Count;
+      }
+
+      void Resize(uint_t newSize)
+      {
+        assert(newSize >= Count);
+        Count = newSize;
+      }
+
+      void Add(uint_t idx, T obj)
+      {
+        assert(Objects.end() == std::find(Objects.begin(), Objects.end(), idx));
+        assert(idx >= Count);
+        Objects.push_back(ObjectWithIndex(idx, obj));
+        Count = idx + 1;
+      }
+    private:
+      struct ObjectWithIndex
+      {
+        ObjectWithIndex()
+          : Index()
+          , Object()
+        {
+        }
+
+        ObjectWithIndex(uint_t idx, T obj)
+          : Index(idx)
+          , Object(obj)
+        {
+        }
+
+        uint_t Index;
+        T Object;
+
+        bool operator < (uint_t idx) const
+        {
+          return Index < idx;
+        }
+
+        bool operator == (uint_t idx) const
+        {
+          return Index == idx;
+        }
+      };
+    private:
+      uint_t Count;
+      typedef std::vector<ObjectWithIndex> ObjectsList;
+      ObjectsList Objects;
+    };
+
+    template<class LineBuilderType>
+    class SparsedPatternBuilder : public PatternBuilder
+    {
+    public:
       virtual Line::Ptr GetLine(uint_t row) const
       {
-        if (row >= Size)
-        {
-          return Line::Ptr();
-        }
-        const typename LinesList::const_iterator it = std::lower_bound(Lines.begin(), Lines.end(), LineWithNumber(row));
-        return it == Lines.end() || it->Number != row
-          ? Line::Ptr()
-          : it->Line;
+        return Storage.Get(row);
       }
 
       virtual uint_t GetSize() const
       {
-        return Size;
+        return Storage.Size();
       }
 
-      virtual LineBuilder& AddLine()
+      virtual LineBuilder& AddLine(uint_t row)
       {
-        Lines.push_back(LineWithNumber(Size++));
-        return *Lines.back().Line;
-      }
-
-      virtual void AddLines(uint_t newLines)
-      {
-        Size += newLines;
+        const BuilderPtr res = boost::make_shared<LineBuilderType>();
+        Storage.Add(row, res);
+        return *res;
       }
 
       virtual void SetSize(uint_t newSize)
       {
-        assert(newSize >= Size);
-        Size = newSize;
+        Storage.Resize(newSize);
       }
     private:
-      struct LineWithNumber
+      typedef boost::shared_ptr<LineBuilderType> BuilderPtr;
+      SparsedObjectsStorage<BuilderPtr> Storage;
+    };
+
+    template<class PatternBuilderType>
+    class SparsedPatternsSetBuilder : public PatternsSetBuilder
+    {
+    public:
+      virtual Pattern::Ptr Get(uint_t idx) const
       {
-        LineWithNumber()
-          : Number()
-        {
-        }
+        return Storage.Get(idx);
+      }
 
-        explicit LineWithNumber(uint_t num)
-          : Number(num)
-          , Line(boost::make_shared<LineBuilderType>())
+      virtual uint_t GetSize() const
+      {
+        uint_t res = 0;
+        for (uint_t idx = 0; idx != Storage.Size(); ++idx)
         {
+          if (const Pattern::Ptr pat = Storage.Get(idx))
+          {
+            res += pat->GetSize() != 0;
+          }
         }
+        return res;
+      }
 
-        uint_t Number;
-        boost::shared_ptr<LineBuilderType> Line;
-
-        bool operator < (const LineWithNumber& rh) const
-        {
-          return Number < rh.Number;
-        }
-      };
-      typedef typename std::vector<LineWithNumber> LinesList;
-      LinesList Lines;
-      uint_t Size;
+      virtual PatternBuilder& AddPattern(uint_t idx)
+      {
+        const BuilderPtr res = boost::make_shared<PatternBuilderType>();
+        Storage.Add(idx, res);
+        return *res;
+      }
+    private:
+      typedef boost::shared_ptr<PatternBuilder> BuilderPtr;
+      SparsedObjectsStorage<BuilderPtr> Storage;
     };
 
     class TrackModuleData
@@ -405,8 +487,7 @@ namespace ZXTune
 
         virtual uint_t GetPatternsCount() const
         {
-          return static_cast<uint_t>(std::count_if(Patterns.begin(), Patterns.end(),
-            boost::bind(&Pattern::GetSize, _1) != uint_t(0)));
+          return Patterns->GetSize();
         }
 
         virtual uint_t GetPatternIndex(uint_t position) const
@@ -416,12 +497,12 @@ namespace ZXTune
 
         virtual uint_t GetPatternSize(uint_t position) const
         {
-          return Patterns[GetPatternIndex(position)]->GetSize();
+          return Patterns->Get(GetPatternIndex(position))->GetSize();
         }
 
         virtual uint_t GetNewTempo(uint_t position, uint_t line) const
         {
-          if (const Line::Ptr lineObj = Patterns[GetPatternIndex(position)]->GetLine(line))
+          if (const Line::Ptr lineObj = Patterns->Get(GetPatternIndex(position))->GetLine(line))
           {
             return lineObj->GetTempo();
           }
@@ -430,7 +511,7 @@ namespace ZXTune
 
         virtual uint_t GetActiveChannels(uint_t position, uint_t line) const
         {
-          if (const Line::Ptr lineObj = Patterns[GetPatternIndex(position)]->GetLine(line))
+          if (const Line::Ptr lineObj = Patterns->Get(GetPatternIndex(position))->GetLine(line))
           {
             return lineObj->CountActiveChannels();
           }
@@ -440,42 +521,38 @@ namespace ZXTune
         uint_t LoopPosition;
         uint_t InitialTempo;
         std::vector<uint_t> Positions;
-        std::vector<Pattern::Ptr> Patterns;
+        PatternsSet::Ptr Patterns;
       };
 
       struct BuildContext
       {
-        ModuleData& Data;
+        typedef MultichannelLineBuilder<ChannelsCount> LineBuilderType;
+        typedef SparsedPatternBuilder<LineBuilderType> PatternBuilderType;
+
+        boost::shared_ptr<PatternsSetBuilder> Patterns;
         PatternBuilder* CurPattern;
         LineBuilder* CurLine;
         CellBuilder* CurChannel;
 
         explicit BuildContext(ModuleData& data)
-          : Data(data)
+          : Patterns(boost::make_shared<SparsedPatternsSetBuilder<PatternBuilderType> >())
           , CurPattern()
           , CurLine()
           , CurChannel()
         {
+          data.Patterns = Patterns;
         }
 
         void SetPattern(uint_t idx)
         {
-          typedef SparsedMultichannelPatternBuilder<MultichannelLineBuilder<ChannelsCount> > Builder;
-          const boost::shared_ptr<Builder> val = boost::make_shared<Builder>();
-          Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()), val);
-          Data.Patterns[idx] = val;
-          CurPattern = val.get();
+          CurPattern = &Patterns->AddPattern(idx);
           CurLine = 0;
           CurChannel = 0;
         }
 
         void SetLine(uint_t idx)
         {
-          if (const uint_t skipped = idx - CurPattern->GetSize())
-          {
-            CurPattern->AddLines(skipped);
-          }
-          CurLine = &CurPattern->AddLine();
+          CurLine = &CurPattern->AddLine(idx);
           CurChannel = 0;
         }
 

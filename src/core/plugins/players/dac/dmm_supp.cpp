@@ -955,7 +955,7 @@ namespace
     {
       std::vector<Devices::DAC::DataChunk::ChannelData> res;
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      const Line::Ptr line = Data->Patterns[state->Pattern()]->GetLine(state->Line());
+      const Line::Ptr line = Data->Patterns->Get(state->Pattern())->GetLine(state->Line());
       for (uint_t chan = 0; chan != DMM::CHANNELS_COUNT; ++chan)
       {
         Devices::DAC::DataChunk::ChannelData dst;

@@ -531,7 +531,7 @@ namespace
     void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
       std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
-      if (const Line::Ptr line = Data->Patterns[state.Pattern()]->GetLine(state.Line()))
+      if (const Line::Ptr line = Data->Patterns->Get(state.Pattern())->GetLine(state.Line()))
       {
         for (uint_t chan = 0; chan != SQDTrack::CHANNELS; ++chan)
         {
