@@ -92,6 +92,8 @@ namespace ZXTune
     class Cell
     {
     public:
+      typedef const Cell* Ptr;
+
       Cell() : Mask(), Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
       {
       }
@@ -199,9 +201,10 @@ namespace ZXTune
     class Line
     {
     public:
+      typedef boost::shared_ptr<const Line> Ptr;
       virtual ~Line() {}
 
-      virtual const Cell* GetChannel(uint_t idx) const = 0;
+      virtual Cell::Ptr GetChannel(uint_t idx) const = 0;
       virtual uint_t CountActiveChannels() const = 0;
       virtual uint_t GetTempo() const = 0;
     };
@@ -210,15 +213,16 @@ namespace ZXTune
     {
     public:
       virtual void SetTempo(uint_t val) = 0;
-      virtual CellBuilder* AddChannel(uint_t idx) = 0;
+      virtual CellBuilder& AddChannel(uint_t idx) = 0;
     };
 
     class Pattern
     {
     public:
+      typedef boost::shared_ptr<const Pattern> Ptr;
       virtual ~Pattern() {}
 
-      virtual const Line* GetLine(uint_t row) const = 0;
+      virtual Line::Ptr GetLine(uint_t row) const = 0;
       virtual uint_t GetSize() const = 0;
     };
 
@@ -259,9 +263,9 @@ namespace ZXTune
         Tempo = val;
       }
 
-      virtual CellBuilder* AddChannel(uint_t idx)
+      virtual CellBuilder& AddChannel(uint_t idx)
       {
-        return &Channels[idx];
+        return Channels[idx];
       }
     private:
       uint_t Tempo;
@@ -278,16 +282,16 @@ namespace ZXTune
       {
       }
 
-      virtual const Line* GetLine(uint_t row) const
+      virtual Line::Ptr GetLine(uint_t row) const
       {
         if (row >= Size)
         {
-          return 0;
+          return Line::Ptr();
         }
         const typename LinesList::const_iterator it = std::lower_bound(Lines.begin(), Lines.end(), LineWithNumber(row));
         return it == Lines.end() || it->Number != row
-          ? 0
-          : &*it;
+          ? Line::Ptr()
+          : it->Line;
       }
 
       virtual uint_t GetSize() const
@@ -298,7 +302,7 @@ namespace ZXTune
       virtual LineBuilder& AddLine()
       {
         Lines.push_back(LineWithNumber(Size++));
-        return Lines.back();
+        return *Lines.back().Line;
       }
 
       virtual void AddLines(uint_t newLines)
@@ -306,7 +310,7 @@ namespace ZXTune
         Size += newLines;
       }
     private:
-      struct LineWithNumber : public LineBuilderType
+      struct LineWithNumber
       {
         LineWithNumber()
           : Number()
@@ -315,10 +319,12 @@ namespace ZXTune
 
         explicit LineWithNumber(uint_t num)
           : Number(num)
+          , Line(boost::make_shared<LineBuilderType>())
         {
         }
 
         uint_t Number;
+        boost::shared_ptr<LineBuilderType> Line;
 
         bool operator < (const LineWithNumber& rh) const
         {
@@ -393,7 +399,7 @@ namespace ZXTune
         virtual uint_t GetPatternsCount() const
         {
           return static_cast<uint_t>(std::count_if(Patterns.begin(), Patterns.end(),
-            !boost::bind(&Pattern::GetSize, _1) != 0));
+            boost::bind(&Pattern::GetSize, _1) != uint_t(0)));
         }
 
         virtual uint_t GetPatternIndex(uint_t position) const
@@ -408,7 +414,7 @@ namespace ZXTune
 
         virtual uint_t GetNewTempo(uint_t position, uint_t line) const
         {
-          if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
+          if (const Line::Ptr lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
             return lineObj->GetTempo();
           }
@@ -417,7 +423,7 @@ namespace ZXTune
 
         virtual uint_t GetActiveChannels(uint_t position, uint_t line) const
         {
-          if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
+          if (const Line::Ptr lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
           {
             return lineObj->CountActiveChannels();
           }
@@ -465,7 +471,7 @@ namespace ZXTune
 
         void SetChannel(uint_t idx)
         {
-          CurChannel = CurLine->AddChannel(idx);
+          CurChannel = &CurLine->AddChannel(idx);
         }
 
         void FinishPattern(uint_t size)

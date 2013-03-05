@@ -286,11 +286,11 @@ namespace ProTracker2
   private:
     void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
     {
-      if (const Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Line::Ptr line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
         for (uint_t chan = 0; chan != Track::CHANNELS; ++chan)
         {
-          if (const Cell* src = line->GetChannel(chan))
+          if (const Cell::Ptr src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }

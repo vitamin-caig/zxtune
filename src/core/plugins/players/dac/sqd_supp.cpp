@@ -241,7 +241,7 @@ namespace
             continue;
           }
 
-          CellBuilder& dstChan = *dstLine.AddChannel(chanNum);
+          CellBuilder& dstChan = dstLine.AddChannel(chanNum);
           if (srcChan.IsRest())
           {
             dstChan.SetEnabled(false);
@@ -529,11 +529,11 @@ namespace
     void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
       std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
-      if (const Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Line::Ptr line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
       {
         for (uint_t chan = 0; chan != SQDTrack::CHANNELS; ++chan)
         {
-          if (const Cell* src = line->GetChannel(chan))
+          if (const Cell::Ptr src = line->GetChannel(chan))
           {
             DAC::ChannelDataBuilder builder = track.GetChannel(chan);
             GetNewChannelState(*src, Volumes[chan], builder);

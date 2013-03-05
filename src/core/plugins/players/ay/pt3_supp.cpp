@@ -272,7 +272,7 @@ namespace PT3
       {
         return originalTempo;
       }
-      if (const Line* lineObj = GetSecondPatternByPosition(position).GetLine(line))
+      if (const Line::Ptr lineObj = GetSecondPatternByPosition(position).GetLine(line))
       {
         return lineObj->GetTempo();
       }

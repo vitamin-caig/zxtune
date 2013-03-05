@@ -346,7 +346,7 @@ namespace
         for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
         {
           const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          CellBuilder& dstChan = *dstLine.AddChannel(chanNum);
+          CellBuilder& dstChan = dstLine.AddChannel(chanNum);
           DMM::ParseChannel(srcChan, dstChan);
           if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
           {
@@ -954,7 +954,7 @@ namespace
     {
       std::vector<Devices::DAC::DataChunk::ChannelData> res;
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      const Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
+      const Line::Ptr line = Data->Patterns[state->Pattern()].GetLine(state->Line());
       for (uint_t chan = 0; chan != DMM::CHANNELS_COUNT; ++chan)
       {
         Devices::DAC::DataChunk::ChannelData dst;
@@ -965,7 +965,7 @@ namespace
         //begin note
         if (line && 0 == state->Quirk())
         {
-          if (const Cell* src = line->GetChannel(chan))
+          if (const Cell::Ptr src = line->GetChannel(chan))
           {
             chanState.OnNote(*src, *Data, dst);
           }
