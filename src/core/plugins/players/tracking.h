@@ -231,6 +231,7 @@ namespace ZXTune
     public:
       virtual LineBuilder& AddLine() = 0;
       virtual void AddLines(uint_t skip) = 0;
+      virtual void SetSize(uint_t size) = 0;
     };
 
     template<uint_t ChannelsCount>
@@ -308,6 +309,12 @@ namespace ZXTune
       virtual void AddLines(uint_t newLines)
       {
         Size += newLines;
+      }
+
+      virtual void SetSize(uint_t newSize)
+      {
+        assert(newSize >= Size);
+        Size = newSize;
       }
     private:
       struct LineWithNumber
@@ -409,12 +416,12 @@ namespace ZXTune
 
         virtual uint_t GetPatternSize(uint_t position) const
         {
-          return Patterns[GetPatternIndex(position)].GetSize();
+          return Patterns[GetPatternIndex(position)]->GetSize();
         }
 
         virtual uint_t GetNewTempo(uint_t position, uint_t line) const
         {
-          if (const Line::Ptr lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
+          if (const Line::Ptr lineObj = Patterns[GetPatternIndex(position)]->GetLine(line))
           {
             return lineObj->GetTempo();
           }
@@ -423,7 +430,7 @@ namespace ZXTune
 
         virtual uint_t GetActiveChannels(uint_t position, uint_t line) const
         {
-          if (const Line::Ptr lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
+          if (const Line::Ptr lineObj = Patterns[GetPatternIndex(position)]->GetLine(line))
           {
             return lineObj->CountActiveChannels();
           }
@@ -433,7 +440,7 @@ namespace ZXTune
         uint_t LoopPosition;
         uint_t InitialTempo;
         std::vector<uint_t> Positions;
-        std::vector<SparsedMultichannelPatternBuilder<MultichannelLineBuilder<ChannelsCount> > > Patterns;
+        std::vector<Pattern::Ptr> Patterns;
       };
 
       struct BuildContext
@@ -453,8 +460,11 @@ namespace ZXTune
 
         void SetPattern(uint_t idx)
         {
-          Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
-          CurPattern = &Data.Patterns[idx];
+          typedef SparsedMultichannelPatternBuilder<MultichannelLineBuilder<ChannelsCount> > Builder;
+          const boost::shared_ptr<Builder> val = boost::make_shared<Builder>();
+          Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()), val);
+          Data.Patterns[idx] = val;
+          CurPattern = val.get();
           CurLine = 0;
           CurChannel = 0;
         }
@@ -476,10 +486,7 @@ namespace ZXTune
 
         void FinishPattern(uint_t size)
         {
-          if (const uint_t skipped = size - CurPattern->GetSize())
-          {
-            CurPattern->AddLines(skipped);
-          }
+          CurPattern->SetSize(size);
           CurLine = 0;
           CurPattern = 0;
         }

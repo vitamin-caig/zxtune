@@ -337,20 +337,20 @@ namespace
 
   class DMMHolder : public Holder
   {
-    static void ParsePattern(uint_t size, const DMM::Pattern& src, PatternBuilder& result)
+    static void ParsePattern(uint_t size, const DMM::Pattern& src, DMM::Track::BuildContext& result)
     {
       for (uint_t lineNum = 0; lineNum != size; ++lineNum)
       {
         const DMM::Pattern::Line& srcLine = src.Lines[lineNum];
-        LineBuilder& dstLine = result.AddLine();
+        result.SetLine(lineNum);
         for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
         {
+          result.SetChannel(chanNum);
           const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          CellBuilder& dstChan = dstLine.AddChannel(chanNum);
-          DMM::ParseChannel(srcChan, dstChan);
+          DMM::ParseChannel(srcChan, *result.CurChannel);
           if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
           {
-            dstLine.SetTempo(srcChan.SampleParam);
+            result.CurLine->SetTempo(srcChan.SampleParam);
           }
         }
       }
@@ -375,11 +375,12 @@ namespace
       const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
       const uint_t patternSize = header.PatternSize;
       {
-        Data->Patterns.resize(patternsCount);
+        DMM::Track::BuildContext build(*Data);
         for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, DMM::PATTERNS_COUNT); ++patIdx)
         {
-          const DMM::Pattern* const pattern = safe_ptr_cast<const DMM::Pattern*>(&header + 1) + patIdx * patternSize;
-          ParsePattern(patternSize, *pattern, Data->Patterns[patIdx]);
+          const DMM::Pattern* const src = safe_ptr_cast<const DMM::Pattern*>(&header + 1) + patIdx * patternSize;
+          build.SetPattern(patIdx);
+          ParsePattern(patternSize, *src, build);
         }
       }
 
@@ -954,7 +955,7 @@ namespace
     {
       std::vector<Devices::DAC::DataChunk::ChannelData> res;
       const TrackState::Ptr state = Iterator->GetStateObserver();
-      const Line::Ptr line = Data->Patterns[state->Pattern()].GetLine(state->Line());
+      const Line::Ptr line = Data->Patterns[state->Pattern()]->GetLine(state->Line());
       for (uint_t chan = 0; chan != DMM::CHANNELS_COUNT; ++chan)
       {
         Devices::DAC::DataChunk::ChannelData dst;

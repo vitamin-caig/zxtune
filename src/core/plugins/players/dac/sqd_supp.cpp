@@ -216,13 +216,13 @@ namespace
 
   class SQDHolder : public Holder
   {
-    static void ParsePattern(const SQD::Pattern& src, PatternBuilder& result)
+    static void ParsePattern(const SQD::Pattern& src, SQDTrack::BuildContext& result)
     {
       bool end = false;
       for (uint_t lineNum = 0; !end && lineNum != SQD::MAX_PATTERN_SIZE; ++lineNum)
       {
         const SQD::Pattern::Line& srcLine = src.Lines[lineNum];
-        LineBuilder& dstLine = result.AddLine();
+        result.SetLine(lineNum);
         for (uint_t chanNum = 0; chanNum != SQD::CHANNELS_COUNT; ++chanNum)
         {
           const SQD::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
@@ -237,11 +237,12 @@ namespace
           }
           else if (const uint8_t* newTempo = srcChan.GetNewTempo())
           {
-            dstLine.SetTempo(*newTempo);
+            result.CurLine->SetTempo(*newTempo);
             continue;
           }
 
-          CellBuilder& dstChan = dstLine.AddChannel(chanNum);
+          result.SetChannel(chanNum);
+          CellBuilder& dstChan = *result.CurChannel;
           if (srcChan.IsRest())
           {
             dstChan.SetEnabled(false);
@@ -282,10 +283,11 @@ namespace
 
       //fill patterns
       const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
-      Data->Patterns.resize(patternsCount);
+      SQDTrack::BuildContext builder(*Data);
       for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, SQD::PATTERNS_COUNT); ++patIdx)
       {
-        ParsePattern(header.Patterns[patIdx], Data->Patterns[patIdx]);
+        builder.SetPattern(patIdx);
+        ParsePattern(header.Patterns[patIdx], builder);
       }
 
       std::size_t lastData = sizeof(header);
@@ -529,7 +531,7 @@ namespace
     void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
     {
       std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
-      if (const Line::Ptr line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Line::Ptr line = Data->Patterns[state.Pattern()]->GetLine(state.Line()))
       {
         for (uint_t chan = 0; chan != SQDTrack::CHANNELS; ++chan)
         {

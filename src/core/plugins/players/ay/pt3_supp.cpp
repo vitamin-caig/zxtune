@@ -282,7 +282,7 @@ namespace PT3
     const Pattern& GetSecondPatternByPosition(uint_t position) const
     {
       const uint_t originalPattern = Vortex::Track::ModuleData::GetPatternIndex(position);
-      return Patterns[Base - 1 - originalPattern];
+      return *Patterns[Base - 1 - originalPattern];
     }
   private:
     const uint_t Base;
