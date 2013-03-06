@@ -62,10 +62,12 @@ namespace SoundTracker
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions)
     {
-      Data->Positions.resize(positions.size());
+      using namespace Formats::Chiptune::SoundTracker;
+      std::vector<uint_t> indices(positions.size());
+      std::transform(positions.begin(), positions.end(), indices.begin(), boost::mem_fn(&PositionEntry::PatternIndex));
+      Data->Order = boost::make_shared<SimpleOrderList>(indices.begin(), indices.end(), 0);
       Data->Transpositions.resize(positions.size());
-      std::transform(positions.begin(), positions.end(), Data->Positions.begin(), boost::mem_fn(&Formats::Chiptune::SoundTracker::PositionEntry::PatternIndex));
-      std::transform(positions.begin(), positions.end(), Data->Transpositions.begin(), boost::mem_fn(&Formats::Chiptune::SoundTracker::PositionEntry::Transposition));
+      std::transform(positions.begin(), positions.end(), Data->Transpositions.begin(), boost::mem_fn(&PositionEntry::Transposition));
     }
 
     virtual void StartPattern(uint_t index)

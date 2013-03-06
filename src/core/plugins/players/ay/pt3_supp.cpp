@@ -120,8 +120,7 @@ namespace ProTracker3
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Positions.assign(positions.begin(), positions.end());
-      Data->LoopPosition = loop;
+      Data->Order = boost::make_shared<SimpleOrderList>(positions.begin(), positions.end(), loop);
     }
 
     virtual void StartPattern(uint_t index)
@@ -156,7 +155,7 @@ namespace ProTracker3
 
     virtual void SetNote(uint_t note)
     {
-      CellBuilder* const channel = Context.CurChannel;
+      MutableCell* const channel = Context.CurChannel;
       channel->SetEnabled(true);
       if (Command* cmd = channel->FindCommand(Vortex::GLISS_NOTE))
       {

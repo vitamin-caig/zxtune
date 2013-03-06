@@ -151,7 +151,7 @@ namespace ZXTune
       CommandsArray Commands;
     };
 
-    class CellBuilder : public Cell
+    class MutableCell : public Cell
     {
     public:
       void SetEnabled(bool val)
@@ -209,11 +209,11 @@ namespace ZXTune
       virtual uint_t GetTempo() const = 0;
     };
 
-    class LineBuilder : public Line
+    class MutableLine : public Line
     {
     public:
       virtual void SetTempo(uint_t val) = 0;
-      virtual CellBuilder& AddChannel(uint_t idx) = 0;
+      virtual MutableCell& AddChannel(uint_t idx) = 0;
     };
 
     class Pattern
@@ -226,10 +226,10 @@ namespace ZXTune
       virtual uint_t GetSize() const = 0;
     };
 
-    class PatternBuilder : public Pattern
+    class MutablePattern : public Pattern
     {
     public:
-      virtual LineBuilder& AddLine(uint_t row) = 0;
+      virtual MutableLine& AddLine(uint_t row) = 0;
       virtual void SetSize(uint_t size) = 0;
     };
 
@@ -243,17 +243,56 @@ namespace ZXTune
       virtual uint_t GetSize() const = 0;
     };
 
-    class PatternsSetBuilder : public PatternsSet
+    class MutablePatternsSet : public PatternsSet
     {
     public:
-      virtual PatternBuilder& AddPattern(uint_t idx) = 0;
+      virtual MutablePattern& AddPattern(uint_t idx) = 0;
+    };
+
+    class OrderList
+    {
+    public:
+      typedef boost::shared_ptr<const OrderList> Ptr;
+
+      virtual uint_t GetSize() const = 0;
+      virtual uint_t GetPatternIndex(uint_t pos) const = 0;
+      virtual uint_t GetLoopPosition() const = 0;
+    };
+
+    class SimpleOrderList : public OrderList
+    {
+    public:
+      template<class It>
+      SimpleOrderList(It from, It to, uint_t loop)
+        : Order(from, to)
+        , Loop(loop)
+      {
+      }
+
+      virtual uint_t GetSize() const
+      {
+        return Order.size();
+      }
+
+      virtual uint_t GetPatternIndex(uint_t pos) const
+      {
+        return Order[pos];
+      }
+
+      virtual uint_t GetLoopPosition() const
+      {
+        return Loop;
+      }
+    private:
+      const std::vector<uint_t> Order;
+      const uint_t Loop;
     };
 
     template<uint_t ChannelsCount>
-    class MultichannelLineBuilder : public LineBuilder
+    class MultichannelMutableLine : public MutableLine
     {
     public:
-      MultichannelLineBuilder()
+      MultichannelMutableLine()
         : Tempo()
       {
       }
@@ -279,13 +318,13 @@ namespace ZXTune
         Tempo = val;
       }
 
-      virtual CellBuilder& AddChannel(uint_t idx)
+      virtual MutableCell& AddChannel(uint_t idx)
       {
         return Channels[idx];
       }
     private:
       uint_t Tempo;
-      typedef boost::array<CellBuilder, ChannelsCount> ChannelsArray;
+      typedef boost::array<MutableCell, ChannelsCount> ChannelsArray;
       ChannelsArray Channels;
     };
 
@@ -362,8 +401,8 @@ namespace ZXTune
       ObjectsList Objects;
     };
 
-    template<class LineBuilderType>
-    class SparsedPatternBuilder : public PatternBuilder
+    template<class MutableLineType>
+    class SparsedMutablePattern : public MutablePattern
     {
     public:
       virtual Line::Ptr GetLine(uint_t row) const
@@ -376,9 +415,9 @@ namespace ZXTune
         return Storage.Size();
       }
 
-      virtual LineBuilder& AddLine(uint_t row)
+      virtual MutableLine& AddLine(uint_t row)
       {
-        const BuilderPtr res = boost::make_shared<LineBuilderType>();
+        const BuilderPtr res = boost::make_shared<MutableLineType>();
         Storage.Add(row, res);
         return *res;
       }
@@ -388,12 +427,12 @@ namespace ZXTune
         Storage.Resize(newSize);
       }
     private:
-      typedef boost::shared_ptr<LineBuilderType> BuilderPtr;
+      typedef boost::shared_ptr<MutableLineType> BuilderPtr;
       SparsedObjectsStorage<BuilderPtr> Storage;
     };
 
-    template<class PatternBuilderType>
-    class SparsedPatternsSetBuilder : public PatternsSetBuilder
+    template<class MutablePatternType>
+    class SparsedMutablePatternsSet : public MutablePatternsSet
     {
     public:
       virtual Pattern::Ptr Get(uint_t idx) const
@@ -414,14 +453,14 @@ namespace ZXTune
         return res;
       }
 
-      virtual PatternBuilder& AddPattern(uint_t idx)
+      virtual MutablePattern& AddPattern(uint_t idx)
       {
-        const BuilderPtr res = boost::make_shared<PatternBuilderType>();
+        const BuilderPtr res = boost::make_shared<MutablePatternType>();
         Storage.Add(idx, res);
         return *res;
       }
     private:
-      typedef boost::shared_ptr<PatternBuilder> BuilderPtr;
+      typedef boost::shared_ptr<MutablePattern> BuilderPtr;
       SparsedObjectsStorage<BuilderPtr> Storage;
     };
 
@@ -449,6 +488,74 @@ namespace ZXTune
 
     StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data);
 
+    class Model : public TrackModuleData
+    {
+    public:
+      explicit Model(uint_t channels)
+        : ChannelsCount(channels)
+        , InitialTempo()
+      {
+      }
+
+      virtual uint_t GetChannelsCount() const
+      {
+        return ChannelsCount;
+      }
+
+      virtual uint_t GetLoopPosition() const
+      {
+        return Order->GetLoopPosition();
+      }
+
+      virtual uint_t GetInitialTempo() const
+      {
+        return InitialTempo;
+      }
+
+      virtual uint_t GetPositionsCount() const
+      {
+        return Order->GetSize();
+      }
+
+      virtual uint_t GetPatternsCount() const
+      {
+        return Patterns->GetSize();
+      }
+
+      virtual uint_t GetPatternIndex(uint_t position) const
+      {
+        return Order->GetPatternIndex(position);
+      }
+
+      virtual uint_t GetPatternSize(uint_t position) const
+      {
+        return Patterns->Get(GetPatternIndex(position))->GetSize();
+      }
+
+      virtual uint_t GetNewTempo(uint_t position, uint_t line) const
+      {
+        if (const Line::Ptr lineObj = Patterns->Get(GetPatternIndex(position))->GetLine(line))
+        {
+          return lineObj->GetTempo();
+        }
+        return 0;
+      }
+
+      virtual uint_t GetActiveChannels(uint_t position, uint_t line) const
+      {
+        if (const Line::Ptr lineObj = Patterns->Get(GetPatternIndex(position))->GetLine(line))
+        {
+          return lineObj->CountActiveChannels();
+        }
+        return 0;
+      }
+
+      const uint_t ChannelsCount;
+      uint_t InitialTempo;
+      OrderList::Ptr Order;
+      PatternsSet::Ptr Patterns;
+    };
+
     // Basic template class for tracking support (used as simple parametrized namespace)
     template<uint_t ChannelsCount>
     class TrackingModel
@@ -456,86 +563,18 @@ namespace ZXTune
     public:
       static const uint_t CHANNELS = ChannelsCount;
 
-      // Holder-related types
-      class ModuleData : public TrackModuleData
-      {
-      public:
-        ModuleData()
-          : LoopPosition(), InitialTempo()
-        {
-        }
-
-        virtual uint_t GetChannelsCount() const
-        {
-          return ChannelsCount;
-        }
-
-        virtual uint_t GetLoopPosition() const
-        {
-          return LoopPosition;
-        }
-
-        virtual uint_t GetInitialTempo() const
-        {
-          return InitialTempo;
-        }
-
-        virtual uint_t GetPositionsCount() const
-        {
-          return static_cast<uint_t>(Positions.size());
-        }
-
-        virtual uint_t GetPatternsCount() const
-        {
-          return Patterns->GetSize();
-        }
-
-        virtual uint_t GetPatternIndex(uint_t position) const
-        {
-          return Positions[position];
-        }
-
-        virtual uint_t GetPatternSize(uint_t position) const
-        {
-          return Patterns->Get(GetPatternIndex(position))->GetSize();
-        }
-
-        virtual uint_t GetNewTempo(uint_t position, uint_t line) const
-        {
-          if (const Line::Ptr lineObj = Patterns->Get(GetPatternIndex(position))->GetLine(line))
-          {
-            return lineObj->GetTempo();
-          }
-          return 0;
-        }
-
-        virtual uint_t GetActiveChannels(uint_t position, uint_t line) const
-        {
-          if (const Line::Ptr lineObj = Patterns->Get(GetPatternIndex(position))->GetLine(line))
-          {
-            return lineObj->CountActiveChannels();
-          }
-          return 0;
-        }
-
-        uint_t LoopPosition;
-        uint_t InitialTempo;
-        std::vector<uint_t> Positions;
-        PatternsSet::Ptr Patterns;
-      };
-
       struct BuildContext
       {
-        typedef MultichannelLineBuilder<ChannelsCount> LineBuilderType;
-        typedef SparsedPatternBuilder<LineBuilderType> PatternBuilderType;
+        typedef MultichannelMutableLine<ChannelsCount> MutableLineType;
+        typedef SparsedMutablePattern<MutableLineType> MutablePatternType;
 
-        boost::shared_ptr<PatternsSetBuilder> Patterns;
-        PatternBuilder* CurPattern;
-        LineBuilder* CurLine;
-        CellBuilder* CurChannel;
+        boost::shared_ptr<MutablePatternsSet> Patterns;
+        MutablePattern* CurPattern;
+        MutableLine* CurLine;
+        MutableCell* CurChannel;
 
-        explicit BuildContext(ModuleData& data)
-          : Patterns(boost::make_shared<SparsedPatternsSetBuilder<PatternBuilderType> >())
+        explicit BuildContext(Model& data)
+          : Patterns(boost::make_shared<SparsedMutablePatternsSet<MutablePatternType> >())
           , CurPattern()
           , CurLine()
           , CurChannel()
@@ -577,7 +616,7 @@ namespace ZXTune
       typedef SampleType Sample;
       typedef OrnamentType Ornament;
 
-      class ModuleData : public TrackingModel<ChannelsCount>::ModuleData
+      class ModuleData : public Model
       {
       public:
         typedef boost::shared_ptr<const ModuleData> Ptr;
@@ -586,6 +625,10 @@ namespace ZXTune
         static RWPtr Create()
         {
           return boost::make_shared<ModuleData>();
+        }
+
+        ModuleData() : Model(ChannelsCount)
+        {
         }
 
         std::vector<SampleType> Samples;

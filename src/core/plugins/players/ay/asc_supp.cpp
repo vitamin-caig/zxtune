@@ -183,8 +183,7 @@ namespace ASCSoundMaster
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Positions.assign(positions.begin(), positions.end());
-      Data->LoopPosition = loop;
+      Data->Order = boost::make_shared<SimpleOrderList>(positions.begin(), positions.end(), loop);
     }
 
     virtual void StartPattern(uint_t index)
@@ -219,7 +218,7 @@ namespace ASCSoundMaster
 
     virtual void SetNote(uint_t note)
     {
-      CellBuilder* const channel = Context.CurChannel;
+      MutableCell* const channel = Context.CurChannel;
       if (!channel->FindCommand(BREAK_SAMPLE))
       {
         channel->SetEnabled(true);
@@ -253,7 +252,7 @@ namespace ASCSoundMaster
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      CellBuilder* const channel = Context.CurChannel;
+      MutableCell* const channel = Context.CurChannel;
       if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
@@ -266,7 +265,7 @@ namespace ASCSoundMaster
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      CellBuilder* const channel = Context.CurChannel;
+      MutableCell* const channel = Context.CurChannel;
       if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);

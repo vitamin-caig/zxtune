@@ -206,7 +206,7 @@ namespace DMM
 
     struct MixedChannel
     {
-      CellBuilder Mixin;
+      MutableCell Mixin;
       uint_t Period;
 
       MixedChannel()
@@ -218,7 +218,7 @@ namespace DMM
     boost::array<MixedChannel, 64> Mixes;
   };
 
-  void ParseChannel(const Pattern::Line::Channel& srcChan, CellBuilder& dstChan)
+  void ParseChannel(const Pattern::Line::Channel& srcChan, MutableCell& dstChan)
   {
     const uint_t note = srcChan.NoteCommand;
     if (NO_DATA == note)
@@ -368,11 +368,10 @@ namespace
 
       //fill order
       const uint_t positionsCount = header.Length + 1;
-      Data->Positions.resize(positionsCount);
-      std::copy(header.Positions.begin(), header.Positions.begin() + positionsCount, Data->Positions.begin());
+      Data->Order = boost::make_shared<SimpleOrderList>(header.Positions.begin(), header.Positions.begin() + positionsCount, header.Loop);
 
       //fill patterns
-      const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
+      const std::size_t patternsCount = 1 + *std::max_element(header.Positions.begin(), header.Positions.begin() + positionsCount);
       const uint_t patternSize = header.PatternSize;
       {
         DMM::Track::BuildContext build(*Data);
@@ -472,7 +471,6 @@ namespace
             : Devices::DAC::CreateU8Sample(content, loop);
         }
       }
-      Data->LoopPosition = header.Loop;
       Data->InitialTempo = header.Tempo;
 
       usedSize = lastData;

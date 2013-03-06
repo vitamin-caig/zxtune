@@ -242,7 +242,7 @@ namespace
           }
 
           result.SetChannel(chanNum);
-          CellBuilder& dstChan = *result.CurChannel;
+          MutableCell& dstChan = *result.CurChannel;
           if (srcChan.IsRest())
           {
             dstChan.SetEnabled(false);
@@ -278,11 +278,10 @@ namespace
 
       //fill order
       const uint_t positionsCount = header.Length;
-      Data->Positions.resize(positionsCount);
-      std::copy(header.Positions.begin(), header.Positions.begin() + positionsCount, Data->Positions.begin());
+      Data->Order = boost::make_shared<SimpleOrderList>(header.Positions.begin(), header.Positions.begin() + positionsCount, header.Loop);
 
       //fill patterns
-      const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
+      const std::size_t patternsCount = 1 + *std::max_element(header.Positions.begin(), header.Positions.begin() + positionsCount);
       SQDTrack::BuildContext builder(*Data);
       for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, SQD::PATTERNS_COUNT); ++patIdx)
       {
@@ -339,7 +338,6 @@ namespace
           Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, loop);
         }
       }
-      Data->LoopPosition = header.Loop;
       Data->InitialTempo = header.Tempo;
 
       usedSize = lastData;

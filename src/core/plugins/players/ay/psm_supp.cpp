@@ -155,12 +155,11 @@ namespace ProSoundMaker
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::ProSoundMaker::PositionEntry>& positions, uint_t loop)
     {
-      const std::size_t posCount = positions.size();
-      Data->LoopPosition = loop;
-      Data->Positions.resize(posCount);
-      Data->Transpositions.resize(posCount);
       using namespace Formats::Chiptune::ProSoundMaker;
-      std::transform(positions.begin(), positions.end(), Data->Positions.begin(), boost::mem_fn(&PositionEntry::PatternIndex));
+      std::vector<uint_t> indices(positions.size());
+      std::transform(positions.begin(), positions.end(), indices.begin(), boost::mem_fn(&PositionEntry::PatternIndex));
+      Data->Order = boost::make_shared<SimpleOrderList>(indices.begin(), indices.end(), loop);
+      Data->Transpositions.resize(positions.size());
       std::transform(positions.begin(), positions.end(), Data->Transpositions.begin(), boost::mem_fn(&PositionEntry::Transposition));
     }
 
@@ -222,7 +221,7 @@ namespace ProSoundMaker
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      CellBuilder* const channel = Context.CurChannel;
+      MutableCell* const channel = Context.CurChannel;
       if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
@@ -235,7 +234,7 @@ namespace ProSoundMaker
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      CellBuilder* const channel = Context.CurChannel;
+      MutableCell* const channel = Context.CurChannel;
       if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);
@@ -248,7 +247,7 @@ namespace ProSoundMaker
 
     virtual void SetEnvelopeNote(uint_t note)
     {
-      CellBuilder* const channel = Context.CurChannel;
+      MutableCell* const channel = Context.CurChannel;
       if (Command* cmd = channel->FindCommand(ENVELOPE))
       {
         cmd->Param3 = int_t(note);
