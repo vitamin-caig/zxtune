@@ -425,7 +425,7 @@ namespace
 
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const uint_t version = Vortex::ExtractVersion(*Properties);
       const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(Data, version);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
@@ -474,11 +474,11 @@ namespace ZXTune
         return static_cast<uint_t>(version);
       }
 
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device)
       {
         const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
-        const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
+        const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(data);
         const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
         const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(trackParams, iterator, renderer);
         return AYM::CreateRenderer(trackParams, dataIter, device);

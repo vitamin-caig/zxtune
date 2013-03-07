@@ -14,6 +14,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace
 {
@@ -43,22 +44,30 @@ namespace
     }
   };
 
+  struct PlainTrackState
+  {
+    uint_t Frame;
+    uint_t Position;
+    uint_t Pattern;
+    uint_t Line;
+    uint_t Quirk;
+    uint_t Tempo;
+
+    PlainTrackState()
+      : Frame(), Position(), Pattern(), Line(), Quirk(), Tempo()
+    {
+    }
+  };
+
   class TrackStateCursor : public TrackModelState
   {
   public:
     typedef boost::shared_ptr<TrackStateCursor> Ptr;
 
-    TrackStateCursor(Information::Ptr info, TrackModel::Ptr model)
-      : Info(info)
-      , Model(model)
+    explicit TrackStateCursor(TrackModel::Ptr model)
+      : Model(model)
       , Order(Model->GetOrder())
       , Patterns(Model->GetPatterns())
-      , CurPosition()
-      , CurPattern()
-      , CurLine()
-      , CurTempo()
-      , CurQuirk()
-      , CurFrame()
     {
       Reset();
     }
@@ -66,12 +75,12 @@ namespace
     //TrackState
     virtual uint_t Position() const
     {
-      return CurPosition;
+      return Plain.Position;
     }
 
     virtual uint_t Pattern() const
     {
-      return CurPattern;
+      return Plain.Pattern;
     }
 
     virtual uint_t PatternSize() const
@@ -81,22 +90,22 @@ namespace
 
     virtual uint_t Line() const
     {
-      return CurLine;
+      return Plain.Line;
     }
 
     virtual uint_t Tempo() const
     {
-      return CurTempo;
+      return Plain.Tempo;
     }
 
     virtual uint_t Quirk() const
     {
-      return CurQuirk;
+      return Plain.Quirk;
     }
 
     virtual uint_t Frame() const
     {
-      return CurFrame;
+      return Plain.Frame;
     }
 
     virtual uint_t Channels() const
@@ -118,51 +127,59 @@ namespace
     //navigation
     bool IsValid() const
     {
-      return CurPosition < Order.GetSize();
+      return Plain.Position < Order.GetSize();
+    }
+
+    const PlainTrackState& GetState() const
+    {
+      return Plain;
     }
 
     void Reset()
     {
-      Reset(0, 0);
+      Plain.Frame = 0;
+      Plain.Tempo = Model->GetInitialTempo();
+      SetPosition(0);
     }
 
-    void ResetToLoop()
+    void SetState(const PlainTrackState& state)
     {
-      Reset(Order.GetLoopPosition(), Info->LoopFrame());
+      SetPosition(state.Position);
+      assert(Plain.Pattern == state.Pattern);
+      SetLine(state.Line);
+      Plain.Quirk = state.Quirk;
+      Plain.Tempo = state.Tempo;
+      Plain.Frame = state.Frame;
     }
 
-    bool NextQuirk()
+    void Seek(uint_t position)
     {
-      ++CurFrame;
-      return ++CurQuirk < CurTempo;
+      if (Plain.Position > position ||
+          (Plain.Position == position && (0 != Plain.Line || 0 != Plain.Quirk)))
+      {
+        Reset();
+      }
+      while (IsValid() && Plain.Position != position)
+      {
+        Plain.Frame += Plain.Tempo;
+        if (!NextLine())
+        {
+          NextPosition();
+        }
+      }
     }
 
-    bool NextLine()
+    bool NextFrame()
     {
-      SetLine(CurLine + 1);
-      return CurLine < CurPatternObject->GetSize();
-    }
-
-    bool NextPosition()
-    {
-      SetPosition(CurPosition + 1);
-      return IsValid();
+      return NextQuirk() || NextLine() || NextPosition();
     }
   private:
-    void Reset(uint_t pos, uint_t frame)
-    {
-      CurFrame = frame;
-      CurTempo = Info->Tempo();
-      //in case if frame is 0, positions should be 0 too
-      SetPosition(frame != 0 ? pos : 0);
-    }
-
     void SetPosition(uint_t pos)
     {
-      CurPosition = pos;
+      Plain.Position = pos;
       if (IsValid())
       {
-        SetPattern(Order.GetPatternIndex(CurPosition));
+        SetPattern(Order.GetPatternIndex(Plain.Position));
       }
       else
       {
@@ -172,50 +189,65 @@ namespace
 
     void SetStubPattern()
     {
-      CurPattern = 0;
+      Plain.Pattern = 0;
       CurPatternObject = StubPattern::Create();
       SetLine(0);
     }
 
     void SetPattern(uint_t pat)
     {
-      CurPatternObject = Patterns.Get(CurPattern = pat);
+      Plain.Pattern = pat;
+      CurPatternObject = Patterns.Get(Plain.Pattern);
       SetLine(0);
     }
 
     void SetLine(uint_t line)
     {
-      CurQuirk = 0;
-      if (CurLineObject = CurPatternObject->GetLine(CurLine = line))
+      Plain.Quirk = 0;
+      Plain.Line = line;
+      if (CurLineObject = CurPatternObject->GetLine(Plain.Line))
       {
         if (uint_t tempo = CurLineObject->GetTempo())
         {
-          CurTempo = tempo;
+          Plain.Tempo = tempo;
         }
       }
     }
+
+    bool NextQuirk()
+    {
+      ++Plain.Frame;
+      return ++Plain.Quirk < Plain.Tempo;
+    }
+
+    bool NextLine()
+    {
+      SetLine(Plain.Line + 1);
+      return Plain.Line < CurPatternObject->GetSize();
+    }
+
+    bool NextPosition()
+    {
+      SetPosition(Plain.Position + 1);
+      return IsValid();
+    }
   private:
     //context
-    const Information::Ptr Info;
     const TrackModel::Ptr Model;
     const OrderList& Order;
     const PatternsSet& Patterns;
     //state
-    uint_t CurPosition;
-    uint_t CurPattern;
+    PlainTrackState Plain;
     Pattern::Ptr CurPatternObject;
-    uint_t CurLine;
     Line::Ptr CurLineObject;
-    uint_t CurTempo;
-    uint_t CurQuirk;
-    uint_t CurFrame;
   };
 
   class TrackStateIteratorImpl : public TrackStateIterator
   {
   public:
-    TrackStateIteratorImpl(Information::Ptr info, TrackModel::Ptr model)
-      : Cursor(boost::make_shared<TrackStateCursor>(info, model))
+    explicit TrackStateIteratorImpl(TrackModel::Ptr model)
+      : Model(model)
+      , Cursor(boost::make_shared<TrackStateCursor>(model))
     {
     }
 
@@ -236,21 +268,9 @@ namespace
       {
         return;
       }
-      if (Cursor->NextQuirk())
+      if (!Cursor->NextFrame() && looped)
       {
-        return;
-      }
-      if (Cursor->NextLine())
-      {
-        return;
-      }
-      if (Cursor->NextPosition())
-      {
-        return;
-      }
-      if (looped)
-      {
-        Cursor->ResetToLoop();
+        MoveToLoop();
       }
     }
 
@@ -259,7 +279,23 @@ namespace
       return Cursor;
     }
   private:
+    void MoveToLoop()
+    {
+      if (LoopState.get())
+      {
+        Cursor->SetState(*LoopState);
+      }
+      else
+      {
+        Cursor->Seek(Model->GetOrder().GetLoopPosition());
+        const PlainTrackState& loop = Cursor->GetState();
+        LoopState.reset(new PlainTrackState(loop));
+      }
+    }
+  private:
+    const TrackModel::Ptr Model;
     const TrackStateCursor::Ptr Cursor;
+    boost::scoped_ptr<const PlainTrackState> LoopState;
   };
 
   class InformationImpl : public Information
@@ -320,24 +356,11 @@ namespace
       {
         return;//initialized
       }
-      //emulate playback
-      const Information::Ptr dummyInfo = boost::make_shared<InformationImpl>(*this);
-      const TrackStateIterator::Ptr dummyIterator = CreateTrackStateIterator(dummyInfo, Model);
-      const TrackState::Ptr dummyState = dummyIterator->GetStateObserver();
-
-      const uint_t loopPosNum = Model->GetOrder().GetLoopPosition();
-      while (dummyIterator->IsValid())
-      {
-        //check for loop
-        if (0 == dummyState->Line() &&
-            0 == dummyState->Quirk() &&
-            loopPosNum == dummyState->Position())
-        {
-          LoopFrameNum = dummyState->Frame();
-        }
-        dummyIterator->NextFrame(false);
-      }
-      Frames = dummyState->Frame();
+      TrackStateCursor cursor(Model);
+      cursor.Seek(Model->GetOrder().GetLoopPosition());
+      LoopFrameNum = cursor.GetState().Frame;
+      cursor.Seek(Model->GetOrder().GetSize());
+      Frames = cursor.GetState().Frame;
     }
   private:
     const TrackModel::Ptr Model;
@@ -356,9 +379,9 @@ namespace ZXTune
       return boost::make_shared<InformationImpl>(model, logicalChannels);
     }
 
-    TrackStateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModel::Ptr model)
+    TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)
     {
-      return boost::make_shared<TrackStateIteratorImpl>(info, model);
+      return boost::make_shared<TrackStateIteratorImpl>(model);
     }
   }
 }

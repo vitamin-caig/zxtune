@@ -343,7 +343,7 @@ namespace ZXTune
       virtual TrackModelState::Ptr GetStateObserver() const = 0;
     };
 
-    TrackStateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModel::Ptr model);
+    TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model);
 
     class StaticTrackModel : public TrackModel
     {

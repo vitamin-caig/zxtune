@@ -408,12 +408,11 @@ namespace PT3
       const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, tsMixer[0]);
       const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, tsMixer[1]);
 
-      const Information::Ptr info = GetModuleInformation();
       const uint_t version = Vortex::ExtractVersion(*Delegate->GetModuleProperties());
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, info, Data, version, chip1);
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chip1);
       const Vortex::Track::ModuleData::RWPtr mirroredData = boost::make_shared<Vortex::Track::ModuleData>(*Data);
       mirroredData->Order = boost::make_shared<MirroredOrderList>(PatOffset, mirroredData->Order);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, info, mirroredData, version, chip2);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, mirroredData, version, chip2);
       return CreateTSRenderer(renderer1, renderer2, renderer1->GetTrackState());
     }
   private:

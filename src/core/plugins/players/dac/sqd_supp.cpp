@@ -212,7 +212,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreateSQDRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateSQDRenderer(Parameters::Accessor::Ptr params, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class SQDHolder : public Holder
   {
@@ -375,7 +375,7 @@ namespace
       {
         chip->SetSample(idx, Data->Samples[idx]);
       }
-      return CreateSQDRenderer(params, Info, Data, chip);
+      return CreateSQDRenderer(params, Data, chip);
     }
   private:
     const SQDTrack::ModuleData::RWPtr Data;
@@ -426,11 +426,11 @@ namespace
       }
     };
   public:
-    SQDRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    SQDRenderer(Parameters::Accessor::Ptr params, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Params(DAC::TrackParameters::Create(params))
       , Device(device)
-      , Iterator(CreateTrackStateIterator(info, Data))
+      , Iterator(CreateTrackStateIterator(Data))
       , LastRenderTime(0)
     {
 #ifdef SELF_TEST
@@ -591,9 +591,9 @@ namespace
     Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreateSQDRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateSQDRenderer(Parameters::Accessor::Ptr params, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new SQDRenderer(params, info, data, device));
+    return Renderer::Ptr(new SQDRenderer(params, data, device));
   }
 
   bool CheckSQD(const Binary::Container& data)

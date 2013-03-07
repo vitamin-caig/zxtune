@@ -121,11 +121,11 @@ namespace ZXTune
         class Renderer : public ZXTune::Module::Renderer
         {
         public:
-          Renderer(Parameters::Accessor::Ptr params, Information::Ptr info, typename Track::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+          Renderer(Parameters::Accessor::Ptr params, typename Track::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
             : Data(data)
             , Params(DAC::TrackParameters::Create(params))
             , Device(device)
-            , Iterator(CreateTrackStateIterator(info, Data))
+            , Iterator(CreateTrackStateIterator(Data))
             , LastRenderTime(0)
           {
       #ifndef NDEBUG
@@ -283,7 +283,7 @@ namespace ZXTune
             {
               chip->SetSample(uint_t(idx), Data->Samples[idx]);
             }
-            return boost::make_shared<Renderer>(params, Info, Data, chip);
+            return boost::make_shared<Renderer>(params, Data, chip);
           }
         private:
           const typename Track::ModuleData::Ptr Data;

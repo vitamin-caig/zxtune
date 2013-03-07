@@ -156,7 +156,7 @@ namespace ChipTracker
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class CHIHolder : public Holder
   {
@@ -189,7 +189,7 @@ namespace ChipTracker
       {
         chip->SetSample(uint_t(idx), Data->Samples[idx]);
       }
-      return CreateCHIRenderer(params, Info, Data, chip);
+      return CreateCHIRenderer(params, Data, chip);
     }
   private:
     const CHITrack::ModuleData::Ptr Data;
@@ -214,11 +214,11 @@ namespace ChipTracker
       }
     };
   public:
-    CHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    CHIRenderer(Parameters::Accessor::Ptr params, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Params(DAC::TrackParameters::Create(params))
       , Device(device)
-      , Iterator(CreateTrackStateIterator(info, Data))
+      , Iterator(CreateTrackStateIterator(Data))
       , LastRenderTime(0)
     {
 #ifdef SELF_TEST
@@ -379,9 +379,9 @@ namespace ChipTracker
     Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new CHIRenderer(params, info, data, device));
+    return Renderer::Ptr(new CHIRenderer(params, data, device));
   }
 }
 

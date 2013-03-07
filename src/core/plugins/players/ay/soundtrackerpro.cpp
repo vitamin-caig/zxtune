@@ -344,7 +344,7 @@ namespace SoundTrackerPro
 
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const AYM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }

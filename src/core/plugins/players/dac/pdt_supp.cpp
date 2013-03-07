@@ -155,7 +155,7 @@ namespace ProDigiTracker
     PDTTrack::BuildContext Context;
   };
 
-  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class PDTHolder : public Holder
   {
@@ -188,7 +188,7 @@ namespace ProDigiTracker
       {
         chip->SetSample(idx, Data->Samples[idx]);
       }
-      return CreatePDTRenderer(params, Info, Data, chip);
+      return CreatePDTRenderer(params, Data, chip);
     }
   private:
     const PDTTrack::ModuleData::Ptr Data;
@@ -225,11 +225,11 @@ namespace ProDigiTracker
       }
     };
   public:
-    PDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    PDTRenderer(Parameters::Accessor::Ptr params, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Params(DAC::TrackParameters::Create(params))
       , Device(device)
-      , Iterator(CreateTrackStateIterator(info, Data))
+      , Iterator(CreateTrackStateIterator(Data))
       , LastRenderTime(0)
     {
 #ifndef NDEBUG
@@ -377,9 +377,9 @@ namespace ProDigiTracker
     Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new PDTRenderer(params, info, data, device));
+    return Renderer::Ptr(new PDTRenderer(params, data, device));
   }
 }
 

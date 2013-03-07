@@ -333,7 +333,7 @@ namespace
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreateDMMRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateDMMRenderer(Parameters::Accessor::Ptr params, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
   class DMMHolder : public Holder
   {
@@ -504,7 +504,7 @@ namespace
       {
         chip->SetSample(idx, Data->Samples[idx]);
       }
-      return CreateDMMRenderer(params, Info, Data, chip);
+      return CreateDMMRenderer(params, Data, chip);
     }
   private:
     const DMM::ModuleData::RWPtr Data;
@@ -515,11 +515,11 @@ namespace
   class DMMRenderer : public Renderer
   {
   public:
-    DMMRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    DMMRenderer(Parameters::Accessor::Ptr params, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Params(DAC::TrackParameters::Create(params))
       , Device(device)
-      , Iterator(CreateTrackStateIterator(info, Data))
+      , Iterator(CreateTrackStateIterator(Data))
       , LastRenderTime(0)
     {
 #ifdef SELF_TEST
@@ -983,9 +983,9 @@ namespace
     Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreateDMMRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateDMMRenderer(Parameters::Accessor::Ptr params, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new DMMRenderer(params, info, data, device));
+    return Renderer::Ptr(new DMMRenderer(params, data, device));
   }
 
   bool CheckDMM(const Binary::Container& data)

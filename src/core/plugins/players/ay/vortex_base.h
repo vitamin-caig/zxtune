@@ -105,7 +105,7 @@ namespace ZXTune
       uint_t ExtractVersion(const Parameters::Accessor& props);
 
       //creating simple player based on parsed data and parameters
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Track::ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device);
 
       AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels);

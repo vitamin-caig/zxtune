@@ -519,7 +519,7 @@ namespace SoundTracker
 
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const TrackStateIterator::Ptr iter = CreateTrackStateIterator(Info, Data);
+      const TrackStateIterator::Ptr iter = CreateTrackStateIterator(Data);
       return boost::make_shared<DataIterator>(trackParams, iter, Data);
     }
   private:
