@@ -18,7 +18,7 @@ Author:
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 //common includes
-#include <byteorder.h>
+#include <contract.h>
 #include <error_tools.h>
 #include <range_checker.h>
 #include <tools.h>
@@ -249,20 +249,48 @@ namespace PT3
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  class StubLine : public Line
+  {
+    StubLine()
+    {
+    }
+  public:
+    virtual Cell::Ptr GetChannel(uint_t /*idx*/) const
+    {
+      return Cell::Ptr();
+    }
+
+    virtual uint_t CountActiveChannels() const
+    {
+      return 0;
+    }
+
+    virtual uint_t GetTempo() const
+    {
+      return 0;
+    }
+
+    static Ptr Create()
+    {
+      static StubLine instance;
+      return Ptr(&instance, NullDeleter<Line>());
+    }
+  };
+
   class TSLine : public Line
   {
   public:
     TSLine(Line::Ptr first, Line::Ptr second)
-      : First(first)
-      , Second(second)
+      : First(first ? first : StubLine::Create())
+      , Second(second ? second : StubLine::Create())
     {
     }
 
     virtual Cell::Ptr GetChannel(uint_t idx) const
     {
-      return idx < Vortex::Track::CHANNELS
+      return idx < Devices::AYM::CHANNELS
         ? First->GetChannel(idx)
-        : Second->GetChannel(idx - Vortex::Track::CHANNELS);
+        : Second->GetChannel(idx - Devices::AYM::CHANNELS);
     }
 
     virtual uint_t CountActiveChannels() const
@@ -277,6 +305,18 @@ namespace PT3
         return tempo;
       }
       return Second->GetTempo();
+    }
+
+    static Line::Ptr Create(Line::Ptr first, Line::Ptr second)
+    {
+      if (first || second)
+      {
+        return boost::make_shared<TSLine>(first, second);
+      }
+      else
+      {
+        return Line::Ptr();
+      }
     }
   private:
     const Line::Ptr First;
@@ -296,18 +336,7 @@ namespace PT3
     {
       const Line::Ptr first = First->GetLine(row);
       const Line::Ptr second = Second->GetLine(row);
-      if (first && second)
-      {
-        return boost::make_shared<TSLine>(first, second);
-      }
-      else if (first)
-      {
-        return first;
-      }
-      else
-      {
-        return second;
-      }
+      return TSLine::Create(first, second);
     }
 
     virtual uint_t GetSize() const
@@ -319,83 +348,54 @@ namespace PT3
     const Pattern::Ptr Second;
   };
 
-  class TSModuleData : public Vortex::Track::ModuleData
-                     , private PatternsSet
+  class TSPatternsSet : public PatternsSet
   {
   public:
-    TSModuleData(uint_t base, Vortex::Track::ModuleData::Ptr delegate)
-      : Vortex::Track::ModuleData(*delegate)
-      , Base(base)
-    {
-    }
-
-    virtual const PatternsSet& GetPatterns() const
-    {
-      return *this;
-    }
-  private:
-    virtual Pattern::Ptr Get(uint_t idx) const
-    {
-      const Pattern::Ptr first = Patterns->Get(idx);
-      const Pattern::Ptr second = Patterns->Get(Base - 1 - idx);
-      return boost::make_shared<TSPattern>(first, second);
-    }
-
-    virtual uint_t GetSize() const
-    {
-      return Patterns->GetSize();
-    }
-  private:
-    const uint_t Base;
-  };
-
-  class MirroredOrderList : public OrderList
-  {
-  public:
-    MirroredOrderList(uint_t base, const OrderList::Ptr delegate)
+    TSPatternsSet(uint_t base, PatternsSet::Ptr delegate)
       : Base(base)
       , Delegate(delegate)
     {
+    }
+
+    virtual Pattern::Ptr Get(uint_t idx) const
+    {
+      const Pattern::Ptr first = Delegate->Get(idx);
+      const Pattern::Ptr second = Delegate->Get(Base - 1 - idx);
+      return boost::make_shared<TSPattern>(first, second);
     }
 
     virtual uint_t GetSize() const
     {
       return Delegate->GetSize();
     }
-
-    virtual uint_t GetPatternIndex(uint_t pos) const
-    {
-      const uint_t originalPattern = Delegate->GetPatternIndex(pos);
-      return Base - 1 - originalPattern;
-    }
-
-    virtual uint_t GetLoopPosition() const
-    {
-      return Delegate->GetLoopPosition();
-    }
   private:
     const uint_t Base;
-    const OrderList::Ptr Delegate;
+    const PatternsSet::Ptr Delegate;
   };
+
+  PatternsSet::Ptr CreateTSPatterns(uint_t patOffset, PatternsSet::Ptr pats)
+  {
+    return boost::make_shared<TSPatternsSet>(patOffset, pats);
+  }
 
   class TSHolder : public Holder
   {
   public:
-    TSHolder(Vortex::Track::ModuleData::Ptr data, Holder::Ptr delegate, uint_t patOffset)
-      : Data(data)
-      , Delegate(delegate)
-      , PatOffset(patOffset)
+    TSHolder(Vortex::Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+      : Properties(properties)
+      , Data(data)
+      , Info(CreateTrackInfo(data, 2 * Data->GetChannelsCount()))//TODO
     {
     }
 
     virtual Information::Ptr GetModuleInformation() const
     {
-      return Delegate->GetModuleInformation();
+      return Info;
     }
 
     virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      return Delegate->GetModuleProperties();
+      return Properties;
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
@@ -408,17 +408,15 @@ namespace PT3
       const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, tsMixer[0]);
       const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, tsMixer[1]);
 
-      const uint_t version = Vortex::ExtractVersion(*Delegate->GetModuleProperties());
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chip1);
-      const Vortex::Track::ModuleData::RWPtr mirroredData = boost::make_shared<Vortex::Track::ModuleData>(*Data);
-      mirroredData->Order = boost::make_shared<MirroredOrderList>(PatOffset, mirroredData->Order);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, mirroredData, version, chip2);
+      const uint_t version = Vortex::ExtractVersion(*Properties);
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chip1, 0);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chip2, Devices::AYM::CHANNELS);
       return CreateTSRenderer(renderer1, renderer2, renderer1->GetTrackState());
     }
   private:
+    const ModuleProperties::Ptr Properties;
     const Vortex::Track::ModuleData::Ptr Data;
-    const Holder::Ptr Delegate;
-    const uint_t PatOffset;
+    const Information::Ptr Info;
   };
 }
 
@@ -459,14 +457,12 @@ namespace PT3
         {
           //TurboSound modules
           properties->SetComment(Text::PT3_TURBOSOUND_MODULE);
-          const Vortex::Track::ModuleData::Ptr fixedModData = boost::make_shared<TSModuleData>(patOffset, modData);
-          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(fixedModData, properties,  2 * Devices::AYM::CHANNELS);
-          const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
-          return boost::make_shared<TSHolder>(fixedModData, nativeHolder, patOffset);
+          modData->Patterns = CreateTSPatterns(patOffset, modData->Patterns);
+          return boost::make_shared<TSHolder>(modData, properties);
         }
         else
         {
-          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties,  Devices::AYM::CHANNELS);
+          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties);
           return AYM::CreateHolder(chiptune);
         }
       }
@@ -512,7 +508,7 @@ namespace Vortex2
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties,  Devices::AYM::CHANNELS);
+        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties);
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

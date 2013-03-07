@@ -433,8 +433,8 @@ namespace ZXTune
       };
     };
 
-    template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
-    class TrackingSupport : public FixedChannelTrackingSupport<ChannelsCount>
+    template<uint_t Channels, class SampleType, class OrnamentType = SimpleOrnament>
+    class TrackingSupport : public FixedChannelTrackingSupport<Channels>
     {
     public:
       typedef SampleType Sample;
@@ -451,7 +451,7 @@ namespace ZXTune
           return boost::make_shared<ModuleData>();
         }
 
-        ModuleData() : StaticTrackModel(ChannelsCount)
+        ModuleData() : StaticTrackModel(Channels)
         {
         }
 

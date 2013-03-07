@@ -162,10 +162,11 @@ namespace
   class VortexDataRenderer : public AYM::DataRenderer
   {
   public:
-    VortexDataRenderer(Vortex::Track::ModuleData::Ptr data, uint_t version)
+    VortexDataRenderer(Vortex::Track::ModuleData::Ptr data, uint_t version, uint_t trackChannelStart)
       : Data(data)
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
+      , TrackChannelStart(trackChannelStart)
     {
     }
 
@@ -194,7 +195,7 @@ namespace
       {
         for (uint_t chan = 0; chan != Vortex::Track::CHANNELS; ++chan)
         {
-          if (const Cell::Ptr src = line->GetChannel(chan))
+          if (const Cell::Ptr src = line->GetChannel(TrackChannelStart + chan))
           {
             GetNewChannelState(*src, PlayerState.ChanState[chan], track);
           }
@@ -400,16 +401,17 @@ namespace
     const Vortex::Track::ModuleData::Ptr Data;
     const uint_t Version;
     const VolumeTable& VolTable;
+    const uint_t TrackChannelStart;
     VortexState PlayerState;
   };
 
   class VortexChiptune : public AYM::Chiptune
   {
   public:
-    VortexChiptune(Vortex::Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)
+    VortexChiptune(Vortex::Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, channels))
+      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
     {
     }
 
@@ -427,7 +429,7 @@ namespace
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const uint_t version = Vortex::ExtractVersion(*Properties);
-      const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(Data, version);
+      const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(Data, version, 0);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
@@ -475,18 +477,18 @@ namespace ZXTune
       }
 
       Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Track::ModuleData::Ptr data,
-         uint_t version, Devices::AYM::Chip::Ptr device)
+         uint_t version, Devices::AYM::Chip::Ptr device, uint_t trackChannelStart)
       {
-        const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
+        const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version, trackChannelStart);
         const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(data);
         const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
         const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(trackParams, iterator, renderer);
         return AYM::CreateRenderer(trackParams, dataIter, device);
       }
 
-      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)
+      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
       {
-        return boost::make_shared<VortexChiptune>(data, properties, channels);
+        return boost::make_shared<VortexChiptune>(data, properties);
       }
     }
   }
