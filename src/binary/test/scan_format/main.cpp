@@ -7,6 +7,29 @@
 #include <io/api.h>
 #include <iostream>
 
+namespace
+{
+  class ScanSpeed
+  {
+  public:
+    explicit ScanSpeed(std::size_t total)
+      : Start(std::clock())
+      , Total(total)
+    {
+    }
+
+    void Report(std::size_t pos) const
+    {
+      const std::clock_t elapsed = std::clock() - Start;
+      const std::size_t speed = pos * CLOCKS_PER_SEC / elapsed;
+      std::cout << (pos != Total ? "Matched at " : "Finished scanning ") << pos << ". Speed " << double(speed) / 1048576 << "Mb/s" << std::endl;
+    }
+  private:
+    const std::clock_t Start;
+    const std::size_t Total;
+  };
+}
+
 int main(int argc, char* argv[])
 {
   if (argc < 3)
@@ -27,17 +50,19 @@ int main(int argc, char* argv[])
     }
     else
     {
+      const ScanSpeed speed(data->Size());
       std::size_t cursor = 0;
       while (const Binary::Data::Ptr subdata = data->GetSubcontainer(cursor, data->Size() - cursor))
       {
         const std::size_t offset = format->Search(*subdata);
         if (offset != subdata->Size())
         {
-          std::cout << "Matched at offset " << cursor + offset << std::endl;
+          speed.Report(cursor + offset);
           cursor += offset + 1;
         }
         else
         {
+          speed.Report(cursor + offset);
           break;
         }
       }
