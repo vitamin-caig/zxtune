@@ -384,7 +384,7 @@ namespace PT3
     TSHolder(Vortex::Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Properties(properties)
       , Data(data)
-      , Info(CreateTrackInfo(data, 2 * Data->GetChannelsCount()))//TODO
+      , Info(CreateTrackInfo(data, 2 * Vortex::Track::CHANNELS, Vortex::Track::CHANNELS))
     {
     }
 
@@ -410,7 +410,7 @@ namespace PT3
 
       const uint_t version = Vortex::ExtractVersion(*Properties);
       const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chip1, 0);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chip2, Devices::AYM::CHANNELS);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chip2, Vortex::Track::CHANNELS);
       return CreateTSRenderer(renderer1, renderer2, renderer1->GetTrackState());
     }
   private:

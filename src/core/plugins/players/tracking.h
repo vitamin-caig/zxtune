@@ -333,7 +333,7 @@ namespace ZXTune
     };
 
     Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t logicalChannels);
-
+    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t logicalChannels, uint_t physicalChannels);
 
     class TrackStateIterator : public Iterator
     {
@@ -348,15 +348,9 @@ namespace ZXTune
     class StaticTrackModel : public TrackModel
     {
     public:
-      explicit StaticTrackModel(uint_t channels)
-        : ChannelsCount(channels)
-        , InitialTempo()
+      StaticTrackModel()
+        : InitialTempo()
       {
-      }
-
-      virtual uint_t GetChannelsCount() const
-      {
-        return ChannelsCount;
       }
 
       virtual uint_t GetInitialTempo() const
@@ -374,36 +368,27 @@ namespace ZXTune
         return *Patterns;
       }
 
-      const uint_t ChannelsCount;
       uint_t InitialTempo;
       OrderList::Ptr Order;
       PatternsSet::Ptr Patterns;
     };
 
     // Basic template class for tracking support (used as simple parametrized namespace)
-    template<uint_t ChannelsCount>
-    class FixedChannelTrackingSupport
+    class BaseTrackingSupport
     {
     public:
-      static const uint_t CHANNELS = ChannelsCount;
-
-      struct BuildContext
+      struct BaseBuildContext
       {
-        typedef MultichannelMutableLine<ChannelsCount> MutableLineType;
-        typedef SparsedMutablePattern<MutableLineType> MutablePatternType;
-
         boost::shared_ptr<MutablePatternsSet> Patterns;
         MutablePattern* CurPattern;
         MutableLine* CurLine;
         MutableCell* CurChannel;
 
-        explicit BuildContext(StaticTrackModel& model)
-          : Patterns(boost::make_shared<SparsedMutablePatternsSet<MutablePatternType> >())
-          , CurPattern()
+        BaseBuildContext()
+          : CurPattern()
           , CurLine()
           , CurChannel()
         {
-          model.Patterns = Patterns;
         }
 
         void SetPattern(uint_t idx)
@@ -433,6 +418,24 @@ namespace ZXTune
       };
     };
 
+    template<uint_t ChannelsCount>
+    class FixedChannelTrackingSupport : public BaseTrackingSupport
+    {
+    public:
+      static const uint_t CHANNELS = ChannelsCount;
+
+      struct BuildContext : public BaseBuildContext
+      {
+        typedef MultichannelMutableLine<ChannelsCount> MutableLineType;
+        typedef SparsedMutablePattern<MutableLineType> MutablePatternType;
+
+        explicit BuildContext(StaticTrackModel& model)
+        {
+          model.Patterns = Patterns = boost::make_shared<SparsedMutablePatternsSet<MutablePatternType> >();
+        }
+      };
+    };
+
     template<uint_t Channels, class SampleType, class OrnamentType = SimpleOrnament>
     class TrackingSupport : public FixedChannelTrackingSupport<Channels>
     {
@@ -449,10 +452,6 @@ namespace ZXTune
         static RWPtr Create()
         {
           return boost::make_shared<ModuleData>();
-        }
-
-        ModuleData() : StaticTrackModel(Channels)
-        {
         }
 
         std::vector<SampleType> Samples;

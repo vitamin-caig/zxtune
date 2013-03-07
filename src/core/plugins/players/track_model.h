@@ -157,7 +157,6 @@ namespace ZXTune
       typedef boost::shared_ptr<const TrackModel> Ptr;
       virtual ~TrackModel() {}
 
-      virtual uint_t GetChannelsCount() const = 0;
       virtual uint_t GetInitialTempo() const = 0;
       virtual const OrderList& GetOrder() const = 0;
       virtual const PatternsSet& GetPatterns() const = 0;
