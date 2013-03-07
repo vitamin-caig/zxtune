@@ -498,13 +498,13 @@ namespace
   private:
     void RenderData(Devices::DAC::DataChunk& chunk)
     {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
+      const TrackModelState::Ptr state = Iterator->GetStateObserver();
       DAC::TrackBuilder track;
       SynthesizeData(*state, track);
       track.GetResult(chunk.Channels);
     }
 
-    void SynthesizeData(const TrackState& state, DAC::TrackBuilder& track)
+    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
     {
       SynthesizeChannelsData(track);
       if (0 == state.Quirk())
@@ -526,10 +526,10 @@ namespace
       }
     }
 
-    void GetNewLineState(const TrackState& state, DAC::TrackBuilder& track)
+    void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
       std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
-      if (const Line::Ptr line = Data->Patterns->Get(state.Pattern())->GetLine(state.Line()))
+      if (const Line::Ptr line = state.LineObject())
       {
         for (uint_t chan = 0; chan != SQDTrack::CHANNELS; ++chan)
         {
@@ -586,7 +586,7 @@ namespace
     const SQDTrack::ModuleData::Ptr Data;
     const DAC::TrackParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
-    const StateIterator::Ptr Iterator;
+    const TrackStateIterator::Ptr Iterator;
     boost::array<VolumeState, SQD::CHANNELS_COUNT> Volumes;
     Time::Microseconds LastRenderTime;
   };

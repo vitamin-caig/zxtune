@@ -387,7 +387,7 @@ namespace ASCSoundMaster
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
@@ -396,13 +396,13 @@ namespace ASCSoundMaster
       SynthesizeChannelsData(track);
     }
   private:
-    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Line())
       {
         std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ChannelState::ResetBaseNoise));
       }
-      if (const Line::Ptr line = Data->Patterns->Get(state.Pattern())->GetLine(state.Line()))
+      if (const Line::Ptr line = state.LineObject())
       {
         for (uint_t chan = 0; chan != Track::CHANNELS; ++chan)
         {
@@ -661,7 +661,7 @@ namespace ASCSoundMaster
 
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
       const AYM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }

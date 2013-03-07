@@ -20,15 +20,41 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class TrackStateCursor : public TrackState
+  class StubPattern : public Pattern
+  {
+    StubPattern()
+    {
+    }
+  public:
+    virtual Line::Ptr GetLine(uint_t /*row*/) const
+    {
+      return Line::Ptr();
+    }
+
+    virtual uint_t GetSize() const
+    {
+      return 0;
+    }
+
+    static Ptr Create()
+    {
+      static StubPattern instance;
+      return Ptr(&instance, NullDeleter<Pattern>());
+    }
+  };
+
+  class TrackStateCursor : public TrackModelState
   {
   public:
     typedef boost::shared_ptr<TrackStateCursor> Ptr;
 
-    TrackStateCursor(Information::Ptr info, TrackModuleData::Ptr data)
+    TrackStateCursor(Information::Ptr info, TrackModel::Ptr model)
       : Info(info)
-      , Data(data)
+      , Model(model)
+      , Order(Model->GetOrder())
+      , Patterns(Model->GetPatterns())
       , CurPosition()
+      , CurPattern()
       , CurLine()
       , CurTempo()
       , CurQuirk()
@@ -37,7 +63,7 @@ namespace
       Reset();
     }
 
-    //status functions
+    //TrackState
     virtual uint_t Position() const
     {
       return CurPosition;
@@ -45,12 +71,12 @@ namespace
 
     virtual uint_t Pattern() const
     {
-      return IsValid() ? Data->GetPatternIndex(Position()) : 0;
+      return CurPattern;
     }
 
     virtual uint_t PatternSize() const
     {
-      return IsValid() ? Data->GetPatternSize(Position()) : 0;
+      return CurPatternObject->GetSize();
     }
 
     virtual uint_t Line() const
@@ -75,13 +101,24 @@ namespace
 
     virtual uint_t Channels() const
     {
-      return IsValid() ? Data->GetActiveChannels(Position(), Line()) : 0;
+      return CurLineObject ? CurLineObject->CountActiveChannels() : 0;
+    }
+
+    //TrackModelState
+    virtual Pattern::Ptr PatternObject() const
+    {
+      return CurPatternObject;
+    }
+
+    virtual Line::Ptr LineObject() const
+    {
+      return CurLineObject;
     }
 
     //navigation
     bool IsValid() const
     {
-      return CurPosition < Info->PositionsCount();
+      return CurPosition < Order.GetSize();
     }
 
     void Reset()
@@ -91,78 +128,94 @@ namespace
 
     void ResetToLoop()
     {
-      Reset(Info->LoopPosition(), Info->LoopFrame());
+      Reset(Order.GetLoopPosition(), Info->LoopFrame());
     }
 
     bool NextQuirk()
     {
       ++CurFrame;
-      return ++CurQuirk < Tempo();
+      return ++CurQuirk < CurTempo;
     }
 
     bool NextLine()
     {
-      CurQuirk = 0;
-      if (++CurLine >= PatternSize())
-      {
-        return false;
-      }
-      UpdateTempo();
-      return true;
+      SetLine(CurLine + 1);
+      return CurLine < CurPatternObject->GetSize();
     }
 
     bool NextPosition()
     {
-      CurQuirk = 0;
-      CurLine = 0;
-      ++CurPosition;
-      if (!IsValid())
-      {
-        return false;
-      }
-      UpdateTempo();
-      return true;
+      SetPosition(CurPosition + 1);
+      return IsValid();
     }
   private:
     void Reset(uint_t pos, uint_t frame)
     {
       CurFrame = frame;
+      CurTempo = Info->Tempo();
       //in case if frame is 0, positions should be 0 too
-      CurPosition = frame != 0 ? pos : 0;
-      CurLine = 0;
-      CurQuirk = 0;
-      if (!UpdateTempo())
+      SetPosition(frame != 0 ? pos : 0);
+    }
+
+    void SetPosition(uint_t pos)
+    {
+      CurPosition = pos;
+      if (IsValid())
       {
-        CurTempo = Info->Tempo();
+        SetPattern(Order.GetPatternIndex(CurPosition));
+      }
+      else
+      {
+        SetStubPattern();
       }
     }
 
-    bool UpdateTempo()
+    void SetStubPattern()
     {
-      if (uint_t tempo = Data->GetNewTempo(Position(), Line()))
+      CurPattern = 0;
+      CurPatternObject = StubPattern::Create();
+      SetLine(0);
+    }
+
+    void SetPattern(uint_t pat)
+    {
+      CurPatternObject = Patterns.Get(CurPattern = pat);
+      SetLine(0);
+    }
+
+    void SetLine(uint_t line)
+    {
+      CurQuirk = 0;
+      if (CurLineObject = CurPatternObject->GetLine(CurLine = line))
       {
-        CurTempo = tempo;
-        return true;
+        if (uint_t tempo = CurLineObject->GetTempo())
+        {
+          CurTempo = tempo;
+        }
       }
-      return false;
     }
   private:
     //context
     const Information::Ptr Info;
-    const TrackModuleData::Ptr Data;
+    const TrackModel::Ptr Model;
+    const OrderList& Order;
+    const PatternsSet& Patterns;
     //state
     uint_t CurPosition;
+    uint_t CurPattern;
+    Pattern::Ptr CurPatternObject;
     uint_t CurLine;
+    Line::Ptr CurLineObject;
     uint_t CurTempo;
     uint_t CurQuirk;
     uint_t CurFrame;
   };
 
-  class TrackStateIterator : public StateIterator
+  class TrackStateIteratorImpl : public TrackStateIterator
   {
   public:
-    TrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)
-      : Cursor(boost::make_shared<TrackStateCursor>(info, data))
+    TrackStateIteratorImpl(Information::Ptr info, TrackModel::Ptr model)
+      : Cursor(boost::make_shared<TrackStateCursor>(info, model))
     {
     }
 
@@ -201,7 +254,7 @@ namespace
       }
     }
 
-    virtual TrackState::Ptr GetStateObserver() const
+    virtual TrackModelState::Ptr GetStateObserver() const
     {
       return Cursor;
     }
@@ -212,8 +265,8 @@ namespace
   class InformationImpl : public Information
   {
   public:
-    InformationImpl(TrackModuleData::Ptr data, uint_t logicalChannels)
-      : Data(data)
+    InformationImpl(TrackModel::Ptr model, uint_t logicalChannels)
+      : Model(model)
       , LogicChannels(logicalChannels)
       , Frames(), LoopFrameNum()
     {
@@ -221,17 +274,17 @@ namespace
 
     virtual uint_t PositionsCount() const
     {
-      return Data->GetPositionsCount();
+      return Model->GetOrder().GetSize();
     }
 
     virtual uint_t LoopPosition() const
     {
-      return Data->GetLoopPosition();
+      return Model->GetOrder().GetLoopPosition();
     }
 
     virtual uint_t PatternsCount() const
     {
-      return Data->GetPatternsCount();
+      return Model->GetPatterns().GetSize();
     }
 
     virtual uint_t FramesCount() const
@@ -253,12 +306,12 @@ namespace
 
     virtual uint_t PhysicalChannels() const
     {
-      return Data->GetChannelsCount();
+      return Model->GetChannelsCount();
     }
 
     virtual uint_t Tempo() const
     {
-      return Data->GetInitialTempo();
+      return Model->GetInitialTempo();
     }
   private:
     void Initialize() const
@@ -269,10 +322,10 @@ namespace
       }
       //emulate playback
       const Information::Ptr dummyInfo = boost::make_shared<InformationImpl>(*this);
-      const TrackStateIterator::Ptr dummyIterator = CreateTrackStateIterator(dummyInfo, Data);
+      const TrackStateIterator::Ptr dummyIterator = CreateTrackStateIterator(dummyInfo, Model);
       const TrackState::Ptr dummyState = dummyIterator->GetStateObserver();
 
-      const uint_t loopPosNum = Data->GetLoopPosition();
+      const uint_t loopPosNum = Model->GetOrder().GetLoopPosition();
       while (dummyIterator->IsValid())
       {
         //check for loop
@@ -287,7 +340,7 @@ namespace
       Frames = dummyState->Frame();
     }
   private:
-    const TrackModuleData::Ptr Data;
+    const TrackModel::Ptr Model;
     const uint_t LogicChannels;
     mutable uint_t Frames;
     mutable uint_t LoopFrameNum;
@@ -298,14 +351,14 @@ namespace ZXTune
 {
   namespace Module
   {
-    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels)
+    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t logicalChannels)
     {
-      return boost::make_shared<InformationImpl>(data, logicalChannels);
+      return boost::make_shared<InformationImpl>(model, logicalChannels);
     }
 
-    StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data)
+    TrackStateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModel::Ptr model)
     {
-      return boost::make_shared<TrackStateIterator>(info, data);
+      return boost::make_shared<TrackStateIteratorImpl>(info, model);
     }
   }
 }

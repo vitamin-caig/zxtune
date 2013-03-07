@@ -205,20 +205,21 @@ namespace
   class TSRenderer : public Renderer
   {
   public:
-    TSRenderer(Renderer::Ptr first, Renderer::Ptr second)
+    TSRenderer(Renderer::Ptr first, Renderer::Ptr second, TrackState::Ptr state)
       : Renderer1(first)
       , Renderer2(second)
+      , State(state)
     {
     }
 
     virtual TrackState::Ptr GetTrackState() const
     {
-      return CreateTSTrackState(Renderer1->GetTrackState(), Renderer2->GetTrackState());
+      return State;
     }
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return CreateTSAnalyzer(Renderer1->GetAnalyzer(), Renderer2->GetAnalyzer());
+      return boost::make_shared<TSAnalyzer>(Renderer1->GetAnalyzer(), Renderer2->GetAnalyzer());
     }
 
     virtual bool RenderFrame()
@@ -242,6 +243,7 @@ namespace
   private:
     const Renderer::Ptr Renderer1;
     const Renderer::Ptr Renderer2;
+    const TrackState::Ptr State;
   };
 }
 
@@ -249,19 +251,14 @@ namespace ZXTune
 {
   namespace Module
   {
-    TrackState::Ptr CreateTSTrackState(TrackState::Ptr first, TrackState::Ptr second)
-    {
-      return boost::make_shared<TSTrackState>(first, second);
-    }
-
-    Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second)
-    {
-      return boost::make_shared<TSAnalyzer>(first, second);
-    }
-
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second)
     {
-      return boost::make_shared<TSRenderer>(first, second);
+      return CreateTSRenderer(first, second, boost::make_shared<TSTrackState>(first->GetTrackState(), second->GetTrackState()));
+    }
+
+    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, TrackState::Ptr state)
+    {
+      return boost::make_shared<TSRenderer>(first, second, state);
     }
 
     boost::array<Devices::AYM::Receiver::Ptr, 2> CreateTSAYMixer(Devices::AYM::Receiver::Ptr target)

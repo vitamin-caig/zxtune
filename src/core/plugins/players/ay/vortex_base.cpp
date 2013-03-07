@@ -17,6 +17,7 @@ Author:
 #include <error_tools.h>
 #include <tools.h>
 //library includes
+#include <core/module_attrs.h>
 #include <math/numeric.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -173,7 +174,7 @@ namespace
       PlayerState = VortexState();
     }
 
-    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
@@ -182,14 +183,14 @@ namespace
       SynthesizeChannelsData(track);
     }
   private:
-    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Line())
       {
         PlayerState.CommState.NoiseBase = 0;
       }
 
-      if (const Line::Ptr line = Data->Patterns->Get(state.Pattern())->GetLine(state.Line()))
+      if (const Line::Ptr line = state.LineObject())
       {
         for (uint_t chan = 0; chan != Vortex::Track::CHANNELS; ++chan)
         {
@@ -424,7 +425,7 @@ namespace
 
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
       const uint_t version = Vortex::ExtractVersion(*Properties);
       const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(Data, version);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
@@ -477,7 +478,7 @@ namespace ZXTune
          uint_t version, Devices::AYM::Chip::Ptr device)
       {
         const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
-        const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
+        const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
         const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
         const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(trackParams, iterator, renderer);
         return AYM::CreateRenderer(trackParams, dataIter, device);

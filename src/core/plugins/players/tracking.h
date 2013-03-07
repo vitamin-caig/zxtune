@@ -15,17 +15,13 @@ Author:
 
 //local includes
 #include "iterator.h"
-#include <core/plugins/enumerator.h>
+#include "track_model.h"
 //library includes
-#include <core/module_attrs.h>
 #include <core/module_types.h>
-//std includes
-#include <vector>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
 
 namespace ZXTune
 {
@@ -62,93 +58,6 @@ namespace ZXTune
     private:
       uint_t Loop;
       std::vector<int_t> Lines;
-    };
-
-    struct Command
-    {
-      Command() : Type(), Param1(), Param2(), Param3()
-      {
-      }
-
-      Command(uint_t type, int_t p1, int_t p2, int_t p3)
-        : Type(type), Param1(p1), Param2(p2), Param3(p3)
-      {
-      }
-
-      bool operator == (uint_t type) const
-      {
-        return Type == type;
-      }
-
-      uint_t Type;
-      int_t Param1;
-      int_t Param2;
-      int_t Param3;
-    };
-
-    typedef std::vector<Command> CommandsArray;
-    typedef RangeIterator<CommandsArray::const_iterator> CommandsIterator;
-
-    class Cell
-    {
-    public:
-      typedef const Cell* Ptr;
-
-      Cell() : Mask(), Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
-      {
-      }
-
-      bool HasData() const
-      {
-        return 0 != Mask || !Commands.empty();
-      }
-
-      const bool* GetEnabled() const
-      {
-        return 0 != (Mask & ENABLED) ? &Enabled : 0;
-      }
-
-      const uint_t* GetNote() const
-      {
-        return 0 != (Mask & NOTE) ? &Note : 0;
-      }
-
-      const uint_t* GetSample() const
-      {
-        return 0 != (Mask & SAMPLENUM) ? &SampleNum : 0;
-      }
-
-      const uint_t* GetOrnament() const
-      {
-        return 0 != (Mask & ORNAMENTNUM) ? &OrnamentNum : 0;
-      }
-
-      const uint_t* GetVolume() const
-      {
-        return 0 != (Mask & VOLUME) ? &Volume : 0;
-      }
-
-      CommandsIterator GetCommands() const
-      {
-        return CommandsIterator(Commands.begin(), Commands.end());
-      }
-    protected:
-      enum Flags
-      {
-        ENABLED = 1,
-        NOTE = 2,
-        SAMPLENUM = 4,
-        ORNAMENTNUM = 8,
-        VOLUME = 16
-      };
-
-      uint_t Mask;
-      bool Enabled;
-      uint_t Note;
-      uint_t SampleNum;
-      uint_t OrnamentNum;
-      uint_t Volume;
-      CommandsArray Commands;
     };
 
     class MutableCell : public Cell
@@ -198,32 +107,11 @@ namespace ZXTune
       }
     };
 
-    class Line
-    {
-    public:
-      typedef boost::shared_ptr<const Line> Ptr;
-      virtual ~Line() {}
-
-      virtual Cell::Ptr GetChannel(uint_t idx) const = 0;
-      virtual uint_t CountActiveChannels() const = 0;
-      virtual uint_t GetTempo() const = 0;
-    };
-
     class MutableLine : public Line
     {
     public:
       virtual void SetTempo(uint_t val) = 0;
       virtual MutableCell& AddChannel(uint_t idx) = 0;
-    };
-
-    class Pattern
-    {
-    public:
-      typedef boost::shared_ptr<const Pattern> Ptr;
-      virtual ~Pattern() {}
-
-      virtual Line::Ptr GetLine(uint_t row) const = 0;
-      virtual uint_t GetSize() const = 0;
     };
 
     class MutablePattern : public Pattern
@@ -233,30 +121,10 @@ namespace ZXTune
       virtual void SetSize(uint_t size) = 0;
     };
 
-    class PatternsSet
-    {
-    public:
-      typedef boost::shared_ptr<const PatternsSet> Ptr;
-      virtual ~PatternsSet() {}
-
-      virtual Pattern::Ptr Get(uint_t idx) const = 0;
-      virtual uint_t GetSize() const = 0;
-    };
-
     class MutablePatternsSet : public PatternsSet
     {
     public:
       virtual MutablePattern& AddPattern(uint_t idx) = 0;
-    };
-
-    class OrderList
-    {
-    public:
-      typedef boost::shared_ptr<const OrderList> Ptr;
-
-      virtual uint_t GetSize() const = 0;
-      virtual uint_t GetPatternIndex(uint_t pos) const = 0;
-      virtual uint_t GetLoopPosition() const = 0;
     };
 
     class SimpleOrderList : public OrderList
@@ -464,34 +332,23 @@ namespace ZXTune
       SparsedObjectsStorage<BuilderPtr> Storage;
     };
 
-    class TrackModuleData
+    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t logicalChannels);
+
+
+    class TrackStateIterator : public Iterator
     {
     public:
-      typedef boost::shared_ptr<const TrackModuleData> Ptr;
+      typedef boost::shared_ptr<TrackStateIterator> Ptr;
 
-      virtual ~TrackModuleData() {}
-
-      //static
-      virtual uint_t GetChannelsCount() const = 0;
-      virtual uint_t GetLoopPosition() const = 0;
-      virtual uint_t GetInitialTempo() const = 0;
-      virtual uint_t GetPositionsCount() const = 0;
-      virtual uint_t GetPatternsCount() const = 0;
-      //dynamic
-      virtual uint_t GetPatternIndex(uint_t position) const = 0;
-      virtual uint_t GetPatternSize(uint_t position) const = 0;
-      virtual uint_t GetNewTempo(uint_t position, uint_t line) const = 0;
-      virtual uint_t GetActiveChannels(uint_t position, uint_t line) const = 0;
+      virtual TrackModelState::Ptr GetStateObserver() const = 0;
     };
 
-    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels);
+    TrackStateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModel::Ptr model);
 
-    StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data);
-
-    class Model : public TrackModuleData
+    class StaticTrackModel : public TrackModel
     {
     public:
-      explicit Model(uint_t channels)
+      explicit StaticTrackModel(uint_t channels)
         : ChannelsCount(channels)
         , InitialTempo()
       {
@@ -502,52 +359,19 @@ namespace ZXTune
         return ChannelsCount;
       }
 
-      virtual uint_t GetLoopPosition() const
-      {
-        return Order->GetLoopPosition();
-      }
-
       virtual uint_t GetInitialTempo() const
       {
         return InitialTempo;
       }
 
-      virtual uint_t GetPositionsCount() const
+      virtual const OrderList& GetOrder() const
       {
-        return Order->GetSize();
+        return *Order;
       }
 
-      virtual uint_t GetPatternsCount() const
+      virtual const PatternsSet& GetPatterns() const
       {
-        return Patterns->GetSize();
-      }
-
-      virtual uint_t GetPatternIndex(uint_t position) const
-      {
-        return Order->GetPatternIndex(position);
-      }
-
-      virtual uint_t GetPatternSize(uint_t position) const
-      {
-        return Patterns->Get(GetPatternIndex(position))->GetSize();
-      }
-
-      virtual uint_t GetNewTempo(uint_t position, uint_t line) const
-      {
-        if (const Line::Ptr lineObj = Patterns->Get(GetPatternIndex(position))->GetLine(line))
-        {
-          return lineObj->GetTempo();
-        }
-        return 0;
-      }
-
-      virtual uint_t GetActiveChannels(uint_t position, uint_t line) const
-      {
-        if (const Line::Ptr lineObj = Patterns->Get(GetPatternIndex(position))->GetLine(line))
-        {
-          return lineObj->CountActiveChannels();
-        }
-        return 0;
+        return *Patterns;
       }
 
       const uint_t ChannelsCount;
@@ -558,7 +382,7 @@ namespace ZXTune
 
     // Basic template class for tracking support (used as simple parametrized namespace)
     template<uint_t ChannelsCount>
-    class TrackingModel
+    class FixedChannelTrackingSupport
     {
     public:
       static const uint_t CHANNELS = ChannelsCount;
@@ -573,13 +397,13 @@ namespace ZXTune
         MutableLine* CurLine;
         MutableCell* CurChannel;
 
-        explicit BuildContext(Model& data)
+        explicit BuildContext(StaticTrackModel& model)
           : Patterns(boost::make_shared<SparsedMutablePatternsSet<MutablePatternType> >())
           , CurPattern()
           , CurLine()
           , CurChannel()
         {
-          data.Patterns = Patterns;
+          model.Patterns = Patterns;
         }
 
         void SetPattern(uint_t idx)
@@ -610,13 +434,13 @@ namespace ZXTune
     };
 
     template<uint_t ChannelsCount, class SampleType, class OrnamentType = SimpleOrnament>
-    class TrackingSupport : public TrackingModel<ChannelsCount>
+    class TrackingSupport : public FixedChannelTrackingSupport<ChannelsCount>
     {
     public:
       typedef SampleType Sample;
       typedef OrnamentType Ornament;
 
-      class ModuleData : public Model
+      class ModuleData : public StaticTrackModel
       {
       public:
         typedef boost::shared_ptr<const ModuleData> Ptr;
@@ -627,7 +451,7 @@ namespace ZXTune
           return boost::make_shared<ModuleData>();
         }
 
-        ModuleData() : Model(ChannelsCount)
+        ModuleData() : StaticTrackModel(ChannelsCount)
         {
         }
 

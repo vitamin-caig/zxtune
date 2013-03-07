@@ -380,7 +380,7 @@ namespace SoundTracker
   class DataIterator : public AYM::DataIterator
   {
   public:
-    DataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr delegate, ModuleData::Ptr data)
+    DataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, ModuleData::Ptr data)
       : TrackParams(trackParams)
       , Delegate(delegate)
       , State(Delegate->GetStateObserver())
@@ -448,7 +448,7 @@ namespace SoundTracker
     void SwitchToNewLine()
     {
       assert(0 == State->Quirk());
-      if (const Line::Ptr line = Data->Patterns->Get(State->Pattern())->GetLine(State->Line()))
+      if (const Line::Ptr line = State->LineObject())
       {
         if (const Cell::Ptr chan = line->GetChannel(0))
         {
@@ -488,8 +488,8 @@ namespace SoundTracker
     }
   private:
     const AYM::TrackParameters::Ptr TrackParams;
-    const StateIterator::Ptr Delegate;
-    const TrackState::Ptr State;
+    const TrackStateIterator::Ptr Delegate;
+    const TrackModelState::Ptr State;
     const ModuleData::Ptr Data;
     ChannelState StateA;
     ChannelState StateB;
@@ -519,7 +519,7 @@ namespace SoundTracker
 
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const StateIterator::Ptr iter = CreateTrackStateIterator(Info, Data);
+      const TrackStateIterator::Ptr iter = CreateTrackStateIterator(Info, Data);
       return boost::make_shared<DataIterator>(trackParams, iter, Data);
     }
   private:

@@ -88,7 +88,7 @@ namespace ZXTune
 
         virtual ~DataRenderer() {}
 
-        virtual void SynthesizeData(const TrackState& state, TrackBuilder& track) = 0;
+        virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
         virtual void Reset() = 0;
       };
 
@@ -122,7 +122,7 @@ namespace ZXTune
 
       Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device);
 
-      DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+      DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device);
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);

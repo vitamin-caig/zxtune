@@ -952,8 +952,8 @@ namespace
     void RenderData(Devices::DAC::DataChunk& chunk)
     {
       std::vector<Devices::DAC::DataChunk::ChannelData> res;
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      const Line::Ptr line = Data->Patterns->Get(state->Pattern())->GetLine(state->Line());
+      const TrackModelState::Ptr state = Iterator->GetStateObserver();
+      const Line::Ptr line = state->LineObject();
       for (uint_t chan = 0; chan != DMM::CHANNELS_COUNT; ++chan)
       {
         Devices::DAC::DataChunk::ChannelData dst;
@@ -978,7 +978,7 @@ namespace
     const DMM::ModuleData::Ptr Data;
     const DAC::TrackParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
-    const StateIterator::Ptr Iterator;
+    const TrackStateIterator::Ptr Iterator;
     boost::array<ChannelState, DMM::CHANNELS_COUNT> Chans;
     Time::Microseconds LastRenderTime;
   };

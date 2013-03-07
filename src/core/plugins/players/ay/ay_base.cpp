@@ -38,7 +38,7 @@ namespace
   class AYMDataIterator : public AYM::DataIterator
   {
   public:
-    AYMDataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr delegate, AYM::DataRenderer::Ptr renderer)
+    AYMDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, AYM::DataRenderer::Ptr renderer)
       : TrackParams(trackParams)
       , Delegate(delegate)
       , State(Delegate->GetStateObserver())
@@ -86,8 +86,8 @@ namespace
     }
   private:
     const AYM::TrackParameters::Ptr TrackParams;
-    const StateIterator::Ptr Delegate;
-    const TrackState::Ptr State;
+    const TrackStateIterator::Ptr Delegate;
+    const TrackModelState::Ptr State;
     const AYM::DataRenderer::Ptr Render;
     Devices::AYM::DataChunk CurrentChunk;
   };
@@ -380,7 +380,7 @@ namespace ZXTune
         return Analyzer::Ptr();
       }
 
-      DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, StateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+      DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
       {
         return boost::make_shared<AYMDataIterator>(trackParams, iterator, renderer);
       }

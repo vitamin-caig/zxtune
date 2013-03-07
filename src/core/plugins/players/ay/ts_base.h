@@ -23,9 +23,8 @@ namespace ZXTune
 {
   namespace Module
   {
-    TrackState::Ptr CreateTSTrackState(TrackState::Ptr first, TrackState::Ptr second);
-    Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second);
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second);
+    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, TrackState::Ptr state);
     boost::array<Devices::AYM::Receiver::Ptr, 2> CreateTSAYMixer(Devices::AYM::Receiver::Ptr target);
     boost::array<Devices::FM::Receiver::Ptr, 2> CreateTFMMixer(Devices::FM::Receiver::Ptr target);
   }

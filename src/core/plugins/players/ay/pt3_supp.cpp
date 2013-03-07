@@ -249,7 +249,78 @@ namespace PT3
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  class TSLine : public Line
+  {
+  public:
+    TSLine(Line::Ptr first, Line::Ptr second)
+      : First(first)
+      , Second(second)
+    {
+    }
+
+    virtual Cell::Ptr GetChannel(uint_t idx) const
+    {
+      return idx < Vortex::Track::CHANNELS
+        ? First->GetChannel(idx)
+        : Second->GetChannel(idx - Vortex::Track::CHANNELS);
+    }
+
+    virtual uint_t CountActiveChannels() const
+    {
+      return First->CountActiveChannels() + Second->CountActiveChannels();
+    }
+
+    virtual uint_t GetTempo() const
+    {
+      if (const uint_t tempo = First->GetTempo())
+      {
+        return tempo;
+      }
+      return Second->GetTempo();
+    }
+  private:
+    const Line::Ptr First;
+    const Line::Ptr Second;
+  };
+
+  class TSPattern : public Pattern
+  {
+  public:
+    TSPattern(Pattern::Ptr first, Pattern::Ptr second)
+      : First(first)
+      , Second(second)
+    {
+    }
+
+    virtual Line::Ptr GetLine(uint_t row) const
+    {
+      const Line::Ptr first = First->GetLine(row);
+      const Line::Ptr second = Second->GetLine(row);
+      if (first && second)
+      {
+        return boost::make_shared<TSLine>(first, second);
+      }
+      else if (first)
+      {
+        return first;
+      }
+      else
+      {
+        return second;
+      }
+    }
+
+    virtual uint_t GetSize() const
+    {
+      return std::min(First->GetSize(), Second->GetSize());
+    }
+  private:
+    const Pattern::Ptr First;
+    const Pattern::Ptr Second;
+  };
+
   class TSModuleData : public Vortex::Track::ModuleData
+                     , private PatternsSet
   {
   public:
     TSModuleData(uint_t base, Vortex::Track::ModuleData::Ptr delegate)
@@ -258,50 +329,53 @@ namespace PT3
     {
     }
 
-    virtual uint_t GetPatternSize(uint_t position) const
+    virtual const PatternsSet& GetPatterns() const
     {
-      const uint_t size1 = Vortex::Track::ModuleData::GetPatternSize(position);
-      const uint_t size2 = GetSecondPatternByPosition(position).GetSize();
-      return std::min(size1, size2);
-    }
-
-    virtual uint_t GetNewTempo(uint_t position, uint_t line) const
-    {
-      if (const uint_t originalTempo = Vortex::Track::ModuleData::GetNewTempo(position, line))
-      {
-        return originalTempo;
-      }
-      if (const Line::Ptr lineObj = GetSecondPatternByPosition(position).GetLine(line))
-      {
-        return lineObj->GetTempo();
-      }
-      return 0;
+      return *this;
     }
   private:
-    const Pattern& GetSecondPatternByPosition(uint_t position) const
+    virtual Pattern::Ptr Get(uint_t idx) const
     {
-      const uint_t originalPattern = Vortex::Track::ModuleData::GetPatternIndex(position);
-      return *Patterns->Get(Base - 1 - originalPattern);
+      const Pattern::Ptr first = Patterns->Get(idx);
+      const Pattern::Ptr second = Patterns->Get(Base - 1 - idx);
+      return boost::make_shared<TSPattern>(first, second);
+    }
+
+    virtual uint_t GetSize() const
+    {
+      return Patterns->GetSize();
     }
   private:
     const uint_t Base;
   };
 
-  class MirroredModuleData : public Vortex::Track::ModuleData
+  class MirroredOrderList : public OrderList
   {
   public:
-    MirroredModuleData(uint_t base, const Vortex::Track::ModuleData& data)
-      : Vortex::Track::ModuleData(data)
-      , Base(base)
+    MirroredOrderList(uint_t base, const OrderList::Ptr delegate)
+      : Base(base)
+      , Delegate(delegate)
     {
     }
 
-    virtual uint_t GetPatternIndex(uint_t position) const
+    virtual uint_t GetSize() const
     {
-      return Base - 1 - Vortex::Track::ModuleData::GetPatternIndex(position);
+      return Delegate->GetSize();
+    }
+
+    virtual uint_t GetPatternIndex(uint_t pos) const
+    {
+      const uint_t originalPattern = Delegate->GetPatternIndex(pos);
+      return Base - 1 - originalPattern;
+    }
+
+    virtual uint_t GetLoopPosition() const
+    {
+      return Delegate->GetLoopPosition();
     }
   private:
     const uint_t Base;
+    const OrderList::Ptr Delegate;
   };
 
   class TSHolder : public Holder
@@ -337,8 +411,10 @@ namespace PT3
       const Information::Ptr info = GetModuleInformation();
       const uint_t version = Vortex::ExtractVersion(*Delegate->GetModuleProperties());
       const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, info, Data, version, chip1);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), version, chip2);
-      return CreateTSRenderer(renderer1, renderer2);
+      const Vortex::Track::ModuleData::RWPtr mirroredData = boost::make_shared<Vortex::Track::ModuleData>(*Data);
+      mirroredData->Order = boost::make_shared<MirroredOrderList>(PatOffset, mirroredData->Order);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, info, mirroredData, version, chip2);
+      return CreateTSRenderer(renderer1, renderer2, renderer1->GetTrackState());
     }
   private:
     const Vortex::Track::ModuleData::Ptr Data;
