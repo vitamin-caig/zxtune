@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
@@ -21,11 +22,15 @@ import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
@@ -45,10 +50,11 @@ public class Browser extends Fragment {
   private final Callback callback;
   private final Vfs.Dir roots;
 
-  private ListView currentView;
-  private TextView currentPath;
-  private Vfs.Dir current;
+  private ListView listing;
+  private BreadCrumbNavigation position;
 
+  private static final String TAG = "app.zxtune.ui.Browser";
+  
   private static class Columns {
 
     static final String ICON = "icon";
@@ -74,9 +80,8 @@ public class Browser extends Fragment {
     final Vfs.Entry[] allRoots = roots.list();
     rootsList.setAdapter(createSpinnerAdapter(context, allRoots));
     rootsList.setOnItemSelectedListener(new ItemSelectionListener(allRoots));
-    currentPath = (TextView) view.findViewById(R.id.browser_position);
-    currentView = (ListView) view.findViewById(R.id.browser_content);
-    navigate(roots);
+    position = new BreadCrumbNavigation((HorizontalScrollView) view.findViewById(R.id.browser_breadcrumb));
+    listing = (ListView) view.findViewById(R.id.browser_content);
   }
 
   private static SimpleAdapter createSpinnerAdapter(Context context, Vfs.Entry[] entries) {
@@ -88,7 +93,7 @@ public class Browser extends Fragment {
 
     return new SimpleAdapter(context, data, R.layout.browser_item, fromFields, toFields);
   }
-  
+
   private static SimpleAdapter createListViewAdapter(Context context, Vfs.Entry[] entries) {
 
     final ArrayList<Map<String, Object>> data = createItemsData(entries);
@@ -150,25 +155,34 @@ public class Browser extends Fragment {
     final Uri uri = dir.uri();
     final Vfs.Entry[] entries = dir.list();
     if (entries == null) {
-      //showAlert();
+      // showAlert();
     } else {
-      current = dir;
       setCurrentPath(uri);
-      Arrays.sort(entries, new CompareEntries());
-      final SimpleAdapter adapter = createListViewAdapter(context, entries);
-      currentView.setAdapter(adapter);
-      currentView.setOnItemClickListener(new ItemClickListener(entries));
-      adapter.notifyDataSetChanged();
+      setCurrentEntries(entries);
     }
   }
 
-  private final void setCurrentPath(Uri uri) {
-    final String path = uri != null ? uri.getPath() : "";
-    currentPath.setText(path);
+  private final void navigate(Uri uri) {
+    navigate(roots.resolve(uri));
   }
-  
+
+  private final void setCurrentPath(Uri uri) {
+    Log.d(TAG, "Set current path to " + uri); 
+    if (uri != null) {
+      position.setPath(uri);
+    }
+  }
+
+  private final void setCurrentEntries(Vfs.Entry[] entries) {
+    Arrays.sort(entries, new CompareEntries());
+    final SimpleAdapter adapter = createListViewAdapter(context, entries);
+    listing.setAdapter(adapter);
+    listing.setOnItemClickListener(new ItemClickListener(entries));
+    adapter.notifyDataSetChanged();
+  }
+
   private static class CompareEntries implements Comparator<Vfs.Entry> {
-    
+
     @Override
     public int compare(Vfs.Entry lh, Vfs.Entry rh) {
       final boolean lhDir = lh instanceof Vfs.Dir;
@@ -180,7 +194,7 @@ public class Browser extends Fragment {
       }
     }
   }
-  
+
   private class ItemSelectionListener implements AdapterView.OnItemSelectedListener {
 
     final Vfs.Entry[] entries;
@@ -211,6 +225,75 @@ public class Browser extends Fragment {
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
       navigate(entries[position]);
+    }
+  }
+
+  private class PathElementClickListener implements View.OnClickListener {
+
+    final Uri uri;
+
+    PathElementClickListener(Uri uri) {
+      this.uri = uri;
+    }
+
+    @Override
+    public void onClick(View v) {
+      navigate(uri);
+    }
+  }
+
+  private class BreadCrumbNavigation {
+
+    private final HorizontalScrollView scroll;
+    private final ViewGroup container;
+    private final ArrayList<Button> buttons;
+
+    public BreadCrumbNavigation(HorizontalScrollView scroll) {
+      this.scroll = scroll;
+      this.container = new LinearLayout(context);
+      this.buttons = new ArrayList<Button>();
+      scroll.addView(container);
+    }
+
+    public void setPath(Uri uri) {
+      final List<String> elements = getPathElements(uri); 
+      final int newElements = elements.size();
+      final int curElements = buttons.size();
+      final int toUpdate = Math.min(newElements, curElements);
+      final Uri.Builder subUri = uri.buildUpon();
+      subUri.path("");
+      for (int idx = 0; idx != toUpdate; ++idx) {
+        final String pathElement = elements.get(idx);
+        subUri.appendPath(pathElement);
+        buttons.get(idx).setText(pathElement);
+      }
+      for (int toAdd = curElements; toAdd < newElements; ++toAdd) {
+        final String pathElement = elements.get(toAdd);
+        subUri.appendPath(pathElement);
+        final Button button = new Button(context);
+        button.setText(pathElement);
+        button.setOnClickListener(new PathElementClickListener(subUri.build()));
+        buttons.add(button);
+        container.addView(button);
+      }
+      for (int toDel = curElements; toDel > newElements; --toDel) {
+        buttons.remove(toDel - 1);
+        container.removeViewAt(toDel - 1);
+      }
+      //workaround for layout timing issues
+      scroll.post(new Runnable() {
+        @Override
+        public void run() {
+          scroll.smoothScrollTo(Integer.MAX_VALUE, 0);
+        }
+      });
+    }
+    
+    private final List<String> getPathElements(Uri uri) {
+      final List<String> elements = new ArrayList<String>(); 
+      elements.add("/");
+      elements.addAll(uri.getPathSegments());
+      return elements;
     }
   }
 }
