@@ -14,4 +14,9 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     />
+  <FrameLayout
+    android:id="@+id/playlist_view"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    />
 </LinearLayout>
