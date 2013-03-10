@@ -84,7 +84,8 @@ public final class LocalVfs {
     }
 
     public Vfs.Entry[] list() {
-      return buildList(dir.listFiles());
+      final File[] files = dir.listFiles();
+      return files != null ? buildList(files) : null;
     }
 
     public Vfs.Entry resolve(Uri uri) {

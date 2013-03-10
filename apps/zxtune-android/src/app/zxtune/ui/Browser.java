@@ -11,6 +11,8 @@
 package app.zxtune.ui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +37,7 @@ import app.zxtune.fs.Vfs;
 public class Browser extends Fragment {
 
   public static interface Callback {
-    
+
     public void onFileSelected(Uri uri);
   }
 
@@ -70,14 +72,34 @@ public class Browser extends Fragment {
     super.onViewCreated(view, savedInstanceState);
     final Spinner rootsList = (Spinner) view.findViewById(R.id.browser_roots);
     final Vfs.Entry[] allRoots = roots.list();
-    rootsList.setAdapter(createViewAdapter(context, allRoots));
+    rootsList.setAdapter(createSpinnerAdapter(context, allRoots));
     rootsList.setOnItemSelectedListener(new ItemSelectionListener(allRoots));
     currentPath = (TextView) view.findViewById(R.id.browser_position);
     currentView = (ListView) view.findViewById(R.id.browser_content);
     navigate(roots);
   }
 
-  private static SimpleAdapter createViewAdapter(Context context, Vfs.Entry[] entries) {
+  private static SimpleAdapter createSpinnerAdapter(Context context, Vfs.Entry[] entries) {
+
+    final ArrayList<Map<String, Object>> data = createItemsData(entries);
+
+    final String[] fromFields = {Columns.NAME};
+    final int[] toFields = {R.id.browser_item_name};
+
+    return new SimpleAdapter(context, data, R.layout.browser_item, fromFields, toFields);
+  }
+  
+  private static SimpleAdapter createListViewAdapter(Context context, Vfs.Entry[] entries) {
+
+    final ArrayList<Map<String, Object>> data = createItemsData(entries);
+
+    final String[] fromFields = {Columns.ICON, Columns.NAME, Columns.SIZE};
+    final int[] toFields = {R.id.browser_item_icon, R.id.browser_item_name, R.id.browser_item_size};
+
+    return new SimpleAdapter(context, data, R.layout.browser_item, fromFields, toFields);
+  }
+
+  private static ArrayList<Map<String, Object>> createItemsData(Vfs.Entry[] entries) {
 
     final ArrayList<Map<String, Object>> data = new ArrayList<Map<String, Object>>(entries.length);
 
@@ -85,11 +107,7 @@ public class Browser extends Fragment {
       final Map<String, Object> item = createItemData(entry);
       data.add(item);
     }
-
-    final String[] fromFields = {Columns.ICON, Columns.NAME, Columns.SIZE};
-    final int[] toFields = {R.id.browser_item_icon, R.id.browser_item_name, R.id.browser_item_size};
-
-    return new SimpleAdapter(context, data, R.layout.browser_item, fromFields, toFields);
+    return data;
   }
 
   private static Map<String, Object> createItemData(Vfs.Entry entry) {
@@ -120,7 +138,7 @@ public class Browser extends Fragment {
     return result;
   }
 
-  private void navigate(Vfs.Entry entry) {
+  private final void navigate(Vfs.Entry entry) {
     if (entry instanceof Vfs.Dir) {
       navigate((Vfs.Dir) entry);
     } else if (entry instanceof Vfs.File) {
@@ -128,19 +146,41 @@ public class Browser extends Fragment {
     }
   }
 
-  private void navigate(Vfs.Dir dir) {
-    current = dir;
-    final Uri curUri = current.uri();
-    if (curUri != null) {
-      currentPath.setText(curUri.toString());
+  private final void navigate(Vfs.Dir dir) {
+    final Uri uri = dir.uri();
+    final Vfs.Entry[] entries = dir.list();
+    if (entries == null) {
+      //showAlert();
+    } else {
+      current = dir;
+      setCurrentPath(uri);
+      Arrays.sort(entries, new CompareEntries());
+      final SimpleAdapter adapter = createListViewAdapter(context, entries);
+      currentView.setAdapter(adapter);
+      currentView.setOnItemClickListener(new ItemClickListener(entries));
+      adapter.notifyDataSetChanged();
     }
-    final Vfs.Entry[] entries = current.list();
-    final SimpleAdapter adapter = createViewAdapter(context, entries);
-    currentView.setAdapter(adapter);
-    currentView.setOnItemClickListener(new ItemClickListener(entries));
-    adapter.notifyDataSetChanged();
   }
 
+  private final void setCurrentPath(Uri uri) {
+    final String path = uri != null ? uri.getPath() : "";
+    currentPath.setText(path);
+  }
+  
+  private static class CompareEntries implements Comparator<Vfs.Entry> {
+    
+    @Override
+    public int compare(Vfs.Entry lh, Vfs.Entry rh) {
+      final boolean lhDir = lh instanceof Vfs.Dir;
+      final boolean rhDir = rh instanceof Vfs.Dir;
+      if (lhDir == rhDir) {
+        return lh.name().compareTo(rh.name());
+      } else {
+        return lhDir ? -1 : +1;
+      }
+    }
+  }
+  
   private class ItemSelectionListener implements AdapterView.OnItemSelectedListener {
 
     final Vfs.Entry[] entries;
