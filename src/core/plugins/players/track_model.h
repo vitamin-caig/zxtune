@@ -151,6 +151,14 @@ namespace ZXTune
       virtual uint_t GetLoopPosition() const = 0;
     };
 
+    class OrderListWithTransposition : public OrderList
+    {
+    public:
+      typedef boost::shared_ptr<const OrderListWithTransposition> Ptr;
+
+      virtual int_t GetTransposition(uint_t pos) const = 0;
+    };
+
     class TrackModel
     {
     public:

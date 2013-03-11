@@ -23,10 +23,44 @@ namespace SoundTrackerPro
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  class SimpleOrderWithTransposition : public OrderListWithTransposition
+  {
+  public:
+    template<class It>
+    SimpleOrderWithTransposition(uint_t loop, It begin, It end)
+      : Loop(loop)
+      , Positions(begin, end)
+    {
+    }
+
+    virtual uint_t GetSize() const
+    {
+      return Positions.size();
+    }
+
+    virtual uint_t GetPatternIndex(uint_t pos) const
+    {
+      return Positions[pos].PatternIndex;
+    }
+
+    virtual uint_t GetLoopPosition() const
+    {
+      return Loop;
+    }
+
+    virtual int_t GetTransposition(uint_t pos) const
+    {
+      return Positions[pos].Transposition;
+    }
+  private:
+    const uint_t Loop;
+    const std::vector<Formats::Chiptune::SoundTrackerPro::PositionEntry> Positions;
+  };
+
   class DataBuilder : public Formats::Chiptune::SoundTrackerPro::Builder
   {
   public:
-    DataBuilder(SoundTrackerPro::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(SoundTrackerPro::Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
       , Context(*Data)
@@ -62,12 +96,7 @@ namespace SoundTrackerPro
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTrackerPro::PositionEntry>& positions, uint_t loop)
     {
-      using namespace Formats::Chiptune::SoundTrackerPro;
-      std::vector<uint_t> indices(positions.size());
-      std::transform(positions.begin(), positions.end(), indices.begin(), boost::mem_fn(&PositionEntry::PatternIndex));
-      Data->Order = boost::make_shared<SimpleOrderList>(indices.begin(), indices.end(), loop);
-      Data->Transpositions.resize(positions.size());
-      std::transform(positions.begin(), positions.end(), Data->Transpositions.begin(), boost::mem_fn(&PositionEntry::Transposition));
+      Data->Order = boost::make_shared<SimpleOrderWithTransposition>(loop, positions.begin(), positions.end());
     }
 
     virtual void StartPattern(uint_t index)
@@ -131,7 +160,7 @@ namespace SoundTrackerPro
       Context.CurChannel->SetVolume(vol);
     }
   private:
-    const ModuleData::RWPtr Data;
+    const Track::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
 
     Track::BuildContext Context;
@@ -161,7 +190,7 @@ namespace SoundTrackerPro
   class DataRenderer : public AYM::DataRenderer
   {
   public:
-    explicit DataRenderer(ModuleData::Ptr data)
+    explicit DataRenderer(Track::ModuleData::Ptr data)
       : Data(data)
     {
     }
@@ -283,7 +312,7 @@ namespace SoundTrackerPro
       }
       //apply tone
       const int_t halftones = int_t(dst.Note) +
-                              Data->Transpositions[state.Position()] +
+                              Data->Order->GetTransposition(state.Position()) +
                               (dst.Envelope ? 0 : curOrnament.GetLine(dst.PosInOrnament));
       channel.SetTone(halftones, dst.TonSlide + curSampleLine.Vibrato);
       if (curSampleLine.ToneMask)
@@ -318,14 +347,14 @@ namespace SoundTrackerPro
       }
     }
   private:
-    const ModuleData::Ptr Data;
+    const Track::ModuleData::Ptr Data;
     boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -349,7 +378,7 @@ namespace SoundTrackerPro
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
-    const ModuleData::Ptr Data;
+    const Track::ModuleData::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
@@ -358,12 +387,12 @@ namespace SoundTrackerPro
  
 namespace SoundTrackerPro
 {
-  std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+  std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
   {
     return std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder>(new DataBuilder(data, props));
   }
 
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
+  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
   {
     return boost::make_shared<Chiptune>(data, properties);
   }

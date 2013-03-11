@@ -23,10 +23,42 @@ namespace SoundTracker
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
+  class SimpleOrderWithTransposition : public OrderListWithTransposition
+  {
+  public:
+    template<class It>
+    SimpleOrderWithTransposition(It begin, It end)
+      : Positions(begin, end)
+    {
+    }
+
+    virtual uint_t GetSize() const
+    {
+      return Positions.size();
+    }
+
+    virtual uint_t GetPatternIndex(uint_t pos) const
+    {
+      return Positions[pos].PatternIndex;
+    }
+
+    virtual uint_t GetLoopPosition() const
+    {
+      return 0;
+    }
+
+    virtual int_t GetTransposition(uint_t pos) const
+    {
+      return Positions[pos].Transposition;
+    }
+  private:
+    const std::vector<Formats::Chiptune::SoundTracker::PositionEntry> Positions;
+  };
+
   class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
   {
   public:
-    DataBuilder(SoundTracker::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
       , Context(*Data)
@@ -62,12 +94,7 @@ namespace SoundTracker
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions)
     {
-      using namespace Formats::Chiptune::SoundTracker;
-      std::vector<uint_t> indices(positions.size());
-      std::transform(positions.begin(), positions.end(), indices.begin(), boost::mem_fn(&PositionEntry::PatternIndex));
-      Data->Order = boost::make_shared<SimpleOrderList>(indices.begin(), indices.end(), 0);
-      Data->Transpositions.resize(positions.size());
-      std::transform(positions.begin(), positions.end(), Data->Transpositions.begin(), boost::mem_fn(&PositionEntry::Transposition));
+      Data->Order = boost::make_shared<SimpleOrderWithTransposition>(positions.begin(), positions.end());
     }
 
     virtual void StartPattern(uint_t index)
@@ -121,7 +148,7 @@ namespace SoundTracker
       Context.CurChannel->AddCommand(SoundTracker::NOENVELOPE);
     }
   private:
-    const SoundTracker::ModuleData::RWPtr Data;
+    const Track::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
 
     Track::BuildContext Context;
@@ -130,7 +157,7 @@ namespace SoundTracker
   class ChannelBuilder
   {
   public:
-    ChannelBuilder(uint_t transposition, AYM::TrackBuilder& track, uint_t chanNum)
+    ChannelBuilder(int_t transposition, AYM::TrackBuilder& track, uint_t chanNum)
       : Transposition(transposition)
       , Track(track)
       , Channel(Track.GetChannel(chanNum))
@@ -167,7 +194,7 @@ namespace SoundTracker
       Channel.DisableNoise();
     }
   private:
-    const uint_t Transposition;
+    const int_t Transposition;
     AYM::TrackBuilder& Track;
     AYM::ChannelBuilder Channel;
   };
@@ -275,7 +302,7 @@ namespace SoundTracker
 
   struct ChannelState
   {
-    explicit ChannelState(ModuleData::Ptr data, uint_t& envType, uint_t& envTone)
+    explicit ChannelState(Track::ModuleData::Ptr data, uint_t& envType, uint_t& envTone)
       : Data(data)
       , Note()
       , CurSample(GetStubSample())
@@ -369,7 +396,7 @@ namespace SoundTracker
       return &stubOrnament;
     }
   private:
-    const ModuleData::Ptr Data;
+    const Track::ModuleData::Ptr Data;
     uint_t Note;
     StateCursor Cursor;
     const Track::Sample* CurSample;
@@ -380,7 +407,7 @@ namespace SoundTracker
   class DataIterator : public AYM::DataIterator
   {
   public:
-    DataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, ModuleData::Ptr data)
+    DataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, Track::ModuleData::Ptr data)
       : TrackParams(trackParams)
       , Delegate(delegate)
       , State(Delegate->GetStateObserver())
@@ -467,7 +494,7 @@ namespace SoundTracker
 
     void SynthesizeChannelsData(AYM::TrackBuilder& track) const
     {
-      const uint_t transposition = Data->Transpositions[State->Position()];
+      const int_t transposition = Data->Order->GetTransposition(State->Position());
       {
         ChannelBuilder channel(transposition, track, 0);
         StateA.Synthesize(channel);
@@ -490,7 +517,7 @@ namespace SoundTracker
     const AYM::TrackParameters::Ptr TrackParams;
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
-    const ModuleData::Ptr Data;
+    const Track::ModuleData::Ptr Data;
     ChannelState StateA;
     ChannelState StateB;
     ChannelState StateC;
@@ -500,7 +527,7 @@ namespace SoundTracker
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -523,7 +550,7 @@ namespace SoundTracker
       return boost::make_shared<DataIterator>(trackParams, iter, Data);
     }
   private:
-    const ModuleData::Ptr Data;
+    const Track::ModuleData::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
@@ -531,12 +558,12 @@ namespace SoundTracker
  
 namespace SoundTracker
 {
-  std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+  std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
   {
     return std::auto_ptr<Formats::Chiptune::SoundTracker::Builder>(new DataBuilder(data, props));
   }
 
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
+  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
   {
     return boost::make_shared<SoundTracker::Chiptune>(data, properties);
   }

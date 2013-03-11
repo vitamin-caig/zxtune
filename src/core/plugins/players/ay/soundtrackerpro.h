@@ -57,20 +57,14 @@ namespace SoundTrackerPro
     }
   };
 
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, Sample> Track;
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
 
-  class ModuleData : public Track::ModuleData
-  {
-  public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
-    typedef boost::shared_ptr<const ModuleData> Ptr;
+  typedef TrackingSupport<Devices::AYM::CHANNELS, Sample, SimpleOrnament, OrderListWithTransposition> Track;
 
-    std::vector<int_t> Transpositions;
-  };
+  std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
 
-  std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder> CreateDataBuilder(ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
-
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
+  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_SOUNDTRACKERPRO_DEFINED__

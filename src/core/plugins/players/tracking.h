@@ -345,6 +345,7 @@ namespace ZXTune
 
     TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model);
 
+    template<class OrderListType = OrderList>
     class StaticTrackModel : public TrackModel
     {
     public:
@@ -369,7 +370,7 @@ namespace ZXTune
       }
 
       uint_t InitialTempo;
-      OrderList::Ptr Order;
+      typename OrderListType::Ptr Order;
       PatternsSet::Ptr Patterns;
     };
 
@@ -429,21 +430,22 @@ namespace ZXTune
         typedef MultichannelMutableLine<ChannelsCount> MutableLineType;
         typedef SparsedMutablePattern<MutableLineType> MutablePatternType;
 
-        explicit BuildContext(StaticTrackModel& model)
+        template<class OrderListType>
+        explicit BuildContext(StaticTrackModel<OrderListType>& model)
         {
           model.Patterns = Patterns = boost::make_shared<SparsedMutablePatternsSet<MutablePatternType> >();
         }
       };
     };
 
-    template<uint_t Channels, class SampleType, class OrnamentType = SimpleOrnament>
+    template<uint_t Channels, class SampleType, class OrnamentType = SimpleOrnament, class OrderListType = OrderList>
     class TrackingSupport : public FixedChannelTrackingSupport<Channels>
     {
     public:
       typedef SampleType Sample;
       typedef OrnamentType Ornament;
 
-      class ModuleData : public StaticTrackModel
+      class ModuleData : public StaticTrackModel<OrderListType>
       {
       public:
         typedef boost::shared_ptr<const ModuleData> Ptr;

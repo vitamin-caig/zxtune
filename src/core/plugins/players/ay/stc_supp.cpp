@@ -50,7 +50,7 @@ namespace STC
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
-      const ::SoundTracker::ModuleData::RWPtr modData = boost::make_shared< ::SoundTracker::ModuleData>();
+      const ::SoundTracker::Track::ModuleData::RWPtr modData = ::SoundTracker::Track::ModuleData::Create();
       const std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> dataBuilder = ::SoundTracker::CreateDataBuilder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SoundTracker::ParseCompiled(*data, *dataBuilder))
       {
