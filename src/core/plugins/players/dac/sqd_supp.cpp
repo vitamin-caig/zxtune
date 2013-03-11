@@ -216,13 +216,13 @@ namespace
 
   class SQDHolder : public Holder
   {
-    static void ParsePattern(const SQD::Pattern& src, SQDTrack::BuildContext& result)
+    static void ParsePattern(const SQD::Pattern& src, PatternsBuilder& builder)
     {
       bool end = false;
       for (uint_t lineNum = 0; !end && lineNum != SQD::MAX_PATTERN_SIZE; ++lineNum)
       {
         const SQD::Pattern::Line& srcLine = src.Lines[lineNum];
-        result.SetLine(lineNum);
+        builder.SetLine(lineNum);
         for (uint_t chanNum = 0; chanNum != SQD::CHANNELS_COUNT; ++chanNum)
         {
           const SQD::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
@@ -237,12 +237,12 @@ namespace
           }
           else if (const uint8_t* newTempo = srcChan.GetNewTempo())
           {
-            result.CurLine->SetTempo(*newTempo);
+            builder.GetLine().SetTempo(*newTempo);
             continue;
           }
 
-          result.SetChannel(chanNum);
-          MutableCell& dstChan = *result.CurChannel;
+          builder.SetChannel(chanNum);
+          MutableCell& dstChan = builder.GetChannel();
           if (srcChan.IsRest())
           {
             dstChan.SetEnabled(false);
@@ -282,7 +282,8 @@ namespace
 
       //fill patterns
       const std::size_t patternsCount = 1 + *std::max_element(header.Positions.begin(), header.Positions.begin() + positionsCount);
-      SQDTrack::BuildContext builder(*Data);
+      PatternsBuilder builder = PatternsBuilder::Create<SQD::CHANNELS_COUNT>();
+      Data->Patterns = builder.GetPatterns();
       for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, SQD::PATTERNS_COUNT); ++patIdx)
       {
         builder.SetPattern(patIdx);

@@ -63,8 +63,9 @@ namespace SoundTrackerPro
     DataBuilder(SoundTrackerPro::Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Context(*Data)
+      , Builder(PatternsBuilder::Create<Track::CHANNELS>())
     {
+      Data->Patterns = Builder.GetPatterns();
     }
 
     virtual void SetProgram(const String& program)
@@ -101,69 +102,68 @@ namespace SoundTrackerPro
 
     virtual void StartPattern(uint_t index)
     {
-      Context.SetPattern(index);
+      Builder.SetPattern(index);
     }
 
     virtual void FinishPattern(uint_t size)
     {
-      Context.FinishPattern(size);
+      Builder.FinishPattern(size);
     }
 
     virtual void StartLine(uint_t index)
     {
-      Context.SetLine(index);
+      Builder.SetLine(index);
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Context.SetChannel(index);
+      Builder.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Context.CurChannel->SetEnabled(false);
+      Builder.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Context.CurChannel->SetEnabled(true);
-      Context.CurChannel->SetNote(note);
+      Builder.GetChannel().SetEnabled(true);
+      Builder.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Context.CurChannel->SetSample(sample);
+      Builder.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Context.CurChannel->SetOrnament(ornament);
+      Builder.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->AddCommand(ENVELOPE, type, value);
+      Builder.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->AddCommand(NOENVELOPE);
+      Builder.GetChannel().AddCommand(NOENVELOPE);
     }
 
     virtual void SetGliss(uint_t target)
     {
-      Context.CurChannel->AddCommand(GLISS, target);
+      Builder.GetChannel().AddCommand(GLISS, target);
     }
     
     virtual void SetVolume(uint_t vol)
     {
-      Context.CurChannel->SetVolume(vol);
+      Builder.GetChannel().SetVolume(vol);
     }
   private:
     const Track::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
-
-    Track::BuildContext Context;
+    PatternsBuilder Builder;
   };
 
   struct ChannelState

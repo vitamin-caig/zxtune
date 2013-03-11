@@ -58,14 +58,15 @@ namespace ChipTracker
 
 namespace ChipTracker
 {
-  class Builder : public Formats::Chiptune::ChipTracker::Builder
+  class DataBuilder : public Formats::Chiptune::ChipTracker::Builder
   {
   public:
-    Builder(CHITrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(CHITrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Context(*Data)
+      , Builder(PatternsBuilder::Create<CHITrack::CHANNELS>())
     {
+      Data->Patterns = Builder.GetPatterns();
     }
 
     virtual void SetTitle(const String& title)
@@ -101,54 +102,53 @@ namespace ChipTracker
 
     virtual void StartPattern(uint_t index)
     {
-      Context.SetPattern(index);
+      Builder.SetPattern(index);
     }
 
     virtual void StartLine(uint_t index)
     {
-      Context.SetLine(index);
+      Builder.SetLine(index);
     }
 
     virtual void SetTempo(uint_t tempo)
     {
-      Context.CurLine->SetTempo(tempo);
+      Builder.GetLine().SetTempo(tempo);
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Context.SetChannel(index);
+      Builder.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Context.CurChannel->SetEnabled(false);
+      Builder.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Context.CurChannel->SetEnabled(true);
-      Context.CurChannel->SetNote(note);
+      Builder.GetChannel().SetEnabled(true);
+      Builder.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Context.CurChannel->SetSample(sample);
+      Builder.GetChannel().SetSample(sample);
     }
 
     virtual void SetSlide(int_t step)
     {
-      Context.CurChannel->AddCommand(SLIDE, step);
+      Builder.GetChannel().AddCommand(SLIDE, step);
     }
 
     virtual void SetSampleOffset(uint_t offset)
     {
-      Context.CurChannel->AddCommand(SAMPLE_OFFSET, offset);
+      Builder.GetChannel().AddCommand(SAMPLE_OFFSET, offset);
     }
   private:
     const CHITrack::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
-
-    CHITrack::BuildContext Context;
+    PatternsBuilder Builder;
   };
 
   // perform module 'playback' right after creating (debug purposes)
@@ -415,7 +415,7 @@ namespace ChipTracker
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       const CHITrack::ModuleData::RWPtr modData = CHITrack::ModuleData::Create();
-      Builder builder(modData, properties);
+      DataBuilder builder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(*data, builder))
       {
         usedSize = container->Size();

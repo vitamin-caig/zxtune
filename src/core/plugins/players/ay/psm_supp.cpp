@@ -126,8 +126,9 @@ namespace ProSoundMaker
     DataBuilder(ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Context(*Data)
+      , Builder(PatternsBuilder::Create<Track::CHANNELS>())
     {
+      Data->Patterns = Builder.GetPatterns();
     }
 
     virtual void SetProgram(const String& program)
@@ -165,103 +166,102 @@ namespace ProSoundMaker
 
     virtual void StartPattern(uint_t index)
     {
-      Context.SetPattern(index);
+      Builder.SetPattern(index);
     }
 
     virtual void FinishPattern(uint_t size)
     {
-      Context.FinishPattern(size);
+      Builder.FinishPattern(size);
     }
 
     virtual void SetTempo(uint_t tempo)
     {
-      Context.CurLine->SetTempo(tempo);
+      Builder.GetLine().SetTempo(tempo);
     }
 
     virtual void StartLine(uint_t index)
     {
-      Context.SetLine(index);
+      Builder.SetLine(index);
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Context.SetChannel(index);
+      Builder.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Context.CurChannel->SetEnabled(false);
+      Builder.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Context.CurChannel->SetEnabled(true);
-      Context.CurChannel->SetNote(note);
+      Builder.GetChannel().SetEnabled(true);
+      Builder.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Context.CurChannel->SetSample(sample);
+      Builder.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Context.CurChannel->SetOrnament(ornament);
+      Builder.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t volume)
     {
-      Context.CurChannel->SetVolume(volume);
+      Builder.GetChannel().SetVolume(volume);
     }
 
     virtual void DisableOrnament()
     {
-      Context.CurChannel->AddCommand(NOORNAMENT);
+      Builder.GetChannel().AddCommand(NOORNAMENT);
     }
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      MutableCell* const channel = Context.CurChannel;
-      if (Command* cmd = channel->FindCommand(ENVELOPE))
+      MutableCell& channel = Builder.GetChannel();
+      if (Command* cmd = channel.FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
       }
       else
       {
-        channel->AddCommand(ENVELOPE, int_t(type), -1, -1);
+        channel.AddCommand(ENVELOPE, int_t(type), -1, -1);
       }
     }
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      MutableCell* const channel = Context.CurChannel;
-      if (Command* cmd = channel->FindCommand(ENVELOPE))
+      MutableCell& channel = Builder.GetChannel();
+      if (Command* cmd = channel.FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);
       }
       else
       {
-        channel->AddCommand(ENVELOPE, -1, int_t(tone), -1);
+        channel.AddCommand(ENVELOPE, -1, int_t(tone), -1);
       }
     }
 
     virtual void SetEnvelopeNote(uint_t note)
     {
-      MutableCell* const channel = Context.CurChannel;
-      if (Command* cmd = channel->FindCommand(ENVELOPE))
+      MutableCell& channel = Builder.GetChannel();
+      if (Command* cmd = channel.FindCommand(ENVELOPE))
       {
         cmd->Param3 = int_t(note);
       }
       else
       {
-        channel->AddCommand(ENVELOPE, -1, -1, int_t(note));
+        channel.AddCommand(ENVELOPE, -1, -1, int_t(note));
       }
     }
   private:
     const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
-
-    Track::BuildContext Context;
+    PatternsBuilder Builder;
   };
 
   struct SampleState

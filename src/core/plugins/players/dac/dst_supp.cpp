@@ -61,7 +61,7 @@ namespace
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       const DigitalStudio::Track::ModuleData::RWPtr modData = DigitalStudio::Track::ModuleData::Create();
-      DigitalStudio::Builder builder(modData, properties);
+      DigitalStudio::DataBuilder builder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(*data, builder))
       {
         usedSize = container->Size();

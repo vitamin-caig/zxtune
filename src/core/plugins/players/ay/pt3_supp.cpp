@@ -65,8 +65,9 @@ namespace ProTracker3
       : Data(data)
       , Properties(props)
       , PatOffset(patOffset)
-      , Context(*Data)
+      , Builder(PatternsBuilder::Create<Track::CHANNELS>())
     {
+      Data->Patterns = Builder.GetPatterns();
     }
 
     virtual void SetProgram(const String& program)
@@ -125,114 +126,113 @@ namespace ProTracker3
 
     virtual void StartPattern(uint_t index)
     {
-      Context.SetPattern(index);
+      Builder.SetPattern(index);
     }
 
     virtual void FinishPattern(uint_t size)
     {
-      Context.FinishPattern(size);
+      Builder.FinishPattern(size);
     }
 
     virtual void StartLine(uint_t index)
     {
-      Context.SetLine(index);
+      Builder.SetLine(index);
     }
 
     virtual void SetTempo(uint_t tempo)
     {
-      Context.CurLine->SetTempo(tempo);
+      Builder.GetLine().SetTempo(tempo);
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Context.SetChannel(index);
+      Builder.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Context.CurChannel->SetEnabled(false);
+      Builder.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      MutableCell* const channel = Context.CurChannel;
-      channel->SetEnabled(true);
-      if (Command* cmd = channel->FindCommand(Vortex::GLISS_NOTE))
+      MutableCell& channel = Builder.GetChannel();
+      channel.SetEnabled(true);
+      if (Command* cmd = channel.FindCommand(Vortex::GLISS_NOTE))
       {
         cmd->Param3 = int_t(note);
       }
       else
       {
-        channel->SetNote(note);
+        channel.SetNote(note);
       }
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Context.CurChannel->SetSample(sample);
+      Builder.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Context.CurChannel->SetOrnament(ornament);
+      Builder.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Context.CurChannel->SetVolume(vol);
+      Builder.GetChannel().SetVolume(vol);
     }
 
     virtual void SetGlissade(uint_t period, int_t val)
     {
-      Context.CurChannel->AddCommand(Vortex::GLISS, period, val);
+      Builder.GetChannel().AddCommand(Vortex::GLISS, period, val);
     }
 
     virtual void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/)
     {
       //ignore limit
-      Context.CurChannel->AddCommand(Vortex::GLISS_NOTE, period, val);
+      Builder.GetChannel().AddCommand(Vortex::GLISS_NOTE, period, val);
     }
 
     virtual void SetSampleOffset(uint_t offset)
     {
-      Context.CurChannel->AddCommand(Vortex::SAMPLEOFFSET, offset);
+      Builder.GetChannel().AddCommand(Vortex::SAMPLEOFFSET, offset);
     }
 
     virtual void SetOrnamentOffset(uint_t offset)
     {
-      Context.CurChannel->AddCommand(Vortex::ORNAMENTOFFSET, offset);
+      Builder.GetChannel().AddCommand(Vortex::ORNAMENTOFFSET, offset);
     }
 
     virtual void SetVibrate(uint_t ontime, uint_t offtime)
     {
-      Context.CurChannel->AddCommand(Vortex::VIBRATE, ontime, offtime);
+      Builder.GetChannel().AddCommand(Vortex::VIBRATE, ontime, offtime);
     }
 
     virtual void SetEnvelopeSlide(uint_t period, int_t val)
     {
-      Context.CurChannel->AddCommand(Vortex::SLIDEENV, period, val);
+      Builder.GetChannel().AddCommand(Vortex::SLIDEENV, period, val);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->AddCommand(Vortex::ENVELOPE, type, value);
+      Builder.GetChannel().AddCommand(Vortex::ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->AddCommand(Vortex::NOENVELOPE);
+      Builder.GetChannel().AddCommand(Vortex::NOENVELOPE);
     }
 
     virtual void SetNoiseBase(uint_t val)
     {
-      Context.CurChannel->AddCommand(Vortex::NOISEBASE, val);
+      Builder.GetChannel().AddCommand(Vortex::NOISEBASE, val);
     }
   private:
     const Track::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     uint_t& PatOffset;
-
-    Track::BuildContext Context;
+    PatternsBuilder Builder;
   };
 }
 

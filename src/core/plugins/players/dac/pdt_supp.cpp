@@ -66,14 +66,15 @@ namespace ProDigiTracker
 
 namespace ProDigiTracker
 {
-  class Builder : public Formats::Chiptune::ProDigiTracker::Builder
+  class DataBuilder : public Formats::Chiptune::ProDigiTracker::Builder
   {
   public:
-    Builder(PDTTrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(PDTTrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Context(*Data)
+      , Builder(PatternsBuilder::Create<PDTTrack::CHANNELS>())
     {
+      Data->Patterns = Builder.GetPatterns();
     }
 
     virtual void SetTitle(const String& title)
@@ -110,49 +111,48 @@ namespace ProDigiTracker
 
     virtual void StartPattern(uint_t index)
     {
-      Context.SetPattern(index);
+      Builder.SetPattern(index);
     }
 
     virtual void StartLine(uint_t index)
     {
-      Context.SetLine(index);
+      Builder.SetLine(index);
     }
 
     virtual void SetTempo(uint_t tempo)
     {
-      Context.CurLine->SetTempo(tempo);
+      Builder.GetLine().SetTempo(tempo);
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Context.SetChannel(index);
+      Builder.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Context.CurChannel->SetEnabled(false);
+      Builder.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Context.CurChannel->SetEnabled(true);
-      Context.CurChannel->SetNote(note);
+      Builder.GetChannel().SetEnabled(true);
+      Builder.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Context.CurChannel->SetSample(sample);
+      Builder.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Context.CurChannel->SetOrnament(ornament);
+      Builder.GetChannel().SetOrnament(ornament);
     }
   private:
     const PDTTrack::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
-
-    PDTTrack::BuildContext Context;
+    PatternsBuilder Builder;
   };
 
   Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
@@ -164,7 +164,7 @@ namespace ProDigiTracker
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
-    {
+    {   
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -414,7 +414,7 @@ namespace ProDigiTracker
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       const PDTTrack::ModuleData::RWPtr modData = PDTTrack::ModuleData::Create();
-      Builder builder(modData, properties);
+      DataBuilder builder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(*data, builder))
       {
         usedSize = container->Size();

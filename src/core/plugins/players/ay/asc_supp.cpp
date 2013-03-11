@@ -144,8 +144,9 @@ namespace ASCSoundMaster
     DataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Context(*Data)
+      , Builder(PatternsBuilder::Create<Track::CHANNELS>())
     {
+      Data->Patterns = Builder.GetPatterns();
     }
 
     virtual void SetProgram(const String& program)
@@ -188,42 +189,42 @@ namespace ASCSoundMaster
 
     virtual void StartPattern(uint_t index)
     {
-      Context.SetPattern(index);
+      Builder.SetPattern(index);
     }
 
     virtual void FinishPattern(uint_t size)
     {
-      Context.FinishPattern(size);
+      Builder.FinishPattern(size);
     }
 
     virtual void StartLine(uint_t index)
     {
-      Context.SetLine(index);
+      Builder.SetLine(index);
     }
 
     virtual void SetTempo(uint_t tempo)
     {
-      Context.CurLine->SetTempo(tempo);
+      Builder.GetLine().SetTempo(tempo);
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Context.SetChannel(index);
+      Builder.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Context.CurChannel->SetEnabled(false);
+      Builder.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      MutableCell* const channel = Context.CurChannel;
-      if (!channel->FindCommand(BREAK_SAMPLE))
+      MutableCell& channel = Builder.GetChannel();
+      if (!channel.FindCommand(BREAK_SAMPLE))
       {
-        channel->SetEnabled(true);
+        channel.SetEnabled(true);
       }
-      if (Command* cmd = channel->FindCommand(SLIDE))
+      if (Command* cmd = channel.FindCommand(SLIDE))
       {
         //set slide to note
         cmd->Type = SLIDE_NOTE;
@@ -231,101 +232,100 @@ namespace ASCSoundMaster
       }
       else
       {
-        channel->SetNote(note);
+        channel.SetNote(note);
       }
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Context.CurChannel->SetSample(sample);
+      Builder.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Context.CurChannel->SetOrnament(ornament);
+      Builder.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Context.CurChannel->SetVolume(vol);
+      Builder.GetChannel().SetVolume(vol);
     }
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      MutableCell* const channel = Context.CurChannel;
-      if (Command* cmd = channel->FindCommand(ENVELOPE))
+      MutableCell& channel = Builder.GetChannel();
+      if (Command* cmd = channel.FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
       }
       else
       {
-        channel->AddCommand(ENVELOPE, int_t(type), -1);
+        channel.AddCommand(ENVELOPE, int_t(type), -1);
       }
     }
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      MutableCell* const channel = Context.CurChannel;
-      if (Command* cmd = channel->FindCommand(ENVELOPE))
+      MutableCell& channel = Builder.GetChannel();
+      if (Command* cmd = channel.FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);
       }
       else
       {
         //strange situation
-        channel->AddCommand(ENVELOPE, -1, int_t(tone));
+        channel.AddCommand(ENVELOPE, -1, int_t(tone));
       }
     }
 
     virtual void SetEnvelope()
     {
-      Context.CurChannel->AddCommand(ENVELOPE_ON);
+      Builder.GetChannel().AddCommand(ENVELOPE_ON);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->AddCommand(ENVELOPE_OFF);
+      Builder.GetChannel().AddCommand(ENVELOPE_OFF);
     }
 
     virtual void SetNoise(uint_t val)
     {
-      Context.CurChannel->AddCommand(NOISE, val);
+      Builder.GetChannel().AddCommand(NOISE, val);
     }
 
     virtual void SetContinueSample()
     {
-      Context.CurChannel->AddCommand(CONT_SAMPLE);
+      Builder.GetChannel().AddCommand(CONT_SAMPLE);
     }
 
     virtual void SetContinueOrnament()
     {
-      Context.CurChannel->AddCommand(CONT_ORNAMENT);
+      Builder.GetChannel().AddCommand(CONT_ORNAMENT);
     }
 
     virtual void SetGlissade(int_t val)
     {
-      Context.CurChannel->AddCommand(GLISS, val);
+      Builder.GetChannel().AddCommand(GLISS, val);
     }
 
     virtual void SetSlide(int_t steps)
     {
-      Context.CurChannel->AddCommand(SLIDE, steps);
+      Builder.GetChannel().AddCommand(SLIDE, steps);
     }
 
     virtual void SetVolumeSlide(uint_t period, int_t delta)
     {
-      Context.CurChannel->AddCommand(AMPLITUDE_SLIDE, period, delta);
+      Builder.GetChannel().AddCommand(AMPLITUDE_SLIDE, period, delta);
     }
 
     virtual void SetBreakSample()
     {
-      Context.CurChannel->AddCommand(BREAK_SAMPLE);
+      Builder.GetChannel().AddCommand(BREAK_SAMPLE);
     }
   private:
     const Track::ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
-
-    Track::BuildContext Context;
+    PatternsBuilder Builder;
   };
 
   const uint_t LIMITER(~uint_t(0));

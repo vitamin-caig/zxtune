@@ -337,20 +337,20 @@ namespace
 
   class DMMHolder : public Holder
   {
-    static void ParsePattern(uint_t size, const DMM::Pattern& src, DMM::Track::BuildContext& result)
+    static void ParsePattern(uint_t size, const DMM::Pattern& src, PatternsBuilder& builder)
     {
       for (uint_t lineNum = 0; lineNum != size; ++lineNum)
       {
         const DMM::Pattern::Line& srcLine = src.Lines[lineNum];
-        result.SetLine(lineNum);
+        builder.SetLine(lineNum);
         for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
         {
-          result.SetChannel(chanNum);
+          builder.SetChannel(chanNum);
           const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          DMM::ParseChannel(srcChan, *result.CurChannel);
+          DMM::ParseChannel(srcChan, builder.GetChannel());
           if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
           {
-            result.CurLine->SetTempo(srcChan.SampleParam);
+            builder.GetLine().SetTempo(srcChan.SampleParam);
           }
         }
       }
@@ -374,12 +374,13 @@ namespace
       const std::size_t patternsCount = 1 + *std::max_element(header.Positions.begin(), header.Positions.begin() + positionsCount);
       const uint_t patternSize = header.PatternSize;
       {
-        DMM::Track::BuildContext build(*Data);
+        PatternsBuilder builder = PatternsBuilder::Create<DMM::CHANNELS_COUNT>();
+        Data->Patterns = builder.GetPatterns();
         for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, DMM::PATTERNS_COUNT); ++patIdx)
         {
           const DMM::Pattern* const src = safe_ptr_cast<const DMM::Pattern*>(&header + 1) + patIdx * patternSize;
-          build.SetPattern(patIdx);
-          ParsePattern(patternSize, *src, build);
+          builder.SetPattern(patIdx);
+          ParsePattern(patternSize, *src, builder);
         }
       }
 

@@ -61,7 +61,7 @@ namespace
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
       const SampleTracker::Track::ModuleData::RWPtr modData = SampleTracker::Track::ModuleData::Create();
-      SampleTracker::Builder builder(modData, properties);
+      SampleTracker::DataBuilder builder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(*data, builder))
       {
         usedSize = container->Size();

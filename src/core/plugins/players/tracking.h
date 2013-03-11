@@ -374,74 +374,78 @@ namespace ZXTune
       PatternsSet::Ptr Patterns;
     };
 
-    // Basic template class for tracking support (used as simple parametrized namespace)
-    class BaseTrackingSupport
+    class PatternsBuilder
     {
     public:
-      struct BaseBuildContext
+      explicit PatternsBuilder(boost::shared_ptr<MutablePatternsSet> patterns)
+        : Patterns(patterns)
+        , CurPattern()
+        , CurLine()
+        , CurChannel()
       {
-        boost::shared_ptr<MutablePatternsSet> Patterns;
-        MutablePattern* CurPattern;
-        MutableLine* CurLine;
-        MutableCell* CurChannel;
+      }
 
-        BaseBuildContext()
-          : CurPattern()
-          , CurLine()
-          , CurChannel()
-        {
-        }
-
-        void SetPattern(uint_t idx)
-        {
-          CurPattern = &Patterns->AddPattern(idx);
-          CurLine = 0;
-          CurChannel = 0;
-        }
-
-        void SetLine(uint_t idx)
-        {
-          CurLine = &CurPattern->AddLine(idx);
-          CurChannel = 0;
-        }
-
-        void SetChannel(uint_t idx)
-        {
-          CurChannel = &CurLine->AddChannel(idx);
-        }
-
-        void FinishPattern(uint_t size)
-        {
-          CurPattern->SetSize(size);
-          CurLine = 0;
-          CurPattern = 0;
-        }
-      };
-    };
-
-    template<uint_t ChannelsCount>
-    class FixedChannelTrackingSupport : public BaseTrackingSupport
-    {
-    public:
-      static const uint_t CHANNELS = ChannelsCount;
-
-      struct BuildContext : public BaseBuildContext
+      void SetPattern(uint_t idx)
       {
-        typedef MultichannelMutableLine<ChannelsCount> MutableLineType;
-        typedef SparsedMutablePattern<MutableLineType> MutablePatternType;
+        CurPattern = &Patterns->AddPattern(idx);
+        CurLine = 0;
+        CurChannel = 0;
+      }
 
-        template<class OrderListType>
-        explicit BuildContext(StaticTrackModel<OrderListType>& model)
-        {
-          model.Patterns = Patterns = boost::make_shared<SparsedMutablePatternsSet<MutablePatternType> >();
-        }
-      };
+      void SetLine(uint_t idx)
+      {
+        CurLine = &CurPattern->AddLine(idx);
+        CurChannel = 0;
+      }
+
+      void SetChannel(uint_t idx)
+      {
+        CurChannel = &CurLine->AddChannel(idx);
+      }
+
+      void FinishPattern(uint_t size)
+      {
+        CurPattern->SetSize(size);
+        CurLine = 0;
+        CurPattern = 0;
+      }
+
+      MutableLine& GetLine() const
+      {
+        return *CurLine;
+      }
+
+      MutableCell& GetChannel() const
+      {
+        return *CurChannel;
+      }
+
+      PatternsSet::Ptr GetPatterns() const
+      {
+        return Patterns;
+      }
+
+      template<uint_t ChannelsCount>
+      static PatternsBuilder Create()
+      {
+        typedef MultichannelMutableLine<ChannelsCount> LineType;
+        typedef SparsedMutablePattern<LineType> PatternType;
+        typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
+        return PatternsBuilder(boost::make_shared<PatternsSetType>());
+      }
+    private:  
+      const boost::shared_ptr<MutablePatternsSet> Patterns;
+      MutablePattern* CurPattern;
+      MutableLine* CurLine;
+      MutableCell* CurChannel;
     };
 
     template<uint_t Channels, class SampleType, class OrnamentType = SimpleOrnament, class OrderListType = OrderList>
-    class TrackingSupport : public FixedChannelTrackingSupport<Channels>
+    class TrackingSupport
     {
     public:
+      static const uint_t CHANNELS = Channels;
+
       typedef SampleType Sample;
       typedef OrnamentType Ornament;
 

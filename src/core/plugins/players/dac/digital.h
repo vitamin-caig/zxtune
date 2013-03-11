@@ -38,14 +38,15 @@ namespace ZXTune
 
         typedef TrackingSupport<Channels, Devices::DAC::Sample::Ptr, VoidType> Track;
 
-        class Builder : public Formats::Chiptune::Digital::Builder
+        class DataBuilder : public Formats::Chiptune::Digital::Builder
         {
         public:
-          Builder(typename Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+          DataBuilder(typename Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
             : Data(data)
             , Properties(props)
-            , Context(*Data)
+            , Builder(PatternsBuilder::Create<Channels>())
           {
+            Data->Patterns = Builder.GetPatterns();
           }
 
           virtual void SetTitle(const String& title)
@@ -78,44 +79,43 @@ namespace ZXTune
 
           virtual void StartPattern(uint_t index)
           {
-            Context.SetPattern(index);
+            Builder.SetPattern(index);
           }
 
           virtual void StartLine(uint_t index)
           {
-            Context.SetLine(index);
+            Builder.SetLine(index);
           }
 
           virtual void SetTempo(uint_t tempo)
           {
-            Context.CurLine->SetTempo(tempo);
+            Builder.GetLine().SetTempo(tempo);
           }
 
           virtual void StartChannel(uint_t index)
           {
-            Context.SetChannel(index);
+            Builder.SetChannel(index);
           }
 
           virtual void SetRest()
           {
-            Context.CurChannel->SetEnabled(false);
+            Builder.GetChannel().SetEnabled(false);
           }
 
           virtual void SetNote(uint_t note)
           {
-            Context.CurChannel->SetEnabled(true);
-            Context.CurChannel->SetNote(note);
+            Builder.GetChannel().SetEnabled(true);
+            Builder.GetChannel().SetNote(note);
           }
 
           virtual void SetSample(uint_t sample)
           {
-            Context.CurChannel->SetSample(sample);
+            Builder.GetChannel().SetSample(sample);
           }
         private:
           const typename Track::ModuleData::RWPtr Data;
           const ModuleProperties::RWPtr Properties;
-
-          typename Track::BuildContext Context;
+          PatternsBuilder Builder;
         };
 
         class Renderer : public ZXTune::Module::Renderer
