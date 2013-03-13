@@ -16,6 +16,7 @@ Author:
 #include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/simple_orderlist.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -106,41 +107,7 @@ namespace ProSoundMaker
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class OrderListWithTransposition : public OrderList
-  {
-  public:
-    typedef boost::shared_ptr<const OrderListWithTransposition> Ptr;
-
-    template<class It>
-    OrderListWithTransposition(uint_t loop, It from, It to)
-      : Loop(loop)
-      , Positions(from, to)
-    {
-    }
-
-    virtual uint_t GetSize() const
-    {
-      return Positions.size();
-    }
-
-    virtual uint_t GetPatternIndex(uint_t pos) const
-    {
-      return Positions[pos].PatternIndex;
-    }
-
-    virtual uint_t GetLoopPosition() const
-    {
-      return Loop;
-    }
-
-    int_t GetTransposition(uint_t pos) const
-    {
-      return Positions[pos].Transposition;
-    }
-  private:
-    const uint_t Loop;
-    const std::vector<Formats::Chiptune::ProSoundMaker::PositionEntry> Positions;
-  };
+  typedef SimpleOrderListWithTransposition<Formats::Chiptune::ProSoundMaker::PositionEntry> OrderListWithTransposition;
 
   class ModuleData : public TrackModel
   {

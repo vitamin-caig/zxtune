@@ -17,6 +17,7 @@ Author:
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/simple_orderlist.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -109,7 +110,7 @@ namespace ProTracker3
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(positions.begin(), positions.end(), loop);
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual void StartPattern(uint_t index)

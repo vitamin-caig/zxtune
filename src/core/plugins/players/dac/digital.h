@@ -18,6 +18,7 @@ Author:
 #include "core/plugins/utils.h"
 #include "core/plugins/players/tracking.h"
 #include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/simple_orderlist.h"
 //library includes
 #include <core/module_holder.h>
 #include <devices/dac_sample_factories.h>
@@ -102,7 +103,7 @@ namespace ZXTune
 
         virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
         {
-          Data->Order = boost::make_shared<SimpleOrderList>(positions.begin(), positions.end(), loop);
+          Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
         }
 
         virtual void StartPattern(uint_t index)

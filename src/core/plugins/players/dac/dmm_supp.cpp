@@ -15,6 +15,7 @@ Author:
 #include "core/plugins/utils.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/tracking.h"
 //common includes
 #include <byteorder.h>
@@ -382,7 +383,7 @@ namespace
 
       //fill order
       const uint_t positionsCount = header.Length + 1;
-      Data->Order = boost::make_shared<SimpleOrderList>(header.Positions.begin(), header.Positions.begin() + positionsCount, header.Loop);
+      Data->Order = boost::make_shared<SimpleOrderList>(header.Loop, header.Positions.begin(), header.Positions.begin() + positionsCount);
 
       //fill patterns
       const std::size_t patternsCount = 1 + *std::max_element(header.Positions.begin(), header.Positions.begin() + positionsCount);

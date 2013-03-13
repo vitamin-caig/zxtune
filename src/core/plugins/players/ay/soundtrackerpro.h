@@ -15,6 +15,8 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "core/plugins/players/simple_orderlist.h"
+#include "core/plugins/players/simple_ornament.h"
 //library includes
 #include <formats/chiptune/soundtrackerpro.h>
 
@@ -60,42 +62,7 @@ namespace SoundTrackerPro
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class OrderListWithTransposition : public OrderList
-  {
-  public:
-    typedef boost::shared_ptr<const OrderListWithTransposition> Ptr;
-
-    template<class It>
-    OrderListWithTransposition(uint_t loop, It from, It to)
-      : Loop(loop)
-      , Positions(from, to)
-    {
-    }
-
-    virtual uint_t GetSize() const
-    {
-      return Positions.size();
-    }
-
-    virtual uint_t GetPatternIndex(uint_t pos) const
-    {
-      return Positions[pos].PatternIndex;
-    }
-
-    virtual uint_t GetLoopPosition() const
-    {
-      return Loop;
-    }
-
-    int_t GetTransposition(uint_t pos) const
-    {
-      return Positions[pos].Transposition;
-    }
-  private:
-    const uint_t Loop;
-    const std::vector<Formats::Chiptune::SoundTrackerPro::PositionEntry> Positions;
-  };
-
+  typedef SimpleOrderListWithTransposition<Formats::Chiptune::SoundTrackerPro::PositionEntry> OrderListWithTransposition;
   typedef SimpleOrnament Ornament;
 
   class ModuleData : public TrackModel

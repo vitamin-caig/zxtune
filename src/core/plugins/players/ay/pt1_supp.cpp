@@ -16,6 +16,8 @@ Author:
 #include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/simple_orderlist.h"
+#include "core/plugins/players/simple_ornament.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -78,7 +80,6 @@ namespace ProTracker1
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  //SimpleOrnament::Loop is not used
   typedef SimpleOrnament Ornament;
 
   class ModuleData : public TrackModel
@@ -154,12 +155,12 @@ namespace ProTracker1
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker1::Ornament& ornament)
     {
-      Data->Ornaments.Add(index, Ornament(0, ornament.Lines.begin(), ornament.Lines.end()));
+      Data->Ornaments.Add(index, Ornament(ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(positions.begin(), positions.end(), loop);
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual void StartPattern(uint_t index)

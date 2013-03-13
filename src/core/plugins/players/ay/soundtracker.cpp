@@ -54,7 +54,7 @@ namespace SoundTracker
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::SoundTracker::Ornament& ornament)
     {
-      Data->Ornaments.Add(index, Ornament(0, ornament.begin(), ornament.end()));
+      Data->Ornaments.Add(index, Ornament(ornament.begin(), ornament.end()));
     }
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions)

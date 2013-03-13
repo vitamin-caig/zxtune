@@ -27,39 +27,6 @@ namespace ZXTune
 {
   namespace Module
   {
-    // Ornament is just a set of tone offsets
-    class SimpleOrnament
-    {
-    public:
-      SimpleOrnament() : Loop(), Lines()
-      {
-      }
-
-      template<class It>
-      SimpleOrnament(uint_t loop, It from, It to) : Loop(loop), Lines(from, to)
-      {
-      }
-
-      uint_t GetLoop() const
-      {
-        return Loop;
-      }
-
-      uint_t GetSize() const
-      {
-        return static_cast<uint_t>(Lines.size());
-      }
-
-      int_t GetLine(uint_t pos) const
-      {
-        return Lines.size() > pos ? Lines[pos] : 0;
-      }
-
-    private:
-      uint_t Loop;
-      std::vector<int_t> Lines;
-    };
-
     class MutableCell : public Cell
     {
     public:
@@ -125,35 +92,6 @@ namespace ZXTune
     {
     public:
       virtual MutablePattern& AddPattern(uint_t idx) = 0;
-    };
-
-    class SimpleOrderList : public OrderList
-    {
-    public:
-      template<class It>
-      SimpleOrderList(It from, It to, uint_t loop)
-        : Order(from, to)
-        , Loop(loop)
-      {
-      }
-
-      virtual uint_t GetSize() const
-      {
-        return Order.size();
-      }
-
-      virtual uint_t GetPatternIndex(uint_t pos) const
-      {
-        return Order[pos];
-      }
-
-      virtual uint_t GetLoopPosition() const
-      {
-        return Loop;
-      }
-    private:
-      const std::vector<uint_t> Order;
-      const uint_t Loop;
     };
 
     template<uint_t ChannelsCount>

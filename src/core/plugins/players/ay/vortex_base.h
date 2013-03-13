@@ -15,6 +15,7 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "core/plugins/players/simple_ornament.h"
 //library includes
 #include <core/module_holder.h>
 #include <devices/aym.h>
@@ -100,7 +101,6 @@ namespace ZXTune
         NOISEBASE,
       };
 
-      //SimpleOrnament::Loop is not used
       typedef SimpleOrnament Ornament;
 
       class ModuleData : public TrackModel
