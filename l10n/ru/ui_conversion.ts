@@ -367,12 +367,12 @@
         <translation>Создавать промежуточные директории для файлов результата</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="170"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="173"/>
         <source>Invalid parameter</source>
         <translation>Неправильный параметр</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="171"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="174"/>
         <source>Filename template is empty</source>
         <translation>Шаблон имени пустой</translation>
     </message>

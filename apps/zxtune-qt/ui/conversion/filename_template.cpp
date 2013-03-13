@@ -85,7 +85,10 @@ namespace
       const QString dir = DirectoryName->currentText();
       if (dir.size() != 0)
       {
-        return dir + QLatin1Char('/') + name;
+        static const QLatin1Char SEPARATOR('/');
+        return dir.endsWith(SEPARATOR)
+          ? dir + name
+          : dir + SEPARATOR + name;
       }
       return name;
     }
