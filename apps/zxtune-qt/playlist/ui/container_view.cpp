@@ -32,6 +32,8 @@ Author:
 //std includes
 #include <cassert>
 //qt includes
+#include <QtCore/QCoreApplication>
+#include <QtCore/QDir>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QMenu>
 
@@ -83,6 +85,16 @@ namespace
     Playlist::Controller::Ptr Current;
   };
 
+  void LoadDefaultPlaylists(Playlist::Container& container)
+  {
+    const QDir appDir(QCoreApplication::applicationDirPath());
+    const QFileInfoList files = appDir.entryInfoList(QStringList("*.xspf"), QDir::Files | QDir::Readable, QDir::Name);
+    for (QFileInfoList::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
+    {
+      container.OpenPlaylist(it->absoluteFilePath());
+    }
+  }
+
   class ContainerViewImpl : public Playlist::UI::ContainerView
                           , public Playlist::UI::Ui_ContainerView
   {
@@ -127,16 +139,23 @@ namespace
     {
       if (items.empty())
       {
-        Session->Load(Container);
-        if (widgetsContainer->count() == 0)
+        if (Session->Empty())
         {
-          CreateAnonymousPlaylist();
+          LoadDefaultPlaylists(*Container);
+        }
+        else
+        {
+          Session->Load(Container);
         }
       }
       else
       {
         Playlist::UI::View& pl = CreateAnonymousPlaylist();
         pl.AddItems(items);
+      }
+      if (widgetsContainer->count() == 0)
+      {
+        CreateAnonymousPlaylist();
       }
     }
 

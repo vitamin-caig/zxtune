@@ -82,6 +82,11 @@ namespace
       Dbg("%1% stored playlists", Files.size());
     }
 
+    virtual bool Empty() const
+    {
+      return Files.empty();
+    }
+
     virtual void Load(Playlist::Container::Ptr container)
     {
       for (QStringList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
