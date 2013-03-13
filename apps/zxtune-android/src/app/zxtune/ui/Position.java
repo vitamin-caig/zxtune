@@ -20,11 +20,11 @@ import app.zxtune.*;
 
 public class Position extends Fragment {
 
-  private final Playback.Control control;
+  private Playback.Control control;
   private final Playback.Callback callback = new StatusCallback();
   private SeekBar position;
 
-  public Position(Playback.Control control) {
+  public void setControl(Playback.Control control) {
     this.control = control;
   }
 
@@ -71,7 +71,9 @@ public class Position extends Fragment {
     }
 
     public void positionChanged(int curFrame, String curTime) {
-      position.setProgress(curFrame);
+      if (position != null) {
+        position.setProgress(curFrame);
+      }
     }
   }
 }

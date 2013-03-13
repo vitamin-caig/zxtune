@@ -7,13 +7,14 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:orientation="horizontal" >
-      <Spinner
-        android:id="@+id/browser_roots"
+      <Button
+        android:id="@+id/browser_sources"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="0"
+        android:background="@android:drawable/ic_menu_more"
       />
-      <HorizontalScrollView
+      <app.zxtune.ui.BreadCrumbsUriView
         android:id="@+id/browser_breadcrumb"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

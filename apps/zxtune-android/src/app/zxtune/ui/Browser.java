@@ -14,11 +14,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import android.app.Activity;
 import android.content.Context;
-import android.database.DataSetObserver;
+import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -26,46 +27,43 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.HorizontalScrollView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.SimpleAdapter;
-import android.widget.Spinner;
-import android.widget.SpinnerAdapter;
-import android.widget.TextView;
+import app.zxtune.PlaybackService;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 
-public class Browser extends Fragment {
+public class Browser extends Fragment implements BreadCrumbsUriView.OnUriSelectionListener {
 
-  public static interface Callback {
-
-    public void onFileSelected(Uri uri);
-  }
-
-  private final Context context;
-  private final Callback callback;
+  private Context context;
   private final Vfs.Dir roots;
 
+  private Button sources;
+  private BreadCrumbsUriView position;
   private ListView listing;
-  private BreadCrumbNavigation position;
+  private Uri current;
 
-  private static final String TAG = "app.zxtune.ui.Browser";
-  
-  private static class Columns {
+  private static class Tags {
 
+    static final String LOG = "app.zxtune.ui.Browser";
     static final String ICON = "icon";
     static final String NAME = "name";
     static final String SIZE = "size";
+    static final String PATH = "path";
   }
 
-  public Browser(Context context, Callback callback) {
-    this.context = context;
-    this.callback = callback;
+  public Browser() {
     this.roots = Vfs.getRoot();
+  }
+  
+  @Override
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    this.context = activity;
   }
 
   @Override
@@ -76,20 +74,36 @@ public class Browser extends Fragment {
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    final Spinner rootsList = (Spinner) view.findViewById(R.id.browser_roots);
-    final Vfs.Entry[] allRoots = roots.list();
-    rootsList.setAdapter(createSpinnerAdapter(context, allRoots));
-    rootsList.setOnItemSelectedListener(new ItemSelectionListener(allRoots));
-    position = new BreadCrumbNavigation((HorizontalScrollView) view.findViewById(R.id.browser_breadcrumb));
+    sources = (Button) view.findViewById(R.id.browser_sources);
+    sources.setOnClickListener(new SourcesClickListener());
+    position = (BreadCrumbsUriView) view.findViewById(R.id.browser_breadcrumb);
+    position.setOnUriSelectionListener(this);
     listing = (ListView) view.findViewById(R.id.browser_content);
+  }
+  
+  @Override
+  public void onViewStateRestored(Bundle inState) {
+    super.onViewStateRestored(inState);
+    final Uri lastPath = inState != null ? (Uri) inState.getParcelable(Tags.PATH) : Uri.EMPTY;
+    if (lastPath != Uri.EMPTY) {
+      Log.d(Tags.LOG, "Restore position: " + lastPath);
+      onUriSelection(lastPath);
+    }
+  }
+  
+  @Override
+  public void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    Log.d(Tags.LOG, "Store position: " + current);
+    outState.putParcelable(Tags.PATH, current);
   }
 
   private static SimpleAdapter createSpinnerAdapter(Context context, Vfs.Entry[] entries) {
 
     final ArrayList<Map<String, Object>> data = createItemsData(entries);
 
-    final String[] fromFields = {Columns.NAME};
-    final int[] toFields = {R.id.browser_item_name};
+    final String[] fromFields = {Tags.ICON, Tags.NAME};
+    final int[] toFields = {R.id.browser_item_icon, R.id.browser_item_name};
 
     return new SimpleAdapter(context, data, R.layout.browser_item, fromFields, toFields);
   }
@@ -98,7 +112,7 @@ public class Browser extends Fragment {
 
     final ArrayList<Map<String, Object>> data = createItemsData(entries);
 
-    final String[] fromFields = {Columns.ICON, Columns.NAME, Columns.SIZE};
+    final String[] fromFields = {Tags.ICON, Tags.NAME, Tags.SIZE};
     final int[] toFields = {R.id.browser_item_icon, R.id.browser_item_name, R.id.browser_item_size};
 
     return new SimpleAdapter(context, data, R.layout.browser_item, fromFields, toFields);
@@ -110,7 +124,9 @@ public class Browser extends Fragment {
 
     for (Vfs.Entry entry : entries) {
       final Map<String, Object> item = createItemData(entry);
-      data.add(item);
+      if (item != null) {
+        data.add(item);
+      }
     }
     return data;
   }
@@ -126,51 +142,58 @@ public class Browser extends Fragment {
     }
   }
 
-  private static Map<String, Object> createItemData(Vfs.Dir file) {
+  private static Map<String, Object> createItemData(Vfs.Dir dir) {
 
     final Map<String, Object> result = new HashMap<String, Object>();
-    result.put(Columns.ICON, R.drawable.ic_browser_folder);
-    result.put(Columns.NAME, file.name());
+    result.put(Tags.ICON, R.drawable.ic_browser_folder);
+    result.put(Tags.NAME, dir.name());
     return result;
   }
 
   private static Map<String, Object> createItemData(Vfs.File file) {
 
     final Map<String, Object> result = new HashMap<String, Object>();
-    result.put(Columns.ICON, R.drawable.ic_browser_file);
-    result.put(Columns.NAME, file.name());
-    result.put(Columns.SIZE, file.size());
+    result.put(Tags.ICON, R.drawable.ic_browser_file);
+    result.put(Tags.NAME, file.name());
+    result.put(Tags.SIZE, file.size());
     return result;
   }
 
+  private final void fileSelected(Uri uri) {
+    final Intent intent = new Intent(Intent.ACTION_VIEW, uri, context, PlaybackService.class);
+    context.startService(intent);
+  }
+  
   private final void navigate(Vfs.Entry entry) {
     if (entry instanceof Vfs.Dir) {
       navigate((Vfs.Dir) entry);
     } else if (entry instanceof Vfs.File) {
-      callback.onFileSelected(entry.uri());
+      fileSelected(entry.uri());
     }
   }
-
+  
   private final void navigate(Vfs.Dir dir) {
     final Uri uri = dir.uri();
     final Vfs.Entry[] entries = dir.list();
     if (entries == null) {
-      // showAlert();
+      Log.d(Tags.LOG, "Unable to read entries for " + uri);
+      final Vfs.Entry[] NO_ENTRIES = {};
+      setCurrentPath(uri);
+      setCurrentEntries(NO_ENTRIES);
     } else {
       setCurrentPath(uri);
       setCurrentEntries(entries);
     }
   }
 
-  private final void navigate(Uri uri) {
+  public void onUriSelection(Uri uri) {
     navigate(roots.resolve(uri));
   }
 
   private final void setCurrentPath(Uri uri) {
-    Log.d(TAG, "Set current path to " + uri); 
-    if (uri != null) {
-      position.setPath(uri);
-    }
+    Log.d(Tags.LOG, "Set current path to " + uri);
+    current = uri;
+    position.setUri(uri);
   }
 
   private final void setCurrentEntries(Vfs.Entry[] entries) {
@@ -188,32 +211,43 @@ public class Browser extends Fragment {
       final boolean lhDir = lh instanceof Vfs.Dir;
       final boolean rhDir = rh instanceof Vfs.Dir;
       if (lhDir == rhDir) {
-        return lh.name().compareTo(rh.name());
+        return lh.name().compareToIgnoreCase(rh.name());
       } else {
         return lhDir ? -1 : +1;
       }
     }
   }
 
-  private class ItemSelectionListener implements AdapterView.OnItemSelectedListener {
-
-    final Vfs.Entry[] entries;
-
-    ItemSelectionListener(Vfs.Entry[] entries) {
-      this.entries = entries;
-    }
+  private class SourcesClickListener implements View.OnClickListener {
 
     @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-      navigate(entries[position]);
-    }
+    public void onClick(View v) {
+      final Vfs.Entry[] entries = roots.list();
+      final SimpleAdapter adapter = createSpinnerAdapter(context, entries);
+      final ListView view = new ListView(v.getContext());
+      view.setAdapter(adapter);
+      
+      final Context context = v.getContext();
+      final View root = view.inflate(context, R.layout.popup, null);
+      final ViewGroup rootLayout = (ViewGroup) root.findViewById(R.id.popup_layout);
+      rootLayout.addView(view);
 
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
+      final PopupWindow popup = new PopupWindow(root, WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, true);
+      popup.setBackgroundDrawable(new BitmapDrawable());
+      popup.setTouchable(true);
+      popup.setOutsideTouchable(true);
+      
+      view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+          popup.dismiss();
+          navigate(entries[position]);
+        }
+      });
+      popup.showAsDropDown(v);
     }
   }
-
+  
   private class ItemClickListener implements AdapterView.OnItemClickListener {
 
     final Vfs.Entry[] entries;
@@ -225,75 +259,6 @@ public class Browser extends Fragment {
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
       navigate(entries[position]);
-    }
-  }
-
-  private class PathElementClickListener implements View.OnClickListener {
-
-    final Uri uri;
-
-    PathElementClickListener(Uri uri) {
-      this.uri = uri;
-    }
-
-    @Override
-    public void onClick(View v) {
-      navigate(uri);
-    }
-  }
-
-  private class BreadCrumbNavigation {
-
-    private final HorizontalScrollView scroll;
-    private final ViewGroup container;
-    private final ArrayList<Button> buttons;
-
-    public BreadCrumbNavigation(HorizontalScrollView scroll) {
-      this.scroll = scroll;
-      this.container = new LinearLayout(context);
-      this.buttons = new ArrayList<Button>();
-      scroll.addView(container);
-    }
-
-    public void setPath(Uri uri) {
-      final List<String> elements = getPathElements(uri); 
-      final int newElements = elements.size();
-      final int curElements = buttons.size();
-      final int toUpdate = Math.min(newElements, curElements);
-      final Uri.Builder subUri = uri.buildUpon();
-      subUri.path("");
-      for (int idx = 0; idx != toUpdate; ++idx) {
-        final String pathElement = elements.get(idx);
-        subUri.appendPath(pathElement);
-        buttons.get(idx).setText(pathElement);
-      }
-      for (int toAdd = curElements; toAdd < newElements; ++toAdd) {
-        final String pathElement = elements.get(toAdd);
-        subUri.appendPath(pathElement);
-        final Button button = new Button(context);
-        button.setText(pathElement);
-        button.setOnClickListener(new PathElementClickListener(subUri.build()));
-        buttons.add(button);
-        container.addView(button);
-      }
-      for (int toDel = curElements; toDel > newElements; --toDel) {
-        buttons.remove(toDel - 1);
-        container.removeViewAt(toDel - 1);
-      }
-      //workaround for layout timing issues
-      scroll.post(new Runnable() {
-        @Override
-        public void run() {
-          scroll.smoothScrollTo(Integer.MAX_VALUE, 0);
-        }
-      });
-    }
-    
-    private final List<String> getPathElements(Uri uri) {
-      final List<String> elements = new ArrayList<String>(); 
-      elements.add("/");
-      elements.addAll(uri.getPathSegments());
-      return elements;
     }
   }
 }

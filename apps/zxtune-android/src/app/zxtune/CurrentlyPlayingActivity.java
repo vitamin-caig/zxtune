@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.view.View;
 import app.zxtune.fs.Provider;
 import app.zxtune.fs.Vfs;
@@ -35,6 +36,8 @@ public class CurrentlyPlayingActivity extends FragmentActivity implements Browse
     if (savedInstanceState == null) {
       createView();
     }
+    getPart(Position.class).setControl(control);
+    getPart(Controls.class).setControl(control);
   }
 
   @Override
@@ -43,15 +46,21 @@ public class CurrentlyPlayingActivity extends FragmentActivity implements Browse
     MessengerRPC.ControlClient.destroy(control);
   }
 
-  private void createView() {
-    final Fragment seek = new Position(control);
-    final Fragment ctrl = new Controls(control);
-    final Fragment playlist = new Browser(this, this);
+  private final void createView() {
+    final Fragment seek = new Position();
+    final Fragment ctrl = new Controls();
+    final Fragment playlist = new Browser();
     getSupportFragmentManager().beginTransaction()
-        .replace(R.id.position_view, seek)
-        .replace(R.id.controls_view, ctrl)
-        .replace(R.id.playlist_view, playlist)
+        .replace(R.id.position_view, seek, seek.getClass().getName())
+        .replace(R.id.controls_view, ctrl, ctrl.getClass().getName())
+        .replace(R.id.playlist_view, playlist, playlist.getClass().getName())
         .commit();
+  }
+  
+  private final <T extends Fragment> T getPart(Class<T> type) {
+    final FragmentManager mgr = getSupportFragmentManager(); 
+    mgr.executePendingTransactions();
+    return (T) mgr.findFragmentByTag(type.getName());
   }
   
   @Override

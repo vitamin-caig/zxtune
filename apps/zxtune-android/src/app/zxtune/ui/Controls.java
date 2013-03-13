@@ -20,9 +20,9 @@ import app.zxtune.*;
 
 public class Controls extends Fragment {
   
-  private final Playback.Control control;
+  private Playback.Control control;
   
-  public Controls(Playback.Control control) {
+  public void setControl(Playback.Control control) {
     this.control = control;
   }
   
@@ -53,17 +53,5 @@ public class Controls extends Fragment {
         control.stop();
       }
     });
-  }
-  
-  public void onClickPlay(View v) {
-    control.play();
-  }
-  
-  public void onClickPause(View v) {
-    control.pause();
-  }
-  
-  public void onClickStop(View v) {
-    control.stop();
   }
 }
