@@ -48,12 +48,42 @@ namespace ChipTracker
     SLIDE
   };
 
-  //stub for ornament
-  struct VoidType {};
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
 
-  typedef TrackingSupport<CHANNELS_COUNT, Devices::DAC::Sample::Ptr, VoidType> CHITrack;
+  class ModuleData : public TrackModel
+  {
+  public:
+    typedef boost::shared_ptr<ModuleData> RWPtr;
+    typedef boost::shared_ptr<const ModuleData> Ptr;
 
-  std::auto_ptr<Formats::Chiptune::ChipTracker::Builder> CreateDataBuilder(CHITrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props);
+    ModuleData()
+      : InitialTempo()
+    {
+    }
+
+    virtual uint_t GetInitialTempo() const
+    {
+      return InitialTempo;
+    }
+
+    virtual const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
+    virtual const PatternsSet& GetPatterns() const
+    {
+      return *Patterns;
+    }
+
+    uint_t InitialTempo;
+    OrderList::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
+  };
+
+  std::auto_ptr<Formats::Chiptune::ChipTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
 }
 
 namespace ChipTracker
@@ -61,10 +91,10 @@ namespace ChipTracker
   class DataBuilder : public Formats::Chiptune::ChipTracker::Builder
   {
   public:
-    DataBuilder(CHITrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<CHITrack::CHANNELS>())
+      , Builder(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
       Data->Patterns = Builder.GetPatterns();
     }
@@ -91,8 +121,7 @@ namespace ChipTracker
 
     virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
     {
-      Data->Samples.resize(index + 1);
-      Data->Samples[index] = Devices::DAC::CreateU8Sample(sample, loop);
+      Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -146,7 +175,7 @@ namespace ChipTracker
       Builder.GetChannel().AddCommand(SAMPLE_OFFSET, offset);
     }
   private:
-    const CHITrack::ModuleData::RWPtr Data;
+    const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     PatternsBuilder Builder;
   };
@@ -156,12 +185,12 @@ namespace ChipTracker
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
-  class CHIHolder : public Holder
+  class ModuleHolder : public Holder
   {
   public:
-    CHIHolder(CHITrack::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    ModuleHolder(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
@@ -185,19 +214,19 @@ namespace ChipTracker
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, BASE_FREQ, chipParams, receiver));
-      for (std::size_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
+      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
-        chip->SetSample(uint_t(idx), Data->Samples[idx]);
+        chip->SetSample(idx, Data->Samples.Get(idx));
       }
-      return CreateCHIRenderer(params, Data, chip);
+      return CreateModuleRenderer(params, Data, chip);
     }
   private:
-    const CHITrack::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
 
-  class CHIRenderer : public Renderer
+  class ModuleRenderer : public Renderer
   {
     struct GlissData
     {
@@ -214,7 +243,7 @@ namespace ChipTracker
       }
     };
   public:
-    CHIRenderer(Parameters::Accessor::Ptr params, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    ModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Params(DAC::TrackParameters::Create(params))
       , Device(device)
@@ -322,7 +351,7 @@ namespace ChipTracker
       Gliss.assign(GlissData());
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != CHITrack::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {
           DAC::ChannelDataBuilder builder = track.GetChannel(chan);
           if (const Cell::Ptr src = line->GetChannel(chan))
@@ -371,7 +400,7 @@ namespace ChipTracker
       }
     }
   private:
-    const CHITrack::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const DAC::TrackParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
     const TrackStateIterator::Ptr Iterator;
@@ -379,13 +408,13 @@ namespace ChipTracker
     Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreateCHIRenderer(Parameters::Accessor::Ptr params, CHITrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new CHIRenderer(params, data, device));
+    return Renderer::Ptr(new ModuleRenderer(params, data, device));
   }
 }
 
-namespace ChipTracker
+namespace CHI
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
@@ -394,10 +423,10 @@ namespace ChipTracker
   const Char ID[] = {'C', 'H', 'I', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
 
-  class CHIModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    explicit CHIModulesFactory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -414,13 +443,13 @@ namespace ChipTracker
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
-      const CHITrack::ModuleData::RWPtr modData = CHITrack::ModuleData::Create();
-      DataBuilder builder(modData, properties);
+      const ::ChipTracker::ModuleData::RWPtr modData = boost::make_shared< ::ChipTracker::ModuleData>();
+      ::ChipTracker::DataBuilder builder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(*data, builder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared<CHIHolder>(modData, properties);
+        return boost::make_shared< ::ChipTracker::ModuleHolder>(modData, properties);
       }
       return Holder::Ptr();
     }
@@ -434,8 +463,8 @@ namespace ZXTune
   void RegisterCHISupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateChipTrackerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<ChipTracker::CHIModulesFactory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ChipTracker::ID, decoder->GetDescription(), ChipTracker::CAPS, factory);
+    const ModulesFactory::Ptr factory = boost::make_shared<CHI::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(CHI::ID, decoder->GetDescription(), CHI::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

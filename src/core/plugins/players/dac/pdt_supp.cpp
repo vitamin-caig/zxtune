@@ -35,33 +35,49 @@ Author:
 
 namespace ProDigiTracker
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const uint_t CHANNELS_COUNT = 4;
   //all samples has base freq at 4kHz (C-1)
   const uint_t BASE_FREQ = 4000;
 
-  struct Ornament
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
+  typedef SimpleOrnament Ornament;
+
+  class ModuleData : public TrackModel
   {
-    Ornament()
-      : Loop()
+  public:
+    typedef boost::shared_ptr<ModuleData> RWPtr;
+    typedef boost::shared_ptr<const ModuleData> Ptr;
+
+    ModuleData()
+      : InitialTempo()
     {
     }
 
-    Ornament(uint_t loop, const std::vector<int_t>& data)
-      : Loop(loop)
-      , Data(data)
+    virtual uint_t GetInitialTempo() const
     {
+      return InitialTempo;
     }
 
-    std::size_t Loop;
-    std::vector<int_t> Data;
+    virtual const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
+    virtual const PatternsSet& GetPatterns() const
+    {
+      return *Patterns;
+    }
+
+    uint_t InitialTempo;
+    OrderList::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
+    SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  typedef TrackingSupport<CHANNELS_COUNT, Devices::DAC::Sample::Ptr, Ornament> PDTTrack;
-
-  std::auto_ptr<Formats::Chiptune::ProDigiTracker::Builder> CreateDataBuilder(PDTTrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props);
+  std::auto_ptr<Formats::Chiptune::ProDigiTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
 }
 
 namespace ProDigiTracker
@@ -69,10 +85,10 @@ namespace ProDigiTracker
   class DataBuilder : public Formats::Chiptune::ProDigiTracker::Builder
   {
   public:
-    DataBuilder(PDTTrack::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<PDTTrack::CHANNELS>())
+      , Builder(PatternsBuilder::Create<ProDigiTracker::CHANNELS_COUNT>())
     {
       Data->Patterns = Builder.GetPatterns();
     }
@@ -94,14 +110,12 @@ namespace ProDigiTracker
 
     virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
     {
-      Data->Samples.resize(index + 1);
-      Data->Samples[index] = Devices::DAC::CreateU8Sample(sample, loop);
+      Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
     }
 
     virtual void SetOrnament(uint_t index, std::size_t loop, const std::vector<int_t>& ornament)
     {
-      Data->Ornaments.resize(index + 1);
-      Data->Ornaments[index] = Ornament(loop, ornament);
+      Data->Ornaments.Add(index, Ornament(loop, ornament.begin(), ornament.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -150,17 +164,17 @@ namespace ProDigiTracker
       Builder.GetChannel().SetOrnament(ornament);
     }
   private:
-    const PDTTrack::ModuleData::RWPtr Data;
+    const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     PatternsBuilder Builder;
   };
 
-  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
-  class PDTHolder : public Holder
+  class ModuleHolder : public Holder
   {
   public:
-    PDTHolder(PDTTrack::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    ModuleHolder(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
@@ -184,19 +198,19 @@ namespace ProDigiTracker
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, BASE_FREQ, chipParams, receiver));
-      for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
+      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
-        chip->SetSample(idx, Data->Samples[idx]);
+        chip->SetSample(idx, Data->Samples.Get(idx));
       }
-      return CreatePDTRenderer(params, Data, chip);
+      return CreateModuleRenderer(params, Data, chip);
     }
   private:
-    const PDTTrack::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
 
-  class PDTRenderer : public Renderer
+  class ModuleRenderer : public Renderer
   {
     struct OrnamentState
     {
@@ -208,14 +222,14 @@ namespace ProDigiTracker
 
       int_t GetOffset() const
       {
-        return Object && Object->Data.size() > Position ? Object->Data[Position] : 0;
+        return Object ? Object->GetLine(Position) : 0;
       }
 
       void Update()
       {
-        if (Object && Position++ >= Object->Data.size())
+        if (Object && Position++ >= Object->GetSize())
         {
-          Position = Object->Loop;
+          Position = Object->GetLoop();
         }
       }
 
@@ -225,7 +239,7 @@ namespace ProDigiTracker
       }
     };
   public:
-    PDTRenderer(Parameters::Accessor::Ptr params, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    ModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Params(DAC::TrackParameters::Create(params))
       , Device(device)
@@ -328,7 +342,7 @@ namespace ProDigiTracker
     {
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != PDTTrack::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -354,8 +368,7 @@ namespace ProDigiTracker
       {
         if (const uint_t* ornament = src.GetOrnament())
         {
-          const uint_t ornIdx = *ornament < Data->Ornaments.size() ? *ornament : 0;
-          ornamentState.Object = &Data->Ornaments[ornIdx];
+          ornamentState.Object = Data->Ornaments.Find(*ornament);
           ornamentState.Position = 0;
           builder.SetNoteSlide(ornamentState.GetOffset());
         }
@@ -369,7 +382,7 @@ namespace ProDigiTracker
     }
   private:
     const Information::Ptr Info;
-    const PDTTrack::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const DAC::TrackParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
     const TrackStateIterator::Ptr Iterator;
@@ -377,13 +390,13 @@ namespace ProDigiTracker
     Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreatePDTRenderer(Parameters::Accessor::Ptr params, PDTTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new PDTRenderer(params, data, device));
+    return Renderer::Ptr(new ModuleRenderer(params, data, device));
   }
 }
 
-namespace ProDigiTracker
+namespace PDT
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
@@ -392,10 +405,10 @@ namespace ProDigiTracker
   const Char ID[] = {'P', 'D', 'T', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
 
-  class PDTModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    PDTModulesFactory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -413,13 +426,13 @@ namespace ProDigiTracker
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
-      const PDTTrack::ModuleData::RWPtr modData = PDTTrack::ModuleData::Create();
-      DataBuilder builder(modData, properties);
+      const ::ProDigiTracker::ModuleData::RWPtr modData = boost::make_shared< ::ProDigiTracker::ModuleData>();
+      ::ProDigiTracker::DataBuilder builder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(*data, builder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared<PDTHolder>(modData, properties);
+        return boost::make_shared< ::ProDigiTracker::ModuleHolder>(modData, properties);
       }
       return Holder::Ptr();
     }
@@ -433,8 +446,8 @@ namespace ZXTune
   void RegisterPDTSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProDigiTrackerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<ProDigiTracker::PDTModulesFactory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ProDigiTracker::ID, decoder->GetDescription(), ProDigiTracker::CAPS, factory);
+    const ModulesFactory::Ptr factory = boost::make_shared<PDT::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PDT::ID, decoder->GetDescription(), PDT::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

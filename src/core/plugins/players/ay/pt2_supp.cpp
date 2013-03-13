@@ -81,24 +81,58 @@ namespace ProTracker2
     }
   };
 
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, Sample> Track;
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
 
-  std::auto_ptr<Formats::Chiptune::ProTracker2::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
+  //SimpleOrnament::Loop is not used
+  typedef SimpleOrnament Ornament;
+
+  class ModuleData : public TrackModel
+  {
+  public:
+    typedef boost::shared_ptr<ModuleData> RWPtr;
+    typedef boost::shared_ptr<const ModuleData> Ptr;
+
+    ModuleData()
+      : InitialTempo()
+    {
+    }
+
+    virtual uint_t GetInitialTempo() const
+    {
+      return InitialTempo;
+    }
+
+    virtual const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
+    virtual const PatternsSet& GetPatterns() const
+    {
+      return *Patterns;
+    }
+
+    uint_t InitialTempo;
+    OrderList::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Sample> Samples;
+    SparsedObjectsStorage<Ornament> Ornaments;
+  };
+
+  std::auto_ptr<Formats::Chiptune::ProTracker2::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
 }
 
 namespace ProTracker2
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class DataBuilder : public Formats::Chiptune::ProTracker2::Builder
   {
   public:
-    DataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<Track::CHANNELS>())
+      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
     }
@@ -121,14 +155,12 @@ namespace ProTracker2
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker2::Sample& sample)
     {
-      Data->Samples.resize(index + 1);
-      Data->Samples[index] = Sample(sample);
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker2::Ornament& ornament)
     {
-      Data->Ornaments.resize(index + 1);
-      Data->Ornaments[index] = Track::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end());
+      Data->Ornaments.Add(index, Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -225,7 +257,7 @@ namespace ProTracker2
       Builder.GetChannel().AddCommand(NOISE_ADD, val);
     }
   private:
-    const Track::ModuleData::RWPtr Data;
+    const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     PatternsBuilder Builder;
   };
@@ -264,7 +296,7 @@ namespace ProTracker2
   class DataRenderer : public AYM::DataRenderer
   {
   public:
-    explicit DataRenderer(Track::ModuleData::Ptr data)
+    explicit DataRenderer(ModuleData::Ptr data)
        : Data(data)
     {
     }
@@ -287,7 +319,7 @@ namespace ProTracker2
     {
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Track::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -380,9 +412,9 @@ namespace ProTracker2
         return;
       }
 
-      const Sample& curSample = Data->Samples[dst.SampleNum];
+      const Sample& curSample = Data->Samples.Get(dst.SampleNum);
       const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const Track::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+      const Ornament& curOrnament = Data->Ornaments.Get(dst.OrnamentNum);
 
       //apply tone
       const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
@@ -434,14 +466,14 @@ namespace ProTracker2
       }
     }
   private:
-    const Track::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
 
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -465,7 +497,7 @@ namespace ProTracker2
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
-    const Track::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
@@ -473,12 +505,12 @@ namespace ProTracker2
 
 namespace ProTracker2
 {
-  std::auto_ptr<Formats::Chiptune::ProTracker2::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props)
+  std::auto_ptr<Formats::Chiptune::ProTracker2::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
   {
     return std::auto_ptr<Formats::Chiptune::ProTracker2::Builder>(new DataBuilder(data, props));
   }
 
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
   {
     return boost::make_shared<Chiptune>(data, properties);
   }
@@ -491,7 +523,7 @@ namespace PT2
 
   //plugin attributes
   const Char ID[] = {'P', 'T', '2', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
 
   class Factory : public ModulesFactory
   {
@@ -513,13 +545,13 @@ namespace PT2
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
-      const ::ProTracker2::Track::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker2::Track::ModuleData>();
+      const ::ProTracker2::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker2::ModuleData>();
       const std::auto_ptr<Formats::Chiptune::ProTracker2::Builder> dataBuilder = ::ProTracker2::CreateDataBuilder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(*rawData, *dataBuilder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        const Module::AYM::Chiptune::Ptr chiptune = ::ProTracker2::CreateChiptune(modData, properties);
+        const AYM::Chiptune::Ptr chiptune = ::ProTracker2::CreateChiptune(modData, properties);
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

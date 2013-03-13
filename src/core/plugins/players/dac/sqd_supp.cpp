@@ -197,24 +197,51 @@ namespace SQD
   const std::size_t SAMPLES_LIMIT = 0x10000;
 }
 
-namespace
+namespace SQDigitalTracker
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  //stub for ornament
-  struct VoidType {};
+  class ModuleData : public TrackModel
+  {
+  public:
+    typedef boost::shared_ptr<ModuleData> RWPtr;
+    typedef boost::shared_ptr<const ModuleData> Ptr;
 
-  typedef TrackingSupport<SQD::CHANNELS_COUNT, Devices::DAC::Sample::Ptr, VoidType> SQDTrack;
+    ModuleData()
+      : InitialTempo()
+    {
+    }
+
+    virtual uint_t GetInitialTempo() const
+    {
+      return InitialTempo;
+    }
+
+    virtual const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
+    virtual const PatternsSet& GetPatterns() const
+    {
+      return *Patterns;
+    }
+
+    uint_t InitialTempo;
+    OrderList::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
+  };
 
   // perform module 'playback' right after creating (debug purposes)
   #ifndef NDEBUG
   #define SELF_TEST
   #endif
 
-  Renderer::Ptr CreateSQDRenderer(Parameters::Accessor::Ptr params, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
+  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
 
-  class SQDHolder : public Holder
+  class ModuleHolder : public Holder
   {
     static void ParsePattern(const SQD::Pattern& src, PatternsBuilder& builder)
     {
@@ -267,8 +294,8 @@ namespace
     }
 
   public:
-    SQDHolder(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
-      : Data(SQDTrack::ModuleData::Create())
+    ModuleHolder(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, SQD::CHANNELS_COUNT))
     {
@@ -307,7 +334,6 @@ namespace
       }
 
       //fill samples
-      Data->Samples.resize(SQD::SAMPLES_COUNT);
       for (uint_t samIdx = 0; samIdx != SQD::SAMPLES_COUNT; ++samIdx)
       {
         const SQD::SampleInfo& srcSample = header.Samples[samIdx];
@@ -336,7 +362,7 @@ namespace
         if (const Binary::Data::Ptr content = rawData->GetSubcontainer(sampleStart - data.GetField<uint8_t>(0), sampleEnd - sampleStart))
         {
           const std::size_t loop = srcSample.IsLooped ? rawLoop - sampleBase : content->Size();
-          Data->Samples[samIdx] = Devices::DAC::CreateU8Sample(content, loop);
+          Data->Samples.Add(samIdx, Devices::DAC::CreateU8Sample(content, loop));
         }
       }
       Data->InitialTempo = header.Tempo;
@@ -372,19 +398,19 @@ namespace
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(SQD::CHANNELS_COUNT, SQD::BASE_FREQ, chipParams, receiver));
-      for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
+      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
-        chip->SetSample(idx, Data->Samples[idx]);
+        chip->SetSample(idx, Data->Samples.Get(idx));
       }
-      return CreateSQDRenderer(params, Data, chip);
+      return CreateModuleRenderer(params, Data, chip);
     }
   private:
-    const SQDTrack::ModuleData::RWPtr Data;
+    const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     const Information::Ptr Info;
   };
 
-  class SQDRenderer : public Renderer
+  class ModuleRenderer : public Renderer
   {
     struct VolumeState
     {
@@ -427,7 +453,7 @@ namespace
       }
     };
   public:
-    SQDRenderer(Parameters::Accessor::Ptr params, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    ModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
       : Data(data)
       , Params(DAC::TrackParameters::Create(params))
       , Device(device)
@@ -532,7 +558,7 @@ namespace
       std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != SQDTrack::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != SQD::CHANNELS_COUNT; ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -584,7 +610,7 @@ namespace
       }
     }
   private:
-    const SQDTrack::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const DAC::TrackParameters::Ptr Params;
     const Devices::DAC::Chip::Ptr Device;
     const TrackStateIterator::Ptr Iterator;
@@ -592,12 +618,12 @@ namespace
     Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreateSQDRenderer(Parameters::Accessor::Ptr params, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
   {
-    return Renderer::Ptr(new SQDRenderer(params, data, device));
+    return Renderer::Ptr(new ModuleRenderer(params, data, device));
   }
 
-  bool CheckSQD(const Binary::Container& data)
+  bool Check(const Binary::Container& data)
   {
     //check for header
     const std::size_t size(data.Size());
@@ -661,9 +687,10 @@ namespace
   }
 }
 
-namespace
+namespace SQD
 {
   using namespace ZXTune;
+  using namespace ZXTune::Module;
 
   //plugin attributes
   const Char ID[] = {'S', 'Q', 'D', 0};
@@ -691,17 +718,17 @@ namespace
     "01-64"
   );
 
-  class SQDModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    SQDModulesFactory()
+    Factory()
       : Format(Binary::Format::Create(SQD_FORMAT, sizeof(SQD::Header)))
     {
     }
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return Format->Match(inputData) && CheckSQD(inputData);
+      return Format->Match(inputData) && SQDigitalTracker::Check(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
@@ -714,7 +741,7 @@ namespace
       try
       {
         assert(Check(*data));
-        const Holder::Ptr holder(new SQDHolder(properties, data, usedSize));
+        const Holder::Ptr holder(new SQDigitalTracker::ModuleHolder(properties, data, usedSize));
         return holder;
       }
       catch (const Error&/*e*/)
@@ -732,8 +759,8 @@ namespace ZXTune
 {
   void RegisterSQDSupport(PlayerPluginsRegistrator& registrator)
   {
-    const ModulesFactory::Ptr factory = boost::make_shared<SQDModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
+    const ModulesFactory::Ptr factory = boost::make_shared<SQD::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(SQD::ID, SQD::INFO, SQD::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

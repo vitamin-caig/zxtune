@@ -38,34 +38,24 @@ Author:
 
 namespace ProTracker3
 {
-  typedef ZXTune::Module::Vortex::Track Track;
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
 
-  std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset);
+  typedef Vortex::ModuleData ModuleData;
+
+  std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props, uint_t& patOffset);
 }
 
 namespace ProTracker3
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  void ConvertSample(const Formats::Chiptune::ProTracker3::Sample& src, Track::Sample& dst)
-  {
-    dst = Track::Sample(src.Loop, src.Lines.begin(), src.Lines.end());
-  }
-
-  void ConvertOrnament(const Formats::Chiptune::ProTracker3::Ornament& src, Track::Ornament& dst)
-  {
-    dst = Track::Ornament(src.Loop, src.Lines.begin(), src.Lines.end());
-  }
-
   class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
   {
   public:
-    DataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset)
+    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props, uint_t& patOffset)
       : Data(data)
       , Properties(props)
       , PatOffset(patOffset)
-      , Builder(PatternsBuilder::Create<Track::CHANNELS>())
+      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
     }
@@ -109,14 +99,12 @@ namespace ProTracker3
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker3::Sample& sample)
     {
       //TODO: use common types
-      Data->Samples.resize(index + 1);
-      ConvertSample(sample, Data->Samples[index]);
+      Data->Samples.Add(index, Vortex::Sample(sample.Loop, sample.Lines.begin(), sample.Lines.end()));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker3::Ornament& ornament)
     {
-      Data->Ornaments.resize(index + 1);
-      ConvertOrnament(ornament, Data->Ornaments[index]);
+      Data->Ornaments.Add(index, Vortex::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -229,7 +217,7 @@ namespace ProTracker3
       Builder.GetChannel().AddCommand(Vortex::NOISEBASE, val);
     }
   private:
-    const Track::ModuleData::RWPtr Data;
+    const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     uint_t& PatOffset;
     PatternsBuilder Builder;
@@ -238,17 +226,14 @@ namespace ProTracker3
 
 namespace ProTracker3
 {
-  std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset)
+  std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props, uint_t& patOffset)
   {
     return std::auto_ptr<Formats::Chiptune::ProTracker3::Builder>(new DataBuilder(data, props, patOffset));
   }
 }
 
-namespace PT3
+namespace ProTracker3
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class StubLine : public Line
   {
     StubLine()
@@ -381,10 +366,10 @@ namespace PT3
   class TSHolder : public Holder
   {
   public:
-    TSHolder(Vortex::Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    TSHolder(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Properties(properties)
       , Data(data)
-      , Info(CreateTrackInfo(data, 2 * Vortex::Track::CHANNELS, Vortex::Track::CHANNELS))
+      , Info(CreateTrackInfo(data, 2 * Devices::AYM::CHANNELS, Devices::AYM::CHANNELS))
     {
     }
 
@@ -410,18 +395,21 @@ namespace PT3
 
       const uint_t version = Vortex::ExtractVersion(*Properties);
       const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chip1, 0);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chip2, Vortex::Track::CHANNELS);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chip2, Devices::AYM::CHANNELS);
       return CreateTSRenderer(renderer1, renderer2, renderer1->GetTrackState());
     }
   private:
     const ModuleProperties::Ptr Properties;
-    const Vortex::Track::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const Information::Ptr Info;
   };
 }
 
 namespace PT3
 {
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
   //plugin attributes
   const Char ID[] = {'P', 'T', '3', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors | SupportedVortexFormatConvertors;
@@ -446,7 +434,7 @@ namespace PT3
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
-      const ::ProTracker3::Track::ModuleData::RWPtr modData = ::ProTracker3::Track::ModuleData::Create();
+      const ::ProTracker3::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker3::ModuleData>();
       uint_t patOffset = 0;
       const std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> dataBuilder = ::ProTracker3::CreateDataBuilder(modData, properties, patOffset);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseCompiled(*rawData, *dataBuilder))
@@ -457,8 +445,8 @@ namespace PT3
         {
           //TurboSound modules
           properties->SetComment(Text::PT3_TURBOSOUND_MODULE);
-          modData->Patterns = CreateTSPatterns(patOffset, modData->Patterns);
-          return boost::make_shared<TSHolder>(modData, properties);
+          modData->Patterns = ::ProTracker3::CreateTSPatterns(patOffset, modData->Patterns);
+          return boost::make_shared< ::ProTracker3::TSHolder>(modData, properties);
         }
         else
         {
@@ -501,7 +489,7 @@ namespace Vortex2
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
-      const ::ProTracker3::Track::ModuleData::RWPtr modData = ::ProTracker3::Track::ModuleData::Create();
+      const ::ProTracker3::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker3::ModuleData>();
       uint_t patOffset = 0;
       const std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> dataBuilder = ::ProTracker3::CreateDataBuilder(modData, properties, patOffset);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseVortexTracker2(*rawData, *dataBuilder))

@@ -60,11 +60,80 @@ namespace SoundTrackerPro
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  typedef TrackingSupport<Devices::AYM::CHANNELS, Sample, SimpleOrnament, OrderListWithTransposition> Track;
+  class OrderListWithTransposition : public OrderList
+  {
+  public:
+    typedef boost::shared_ptr<const OrderListWithTransposition> Ptr;
 
-  std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
+    template<class It>
+    OrderListWithTransposition(uint_t loop, It from, It to)
+      : Loop(loop)
+      , Positions(from, to)
+    {
+    }
 
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
+    virtual uint_t GetSize() const
+    {
+      return Positions.size();
+    }
+
+    virtual uint_t GetPatternIndex(uint_t pos) const
+    {
+      return Positions[pos].PatternIndex;
+    }
+
+    virtual uint_t GetLoopPosition() const
+    {
+      return Loop;
+    }
+
+    int_t GetTransposition(uint_t pos) const
+    {
+      return Positions[pos].Transposition;
+    }
+  private:
+    const uint_t Loop;
+    const std::vector<Formats::Chiptune::SoundTrackerPro::PositionEntry> Positions;
+  };
+
+  typedef SimpleOrnament Ornament;
+
+  class ModuleData : public TrackModel
+  {
+  public:
+    typedef boost::shared_ptr<ModuleData> RWPtr;
+    typedef boost::shared_ptr<const ModuleData> Ptr;
+
+    ModuleData()
+      : InitialTempo()
+    {
+    }
+
+    virtual uint_t GetInitialTempo() const
+    {
+      return InitialTempo;
+    }
+
+    virtual const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
+    virtual const PatternsSet& GetPatterns() const
+    {
+      return *Patterns;
+    }
+
+    uint_t InitialTempo;
+    OrderListWithTransposition::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Sample> Samples;
+    SparsedObjectsStorage<Ornament> Ornaments;
+  };
+
+  std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
+
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_SOUNDTRACKERPRO_DEFINED__

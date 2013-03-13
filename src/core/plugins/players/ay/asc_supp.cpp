@@ -127,24 +127,55 @@ namespace ASCSoundMaster
     }
   };
 
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, Sample, Ornament> Track;
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
 
-  std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
+  class ModuleData : public TrackModel
+  {
+  public:
+    typedef boost::shared_ptr<ModuleData> RWPtr;
+    typedef boost::shared_ptr<const ModuleData> Ptr;
+
+    ModuleData()
+      : InitialTempo()
+    {
+    }
+
+    virtual uint_t GetInitialTempo() const
+    {
+      return InitialTempo;
+    }
+
+    virtual const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
+    virtual const PatternsSet& GetPatterns() const
+    {
+      return *Patterns;
+    }
+
+    uint_t InitialTempo;
+    OrderList::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Sample> Samples;
+    SparsedObjectsStorage<Ornament> Ornaments;
+  };
+
+  std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
 }
 
 namespace ASCSoundMaster
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class DataBuilder : public Formats::Chiptune::ASCSoundMaster::Builder
   {
   public:
-    DataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<Track::CHANNELS>())
+      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
     }
@@ -172,14 +203,12 @@ namespace ASCSoundMaster
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ASCSoundMaster::Sample& sample)
     {
-      Data->Samples.resize(index + 1);
-      Data->Samples[index] = Sample(sample);
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ASCSoundMaster::Ornament& ornament)
     {
-      Data->Ornaments.resize(index + 1);
-      Data->Ornaments[index] = Ornament(ornament);
+      Data->Ornaments.Add(index, Ornament(ornament));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
@@ -323,7 +352,7 @@ namespace ASCSoundMaster
       Builder.GetChannel().AddCommand(BREAK_SAMPLE);
     }
   private:
-    const Track::ModuleData::RWPtr Data;
+    const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
     PatternsBuilder Builder;
   };
@@ -376,7 +405,7 @@ namespace ASCSoundMaster
   class DataRenderer : public AYM::DataRenderer
   {
   public:
-    explicit DataRenderer(Track::ModuleData::Ptr data)
+    explicit DataRenderer(ModuleData::Ptr data)
       : Data(data)
       , EnvelopeTone(0)
     {
@@ -404,7 +433,7 @@ namespace ASCSoundMaster
       }
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Track::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -540,9 +569,9 @@ namespace ASCSoundMaster
         return;
       }
 
-      const Sample& curSample = Data->Samples[dst.CurrentSampleNum];
+      const Sample& curSample = Data->Samples.Get(dst.CurrentSampleNum);
       const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const Ornament& curOrnament = Data->Ornaments[dst.CurrentOrnamentNum];
+      const Ornament& curOrnament = Data->Ornaments.Get(dst.CurrentOrnamentNum);
       const Ornament::Line& curOrnamentLine = curOrnament.GetLine(dst.PosInOrnament);
 
       //calculate volume addon
@@ -634,7 +663,7 @@ namespace ASCSoundMaster
       }
     }
   private:
-    const Track::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     uint_t EnvelopeTone;
     boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
   };
@@ -642,7 +671,7 @@ namespace ASCSoundMaster
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -666,7 +695,7 @@ namespace ASCSoundMaster
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
-    const Track::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
@@ -674,12 +703,12 @@ namespace ASCSoundMaster
 
 namespace ASCSoundMaster
 {
-  std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+  std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
   {
     return std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder>(new DataBuilder(data, props));
   }
 
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
   {
     return boost::make_shared<Chiptune>(data, properties);
   }
@@ -715,13 +744,13 @@ namespace ASC
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
     {
-      const ::ASCSoundMaster::Track::ModuleData::RWPtr modData = ::ASCSoundMaster::Track::ModuleData::Create();
+      const ::ASCSoundMaster::ModuleData::RWPtr modData = boost::make_shared< ::ASCSoundMaster::ModuleData>();
       const std::auto_ptr<Formats::Chiptune::ASCSoundMaster::Builder> dataBuilder = ::ASCSoundMaster::CreateDataBuilder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*rawData, *dataBuilder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        const Module::AYM::Chiptune::Ptr chiptune = ::ASCSoundMaster::CreateChiptune(modData, properties);
+        const AYM::Chiptune::Ptr chiptune = ::ASCSoundMaster::CreateChiptune(modData, properties);
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

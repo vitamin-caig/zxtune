@@ -28,7 +28,7 @@ namespace ST1
 
   //plugin attributes
   const Char ID[] = {'S', 'T', '1', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
 
   class Factory : public ModulesFactory
   {
@@ -50,13 +50,13 @@ namespace ST1
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
-      const ::SoundTracker::Track::ModuleData::RWPtr modData = ::SoundTracker::Track::ModuleData::Create();
+      const ::SoundTracker::ModuleData::RWPtr modData = boost::make_shared< ::SoundTracker::ModuleData>();
       const std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> dataBuilder = ::SoundTracker::CreateDataBuilder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SoundTracker::Parse(*data, *dataBuilder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        const Module::AYM::Chiptune::Ptr chiptune = ::SoundTracker::CreateChiptune(modData, properties);
+        const AYM::Chiptune::Ptr chiptune = ::SoundTracker::CreateChiptune(modData, properties);
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

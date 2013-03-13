@@ -196,6 +196,7 @@ namespace ZXTune
       ChannelsArray Channels;
     };
 
+    //TODO: replace with boost::unordered_set
     template<class T>
     class SparsedObjectsStorage
     {
@@ -207,14 +208,26 @@ namespace ZXTune
 
       T Get(uint_t idx) const
       {
-        if (idx >= Count)
+        if (const T* res = Find(idx))
+        {
+          return *res;
+        }
+        else
         {
           return T();
         }
+      }
+
+      const T* Find(uint_t idx) const
+      {
+        if (idx >= Count)
+        {
+          return 0;
+        }
         const typename ObjectsList::const_iterator it = std::lower_bound(Objects.begin(), Objects.end(), idx);
         return it == Objects.end() || it->Index != idx
-          ? T()
-          : it->Object;
+          ? 0
+          : &it->Object;
       }
 
       uint_t Size() const
@@ -345,35 +358,6 @@ namespace ZXTune
 
     TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model);
 
-    template<class OrderListType = OrderList>
-    class StaticTrackModel : public TrackModel
-    {
-    public:
-      StaticTrackModel()
-        : InitialTempo()
-      {
-      }
-
-      virtual uint_t GetInitialTempo() const
-      {
-        return InitialTempo;
-      }
-
-      virtual const OrderList& GetOrder() const
-      {
-        return *Order;
-      }
-
-      virtual const PatternsSet& GetPatterns() const
-      {
-        return *Patterns;
-      }
-
-      uint_t InitialTempo;
-      typename OrderListType::Ptr Order;
-      PatternsSet::Ptr Patterns;
-    };
-
     class PatternsBuilder
     {
     public:
@@ -438,31 +422,6 @@ namespace ZXTune
       MutablePattern* CurPattern;
       MutableLine* CurLine;
       MutableCell* CurChannel;
-    };
-
-    template<uint_t Channels, class SampleType, class OrnamentType = SimpleOrnament, class OrderListType = OrderList>
-    class TrackingSupport
-    {
-    public:
-      static const uint_t CHANNELS = Channels;
-
-      typedef SampleType Sample;
-      typedef OrnamentType Ornament;
-
-      class ModuleData : public StaticTrackModel<OrderListType>
-      {
-      public:
-        typedef boost::shared_ptr<const ModuleData> Ptr;
-        typedef boost::shared_ptr<ModuleData> RWPtr;
-
-        static RWPtr Create()
-        {
-          return boost::make_shared<ModuleData>();
-        }
-
-        std::vector<SampleType> Samples;
-        std::vector<OrnamentType> Ornaments;
-      };
     };
   }
 }

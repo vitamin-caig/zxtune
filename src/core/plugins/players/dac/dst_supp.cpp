@@ -21,15 +21,22 @@ Author:
 
 #define FILE_TAG 3226C730
 
-namespace DST
+namespace DigitalStudio
 {
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
   const std::size_t CHANNELS_COUNT = 3;
 
   //all samples has base freq at 8kHz (C-1)
   const uint_t BASE_FREQ = 8000;
+
+  typedef DAC::ModuleData ModuleData;
+  typedef DAC::DataBuilder DataBuilder;
+  typedef DAC::Digital<CHANNELS_COUNT>::Holder Holder;
 }
 
-namespace
+namespace DST
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
@@ -38,12 +45,10 @@ namespace
   const Char ID[] = {'D', 'S', 'T', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
 
-  typedef Module::DAC::Digital<DST::CHANNELS_COUNT> DigitalStudio;
-
-  class DSTModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    explicit DSTModulesFactory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -60,13 +65,13 @@ namespace
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
-      const DigitalStudio::Track::ModuleData::RWPtr modData = DigitalStudio::Track::ModuleData::Create();
-      DigitalStudio::DataBuilder builder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(*data, builder))
+      const ::DigitalStudio::ModuleData::RWPtr modData = boost::make_shared< ::DigitalStudio::ModuleData>();
+      const std::auto_ptr<Formats::Chiptune::Digital::Builder> builder = ::DigitalStudio::DataBuilder::Create< ::DigitalStudio::CHANNELS_COUNT>(modData, properties);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(*data, *builder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared<DigitalStudio::Holder>(modData, properties, DST::BASE_FREQ);
+        return boost::make_shared< ::DigitalStudio::Holder>(modData, properties, ::DigitalStudio::BASE_FREQ);
       }
       return Holder::Ptr();
     }
@@ -80,8 +85,8 @@ namespace ZXTune
   void RegisterDSTSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateDigitalStudioDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<DSTModulesFactory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    const ModulesFactory::Ptr factory = boost::make_shared<DST::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(DST::ID, decoder->GetDescription(), DST::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -100,15 +100,49 @@ namespace ZXTune
         NOISEBASE,
       };
 
-      typedef TrackingSupport<Devices::AYM::CHANNELS, Sample> Track;
+      //SimpleOrnament::Loop is not used
+      typedef SimpleOrnament Ornament;
+
+      class ModuleData : public TrackModel
+      {
+      public:
+        typedef boost::shared_ptr<ModuleData> RWPtr;
+        typedef boost::shared_ptr<const ModuleData> Ptr;
+
+        ModuleData()
+          : InitialTempo()
+        {
+        }
+
+        virtual uint_t GetInitialTempo() const
+        {
+          return InitialTempo;
+        }
+
+        virtual const OrderList& GetOrder() const
+        {
+          return *Order;
+        }
+
+        virtual const PatternsSet& GetPatterns() const
+        {
+          return *Patterns;
+        }
+
+        uint_t InitialTempo;
+        OrderList::Ptr Order;
+        PatternsSet::Ptr Patterns;
+        SparsedObjectsStorage<Sample> Samples;
+        SparsedObjectsStorage<Ornament> Ornaments;
+      };
 
       uint_t ExtractVersion(const Parameters::Accessor& props);
 
       //creating simple player based on parsed data and parameters
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device, uint_t trackChannelStart = 0);
 
-      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties);
+      AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
     }
   }
 }

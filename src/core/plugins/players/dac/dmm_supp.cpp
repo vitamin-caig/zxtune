@@ -48,9 +48,6 @@ namespace
 
 namespace DMM
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const std::size_t MAX_POSITIONS_COUNT = 0x32;
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t PATTERNS_COUNT = 24;
@@ -188,20 +185,33 @@ namespace DMM
 
   const std::size_t SAMPLES_ADDR = 0xc000;
 
-  //stub for ornament
-  struct VoidType {};
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
 
-  typedef ZXTune::Module::TrackingSupport<CHANNELS_COUNT, Devices::DAC::Sample::Ptr, VoidType> Track;
-
-  class ModuleData : public Track::ModuleData
+  class ModuleData : public TrackModel
   {
   public:
     typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
-    static RWPtr Create()
+    ModuleData()
+      : InitialTempo()
     {
-      return boost::make_shared<ModuleData>();
+    }
+
+    virtual uint_t GetInitialTempo() const
+    {
+      return InitialTempo;
+    }
+
+    virtual const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
+    virtual const PatternsSet& GetPatterns() const
+    {
+      return *Patterns;
     }
 
     struct MixedChannel
@@ -215,6 +225,10 @@ namespace DMM
       }
     };
 
+    uint_t InitialTempo;
+    OrderList::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
     boost::array<MixedChannel, 64> Mixes;
   };
 
@@ -358,7 +372,7 @@ namespace
 
   public:
     DMMHolder(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
-      : Data(DMM::ModuleData::Create())
+      : Data(boost::make_shared<DMM::ModuleData>())
       , Properties(properties)
       , Info(CreateTrackInfo(Data, DMM::CHANNELS_COUNT))
     {
@@ -428,7 +442,6 @@ namespace
         }
       }
 
-      Data->Samples.resize(DMM::SAMPLES_COUNT);
       for (uint_t samIdx = 1; samIdx != DMM::SAMPLES_COUNT; ++samIdx)
       {
         const DMM::SampleInfo& srcSample = header.SampleDescriptions[samIdx - 1];
@@ -467,9 +480,9 @@ namespace
         if (const Binary::Data::Ptr content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
         {
           const std::size_t loop = sampleLoop - sampleStart;
-          Data->Samples[samIdx] = is4bitSamples
+          Data->Samples.Add(samIdx, is4bitSamples
             ? Devices::DAC::CreateU4PackedSample(content, loop)
-            : Devices::DAC::CreateU8Sample(content, loop);
+            : Devices::DAC::CreateU8Sample(content, loop));
         }
       }
       Data->InitialTempo = header.Tempo;
@@ -501,9 +514,9 @@ namespace
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
       const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DMM::CHANNELS_COUNT, DMM::BASE_FREQ, chipParams, receiver));
-      for (uint_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
+      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
-        chip->SetSample(idx, Data->Samples[idx]);
+        chip->SetSample(idx, Data->Samples.Get(idx));
       }
       return CreateDMMRenderer(params, Data, chip);
     }

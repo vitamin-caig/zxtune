@@ -30,98 +30,130 @@ namespace ZXTune
   {
     namespace DAC
     {
-      struct VoidType {};
+      class ModuleData : public TrackModel
+      {
+      public:
+        typedef boost::shared_ptr<ModuleData> RWPtr;
+        typedef boost::shared_ptr<const ModuleData> Ptr;
 
+        ModuleData()
+          : InitialTempo()
+        {
+        }
+
+        virtual uint_t GetInitialTempo() const
+        {
+          return InitialTempo;
+        }
+
+        virtual const OrderList& GetOrder() const
+        {
+          return *Order;
+        }
+
+        virtual const PatternsSet& GetPatterns() const
+        {
+          return *Patterns;
+        }
+
+        uint_t InitialTempo;
+        OrderList::Ptr Order;
+        PatternsSet::Ptr Patterns;
+        SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
+      };
+
+      class DataBuilder : public Formats::Chiptune::Digital::Builder
+      {
+        DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props, const PatternsBuilder& builder)
+          : Data(data)
+          , Properties(props)
+          , Builder(builder)
+        {
+          Data->Patterns = Builder.GetPatterns();
+        }
+      public:
+        template<uint_t Channels>
+        static std::auto_ptr<Formats::Chiptune::Digital::Builder> Create(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+        {
+          return std::auto_ptr<Formats::Chiptune::Digital::Builder>(new DataBuilder(data, props, PatternsBuilder::Create<Channels>()));
+        }
+
+        virtual void SetTitle(const String& title)
+        {
+          Properties->SetTitle(OptimizeString(title));
+        }
+
+        virtual void SetProgram(const String& program)
+        {
+          Properties->SetProgram(program);
+        }
+
+        virtual void SetInitialTempo(uint_t tempo)
+        {
+          Data->InitialTempo = tempo;
+        }
+
+        virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit)
+        {
+          Data->Samples.Add(index, is4Bit
+            ? Devices::DAC::CreateU4Sample(content, loop)
+            : Devices::DAC::CreateU8Sample(content, loop));
+        }
+
+        virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+        {
+          Data->Order = boost::make_shared<SimpleOrderList>(positions.begin(), positions.end(), loop);
+        }
+
+        virtual void StartPattern(uint_t index)
+        {
+          Builder.SetPattern(index);
+        }
+
+        virtual void StartLine(uint_t index)
+        {
+          Builder.SetLine(index);
+        }
+
+        virtual void SetTempo(uint_t tempo)
+        {
+          Builder.GetLine().SetTempo(tempo);
+        }
+
+        virtual void StartChannel(uint_t index)
+        {
+          Builder.SetChannel(index);
+        }
+
+        virtual void SetRest()
+        {
+          Builder.GetChannel().SetEnabled(false);
+        }
+
+        virtual void SetNote(uint_t note)
+        {
+          Builder.GetChannel().SetEnabled(true);
+          Builder.GetChannel().SetNote(note);
+        }
+
+        virtual void SetSample(uint_t sample)
+        {
+          Builder.GetChannel().SetSample(sample);
+        }
+      private:
+        const ModuleData::RWPtr Data;
+        const ModuleProperties::RWPtr Properties;
+        PatternsBuilder Builder;
+      };
+
+      //TODO: remote this template namespace
       template<uint_t Channels>
       struct Digital
       {
-
-        typedef TrackingSupport<Channels, Devices::DAC::Sample::Ptr, VoidType> Track;
-
-        class DataBuilder : public Formats::Chiptune::Digital::Builder
-        {
-        public:
-          DataBuilder(typename Track::ModuleData::RWPtr data, ModuleProperties::RWPtr props)
-            : Data(data)
-            , Properties(props)
-            , Builder(PatternsBuilder::Create<Channels>())
-          {
-            Data->Patterns = Builder.GetPatterns();
-          }
-
-          virtual void SetTitle(const String& title)
-          {
-            Properties->SetTitle(OptimizeString(title));
-          }
-
-          virtual void SetProgram(const String& program)
-          {
-            Properties->SetProgram(program);
-          }
-
-          virtual void SetInitialTempo(uint_t tempo)
-          {
-            Data->InitialTempo = tempo;
-          }
-
-          virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit)
-          {
-            Data->Samples.resize(index + 1);
-            Data->Samples[index] = is4Bit
-              ? Devices::DAC::CreateU4Sample(content, loop)
-              : Devices::DAC::CreateU8Sample(content, loop);
-          }
-
-          virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
-          {
-            Data->Order = boost::make_shared<SimpleOrderList>(positions.begin(), positions.end(), loop);
-          }
-
-          virtual void StartPattern(uint_t index)
-          {
-            Builder.SetPattern(index);
-          }
-
-          virtual void StartLine(uint_t index)
-          {
-            Builder.SetLine(index);
-          }
-
-          virtual void SetTempo(uint_t tempo)
-          {
-            Builder.GetLine().SetTempo(tempo);
-          }
-
-          virtual void StartChannel(uint_t index)
-          {
-            Builder.SetChannel(index);
-          }
-
-          virtual void SetRest()
-          {
-            Builder.GetChannel().SetEnabled(false);
-          }
-
-          virtual void SetNote(uint_t note)
-          {
-            Builder.GetChannel().SetEnabled(true);
-            Builder.GetChannel().SetNote(note);
-          }
-
-          virtual void SetSample(uint_t sample)
-          {
-            Builder.GetChannel().SetSample(sample);
-          }
-        private:
-          const typename Track::ModuleData::RWPtr Data;
-          const ModuleProperties::RWPtr Properties;
-          PatternsBuilder Builder;
-        };
-
         class Renderer : public ZXTune::Module::Renderer
         {
         public:
-          Renderer(Parameters::Accessor::Ptr params, typename Track::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+          Renderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
             : Data(data)
             , Params(DAC::TrackParameters::Create(params))
             , Device(device)
@@ -211,7 +243,7 @@ namespace ZXTune
           {
             if (const Line::Ptr line = state.LineObject())
             {
-              for (uint_t chan = 0; chan != Track::CHANNELS; ++chan)
+              for (uint_t chan = 0; chan != Channels; ++chan)
               {
                 if (const Cell::Ptr src = line->GetChannel(chan))
                 {
@@ -244,7 +276,7 @@ namespace ZXTune
             }
           }
         private:
-          const typename Track::ModuleData::Ptr Data;
+          const ModuleData::Ptr Data;
           const DAC::TrackParameters::Ptr Params;
           const Devices::DAC::Chip::Ptr Device;
           const TrackStateIterator::Ptr Iterator;
@@ -254,7 +286,7 @@ namespace ZXTune
         class Holder : public ZXTune::Module::Holder
         {
         public:
-          Holder(typename Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t baseFreq)
+          Holder(ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t baseFreq)
             : Data(data)
             , Properties(properties)
             , Info(CreateTrackInfo(Data, Channels))
@@ -279,14 +311,14 @@ namespace ZXTune
             const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
             const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
             const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(Channels, BaseFreq, chipParams, receiver));
-            for (std::size_t idx = 0, lim = Data->Samples.size(); idx != lim; ++idx)
+            for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
             {
-              chip->SetSample(uint_t(idx), Data->Samples[idx]);
+              chip->SetSample(idx, Data->Samples.Get(idx));
             }
             return boost::make_shared<Renderer>(params, Data, chip);
           }
         private:
-          const typename Track::ModuleData::Ptr Data;
+          const ModuleData::Ptr Data;
           const ModuleProperties::Ptr Properties;
           const Information::Ptr Info;
           const uint_t BaseFreq;

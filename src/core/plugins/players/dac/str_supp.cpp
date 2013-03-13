@@ -21,15 +21,22 @@ Author:
 
 #define FILE_TAG ADBE77A4
 
-namespace STR
+namespace SampleTracker
 {
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
   const std::size_t CHANNELS_COUNT = 3;
 
   //all samples has base freq at 2kHz (C-1)
   const uint_t BASE_FREQ = 2000;
+
+  typedef DAC::ModuleData ModuleData;
+  typedef DAC::DataBuilder DataBuilder;
+  typedef DAC::Digital<CHANNELS_COUNT>::Holder Holder;
 }
 
-namespace
+namespace STR
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
@@ -38,12 +45,10 @@ namespace
   const Char ID[] = {'S', 'T', 'R', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
 
-  typedef Module::DAC::Digital<STR::CHANNELS_COUNT> SampleTracker;
-
-  class STRModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    explicit STRModulesFactory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -60,13 +65,13 @@ namespace
 
     virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
     {
-      const SampleTracker::Track::ModuleData::RWPtr modData = SampleTracker::Track::ModuleData::Create();
-      SampleTracker::DataBuilder builder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(*data, builder))
+      const ::SampleTracker::ModuleData::RWPtr modData = boost::make_shared< ::SampleTracker::ModuleData>();
+      const std::auto_ptr<Formats::Chiptune::Digital::Builder> builder = ::SampleTracker::DataBuilder::Create< ::SampleTracker::CHANNELS_COUNT>(modData, properties);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(*data, *builder))
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared<SampleTracker::Holder>(modData, properties, STR::BASE_FREQ);
+        return boost::make_shared<SampleTracker::Holder>(modData, properties, ::SampleTracker::BASE_FREQ);
       }
       return Holder::Ptr();
     }
@@ -80,8 +85,8 @@ namespace ZXTune
   void RegisterSTRSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSampleTrackerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<STRModulesFactory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    const ModulesFactory::Ptr factory = boost::make_shared<STR::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(STR::ID, decoder->GetDescription(), STR::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

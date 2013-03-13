@@ -162,7 +162,7 @@ namespace
   class VortexDataRenderer : public AYM::DataRenderer
   {
   public:
-    VortexDataRenderer(Vortex::Track::ModuleData::Ptr data, uint_t version, uint_t trackChannelStart)
+    VortexDataRenderer(Vortex::ModuleData::Ptr data, uint_t version, uint_t trackChannelStart)
       : Data(data)
       , Version(version)
       , VolTable(version <= 4 ? Vol33_34 : Vol35)
@@ -193,7 +193,7 @@ namespace
 
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Vortex::Track::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(TrackChannelStart + chan))
           {
@@ -318,9 +318,9 @@ namespace
         return;
       }
 
-      const Vortex::Track::Sample& curSample = Data->Samples[dst.SampleNum];
-      const Vortex::Track::Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const Vortex::Track::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+      const Vortex::Sample& curSample = Data->Samples.Get(dst.SampleNum);
+      const Vortex::Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+      const Vortex::Ornament& curOrnament = Data->Ornaments.Get(dst.OrnamentNum);
 
       //calculate tone
       const int_t toneAddon = curSampleLine.ToneOffset + dst.ToneAccumulator;
@@ -398,7 +398,7 @@ namespace
       return VolTable[volume * 16 + level];
     }
   private:
-    const Vortex::Track::ModuleData::Ptr Data;
+    const Vortex::ModuleData::Ptr Data;
     const uint_t Version;
     const VolumeTable& VolTable;
     const uint_t TrackChannelStart;
@@ -408,7 +408,7 @@ namespace
   class VortexChiptune : public AYM::Chiptune
   {
   public:
-    VortexChiptune(Vortex::Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    VortexChiptune(Vortex::ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
@@ -433,7 +433,7 @@ namespace
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
-    const Vortex::Track::ModuleData::Ptr Data;
+    const Vortex::ModuleData::Ptr Data;
     const ModuleProperties::Ptr Properties;
     const Information::Ptr Info;
   };
@@ -476,7 +476,7 @@ namespace ZXTune
         return static_cast<uint_t>(version);
       }
 
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Track::ModuleData::Ptr data,
+      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data,
          uint_t version, Devices::AYM::Chip::Ptr device, uint_t trackChannelStart)
       {
         const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version, trackChannelStart);
@@ -486,7 +486,7 @@ namespace ZXTune
         return AYM::CreateRenderer(trackParams, dataIter, device);
       }
 
-      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+      AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       {
         return boost::make_shared<VortexChiptune>(data, properties);
       }
