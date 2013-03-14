@@ -22,7 +22,7 @@ import app.zxtune.fs.Vfs;
 import android.util.Log;
 import app.zxtune.ui.*;
 
-public class CurrentlyPlayingActivity extends FragmentActivity implements Browser.Callback {
+public class CurrentlyPlayingActivity extends FragmentActivity {
 
   private Playback.Control control;
 
@@ -61,10 +61,5 @@ public class CurrentlyPlayingActivity extends FragmentActivity implements Browse
     final FragmentManager mgr = getSupportFragmentManager(); 
     mgr.executePendingTransactions();
     return (T) mgr.findFragmentByTag(type.getName());
-  }
-  
-  @Override
-  public void onFileSelected(Uri uri) {
-    control.open(uri.getPath());
   }
 }
