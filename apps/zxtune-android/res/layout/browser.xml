@@ -21,7 +21,7 @@
         android:layout_weight="1"
       />
     </LinearLayout>
-    <ListView
+    <app.zxtune.ui.DirView
         android:id="@+id/browser_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -10,11 +10,11 @@
 
 package app.zxtune.fs;
 
+import java.io.File;
+
 import android.net.Uri;
-import android.net.Uri.Builder;
 import android.os.Environment;
 import android.util.Log;
-import java.io.File;
 
 public final class LocalVfs {
 

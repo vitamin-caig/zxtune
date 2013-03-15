@@ -10,9 +10,10 @@
 
 package app.zxtune.fs;
 
+import java.util.ArrayList;
+
 import android.net.Uri;
 import android.util.Log;
-import java.util.ArrayList;
 
 public class Provider {
   
@@ -55,6 +56,9 @@ public class Provider {
     }
 
     public Vfs.Entry resolve(Uri uri) {
+      if (uri.equals(Uri.EMPTY)) {
+        return this;
+      }
       for (Vfs.Dir root : roots) {
         final Vfs.Entry entry = root.resolve(uri);
         if (entry != null) {

@@ -10,13 +10,6 @@
 
 package app.zxtune.ui;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
@@ -28,42 +21,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.PopupWindow;
-import android.widget.SimpleAdapter;
 import app.zxtune.PlaybackService;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 
-public class Browser extends Fragment implements BreadCrumbsUriView.OnUriSelectionListener {
-
-  private Context context;
-  private final Vfs.Dir roots;
+public class Browser extends Fragment
+    implements
+      BreadCrumbsUriView.OnUriSelectionListener,
+      DirView.OnEntryClickListener {
 
   private Button sources;
   private BreadCrumbsUriView position;
-  private ListView listing;
+  private DirView listing;
   private Uri current;
 
   private static class Tags {
 
     static final String LOG = "app.zxtune.ui.Browser";
-    static final String ICON = "icon";
-    static final String NAME = "name";
-    static final String SIZE = "size";
     static final String PATH = "path";
-  }
-
-  public Browser() {
-    this.roots = Vfs.getRoot();
-  }
-  
-  @Override
-  public void onAttach(Activity activity) {
-    super.onAttach(activity);
-    this.context = activity;
   }
 
   @Override
@@ -78,19 +55,18 @@ public class Browser extends Fragment implements BreadCrumbsUriView.OnUriSelecti
     sources.setOnClickListener(new SourcesClickListener());
     position = (BreadCrumbsUriView) view.findViewById(R.id.browser_breadcrumb);
     position.setOnUriSelectionListener(this);
-    listing = (ListView) view.findViewById(R.id.browser_content);
+    listing = (DirView) view.findViewById(R.id.browser_content);
+    listing.setOnEntryClickListener(this);
   }
-  
+
   @Override
   public void onViewStateRestored(Bundle inState) {
     super.onViewStateRestored(inState);
     final Uri lastPath = inState != null ? (Uri) inState.getParcelable(Tags.PATH) : Uri.EMPTY;
-    if (lastPath != Uri.EMPTY) {
-      Log.d(Tags.LOG, "Restore position: " + lastPath);
-      onUriSelection(lastPath);
-    }
+    Log.d(Tags.LOG, "Restore position: " + lastPath);
+    setCurrentPath(lastPath);
   }
-  
+
   @Override
   public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
@@ -98,167 +74,68 @@ public class Browser extends Fragment implements BreadCrumbsUriView.OnUriSelecti
     outState.putParcelable(Tags.PATH, current);
   }
 
-  private static SimpleAdapter createSpinnerAdapter(Context context, Vfs.Entry[] entries) {
-
-    final ArrayList<Map<String, Object>> data = createItemsData(entries);
-
-    final String[] fromFields = {Tags.ICON, Tags.NAME};
-    final int[] toFields = {R.id.browser_item_icon, R.id.browser_item_name};
-
-    return new SimpleAdapter(context, data, R.layout.browser_item, fromFields, toFields);
+  @Override
+  public void onUriSelection(Uri uri) {
+    setCurrentPath(uri);
   }
 
-  private static SimpleAdapter createListViewAdapter(Context context, Vfs.Entry[] entries) {
-
-    final ArrayList<Map<String, Object>> data = createItemsData(entries);
-
-    final String[] fromFields = {Tags.ICON, Tags.NAME, Tags.SIZE};
-    final int[] toFields = {R.id.browser_item_icon, R.id.browser_item_name, R.id.browser_item_size};
-
-    return new SimpleAdapter(context, data, R.layout.browser_item, fromFields, toFields);
-  }
-
-  private static ArrayList<Map<String, Object>> createItemsData(Vfs.Entry[] entries) {
-
-    final ArrayList<Map<String, Object>> data = new ArrayList<Map<String, Object>>(entries.length);
-
-    for (Vfs.Entry entry : entries) {
-      final Map<String, Object> item = createItemData(entry);
-      if (item != null) {
-        data.add(item);
-      }
-    }
-    return data;
-  }
-
-  private static Map<String, Object> createItemData(Vfs.Entry entry) {
-
-    if (entry instanceof Vfs.Dir) {
-      return createItemData((Vfs.Dir) entry);
-    } else if (entry instanceof Vfs.File) {
-      return createItemData((Vfs.File) entry);
-    } else {
-      return null;
-    }
-  }
-
-  private static Map<String, Object> createItemData(Vfs.Dir dir) {
-
-    final Map<String, Object> result = new HashMap<String, Object>();
-    result.put(Tags.ICON, R.drawable.ic_browser_folder);
-    result.put(Tags.NAME, dir.name());
-    return result;
-  }
-
-  private static Map<String, Object> createItemData(Vfs.File file) {
-
-    final Map<String, Object> result = new HashMap<String, Object>();
-    result.put(Tags.ICON, R.drawable.ic_browser_file);
-    result.put(Tags.NAME, file.name());
-    result.put(Tags.SIZE, file.size());
-    return result;
-  }
-
-  private final void fileSelected(Uri uri) {
+  @Override
+  public void onFileClick(Uri uri) {
+    final Context context = getActivity();
     final Intent intent = new Intent(Intent.ACTION_VIEW, uri, context, PlaybackService.class);
     context.startService(intent);
   }
-  
-  private final void navigate(Vfs.Entry entry) {
-    if (entry instanceof Vfs.Dir) {
-      navigate((Vfs.Dir) entry);
-    } else if (entry instanceof Vfs.File) {
-      fileSelected(entry.uri());
-    }
-  }
-  
-  private final void navigate(Vfs.Dir dir) {
-    final Uri uri = dir.uri();
-    final Vfs.Entry[] entries = dir.list();
-    if (entries == null) {
-      Log.d(Tags.LOG, "Unable to read entries for " + uri);
-      final Vfs.Entry[] NO_ENTRIES = {};
-      setCurrentPath(uri);
-      setCurrentEntries(NO_ENTRIES);
-    } else {
-      setCurrentPath(uri);
-      setCurrentEntries(entries);
-    }
+
+  @Override
+  public void onDirClick(Uri uri) {
+    setCurrentPath(uri);
   }
 
-  public void onUriSelection(Uri uri) {
-    navigate(roots.resolve(uri));
+  @Override
+  public boolean onFileLongClick(Uri uri) {
+    return false;
+  }
+
+  @Override
+  public boolean onDirLongClick(Uri uri) {
+    return false;
   }
 
   private final void setCurrentPath(Uri uri) {
     Log.d(Tags.LOG, "Set current path to " + uri);
     current = uri;
     position.setUri(uri);
+    listing.setUri(uri);
   }
 
-  private final void setCurrentEntries(Vfs.Entry[] entries) {
-    Arrays.sort(entries, new CompareEntries());
-    final SimpleAdapter adapter = createListViewAdapter(context, entries);
-    listing.setAdapter(adapter);
-    listing.setOnItemClickListener(new ItemClickListener(entries));
-    adapter.notifyDataSetChanged();
-  }
+  private class SourcesClickListener extends DirView.StubOnEntryClickListener
+      implements
+        View.OnClickListener {
 
-  private static class CompareEntries implements Comparator<Vfs.Entry> {
-
-    @Override
-    public int compare(Vfs.Entry lh, Vfs.Entry rh) {
-      final boolean lhDir = lh instanceof Vfs.Dir;
-      final boolean rhDir = rh instanceof Vfs.Dir;
-      if (lhDir == rhDir) {
-        return lh.name().compareToIgnoreCase(rh.name());
-      } else {
-        return lhDir ? -1 : +1;
-      }
-    }
-  }
-
-  private class SourcesClickListener implements View.OnClickListener {
+    PopupWindow popup;
 
     @Override
     public void onClick(View v) {
-      final Vfs.Entry[] entries = roots.list();
-      final SimpleAdapter adapter = createSpinnerAdapter(context, entries);
-      final ListView view = new ListView(v.getContext());
-      view.setAdapter(adapter);
-      
       final Context context = v.getContext();
+      final DirView view = new DirView(context);
       final View root = view.inflate(context, R.layout.popup, null);
       final ViewGroup rootLayout = (ViewGroup) root.findViewById(R.id.popup_layout);
       rootLayout.addView(view);
+      view.setDir(Vfs.getRoot());
+      view.setOnEntryClickListener(this);
 
-      final PopupWindow popup = new PopupWindow(root, WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, true);
+      popup =
+          new PopupWindow(root, WindowManager.LayoutParams.WRAP_CONTENT,
+              WindowManager.LayoutParams.WRAP_CONTENT, true);
       popup.setBackgroundDrawable(new BitmapDrawable());
       popup.setTouchable(true);
       popup.setOutsideTouchable(true);
-      
-      view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-        @Override
-        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-          popup.dismiss();
-          navigate(entries[position]);
-        }
-      });
       popup.showAsDropDown(v);
     }
-  }
-  
-  private class ItemClickListener implements AdapterView.OnItemClickListener {
 
-    final Vfs.Entry[] entries;
-
-    ItemClickListener(Vfs.Entry[] entries) {
-      this.entries = entries;
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      navigate(entries[position]);
+    public void onDirClick(Uri uri) {
+      popup.dismiss();
+      Browser.this.onDirClick(uri);
     }
   }
 }

@@ -10,7 +10,6 @@
 
 package app.zxtune.ui;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -24,42 +23,33 @@ import android.widget.LinearLayout;
 
 public class BreadCrumbsUriView extends HorizontalScrollView {
 
-  interface OnUriSelectionListener {
+  public interface OnUriSelectionListener {
 
     public void onUriSelection(Uri uri);
   }
 
+  public static class StubUriSelectionListener implements OnUriSelectionListener {
+    @Override
+    public void onUriSelection(Uri uri) {}
+  }
+  
+  private final static String ROOT = "/";
   private ViewGroup container;
   private OnUriSelectionListener listener;
 
   public BreadCrumbsUriView(Context context) {
     super(context);
-
     setupView();
   }
 
   public BreadCrumbsUriView(Context context, AttributeSet attr) {
     super(context, attr);
-
     setupView();
   }
 
   public BreadCrumbsUriView(Context context, AttributeSet attr, int defaultStyles) {
     super(context, attr, defaultStyles);
-
     setupView();
-  }
-
-  public void setUri(Uri uri) {
-    final Uri.Builder subUri = uri.buildUpon();
-    subUri.path("");
-    final List<String> elements = getPathElements(uri);
-    fillButtons(subUri, elements);
-    scrollToEnd();
-  }
-
-  public void setOnUriSelectionListener(OnUriSelectionListener listener) {
-    this.listener = listener != null ? listener : new StubUriSelectionListener();
   }
 
   private final void setupView() {
@@ -68,16 +58,37 @@ public class BreadCrumbsUriView extends HorizontalScrollView {
     listener = new StubUriSelectionListener();
   }
 
-  private final void fillButtons(Uri.Builder uri, List<String> texts) {
-    setButtonsCount(texts.size());
+  public void setUri(Uri uri) {
+    if (uri.equals(Uri.EMPTY)) {
+      setButtonsCount(0);
+    } else {
+      final Uri.Builder subUri = uri.buildUpon().path(ROOT);
+      final String root = getRoot(uri);
+      final List<String> elements = uri.getPathSegments();
+      fillButtons(subUri, root, elements);
+      scrollToEnd();
+    }
+  }
+
+  public void setOnUriSelectionListener(OnUriSelectionListener listener) {
+    this.listener = listener != null ? listener : new StubUriSelectionListener();
+  }
+
+  private final void fillButtons(Uri.Builder uri, String root, List<String> texts) {
+    setButtonsCount(texts.size() + 1);
+    enableButton(0, root, uri.build());
     for (int idx = 0; idx != texts.size(); ++idx) {
       final String text = texts.get(idx);
       final Uri point = uri.appendPath(text).build();
-      final Button button = (Button) container.getChildAt(idx);
-      button.setVisibility(VISIBLE);
-      button.setText(text);
-      button.setTag(point);
+      enableButton(idx + 1, text, point);
     }
+  }
+
+  private final void enableButton(int idx, String text, Uri point) {
+    final Button button = (Button) container.getChildAt(idx);
+    button.setVisibility(VISIBLE);
+    button.setText(text);
+    button.setTag(point);
   }
 
   private final void setButtonsCount(int count) {
@@ -109,11 +120,9 @@ public class BreadCrumbsUriView extends HorizontalScrollView {
     }
   }
 
-  private final List<String> getPathElements(Uri uri) {
-    final List<String> elements = new ArrayList<String>();
-    elements.add("/");
-    elements.addAll(uri.getPathSegments());
-    return elements;
+  private final String getRoot(Uri uri) {
+    final String root = uri.getHost();
+    return root != null ? root : ROOT;
   }
 
   private final void scrollToEnd() {
@@ -124,10 +133,5 @@ public class BreadCrumbsUriView extends HorizontalScrollView {
         smoothScrollTo(Integer.MAX_VALUE, 0);
       }
     });
-  }
-
-  private class StubUriSelectionListener implements OnUriSelectionListener {
-    @Override
-    public void onUriSelection(Uri uri) {}
   }
 }
