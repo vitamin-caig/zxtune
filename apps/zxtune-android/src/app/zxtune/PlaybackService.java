@@ -78,11 +78,11 @@ public class PlaybackService extends Service {
     final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
     final int duration = module.getDuration() * 20;//TODO
     final ContentValues values = new ContentValues();
-    values.put(Database.Tables.Playlist.Fields.URI, uri.toString());
-    values.put(Database.Tables.Playlist.Fields.TYPE, type);
-    values.put(Database.Tables.Playlist.Fields.AUTHOR, author);
-    values.put(Database.Tables.Playlist.Fields.TITLE, title);
-    values.put(Database.Tables.Playlist.Fields.DURATION, duration);
+    values.put(Database.Tables.Playlist.Fields.URI.name(), uri.toString());
+    values.put(Database.Tables.Playlist.Fields.TYPE.name(), type);
+    values.put(Database.Tables.Playlist.Fields.AUTHOR.name(), author);
+    values.put(Database.Tables.Playlist.Fields.TITLE.name(), title);
+    values.put(Database.Tables.Playlist.Fields.DURATION.name(), duration);
     getContentResolver().insert(Query.unparse(null), values);
   }
 

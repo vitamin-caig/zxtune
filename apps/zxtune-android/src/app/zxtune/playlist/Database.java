@@ -48,12 +48,12 @@ public class Database {
     
     public Query(String selection, String orderBy) {
       this.selection = selection;
-      this.orderBy = TextUtils.isEmpty(orderBy) ? Tables.Playlist.Fields.ID + " ASC" : orderBy;
+      this.orderBy = TextUtils.isEmpty(orderBy) ? Tables.Playlist.Fields._ID + " ASC" : orderBy;
     }
     
     public void setSelectionById(Long id) {
       if (id != null) {
-        final String subselection = Tables.Playlist.Fields.ID + " = " + id;
+        final String subselection = Tables.Playlist.Fields._ID + " = " + id;
         selection = TextUtils.isEmpty(selection) ? subselection : selection + " AND " + subselection;
       }
     }
@@ -69,19 +69,19 @@ public class Database {
 
   public static final class Tables {
     public static final class Playlist {
-      public static final class Fields {
-        public static final String ID = "_id";
-        public static final String URI = "uri";
-        public static final String TYPE = "type";
-        public static final String AUTHOR = "author";
-        public static final String TITLE = "title";
-        public static final String DURATION = "duration";
-        public static final String TAGS = "tags";
-        public static final String PROPERTIES = "properties";
+      public static enum Fields {
+        _ID,
+        URI,
+        TYPE,
+        AUTHOR,
+        TITLE,
+        DURATION,
+        TAGS,
+        PROPERTIES
       }
 
       private static final String NAME = "playlist";
-      private static final String CREATE_QUERY = "create table " + NAME + " (" + Fields.ID
+      private static final String CREATE_QUERY = "create table " + NAME + " (" + Fields._ID
           + " integer primary key autoincrement, " + Fields.URI + " text, " + Fields.TYPE + " text, "
           + Fields.AUTHOR + " text, " + Fields.TITLE + " text, " + Fields.DURATION + " integer, "
           + Fields.TAGS + " text, " + Fields.PROPERTIES + " text" + ");";
@@ -123,7 +123,7 @@ public class Database {
   }
   
   public static String defaultPlaylistOrder() {
-    return Tables.Playlist.Fields.ID + " ASC";
+    return Tables.Playlist.Fields._ID + " ASC";
   }
   
   private class DBHelper extends SQLiteOpenHelper {
