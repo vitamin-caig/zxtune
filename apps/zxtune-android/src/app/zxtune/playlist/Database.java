@@ -48,12 +48,12 @@ public class Database {
     
     public Query(String selection, String orderBy) {
       this.selection = selection;
-      this.orderBy = TextUtils.isEmpty(orderBy) ? Tables.Playlist.Fields._ID + " ASC" : orderBy;
+      this.orderBy = TextUtils.isEmpty(orderBy) ? Tables.Playlist.Fields._id + " ASC" : orderBy;
     }
     
     public void setSelectionById(Long id) {
       if (id != null) {
-        final String subselection = Tables.Playlist.Fields._ID + " = " + id;
+        final String subselection = Tables.Playlist.Fields._id + " = " + id;
         selection = TextUtils.isEmpty(selection) ? subselection : selection + " AND " + subselection;
       }
     }
@@ -70,21 +70,22 @@ public class Database {
   public static final class Tables {
     public static final class Playlist {
       public static enum Fields {
-        _ID,
-        URI,
-        TYPE,
-        AUTHOR,
-        TITLE,
-        DURATION,
-        TAGS,
-        PROPERTIES
+        //use lowercased names due to restrictions for _id column name
+        _id,
+        uri,
+        type,
+        author,
+        title,
+        duration,
+        tags,
+        properties
       }
 
       private static final String NAME = "playlist";
-      private static final String CREATE_QUERY = "create table " + NAME + " (" + Fields._ID
-          + " integer primary key autoincrement, " + Fields.URI + " text, " + Fields.TYPE + " text, "
-          + Fields.AUTHOR + " text, " + Fields.TITLE + " text, " + Fields.DURATION + " integer, "
-          + Fields.TAGS + " text, " + Fields.PROPERTIES + " text" + ");";
+      private static final String CREATE_QUERY = "create table " + NAME + " (" + Fields._id
+          + " integer primary key autoincrement, " + Fields.uri + " text, " + Fields.type + " text, "
+          + Fields.author + " text, " + Fields.title + " text, " + Fields.duration + " integer, "
+          + Fields.tags + " text, " + Fields.properties + " text" + ");";
     }
   }
 
@@ -123,7 +124,7 @@ public class Database {
   }
   
   public static String defaultPlaylistOrder() {
-    return Tables.Playlist.Fields._ID + " ASC";
+    return Tables.Playlist.Fields._id + " ASC";
   }
   
   private class DBHelper extends SQLiteOpenHelper {
@@ -134,10 +135,13 @@ public class Database {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+      Log.d(TAG, "Creating database");
       db.execSQL(Tables.Playlist.CREATE_QUERY);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {}
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+      Log.d(TAG, String.format("Upgrading database %u -> %u", oldVersion, newVersion));
+    }
   }
 }

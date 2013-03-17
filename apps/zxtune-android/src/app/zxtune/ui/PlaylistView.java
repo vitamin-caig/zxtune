@@ -132,21 +132,21 @@ public class PlaylistView extends ListView
     }
 
     private static void bindUri(Cursor cursor, View view) {
-      final String uri = cursor.getString(Database.Tables.Playlist.Fields.URI.ordinal());
+      final String uri = cursor.getString(Database.Tables.Playlist.Fields.uri.ordinal());
       view.setTag(uri);
     }
 
     private static void bindType(Cursor cursor, View view) {
-      final String itemType = cursor.getString(Database.Tables.Playlist.Fields.TYPE.ordinal());
+      final String itemType = cursor.getString(Database.Tables.Playlist.Fields.type.ordinal());
       final TextView type = (TextView) view.findViewById(R.id.playlist_item_type);
       type.setText(itemType);
     }
 
     private static void bindTitle(Cursor cursor, View view) {
-      String itemTitle = cursor.getString(Database.Tables.Playlist.Fields.TITLE.ordinal());
-      String itemAuthor = cursor.getString(Database.Tables.Playlist.Fields.AUTHOR.ordinal());
+      String itemTitle = cursor.getString(Database.Tables.Playlist.Fields.title.ordinal());
+      String itemAuthor = cursor.getString(Database.Tables.Playlist.Fields.author.ordinal());
       if (0 == itemAuthor.length() + itemAuthor.length()) {
-        itemTitle = cursor.getString(Database.Tables.Playlist.Fields.URI.ordinal());
+        itemTitle = cursor.getString(Database.Tables.Playlist.Fields.uri.ordinal());
       }
       final TextView title = (TextView) view.findViewById(R.id.playlist_item_title);
       title.setText(itemTitle);
@@ -160,7 +160,7 @@ public class PlaylistView extends ListView
     }
 
     private static void bindDuration(Cursor cursor, View view) {
-      final int durationMs = cursor.getInt(Database.Tables.Playlist.Fields.DURATION.ordinal());
+      final int durationMs = cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal());
       final TextView duration = (TextView) view.findViewById(R.id.playlist_item_duration);
       duration.setText(String.valueOf(durationMs / 1000));//TODO
     }
