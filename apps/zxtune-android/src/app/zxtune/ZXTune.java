@@ -76,6 +76,8 @@ public final class ZXTune {
   public static interface Module extends Object, Properties.Accessor {
     // ! @brief Module's attributes
     public static final class Attributes {
+      // ! @brief Type
+      public final static String TYPE = "Type";
       // ! @brief Title or name
       public final static String TITLE = "Title";
       // ! @brief Author or creator

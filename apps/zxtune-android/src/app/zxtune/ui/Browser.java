@@ -93,7 +93,11 @@ public class Browser extends Fragment
 
   @Override
   public boolean onFileLongClick(Uri uri) {
-    return false;
+    //TODO
+    final Context context = getActivity();
+    final Intent intent = new Intent(Intent.ACTION_INSERT, uri, context, PlaybackService.class);
+    context.startService(intent);
+    return true;
   }
 
   @Override

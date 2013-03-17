@@ -49,10 +49,12 @@ public class CurrentlyPlayingActivity extends FragmentActivity {
   private final void createView() {
     final Fragment seek = new Position();
     final Fragment ctrl = new Controls();
-    final Fragment playlist = new Browser();
+    final Fragment browser = new Browser();
+    final Fragment playlist = new Playlist();
     getSupportFragmentManager().beginTransaction()
         .replace(R.id.position_view, seek, seek.getClass().getName())
         .replace(R.id.controls_view, ctrl, ctrl.getClass().getName())
+        .replace(R.id.browser_view, browser, browser.getClass().getName())
         .replace(R.id.playlist_view, playlist, playlist.getClass().getName())
         .commit();
   }

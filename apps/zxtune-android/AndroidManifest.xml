@@ -30,5 +30,12 @@
               android:name=".PlaybackService"
               android:process=":service">
         </service>
+        <provider
+              android:name="app.zxtune.playlist.Provider"
+              android:authorities="app.zxtune.playlist"
+              android:exported="false"
+              android:multiprocess="true"
+              android:process=":service">
+        </provider>
     </application>
 </manifest>

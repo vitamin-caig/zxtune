@@ -19,11 +19,14 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
 import app.zxtune.sound.AsyncPlayback;
+import app.zxtune.playlist.Database;
+import app.zxtune.playlist.Query;
 
 public class PlaybackService extends Service {
 
@@ -51,13 +54,36 @@ public class PlaybackService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     final String action = intent != null ? intent.getAction() : null;
-    if (action != null && action.equals(Intent.ACTION_VIEW)) {
-      final String fileName = Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)).getPath();
-      if (fileName.length() != 0) {
-        ctrl.open(fileName);
-      }
+    final Uri uri = Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME));
+    if (action != null && uri != Uri.EMPTY) {
+      startAction(action, uri);
     }
     return START_NOT_STICKY;
+  }
+  
+  private void startAction(String action, Uri uri) {
+    if (action.equals(Intent.ACTION_VIEW)) {
+      ctrl.open(uri.getPath());
+    } else if (action.equals(Intent.ACTION_INSERT)) {
+      Log.d(TAG, String.format("Adding all modules from %s to playlist", uri.toString()));
+      final ZXTune.Module module = PlaybackControl.openModule(uri.getPath());
+      addModuleToPlaylist(uri, module);
+      module.release();
+    }
+  }
+  
+  private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
+    final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
+    final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
+    final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
+    final int duration = module.getDuration() * 20;//TODO
+    final ContentValues values = new ContentValues();
+    values.put(Database.Tables.Playlist.Fields.URI, uri.toString());
+    values.put(Database.Tables.Playlist.Fields.TYPE, type);
+    values.put(Database.Tables.Playlist.Fields.AUTHOR, author);
+    values.put(Database.Tables.Playlist.Fields.TITLE, title);
+    values.put(Database.Tables.Playlist.Fields.DURATION, duration);
+    getContentResolver().insert(Query.unparse(null), values);
   }
 
   @Override
@@ -108,13 +134,18 @@ public class PlaybackService extends Service {
 
     private AsyncPlayback playback;
     private final CompositeCallback callback = new CompositeCallback();
-
-    public void open(String moduleId) {
-      Log.d(TAG, String.format("Play %s", moduleId));
-      final byte[] content = LoadFile(moduleId);
+    
+    public static ZXTune.Module openModule(String path) {
+      final byte[] content = loadFile(path);
       final ZXTune.Data data = ZXTune.createData(content);
       final ZXTune.Module module = data.createModule();
       data.release();
+      return module;
+    }
+
+    public void open(String moduleId) {
+      Log.d(TAG, String.format("Play %s", moduleId));
+      final ZXTune.Module module = openModule(moduleId); 
       play(module);
     }
 
@@ -160,7 +191,7 @@ public class PlaybackService extends Service {
       return author + " - " + title;
     }
 
-    private byte[] LoadFile(String path) {
+    public static byte[] loadFile(String path) {
       try {
         final File file = new File(path);
         final FileInputStream stream = new FileInputStream(file);
