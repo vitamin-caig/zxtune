@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.playlist.Database;
+import app.zxtune.playlist.Query;
 
 public class PlaylistView extends ListView
     implements
@@ -28,18 +29,18 @@ public class PlaylistView extends ListView
 
   public interface OnPlayitemClickListener {
 
-    public void onPlayitemClick(long id, String dataUri);
+    public void onPlayitemClick(Uri playlistUri);
 
-    public boolean onPlayitemLongClick(long id, String dataUri);
+    public boolean onPlayitemLongClick(Uri playlistUri);
   }
 
   public static class StubOnPlayitemClickListener implements OnPlayitemClickListener {
 
     @Override
-    public void onPlayitemClick(long id, String dataUri) {}
+    public void onPlayitemClick(Uri playlistUri) {}
 
     @Override
-    public boolean onPlayitemLongClick(long id, String dataUri) {
+    public boolean onPlayitemLongClick(Uri playlistUri) {
       return false;
     }
   }
@@ -89,14 +90,12 @@ public class PlaylistView extends ListView
 
   @Override
   public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-    final String uri = (String) view.getTag();
-    listener.onPlayitemClick(id, uri);
+    listener.onPlayitemClick(Query.unparse(id));
   }
 
   @Override
   public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-    final String uri = (String) view.getTag();
-    return listener.onPlayitemLongClick(id, uri);
+    return listener.onPlayitemLongClick(Query.unparse(id));
   }
 
   private static class PlaylistCursorAdapter extends CursorAdapter {

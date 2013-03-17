@@ -51,16 +51,15 @@ public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickLi
   }
 
   @Override
-  public void onPlayitemClick(long id, String dataUri) {
+  public void onPlayitemClick(Uri playlistUri) {
     final Context context = getActivity();
-    final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(dataUri), context, PlaybackService.class);
+    final Intent intent = new Intent(Intent.ACTION_VIEW, playlistUri, context, PlaybackService.class);
     context.startService(intent);
   }
 
   @Override
-  public boolean onPlayitemLongClick(long id, String dataUri) {
-    final Uri itemUri = Query.unparse(id);
-    getActivity().getContentResolver().delete(itemUri, null, null);
+  public boolean onPlayitemLongClick(Uri playlistUri) {
+    getActivity().getContentResolver().delete(playlistUri, null, null);
     return true;
   }
 }

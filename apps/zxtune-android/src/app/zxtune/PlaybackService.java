@@ -19,8 +19,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
@@ -32,7 +34,7 @@ public class PlaybackService extends Service {
 
   private final static String TAG = "app.zxtune.Service";
 
-  private final Playback.Control ctrl = new PlaybackControl();
+  private final PlaybackControl ctrl = new PlaybackControl();
   private Playback.Callback callback;
   private final IBinder binder = MessengerRPC.ControlServer.createBinder(ctrl);
 
@@ -54,22 +56,56 @@ public class PlaybackService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     final String action = intent != null ? intent.getAction() : null;
-    final Uri uri = Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME));
+    final Uri uri = intent.getData();
     if (action != null && uri != Uri.EMPTY) {
       startAction(action, uri);
     }
     return START_NOT_STICKY;
   }
   
-  private void startAction(String action, Uri uri) {
+  private final void startAction(String action, Uri uri) {
     if (action.equals(Intent.ACTION_VIEW)) {
-      ctrl.open(uri.getPath());
+      Log.d(TAG, "Playing module " + uri);
+      playModule(uri);
     } else if (action.equals(Intent.ACTION_INSERT)) {
-      Log.d(TAG, String.format("Adding all modules from %s to playlist", uri.toString()));
-      final ZXTune.Module module = PlaybackControl.openModule(uri.getPath());
+      Log.d(TAG, "Adding to playlist all modules from " + uri);
+      final ZXTune.Module module = openModule(uri);
       addModuleToPlaylist(uri, module);
       module.release();
     }
+  }
+  
+  private final void playModule(Uri uri) {
+    final Uri dataUri = getDataUri(uri);
+    final ZXTune.Module module = openModule(dataUri);
+    ctrl.play(module);
+  }
+   
+  private final Uri getDataUri(Uri uri) {
+    if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
+      Log.d(TAG, " playlist reference scheme");
+      return getPlaylistItemDataUri(uri);
+    } else {
+      Log.d(TAG, " direct data scheme");
+      return uri;
+    }
+  }
+  
+  private final Uri getPlaylistItemDataUri(Uri uri) {
+    Cursor cursor = null;
+    try {
+      final String[] projection = {Database.Tables.Playlist.Fields.uri.name()};
+      cursor = getContentResolver().query(uri, projection, null, null, null);
+      if (cursor != null && cursor.moveToFirst()) {
+        final String dataUri = cursor.getString(0);
+        return Uri.parse(dataUri);
+      }
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+    return null;
   }
   
   private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
@@ -92,6 +128,28 @@ public class PlaybackService extends Service {
     return binder;
   }
 
+  private static ZXTune.Module openModule(Uri path) {
+    final byte[] content = loadFile(path.getPath());
+    final ZXTune.Data data = ZXTune.createData(content);
+    final ZXTune.Module module = data.createModule();
+    data.release();
+    return module;
+  }
+  
+  private static byte[] loadFile(String path) {
+    try {
+      final File file = new File(path);
+      final FileInputStream stream = new FileInputStream(file);
+      final int size = (int) file.length();
+      byte[] result = new byte[size];
+      stream.read(result, 0, size);
+      return result;
+    } catch (IOException e) {
+      Log.d(TAG, e.toString());
+      return null;
+    }
+  }
+  
   private class NotificationCallback implements Playback.Callback {
     
     private NotificationManager notificationManager;
@@ -135,45 +193,7 @@ public class PlaybackService extends Service {
     private AsyncPlayback playback;
     private final CompositeCallback callback = new CompositeCallback();
     
-    public static ZXTune.Module openModule(String path) {
-      final byte[] content = loadFile(path);
-      final ZXTune.Data data = ZXTune.createData(content);
-      final ZXTune.Module module = data.createModule();
-      data.release();
-      return module;
-    }
-
-    public void open(String moduleId) {
-      Log.d(TAG, String.format("Play %s", moduleId));
-      final ZXTune.Module module = openModule(moduleId); 
-      play(module);
-    }
-
-    public void play() {
-      playback.play();
-    }
-
-    public void pause() {
-      playback.pause();
-    }
-
-    public void stop() {
-      Log.d(TAG, "Stop");
-      if (playback != null) {
-        playback.stop();
-        playback = null;
-      }
-    }
-
-    public void registerCallback(Playback.Callback cb) {
-      callback.add(cb);
-    }
-
-    public void unregisterCallback(Playback.Callback cb) {
-      callback.delete(cb);
-    }
-
-    private void play(ZXTune.Module module) {
+    public void play(ZXTune.Module module) {
       stop();
       final String description = describeModule(module);
       final AsyncPlayback.Source src = new PlaybackSource(module.createPlayer(), callback);
@@ -185,27 +205,42 @@ public class PlaybackService extends Service {
       play();
     }
 
+    @Override
+    public void play() {
+      playback.play();
+    }
+
+    @Override
+    public void pause() {
+      playback.pause();
+    }
+
+    @Override
+    public void stop() {
+      Log.d(TAG, "Stop");
+      if (playback != null) {
+        playback.stop();
+        playback = null;
+      }
+    }
+
+    @Override
+    public void registerCallback(Playback.Callback cb) {
+      callback.add(cb);
+    }
+
+    @Override
+    public void unregisterCallback(Playback.Callback cb) {
+      callback.delete(cb);
+    }
+
     private String describeModule(ZXTune.Module module) {
       final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "Unknown");
       final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "Unknown");
       return author + " - " + title;
     }
 
-    public static byte[] loadFile(String path) {
-      try {
-        final File file = new File(path);
-        final FileInputStream stream = new FileInputStream(file);
-        final int size = (int) file.length();
-        byte[] result = new byte[size];
-        stream.read(result, 0, size);
-        return result;
-      } catch (IOException e) {
-        Log.d(TAG, e.toString());
-        return null;
-      }
-    }
-
-    private class CompositeCallback implements Playback.Callback {
+    private static class CompositeCallback implements Playback.Callback {
       private ArrayList<Playback.Callback> delegates = new ArrayList<Playback.Callback>();
 
       public void started(String description, int duration) {

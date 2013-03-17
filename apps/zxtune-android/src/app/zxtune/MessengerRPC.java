@@ -27,19 +27,19 @@ import android.os.RemoteException;
 import android.util.Log;
 
 public final class MessengerRPC {
+  
+  protected static final class Messages {
+    public static final int PLAY = 1;
+    public static final int PAUSE = PLAY + 1; 
+    public static final int STOP = PAUSE + 1;
+    public static final int REGISTER_CALLBACK = STOP + 1;
+    public static final int UNREGISTER_CALLBACK = REGISTER_CALLBACK + 1;
+    public static final int STARTED = UNREGISTER_CALLBACK + 1;
+    public static final int PAUSED = STARTED + 1;
+    public static final int STOPPED = PAUSED + 1;
+    public static final int POSITION_CHANGED = STOPPED + 1;
+  }
 
-  protected final static int MSG_OPEN = 1;
-  protected final static int MSG_PLAY = 2;
-  protected final static int MSG_PAUSE = 3;
-  protected final static int MSG_STOP = 4;
-  protected final static int MSG_REGISTER_CALLBACK = 5;
-  protected final static int MSG_UNREGISTER_CALLBACK = 6;
-  protected final static int MSG_STARTED = 7;
-  protected final static int MSG_PAUSED = 8;
-  protected final static int MSG_STOPPED = 9;
-  protected final static int MSG_POSITION_CHANGED = 10;
-
-  protected final static String KEY_ID = "id";
   protected final static String KEY_DESCRIPTION = "description";
   protected final static String KEY_TIME = "time";
 
@@ -74,31 +74,24 @@ public final class MessengerRPC {
       }
     }
 
-    public void open(String moduleId) {
-      final Bundle bundle = new Bundle();
-      bundle.putString(KEY_ID, moduleId);
-      final Message msg = Message.obtain(null, MSG_OPEN, bundle);
-      messages.send(msg);
-    }
-
     public void play() {
-      final Message msg = Message.obtain(null, MSG_PLAY);
+      final Message msg = Message.obtain(null, Messages.PLAY);
       messages.send(msg);
     }
 
     public void pause() {
-      final Message msg = Message.obtain(null, MSG_PAUSE);
+      final Message msg = Message.obtain(null, Messages.PAUSE);
       messages.send(msg);
     }
 
     public void stop() {
-      final Message msg = Message.obtain(null, MSG_STOP);
+      final Message msg = Message.obtain(null, Messages.STOP);
       messages.send(msg);
     }
 
     public void registerCallback(Playback.Callback cb) {
       final Messenger messenger = CallbackServer.createMessenger(cb);
-      final Message msg = Message.obtain(null, MSG_REGISTER_CALLBACK);
+      final Message msg = Message.obtain(null, Messages.REGISTER_CALLBACK);
       msg.replyTo = messenger;
       messages.send(msg);
       callbacks.put(cb, messenger);
@@ -107,7 +100,7 @@ public final class MessengerRPC {
     public void unregisterCallback(Playback.Callback cb) {
       final Messenger messenger = callbacks.get(cb);
       if (messenger != null) {
-        final Message msg = Message.obtain(null, MSG_UNREGISTER_CALLBACK);
+        final Message msg = Message.obtain(null, Messages.UNREGISTER_CALLBACK);
         msg.replyTo = messenger;
         messages.send(msg);
         callbacks.remove(cb);
@@ -187,26 +180,26 @@ public final class MessengerRPC {
     public void started(String description, int duration) {
       final Bundle bundle = new Bundle();
       bundle.putString(KEY_DESCRIPTION, description);
-      final Message msg = Message.obtain(null, MSG_STARTED, duration, 0, bundle);
+      final Message msg = Message.obtain(null, Messages.STARTED, duration, 0, bundle);
       sendMessage(msg);
     }
 
     public void paused(String description) {
       final Bundle bundle = new Bundle();
       bundle.putString(KEY_DESCRIPTION, description);
-      final Message msg = Message.obtain(null, MSG_PAUSED, bundle);
+      final Message msg = Message.obtain(null, Messages.PAUSED, bundle);
       sendMessage(msg);
     }
 
     public void stopped() {
-      final Message msg = Message.obtain(null, MSG_STOPPED);
+      final Message msg = Message.obtain(null, Messages.STOPPED);
       sendMessage(msg);
     }
 
     public void positionChanged(int curFrame, String curTime) {
       final Bundle bundle = new Bundle();
       bundle.putString(KEY_TIME, curTime);
-      final Message msg = Message.obtain(null, MSG_POSITION_CHANGED, curFrame, 0, bundle);
+      final Message msg = Message.obtain(null, Messages.POSITION_CHANGED, curFrame, 0, bundle);
       sendMessage(msg);
     }
 
@@ -238,25 +231,22 @@ public final class MessengerRPC {
     @Override
     public void handleMessage(Message msg) {
       switch (msg.what) {
-        case MSG_OPEN:
-          control.open((String) ((Bundle) msg.obj).getString(KEY_ID));
-          break;
-        case MSG_PLAY:
+        case Messages.PLAY:
           control.play();
           break;
-        case MSG_PAUSE:
+        case Messages.PAUSE:
           control.pause();
           break;
-        case MSG_STOP:
+        case Messages.STOP:
           control.stop();
           break;
-        case MSG_REGISTER_CALLBACK: {
+        case Messages.REGISTER_CALLBACK: {
           final Playback.Callback cb = CallbackClient.create(msg.replyTo);
           control.registerCallback(cb);
           callbacks.put(msg.replyTo, cb);
         }
           break;
-        case MSG_UNREGISTER_CALLBACK: {
+        case Messages.UNREGISTER_CALLBACK: {
           final Playback.Callback cb = callbacks.get(msg.replyTo);
           if (cb != null) {
             control.unregisterCallback(cb);
@@ -288,16 +278,16 @@ public final class MessengerRPC {
     public void handleMessage(Message msg) {
       final Bundle bundle = (Bundle) msg.obj;
       switch (msg.what) {
-        case MSG_STARTED:
+        case Messages.STARTED:
           callback.started(bundle.getString(KEY_DESCRIPTION), msg.arg1);
           break;
-        case MSG_PAUSED:
+        case Messages.PAUSED:
           callback.paused(bundle.getString(KEY_DESCRIPTION));
           break;
-        case MSG_STOPPED:
+        case Messages.STOPPED:
           callback.stopped();
           break;
-        case MSG_POSITION_CHANGED:
+        case Messages.POSITION_CHANGED:
           callback.positionChanged(msg.arg1, bundle.getString(KEY_TIME));
           break;
         default:
