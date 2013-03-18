@@ -62,7 +62,8 @@ namespace Binary
     //! @brief Search for matched offset in input data
     //! @param data Data to be checked
     //! @return Offset of matched data or size if not found
-    virtual std::size_t Search(const Data& data) const = 0;
+    //! @invariant return value is always > 0
+    virtual std::size_t NextMatchOffset(const Data& data) const = 0;
 
     // Factory based on text pattern
     static Ptr Create(const std::string& pattern, std::size_t minSize = 0);

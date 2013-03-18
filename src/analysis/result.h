@@ -18,6 +18,7 @@
 namespace Analysis
 {
   //! Abstract data detection result
+  //! TODO: temporary solution with negative lookahead offsets for statistic collecting
   class Result
   {
   public:
@@ -30,8 +31,8 @@ namespace Analysis
     virtual std::size_t GetMatchedDataSize() const = 0;
     //! @brief Search format in forward data
     //! @return Offset in input data where perform next checking
-    //! @invariant Return 0 if current data matches format
-    //! @invariant Return input data size if no data at all
+    //! @invariant Return >0 if current data not matches format (up to input data's size if no matches at all)
+    //! @invariant Return 0 if input data matches
     virtual std::size_t GetLookaheadOffset() const = 0;
   };
 

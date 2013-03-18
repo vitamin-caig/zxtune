@@ -134,7 +134,7 @@ namespace
       const StaticToken* const suffixEnd = End();
       const std::size_t patternSize = GetSize();
       const std::size_t startOffset = 1;
-      const StaticToken* start = End() - suffixSize - startOffset;
+      const StaticToken* start = suffixBegin - startOffset;
       for (std::size_t offset = startOffset; ; ++offset, --start)
       {
         const std::size_t windowSize = suffixSize + offset;
@@ -166,6 +166,45 @@ namespace
         }
       }
     }
+
+    std::size_t FindPrefix(std::size_t prefixSize) const
+    {
+      const StaticToken* const prefixBegin = Begin();
+      const StaticToken* const prefixEnd = Begin() + prefixSize;
+      const std::size_t patternSize = GetSize();
+      const std::size_t startOffset = 1;
+      const StaticToken* start = prefixBegin + startOffset;
+      for (std::size_t offset = startOffset; ; ++offset, ++start)
+      {
+        const std::size_t windowSize = prefixSize + offset;
+        if (patternSize >= windowSize)
+        {
+          //pattern: ssssss...
+          //prefix:   sssssx
+          //offset=1
+          if (std::equal(prefixBegin, prefixEnd, start, &StaticToken::AreIntersected))
+          {
+            return offset;
+          }
+        }
+        else
+        {
+          if (patternSize == offset)
+          {
+            //all prefix is out of patter
+            return offset;
+          }
+          //pattern: ....
+          //prefix:    sssx
+          //out of pattern=2
+          const std::size_t outOfPattern = windowSize - patternSize;
+          if (std::equal(prefixBegin, prefixEnd - outOfPattern, start, &StaticToken::AreIntersected))
+          {
+            return offset;
+          }
+        }
+      }
+    }
   private:
     const StaticToken* Begin() const
     {
@@ -186,9 +225,10 @@ namespace
     typedef boost::array<uint8_t, 256> PatternRow;
     typedef std::vector<PatternRow> PatternMatrix;
 
-    FastSearchFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize)
+    FastSearchFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
+      , MinScanStep(minScanStep)
       , Pat(mtx.rbegin(), mtx.rend())
       , PatRBegin(&Pat[0])
       , PatREnd(PatRBegin + Pat.size())
@@ -206,7 +246,7 @@ namespace
       return 0 == SearchBackward(typedDataLast);
     }
 
-    virtual std::size_t Search(const Data& data) const
+    virtual std::size_t NextMatchOffset(const Data& data) const
     {
       const std::size_t size = data.Size();
       if (size < MinSize)
@@ -217,7 +257,9 @@ namespace
       const std::size_t endOfPat = Offset + Pat.size();
       const uint8_t* const scanStart = typedData + endOfPat - 1;
       const uint8_t* const scanStop = typedData + size;
-      for (const uint8_t* scanPos = scanStart; scanPos < scanStop; )
+      const std::size_t firstMatch = SearchBackward(scanStart);
+      const std::size_t initialOffset = firstMatch != 0 ? firstMatch : MinScanStep;
+      for (const uint8_t* scanPos = scanStart + initialOffset; scanPos < scanStop; )
       {
         if (const std::size_t offset = SearchBackward(scanPos))
         {
@@ -276,7 +318,8 @@ namespace
         }
       }
       //Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means symbol match
-      return boost::make_shared<FastSearchFormat>(tmp, expr.StartOffset(), minSize);
+      const std::size_t minScanStep = pattern.FindPrefix(patternSize);
+      return boost::make_shared<FastSearchFormat>(tmp, expr.StartOffset(), minSize, minScanStep);
     }
   private:
     std::size_t SearchBackward(const uint8_t* data) const
@@ -299,6 +342,7 @@ namespace
   private:
     const std::size_t Offset;
     const std::size_t MinSize;
+    const std::size_t MinScanStep;
     const PatternMatrix Pat;
     const PatternRow* const PatRBegin;
     const PatternRow* const PatREnd;
@@ -332,10 +376,10 @@ namespace Binary
       }
       const uint8_t* const searchStart = static_cast<const uint8_t*>(data.Start()) + MinFooterOffset;
       const std::size_t searchSize = std::min(MaxFooterOffset, size) - MinFooterOffset;
-      return Footer->Search(DataAdapter(searchStart, searchSize)) != searchSize;
+      return Footer->NextMatchOffset(DataAdapter(searchStart, searchSize)) != searchSize;
     }
 
-    virtual std::size_t Search(const Data& data) const
+    virtual std::size_t NextMatchOffset(const Data& data) const
     {
       const uint8_t* const start = static_cast<const uint8_t*>(data.Start());
       const std::size_t limit = data.Size();
@@ -343,8 +387,8 @@ namespace Binary
       {
         const uint8_t* const headerStart = start + headerCursor;
         const std::size_t restForHeader = limit - headerCursor;
-        const std::size_t headerOffset = Header->Search(DataAdapter(headerStart, restForHeader));
-        if (headerOffset == restForHeader)
+        const std::size_t headerOffset = Header->NextMatchOffset(DataAdapter(headerStart, restForHeader));
+        if (headerOffset + MinFooterOffset >= restForHeader)
         {
           break;
         }
@@ -353,7 +397,7 @@ namespace Binary
         const std::size_t footerCursor = headerCursor + headerOffset + MinFooterOffset;
         const uint8_t* const footerStart = start + footerCursor;
         const std::size_t restForFooter = limit - footerCursor;
-        const std::size_t footerOffset = Footer->Search(DataAdapter(footerStart, restForFooter));
+        const std::size_t footerOffset = Footer->NextMatchOffset(DataAdapter(footerStart, restForFooter));
         if (footerOffset == restForFooter)
         {
           break;
@@ -363,7 +407,7 @@ namespace Binary
           return absoluteHeaderOffset;
         }
         const std::size_t absoluteFooterOffset = footerCursor + footerOffset;
-        headerCursor = std::max(headerCursor + 1, absoluteFooterOffset - MaxFooterOffset);
+        headerCursor = std::max(absoluteHeaderOffset, absoluteFooterOffset - MaxFooterOffset);
       }
       return limit;
     }

@@ -152,9 +152,19 @@ namespace
 
 namespace
 {
-  typedef std::pair<bool, std::size_t> FormatResult;
+  struct FormatResult
+  {
+    bool Matched;
+    std::size_t NextMatch;
 
-  const FormatResult INVALID_FORMAT(false, 0);
+    FormatResult(bool matched, std::size_t nextMatch)
+      : Matched(matched)
+      , NextMatch(nextMatch)
+    {
+    }
+  };
+
+  const FormatResult INVALID_FORMAT = FormatResult(false, 0);
 
   struct FormatTest
   {
@@ -175,7 +185,7 @@ namespace
     {
       const Binary::Format::Ptr format = Binary::Format::Create(notation);
       const Binary::DataAdapter sample(SAMPLE, ArraySize(SAMPLE));
-      return FormatResult(format->Match(sample), format->Search(sample));
+      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
     {
@@ -191,7 +201,7 @@ namespace
       const Binary::Format::Ptr foot = Binary::Format::Create(footer);
       const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, minSize, maxSize);
       const Binary::DataAdapter sample(SAMPLE, ArraySize(SAMPLE));
-      return FormatResult(format->Match(sample), format->Search(sample));
+      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
     {
@@ -345,7 +355,7 @@ namespace
       "*5 ",
       "*5 ",
       "*5 ",
-      FormatResult(true, 0)
+      FormatResult(true, 5)
     },
     {
       "quantor on empty",
@@ -399,7 +409,7 @@ namespace
       "( 00 ) | 02 ",
       "( 00 ) 02 | ",
       "( 00 ) 02 | ",
-      FormatResult(true, 0)
+      FormatResult(true, 2)
     },
     {
       "multival operation right",
@@ -500,7 +510,7 @@ namespace
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "partial explicit match",
@@ -509,7 +519,7 @@ namespace
       "00 01 02 03 04 05 ",
       "00 01 02 03 04 05 ",
       "00 01 02 03 04 05 ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "whole mask match",
@@ -518,7 +528,7 @@ namespace
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "partial mask match",
@@ -527,7 +537,7 @@ namespace
       "00 \? 02 03 04 05 ",
       "00 \? 02 03 04 05 ",
       "00 \? 02 03 04 05 ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "full oversize unmatch",
@@ -545,7 +555,7 @@ namespace
       "0x 0x ",
       "0x 0x ",
       "0x 0x ",
-      FormatResult(true, 0)
+      FormatResult(true, 1)
     },
     {
       "nibbles unmatched",
@@ -563,7 +573,7 @@ namespace
       "%0x0x0x0x %x0x0x0x1 ",
       "%0x0x0x0x %x0x0x0x1 ",
       "%0x0x0x0x %x0x0x0x1 ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "binary unmatched",
@@ -581,7 +591,7 @@ namespace
       "00 - 02 00 - 02 ",
       "00 02 - 00 02 - ",
       "00 02 - 00 02 - ",
-      FormatResult(true, 0)
+      FormatResult(true, 1)
     },
     {
       "ranged unmatched",
@@ -662,7 +672,7 @@ namespace
       "0x {10} ",
       "0x {10} ",
       "0x {10} ",
-      FormatResult(true, 0)
+      FormatResult(true, 1)
     },
     {
       "quantor unmatched",
@@ -680,7 +690,7 @@ namespace
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
-      FormatResult(true, 0)
+      FormatResult(true, 2)
     },
     {
       "quanted group unmatched",
@@ -707,7 +717,7 @@ namespace
       "( 00 01 02 03 ) 04 - 05 ",
       "( 00 01 02 03 ) 04 05 - ",
       "( 00 01 02 03 ) 04 05 - ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "quanted range matched",
@@ -716,7 +726,7 @@ namespace
       "00 - 1f {32} ",
       "00 1f - {32} ",
       "00 1f - {32} ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "multiplicity matched",
@@ -725,7 +735,7 @@ namespace
       "00 01 02 03 *2 05 *3 ",
       "00 01 02 03 *2 05 *3 ",
       "00 01 02 03 *2 05 *3 ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "multiplicity unmatched",
@@ -743,7 +753,7 @@ namespace
       "00 0x & x1 ",
       "00 0x x1 & ",
       "00 0x x1 & ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "conjunction unmatched",
@@ -761,7 +771,7 @@ namespace
       "00 | 01 00 | 01 ",
       "00 01 | 00 01 | ",
       "00 01 | 00 01 | ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "disjunction unmatched",
@@ -779,7 +789,7 @@ namespace
       "00 - 01 | 1e - 1f ",
       "00 01 - 1e 1f - | ",
       "00 01 - 1e 1f - | ",
-      FormatResult(true, 0)
+      FormatResult(true, 1)
     },
     {
       "trd format expression",
@@ -812,8 +822,8 @@ namespace
     Test("syntax RPN", GetSyntaxRPN(tst.Notation), tst.SyntaxReportRPN);
     Test("syntax RPN checked", GetSyntaxRPNChecked(tst.Notation), tst.SyntaxReportRPNChecked);
     const FormatResult res = CheckFormat(tst.Notation);
-    Test("match", res.first, tst.Result.first);
-    Test("lookahead", res.second, tst.Result.second);
+    Test("match", res.Matched, tst.Result.Matched);
+    Test("next match offset", res.NextMatch, tst.Result.NextMatch);
   }
 
   struct CompositeFormatTest
@@ -832,13 +842,13 @@ namespace
       "whole matching",
       "0001", "1e1f",
       4, 32,
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "matched from begin",
       "0001", "1011",
       4, 32,
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "matched at end",
@@ -894,8 +904,8 @@ namespace
   {
     std::cout << "Testing for composite format: " << tst.Name << std::endl;
     const FormatResult res = CheckCompositeFormat(tst.Header, tst.Footer, tst.MinSize, tst.MaxFooterOffset);
-    Test("match", res.first, tst.Result.first);
-    Test("lookahead", res.second, tst.Result.second);
+    Test("match", res.Matched, tst.Result.Matched);
+    Test("next match offset", res.NextMatch, tst.Result.NextMatch);
   }
 }
 
