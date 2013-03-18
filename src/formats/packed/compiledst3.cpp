@@ -141,7 +141,7 @@ namespace Formats
         }
         const uint_t compileAddr = rawPlayer.GetCompileAddr();
         Dbg("Detected player compiled at %1% (#%1$04x) in first %2% bytes", compileAddr, playerSize);
-        const std::size_t modDataSize = std::max(availSize - playerSize, CompiledST3::MAX_MODULE_SIZE);
+        const std::size_t modDataSize = std::min(availSize - playerSize, CompiledST3::MAX_MODULE_SIZE);
         const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
         const Dump& metainfo = rawPlayer.GetInfo();
         Formats::Chiptune::SoundTracker::Builder& stub = Formats::Chiptune::SoundTracker::GetStubBuilder();
