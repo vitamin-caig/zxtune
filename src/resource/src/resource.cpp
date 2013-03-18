@@ -159,11 +159,7 @@ namespace
     for (std::size_t offset = 0; offset < dataSize; )
     {
       const LightweightBinaryContainer archData(dataStart + offset, dataSize - offset);
-      if (const std::size_t skip = format->Search(archData))
-      {
-        offset += skip;
-      }
-      else
+      if (format->Match(archData))
       {
         if (const Formats::Archived::Container::Ptr arch = decoder.Decode(archData))
         {
@@ -171,12 +167,10 @@ namespace
           Dbg("Found resource archive at %1%, size %2%", offset, size);
           result.push_back(arch);
           offset += size;
-        }
-        else
-        {
-          offset += 1;
+          continue;
         }
       }
+      offset += format->NextMatchOffset(archData);
     }
     return result;
   }
