@@ -39,6 +39,7 @@ namespace Formats
     Decoder::Ptr CreateChipTrackerDecoder();
     Decoder::Ptr CreateSampleTrackerDecoder();
     Decoder::Ptr CreateProDigiTrackerDecoder();
+    Decoder::Ptr CreateSQTrackerDecoder();
   }
 }
 

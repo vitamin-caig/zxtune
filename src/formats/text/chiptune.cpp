@@ -91,6 +91,9 @@ extern const Char SOUNDTRACKER_DECODER_DESCRIPTION[] = {
 extern const Char SQDIGITALTRACKER_DECODER_DESCRIPTION[] = {
   'S','Q',' ','D','i','g','i','t','a','l',' ','T','r','a','c','k','e','r',0
 };
+extern const Char SQTRACKER_DECODER_DESCRIPTION[] = {
+  'S','Q','-','T','r','a','c','k','e','r',0
+};
 extern const Char TFC_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','F','M',' ','C','o','m','p','i','l','e','d',' ','D','u','m','p',0
 };
