@@ -162,7 +162,7 @@ namespace ZXTune
         {
           return 0;
         }
-        const typename ObjectsList::const_iterator it = std::lower_bound(Objects.begin(), Objects.end(), idx);
+        const typename ObjectsList::const_iterator it = std::lower_bound(Objects.begin(), Objects.end(), ObjectWithIndex(idx, T()));
         return it == Objects.end() || it->Index != idx
           ? 0
           : &it->Object;
@@ -182,9 +182,15 @@ namespace ZXTune
       void Add(uint_t idx, T obj)
       {
         assert(Objects.end() == std::find(Objects.begin(), Objects.end(), idx));
-        assert(idx >= Count);
         Objects.push_back(ObjectWithIndex(idx, obj));
-        Count = idx + 1;
+        if (idx < Count)
+        {
+          std::sort(Objects.begin(), Objects.end());
+        }
+        else
+        {
+          Count = idx + 1;
+        }
       }
     private:
       struct ObjectWithIndex
@@ -204,9 +210,9 @@ namespace ZXTune
         uint_t Index;
         T Object;
 
-        bool operator < (uint_t idx) const
+        bool operator < (const ObjectWithIndex& rh) const
         {
-          return Index < idx;
+          return Index < rh.Index;
         }
 
         bool operator == (uint_t idx) const

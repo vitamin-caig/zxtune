@@ -550,6 +550,11 @@ namespace
       return Delegate->GetDescription();
     }
 
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Delegate->GetFormat();
+    }
+
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       const Analysis::Result::Ptr result = Delegate->Detect(inputData, callback);
@@ -630,11 +635,11 @@ namespace
         Statistic::Self().AddArchived(matched);
         return matched;
       }
-      const std::size_t archiveLookahead = detectedArchives->GetLookaheadOffset();
-      const std::size_t moduleLookahead = detectedModules->GetLookaheadOffset();
+      const std::ptrdiff_t archiveLookahead = detectedArchives->GetLookaheadOffset();
+      const std::ptrdiff_t moduleLookahead = detectedModules->GetLookaheadOffset();
       Dbg("No archives for nearest %1% bytes, modules for %2% bytes",
         archiveLookahead, moduleLookahead);
-      return std::min(archiveLookahead, moduleLookahead);
+      return static_cast<std::size_t>(std::min(archiveLookahead, moduleLookahead));
     }
 
     void SetOffset(std::size_t offset)
@@ -652,21 +657,24 @@ namespace
         const typename T::Ptr plugin = iter->Get();
         const Analysis::Result::Ptr result = plugin->Detect(input, callback);
         const String id = plugin->GetDescription()->Id();
-        if (std::size_t usedSize = result->GetMatchedDataSize())
+        if (const std::size_t usedSize = result->GetMatchedDataSize())
         {
           Statistic::Self().AddAimed(id, timer);
           Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
-        if (const std::size_t lookahead = result->GetLookaheadOffset())
-        {
-          Statistic::Self().AddAimed(id, timer);
-          container.SetPluginLookahead(id, lookahead);
-        }
         else
         {
-          Statistic::Self().AddMissed(id, timer);
-          container.SetPluginLookahead(id, SCAN_STEP);
+          const std::size_t lookahead = result->GetLookaheadOffset();
+          if (plugin->GetFormat()->Match(*input->GetData()))
+          {
+            Statistic::Self().AddMissed(id, timer);
+          }
+          else
+          {
+            Statistic::Self().AddAimed(id, timer);
+          }
+          container.SetPluginLookahead(id, lookahead);
         }
       }
       const std::size_t minLookahead = container.GetMinimalPluginLookahead();
@@ -693,6 +701,11 @@ namespace
     virtual Plugin::Ptr GetDescription() const
     {
       return Description;
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Binary::Format::Ptr();
     }
 
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const

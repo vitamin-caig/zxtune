@@ -140,6 +140,11 @@ namespace
       return Description;
     }
 
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Decoder->GetFormat();
+    }
+
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr rawData = input->GetData();

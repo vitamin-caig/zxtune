@@ -33,6 +33,7 @@ namespace ZXTune
     virtual ~PlayerPlugin() {}
 
     virtual Plugin::Ptr GetDescription() const = 0; 
+    virtual Binary::Format::Ptr GetFormat() const = 0;
 
     //! @brief Detect modules in data
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
@@ -46,6 +47,7 @@ namespace ZXTune
     virtual ~ArchivePlugin() {}
 
     virtual Plugin::Ptr GetDescription() const = 0;
+    virtual Binary::Format::Ptr GetFormat() const = 0;
 
     //! @brief Detect modules in data
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;

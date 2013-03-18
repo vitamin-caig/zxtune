@@ -51,6 +51,11 @@ namespace
       return Description;
     }
 
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Factory->GetFormat();
+    }
+
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       return DetectModuleInLocation(Factory, Description->Id(), inputData, callback);

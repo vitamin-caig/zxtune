@@ -92,6 +92,11 @@ namespace
       return Description;
     }
 
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Decoder->GetFormat();
+    }
+
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       return DetectModulesInArchive(Description, *Decoder, inputData, callback);

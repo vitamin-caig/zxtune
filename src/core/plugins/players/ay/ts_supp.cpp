@@ -314,12 +314,18 @@ namespace
       return Description;
     }
 
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      //TODO:
+      return FooterFormat;
+    }
+
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       const Binary::Container::Ptr data = inputData->GetData();
       const uint8_t* const rawData = static_cast<const uint8_t*>(data->Start());
       const std::size_t size = data->Size();
-      const std::size_t footerOffset = FooterFormat->Search(*data);
+      const std::size_t footerOffset = FooterFormat->NextMatchOffset(*data);
       //no footer in nearest data
       if (footerOffset == size)
       {
