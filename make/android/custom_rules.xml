@@ -85,13 +85,18 @@
         <instsupp-helper version="${libs.support.version}" />
       </then>
     </if>
-    <path id="project.all.jars.path">
-      <fileset dir="${jar.libs.absolute.dir}">
-        <include name="*.jar"/>
-      </fileset>
-    </path>
   </target>
-  
+
+  <!-- workardound for http://code.google.com/p/android/issues/detail?id=33194 -->
+  <target name="-pre-compile">
+    <path id="project.all.jars.path">
+        <path path="${toString:project.all.jars.path}"/>
+        <fileset dir="${jar.libs.dir}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+  </target>  
+ 
   <target name="-post-compile" depends="nativelibs" />
 
   <target name="-pre-build" depends="injectrevision, extralibs" />
