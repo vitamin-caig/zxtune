@@ -19,7 +19,9 @@ ifndef distro
 qt.version = $($(platform).$(arch).qt.version)
 endif
 
-ifneq ($(qt.version),)
+ifeq ($(qt.version),)
+include_dirs += $(qt.includes)
+else
 qt.dir = $(prebuilt.dir)/qt-$(qt.version)-$(platform)-$(arch)
 include_dirs += $(qt.dir)/include
 $(platform)_libraries_dirs += $(qt.dir)/lib
