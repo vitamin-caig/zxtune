@@ -515,7 +515,7 @@ namespace
     {
       const Binary::Container::Ptr data = result->Data();
       const std::size_t size = data->Size();
-      if (size != Format->Search(*data))
+      if (Format->Match(*data) || size != Format->NextMatchOffset(*data))
       {
         Target->ApplyData(result);
       }

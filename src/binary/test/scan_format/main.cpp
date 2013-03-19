@@ -54,11 +54,11 @@ int main(int argc, char* argv[])
       std::size_t cursor = 0;
       while (const Binary::Data::Ptr subdata = data->GetSubcontainer(cursor, data->Size() - cursor))
       {
-        const std::size_t offset = format->Search(*subdata);
+        const std::size_t offset = format->NextMatchOffset(*subdata);
         if (offset != subdata->Size())
         {
-          speed.Report(cursor + offset);
-          cursor += offset + 1;
+          cursor += offset;
+          speed.Report(cursor);
         }
         else
         {
