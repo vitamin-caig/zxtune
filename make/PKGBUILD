@@ -6,7 +6,7 @@ pkgdesc="Portable toolkit for ZX-Spectrum music playing"
 arch=('i686' 'x86_64')
 url="http://zxtune.googlecode.com"
 license=('GPL3')
-depends=('boost-libs>=1.45' 'qt>=4.7.0')
+depends=('boost-libs' 'gcc-libs' 'qt4')
 optdepends=(
 'alsa-lib: for ALSA output support'
 'lame: for conversion to .mp3 format'
@@ -19,7 +19,8 @@ provides=('zxtune')
 options=(!strip !docs !libtool !emptydirs !zipman makeflags)
 _svntrunk="http://zxtune.googlecode.com/svn/tags/ver3"
 _svnmod="zxtune"
-_options="release=1 platform=linux arch=${CARCH}"
+_options="release=1 platform=linux arch=${CARCH} packaging=archlinux distro=current"
+_qt4_options="qt.includes=/usr/include/qt4 tools.uic=uic-qt4 tools.moc=moc-qt4 tools.rcc=rcc-qt4"
 _target="apps/bundle"
 
 build() {
@@ -34,9 +35,9 @@ build() {
   msg "Starting make"
   rm -rf "${srcdir}/${_svnmod}-build"
   svn export "${srcdir}/${_svnmod}" "${srcdir}/${_svnmod}-build"
+  
   cd "${srcdir}/${_svnmod}-build"
-  NO_TEXTATOR=1 NO_PERL=1 \
-  make ${MAKEFLAGS} all ${_options} cxx_flags="${CXXFLAGS}" ld_flags="${LDFLAGS}" defines="BUILD_VERSION=${pkgver}" -C ${_target}
+  make ${MAKEFLAGS} all ${_options} cxx_flags="${CXXFLAGS}" ld_flags="${LDFLAGS}" ${_qt4_options} defines="BUILD_VERSION=${pkgver}" -C ${_target}
 }
 
 package() {

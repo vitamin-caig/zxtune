@@ -48,18 +48,18 @@ vpath %.h $(sort $(dir $(moc_files) $(ui_files)))
 $(ui_dir):
 	$(call makedir_cmd,$@)
 
-UIC := $(qt.bin)uic
-MOC := $(qt.bin)moc
-RCC := $(qt.bin)rcc
+tools.uic ?= $(qt.bin)uic
+tools.moc ?= $(qt.bin)moc
+tools.rcc ?= $(qt.bin)rcc
 
 $(ui_dir)/%.ui.h: %.ui | $(ui_dir)
-	$(UIC) $< -o $@
+	$(tools.uic) $< -o $@
 
 %.moc$(src_suffix): %.h
-	$(MOC) $(addprefix -D,$(DEFINITIONS)) $< -o $@
+	$(tools.moc) $(addprefix -D,$(DEFINITIONS)) $< -o $@
 
 %.qrc$(src_suffix): %.qrc
-	$(RCC) -name $(basename $(notdir $<)) -o $@ $<
+	$(tools.rcc) -name $(basename $(notdir $<)) -o $@ $<
 
 #disable dependencies generation for generated files
 $(objects_dir)/%$(call makeobj_name,.moc): %.moc$(src_suffix)
