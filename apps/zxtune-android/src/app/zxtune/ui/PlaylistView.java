@@ -19,8 +19,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.R;
-import app.zxtune.playlist.Database;
 import app.zxtune.playlist.Query;
+import app.zxtune.playlist.Item;
 
 public class PlaylistView extends ListView
     implements
@@ -119,10 +119,10 @@ public class PlaylistView extends ListView
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-      bindUri(cursor, view);
-      bindType(cursor, view);
-      bindTitle(cursor, view);
-      bindDuration(cursor, view);
+      final Item item = new Item(cursor);
+      bindType(item, view);
+      bindTitle(item, view);
+      bindDuration(item, view);
     }
 
     @Override
@@ -130,38 +130,26 @@ public class PlaylistView extends ListView
       return inflater.inflate(R.layout.playlist_item, parent, false);
     }
 
-    private static void bindUri(Cursor cursor, View view) {
-      final String uri = cursor.getString(Database.Tables.Playlist.Fields.uri.ordinal());
-      view.setTag(uri);
-    }
-
-    private static void bindType(Cursor cursor, View view) {
-      final String itemType = cursor.getString(Database.Tables.Playlist.Fields.type.ordinal());
+    private static void bindType(Item item, View view) {
       final TextView type = (TextView) view.findViewById(R.id.playlist_item_type);
-      type.setText(itemType);
+      type.setText(item.getType());
     }
 
-    private static void bindTitle(Cursor cursor, View view) {
-      String itemTitle = cursor.getString(Database.Tables.Playlist.Fields.title.ordinal());
-      String itemAuthor = cursor.getString(Database.Tables.Playlist.Fields.author.ordinal());
-      if (0 == itemAuthor.length() + itemAuthor.length()) {
-        itemTitle = cursor.getString(Database.Tables.Playlist.Fields.uri.ordinal());
-      }
+    private static void bindTitle(Item item, View view) {
       final TextView title = (TextView) view.findViewById(R.id.playlist_item_title);
-      title.setText(itemTitle);
       final TextView author = (TextView) view.findViewById(R.id.playlist_item_author);
-      if (0 == itemAuthor.length()) {
+      title.setText(item.getTitle());
+      if (0 == item.getAuthor().length()) {
         author.setVisibility(View.GONE);
       } else {
-        author.setText(itemAuthor);
+        author.setText(item.getAuthor());
         author.setVisibility(View.VISIBLE);
       }
     }
 
-    private static void bindDuration(Cursor cursor, View view) {
-      final int durationMs = cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal());
+    private static void bindDuration(Item item, View view) {
       final TextView duration = (TextView) view.findViewById(R.id.playlist_item_duration);
-      duration.setText(String.valueOf(durationMs / 1000));//TODO
+      duration.setText(item.getDuration());
     }
   }
 }
