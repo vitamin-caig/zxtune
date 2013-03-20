@@ -574,7 +574,7 @@ namespace Chiptune
       void ParsePattern(std::size_t patOffset, Builder& builder) const
       {
         const std::size_t patSize = PeekByte(patOffset);
-        Require(patSize <= MAX_PATTERN_SIZE);
+        Require(Math::InRange(patSize, MIN_PATTERN_SIZE, MAX_PATTERN_SIZE));
         ParserState state(patOffset + 1);
         uint_t lineIdx = 0;
         for (; lineIdx < patSize; ++lineIdx)

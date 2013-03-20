@@ -15,6 +15,7 @@ install_samples:
 	$(call copyfile_cmd,$(samples_path)/pt2/Illusion.pt2,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/pt3/Speccy2.pt3,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/sqd/Maskarad.sqd,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(samples_path)/sqt/taiobyte.sqt,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/st1/SHOCK4.S,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/st3/Kvs_Joke.st3,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/stc/stracker.stc,$(DESTDIR)/Samples)
