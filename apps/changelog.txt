@@ -7,6 +7,14 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] SQ-Tracker compiled modules support (SQT)
+[*] Fixed crash on zero-sized files in LHA archives
+[*] zxtune-qt: fixed export conversion if destinated folder is like 'X:/'
+[+] zxtune-qt: load all playlists near binary if no saved sessions found
+[*] Scan speedup for ~5%
+
+--- Rev2239 from 20.02.2013
+
 [*] Fixed crash while scanning
 [*] Fixed hangup while scanning
 [*] Speedup AY/YM rendering
