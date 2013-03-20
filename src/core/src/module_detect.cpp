@@ -13,6 +13,7 @@ Author:
 #include "callback.h"
 #include "core.h"
 #include "core/plugins/plugins_types.h"
+#include "core/plugins/players/ay/ay_base.h"
 //common includes
 #include <error.h>
 //library includes
@@ -77,6 +78,7 @@ namespace
     return 0;
   }
 
+  //TODO: remove
   class MixedPropertiesHolder : public Module::Holder
   {
   public:
@@ -104,6 +106,40 @@ namespace
     const Module::Holder::Ptr Delegate;
     const Parameters::Accessor::Ptr Properties;
   };
+
+  class MixedPropertiesAYMHolder : public Module::AYM::Holder
+  {
+  public:
+    MixedPropertiesAYMHolder(Module::AYM::Holder::Ptr delegate, Parameters::Accessor::Ptr props)
+      : Delegate(delegate)
+      , Properties(props)
+    {
+    }
+
+    virtual Module::Information::Ptr GetModuleInformation() const
+    {
+      return Delegate->GetModuleInformation();
+    }
+
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    {
+      return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
+    }
+
+    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    {
+      //???
+      return Module::AYM::CreateRenderer(*this, params, target);
+    }
+
+    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
+    {
+      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), chip);
+    }
+  private:
+    const Module::AYM::Holder::Ptr Delegate;
+    const Parameters::Accessor::Ptr Properties;
+  };
 }
 
 namespace ZXTune
@@ -129,6 +165,10 @@ namespace ZXTune
 
     Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
     {
+      if (const AYM::Holder::Ptr aym = boost::dynamic_pointer_cast<const AYM::Holder>(delegate))
+      {
+        return boost::make_shared<MixedPropertiesAYMHolder>(aym, props);
+      }
       return boost::make_shared<MixedPropertiesHolder>(delegate, props);
     }
   }

@@ -104,7 +104,6 @@ namespace Formats
         virtual void SetTempoAddon(uint_t add) = 0;
         virtual void SetRest() = 0;
         virtual void SetNote(uint_t note) = 0;
-        virtual void SetNoteAddon(int_t add) = 0;
         virtual void SetSample(uint_t sample) = 0;
         virtual void SetOrnament(uint_t ornament) = 0;
         virtual void SetEnvelope(uint_t type, uint_t value) = 0;

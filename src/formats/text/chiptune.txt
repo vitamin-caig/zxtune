@@ -129,7 +129,7 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 
 #SQT
 < SQTRACKER_DECODER_DESCRIPTION
-> "SQ-Tracker"
+> "SQ-Tracker Compiled"
 
 #TFC
 < TFC_DECODER_DESCRIPTION

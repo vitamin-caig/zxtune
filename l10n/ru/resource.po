@@ -16,11 +16,11 @@ msgstr ""
 msgid "Failed to load resource archive '%1%'."
 msgstr "Ошибка загрузки архива ресурсов '%1%'."
 
-#: src/resource.cpp:190
+#: src/resource.cpp:184
 msgid "Failed to find resource archive."
 msgstr "Архив ресурсов не найден."
 
-#: src/resource.cpp:219
+#: src/resource.cpp:213
 #, boost-format
 msgid "Failed to load resource file '%1%'."
 msgstr "Ошибка загрузки файла ресурсов '%1%'."

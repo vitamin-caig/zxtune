@@ -121,7 +121,8 @@ namespace Chiptune
 
         int_t GetTransposition() const
         {
-          return static_cast<int8_t>(TranspositionAndAttenuation) >> 4;
+          const int_t transpos = TranspositionAndAttenuation >> 4;
+          return transpos < 9 ? transpos : -(transpos - 9) - 1;
         }
 
         uint_t GetAttenuation() const
@@ -179,7 +180,6 @@ namespace Chiptune
       virtual void SetTempoAddon(uint_t /*add*/) {}
       virtual void SetRest() {}
       virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetNoteAddon(int_t /*add*/) {}
       virtual void SetSample(uint_t /*sample*/) {}
       virtual void SetOrnament(uint_t /*ornament*/) {}
       virtual void SetEnvelope(uint_t /*type*/, uint_t /*value*/) {}
@@ -265,11 +265,6 @@ namespace Chiptune
       virtual void SetNote(uint_t note)
       {
         return Delegate.SetNote(note);
-      }
-
-      virtual void SetNoteAddon(int_t add)
-      {
-        return Delegate.SetNoteAddon(add);
       }
 
       virtual void SetSample(uint_t sample)
@@ -560,14 +555,16 @@ namespace Chiptune
 
       struct ParserState
       {
-        uint_t Period;
+        uint_t Counter;
         std::size_t Cursor;
+        uint_t LastNote;
         std::size_t LastNoteStart;
         bool RepeatLastNote;
 
         ParserState(std::size_t cursor)
-          : Period()
+          : Counter()
           , Cursor(cursor)
+          , LastNote()
           , LastNoteStart()
           , RepeatLastNote()
         {
@@ -580,11 +577,11 @@ namespace Chiptune
         Require(patSize <= MAX_PATTERN_SIZE);
         ParserState state(patOffset + 1);
         uint_t lineIdx = 0;
-        for (uint_t counter = 0; lineIdx < patSize; ++lineIdx)
+        for (; lineIdx < patSize; ++lineIdx)
         {
-          if (counter)
+          if (state.Counter)
           {
-            --counter;
+            --state.Counter;
             if (state.RepeatLastNote)
             {
               builder.StartLine(lineIdx);
@@ -595,7 +592,6 @@ namespace Chiptune
           {
             builder.StartLine(lineIdx);
             ParseLine(state, builder);
-            counter = state.Period;
           }
         }
         builder.FinishPattern(lineIdx);
@@ -617,6 +613,7 @@ namespace Chiptune
         const uint_t cmd = PeekByte(state.Cursor++);
         if (cmd <= 0x5f)
         {
+          state.LastNote = cmd;
           state.LastNoteStart = state.Cursor - 1;
           builder.SetNote(cmd);
           state.Cursor = ParseNoteParameters(state.Cursor, builder);
@@ -636,16 +633,25 @@ namespace Chiptune
         }
         else if (cmd <= 0x9f)
         {
-          const int_t addon = cmd & 15;
-          builder.SetNoteAddon(cmd & 16 ? -addon : addon);
+          Require(0 != state.LastNoteStart);
+          const uint_t addon = cmd & 15;
+          if (0 != (cmd & 16))
+          {
+            state.LastNote -= addon;
+          }
+          else
+          {
+            state.LastNote += addon;
+          }
+          builder.SetNote(state.LastNote);
           ParseNote(state.LastNoteStart, builder);
         }
         else if (cmd <= 0xbf)
         {
-          state.Period = cmd & 15;
+          state.Counter = cmd & 15;
           if (cmd & 16)
           {
-            state.RepeatLastNote |= state.Period != 0;
+            state.RepeatLastNote |= state.Counter != 0;
             ParseNote(state.LastNoteStart, builder);
           }
         }
@@ -756,14 +762,14 @@ namespace Chiptune
           res.ToneDeviation = line.GetToneDeviation();
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);
-        dst.LoopSize = src.LoopSize;
+        dst.LoopSize = std::min<uint_t>(src.LoopSize, SAMPLE_SIZE - dst.Loop);
       }
 
       static void ParseOrnament(const RawOrnament& src, Ornament& dst)
       {
         dst.Lines.assign(src.Lines.begin(), src.Lines.end());
         dst.Loop = std::min<uint_t>(src.Loop, ORNAMENT_SIZE);
-        dst.LoopSize = src.LoopSize;
+        dst.LoopSize = std::min<uint_t>(src.LoopSize, ORNAMENT_SIZE - dst.Loop);
       }
     private:
       const Binary::TypedContainer Delegate;

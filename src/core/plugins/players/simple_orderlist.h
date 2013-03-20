@@ -41,7 +41,7 @@ namespace ZXTune
 
       virtual uint_t GetSize() const
       {
-        return Order.size();
+        return static_cast<uint_t>(Order.size());
       }
 
       virtual uint_t GetPatternIndex(uint_t pos) const
@@ -80,7 +80,7 @@ namespace ZXTune
 
       virtual uint_t GetSize() const
       {
-        return Positions.size();
+        return static_cast<uint_t>(Positions.size());
       }
 
       virtual uint_t GetPatternIndex(uint_t pos) const

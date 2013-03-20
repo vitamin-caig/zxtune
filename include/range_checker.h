@@ -89,7 +89,6 @@ public:
   AddrType GetAreaAddress(KeyType key) const
   {
     const AddrType res = Areas[key];
-    assert(Undefined != res);
     return res;
   }
 
