@@ -353,7 +353,6 @@ namespace Chiptune
           const RawPositions::PosEntry& src = *iter;
           Require(0 == src.PatternOffset % 6);
           const uint_t patNum = src.PatternOffset / 6;
-          Require(Math::InRange<uint_t>(patNum + 1, 1, MAX_PATTERNS_COUNT));
           PositionEntry dst;
           dst.PatternIndex = patNum;
           dst.Transposition = src.Transposition;
@@ -366,11 +365,10 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
-        Require(!pats.empty());
-        Dbg("Patterns: %1% to parse", pats.size());
+        Dbg("Patterns: %1% to parse", pats.Count());
         bool hasValidPatterns = false;
         const uint_t minPatternsOffset = sizeof(Source) + (Id.Check() ? sizeof(Id) : 0);
-        for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
@@ -386,12 +384,10 @@ namespace Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        Require(!samples.empty());
-        Dbg("Samples: %1% to parse", samples.size());
-        for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
+        Dbg("Samples: %1% to parse", samples.Count());
+        for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Require(Math::InRange<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           Dbg("Parse sample %1%", samIdx);
           const RawSample& src = GetSample(samIdx);
           Sample result;
@@ -405,12 +401,10 @@ namespace Chiptune
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        Require(!ornaments.empty() && 0 == *ornaments.begin());
-        Dbg("Ornaments: %1% to parse", ornaments.size());
-        for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
+        Dbg("Ornaments: %1% to parse", ornaments.Count());
+        for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(Math::InRange<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
           Dbg("Parse ornament %1%", ornIdx);
           const RawOrnament& src = GetOrnament(ornIdx);
           Ornament result;
@@ -894,8 +888,7 @@ namespace Chiptune
           format.ParsePatterns(usedPatterns, statistic);
           const Indices& usedSamples = statistic.GetUsedSamples();
           format.ParseSamples(usedSamples, target);
-          Indices usedOrnaments = statistic.GetUsedOrnaments();
-          usedOrnaments.insert(0);
+          const Indices& usedOrnaments = statistic.GetUsedOrnaments();
           format.ParseOrnaments(usedOrnaments, target);
 
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
@@ -935,8 +928,8 @@ namespace Chiptune
             const std::size_t patternsStart = fromLE(header.PatternsOffset);
             Indices usedPatterns = statistic.GetUsedPatterns();
             //first pattern is used to detect fixdelta
-            usedPatterns.insert(0);
-            for (Indices::const_iterator it = usedPatterns.begin(), lim = usedPatterns.end(); it != lim; ++it)
+            usedPatterns.Insert(0);
+            for (Indices::Iterator it = usedPatterns.Items(); it; ++it)
             {
               const std::size_t patOffsets = patternsStart + *it * sizeof(RawPattern);
               patch->FixLEWord(patOffsets + 0, delta);
@@ -944,17 +937,15 @@ namespace Chiptune
               patch->FixLEWord(patOffsets + 4, delta);
             }
             const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
-            Indices usedOrnaments = statistic.GetUsedOrnaments();
-            //first ornament is mandatory
-            usedOrnaments.insert(0);
-            for (Indices::const_iterator it = usedOrnaments.begin(), lim = usedOrnaments.end(); it != lim; ++it)
+            const Indices& usedOrnaments = statistic.GetUsedOrnaments();
+            for (Indices::Iterator it = usedOrnaments.Items(); it; ++it)
             {
               const std::size_t ornOffset = ornamentsStart + *it * sizeof(uint16_t);
               patch->FixLEWord(ornOffset, delta);
             }
             const std::size_t samplesStart = fromLE(header.SamplesOffset);
             const Indices& usedSamples = statistic.GetUsedSamples();
-            for (Indices::const_iterator it = usedSamples.begin(), lim = usedSamples.end(); it != lim; ++it)
+            for (Indices::Iterator it = usedSamples.Items(); it; ++it)
             {
               const std::size_t samOffset = samplesStart + *it * sizeof(uint16_t);
               patch->FixLEWord(samOffset, delta);

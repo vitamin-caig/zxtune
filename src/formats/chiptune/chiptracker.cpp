@@ -16,6 +16,7 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <indices.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -24,7 +25,6 @@ Author:
 #include <math/numeric.h>
 //std includes
 #include <cstring>
-#include <set>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -43,6 +43,7 @@ namespace Chiptune
   {
     const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
+    const std::size_t MAX_PATTERNS_COUNT = 31;
     const uint_t CHANNELS_COUNT = 4;
     const uint_t SAMPLES_COUNT = 16;
 
@@ -171,13 +172,13 @@ namespace Chiptune
       virtual void SetSampleOffset(uint_t /*offset*/) {}
     };
 
-    typedef std::set<uint_t> Indices;
-
     class StatisticCollectionBuilder : public Builder
     {
     public:
       explicit StatisticCollectionBuilder(Builder& delegate)
         : Delegate(delegate)
+        , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
+        , UsedSamples(0, SAMPLES_COUNT - 1)
       {
       }
 
@@ -208,7 +209,8 @@ namespace Chiptune
 
       virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
       {
-        UsedPatterns = Indices(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.begin(), positions.end());
+        Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
@@ -244,7 +246,7 @@ namespace Chiptune
 
       virtual void SetSample(uint_t sample)
       {
-        UsedSamples.insert(sample);
+        UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
@@ -265,6 +267,7 @@ namespace Chiptune
 
       const Indices& GetUsedSamples() const
       {
+        Require(!UsedSamples.Empty());
         return UsedSamples;
       }
     private:
@@ -303,8 +306,7 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& target) const
       {
-        Require(!pats.empty());
-        for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
@@ -315,7 +317,6 @@ namespace Chiptune
 
       void ParseSamples(const Indices& sams, Builder& target) const
       {
-        Require(!sams.empty());
         const std::size_t patternsCount = 1 + *std::max_element(Source.Positions.begin(), Source.Positions.begin() + Source.Length + 1);
         std::size_t sampleStart = sizeof(Header) + patternsCount * sizeof(Pattern);
         std::size_t memLeft = RawData.Size() - sampleStart;
@@ -327,7 +328,7 @@ namespace Chiptune
           const std::size_t availSize = std::min(memLeft, size);
           if (availSize)
           {
-            if (sams.count(samIdx))
+            if (sams.Contain(samIdx))
             {
               Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x (avail=#%5$04x)", 
                 samIdx, sampleStart, loop, size, availSize);

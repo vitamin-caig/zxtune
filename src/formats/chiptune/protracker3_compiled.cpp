@@ -24,7 +24,6 @@ Author:
 #include <math/numeric.h>
 //std includes
 #include <cctype>
-#include <set>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
@@ -375,14 +374,12 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
-        Require(!pats.empty());
-        Dbg("Patterns: %1% to parse", pats.size());
-        const std::size_t minOffset = fromLE(Source.PatternsOffset) + *pats.rbegin() * sizeof(RawPattern);
+        Dbg("Patterns: %1% to parse", pats.Count());
+        const std::size_t minOffset = fromLE(Source.PatternsOffset) + pats.Maximum() * sizeof(RawPattern);
         bool hasValidPatterns = false;
-        for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Require(Math::InRange<uint_t>(patIndex, 0, MAX_PATTERNS_COUNT - 1));
           Dbg("Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
           builder.StartPattern(patIndex);
@@ -396,14 +393,12 @@ namespace Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        Require(!samples.empty() && 0 == *samples.begin());
-        Dbg("Samples: %1% to parse", samples.size());
+        Dbg("Samples: %1% to parse", samples.Count());
         //samples are mandatory
         bool hasValidSamples = false, hasPartialSamples = false;
-        for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
+        for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Require(Math::InRange<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           Sample result;
           if (const std::size_t samOffset = fromLE(Source.SamplesOffsets[samIdx]))
           {
@@ -439,13 +434,11 @@ namespace Chiptune
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        Require(!ornaments.empty() && 0 == *ornaments.begin());
-        Dbg("Ornaments: %1% to parse", ornaments.size());
+        Dbg("Ornaments: %1% to parse", ornaments.Count());
         //ornaments are not mandatory
-        for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
+        for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(Math::InRange<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
           Ornament result;
           if (const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]))
           {
@@ -807,14 +800,16 @@ namespace Chiptune
 
     bool AddTSPatterns(uint_t patOffset, Indices& target)
     {
-      Require(!target.empty());
-      const uint_t patsCount = *target.rbegin();
+      Require(!target.Empty());
+      const uint_t patsCount = target.Maximum();
       if (patOffset > patsCount && patOffset < patsCount * 2)
       {
-        Indices result;
-        std::transform(target.begin(), target.end(), std::inserter(result, result.end()), std::bind1st(std::minus<uint_t>(), patOffset - 1));
-        result.insert(target.begin(), target.end());
-        target.swap(result);
+        std::vector<uint_t> mirrored;
+        for (Indices::Iterator it = target.Items(); it; ++it)
+        {
+          mirrored.push_back(patOffset - 1 - *it);
+        }
+        target.Insert(mirrored.begin(), mirrored.end());
         return true;
       }
       return false;
@@ -954,11 +949,9 @@ namespace Chiptune
           target.SetMode(SINGLE_AY_MODE);
         }
         format.ParsePatterns(usedPatterns, statistic);
-        Indices usedSamples = statistic.GetUsedSamples();
-        usedSamples.insert(0);
+        const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, target);
-        Indices usedOrnaments = statistic.GetUsedOrnaments();
-        usedOrnaments.insert(0);
+        const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 
         const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());

@@ -15,6 +15,7 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
+#include <indices.h>
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
@@ -23,7 +24,6 @@ Author:
 #include <math/numeric.h>
 //std includes
 #include <cstring>
-#include <set>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -179,13 +179,14 @@ namespace Chiptune
       virtual void SetOrnament(uint_t /*ornament*/) {}
     };
 
-    typedef std::set<uint_t> Indices;
-
     class StatisticCollectionBuilder : public Builder
     {
     public:
       explicit StatisticCollectionBuilder(Builder& delegate)
         : Delegate(delegate)
+        , UsedPatterns(0, PATTERNS_COUNT - 1)
+        , UsedSamples(0, SAMPLES_COUNT - 1)
+        , UsedOrnaments(0, ORNAMENTS_COUNT - 1)
       {
       }
 
@@ -216,7 +217,8 @@ namespace Chiptune
 
       virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
       {
-        UsedPatterns = Indices(positions.begin(), positions.end());
+        UsedPatterns.Assign(positions.begin(), positions.end());
+        Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
@@ -252,13 +254,13 @@ namespace Chiptune
 
       virtual void SetSample(uint_t sample)
       {
-        UsedSamples.insert(sample);
+        UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
       virtual void SetOrnament(uint_t ornament)
       {
-        UsedOrnaments.insert(ornament);
+        UsedOrnaments.Insert(ornament);
         return Delegate.SetOrnament(ornament);
       }
 
@@ -269,6 +271,7 @@ namespace Chiptune
 
       const Indices& GetUsedSamples() const
       {
+        Require(!UsedSamples.Empty());
         return UsedSamples;
       }
 
@@ -309,8 +312,7 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& target) const
       {
-        Require(!pats.empty());
-        for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
@@ -321,10 +323,9 @@ namespace Chiptune
 
       void ParseSamples(const Indices& sams, Builder& target) const
       {
-        Require(!sams.empty());
         const uint8_t* const moduleStart = safe_ptr_cast<const uint8_t*>(&Source);
         const uint8_t* const samplesStart = safe_ptr_cast<const uint8_t*>(&Source + 1);
-        for (Indices::const_iterator it = sams.begin(), lim = sams.end(); it != lim; ++it)
+        for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
           const Sample& descr = Source.Samples[samIdx];
@@ -352,7 +353,7 @@ namespace Chiptune
 
       void ParseOrnaments(const Indices& orns, Builder& target) const
       {
-        for (Indices::const_iterator it = orns.begin(), lim = orns.end(); it != lim; ++it)
+        for (Indices::Iterator it = orns.Items(); it; ++it)
         {
           if (const uint_t ornIdx = *it)
           {

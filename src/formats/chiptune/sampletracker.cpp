@@ -25,7 +25,6 @@ Author:
 #include <math/numeric.h>
 //std includes
 #include <cstring>
-#include <set>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
@@ -147,14 +146,12 @@ namespace Chiptune
         Dbg("Positions: %1%", positions.size());
       }
 
-      void ParsePatterns(const Digital::Indices& pats, Builder& target) const
+      void ParsePatterns(const Indices& pats, Builder& target) const
       {
-        Dbg("Parse %1% patterns", pats.size());
-        Require(!pats.empty());
-        for (Digital::Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        Dbg("Parse %1% patterns", pats.Count());
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Require(Math::InRange<uint_t>(patIndex + 1, 1, PATTERNS_COUNT));
           Dbg("Parse pattern %1%", patIndex);
           target.StartPattern(patIndex);
           ParsePattern(Source.Patterns[patIndex], target);
@@ -162,15 +159,13 @@ namespace Chiptune
         }
       }
 
-      void ParseSamples(const Digital::Indices& sams, Builder& target) const
+      void ParseSamples(const Indices& sams, Builder& target) const
       {
-        Dbg("Parse %1% samples", sams.size());
-        Require(!sams.empty());
+        Dbg("Parse %1% samples", sams.Count());
         std::size_t validSamples = 0;
-        for (Digital::Indices::const_iterator it = sams.begin(), lim = sams.end(); it != lim; ++it)
+        for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Require(Math::InRange<uint_t>(samIdx + 1, 1, SAMPLES_COUNT));
           const SampleInfo& info = Source.SampleDescriptions[samIdx];
           const std::size_t absAddr = 256 * info.AddrHi;
           const std::size_t maxSize = 128 * info.SizeHiDoubled;
@@ -353,11 +348,11 @@ namespace Chiptune
 
         format.ParseCommonProperties(target);
 
-        Digital::StatisticCollectionBuilder statistic(target);
+        Digital::StatisticCollectionBuilder statistic(target, PATTERNS_COUNT, SAMPLES_COUNT);
         format.ParsePositions(statistic);
-        const Digital::Indices& usedPatterns = statistic.GetUsedPatterns();
+        const Indices& usedPatterns = statistic.GetUsedPatterns();
         format.ParsePatterns(usedPatterns, statistic);
-        const Digital::Indices& usedSamples = statistic.GetUsedSamples();
+        const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, target);
 
         const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());

@@ -25,7 +25,6 @@ Author:
 #include <math/numeric.h>
 //std includes
 #include <cstring>
-#include <set>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
@@ -224,26 +223,22 @@ namespace Chiptune
         Dbg("Positions: %1%, loop to %2%", positions.size(), unsigned(Source.Loop));
       }
 
-      void ParsePatterns(const Digital::Indices& pats, Builder& target) const
+      void ParsePatterns(const Indices& pats, Builder& target) const
       {
-        Require(!pats.empty());
-        for (Digital::Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Require(Math::InRange<uint_t>(patIndex + 1, 1, PATTERNS_COUNT));
           Dbg("Parse pattern %1%", patIndex);
           target.StartPattern(patIndex);
           ParsePattern(Source.Patterns[patIndex], target);
         }
       }
 
-      void ParseSamples(const Digital::Indices& sams, SamplesSet& samples) const
+      void ParseSamples(const Indices& sams, SamplesSet& samples) const
       {
-        Require(!sams.empty());
-        for (Digital::Indices::const_iterator it = sams.begin(), lim = sams.end(); it != lim; ++it)
+        for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Require(Math::InRange<uint_t>(samIdx + 1, 1, SAMPLES_COUNT));
           const SampleInfo& info = Source.Samples[samIdx];
           Dbg("Sample %1%: start=#%2$04x loop=#%3$04x page=#%4$02x size=#%5$04x", 
             samIdx, fromLE(info.Start), fromLE(info.Loop), unsigned(info.Page), fromLE(info.Size));
@@ -493,11 +488,11 @@ namespace Chiptune
 
         format.ParseCommonProperties(target);
 
-        Digital::StatisticCollectionBuilder statistic(target);
+        Digital::StatisticCollectionBuilder statistic(target, PATTERNS_COUNT, SAMPLES_COUNT);
         format.ParsePositions(statistic);
-        const Digital::Indices& usedPatterns = statistic.GetUsedPatterns();
+        const Indices& usedPatterns = statistic.GetUsedPatterns();
         format.ParsePatterns(usedPatterns, statistic);
-        const Digital::Indices& usedSamples = statistic.GetUsedSamples();
+        const Indices& usedSamples = statistic.GetUsedSamples();
         SamplesSet samples;
         format.ParseSamples(usedSamples, samples);
 

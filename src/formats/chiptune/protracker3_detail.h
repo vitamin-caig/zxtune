@@ -15,8 +15,8 @@ Author:
 
 //local includes
 #include "protracker3.h"
-//std includes
-#include <set>
+//common includes
+#include <indices.h>
 
 namespace Formats
 {
@@ -31,15 +31,18 @@ namespace Formats
       const std::size_t MAX_SAMPLES_COUNT = 32;
       const std::size_t MAX_ORNAMENTS_COUNT = 16;
 
-      typedef std::set<uint_t> Indices;
-
       class StatisticCollectingBuilder : public Builder
       {
       public:
         explicit StatisticCollectingBuilder(Builder& delegate)
           : Delegate(delegate)
           , Mode(SINGLE_AY_MODE)
+          , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
+          , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
+          , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
         {
+          UsedSamples.Insert(0);
+          UsedOrnaments.Insert(0);
         }
 
         virtual void SetProgram(const String& program)
@@ -80,25 +83,26 @@ namespace Formats
 
         virtual void SetSample(uint_t index, const Sample& sample)
         {
-          assert(0 == index || UsedSamples.count(index));
+          assert(0 == index || UsedSamples.Contain(index));
           return Delegate.SetSample(index, sample);
         }
 
         virtual void SetOrnament(uint_t index, const Ornament& ornament)
         {
-          assert(0 == index || UsedOrnaments.count(index));
+          assert(0 == index || UsedOrnaments.Contain(index));
           return Delegate.SetOrnament(index, ornament);
         }
 
         virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
         {
-          UsedPatterns = Indices(positions.begin(), positions.end());
+          UsedPatterns.Assign(positions.begin(), positions.end());
+          Require(!UsedPatterns.Empty());
           return Delegate.SetPositions(positions, loop);
         }
 
         virtual void StartPattern(uint_t index)
         {
-          assert(UsedPatterns.count(index) || SINGLE_AY_MODE != Mode);
+          assert(UsedPatterns.Contain(index) || SINGLE_AY_MODE != Mode);
           return Delegate.StartPattern(index);
         }
 
@@ -134,13 +138,13 @@ namespace Formats
 
         virtual void SetSample(uint_t sample)
         {
-          UsedSamples.insert(sample);
+          UsedSamples.Insert(sample);
           return Delegate.SetSample(sample);
         }
 
         virtual void SetOrnament(uint_t ornament)
         {
-          UsedOrnaments.insert(ornament);
+          UsedOrnaments.Insert(ornament);
           return Delegate.SetOrnament(ornament);
         }
 

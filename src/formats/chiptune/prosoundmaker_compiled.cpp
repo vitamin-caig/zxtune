@@ -16,6 +16,7 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
+#include <indices.h>
 #include <range_checker.h>
 //library includes
 #include <binary/typed_container.h>
@@ -253,16 +254,19 @@ namespace Chiptune
       virtual void SetEnvelopeNote(uint_t /*note*/) {}
     };
 
-    typedef std::set<uint_t> Indices;
-
     class StatisticCollectingBuilder : public Builder
     {
     public:
       explicit StatisticCollectingBuilder(Builder& delegate)
         : Delegate(delegate)
+        , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
+        , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
+        , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
         , NonEmptyPatterns(false)
         , NonEmptySamples(false)
       {
+        UsedSamples.Insert(0);
+        UsedOrnaments.Insert(0);
       }
 
       virtual void SetProgram(const String& program)
@@ -277,7 +281,7 @@ namespace Chiptune
 
       virtual void SetSample(uint_t index, const Sample& sample)
       {
-        assert(index == 0 || UsedSamples.count(index));
+        assert(index == 0 || UsedSamples.Contain(index));
         if (IsSampleSounds(sample))
         {
           NonEmptySamples = true;
@@ -287,21 +291,22 @@ namespace Chiptune
 
       virtual void SetOrnament(uint_t index, const Ornament& ornament)
       {
-        assert(index == 0 || UsedOrnaments.count(index));
+        assert(index == 0 || UsedOrnaments.Contain(index));
         return Delegate.SetOrnament(index, ornament);
       }
 
       virtual void SetPositions(const std::vector<PositionEntry>& positions, uint_t loop)
       {
-        Indices pats;
-        std::transform(positions.begin(), positions.end(), std::inserter(pats, pats.end()), boost::mem_fn(&PositionEntry::PatternIndex));
-        UsedPatterns.swap(pats);
+        std::vector<uint_t> pats;
+        std::transform(positions.begin(), positions.end(), std::back_inserter(pats), boost::mem_fn(&PositionEntry::PatternIndex));
+        UsedPatterns.Assign(pats.begin(), pats.end());
+        Require(!UsedPatterns.Empty());
         return Delegate.SetPositions(positions, loop);
       }
 
       virtual void StartPattern(uint_t index)
       {
-        assert(UsedPatterns.count(index));
+        assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
       }
 
@@ -338,7 +343,7 @@ namespace Chiptune
 
       virtual void SetSample(uint_t sample)
       {
-        UsedSamples.insert(sample);
+        UsedSamples.Insert(sample);
         return Delegate.SetSample(sample);
       }
 
@@ -346,7 +351,7 @@ namespace Chiptune
       {
         if (ornament != 0x20 && ornament != 0x21)
         {
-          UsedOrnaments.insert(ornament);
+          UsedOrnaments.Insert(ornament);
         }
         return Delegate.SetOrnament(ornament);
       }
@@ -520,7 +525,6 @@ namespace Chiptune
             Require(loop < positions.size());
             break;
           }
-          Require(Math::InRange<uint_t>(patNum, 0, MAX_PATTERNS_COUNT - 1));
           PositionEntry res;
           res.PatternIndex = patNum;
           res.Transposition = static_cast<int8_t>(pos.TranspositionOrLoop);
@@ -534,14 +538,12 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
-        Require(!pats.empty());
-        Dbg("Patterns: %1% to parse", pats.size());
-        const std::size_t minOffset = fromLE(Source.PatternsOffset) + *pats.rbegin() * sizeof(RawPattern);
+        Dbg("Patterns: %1% to parse", pats.Count());
+        const std::size_t minOffset = fromLE(Source.PatternsOffset) + pats.Maximum() * sizeof(RawPattern);
         bool hasValidPatterns = false;
-        for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Require(Math::InRange<uint_t>(patIndex, 0, MAX_PATTERNS_COUNT - 1));
           Dbg("Parse pattern %1%", patIndex);
           const RawPattern& src = GetPattern(patIndex);
           Require(Math::InRange<uint_t>(src.Tempo, 2, 50));
@@ -558,14 +560,12 @@ namespace Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        Require(!samples.empty());
-        Dbg("Samples: %1% to parse", samples.size());
-        const std::size_t minOffset = fromLE(Source.SamplesOffset) + *samples.rbegin() * sizeof(uint16_t);
+        Dbg("Samples: %1% to parse", samples.Count());
+        const std::size_t minOffset = fromLE(Source.SamplesOffset) + samples.Maximum() * sizeof(uint16_t);
         const std::size_t maxOffset = Delegate.GetSize();
-        for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
+        for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Require(Math::InRange<uint_t>(samIdx, 0, MAX_SAMPLES_COUNT - 1));
           Sample result;
           const std::size_t samOffset = GetSampleOffset(samIdx);
           Require(Math::InRange(samOffset, minOffset, maxOffset));
@@ -592,21 +592,19 @@ namespace Chiptune
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        Require(!ornaments.empty() && 0 == *ornaments.begin());
-        Dbg("Ornaments: %1% to parse", ornaments.size());
+        Dbg("Ornaments: %1% to parse", ornaments.Count());
         if (Source.OrnamentsOffset == Source.PatternsOffset)
         {
-          Require(ornaments.size() == 1);
+          Require(ornaments.Count() == 1);
           Dbg("No ornaments. Making stub");
           builder.SetOrnament(0, Ornament());
           return;
         }
-        const std::size_t minOffset = fromLE(Source.OrnamentsOffset) + *ornaments.rbegin() * sizeof(uint16_t);
+        const std::size_t minOffset = fromLE(Source.OrnamentsOffset) + ornaments.Maximum() * sizeof(uint16_t);
         const std::size_t maxOffset = Delegate.GetSize();
-        for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
+        for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(Math::InRange<uint_t>(ornIdx, 0, MAX_ORNAMENTS_COUNT - 1));
           Ornament result;
           const std::size_t ornOffset = GetOrnamentOffset(ornIdx);
           Require(Math::InRange(ornOffset, minOffset, maxOffset));
@@ -1099,12 +1097,10 @@ namespace Chiptune
         const Indices& usedPatterns = statistic.GetUsedPatterns();
         format.ParsePatterns(usedPatterns, statistic);
         Require(statistic.HasNonEmptyPatterns());
-        Indices usedSamples = statistic.GetUsedSamples();
-        usedSamples.insert(0);
+        const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, statistic);
         Require(statistic.HasNonEmptySamples());
-        Indices usedOrnaments = statistic.GetUsedOrnaments();
-        usedOrnaments.insert(0);
+        const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 
         const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());

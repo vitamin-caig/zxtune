@@ -216,7 +216,6 @@ namespace Chiptune
         {
           const RawPositions::PosEntry& src = *iter;
           Require(0 == src.PatternOffset % sizeof(RawPattern));
-          Require(Math::InRange<uint_t>(src.PatternOffset / sizeof(RawPattern) + 1, 1, MAX_PATTERNS_COUNT));
           PositionEntry dst;
           dst.PatternIndex = src.PatternOffset / sizeof(RawPattern);
           dst.Transposition = src.Transposition;
@@ -228,8 +227,7 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
-        Require(!pats.empty());
-        for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
           const std::size_t patOffset = fromLE(Source.PatternsOffset) + patIndex * sizeof(RawPattern);
@@ -242,16 +240,13 @@ namespace Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        Require(!samples.empty());
         const RawSamples& table = GetObject<RawSamples>(fromLE(Source.SamplesOffset));
         const uint_t availSamples = table.Count;
-        Require(*samples.rbegin() < availSamples);
-        std::set<std::size_t> samOffsets;
-        for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
+        Require(samples.Maximum() < availSamples);
+        for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
           const std::size_t samOffset = fromLE(table.Offsets[samIdx]);
-          Require(samOffsets.insert(samOffset).second);
           Dbg("Parse sample %1% at %2%", samIdx, samOffset);
           const RawSample& src = GetObject<RawSample>(samOffset);
           const Sample& result = ParseSample(src);
@@ -261,16 +256,13 @@ namespace Chiptune
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        Require(!ornaments.empty());
         const RawOrnaments& table = GetObject<RawOrnaments>(fromLE(Source.OrnamentsOffset));
         const uint_t availOrnaments = table.Count;
-        Require(*ornaments.rbegin() < availOrnaments);
-        std::set<std::size_t> ornOffsets;
-        for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
+        Require(ornaments.Maximum() < availOrnaments);
+        for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
           const std::size_t ornOffset = fromLE(table.Offsets[ornIdx]);
-          Require(ornOffsets.insert(ornOffset).second);
           Dbg("Parse ornament %1% at %2%", ornIdx, ornOffset);
           const RawOrnament& src = GetObject<RawOrnament>(ornOffset);
           const Ornament result(src.Data.begin(), src.Data.end());
@@ -758,8 +750,7 @@ namespace Chiptune
         const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, statistic);
         Require(statistic.HasNonEmptySamples());
-        Indices usedOrnaments = statistic.GetUsedOrnaments();
-        usedOrnaments.insert(0);
+        const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 
         const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
@@ -798,8 +789,8 @@ namespace Chiptune
           patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
           const std::size_t patternsStart = fromLE(header.PatternsOffset);
-          Indices usedPatterns = statistic.GetUsedPatterns();
-          for (Indices::const_iterator it = usedPatterns.begin(), lim = usedPatterns.end(); it != lim; ++it)
+          const Indices& usedPatterns = statistic.GetUsedPatterns();
+          for (Indices::Iterator it = usedPatterns.Items(); it; ++it)
           {
             const std::size_t patOffsets = patternsStart + *it * sizeof(RawPattern);
             patch->FixLEWord(patOffsets + 0, delta);

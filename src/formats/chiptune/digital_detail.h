@@ -15,8 +15,8 @@ Author:
 
 //local includes
 #include "digital.h"
-//std includes
-#include <set>
+//common includes
+#include <indices.h>
 
 namespace Formats
 {
@@ -24,13 +24,13 @@ namespace Formats
   {
     namespace Digital
     {
-      typedef std::set<uint_t> Indices;
-
       class StatisticCollectionBuilder : public Builder
       {
       public:
-        explicit StatisticCollectionBuilder(Builder& delegate)
+        StatisticCollectionBuilder(Builder& delegate, uint_t maxPatternsCount, uint_t maxSamplesCount)
           : Delegate(delegate)
+          , UsedPatterns(0, maxPatternsCount - 1)
+          , UsedSamples(0, maxSamplesCount - 1)
         {
         }
 
@@ -56,7 +56,8 @@ namespace Formats
 
         virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
         {
-          UsedPatterns = Indices(positions.begin(), positions.end());
+          UsedPatterns.Assign(positions.begin(), positions.end());
+          Require(!UsedPatterns.Empty());
           return Delegate.SetPositions(positions, loop);
         }
 
@@ -92,7 +93,7 @@ namespace Formats
 
         virtual void SetSample(uint_t sample)
         {
-          UsedSamples.insert(sample);
+          UsedSamples.Insert(sample);
           return Delegate.SetSample(sample);
         }
 
@@ -103,6 +104,7 @@ namespace Formats
 
         const Indices& GetUsedSamples() const
         {
+          Require(!UsedSamples.Empty());
           return UsedSamples;
         }
       private:

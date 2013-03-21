@@ -1202,21 +1202,6 @@ namespace Chiptune
         }
       }
     private:
-      void ParsePattern(const SectionHeader& hdr)
-      {
-        const uint_t idx = hdr.GetIndex();
-        Require(Math::InRange<uint_t>(idx, 0, MAX_PATTERNS_COUNT - 1));
-        Dbg("Parse pattern %1%", idx);
-        Target.StartPattern(idx);
-        uint_t index = 0;
-        for (std::string line = Source.ReadString(); !line.empty(); line = Source.ReadString(), ++index)
-        {
-          Target.StartLine(index);
-          PatternLineObject(line).Parse(Target);
-        }
-        Target.FinishPattern(index);
-      }
-    private:
       Binary::InputStream& Source;
       Builder& Target;
     };

@@ -23,6 +23,8 @@ Author:
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+//std includes
+#include <set>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
@@ -215,9 +217,8 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
-        Require(!pats.empty());
-        Indices restPats(pats);
-        for (uint_t patEntryIdx = 0; patEntryIdx < MAX_PATTERNS_COUNT && !restPats.empty(); ++patEntryIdx)
+        Indices donePats(0, MAX_PATTERNS_COUNT - 1);
+        for (uint_t patEntryIdx = 0; patEntryIdx < MAX_PATTERNS_COUNT; ++patEntryIdx)
         {
           const RawPattern& src = GetPattern(patEntryIdx);
           if (!Math::InRange<uint_t>(src.Number, 1, MAX_PATTERNS_COUNT))
@@ -225,80 +226,96 @@ namespace Chiptune
             break;
           }
           const uint_t patIndex = src.Number - 1;
-          if (restPats.count(patIndex))
+          if (!pats.Contain(patIndex) || donePats.Contain(patIndex))
           {
-            Dbg("Parse pattern %1%", patIndex);
-            builder.StartPattern(patIndex);
-            ParsePattern(src, builder);
-            restPats.erase(patIndex);
+            continue;
+          }
+          donePats.Insert(patIndex);
+          Dbg("Parse pattern %1%", patIndex);
+          builder.StartPattern(patIndex);
+          ParsePattern(src, builder);
+          if (pats.Count() == donePats.Count())
+          {
+            return;
           }
         }
-        Require(restPats.size() != pats.size());
-        while (!restPats.empty())
+        Require(!donePats.Empty());
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
-          const uint_t idx = *restPats.begin();
-          Dbg("Fill stub pattern %1%", idx);
-          builder.StartPattern(idx);
-          restPats.erase(idx);
+          const uint_t idx = *it;
+          if (!donePats.Contain(idx))
+          {
+            Dbg("Fill stub pattern %1%", idx);
+            builder.StartPattern(idx);
+          }
         }
       }
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        Require(!samples.empty());
-        Indices restSams(samples);
-        for (uint_t samEntryIdx = 0; samEntryIdx < MAX_SAMPLES_COUNT && !restSams.empty(); ++samEntryIdx)
+        Indices doneSams(0, MAX_SAMPLES_COUNT - 1);
+        for (uint_t samEntryIdx = 0; samEntryIdx < MAX_SAMPLES_COUNT; ++samEntryIdx)
         {
           const RawSample& src = GetSample(samEntryIdx);
           const uint_t samIdx = src.Number;
-          if (!restSams.count(samIdx))
+          if (!samples.Contain(samIdx) || doneSams.Contain(samIdx))
           {
             continue;
           }
-          Require(Math::InRange<uint_t>(samIdx + 1, 1, MAX_SAMPLES_COUNT));
+          doneSams.Insert(samIdx);
           Dbg("Parse sample %1%", samIdx);
           Sample result;
           ParseSample(src, result);
           builder.SetSample(samIdx, result);
-          restSams.erase(samIdx);
+          if (doneSams.Count() == samples.Count())
+          {
+            return;
+          }
         }
-        while (!restSams.empty())
+        for (Indices::Iterator it = samples.Items(); it; ++it)
         {
-          const uint_t idx = *restSams.begin();
-          Dbg("Fill stub sample %1%", idx);
-          builder.SetSample(idx, Sample());
-          restSams.erase(idx);
+          const uint_t idx = *it;
+          if (!doneSams.Contain(idx))
+          {
+            Dbg("Fill stub sample %1%", idx);
+            builder.SetSample(idx, Sample());
+          }
         }
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        if (ornaments.empty())
+        if (ornaments.Empty())
         {
           Dbg("No ornaments used");
           return;
         }
-        Indices restOrns(ornaments);
-        for (uint_t ornEntryIdx = 0; ornEntryIdx < MAX_ORNAMENTS_COUNT && !restOrns.empty(); ++ornEntryIdx)
+        Indices doneOrns(0, MAX_ORNAMENTS_COUNT - 1);
+        for (uint_t ornEntryIdx = 0; ornEntryIdx < MAX_ORNAMENTS_COUNT; ++ornEntryIdx)
         {
           const RawOrnament& src = GetOrnament(ornEntryIdx);
           const uint_t ornIdx = src.Number;
-          if (!restOrns.count(ornIdx))
+          if (!ornaments.Contain(ornIdx) || doneOrns.Contain(ornIdx))
           {
             continue;
           }
-          Require(Math::InRange<uint_t>(ornIdx + 1, 1, MAX_ORNAMENTS_COUNT));
+          doneOrns.Insert(ornIdx);
           Dbg("Parse ornament %1%", ornIdx);
           const Ornament result(src.Data.begin(), src.Data.end());
           builder.SetOrnament(ornIdx, result);
-          restOrns.erase(ornIdx);
+          if (doneOrns.Count() == ornaments.Count())
+          {
+            return;
+          }
         }
-        while (!restOrns.empty())
+        for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
-          const uint_t idx = *restOrns.begin();
-          Dbg("Fill stub ornament %1%", idx);
-          builder.SetOrnament(idx, Ornament());
-          restOrns.erase(idx);
+          const uint_t idx = *it;
+          if (!doneOrns.Contain(idx))
+          {
+            Dbg("Fill stub ornament %1%", idx);
+            builder.SetOrnament(idx, Ornament());
+          }
         }
       }
 

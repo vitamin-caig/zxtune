@@ -15,10 +15,8 @@ Author:
 
 //local includes
 #include "soundtracker.h"
-//std includes
-#include <set>
-//boost includes
-#include <boost/mem_fn.hpp>
+//common includes
+#include <indices.h>
 
 namespace Formats
 {
@@ -26,8 +24,6 @@ namespace Formats
   {
     namespace SoundTracker
     {
-      typedef std::set<uint_t> Indices;
-
       const uint_t SAMPLE_SIZE = 32;
       const uint_t ORNAMENT_SIZE = 32;
       const uint_t MIN_PATTERN_SIZE = 5;
@@ -43,9 +39,13 @@ namespace Formats
       public:
         explicit StatisticCollectingBuilder(Builder& delegate)
           : Delegate(delegate)
+          , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
+          , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
+          , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
           , NonEmptyPatterns(false)
           , NonEmptySamples(false)
         {
+          UsedOrnaments.Insert(0);
         }
 
         virtual void SetProgram(const String& program)
@@ -65,7 +65,7 @@ namespace Formats
 
         virtual void SetSample(uint_t index, const Sample& sample)
         {
-          assert(UsedSamples.count(index));
+          assert(UsedSamples.Contain(index));
           if (IsSampleSounds(sample))
           {
             NonEmptySamples = true;
@@ -75,20 +75,24 @@ namespace Formats
 
         virtual void SetOrnament(uint_t index, const Ornament& ornament)
         {
-          assert(UsedOrnaments.count(index));
+          assert(UsedOrnaments.Contain(index));
           return Delegate.SetOrnament(index, ornament);
         }
 
         virtual void SetPositions(const std::vector<PositionEntry>& positions)
         {
-          UsedPatterns.clear();
-          std::transform(positions.begin(), positions.end(), std::inserter(UsedPatterns, UsedPatterns.end()), boost::mem_fn(&PositionEntry::PatternIndex));
+          Require(!positions.empty());
+          UsedPatterns.Clear();
+          for (std::vector<PositionEntry>::const_iterator it = positions.begin(), lim = positions.end(); it != lim; ++it)
+          {
+            UsedPatterns.Insert(it->PatternIndex);
+          }
           return Delegate.SetPositions(positions);
         }
 
         virtual void StartPattern(uint_t index)
         {
-          assert(UsedPatterns.count(index));
+          assert(UsedPatterns.Contain(index));
           return Delegate.StartPattern(index);
         }
 
@@ -124,13 +128,13 @@ namespace Formats
           {
             NonEmptyPatterns = true;
           }
-          UsedSamples.insert(sample);
+          UsedSamples.Insert(sample);
           return Delegate.SetSample(sample);
         }
 
         virtual void SetOrnament(uint_t ornament)
         {
-          UsedOrnaments.insert(ornament);
+          UsedOrnaments.Insert(ornament);
           return Delegate.SetOrnament(ornament);
         }
 
@@ -153,6 +157,7 @@ namespace Formats
 
         const Indices& GetUsedSamples() const
         {
+          Require(!UsedSamples.Empty());
           return UsedSamples;
         }
 

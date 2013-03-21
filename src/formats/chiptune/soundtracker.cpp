@@ -202,11 +202,9 @@ namespace Chiptune
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
-        Require(!pats.empty());
-        for (Indices::const_iterator it = pats.begin(), lim = pats.end(); it != lim; ++it)
+        for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Require(Math::InRange<uint_t>(patIndex + 1, 1, MAX_PATTERNS_COUNT));
           if (patIndex < MaxPatterns)
           {
             Dbg("Parse pattern %1%", patIndex);
@@ -225,11 +223,9 @@ namespace Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        Require(!samples.empty());
-        for (Indices::const_iterator it = samples.begin(), lim = samples.end(); it != lim; ++it)
+        for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Require(Math::InRange<uint_t>(samIdx + 1, 1, MAX_SAMPLES_COUNT));
           Dbg("Parse sample %1%", samIdx);
           if (samIdx)
           {
@@ -246,15 +242,14 @@ namespace Chiptune
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        if (ornaments.empty())
+        if (ornaments.Empty())
         {
           Dbg("No ornaments used");
           return;
         }
-        for (Indices::const_iterator it = ornaments.begin(), lim = ornaments.end(); it != lim; ++it)
+        for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          Require(Math::InRange<uint_t>(ornIdx + 1, 1, MAX_ORNAMENTS_COUNT));
           Dbg("Parse ornament %1%", ornIdx);
           const RawOrnament& src = Source.Ornaments[ornIdx];
           const Ornament result(src.Offsets.begin(), src.Offsets.end());
@@ -522,7 +517,7 @@ namespace Chiptune
         const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 
-        const uint_t lastPattern = std::min(*usedPatterns.rbegin(), format.GetMaxPatterns() - 1);
+        const uint_t lastPattern = std::min(usedPatterns.Maximum(), format.GetMaxPatterns() - 1);
         const std::size_t size = sizeof(RawHeader) + lastPattern * sizeof(RawPattern);
         const Binary::Container::Ptr subData = data.GetSubcontainer(0, size);
         const std::size_t patternsOffset = offsetof(RawHeader, Patterns);
