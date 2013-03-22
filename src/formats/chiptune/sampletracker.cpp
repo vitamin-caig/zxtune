@@ -166,29 +166,21 @@ namespace Chiptune
         for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          const SampleInfo& info = Source.SampleDescriptions[samIdx];
-          const std::size_t absAddr = 256 * info.AddrHi;
-          const std::size_t maxSize = 128 * info.SizeHiDoubled;
-          if (absAddr && absAddr >= SAMPLES_ADDR && absAddr + maxSize <= SAMPLES_LIMIT_ADDR)
+          if (const Binary::Data::Ptr content = GetSample(samIdx))
           {
-            Require(offsetof(Header, Samples) + (absAddr - SAMPLES_ADDR) + maxSize <= RawData.Size());
-            Dbg("Sample %1%: start=#%2$04x size=#%3$04x", 
-              samIdx, absAddr, maxSize);
-            const uint8_t* const sampleStart = Source.Samples + (absAddr - SAMPLES_ADDR);
-            const uint8_t* const sampleEnd = std::find(sampleStart, sampleStart + maxSize, 0);
-            const std::size_t sampleOffset = absAddr - MODULE_BASE;
-            const std::size_t sampleSize = sampleEnd - sampleStart;
-            AddRange(sampleOffset, sampleSize);
-            if (const Binary::Data::Ptr content = RawData.GetSubcontainer(sampleOffset, sampleSize))
-            {
-              target.SetSample(samIdx, sampleSize, content, false);
-              ++validSamples;
-              continue;
-            }
+            target.SetSample(samIdx, content->Size(), content, false);
+            ++validSamples;
           }
-          Dbg(" Stub sample %1%", samIdx);
-          const uint8_t dummy = 128;
-          target.SetSample(samIdx, 0, Binary::CreateContainer(&dummy, sizeof(dummy)), false);
+          else
+          {
+            Dbg(" Stub sample %1%", samIdx);
+            const uint8_t dummy = 128;
+            target.SetSample(samIdx, 0, Binary::CreateContainer(&dummy, sizeof(dummy)), false);
+          }
+        }
+        if (sams.Maximum() != SAMPLES_COUNT - 1)
+        {
+          GetSample(SAMPLES_COUNT - 1);
         }
         Require(validSamples != 0);
       }
@@ -262,6 +254,30 @@ namespace Chiptune
       static bool IsEmptyChannel(uint_t chan, const Pattern::Line& srcLine)
       {
         return srcLine.Note[chan] == NOTE_EMPTY && (srcLine.Sample[chan] == SAMPLE_EMPTY || srcLine.Sample[chan] >= SAMPLE_BASE + SAMPLES_COUNT);
+      }
+
+      Binary::Data::Ptr GetSample(uint_t samIdx) const
+      {
+        const SampleInfo& info = Source.SampleDescriptions[samIdx];
+        const std::size_t absAddr = 256 * info.AddrHi;
+        const std::size_t maxSize = 128 * info.SizeHiDoubled;
+        if (!absAddr || absAddr < SAMPLES_ADDR || absAddr + maxSize > SAMPLES_LIMIT_ADDR)
+        {
+          return Binary::Data::Ptr();
+        }
+        const std::size_t sampleOffset = offsetof(Header, Samples) + (absAddr - SAMPLES_ADDR);
+        if (sampleOffset >= RawData.Size())
+        {
+          return Binary::Data::Ptr();
+        }
+        const std::size_t sampleAvail = std::min(maxSize, RawData.Size() - sampleOffset);
+        Dbg("Sample %1%: start=#%2$04x size=#%3$04x (avail=#%4$04x)", 
+          samIdx, absAddr, maxSize, sampleAvail);
+        const uint8_t* const sampleStart = Source.Samples + (absAddr - SAMPLES_ADDR);
+        const uint8_t* const sampleEnd = std::find(sampleStart, sampleStart + sampleAvail, 0);
+        const std::size_t sampleSize = sampleEnd - sampleStart;
+        AddRange(sampleOffset, sampleAvail);
+        return RawData.GetSubcontainer(sampleOffset, sampleSize);
       }
 
       void AddRange(std::size_t start, std::size_t size) const
