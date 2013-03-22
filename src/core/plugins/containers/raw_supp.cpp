@@ -54,7 +54,7 @@ namespace
       return std::clock() - Start;
     }
   private:
-    const std::clock_t Start;
+    std::clock_t Start;
   };
 
   template<std::size_t Fields>
@@ -164,14 +164,22 @@ namespace
     {
       StatItem& item = Detection[type];
       ++item.Aimed;
-      item.AimedTime += scanTimer.Elapsed();
+      item.AimedTime += scanTimer.Elapsed() + item.ScanTime;
+      item.ScanTime = 0;
     }
 
     void AddMissed(const String& type, const AutoTimer& scanTimer)
     {
       StatItem& item = Detection[type];
       ++item.Missed;
-      item.MissedTime += scanTimer.Elapsed();
+      item.MissedTime += scanTimer.Elapsed() + item.ScanTime;
+      item.ScanTime = 0;
+    }
+
+    void AddScanned(const String& type, const AutoTimer& scanTimer)
+    {
+      StatItem& item = Detection[type];
+      item.ScanTime += scanTimer.Elapsed();
     }
 
     static Statistic& Self()
@@ -186,12 +194,14 @@ namespace
       std::size_t Missed;
       std::clock_t AimedTime;
       std::clock_t MissedTime;
+      std::clock_t ScanTime;
 
       StatItem()
         : Aimed()
         , Missed()
         , AimedTime()
         , MissedTime()
+        , ScanTime()
       {
       }
 
@@ -617,6 +627,7 @@ namespace
     RawDetectionPlugins(PlayerPlugin::Iterator::Ptr players, ArchivePlugin::Iterator::Ptr archives, const String& denied)
       : Players(players)
       , Archives(archives)
+      , Offset()
     {
       Archives.SetPluginLookahead(denied, ~std::size_t(0));
     }
@@ -644,6 +655,7 @@ namespace
 
     void SetOffset(std::size_t offset)
     {
+      Offset = offset;
       Archives.SetOffset(offset);
       Players.SetOffset(offset);
     }
@@ -651,9 +663,11 @@ namespace
     template<class T>
     Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
+      const bool firstScan = 0 == Offset;
+      const std::size_t maxSize = input->GetData()->Size();
       for (typename T::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
-        const AutoTimer timer;
+        AutoTimer timer;
         const typename T::Ptr plugin = iter->Get();
         const Analysis::Result::Ptr result = plugin->Detect(input, callback);
         const String id = plugin->GetDescription()->Id();
@@ -665,16 +679,21 @@ namespace
         }
         else
         {
-          const std::size_t lookahead = result->GetLookaheadOffset();
-          if (plugin->GetFormat()->Match(*input->GetData()))
+          if (!firstScan)
           {
             Statistic::Self().AddMissed(id, timer);
+            timer = AutoTimer();
           }
-          else
+          const std::size_t lookahead = result->GetLookaheadOffset();
+          container.SetPluginLookahead(id, lookahead);
+          if (lookahead == maxSize)
           {
             Statistic::Self().AddAimed(id, timer);
           }
-          container.SetPluginLookahead(id, lookahead);
+          else
+          {
+            Statistic::Self().AddScanned(id, timer);
+          }
         }
       }
       const std::size_t minLookahead = container.GetMinimalPluginLookahead();
@@ -683,6 +702,7 @@ namespace
   private:
     LookaheadPluginsStorage<PlayerPlugin> Players;
     LookaheadPluginsStorage<ArchivePlugin> Archives;
+    std::size_t Offset;
   };
 }
 
