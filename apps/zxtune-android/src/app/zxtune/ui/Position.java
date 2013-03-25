@@ -10,6 +10,7 @@
 
 package app.zxtune.ui;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -58,7 +59,7 @@ public class Position extends Fragment {
   }
 
   class StatusCallback implements Playback.Callback {
-    public void started(String description, int duration) {
+    public void started(Uri playlistUri, String description, int duration) {
       position.setMax(duration);
     }
 

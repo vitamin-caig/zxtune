@@ -18,6 +18,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -40,8 +41,9 @@ public final class MessengerRPC {
     public static final int POSITION_CHANGED = STOPPED + 1;
   }
 
-  protected final static String KEY_DESCRIPTION = "description";
-  protected final static String KEY_TIME = "time";
+  private final static String KEY_DESCRIPTION = "description";
+  private final static String KEY_URI = "uri";
+  private final static String KEY_TIME = "time";
 
   static class ControlClient implements Playback.Control {
 
@@ -52,6 +54,7 @@ public final class MessengerRPC {
     private final MessagesQueue messages = new MessagesQueue();
     private Map<Playback.Callback, Messenger> callbacks =
         new HashMap<Playback.Callback, Messenger>();
+    private Uri nowPlaying = Uri.EMPTY;
 
     public static Playback.Control create(Context ctx) {
       return new ControlClient(ctx);
@@ -72,6 +75,32 @@ public final class MessengerRPC {
       if (context.bindService(intent, handler, Context.BIND_AUTO_CREATE)) {
         Log.d(TAG, "Bound to service");
       }
+      registerCallback(new Playback.Callback() {
+        
+        @Override
+        public void stopped() {
+          Log.d(TAG, "Reset now playing");
+          nowPlaying = Uri.EMPTY;
+        }
+        
+        @Override
+        public void started(Uri playlistUri, String description, int duration) {
+          Log.d(TAG, "Set now playing to " + playlistUri);
+          nowPlaying = playlistUri;
+        }
+        
+        @Override
+        public void positionChanged(int curFrame, String curTime) {
+        }
+        
+        @Override
+        public void paused(String description) {
+        }
+      });
+    }
+    
+    public Uri nowPlaying() {
+      return nowPlaying;
     }
 
     public void play() {
@@ -177,9 +206,10 @@ public final class MessengerRPC {
       this.callback = callback;
     }
 
-    public void started(String description, int duration) {
+    public void started(Uri playlistUri, String description, int duration) {
       final Bundle bundle = new Bundle();
       bundle.putString(KEY_DESCRIPTION, description);
+      bundle.putParcelable(KEY_URI, playlistUri);
       final Message msg = Message.obtain(null, Messages.STARTED, duration, 0, bundle);
       sendMessage(msg);
     }
@@ -279,7 +309,7 @@ public final class MessengerRPC {
       final Bundle bundle = (Bundle) msg.obj;
       switch (msg.what) {
         case Messages.STARTED:
-          callback.started(bundle.getString(KEY_DESCRIPTION), msg.arg1);
+          callback.started((Uri) bundle.getParcelable(KEY_URI), bundle.getString(KEY_DESCRIPTION), msg.arg1);
           break;
         case Messages.PAUSED:
           callback.paused(bundle.getString(KEY_DESCRIPTION));

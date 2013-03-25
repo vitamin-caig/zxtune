@@ -4,6 +4,13 @@
     android:layout_height="match_parent"
     android:orientation="horizontal"
     >
+    <ImageView
+      android:id="@+id/playlist_item_state"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center"
+      android:layout_weight="0"
+    />
     <LinearLayout
       android:orientation="vertical"
       android:layout_width="wrap_content"
@@ -15,12 +22,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="0"
+        android:singleLine="true"
+        android:ellipsize="marquee"
       />
       <TextView
         android:id="@+id/playlist_item_author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_weight="0"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:textSize="10sp"
+        android:textColor="#808080"
       />
     </LinearLayout>
     <LinearLayout
@@ -31,18 +44,18 @@
       android:paddingRight="4dp"
       android:layout_weight="0">
       <TextView
-        android:id="@+id/playlist_item_type"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_weight="0"
-      />
-      <TextView
         android:id="@+id/playlist_item_duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:layout_weight="0"
+      />
+      <TextView
+        android:id="@+id/playlist_item_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:textSize="10sp"
+        android:textColor="#808080"
       />
     </LinearLayout>
 </LinearLayout>

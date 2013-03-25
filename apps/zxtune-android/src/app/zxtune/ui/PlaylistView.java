@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.R;
@@ -34,7 +35,12 @@ public class PlaylistView extends ListView
     public boolean onPlayitemLongClick(Uri playlistUri);
   }
 
-  public static class StubOnPlayitemClickListener implements OnPlayitemClickListener {
+  public interface PlayitemStateSource {
+
+    public boolean isPlaying(Uri playlistUri);
+  }
+
+  private static class StubOnPlayitemClickListener implements OnPlayitemClickListener {
 
     @Override
     public void onPlayitemClick(Uri playlistUri) {}
@@ -45,6 +51,15 @@ public class PlaylistView extends ListView
     }
   }
 
+  private static class StubPlayitemStateSource implements PlayitemStateSource{
+
+    @Override
+    public boolean isPlaying(Uri playlistUri) {
+      return false;
+    }
+  }
+
+  private PlayitemStateSource source;
   private OnPlayitemClickListener listener;
 
   public PlaylistView(Context context) {
@@ -72,6 +87,10 @@ public class PlaylistView extends ListView
   public void setOnPlayitemClickListener(OnPlayitemClickListener listener) {
     this.listener = null != listener ? listener : new StubOnPlayitemClickListener();
   }
+  
+  public void setPlayitemStateSource(PlayitemStateSource source) {
+    this.source = null != source ? source : new StubPlayitemStateSource();
+  }
 
   public void setData(Cursor cursor) {
     final CursorAdapter adapter = new PlaylistCursorAdapter(getContext(), cursor);
@@ -98,7 +117,7 @@ public class PlaylistView extends ListView
     return listener.onPlayitemLongClick(Query.unparse(id));
   }
 
-  private static class PlaylistCursorAdapter extends CursorAdapter {
+  private class PlaylistCursorAdapter extends CursorAdapter {
 
     private final LayoutInflater inflater;
 
@@ -123,6 +142,7 @@ public class PlaylistView extends ListView
       bindType(item, view);
       bindTitle(item, view);
       bindDuration(item, view);
+      bindState(source, item, view);
     }
 
     @Override
@@ -130,15 +150,19 @@ public class PlaylistView extends ListView
       return inflater.inflate(R.layout.playlist_item, parent, false);
     }
 
-    private static void bindType(Item item, View view) {
+    private void bindType(Item item, View view) {
       final TextView type = (TextView) view.findViewById(R.id.playlist_item_type);
       type.setText(item.getType());
     }
 
-    private static void bindTitle(Item item, View view) {
+    private void bindTitle(Item item, View view) {
       final TextView title = (TextView) view.findViewById(R.id.playlist_item_title);
       final TextView author = (TextView) view.findViewById(R.id.playlist_item_author);
-      title.setText(item.getTitle());
+      if (0 == item.getTitle().length()) {
+        title.setText(item.getDataUri());
+      } else {
+        title.setText(item.getTitle());
+      }
       if (0 == item.getAuthor().length()) {
         author.setVisibility(View.GONE);
       } else {
@@ -147,9 +171,15 @@ public class PlaylistView extends ListView
       }
     }
 
-    private static void bindDuration(Item item, View view) {
+    private void bindDuration(Item item, View view) {
       final TextView duration = (TextView) view.findViewById(R.id.playlist_item_duration);
       duration.setText(item.getDuration());
+    }
+    
+    private void bindState(PlayitemStateSource source, Item item, View view) {
+      final boolean playing = source.isPlaying(item.getUri());
+      final ImageView state = (ImageView) view.findViewById(R.id.playlist_item_state);
+      state.setImageResource(playing ? R.drawable.ic_play : 0);
     }
   }
 }

@@ -25,15 +25,42 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.PopupWindow;
+import android.widget.SeekBar;
+import app.zxtune.Playback;
 import app.zxtune.PlaybackService;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.playlist.Query;
+import app.zxtune.ui.Position.StatusCallback;
 
 public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickListener {
 
+  private Playback.Control control;
   private PlaylistView listing;
 
+  public void setControl(Playback.Control control) {
+    this.control = control;
+    this.control.registerCallback(new Playback.Callback() {
+      @Override
+      public void stopped() {
+        listing.invalidateViews();
+      }
+      
+      @Override
+      public void started(Uri playlistUri, String description, int duration) {
+        listing.invalidateViews();
+      }
+      
+      @Override
+      public void positionChanged(int curFrame, String curTime) {
+      }
+      
+      @Override
+      public void paused(String description) {
+      }
+    });
+  }
+  
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     return inflater.inflate(R.layout.playlist, null);
@@ -47,6 +74,15 @@ public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickLi
     activity.startManagingCursor(cursor);
     listing = (PlaylistView) view.findViewById(R.id.playlist_content);
     listing.setOnPlayitemClickListener(this);
+    listing.setPlayitemStateSource(new PlaylistView.PlayitemStateSource() {
+      @Override
+      public boolean isPlaying(Uri playlistUri) {
+        final Uri nowPlaying = control.nowPlaying();
+        final boolean res = 0 == playlistUri.compareTo(nowPlaying);
+        Log.d(Playlist.class.getCanonicalName(), "isPlaying(" + playlistUri + ") for " + nowPlaying + " is " + res);
+        return res;
+      }
+    });
     listing.setData(cursor);
   }
 

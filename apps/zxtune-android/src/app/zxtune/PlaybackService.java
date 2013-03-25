@@ -78,7 +78,7 @@ public class PlaybackService extends Service {
   private final void playModule(Uri uri) {
     final Uri dataUri = getDataUri(uri);
     final ZXTune.Module module = openModule(dataUri);
-    ctrl.play(module);
+    ctrl.play(uri, module);
   }
    
   private final Uri getDataUri(Uri uri) {
@@ -162,7 +162,7 @@ public class PlaybackService extends Service {
       content = PendingIntent.getActivity(PlaybackService.this, 0, intent, 0);
     }
 
-    public void started(String description, int duration) {
+    public void started(Uri playlistUri, String description, int duration) {
       startForeground(R.string.app_name, showNotification(R.drawable.ic_stat_notify_play, description));
     }
 
@@ -190,19 +190,26 @@ public class PlaybackService extends Service {
 
   private static class PlaybackControl implements Playback.Control {
 
-    private AsyncPlayback playback;
     private final CompositeCallback callback = new CompositeCallback();
+    private AsyncPlayback playback;
+    private Uri nowPlaying;
     
-    public void play(ZXTune.Module module) {
+    public void play(Uri moduleUri, ZXTune.Module module) {
       stop();
       final String description = describeModule(module);
       final AsyncPlayback.Source src = new PlaybackSource(module.createPlayer(), callback);
       final AsyncPlayback.Callback cb =
-          new PlaybackCallback(callback, description, module.getDuration());
+          new PlaybackCallback(callback, moduleUri, description, module.getDuration());
       module.release();
       playback = new AsyncPlayback(src);
       playback.setCallback(cb);
+      nowPlaying = moduleUri;
       play();
+    }
+    
+    @Override
+    public Uri nowPlaying() {
+      return nowPlaying;
     }
 
     @Override
@@ -243,9 +250,9 @@ public class PlaybackService extends Service {
     private static class CompositeCallback implements Playback.Callback {
       private ArrayList<Playback.Callback> delegates = new ArrayList<Playback.Callback>();
 
-      public void started(String description, int duration) {
+      public void started(Uri playlistUri, String description, int duration) {
         for (Playback.Callback cb : delegates) {
-          cb.started(description, duration);
+          cb.started(playlistUri, description, duration);
         }
       }
 
@@ -309,19 +316,21 @@ public class PlaybackService extends Service {
 
     private final static String TAG = PlaybackService.TAG + ".AsyncPlaybackCallback";
 
-    private Playback.Callback callback;
-    private String description;
-    private int duration;
+    private final Playback.Callback callback;
+    private final Uri uri;
+    private final String description;
+    private final int duration;
 
-    public PlaybackCallback(Playback.Callback callback, String description, int duration) {
+    public PlaybackCallback(Playback.Callback callback, Uri uri, String description, int duration) {
       this.callback = callback;
+      this.uri = uri;
       this.description = description;
       this.duration = duration;
     }
 
     public void onStart() {
       Log.d(TAG, "onStart");
-      callback.started(description, duration);
+      callback.started(uri, description, duration);
     }
 
     public void onStop() {
@@ -336,7 +345,7 @@ public class PlaybackService extends Service {
 
     public void onResume() {
       Log.d(TAG, "onResume");
-      callback.started(description, duration);
+      callback.started(uri, description, duration);
     }
 
     public void onFinish() {

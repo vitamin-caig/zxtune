@@ -7,9 +7,14 @@
 
 package app.zxtune;
 
+import android.net.Uri;
+
 public final class Playback {
 
   public static interface Control {
+
+    public Uri nowPlaying();
+
     public void play();
 
     public void pause();
@@ -23,7 +28,7 @@ public final class Playback {
   }
 
   public static interface Callback {
-    public void started(String description, int duration);
+    public void started(Uri playlistUri, String description, int duration);
 
     public void paused(String description);
 

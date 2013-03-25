@@ -38,6 +38,7 @@ public class CurrentlyPlayingActivity extends FragmentActivity {
     }
     getPart(Position.class).setControl(control);
     getPart(Controls.class).setControl(control);
+    getPart(Playlist.class).setControl(control);
   }
 
   @Override
