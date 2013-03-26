@@ -772,7 +772,7 @@ namespace Chiptune
       END
     };
 
-    struct Areas : public AreaController<AreaTypes, 1 + END, std::size_t>
+    struct Areas : public AreaController
     {
       Areas(const RawHeader& header, std::size_t size)
       {

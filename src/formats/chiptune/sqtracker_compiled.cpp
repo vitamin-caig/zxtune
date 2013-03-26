@@ -785,7 +785,7 @@ namespace Chiptune
       END
     };
 
-    struct Areas : public AreaController<AreaTypes, 1 + END, std::size_t>
+    struct Areas : public AreaController
     {
       Areas(const Binary::TypedContainer& data, std::size_t unfixDelta, std::size_t size)
       {

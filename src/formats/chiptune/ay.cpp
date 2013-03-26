@@ -25,6 +25,7 @@ Author:
 #include <cstring>
 #include <list>
 //boost includes
+#include <boost/array.hpp>
 #include <boost/make_shared.hpp>
 
 namespace Formats

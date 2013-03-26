@@ -16,8 +16,7 @@
 #include <cassert>
 #include <memory>
 #include <utility>
-//boost includes
-#include <boost/array.hpp>
+#include <vector>
 
 //! @brief Memory ranges checker interface. Intented for correct format detection
 class RangeChecker
@@ -57,7 +56,7 @@ public:
 //!   END
 //! };
 //!
-//! AreaController<Areas, 1 + Areas::END> controller;
+//! AreaController controller;
 //! controller.AddArea(HEADER, 0);
 //! controller.AddArea(CONTENT, 10);
 //! controller.AddArea(END, 20);
@@ -65,31 +64,27 @@ public:
 //! assert(10 == controller.GetAreaSize(HEADER));
 //! assert(0 == controller.GetAreaSize(END));
 //! @endcode
-template<class KeyType, std::size_t AreasCount, class AddrType = std::size_t>
 class AreaController
 {
-  typedef boost::array<AddrType, AreasCount> Area2AddrMap;
+  typedef std::size_t KeyType;
+  typedef std::size_t AddrType;
+  typedef std::vector<AddrType> Area2AddrMap;
 public:
   enum
   {
     Undefined = ~AddrType(0)
   };
 
-  AreaController()
-  {
-    Areas.assign(Undefined);
-  }
-
   void AddArea(KeyType key, AddrType addr)
   {
+    Areas.resize(std::max(Areas.size(), key + 1), Undefined);
     assert(Undefined == Areas[key]);
     Areas[key] = addr;
   }
 
   AddrType GetAreaAddress(KeyType key) const
   {
-    const AddrType res = Areas[key];
-    return res;
+    return Areas[key];
   }
 
   AddrType GetAreaSize(KeyType key) const
@@ -101,7 +96,7 @@ public:
       return 0;
     }
     AddrType res = Undefined;
-    for (std::size_t idx = 0; idx < AreasCount; ++idx)
+    for (std::size_t idx = 0; idx < Areas.size(); ++idx)
     {
       const AddrType curAddr = Areas[idx];
       if (Undefined == curAddr ||

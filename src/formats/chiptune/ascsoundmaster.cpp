@@ -27,6 +27,7 @@ Author:
 //std includes
 #include <cstring>
 //boost includes
+#include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -1077,7 +1078,7 @@ namespace Chiptune
       END
     };
 
-    struct Areas : public AreaController<AreaTypes, 1 + END, std::size_t>
+    struct Areas : public AreaController
     {
       template<class HeaderType>
       Areas(const HeaderType& header, std::size_t size)

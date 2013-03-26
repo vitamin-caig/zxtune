@@ -54,15 +54,14 @@ namespace
     UNSPECIFIED,
     END,
   };
-  typedef AreaController<AreaTypes, 1 + END, uint_t> Areas;
 
-  void TestAreaSizes(const std::string& test, const Areas& area, uint_t bsize, uint_t s1size, uint_t s2size, uint_t esize)
+  void TestAreaSizes(const std::string& test, const AreaController& area, std::size_t bsize, std::size_t s1size, std::size_t s2size, std::size_t esize)
   {
     Test(test + ": size of begin", area.GetAreaSize(BEGIN), bsize);
     Test(test + ": size of sect1", area.GetAreaSize(SECTION1), s1size);
     Test(test + ": size of sect2", area.GetAreaSize(SECTION2), s2size);
     Test(test + ": size of end", area.GetAreaSize(END), esize);
-    Test(test + ": size of unspec", area.GetAreaSize(UNSPECIFIED), uint_t(0));
+    Test(test + ": size of unspec", area.GetAreaSize(UNSPECIFIED), std::size_t(0));
   }
 }
 
@@ -124,23 +123,23 @@ int main()
   std::cout << "---- Test for area controller ----" << std::endl;
   {
     {
-      Areas areas;
+      AreaController areas;
       areas.AddArea(BEGIN, 0);
       areas.AddArea(SECTION1, 10);
       areas.AddArea(SECTION2, 20);
       areas.AddArea(END, 30);
-      TestAreaSizes("Ordered", areas, 10, 10, 10, Areas::Undefined);
+      TestAreaSizes("Ordered", areas, 10, 10, 10, AreaController::Undefined);
     }
     {
-      Areas areas;
+      AreaController areas;
       areas.AddArea(BEGIN, 40);
       areas.AddArea(SECTION1, 30);
       areas.AddArea(SECTION2, 20);
       areas.AddArea(END, 10);
-      TestAreaSizes("Reversed", areas, Areas::Undefined, 10, 10, 10);
+      TestAreaSizes("Reversed", areas, AreaController::Undefined, 10, 10, 10);
     }
     {
-      Areas areas;
+      AreaController areas;
       areas.AddArea(BEGIN, 0);
       areas.AddArea(SECTION1, 30);
       areas.AddArea(SECTION2, 30);

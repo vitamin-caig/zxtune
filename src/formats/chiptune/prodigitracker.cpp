@@ -25,6 +25,7 @@ Author:
 //std includes
 #include <cstring>
 //boost includes
+#include <boost/array.hpp>
 #include <boost/make_shared.hpp>
 //text includes
 #include <formats/text/chiptune.h>

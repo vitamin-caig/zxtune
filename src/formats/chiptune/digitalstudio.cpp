@@ -26,6 +26,7 @@ Author:
 //std includes
 #include <cstring>
 //boost includes
+#include <boost/array.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
 //text includes

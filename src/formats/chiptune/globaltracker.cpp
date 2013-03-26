@@ -857,7 +857,7 @@ namespace Chiptune
         ? 0 : offsets[1] - start;
     }
 
-    struct Areas : public AreaController<AreaTypes, 1 + END, std::size_t>
+    struct Areas : public AreaController
     {
       Areas(const RawHeader& hdr, std::size_t size)
         : StartAddr(fromLE(hdr.Address))
