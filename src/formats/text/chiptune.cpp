@@ -44,6 +44,20 @@ extern const Char GLOBALTRACKER_DECODER_DESCRIPTION[] = {
 extern const Char PRODIGITRACKER_DECODER_DESCRIPTION[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
 };
+extern const Char PROSOUNDCREATOR_DECODER_DESCRIPTION[] = {
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',0
+};
+extern const Char PROSOUNDCREATOR_EDITOR[] = {
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','%','1','%',0
+};
+extern const Char PROSOUNDCREATOR_EDITOR_NEW[] = {
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','0','4','-','1','.','0',
+  '7',0
+};
+extern const Char PROSOUNDCREATOR_EDITOR_OLD[] = {
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','0','0','-','1','.','0',
+  '3',0
+};
 extern const Char PROSOUNDMAKER_DECODER_DESCRIPTION[] = {
   'P','r','o',' ','S','o','u','n','d',' ','M','a','k','e','r',0
 };
