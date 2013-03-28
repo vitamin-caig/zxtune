@@ -12,12 +12,14 @@ android.definitions = ANDROID __ANDROID__ __LITTLE_ENDIAN__
 android.x86.toolchain = $(toolchains.root)/x86-linux-android
 android.x86.execprefix = $(android.x86.toolchain)/bin/i686-linux-android-
 android.x86.boost.version = 1.49.0
+android.x86.ld.flags = -Wl,--icf=safe
 # armeabi
 android.armeabi.toolchain = $(toolchains.root)/armeabi-linux-android
 android.armeabi.execprefix = $(android.armeabi.toolchain)/bin/arm-linux-androideabi-
 android.armeabi.boost.version = 1.49.0
 android.armeabi.cxx.flags = -march=armv5te -mtune=xscale -msoft-float -mthumb
 android.armeabi.definitions = __ARM_ARCH_5__ __ARM_ARCH_5T__ __ARM_ARCH_5E__ __ARM_ARCH_5TE__
+android.armeabi.ld.flags = $(android.x86.ld.flags)
 # armeabi-v7a
 android.armeabi-v7a.toolchain = $(android.armeabi.toolchain)
 android.armeabi-v7a.execprefix = $(android.armeabi.execprefix)
@@ -25,6 +27,7 @@ android.armeabi-v7a.boost.version = 1.49.0
 android.armeabi-v7a.cxx.flags = -march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -mthumb
 android.armeabi-v7a.ld.flags = -march=armv7-a -Wl,--fix-cortex-a8
 android.armeabi-v7a.definitions = $(android.armeabi.definitions)
+android.armeabi-v7a.ld.flags = $(android.x86.ld.flags)
 # mips
 android.mips.toolchain = $(toolchains.root)/mipsel-linux-android
 android.mips.execprefix = $(android.mips.toolchain)/bin/mipsel-linux-android-
@@ -68,7 +71,6 @@ linux.armhf.crossroot = $(prebuilt.dir)/root-linux-armhf
 linux.armhf.boost.version = 1.49.0
 linux.armhf.qt.version = 4.8.1
 linux.armhf.qt.libs = $(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf
-linux.armhf.qt.libraries = expat
 linux.armhf.cxx.flags = -march=armv6 -mfpu=vfp -mfloat-abi=hard -Wa,--no-warn
 
 #mingw
