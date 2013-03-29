@@ -275,7 +275,7 @@ namespace Chiptune
 
         bool GetEnableEnvelope() const
         {
-          return 0 != (Flags & 16);
+          return 0 == (Flags & 16);
         }
 
         int_t GetVolumeDelta() const
@@ -324,7 +324,7 @@ namespace Chiptune
       virtual void SetNoOrnament() {}
       virtual void SetGliss(uint_t /*val*/) {}
       virtual void SetSlide(int_t /*steps*/) {}
-      virtual void SetVolumeCounter(uint_t /*steps*/) {}
+      virtual void SetVolumeSlide(uint_t /*period*/, int_t /*delta*/) {}
     };
 
     class StatisticCollectingBuilder : public Builder
@@ -336,6 +336,7 @@ namespace Chiptune
         , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
         , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
       {
+        UsedSamples.Insert(0);
         UsedOrnaments.Insert(0);
       }
 
@@ -367,7 +368,7 @@ namespace Chiptune
 
       virtual void SetOrnament(uint_t index, const Ornament& ornament)
       {
-        assert(index == 0 || UsedOrnaments.Contain(index));
+        assert(UsedOrnaments.Contain(index));
         return Delegate.SetOrnament(index, ornament);
       }
 
@@ -466,19 +467,19 @@ namespace Chiptune
         return Delegate.SetNoOrnament();
       }
 
-      virtual void SetGliss(uint_t val)
+      virtual void SetGliss(uint_t absStep)
       {
-        return Delegate.SetGliss(val);
+        return Delegate.SetGliss(absStep);
       }
 
-      virtual void SetSlide(int_t steps)
+      virtual void SetSlide(int_t delta)
       {
-        return Delegate.SetSlide(steps);
+        return Delegate.SetSlide(delta);
       }
 
-      virtual void SetVolumeCounter(uint_t steps)
+      virtual void SetVolumeSlide(uint_t period, int_t delta)
       {
-        return Delegate.SetVolumeCounter(steps);
+        return Delegate.SetVolumeSlide(period, delta);
       }
 
       const Indices& GetUsedPatterns() const
@@ -488,7 +489,6 @@ namespace Chiptune
 
       const Indices& GetUsedSamples() const
       {
-        Require(!UsedSamples.Empty());
         return UsedSamples;
       }
 
@@ -713,15 +713,26 @@ namespace Chiptune
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
         Dbg("Ornaments: %1% to parse", ornaments.Count());
+        //Some of the modules (e.g. Story Map.psc) references more ornaments than really stored
         const std::size_t ornamentsTableStart = fromLE(Source.OrnamentsTableOffset);
+        const std::size_t ornamentsTableEnd = fromLE(Source.SamplesStart);
+        const std::size_t maxOrnaments = (ornamentsTableEnd - ornamentsTableStart) / sizeof(uint16_t);
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          Dbg("Parse ornament %1%", ornIdx);
-          const std::size_t offsetAddr = ornamentsTableStart + ornIdx * sizeof(uint16_t);
-          const std::size_t ornamentAddr = Trait.OrnamentsBase + fromLE(GetServiceObject<uint16_t>(offsetAddr));
-          const Ornament& result = ParseOrnament(ornamentAddr);
-          builder.SetOrnament(ornIdx, result);
+          if (ornIdx < maxOrnaments)
+          {
+            Dbg("Parse ornament %1%", ornIdx);
+            const std::size_t offsetAddr = ornamentsTableStart + ornIdx * sizeof(uint16_t);
+            const std::size_t ornamentAddr = Trait.OrnamentsBase + fromLE(GetServiceObject<uint16_t>(offsetAddr));
+            const Ornament& result = ParseOrnament(ornamentAddr);
+            builder.SetOrnament(ornIdx, result);
+          }
+          else
+          {
+            Dbg("Parse stub ornament %1%", ornIdx);
+            builder.SetOrnament(ornIdx, Ornament());
+          }
         }
       }
 
@@ -803,11 +814,15 @@ namespace Chiptune
           if (const uint_t linesToSkip = state.GetMinCounter())
           {
             state.SkipLines(linesToSkip);
-            lineIdx += linesToSkip;
+            lineIdx += linesToSkip - 1;
           }
-          builder.StartLine(lineIdx);
-          ParseLine(state, builder);
+          else
+          {
+            builder.StartLine(lineIdx);
+            ParseLine(state, builder);
+          }
         }
+        builder.FinishPattern(pat.Size);
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
           const std::size_t start = rangesStarts[chanNum];
@@ -848,7 +863,7 @@ namespace Chiptune
           const uint_t cmd = PeekByte(offset++);
           if (cmd >= 0xc0) //0xc0..0xff
           {
-            period = cmd - 0xbf;
+            period = cmd - 0xc0;
             break;
           }
           else if (cmd >= 0xa0) //0xa0..0xbf
@@ -893,8 +908,10 @@ namespace Chiptune
           }
           else if (cmd == 0x70)
           {
-            const uint_t cnt = PeekByte(offset++);
-            builder.SetVolumeCounter(cnt);
+            const uint8_t val = PeekByte(offset++);
+            const uint_t period = 0 != (val & 64) ? -static_cast<int8_t>(val | 128) : val;
+            const int_t step = 0 != (val & 64) ? -1 : +1;
+            builder.SetVolumeSlide(period, step);
           }
           else if (cmd == 0x6f)
           {
@@ -945,14 +962,6 @@ namespace Chiptune
           const RawSample::Line& srcLine = src.Data[idx];
           const Sample::Line& dstLine = ParseSampleLine(srcLine);
           result.Lines.push_back(dstLine);
-          if (srcLine.IsLoopBegin())
-          {
-            result.Loop = idx;
-          }
-          if (srcLine.IsLoopEnd())
-          {
-            result.LoopLimit = idx;
-          }
           if (srcLine.IsFinished())
           {
             break;
@@ -972,6 +981,8 @@ namespace Chiptune
         result.Adding = src.GetAdding();
         result.EnableEnvelope = src.GetEnableEnvelope();
         result.VolumeDelta = src.GetVolumeDelta();
+        result.LoopBegin = src.IsLoopBegin();
+        result.LoopEnd = src.IsLoopEnd();
         return result;
       }
 
@@ -985,14 +996,6 @@ namespace Chiptune
           const RawOrnament::Line& srcLine = src.Data[idx];
           const Ornament::Line& dstLine = ParseOrnamentLine(srcLine);
           result.Lines.push_back(dstLine);
-          if (srcLine.IsLoopBegin())
-          {
-            result.Loop = idx;
-          }
-          if (srcLine.IsLoopEnd())
-          {
-            result.LoopLimit = idx;
-          }
           if (srcLine.IsFinished())
           {
             break;
@@ -1007,6 +1010,8 @@ namespace Chiptune
         Ornament::Line result;
         result.NoteAddon = src.GetNoteOffset();
         result.NoiseAddon = src.GetNoiseOffset();
+        result.LoopBegin = src.IsLoopBegin();
+        result.LoopEnd = src.IsLoopEnd();
         return result;
       }
     private:
@@ -1044,7 +1049,11 @@ namespace Chiptune
         AddArea(END, data.GetSize());
         if (const uint16_t* firstSample = data.GetField<uint16_t>(samplesOffsets))
         {
-          AddArea(SAMPLES, fromLE(*firstSample) + traits.SamplesBase);
+          const std::size_t firstSampleStart = fromLE(*firstSample) + traits.SamplesBase;
+          if (firstSampleStart == std::size_t(fromLE(header.SamplesStart) + 1))
+          {
+            AddArea(SAMPLES, firstSampleStart);
+          }
         }
         if (const uint16_t* firstOrnament = data.GetField<uint16_t>(ornamentsOffsets))
         {

@@ -43,6 +43,7 @@ namespace ZXTune
   void RegisterTFDSupport(PlayerPluginsRegistrator& registrator);
   void RegisterTFCSupport(PlayerPluginsRegistrator& registrator);
   void RegisterSQTSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterPSCSupport(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -72,6 +73,7 @@ namespace ZXTune
     RegisterTFDSupport(registrator);
     RegisterTFCSupport(registrator);
     RegisterSQTSupport(registrator);
+    RegisterPSCSupport(registrator);
   }
 }
 

@@ -31,6 +31,8 @@ namespace Formats
           Line()
             : Level(), Tone(), ToneMask(true), NoiseMask(true), Adding()
             , EnableEnvelope(), VolumeDelta()
+            , LoopBegin()
+            , LoopEnd()
           {
           }
 
@@ -41,15 +43,10 @@ namespace Formats
           int_t Adding;
           bool EnableEnvelope;
           int_t VolumeDelta;//0/+1/-1
+          bool LoopBegin;
+          bool LoopEnd;
         };
 
-        Sample()
-          : Loop(), LoopLimit()
-        {
-        }
-
-        uint_t Loop;
-        uint_t LoopLimit;
         std::vector<Line> Lines;
       };
 
@@ -59,19 +56,15 @@ namespace Formats
         {
           Line()
             : NoteAddon(), NoiseAddon()
+            , LoopBegin(), LoopEnd()
           {
           }
           int_t NoteAddon;
           int_t NoiseAddon;
+          bool LoopBegin;
+          bool LoopEnd;
         };
 
-        Ornament()
-          : Loop(), LoopLimit()
-        {
-        }
-
-        uint_t Loop;
-        uint_t LoopLimit;
         std::vector<Line> Lines;
       };
 
@@ -112,9 +105,9 @@ namespace Formats
         virtual void SetBreakSample() = 0;
         virtual void SetBreakOrnament() = 0;
         virtual void SetNoOrnament() = 0;
-        virtual void SetGliss(uint_t val) = 0;
-        virtual void SetSlide(int_t steps) = 0;
-        virtual void SetVolumeCounter(uint_t steps) = 0;
+        virtual void SetGliss(uint_t absStep) = 0;
+        virtual void SetSlide(int_t delta) = 0;
+        virtual void SetVolumeSlide(uint_t period, int_t delta) = 0;
       };
 
       Builder& GetStubBuilder();
