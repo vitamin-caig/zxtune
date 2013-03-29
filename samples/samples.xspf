@@ -30,6 +30,9 @@
     <location>Samples/TechCent.M</location>
   </track>
   <track>
+    <location>Samples/FL_SH_EI.psc</location>
+  </track>
+  <track>
     <location>Samples/Calamba.psm</location>
   </track>
   <track>

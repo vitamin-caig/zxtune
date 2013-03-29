@@ -10,6 +10,7 @@ install_samples:
 	$(call copyfile_cmd,$(samples_path)/dst/EchoDreams.dst,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/gtr/L.Boy.gtr,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/pdt/TechCent.M,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(samples_path)/psc/FL_SH_EI.psc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/psm/Calamba.psm,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/pt1/twins.pt1,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/pt2/Illusion.pt2,$(DESTDIR)/Samples)
