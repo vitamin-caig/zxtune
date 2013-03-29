@@ -7,6 +7,12 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Pro Sound Creator compiled modules support (PSC)
+[*] Improved Sample Tracker detection and coverage
+[*] Reduced size of armhf builds
+
+--- Rev2296 from 20.03.2013
+
 [+] SQ-Tracker compiled modules support (SQT)
 [*] Fixed crash on zero-sized files in LHA archives
 [*] zxtune-qt: fixed export conversion if destinated folder is like 'X:/'
