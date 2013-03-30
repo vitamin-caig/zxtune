@@ -1063,7 +1063,7 @@ namespace
 
     void FillCache() const
     {
-      assert(!RootNode && !Subpath.get());
+      assert(!RootIdentifier && !Subpath.get());
       Strings::Array subpath;
       for (Analysis::Node::Ptr node = Node; node;)
       {

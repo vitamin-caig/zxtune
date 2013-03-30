@@ -94,7 +94,7 @@ namespace Formats
           FLAG_DIRECTORY = 0xe0,
           FLAG_BIG_FILE = 0x100,
 
-          MIN_VERSION = 13,
+          MIN_VERSION = 20,
           MAX_VERSION = 20
         };
 

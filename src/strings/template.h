@@ -22,8 +22,8 @@ namespace Strings
   class Template
   {
   public:
-    static const Char FIELD_START = '[';
-    static const Char FIELD_END = ']';
+    static const Char FIELD_START;
+    static const Char FIELD_END;
 
     //! @brief Pointer type
     typedef std::auto_ptr<const Template> Ptr;

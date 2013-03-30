@@ -309,7 +309,7 @@ namespace RarFile
     const std::clock_t StartTick;
   };
 
-  class RarDecoder
+  class Rar20Decoder
   {
   public:
     Binary::Container::Ptr Decode(RarBitstream& source, std::size_t destSize, bool solid)
@@ -797,7 +797,7 @@ namespace RarFile
       return Decoder.Decode(stream, outSize, isSolid);
     }
   private:
-    mutable RarDecoder Decoder;
+    mutable Rar20Decoder Decoder;
   };
 
   class DispatchedCompressedFile : public CompressedFile
@@ -816,9 +816,13 @@ namespace RarFile
       {
         return Stored->Decompress(container);
       }
-      else
+      else if (20 == header.DepackerVersion)
       {
         return Packed->Decompress(container);
+      }
+      else
+      {
+        return Binary::Container::Ptr();
       }
     }
   private:

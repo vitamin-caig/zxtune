@@ -21,6 +21,9 @@ Author:
 
 namespace Strings
 {
+  const Char Template::FIELD_START = '[';
+  const Char Template::FIELD_END = ']';
+
   class PreprocessingTemplate : public Template
   {
   public:
