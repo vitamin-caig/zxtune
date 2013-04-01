@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
@@ -130,17 +129,12 @@ namespace ProTracker1
       , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
-    }
-
-    virtual void SetProgram(const String& program)
-    {
-      Properties->SetProgram(program);
       Properties->SetFreqtable(TABLE_PROTRACKER3_ST);
     }
 
-    virtual void SetTitle(const String& title)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      Properties->SetTitle(OptimizeString(title));
+      return *Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)

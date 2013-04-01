@@ -164,8 +164,10 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetProgram(const String& /*program*/) {}
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
       virtual void SetOrnament(uint_t /*index*/, std::size_t /*loop*/, const std::vector<int_t>& /*ornament*/) {}
@@ -191,14 +193,9 @@ namespace Chiptune
       {
       }
 
-      virtual void SetTitle(const String& title)
+      virtual MetaBuilder& GetMetaBuilder()
       {
-        return Delegate.SetTitle(title);
-      }
-
-      virtual void SetProgram(const String& program)
-      {
-        return Delegate.SetProgram(program);
+        return Delegate.GetMetaBuilder();
       }
 
       virtual void SetInitialTempo(uint_t tempo)
@@ -300,8 +297,9 @@ namespace Chiptune
       void ParseCommonProperties(Builder& target) const
       {
         target.SetInitialTempo(Source.Tempo);
-        target.SetTitle(FromCharArray(Source.Title));
-        target.SetProgram(Text::PRODIGITRACKER_DECODER_DESCRIPTION);
+        MetaBuilder& meta = target.GetMetaBuilder();
+        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetProgram(Text::PRODIGITRACKER_DECODER_DESCRIPTION);
       }
 
       void ParsePositions(Builder& target) const

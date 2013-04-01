@@ -131,8 +131,9 @@ namespace Chiptune
       void ParseCommonProperties(Builder& target) const
       {
         target.SetInitialTempo(Source.Tempo);
-        target.SetTitle(FromCharArray(Source.Title));
-        target.SetProgram(Text::SAMPLETRACKER_DECODER_DESCRIPTION);
+        MetaBuilder& meta = target.GetMetaBuilder();
+        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetProgram(Text::SAMPLETRACKER_DECODER_DESCRIPTION);
       }
 
       void ParsePositions(Builder& target) const

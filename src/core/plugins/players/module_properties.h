@@ -19,6 +19,7 @@ Author:
 #include <parameters.h>
 //library includes
 #include <formats/chiptune.h>
+#include <formats/chiptune/builder_meta.h>
 
 namespace ZXTune
 {
@@ -26,16 +27,13 @@ namespace ZXTune
 
   namespace Module
   {
-    class ModuleProperties : public Parameters::Accessor
+    class ModuleProperties : public Parameters::Accessor, public Formats::Chiptune::MetaBuilder
     {
     public:
       typedef boost::shared_ptr<const ModuleProperties> Ptr;
       typedef boost::shared_ptr<ModuleProperties> RWPtr;
 
-      virtual void SetTitle(const String& title) = 0;
-      virtual void SetAuthor(const String& author) = 0;
       virtual void SetComment(const String& comment) = 0;
-      virtual void SetProgram(const String& program) = 0;
       virtual void SetFreqtable(const String& table) = 0;
       virtual void SetVersion(uint_t major, uint_t minor) = 0;
       virtual void SetSource(std::size_t usedSize, const ModuleRegion& fixedRegion) = 0;

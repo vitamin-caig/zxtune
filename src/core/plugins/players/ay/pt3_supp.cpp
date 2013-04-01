@@ -13,7 +13,6 @@ Author:
 #include "ay_base.h"
 #include "ts_base.h"
 #include "vortex_base.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
@@ -61,19 +60,9 @@ namespace ProTracker3
       Data->Patterns = Builder.GetPatterns();
     }
 
-    virtual void SetProgram(const String& program)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      Properties->SetProgram(OptimizeString(program));
-    }
-
-    virtual void SetTitle(const String& title)
-    {
-      Properties->SetTitle(OptimizeString(title));
-    }
-
-    virtual void SetAuthor(const String& author)
-    {
-      Properties->SetAuthor(OptimizeString(author));
+      return *Properties;
     }
 
     virtual void SetVersion(uint_t version)

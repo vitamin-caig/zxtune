@@ -13,8 +13,8 @@ Author:
 #ifndef FORMATS_CHIPTUNE_SQTRACKER_H_DEFINED
 #define FORMATS_CHIPTUNE_SQTRACKER_H_DEFINED
 
-//common includes
-#include <types.h>
+//local includes
+#include "builder_meta.h"
 //library includes
 #include <binary/container.h>
 #include <formats/chiptune.h>
@@ -87,8 +87,7 @@ namespace Formats
       public:
         virtual ~Builder() {}
 
-        //common properties
-        virtual void SetProgram(const String& program) = 0;
+        virtual MetaBuilder& GetMetaBuilder() = 0;
         //samples+ornaments
         virtual void SetSample(uint_t index, const Sample& sample) = 0;
         virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;

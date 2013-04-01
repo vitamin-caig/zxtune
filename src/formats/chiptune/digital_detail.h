@@ -34,14 +34,9 @@ namespace Formats
         {
         }
 
-        virtual void SetTitle(const String& title)
+        virtual MetaBuilder& GetMetaBuilder()
         {
-          return Delegate.SetTitle(title);
-        }
-
-        virtual void SetProgram(const String& program)
-        {
-          return Delegate.SetProgram(program);
+          return Delegate.GetMetaBuilder();
         }
 
         virtual void SetInitialTempo(uint_t tempo)

@@ -222,9 +222,10 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAuthor(const String& /*author*/) {}
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
       virtual void SetVersion(uint_t /*version*/) {}
       virtual void SetNoteTable(NoteTable /*table*/) {}
       virtual void SetMode(uint_t /*mode*/) {}
@@ -330,16 +331,17 @@ namespace Chiptune
 
       void ParseCommonProperties(Builder& builder) const
       {
-        builder.SetProgram(String(Source.Id, Source.Optional1));
-        const RawId& meta = Source.Metainfo;
-        if (meta.HasAuthor())
+        MetaBuilder& meta = builder.GetMetaBuilder();
+        meta.SetProgram(String(Source.Id, Source.Optional1));
+        const RawId& id = Source.Metainfo;
+        if (id.HasAuthor())
         {
-          builder.SetTitle(FromCharArray(meta.TrackName));
-          builder.SetAuthor(FromCharArray(meta.TrackAuthor));
+          meta.SetTitle(FromCharArray(id.TrackName));
+          meta.SetAuthor(FromCharArray(id.TrackAuthor));
         }
         else
         {
-          builder.SetTitle(String(meta.TrackName, ArrayEnd(meta.TrackAuthor)));
+          meta.SetTitle(String(id.TrackName, ArrayEnd(id.TrackAuthor)));
         }
         const uint_t version = std::isdigit(Source.Subversion) ? Source.Subversion - '0' : 6;
         builder.SetVersion(version);

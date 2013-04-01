@@ -13,6 +13,8 @@ Author:
 #ifndef FORMATS_CHIPTUNE_PROSOUNDMAKER_H_DEFINED
 #define FORMATS_CHIPTUNE_PROSOUNDMAKER_H_DEFINED
 
+//local includes
+#include "builder_meta.h"
 //common includes
 #include <binary/container.h>
 //library includes
@@ -76,9 +78,7 @@ namespace Formats
       public:
         virtual ~Builder() {}
 
-        //common properties
-        virtual void SetProgram(const String& program) = 0;
-        virtual void SetTitle(const String& title) = 0;
+        virtual MetaBuilder& GetMetaBuilder() = 0;
         //samples+ornaments
         virtual void SetSample(uint_t index, const Sample& sample) = 0;
         virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;

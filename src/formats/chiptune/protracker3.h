@@ -13,6 +13,8 @@ Author:
 #ifndef FORMATS_CHIPTUNE_PROTRACKER3_H_DEFINED
 #define FORMATS_CHIPTUNE_PROTRACKER3_H_DEFINED
 
+//local includes
+#include "builder_meta.h"
 //common includes
 #include <binary/container.h>
 //library includes
@@ -80,10 +82,7 @@ namespace Formats
       public:
         virtual ~Builder() {}
 
-        //common properties
-        virtual void SetProgram(const String& program) = 0;
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetAuthor(const String& author) = 0;
+        virtual MetaBuilder& GetMetaBuilder() = 0;
         //minor version number
         virtual void SetVersion(uint_t version) = 0;
         //version is set before this

@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "dac_base.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/simple_orderlist.h"
@@ -95,14 +94,9 @@ namespace ProDigiTracker
       Data->Patterns = Builder.GetPatterns();
     }
 
-    virtual void SetTitle(const String& title)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      Properties->SetTitle(OptimizeString(title));
-    }
-
-    virtual void SetProgram(const String& program)
-    {
-      Properties->SetProgram(program);
+      return *Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)

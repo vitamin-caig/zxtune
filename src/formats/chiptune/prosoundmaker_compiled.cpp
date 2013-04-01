@@ -233,8 +233,10 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
       virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) {}
@@ -269,14 +271,9 @@ namespace Chiptune
         UsedOrnaments.Insert(0);
       }
 
-      virtual void SetProgram(const String& program)
+      virtual MetaBuilder& GetMetaBuilder()
       {
-        return Delegate.SetProgram(program);
-      }
-
-      virtual void SetTitle(const String& title)
-      {
-        return Delegate.SetTitle(title);
+        return Delegate.GetMetaBuilder();
       }
 
       virtual void SetSample(uint_t index, const Sample& sample)
@@ -487,7 +484,8 @@ namespace Chiptune
 
       void ParseCommonProperties(Builder& builder) const
       {
-        builder.SetProgram(Text::PROSOUNDMAKER_DECODER_DESCRIPTION);
+        MetaBuilder& meta = builder.GetMetaBuilder();
+        meta.SetProgram(Text::PROSOUNDMAKER_DECODER_DESCRIPTION);
         if (const std::size_t gapSize = fromLE(Source.PositionsOffset) - sizeof(Source))
         {
           const std::size_t gapBegin = sizeof(Source);
@@ -501,7 +499,7 @@ namespace Chiptune
           {
             const char* const titleStart = Delegate.GetField<char>(titleBegin);
             const String title(titleStart, titleStart + gapEnd - titleBegin);
-            builder.SetTitle(title);
+            meta.SetTitle(title);
           }
           Ranges.AddService(gapBegin, gapSize);
         }

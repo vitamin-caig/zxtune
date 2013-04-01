@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
@@ -328,22 +327,12 @@ namespace ProSoundCreator
       , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
-    }
-
-    virtual void SetProgram(const String& program)
-    {
-      Properties->SetProgram(program);
       Properties->SetFreqtable(TABLE_ASM);
     }
 
-    virtual void SetTitle(const String& title)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      Properties->SetTitle(OptimizeString(title));
-    }
-
-    virtual void SetAuthor(const String& author)
-    {
-      Properties->SetAuthor(OptimizeString(author));
+      return *Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)

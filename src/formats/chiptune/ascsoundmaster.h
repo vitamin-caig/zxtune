@@ -13,8 +13,8 @@ Author:
 #ifndef FORMATS_CHIPTUNE_ASCSOUNDMASTER_H_DEFINED
 #define FORMATS_CHIPTUNE_ASCSOUNDMASTER_H_DEFINED
 
-//common includes
-#include <types.h>
+//local includes
+#include "builder_meta.h"
 //library includes
 #include <binary/container.h>
 #include <formats/chiptune.h>
@@ -81,10 +81,8 @@ namespace Formats
       public:
         virtual ~Builder() {}
 
+        virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties
-        virtual void SetProgram(const String& program) = 0;
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetAuthor(const String& author) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
         virtual void SetSample(uint_t index, const Sample& sample) = 0;

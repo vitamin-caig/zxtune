@@ -201,8 +201,10 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
@@ -235,14 +237,9 @@ namespace Chiptune
         UsedOrnaments.Insert(0);
       }
 
-      virtual void SetProgram(const String& program)
+      virtual MetaBuilder& GetMetaBuilder()
       {
-        return Delegate.SetProgram(program);
-      }
-
-      virtual void SetTitle(const String& title)
-      {
-        return Delegate.SetTitle(title);
+        return Delegate.GetMetaBuilder();
       }
 
       virtual void SetInitialTempo(uint_t tempo)
@@ -447,8 +444,9 @@ namespace Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         builder.SetInitialTempo(Source.Tempo);
-        builder.SetProgram(Strings::Format(Text::GLOBALTRACKER1_EDITOR, Source.Version & 15));
-        builder.SetTitle(FromCharArray(Source.Title));
+        MetaBuilder& meta = builder.GetMetaBuilder();
+        meta.SetProgram(Strings::Format(Text::GLOBALTRACKER1_EDITOR, Source.Version & 15));
+        meta.SetTitle(FromCharArray(Source.Title));
       }
 
       void ParsePositions(Builder& builder) const

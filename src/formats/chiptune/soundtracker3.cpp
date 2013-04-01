@@ -202,10 +202,11 @@ namespace Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         builder.SetInitialTempo(Source.Tempo);
-        builder.SetProgram(Text::SOUNDTRACKER3_DECODER_DESCRIPTION);
+        MetaBuilder& meta = builder.GetMetaBuilder();
+        meta.SetProgram(Text::SOUNDTRACKER3_DECODER_DESCRIPTION);
         if (Id.Check())
         {
-          builder.SetTitle(FromCharArray(Id.Title));
+          meta.SetTitle(FromCharArray(Id.Title));
         }
       }
 

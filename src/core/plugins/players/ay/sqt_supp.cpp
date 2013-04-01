@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
@@ -460,12 +459,12 @@ namespace SQTracker
       , Properties(props)
       , Builder(PatternsBuilder::Create<1>())
     {
+      Properties->SetFreqtable(TABLE_SQTRACKER);
     }
 
-    virtual void SetProgram(const String& program)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      Properties->SetProgram(program);
-      Properties->SetFreqtable(TABLE_SQTRACKER);
+      return *Properties;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::SQTracker::Sample& sample)

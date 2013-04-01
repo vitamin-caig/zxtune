@@ -45,14 +45,9 @@ namespace Formats
           UsedOrnaments.Insert(0);
         }
 
-        virtual void SetProgram(const String& program)
+        virtual MetaBuilder& GetMetaBuilder()
         {
-          return Delegate.SetProgram(program);
-        }
-
-        virtual void SetTitle(const String& title)
-        {
-          return Delegate.SetTitle(title);
+          return Delegate.GetMetaBuilder();
         }
 
         virtual void SetInitialTempo(uint_t tempo)

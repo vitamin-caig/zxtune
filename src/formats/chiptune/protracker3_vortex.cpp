@@ -1156,10 +1156,11 @@ namespace Chiptune
       {
         Dbg("Parse header");
         const ModuleHeader hdr(Source);
-        Target.SetProgram(Strings::Format(Text::VORTEX_EDITOR, 3, hdr.Version));
+        MetaBuilder& meta = Target.GetMetaBuilder();
+        meta.SetProgram(Strings::Format(Text::VORTEX_EDITOR, 3, hdr.Version));
         Target.SetVersion(hdr.Version);
-        Target.SetTitle(FromStdString(hdr.Title));
-        Target.SetAuthor(FromStdString(hdr.Author));
+        meta.SetTitle(FromStdString(hdr.Title));
+        meta.SetAuthor(FromStdString(hdr.Author));
         Target.SetNoteTable(hdr.Table);
         Target.SetInitialTempo(hdr.Tempo);
         Target.SetPositions(hdr.PlayOrder, hdr.PlayOrder.GetLoop());
@@ -1245,11 +1246,17 @@ namespace Chiptune
     };
 
     class Builder : public Formats::Chiptune::ProTracker3::ChiptuneBuilder
+                  , public Formats::Chiptune::MetaBuilder
     {
     public:
       Builder()
         : Context(Patterns)
       {
+      }
+
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return *this;
       }
 
       virtual void SetProgram(const String& /*program*/)

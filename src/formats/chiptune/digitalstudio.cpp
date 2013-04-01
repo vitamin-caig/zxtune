@@ -213,7 +213,7 @@ namespace Chiptune
       void ParseCommonProperties(Builder& target) const
       {
         target.SetInitialTempo(Source.Tempo);
-        target.SetTitle(FromCharArray(Source.Title));
+        target.GetMetaBuilder().SetTitle(FromCharArray(Source.Title));
       }
 
       void ParsePositions(Builder& target) const
@@ -499,7 +499,7 @@ namespace Chiptune
 
         const String program = String(Text::DIGITALSTUDIO_DECODER_DESCRIPTION) + 
           (samples.Is4Bit() ? Text::DIGITALSTUDIO_VERSION_AY : Text::DIGITALSTUDIO_VERSION_DAC);
-        target.SetProgram(program);
+        target.GetMetaBuilder().SetProgram(program);
         samples.Apply(target);
         const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
         const std::size_t patternsOffset = offsetof(Header, Patterns);

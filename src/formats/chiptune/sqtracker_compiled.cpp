@@ -164,7 +164,10 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetProgram(const String& /*program*/) {}
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
       //samples+ornaments
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
@@ -200,9 +203,9 @@ namespace Chiptune
       {
       }
 
-      virtual void SetProgram(const String& program)
+      virtual MetaBuilder& GetMetaBuilder()
       {
-        return Delegate.SetProgram(program);
+        return Delegate.GetMetaBuilder();
       }
 
       virtual void SetSample(uint_t index, const Sample& sample)
@@ -397,7 +400,7 @@ namespace Chiptune
 
       void ParseCommonProperties(Builder& builder) const
       {
-        builder.SetProgram(Text::SQTRACKER_DECODER_DESCRIPTION);
+        builder.GetMetaBuilder().SetProgram(Text::SQTRACKER_DECODER_DESCRIPTION);
       }
 
       void ParsePositions(Builder& builder) const

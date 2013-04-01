@@ -13,8 +13,9 @@ Author:
 #ifndef FORMATS_CHIPTUNE_DIGITAL_H_DEFINED
 #define FORMATS_CHIPTUNE_DIGITAL_H_DEFINED
 
+//local includes
+#include "builder_meta.h"
 //common includes
-#include <string.h>
 #include <types.h>
 //library includes
 #include <binary/container.h>
@@ -30,9 +31,8 @@ namespace Formats
       public:
         virtual ~Builder() {}
 
+        virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetProgram(const String& program) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
         virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample, bool is4Bit) = 0;

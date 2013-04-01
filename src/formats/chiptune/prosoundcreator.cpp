@@ -298,9 +298,10 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetAuthor(const String& /*author*/) {}
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
@@ -340,19 +341,9 @@ namespace Chiptune
         UsedOrnaments.Insert(0);
       }
 
-      virtual void SetProgram(const String& program)
+      virtual MetaBuilder& GetMetaBuilder()
       {
-        return Delegate.SetProgram(program);
-      }
-
-      virtual void SetTitle(const String& title)
-      {
-        return Delegate.SetTitle(title);
-      }
-
-      virtual void SetAuthor(const String& author)
-      {
-        return Delegate.SetAuthor(author);
+        return Delegate.GetMetaBuilder();
       }
 
       virtual void SetInitialTempo(uint_t tempo)
@@ -638,17 +629,18 @@ namespace Chiptune
       {
         const uint_t tempo = Source.Tempo;
         builder.SetInitialTempo(tempo);
-        builder.SetProgram(Trait.Program);
+        MetaBuilder& meta = builder.GetMetaBuilder();
+        meta.SetProgram(Trait.Program);
         if (Source.Id.Check())
         {
           if (Source.Id.HasAuthor())
           {
-            builder.SetTitle(FromCharArray(Source.Id.Title));
-            builder.SetAuthor(FromCharArray(Source.Id.Author));
+            meta.SetTitle(FromCharArray(Source.Id.Title));
+            meta.SetAuthor(FromCharArray(Source.Id.Author));
           }
           else
           {
-            builder.SetTitle(String(Source.Id.Title, ArrayEnd(Source.Id.Author)));
+            meta.SetTitle(String(Source.Id.Title, ArrayEnd(Source.Id.Author)));
           }
         }
       }

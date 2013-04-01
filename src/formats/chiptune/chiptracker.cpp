@@ -23,6 +23,7 @@ Author:
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/format.h>
 //std includes
 #include <cstring>
 //boost includes
@@ -156,9 +157,11 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetTitle(const String& /*title*/) {}
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetVersion(uint_t /*major*/, uint_t /*minor*/) {}
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
+
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
       virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
@@ -183,19 +186,9 @@ namespace Chiptune
       {
       }
 
-      virtual void SetTitle(const String& title)
+      virtual MetaBuilder& GetMetaBuilder()
       {
-        return Delegate.SetTitle(title);
-      }
-
-      virtual void SetProgram(const String& program)
-      {
-        return Delegate.SetProgram(program);
-      }
-
-      virtual void SetVersion(uint_t major, uint_t minor)
-      {
-        return Delegate.SetVersion(major, minor);
+        return Delegate.GetMetaBuilder();
       }
 
       virtual void SetInitialTempo(uint_t tempo)
@@ -293,9 +286,9 @@ namespace Chiptune
       void ParseCommonProperties(Builder& target) const
       {
         target.SetInitialTempo(Source.Tempo);
-        target.SetTitle(FromCharArray(Source.Title));
-        target.SetProgram(Text::CHIPTRACKER_DECODER_DESCRIPTION);
-        target.SetVersion(Source.Version[0] - '0', Source.Version[2] - '0');
+        MetaBuilder& meta = target.GetMetaBuilder();
+        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetProgram(Strings::Format(Text::CHIPTRACKER_EDITOR, FromCharArray(Source.Version)));
       }
 
       void ParsePositions(Builder& target) const

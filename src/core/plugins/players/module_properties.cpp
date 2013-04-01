@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "module_properties.h"
 #include "core/plugins/enumerator.h"
+#include "core/plugins/utils.h"
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
@@ -35,17 +36,19 @@ namespace
 
     virtual void SetTitle(const String& title)
     {
-      if (!title.empty())
+      const String optimizedTitle = OptimizeString(title);
+      if (!optimizedTitle.empty())
       {
-        Container->SetValue(ATTR_TITLE, title);
+        Container->SetValue(ATTR_TITLE, optimizedTitle);
       }
     }
 
     virtual void SetAuthor(const String& author)
     {
-      if (!author.empty())
+      const String optimizedAuthor = OptimizeString(author);
+      if (!optimizedAuthor.empty())
       {
-        Container->SetValue(ATTR_AUTHOR, author);
+        Container->SetValue(ATTR_AUTHOR, optimizedAuthor);
       }
     }
 
@@ -59,9 +62,10 @@ namespace
 
     virtual void SetProgram(const String& program)
     {
-      if (!program.empty())
+      const String optimizedProgram = OptimizeString(program);
+      if (!optimizedProgram.empty())
       {
-        Container->SetValue(ATTR_PROGRAM, program);
+        Container->SetValue(ATTR_PROGRAM, optimizedProgram);
       }
     }
 

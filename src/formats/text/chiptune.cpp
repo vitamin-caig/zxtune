@@ -20,6 +20,9 @@ extern const Char AY_EMUL_DECODER_DESCRIPTION[] = {
 extern const Char CHIPTRACKER_DECODER_DESCRIPTION[] = {
   'C','h','i','p',' ','T','r','a','c','k','e','r',0
 };
+extern const Char CHIPTRACKER_EDITOR[] = {
+  'C','h','i','p',' ','T','r','a','c','k','e','r',' ','v','%','1','%',0
+};
 extern const Char DIGITALMUSICMAKER_DECODER_DESCRIPTION[] = {
   'D','i','g','i','t','a','l',' ','M','u','s','i','c',' ','M','a','k','e','r',' ','v','1','.','x',0
 };

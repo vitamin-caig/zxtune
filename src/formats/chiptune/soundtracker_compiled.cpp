@@ -187,15 +187,16 @@ namespace Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         builder.SetInitialTempo(Source.Tempo);
+        MetaBuilder& meta = builder.GetMetaBuilder();
         const String id(FromCharArray(Source.Identifier));
         if (IsProgramName(id))
         {
-          builder.SetProgram(id);
+          meta.SetProgram(id);
         }
         else
         {
-          builder.SetTitle(id);
-          builder.SetProgram(Text::SOUNDTRACKER_DECODER_DESCRIPTION);
+          meta.SetTitle(id);
+          meta.SetProgram(Text::SOUNDTRACKER_DECODER_DESCRIPTION);
         }
       }
 

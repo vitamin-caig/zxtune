@@ -231,8 +231,10 @@ namespace Chiptune
     class StubBuilder : public Builder
     {
     public:
-      virtual void SetProgram(const String& /*program*/) {}
-      virtual void SetTitle(const String& /*title*/) {}
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
@@ -338,10 +340,11 @@ namespace Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         builder.SetInitialTempo(Source.Tempo);
-        builder.SetProgram(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION);
+        MetaBuilder& meta = builder.GetMetaBuilder();
+        meta.SetProgram(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION);
         if (Id.Check())
         {
-          builder.SetTitle(FromCharArray(Id.Title));
+          meta.SetTitle(FromCharArray(Id.Title));
         }
       }
 

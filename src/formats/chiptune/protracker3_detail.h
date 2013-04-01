@@ -45,19 +45,9 @@ namespace Formats
           UsedOrnaments.Insert(0);
         }
 
-        virtual void SetProgram(const String& program)
+        virtual MetaBuilder& GetMetaBuilder()
         {
-          return Delegate.SetProgram(program);
-        }
-
-        virtual void SetTitle(const String& title)
-        {
-          return Delegate.SetTitle(title);
-        }
-
-        virtual void SetAuthor(const String& author)
-        {
-          return Delegate.SetAuthor(author);
+          return Delegate.GetMetaBuilder();
         }
 
         virtual void SetVersion(uint_t version)

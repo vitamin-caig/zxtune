@@ -15,7 +15,6 @@ Author:
 
 //local includes
 #include "dac_base.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/players/tracking.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/simple_orderlist.h"
@@ -79,14 +78,9 @@ namespace ZXTune
           return std::auto_ptr<Formats::Chiptune::Digital::Builder>(new DataBuilder(data, props, PatternsBuilder::Create<Channels>()));
         }
 
-        virtual void SetTitle(const String& title)
+        virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
         {
-          Properties->SetTitle(OptimizeString(title));
-        }
-
-        virtual void SetProgram(const String& program)
-        {
-          Properties->SetProgram(program);
+          return *Properties;
         }
 
         virtual void SetInitialTempo(uint_t tempo)

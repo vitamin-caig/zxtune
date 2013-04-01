@@ -13,6 +13,8 @@ Author:
 #ifndef FORMATS_CHIPTUNE_SOUNDTRACKER_H_DEFINED
 #define FORMATS_CHIPTUNE_SOUNDTRACKER_H_DEFINED
 
+//local includes
+#include "builder_meta.h"
 //common includes
 #include <binary/container.h>
 //library includes
@@ -65,10 +67,7 @@ namespace Formats
       public:
         virtual ~Builder() {}
 
-        //common properties
-        virtual void SetProgram(const String& program) = 0;
-        //some of the variations of SoundTracker has explicit title field
-        virtual void SetTitle(const String& program) = 0;
+        virtual MetaBuilder& GetMetaBuilder() = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
         virtual void SetSample(uint_t index, const Sample& sample) = 0;

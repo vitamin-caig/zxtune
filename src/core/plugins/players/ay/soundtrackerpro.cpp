@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "soundtrackerpro.h"
 #include "ay_base.h"
-#include "core/plugins/utils.h"
 //library includes
 #include <formats/chiptune/soundtrackerpro.h>
 //boost includes
@@ -29,17 +28,12 @@ namespace SoundTrackerPro
       , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
-    }
-
-    virtual void SetProgram(const String& program)
-    {
-      Properties->SetProgram(program);
       Properties->SetFreqtable(TABLE_SOUNDTRACKER_PRO);
     }
 
-    virtual void SetTitle(const String& title)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      Properties->SetTitle(OptimizeString(title));
+      return *Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
