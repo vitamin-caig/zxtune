@@ -10,11 +10,13 @@
 
 package app.zxtune.ui;
 
+import java.io.Closeable;
+import java.io.IOException;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -22,48 +24,28 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.PopupWindow;
-import android.widget.SeekBar;
 import app.zxtune.Playback;
+import app.zxtune.Playback.Item;
+import app.zxtune.Playback.Status;
 import app.zxtune.PlaybackService;
 import app.zxtune.R;
-import app.zxtune.fs.Vfs;
 import app.zxtune.playlist.Query;
-import app.zxtune.ui.Position.StatusCallback;
+import app.zxtune.rpc.BroadcastPlaybackCallbackReceiver;
 
 public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickListener {
 
   private Playback.Control control;
   private PlaylistView listing;
+  private Closeable callbackHandler;
+  private Uri nowPlaying = Uri.EMPTY;
 
-  public void setControl(Playback.Control control) {
-    this.control = control;
-    this.control.registerCallback(new Playback.Callback() {
-      @Override
-      public void stopped() {
-        listing.invalidateViews();
-      }
-      
-      @Override
-      public void started(Uri playlistUri, String description, int duration) {
-        listing.invalidateViews();
-      }
-      
-      @Override
-      public void positionChanged(int curFrame, String curTime) {
-      }
-      
-      @Override
-      public void paused(String description) {
-      }
-    });
-  }
-  
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     return inflater.inflate(R.layout.playlist, null);
+  }
+  
+  public void setControl(Playback.Control control) {
+    this.control = control;
   }
 
   @Override
@@ -77,20 +59,47 @@ public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickLi
     listing.setPlayitemStateSource(new PlaylistView.PlayitemStateSource() {
       @Override
       public boolean isPlaying(Uri playlistUri) {
-        final Uri nowPlaying = control.nowPlaying();
-        final boolean res = 0 == playlistUri.compareTo(nowPlaying);
-        Log.d(Playlist.class.getCanonicalName(), "isPlaying(" + playlistUri + ") for " + nowPlaying + " is " + res);
-        return res;
+        return 0 == playlistUri.compareTo(nowPlaying);
       }
     });
     listing.setData(cursor);
   }
 
   @Override
+  public void onStart() {
+    super.onStart();
+    final Playback.Callback cb = new Playback.Callback() {
+      @Override
+      public void statusChanged(Status status) {
+        listing.invalidateViews();
+        if (status == null) {
+          nowPlaying = Uri.EMPTY;
+        }
+      }
+      
+      @Override
+      public void itemChanged(Item item) {
+        nowPlaying = item != null ? item.getId() : Uri.EMPTY;
+      }
+    };
+    cb.itemChanged(control.getItem());
+    callbackHandler = new BroadcastPlaybackCallbackReceiver(getActivity(), cb);
+  }
+
+  @Override
+  public void onStop() {
+    super.onStop();
+    try {
+      callbackHandler.close();
+    } catch (IOException e) {
+    } finally {
+      callbackHandler = null;
+    }
+  }
+  
+  @Override
   public void onPlayitemClick(Uri playlistUri) {
-    final Context context = getActivity();
-    final Intent intent = new Intent(Intent.ACTION_VIEW, playlistUri, context, PlaybackService.class);
-    context.startService(intent);
+    control.play(playlistUri);
   }
 
   @Override

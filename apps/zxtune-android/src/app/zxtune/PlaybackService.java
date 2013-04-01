@@ -1,113 +1,83 @@
 /*
  * @file
- * 
  * @brief Background service class
- * 
  * @version $Id:$
- * 
  * @author (C) Vitamin/CAIG
  */
 
 package app.zxtune;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
-import app.zxtune.sound.AsyncPlayback;
+import app.zxtune.rpc.BroadcastPlaybackCallback;
+import app.zxtune.rpc.PlaybackControlServer;
+import app.zxtune.ZXTune.Player;
 import app.zxtune.playlist.Database;
-import app.zxtune.playlist.Query;
+import app.zxtune.sound.AsyncPlayback;
+import app.zxtune.ui.StatusNotification;
 
 public class PlaybackService extends Service {
 
   private final static String TAG = "app.zxtune.Service";
 
-  private final PlaybackControl ctrl = new PlaybackControl();
-  private Playback.Callback callback;
-  private final IBinder binder = MessengerRPC.ControlServer.createBinder(ctrl);
+  private Playback.Control ctrl;
+  private IBinder binder;
 
   @Override
   public void onCreate() {
     Log.d(TAG, "Creating");
-    callback = new NotificationCallback();
-    ctrl.registerCallback(callback);
+
+    final Playback.Callback notification =
+        new StatusNotification(this,
+            new Intent(this, CurrentlyPlayingActivity.class)
+                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+    final Playback.Callback broadcast = new BroadcastPlaybackCallback(this);
+    final Playback.Callback callback = new DoublePlaybackCallback(notification, broadcast);
+    ctrl = new PlaybackControl(callback);
+    binder = new PlaybackControlServer(ctrl);
   }
 
   @Override
   public void onDestroy() {
     Log.d(TAG, "Destroying");
-    ctrl.unregisterCallback(callback);
     ctrl.stop();
     stopSelf();
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
+    Log.d(TAG, "StartCommand called");
     final String action = intent != null ? intent.getAction() : null;
     final Uri uri = intent.getData();
     if (action != null && uri != Uri.EMPTY) {
       startAction(action, uri);
     }
-    return START_NOT_STICKY;
+    return START_STICKY;
   }
-  
+
   private final void startAction(String action, Uri uri) {
     if (action.equals(Intent.ACTION_VIEW)) {
       Log.d(TAG, "Playing module " + uri);
-      playModule(uri);
+      ctrl.play(uri);
     } else if (action.equals(Intent.ACTION_INSERT)) {
+      /*
       Log.d(TAG, "Adding to playlist all modules from " + uri);
-      final ZXTune.Module module = openModule(uri);
-      addModuleToPlaylist(uri, module);
-      module.release();
+      */
     }
   }
-  
-  private final void playModule(Uri uri) {
-    final Uri dataUri = getDataUri(uri);
-    final ZXTune.Module module = openModule(dataUri);
-    ctrl.play(uri, module);
-  }
-   
-  private final Uri getDataUri(Uri uri) {
-    if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
-      Log.d(TAG, " playlist reference scheme");
-      return getPlaylistItemDataUri(uri);
-    } else {
-      Log.d(TAG, " direct data scheme");
-      return uri;
-    }
-  }
-  
-  private final Uri getPlaylistItemDataUri(Uri uri) {
-    Cursor cursor = null;
-    try {
-      final String[] projection = {Database.Tables.Playlist.Fields.uri.name()};
-      cursor = getContentResolver().query(uri, projection, null, null, null);
-      if (cursor != null && cursor.moveToFirst()) {
-        final String dataUri = cursor.getString(0);
-        return Uri.parse(dataUri);
-      }
-    } finally {
-      if (cursor != null) {
-        cursor.close();
-      }
-    }
-    return null;
-  }
-  
+
+  /*
   private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
     final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
     final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
@@ -121,21 +91,60 @@ public class PlaybackService extends Service {
     values.put(Database.Tables.Playlist.Fields.duration.name(), duration);
     getContentResolver().insert(Query.unparse(null), values);
   }
+  */
 
   @Override
   public IBinder onBind(Intent intent) {
     Log.d(TAG, "onBind called");
     return binder;
   }
+  
+  interface PlayableItem extends Playback.Item, Closeable {
+    
+    public ZXTune.Player createPlayer();
+  }
 
-  private static ZXTune.Module openModule(Uri path) {
+  private PlayableItem openItem(Uri uri) throws IOException {
+    final Uri dataUri = getDataUri(uri);
+    final ZXTune.Module module = openModule(dataUri);
+    return new ActiveItem(uri, dataUri, module);
+  }
+
+  private Uri getDataUri(Uri uri) {
+    if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
+      Log.d(TAG, " playlist reference scheme");
+      return getPlaylistItemDataUri(uri);
+    } else {
+      Log.d(TAG, " direct data scheme");
+      return uri;
+    }
+  }
+
+  private Uri getPlaylistItemDataUri(Uri uri) {
+    Cursor cursor = null;
+    try {
+      final String[] projection = {Database.Tables.Playlist.Fields.uri.name()};
+      cursor = getContentResolver().query(uri, projection, null, null, null);
+      if (cursor != null && cursor.moveToFirst()) {
+        final String dataUri = cursor.getString(0);
+        return Uri.parse(dataUri);
+      }
+      throw new RuntimeException();
+    } finally {
+      if (cursor != null) {
+        cursor.close();
+      }
+    }
+  }
+  
+  private static ZXTune.Module openModule(Uri path) throws IOException {
     final byte[] content = loadFile(path.getPath());
     final ZXTune.Data data = ZXTune.createData(content);
     final ZXTune.Module module = data.createModule();
-    data.release();
+    data.close();
     return module;
   }
-  
+
   private static byte[] loadFile(String path) {
     try {
       final File file = new File(path);
@@ -149,82 +158,144 @@ public class PlaybackService extends Service {
       return null;
     }
   }
-  
-  private class NotificationCallback implements Playback.Callback {
+
+  private static class DoublePlaybackCallback implements Playback.Callback {
+
+    private final Playback.Callback first;
+    private final Playback.Callback second;
     
-    private NotificationManager notificationManager;
-    private PendingIntent content;
-    
-    public NotificationCallback() {
-      this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-      final Intent intent = new Intent(PlaybackService.this, CurrentlyPlayingActivity.class);
-      intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-      content = PendingIntent.getActivity(PlaybackService.this, 0, intent, 0);
+    public DoublePlaybackCallback(Playback.Callback first, Playback.Callback second) {
+      this.first = first;
+      this.second = second;
     }
 
-    public void started(Uri playlistUri, String description, int duration) {
-      startForeground(R.string.app_name, showNotification(R.drawable.ic_stat_notify_play, description));
+    @Override
+    public void itemChanged(Playback.Item item) {
+      first.itemChanged(item);
+      second.itemChanged(item);
     }
 
-    public void paused(String description) {
-      startForeground(R.string.app_name, showNotification(R.drawable.ic_stat_notify_pause, description));
-    }
-
-    public void stopped() {
-      stopForeground(true);
-    }
-
-    public void positionChanged(int curFrame, String curTime) {
-
-    }
-    
-    private Notification showNotification(int icon, String description) {
-      final Notification notification = new Notification(icon, description, System.currentTimeMillis());
-      notification.setLatestEventInfo(PlaybackService.this, getString(R.string.app_name),
-          description, content);
-      notification.flags |= Notification.FLAG_NO_CLEAR;
-      notificationManager.notify(R.string.app_name, notification);
-      return notification;
+    @Override
+    public void statusChanged(Playback.Status status) {
+      first.statusChanged(status);
+      second.statusChanged(status);
     }
   }
-
-  private static class PlaybackControl implements Playback.Control {
-
-    private final CompositeCallback callback = new CompositeCallback();
-    private AsyncPlayback playback;
-    private Uri nowPlaying;
+  
+  private static class ActiveItem implements PlayableItem {
     
-    public void play(Uri moduleUri, ZXTune.Module module) {
-      stop();
-      final String description = describeModule(module);
-      final AsyncPlayback.Source src = new PlaybackSource(module.createPlayer(), callback);
-      final AsyncPlayback.Callback cb =
-          new PlaybackCallback(callback, moduleUri, description, module.getDuration());
-      module.release();
-      playback = new AsyncPlayback(src);
-      playback.setCallback(cb);
-      nowPlaying = moduleUri;
-      play();
+    private ZXTune.Module module;
+    private final Uri id;
+    private final Uri dataId;
+    private final String title;
+    private final String author;
+    private final TimeStamp duration;
+    
+    public ActiveItem(Uri id, Uri dataId, ZXTune.Module module) {
+      this.module = module;
+      this.id = id;
+      this.dataId = dataId;
+      this.title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
+      this.author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
+      //TODO
+      this.duration = new TimeStamp(20 * module.getDuration(), TimeUnit.MILLISECONDS);
     }
     
     @Override
-    public Uri nowPlaying() {
-      return nowPlaying;
+    public Uri getId() {
+      return id;
+    }
+
+    @Override
+    public Uri getDataId() {
+      return dataId;
+    }
+
+    @Override
+    public String getTitle() {
+      return title;
+    }
+
+    @Override
+    public String getAuthor() {
+      return author;
+    }
+
+    @Override
+    public TimeStamp getDuration() {
+      return duration;
+    }
+
+    @Override
+    public void close() throws IOException {
+      if (module != null) {
+        module.close();
+        module = null;
+      }
+    }
+
+    @Override
+    public Player createPlayer() {
+      return module.createPlayer();
+    }
+  }
+
+  private class PlaybackControl implements Playback.Control, Playback.Callback {
+    
+    private final Playback.Callback callback;
+    private AsyncPlayback playback;
+    private Playback.Item item;
+    private Playback.Status status;
+    
+    PlaybackControl(Playback.Callback callback) {
+      this.callback = callback;
+    }
+
+    @Override
+    public Playback.Item getItem() {
+      return playback != null ? item : null;
+    }
+
+    @Override
+    public Playback.Status getStatus() {
+      return status;
+    }
+
+    @Override
+    public void play(Uri uri) {
+      Log.d(TAG, "play(" + uri + ")");
+      try {
+        stop();
+        final PlayableItem item = openItem(uri);
+        final AsyncPlayback.Source source = new PlaybackSource(item, this);
+        final AsyncPlayback playback = new AsyncPlayback(source);
+        this.playback = playback;
+        play();
+      } catch (IOException e) {
+      }
     }
 
     @Override
     public void play() {
-      playback.play();
+      Log.d(TAG, "play()");
+      if (playback != null) {
+        playback.resume();
+      } else if (item != null) {
+        play(item.getId());
+      }
     }
 
     @Override
     public void pause() {
-      playback.pause();
+      Log.d(TAG, "pause()");
+      if (playback != null) {
+        playback.pause();
+      }
     }
 
     @Override
     public void stop() {
-      Log.d(TAG, "Stop");
+      Log.d(TAG, "stop()");
       if (playback != null) {
         playback.stop();
         playback = null;
@@ -232,124 +303,151 @@ public class PlaybackService extends Service {
     }
 
     @Override
-    public void registerCallback(Playback.Callback cb) {
-      callback.add(cb);
+    public void itemChanged(Playback.Item item) {
+      this.item = item;
+      callback.itemChanged(item);
     }
 
     @Override
-    public void unregisterCallback(Playback.Callback cb) {
-      callback.delete(cb);
-    }
-
-    private String describeModule(ZXTune.Module module) {
-      final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "Unknown");
-      final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "Unknown");
-      return author + " - " + title;
-    }
-
-    private static class CompositeCallback implements Playback.Callback {
-      private ArrayList<Playback.Callback> delegates = new ArrayList<Playback.Callback>();
-
-      public void started(Uri playlistUri, String description, int duration) {
-        for (Playback.Callback cb : delegates) {
-          cb.started(playlistUri, description, duration);
-        }
-      }
-
-      public void paused(String description) {
-        for (Playback.Callback cb : delegates) {
-          cb.paused(description);
-        }
-      }
-
-      public void stopped() {
-        for (Playback.Callback cb : delegates) {
-          cb.stopped();
-        }
-      }
-
-      public void positionChanged(int curFrame, String curTime) {
-        for (Playback.Callback cb : delegates) {
-          cb.positionChanged(curFrame, curTime);
-        }
-      }
-
-      public void add(Playback.Callback cb) {
-        delegates.add(cb);
-      }
-
-      public void delete(Playback.Callback cb) {
-        delegates.remove(cb);
-      }
+    public void statusChanged(Playback.Status status) {
+      this.status = status;
+      callback.statusChanged(status);
     }
   }
+  
+  /*
+  private static class CompositePlaybackSource implements AsyncPlayback.Source {
+    
+    private Enumeration<AsyncPlayback.Source> sources;
+    private int freqRate;
+    private AsyncPlayback.Source current;
+    
+    // @invariant sources should not be empty 
+    public CompositePlaybackSource(Enumeration<AsyncPlayback.Source> sources) {
+      this.sources = sources;
+      this.current = sources.nextElement();
+    }
+    
+    @Override
+    public void startup(int freqRate) {
+      this.freqRate = freqRate;
+      current.startup(freqRate);
+    }
 
-  private static class PlaybackSource implements AsyncPlayback.Source {
+    @Override
+    public void suspend() {
+      current.suspend();
+    }
 
+    @Override
+    public void resume() {
+      current.resume();
+    }
+
+    @Override
+    public void shutdown() {
+      current.shutdown();
+    }
+    
+    @Override
+    public boolean getNextSoundChunk(byte[] buf) {
+      if (current.getNextSoundChunk(buf)) {
+        return true;
+      }
+      return getNextSource();
+    }
+
+    @Override
+    public void close() throws IOException {
+      sources = null;
+      closeCurrent();
+      current = null;
+    }
+    
+    private boolean getNextSource() {
+      try {
+        if (sources.hasMoreElements()) {
+          closeCurrent();
+          moveToNext();
+          return true;
+        }
+      } catch (IOException e) {
+      }
+      return false;
+    }
+    
+    private void closeCurrent() throws IOException {
+      current.shutdown();
+      current.close();
+      current = null;
+    }
+    
+    private void moveToNext() {
+      current = sources.nextElement();
+      current.startup(freqRate);
+    }
+  }
+  */
+
+  private static class PlaybackSource implements AsyncPlayback.Source, Playback.Status {
+
+    private final PlayableItem item;
+    private final Playback.Callback callback;
     private ZXTune.Player player;
-    private Playback.Callback callback;
+    private boolean paused;
 
-    public PlaybackSource(ZXTune.Player player, Playback.Callback callback) {
-      this.player = player;
+    public PlaybackSource(PlayableItem item, Playback.Callback callback) {
+      this.item = item;
       this.callback = callback;
     }
 
     @Override
-    public void setFreqRate(int freqRate) {
+    public void startup(int freqRate) {
+      player = item.createPlayer();
       player.setProperty(ZXTune.Properties.Sound.FREQUENCY, freqRate);
       player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, 1);
+      callback.itemChanged(item);
+      callback.statusChanged(this);
     }
 
     @Override
+    public void suspend() {
+      paused = true;
+      callback.statusChanged(this);
+    }
+
+    @Override
+    public void resume() {
+      paused = false;
+      callback.statusChanged(this);
+    }
+
+    @Override
+    public void shutdown() {
+      callback.statusChanged(null);
+      try {
+        player.close();
+      } catch (IOException e) {
+      } finally {
+        player = null;
+      }
+    }
+    
+    @Override
     public boolean getNextSoundChunk(byte[] buf) {
-      callback.positionChanged(player.getPosition(), "");
       return player.render(buf);
     }
 
     @Override
-    public void release() {
-      player.release();
-    }
-  }
-
-  private static class PlaybackCallback implements AsyncPlayback.Callback {
-
-    private final static String TAG = PlaybackService.TAG + ".AsyncPlaybackCallback";
-
-    private final Playback.Callback callback;
-    private final Uri uri;
-    private final String description;
-    private final int duration;
-
-    public PlaybackCallback(Playback.Callback callback, Uri uri, String description, int duration) {
-      this.callback = callback;
-      this.uri = uri;
-      this.description = description;
-      this.duration = duration;
+    public TimeStamp getPosition() {
+      final int frame = player.getPosition();
+      //TODO
+      return new TimeStamp(20 * frame, TimeUnit.MILLISECONDS);
     }
 
-    public void onStart() {
-      Log.d(TAG, "onStart");
-      callback.started(uri, description, duration);
-    }
-
-    public void onStop() {
-      Log.d(TAG, "onStop");
-      callback.stopped();
-    }
-
-    public void onPause() {
-      Log.d(TAG, "onPause");
-      callback.paused(description);
-    }
-
-    public void onResume() {
-      Log.d(TAG, "onResume");
-      callback.started(uri, description, duration);
-    }
-
-    public void onFinish() {
-      Log.d(TAG, "onFinish");
+    @Override
+    public boolean isPaused() {
+      return paused;
     }
   }
 }

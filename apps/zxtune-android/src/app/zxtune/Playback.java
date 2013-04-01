@@ -11,29 +11,104 @@ import android.net.Uri;
 
 public final class Playback {
 
-  public static interface Control {
+  /**
+   *  Interface for playback item abstraction
+   */
+  public interface Item {
 
-    public Uri nowPlaying();
+    /**
+     * @return Unique item identifier
+     */
+    public Uri getId();
 
-    public void play();
+    /**
+     * @return Item's data identifier
+     */
+    public Uri getDataId();
 
-    public void pause();
+    /**
+     * @return Item's title
+     * @note may be empty
+     */
+    public String getTitle();
 
-    public void stop();
+    /**
+     * @return Item's author
+     * @note may be empty
+     */
+    public String getAuthor();
 
-    //after registration one of the first three methods will be called according to current state
-    public void registerCallback(Callback cb);
+    /**
+     * @return Item's duration
+     */
+    public TimeStamp getDuration();
+  }
+  
+  /**
+   *  Interface for playback status
+   */
+  public interface Status {
+    
+    /**
+     * @return Playback position
+     */
+    public TimeStamp getPosition();
 
-    public void unregisterCallback(Callback cb);
+    /**
+     * @return true if playback is paused, false otherwise
+     */
+    public boolean isPaused();
   }
 
-  public static interface Callback {
-    public void started(Uri playlistUri, String description, int duration);
+  /**
+   *  Playback control interface
+   */
+  public interface Control {
 
-    public void paused(String description);
+    /*
+     * @return Currently playing item or null if stopped
+     */
+    public Item getItem();
 
-    public void stopped();
+    /*
+     * @return Current playback status or null if stopped
+     */
+    public Status getStatus();
+    
+    /*
+     * Start playback of specified item (data or playlist)
+     */
+    public void play(Uri item);
 
-    public void positionChanged(int curFrame, String curTime);
+    /*
+     * Continue previously played or do nothing if already played
+     */
+    public void play();
+
+    /*
+     * Pause playing or do nothing
+     */
+    public void pause();
+
+    /*
+     * Stop playing or do nothing
+     */
+    public void stop();
+  }
+  
+  /**
+   *  Playback callback interface
+   */
+  public interface Callback {
+    
+    /**
+     * Called on new item playback started
+     */
+    public void itemChanged(Item item);
+    
+    /**
+     * Called on every status changing operation (play/pause/resume/stop)
+     */
+    public void statusChanged(Status status);
   }
 }

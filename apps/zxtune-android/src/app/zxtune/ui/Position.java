@@ -22,12 +22,7 @@ import app.zxtune.*;
 public class Position extends Fragment {
 
   private Playback.Control control;
-  private final Playback.Callback callback = new StatusCallback();
   private SeekBar position;
-
-  public void setControl(Playback.Control control) {
-    this.control = control;
-  }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -49,32 +44,10 @@ public class Position extends Fragment {
   @Override
   public void onStart() {
     super.onStart();
-    control.registerCallback(callback);
   }
 
   @Override
   public void onStop() {
     super.onStop();
-    control.unregisterCallback(callback);
-  }
-
-  class StatusCallback implements Playback.Callback {
-    public void started(Uri playlistUri, String description, int duration) {
-      position.setMax(duration);
-    }
-
-    public void paused(String description) {
-
-    }
-
-    public void stopped() {
-
-    }
-
-    public void positionChanged(int curFrame, String curTime) {
-      if (position != null) {
-        position.setProgress(curFrame);
-      }
-    }
   }
 }

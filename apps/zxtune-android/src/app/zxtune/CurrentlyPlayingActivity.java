@@ -10,33 +10,33 @@
 
 package app.zxtune;
 
-import android.app.Activity;
-import android.net.Uri;
+import java.io.IOException;
+
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.view.View;
-import app.zxtune.fs.Provider;
-import app.zxtune.fs.Vfs;
-import android.util.Log;
-import app.zxtune.ui.*;
+import app.zxtune.rpc.PlaybackControlClient;
+import app.zxtune.ui.Browser;
+import app.zxtune.ui.Controls;
+import app.zxtune.ui.Playlist;
+import app.zxtune.ui.Position;
 
 public class CurrentlyPlayingActivity extends FragmentActivity {
 
-  private Playback.Control control;
+  private PlaybackControlClient control;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.currently_playing);
 
-    control = MessengerRPC.ControlClient.create(this);
+    control = new PlaybackControlClient(this, new Intent(this, PlaybackService.class));
     
     if (savedInstanceState == null) {
       createView();
     }
-    getPart(Position.class).setControl(control);
     getPart(Controls.class).setControl(control);
     getPart(Playlist.class).setControl(control);
   }
@@ -44,7 +44,12 @@ public class CurrentlyPlayingActivity extends FragmentActivity {
   @Override
   public void onDestroy() {
     super.onDestroy();
-    MessengerRPC.ControlClient.destroy(control);
+    try {
+      control.close();
+    } catch (IOException e) {
+    } finally {
+      control = null;
+    }
   }
 
   private final void createView() {

@@ -1,15 +1,13 @@
 /*
  * @file
- * 
  * @brief Gate to native ZXTune library code
- * 
  * @version $Id:$
- * 
  * @author (C) Vitamin/CAIG
  */
 
 package app.zxtune;
 
+import java.io.Closeable;
 import java.lang.RuntimeException;
 
 public final class ZXTune {
@@ -18,99 +16,175 @@ public final class ZXTune {
    * Public ZXTune interface
    */
 
-  // ! @brief Properties namespace
+  /**
+   * Poperties 'namespace'
+   */
   public static final class Properties {
 
-    // ! @brief Properties accessor interface
-    public static interface Accessor {
-      // ! @brief Getting integer property
-      // ! @return Property value if found, defVal elsewhere
+    /**
+     * Properties accessor interface
+     */
+    public interface Accessor {
+
+      /**
+       * Getting integer property
+       * 
+       * @param name Name of the property
+       * @param defVal Default value
+       * @return Property value or defVal if not found
+       */
       long getProperty(String name, long defVal);
 
-      // ! @brief Getting string property
-      // ! @return Property value if found, defVal elsewhere
+      /**
+       * Getting string property
+       * 
+       * @param name Name of the property
+       * @param defVal Default value
+       * @return Property value or defVal if not found
+       */
       String getProperty(String name, String defVal);
     }
 
-    // ! @brief Properties modifier interface
+    /**
+     * Properties modifier interface
+     */
     public static interface Modifier {
-      // ! @brief Modifying integer property
+
+      /**
+       * Setting integer property
+       * 
+       * @param name Name of the property
+       * @param value Value of the property
+       */
       void setProperty(String name, long value);
 
-      // ! @brief Modifying string property
+      /**
+       * Setting string property
+       * 
+       * @param name Name of the property
+       * @param value Value of the property
+       */
       void setProperty(String name, String value);
     }
 
-    // ! @brief Sound properties namespace
+    /**
+     * Sound properties 'namespace'
+     */
     public static final class Sound {
-      // ! @brief Sound frequency in Hz
+
+      /**
+       * Sound frequency in Hz
+       */
       public final static String FREQUENCY = "zxtune.sound.frequency";
-      // ! @brief Frame duration in uS
+
+      /**
+       * Frame duration in microseconds
+       */
       public final static String FRAMEDURATION = "zxtune.sound.frameduration";
     }
 
-    // ! @brief Core properties namespace
+    /**
+     * Core properties 'namespace'
+     */
     public static final class Core {
-      // ! @brief Aym properties namespace
+
+      /**
+       * AY/YM properties 'namespace'
+       */
       public static final class Aym {
-        // ! @brief Use interpolation
+
+        /**
+         * Interpolation usage (1/0)
+         */
         public final static String INTERPOLATION = "zxtune.core.aym.interpolation";
       }
     }
   }
 
-  // ! @brief Abstract object interface used to manage lifetime of all the objects inside
-  public static interface Object {
-    // ! @brief Called when not need anymore
-    public void release();
-  }
+  /**
+   * Abstract data storage used to create module upon
+   */
+  public interface Data extends Closeable {
 
-  // ! @brief Interface for abstract data storage
-  public static interface Data extends Object {
-    // ! @brief Creates new module object
-    // ! @throw RuntimeException in case of error
+    /**
+     * Creates new module object
+     * 
+     * @return New module
+     * @throws RuntimeException in case of error
+     */
     public Module createModule();
   }
 
-  // ! @brief Interface of module
-  public static interface Module extends Object, Properties.Accessor {
-    // ! @brief Module's attributes
+  /**
+   * Module interface
+   */
+  public interface Module extends Closeable, Properties.Accessor {
+
+    /**
+     * Attributes 'namespace'
+     */
     public static final class Attributes {
-      // ! @brief Type
+
+      /**
+       * Type. Several uppercased letters used to identify format
+       */
       public final static String TYPE = "Type";
-      // ! @brief Title or name
+
+      /**
+       * Title or name of the module
+       */
       public final static String TITLE = "Title";
-      // ! @brief Author or creator
+
+      /**
+       * Author or creator of the module
+       */
       public final static String AUTHOR = "Author";
     }
 
-    // ! @return Module's duration in frames
+    /**
+     * @return Module's duration in frames
+     */
     int getDuration();
 
-    // ! @brief Creates new renderer object
-    // ! @throw RuntimeException in case of error
+    /**
+     * Creates new player object
+     * 
+     * @throws RuntimeException in case of error
+     */
     Player createPlayer();
   }
 
-  public static interface Player extends Object, Properties.Accessor, Properties.Modifier {
-    // ! @return Get position of further rendered sound in frames
+  /**
+   * Player interface
+   */
+  public interface Player extends Closeable, Properties.Accessor, Properties.Modifier {
+    
+    /**
+     * @return Position of next rendered frame
+     */
     int getPosition();
 
-    // ! @brief Render next result.length bytes of sound data
-    // ! @param result Buffer place data to
-    // ! @return true if it's more data to render
+    /**
+     * Render next result.length bytes of sound data
+     * @param result Buffer to put data
+     * @return Is there more data to render
+     */
     boolean render(byte[] result);
   }
 
-  // ! @brief Factory of data container
+  /**
+   * Simple data factory
+   * @param Content raw content
+   * @return New object
+   */
   static Data createData(byte[] content) {
     return new NativeData(content);
   }
 
-  /*
-   * Private interface
+  /**
+   * Base object of all the native implementations
    */
-  private static class NativeObject implements Object {
+  private static class NativeObject implements Closeable {
 
     protected int handle;
 
@@ -123,12 +197,13 @@ public final class ZXTune {
 
     @Override
     protected void finalize() {
-      release();
+      close();
     }
 
     @Override
-    public void release() {
+    public void close() {
       Handle_Close(handle);
+      handle = 0;
     }
   }
 

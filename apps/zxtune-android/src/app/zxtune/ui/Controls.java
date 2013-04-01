@@ -10,6 +10,10 @@
 
 package app.zxtune.ui;
 
+import java.io.Closeable;
+import java.io.IOException;
+
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -17,6 +21,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import app.zxtune.*;
+import app.zxtune.Playback.Item;
+import app.zxtune.Playback.Status;
+import app.zxtune.rpc.BroadcastPlaybackCallbackReceiver;
 
 public class Controls extends Fragment {
   
