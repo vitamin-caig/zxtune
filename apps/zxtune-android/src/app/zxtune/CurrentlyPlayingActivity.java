@@ -23,7 +23,7 @@ import app.zxtune.ui.Controls;
 import app.zxtune.ui.Playlist;
 import app.zxtune.ui.Position;
 
-public class CurrentlyPlayingActivity extends FragmentActivity {
+public class CurrentlyPlayingActivity extends FragmentActivity implements PlaybackControlClient.ConnectionHandler {
 
   private PlaybackControlClient control;
 
@@ -32,27 +32,39 @@ public class CurrentlyPlayingActivity extends FragmentActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.currently_playing);
 
-    control = new PlaybackControlClient(this, new Intent(this, PlaybackService.class));
-    
     if (savedInstanceState == null) {
       createView();
     }
-    getPart(Controls.class).setControl(control);
-    getPart(Playlist.class).setControl(control);
+    
+    PlaybackControlClient.create(this, new Intent(this, PlaybackService.class), this);
   }
 
   @Override
   public void onDestroy() {
     super.onDestroy();
     try {
-      control.close();
+      if (control != null) {
+        control.close();
+      }
     } catch (IOException e) {
     } finally {
       control = null;
     }
   }
 
-  private final void createView() {
+  @Override
+  public void onConnected(PlaybackControlClient client) {
+    control = client;
+    getPart(Controls.class).setControl(control);
+    getPart(Playlist.class).setControl(control);
+  }
+
+  @Override
+  public void onDisconnected() {
+    onConnected(null);
+  }
+    
+  private void createView() {
     final Fragment seek = new Position();
     final Fragment ctrl = new Controls();
     final Fragment browser = new Browser();
@@ -65,7 +77,7 @@ public class CurrentlyPlayingActivity extends FragmentActivity {
         .commit();
   }
   
-  private final <T extends Fragment> T getPart(Class<T> type) {
+  private <T extends Fragment> T getPart(Class<T> type) {
     final FragmentManager mgr = getSupportFragmentManager(); 
     mgr.executePendingTransactions();
     return (T) mgr.findFragmentByTag(type.getName());

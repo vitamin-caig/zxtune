@@ -22,19 +22,32 @@ import app.zxtune.Playback;
 
 public class PlaybackControlClient implements Playback.Control, Closeable {
 
-  private final static String TAG = PlaybackControlClient.class.getName();
-  private final Context context;
-  private final ServiceConnection handler = new ConnectionHandler();
-  private IPlaybackControl delegate;
+  public interface ConnectionHandler {
+    
+    public void onConnected(PlaybackControlClient client);
 
-  public PlaybackControlClient(Context context, Intent intent) {
-    this.context = context;
-    this.context.startService(intent);
-    if (context.bindService(intent, handler, Context.BIND_AUTO_CREATE)) {
-      Log.d(TAG, "Bound to service");
+    public void onDisconnected();
+  }
+
+  public static void create(Context context, Intent intent, ConnectionHandler handler) {
+    context.startService(intent);
+    final ServiceConnection svcHandler = new ServiceConnectionHandler(context, handler);
+    if (!context.bindService(intent, svcHandler, Context.BIND_AUTO_CREATE)) {
+      throw new RuntimeException("Failed to bind to service");
     }
   }
 
+  private final static String TAG = PlaybackControlClient.class.getName();
+  private final Context context;
+  private final ServiceConnection handler;
+  private final IPlaybackControl delegate;
+
+  private PlaybackControlClient(Context context, ServiceConnection handler, IPlaybackControl delegate) {
+    this.context = context;
+    this.handler = handler;
+    this.delegate = delegate;
+  }
+  
   @Override
   public void close() throws IOException {
     context.unbindService(handler);
@@ -42,9 +55,6 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
 
   @Override
   public Playback.Item getItem() {
-    if (null == delegate) {
-      return null;
-    }
     try {
       return delegate.getItem();
     } catch (RemoteException e) {
@@ -54,9 +64,6 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
 
   @Override
   public Playback.Status getStatus() {
-    if (null == delegate) {
-      return null;
-    }
     try {
       return delegate.getStatus();
     } catch (RemoteException e) {
@@ -66,9 +73,6 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
 
   @Override
   public void play(Uri item) {
-    if (null == delegate) {
-      return;
-    }
     try {
       delegate.playItem(item);
     } catch (RemoteException e) {
@@ -77,9 +81,6 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
 
   @Override
   public void play() {
-    if (null == delegate) {
-      return;
-    }
     try {
       delegate.play();
     } catch (RemoteException e) {
@@ -88,9 +89,6 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
 
   @Override
   public void pause() {
-    if (null == delegate) {
-      return;
-    }
     try {
       delegate.pause();
     } catch (RemoteException e) {
@@ -99,26 +97,34 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
 
   @Override
   public void stop() {
-    if (null == delegate) {
-      return;
-    }
     try {
       delegate.stop();
     } catch (RemoteException e) {
     }
   }
 
-  class ConnectionHandler implements ServiceConnection {
+  private static class ServiceConnectionHandler implements ServiceConnection {
+    
+    private final Context context;
+    private final ConnectionHandler handler;
+    
+    public ServiceConnectionHandler(Context context, ConnectionHandler handler) {
+      this.context = context;
+      this.handler = handler;
+    }
+
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
-      delegate = IPlaybackControl.Stub.asInterface(service);
       Log.d(TAG, "Connected to service");
+      final IPlaybackControl delegate = IPlaybackControl.Stub.asInterface(service);
+      final PlaybackControlClient client = new PlaybackControlClient(context, this, delegate);
+      handler.onConnected(client);
     }
 
     @Override
     public void onServiceDisconnected(ComponentName className) {
-      delegate = null;
       Log.d(TAG, "Disconnected from service");
+      handler.onDisconnected();
     }
   };
 }

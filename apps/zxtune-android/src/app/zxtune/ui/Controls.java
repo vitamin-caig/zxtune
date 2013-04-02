@@ -31,6 +31,7 @@ public class Controls extends Fragment {
   
   public void setControl(Playback.Control control) {
     this.control = control;
+    getView().setEnabled(control != null);
   }
   
   @Override

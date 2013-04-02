@@ -22,18 +22,14 @@ public class BroadcastPlaybackCallback implements Playback.Callback {
   @Override
   public void itemChanged(Playback.Item item) {
     final Intent intent = new Intent(Playback.Item.class.getName());
-    if (item != null) {
-      intent.putExtra(Playback.Item.class.getSimpleName(), new ParcelablePlaybackItem(item));
-    }
+    intent.putExtra(Playback.Item.class.getSimpleName(), ParcelablePlaybackItem.create(item));
     context.sendBroadcast(intent);
   }
 
   @Override
   public void statusChanged(Playback.Status status) {
     final Intent intent = new Intent(Playback.Status.class.getName());
-    if (status != null) {
-      intent.putExtra(Playback.Status.class.getSimpleName(), new ParcelablePlaybackStatus(status));
-    }
+    intent.putExtra(Playback.Status.class.getSimpleName(), ParcelablePlaybackStatus.create(status));
     context.sendBroadcast(intent);
   }
 }

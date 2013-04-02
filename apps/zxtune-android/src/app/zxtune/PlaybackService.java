@@ -59,7 +59,7 @@ public class PlaybackService extends Service {
   public int onStartCommand(Intent intent, int flags, int startId) {
     Log.d(TAG, "StartCommand called");
     final String action = intent != null ? intent.getAction() : null;
-    final Uri uri = intent.getData();
+    final Uri uri = intent != null ? intent.getData() : Uri.EMPTY;
     if (action != null && uri != Uri.EMPTY) {
       startAction(action, uri);
     }

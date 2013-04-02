@@ -32,7 +32,7 @@ import app.zxtune.R;
 import app.zxtune.playlist.Query;
 import app.zxtune.rpc.BroadcastPlaybackCallbackReceiver;
 
-public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickListener {
+public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickListener, Playback.Callback {
 
   private Playback.Control control;
   private PlaylistView listing;
@@ -46,6 +46,10 @@ public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickLi
   
   public void setControl(Playback.Control control) {
     this.control = control;
+    getView().setEnabled(control != null);
+    if (control != null) {
+      itemChanged(control.getItem());
+    }
   }
 
   @Override
@@ -68,22 +72,7 @@ public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickLi
   @Override
   public void onStart() {
     super.onStart();
-    final Playback.Callback cb = new Playback.Callback() {
-      @Override
-      public void statusChanged(Status status) {
-        listing.invalidateViews();
-        if (status == null) {
-          nowPlaying = Uri.EMPTY;
-        }
-      }
-      
-      @Override
-      public void itemChanged(Item item) {
-        nowPlaying = item != null ? item.getId() : Uri.EMPTY;
-      }
-    };
-    cb.itemChanged(control.getItem());
-    callbackHandler = new BroadcastPlaybackCallbackReceiver(getActivity(), cb);
+    callbackHandler = new BroadcastPlaybackCallbackReceiver(getActivity(), this);
   }
 
   @Override
@@ -106,5 +95,18 @@ public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickLi
   public boolean onPlayitemLongClick(Uri playlistUri) {
     getActivity().getContentResolver().delete(playlistUri, null, null);
     return true;
+  }
+
+  @Override
+  public void statusChanged(Status status) {
+    //listing.invalidateViews();
+    if (status == null) {
+      nowPlaying = Uri.EMPTY;
+    }
+  }
+  
+  @Override
+  public void itemChanged(Item item) {
+    nowPlaying = item != null ? item.getId() : Uri.EMPTY;
   }
 }

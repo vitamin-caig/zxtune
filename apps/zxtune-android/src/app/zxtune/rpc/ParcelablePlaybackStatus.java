@@ -28,10 +28,14 @@ public final class ParcelablePlaybackStatus implements Playback.Status, Parcelab
         }
       };
 
+  public static ParcelablePlaybackStatus create(Playback.Status src) {
+    return src != null ? new ParcelablePlaybackStatus(src) : null;
+  }
+      
   private final TimeStamp position;
   private final boolean paused;
 
-  public ParcelablePlaybackStatus(Playback.Status status) {
+  private ParcelablePlaybackStatus(Playback.Status status) {
     this.position = status.getPosition();
     this.paused = status.isPaused();
   }

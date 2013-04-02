@@ -21,12 +21,12 @@ public class PlaybackControlServer extends IPlaybackControl.Stub {
 
   @Override
   public ParcelablePlaybackItem getItem() {
-    return new ParcelablePlaybackItem(delegate.getItem());
+    return ParcelablePlaybackItem.create(delegate.getItem());
   }
 
   @Override
   public ParcelablePlaybackStatus getStatus() {
-    return new ParcelablePlaybackStatus(delegate.getStatus());
+    return ParcelablePlaybackStatus.create(delegate.getStatus());
   }
 
   @Override

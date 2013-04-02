@@ -29,6 +29,10 @@ public final class ParcelablePlaybackItem implements Playback.Item, Parcelable {
           return new ParcelablePlaybackItem[size];
         }
       };
+      
+  public static ParcelablePlaybackItem create(Playback.Item src) {
+    return src != null ? new ParcelablePlaybackItem(src) : null;
+  }
 
   private final Uri id;
   private final Uri dataId;
@@ -36,7 +40,7 @@ public final class ParcelablePlaybackItem implements Playback.Item, Parcelable {
   private final String author;
   private final TimeStamp duration;
 
-  public ParcelablePlaybackItem(Playback.Item src) {
+  private ParcelablePlaybackItem(Playback.Item src) {
     this.id = src.getId();
     this.dataId = src.getDataId();
     this.title = src.getTitle();
