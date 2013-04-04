@@ -7,14 +7,17 @@
 
 package app.zxtune.sound;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Process;
 import android.util.Log;
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class AsyncPlayback {
 
@@ -106,17 +109,16 @@ public class AsyncPlayback {
 
   private static class SyncPlayback {
 
-    // Typedef
-    private static class Queue extends LinkedBlockingQueue<byte[]> {}
-
     private final static int CHANNELS = AudioFormat.CHANNEL_OUT_STEREO;
     private final static int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
     private final static int BUFFERS_COUNT = 2;
 
     private Source source;
     private AudioTrack target;
-    private final Queue busyQueue;
-    private final Queue freeQueue;
+    private final BlockingQueue<byte[]> busyQueue = new LinkedBlockingQueue<byte[]>();
+    private final BlockingQueue<byte[]> freeQueue = new LinkedBlockingQueue<byte[]>();
+    private final Lock pauseLock = new ReentrantLock();
+    private final Condition unpause = pauseLock.newCondition();
 
     SyncPlayback(Source source, int latencyMs, int streamType) {
       this.source = source;
@@ -129,29 +131,40 @@ public class AsyncPlayback {
           minBufSize, prefBufSize, bufSize));
       this.target =
           new AudioTrack(streamType, freqRate, CHANNELS, ENCODING, bufSize, AudioTrack.MODE_STREAM);
-      this.busyQueue = new Queue();
-      this.freeQueue = new Queue();
       for (int q = 0; q != BUFFERS_COUNT; ++q) {
         freeQueue.add(new byte[bufSize]);
       }
     }
 
     public void pause() {
-      if (isPlaying()) {
-        Log.d(TAG, "Pausing");
-        target.pause();
-        source.suspend();
-        Log.d(TAG, "Paused");
+      if (!isPlaying()) {
+        return;
       }
+      Log.d(TAG, "Pausing");
+      target.pause();
+      try {
+        pauseLock.lock();
+        source.suspend();
+      } finally {
+        pauseLock.unlock();
+      }
+      Log.d(TAG, "Paused");
     }
 
     public void resume() {
-      if (isPaused()) {
-        Log.d(TAG, "Resuming");
-        target.play();
-        source.resume();
-        Log.d(TAG, "Resumed");
+      if (!isPaused()) {
+        return;
       }
+      Log.d(TAG, "Resuming");
+      try {
+        pauseLock.lock();
+        target.play();
+        unpause.signal();
+        source.resume();
+      } finally {
+        pauseLock.unlock();
+      }
+      Log.d(TAG, "Resumed");
     }
 
     public void stop() {
@@ -190,6 +203,7 @@ public class AsyncPlayback {
 
     public void consumeCycle() {
       try {
+        pauseLock.lock();
         target.play();
         Log.d(TAG, "Start consuming sound data");
         while (isActive()) {
@@ -202,9 +216,7 @@ public class AsyncPlayback {
             } else if (written < 0 || !isActive()) {
               break;
             } else {
-              synchronized (target) {
-               target.wait();
-              }
+              unpause.await();
             }
           }
           freeQueue.put(buf);
@@ -213,6 +225,7 @@ public class AsyncPlayback {
         Log.d(TAG, "Interrupted consuming sound data");
       } finally {
         Log.d(TAG, "Stop consuming sound data");
+        pauseLock.unlock();
       }
     }
 

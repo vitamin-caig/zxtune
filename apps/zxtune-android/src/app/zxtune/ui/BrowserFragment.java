@@ -27,7 +27,7 @@ import app.zxtune.PlaybackService;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 
-public class Browser extends Fragment
+public class BrowserFragment extends Fragment
     implements
       BreadCrumbsUriView.OnUriSelectionListener,
       DirView.OnEntryClickListener {
@@ -122,7 +122,7 @@ public class Browser extends Fragment
     public void onClick(View v) {
       final Context context = v.getContext();
       final DirView view = new DirView(context);
-      final View root = view.inflate(context, R.layout.popup, null);
+      final View root = View.inflate(context, R.layout.popup, null);
       final ViewGroup rootLayout = (ViewGroup) root.findViewById(R.id.popup_layout);
       rootLayout.addView(view);
       view.setDir(Vfs.getRoot());
@@ -139,7 +139,7 @@ public class Browser extends Fragment
 
     public void onDirClick(Uri uri) {
       popup.dismiss();
-      Browser.this.onDirClick(uri);
+      BrowserFragment.this.onDirClick(uri);
     }
   }
 }

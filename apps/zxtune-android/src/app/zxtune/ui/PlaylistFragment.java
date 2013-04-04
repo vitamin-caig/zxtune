@@ -32,7 +32,7 @@ import app.zxtune.R;
 import app.zxtune.playlist.Query;
 import app.zxtune.rpc.BroadcastPlaybackCallbackReceiver;
 
-public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickListener, Playback.Callback {
+public class PlaylistFragment extends Fragment implements PlaylistView.OnPlayitemClickListener, Playback.Callback {
 
   private Playback.Control control;
   private PlaylistView listing;
@@ -99,7 +99,7 @@ public class Playlist extends Fragment implements PlaylistView.OnPlayitemClickLi
 
   @Override
   public void statusChanged(Status status) {
-    //listing.invalidateViews();
+    listing.invalidateViews();
     if (status == null) {
       nowPlaying = Uri.EMPTY;
     }

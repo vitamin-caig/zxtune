@@ -93,7 +93,7 @@ public class PlaylistView extends ListView
   }
 
   public void setData(Cursor cursor) {
-    final CursorAdapter adapter = new PlaylistCursorAdapter(getContext(), cursor);
+    final CursorAdapter adapter = new PlaylistCursorAdapter(getContext(), cursor, true);
     this.setAdapter(adapter);
   }
 
@@ -120,11 +120,6 @@ public class PlaylistView extends ListView
   private class PlaylistCursorAdapter extends CursorAdapter {
 
     private final LayoutInflater inflater;
-
-    public PlaylistCursorAdapter(Context context, Cursor cursor) {
-      super(context, cursor);
-      inflater = LayoutInflater.from(context);
-    }
 
     public PlaylistCursorAdapter(Context context, Cursor cursor, boolean autoRequery) {
       super(context, cursor, autoRequery);

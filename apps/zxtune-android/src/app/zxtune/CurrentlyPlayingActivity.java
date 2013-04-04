@@ -18,10 +18,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import app.zxtune.rpc.PlaybackControlClient;
-import app.zxtune.ui.Browser;
-import app.zxtune.ui.Controls;
-import app.zxtune.ui.Playlist;
-import app.zxtune.ui.Position;
+import app.zxtune.ui.BrowserFragment;
+import app.zxtune.ui.NowPlayingFragment;
+import app.zxtune.ui.PlaylistFragment;
 
 public class CurrentlyPlayingActivity extends FragmentActivity implements PlaybackControlClient.ConnectionHandler {
 
@@ -55,8 +54,8 @@ public class CurrentlyPlayingActivity extends FragmentActivity implements Playba
   @Override
   public void onConnected(PlaybackControlClient client) {
     control = client;
-    getPart(Controls.class).setControl(control);
-    getPart(Playlist.class).setControl(control);
+    getPart(NowPlayingFragment.class).setControl(control);
+    getPart(PlaylistFragment.class).setControl(control);
   }
 
   @Override
@@ -65,13 +64,11 @@ public class CurrentlyPlayingActivity extends FragmentActivity implements Playba
   }
     
   private void createView() {
-    final Fragment seek = new Position();
-    final Fragment ctrl = new Controls();
-    final Fragment browser = new Browser();
-    final Fragment playlist = new Playlist();
+    final Fragment nowPlaying = new NowPlayingFragment();
+    final Fragment browser = new BrowserFragment();
+    final Fragment playlist = new PlaylistFragment();
     getSupportFragmentManager().beginTransaction()
-        .replace(R.id.position_view, seek, seek.getClass().getName())
-        .replace(R.id.controls_view, ctrl, ctrl.getClass().getName())
+        .replace(R.id.now_playing, nowPlaying, nowPlaying.getClass().getName())
         .replace(R.id.browser_view, browser, browser.getClass().getName())
         .replace(R.id.playlist_view, playlist, playlist.getClass().getName())
         .commit();
