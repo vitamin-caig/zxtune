@@ -46,7 +46,7 @@ namespace Formats
           uint_t Tone;
           bool AccumulateTone;
           bool ToneMask;
-          uint_t EnvelopeAddon;
+          int_t EnvelopeAddon;
           bool AccumulateEnvelope;
           bool EnableEnvelope;
         };

@@ -216,7 +216,7 @@ namespace Chiptune
         //K - keep envelope offset
         //M - envelope mask
         uint8_t Level;
-        uint8_t EnvelopeAddon;
+        int8_t EnvelopeAddon;
 
         uint_t GetLevel() const
         {
@@ -258,7 +258,7 @@ namespace Chiptune
           return 0 != (ToneHi & 64);
         }
 
-        uint_t GetEnvelopeAddon() const
+        int_t GetEnvelopeAddon() const
         {
           return EnvelopeAddon;
         }
