@@ -8,6 +8,7 @@ install_samples:
 	$(call copyfile_cmd,$(samples_path)/chi/ducktale.chi,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/dmm/popcorn.dmm,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/dst/EchoDreams.dst,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(samples_path)/ftc/PA-PA-PA.ftc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/gtr/L.Boy.gtr,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/pdt/TechCent.M,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/psc/FL_SH_EI.psc,$(DESTDIR)/Samples)
