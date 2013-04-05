@@ -125,8 +125,8 @@ namespace Formats
         virtual void SetEnvelope(uint_t type, uint_t tone) = 0;
         virtual void SetNoEnvelope() = 0;
         virtual void SetNoise(uint_t val) = 0;
-        virtual void SetSlide(uint_t steps) = 0;
-        virtual void SetNoteSlide(uint_t steps) = 0;
+        virtual void SetSlide(uint_t step) = 0;
+        virtual void SetNoteSlide(uint_t step) = 0;
       };
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);

@@ -51,7 +51,7 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 
 #FastTracker
 < FASTTRACKER_DECODER_DESCRIPTION
-> "Fast Tracker"
+> "Fast Tracker v1.x"
 
 #GlobalTracker
 < GLOBALTRACKER_DECODER_DESCRIPTION
@@ -95,7 +95,7 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 > PROSOUNDCREATOR_DECODER_DESCRIPTION " v1.04-1.07"
 
 < PROSOUNDCREATOR_DECODER_DESCRIPTION
-> "Pro Sound Creator"
+> "Pro Sound Creator v1.xx"
 
 #PSM
 < PROSOUNDMAKER_DECODER_DESCRIPTION

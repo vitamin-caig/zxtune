@@ -120,7 +120,6 @@ namespace ZXTune
 
       virtual void SetTempo(uint_t val)
       {
-        assert(val != 0);
         Tempo = val;
       }
 

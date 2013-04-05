@@ -57,8 +57,8 @@ namespace Chiptune
     /*
     Typical module structure:
 
-    Header
-    Positions
+    Header      (212 bytes)
+    Positions   (up to 510 bytes)
     #ff
     #ffff <- second padding[0]
     #ffff
@@ -179,7 +179,7 @@ namespace Chiptune
 
       std::size_t GetUsedSize() const
       {
-        return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
+        return sizeof(RawObject) + GetSize() * sizeof(Line);
       }
 
       Line GetLine(uint_t idx) const
@@ -279,19 +279,12 @@ namespace Chiptune
         return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
       }
 
-      Line GetLine(uint_t idx) const
+      const Line& GetLine(uint_t idx) const
       {
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
-        //using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
-        Line res;
-        res.Noise = src[offset++];
-        res.ToneLo = src[offset++];
-        res.ToneHi = src[offset++];
-        res.Level = src[offset++];
-        res.EnvelopeAddon = src[offset++];
-        return res;
+        return Lines[idx];
       }
+
+      Line Lines[1];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
@@ -303,7 +296,7 @@ namespace Chiptune
     BOOST_STATIC_ASSERT(sizeof(RawPattern) == 6);
     BOOST_STATIC_ASSERT(sizeof(RawOrnament) == 3);
     BOOST_STATIC_ASSERT(sizeof(RawOrnament::Line) == 2);
-    BOOST_STATIC_ASSERT(sizeof(RawSample) == 3);
+    BOOST_STATIC_ASSERT(sizeof(RawSample) == 8);
     BOOST_STATIC_ASSERT(sizeof(RawSample::Line) == 5);
 
     class StubBuilder : public Builder
@@ -330,8 +323,8 @@ namespace Chiptune
       virtual void SetEnvelope(uint_t /*type*/, uint_t /*tone*/) {}
       virtual void SetNoEnvelope() {}
       virtual void SetNoise(uint_t /*val*/) {}
-      virtual void SetSlide(uint_t /*steps*/) {}
-      virtual void SetNoteSlide(uint_t /*steps*/) {}
+      virtual void SetSlide(uint_t /*step*/) {}
+      virtual void SetNoteSlide(uint_t /*step*/) {}
     };
 
     class StatisticCollectingBuilder : public Builder
@@ -343,6 +336,7 @@ namespace Chiptune
         , UsedSamples(0, SAMPLES_COUNT - 1)
         , UsedOrnaments(0, ORNAMENTS_COUNT - 1)
       {
+        UsedSamples.Insert(0);
         UsedOrnaments.Insert(0);
       }
 
@@ -447,14 +441,14 @@ namespace Chiptune
         return Delegate.SetNoise(val);
       }
 
-      virtual void SetSlide(uint_t steps)
+      virtual void SetSlide(uint_t step)
       {
-        return Delegate.SetSlide(steps);
+        return Delegate.SetSlide(step);
       }
 
-      virtual void SetNoteSlide(uint_t steps)
+      virtual void SetNoteSlide(uint_t step)
       {
-        return Delegate.SetNoteSlide(steps);
+        return Delegate.SetNoteSlide(step);
       }
 
       const Indices& GetUsedPatterns() const
@@ -464,7 +458,6 @@ namespace Chiptune
 
       const Indices& GetUsedSamples() const
       {
-        Require(!UsedSamples.Empty());
         return UsedSamples;
       }
 
@@ -778,7 +771,6 @@ namespace Chiptune
 
       void ParseChannel(std::size_t& offset, uint_t& period, Builder& builder) const
       {
-        uint_t mode = 2, noteSlideStep = 0;
         while (offset < Delegate.GetSize())
         {
           const uint_t cmd = PeekByte(offset++);
@@ -801,8 +793,8 @@ namespace Chiptune
           {
             const uint_t type = cmd - 0x30;
             const uint_t tone = PeekByte(offset) | (uint_t(PeekByte(offset + 1)) << 8);
-            offset += 2;
             builder.SetEnvelope(type, tone);
+            offset += 2;
           }
           else if (cmd == 0x3f)
           {
@@ -811,7 +803,6 @@ namespace Chiptune
           else if (cmd <= 0x5f)
           {
             period = cmd - 0x40;
-            mode = 1;
             break;
           }
           else if (cmd <= 0xcb)
@@ -826,15 +817,14 @@ namespace Chiptune
           }
           else if (cmd == 0xed)
           {
-            mode = 1;
             const uint_t step = PeekByte(offset) | (uint_t(PeekByte(offset + 1)) << 8);
-            offset += 2;
             builder.SetSlide(step);
+            offset += 2;
           }
           else if (cmd == 0xee)
           {
-            mode = 0;
-            noteSlideStep = PeekByte(offset++);
+            const uint_t noteSlideStep = PeekByte(offset++);
+            builder.SetNoteSlide(noteSlideStep);
           }
           else if (cmd == 0xef)
           {
@@ -846,10 +836,6 @@ namespace Chiptune
             const uint_t tempo = PeekByte(offset++);
             builder.SetTempo(tempo);
           }
-        }
-        if (0 == mode)
-        {
-          builder.SetNoteSlide(noteSlideStep);
         }
       }
 
@@ -1071,10 +1057,10 @@ namespace Chiptune
       "03-0f"        //tempo
       "00-fe"        //loop
       "?{4}"         //padding1
-      "?00-01|60-f0" //patterns offset
+      "?00-02"       //patterns offset
       "?{5}"         //padding2
-      "(?04-2c|64-ff){32}" //samples
-      "(?06-2d|66-ff){33}" //ornaments
+      "(?03-2c|64-ff){32}" //samples
+      "(?05-2d|66-ff){33}" //ornaments
       "00-1f?"       //at least one position
       "ff|00-1f"     //next position or end
     );
