@@ -1,30 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:orientation="vertical"
-  android:layout_width="fill_parent"
+  android:layout_width="match_parent"
   android:layout_height="wrap_content"
   >
+  <android.support.v4.view.ViewPager
+    android:id="@+id/view_pager"
+    android:layout_width="match_parent"
+    android:layout_height="0px"
+    android:layout_weight="1"
+  />
   <FrameLayout
-    android:id="@+id/now_playing"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    />
-  <LinearLayout
-    android:orientation="horizontal"
-    android:layout_width="fill_parent"
+    android:id="@+id/view_content"
+    android:visibility="gone"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     >
-    <FrameLayout
-      android:id="@+id/browser_view"
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:layout_weight="1"
-      />
-    <FrameLayout
-      android:id="@+id/playlist_view"
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:layout_weight="1"
-      />
-  </LinearLayout>
+    <include layout="@layout/components" />
+  </FrameLayout>
 </LinearLayout>
