@@ -7,6 +7,7 @@
 
 package app.zxtune;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 import android.content.Intent;
@@ -25,41 +26,60 @@ import app.zxtune.ui.PlaylistFragment;
 
 public class MainActivity extends FragmentActivity {
 
-  private final PlaybackControlClient.ConnectionHandler connectionHandler;
-  private PlaybackControlClient control;
-
-  public MainActivity() {
-    this.connectionHandler = new ClientConnectionHandle();
-  }
+  private Closeable connection;
+  private Playback.Control control;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    
+    setupUi();
+    setupServiceConnection();
+  }
+
+  private void setupUi() { 
     setContentView(R.layout.main_activity);
 
-    fillChildViews();
+    createComponents();
     final ViewPager pager = (ViewPager) findViewById(R.id.view_pager);
     final ViewGroup childs = (ViewGroup) findViewById(R.id.view_content);
     final PagerAdapter adapter = new Adapter(childs);
     pager.setAdapter(adapter);
-    
+  }
+  
+  private void setupServiceConnection() {
     final Intent intent = new Intent(this, PlaybackService.class);
-    PlaybackControlClient.create(this, intent, connectionHandler);
+    connection = PlaybackControlClient.create(this, intent, new PlaybackControlClient.ConnectionHandler() {
+      
+      @Override
+      public void onConnected(Playback.Control client) {
+        control = client;
+        getPart(NowPlayingFragment.class).setControl(control);
+        getPart(PlaylistFragment.class).setControl(control);
+        //TODO: get rid of
+        ((ViewGroup) findViewById(R.id.view_content)).removeAllViews();
+      }
+
+      @Override
+      public void onDisconnected() {
+        onConnected(null);
+      }
+    });
   }
 
   @Override
   public void onDestroy() {
     super.onDestroy();
     try {
-      if (control != null) {
-        control.close();
+      if (connection != null) {
+        connection.close();
       }
     } catch (IOException e) {} finally {
-      control = null;
+      connection = null;
     }
   }
 
-  private void fillChildViews() {
+  private void createComponents() {
     final Fragment nowPlaying = new NowPlayingFragment();
     final Fragment browser = new BrowserFragment();
     final Fragment playlist = new PlaylistFragment();
@@ -69,23 +89,6 @@ public class MainActivity extends FragmentActivity {
         .replace(R.id.playlist_view, playlist, playlist.getClass().getName()).commit();
   }
   
-  private class ClientConnectionHandle implements PlaybackControlClient.ConnectionHandler {
-
-    @Override
-    public void onConnected(PlaybackControlClient client) {
-      control = client;
-      getPart(NowPlayingFragment.class).setControl(control);
-      getPart(PlaylistFragment.class).setControl(control);
-      //TODO: get rid of
-      ((ViewGroup) findViewById(R.id.view_content)).removeAllViews();
-    }
-
-    @Override
-    public void onDisconnected() {
-      onConnected(null);
-    }
-  }
-
   private static class Adapter extends PagerAdapter {
 
     private final View[] pages;

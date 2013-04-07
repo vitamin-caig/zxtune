@@ -20,39 +20,31 @@ import android.os.RemoteException;
 import android.util.Log;
 import app.zxtune.Playback;
 
-public class PlaybackControlClient implements Playback.Control, Closeable {
+public class PlaybackControlClient implements Playback.Control {
 
   public interface ConnectionHandler {
     
-    public void onConnected(PlaybackControlClient client);
+    public void onConnected(Playback.Control client);
 
     public void onDisconnected();
   }
 
-  public static void create(Context context, Intent intent, ConnectionHandler handler) {
+  public static Closeable create(Context context, Intent intent, ConnectionHandler handler) {
     context.startService(intent);
-    final ServiceConnection svcHandler = new ServiceConnectionHandler(context, handler);
+    final ServiceConnectionHandler svcHandler = new ServiceConnectionHandler(context, handler);
     if (!context.bindService(intent, svcHandler, Context.BIND_AUTO_CREATE)) {
       throw new RuntimeException("Failed to bind to service");
     }
+    return svcHandler;
   }
 
   private final static String TAG = PlaybackControlClient.class.getName();
-  private final Context context;
-  private final ServiceConnection handler;
   private final IPlaybackControl delegate;
 
-  private PlaybackControlClient(Context context, ServiceConnection handler, IPlaybackControl delegate) {
-    this.context = context;
-    this.handler = handler;
+  private PlaybackControlClient(IPlaybackControl delegate) {
     this.delegate = delegate;
   }
   
-  @Override
-  public void close() throws IOException {
-    context.unbindService(handler);
-  }
-
   @Override
   public Playback.Item getItem() {
     try {
@@ -103,7 +95,7 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
     }
   }
 
-  private static class ServiceConnectionHandler implements ServiceConnection {
+  private static class ServiceConnectionHandler implements ServiceConnection, Closeable {
     
     private final Context context;
     private final ConnectionHandler handler;
@@ -117,7 +109,7 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
     public void onServiceConnected(ComponentName className, IBinder service) {
       Log.d(TAG, "Connected to service");
       final IPlaybackControl delegate = IPlaybackControl.Stub.asInterface(service);
-      final PlaybackControlClient client = new PlaybackControlClient(context, this, delegate);
+      final PlaybackControlClient client = new PlaybackControlClient(delegate);
       handler.onConnected(client);
     }
 
@@ -125,6 +117,11 @@ public class PlaybackControlClient implements Playback.Control, Closeable {
     public void onServiceDisconnected(ComponentName className) {
       Log.d(TAG, "Disconnected from service");
       handler.onDisconnected();
+    }
+
+    @Override
+    public void close() throws IOException {
+      context.unbindService(this);
     }
   };
 }
