@@ -151,6 +151,7 @@ public class PlaybackService extends Service {
       final int size = (int) file.length();
       byte[] result = new byte[size];
       stream.read(result, 0, size);
+      stream.close();
       return result;
     } catch (IOException e) {
       Log.d(TAG, e.toString());
@@ -239,12 +240,11 @@ public class PlaybackService extends Service {
     }
   }
 
-  private class PlaybackControl implements Playback.Control, Playback.Callback {
+  private class PlaybackControl implements Playback.Control {
     
     private final Playback.Callback callback;
+    private PlaybackSource source;
     private AsyncPlayback playback;
-    private Playback.Item item;
-    private Playback.Status status;
     
     PlaybackControl(Playback.Callback callback) {
       this.callback = callback;
@@ -252,12 +252,17 @@ public class PlaybackService extends Service {
 
     @Override
     public Playback.Item getItem() {
-      return playback != null ? item : null;
+      return source != null ? source.getItem() : null;
+    }
+    
+    @Override
+    public TimeStamp getPlaybackPosition() {
+      return source != null ? source.getPosition() : null;
     }
 
     @Override
     public Playback.Status getStatus() {
-      return status;
+      return source != null ? source.getStatus() : Playback.Status.STOPPED;
     }
 
     @Override
@@ -266,7 +271,7 @@ public class PlaybackService extends Service {
       try {
         stop();
         final PlayableItem item = openItem(uri);
-        final AsyncPlayback.Source source = new PlaybackSource(item, this);
+        source = new PlaybackSource(item, callback);
         final AsyncPlayback playback = new AsyncPlayback(source);
         this.playback = playback;
         play();
@@ -279,8 +284,8 @@ public class PlaybackService extends Service {
       Log.d(TAG, "play()");
       if (playback != null) {
         playback.resume();
-      } else if (item != null) {
-        play(item.getId());
+      } else if (source != null) {
+        play(source.getItem().getId());
       }
     }
 
@@ -299,18 +304,6 @@ public class PlaybackService extends Service {
         playback.stop();
         playback = null;
       }
-    }
-
-    @Override
-    public void itemChanged(Playback.Item item) {
-      this.item = item;
-      callback.itemChanged(item);
-    }
-
-    @Override
-    public void statusChanged(Playback.Status status) {
-      this.status = status;
-      callback.statusChanged(status);
     }
   }
   
@@ -388,16 +381,17 @@ public class PlaybackService extends Service {
   }
   */
 
-  private static class PlaybackSource implements AsyncPlayback.Source, Playback.Status {
+  private static class PlaybackSource implements AsyncPlayback.Source {
 
     private final PlayableItem item;
     private final Playback.Callback callback;
+    private Playback.Status status;
     private ZXTune.Player player;
-    private boolean paused;
 
     public PlaybackSource(PlayableItem item, Playback.Callback callback) {
       this.item = item;
       this.callback = callback;
+      this.status = Playback.Status.STOPPED;
     }
 
     @Override
@@ -406,24 +400,22 @@ public class PlaybackService extends Service {
       player.setProperty(ZXTune.Properties.Sound.FREQUENCY, freqRate);
       player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, 1);
       callback.itemChanged(item);
-      callback.statusChanged(this);
+      callback.statusChanged(status = Playback.Status.PLAYING);
     }
 
     @Override
     public void suspend() {
-      paused = true;
-      callback.statusChanged(this);
+      callback.statusChanged(status = Playback.Status.PAUSED);
     }
 
     @Override
     public void resume() {
-      paused = false;
-      callback.statusChanged(this);
+      callback.statusChanged(status = Playback.Status.PLAYING);
     }
 
     @Override
     public void shutdown() {
-      callback.statusChanged(null);
+      callback.statusChanged(status = Playback.Status.STOPPED);
       try {
         player.close();
       } catch (IOException e) {
@@ -437,16 +429,18 @@ public class PlaybackService extends Service {
       return player.render(buf);
     }
 
-    @Override
+    public Playback.Item getItem() {
+      return item;
+    }
+    
+    public Playback.Status getStatus() {
+      return status;
+    }
+    
     public TimeStamp getPosition() {
       final int frame = player.getPosition();
       //TODO
       return new TimeStamp(20 * frame, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public boolean isPaused() {
-      return paused;
     }
   }
 }

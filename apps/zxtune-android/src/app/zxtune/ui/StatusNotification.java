@@ -52,16 +52,20 @@ public class StatusNotification implements Playback.Callback {
 
   @Override
   public void statusChanged(Playback.Status status) {
-    if (status == null) {
-      manager.cancel(notificationId);
-      service.stopForeground(true);
-    } else if (status.isPaused()) {
-      builder.setSmallIcon(R.drawable.ic_stat_notify_pause);
-      showNotification();
-      service.stopForeground(false);
-    } else {
-      builder.setSmallIcon(R.drawable.ic_stat_notify_play);
-      service.startForeground(notificationId, showNotification());
+    switch (status) {
+      case PLAYING:
+        builder.setSmallIcon(R.drawable.ic_stat_notify_play);
+        service.startForeground(notificationId, showNotification());
+        break;
+      case PAUSED:
+        builder.setSmallIcon(R.drawable.ic_stat_notify_pause);
+        showNotification();
+        service.stopForeground(false);
+        break;
+      case STOPPED:
+        manager.cancel(notificationId);
+        service.stopForeground(true);
+        break;
     }
   }
 

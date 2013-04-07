@@ -38,11 +38,13 @@ public class BroadcastPlaybackCallbackReceiver extends BroadcastReceiver impleme
   public void onReceive(Context context, Intent intent) {
     final String action = intent.getAction();
     if (action.equals(Playback.Item.class.getName())) {
-      callback.itemChanged((Playback.Item) intent.getParcelableExtra(Playback.Item.class
-          .getSimpleName()));
+      final Playback.Item item =
+          (Playback.Item) intent.getParcelableExtra(Playback.Item.class.getSimpleName());
+      callback.itemChanged(item);
     } else if (action.equals(Playback.Status.class.getName())) {
-      callback.statusChanged((Playback.Status) intent.getParcelableExtra(Playback.Status.class
-          .getSimpleName()));
+      final Playback.Status status =
+          Playback.Status.valueOf(intent.getStringExtra(Playback.Status.class.getSimpleName()));
+      callback.statusChanged(status);
     }
   }
 }

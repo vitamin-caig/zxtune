@@ -24,8 +24,6 @@ import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import app.zxtune.Playback;
-import app.zxtune.Playback.Item;
-import app.zxtune.Playback.Status;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.rpc.BroadcastPlaybackCallbackReceiver;
@@ -39,11 +37,10 @@ public class NowPlayingFragment extends Fragment implements Playback.Callback {
   private final Runnable timerTask = new Runnable() {
     @Override
     public void run() {
-      final Playback.Status status = control.getStatus();
-      if (status == null) {
+      final TimeStamp pos = control.getPlaybackPosition();
+      if (pos == null) {
         return;
       }
-      final TimeStamp pos = status.getPosition();
       seek.setProgress((int) pos.convertTo(TimeUnit.SECONDS));
       time.setText(pos.toString());
 
@@ -111,23 +108,23 @@ public class NowPlayingFragment extends Fragment implements Playback.Callback {
   }
 
   @Override
-  public void itemChanged(Item item) {
+  public void itemChanged(Playback.Item item) {
     if (item != null) {
       seek.setMax((int) item.getDuration().convertTo(TimeUnit.SECONDS));
     }
   }
 
   @Override
-  public void statusChanged(Status status) {
-    final boolean running = status != null;
-    if (!running) {
-      seek.setProgress(0);
-      time.setText(R.string.stub_time);
-    }
-    if (running && !status.isPaused()) {
-      startUpdating();
-    } else {
-      stopUpdating();
+  public void statusChanged(Playback.Status status) {
+    switch (status) {
+      case PLAYING:
+        startUpdating();
+        break;
+      case STOPPED:
+        seek.setProgress(0);
+        time.setText(R.string.stub_time);
+      default:
+        stopUpdating();
     }
   }
   

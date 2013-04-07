@@ -7,9 +7,10 @@
 
 package app.zxtune.rpc;
 
+import java.util.concurrent.TimeUnit;
+
 import android.net.Uri;
 import app.zxtune.Playback;
-
 
 public class PlaybackControlServer extends IPlaybackControl.Stub {
 
@@ -25,10 +26,15 @@ public class PlaybackControlServer extends IPlaybackControl.Stub {
   }
 
   @Override
-  public ParcelablePlaybackStatus getStatus() {
-    return ParcelablePlaybackStatus.create(delegate.getStatus());
+  public long getPlaybackPosition() {
+    return delegate.getPlaybackPosition().convertTo(TimeUnit.MILLISECONDS);
   }
-
+  
+  @Override
+  public String getStatus() {
+    return delegate.getStatus().toString();
+  }
+  
   @Override
   public void playItem(Uri item) {
     delegate.play(item);

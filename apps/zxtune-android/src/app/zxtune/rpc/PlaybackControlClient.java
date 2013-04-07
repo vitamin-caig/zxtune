@@ -9,6 +9,7 @@ package app.zxtune.rpc;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -19,6 +20,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 import app.zxtune.Playback;
+import app.zxtune.TimeStamp;
 
 public class PlaybackControlClient implements Playback.Control {
 
@@ -53,11 +55,20 @@ public class PlaybackControlClient implements Playback.Control {
       return null;
     }
   }
+  
+  @Override
+  public TimeStamp getPlaybackPosition() {
+    try {
+      return new TimeStamp(delegate.getPlaybackPosition(), TimeUnit.MILLISECONDS);
+    } catch (RemoteException e) {
+      return null;
+    }
+  }
 
   @Override
   public Playback.Status getStatus() {
     try {
-      return delegate.getStatus();
+      return Playback.Status.valueOf(delegate.getStatus());
     } catch (RemoteException e) {
       return null;
     }

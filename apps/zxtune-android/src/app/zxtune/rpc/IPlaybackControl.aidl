@@ -8,13 +8,14 @@
 package app.zxtune.rpc;
 
 import app.zxtune.rpc.ParcelablePlaybackItem;
-import app.zxtune.rpc.ParcelablePlaybackStatus;
 
 interface IPlaybackControl {
 
   ParcelablePlaybackItem getItem();
 
-  ParcelablePlaybackStatus getStatus();
+  long getPlaybackPosition();
+
+  String getStatus();
 
   void playItem(in Uri item);
 

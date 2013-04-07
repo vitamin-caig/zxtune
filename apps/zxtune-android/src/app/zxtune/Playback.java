@@ -44,34 +44,29 @@ public final class Playback {
     public TimeStamp getDuration();
   }
   
-  /**
-   *  Interface for playback status
-   */
-  public interface Status {
-    
-    /**
-     * @return Playback position
-     */
-    public TimeStamp getPosition();
-
-    /**
-     * @return true if playback is paused, false otherwise
-     */
-    public boolean isPaused();
+  public enum Status {
+    STOPPED,
+    PLAYING,
+    PAUSED
   }
-
+  
   /**
    *  Playback control interface
    */
   public interface Control {
 
     /*
-     * @return Currently playing item or null if stopped
+     * @return Currently playing item or null if not selected
      */
     public Item getItem();
+    
+    /*
+     * @return Currently playing item's position or null if stopped
+     */
+    public TimeStamp getPlaybackPosition();
 
     /*
-     * @return Current playback status or null if stopped
+     * @return Current playback status
      */
     public Status getStatus();
     
@@ -107,7 +102,7 @@ public final class Playback {
     public void itemChanged(Item item);
     
     /**
-     * Called on every status changing operation (play/pause/resume/stop)
+     * Called on every status changing operation
      */
     public void statusChanged(Status status);
   }
