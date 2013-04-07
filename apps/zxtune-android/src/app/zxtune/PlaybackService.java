@@ -38,10 +38,9 @@ public class PlaybackService extends Service {
   public void onCreate() {
     Log.d(TAG, "Creating");
 
-    final Playback.Callback notification =
-        new StatusNotification(this,
-            new Intent(this, CurrentlyPlayingActivity.class)
-                .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP));
+    final Intent intent = new Intent(this, MainActivity.class);
+    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+    final Playback.Callback notification = new StatusNotification(this, intent);
     final Playback.Callback broadcast = new BroadcastPlaybackCallback(this);
     final Playback.Callback callback = new DoublePlaybackCallback(notification, broadcast);
     ctrl = new PlaybackControl(callback);

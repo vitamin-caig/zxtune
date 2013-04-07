@@ -23,19 +23,19 @@ import app.zxtune.ui.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.PlaylistFragment;
 
-public class CurrentlyPlayingActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity {
 
   private final PlaybackControlClient.ConnectionHandler connectionHandler;
   private PlaybackControlClient control;
 
-  public CurrentlyPlayingActivity() {
+  public MainActivity() {
     this.connectionHandler = new ClientConnectionHandle();
   }
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.currently_playing);
+    setContentView(R.layout.main_activity);
 
     fillChildViews();
     final ViewPager pager = (ViewPager) findViewById(R.id.view_pager);
