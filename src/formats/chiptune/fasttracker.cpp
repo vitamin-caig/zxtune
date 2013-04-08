@@ -53,18 +53,24 @@ namespace Chiptune
     const std::size_t MIN_PATTERN_SIZE = 1;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t MAX_PATTERNS_COUNT = 32;
+    const uint_t TEMPO_MIN = 3;
+    const uint_t TEMPO_MAX = 255;
 
     /*
     Typical module structure:
 
     Header      (212 bytes)
+     Id
+     other
+     samples offsets/addresses
+     ornaments offsets/addresses
     Positions   (up to 510 bytes)
     #ff
     #ffff <- second padding[0]
     #ffff
     #ffff <- second padding[1]
     #ffff
-    Patterns
+    Patterns offsets/addresses
     #ffff
     Patterns data
     Samples
@@ -272,6 +278,11 @@ namespace Chiptune
         {
           return 0 != (Level & 64);
         }
+
+        bool IsEmpty() const
+        {
+          return Noise == 0 && ToneLo == 0 && ToneHi == 0 && Level == 0 && EnvelopeAddon == 0;
+        }
       } PACK_POST;
 
       std::size_t GetUsedSize() const
@@ -391,6 +402,7 @@ namespace Chiptune
 
       virtual void SetTempo(uint_t tempo)
       {
+        Require(Math::InRange(tempo, TEMPO_MIN, TEMPO_MAX));
         return Delegate.SetTempo(tempo);
       }
 
@@ -592,6 +604,7 @@ namespace Chiptune
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
         Dbg("Samples: %1% to parse", samples.Count());
+        uint_t nonEmptySamplesCount = 0;
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
@@ -599,6 +612,8 @@ namespace Chiptune
           const std::size_t availSize = Delegate.GetSize() - samOffset;
           const RawSample* const src = Delegate.GetField<RawSample>(samOffset);
           Require(src != 0);
+          Require(src->GetLoopLimit() <= src->GetSize());
+          Require(src->GetLoop() <= src->GetLoopLimit());
           const std::size_t usedSize = src->GetUsedSize();
           Require(usedSize <= availSize);
           Dbg("Parse sample %1%", samIdx);
@@ -606,7 +621,12 @@ namespace Chiptune
           Sample result;
           ParseSample(*src, src->GetLoopLimit(), result);
           builder.SetSample(samIdx, result);
+          if (src->GetLoopLimit() > 1 || !src->GetLine(0).IsEmpty())
+          {
+            ++nonEmptySamplesCount;
+          }
         }
+        Require(nonEmptySamplesCount > 0);
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
@@ -620,12 +640,28 @@ namespace Chiptune
           const std::size_t availSize = Delegate.GetSize() - ornOffset;
           const RawOrnament* const src = Delegate.GetField<RawOrnament>(ornOffset);
           Require(src != 0);
+          Require(src->GetLoopLimit() <= src->GetSize());
+          Require(src->GetLoop() <= src->GetLoopLimit());
           const std::size_t usedSize = src->GetUsedSize();
           Require(usedSize <= availSize);
           Dbg("Parse ornament %1%", ornIdx);
           Ranges.AddService(ornOffset, usedSize);
           ParseOrnament(*src, src->GetLoopLimit(), result);
           builder.SetOrnament(ornIdx, result);
+        }
+        for (uint_t ornIdx = ornaments.Maximum() + 1; ornIdx < ORNAMENTS_COUNT; ++ornIdx)
+        {
+          const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]) - BaseAddr;
+          const std::size_t availSize = Delegate.GetSize() - ornOffset;
+          if (const RawOrnament* const src = Delegate.GetField<RawOrnament>(ornOffset))
+          {
+            const std::size_t usedSize = src->GetUsedSize();
+            if (usedSize <= availSize)
+            {
+              Dbg("Stub ornament %1%", ornIdx);
+              Ranges.Add(ornOffset, usedSize);
+            }
+          }
         }
       }
 
@@ -1054,7 +1090,7 @@ namespace Chiptune
       "?{42}"        //title
       "?"            //semicolon
       "?{18}"        //editor
-      "03-0f"        //tempo
+      "03-ff"        //tempo
       "00-fe"        //loop
       "?{4}"         //padding1
       "?00-02"       //patterns offset
