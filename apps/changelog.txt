@@ -7,6 +7,11 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] FastTracker modules support (FTC)
+[*] Skip old RAR archives (prior to 2.0)
+
+--- Rev2309 from 29.03.2013
+
 [+] Pro Sound Creator compiled modules support (PSC)
 [*] Improved Sample Tracker detection and coverage
 [*] Reduced size of armhf builds
