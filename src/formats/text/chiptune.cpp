@@ -51,16 +51,15 @@ extern const Char PROSOUNDCREATOR_DECODER_DESCRIPTION[] = {
   'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','x','x',0
 };
 extern const Char PROSOUNDCREATOR_EDITOR[] = {
-  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','x','x',' ','v','%','1',
-  '%',0
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','%','1','%',0
 };
 extern const Char PROSOUNDCREATOR_EDITOR_NEW[] = {
-  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','x','x',' ','v','1','.',
-  '0','4','-','1','.','0','7',0
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','0','4','-','1','.','0',
+  '7',0
 };
 extern const Char PROSOUNDCREATOR_EDITOR_OLD[] = {
-  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','x','x',' ','v','1','.',
-  '0','0','-','1','.','0','3',0
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','0','0','-','1','.','0',
+  '3',0
 };
 extern const Char PROSOUNDMAKER_DECODER_DESCRIPTION[] = {
   'P','r','o',' ','S','o','u','n','d',' ','M','a','k','e','r',0
@@ -82,8 +81,8 @@ extern const Char PROTRACKERUTILITY13_DECODER_DESCRIPTION[] = {
   'P','r','o',' ','T','r','a','c','k','e','r',' ','U','t','i','l','i','t','y',' ','v','1','.','3',0
 };
 extern const Char PSG_DECODER_DESCRIPTION[] = {
-  'P','S','G',' ','(','P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n',
-  'e','r','a','t','o','r',')',0
+  'P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n','e','r','a','t','o',
+  'r',0
 };
 extern const Char SAMPLETRACKER_DECODER_DESCRIPTION[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
@@ -122,8 +121,8 @@ extern const Char VORTEXTRACKER2_DECODER_DESCRIPTION[] = {
   'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','I','I',0
 };
 extern const Char VORTEX_EDITOR[] = {
-  'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','(','P','r','o','T','r','a','c','k','e','r',' ','v',
-  '%','1','%','.','%','2','%',')',0
+  'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','(','P','r','o',' ','T','r','a','c','k','e','r',' ',
+  'v','%','1','%','.','%','2','%',')',0
 };
 extern const Char VTX_DECODER_DESCRIPTION[] = {
   'V','T','X',' ','(','V','o','r','t','e','x',' ','P','r','o','j','e','c','t',')',0
