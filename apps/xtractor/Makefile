@@ -8,8 +8,8 @@ libraries := analysis async binary debug formats_archived formats_packed io l10n
 depends := $(addprefix src/,analysis async binary debug formats/archived formats/packed io l10n/stub platform strings tools) apps/version
 
 #3rdparty
-libraries +=  lhasa z
-depends += 3rdparty/lhasa/lib 3rdparty/zlib
+libraries +=  lhasa z unrar
+depends += 3rdparty/lhasa/lib 3rdparty/zlib 3rdparty/unrar
 
 boost_libraries := filesystem program_options thread system
 windows_libraries := advapi32
