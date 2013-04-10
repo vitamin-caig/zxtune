@@ -271,8 +271,13 @@ namespace Rar
         const std::size_t offset = Blocks.GetOffset();
         const std::size_t size = Blocks.GetBlockSize();
         const Binary::Container::Ptr fileBlock = Data.GetSubcontainer(offset, size);
-        const Archived::File::Ptr prev = (Previous && file.IsSolid()) ? Previous : StubFile::Create();
-        Current = boost::make_shared<File>(Decoder, fileBlock, GetName(), fromLE(file.UnpackedSize), prev);
+        const bool isCompressed = !file.IsStored();
+        const Archived::File::Ptr parent = isCompressed && file.IsSolid() ? Previous : StubFile::Create();
+        Current = boost::make_shared<File>(Decoder, fileBlock, GetName(), fromLE(file.UnpackedSize), parent);
+        if (isCompressed)
+        {
+          Previous = Current;
+        }
       }
       return Current;
     }
@@ -280,7 +285,6 @@ namespace Rar
     void Next()
     {
       assert(!IsEof());
-      Previous = GetFile();
       Current.reset();
       Blocks.Next();
       SkipNonFileBlocks();
@@ -303,7 +307,7 @@ namespace Rar
     const Binary::Container& Data;
     BlocksIterator Blocks;
     mutable Archived::File::Ptr Current;
-    Archived::File::Ptr Previous;
+    mutable Archived::File::Ptr Previous;
   };
 
   class Container : public Archived::Container
