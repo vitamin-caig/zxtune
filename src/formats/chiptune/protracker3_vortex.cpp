@@ -113,6 +113,12 @@ namespace Chiptune
       param1 ::= ${hexdot1}
       param2 ::= ${hexdot2}
     */
+    
+    template<class T>
+    inline std::string ToString(const T val)
+    {
+      return boost::lexical_cast<std::string, T>(val);
+    }
 
     /*
       Fundamental types wrappers
@@ -421,7 +427,7 @@ namespace Chiptune
       std::string AsString() const
       {
         std::vector<std::string> elems(Parent::size());
-        std::transform(Parent::begin(), Parent::end(), elems.begin(), &boost::lexical_cast<std::string, T>);
+        std::transform(Parent::begin(), Parent::end(), elems.begin(), &ToString<T>);
         elems[Loop] = 'L' + elems[Loop];
         return boost::algorithm::join(elems, ",");
       }
@@ -499,11 +505,11 @@ namespace Chiptune
         Require(!PlayOrder.empty());
 
         std::string str = SectionHeader("Module").AsString();
-        str += Entry("Version", "3." + boost::lexical_cast<std::string>(Version)).AsString();
+        str += Entry("Version", "3." + ToString(Version)).AsString();
         str += Entry("Title", Title).AsString();
         str += Entry("Author", Author).AsString();
-        str += Entry("NoteTable", boost::lexical_cast<std::string>(static_cast<uint_t>(Table))).AsString();
-        str += Entry("Speed", boost::lexical_cast<std::string>(Tempo)).AsString();
+        str += Entry("NoteTable", ToString(static_cast<uint_t>(Table))).AsString();
+        str += Entry("Speed", ToString(Tempo)).AsString();
         str += Entry("PlayOrder", PlayOrder.AsString()).AsString();
         for (std::vector<Entry>::const_iterator it = OtherFields.begin(), lim = OtherFields.end(); it != lim; ++it)
         {
