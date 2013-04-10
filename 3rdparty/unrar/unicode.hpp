@@ -32,7 +32,7 @@ int uni_done();
 #elif defined (__OpenBSD__)
 #define sprintfw(s,...) *(s)=0
 #else
-#define sprintfw swprintf
+#define sprintfw _snwprintf
 #endif
 
 bool WideToChar(const wchar *Src,char *Dest,size_t DestSize=0x1000000);

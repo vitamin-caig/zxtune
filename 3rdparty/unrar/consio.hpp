@@ -29,9 +29,9 @@ void OutComment(char *Comment,size_t Size);
     inline void eprintf(const char *fmt,...) {}
   #endif
   inline void Alarm() {}
-  inline void GetPasswordText(wchar *Str,uint MaxLength) {}
-  inline bool GetPassword(PASSWORD_TYPE Type,const char *FileName,const wchar *FileNameW,SecPassword *Password) {return(false);}
-  inline int Ask(const char *AskStr) {return(0);}
+  inline void GetPasswordText(wchar *,uint) {}
+  inline bool GetPassword(PASSWORD_TYPE,const char *,const wchar *,SecPassword *) {return(false);}
+  inline int Ask(const char *) {return(0);}
 #endif
 
 #endif

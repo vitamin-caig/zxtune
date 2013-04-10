@@ -14,7 +14,7 @@ class ComprDataIO
 
     bool UnpackFromMemory;
     size_t UnpackFromMemorySize;
-    byte *UnpackFromMemoryAddr;
+    const byte *UnpackFromMemoryAddr;
 
     bool UnpackToMemory;
     size_t UnpackToMemorySize;
@@ -28,6 +28,7 @@ class ComprDataIO
     bool ShowProgress;
     bool TestMode;
     bool SkipUnpCRC;
+    bool OldFormat;
 
     File *SrcFile;
     File *DestFile;
@@ -63,8 +64,10 @@ class ComprDataIO
     void SetEncryption(int Method,SecPassword *Password,const byte *Salt,bool Encrypt,bool HandsOffHash);
     void SetAV15Encryption();
     void SetCmt13Encryption();
+    void SetUnpackFromMemory(const byte* Addr,uint Size,bool oldFormat);
     void SetUnpackToMemory(byte *Addr,uint Size);
     void SetCurrentCommand(char Cmd) {CurrentCommand=Cmd;}
+    uint GetUnpackedCrc();
 
     bool PackVolume;
     bool UnpVolume;
