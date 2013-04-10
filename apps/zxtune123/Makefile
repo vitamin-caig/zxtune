@@ -22,8 +22,8 @@ libraries += zxtune_app_base zxtune_app_version
 depends += $(addprefix apps/,base version)
 
 #3rdparty
-libraries += lhasa z z80ex
-depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
+libraries += lhasa z z80ex unrar
+depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib 3rdparty/unrar
 
 #platform
 windows_libraries = advapi32 ole32 oldnames user32

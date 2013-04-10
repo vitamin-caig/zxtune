@@ -33,8 +33,8 @@ libraries += playlist_ui playlist_supp playlist_io ui_common
 depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
 
 #3rdparty
-libraries += lhasa z z80ex
-depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
+libraries += lhasa unrar z z80ex
+depends += 3rdparty/lhasa/lib 3rdparty/unrar 3rdparty/z80ex 3rdparty/zlib
 
 boost_libraries = thread system filesystem
 
