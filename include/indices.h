@@ -176,7 +176,7 @@ private:
   Position GetPosition(uint_t val) const
   {
     const uint_t off = val - Min;
-    return Position(off / BITS_PER_MASK, 1 << (off % BITS_PER_MASK));
+    return Position(off / BITS_PER_MASK, uint_t(1) << (off % BITS_PER_MASK));
   }
 private:
   static const uint_t BITS_PER_MASK = 8 * sizeof(uint_t);
