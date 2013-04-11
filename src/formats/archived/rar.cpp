@@ -19,7 +19,7 @@ Author:
 #include <formats/packed/rar_supp.h>
 //std includes
 #include <cstring>
-#include <list>
+#include <deque>
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
@@ -40,33 +40,6 @@ namespace Rar
     fromLE<uint16_t>(0x1a21),
     fromLE<uint16_t>(0x0007)
   };
-
-  /*
-  class StubFile : public Archived::File
-  {
-  public:
-    virtual String GetName() const
-    {
-      return String();
-    }
-
-    virtual Binary::Container::Ptr GetData() const
-    {
-      return Binary::Container::Ptr();
-    }
-
-    virtual std::size_t GetSize() const
-    {
-      return 0;
-    }
-
-    static Ptr Create()
-    {
-      static StubFile stub;
-      return Ptr(&stub, NullDeleter<StubFile>());
-    }
-  };
-  */
 
   struct FileBlock
   {
@@ -104,6 +77,16 @@ namespace Rar
     }
   };
 
+  bool BlockIsLess(const FileBlock& lh, std::size_t rh)
+  {
+    return lh.Offset <= rh;
+  }
+
+  bool OffsetIsLess(std::size_t lh, const FileBlock& rh)
+  {
+    return lh <= rh.Offset;
+  }
+
   class ChainDecoder
   {
   public:
@@ -139,10 +122,8 @@ namespace Rar
       const std::size_t decodeStart = LastDecodedBlockOffset >= block.Offset ? 0 : LastDecodedBlockOffset;
       const std::size_t decodeEnd = block.Offset;
 
-      const BlocksList::const_iterator start = std::find_if(Blocks.begin(), Blocks.end(),
-        boost::bind(&FileBlock::Offset, _1) > decodeStart);
-      const BlocksList::const_iterator end = std::find_if(start, Blocks.end(),
-        boost::bind(&FileBlock::Offset, _1) >= decodeEnd);
+      const BlocksList::const_iterator start = std::lower_bound(Blocks.begin(), Blocks.end(), decodeStart, &BlockIsLess);
+      const BlocksList::const_iterator end = std::upper_bound(start, Blocks.end(), decodeEnd, &OffsetIsLess);
       Dbg(" Decoding %1% parent blocks for %2% @%3%..%4%",
         std::distance(start, end), block.Offset, decodeStart, decodeEnd);
       //TODO: may be non-solid blocks between start and end?
@@ -169,7 +150,7 @@ namespace Rar
   private:
     const Binary::Container::Ptr Data;
     const Formats::Packed::Decoder::Ptr StatefulDecoder;
-    typedef std::vector<FileBlock> BlocksList;
+    typedef std::deque<FileBlock> BlocksList;
     BlocksList Blocks;
     mutable std::size_t LastDecodedBlockOffset;
   };
@@ -480,7 +461,7 @@ namespace Rar
     const Binary::Container::Ptr Delegate;
     const uint_t FilesCount;
     mutable std::auto_ptr<FileIterator> Iter;
-    typedef std::list<Archived::File::Ptr> FilesList;
+    typedef std::deque<Archived::File::Ptr> FilesList;
     mutable FilesList Files;
   };
 
