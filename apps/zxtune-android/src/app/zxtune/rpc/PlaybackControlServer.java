@@ -10,13 +10,13 @@ package app.zxtune.rpc;
 import java.util.concurrent.TimeUnit;
 
 import android.net.Uri;
-import app.zxtune.Playback;
+import app.zxtune.playback.Control;
 
 public class PlaybackControlServer extends IPlaybackControl.Stub {
 
-  private final Playback.Control delegate;
+  private final Control delegate;
 
-  public PlaybackControlServer(Playback.Control delegate) {
+  public PlaybackControlServer(Control delegate) {
     this.delegate = delegate;
   }
 

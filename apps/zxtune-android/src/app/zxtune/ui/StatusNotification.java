@@ -14,10 +14,13 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
-import app.zxtune.Playback;
 import app.zxtune.R;
+import app.zxtune.playback.Control;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.Status;
 
-public class StatusNotification implements Playback.Callback {
+public class StatusNotification implements Callback {
 
   private final Service service;
   private final NotificationManager manager;
@@ -31,9 +34,13 @@ public class StatusNotification implements Playback.Callback {
     builder.setOngoing(true);
     builder.setContentIntent(PendingIntent.getActivity(service, 0, intent, 0));
   }
+  
+  @Override
+  public void onControlChanged(Control control) {
+  }
 
   @Override
-  public void itemChanged(Playback.Item item) {
+  public void onItemChanged(Item item) {
     String title = item.getTitle();
     final String author = item.getAuthor();
     String ticker;
@@ -51,7 +58,7 @@ public class StatusNotification implements Playback.Callback {
   }
 
   @Override
-  public void statusChanged(Playback.Status status) {
+  public void onStatusChanged(Status status) {
     switch (status) {
       case PLAYING:
         builder.setSmallIcon(R.drawable.ic_stat_notify_play);

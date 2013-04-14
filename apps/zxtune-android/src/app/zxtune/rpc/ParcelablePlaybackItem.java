@@ -1,6 +1,6 @@
 /*
  * @file
- * @brief Parcelable implementation of Playback.Item
+ * @brief Parcelable implementation of app.zxtune.playback.Item
  * @version $Id:$
  * @author (C) Vitamin/CAIG
  */
@@ -12,10 +12,10 @@ import java.util.concurrent.TimeUnit;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
-import app.zxtune.Playback;
 import app.zxtune.TimeStamp;
+import app.zxtune.playback.Item;
 
-public final class ParcelablePlaybackItem implements Playback.Item, Parcelable {
+final class ParcelablePlaybackItem implements Item, Parcelable {
 
   public static final Parcelable.Creator<ParcelablePlaybackItem> CREATOR =
       new Parcelable.Creator<ParcelablePlaybackItem>() {
@@ -30,7 +30,7 @@ public final class ParcelablePlaybackItem implements Playback.Item, Parcelable {
         }
       };
       
-  public static ParcelablePlaybackItem create(Playback.Item src) {
+  public static ParcelablePlaybackItem create(Item src) {
     return src != null ? new ParcelablePlaybackItem(src) : null;
   }
 
@@ -40,7 +40,7 @@ public final class ParcelablePlaybackItem implements Playback.Item, Parcelable {
   private final String author;
   private final TimeStamp duration;
 
-  private ParcelablePlaybackItem(Playback.Item src) {
+  private ParcelablePlaybackItem(Item src) {
     this.id = src.getId();
     this.dataId = src.getDataId();
     this.title = src.getTitle();

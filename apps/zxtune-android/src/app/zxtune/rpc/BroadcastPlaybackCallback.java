@@ -9,27 +9,34 @@ package app.zxtune.rpc;
 
 import android.content.Context;
 import android.content.Intent;
-import app.zxtune.Playback;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.Control;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.Status;
 
-public class BroadcastPlaybackCallback implements Playback.Callback {
+public final class BroadcastPlaybackCallback implements Callback {
 
   private final Context context;
 
   public BroadcastPlaybackCallback(Context context) {
     this.context = context;
   }
+  
+  @Override
+  public void onControlChanged(Control control) {
+  }
 
   @Override
-  public void itemChanged(Playback.Item item) {
-    final Intent intent = new Intent(Playback.Item.class.getName());
-    intent.putExtra(Playback.Item.class.getSimpleName(), ParcelablePlaybackItem.create(item));
+  public void onItemChanged(Item item) {
+    final Intent intent = new Intent(Item.class.getName());
+    intent.putExtra(Item.class.getSimpleName(), ParcelablePlaybackItem.create(item));
     context.sendBroadcast(intent);
   }
 
   @Override
-  public void statusChanged(Playback.Status status) {
-    final Intent intent = new Intent(Playback.Status.class.getName());
-    intent.putExtra(Playback.Status.class.getSimpleName(), status.name());
+  public void onStatusChanged(Status status) {
+    final Intent intent = new Intent(Status.class.getName());
+    intent.putExtra(Status.class.getSimpleName(), status.name());
     context.sendBroadcast(intent);
   }
 }

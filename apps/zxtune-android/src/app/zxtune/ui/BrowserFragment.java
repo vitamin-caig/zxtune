@@ -39,13 +39,21 @@ public class BrowserFragment extends Fragment
 
   private static class Tags {
 
-    static final String LOG = "app.zxtune.ui.Browser";
+    static final String LOG = BrowserFragment.class.getName();
     static final String PATH = "path";
+  }
+  
+  public static Fragment createInstance() {
+    return new BrowserFragment();
+  }
+  
+  public BrowserFragment() {
+    setRetainInstance(true);
   }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.browser, null);
+    return container != null ? inflater.inflate(R.layout.browser, container, false) : null;
   }
 
   @Override
@@ -60,9 +68,9 @@ public class BrowserFragment extends Fragment
   }
 
   @Override
-  public void onViewStateRestored(Bundle inState) {
-    super.onViewStateRestored(inState);
-    final Uri lastPath = inState != null ? (Uri) inState.getParcelable(Tags.PATH) : Uri.EMPTY;
+  public void onActivityCreated(Bundle savedState) {
+    super.onActivityCreated(savedState);
+    final Uri lastPath = savedState != null ? (Uri) savedState.getParcelable(Tags.PATH) : Uri.EMPTY;
     Log.d(Tags.LOG, "Restore position: " + lastPath);
     setCurrentPath(lastPath);
   }

@@ -1,59 +1,106 @@
 /*
  * @file
- * 
  * @brief NowPlaying fragment class
- * 
  * @version $Id:$
- * 
  * @author (C) Vitamin/CAIG
  */
 
 package app.zxtune.ui;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import app.zxtune.Playback;
 import app.zxtune.R;
+import app.zxtune.Releaseable;
+import app.zxtune.RetainedCallbackSubscriptionFragment;
 import app.zxtune.TimeStamp;
-import app.zxtune.rpc.BroadcastPlaybackCallbackReceiver;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackSubscription;
+import app.zxtune.playback.Control;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.Status;
 
-public class NowPlayingFragment extends Fragment implements Playback.Callback {
+public class NowPlayingFragment extends Fragment {
 
-  private Playback.Control control;
+  private final static String TAG = NowPlayingFragment.class.getName();
+  private final Handler timer;
+  private final Runnable timerTask;
+  private Releaseable connection;
+  private Control control;
   private SeekBar seek;
   private TextView time;
-  private final Handler timer = new Handler();
-  private final Runnable timerTask = new Runnable() {
-    @Override
-    public void run() {
-      final TimeStamp pos = control.getPlaybackPosition();
-      if (pos == null) {
-        return;
-      }
-      seek.setProgress((int) pos.convertTo(TimeUnit.SECONDS));
-      time.setText(pos.toString());
 
-      timer.postDelayed(this, 1000);
-    }
-  };
-  private Closeable callbackHandler;
+  public static Fragment createInstance() {
+    return new NowPlayingFragment();
+  }
+
+  public NowPlayingFragment() {
+    this.timer = new Handler();
+    this.timerTask = new TimerTask();
+  }
+  
+  @Override
+  public void onActivityCreated(Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
+    
+    assert connection == null;
+  
+    Log.d(TAG, "Subscribe for service events");
+    final CallbackSubscription subscription = RetainedCallbackSubscriptionFragment.find(getFragmentManager());
+    connection = subscription.subscribe(new Callback() {
+      @Override
+      public void onControlChanged(Control control) {
+        NowPlayingFragment.this.control = control;
+        final boolean connected = control != null;
+        final View view = getView();
+        if (view != null) {
+          view.setEnabled(connected);
+        }
+        if (connected) {
+          onStatusChanged(control.getStatus());
+          onItemChanged(control.getItem());
+        } else {
+          stopUpdating();
+        }
+      }
+
+      @Override
+      public void onStatusChanged(Status status) {
+        switch (status) {
+          case PLAYING:
+            startUpdating();
+            break;
+          case STOPPED:
+            seek.setProgress(0);
+            time.setText(R.string.stub_time);
+          default:
+            stopUpdating();
+        }
+      }
+
+      @Override
+      public void onItemChanged(Item item) {
+        if (item != null) {
+          seek.setMax((int) item.getDuration().convertTo(TimeUnit.SECONDS));
+        }
+      }
+    });
+  }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.now_playing, null);
+    return container != null ? inflater.inflate(R.layout.now_playing, container, false) : null;
   }
-  
+
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     seek = (SeekBar) view.findViewById(R.id.position_seek);
@@ -77,62 +124,40 @@ public class NowPlayingFragment extends Fragment implements Playback.Callback {
       }
     });
   }
-  
-  @Override
-  public void onStart() {
-    super.onStart();
-    callbackHandler = new BroadcastPlaybackCallbackReceiver(getActivity(), this);
-  }
 
   @Override
-  public void onStop() {
-    super.onStop();
+  public void onDestroy() {
+    super.onDestroy();
+
     try {
-      callbackHandler.close();
-    } catch (IOException e) {
+      if (connection != null) {
+        Log.d(TAG, "Unsubscribe from service events");
+        connection.release();
+      }
     } finally {
-      callbackHandler = null;
-    }
-  }
-  
-  public void setControl(Playback.Control control) {
-    this.control = control;
-    final boolean connected = control != null;
-    getView().setEnabled(connected);
-    if (connected) {
-      itemChanged(control.getItem());
-      statusChanged(control.getStatus());
-    } else {
-      stopUpdating();
+      connection = null;
     }
   }
 
-  @Override
-  public void itemChanged(Playback.Item item) {
-    if (item != null) {
-      seek.setMax((int) item.getDuration().convertTo(TimeUnit.SECONDS));
-    }
-  }
-
-  @Override
-  public void statusChanged(Playback.Status status) {
-    switch (status) {
-      case PLAYING:
-        startUpdating();
-        break;
-      case STOPPED:
-        seek.setProgress(0);
-        time.setText(R.string.stub_time);
-      default:
-        stopUpdating();
-    }
-  }
-  
   private void startUpdating() {
     timer.post(timerTask);
   }
-  
+
   private void stopUpdating() {
     timer.removeCallbacks(timerTask);
   }
+
+  class TimerTask implements Runnable {
+    @Override
+    public void run() {
+      final TimeStamp pos = control.getPlaybackPosition();
+      if (pos == null) {
+        return;
+      }
+      seek.setProgress((int) pos.convertTo(TimeUnit.SECONDS));
+      time.setText(pos.toString());
+
+      timer.postDelayed(this, 1000);
+    }
+  };
 }

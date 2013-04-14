@@ -10,12 +10,7 @@
 
 package app.zxtune.ui;
 
-import java.io.Closeable;
-import java.io.IOException;
-
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,34 +19,44 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import app.zxtune.Playback;
-import app.zxtune.Playback.Item;
-import app.zxtune.Playback.Status;
-import app.zxtune.PlaybackService;
 import app.zxtune.R;
+import app.zxtune.Releaseable;
+import app.zxtune.RetainedCallbackSubscriptionFragment;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackSubscription;
+import app.zxtune.playback.Control;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.Status;
 import app.zxtune.playlist.Query;
-import app.zxtune.rpc.BroadcastPlaybackCallbackReceiver;
 
-public class PlaylistFragment extends Fragment implements PlaylistView.OnPlayitemClickListener, Playback.Callback {
+public class PlaylistFragment extends Fragment {
 
-  private Playback.Control control;
+  private static final String TAG = PlaylistFragment.class.getName();
+  private Releaseable connection;
+  private Control control;
   private PlaylistView listing;
-  private Closeable callbackHandler;
   private Uri nowPlaying = Uri.EMPTY;
+
+  public static Fragment createInstance() {
+    return new PlaylistFragment();
+  }
+  
+  @Override
+  public void onActivityCreated(Bundle savedInstanceState) {
+    super.onActivityCreated(savedInstanceState);
+    
+    assert connection == null;
+
+    Log.d(TAG, "Subscribe for service events");
+    final CallbackSubscription subscription = RetainedCallbackSubscriptionFragment.find(getFragmentManager());
+    connection = subscription.subscribe(new PlaybackCallback());
+  }
 
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    return inflater.inflate(R.layout.playlist, null);
+    return container != null ? inflater.inflate(R.layout.playlist, container, false) : null;
   }
   
-  public void setControl(Playback.Control control) {
-    this.control = control;
-    getView().setEnabled(control != null);
-    if (control != null) {
-      itemChanged(control.getItem());
-    }
-  }
-
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
@@ -59,7 +64,7 @@ public class PlaylistFragment extends Fragment implements PlaylistView.OnPlayite
     final Cursor cursor = activity.getContentResolver().query(Query.unparse(null), null, null, null, null);
     activity.startManagingCursor(cursor);
     listing = (PlaylistView) view.findViewById(R.id.playlist_content);
-    listing.setOnPlayitemClickListener(this);
+    listing.setOnPlayitemClickListener(new ItemClickListener());
     listing.setPlayitemStateSource(new PlaylistView.PlayitemStateSource() {
       @Override
       public boolean isPlaying(Uri playlistUri) {
@@ -70,43 +75,58 @@ public class PlaylistFragment extends Fragment implements PlaylistView.OnPlayite
   }
 
   @Override
-  public void onStart() {
-    super.onStart();
-    callbackHandler = new BroadcastPlaybackCallbackReceiver(getActivity(), this);
-  }
+  public void onDestroy() {
+    super.onDestroy();
 
-  @Override
-  public void onStop() {
-    super.onStop();
     try {
-      callbackHandler.close();
-    } catch (IOException e) {
+      if (connection != null) {
+        Log.d(TAG, "Unsubscribe from service events");
+        connection.release();
+      }
     } finally {
-      callbackHandler = null;
+      connection = null;
     }
   }
   
-  @Override
-  public void onPlayitemClick(Uri playlistUri) {
-    control.play(playlistUri);
-  }
-
-  @Override
-  public boolean onPlayitemLongClick(Uri playlistUri) {
-    getActivity().getContentResolver().delete(playlistUri, null, null);
-    return true;
-  }
-
-  @Override
-  public void statusChanged(Status status) {
-    listing.invalidateViews();
-    if (status == null) {
-      nowPlaying = Uri.EMPTY;
+  private class ItemClickListener implements PlaylistView.OnPlayitemClickListener {
+    
+    @Override
+    public void onPlayitemClick(Uri playlistUri) {
+      control.play(playlistUri);
+    }
+  
+    @Override
+    public boolean onPlayitemLongClick(Uri playlistUri) {
+      getActivity().getContentResolver().delete(playlistUri, null, null);
+      return true;
     }
   }
+
+  private class PlaybackCallback implements Callback {
+    
+    @Override
+    public void onControlChanged(Control control) {
+      PlaylistFragment.this.control = control;
+      final boolean connected = control != null;
+      listing.setEnabled(connected);
+      if (connected) {
+        onItemChanged(control.getItem());
+      } else {
+        onStatusChanged(null);
+      }
+    }
   
-  @Override
-  public void itemChanged(Item item) {
-    nowPlaying = item != null ? item.getId() : Uri.EMPTY;
+    @Override
+    public void onStatusChanged(Status status) {
+      listing.invalidateViews();
+      if (status.equals(Status.STOPPED)) {
+        nowPlaying = Uri.EMPTY;
+      }
+    }
+    
+    @Override
+    public void onItemChanged(Item item) {
+      nowPlaying = item != null ? item.getId() : Uri.EMPTY;
+    }
   }
 }

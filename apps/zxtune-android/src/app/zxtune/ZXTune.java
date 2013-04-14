@@ -7,7 +7,6 @@
 
 package app.zxtune;
 
-import java.io.Closeable;
 import java.lang.RuntimeException;
 
 public final class ZXTune {
@@ -104,7 +103,7 @@ public final class ZXTune {
   /**
    * Abstract data storage used to create module upon
    */
-  public interface Data extends Closeable {
+  public interface Data extends Releaseable {
 
     /**
      * Creates new module object
@@ -118,7 +117,7 @@ public final class ZXTune {
   /**
    * Module interface
    */
-  public interface Module extends Closeable, Properties.Accessor {
+  public interface Module extends Releaseable, Properties.Accessor {
 
     /**
      * Attributes 'namespace'
@@ -157,7 +156,7 @@ public final class ZXTune {
   /**
    * Player interface
    */
-  public interface Player extends Closeable, Properties.Accessor, Properties.Modifier {
+  public interface Player extends Releaseable, Properties.Accessor, Properties.Modifier {
     
     /**
      * @return Position of next rendered frame
@@ -184,7 +183,7 @@ public final class ZXTune {
   /**
    * Base object of all the native implementations
    */
-  private static class NativeObject implements Closeable {
+  private static class NativeObject implements Releaseable {
 
     protected int handle;
 
@@ -196,12 +195,7 @@ public final class ZXTune {
     }
 
     @Override
-    protected void finalize() {
-      close();
-    }
-
-    @Override
-    public void close() {
+    public void release() {
       Handle_Close(handle);
       handle = 0;
     }

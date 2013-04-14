@@ -7,7 +7,6 @@
 
 package app.zxtune;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -20,10 +19,15 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
+import app.zxtune.ZXTune.Player;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.CompositeCallback;
+import app.zxtune.playback.Control;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.Status;
+import app.zxtune.playlist.Database;
 import app.zxtune.rpc.BroadcastPlaybackCallback;
 import app.zxtune.rpc.PlaybackControlServer;
-import app.zxtune.ZXTune.Player;
-import app.zxtune.playlist.Database;
 import app.zxtune.sound.AsyncPlayback;
 import app.zxtune.ui.StatusNotification;
 
@@ -31,7 +35,7 @@ public class PlaybackService extends Service {
 
   private final static String TAG = "app.zxtune.Service";
 
-  private Playback.Control ctrl;
+  private Control ctrl;
   private IBinder binder;
 
   @Override
@@ -40,9 +44,10 @@ public class PlaybackService extends Service {
 
     final Intent intent = new Intent(this, MainActivity.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    final Playback.Callback notification = new StatusNotification(this, intent);
-    final Playback.Callback broadcast = new BroadcastPlaybackCallback(this);
-    final Playback.Callback callback = new DoublePlaybackCallback(notification, broadcast);
+    final CompositeCallback callback = new CompositeCallback();
+    final StatusNotification notification = new StatusNotification(this, intent);
+    final BroadcastPlaybackCallback broadcast = new BroadcastPlaybackCallback(this);
+    callback.add(notification).add(broadcast);
     ctrl = new PlaybackControl(callback);
     binder = new PlaybackControlServer(ctrl);
   }
@@ -71,35 +76,35 @@ public class PlaybackService extends Service {
       ctrl.play(uri);
     } else if (action.equals(Intent.ACTION_INSERT)) {
       /*
-      Log.d(TAG, "Adding to playlist all modules from " + uri);
-      */
+       * Log.d(TAG, "Adding to playlist all modules from " + uri);
+       */
     }
   }
 
   /*
-  private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
-    final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
-    final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
-    final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
-    final int duration = module.getDuration() * 20;//TODO
-    final ContentValues values = new ContentValues();
-    values.put(Database.Tables.Playlist.Fields.uri.name(), uri.toString());
-    values.put(Database.Tables.Playlist.Fields.type.name(), type);
-    values.put(Database.Tables.Playlist.Fields.author.name(), author);
-    values.put(Database.Tables.Playlist.Fields.title.name(), title);
-    values.put(Database.Tables.Playlist.Fields.duration.name(), duration);
-    getContentResolver().insert(Query.unparse(null), values);
-  }
-  */
+   * private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
+   * final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
+   * final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
+   * final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
+   * final int duration = module.getDuration() * 20;//TODO
+   * final ContentValues values = new ContentValues();
+   * values.put(Database.Tables.Playlist.Fields.uri.name(), uri.toString());
+   * values.put(Database.Tables.Playlist.Fields.type.name(), type);
+   * values.put(Database.Tables.Playlist.Fields.author.name(), author);
+   * values.put(Database.Tables.Playlist.Fields.title.name(), title);
+   * values.put(Database.Tables.Playlist.Fields.duration.name(), duration);
+   * getContentResolver().insert(Query.unparse(null), values);
+   * }
+   */
 
   @Override
   public IBinder onBind(Intent intent) {
     Log.d(TAG, "onBind called");
     return binder;
   }
-  
-  interface PlayableItem extends Playback.Item, Closeable {
-    
+
+  interface PlayableItem extends Item, Releaseable {
+
     public ZXTune.Player createPlayer();
   }
 
@@ -135,12 +140,12 @@ public class PlaybackService extends Service {
       }
     }
   }
-  
-  private static ZXTune.Module openModule(Uri path) throws IOException {
+
+  private static ZXTune.Module openModule(Uri path) {
     final byte[] content = loadFile(path.getPath());
     final ZXTune.Data data = ZXTune.createData(content);
     final ZXTune.Module module = data.createModule();
-    data.close();
+    data.release();
     return module;
   }
 
@@ -159,38 +164,15 @@ public class PlaybackService extends Service {
     }
   }
 
-  private static class DoublePlaybackCallback implements Playback.Callback {
-
-    private final Playback.Callback first;
-    private final Playback.Callback second;
-    
-    public DoublePlaybackCallback(Playback.Callback first, Playback.Callback second) {
-      this.first = first;
-      this.second = second;
-    }
-
-    @Override
-    public void itemChanged(Playback.Item item) {
-      first.itemChanged(item);
-      second.itemChanged(item);
-    }
-
-    @Override
-    public void statusChanged(Playback.Status status) {
-      first.statusChanged(status);
-      second.statusChanged(status);
-    }
-  }
-  
   private static class ActiveItem implements PlayableItem {
-    
+
     private ZXTune.Module module;
     private final Uri id;
     private final Uri dataId;
     private final String title;
     private final String author;
     private final TimeStamp duration;
-    
+
     public ActiveItem(Uri id, Uri dataId, ZXTune.Module module) {
       this.module = module;
       this.id = id;
@@ -200,7 +182,7 @@ public class PlaybackService extends Service {
       //TODO
       this.duration = new TimeStamp(20 * module.getDuration(), TimeUnit.MILLISECONDS);
     }
-    
+
     @Override
     public Uri getId() {
       return id;
@@ -227,9 +209,12 @@ public class PlaybackService extends Service {
     }
 
     @Override
-    public void close() throws IOException {
-      if (module != null) {
-        module.close();
+    public void release() {
+      try {
+        if (module != null) {
+          module.release();
+        }
+      } finally {
         module = null;
       }
     }
@@ -240,29 +225,30 @@ public class PlaybackService extends Service {
     }
   }
 
-  private class PlaybackControl implements Playback.Control {
-    
-    private final Playback.Callback callback;
+  private class PlaybackControl implements Control {
+
+    private final Callback callback;
     private PlaybackSource source;
     private AsyncPlayback playback;
-    
-    PlaybackControl(Playback.Callback callback) {
+
+    PlaybackControl(Callback callback) {
       this.callback = callback;
+      callback.onControlChanged(this);
     }
 
     @Override
-    public Playback.Item getItem() {
+    public Item getItem() {
       return source != null ? source.getItem() : null;
     }
-    
+
     @Override
     public TimeStamp getPlaybackPosition() {
       return source != null ? source.getPosition() : null;
     }
 
     @Override
-    public Playback.Status getStatus() {
-      return source != null ? source.getStatus() : Playback.Status.STOPPED;
+    public Status getStatus() {
+      return source != null ? source.getStatus() : Status.STOPPED;
     }
 
     @Override
@@ -275,8 +261,7 @@ public class PlaybackService extends Service {
         final AsyncPlayback playback = new AsyncPlayback(source);
         this.playback = playback;
         play();
-      } catch (IOException e) {
-      }
+      } catch (IOException e) {}
     }
 
     @Override
@@ -306,141 +291,76 @@ public class PlaybackService extends Service {
       }
     }
   }
-  
-  /*
-  private static class CompositePlaybackSource implements AsyncPlayback.Source {
-    
-    private Enumeration<AsyncPlayback.Source> sources;
-    private int freqRate;
-    private AsyncPlayback.Source current;
-    
-    // @invariant sources should not be empty 
-    public CompositePlaybackSource(Enumeration<AsyncPlayback.Source> sources) {
-      this.sources = sources;
-      this.current = sources.nextElement();
-    }
-    
-    @Override
-    public void startup(int freqRate) {
-      this.freqRate = freqRate;
-      current.startup(freqRate);
-    }
-
-    @Override
-    public void suspend() {
-      current.suspend();
-    }
-
-    @Override
-    public void resume() {
-      current.resume();
-    }
-
-    @Override
-    public void shutdown() {
-      current.shutdown();
-    }
-    
-    @Override
-    public boolean getNextSoundChunk(byte[] buf) {
-      if (current.getNextSoundChunk(buf)) {
-        return true;
-      }
-      return getNextSource();
-    }
-
-    @Override
-    public void close() throws IOException {
-      sources = null;
-      closeCurrent();
-      current = null;
-    }
-    
-    private boolean getNextSource() {
-      try {
-        if (sources.hasMoreElements()) {
-          closeCurrent();
-          moveToNext();
-          return true;
-        }
-      } catch (IOException e) {
-      }
-      return false;
-    }
-    
-    private void closeCurrent() throws IOException {
-      current.shutdown();
-      current.close();
-      current = null;
-    }
-    
-    private void moveToNext() {
-      current = sources.nextElement();
-      current.startup(freqRate);
-    }
-  }
-  */
 
   private static class PlaybackSource implements AsyncPlayback.Source {
 
     private final PlayableItem item;
-    private final Playback.Callback callback;
-    private Playback.Status status;
+    private final Callback callback;
+    private Status status;
     private ZXTune.Player player;
 
-    public PlaybackSource(PlayableItem item, Playback.Callback callback) {
+    public PlaybackSource(PlayableItem item, Callback callback) {
       this.item = item;
       this.callback = callback;
-      this.status = Playback.Status.STOPPED;
+      this.status = Status.STOPPED;
+      callback.onItemChanged(item);
     }
 
     @Override
     public void startup(int freqRate) {
-      player = item.createPlayer();
-      player.setProperty(ZXTune.Properties.Sound.FREQUENCY, freqRate);
-      player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, 1);
-      callback.itemChanged(item);
-      callback.statusChanged(status = Playback.Status.PLAYING);
+      synchronized (status) {
+        player = item.createPlayer();
+        player.setProperty(ZXTune.Properties.Sound.FREQUENCY, freqRate);
+        player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, 1);
+        callback.onStatusChanged(status = Status.PLAYING);
+      }
     }
 
     @Override
     public void suspend() {
-      callback.statusChanged(status = Playback.Status.PAUSED);
+      synchronized (status) {
+        callback.onStatusChanged(status = Status.PAUSED);
+      }
     }
 
     @Override
     public void resume() {
-      callback.statusChanged(status = Playback.Status.PLAYING);
+      synchronized (status) {
+        callback.onStatusChanged(status = Status.PLAYING);
+      }
     }
 
     @Override
     public void shutdown() {
-      callback.statusChanged(status = Playback.Status.STOPPED);
-      try {
-        player.close();
-      } catch (IOException e) {
-      } finally {
-        player = null;
+      synchronized (status) {
+        callback.onStatusChanged(status = Status.STOPPED);
+        try {
+          player.release();
+        } finally {
+          player = null;
+        }
       }
     }
-    
+
     @Override
     public boolean getNextSoundChunk(byte[] buf) {
       return player.render(buf);
     }
 
-    public Playback.Item getItem() {
+    public Item getItem() {
       return item;
     }
-    
-    public Playback.Status getStatus() {
+
+    public Status getStatus() {
       return status;
     }
-    
+
     public TimeStamp getPosition() {
-      final int frame = player.getPosition();
-      //TODO
-      return new TimeStamp(20 * frame, TimeUnit.MILLISECONDS);
+      synchronized (status) {
+        final int frame = player != null ? player.getPosition() : 0;
+        //TODO
+        return new TimeStamp(20 * frame, TimeUnit.MILLISECONDS);
+      }
     }
   }
 }
