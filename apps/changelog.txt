@@ -7,6 +7,11 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Full support of RAR format (from 1.5 to 3.6)
+[*] Fixed solid RAR archives processing
+
+--- Rev2327 from 09.03.2013
+
 [+] FastTracker modules support (FTC)
 [*] Skip old RAR archives (prior to 2.0)
 
