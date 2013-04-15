@@ -10,7 +10,6 @@
     android:layout_height="wrap_content"
     android:layout_weight="1"
     android:src="@drawable/ic_prev"
-    android:contentDescription="@string/prev"
     />
   <ImageButton
     android:id="@+id/controls_play"
@@ -18,7 +17,6 @@
     android:layout_height="wrap_content"
     android:layout_weight="1"
     android:src="@drawable/ic_play"
-    android:contentDescription="@string/play"
     />
   <ImageButton
     android:id="@+id/controls_pause"
@@ -26,7 +24,6 @@
     android:layout_height="wrap_content"
     android:layout_weight="1"
     android:src="@drawable/ic_pause"
-    android:contentDescription="@string/pause"
     />
   <ImageButton
     android:id="@+id/controls_stop"
@@ -34,7 +31,6 @@
     android:layout_height="wrap_content"
     android:layout_weight="1"
     android:src="@drawable/ic_stop"
-    android:contentDescription="@string/stop"
     />
   <ImageButton
     android:id="@+id/controls_next"
@@ -42,6 +38,5 @@
     android:layout_height="wrap_content"
     android:layout_weight="1"
     android:src="@drawable/ic_next"
-    android:contentDescription="@string/next"
     />
 </LinearLayout>

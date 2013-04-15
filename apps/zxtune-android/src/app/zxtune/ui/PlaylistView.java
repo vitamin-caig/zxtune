@@ -158,12 +158,7 @@ public class PlaylistView extends ListView
       } else {
         title.setText(item.getTitle());
       }
-      if (0 == item.getAuthor().length()) {
-        author.setVisibility(View.GONE);
-      } else {
-        author.setText(item.getAuthor());
-        author.setVisibility(View.VISIBLE);
-      }
+      author.setText(item.getAuthor());
     }
 
     private void bindDuration(Item item, View view) {
@@ -172,9 +167,9 @@ public class PlaylistView extends ListView
     }
     
     private void bindState(PlayitemStateSource source, Item item, View view) {
-      final boolean playing = source.isPlaying(item.getUri());
       final ImageView state = (ImageView) view.findViewById(R.id.playlist_item_state);
-      state.setImageResource(playing ? R.drawable.ic_play : 0);
+      final boolean playing = source.isPlaying(item.getUri());
+      state.setImageResource(playing ? R.drawable.ic_status_play : 0);
     }
   }
 }

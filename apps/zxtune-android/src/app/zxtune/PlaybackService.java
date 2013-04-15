@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import android.app.Service;
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -26,6 +27,7 @@ import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.Status;
 import app.zxtune.playlist.Database;
+import app.zxtune.playlist.Query;
 import app.zxtune.rpc.BroadcastPlaybackCallback;
 import app.zxtune.rpc.PlaybackControlServer;
 import app.zxtune.sound.AsyncPlayback;
@@ -75,27 +77,27 @@ public class PlaybackService extends Service {
       Log.d(TAG, "Playing module " + uri);
       ctrl.play(uri);
     } else if (action.equals(Intent.ACTION_INSERT)) {
-      /*
-       * Log.d(TAG, "Adding to playlist all modules from " + uri);
-       */
+      Log.d(TAG, "Adding to playlist all modules from " + uri);
+      final Uri dataUri = getDataUri(uri);
+      final ZXTune.Module module = openModule(dataUri);
+      addModuleToPlaylist(uri, module);
     }
   }
 
-  /*
-   * private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
-   * final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
-   * final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
-   * final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
-   * final int duration = module.getDuration() * 20;//TODO
-   * final ContentValues values = new ContentValues();
-   * values.put(Database.Tables.Playlist.Fields.uri.name(), uri.toString());
-   * values.put(Database.Tables.Playlist.Fields.type.name(), type);
-   * values.put(Database.Tables.Playlist.Fields.author.name(), author);
-   * values.put(Database.Tables.Playlist.Fields.title.name(), title);
-   * values.put(Database.Tables.Playlist.Fields.duration.name(), duration);
-   * getContentResolver().insert(Query.unparse(null), values);
-   * }
-   */
+  private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
+    final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
+    final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
+    final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
+    final int duration = module.getDuration() * 20;//TODO
+    final ContentValues values = new ContentValues();
+    values.put(Database.Tables.Playlist.Fields.uri.name(), uri.toString());
+    values.put(Database.Tables.Playlist.Fields.type.name(), type);
+    values.put(Database.Tables.Playlist.Fields.author.name(), author);
+    values.put(Database.Tables.Playlist.Fields.title.name(), title);
+    values.put(Database.Tables.Playlist.Fields.duration.name(), duration);
+    getContentResolver().insert(Query.unparse(null), values);
+  }
+   
 
   @Override
   public IBinder onBind(Intent intent) {
