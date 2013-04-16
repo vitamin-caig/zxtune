@@ -63,6 +63,8 @@ namespace
     using namespace Devices::AYM;
     switch (mode)
     {
+    case 0:
+      return LAYOUT_MONO;
     case 1:
       return LAYOUT_ABC;
     case 2:
@@ -103,10 +105,7 @@ namespace
 
     virtual void SetStereoMode(uint_t mode)
     {
-      if (mode)//mono is not supported here
-      {
-        Props.GetInternalContainer()->SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, VtxMode2AymLayout(mode));
-      }
+      Props.GetInternalContainer()->SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, VtxMode2AymLayout(mode));
     }
 
     virtual void SetLoop(uint_t loop)
