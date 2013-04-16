@@ -106,6 +106,12 @@ namespace Hrust2
         SUBDIR = 128
       };
 
+      bool Check() const
+      {
+        static const uint8_t SIGNATURE[] = {'H', 'r', 's', 't', '2'};
+        return 0 == std::memcmp(ID, SIGNATURE, ArraySize(ID));
+      }
+
       std::size_t GetSize() const
       {
         return offsetof(FormatHeader, PackedCRC) + AdditionalSize;
@@ -198,7 +204,7 @@ namespace Hrust2
   public:
     RawDataDecoder(const RawHeader& header, std::size_t rawSize)
       : Header(header)
-      , Stream(Header.BitStream, rawSize)
+      , Stream(Header.BitStream, rawSize - offsetof(RawHeader, BitStream))
       , IsValid(!Stream.Eof())
       , Result(new Dump())
       , Decoded(*Result)
@@ -488,9 +494,16 @@ namespace Hrust2
 
     Binary::Container::Ptr DecodeBlock(const Binary::Container& data)
     {
-      const RawHeader& block = *safe_ptr_cast<const RawHeader*>(data.Start());
-      RawDataDecoder decoder(block, data.Size());
-      return Binary::CreateContainer(decoder.GetResult());
+      if (data.Size() >= sizeof(RawHeader))
+      {
+        const RawHeader& block = *safe_ptr_cast<const RawHeader*>(data.Start());
+        RawDataDecoder decoder(block, data.Size());
+        return Binary::CreateContainer(decoder.GetResult());
+      }
+      else
+      {
+        return Binary::Container::Ptr();
+      }
     }
 
     class DataDecoder
@@ -525,16 +538,23 @@ namespace Hrust2
         {
           if (const FormatHeader* hdr = source.GetField<FormatHeader>(offset))
           {
-            const std::size_t blockEnd = offset + hdr->GetTotalSize();
-            if (blockEnd > Data.Size())
+            if (!hdr->Check())
             {
               break;
             }
+            const std::size_t blockEnd = offset + hdr->GetTotalSize();
             const std::size_t packedOffset = offset + hdr->GetSize();
             const std::size_t packedSize = blockEnd - packedOffset;
+            if (blockEnd > Data.Size() || 0 == packedSize)
+            {
+              break;
+            }
             const Binary::Container::Ptr packedData = Data.GetSubcontainer(packedOffset, packedSize);
-            const bool storedBlock = (0 != (hdr->Flag & FormatHeader::STORED_BLOCK));
-            if (const Binary::Container::Ptr unpackedData = storedBlock ? packedData : DecodeBlock(*packedData))
+            if (0 != (hdr->Flag & FormatHeader::STORED_BLOCK))
+            {
+              target.AddBlock(packedData);
+            }
+            else if (const Binary::Container::Ptr unpackedData = DecodeBlock(*packedData))
             {
               target.AddBlock(unpackedData);
             }
