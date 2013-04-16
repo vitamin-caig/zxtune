@@ -52,12 +52,15 @@ namespace
 
     virtual void UpdateState()
     {
-      textPosition->setText(QString::number(TrackState->Position()));
-      textPattern->setText(QString::number(TrackState->Pattern()));
-      textLine->setText(QString::number(TrackState->Line()));
-      textFrame->setText(QString::number(TrackState->Quirk()));
-      textChannels->setText(QString::number(TrackState->Channels()));
-      textTempo->setText(QString::number(TrackState->Tempo()));
+      if (isVisible())
+      {
+        textPosition->setText(QString::number(TrackState->Position()));
+        textPattern->setText(QString::number(TrackState->Pattern()));
+        textLine->setText(QString::number(TrackState->Line()));
+        textFrame->setText(QString::number(TrackState->Quirk()));
+        textChannels->setText(QString::number(TrackState->Channels()));
+        textTempo->setText(QString::number(TrackState->Tempo()));
+      }
     }
 
     virtual void CloseState()

@@ -31,7 +31,6 @@ namespace
   public:
     VolumeControlImpl(QWidget& parent, PlaybackSupport& supp)
       : ::VolumeControl(parent)
-      , LastUpdateTime(0)
     {
       //setup self
       setupUi(this);
@@ -51,14 +50,7 @@ namespace
 
     virtual void UpdateState()
     {
-      //slight optimization
-      const std::time_t thisTime = std::time(0);
-      if (thisTime == LastUpdateTime)
-      {
-        return;
-      }
-      LastUpdateTime = thisTime;
-      if (Controller && !volumeLevel->isSliderDown())
+      if (isVisible() && Controller && !volumeLevel->isSliderDown())
       {
         UpdateVolumeSlider();
       }
@@ -99,7 +91,6 @@ namespace
     }
   private:
     ZXTune::Sound::VolumeControl::Ptr Controller;
-    std::time_t LastUpdateTime;
   };
 }
 

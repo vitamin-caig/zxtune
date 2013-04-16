@@ -52,6 +52,10 @@ namespace
 
     virtual void UpdateState()
     {
+      if (!isVisible())
+      {
+        return;
+      }
       const uint_t curFrame = TrackState->Frame();
       if (timePosition->isSliderDown())
       {

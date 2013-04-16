@@ -60,12 +60,20 @@ namespace
       DACOptions->setVisible(caps.IsDAC());
       SetEnabled(true);
 
-      AdjustedParameters = item->GetAdjustedParameters();
+      const Parameters::Accessor::Ptr properties = item->GetModule()->GetModuleProperties();
+      if (const Parameters::Accessor::Ptr adjusted = item->GetAdjustedParameters())
+      {
+        AdjustedParameters = CreateMergedAccessor(adjusted, properties);
+      }
+      else
+      {
+        AdjustedParameters = properties;
+      }
     }
 
     virtual void UpdateState()
     {
-      if (AdjustedParameters)
+      if (isVisible() && AdjustedParameters)
       {
         //TODO: use walker?
         Parameters::IntType val;

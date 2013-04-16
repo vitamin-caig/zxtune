@@ -75,8 +75,8 @@ namespace
       : PlaybackSupport(parent)
       , Params(sndOptions)
     {
-      const unsigned UPDATE_FPS = 10;
-      Timer.setInterval(1000 / UPDATE_FPS);
+      const unsigned UI_UPDATE_FPS = 5;
+      Timer.setInterval(1000 / UI_UPDATE_FPS);
       Require(Timer.connect(this, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(start())));
       Require(Timer.connect(this, SIGNAL(OnStopModule()), SLOT(stop())));
       Require(connect(&Timer, SIGNAL(timeout()), SIGNAL(OnUpdateState())));
