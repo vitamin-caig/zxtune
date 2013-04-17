@@ -199,27 +199,21 @@ namespace
     ::HWAVEOUT Handle;
   };
 
-  class WaveTarget
+  class WaveBuffer
   {
   public:
-    typedef boost::shared_ptr<WaveTarget> Ptr;
-    virtual ~WaveTarget() {}
+    typedef boost::shared_ptr<WaveBuffer> Ptr;
 
-    virtual std::size_t Write(const OutputSample* buf, std::size_t samples) = 0;
-  };
-
-  class WaveBuffer : public WaveTarget
-  {
-  public:
     WaveBuffer(WaveOutDevice::Ptr device, std::size_t size)
       : Device(device)
       , Buffer(size)
       , Header()
+      , Available()
     {
       Allocate();
     }
 
-    virtual ~WaveBuffer()
+    ~WaveBuffer()
     {
       try
       {
@@ -231,23 +225,34 @@ namespace
       }
     }
 
-    virtual std::size_t Write(const OutputSample* buf, std::size_t samples)
+    std::size_t Write(const OutputSample* buf, std::size_t samples)
     {
       WaitForBufferDone();
       assert(Header.dwFlags & WHDR_DONE);
-      const std::size_t toWrite = std::min<std::size_t>(samples, Buffer.size());
+      const std::size_t toWrite = std::min<std::size_t>(samples, Available);
       Header.dwBufferLength = static_cast< ::DWORD>(toWrite * sizeof(Buffer.front()));
+      OutputSample* const target = safe_ptr_cast<OutputSample*>(Header.lpData) + Buffer.size() - Available;
       if (SamplesShouldBeConverted)
       {
-        ChangeSignCopy(buf, buf + toWrite, safe_ptr_cast<OutputSample*>(Header.lpData));
+        ChangeSignCopy(buf, buf + toWrite, target);
       }
       else
       {
-        std::memcpy(Header.lpData, buf, toWrite * sizeof(*buf));
+        std::memcpy(target, buf, toWrite * sizeof(*buf));
       }
+      Available -= toWrite;
+      return toWrite;
+    }
+
+    bool IsFull() const
+    {
+      return 0 == Available;
+    }
+
+    void Commit()
+    {
       Header.dwFlags &= ~WHDR_DONE;
       Device->Write(Header);
-      return toWrite;
     }
   private:
     void Allocate()
@@ -258,6 +263,7 @@ namespace
       Device->PrepareHeader(Header);
       //mark as free
       Header.dwFlags |= WHDR_DONE;
+      Available = Buffer.size();
     }
 
     void Reset()
@@ -273,17 +279,21 @@ namespace
       while (!(Header.dwFlags & WHDR_DONE))
       {
         Device->WaitForBufferComplete();
+        Available = Buffer.size();
       }
     }
   private:
     const WaveOutDevice::Ptr Device;
     const Chunk Buffer;
     ::WAVEHDR Header;
+    std::size_t Available;
   };
 
-  class CycledWaveBuffer : public WaveTarget
+  class CycledWaveBuffer
   {
   public:
+    typedef boost::shared_ptr<CycledWaveBuffer> Ptr;
+
     CycledWaveBuffer(WaveOutDevice::Ptr device, std::size_t size, std::size_t count)
       : Buffers(count)
       , Cursor()
@@ -294,7 +304,7 @@ namespace
       }
     }
 
-    virtual ~CycledWaveBuffer()
+    ~CycledWaveBuffer()
     {
       try
       {
@@ -306,19 +316,20 @@ namespace
       }
     }
 
-    virtual std::size_t Write(const OutputSample* buf, std::size_t samples)
+    void Write(const OutputSample* buf, std::size_t samples)
     {
-      // split big buffer
-      // small buffer is covered by adjusting of subbuffers
-      std::size_t done = 0;
-      while (done < samples)
+      while (samples != 0)
       {
-        const std::size_t written = Buffers[Cursor]->Write(buf, samples);
-        Cursor = (Cursor + 1) % Buffers.size();
-        done += written;
+        WaveBuffer& buffer = *Buffers[Cursor];
+        const std::size_t written = buffer.Write(buf, samples);
+        if (buffer.IsFull())
+        {
+          buffer.Commit();
+          Cursor = (Cursor + 1) % Buffers.size();
+        }
         buf += written;
+        samples -= written;
       }
-      return done;
     }
   private:
     void Reset()
@@ -327,7 +338,7 @@ namespace
       Cursor = 0;
     }
   private:
-    typedef std::vector<WaveTarget::Ptr> BuffersArray;
+    typedef std::vector<WaveBuffer::Ptr> BuffersArray;
     BuffersArray Buffers;
     std::size_t Cursor;
   };
@@ -415,7 +426,8 @@ namespace
 
     virtual void Test()
     {
-      const WaveOutObjects obj = OpenDevices();
+      WaveOutObjects obj = OpenDevices();
+      obj.Target.reset();
       obj.Device->Close();
     }
 
@@ -471,7 +483,7 @@ namespace
     struct WaveOutObjects
     {
       WaveOutDevice::Ptr Device;
-      WaveTarget::Ptr Target;
+      CycledWaveBuffer::Ptr Target;
       VolumeControl::Ptr Volume;
     };
 
