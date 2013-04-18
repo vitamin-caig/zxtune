@@ -199,21 +199,25 @@ namespace
     ::HWAVEOUT Handle;
   };
 
-  class WaveBuffer
+  class WaveTarget
   {
   public:
-    typedef boost::shared_ptr<WaveBuffer> Ptr;
+    typedef boost::shared_ptr<WaveTarget> Ptr;
+    virtual ~WaveTarget() {}
 
-    WaveBuffer(WaveOutDevice::Ptr device, std::size_t size)
+    virtual std::size_t Write(const OutputSample* buf, std::size_t samples) = 0;
+  };
+
+  class WaveBuffer : public WaveTarget
+  {
+  public:
+    explicit WaveBuffer(WaveOutDevice::Ptr device)
       : Device(device)
-      , Buffer(size)
       , Header()
-      , Available()
     {
-      Allocate();
     }
 
-    ~WaveBuffer()
+    virtual ~WaveBuffer()
     {
       try
       {
@@ -225,53 +229,54 @@ namespace
       }
     }
 
-    std::size_t Write(const OutputSample* buf, std::size_t samples)
+    virtual std::size_t Write(const OutputSample* buf, std::size_t samples)
     {
-      WaitForBufferDone();
-      assert(Header.dwFlags & WHDR_DONE);
-      const std::size_t toWrite = std::min<std::size_t>(samples, Available);
-      Header.dwBufferLength = static_cast< ::DWORD>(toWrite * sizeof(Buffer.front()));
-      OutputSample* const target = safe_ptr_cast<OutputSample*>(Header.lpData) + Buffer.size() - Available;
-      if (SamplesShouldBeConverted)
+      if (samples <= Buffer.size())
       {
-        ChangeSignCopy(buf, buf + toWrite, target);
+        WaitForBufferDone();
       }
       else
       {
-        std::memcpy(target, buf, toWrite * sizeof(*buf));
+        Allocate(samples);
       }
-      Available -= toWrite;
-      return toWrite;
-    }
-
-    bool IsFull() const
-    {
-      return 0 == Available;
-    }
-
-    void Commit()
-    {
+      assert(Header.dwFlags & WHDR_DONE);
+      const std::size_t toWrite = std::min<std::size_t>(samples, Buffer.size());
+      Header.dwBufferLength = static_cast< ::DWORD>(toWrite * sizeof(Buffer.front()));
+      if (SamplesShouldBeConverted)
+      {
+        ChangeSignCopy(buf, buf + toWrite, safe_ptr_cast<OutputSample*>(Header.lpData));
+      }
+      else
+      {
+        std::memcpy(Header.lpData, buf, toWrite * sizeof(*buf));
+      }
       Header.dwFlags &= ~WHDR_DONE;
       Device->Write(Header);
+      return toWrite;
     }
   private:
-    void Allocate()
+    void Allocate(std::size_t size)
     {
+      Reset();
+      Buffer.resize(size);
       Header.lpData = ::LPSTR(&Buffer[0]);
       Header.dwBufferLength = ::DWORD(Buffer.size()) * sizeof(Buffer.front());
       Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
       Device->PrepareHeader(Header);
+      Require(IsPrepared());
       //mark as free
       Header.dwFlags |= WHDR_DONE;
-      Available = Buffer.size();
     }
 
     void Reset()
     {
-      WaitForBufferDone();
-      // safe to call more than once
-      Device->UnprepareHeader(Header);
-      Require(0 == (Header.dwFlags & WHDR_PREPARED));
+      if (IsPrepared())
+      {
+        WaitForBufferDone();
+        // safe to call more than once
+        Device->UnprepareHeader(Header);
+        Require(!IsPrepared());
+      }
     }
 
     void WaitForBufferDone()
@@ -279,32 +284,33 @@ namespace
       while (!(Header.dwFlags & WHDR_DONE))
       {
         Device->WaitForBufferComplete();
-        Available = Buffer.size();
       }
+    }
+
+    bool IsPrepared() const
+    {
+      return 0 != (Header.dwFlags & WHDR_PREPARED);
     }
   private:
     const WaveOutDevice::Ptr Device;
-    const Chunk Buffer;
+    Chunk Buffer;
     ::WAVEHDR Header;
-    std::size_t Available;
   };
 
-  class CycledWaveBuffer
+  class CycledWaveBuffer : public WaveTarget
   {
   public:
-    typedef boost::shared_ptr<CycledWaveBuffer> Ptr;
-
-    CycledWaveBuffer(WaveOutDevice::Ptr device, std::size_t size, std::size_t count)
+    CycledWaveBuffer(WaveOutDevice::Ptr device, std::size_t count)
       : Buffers(count)
       , Cursor()
     {
       for (BuffersArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
       {
-        *it = boost::make_shared<WaveBuffer>(device, size);
+        *it = boost::make_shared<WaveBuffer>(device);
       }
     }
 
-    ~CycledWaveBuffer()
+    virtual ~CycledWaveBuffer()
     {
       try
       {
@@ -316,20 +322,19 @@ namespace
       }
     }
 
-    void Write(const OutputSample* buf, std::size_t samples)
+    virtual std::size_t Write(const OutputSample* buf, std::size_t samples)
     {
-      while (samples != 0)
+      // split big buffer
+      // small buffer is covered by adjusting of subbuffers
+      std::size_t done = 0;
+      while (done < samples)
       {
-        WaveBuffer& buffer = *Buffers[Cursor];
-        const std::size_t written = buffer.Write(buf, samples);
-        if (buffer.IsFull())
-        {
-          buffer.Commit();
-          Cursor = (Cursor + 1) % Buffers.size();
-        }
+        const std::size_t written = Buffers[Cursor]->Write(buf, samples);
+        Cursor = (Cursor + 1) % Buffers.size();
+        done += written;
         buf += written;
-        samples -= written;
       }
+      return done;
     }
   private:
     void Reset()
@@ -338,7 +343,7 @@ namespace
       Cursor = 0;
     }
   private:
-    typedef std::vector<WaveBuffer::Ptr> BuffersArray;
+    typedef std::vector<WaveTarget::Ptr> BuffersArray;
     BuffersArray Buffers;
     std::size_t Cursor;
   };
@@ -426,8 +431,7 @@ namespace
 
     virtual void Test()
     {
-      WaveOutObjects obj = OpenDevices();
-      obj.Target.reset();
+      const WaveOutObjects obj = OpenDevices();
       obj.Device->Close();
     }
 
@@ -483,7 +487,7 @@ namespace
     struct WaveOutObjects
     {
       WaveOutDevice::Ptr Device;
-      CycledWaveBuffer::Ptr Target;
+      WaveTarget::Ptr Target;
       VolumeControl::Ptr Volume;
     };
 
@@ -492,7 +496,7 @@ namespace
       WaveOutObjects res;
       const Win32BackendParameters params(*BackendParams);
       res.Device = boost::make_shared<WaveOutDevice>(Api, GetFormat(), params.GetDevice());
-      res.Target = boost::make_shared<CycledWaveBuffer>(res.Device, RenderingParameters->SamplesPerFrame(), params.GetBuffers());
+      res.Target = boost::make_shared<CycledWaveBuffer>(res.Device, params.GetBuffers());
       res.Volume = boost::make_shared<Win32VolumeController>(res.Device);
       return res;
     }
