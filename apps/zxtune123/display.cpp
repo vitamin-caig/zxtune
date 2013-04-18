@@ -47,13 +47,13 @@ namespace
     StdOut << dump;
   }
 
-  inline Char StateSymbol(ZXTune::Sound::Backend::State state)
+  inline Char StateSymbol(ZXTune::Sound::PlaybackControl::State state)
   {
     switch (state)
     {
-    case ZXTune::Sound::Backend::STARTED:
+    case ZXTune::Sound::PlaybackControl::STARTED:
       return '>';
-    case ZXTune::Sound::Backend::PAUSED:
+    case ZXTune::Sound::PlaybackControl::PAUSED:
       return '#';
     default:
       return '\?';
@@ -128,7 +128,7 @@ namespace
           info->LogicalChannels(), info->PhysicalChannels());
     }
 
-    virtual uint_t BeginFrame(ZXTune::Sound::Backend::State state)
+    virtual uint_t BeginFrame(ZXTune::Sound::PlaybackControl::State state)
     {
       const uint_t curFrame = TrackState->Frame();
       if (Silent || Quiet)
@@ -176,7 +176,7 @@ namespace
       }
     }
   private:
-    void ShowPlaybackStatus(uint_t frame, ZXTune::Sound::Backend::State state) const
+    void ShowPlaybackStatus(uint_t frame, ZXTune::Sound::PlaybackControl::State state) const
     {
       const Char MARKER = '\x1';
       String data = Strings::Format(Text::PLAYBACK_STATUS, Time::MicrosecondsDuration(frame, FrameDuration).ToString(), MARKER);

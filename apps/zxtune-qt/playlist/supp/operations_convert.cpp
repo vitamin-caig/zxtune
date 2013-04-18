@@ -129,9 +129,10 @@ namespace
         const ZXTune::Sound::CreateBackendParameters::Ptr params = MakeBackendParameters(BackendParameters, item,
           ZXTune::Sound::BackendCallback::Ptr(&cb, NullDeleter<ZXTune::Sound::BackendCallback>()));
         const ZXTune::Sound::Backend::Ptr backend = Creator->CreateBackend(params);
-        backend->Play();
+        const ZXTune::Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
+        control->Play();
         cb.WaitForFinish();
-        backend->Stop();
+        control->Stop();
         curItemProgress->OnProgress(100);
         Result->AddSucceed();
       }

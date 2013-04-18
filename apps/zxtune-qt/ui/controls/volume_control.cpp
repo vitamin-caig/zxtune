@@ -37,12 +37,13 @@ namespace
       setEnabled(false);
       Require(connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int))));
 
+      Require(connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(StartPlayback(ZXTune::Sound::Backend::Ptr))));
       Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
-      Require(connect(&supp, SIGNAL(OnSetBackend(ZXTune::Sound::Backend::Ptr)), SLOT(SetBackend(ZXTune::Sound::Backend::Ptr))));
+      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(StopPlayback())));
       volumeLevel->setStyle(new UI::ClickNGoSliderStyle(*volumeLevel));
     }
 
-    virtual void SetBackend(ZXTune::Sound::Backend::Ptr backend)
+    virtual void StartPlayback(ZXTune::Sound::Backend::Ptr backend)
     {
       Controller = backend->GetVolumeControl();
       setEnabled(Controller != 0);
@@ -54,6 +55,12 @@ namespace
       {
         UpdateVolumeSlider();
       }
+    }
+
+    virtual void StopPlayback()
+    {
+      Controller = ZXTune::Sound::VolumeControl::Ptr();
+      setEnabled(false);
     }
 
     virtual void SetLevel(int level)

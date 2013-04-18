@@ -248,11 +248,12 @@ namespace
 
       FinishPlaybackCallback cb;
       const ZXTune::Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null", ZXTune::Sound::BackendCallback::Ptr(&cb, NullDeleter<ZXTune::Sound::BackendCallback>()));
+      const ZXTune::Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
       const AutoTimer timer;
       for (unsigned i = 0; i != Iterations; ++i)
       {
-        backend->SetPosition(0);
-        backend->Play();
+        control->SetPosition(0);
+        control->Play();
         cb.Wait();
       }
       const Time::Microseconds real = timer.Elapsed<Time::Microseconds>();
@@ -381,12 +382,13 @@ namespace
     void PlayItem(ZXTune::Module::Holder::Ptr holder)
     {
       const ZXTune::Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
+      const ZXTune::Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
 
       const Time::Microseconds frameDuration = Sounder->GetFrameDuration();
 
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
-      backend->Play();
+      control->Play();
 
       Display->SetModule(holder, backend, frameDuration);
 
@@ -400,7 +402,7 @@ namespace
 
       for (;;)
       {
-        ZXTune::Sound::Backend::State state = backend->GetCurrentState();
+        ZXTune::Sound::PlaybackControl::State state = control->GetCurrentState();
 
         const uint_t curFrame = Display->BeginFrame(state);
 
@@ -412,10 +414,10 @@ namespace
           case 'Q':
             throw CancelError();
           case Console::INPUT_KEY_LEFT:
-            backend->SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames);
+            control->SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames);
             break;
           case Console::INPUT_KEY_RIGHT:
-            backend->SetPosition(curFrame + seekStepFrames);
+            control->SetPosition(curFrame + seekStepFrames);
             break;
           case Console::INPUT_KEY_DOWN:
             if (volCtrl)
@@ -436,26 +438,26 @@ namespace
             }
             break;
           case Console::INPUT_KEY_ENTER:
-            if (ZXTune::Sound::Backend::STARTED == state)
+            if (ZXTune::Sound::PlaybackControl::STARTED == state)
             {
-              backend->Pause();
+              control->Pause();
               Console::Self().WaitForKeyRelease();
             }
             else
             {
               Console::Self().WaitForKeyRelease();
-              backend->Play();
+              control->Play();
             }
             break;
           case ' ':
-            backend->Stop();
-            state = ZXTune::Sound::Backend::STOPPED;
+            control->Stop();
+            state = ZXTune::Sound::PlaybackControl::STOPPED;
             Console::Self().WaitForKeyRelease();
             break;
           }
         }
 
-        if (ZXTune::Sound::Backend::STOPPED == state)
+        if (ZXTune::Sound::PlaybackControl::STOPPED == state)
         {
           break;
         }

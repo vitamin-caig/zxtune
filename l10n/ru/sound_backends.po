@@ -79,11 +79,11 @@ msgstr "Ошибка приостановки воспроизведения."
 msgid "Failed to resume playback."
 msgstr "Ошибка возобновления воспроизведения."
 
-#: backend_impl.cpp:372
+#: backend_impl.cpp:361
 msgid "Failed to stop playback."
 msgstr "Ошибка останова воспроизведения."
 
-#: backend_impl.cpp:384
+#: backend_impl.cpp:373
 msgid "Failed to set playback position."
 msgstr "Ошибка позиционирования воспроизведения."
 

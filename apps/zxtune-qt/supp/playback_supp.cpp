@@ -67,6 +67,37 @@ namespace
     const ZXTune::Sound::BackendCallback::Ptr Callback;
   };
 
+  class StubControl : public ZXTune::Sound::PlaybackControl
+  {
+  public:
+    virtual void Play()
+    {
+    }
+
+    virtual void Pause()
+    {
+    }
+
+    virtual void Stop()
+    {
+    }
+
+    virtual void SetPosition(uint_t /*frame*/)
+    {
+    }
+    
+    virtual State GetCurrentState() const
+    {
+      return STOPPED;
+    }
+
+    static Ptr Instance()
+    {
+      static StubControl instance;
+      return Ptr(&instance, NullDeleter<ZXTune::Sound::PlaybackControl>());
+    }
+  };
+
   class PlaybackSupportImpl : public PlaybackSupport
                             , private ZXTune::Sound::BackendCallback
   {
@@ -74,6 +105,7 @@ namespace
     PlaybackSupportImpl(QObject& parent, Parameters::Accessor::Ptr sndOptions)
       : PlaybackSupport(parent)
       , Params(sndOptions)
+      , Control(StubControl::Instance())
     {
       const unsigned UI_UPDATE_FPS = 5;
       Timer.setInterval(1000 / UI_UPDATE_FPS);
@@ -92,13 +124,14 @@ namespace
       try
       {
         Stop();
+        Control = StubControl::Instance();
         Backend.reset();
         Backend = CreateBackend(Params, module);
         if (Backend)
         {
+          Control = Backend->GetPlaybackControl();
           Item = item;
-          OnSetBackend(Backend);
-          Backend->Play();
+          Control->Play();
         }
       }
       catch (const Error& e)
@@ -109,14 +142,9 @@ namespace
 
     virtual void Play()
     {
-      //play only if any module selected or set
-      if (!Backend)
-      {
-        return;
-      }
       try
       {
-        Backend->Play();
+        Control->Play();
       }
       catch (const Error& e)
       {
@@ -126,13 +154,9 @@ namespace
 
     virtual void Stop()
     {
-      if (!Backend)
-      {
-        return;
-      }
       try
       {
-        Backend->Stop();
+        Control->Stop();
       }
       catch (const Error& e)
       {
@@ -142,20 +166,16 @@ namespace
 
     virtual void Pause()
     {
-      if (!Backend)
-      {
-        return;
-      }
       try
       {
-        const ZXTune::Sound::Backend::State curState = Backend->GetCurrentState();
-        if (ZXTune::Sound::Backend::STARTED == curState)
+        const ZXTune::Sound::PlaybackControl::State curState = Control->GetCurrentState();
+        if (ZXTune::Sound::PlaybackControl::STARTED == curState)
         {
-          Backend->Pause();
+          Control->Pause();
         }
-        else if (ZXTune::Sound::Backend::PAUSED == curState)
+        else if (ZXTune::Sound::PlaybackControl::PAUSED == curState)
         {
-          Backend->Play();
+          Control->Play();
         }
       }
       catch (const Error& e)
@@ -166,13 +186,9 @@ namespace
 
     virtual void Seek(int frame)
     {
-      if (!Backend)
-      {
-        return;
-      }
       try
       {
-        Backend->SetPosition(frame);
+        Control->SetPosition(frame);
       }
       catch (const Error& e)
       {
@@ -248,6 +264,7 @@ namespace
     QTimer Timer;
     Playlist::Item::Data::Ptr Item;
     ZXTune::Sound::Backend::Ptr Backend;
+    ZXTune::Sound::PlaybackControl::Ptr Control;
   };
 }
 

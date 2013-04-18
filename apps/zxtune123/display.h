@@ -45,7 +45,7 @@ public:
   virtual void SetModule(ZXTune::Module::Holder::Ptr module, ZXTune::Sound::Backend::Ptr player, Time::Microseconds frameDuration) = 0;
 
   // begin frame, returns current frame number
-  virtual uint_t BeginFrame(ZXTune::Sound::Backend::State state) = 0;
+  virtual uint_t BeginFrame(ZXTune::Sound::PlaybackControl::State state) = 0;
   virtual void EndFrame() = 0;
 
   static Ptr Create();

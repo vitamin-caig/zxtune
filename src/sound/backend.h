@@ -64,20 +64,14 @@ namespace ZXTune
       virtual void SetVolume(const MultiGain& volume) = 0;
     };
 
-    //! @brief %Sound backend interface
-    class Backend
+    //! @brief Playback control interface
+    class PlaybackControl
     {
     public:
       //! @brief Pointer type
-      typedef boost::shared_ptr<Backend> Ptr;
+      typedef boost::shared_ptr<PlaybackControl> Ptr;
 
-      virtual ~Backend() {}
-
-      //! @brief Current tracking status
-      virtual Module::TrackState::Ptr GetTrackState() const = 0;
-
-      //! @brief Getting analyzer interface
-      virtual Module::Analyzer::Ptr GetAnalyzer() const = 0;
+      virtual ~PlaybackControl() {}
 
       //! @brief Starting playback after stop or pause
       //! @throw Error in case of error
@@ -113,6 +107,25 @@ namespace ZXTune
       //! @brief Retrieving current playback state
       //! @return Current state
       virtual State GetCurrentState() const = 0;
+    };
+
+    //! @brief %Sound backend interface
+    class Backend
+    {
+    public:
+      //! @brief Pointer type
+      typedef boost::shared_ptr<Backend> Ptr;
+
+      virtual ~Backend() {}
+
+      //! @brief Current tracking status
+      virtual Module::TrackState::Ptr GetTrackState() const = 0;
+
+      //! @brief Getting analyzer interface
+      virtual Module::Analyzer::Ptr GetAnalyzer() const = 0;
+
+      //! @brief Gettint playback controller
+      virtual PlaybackControl::Ptr GetPlaybackControl() const = 0;
 
       //! @brief Getting volume controller
       //! @return Pointer to volume control object if supported, empty pointer if not

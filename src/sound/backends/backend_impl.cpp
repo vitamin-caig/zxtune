@@ -330,24 +330,13 @@ namespace
     }
   }
 
-  class BackendInternal : public Backend
+  class ControlInternal : public PlaybackControl
   {
   public:
-    BackendInternal(BackendWorker::Ptr worker, Module::Renderer::Ptr renderer, Async::Job::Ptr job)
-      : Worker(worker)
+    ControlInternal(Async::Job::Ptr job, Module::Renderer::Ptr renderer)
+      : Job(job)
       , Renderer(renderer)
-      , Job(job)
     {
-    }
-
-    virtual Module::TrackState::Ptr GetTrackState() const
-    {
-      return Renderer->GetTrackState();
-    }
-
-    virtual Module::Analyzer::Ptr GetAnalyzer() const
-    {
-      return Renderer->GetAnalyzer();
     }
 
     virtual void Play()
@@ -388,8 +377,37 @@ namespace
     virtual State GetCurrentState() const
     {
       return Job->IsActive()
-        ? (Job->IsPaused() ? Backend::PAUSED : Backend::STARTED)
-        : Backend::STOPPED;
+        ? (Job->IsPaused() ? PAUSED : STARTED)
+        : STOPPED;
+    }
+  private:
+    const Async::Job::Ptr Job;
+    const Module::Renderer::Ptr Renderer;
+  };
+
+  class BackendInternal : public Backend
+  {
+  public:
+    BackendInternal(BackendWorker::Ptr worker, Module::Renderer::Ptr renderer, Async::Job::Ptr job)
+      : Worker(worker)
+      , Renderer(renderer)
+      , Control(boost::make_shared<ControlInternal>(job, renderer))
+    {
+    }
+
+    virtual Module::TrackState::Ptr GetTrackState() const
+    {
+      return Renderer->GetTrackState();
+    }
+
+    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    {
+      return Renderer->GetAnalyzer();
+    }
+
+    virtual PlaybackControl::Ptr GetPlaybackControl() const
+    {
+      return Control;
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -399,7 +417,7 @@ namespace
   private:
     const BackendWorker::Ptr Worker;
     const Module::Renderer::Ptr Renderer;
-    const Async::Job::Ptr Job;
+    const PlaybackControl::Ptr Control;
   };
 
   Receiver::Ptr CreateRenderTarget(Converter::Ptr filter, Receiver::Ptr endpoint)
