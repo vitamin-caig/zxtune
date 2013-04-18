@@ -54,8 +54,8 @@ namespace SQD
   const std::size_t CHANNELS_COUNT = 4;
   const std::size_t SAMPLES_COUNT = 16;
 
-  //all samples has base freq at 4kHz (C-1)
-  const uint_t BASE_FREQ = 4000;
+  //all samples has base freq at 2kHz (C-1)
+  const uint_t BASE_FREQ = 2000;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)

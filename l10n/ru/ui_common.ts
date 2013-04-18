@@ -78,7 +78,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 <context>
     <name>AnalyzerControl</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/analyzer_control.cpp" line="152"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/analyzer_control.cpp" line="160"/>
         <source>Analyzer</source>
         <translation>Анализатор</translation>
     </message>

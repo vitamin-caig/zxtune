@@ -28,8 +28,12 @@ namespace DigitalStudio
 
   const std::size_t CHANNELS_COUNT = 3;
 
-  //all samples has base freq at 8kHz (C-1)
-  const uint_t BASE_FREQ = 8000;
+  const uint64_t Z80_FREQ = 3500000;
+  //116+103+101+10=330 ticks/out cycle = 10606 outs/sec (AY)
+  const uint_t TICKS_PER_CYCLE = 116 + 103 + 101 + 10;
+  //C-1 step 88/256 32.7Hz = ~3645 samples/sec
+  const uint_t C_1_STEP = 88;
+  const uint_t BASE_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
 
   typedef DAC::ModuleData ModuleData;
   typedef DAC::DataBuilder DataBuilder;

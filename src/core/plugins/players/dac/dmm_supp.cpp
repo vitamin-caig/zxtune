@@ -55,8 +55,13 @@ namespace DMM
   const std::size_t CHANNELS_COUNT = 3;
   const std::size_t SAMPLES_COUNT = 16;//15 really
 
-  //all samples has base freq at 4kHz (C-1)
-  const uint_t BASE_FREQ = 4000;
+  const uint64_t Z80_FREQ = 3500000;
+  //119+116+111+10=356 ticks/out cycle = 9831 outs/sec (AY)
+  const uint_t TICKS_PER_CYCLE = 119 + 116 + 111 + 10;
+  //C-1 step 44/256 32.7Hz = ~1689 samples/sec
+  const uint_t C_1_STEP = 44;
+  const uint_t BASE_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
+  const uint_t RENDERS_PER_SEC = Z80_FREQ / TICKS_PER_CYCLE;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -873,13 +878,8 @@ namespace
           dst = DacState;
           //restore all
           const uint_t prevStep = GetStep() + FreqSlide;
-          /*
-            Player: 353 ticks/cycle, 9915 cycles/sec, 3305 cycles/chan
-            C-1 = 44 * 3305 / 256 = 568Hz
-          */
-          const uint_t RENDERS_PER_SEC = 3305;
           const uint_t FPS = 50;//TODO
-          const uint_t skipped = MixPeriod * prevStep * RENDERS_PER_SEC / (256 * FPS);
+          const uint_t skipped = MixPeriod * prevStep * DMM::RENDERS_PER_SEC / FPS / 256;
           dst.PosInSample += skipped;
           dst.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
 

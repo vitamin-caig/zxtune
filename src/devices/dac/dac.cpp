@@ -32,7 +32,7 @@ namespace
 
   const uint_t MAX_LEVEL = 100;
 
-  const uint_t NOTES = 64;
+  const uint_t NOTES = 72;
   //table in Hz
   const boost::array<double, NOTES> FREQ_TABLE =
   {
@@ -48,7 +48,7 @@ namespace
     //octave5
     523.28, 554.32, 587.36, 622.24, 659.28, 698.40, 740.00, 784.00, 830.56, 880.00, 932.32, 987.68,
     //octave6
-    1046.5, 1108.6, 1174.7, 1244.5/*, 1318.6, 1396.8, 1480.0, 1568.0, 1661.1, 1760.0, 1864.6, 1975.4*/
+    1046.5, 1108.6, 1174.7, 1244.5, 1318.6, 1396.8, 1480.0, 1568.0, 1661.1, 1760.0, 1864.6, 1975.4
     }
   };
 
@@ -58,10 +58,10 @@ namespace
     return val > 0 ? 1 : (val < 0 ? -1 : 0);
   }
 
-  inline uint_t GetStepByFrequency(double note, uint_t soundFreq, uint_t sampleFreq)
+  inline uint_t GetStepByFrequency(double freq, uint_t soundFreq, uint_t sampleFreq)
   {
-    return static_cast<uint_t>(note * FIXED_POINT_PRECISION *
-      sampleFreq / (FREQ_TABLE[0] * soundFreq * 2));
+    return static_cast<uint_t>(freq * FIXED_POINT_PRECISION *
+      sampleFreq / (FREQ_TABLE[0] * soundFreq));
   }
 
   class StubSample : public Sample

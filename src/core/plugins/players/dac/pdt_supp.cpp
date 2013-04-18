@@ -37,8 +37,8 @@ Author:
 namespace ProDigiTracker
 {
   const uint_t CHANNELS_COUNT = 4;
-  //all samples has base freq at 4kHz (C-1)
-  const uint_t BASE_FREQ = 4000;
+  //all samples has base freq at 2kHz (C-1)
+  const uint_t BASE_FREQ = 2000;
 
   using namespace ZXTune;
   using namespace ZXTune::Module;

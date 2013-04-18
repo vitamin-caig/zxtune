@@ -37,7 +37,7 @@ namespace ChipTracker
   using namespace ZXTune::Module;
 
   const std::size_t CHANNELS_COUNT = 4;
-  const std::size_t BASE_FREQ = 4000;
+  const std::size_t BASE_FREQ = 2000;
 
   enum CmdType
   {
