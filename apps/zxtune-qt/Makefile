@@ -21,8 +21,16 @@ include_dirs = .
 text_files := text/text
 
 #base
-libraries := analysis async binary core debug devices devices_aym formats_archived formats_chiptune formats_packed io platform resource sound sound_backends strings tools
-depends := $(addprefix src/,analysis async binary core debug devices devices/aym formats/archived formats/chiptune formats/packed io platform resource sound sound/backends strings tools)
+libraries.common = analysis async binary \
+                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
+                  debug devices devices_aym devices_aym_dumper \
+                  formats_archived formats_chiptune formats_packed \
+                  io \
+                  platform \
+                  resource \
+                  sound sound_backends strings \
+                  tools
+libraries.3rdparty = lhasa unrar z80ex zlib
 
 #apps
 libraries += zxtune_app_base zxtune_app_version
@@ -32,21 +40,19 @@ depends += $(addprefix apps/,base version)
 libraries += playlist_ui playlist_supp playlist_io ui_common
 depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
 
-#3rdparty
-libraries += lhasa unrar z z80ex
-depends += 3rdparty/lhasa/lib 3rdparty/unrar 3rdparty/z80ex 3rdparty/zlib
-
 boost_libraries = thread system filesystem
 
 qt_libraries = Gui Core
 
 ifdef embedded
-libraries += l10n_stub ui_embedded playlist_ui_embedded
-depends += src/l10n/stub apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
+libraries.common += l10n_stub
+libraries += ui_embedded playlist_ui_embedded
+depends += apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
 qt_libraries += Network
 else
-libraries += l10n ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update
-depends += src/l10n $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
+libraries.common += l10n
+libraries += ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update
+depends += $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
 boost_libraries += locale
 mingw_libraries += iconv
 embedded_files = $(qm_translation_data) $(mo_translation_data)

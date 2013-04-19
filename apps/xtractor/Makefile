@@ -4,12 +4,11 @@ source_files := main
 
 text_files := text/text
 
-libraries := analysis async binary debug formats_archived formats_packed io l10n_stub platform strings tools zxtune_app_version
-depends := $(addprefix src/,analysis async binary debug formats/archived formats/packed io l10n/stub platform strings tools) apps/version
+libraries.common = analysis async binary debug formats_archived formats_packed io l10n_stub platform strings tools
+libraries.3rdparty = lhasa unrar zlib
 
-#3rdparty
-libraries +=  lhasa z unrar
-depends += 3rdparty/lhasa/lib 3rdparty/zlib 3rdparty/unrar
+libraries = zxtune_app_version
+depends = apps/version
 
 boost_libraries := filesystem program_options thread system
 windows_libraries := advapi32

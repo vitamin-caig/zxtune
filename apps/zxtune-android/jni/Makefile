@@ -3,11 +3,15 @@ path_step := ../../..
 
 source_dirs := .
 
-libraries = analysis binary core devices devices_aym formats_archived formats_chiptune formats_packed l10n_stub sound strings tools
-depends = $(addprefix src/,analysis binary core devices devices/aym formats/archived formats/chiptune formats/packed l10n/stub sound strings tools)
+libraries.common = analysis \
+                   binary \
+                   core core_plugins_archives core_plugins_containers core_plugins_players \
+                   devices devices_aym \
+                   formats_archived formats_chiptune formats_packed \
+                   l10n_stub sound strings \
+                   tools
 
-libraries += lhasa unrar z80ex z
-depends += $(addprefix 3rdparty/,lhasa/lib unrar z80ex zlib)
+libraries.3rdparty = lhasa unrar z80ex zlib
 
 android_libraries := log
 

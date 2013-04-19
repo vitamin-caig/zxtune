@@ -79,6 +79,7 @@ ifdef source_dirs
 source_files += $(basename $(wildcard $(addsuffix /*$(src_suffix),$(source_dirs))))
 endif
 
+
 #process texts if required
 ifdef text_files
 include $(path_step)/make/textator.mak
@@ -125,6 +126,9 @@ $(target): $(OBJECTS) $(RESOURCES) | $(output_dir) $(TRANSLATIONS)
 
 .PHONY: deps
 else
+#libraries helpers
+include $(path_step)/libraries.mak
+
 #binary and dynamic libraries with dependencies
 LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 
