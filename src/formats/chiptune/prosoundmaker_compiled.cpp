@@ -240,9 +240,10 @@ namespace Chiptune
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
       virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) {}
-      virtual void StartPattern(uint_t /*index*/) {}
-      virtual void SetTempo(uint_t /*tempo*/) {}
-      virtual void FinishPattern(uint_t /*size*/) {}
+      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      {
+        return GetStubPatternBuilder();
+      }
       virtual void StartLine(uint_t /*index*/) {}
       virtual void StartChannel(uint_t /*index*/) {}
       virtual void SetRest() {}
@@ -301,25 +302,10 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual void StartPattern(uint_t index)
+      virtual PatternBuilder& StartPattern(uint_t index)
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
-      }
-
-      virtual void SetTempo(uint_t tempo)
-      {
-        return Delegate.SetTempo(tempo);
-      }
-
-      virtual void FinishPattern(uint_t size)
-      {
-        return Delegate.FinishPattern(size);
-      }
-
-      virtual void StartLine(uint_t index)
-      {
-        return Delegate.StartLine(index);
       }
 
       virtual void StartChannel(uint_t index)
@@ -543,12 +529,7 @@ namespace Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
-          const RawPattern& src = GetPattern(patIndex);
-          Require(Math::InRange<uint_t>(src.Tempo, 2, 50));
-          builder.StartPattern(patIndex);
-          builder.StartLine(0);
-          builder.SetTempo(src.Tempo);
-          if (ParsePattern(src, minOffset, builder))
+          if (ParsePattern(patIndex, minOffset, builder))
           {
             hasValidPatterns = true;
           }
@@ -676,7 +657,7 @@ namespace Chiptune
       {
         explicit DataCursors(const RawPattern& src)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), boost::bind(&fromLE<uint16_t>, _1));
+          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), &fromLE<uint16_t>);
         }
       };
 
@@ -737,14 +718,19 @@ namespace Chiptune
         }
       };
 
-      bool ParsePattern(const RawPattern& pat, std::size_t minOffset, Builder& builder) const
+      bool ParsePattern(uint_t patIndex, std::size_t minOffset, Builder& builder) const
       {
+        const RawPattern& pat = GetPattern(patIndex);
+        Require(Math::InRange<uint_t>(pat.Tempo, 2, 50));
         const DataCursors rangesStarts(pat);
+        ParserState state(rangesStarts);
         //check only lower bound due to possible detection lack
         Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), 
           std::bind2nd(std::less<std::size_t>(), minOffset)));
 
-        ParserState state(rangesStarts);
+        PatternBuilder& patBuilder = builder.StartPattern(patIndex);
+        patBuilder.StartLine(0);
+        patBuilder.SetTempo(pat.Tempo);
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
@@ -756,12 +742,12 @@ namespace Chiptune
           }
           if (!HasLine(state))
           {
-            builder.FinishPattern(std::max<uint_t>(lineIdx, MIN_PATTERN_SIZE));
+            patBuilder.Finish(std::max<uint_t>(lineIdx, MIN_PATTERN_SIZE));
             break;
           }
-          if (lineIdx)
+          if (0 != lineIdx)
           {
-            builder.StartLine(lineIdx);
+            patBuilder.StartLine(lineIdx);
           }
           ParseLine(state, builder);
         }
@@ -781,7 +767,7 @@ namespace Chiptune
         return lineIdx >= MIN_PATTERN_SIZE;
       }
 
-      bool HasLine(ParserState& src) const
+      bool HasLine(const ParserState& src) const
       {
         for (uint_t idx = 0; idx < 3; ++idx)
         {

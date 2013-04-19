@@ -206,24 +206,10 @@ namespace ASCSoundMaster
       Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual void StartPattern(uint_t index)
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
       Builder.SetPattern(index);
-    }
-
-    virtual void FinishPattern(uint_t size)
-    {
-      Builder.FinishPattern(size);
-    }
-
-    virtual void StartLine(uint_t index)
-    {
-      Builder.SetLine(index);
-    }
-
-    virtual void SetTempo(uint_t tempo)
-    {
-      Builder.GetLine().SetTempo(tempo);
+      return Builder;
     }
 
     virtual void StartChannel(uint_t index)
@@ -238,12 +224,11 @@ namespace ASCSoundMaster
 
     virtual void SetNote(uint_t note)
     {
-      MutableCell& channel = Builder.GetChannel();
-      if (!channel.FindCommand(BREAK_SAMPLE))
+      if (!Builder.GetChannel().FindCommand(BREAK_SAMPLE))
       {
-        channel.SetEnabled(true);
+        Builder.GetChannel().SetEnabled(true);
       }
-      if (Command* cmd = channel.FindCommand(SLIDE))
+      if (Command* cmd = Builder.GetChannel().FindCommand(SLIDE))
       {
         //set slide to note
         cmd->Type = SLIDE_NOTE;
@@ -251,7 +236,7 @@ namespace ASCSoundMaster
       }
       else
       {
-        channel.SetNote(note);
+        Builder.GetChannel().SetNote(note);
       }
     }
 
@@ -272,28 +257,26 @@ namespace ASCSoundMaster
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      MutableCell& channel = Builder.GetChannel();
-      if (Command* cmd = channel.FindCommand(ENVELOPE))
+      if (Command* cmd = Builder.GetChannel().FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
       }
       else
       {
-        channel.AddCommand(ENVELOPE, int_t(type), -1);
+        Builder.GetChannel().AddCommand(ENVELOPE, int_t(type), -1);
       }
     }
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      MutableCell& channel = Builder.GetChannel();
-      if (Command* cmd = channel.FindCommand(ENVELOPE))
+      if (Command* cmd = Builder.GetChannel().FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);
       }
       else
       {
         //strange situation
-        channel.AddCommand(ENVELOPE, -1, int_t(tone));
+        Builder.GetChannel().AddCommand(ENVELOPE, -1, int_t(tone));
       }
     }
 
@@ -341,6 +324,7 @@ namespace ASCSoundMaster
     {
       Builder.GetChannel().AddCommand(BREAK_SAMPLE);
     }
+
   private:
     const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;

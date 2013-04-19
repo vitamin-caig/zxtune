@@ -78,20 +78,10 @@ namespace Formats
           return Delegate.SetPositions(positions, loop);
         }
 
-        virtual void StartPattern(uint_t index)
+        virtual PatternBuilder& StartPattern(uint_t index)
         {
           assert(UsedPatterns.Contain(index));
           return Delegate.StartPattern(index);
-        }
-
-        virtual void FinishPattern(uint_t size)
-        {
-          return Delegate.FinishPattern(size);
-        }
-
-        virtual void StartLine(uint_t index)
-        {
-          return Delegate.StartLine(index);
         }
 
         virtual void StartChannel(uint_t index)

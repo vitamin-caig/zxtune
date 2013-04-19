@@ -119,19 +119,10 @@ namespace ProDigiTracker
       Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual void StartPattern(uint_t index)
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
       Builder.SetPattern(index);
-    }
-
-    virtual void StartLine(uint_t index)
-    {
-      Builder.SetLine(index);
-    }
-
-    virtual void SetTempo(uint_t tempo)
-    {
-      Builder.GetLine().SetTempo(tempo);
+      return Builder;
     }
 
     virtual void StartChannel(uint_t index)

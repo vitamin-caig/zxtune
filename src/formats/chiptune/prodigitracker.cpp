@@ -172,9 +172,10 @@ namespace Chiptune
       virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
       virtual void SetOrnament(uint_t /*index*/, std::size_t /*loop*/, const std::vector<int_t>& /*ornament*/) {}
       virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
-      virtual void StartPattern(uint_t /*index*/) {}
-      virtual void StartLine(uint_t /*index*/) {}
-      virtual void SetTempo(uint_t /*tempo*/) {}
+      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      {
+        return GetStubPatternBuilder();
+      }
       virtual void StartChannel(uint_t /*index*/) {}
       virtual void SetRest() {}
       virtual void SetNote(uint_t /*note*/) {}
@@ -220,19 +221,9 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual void StartPattern(uint_t index)
+      virtual PatternBuilder& StartPattern(uint_t index)
       {
         return Delegate.StartPattern(index);
-      }
-
-      virtual void StartLine(uint_t index)
-      {
-        return Delegate.StartLine(index);
-      }
-
-      virtual void SetTempo(uint_t tempo)
-      {
-        return Delegate.SetTempo(tempo);
       }
 
       virtual void StartChannel(uint_t index)
@@ -315,7 +306,6 @@ namespace Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
-          target.StartPattern(patIndex);
           ParsePattern(patIndex, target);
         }
       }
@@ -397,6 +387,7 @@ namespace Chiptune
 
       void ParsePattern(uint_t idx, Builder& target) const
       {
+        PatternBuilder& patBuilder = target.StartPattern(idx);
         const Pattern& src = Source.Patterns[idx];
         uint_t lineNum = 0;
         for (; lineNum < PATTERN_SIZE; ++lineNum)
@@ -404,10 +395,11 @@ namespace Chiptune
           const Line& srcLine = src[lineNum];
           if (IsLastLine(srcLine))
           {
+            patBuilder.Finish(lineNum);
             break;
           }
-          target.StartLine(lineNum);
-          ParseLine(srcLine, target);
+          patBuilder.StartLine(lineNum);
+          ParseLine(srcLine, patBuilder, target);
         }
         const std::size_t patStart = offsetof(Header, Patterns) + idx * sizeof(Pattern);
         const std::size_t patSize = lineNum * sizeof(Line);
@@ -419,7 +411,7 @@ namespace Chiptune
         return line[0].IsEnd() || line[1].IsEnd() || line[2].IsEnd() || line[3].IsEnd();
       }
 
-      static void ParseLine(const Line& line, Builder& target)
+      static void ParseLine(const Line& line, PatternBuilder& patBuilder, Builder& target)
       {
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
@@ -436,7 +428,7 @@ namespace Chiptune
           switch (note.GetCommand())
           {
           case CMD_SPEED:
-            target.SetTempo(note.GetParameter());
+            patBuilder.SetTempo(note.GetParameter());
             break;
           case CMD_SPECIAL:
             {

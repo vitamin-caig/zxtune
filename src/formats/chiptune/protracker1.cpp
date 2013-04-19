@@ -196,10 +196,10 @@ namespace Chiptune
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
       virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
-      virtual void StartPattern(uint_t /*index*/) {}
-      virtual void FinishPattern(uint_t /*size*/) {}
-      virtual void StartLine(uint_t /*index*/) {}
-      virtual void SetTempo(uint_t /*tempo*/) {}
+      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      {
+        return GetStubPatternBuilder();
+      }
       virtual void StartChannel(uint_t /*index*/) {}
       virtual void SetRest() {}
       virtual void SetNote(uint_t /*note*/) {}
@@ -252,25 +252,10 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual void StartPattern(uint_t index)
+      virtual PatternBuilder& StartPattern(uint_t index)
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
-      }
-
-      virtual void FinishPattern(uint_t size)
-      {
-        return Delegate.FinishPattern(size);
-      }
-
-      virtual void StartLine(uint_t index)
-      {
-        return Delegate.StartLine(index);
-      }
-
-      virtual void SetTempo(uint_t tempo)
-      {
-        return Delegate.SetTempo(tempo);
       }
 
       virtual void StartChannel(uint_t index)
@@ -444,9 +429,7 @@ namespace Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
-          const RawPattern& src = GetPattern(patIndex);
-          builder.StartPattern(patIndex);
-          if (ParsePattern(src, minOffset, builder))
+          if (ParsePattern(patIndex, minOffset, builder))
           {
             hasValidPatterns = true;
           }
@@ -569,39 +552,66 @@ namespace Chiptune
       {
         explicit DataCursors(const RawPattern& src)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), boost::bind(&fromLE<uint16_t>, _1));
+          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), &fromLE<uint16_t>);
         }
       };
 
       struct ParserState
       {
-        DataCursors Offsets;
-        boost::array<uint_t, 3> Periods;
-        boost::array<uint_t, 3> Counters;
+        struct ChannelState
+        {
+          std::size_t Offset;
+          uint_t Period;
+          uint_t Counter;
+
+          ChannelState()
+            : Offset()
+            , Period()
+            , Counter()
+          {
+          }
+
+          void Skip(uint_t toSkip)
+          {
+            Counter -= toSkip;
+          }
+
+
+          static bool CompareByCounter(const ChannelState& lh, const ChannelState& rh)
+          {
+            return lh.Counter < rh.Counter;
+          }
+        };
+
+        boost::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Offsets(src)
-          , Periods()
-          , Counters()
+          : Channels()
         {
+          for (std::size_t idx = 0; idx != src.size(); ++idx)
+          {
+            Channels[idx].Offset = src[idx];
+          }
         }
 
         uint_t GetMinCounter() const
         {
-          return *std::min_element(Counters.begin(), Counters.end());
+          return std::min_element(Channels.begin(), Channels.end(), &ChannelState::CompareByCounter)->Counter;
         }
 
         void SkipLines(uint_t toSkip)
         {
-          std::transform(Counters.begin(), Counters.end(), Counters.begin(), std::bind2nd(std::minus<uint_t>(), toSkip));
+          std::for_each(Channels.begin(), Channels.end(), std::bind2nd(std::mem_fun_ref(&ChannelState::Skip), toSkip));
         }
       };
 
-      bool ParsePattern(const RawPattern& pat, std::size_t minOffset, Builder& builder) const
+      bool ParsePattern(uint_t patIndex, std::size_t minOffset, Builder& builder) const
       {
+        const RawPattern& pat = GetPattern(patIndex);
         const DataCursors rangesStarts(pat);
         Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), !boost::bind(&Math::InRange<std::size_t>, _1, minOffset, Delegate.GetSize() - 1)));
 
+        PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         ParserState state(rangesStarts);
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
@@ -614,11 +624,11 @@ namespace Chiptune
           }
           if (!HasLine(state))
           {
-            builder.FinishPattern(std::max<uint_t>(lineIdx, MIN_PATTERN_SIZE));
+            patBuilder.Finish(std::max<uint_t>(lineIdx, MIN_PATTERN_SIZE));
             break;
           }
-          builder.StartLine(lineIdx);
-          ParseLine(state, builder);
+          patBuilder.StartLine(lineIdx);
+          ParseLine(state, patBuilder, builder);
         }
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
@@ -629,27 +639,27 @@ namespace Chiptune
           }
           else
           {
-            const std::size_t stop = std::min(Delegate.GetSize(), state.Offsets[chanNum] + 1);
+            const std::size_t stop = std::min(Delegate.GetSize(), state.Channels[chanNum].Offset + 1);
             Ranges.AddFixed(start, stop - start);
           }
         }
         return lineIdx >= MIN_PATTERN_SIZE;
       }
 
-      bool HasLine(ParserState& src) const
+      bool HasLine(const ParserState& src) const
       {
         for (uint_t chan = 0; chan < 3; ++chan)
         {
-          if (src.Counters[chan])
+          const ParserState::ChannelState& state = src.Channels[chan];
+          if (state.Counter)
           {
             continue;
           }
-          std::size_t& offset = src.Offsets[chan];
-          if (offset >= Delegate.GetSize())
+          if (state.Offset >= Delegate.GetSize())
           {
             return false;
           }
-          else if (0 == chan && 0xff == PeekByte(offset))
+          else if (0 == chan && 0xff == PeekByte(state.Offset))
           {
             return false;
           }
@@ -657,28 +667,26 @@ namespace Chiptune
         return true;
       }
 
-      void ParseLine(ParserState& src, Builder& builder) const
+      void ParseLine(ParserState& src, PatternBuilder& patBuilder, Builder& builder) const
       {
         for (uint_t chan = 0; chan < 3; ++chan)
         {
-          uint_t& counter = src.Counters[chan];
-          if (counter--)
+          ParserState::ChannelState& state = src.Channels[chan];
+          if (state.Counter--)
           {
             continue;
           }
-          std::size_t& offset = src.Offsets[chan];
-          uint_t& period = src.Periods[chan];
           builder.StartChannel(chan);
-          ParseChannel(offset, period, builder);
-          counter = period;
+          ParseChannel(state, patBuilder, builder);
+          state.Counter = state.Period;
         }
       }
 
-      void ParseChannel(std::size_t& offset, uint_t& period, Builder& builder) const
+      void ParseChannel(ParserState::ChannelState& state, PatternBuilder& patBuilder, Builder& builder) const
       {
-        while (offset < Delegate.GetSize())
+        while (state.Offset < Delegate.GetSize())
         {
-          const uint_t cmd = PeekByte(offset++);
+          const uint_t cmd = PeekByte(state.Offset++);
           if (cmd <= 0x5f)
           {
             builder.SetNote(cmd);
@@ -704,8 +712,8 @@ namespace Chiptune
           else if (cmd <= 0x8f)
           {
             const uint_t type = cmd - 0x81;
-            const uint_t tone = PeekByte(offset) | (uint_t(PeekByte(offset + 1)) << 8);
-            offset += 2;
+            const uint_t tone = PeekByte(state.Offset) | (uint_t(PeekByte(state.Offset + 1)) << 8);
+            state.Offset += 2;
             builder.SetEnvelope(type, tone);
           }
           else if (cmd == 0x90)
@@ -714,7 +722,7 @@ namespace Chiptune
           }
           else if (cmd <= 0xa0)
           {
-            builder.SetTempo(cmd - 0x91);
+            patBuilder.SetTempo(cmd - 0x91);
           }
           else if (cmd <= 0xb0)
           {
@@ -722,7 +730,7 @@ namespace Chiptune
           }
           else
           {
-            period = cmd - 0xb1;
+            state.Period = cmd - 0xb1;
           }
         }
       }

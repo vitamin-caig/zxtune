@@ -159,9 +159,10 @@ namespace Chiptune
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
       virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/) {}
-      virtual void StartPattern(uint_t /*index*/) {}
-      virtual void FinishPattern(uint_t /*size*/) {}
-      virtual void StartLine(uint_t /*index*/) {}
+      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      {
+        return GetStubPatternBuilder();
+      }
       virtual void StartChannel(uint_t /*index*/) {}
       virtual void SetRest() {}
       virtual void SetNote(uint_t /*note*/) {}
@@ -211,15 +212,12 @@ namespace Chiptune
           if (patIndex < MaxPatterns)
           {
             Dbg("Parse pattern %1%", patIndex);
-            const RawPattern& src = GetPattern(patIndex);
-            builder.StartPattern(patIndex);
-            ParsePattern(src, Source.PatternsSize, builder);
+            ParsePattern(patIndex, builder);
           }
           else
           {
             Dbg("Fill stub pattern %1%", patIndex);
-            builder.StartPattern(patIndex);
-            builder.FinishPattern(Source.PatternsSize);
+            builder.StartPattern(patIndex).Finish(Source.PatternsSize);
           }
         }
       }
@@ -294,8 +292,11 @@ namespace Chiptune
         }
       };
 
-      static void ParsePattern(const RawPattern& src, uint_t patSize, Builder& builder)
+      void ParsePattern(uint_t patIndex, Builder& builder) const
       {
+        const RawPattern& src = GetPattern(patIndex);
+        const std::size_t patSize = Source.PatternsSize;
+        PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         boost::array<EnvState, 3> env;
         boost::array<ChanState, 3> state;
         for (uint_t idx = 0; idx < MAX_PATTERN_SIZE; ++idx)
@@ -306,10 +307,10 @@ namespace Chiptune
             continue;
           }
           Require(idx < patSize);
-          builder.StartLine(idx);
+          patBuilder.StartLine(idx);
           ParseLine(srcLine, builder, state, env);
         }
-        builder.FinishPattern(patSize);
+        patBuilder.Finish(patSize);
       }
 
       static void ParseLine(const RawPattern::Line& srcLine, Builder& builder, boost::array<ChanState, 3>& state, boost::array<EnvState, 3>& env)

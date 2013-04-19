@@ -155,8 +155,8 @@ namespace Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
-          target.StartPattern(patIndex);
-          ParsePattern(Source.Patterns[patIndex], target);
+          PatternBuilder& patBuilder = target.StartPattern(patIndex);
+          ParsePattern(Source.Patterns[patIndex], patBuilder, target);
           AddFixedRange(offsetof(Header, Patterns) + patIndex * sizeof(Pattern), sizeof(Pattern));
         }
       }
@@ -197,15 +197,15 @@ namespace Chiptune
         return FixedRanges->GetAffectedRange();
       }
     private:
-      static void ParsePattern(const Pattern& src, Builder& target)
+      static void ParsePattern(const Pattern& src, PatternBuilder& patBuilder, Builder& target)
       {
         const uint_t lastLine = MAX_PATTERN_SIZE - 1;
-        uint_t lineNum = 0;
-        for (; lineNum <= lastLine ; ++lineNum)
+        for (uint_t lineNum = 0; lineNum <= lastLine ; ++lineNum)
         {
           const Pattern::Line& srcLine = src.Lines[lineNum];
           if (srcLine.Note[0] == Pattern::LIMIT)
           {
+            patBuilder.Finish(lineNum);
             break;
           }
 
@@ -213,7 +213,7 @@ namespace Chiptune
           {
             continue;
           }
-          target.StartLine(lineNum);
+          patBuilder.StartLine(lineNum);
           ParseLine(srcLine, target);
         }
       }

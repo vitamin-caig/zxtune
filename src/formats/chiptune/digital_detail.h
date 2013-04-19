@@ -56,19 +56,9 @@ namespace Formats
           return Delegate.SetPositions(positions, loop);
         }
 
-        virtual void StartPattern(uint_t index)
+        virtual PatternBuilder& StartPattern(uint_t index)
         {
           return Delegate.StartPattern(index);
-        }
-
-        virtual void StartLine(uint_t index)
-        {
-          return Delegate.StartLine(index);
-        }
-
-        virtual void SetTempo(uint_t tempo)
-        {
-          return Delegate.SetTempo(tempo);
         }
 
         virtual void StartChannel(uint_t index)

@@ -56,19 +56,10 @@ namespace SoundTrackerPro
       Data->Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
-    virtual void StartPattern(uint_t index)
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
       Builder.SetPattern(index);
-    }
-
-    virtual void FinishPattern(uint_t size)
-    {
-      Builder.FinishPattern(size);
-    }
-
-    virtual void StartLine(uint_t index)
-    {
-      Builder.SetLine(index);
+      return Builder;
     }
 
     virtual void StartChannel(uint_t index)

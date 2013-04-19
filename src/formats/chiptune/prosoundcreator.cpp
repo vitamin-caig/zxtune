@@ -306,10 +306,10 @@ namespace Chiptune
       virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
       virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
-      virtual void StartPattern(uint_t /*index*/) {}
-      virtual void FinishPattern(uint_t /*size*/) {}
-      virtual void StartLine(uint_t /*index*/) {}
-      virtual void SetTempo(uint_t /*tempo*/) {}
+      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      {
+        return GetStubPatternBuilder();
+      }
       virtual void StartChannel(uint_t /*index*/) {}
       virtual void SetRest() {}
       virtual void SetNote(uint_t /*note*/) {}
@@ -370,25 +370,10 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual void StartPattern(uint_t index)
+      virtual PatternBuilder& StartPattern(uint_t index)
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
-      }
-
-      virtual void FinishPattern(uint_t size)
-      {
-        return Delegate.FinishPattern(size);
-      }
-
-      virtual void StartLine(uint_t index)
-      {
-        return Delegate.StartLine(index);
-      }
-
-      virtual void SetTempo(uint_t tempo)
-      {
-        return Delegate.SetTempo(tempo);
       }
 
       virtual void StartChannel(uint_t index)
@@ -676,9 +661,7 @@ namespace Chiptune
         for (PatternsSet::Iterator it = patterns.Get(); it; ++it)
         {
           const RawPattern& pat = *it;
-          const uint_t patIndex = pat.Index;
-          Dbg("Parse pattern %1%", patIndex);
-          builder.StartPattern(patIndex);
+          Dbg("Parse pattern %1%", pat.Index);
           if (ParsePattern(pat, builder))
           {
             hasValidPatterns = true;
@@ -773,30 +756,56 @@ namespace Chiptune
 
       struct ParserState
       {
-        DataCursors Offsets;
-        boost::array<uint_t, 3> Periods;
-        boost::array<uint_t, 3> Counters;
-
-        explicit ParserState(const DataCursors& cursors)
-          : Offsets(cursors)
-          , Periods()
-          , Counters()
+        struct ChannelState
         {
+          std::size_t Offset;
+          uint_t Period;
+          uint_t Counter;
+
+          ChannelState()
+            : Offset()
+            , Period()
+            , Counter()
+          {
+          }
+
+          void Skip(uint_t toSkip)
+          {
+            Counter -= toSkip;
+          }
+
+
+          static bool CompareByCounter(const ChannelState& lh, const ChannelState& rh)
+          {
+            return lh.Counter < rh.Counter;
+          }
+        };
+
+        boost::array<ChannelState, 3> Channels;
+
+        explicit ParserState(const DataCursors& src)
+          : Channels()
+        {
+          for (std::size_t idx = 0; idx != src.size(); ++idx)
+          {
+            Channels[idx].Offset = src[idx];
+          }
         }
 
         uint_t GetMinCounter() const
         {
-          return *std::min_element(Counters.begin(), Counters.end());
+          return std::min_element(Channels.begin(), Channels.end(), &ChannelState::CompareByCounter)->Counter;
         }
 
         void SkipLines(uint_t toSkip)
         {
-          std::transform(Counters.begin(), Counters.end(), Counters.begin(), std::bind2nd(std::minus<uint_t>(), toSkip));
+          std::for_each(Channels.begin(), Channels.end(), std::bind2nd(std::mem_fun_ref(&ChannelState::Skip), toSkip));
         }
       };
 
       bool ParsePattern(const RawPattern& pat, Builder& builder) const
       {
+        PatternBuilder& patBuilder = builder.StartPattern(pat.Index);
         const DataCursors rangesStarts(pat);
         ParserState state(rangesStarts);
         uint_t lineIdx = 0;
@@ -810,11 +819,11 @@ namespace Chiptune
           }
           else
           {
-            builder.StartLine(lineIdx);
-            ParseLine(state, builder);
+            patBuilder.StartLine(lineIdx);
+            ParseLine(state, patBuilder, builder);
           }
         }
-        builder.FinishPattern(pat.Size);
+        patBuilder.Finish(pat.Size);
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
           const std::size_t start = rangesStarts[chanNum];
@@ -824,38 +833,36 @@ namespace Chiptune
           }
           else
           {
-            const std::size_t stop = std::min(Delegate.GetSize(), state.Offsets[chanNum] + 1);
+            const std::size_t stop = std::min(Delegate.GetSize(), state.Channels[chanNum].Offset + 1);
             Ranges.AddFixed(start, stop - start);
           }
         }
         return lineIdx >= MIN_PATTERN_SIZE;
       }
 
-      void ParseLine(ParserState& src, Builder& builder) const
+      void ParseLine(ParserState& src, PatternBuilder& patBuilder, Builder& builder) const
       {
         for (uint_t chan = 0; chan < 3; ++chan)
         {
-          uint_t& counter = src.Counters[chan];
-          if (counter--)
+          ParserState::ChannelState& state = src.Channels[chan];
+          if (state.Counter--)
           {
             continue;
           }
-          std::size_t& offset = src.Offsets[chan];
-          uint_t& period = src.Periods[chan];
           builder.StartChannel(chan);
-          ParseChannel(chan, offset, period, builder);
-          counter = period;
+          ParseChannel(chan, state, patBuilder, builder);
+          state.Counter = state.Period;
         }
       }
 
-      void ParseChannel(uint_t chan, std::size_t& offset, uint_t& period, Builder& builder) const
+      void ParseChannel(uint_t chan, ParserState::ChannelState& state, PatternBuilder& patBuilder, Builder& builder) const
       {
-        while (offset < Delegate.GetSize())
+        while (state.Offset < Delegate.GetSize())
         {
-          const uint_t cmd = PeekByte(offset++);
+          const uint_t cmd = PeekByte(state.Offset++);
           if (cmd >= 0xc0) //0xc0..0xff
           {
-            period = cmd - 0xc0;
+            state.Period = cmd - 0xc0;
             break;
           }
           else if (cmd >= 0xa0) //0xa0..0xbf
@@ -879,7 +886,7 @@ namespace Chiptune
           {
             if (chan == 1)//only for B
             {
-              const uint_t noise = PeekByte(offset++);
+              const uint_t noise = PeekByte(state.Offset++);
               builder.SetNoiseBase(noise);
             }
           }
@@ -887,20 +894,20 @@ namespace Chiptune
           {
             if (chan == 1)//only for B
             {
-              const uint_t envType = PeekByte(offset++) & 15;
-              const uint_t envTone = (uint_t(PeekByte(offset + 1)) << 8) | PeekByte(offset);
+              const uint_t envType = PeekByte(state.Offset++) & 15;
+              const uint_t envTone = (uint_t(PeekByte(state.Offset + 1)) << 8) | PeekByte(state.Offset);
               builder.SetEnvelope(envType, envTone);
-              offset += 2;
+              state.Offset += 2;
             }
           }
           else if (cmd == 0x71)
           {
             builder.SetBreakOrnament();
-            ++offset;
+            ++state.Offset;
           }
           else if (cmd == 0x70)
           {
-            const uint8_t val = PeekByte(offset++);
+            const uint8_t val = PeekByte(state.Offset++);
             const uint_t period = 0 != (val & 64) ? -static_cast<int8_t>(val | 128) : val;
             const int_t step = 0 != (val & 64) ? -1 : +1;
             builder.SetVolumeSlide(period, step);
@@ -908,24 +915,24 @@ namespace Chiptune
           else if (cmd == 0x6f)
           {
             builder.SetNoOrnament();
-            ++offset;
+            ++state.Offset;
           }
           else if (cmd == 0x6e)
           {
-            const uint_t tempo = PeekByte(offset++);
-            builder.SetTempo(tempo);
+            const uint_t tempo = PeekByte(state.Offset++);
+            patBuilder.SetTempo(tempo);
           }
           else if (cmd == 0x6d)
           {
-            builder.SetGliss(PeekByte(offset++));
+            builder.SetGliss(PeekByte(state.Offset++));
           }
           else if (cmd == 0x6c)
           {
-            builder.SetSlide(-static_cast<int8_t>(PeekByte(offset++)));
+            builder.SetSlide(-static_cast<int8_t>(PeekByte(state.Offset++)));
           }
           else if (cmd == 0x6b)
           {
-            builder.SetSlide(PeekByte(offset++));
+            builder.SetSlide(PeekByte(state.Offset++));
           }
           else if (cmd >= 0x58 && cmd <= 0x66)
           {

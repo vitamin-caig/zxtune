@@ -165,9 +165,12 @@ namespace Chiptune
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
       virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/) {}
       virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
-      virtual void StartPattern(uint_t /*index*/) {}
-      virtual void StartLine(uint_t /*index*/) {}
-      virtual void SetTempo(uint_t /*tempo*/) {}
+
+      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      {
+        return GetStubPatternBuilder();
+      }
+
       virtual void StartChannel(uint_t /*index*/) {}
       virtual void SetRest() {}
       virtual void SetNote(uint_t /*note*/) {}
@@ -208,19 +211,9 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual void StartPattern(uint_t index)
+      virtual PatternBuilder& StartPattern(uint_t index)
       {
         return Delegate.StartPattern(index);
-      }
-
-      virtual void StartLine(uint_t index)
-      {
-        return Delegate.StartLine(index);
-      }
-
-      virtual void SetTempo(uint_t tempo)
-      {
-        return Delegate.SetTempo(tempo);
       }
 
       virtual void StartChannel(uint_t index)
@@ -304,8 +297,8 @@ namespace Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
-          target.StartPattern(patIndex);
-          ParsePattern(patIndex, target);
+          PatternBuilder& patBuilder = target.StartPattern(patIndex);
+          ParsePattern(patIndex, patBuilder, target);
         }
       }
 
@@ -351,7 +344,7 @@ namespace Chiptune
         return FixedRanges->GetAffectedRange();
       }
     private:
-      void ParsePattern(uint_t idx, Builder& target) const
+      void ParsePattern(uint_t idx, PatternBuilder& patBuilder, Builder& target) const
       {
         const std::size_t patStart = sizeof(Header) + idx * sizeof(Pattern);
         const Binary::TypedContainer data(RawData);
@@ -361,10 +354,10 @@ namespace Chiptune
         uint_t lineNum = 0;
         for (; lineNum < MAX_PATTERN_SIZE ; ++lineNum)
         {
-          target.StartLine(lineNum);
+          patBuilder.StartLine(lineNum);
           const NoteRow& notes = src->Notes[lineNum];
           const NoteParamRow& params = src->Params[lineNum];
-          if (!ParseLine(notes, params, target))
+          if (!ParseLine(notes, params, patBuilder, target))
           {
             break;
           }
@@ -375,7 +368,7 @@ namespace Chiptune
         AddFixedRange(patStart, patSize);
       }
 
-      static bool ParseLine(const NoteRow& notes, const NoteParamRow& params, Builder& target)
+      static bool ParseLine(const NoteRow& notes, const NoteParamRow& params, PatternBuilder& patBuilder, Builder& target)
       {
         bool cont = true;
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
@@ -416,7 +409,7 @@ namespace Chiptune
             //first channel- tempo
             if (0 == chanNum)
             {
-              target.SetTempo(param.GetParameter());
+              patBuilder.SetTempo(param.GetParameter());
             }
             //last channel- stop
             else if (3 == chanNum)

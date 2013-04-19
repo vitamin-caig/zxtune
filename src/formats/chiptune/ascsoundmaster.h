@@ -15,6 +15,7 @@ Author:
 
 //local includes
 #include "builder_meta.h"
+#include "builder_pattern.h"
 //library includes
 #include <binary/container.h>
 #include <formats/chiptune.h>
@@ -89,21 +90,15 @@ namespace Formats
         virtual void SetOrnament(uint_t index, const Ornament& ornament) = 0;
         //patterns
         virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
-        //building pattern -> line -> channel
-        //! @invariant Patterns are built sequentally
-        virtual void StartPattern(uint_t index) = 0;
-        virtual void FinishPattern(uint_t size) = 0;
-        //! @invariant Lines are built sequentally
-        virtual void StartLine(uint_t index) = 0;
-        virtual void SetTempo(uint_t tempo) = 0;
-        //! @invariant Channels are built sequentally
+
+        virtual PatternBuilder& StartPattern(uint_t index) = 0;
+
         virtual void StartChannel(uint_t index) = 0;
         virtual void SetRest() = 0;
         virtual void SetNote(uint_t note) = 0;
         virtual void SetSample(uint_t sample) = 0;
         virtual void SetOrnament(uint_t ornament) = 0;
         virtual void SetVolume(uint_t vol) = 0;
-        //cmds
         virtual void SetEnvelopeType(uint_t type) = 0;
         virtual void SetEnvelopeTone(uint_t tone) = 0;
         virtual void SetEnvelope() = 0;

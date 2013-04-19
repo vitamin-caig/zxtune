@@ -173,12 +173,10 @@ namespace Chiptune
       virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
       //patterns
       virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/, uint_t /*loop*/) {}
-      //! @invariant Patterns are built sequentally
-      virtual void StartPattern(uint_t /*index*/) {}
-      virtual void FinishPattern(uint_t /*size*/) {}
-      //! @invariant Lines are built sequentally
-      virtual void StartLine(uint_t /*index*/) {}
-      virtual void SetTempo(uint_t /*tempo*/) {}
+      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      {
+        return GetStubPatternBuilder();
+      }
       virtual void SetTempoAddon(uint_t /*add*/) {}
       virtual void SetRest() {}
       virtual void SetNote(uint_t /*note*/) {}
@@ -234,25 +232,10 @@ namespace Chiptune
         return Delegate.SetPositions(positions, loop);
       }
 
-      virtual void StartPattern(uint_t index)
+      virtual PatternBuilder& StartPattern(uint_t index)
       {
         assert(UsedPatterns.Contain(index));
         return Delegate.StartPattern(index);
-      }
-
-      virtual void FinishPattern(uint_t size)
-      {
-        return Delegate.FinishPattern(size);
-      }
-
-      virtual void StartLine(uint_t index)
-      {
-        return Delegate.StartLine(index);
-      }
-
-      virtual void SetTempo(uint_t tempo)
-      {
-        return Delegate.SetTempo(tempo);
       }
 
       virtual void SetTempoAddon(uint_t add)
@@ -451,9 +434,7 @@ namespace Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
-          const std::size_t src = GetPatternOffset(patIndex);
-          builder.StartPattern(patIndex);
-          ParsePattern(src, builder);
+          ParsePattern(patIndex, builder);
         }
       }
 
@@ -568,10 +549,13 @@ namespace Chiptune
         }
       };
 
-      void ParsePattern(std::size_t patOffset, Builder& builder) const
+      void ParsePattern(std::size_t patIndex, Builder& builder) const
       {
+        const std::size_t patOffset = GetPatternOffset(patIndex);
         const std::size_t patSize = PeekByte(patOffset);
         Require(Math::InRange(patSize, MIN_PATTERN_SIZE, MAX_PATTERN_SIZE));
+
+        PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         ParserState state(patOffset + 1);
         uint_t lineIdx = 0;
         for (; lineIdx < patSize; ++lineIdx)
@@ -581,17 +565,17 @@ namespace Chiptune
             --state.Counter;
             if (state.RepeatLastNote)
             {
-              builder.StartLine(lineIdx);
-              ParseNote(state.LastNoteStart, builder);
+              patBuilder.StartLine(lineIdx);
+              ParseNote(state.LastNoteStart, patBuilder, builder);
             }
           }
           else
           {
-            builder.StartLine(lineIdx);
-            ParseLine(state, builder);
+            patBuilder.StartLine(lineIdx);
+            ParseLine(state, patBuilder, builder);
           }
         }
-        builder.FinishPattern(lineIdx);
+        patBuilder.Finish(lineIdx);
         const std::size_t start = patOffset;
         if (start >= Delegate.GetSize())
         {
@@ -604,7 +588,7 @@ namespace Chiptune
         }
       }
 
-      void ParseLine(ParserState& state, Builder& builder) const
+      void ParseLine(ParserState& state, PatternBuilder& patBuilder, Builder& builder) const
       {
         state.RepeatLastNote = false;
         const uint_t cmd = PeekByte(state.Cursor++);
@@ -613,11 +597,11 @@ namespace Chiptune
           state.LastNote = cmd;
           state.LastNoteStart = state.Cursor - 1;
           builder.SetNote(cmd);
-          state.Cursor = ParseNoteParameters(state.Cursor, builder);
+          state.Cursor = ParseNoteParameters(state.Cursor, patBuilder, builder);
         }
         else if (cmd <= 0x6e)
         {
-          ParseEffect(cmd - 0x60, PeekByte(state.Cursor++), builder);
+          ParseEffect(cmd - 0x60, PeekByte(state.Cursor++), patBuilder, builder);
         }
         else if (cmd == 0x6f)
         {
@@ -626,7 +610,7 @@ namespace Chiptune
         else if (cmd <= 0x7f)
         {
           builder.SetRest();
-          ParseEffect(cmd - 0x6f, PeekByte(state.Cursor++), builder);
+          ParseEffect(cmd - 0x6f, PeekByte(state.Cursor++), patBuilder, builder);
         }
         else if (cmd <= 0x9f)
         {
@@ -641,7 +625,7 @@ namespace Chiptune
             state.LastNote += addon;
           }
           builder.SetNote(state.LastNote);
-          ParseNote(state.LastNoteStart, builder);
+          ParseNote(state.LastNoteStart, patBuilder, builder);
         }
         else if (cmd <= 0xbf)
         {
@@ -649,7 +633,7 @@ namespace Chiptune
           if (cmd & 16)
           {
             state.RepeatLastNote |= state.Counter != 0;
-            ParseNote(state.LastNoteStart, builder);
+            ParseNote(state.LastNoteStart, patBuilder, builder);
           }
         }
         else
@@ -659,12 +643,12 @@ namespace Chiptune
         }
       }
 
-      void ParseNote(std::size_t cursor, Builder& builder) const
+      void ParseNote(std::size_t cursor, PatternBuilder& patBuilder, Builder& builder) const
       {
         const uint_t cmd = PeekByte(cursor);
         if (cmd < 0x80)
         {
-          ParseNoteParameters(cursor + 1, builder);
+          ParseNoteParameters(cursor + 1, patBuilder, builder);
         }
         else
         {
@@ -672,7 +656,7 @@ namespace Chiptune
         }
       }
 
-      std::size_t ParseNoteParameters(std::size_t start, Builder& builder) const
+      std::size_t ParseNoteParameters(std::size_t start, PatternBuilder& patBuilder, Builder& builder) const
       {
         std::size_t cursor = start;
         const uint_t cmd = PeekByte(cursor++);
@@ -691,18 +675,18 @@ namespace Chiptune
             }
             if (const uint_t effect = param & 15)
             {
-              ParseEffect(effect, PeekByte(cursor++), builder);
+              ParseEffect(effect, PeekByte(cursor++), patBuilder, builder);
             }
           }
         }
         else
         {
-          ParseEffect(cmd, PeekByte(cursor++), builder);
+          ParseEffect(cmd, PeekByte(cursor++), patBuilder, builder);
         }
         return cursor;
       }
 
-      static void ParseEffect(uint_t code, uint_t param, Builder& builder)
+      static void ParseEffect(uint_t code, uint_t param, PatternBuilder& patBuilder, Builder& builder)
       {
         switch (code - 1)
         {
@@ -719,7 +703,7 @@ namespace Chiptune
           builder.SetGlobalAttenuationAddon(static_cast<int8_t>(param));
           break;
         case 4:
-          builder.SetTempo(param & 31 ? param & 31 : 32);
+          patBuilder.SetTempo(param & 31 ? param & 31 : 32);
           break;
         case 5:
           builder.SetTempoAddon(param);

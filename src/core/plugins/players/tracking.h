@@ -18,6 +18,7 @@ Author:
 #include "track_model.h"
 //library includes
 #include <core/module_types.h>
+#include <formats/chiptune/builder_pattern.h>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
@@ -301,7 +302,7 @@ namespace ZXTune
 
     TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model);
 
-    class PatternsBuilder
+    class PatternsBuilder : public Formats::Chiptune::PatternBuilder
     {
     public:
       explicit PatternsBuilder(boost::shared_ptr<MutablePatternsSet> patterns)
@@ -310,6 +311,21 @@ namespace ZXTune
         , CurLine()
         , CurChannel()
       {
+      }
+
+      virtual void Finish(uint_t size)
+      {
+        FinishPattern(size);
+      }
+
+      virtual void StartLine(uint_t index)
+      {
+        SetLine(index);
+      }
+
+      virtual void SetTempo(uint_t tempo)
+      {
+        GetLine().SetTempo(tempo);
       }
 
       void SetPattern(uint_t idx)

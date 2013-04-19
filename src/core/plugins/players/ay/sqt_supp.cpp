@@ -451,13 +451,35 @@ namespace SQTracker
 
 namespace SQTracker
 {
+  class SingleChannelPatternsBuilder : public PatternsBuilder
+  {
+    SingleChannelPatternsBuilder(boost::shared_ptr<MutablePatternsSet> patterns)
+      : PatternsBuilder(patterns)
+    {
+    }
+  public:
+    virtual void StartLine(uint_t index)
+    {
+      PatternsBuilder::StartLine(index);
+      SetChannel(0);
+    }
+
+    static SingleChannelPatternsBuilder Create()
+    {
+      typedef MultichannelMutableLine<1> LineType;
+      typedef SparsedMutablePattern<LineType> PatternType;
+      typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
+      return SingleChannelPatternsBuilder(boost::make_shared<PatternsSetType>());
+    }
+  };
+
   class DataBuilder : public Formats::Chiptune::SQTracker::Builder
   {
   public:
     explicit DataBuilder(ModuleProperties::RWPtr props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<1>())
+      , Builder(SingleChannelPatternsBuilder::Create())
     {
       Properties->SetFreqtable(TABLE_SQTRACKER);
     }
@@ -483,25 +505,10 @@ namespace SQTracker
       Data->Positions = positions;
     }
 
-    virtual void StartPattern(uint_t index)
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
       Builder.SetPattern(index);
-    }
-
-    virtual void FinishPattern(uint_t size)
-    {
-      Builder.FinishPattern(size);
-    }
-
-    virtual void StartLine(uint_t index)
-    {
-      Builder.SetLine(index);
-      Builder.SetChannel(0);
-    }
-
-    virtual void SetTempo(uint_t tempo)
-    {
-      Builder.GetLine().SetTempo(tempo);
+      return Builder;
     }
 
     virtual void SetTempoAddon(uint_t addon)
@@ -569,7 +576,7 @@ namespace SQTracker
   private:
     const ModuleData::RWPtr Data;
     const ModuleProperties::RWPtr Properties;
-    PatternsBuilder Builder;
+    SingleChannelPatternsBuilder Builder;
     std::vector<Formats::Chiptune::SQTracker::PositionEntry> Positions;
     uint_t Loop;
   };

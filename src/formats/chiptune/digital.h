@@ -15,6 +15,7 @@ Author:
 
 //local includes
 #include "builder_meta.h"
+#include "builder_pattern.h"
 //common includes
 #include <types.h>
 //library includes
@@ -38,12 +39,9 @@ namespace Formats
         virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample, bool is4Bit) = 0;
         //patterns
         virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop) = 0;
-        //building pattern -> line -> channel
-        //! @invariant Patterns are built sequentally
-        virtual void StartPattern(uint_t index) = 0;
-        //! @invariant Lines are built sequentally
-        virtual void StartLine(uint_t index) = 0;
-        virtual void SetTempo(uint_t tempo) = 0;
+
+        virtual PatternBuilder& StartPattern(uint_t index) = 0;
+
         //! @invariant Channels are built sequentally
         virtual void StartChannel(uint_t index) = 0;
         virtual void SetRest() = 0;

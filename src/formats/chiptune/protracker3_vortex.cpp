@@ -929,7 +929,7 @@ namespace Chiptune
         Param = CommandParameter(str.substr(2, 2));
       }
 
-      void Parse(Builder& builder) const
+      void Parse(PatternBuilder& patBuilder, Builder& builder) const
       {
         const int_t period = Period.AsInt();
         const int_t param = Param.AsInt();
@@ -964,7 +964,7 @@ namespace Chiptune
         case TEMPO:
           if (param)
           {
-            builder.SetTempo(param);
+            patBuilder.SetTempo(param);
           }
           break;
         default:
@@ -1007,10 +1007,10 @@ namespace Chiptune
         Command = NoteCommandObject(fields[2]);
       }
 
-      void Parse(uint_t envBase, Builder& builder) const
+      void Parse(uint_t envBase, PatternBuilder& patBuilder, Builder& builder) const
       {
         Parameters.Parse(envBase, builder);
-        Command.Parse(builder);
+        Command.Parse(patBuilder, builder);
         Note.Parse(builder);
       }
 
@@ -1044,7 +1044,7 @@ namespace Chiptune
         Channels[2] = ChannelObject(fields[4]);
       }
 
-      void Parse(Builder& builder) const
+      void Parse(PatternBuilder& patBuilder, Builder& builder) const
       {
         if (const uint_t noiseBase = Noise.AsInt())
         {
@@ -1054,7 +1054,7 @@ namespace Chiptune
         for (uint_t idx = 0; idx != 3; ++idx)
         {
           builder.StartChannel(idx);
-          Channels[idx].Parse(envBase, builder);
+          Channels[idx].Parse(envBase, patBuilder, builder);
         }
       }
 
@@ -1105,13 +1105,13 @@ namespace Chiptune
 
       void Parse(Builder& builder) const
       {
-        builder.StartPattern(Index);
+        PatternBuilder& patBuilder = builder.StartPattern(Index);
         for (std::size_t idx = 0; idx != Lines.size(); ++idx)
         {
-          builder.StartLine(idx);
-          Lines[idx].Parse(builder);
+          patBuilder.StartLine(idx);
+          Lines[idx].Parse(patBuilder, builder);
         }
-        builder.FinishPattern(Lines.size());
+        patBuilder.Finish(Lines.size());
       }
 
       std::string AsString() const
@@ -1253,6 +1253,7 @@ namespace Chiptune
 
     class Builder : public Formats::Chiptune::ProTracker3::ChiptuneBuilder
                   , public Formats::Chiptune::MetaBuilder
+                  , public Formats::Chiptune::PatternBuilder
     {
     public:
       Builder()
@@ -1313,12 +1314,13 @@ namespace Chiptune
         Header.PlayOrder = LoopedList<uint_t>(loop, positions);
       }
 
-      virtual void StartPattern(uint_t index)
+      virtual PatternBuilder& StartPattern(uint_t index)
       {
         Context.SetPattern(index);
+        return *this;
       }
 
-      virtual void FinishPattern(uint_t size)
+      virtual void Finish(uint_t size)
       {
         Context.FinishPattern(size);
       }

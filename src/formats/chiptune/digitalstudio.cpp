@@ -230,8 +230,8 @@ namespace Chiptune
         {
           const uint_t patIndex = *it;
           Dbg("Parse pattern %1%", patIndex);
-          target.StartPattern(patIndex);
-          ParsePattern(Source.Patterns[patIndex], target);
+          PatternBuilder& patBuilder = target.StartPattern(patIndex);
+          ParsePattern(Source.Patterns[patIndex], patBuilder, target);
         }
       }
 
@@ -280,7 +280,7 @@ namespace Chiptune
         }
       }
 
-      static void ParsePattern(const Pattern& src, Builder& target)
+      static void ParsePattern(const Pattern& src, PatternBuilder& patBuilder, Builder& target)
       {
         const uint_t lastLine = MAX_PATTERN_SIZE - 1;
         for (uint_t lineNum = 0; lineNum <= lastLine ; ++lineNum)
@@ -290,15 +290,16 @@ namespace Chiptune
           {
             continue;
           }
-          target.StartLine(lineNum);
-          if (!ParseLine(srcLine, target))
+          patBuilder.StartLine(lineNum);
+          if (!ParseLine(srcLine, patBuilder, target))
           {
+            patBuilder.Finish(lineNum);
             break;
           }
         }
       }
 
-      static bool ParseLine(const Pattern::Line& srcLine, Builder& target)
+      static bool ParseLine(const Pattern::Line& srcLine, PatternBuilder& patBuilder, Builder& target)
       {
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
@@ -318,7 +319,7 @@ namespace Chiptune
             }
             else if (NOTE_SPEED == note)
             {
-              target.SetTempo(srcChan.Sample);
+              patBuilder.SetTempo(srcChan.Sample);
             }
             else if (NOTE_END == note)
             {
