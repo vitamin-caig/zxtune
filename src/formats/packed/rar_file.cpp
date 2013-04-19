@@ -29,7 +29,7 @@ Author:
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
 //thirdparty
-#include <unrar/rar.hpp>
+#include <3rdparty/unrar/rar.hpp>
 //text includes
 #include <formats/text/packed.h>
 

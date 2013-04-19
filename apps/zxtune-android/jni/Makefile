@@ -5,13 +5,13 @@ source_dirs := .
 
 libraries.common = analysis \
                    binary \
-                   core core_plugins_archives core_plugins_containers core_plugins_players \
+                   core core_plugins_archives_stub core_plugins_containers_stub core_plugins_players \
                    devices devices_aym \
-                   formats_archived formats_chiptune formats_packed \
+                   formats_chiptune formats_packed_lha \
                    l10n_stub sound strings \
                    tools
 
-libraries.3rdparty = lhasa unrar z80ex zlib
+libraries.3rdparty = lhasa z80ex
 
 android_libraries := log
 
