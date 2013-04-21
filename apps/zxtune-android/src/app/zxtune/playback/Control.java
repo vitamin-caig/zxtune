@@ -25,10 +25,9 @@ public interface Control {
   public TimeStamp getPlaybackPosition();
   
   /*
-   * @param bands Maximal count of bands to analyze
-   * @return Array of spectrum analysis 
+   * @return Array of spectrum analysis (256 * level + band)  
    */
-  public int[] getSpectrumAnalysis(int bands);
+  public int[] getSpectrumAnalysis();
 
   /*
    * @return Current playback status

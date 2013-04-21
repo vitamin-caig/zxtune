@@ -64,6 +64,7 @@ public final class CompositeCallback implements Callback {
   private void remove(Callback callback) {
     synchronized (delegates) {
       delegates.remove(callback);
+      callback.onControlChanged(null);
     }
     Log.d(TAG, "Removed " + callback.toString());
   }

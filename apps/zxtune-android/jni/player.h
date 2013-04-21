@@ -27,7 +27,7 @@ namespace Player
     virtual ~Control() {}
 
     virtual uint_t GetPosition() const = 0;
-    virtual void Analyze(uint_t maxBands, int32_t* levels) const = 0;
+    virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const = 0;
     virtual Parameters::Container::Ptr GetParameters() const = 0;
     
     virtual bool Render(uint_t samples, int16_t* buffer) = 0;

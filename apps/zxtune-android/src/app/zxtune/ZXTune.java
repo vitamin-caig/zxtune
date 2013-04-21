@@ -164,9 +164,11 @@ public final class ZXTune {
     public int getPosition();
 
     /**
-     * @param levels Array of levels in percents to store
+     * @param bands Array of bands to store
+     * @param levels Array of levels to store
+     * @return Count of actually stored entries
      */
-    public void analyze(int levels[]);
+    public int analyze(int bands[], int levels[]);
     
     /**
      * Render next result.length bytes of sound data
@@ -257,8 +259,8 @@ public final class ZXTune {
     }
     
     @Override
-    public void analyze(int levels[]) {
-      Player_Analyze(handle, levels);
+    public int analyze(int bands[], int levels[]) {
+      return Player_Analyze(handle, bands, levels);
     }
 
     @Override
@@ -311,7 +313,7 @@ public final class ZXTune {
   // working with player
   private static native boolean Player_Render(int player, short[] result);
   
-  private static native void Player_Analyze(int player, int levels[]);
+  private static native int Player_Analyze(int player, int bands[], int levels[]);
 
   private static native int Player_GetPosition(int player);
 

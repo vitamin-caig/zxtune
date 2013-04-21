@@ -82,18 +82,22 @@ namespace
       return TrackState->Frame();
     }
 
-    virtual void Analyze(uint_t maxBands, int32_t* levels) const
+    virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const
     {
       typedef std::vector<ZXTune::Module::Analyzer::ChannelState> ChannelsState;
       ChannelsState result;
       Analyser->GetState(result);
-      for (ChannelsState::const_iterator it = result.begin(), lim = result.end(); it != lim; ++it)
+      uint_t doneEntries = 0;
+      for (ChannelsState::const_iterator it = result.begin(), lim = result.end(); it != lim && doneEntries != maxEntries; ++it)
       {
-        if (it->Enabled && it->Band < maxBands)
+        if (it->Enabled)
         {
-          levels[it->Band] = it->Level;
+          bands[doneEntries] = it->Band;
+          levels[doneEntries] = it->Level;
+          ++doneEntries;
         }
       }
+      return doneEntries;
     }
 
     virtual Parameters::Container::Ptr GetParameters() const
@@ -211,17 +215,20 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
   return false;
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jintArray levels)
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jintArray bands, jintArray levels)
 {
   if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
   {
-    typedef AutoArray<jintArray, int32_t> ArrayType;
-    if (ArrayType rawLevels = ArrayType(env, levels))
+    typedef AutoArray<jintArray, uint32_t> ArrayType;
+    ArrayType rawBands(env, bands);
+    ArrayType rawLevels(env, levels);
+    if (rawBands && rawLevels)
     {
-      return player->Analyze(rawLevels.Size(), rawLevels.Data());
+      return player->Analyze(std::min(rawBands.Size(), rawLevels.Size()), rawBands.Data(), rawLevels.Data());
     }
   }
+  return 0;
 }
 
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition

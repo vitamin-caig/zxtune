@@ -97,7 +97,7 @@ public class PlaybackService extends Service {
     values.put(Database.Tables.Playlist.Fields.duration.name(), duration);
     getContentResolver().insert(Query.unparse(null), values);
   }
-   
+
 
   @Override
   public IBinder onBind(Intent intent) {
@@ -249,10 +249,10 @@ public class PlaybackService extends Service {
     }
 
     @Override
-    public int[] getSpectrumAnalysis(int bands) {
-      return source != null ? source.getAnalysis(bands) : null;
+    public int[] getSpectrumAnalysis() {
+      return source != null ? source.getAnalysis() : null;
     }
-    
+
     @Override
     public Status getStatus() {
       return source != null ? source.getStatus() : Status.STOPPED;
@@ -369,17 +369,22 @@ public class PlaybackService extends Service {
         return new TimeStamp(20 * frame, TimeUnit.MILLISECONDS);
       }
     }
-    
-    public int[] getAnalysis(int bands) {
+
+    public int[] getAnalysis() {
       synchronized (status) {
-        final int[] result = new int[bands];
-        if (player != null) {
-          player.analyze(result);
-          return result;
-        } else {
-          return null;
-        }
+        return player != null ? getAnalysis(player) : null;
       }
+    }
+
+    static private int[] getAnalysis(ZXTune.Player player) {
+      final int[] bands = new int[8];
+      final int[] levels = new int[8];
+      final int size = player.analyze(bands, levels);
+      final int[] result = new int[size];
+      for (int i = 0; i != size; ++i) {
+        result[i] = 256 * levels[i] + bands[i];
+      }
+      return result;
     }
   }
 }

@@ -74,10 +74,10 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Player_Analyze
- * Signature: (I[I)V
+ * Signature: (I[I[I)I
  */
-JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
-  (JNIEnv *, jclass, jint, jintArray);
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
+  (JNIEnv *, jclass, jint, jintArray, jintArray);
 
 /*
  * Class:     app_zxtune_ZXTune

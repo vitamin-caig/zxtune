@@ -112,7 +112,7 @@ public class PlaylistFragment extends Fragment {
       if (connected) {
         onItemChanged(control.getItem());
       } else {
-        onStatusChanged(null);
+        onStatusChanged(Status.STOPPED);
       }
     }
   

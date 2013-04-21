@@ -144,11 +144,13 @@ public class NowPlayingFragment extends Fragment {
   }
 
   private void startUpdating() {
+    Log.d(TAG, "Start updating UI");
     timer.post(updateAnalyzerTask);
     timer.post(updateUiTask);
   }
 
   private void stopUpdating() {
+    Log.d(TAG, "Stop updating UI");
     timer.removeCallbacks(updateUiTask);
     timer.removeCallbacks(updateAnalyzerTask);
   }
@@ -157,8 +159,7 @@ public class NowPlayingFragment extends Fragment {
     
     @Override
     public void run() {
-      final int maxBands = analyzer.getMaxBands();
-      final int[] spectrum = control.getSpectrumAnalysis(maxBands);
+      final int[] spectrum = control.getSpectrumAnalysis();
       if (spectrum == null) {
         return;
       }

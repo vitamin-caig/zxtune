@@ -15,7 +15,7 @@ interface IPlaybackControl {
 
   long getPlaybackPosition();
   
-  int[] getSpectrumAnalysis(int bands);
+  int[] getSpectrumAnalysis();
 
   String getStatus();
 
