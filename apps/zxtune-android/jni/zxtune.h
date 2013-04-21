@@ -66,10 +66,18 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Player_Render
- * Signature: (II[B)Z
+ * Signature: (I[S)Z
  */
 JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
-  (JNIEnv *, jclass, jint, jint, jbyteArray);
+  (JNIEnv *, jclass, jint, jshortArray);
+
+/*
+ * Class:     app_zxtune_ZXTune
+ * Method:    Player_Analyze
+ * Signature: (I[I)V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
+  (JNIEnv *, jclass, jint, jintArray);
 
 /*
  * Class:     app_zxtune_ZXTune
@@ -174,17 +182,6 @@ extern "C" {
 
 #ifndef _Included_app_zxtune_ZXTune_Properties_Core_Aym
 #define _Included_app_zxtune_ZXTune_Properties_Core_Aym
-#ifdef __cplusplus
-extern "C" {
-#endif
-#ifdef __cplusplus
-}
-#endif
-#endif
-/* Header for class app_zxtune_ZXTune_Object */
-
-#ifndef _Included_app_zxtune_ZXTune_Object
-#define _Included_app_zxtune_ZXTune_Object
 #ifdef __cplusplus
 extern "C" {
 #endif

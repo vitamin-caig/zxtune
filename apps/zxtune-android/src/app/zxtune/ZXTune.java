@@ -161,14 +161,19 @@ public final class ZXTune {
     /**
      * @return Position of next rendered frame
      */
-    int getPosition();
+    public int getPosition();
 
+    /**
+     * @param levels Array of levels in percents to store
+     */
+    public void analyze(int levels[]);
+    
     /**
      * Render next result.length bytes of sound data
      * @param result Buffer to put data
      * @return Is there more data to render
      */
-    boolean render(byte[] result);
+    public boolean render(short[] result);
   }
 
   /**
@@ -247,8 +252,13 @@ public final class ZXTune {
     }
 
     @Override
-    public boolean render(byte[] result) {
-      return Player_Render(handle, result.length, result);
+    public boolean render(short[] result) {
+      return Player_Render(handle, result);
+    }
+    
+    @Override
+    public void analyze(int levels[]) {
+      Player_Analyze(handle, levels);
     }
 
     @Override
@@ -299,7 +309,9 @@ public final class ZXTune {
   private static native int Module_CreatePlayer(int module);
 
   // working with player
-  private static native boolean Player_Render(int player, int bytes, byte[] result);
+  private static native boolean Player_Render(int player, short[] result);
+  
+  private static native void Player_Analyze(int player, int levels[]);
 
   private static native int Player_GetPosition(int player);
 

@@ -31,6 +31,11 @@ public class PlaybackControlServer extends IPlaybackControl.Stub {
   }
   
   @Override
+  public int[] getSpectrumAnalysis(int bands) {
+    return delegate.getSpectrumAnalysis(bands);
+  }
+  
+  @Override
   public String getStatus() {
     return delegate.getStatus().toString();
   }

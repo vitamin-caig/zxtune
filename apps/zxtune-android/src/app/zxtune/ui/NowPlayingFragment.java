@@ -33,8 +33,10 @@ public class NowPlayingFragment extends Fragment {
 
   private final static String TAG = NowPlayingFragment.class.getName();
   private final Handler timer;
-  private final Runnable timerTask;
+  private final Runnable updateAnalyzerTask;
+  private final Runnable updateUiTask;
   private Releaseable connection;
+  private SpectrumAnalyzerView analyzer;
   private Control control;
   private SeekBar seek;
   private TextView time;
@@ -45,7 +47,8 @@ public class NowPlayingFragment extends Fragment {
 
   public NowPlayingFragment() {
     this.timer = new Handler();
-    this.timerTask = new TimerTask();
+    this.updateAnalyzerTask = new UpdateAnalyzerTask();
+    this.updateUiTask = new UpdateUiTask();
   }
   
   @Override
@@ -103,6 +106,7 @@ public class NowPlayingFragment extends Fragment {
 
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
+    analyzer = (SpectrumAnalyzerView) view.findViewById(R.id.analyzer);
     seek = (SeekBar) view.findViewById(R.id.position_seek);
     time = (TextView) view.findViewById(R.id.position_time);
     view.findViewById(R.id.controls_play).setOnClickListener(new OnClickListener() {
@@ -140,16 +144,35 @@ public class NowPlayingFragment extends Fragment {
   }
 
   private void startUpdating() {
-    timer.post(timerTask);
+    timer.post(updateAnalyzerTask);
+    timer.post(updateUiTask);
   }
 
   private void stopUpdating() {
-    timer.removeCallbacks(timerTask);
+    timer.removeCallbacks(updateUiTask);
+    timer.removeCallbacks(updateAnalyzerTask);
   }
-
-  class TimerTask implements Runnable {
+  
+  private class UpdateAnalyzerTask implements Runnable {
+    
     @Override
     public void run() {
+      final int maxBands = analyzer.getMaxBands();
+      final int[] spectrum = control.getSpectrumAnalysis(maxBands);
+      if (spectrum == null) {
+        return;
+      }
+      analyzer.update(spectrum);
+      
+      timer.postDelayed(this, 100);
+    }
+  }
+
+  private class UpdateUiTask implements Runnable {
+    
+    @Override
+    public void run() {
+
       final TimeStamp pos = control.getPlaybackPosition();
       if (pos == null) {
         return;

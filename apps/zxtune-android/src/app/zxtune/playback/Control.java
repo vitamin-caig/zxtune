@@ -23,6 +23,12 @@ public interface Control {
    * @return Currently playing item's position or null if stopped
    */
   public TimeStamp getPlaybackPosition();
+  
+  /*
+   * @param bands Maximal count of bands to analyze
+   * @return Array of spectrum analysis 
+   */
+  public int[] getSpectrumAnalysis(int bands);
 
   /*
    * @return Current playback status

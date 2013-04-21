@@ -14,6 +14,8 @@ interface IPlaybackControl {
   ParcelablePlaybackItem getItem();
 
   long getPlaybackPosition();
+  
+  int[] getSpectrumAnalysis(int bands);
 
   String getStatus();
 

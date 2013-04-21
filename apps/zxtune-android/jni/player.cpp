@@ -72,12 +72,28 @@ namespace
       : Params(params)
       , Renderer(render)
       , Buffer(buffer)
+      , TrackState(Renderer->GetTrackState())
+      , Analyser(Renderer->GetAnalyzer())
     {
     }
     
     virtual uint_t GetPosition() const
     {
-      return Renderer->GetTrackState()->Frame();
+      return TrackState->Frame();
+    }
+
+    virtual void Analyze(uint_t maxBands, int32_t* levels) const
+    {
+      typedef std::vector<ZXTune::Module::Analyzer::ChannelState> ChannelsState;
+      ChannelsState result;
+      Analyser->GetState(result);
+      for (ChannelsState::const_iterator it = result.begin(), lim = result.end(); it != lim; ++it)
+      {
+        if (it->Enabled && it->Band < maxBands)
+        {
+          levels[it->Band] = it->Level;
+        }
+      }
     }
 
     virtual Parameters::Container::Ptr GetParameters() const
@@ -85,7 +101,7 @@ namespace
       return Params;
     }
     
-    virtual bool Render(std::size_t samples, int16_t* buffer)
+    virtual bool Render(uint_t samples, int16_t* buffer)
     {
       for (;;)
       {
@@ -115,6 +131,8 @@ namespace
     const Parameters::Container::Ptr Params;
     const ZXTune::Module::Renderer::Ptr Renderer;
     const BufferTarget::Ptr Buffer;
+    const ZXTune::Module::TrackState::Ptr TrackState;
+    const ZXTune::Module::Analyzer::Ptr Analyser;
   };
 
   Player::Control::Ptr CreateControl(const ZXTune::Module::Holder::Ptr module)
@@ -126,6 +144,47 @@ namespace
     const ZXTune::Module::Renderer::Ptr renderer = module->CreateRenderer(allProps, buffer);
     return boost::make_shared<PlayerControl>(params, renderer, buffer);
   }
+
+  template<class StorageType, class ResultType>
+  class AutoArray
+  {
+  public:
+    AutoArray(JNIEnv* env, StorageType storage)
+    : Env(env)
+      , Storage(storage)
+      , Length(Env->GetArrayLength(Storage))
+      , Content(static_cast<ResultType*>(Env->GetPrimitiveArrayCritical(Storage, 0)))
+    {
+    }
+
+    ~AutoArray()
+    {
+      if (Content)
+      {
+        Env->ReleasePrimitiveArrayCritical(Storage, Content, 0);
+      }
+    }
+
+    operator bool () const
+    {
+      return Length != 0 && Content != 0;
+    }
+
+    ResultType* Data() const
+    {
+      return Length ? Content : 0;
+    }
+
+    std::size_t Size() const
+    {
+      return Length;
+    }
+  private:
+    JNIEnv* const Env;
+    const StorageType Storage;
+    const jsize Length;
+    ResultType* const Content;
+  };
 }
 
 namespace Player
@@ -139,21 +198,34 @@ namespace Player
 }
 
 JNIEXPORT jboolean JNICALL Java_app_zxtune_ZXTune_Player_1Render
-  (JNIEnv* env, jclass /*self*/, jint playerHandle, jint size, jbyteArray buffer)
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jshortArray buffer)
 {
   if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
   {
-    if (int16_t* buf = static_cast<int16_t*>(env->GetPrimitiveArrayCritical(buffer, 0)))
+    typedef AutoArray<jshortArray, int16_t> ArrayType;
+    if (ArrayType buf = ArrayType(env, buffer))
     {
-      const bool res = player->Render(size / sizeof(*buf), buf);
-      env->ReleasePrimitiveArrayCritical(buffer, buf, 0);
-      return res;
+      return player->Render(buf.Size(), buf.Data());
     }
   }
   return false;
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition(JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1Analyze
+  (JNIEnv* env, jclass /*self*/, jint playerHandle, jintArray levels)
+{
+  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  {
+    typedef AutoArray<jintArray, int32_t> ArrayType;
+    if (ArrayType rawLevels = ArrayType(env, levels))
+    {
+      return player->Analyze(rawLevels.Size(), rawLevels.Data());
+    }
+  }
+}
+
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition
+  (JNIEnv* /*env*/, jclass /*self*/, jint playerHandle)
 {
   if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
   {

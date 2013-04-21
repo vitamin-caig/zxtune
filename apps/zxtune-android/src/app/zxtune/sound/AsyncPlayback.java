@@ -50,7 +50,7 @@ public class AsyncPlayback {
      * Render next sound chunk to buffer
      * @return Is there more sound chunks available
      */
-    public boolean getNextSoundChunk(byte[] buf);
+    public boolean getNextSoundChunk(short[] buf);
   }
 
   private final static String TAG = AsyncPlayback.class.getName();
@@ -115,8 +115,8 @@ public class AsyncPlayback {
 
     private Source source;
     private AudioTrack target;
-    private final BlockingQueue<byte[]> busyQueue = new LinkedBlockingQueue<byte[]>();
-    private final BlockingQueue<byte[]> freeQueue = new LinkedBlockingQueue<byte[]>();
+    private final BlockingQueue<short[]> busyQueue = new LinkedBlockingQueue<short[]>();
+    private final BlockingQueue<short[]> freeQueue = new LinkedBlockingQueue<short[]>();
     private final Lock pauseLock = new ReentrantLock();
     private final Condition unpause = pauseLock.newCondition();
 
@@ -124,7 +124,7 @@ public class AsyncPlayback {
       this.source = source;
       final int freqRate = AudioTrack.getNativeOutputSampleRate(streamType);
       final int minBufSize = AudioTrack.getMinBufferSize(freqRate, CHANNELS, ENCODING);
-      final int prefBufSize = 4 * (latencyMs * freqRate / 1000);
+      final int prefBufSize = Integer.bitCount(CHANNELS) * (latencyMs * freqRate / 1000);
       final int bufSize = Math.max(minBufSize, prefBufSize);
       Log.d(TAG, String.format(
           "Preparing playback. Freq=%d MinBuffer=%d PrefBuffer=%d BufferSize=%d", freqRate,
@@ -132,7 +132,7 @@ public class AsyncPlayback {
       this.target =
           new AudioTrack(streamType, freqRate, CHANNELS, ENCODING, bufSize, AudioTrack.MODE_STREAM);
       for (int q = 0; q != BUFFERS_COUNT; ++q) {
-        freeQueue.add(new byte[bufSize]);
+        freeQueue.add(new short[bufSize]);
       }
     }
 
@@ -186,7 +186,7 @@ public class AsyncPlayback {
         Log.d(TAG, "Start producing sound data");
         source.startup(target.getSampleRate());
         while (isActive()) {
-          final byte[] buf = freeQueue.take();
+          final short[] buf = freeQueue.take();
           if (source.getNextSoundChunk(buf)) {
             busyQueue.put(buf);
           } else {
@@ -207,7 +207,7 @@ public class AsyncPlayback {
         target.play();
         Log.d(TAG, "Start consuming sound data");
         while (isActive()) {
-          final byte[] buf = busyQueue.take();
+          final short[] buf = busyQueue.take();
           for (int pos = 0, toWrite = buf.length; toWrite != 0;) {
             final int written = target.write(buf, pos, toWrite);
             if (written > 0) {

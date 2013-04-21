@@ -41,6 +41,15 @@ final class PlaybackControlClient implements Control {
       return null;
     }
   }
+  
+  @Override
+  public int[] getSpectrumAnalysis(int bands) {
+    try {
+      return delegate.getSpectrumAnalysis(bands);
+    } catch (RemoteException e) {
+      return null;
+    }
+  }
 
   @Override
   public Status getStatus() {

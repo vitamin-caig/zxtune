@@ -249,6 +249,11 @@ public class PlaybackService extends Service {
     }
 
     @Override
+    public int[] getSpectrumAnalysis(int bands) {
+      return source != null ? source.getAnalysis(bands) : null;
+    }
+    
+    @Override
     public Status getStatus() {
       return source != null ? source.getStatus() : Status.STOPPED;
     }
@@ -345,7 +350,7 @@ public class PlaybackService extends Service {
     }
 
     @Override
-    public boolean getNextSoundChunk(byte[] buf) {
+    public boolean getNextSoundChunk(short[] buf) {
       return player.render(buf);
     }
 
@@ -362,6 +367,18 @@ public class PlaybackService extends Service {
         final int frame = player != null ? player.getPosition() : 0;
         //TODO
         return new TimeStamp(20 * frame, TimeUnit.MILLISECONDS);
+      }
+    }
+    
+    public int[] getAnalysis(int bands) {
+      synchronized (status) {
+        final int[] result = new int[bands];
+        if (player != null) {
+          player.analyze(result);
+          return result;
+        } else {
+          return null;
+        }
       }
     }
   }
