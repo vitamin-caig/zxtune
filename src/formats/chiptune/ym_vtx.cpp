@@ -135,6 +135,21 @@ namespace Chiptune
         uint16_t IntFreq;
         uint32_t Loop;
         uint16_t ExtraSize;
+
+        bool Interleaved() const
+        {
+          return 0 != (Attrs & 0x01000000);
+        }
+
+        bool DrumsSigned() const
+        {
+          return 0 != (Attrs & 0x02000000);
+        }
+
+        bool Drums4Bit() const
+        {
+          return 0 != (Attrs & 0x04000000);
+        }
       } PACK_POST;
 
       bool CheckSize(std::size_t size)
@@ -145,6 +160,16 @@ namespace Chiptune
       bool FastCheck(const void* data, std::size_t size)
       {
         return CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
+      }
+    }
+
+    namespace Ver6
+    {
+      const uint8_t ID[] = {'Y', 'M', '6', '!', 'L', 'e','O', 'n', 'A', 'r', 'D', '!'};
+
+      bool FastCheck(const void* data, std::size_t size)
+      {
+        return Ver5::CheckSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
     }
 
@@ -220,6 +245,7 @@ namespace Chiptune
           || Ver3::FastCheck(data, size)
           || Ver3b::FastCheck(data, size)
           || Ver5::FastCheck(data, size)
+          || Ver6::FastCheck(data, size)
       ;
     }
 
@@ -279,7 +305,8 @@ namespace Chiptune
           const Binary::Container::Ptr subData = stream.GetReadData();
           return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }
-        else if (Ver5::FastCheck(data, size))
+        else if (Ver5::FastCheck(data, size)
+              || Ver6::FastCheck(data, size))
         {
           Binary::InputStream stream(rawData);
           const Ver5::RawHeader& header = stream.ReadField<Ver5::RawHeader>();
@@ -295,7 +322,6 @@ namespace Chiptune
           target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
           target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
           target.SetComment(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-          const uint_t attrs = fromBE(header.Attrs);
 
           const std::size_t dumpOffset = stream.GetPosition();
           const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
@@ -303,7 +329,7 @@ namespace Chiptune
           const std::size_t lines = dumpSize / columns;
           const std::size_t matrixSize = lines * columns;
           const uint8_t* const src = stream.ReadData(matrixSize);
-          if (0 != (attrs & 1))
+          if (header.Interleaved())
           {
             ParseTransponedMatrix(src, matrixSize, columns, target);
           }
