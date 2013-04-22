@@ -26,7 +26,6 @@ Author:
 #include <core/module_detect.h>
 #include <core/module_holder.h>
 #include <core/module_player.h>
-#include <io/api.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <map>
@@ -252,33 +251,6 @@ const char* ZXTune_GetVersion()
   return VERSION.c_str();
 }
 
-ZXTuneHandle ZXTune_OpenData(const char* filename, const char** subname)
-{
-  try
-  {
-    const String uri(filename);
-    const IO::Identifier::Ptr id = IO::ResolveUri(uri);
-    const Parameters::Accessor::Ptr params = Parameters::Container::Create();
-    const Binary::Container::Ptr result = IO::OpenData(id->Path(), *params, Log::ProgressCallback::Stub());
-    Require(result->Size() != 0);
-    if (subname)
-    {
-      const String subpath = id->Subpath();
-      const String::size_type subpathOffset = uri.size() - subpath.size();
-      *subname = filename + subpathOffset;
-    }
-    return ContainersCache::Instance().Add(result);
-  }
-  catch (const Error&)
-  {
-    return ZXTuneHandle();
-  }
-  catch (const std::exception&)
-  {
-    return ZXTuneHandle();
-  }
-}
-
 ZXTuneHandle ZXTune_CreateData(const void* data, size_t size)
 {
   try
@@ -292,47 +264,18 @@ ZXTuneHandle ZXTune_CreateData(const void* data, size_t size)
   }
 }
 
-ZXTuneHandle ZXTune_ReadData(ZXTuneReadFunc reader, void* userData)
-{
-  try
-  {
-    Require(reader != 0);
-    std::size_t BLOCK_TO_READ = 1048576;
-    std::auto_ptr<Dump> data(new Dump());
-    for (std::size_t done = 0; ;)
-    {
-      data->resize(done + BLOCK_TO_READ);
-      const std::size_t read = reader(&data->at(done), BLOCK_TO_READ, userData);
-      done += read;
-      if (read != BLOCK_TO_READ)
-      {
-        data->resize(done);
-        break;
-      }
-    }
-    Require(!data->empty());
-    const Binary::Container::Ptr result = Binary::CreateContainer(data);
-    return ContainersCache::Instance().Add(result);
-  }
-  catch (const std::exception&)
-  {
-    return ZXTuneHandle();
-  }
-}
-
 void ZXTune_CloseData(ZXTuneHandle data)
 {
   ContainersCache::Instance().Delete(data);
 }
 
-ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data, const char* subname)
+ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data)
 {
   try
   {
     const Binary::Container::Ptr src = ContainersCache::Instance().Get(data);
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
-    const String subpath = subname ? String(subname) : String();
-    const ZXTune::Module::Holder::Ptr result = ZXTune::OpenModule(params, src, subpath);
+    const ZXTune::Module::Holder::Ptr result = ZXTune::OpenModule(params, src, String());
     return ModulesCache::Instance().Add(result);
   }
   catch (const Error&)

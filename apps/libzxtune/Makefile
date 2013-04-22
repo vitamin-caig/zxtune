@@ -2,15 +2,19 @@ dynamic_name := zxtune
 path_step := ../..
 source_dirs := src
 
-libraries := analysis binary core debug devices devices_aym formats_archived formats_packed formats_chiptune io l10n_stub platform sound strings tools zxtune_app_version
-depends := $(addprefix src/,analysis binary core debug devices devices/aym formats/archived formats/packed formats/chiptune io l10n/stub platform sound strings tools) apps/version
+libraries.common = analysis \
+                   binary \
+                   core core_plugins_archives_stub core_plugins_containers_stub core_plugins_players \
+                   debug devices devices_aym \
+                   formats_chiptune formats_packed_lha \
+                   l10n_stub sound strings \
+                   tools
 
-#3rdparty
-libraries += lhasa z z80ex
-depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
+libraries.3rdparty = lhasa z80ex
 
-boost_libraries += filesystem system
+libraries :=  zxtune_app_version
+depends := apps/version
 
-windows_libraries := advapi32 oldnames
+windows_libraries := oldnames
 
 include $(path_step)/makefile.mak
