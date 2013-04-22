@@ -20,7 +20,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    VolumeControl::Ptr CreateVolumeControlDelegate(const VolumeControl::Ptr& delegate);
+    VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate);
   }
 }
 

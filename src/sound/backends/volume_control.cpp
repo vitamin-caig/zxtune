@@ -35,7 +35,7 @@ namespace
 
     virtual MultiGain GetVolume() const
     {
-      if (VolumeControl::Ptr delegate = VolumeControl::Ptr(Delegate))
+      if (const VolumeControl::Ptr delegate = Delegate.lock())
       {
         return delegate->GetVolume();
       }
@@ -44,14 +44,14 @@ namespace
 
     virtual void SetVolume(const MultiGain& volume)
     {
-      if (VolumeControl::Ptr delegate = VolumeControl::Ptr(Delegate))
+      if (const VolumeControl::Ptr delegate = Delegate.lock())
       {
         return delegate->SetVolume(volume);
       }
       throw Error(THIS_LINE, translate("Failed to set volume in invalid state."));
     }
   private:
-    const VolumeControl::Ptr& Delegate;
+    const boost::weak_ptr<VolumeControl> Delegate;
   };
 }
 
@@ -59,7 +59,7 @@ namespace ZXTune
 {
   namespace Sound
   {
-    VolumeControl::Ptr CreateVolumeControlDelegate(const VolumeControl::Ptr& delegate)
+    VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate)
     {
       return boost::make_shared<VolumeControlDelegate>(boost::cref(delegate));
     }
