@@ -7,6 +7,15 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] Support mono layout in VTX modules
+[+] Support YM6 subtype of YM files
+[*] Fixed crash in Hrust2.3/Hrip archives decoding
+[*] Speedup RAR archives processing
+[*] Fixed win32 backend playback
+[*] zxtune-qt: disable fast channel layout options for modules with internal information (e.g. VTX)
+
+--- Rev2344 from 14.03.2013
+
 [+] Full support of RAR format (from 1.5 to 3.6)
 [*] Fixed solid RAR archives processing
 
