@@ -36,6 +36,7 @@ public class PlaylistFragment extends Fragment {
   private Control control;
   private PlaylistView listing;
   private Uri nowPlaying = Uri.EMPTY;
+  private Status nowPlayingStatus = Status.STOPPED;
 
   public static Fragment createInstance() {
     return new PlaylistFragment();
@@ -68,7 +69,8 @@ public class PlaylistFragment extends Fragment {
     listing.setPlayitemStateSource(new PlaylistView.PlayitemStateSource() {
       @Override
       public boolean isPlaying(Uri playlistUri) {
-        return 0 == playlistUri.compareTo(nowPlaying);
+        return !nowPlayingStatus.equals(Status.STOPPED)
+            && 0 == playlistUri.compareTo(nowPlaying);
       }
     });
     listing.setData(cursor);
@@ -110,6 +112,7 @@ public class PlaylistFragment extends Fragment {
       final boolean connected = control != null;
       listing.setEnabled(connected);
       if (connected) {
+        onStatusChanged(control.getStatus());
         onItemChanged(control.getItem());
       } else {
         onStatusChanged(Status.STOPPED);
@@ -119,9 +122,7 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void onStatusChanged(Status status) {
       listing.invalidateViews();
-      if (status.equals(Status.STOPPED)) {
-        nowPlaying = Uri.EMPTY;
-      }
+      nowPlayingStatus = status;
     }
     
     @Override

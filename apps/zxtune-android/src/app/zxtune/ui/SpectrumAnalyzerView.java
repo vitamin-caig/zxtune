@@ -64,8 +64,10 @@ public class SpectrumAnalyzerView extends View {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     
+    final int width = Math.min(visibleRect.width(), WIDTH);
+    final int height = Math.min(visibleRect.height(), HEIGHT);
     canvas.drawBitmap(bitmap, bitmap.length - WIDTH, -WIDTH, 
-      visibleRect.left, visibleRect.top, visibleRect.width(), visibleRect.height(), 
+      visibleRect.left, visibleRect.top, width, height, 
       false, null);
   }
   

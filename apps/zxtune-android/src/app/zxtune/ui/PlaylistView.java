@@ -167,9 +167,8 @@ public class PlaylistView extends ListView
     }
     
     private void bindState(PlayitemStateSource source, Item item, View view) {
-      final ImageView state = (ImageView) view.findViewById(R.id.playlist_item_state);
       final boolean playing = source.isPlaying(item.getUri());
-      state.setImageResource(playing ? R.drawable.ic_status_play : 0);
+      view.setBackgroundResource(playing ? R.drawable.ic_playing : 0);
     }
   }
 }

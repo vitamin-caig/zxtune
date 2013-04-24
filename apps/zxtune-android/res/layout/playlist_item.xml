@@ -1,34 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal"
+    style="@style/list_item"
     >
-    <ImageView
-      android:id="@+id/playlist_item_state"
-      android:layout_width="8sp"
-      android:layout_height="fill_parent"
-      android:layout_weight="0"
-    />
     <LinearLayout
       android:orientation="vertical"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_gravity="left|center"
-      android:paddingLeft="2dp"
       android:layout_weight="1"
+      android:layout_marginRight="@dimen/spacing_full"
       >
       <TextView
         android:id="@+id/playlist_item_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         style="@style/text_main"
+        android:layout_weight="1"
       />
       <TextView
         android:id="@+id/playlist_item_author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         style="@style/text_aux"
+        android:layout_weight="0"
       />
     </LinearLayout>
     <LinearLayout
@@ -36,7 +30,6 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_gravity="right|center"
-      android:paddingRight="4dp"
       android:layout_weight="0"
       >
       <TextView

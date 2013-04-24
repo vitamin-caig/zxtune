@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="horizontal"
-    android:paddingRight="4dp"
+    style="@style/list_item"
     >
     <ImageView
       android:id="@+id/dirview_item_icon"
@@ -17,6 +14,8 @@
       android:layout_height="wrap_content"
       android:layout_gravity="left|center"
       android:layout_weight="1"
+      android:layout_marginLeft="@dimen/spacing_full"
+      android:layout_marginRight="@dimen/spacing_full"
       style="@style/text_main"
     />
     <TextView
