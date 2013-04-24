@@ -183,6 +183,8 @@ namespace
       ChanState& envChan = state[CHANNELS + 1];
       envChan = ChanState('E');
       envChan.Band = 16 * GetToneE();
+      //taking into account only periodic envelope
+      const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
       const uint_t mixer = ~GetMixer();
       for (uint_t chan = 0; chan != CHANNELS; ++chan) 
       {
@@ -197,7 +199,7 @@ namespace
           noiseChan.LevelInPercents += MAX_LEVEL / CHANNELS;
         }
         //accumulate level in envelope channel      
-        if (hasEnv)
+        if (periodicEnv && hasEnv)
         {        
           envChan.Enabled = true;
           envChan.LevelInPercents += MAX_LEVEL / CHANNELS;
@@ -209,8 +211,9 @@ namespace
         {
           channel.Enabled = true;
           channel.LevelInPercents = (volReg & DataChunk::REG_MASK_VOL) * MAX_LEVEL / 15;
-          channel.Band = 256 * Registers[DataChunk::REG_TONEA_H + chan * 2] +
-            Registers[DataChunk::REG_TONEA_L + chan * 2];
+          //Use full period
+          channel.Band = 2 * (256 * Registers[DataChunk::REG_TONEA_H + chan * 2] +
+            Registers[DataChunk::REG_TONEA_L + chan * 2]);
         }
       } 
     }
@@ -321,32 +324,30 @@ namespace
     Renderer& Second;
   };
 
-  class InterpolatedRenderer : public Renderer
+  class InterpolatedTarget : public Receiver
   {
   public:
-    InterpolatedRenderer()
-      : Delegate()
+    explicit InterpolatedTarget(Receiver& delegate)
+      : Delegate(delegate)
       , PrevValues()
-      , CurValues()
     {
     }
 
-    void SetSource(Renderer* delegate)
+    virtual void ApplyData(const MultiSample& in)
     {
-      assert(delegate);
-      Delegate = delegate;
+      std::transform(PrevValues.begin(), PrevValues.end(), in.begin(), LastValues.begin(), &Average);
+      Delegate.ApplyData(LastValues);
+      PrevValues = in;
     }
 
-    virtual void GetLevels(MultiSample& result) const
+    virtual void Flush()
     {
-      PrevValues = CurValues;
-      Delegate->GetLevels(CurValues);
-      std::transform(PrevValues.begin(), PrevValues.end(), CurValues.begin(), result.begin(), &Average);
+      Delegate.Flush();
     }
   private:
-    Renderer* Delegate;
-    mutable MultiSample PrevValues;
-    mutable MultiSample CurValues;
+    Receiver& Delegate;
+    MultiSample PrevValues;
+    MultiSample LastValues;
   };
 
   class RelayoutRenderer : public Renderer
@@ -517,7 +518,7 @@ namespace
       std::transform(FREQUENCIES.begin(), FREQUENCIES.end(), Lookup.rbegin(), std::bind1st(std::ptr_fun(&GetPeriod), clock));
     }
     
-    uint_t GetBandByHalfPeriod(uint_t period) const
+    uint_t GetBandByPeriod(uint_t period) const
     {
       const uint_t maxBand = static_cast<uint_t>(Lookup.size() - 1);
       const uint_t currentBand = static_cast<uint_t>(Lookup.end() - std::lower_bound(Lookup.begin(), Lookup.end(), period));
@@ -528,7 +529,7 @@ namespace
 
     static uint_t GetPeriod(uint64_t clock, uint_t freq)
     {
-      return static_cast<uint_t>(clock * FREQ_MULTIPLIER / (2 * freq));
+      return static_cast<uint_t>(clock * FREQ_MULTIPLIER / freq);
     }
   private:
     uint64_t ClockRate;
@@ -542,6 +543,7 @@ namespace
     RegularAYMChip(ChipParameters::Ptr params, Receiver::Ptr target)
       : Params(params)
       , Target(target)
+      , Filter(*Target)
       , PSGWithBeeper(PSG, Beeper)
       , Clock()
     {
@@ -556,27 +558,24 @@ namespace
     virtual void Flush()
     {
       ApplyParameters();
-      Renderer& targetDevice = GetTargetDevice();
-      Filter.SetSource(&targetDevice);
-      Renderer& targetRender = Params->Interpolate()
-        ? static_cast<Renderer&>(Filter)
-        : targetDevice;
+      Renderer& source = GetSource();
+      Receiver& target = Params->Interpolate() ? Filter : *Target;
       const LayoutType layout = Params->Layout();
       if (LAYOUT_ABC == layout)
       {
-        RenderChunks(targetRender);
+        RenderChunks(source, target);
       }
       else if (LAYOUT_MONO == layout)
       {
-        MonoRenderer monoRender(targetRender);
-        RenderChunks(monoRender);
+        MonoRenderer monoSource(source);
+        RenderChunks(monoSource, target);
       }
       else
       {
-        RelayoutRenderer relayoutRender(targetRender, layout);
-        RenderChunks(relayoutRender);
+        RelayoutRenderer relayoutSource(source, layout);
+        RenderChunks(relayoutSource, target);
       }
-      Target->Flush();
+      target.Flush();
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -584,7 +583,7 @@ namespace
       PSG.GetState(state);
       for (ChannelsState::iterator it = state.begin(), lim = state.end(); it != lim; ++it)
       {
-        it->Band = Analyser.GetBandByHalfPeriod(it->Band);
+        it->Band = it->Enabled ? Analyser.GetBandByPeriod(it->Band) : 0;
       }
     }
 
@@ -606,7 +605,7 @@ namespace
       Analyser.SetClockRate(clock);
     }
 
-    Renderer& GetTargetDevice()
+    Renderer& GetSource()
     {
       const bool hasPSG = BufferedData.HasPSGData();
       const bool hasBeeper = BufferedData.HasBeeperData();
@@ -618,36 +617,35 @@ namespace
       : static_cast<Renderer&>(PSG);
     }
 
-    void RenderChunks(Renderer& render)
+    void RenderChunks(Renderer& source, Receiver& target)
     {
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
-        const DataChunk& src = *it;
-        if (Clock.GetCurrentTime() < src.TimeStamp)
+        const DataChunk& chunk = *it;
+        if (Clock.GetCurrentTime() < chunk.TimeStamp)
         {
-          RenderSingleChunk(src, render);
+          RenderSingleChunk(chunk, source, target);
         }
-        PSG.SetNewData(src);
-        Beeper.SetNewData(src);
+        PSG.SetNewData(chunk);
+        Beeper.SetNewData(chunk);
       }
       BufferedData.Reset();
     }
 
-    void RenderSingleChunk(const DataChunk& src, Renderer& render)
+    void RenderSingleChunk(const DataChunk& chunk, Renderer& source, Receiver& target)
     {
       MultiSample result;
-      Receiver& target = *Target;
-      while (Clock.GetNextSampleTime() < src.TimeStamp)
+      while (Clock.GetNextSampleTime() < chunk.TimeStamp)
       {
         if (const uint_t ticksPassed = Clock.NextTime(Clock.GetNextSampleTime()))
         {
           PSG.Tick(ticksPassed);
         }
-        render.GetLevels(result);
+        source.GetLevels(result);
         target.ApplyData(result);
         Clock.NextSample();
       }
-      if (const uint_t ticksPassed = Clock.NextTime(src.TimeStamp))
+      if (const uint_t ticksPassed = Clock.NextTime(chunk.TimeStamp))
       {
         PSG.Tick(ticksPassed);
       }
@@ -655,10 +653,10 @@ namespace
   private:
     const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
+    InterpolatedTarget Filter;
     AYMRenderer PSG;
     BeeperRenderer Beeper;
     MixedRenderer PSGWithBeeper;
-    InterpolatedRenderer Filter;
     ClockSource Clock;
     DataCache BufferedData;
     AnalysisMap Analyser;
