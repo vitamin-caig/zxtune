@@ -111,7 +111,14 @@ namespace Devices
     private:
       void UpdateMiddle()
       {
-        MiddlePeriod = DutyCycle * DoublePeriod / MAX_DUTYCYCLE;
+        if (DutyCycle == NO_DUTYCYCLE)
+        {
+          MiddlePeriod = DoublePeriod / 2;
+        }
+        else
+        {
+          MiddlePeriod = DutyCycle * DoublePeriod / MAX_DUTYCYCLE;
+        }
       }
 
       bool GetFlip() const

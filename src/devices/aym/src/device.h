@@ -67,12 +67,28 @@ namespace Devices
         }
       }
 
-      void SetPeriods(uint_t toneA, uint_t toneB, uint_t toneC, uint_t toneN, uint_t toneE)
+      void SetToneA(uint_t toneA)
       {
         GenA.SetPeriod(toneA);
+      }
+
+      void SetToneB(uint_t toneB)
+      {
         GenB.SetPeriod(toneB);
+      }
+
+      void SetToneC(uint_t toneC)
+      {
         GenC.SetPeriod(toneC);
+      }
+
+      void SetToneN(uint_t toneN)
+      {
         GenN.SetPeriod(toneN);
+      }
+
+      void SetToneE(uint_t toneE)
+      {
         GenE.SetPeriod(toneE);
       }
 

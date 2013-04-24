@@ -84,10 +84,9 @@ namespace
   {
   public:
     AYMRenderer()
-      : Mixer(State.Data[DataChunk::REG_MIXER])
-      , VolA(State.Data[DataChunk::REG_VOLA]), VolB(State.Data[DataChunk::REG_VOLB]), VolC(State.Data[DataChunk::REG_VOLC])
+      : Registers()
     {
-      Mixer = 0xff;
+      Registers[DataChunk::REG_MIXER ] = 0xff;
     }
 
     void SetVolumeTable(const VolTable& table)
@@ -102,8 +101,8 @@ namespace
 
     void Reset()
     {
-      State = DataChunk();
-      Mixer = 0xff;
+      std::fill(Registers.begin(), Registers.end(), 0);
+      Registers[DataChunk::REG_MIXER ] = 0xff;
       Device.Reset();
     }
 
@@ -127,20 +126,31 @@ namespace
         {
           reg &= 0x1f;
         }
-        State.Data[idx] = reg;
+        Registers[idx] = reg;
       }
       if (data.Mask & (1 << DataChunk::REG_MIXER))
       {
-        Device.SetMixer(Mixer);
+        Device.SetMixer(GetMixer());
       }
-      if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H) |
-                       (1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H) |
-                       (1 << DataChunk::REG_TONEC_L) | (1 << DataChunk::REG_TONEC_H) |
-                       (1 << DataChunk::REG_TONEN) |
-                       (1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)
-                       ))
+      if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)))
       {
-        Device.SetPeriods(GetToneA(), GetToneB(), GetToneC(), GetToneN(), GetToneE());
+        Device.SetToneA(AYM_CLOCK_DIVISOR * GetToneA());
+      }
+      if (data.Mask & ((1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H)))
+      {
+        Device.SetToneB(AYM_CLOCK_DIVISOR * GetToneB());
+      }
+      if (data.Mask & ((1 << DataChunk::REG_TONEC_L) | (1 << DataChunk::REG_TONEC_H)))
+      {
+        Device.SetToneC(AYM_CLOCK_DIVISOR * GetToneC());
+      }
+      if (data.Mask & (1 << DataChunk::REG_TONEN))
+      {
+        Device.SetToneN(AYM_CLOCK_DIVISOR * GetToneN());
+      }
+      if (data.Mask & ((1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)))
+      {
+        Device.SetToneE(AYM_CLOCK_DIVISOR * GetToneE());
       }
       if (data.Mask & (1 << DataChunk::REG_ENV))
       {
@@ -148,7 +158,7 @@ namespace
       }
       if (data.Mask & ((1 << DataChunk::REG_VOLA) | (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC)))
       {
-        Device.SetLevel(VolA, VolB, VolC);
+        Device.SetLevel(Registers[DataChunk::REG_VOLA], Registers[DataChunk::REG_VOLB], Registers[DataChunk::REG_VOLC]);
       }
     }
 
@@ -173,10 +183,10 @@ namespace
       ChanState& envChan = state[CHANNELS + 1];
       envChan = ChanState('E');
       envChan.Band = 16 * GetToneE();
-      const uint_t mixer = ~Mixer;
+      const uint_t mixer = ~GetMixer();
       for (uint_t chan = 0; chan != CHANNELS; ++chan) 
       {
-        const uint_t volReg = State.Data[DataChunk::REG_VOLA + chan];
+        const uint_t volReg = Registers[DataChunk::REG_VOLA + chan];
         const bool hasNoise = 0 != (mixer & (uint_t(DataChunk::REG_MASK_NOISEA) << chan));
         const bool hasTone = 0 != (mixer & (uint_t(DataChunk::REG_MASK_TONEA) << chan));
         const bool hasEnv = 0 != (volReg & DataChunk::REG_MASK_ENV);
@@ -199,49 +209,49 @@ namespace
         {
           channel.Enabled = true;
           channel.LevelInPercents = (volReg & DataChunk::REG_MASK_VOL) * MAX_LEVEL / 15;
-          channel.Band = 256 * State.Data[DataChunk::REG_TONEA_H + chan * 2] +
-            State.Data[DataChunk::REG_TONEA_L + chan * 2];
+          channel.Band = 256 * Registers[DataChunk::REG_TONEA_H + chan * 2] +
+            Registers[DataChunk::REG_TONEA_L + chan * 2];
         }
       } 
     }
   private:
+    uint_t GetMixer() const
+    {
+      return Registers[DataChunk::REG_MIXER];
+    }
+
     uint_t GetToneA() const
     {
-      return 256 * State.Data[DataChunk::REG_TONEA_H] + State.Data[DataChunk::REG_TONEA_L];
+      return 256 * Registers[DataChunk::REG_TONEA_H] + Registers[DataChunk::REG_TONEA_L];
     }
 
     uint_t GetToneB() const
     {
-      return 256 * State.Data[DataChunk::REG_TONEB_H] + State.Data[DataChunk::REG_TONEB_L];
+      return 256 * Registers[DataChunk::REG_TONEB_H] + Registers[DataChunk::REG_TONEB_L];
     }
 
     uint_t GetToneC() const
     {
-      return 256 * State.Data[DataChunk::REG_TONEC_H] + State.Data[DataChunk::REG_TONEC_L];
+      return 256 * Registers[DataChunk::REG_TONEC_H] + Registers[DataChunk::REG_TONEC_L];
     }
 
     uint_t GetToneN() const
     {
-      return 2 * State.Data[DataChunk::REG_TONEN];//for optimization
+      return 2 * Registers[DataChunk::REG_TONEN];//for optimization
     }
 
     uint_t GetToneE() const
     {
-      return 256 * State.Data[DataChunk::REG_TONEE_H] + State.Data[DataChunk::REG_TONEE_L];
+      return 256 * Registers[DataChunk::REG_TONEE_H] + Registers[DataChunk::REG_TONEE_L];
     }
 
     uint_t GetEnvType() const
     {
-      return State.Data[DataChunk::REG_ENV];
+      return Registers[DataChunk::REG_ENV];
     }
   private:
     //registers state
-    DataChunk State;
-    //aliases for registers
-    uint8_t& Mixer;
-    uint8_t& VolA;
-    uint8_t& VolB;
-    uint8_t& VolC;
+    boost::array<uint_t, DataChunk::REG_LAST_AY> Registers;
     //device
     AYMDevice Device;
   };
@@ -335,7 +345,6 @@ namespace
     }
   private:
     Renderer* Delegate;
-    MultiSample Levels;
     mutable MultiSample PrevValues;
     mutable MultiSample CurValues;
   };
@@ -388,7 +397,7 @@ namespace
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
     {
       SndOscillator.SetFrequency(soundFreq);
-      PsgOscillator.SetFrequency(clockFreq / AYM_CLOCK_DIVISOR);
+      PsgOscillator.SetFrequency(clockFreq);
     }
 
     void Reset()
@@ -519,7 +528,7 @@ namespace
 
     static uint_t GetPeriod(uint64_t clock, uint_t freq)
     {
-      return static_cast<uint_t>(clock * FREQ_MULTIPLIER / (2 * AYM_CLOCK_DIVISOR * freq));
+      return static_cast<uint_t>(clock * FREQ_MULTIPLIER / (2 * freq));
     }
   private:
     uint64_t ClockRate;
