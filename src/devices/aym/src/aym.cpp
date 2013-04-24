@@ -129,23 +129,23 @@ namespace
       }
       if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)))
       {
-        Device.SetToneA(AYM_CLOCK_DIVISOR * GetToneA());
+        Device.SetToneA(GetToneA());
       }
       if (data.Mask & ((1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H)))
       {
-        Device.SetToneB(AYM_CLOCK_DIVISOR * GetToneB());
+        Device.SetToneB(GetToneB());
       }
       if (data.Mask & ((1 << DataChunk::REG_TONEC_L) | (1 << DataChunk::REG_TONEC_H)))
       {
-        Device.SetToneC(AYM_CLOCK_DIVISOR * GetToneC());
+        Device.SetToneC(GetToneC());
       }
       if (data.Mask & (1 << DataChunk::REG_TONEN))
       {
-        Device.SetToneN(AYM_CLOCK_DIVISOR * GetToneN());
+        Device.SetToneN(GetToneN());
       }
       if (data.Mask & ((1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)))
       {
-        Device.SetToneE(AYM_CLOCK_DIVISOR * GetToneE());
+        Device.SetToneE(GetToneE());
       }
       if (data.Mask & (1 << DataChunk::REG_ENV))
       {
@@ -272,7 +272,7 @@ namespace
       if (data.Mask & (1 << DataChunk::REG_BEEPER))
       {
         const uint_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
-        Beeper = inLevel | (inLevel << 8) | (inLevel << 16);
+        Beeper = inLevel | (inLevel << BITS_PER_LEVEL) | (inLevel << 2 * BITS_PER_LEVEL);
       }
     }
 
@@ -546,29 +546,41 @@ namespace
   {
   public:
     MultiVolumeTable()
-      : Table(&GetAY38910VolTable())
+      : Table()
     {
+      Reset();
     }
 
     void Reset()
     {
-      Table = &GetAY38910VolTable();
+      Set(GetAY38910VolTable());
     }
 
     void Set(const VolTable& table)
     {
-      Table = &table;
+      if (Table != &table)
+      {
+        for (uint_t idx = 0; idx != Lookup.size(); ++idx)
+        {
+          const MultiSample res =
+          {{
+            table[idx & HIGH_LEVEL_A],
+            table[(idx >> BITS_PER_LEVEL) & HIGH_LEVEL_A],
+            table[idx >> 2 * BITS_PER_LEVEL]
+          }};
+          Lookup[idx] = res;
+        }
+        Table = &table;
+      }
     }
 
     void Get(uint_t in, MultiSample& out) const
     {
-      const VolTable& table = *Table;
-      out[0] = table[(in >>  0) & 0xff];
-      out[1] = table[(in >>  8) & 0xff];
-      out[2] = table[(in >> 16) & 0xff];
+      out = Lookup[in];
     }
   private:
     const VolTable* Table;
+    boost::array<MultiSample, 1 << 3 * BITS_PER_LEVEL> Lookup;
   };
 
   class RegularAYMChip : public Chip
@@ -633,7 +645,7 @@ namespace
     void ApplyParameters()
     {
       PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
-      const uint64_t clock = Params->ClockFreq();
+      const uint64_t clock = Params->ClockFreq() / AYM_CLOCK_DIVISOR;
       Clock.SetFrequency(clock, Params->SoundFreq());
       Analyser.SetClockRate(clock);
       VolTable.Set(Params->VolumeTable());

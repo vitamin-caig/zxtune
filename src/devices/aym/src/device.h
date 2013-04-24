@@ -96,32 +96,9 @@ namespace Devices
         Levels = 0;
         EnvelopeMask = 0;
 
-        if (0 != (levelA & DataChunk::REG_MASK_ENV))
-        {
-          EnvelopeMask = 0x1;
-        }
-        else
-        {
-          Levels = ((levelA & DataChunk::REG_MASK_VOL) << 1) + 1;
-        }
-
-        if (0 != (levelB & DataChunk::REG_MASK_ENV))
-        {
-          EnvelopeMask |= 0x100;
-        }
-        else
-        {
-          Levels |= (((levelB & DataChunk::REG_MASK_VOL) << 1) + 1) << 8;
-        }
-
-        if (0 != (levelC & DataChunk::REG_MASK_ENV))
-        {
-          EnvelopeMask |= 0x10000;
-        }
-        else
-        {
-          Levels |= (((levelC & DataChunk::REG_MASK_VOL) << 1) + 1) << 16;
-        }
+        SetLevel(0, levelA);
+        SetLevel(1, levelB);
+        SetLevel(2, levelC);
       }
 
       void Reset()
@@ -154,6 +131,19 @@ namespace Devices
         const uint_t toneC = GenC.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_C, HIGH_LEVEL>();
 
         return level & toneA & toneB & toneC & noise;
+      }
+    private:
+      void SetLevel(uint_t chan, uint_t reg)
+      {
+        const uint_t shift = chan * BITS_PER_LEVEL;
+        if (0 != (reg & DataChunk::REG_MASK_ENV))
+        {
+          EnvelopeMask |= 1 << shift;
+        }
+        else
+        {
+          Levels |= ((reg << 1) + 1) << shift;
+        }
       }
     private:
       ToneGenerator GenA;
