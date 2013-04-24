@@ -28,7 +28,10 @@ namespace Devices
     const uint_t NO_DUTYCYCLE = MAX_DUTYCYCLE / 2;
 
     const uint_t LOW_LEVEL = 0;
-    const uint_t HIGH_LEVEL = ~LOW_LEVEL;
+    const uint_t HIGH_LEVEL_A = 0x0000ff;
+    const uint_t HIGH_LEVEL_B = 0x00ff00;
+    const uint_t HIGH_LEVEL_C = 0xff0000;
+    const uint_t HIGH_LEVEL = HIGH_LEVEL_A | HIGH_LEVEL_B | HIGH_LEVEL_C;
 
     class NoiseLookup
     {

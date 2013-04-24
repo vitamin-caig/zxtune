@@ -31,13 +31,7 @@ namespace Devices
         : Levels()
         , NoiseMask(HIGH_LEVEL)
         , EnvelopeMask(LOW_LEVEL)
-        , VolumeTable(&GetAY38910VolTable())
       {
-      }
-
-      void SetVolumeTable(const VolTable& table)
-      {
-        VolumeTable = &table;
       }
 
       void SetDutyCycle(uint_t value, uint_t mask)
@@ -55,15 +49,15 @@ namespace Devices
         NoiseMask = HIGH_LEVEL;
         if (0 == (mixer & DataChunk::REG_MASK_NOISEA))
         {
-          NoiseMask ^= 0xff;
+          NoiseMask ^= HIGH_LEVEL_A;
         }
         if (0 == (mixer & DataChunk::REG_MASK_NOISEB))
         {
-          NoiseMask ^= 0xff00;
+          NoiseMask ^= HIGH_LEVEL_B;
         }
         if (0 == (mixer & DataChunk::REG_MASK_NOISEC))
         {
-          NoiseMask ^= 0xff0000;
+          NoiseMask ^= HIGH_LEVEL_C;
         }
       }
 
@@ -140,7 +134,6 @@ namespace Devices
         Levels = 0;
         NoiseMask = HIGH_LEVEL;
         EnvelopeMask = LOW_LEVEL;
-        VolumeTable = &GetAY38910VolTable();
       }
 
       void Tick(uint_t ticks)
@@ -152,20 +145,15 @@ namespace Devices
         GenE.Tick(ticks);
       }
 
-      void GetLevels(MultiSample& result) const
+      uint_t GetLevels() const
       {
         const uint_t level = EnvelopeMask ? (EnvelopeMask * GenE.GetLevel()) | Levels : Levels;
         const uint_t noise = NoiseMask != HIGH_LEVEL ? (NoiseMask | GenN.GetLevel()) : NoiseMask;
-        const uint_t toneA = GenA.GetLevel<0xffff00, HIGH_LEVEL>();
-        const uint_t toneB = GenB.GetLevel<0xff00ff, HIGH_LEVEL>();
-        const uint_t toneC = GenC.GetLevel<0x00ffff, HIGH_LEVEL>();
+        const uint_t toneA = GenA.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_A, HIGH_LEVEL>();
+        const uint_t toneB = GenB.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_B, HIGH_LEVEL>();
+        const uint_t toneC = GenC.GetLevel<HIGH_LEVEL ^ HIGH_LEVEL_C, HIGH_LEVEL>();
 
-        const uint_t out = level & toneA & toneB & toneC & noise;
-
-        const VolTable& table = *VolumeTable;
-        result[0] = table[out & 0xff];
-        result[1] = table[(out & 0xff00) >> 8];
-        result[2] = table[(out & 0xff0000) >> 16];
+        return level & toneA & toneB & toneC & noise;
       }
     private:
       ToneGenerator GenA;
@@ -176,7 +164,6 @@ namespace Devices
       uint_t Levels;
       uint_t NoiseMask;
       uint_t EnvelopeMask;
-      const VolTable* VolumeTable;
     };
   }
 }
