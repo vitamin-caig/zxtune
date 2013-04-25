@@ -72,19 +72,12 @@ namespace
 
   const uint_t AYM_CLOCK_DIVISOR = 8;
 
-  class Renderer
-  {
-  public:
-    virtual ~Renderer() {}
-
-    virtual uint_t GetLevels() const = 0;
-  };
-  
-  class AYMRenderer : public Renderer
+  class AYMRenderer
   {
   public:
     AYMRenderer()
       : Registers()
+      , Beeper()
     {
       Registers[DataChunk::REG_MIXER ] = 0xff;
     }
@@ -99,11 +92,12 @@ namespace
       std::fill(Registers.begin(), Registers.end(), 0);
       Registers[DataChunk::REG_MIXER ] = 0xff;
       Device.Reset();
+      Beeper = 0;
     }
 
     void SetNewData(const DataChunk& data)
     {
-      for (uint_t idx = 0, mask = 1; idx != data.Data.size(); ++idx, mask <<= 1)
+      for (uint_t idx = 0, mask = 1; idx != Registers.size(); ++idx, mask <<= 1)
       {
         if (0 == (data.Mask & mask))
         {
@@ -155,6 +149,11 @@ namespace
       {
         Device.SetLevel(Registers[DataChunk::REG_VOLA], Registers[DataChunk::REG_VOLB], Registers[DataChunk::REG_VOLC]);
       }
+      if (data.Mask & (1 << DataChunk::REG_BEEPER))
+      {
+        const uint_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
+        Beeper = inLevel | (inLevel << BITS_PER_LEVEL) | (inLevel << 2 * BITS_PER_LEVEL);
+      }
     }
 
     void Tick(uint_t ticks)
@@ -162,9 +161,16 @@ namespace
       Device.Tick(ticks);
     }
 
-    virtual uint_t GetLevels() const
+    uint_t GetLevels() const
     {
-      return Device.GetLevels();
+      if (Beeper)
+      {
+        return Beeper;
+      }
+      else
+      {
+        return Device.GetLevels();
+      }
     }
 
     void GetState(ChannelsState& state) const
@@ -252,35 +258,6 @@ namespace
     boost::array<uint_t, DataChunk::REG_LAST_AY> Registers;
     //device
     AYMDevice Device;
-  };
-
-  class BeeperRenderer : public Renderer
-  {
-  public:
-    BeeperRenderer()
-      : Beeper()
-    {
-    }
-
-    void Reset()
-    {
-      Beeper = 0;
-    }
-
-    void SetNewData(const DataChunk& data)
-    {
-      if (data.Mask & (1 << DataChunk::REG_BEEPER))
-      {
-        const uint_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
-        Beeper = inLevel | (inLevel << BITS_PER_LEVEL) | (inLevel << 2 * BITS_PER_LEVEL);
-      }
-    }
-
-    virtual uint_t GetLevels() const
-    {
-      return Beeper;
-    }
-  private:
     uint_t Beeper;
   };
 
@@ -288,31 +265,6 @@ namespace
   {
     return static_cast<Sample>((uint_t(first) + second) / 2);
   }
-
-  class MixedRenderer : public Renderer
-  {
-  public:
-    MixedRenderer(const Renderer& beeper, Renderer& psg)
-      : Beeper(beeper)
-      , Psg(psg)
-    {
-    }
-
-    virtual uint_t GetLevels() const
-    {
-      if (const uint_t beep = Beeper.GetLevels())
-      {
-        return beep;
-      }
-      else
-      {
-        return Psg.GetLevels();
-      }
-    }
-  private:
-    const Renderer& Beeper;
-    const Renderer& Psg;
-  };
 
   class RelayoutTarget : public Receiver
   {
@@ -371,32 +323,6 @@ namespace
     Receiver& Delegate;
   };
 
-  class InterpolatedTarget : public Receiver
-  {
-  public:
-    explicit InterpolatedTarget(Receiver& delegate)
-      : Delegate(delegate)
-      , PrevValues()
-    {
-    }
-
-    virtual void ApplyData(const MultiSample& in)
-    {
-      std::transform(PrevValues.begin(), PrevValues.end(), in.begin(), LastValues.begin(), &Average);
-      Delegate.ApplyData(LastValues);
-      PrevValues = in;
-    }
-
-    virtual void Flush()
-    {
-      Delegate.Flush();
-    }
-  private:
-    Receiver& Delegate;
-    MultiSample PrevValues;
-    MultiSample LastValues;
-  };
-
   class ClockSource
   {
   public:
@@ -442,15 +368,9 @@ namespace
   class DataCache
   {
   public:
-    DataCache()
-      : CumulativeMask()
-    {
-    }
-    
     void Add(const DataChunk& src)
     {
       Buffer.push_back(src);
-      CumulativeMask |= src.Mask;
     }
 
     const DataChunk* GetBegin() const
@@ -466,21 +386,9 @@ namespace
     void Reset()
     {
       Buffer.clear();
-      CumulativeMask = 0;
-    }
-
-    bool HasBeeperData() const
-    {
-      return 0 != (CumulativeMask & (1 << DataChunk::REG_BEEPER));
-    }
-
-    bool HasPSGData() const
-    {
-      return 0 != (CumulativeMask & ((1 << DataChunk::REG_BEEPER) - 1));
     }
   private:
     std::vector<DataChunk> Buffer;
-    uint_t CumulativeMask;
   };
   
   class AnalysisMap
@@ -574,13 +482,123 @@ namespace
       }
     }
 
-    void Get(uint_t in, MultiSample& out) const
+    MultiSample Get(uint_t in) const
     {
-      out = Lookup[in];
+      return Lookup[in];
     }
   private:
     const VolTable* Table;
     boost::array<MultiSample, 1 << 3 * BITS_PER_LEVEL> Lookup;
+  };
+
+  class Renderer
+  {
+  public:
+    virtual ~Renderer() {}
+
+    virtual void Render(const Stamp& tillTime, Receiver& target) = 0;
+  };
+
+  class LQRenderer : public Renderer
+  {
+  public:
+    LQRenderer(ClockSource& clock, AYMRenderer& psg, const MultiVolumeTable& tab)
+      : Clock(clock)
+      , PSG(psg)
+      , Table(tab)
+    {
+    }
+
+    virtual void Render(const Stamp& tillTime, Receiver& target)
+    {
+      for (;;)
+      {
+        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
+        if (!(nextSampleTime < tillTime))
+        {
+          break;
+        }
+        else if (const uint_t ticksPassed = Clock.NextTime(nextSampleTime))
+        {
+          PSG.Tick(ticksPassed);
+        }
+        RenderNextSample(target);
+      }
+      if (const uint_t ticksPassed = Clock.NextTime(tillTime))
+      {
+        PSG.Tick(ticksPassed);
+      }
+    }
+  private:
+    void RenderNextSample(Receiver& target)
+    {
+      const uint_t psgLevel = PSG.GetLevels();
+      const MultiSample& sndLevel = Table.Get(psgLevel);
+      target.ApplyData(sndLevel);
+      Clock.NextSample();
+    }
+  private:
+    ClockSource& Clock;
+    AYMRenderer& PSG;
+    const MultiVolumeTable& Table;
+  };
+
+  class MQRenderer : public Renderer
+  {
+  public:
+    MQRenderer(ClockSource& clock, AYMRenderer& psg, const MultiVolumeTable& tab)
+      : Clock(clock)
+      , PSG(psg)
+      , Table(tab)
+    {
+    }
+
+    virtual void Render(const Stamp& tillTime, Receiver& target)
+    {
+      for (;;)
+      {
+        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
+        if (!(nextSampleTime < tillTime))
+        {
+          break;
+        }
+        else if (const uint_t ticksPassed = Clock.NextTime(nextSampleTime))
+        {
+          PSG.Tick(ticksPassed);
+        }
+        RenderNextSample(target);
+      }
+      if (const uint_t ticksPassed = Clock.NextTime(tillTime))
+      {
+        PSG.Tick(ticksPassed);
+      }
+    }
+  private:
+    void RenderNextSample(Receiver& target)
+    {
+      const uint_t psgLevel = PSG.GetLevels();
+      const MultiSample& curLevel = Table.Get(psgLevel);
+      const MultiSample& sndLevel = Interpolate(curLevel);
+      target.ApplyData(sndLevel);
+      Clock.NextSample();
+    }
+
+    MultiSample Interpolate(const MultiSample& newLevel)
+    {
+      const MultiSample out =
+      {{
+        Average(PrevLevel[0], newLevel[0]),
+        Average(PrevLevel[1], newLevel[1]),
+        Average(PrevLevel[2], newLevel[2]),
+      }};
+      PrevLevel = newLevel;
+      return out;
+    }
+  private:
+    ClockSource& Clock;
+    AYMRenderer& PSG;
+    const MultiVolumeTable& Table;
+    MultiSample PrevLevel;
   };
 
   class RegularAYMChip : public Chip
@@ -589,9 +607,9 @@ namespace
     RegularAYMChip(ChipParameters::Ptr params, Receiver::Ptr target)
       : Params(params)
       , Target(target)
-      , Filter(*Target)
-      , PSGWithBeeper(Beeper, PSG)
       , Clock()
+      , LQ(Clock, PSG, VolTable)
+      , MQ(Clock, PSG, VolTable)
     {
       Reset();
     }
@@ -604,24 +622,23 @@ namespace
     virtual void Flush()
     {
       ApplyParameters();
-      Renderer& source = GetSource();
-      Receiver& target = Params->Interpolate() ? Filter : *Target;
+      Renderer& source = Params->Interpolate() ? static_cast<Renderer&>(MQ) : static_cast<Renderer&>(LQ);
       const LayoutType layout = Params->Layout();
       if (LAYOUT_ABC == layout)
       {
-        RenderChunks(source, target);
+        RenderChunks(source, *Target);
       }
       else if (LAYOUT_MONO == layout)
       {
-        MonoTarget monoTarget(target);
+        MonoTarget monoTarget(*Target);
         RenderChunks(source, monoTarget);
       }
       else
       {
-        RelayoutTarget relayoutTarget(target, layout);
+        RelayoutTarget relayoutTarget(*Target, layout);
         RenderChunks(source, relayoutTarget);
       }
-      target.Flush();
+      Target->Flush();
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -636,7 +653,6 @@ namespace
     virtual void Reset()
     {
       PSG.Reset();
-      Beeper.Reset();
       Clock.Reset();
       BufferedData.Reset();
       VolTable.Reset();
@@ -651,18 +667,6 @@ namespace
       VolTable.Set(Params->VolumeTable());
     }
 
-    Renderer& GetSource()
-    {
-      const bool hasPSG = BufferedData.HasPSGData();
-      const bool hasBeeper = BufferedData.HasBeeperData();
-      return hasBeeper
-      ? (hasPSG
-         ? static_cast<Renderer&>(PSGWithBeeper)
-         : static_cast<Renderer&>(Beeper)
-         )
-      : static_cast<Renderer&>(PSG);
-    }
-
     void RenderChunks(Renderer& source, Receiver& target)
     {
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
@@ -670,49 +674,22 @@ namespace
         const DataChunk& chunk = *it;
         if (Clock.GetCurrentTime() < chunk.TimeStamp)
         {
-          FlushSamples(chunk.TimeStamp, source, target);
+          source.Render(chunk.TimeStamp, target);
         }
         PSG.SetNewData(chunk);
-        Beeper.SetNewData(chunk);
       }
       BufferedData.Reset();
-    }
-
-    void FlushSamples(const Stamp& tillTime, Renderer& source, Receiver& target)
-    {
-      MultiSample result;
-      for (;;)
-      {
-        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
-        if (!(nextSampleTime < tillTime))
-        {
-          break;
-        }
-        else if (const uint_t ticksPassed = Clock.NextTime(nextSampleTime))
-        {
-          PSG.Tick(ticksPassed);
-        }
-        const uint_t levels = source.GetLevels();
-        VolTable.Get(levels, result);
-        target.ApplyData(result);
-        Clock.NextSample();
-      }
-      if (const uint_t ticksPassed = Clock.NextTime(tillTime))
-      {
-        PSG.Tick(ticksPassed);
-      }
     }
   private:
     const ChipParameters::Ptr Params;
     const Receiver::Ptr Target;
-    InterpolatedTarget Filter;
     AYMRenderer PSG;
-    BeeperRenderer Beeper;
-    MixedRenderer PSGWithBeeper;
     ClockSource Clock;
     DataCache BufferedData;
     AnalysisMap Analyser;
     MultiVolumeTable VolTable;
+    LQRenderer LQ;
+    MQRenderer MQ;
   };
 }
 
