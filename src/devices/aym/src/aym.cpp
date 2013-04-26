@@ -794,7 +794,7 @@ namespace
     virtual void Flush()
     {
       ApplyParameters();
-      Renderer& source = Params->Interpolate() ? static_cast<Renderer&>(HQ) : static_cast<Renderer&>(LQ);
+      Renderer& source = GetRenderer();
       const LayoutType layout = Params->Layout();
       if (LAYOUT_ABC == layout)
       {
@@ -839,6 +839,19 @@ namespace
       Analyser.SetClockRate(clock);
       VolTable.Set(Params->VolumeTable());
       HQ.SetFrequency(clock, sndFreq);
+    }
+
+    Renderer& GetRenderer()
+    {
+      switch (Params->Interpolation())
+      {
+      case INTERPOLATION_LQ:
+        return MQ;
+      case INTERPOLATION_HQ:
+        return HQ;
+      default:
+        return LQ;
+      }
     }
 
     void RenderChunks(Renderer& source, Receiver& target)

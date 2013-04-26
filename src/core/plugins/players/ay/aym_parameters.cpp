@@ -158,11 +158,11 @@ namespace
       return VolumeTables[intVal != 0];
     }
 
-    virtual bool Interpolate() const
+    virtual Devices::AYM::InterpolationType Interpolation() const
     {
       Parameters::IntType intVal = 0;
       Params->FindValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intVal);
-      return intVal != 0;
+      return static_cast<Devices::AYM::InterpolationType>(intVal);
     }
 
     virtual uint_t DutyCycleValue() const
