@@ -99,6 +99,10 @@ public class AsyncPlayback {
     sync.release();
     sync = null;
   }
+  
+  public boolean isPlaying() {
+    return sync != null ? sync.isPlaying() : false;
+  }
 
   private static void finishThread(Thread thr) {
     try {
@@ -229,7 +233,7 @@ public class AsyncPlayback {
       }
     }
 
-    private boolean isPlaying() {
+    public boolean isPlaying() {
       return AudioTrack.PLAYSTATE_PLAYING == target.getPlayState();
     }
 

@@ -69,7 +69,7 @@ public class PlaybackService extends Service {
     if (action != null && uri != Uri.EMPTY) {
       startAction(action, uri);
     }
-    return START_STICKY;
+    return START_NOT_STICKY;
   }
 
   private final void startAction(String action, Uri uri) {
@@ -272,20 +272,11 @@ public class PlaybackService extends Service {
     }
 
     @Override
-    public void play() {
-      Log.d(TAG, "play()");
-      if (playback != null) {
-        playback.resume();
-      } else if (source != null) {
-        play(source.getItem().getId());
-      }
-    }
-
-    @Override
-    public void pause() {
-      Log.d(TAG, "pause()");
-      if (playback != null) {
-        playback.pause();
+    public void playPause() {
+      if (playback != null && playback.isPlaying()) {
+        pause();
+      } else {
+        play();
       }
     }
 
@@ -295,6 +286,22 @@ public class PlaybackService extends Service {
       if (playback != null) {
         playback.stop();
         playback = null;
+      }
+    }
+    
+    private final void play() {
+      Log.d(TAG, "play()");
+      if (playback != null) {
+        playback.resume();
+      } else if (source != null) {
+        play(source.getItem().getId());
+      }
+    }
+    
+    private final void pause() {
+      Log.d(TAG, "pause()");
+      if (playback != null) {
+        playback.pause();
       }
     }
   }

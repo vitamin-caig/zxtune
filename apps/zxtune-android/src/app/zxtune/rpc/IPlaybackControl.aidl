@@ -21,9 +21,7 @@ interface IPlaybackControl {
 
   void playItem(in Uri item);
 
-  void play();
-
-  void pause();
+  void playPause();
 
   void stop();
 }

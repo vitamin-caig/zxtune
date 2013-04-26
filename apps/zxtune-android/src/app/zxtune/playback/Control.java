@@ -40,14 +40,9 @@ public interface Control {
   public void play(Uri item);
 
   /*
-   * Continue previously played or do nothing if already played
+   * Pause/resume playback
    */
-  public void play();
-
-  /*
-   * Pause playing or do nothing
-   */
-  public void pause();
+  public void playPause();
 
   /*
    * Stop playing or do nothing

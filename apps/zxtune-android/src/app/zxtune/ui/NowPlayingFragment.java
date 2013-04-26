@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import app.zxtune.R;
@@ -36,8 +37,9 @@ public class NowPlayingFragment extends Fragment {
   private final Runnable updateAnalyzerTask;
   private final Runnable updateUiTask;
   private Releaseable connection;
-  private SpectrumAnalyzerView analyzer;
   private Control control;
+  private SpectrumAnalyzerView analyzer;
+  private ImageButton playPause; 
   private SeekBar seek;
   private TextView time;
 
@@ -81,12 +83,15 @@ public class NowPlayingFragment extends Fragment {
         switch (status) {
           case PLAYING:
             startUpdating();
+            playPause.setImageResource(R.drawable.ic_pause);
             break;
           case STOPPED:
             seek.setProgress(0);
             time.setText(R.string.stub_time);
           default:
             stopUpdating();
+            playPause.setImageResource(R.drawable.ic_play);
+            break;
         }
       }
 
@@ -107,18 +112,13 @@ public class NowPlayingFragment extends Fragment {
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     analyzer = (SpectrumAnalyzerView) view.findViewById(R.id.analyzer);
+    playPause = (ImageButton) view.findViewById(R.id.controls_play_pause);
     seek = (SeekBar) view.findViewById(R.id.position_seek);
     time = (TextView) view.findViewById(R.id.position_time);
-    view.findViewById(R.id.controls_play).setOnClickListener(new OnClickListener() {
+    playPause.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        control.play();
-      }
-    });
-    view.findViewById(R.id.controls_pause).setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        control.pause();
+        control.playPause();
       }
     });
     view.findViewById(R.id.controls_stop).setOnClickListener(new OnClickListener() {

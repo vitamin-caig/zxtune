@@ -3,6 +3,9 @@
   <dimen name="list_item_height">48dp</dimen>
   <dimen name="spacing_half">4dp</dimen>
   <dimen name="spacing_full">8dp</dimen>
+  <dimen name="text_large">22sp</dimen>
+  <dimen name="text_medium">18sp</dimen>
   <dimen name="text_small">14sp</dimen>
   <dimen name="text_micro">12sp</dimen>
+  <dimen name="line">2dp</dimen>
 </resources>
