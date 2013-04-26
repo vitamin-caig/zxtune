@@ -20,10 +20,10 @@ namespace
   class AYParameters : public Devices::AYM::ChipParameters
   {
   public:
-    AYParameters(uint64_t clockFreq, uint_t soundFreq, bool interpolate)
+    AYParameters(uint64_t clockFreq, uint_t soundFreq, Devices::AYM::InterpolationType interpolate)
       : Clock(clockFreq)
       , Sound(soundFreq)
-      , Interpolation(interpolate)
+      , Interpolate(interpolate)
     {
     }
 
@@ -42,9 +42,9 @@ namespace
       return Devices::AYM::GetAY38910VolTable();
     }
 
-    virtual bool Interpolate() const
+    virtual Devices::AYM::InterpolationType Interpolation() const
     {
-      return Interpolation;
+      return Interpolate;
     }
 
     virtual uint_t DutyCycleValue() const
@@ -64,7 +64,7 @@ namespace
   private:
     const uint64_t Clock;
     const uint_t Sound;
-    const bool Interpolation;
+    const Devices::AYM::InterpolationType Interpolate;
   };
 
 }
@@ -73,7 +73,7 @@ namespace Benchmark
 {
   namespace AY
   {
-    Devices::AYM::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq, bool interpolate)
+    Devices::AYM::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq, Devices::AYM::InterpolationType interpolate)
     {
       const Devices::AYM::ChipParameters::Ptr params = boost::make_shared<AYParameters>(clockFreq, soundFreq, interpolate);
       return Devices::AYM::CreateChip(params, Devices::AYM::Receiver::CreateStub());

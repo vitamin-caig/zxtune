@@ -32,7 +32,7 @@ namespace Benchmark
     class PerformanceTest : public Benchmark::PerformanceTest
     {
     public:
-      explicit PerformanceTest(bool interpolate)
+      explicit PerformanceTest(Devices::AYM::InterpolationType interpolate)
         : Interpolate(interpolate)
       {
       }
@@ -44,7 +44,17 @@ namespace Benchmark
 
       virtual std::string Name() const
       {
-        return Interpolate ? "With interpolation" : "Without interpolation";
+        switch (Interpolate)
+        {
+        case Devices::AYM::INTERPOLATION_NONE:
+          return "Without interpolation";
+        case Devices::AYM::INTERPOLATION_LQ:
+          return "LQ interpolation";
+        case Devices::AYM::INTERPOLATION_HQ:
+          return "HQ interpolation";
+        default:
+          Require(false);
+        }
       }
 
       virtual double Execute() const
@@ -53,13 +63,14 @@ namespace Benchmark
         return Test(*dev, TEST_DURATION, FRAME_DURATION);
       }
     private:
-      const bool Interpolate;
+      const Devices::AYM::InterpolationType Interpolate;
     };
 
     void ForAllTests(TestsVisitor& visitor)
     {
-      visitor.OnPerformanceTest(PerformanceTest(false));
-      visitor.OnPerformanceTest(PerformanceTest(true));
+      visitor.OnPerformanceTest(PerformanceTest(Devices::AYM::INTERPOLATION_NONE));
+      visitor.OnPerformanceTest(PerformanceTest(Devices::AYM::INTERPOLATION_LQ));
+      visitor.OnPerformanceTest(PerformanceTest(Devices::AYM::INTERPOLATION_HQ));
     }
   }
 
