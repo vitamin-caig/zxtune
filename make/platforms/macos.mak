@@ -11,7 +11,7 @@ compiler=gcc
 LINKER_BEGIN_GROUP=
 LINKER_END_GROUP=
 
-macos_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
+macos_libraries += $(foreach lib,$(libraries.boost),boost_$(lib))
 
-CXX_PLATFORM_FLAGS += $(addprefix -FQt,$(qt_libraries))
-LD_PLATFORM_FLAGS += $(addprefix -framework Qt,$(qt_libraries))
+CXX_PLATFORM_FLAGS += $(addprefix -FQt,$(libraries.qt))
+LD_PLATFORM_FLAGS += $(addprefix -framework Qt,$(libraries.qt))

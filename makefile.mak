@@ -25,7 +25,7 @@ else
 mode := debug
 endif
 
-ifneq ($(or $(qt_libraries),$(ui_files),$(moc_files),$(qrc_files)),)
+ifneq ($(or $(libraries.qt),$(ui_files),$(moc_files),$(qrc_files)),)
 use_qt := 1
 endif
 

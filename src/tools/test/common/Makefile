@@ -2,7 +2,6 @@ binary_name := tools_test_common
 path_step := ../../../..
 source_files := test
 
-libraries := tools
-depends := src/tools
+libraries.common = tools
 
 include $(path_step)/makefile.mak

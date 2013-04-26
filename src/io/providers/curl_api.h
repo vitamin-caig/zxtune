@@ -12,9 +12,9 @@ Author:
 #ifndef IO_CURL_API_H_DEFINED
 #define IO_CURL_API_H_DEFINED
 
-//platform-specific includes
-#include <curl/curl.h>
-#include <curl/easy.h>
+//thirdparty includes
+#include <3rdparty/curl/curl.h>
+#include <3rdparty/curl/easy.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 

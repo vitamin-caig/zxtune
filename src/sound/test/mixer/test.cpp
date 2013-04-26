@@ -72,10 +72,10 @@ namespace
      { {Sample(SAMPLE_MID+0.1f*(SAMPLE_MAX-SAMPLE_MID)),Sample(SAMPLE_MID+0.9f*(SAMPLE_MAX-SAMPLE_MID))} }
   };
 
-  template<unsigned Channels>
-  FixedChannelsSample<Channels>::Type MakeSample(Sample in)
+  template<class Res>
+  typename Res::Type MakeSample(Sample in)
   {
-    FixedChannelsSample<Channels>::Type res;
+    typename Res::Type res;
     res.assign(in);
     return res;
   }
@@ -166,7 +166,7 @@ namespace
       for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
       {
         tgt->SetData(*result);
-        mixer->ApplyData(MakeSample<Channels>(INPUTS[input]));
+        mixer->ApplyData(MakeSample<FixedChannelsSample<Channels> >(INPUTS[input]));
         std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
       }
     }

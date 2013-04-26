@@ -40,20 +40,20 @@ depends += $(addprefix apps/,base version)
 libraries += playlist_ui playlist_supp playlist_io ui_common
 depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
 
-boost_libraries = thread system filesystem
+libraries.boost = thread system filesystem
 
-qt_libraries = Gui Core
+libraries.qt = Gui Core
 
 ifdef embedded
 libraries.common += l10n_stub
 libraries += ui_embedded playlist_ui_embedded
 depends += apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
-qt_libraries += Network
+libraries.qt += Network
 else
 libraries.common += l10n
 libraries += ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update
 depends += $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
-boost_libraries += locale
+libraries.boost += locale
 mingw_libraries += iconv
 embedded_files = $(qm_translation_data) $(mo_translation_data)
 endif

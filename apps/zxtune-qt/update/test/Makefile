@@ -2,9 +2,10 @@ binary_name := zxtune-qt_test_updates
 path_step := ../../../..
 source_files := test
 
-qt_libraries := Core
+libraries.common = tools
+libraries.qt := Core
 
-libraries := check_update tools
-depends := apps/zxtune-qt/update src/tools
+libraries := check_update
+depends := apps/zxtune-qt/update
 
 include $(path_step)/makefile.mak

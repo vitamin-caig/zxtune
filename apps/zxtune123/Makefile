@@ -32,7 +32,7 @@ depends += $(addprefix apps/,base version)
 #platform
 windows_libraries = advapi32 ole32 oldnames user32
 mingw_libraries = ole32
-boost_libraries = thread program_options system filesystem
+libraries.boost = thread program_options system filesystem
 
 manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)

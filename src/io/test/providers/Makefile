@@ -4,12 +4,9 @@ source_files := test
 
 include $(path_step)/make/default.mak
 
-$(platform)_include_dirs += $(path_step)/3rdparty
-
-libraries := binary debug io l10n_stub platform tools
-depends := src/binary src/debug src/l10n/stub src/platform src/tools src/io
+libraries.common = binary debug io l10n_stub platform tools
 
 windows_libraries := advapi32
-boost_libraries := filesystem system
+libraries.boost := filesystem system
 
 include $(path_step)/makefile.mak

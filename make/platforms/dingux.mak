@@ -10,7 +10,7 @@ compiler=gcc
 dingux_libraries += stdc++ gcc c m dl pthread
 
 #support only static multithread release libraries
-dingux_libraries += $(foreach lib,$(boost_libraries),boost_$(lib))
+dingux_libraries += $(foreach lib,$(libraries.boost),boost_$(lib))
 
 #support static release libraries
-dingux_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
+dingux_libraries += $(foreach lib,$(libraries.qt),Qt$(lib))

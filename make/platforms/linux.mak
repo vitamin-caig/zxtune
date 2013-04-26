@@ -21,7 +21,7 @@ $(platform)_libraries += $($(platform).$(arch).qt.libraries)
 endif
 
 #multithread release libraries
-$(platform)_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)$($(platform).$(arch).boost.libs.model))
+$(platform)_libraries += $(foreach lib,$(libraries.boost),boost_$(lib)$($(platform).$(arch).boost.libs.model))
 
 #release libraries
-$(platform)_libraries += $(foreach lib,$(qt_libraries),Qt$(lib))
+$(platform)_libraries += $(foreach lib,$(libraries.qt),Qt$(lib))

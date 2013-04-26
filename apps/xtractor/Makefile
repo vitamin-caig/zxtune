@@ -10,7 +10,7 @@ libraries.3rdparty = lhasa unrar zlib
 libraries = zxtune_app_version
 depends = apps/version
 
-boost_libraries := filesystem program_options thread system
+libraries.boost = filesystem program_options thread system
 windows_libraries := advapi32
 
 #platform-specific resources

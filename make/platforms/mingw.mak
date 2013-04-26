@@ -21,7 +21,7 @@ $(platform).ld.flags += -Wl,-subsystem,console
 endif
 
 #simple library naming convention used
-mingw_libraries += $(foreach lib,$(boost_libraries),boost_$(lib)-mt$(if $(release),,-d))
+mingw_libraries += $(foreach lib,$(libraries.boost),boost_$(lib)-mt$(if $(release),,-d))
 
-mingw_libraries += $(foreach lib,$(qt_libraries),Qt$(lib)$(if $(release),,d))
+mingw_libraries += $(foreach lib,$(libraries.qt),Qt$(lib)$(if $(release),,d))
 
