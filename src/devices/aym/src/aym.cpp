@@ -466,6 +466,7 @@ namespace
 
     void Set(const VolTable& table)
     {
+      BOOST_STATIC_ASSERT(0 == sizeof(AlignedSample) % sizeof(uint_t));
       if (Table != &table)
       {
         for (uint_t idx = 0; idx != Lookup.size(); ++idx)
@@ -488,7 +489,17 @@ namespace
     }
   private:
     const VolTable* Table;
-    boost::array<MultiSample, 1 << 3 * BITS_PER_LEVEL> Lookup;
+
+    struct AlignedSample : MultiSample
+    {
+      Sample Alignment;
+      
+      void operator = (const MultiSample& rh)
+      {
+        static_cast<MultiSample&>(*this) = rh;
+      }
+    };
+    boost::array<AlignedSample, 1 << 3 * BITS_PER_LEVEL> Lookup;
   };
 
   class Renderer
