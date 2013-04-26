@@ -16,10 +16,10 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
-#include <math/fixedpoint.h>
 #include <time/oscillator.h>
 //std includes
 #include <cassert>
+#include <cmath>
 #include <functional>
 #include <limits>
 #include <memory>
@@ -499,6 +499,9 @@ namespace
     virtual void Render(const Stamp& tillTime, Receiver& target) = 0;
   };
 
+  /*
+    Simple decimation algorithm without any filtering
+  */
   class LQRenderer : public Renderer
   {
   public:
@@ -543,6 +546,9 @@ namespace
     const MultiVolumeTable& Table;
   };
 
+  /*
+    Simple decimation with post simple FIR filter (0.5, 0.5)
+  */
   class MQRenderer : public Renderer
   {
   public:
@@ -601,6 +607,171 @@ namespace
     MultiSample PrevLevel;
   };
 
+  /*
+    Decimation is performed after 2-order IIR LPF
+    Cutoff freq of LPF should be less than Nyquist frequency of target signal
+  */
+  class HQRenderer : public Renderer
+  {
+  public:
+    HQRenderer(ClockSource& clock, AYMRenderer& psg, const MultiVolumeTable& tab)
+      : Clock(clock)
+      , PSG(psg)
+      , Table(tab)
+      , ClockFreq()
+      , SoundFreq()
+    {
+    }
+
+    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    {
+      if (ClockFreq != clockFreq || SoundFreq != soundFreq)
+      {
+        CalculateFilter(clockFreq, soundFreq);
+      }
+    }
+
+    virtual void Render(const Stamp& tillTime, Receiver& target)
+    {
+      for (;;)
+      {
+        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
+        if (!(nextSampleTime < tillTime))
+        {
+          break;
+        }
+        else if (const uint_t ticksPassed = Clock.NextTime(nextSampleTime))
+        {
+          RenderTicks(ticksPassed);
+        }
+        RenderNextSample(target);
+      }
+      if (const uint_t ticksPassed = Clock.NextTime(tillTime))
+      {
+        RenderTicks(ticksPassed);
+      }
+    }
+  private:
+    typedef int_t CoeffType;
+    typedef boost::array<CoeffType, CHANNELS> MultiCoeff;
+
+    static const uint_t PRECISION = 16384;
+
+    static CoeffType MakeFixed(float f, CoeffType multiply)
+    {
+      return static_cast<CoeffType>(f * multiply);
+    }
+
+    void CalculateFilter(uint64_t clockFreq, uint_t soundFreq)
+    {
+      /*
+        A0 * Y[i] = B0 * X[i] + B1 * X[i-1] + B2 * X[i-2] - A1 * Y[i-1] - A2 * Y[i-2]
+
+        For LPF filter:
+          d = cutoffFrq / sampleRate
+          w0 = 2 * PI * d
+          alpha = sin(w0) / 2;
+
+          A0 = 1 + alpha
+          A1 = -2 * cos(w0) (always < 0)
+          A2 = (1 - alpha)
+
+          B0 = B2 = (1 - cos(w0))/2
+          B1 = 2B0
+
+          Y[i] = A(X[i] + 2X[i-1] + X[i-2]) + BY[i-1] - CY[i-2]
+
+          SIN = sin(w0)
+          COS = cos(w0)
+
+          A = B0/A0
+          B = A1/A0
+          C = A2/A0
+
+          http://we.easyelectronics.ru/Theory/chestno-prostoy-cifrovoy-filtr.html
+          http://howtodoit.com.ua/tsifrovoy-bih-filtr-iir-filter/
+          http://www.ece.uah.edu/~jovanov/CPE621/notes/msp430_filter.pdf
+      */
+      const uint_t sampleFreq = clockFreq;
+      const uint_t cutOffFreq = soundFreq / 4;
+      const float w0 = 3.14159265358f * 2.0f * cutOffFreq / sampleFreq;
+      const float q = 1.0f;
+      //specify gain to avoid overload
+      const float gain = 0.98f;
+
+      const float sinus = sin(w0);
+      const float cosine = cos(w0);
+      const float alpha = sinus / (2.0f * q);
+
+      const float a0 = (1.0f + alpha) / gain;
+      const float a1 = -2.0f * cosine;
+      const float a2 = 1.0f - alpha;
+      const float b0 = (1.0f - cosine) / 2.0f;
+
+      const float a = b0 / a0;
+      const float b = -a1 / a0;
+      const float c = a2 / a0;
+
+      //1 bit- floor rounding
+      //2 bits- scale for A (4)
+      DCShift = Math::Log2(static_cast<uint_t>(1.0f / a)) - 3;
+
+      A = MakeFixed(a, PRECISION << DCShift);
+      B = MakeFixed(b, PRECISION);
+      C = MakeFixed(c, PRECISION);
+
+      In_1 = In_2 = MultiSample();
+      Out_1 = Out_2 = MultiCoeff();
+
+      ClockFreq = clockFreq;
+      SoundFreq = soundFreq;
+    }
+
+    void RenderTicks(uint_t ticksPassed)
+    {
+      while (ticksPassed--)
+      {
+        const uint_t psgLevel = PSG.GetLevels();
+        const MultiSample& curLevel = Table.Get(psgLevel);
+        FeedFilter(curLevel);
+        PSG.Tick(1);
+      }
+    }
+
+    void FeedFilter(const MultiSample& in)
+    {
+      MultiSample out;
+      for (std::size_t chan = 0; chan != CHANNELS; ++chan)
+      {
+        const uint_t inSum = uint_t(in[chan]) + 2 * In_1[chan] + In_2[chan];
+        CoeffType sum = A * inSum >> DCShift;
+        sum += B * Out_1[chan];
+        sum -= C * Out_2[chan];
+        out[chan] = sum / PRECISION;
+      }
+      Out_2 = Out_1;
+      Out_1 = out;
+      In_2 = In_1;
+      In_1 = in;
+    }
+
+    void RenderNextSample(Receiver& target)
+    {
+      target.ApplyData(Out_1);
+      Clock.NextSample();
+    }
+  private:
+    ClockSource& Clock;
+    AYMRenderer& PSG;
+    const MultiVolumeTable& Table;
+    uint64_t ClockFreq;
+    uint_t SoundFreq;
+    MultiSample In_1, In_2;
+    MultiSample Out_1, Out_2;
+    uint_t DCShift;
+    CoeffType A, B, C;
+  };
+
   class RegularAYMChip : public Chip
   {
   public:
@@ -610,6 +781,7 @@ namespace
       , Clock()
       , LQ(Clock, PSG, VolTable)
       , MQ(Clock, PSG, VolTable)
+      , HQ(Clock, PSG, VolTable)
     {
       Reset();
     }
@@ -622,7 +794,7 @@ namespace
     virtual void Flush()
     {
       ApplyParameters();
-      Renderer& source = Params->Interpolate() ? static_cast<Renderer&>(MQ) : static_cast<Renderer&>(LQ);
+      Renderer& source = Params->Interpolate() ? static_cast<Renderer&>(HQ) : static_cast<Renderer&>(LQ);
       const LayoutType layout = Params->Layout();
       if (LAYOUT_ABC == layout)
       {
@@ -662,9 +834,11 @@ namespace
     {
       PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
       const uint64_t clock = Params->ClockFreq() / AYM_CLOCK_DIVISOR;
-      Clock.SetFrequency(clock, Params->SoundFreq());
+      const uint_t sndFreq = Params->SoundFreq();
+      Clock.SetFrequency(clock, sndFreq);
       Analyser.SetClockRate(clock);
       VolTable.Set(Params->VolumeTable());
+      HQ.SetFrequency(clock, sndFreq);
     }
 
     void RenderChunks(Renderer& source, Receiver& target)
@@ -690,6 +864,7 @@ namespace
     MultiVolumeTable VolTable;
     LQRenderer LQ;
     MQRenderer MQ;
+    HQRenderer HQ;
   };
 }
 

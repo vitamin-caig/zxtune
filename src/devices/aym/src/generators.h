@@ -289,7 +289,7 @@ namespace Devices
         {
           uint_t prevIndex = Index;
           UpdateIndex();
-          while (prevIndex++ != Index && Decay)
+          while (prevIndex++ != Index)
           {
             UpdateStep();
           }

@@ -110,18 +110,16 @@ namespace Math
       return Value > rh.Value;
     }
 
+    FixedPoint<T, Precision> operator + (const FixedPoint<T, Precision>& rh) const
+    {
+      FixedPoint<T, Precision> res(*this);
+      return res += rh;
+    }
+
     FixedPoint<T, Precision> operator - (const FixedPoint<T, Precision>& rh) const
     {
       FixedPoint<T, Precision> res(*this);
       return res -= rh;
-    }
-
-    template<class P>
-    FixedPoint<T, Precision> operator * (P rh) const
-    {
-      FixedPoint<T, Precision> res(*this);
-      res.Value *= rh;
-      return res;
     }
 
     FixedPoint<T, Precision> operator * (const FixedPoint<T, Precision>& rh) const
@@ -132,10 +130,25 @@ namespace Math
     }
 
     template<class P>
+    FixedPoint<T, Precision> operator * (P rh) const
+    {
+      FixedPoint<T, Precision> res(*this);
+      res.Value *= rh;
+      return res;
+    }
+
+    template<class P>
     FixedPoint<T, Precision> operator / (P rh) const
     {
       FixedPoint<T, Precision> res(*this);
       res.Value /= rh;
+      return res;
+    }
+
+    FixedPoint<T, Precision> operator / (const FixedPoint<T, Precision>& rh) const
+    {
+      FixedPoint<T, Precision> res(*this);
+      res.Value = res.Value * rh.PRECISION / rh.Value;
       return res;
     }
   private:
