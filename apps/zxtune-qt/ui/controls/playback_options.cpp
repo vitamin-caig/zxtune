@@ -41,7 +41,6 @@ namespace
       //common
       Parameters::BooleanValue::Bind(*isLooped, *Params, Parameters::ZXTune::Sound::LOOPED, false);
       //AYM
-      Parameters::BooleanValue::Bind(*isAYMInterpolated, *Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
       Parameters::BooleanValue::Bind(*isYM, *Params, Parameters::ZXTune::Core::AYM::TYPE, false);
       Parameters::IntegerValue::Bind(*aymLayout, *Params, Parameters::ZXTune::Core::AYM::LAYOUT, 0);
       //DAC
@@ -77,7 +76,6 @@ namespace
       {
         //TODO: use walker?
         Parameters::IntType val;
-        isAYMInterpolated->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, val));
         isYM->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::TYPE, val));
         aymLayout->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, val));
         isDACInterpolated->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val));

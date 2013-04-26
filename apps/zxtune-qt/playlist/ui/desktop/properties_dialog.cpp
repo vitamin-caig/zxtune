@@ -17,6 +17,7 @@ Author:
 #include "playlist/supp/capabilities.h"
 #include "playlist/ui/table_view.h"
 #include "ui/utils.h"
+#include "ui/preferences/aym.h"
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
@@ -136,20 +137,9 @@ namespace
 
       if (caps.IsAYM())
       {
-        QStringList chipTypes;
-        chipTypes << QLatin1String("AY-3-8910/12") << QLatin1String("YM2149");
-        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Chip type"), Parameters::ZXTune::Core::AYM::TYPE, chipTypes);
-        QStringList layouts;
-        layouts
-          << QLatin1String("ABC")
-          << QLatin1String("ACB")
-          << QLatin1String("BAC")
-          << QLatin1String("BCA")
-          << QLatin1String("CAB")
-          << QLatin1String("CBA")
-          << Playlist::UI::PropertiesDialog::tr("Mono");
-        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Layout"), Parameters::ZXTune::Core::AYM::LAYOUT, layouts);
-        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::AYM::INTERPOLATION, valuesOffOn);
+        FillAymChipTypeProperty();
+        FillAymLayoutProperty();
+        FillAymInterpolationProperty();
         const Parameters::IntegerTraits clockRate(Parameters::ZXTune::Core::AYM::CLOCKRATE, -1, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX);
         AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"), clockRate);
         const Parameters::IntegerTraits frameDuration(Parameters::ZXTune::Sound::FRAMEDURATION, -1, Parameters::ZXTune::Sound::FRAMEDURATION_MIN, Parameters::ZXTune::Sound::FRAMEDURATION_MAX);
@@ -159,6 +149,37 @@ namespace
       {
         AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::DAC::INTERPOLATION, valuesOffOn);
       }
+    }
+
+    void FillAymChipTypeProperty()
+    {
+      QStringList chipTypes;
+      chipTypes << QLatin1String("AY-3-8910/12") << QLatin1String("YM2149");
+      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Chip type"), Parameters::ZXTune::Core::AYM::TYPE, chipTypes);
+    }
+
+    void FillAymLayoutProperty()
+    {
+      QStringList layouts;
+      layouts
+        << QLatin1String("ABC")
+        << QLatin1String("ACB")
+        << QLatin1String("BAC")
+        << QLatin1String("BCA")
+        << QLatin1String("CAB")
+        << QLatin1String("CBA")
+        << Playlist::UI::PropertiesDialog::tr("Mono");
+      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Layout"), Parameters::ZXTune::Core::AYM::LAYOUT, layouts);
+    }
+
+    void FillAymInterpolationProperty()
+    {
+      QStringList interpolations;
+      interpolations
+        << Playlist::UI::PropertiesDialog::tr("None")
+        << Playlist::UI::PropertiesDialog::tr("Performance")
+        << Playlist::UI::PropertiesDialog::tr("Quality");
+      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::AYM::INTERPOLATION, interpolations);
     }
 
     void AddStringProperty(const QString& title, const Parameters::NameType& name)

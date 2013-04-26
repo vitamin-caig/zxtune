@@ -303,13 +303,12 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Зациклить</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="86"/>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="173"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="158"/>
         <source>Interpolation</source>
         <translation>Интерполяция</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="147"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_options.ui" line="132"/>
         <source>Mono</source>
         <translation>Моно</translation>
     </message>

@@ -81,21 +81,6 @@
        <number>2</number>
       </property>
       <item>
-       <widget class="QToolButton" name="isAYMInterpolated">
-        <property name="toolTip">
-         <string>Interpolation</string>
-        </property>
-        <property name="icon">
-         <iconset>
-          <normalon>:/setup/interpolation_on.png</normalon>
-         </iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QToolButton" name="isYM">
         <property name="toolTip">
          <string notr="true">YM2149</string>

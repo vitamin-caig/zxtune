@@ -38,6 +38,26 @@
         <source>Duty cycle, %</source>
         <translation>Скважность, %</translation>
     </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="136"/>
+        <source>Interpolation</source>
+        <translation>Интерполяция</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="149"/>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="154"/>
+        <source>Performance</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="159"/>
+        <source>Quality</source>
+        <translation>Качество</translation>
+    </message>
 </context>
 <context>
     <name>AlsaOptions</name>
