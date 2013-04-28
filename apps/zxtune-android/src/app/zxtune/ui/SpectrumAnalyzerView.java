@@ -14,19 +14,17 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
+import app.zxtune.R;
 
 public class SpectrumAnalyzerView extends View {
   
-  private static final int MAX_BANDS = 12 * 8;
   private static final int MAX_LEVEL = 100;
   private static final int BAR_WIDTH = 4;
   private static final int BAR_PADDING = 1;
-  private static final int BAR_COLOR = 0xffffff;
-  private static final int FALLING = 10;
-  private static final int WIDTH = MAX_BANDS * BAR_WIDTH;
-  private static final int HEIGHT = MAX_LEVEL;
-  private final int[] bitmap = new int[WIDTH * HEIGHT];
+  private static final int FALL_SPEED = 10;
   private final Rect visibleRect = new Rect();
+  private int[] bitmap;
+  private int barColor;
 
   public SpectrumAnalyzerView(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
@@ -45,11 +43,13 @@ public class SpectrumAnalyzerView extends View {
   
   public void update(int[] spectrum) {
     fallBitmap();
+    final int height = visibleRect.height();
+    final int maxBands = visibleRect.width() / BAR_WIDTH;
     for (int sp : spectrum) {
       final int band = sp & 0xff;
       final int level = sp >> 8;
-      if (level != 0 && band < MAX_BANDS) {
-        drawBar(band, level);
+      if (level != 0 && band < maxBands) {
+        drawBar(band, level * height / MAX_LEVEL);
       }
     }
     invalidate(visibleRect);
@@ -64,9 +64,9 @@ public class SpectrumAnalyzerView extends View {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     
-    final int width = Math.min(visibleRect.width(), WIDTH);
-    final int height = Math.min(visibleRect.height(), HEIGHT);
-    canvas.drawBitmap(bitmap, bitmap.length - WIDTH, -WIDTH, 
+    final int width = visibleRect.width();
+    final int height = visibleRect.height();
+    canvas.drawBitmap(bitmap, bitmap.length - width, -width, 
       visibleRect.left, visibleRect.top, width, height, 
       false, null);
   }
@@ -74,6 +74,7 @@ public class SpectrumAnalyzerView extends View {
   private void init() {
     fillVisibleRect(getWidth(), getHeight());
     setWillNotDraw(false);
+    barColor = getResources().getColor(R.color.primary);
   }
   
   private void fillVisibleRect(int w, int h) {
@@ -81,19 +82,22 @@ public class SpectrumAnalyzerView extends View {
     visibleRect.right = w - visibleRect.left - getPaddingRight();
     visibleRect.top = getPaddingTop();
     visibleRect.bottom = h - visibleRect.top - getPaddingBottom();
+    bitmap = new int[w * h];
   }
   
   private void fallBitmap() {
-    final int delta = WIDTH * FALLING;
+    final int fall = visibleRect.height() * FALL_SPEED / MAX_LEVEL;
+    final int delta = visibleRect.width() * fall;
     System.arraycopy(bitmap, delta, bitmap, 0, bitmap.length - delta);
     Arrays.fill(bitmap, bitmap.length - delta, bitmap.length, 0);
   }
   
-  private void drawBar(int band, int level) {
+  private void drawBar(int band, int height) {
     int offset = band * BAR_WIDTH;
-    for (int h = 0; h != level; ++h) {
-      Arrays.fill(bitmap, offset, offset + BAR_WIDTH - BAR_PADDING, BAR_COLOR);
-      offset += WIDTH;
+    final int delta = visibleRect.width();
+    for (int h = 0; h != height; ++h) {
+      Arrays.fill(bitmap, offset, offset + BAR_WIDTH - BAR_PADDING, barColor);
+      offset += delta;
     }
   }
 }

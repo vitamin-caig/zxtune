@@ -6,12 +6,12 @@
   >
   <SeekBar
     android:id="@+id/position_seek"
-    style="@android:style/Widget.ProgressBar.Horizontal"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_weight="1"
-    android:paddingLeft="2dp"
-    android:paddingRight="2dp"
+    android:layout_margin="@dimen/spacing_half"
+    android:progressDrawable="@drawable/seekbar"
+    android:thumb="@android:color/transparent"
     />
   <TextView
     android:id="@+id/position_time"
@@ -19,8 +19,8 @@
     android:layout_height="wrap_content"
     android:layout_weight="0"
     android:layout_gravity="center"
+    android:layout_margin="@dimen/spacing_half"
+    style="@style/text_main"
     android:text="@string/stub_time"
-    android:paddingLeft="2dp"
-    android:paddingRight="2dp"
     />
 </LinearLayout>

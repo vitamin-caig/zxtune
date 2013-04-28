@@ -7,7 +7,7 @@
   <app.zxtune.ui.SpectrumAnalyzerView
     android:id="@+id/analyzer"
     android:layout_width="fill_parent"
-    android:layout_height="100px"
+    android:layout_height="50px"
   />
   <include layout="@layout/position"/>
   <include layout="@layout/controls"/>
