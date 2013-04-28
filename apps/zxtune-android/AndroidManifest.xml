@@ -4,6 +4,8 @@
       android:versionCode="@integer/versionCode"
       android:versionName="@string/versionName">
     <uses-sdk android:minSdkVersion="8" />
+    <!-- pause/resume on incoming call start/finish -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <application
           android:label="@string/app_name"
           android:icon="@drawable/ic_launcher"
