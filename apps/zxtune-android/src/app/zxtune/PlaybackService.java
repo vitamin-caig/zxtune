@@ -15,13 +15,10 @@ import java.util.concurrent.TimeUnit;
 import android.app.Service;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.IBinder;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import app.zxtune.ZXTune.Player;
 import app.zxtune.playback.Callback;
@@ -38,11 +35,11 @@ import app.zxtune.ui.StatusNotification;
 
 public class PlaybackService extends Service {
 
-  private final static String TAG = "app.zxtune.Service";
+  private final static String TAG = PlaybackService.class.getName();
 
   private PlaybackControl ctrl;
   private IBinder binder;
-  private final CallEventsReceiver callEventsReceiver = new CallEventsReceiver(); 
+  private IncomingCallHandler callHandler; 
 
   @Override
   public void onCreate() {
@@ -56,13 +53,15 @@ public class PlaybackService extends Service {
     callback.add(notification).add(broadcast);
     ctrl = new PlaybackControl(callback);
     binder = new PlaybackControlServer(ctrl);
-    callEventsReceiver.register();
+    callHandler = new IncomingCallHandler(this, ctrl);
+    callHandler.register();
   }
 
   @Override
   public void onDestroy() {
     Log.d(TAG, "Destroying");
-    callEventsReceiver.unregister();
+    callHandler.unregister();
+    callHandler = null;
     ctrl.stop();
     stopSelf();
   }
@@ -398,58 +397,6 @@ public class PlaybackService extends Service {
         result[i] = 256 * levels[i] + bands[i];
       }
       return result;
-    }
-  }
-  
-  private class CallEventsReceiver extends PhoneStateListener {
-    
-    private TelephonyManager manager;
-    private Status stateOnIncomingCall;
-    
-    public void register() {
-      manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-      manager.listen(this, PhoneStateListener.LISTEN_CALL_STATE);
-    }
-    
-    public void unregister() {
-      manager.listen(this, PhoneStateListener.LISTEN_NONE);
-    }
-    
-    @Override
-    public void onCallStateChanged(int state, String incomingNumber) {
-      Log.d(TAG, "Process call state to " + state);
-      switch (state) {
-        case TelephonyManager.CALL_STATE_RINGING:
-          processRinging();
-          break;
-        case TelephonyManager.CALL_STATE_OFFHOOK:
-          processOffhook();
-          break;
-        case TelephonyManager.CALL_STATE_IDLE:
-          processIdle();
-          break;
-      }
-    }
-    
-    private void processRinging() {
-      stateOnIncomingCall = PlaybackService.this.ctrl.getStatus();
-      if (stateOnIncomingCall.equals(Status.PLAYING)) {
-        PlaybackService.this.ctrl.pause();
-      }
-    }
-    
-    private void processOffhook() {
-    }
-    
-    private void processIdle() {
-      if (stateOnIncomingCall == null) {
-        return;
-      }
-      final Status nowState = PlaybackService.this.ctrl.getStatus();
-      if (!nowState.equals(Status.STOPPED) && stateOnIncomingCall.equals(Status.PLAYING)) {
-        PlaybackService.this.ctrl.play();
-      }
-      stateOnIncomingCall = null;
     }
   }
 }
