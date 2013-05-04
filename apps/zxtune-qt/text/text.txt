@@ -22,28 +22,28 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 > "http://" GOOGLECODE_PROJECT_NAME ".googlecode.com"
 
 = GOOGLECODE_URL
-> "http://code.google.com"
+> "http://code.google.com/"
 
 = GOOGLECODE_PROJECT_NAME
 > "zxtune"
 
 = PROJECT_PATH
-> "/p/" GOOGLECODE_PROJECT_NAME
+> "p/" GOOGLECODE_PROJECT_NAME "/"
 
 < HOMEPAGE_URL
 > GOOGLECODE_URL PROJECT_PATH
 
 < HELP_URL
-> HOMEPAGE_URL "/wiki/ZXTuneQTManual"
+> HOMEPAGE_URL "wiki/ZXTuneQTManual"
 
 < FAQ_URL
-> HOMEPAGE_URL "/wiki/FAQ"
+> HOMEPAGE_URL "wiki/FAQ"
 
 < REPORT_BUG_URL
-> HOMEPAGE_URL "/issues/entry"
+> HOMEPAGE_URL "issues/entry"
 
 < DOWNLOADS_FEED_URL
-> GOOGLECODE_URL "/feeds" PROJECT_PATH "/downloads/basic"
+> GOOGLECODE_URL "feeds/" PROJECT_PATH "downloads/basic"
 
 < DOWNLOADS_PROJECT_NAME
 > GOOGLECODE_PROJECT_NAME

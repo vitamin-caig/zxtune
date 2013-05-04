@@ -332,14 +332,17 @@ namespace
   public:
     explicit UpdateCheckOperation(QWidget& parent)
       : Parent(parent)
+      , LastLandingPageVisit()
     {
       setParent(&parent);
     }
 
     virtual void Execute()
     {
+      const int_t LANDING_PERIOD = 86400;
       try
       {
+        VisitLandingPage(LANDING_PERIOD);
         if (const Product::Update::Ptr update = GetAvailableUpdate())
         {
           if (QMessageBox::Save == ShowUpdateDialog(*update))
@@ -361,6 +364,18 @@ namespace
       }
     }
   private:
+    void VisitLandingPage(int_t period) const
+    {
+      const std::time_t nowTime = std::time(0);
+      if (LastLandingPageVisit + period > nowTime)
+      {
+        return;
+      }
+      const QUrl landingUrl(Text::HOMEPAGE_URL);
+      DownloadWithProgress(landingUrl, Update::CheckOperation::tr("Checking connection..."));
+      LastLandingPageVisit = nowTime;
+    }
+
     Product::Update::Ptr GetAvailableUpdate() const
     {
       const QUrl feedUrl(Text::DOWNLOADS_FEED_URL);
@@ -418,6 +433,7 @@ namespace
     }
   private:
     QWidget& Parent;
+    mutable std::time_t LastLandingPageVisit;
   };
 }
 

@@ -25,7 +25,7 @@ extern const Char HELP_URL[] = {
 };
 extern const Char HOMEPAGE_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
-  't','u','n','e',0
+  't','u','n','e','/',0
 };
 extern const Char HTTP_USERAGENT[] = {
   '[','P','r','o','g','r','a','m',']','/','[','V','e','r','s','i','o','n',']',' ','(','[','P','l','a','t','f',
