@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">ZXTune</string>
     <string name="stub_time">--:--.-</string>
+    <string name="menu_quit">Quit</string>
 </resources>

@@ -38,11 +38,16 @@ public interface Control {
    * Start playback of specified item (data or playlist)
    */
   public void play(Uri item);
+  
+  /*
+   * Start/continue playback of current item
+   */
+  public void play();
 
   /*
-   * Pause/resume playback
+   * Pause playback
    */
-  public void playPause();
+  public void pause();
 
   /*
    * Stop playing or do nothing

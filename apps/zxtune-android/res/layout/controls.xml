@@ -17,12 +17,6 @@
     style="@style/button"
     />
   <ImageButton
-    android:id="@+id/controls_stop"
-    android:layout_weight="1"
-    android:src="@drawable/ic_stop"
-    style="@style/button"
-    />
-  <ImageButton
     android:id="@+id/controls_next"
     android:layout_weight="1"
     android:src="@drawable/ic_next"

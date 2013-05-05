@@ -55,7 +55,7 @@ public class IncomingCallHandler extends PhoneStateListener {
   private void processRinging() {
     stateOnIncomingCall = control.getStatus();
     if (stateOnIncomingCall.equals(Status.PLAYING)) {
-      control.playPause();
+      control.pause();
     }
   }
   
@@ -68,7 +68,7 @@ public class IncomingCallHandler extends PhoneStateListener {
     }
     final Status nowState = control.getStatus();
     if (!nowState.equals(Status.STOPPED) && stateOnIncomingCall.equals(Status.PLAYING)) {
-      control.playPause();
+      control.play();
     }
     stateOnIncomingCall = null;
   }

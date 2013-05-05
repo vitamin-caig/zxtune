@@ -46,8 +46,13 @@ public class PlaybackControlServer extends IPlaybackControl.Stub {
   }
 
   @Override
-  public void playPause() {
-    delegate.playPause();
+  public void play() {
+    delegate.play();
+  }
+  
+  @Override
+  public void pause() {
+    delegate.pause();
   }
 
   @Override

@@ -118,13 +118,12 @@ public class NowPlayingFragment extends Fragment {
     playPause.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        control.playPause();
-      }
-    });
-    view.findViewById(R.id.controls_stop).setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        control.stop();
+        final Status status = control.getStatus();
+        if (status.equals(Status.PLAYING)) {
+          control.pause();
+        } else {
+          control.play();
+        }
       }
     });
   }

@@ -65,10 +65,6 @@ public class StatusNotification implements Callback {
         service.startForeground(notificationId, showNotification());
         break;
       case PAUSED:
-        builder.setSmallIcon(R.drawable.ic_stat_notify_pause);
-        showNotification();
-        service.stopForeground(false);
-        break;
       case STOPPED:
         manager.cancel(notificationId);
         service.stopForeground(true);

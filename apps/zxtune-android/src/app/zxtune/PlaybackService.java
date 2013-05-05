@@ -277,11 +277,20 @@ public class PlaybackService extends Service {
     }
 
     @Override
-    public void playPause() {
-      if (getStatus().equals(Status.PLAYING)) {
-        pause();
-      } else {
-        play();
+    public void play() {
+      Log.d(TAG, "play()");
+      if (playback != null) {
+        playback.resume();
+      } else if (source != null) {
+        play(source.getItem().getId());
+      }
+    }
+    
+    @Override
+    public void pause() {
+      Log.d(TAG, "pause()");
+      if (playback != null) {
+        playback.pause();
       }
     }
 
@@ -291,22 +300,6 @@ public class PlaybackService extends Service {
       if (playback != null) {
         playback.stop();
         playback = null;
-      }
-    }
-    
-    private final void play() {
-      Log.d(TAG, "play()");
-      if (playback != null) {
-        playback.resume();
-      } else if (source != null) {
-        play(source.getItem().getId());
-      }
-    }
-    
-    private final void pause() {
-      Log.d(TAG, "pause()");
-      if (playback != null) {
-        playback.pause();
       }
     }
   }

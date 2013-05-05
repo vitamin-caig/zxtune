@@ -69,9 +69,17 @@ final class PlaybackControlClient implements Control {
   }
 
   @Override
-  public void playPause() {
+  public void play() {
     try {
-      delegate.playPause();
+      delegate.play();
+    } catch (RemoteException e) {
+    }
+  }
+  
+  @Override
+  public void pause() {
+    try {
+      delegate.pause();
     } catch (RemoteException e) {
     }
   }
