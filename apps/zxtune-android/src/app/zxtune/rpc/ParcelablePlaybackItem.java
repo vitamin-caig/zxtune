@@ -53,7 +53,7 @@ final class ParcelablePlaybackItem implements Item, Parcelable {
     dataId = in.readParcelable(Uri.class.getClassLoader());
     title = in.readString();
     author = in.readString();
-    duration = new TimeStamp(in.readLong(), TimeUnit.MILLISECONDS);
+    duration = TimeStamp.createFrom(in.readLong(), TimeUnit.MILLISECONDS);
   }
 
   @Override

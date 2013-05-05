@@ -10,15 +10,19 @@ package app.zxtune;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @brief Time stamp interface
+ * Time stamp interface
  */
 public final class TimeStamp implements Comparable<TimeStamp> {
 
   private static final TimeUnit UNIT = TimeUnit.MILLISECONDS;
   private final long value;
 
-  public TimeStamp(long val, TimeUnit unit) {
+  private TimeStamp(long val, TimeUnit unit) {
     this.value = UNIT.convert(val, unit); 
+  }
+  
+  public static TimeStamp createFrom(long val, TimeUnit unit) {
+    return new TimeStamp(val, unit);
   }
   
   public long convertTo(TimeUnit unit) {

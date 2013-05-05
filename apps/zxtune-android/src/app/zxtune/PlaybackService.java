@@ -187,7 +187,7 @@ public class PlaybackService extends Service {
       this.title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
       this.author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
       //TODO
-      this.duration = new TimeStamp(20 * module.getDuration(), TimeUnit.MILLISECONDS);
+      this.duration = TimeStamp.createFrom(20 * module.getDuration(), TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -302,6 +302,14 @@ public class PlaybackService extends Service {
         playback = null;
       }
     }
+    
+    @Override
+    public void setPlaybackPosition(TimeStamp pos) {
+      Log.d(TAG, "seek()");
+      if (source != null) {
+        source.setPosition(pos);
+      }
+    }
   }
 
   private static class PlaybackSource implements AsyncPlayback.Source {
@@ -371,7 +379,17 @@ public class PlaybackService extends Service {
       synchronized (status) {
         final int frame = player != null ? player.getPosition() : 0;
         //TODO
-        return new TimeStamp(20 * frame, TimeUnit.MILLISECONDS);
+        return TimeStamp.createFrom(20 * frame, TimeUnit.MILLISECONDS);
+      }
+    }
+    
+    public void setPosition(TimeStamp pos) {
+      synchronized (status) {
+        //TODO
+        final int frame = (int) (pos.convertTo(TimeUnit.MILLISECONDS) / 20);
+        if (player != null) {
+          player.setPosition(frame);
+        }
       }
     }
 

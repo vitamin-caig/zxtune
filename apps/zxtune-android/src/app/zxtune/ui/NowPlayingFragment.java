@@ -126,6 +126,21 @@ public class NowPlayingFragment extends Fragment {
         }
       }
     });
+    seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+      @Override
+      public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+        if (fromUser) {
+          final TimeStamp pos = TimeStamp.createFrom(progress, TimeUnit.SECONDS);
+          control.setPlaybackPosition(pos);
+        }
+      }
+      
+      @Override
+      public void onStartTrackingTouch(SeekBar seekBar) {}
+      
+      @Override
+      public void onStopTrackingTouch(SeekBar seekBar) {}
+    });
   }
 
   @Override

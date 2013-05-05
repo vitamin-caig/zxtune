@@ -36,7 +36,7 @@ final class PlaybackControlClient implements Control {
   @Override
   public TimeStamp getPlaybackPosition() {
     try {
-      return new TimeStamp(delegate.getPlaybackPosition(), TimeUnit.MILLISECONDS);
+      return TimeStamp.createFrom(delegate.getPlaybackPosition(), TimeUnit.MILLISECONDS);
     } catch (RemoteException e) {
       return null;
     }
@@ -88,6 +88,14 @@ final class PlaybackControlClient implements Control {
   public void stop() {
     try {
       delegate.stop();
+    } catch (RemoteException e) {
+    }
+  }
+  
+  @Override
+  public void setPlaybackPosition(TimeStamp pos) {
+    try {
+      delegate.setPlaybackPosition(pos.convertTo(TimeUnit.MILLISECONDS));
     } catch (RemoteException e) {
     }
   }

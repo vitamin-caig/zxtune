@@ -241,6 +241,15 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Player_1GetPosition
   return -1;
 }
 
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetPosition
+  (JNIEnv* /*env*/, jclass /*self*/, jint playerHandle, jint position)
+{
+  if (const Player::Control::Ptr player = Player::Storage::Instance().Get(playerHandle))
+  {
+    player->Seek(position);
+  }
+}
+
 JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Player_1GetProperty__ILjava_lang_String_2J
   (JNIEnv* env, jclass /*self*/, jint playerHandle, jstring propName, jlong defVal)
 {

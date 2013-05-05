@@ -159,7 +159,7 @@ public final class ZXTune {
   public interface Player extends Releaseable, Properties.Accessor, Properties.Modifier {
     
     /**
-     * @return Position of next rendered frame
+     * @return Index of next rendered frame
      */
     public int getPosition();
 
@@ -176,6 +176,11 @@ public final class ZXTune {
      * @return Is there more data to render
      */
     public boolean render(short[] result);
+    
+    /**
+     * @param pos Index of next rendered frame
+     */
+    public void setPosition(int pos);
   }
 
   /**
@@ -269,6 +274,11 @@ public final class ZXTune {
     }
 
     @Override
+    public void setPosition(int pos) {
+      Player_SetPosition(handle, pos);
+    }
+    
+    @Override
     public long getProperty(String name, long defVal) {
       return Player_GetProperty(handle, name, defVal);
     }
@@ -316,6 +326,8 @@ public final class ZXTune {
   private static native int Player_Analyze(int player, int bands[], int levels[]);
 
   private static native int Player_GetPosition(int player);
+  
+  private static native void Player_SetPosition(int player, int pos);
 
   private static native long Player_GetProperty(int player, String name, long defVal);
 

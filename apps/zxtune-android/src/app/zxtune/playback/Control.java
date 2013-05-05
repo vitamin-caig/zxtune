@@ -53,4 +53,9 @@ public interface Control {
    * Stop playing or do nothing
    */
   public void stop();
+  
+  /*
+   * Change playback position
+   */
+  public void setPlaybackPosition(TimeStamp pos);
 }

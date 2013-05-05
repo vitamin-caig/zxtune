@@ -10,6 +10,7 @@ package app.zxtune.rpc;
 import java.util.concurrent.TimeUnit;
 
 import android.net.Uri;
+import app.zxtune.TimeStamp;
 import app.zxtune.playback.Control;
 
 public class PlaybackControlServer extends IPlaybackControl.Stub {
@@ -58,5 +59,10 @@ public class PlaybackControlServer extends IPlaybackControl.Stub {
   @Override
   public void stop() {
     delegate.stop();
+  }
+  
+  @Override
+  public void setPlaybackPosition(long ms) {
+    delegate.setPlaybackPosition(TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS));
   }
 }
