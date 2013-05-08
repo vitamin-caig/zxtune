@@ -34,6 +34,8 @@ namespace ZXTune
     CAP_DEV_2DAC       = 0x20,
     CAP_DEV_3DAC       = 0x30,
     CAP_DEV_4DAC       = 0x40,
+    //! Supporting for SAA1099
+    CAP_DEV_SAA        = 0x80,
 
     //! Storages-related capabilities
     CAP_STORAGE_MASK    = 0xff00,

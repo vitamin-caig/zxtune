@@ -57,6 +57,14 @@ namespace Parameters
         extern const NameType CLOCKRATE = PREFIX + "clockrate";
       }
 
+      namespace SAA
+      {
+        extern const NameType PREFIX = Core::PREFIX + "saa";
+
+        extern const NameType CLOCKRATE = PREFIX + "clockrate";
+        extern const NameType INTERPOLATION = PREFIX + "interpolation";
+      }
+
       namespace Plugins
       {
         extern const NameType PREFIX = Core::PREFIX + "plugins";

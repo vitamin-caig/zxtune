@@ -36,7 +36,7 @@ namespace Parameters
         //! Default value- 1.75MHz
         const IntType CLOCKRATE_DEFAULT = 1750000;
         const IntType CLOCKRATE_MIN = 1000000;
-        const IntType CLOCKRATE_MAX = 10000000;
+        const IntType CLOCKRATE_MAX = UINT64_C(10000000);
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}
@@ -96,9 +96,9 @@ namespace Parameters
         //! @name CPU clockrate in Hz
 
         //! Default value- 3.5MHz
-        const IntType CLOCKRATE_DEFAULT = 3500000;
+        const IntType CLOCKRATE_DEFAULT = UINT64_C(3500000);
         const IntType CLOCKRATE_MIN = 1000000;
-        const IntType CLOCKRATE_MAX = 10000000;
+        const IntType CLOCKRATE_MAX = UINT64_C(10000000);
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}
@@ -114,10 +114,30 @@ namespace Parameters
         //! @name FM clockrate in Hz
 
         //! Default value- 3.5MHz
-        const IntType CLOCKRATE_DEFAULT = 3500000;
+        const IntType CLOCKRATE_DEFAULT = UINT64_C(3500000);
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}
+      }
+
+      //! @brief SAA-related parameters namespace
+      namespace SAA
+      {
+        //! @brief Parameter#ZXTune#Core#SAA namespace prefix
+        extern const NameType PREFIX;
+
+        //@{
+        //! @name SAA clockrate in Hz
+
+        //! Default value- 8MHz
+        const IntType CLOCKRATE_DEFAULT = UINT64_C(8000000);
+        //! Parameter name
+        extern const NameType CLOCKRATE;
+        //@}
+
+        //! @brief Use interpolation
+        //! @details integer value
+        extern const NameType INTERPOLATION;
       }
     }
   }
