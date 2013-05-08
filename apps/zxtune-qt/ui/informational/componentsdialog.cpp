@@ -52,6 +52,12 @@ namespace
     return ZXTune::CAP_DEV_FM == (plugin.Capabilities() & ZXTune::CAP_DEV_FM);
   }
 
+  bool IsSAAPlugin(const ZXTune::Plugin& plugin)
+  {
+    assert(IsPlayerPlugin(plugin));
+    return ZXTune::CAP_DEV_SAA == (plugin.Capabilities() & ZXTune::CAP_DEV_SAA);
+  }
+
   bool IsMultitrackPlugin(const ZXTune::Plugin& plugin)
   {
     assert(!IsPlayerPlugin(plugin));
@@ -93,6 +99,7 @@ namespace
       , Ayms(CreateTreeWidgetItem(Players, "AY/YM"))
       , Dacs(CreateTreeWidgetItem(Players, "DAC"))
       , Fms(CreateTreeWidgetItem(Players, "FM"))
+      , Saas(CreateTreeWidgetItem(Players, "SAA"))
       , Multitracks(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack")))
       , Archives(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Archive")))
     {
@@ -123,6 +130,10 @@ namespace
       else if (IsFMPlugin(plugin))
       {
         AddPlayerPluginItem(plugin, *Fms);
+      }
+      else if (IsSAAPlugin(plugin))
+      {
+        AddPlayerPluginItem(plugin, *Saas);
       }
       else
       {
@@ -208,6 +219,7 @@ namespace
     QTreeWidgetItem* const Ayms;
     QTreeWidgetItem* const Dacs;
     QTreeWidgetItem* const Fms;
+    QTreeWidgetItem* const Saas;
     QTreeWidgetItem* const Multitracks;
     QTreeWidgetItem* const Archives;
   };

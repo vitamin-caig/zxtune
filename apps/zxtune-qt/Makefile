@@ -23,7 +23,7 @@ text_files := text/text
 #base
 libraries.common = analysis async binary \
                   core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
-                  debug devices devices_aym devices_aym_dumper \
+                  debug devices devices_aym devices_aym_dumper devices_saa \
                   formats_archived formats_chiptune formats_packed \
                   io \
                   platform \
