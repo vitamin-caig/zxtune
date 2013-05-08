@@ -106,53 +106,14 @@ namespace
       return Device.GetLevels();
     }
 
-    /*
     void GetState(ChannelsState& state) const
     {
-      const uint_t MAX_LEVEL = 100;
-      //one channel is noise
-      ChanState& noiseChan = state[CHANNELS];
-      noiseChan = ChanState('N');
-      noiseChan.Band = GetToneN();
-      //one channel is envelope    
-      ChanState& envChan = state[CHANNELS + 1];
-      envChan = ChanState('E');
-      envChan.Band = 16 * GetToneE();
-      //taking into account only periodic envelope
-      const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
-      const uint_t mixer = ~GetMixer();
-      for (uint_t chan = 0; chan != CHANNELS; ++chan) 
+      for (uint_t chan = 0; chan != state.size(); ++chan)
       {
-        const uint_t volReg = Registers[DataChunk::REG_VOLA + chan];
-        const bool hasNoise = 0 != (mixer & (uint_t(DataChunk::REG_MASK_NOISEA) << chan));
-        const bool hasTone = 0 != (mixer & (uint_t(DataChunk::REG_MASK_TONEA) << chan));
-        const bool hasEnv = 0 != (volReg & DataChunk::REG_MASK_ENV);
-        //accumulate level in noise channel
-        if (hasNoise)
-        {
-          noiseChan.Enabled = true;
-          noiseChan.LevelInPercents += MAX_LEVEL / CHANNELS;
-        }
-        //accumulate level in envelope channel      
-        if (periodicEnv && hasEnv)
-        {        
-          envChan.Enabled = true;
-          envChan.LevelInPercents += MAX_LEVEL / CHANNELS;
-        }
-        //calculate tone channel
-        ChanState& channel = state[chan];
-        channel.Name = static_cast<Char>('A' + chan);
-        if (hasTone)
-        {
-          channel.Enabled = true;
-          channel.LevelInPercents = (volReg & DataChunk::REG_MASK_VOL) * MAX_LEVEL / 15;
-          //Use full period
-          channel.Band = 2 * (256 * Registers[DataChunk::REG_TONEA_H + chan * 2] +
-            Registers[DataChunk::REG_TONEA_L + chan * 2]);
-        }
-      } 
+        state[chan] = ChanState(static_cast<Char>('A' + chan));
+      }
+      Device.GetState(state);
     }
-    */
   private:
     SAADevice Device;
   };
@@ -426,13 +387,11 @@ namespace
 
     virtual void GetState(ChannelsState& state) const
     {
-      /*
       PSG.GetState(state);
       for (ChannelsState::iterator it = state.begin(), lim = state.end(); it != lim; ++it)
       {
         it->Band = it->Enabled ? Analyser.GetBandByPeriod(it->Band) : 0;
       }
-      */
     }
 
     virtual void Reset()

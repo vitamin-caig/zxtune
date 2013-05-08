@@ -97,26 +97,55 @@ namespace Devices
         const uint_t noise = Noise.GetLevel();
 
         FastSample out;
-        if (noise & Tones[0].GetLevel<0, 1>())
+        if (noise & Tones[0].GetLevel<1>())
         {
           out.Add(Levels[0]);
         }
-        if (noise & Tones[1].GetLevel<0, 2>())
+        if (noise & Tones[1].GetLevel<2>())
         {
           out.Add(Levels[1]);
         }
-        if (noise & Tones[2].GetLevel<0, 4>())
+        if (noise & Tones[2].GetLevel<4>())
         {
           out.Add(Envelope.GetLevel(Levels[2]));
         }
         return out;
+      }
+
+      void GetState(ChanState* state) const
+      {
+        const uint_t MAX_IN_LEVEL = 30;
+        const uint_t MAX_OUT_LEVEL = 100;
+        for (uint_t chan = 0; chan != 3; ++chan)
+        {
+          state[chan].LevelInPercents = (Levels[chan].Left() + Levels[chan].Right()) * MAX_OUT_LEVEL / MAX_IN_LEVEL;
+          if (!Tones[chan].IsMasked())
+          {
+            state[chan].Band = 2 * Tones[chan].GetHalfPeriod();
+            state[chan].Enabled = true;
+          }
+        }
+        if (const uint_t mixer = Noise.GetMixer())
+        {
+          ChanState& noiseChan = state[3];
+          noiseChan.Band = Noise.GetPeriod();
+          noiseChan.Enabled = true;
+          noiseChan.LevelInPercents = (state[0].LevelInPercents + state[1].LevelInPercents + state[2].LevelInPercents) / 3;
+        }
+        if (const uint_t period = Envelope.GetRepetitionPeriod())
+        {
+          ChanState& envChan = state[4];
+          envChan.Band = period;
+          envChan.Enabled = true;
+          envChan.LevelInPercents = state[2].LevelInPercents;
+        }
       }
     private:
       void UpdateEnvelopes(uint_t generator)
       {
         if (generator == 1)
         {
-          Envelope.SetPeriod(Tones[1].GetPeriod());
+          Envelope.SetPeriod(Tones[1].GetHalfPeriod());
         }
       }
     private:
@@ -211,6 +240,12 @@ namespace Devices
         out.Add(Subdevices[1].GetLevels());
         return out.Convert();
       }
+
+    void GetState(ChannelsState& state) const
+    {
+      Subdevices[0].GetState(&state[0]);
+      Subdevices[1].GetState(&state[VOICES / 2]);
+    }
     private:
       SAASubDevice Subdevices[2];
     };

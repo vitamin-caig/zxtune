@@ -28,6 +28,7 @@ namespace Devices
   {
     const uint_t LOW_LEVEL = 0;
     const uint_t HIGH_LEVEL = 15;
+    const uint_t MAX_VALUE = HIGH_LEVEL + 1;
 
     class FastSample
     {
@@ -88,14 +89,14 @@ namespace Devices
         , FullPeriod(2)
         , Counter()
       {
-        SetPeriod(GetPeriod());
+        UpdatePeriod();
       }
 
       void Reset()
       {
         Masked = true;
         Frequency = Octave = 0;
-        SetPeriod(GetPeriod());
+        UpdatePeriod();
         Counter = 0;
       }
 
@@ -107,16 +108,16 @@ namespace Devices
       void SetFrequency(uint_t freq)
       {
         Frequency = freq;
-        SetPeriod(GetPeriod());
+        UpdatePeriod();
       }
 
       void SetOctave(uint_t octave)
       {
         Octave = octave & 7;
-        SetPeriod(GetPeriod());
+        UpdatePeriod();
       }
 
-      uint_t GetPeriod() const
+      uint_t GetHalfPeriod() const
       {
         //octave0: 31Hz...61Hz, full period is 258064(0x3f010) .. 141147(0x2004b)
         //...
@@ -129,13 +130,23 @@ namespace Devices
         Counter += ticks;
       }
 
-      template<uint_t Lo, uint_t Hi>
+      template<uint_t Hi>
       uint_t GetLevel() const
       {
-        return Masked || GetFlip() ? Hi : Lo;
+        return Masked || GetFlip() ? Hi : LOW_LEVEL;
+      }
+
+      bool IsMasked() const
+      {
+        return Masked;
       }
     private:
-      void SetPeriod(uint_t period)
+      void UpdatePeriod()
+      {
+        SetHalfPeriod(GetHalfPeriod());
+      }
+
+      void SetHalfPeriod(uint_t period)
       {
         WrapCounter();
         const bool lowPart = Counter < HalfPeriod;
@@ -294,6 +305,16 @@ namespace Devices
           return HIGH_LEVEL;
         }
       }
+
+      uint_t GetMixer() const
+      {
+        return Mixer;
+      }
+
+      uint_t GetPeriod() const
+      {
+        return Period;
+      }
     private:
       void Update() const
       {
@@ -392,6 +413,22 @@ namespace Devices
           return in;
         }
       }
+
+      uint_t GetRepetitionPeriod() const
+      {
+        if (Enabled)
+        {
+          switch (Type)
+          {
+          case 3:
+          case 7:
+            return Period * GetSteps();
+          case 5:
+            return 2 * Period * GetSteps();
+          }
+        }
+        return 0;
+      }
     private:
       void Update() const
       {
@@ -437,7 +474,13 @@ namespace Devices
 
       static uint_t Scale(uint_t lh, uint_t rh)
       {
-        return lh * rh / 16;
+        return lh * rh / MAX_VALUE;
+      }
+
+      uint_t GetSteps() const
+      {
+        return Decay > 0 ? MAX_VALUE / Decay
+          : (Decay < 0 ? MAX_VALUE / -Decay : 1);
       }
     private:
       bool Enabled;
