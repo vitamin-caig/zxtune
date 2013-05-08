@@ -72,6 +72,7 @@ namespace
       CapsPair(ZXTune::CAP_DEV_1DAC, Text::INFO_CAP_DAC1),
       CapsPair(ZXTune::CAP_DEV_2DAC, Text::INFO_CAP_DAC2),
       CapsPair(ZXTune::CAP_DEV_4DAC, Text::INFO_CAP_DAC4),
+      CapsPair(ZXTune::CAP_DEV_SAA, Text::INFO_CAP_SAA),
       //storage caps
       CapsPair(ZXTune::CAP_STOR_MODULE, Text::INFO_CAP_MODULE),
       CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),
@@ -335,7 +336,13 @@ namespace
                  Parameters::ZXTune::Core::Z80::CLOCKRATE_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::FM::CLOCKRATE,
                  Text::INFO_OPTIONS_CORE_FM_CLOCKRATE,
-                 Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
+                 Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Core::SAA::CLOCKRATE,
+                 Text::INFO_OPTIONS_CORE_SAA_CLOCKRATE,
+                 Parameters::ZXTune::Core::SAA::CLOCKRATE_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Core::SAA::INTERPOLATION,
+                 Text::INFO_OPTIONS_CORE_SAA_INTERPOLATION,
+                 EMPTY),
       //Core plugins options
       OptionDesc(Text::INFO_OPTIONS_CORE_PLUGINS_TITLE, EMPTY,0),
       OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS,

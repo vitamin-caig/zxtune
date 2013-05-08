@@ -296,6 +296,9 @@ extern const Char INFO_CAP_MULTITRACK[] = {
 extern const Char INFO_CAP_PLAIN[] = {
   's','t','o','r','_','p','l','a','i','n',0
 };
+extern const Char INFO_CAP_SAA[] = {
+  'd','e','v','_','s','a','a',0
+};
 extern const Char INFO_CAP_SCANER[] = {
   's','t','o','r','_','s','c','a','n','e','r',0
 };
@@ -453,6 +456,13 @@ extern const Char INFO_OPTIONS_CORE_PLUGINS_TITLE[] = {
 extern const Char INFO_OPTIONS_CORE_PLUGINS_ZIP_MAX_DEPACKED_FILE_SIZE_MB[] = {
   'm','a','x','i','m','a','l',' ','f','i','l','e',' ','s','i','z','e',' ','t','o',' ','b','e',' ','d','e','p',
   'a','c','k','e','d',' ','f','r','o','m',' ','.','z','i','p',' ','a','r','c','h','i','v','e',0
+};
+extern const Char INFO_OPTIONS_CORE_SAA_CLOCKRATE[] = {
+  'c','l','o','c','k',' ','r','a','t','e',' ','f','o','r',' ','S','A','A',' ','i','n',' ','H','z',0
+};
+extern const Char INFO_OPTIONS_CORE_SAA_INTERPOLATION[] = {
+  'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','S','A','A',' ','r',
+  'e','n','d','e','r','i','n','g',0
 };
 extern const Char INFO_OPTIONS_CORE_TITLE[] = {
   ' ','C','o','r','e',' ','o','p','t','i','o','n','s',':',0

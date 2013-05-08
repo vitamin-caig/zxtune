@@ -25,6 +25,9 @@
 < INFO_CAP_DAC4
 > INFO_DEV_PREFIX "dac4"
 
+< INFO_CAP_SAA
+> INFO_DEV_PREFIX "saa"
+
 = INFO_STOR_PREFIX
 > "stor_"
 
@@ -252,6 +255,12 @@
 
 < INFO_OPTIONS_CORE_FM_CLOCKRATE
 > "clock rate for FM in Hz"
+
+< INFO_OPTIONS_CORE_SAA_CLOCKRATE
+> "clock rate for SAA in Hz"
+
+< INFO_OPTIONS_CORE_SAA_INTERPOLATION
+> "use interpolation for SAA rendering"
 
 < INFO_OPTIONS_CORE_PLUGINS_TITLE
 > " Core plugins options:"
