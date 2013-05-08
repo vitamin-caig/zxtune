@@ -52,6 +52,10 @@ __cpp> "#endif //__TEXT_CHIPTUNE_H_DEFINED__\n"
 < DIGITALMUSICMAKER_DECODER_DESCRIPTION
 > "Digital Music Maker v1.x"
 
+#ETracker
+< ETRACKER_DECODER_DESCRIPTION
+> "E-Tracker v1.x"
+
 #FastTracker
 < FASTTRACKER_DECODER_DESCRIPTION
 > "Fast Tracker v1.x"

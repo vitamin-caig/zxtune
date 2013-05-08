@@ -35,6 +35,9 @@ extern const Char DIGITALSTUDIO_VERSION_AY[] = {
 extern const Char DIGITALSTUDIO_VERSION_DAC[] = {
   ' ','(','C','o','v','o','x','/','S','D',')',0
 };
+extern const Char ETRACKER_DECODER_DESCRIPTION[] = {
+  'E','-','T','r','a','c','k','e','r',' ','v','1','.','x',0
+};
 extern const Char FASTTRACKER_DECODER_DESCRIPTION[] = {
   'F','a','s','t',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
