@@ -248,7 +248,7 @@ namespace ZXTune
 
       void ChannelBuilder::SetVolume(int_t left, int_t right)
       {
-        SetRegister(Devices::SAA::DataChunk::REG_LEVEL0 + Channel, 16 * Math::Clamp(right, 0, 15) + Math::Clamp(left, 0, 15));
+        SetRegister(Devices::SAA::DataChunk::REG_LEVEL0 + Channel, 16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
       }
 
       void ChannelBuilder::SetTone(uint_t octave, uint_t note)
