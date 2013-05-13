@@ -7,6 +7,12 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] SAA1099 emulation support
+[+] Sam Coupe ETracker modules support (COP)
+[+] HQ interpolation for AY chip
+
+--- Rev2363 from 23.04.2013
+
 [+] Support mono layout in VTX modules
 [+] Support YM6 subtype of YM files
 [*] Fixed crash in Hrust2.3/Hrip archives decoding
