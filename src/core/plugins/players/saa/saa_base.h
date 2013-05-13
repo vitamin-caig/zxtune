@@ -29,13 +29,9 @@ namespace ZXTune
       class ChannelBuilder
       {
       public:
-        ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk)
-          : Channel(chan)
-          , Chunk(chunk)
-        {
-        }
+        ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk);
 
-        void SetVolume(uint_t left, uint_t right);
+        void SetVolume(int_t left, int_t right);
         void SetTone(uint_t octave, uint_t note);
         void SetNoise(uint_t type);
         void AddNoise(uint_t type);

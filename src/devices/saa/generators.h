@@ -71,7 +71,7 @@ namespace Devices
       static Sample ToSample(uint_t idx)
       {
         //TODO
-        return 32768 + (idx << 8);
+        return 32768 + (idx << 8) + (idx << 5);
       }
     private:
       uint_t Value;
@@ -105,7 +105,7 @@ namespace Devices
         Masked = masked;
       }
 
-      void SetFrequency(uint_t freq)
+      void SetNumber(uint_t freq)
       {
         Frequency = freq;
         UpdatePeriod();

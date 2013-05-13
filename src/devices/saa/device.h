@@ -22,6 +22,16 @@ namespace Devices
 {
   namespace SAA
   {
+    inline uint_t LoNibble(uint_t val)
+    {
+      return val & 15;
+    }
+
+    inline uint_t HiNibble(uint_t val)
+    {
+      return val >> 4;
+    }
+
     class SAASubDevice
     {
     public:
@@ -40,14 +50,14 @@ namespace Devices
 
       void SetToneNumber(uint_t generator, uint_t number)
       {
-        Tones[generator].SetFrequency(number);
-        UpdateEnvelopes(generator);
+        Tones[generator].SetNumber(number);
+        UpdateLinkedGenerators(generator);
       }
 
       void SetToneOctave(uint_t generator, uint_t octave)
       {
         Tones[generator].SetOctave(octave);
-        UpdateEnvelopes(generator);
+        UpdateLinkedGenerators(generator);
       }
 
       void SetToneMixer(uint_t mixer)
@@ -141,9 +151,13 @@ namespace Devices
         }
       }
     private:
-      void UpdateEnvelopes(uint_t generator)
+      void UpdateLinkedGenerators(uint_t generator)
       {
-        if (generator == 1)
+        if (0 == generator)
+        {
+          Noise.SetPeriod(Tones[0].GetHalfPeriod());
+        }
+        else if (1 == generator)
         {
           Envelope.SetPeriod(Tones[1].GetHalfPeriod());
         }
@@ -213,8 +227,8 @@ namespace Devices
 
       void SetNoiseControl(uint_t ctrl)
       {
-        Subdevices[0].SetNoiseControl(ctrl);
-        Subdevices[1].SetNoiseControl(ctrl >> 2);
+        Subdevices[0].SetNoiseControl(LoNibble(ctrl));
+        Subdevices[1].SetNoiseControl(HiNibble(ctrl));
       }
 
       void SetEnvelope(uint_t generator, uint_t value)

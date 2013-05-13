@@ -680,7 +680,7 @@ namespace Chiptune
                 line.ToneEnabled = 0 != (val & 16);
                 line.NoiseEnabled = 0 != (val & 32);
                 line.NoiseFreq = val >> 6;
-                line.ToneDeviation = ((val & 0xe) >> 1) | PeekByte(cursor++);
+                line.ToneDeviation = (((val & 0xe) >> 1) << 8) | PeekByte(cursor++);
                 break;
               }
             }
@@ -695,15 +695,15 @@ namespace Chiptune
             if (val == SampleDecodeTable.Marker)
             {
               volSkip = PeekByte(cursor++);
-              DecodeLevel(PeekByte(cursor++), line.Level);
+              DecodeLevel(PeekByte(cursor++), line);
             }
             else if ((volSkip = SampleDecodeTable.DecodeLen(val)))
             {
-              DecodeLevel(PeekByte(cursor++), line.Level);
+              DecodeLevel(PeekByte(cursor++), line);
             }
             else
             {
-              DecodeLevel(val, line.Level);
+              DecodeLevel(val, line);
               volSkip = 1;
             }
           }
@@ -718,10 +718,10 @@ namespace Chiptune
         dst.Loop = std::min<uint_t>(dst.Loop, dst.Lines.size());
       }
 
-      static void DecodeLevel(uint_t val, uint_t out[2])
+      static void DecodeLevel(uint_t val, Sample::Line& line)
       {
-        out[0] = val & 15;
-        out[1] = val >> 4;
+        line.LeftLevel = val & 15;
+        line.RightLevel = val >> 4;
       }
 
       void ParseOrnament(std::size_t start, Ornament& dst) const

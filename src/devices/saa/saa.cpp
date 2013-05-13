@@ -57,7 +57,7 @@ namespace
         case DataChunk::REG_LEVEL3:
         case DataChunk::REG_LEVEL4:
         case DataChunk::REG_LEVEL5:
-          Device.SetLevel(idx - DataChunk::REG_LEVEL0, val & 15, val >> 4);
+          Device.SetLevel(idx - DataChunk::REG_LEVEL0, LoNibble(val), HiNibble(val));
           break;
         case DataChunk::REG_TONENUMBER0:
         case DataChunk::REG_TONENUMBER1:
@@ -67,19 +67,19 @@ namespace
         case DataChunk::REG_TONENUMBER5:
           Device.SetToneNumber(idx - DataChunk::REG_TONENUMBER0, val);
           break;
-        case DataChunk::REG_OCTAVE01:
-          Device.SetToneOctave(0, val);
-          Device.SetToneOctave(1, val >> 4);
+        case DataChunk::REG_TONEOCTAVE01:
+          Device.SetToneOctave(0, LoNibble(val));
+          Device.SetToneOctave(1, HiNibble(val));
           break;
-        case DataChunk::REG_OCTAVE23:
-          Device.SetToneOctave(2, val);
-          Device.SetToneOctave(3, val >> 4);
+        case DataChunk::REG_TONEOCTAVE23:
+          Device.SetToneOctave(2, LoNibble(val));
+          Device.SetToneOctave(3, HiNibble(val));
           break;
-        case DataChunk::REG_OCTAVE45:
-          Device.SetToneOctave(4, val);
-          Device.SetToneOctave(5, val >> 4);
+        case DataChunk::REG_TONEOCTAVE45:
+          Device.SetToneOctave(4, LoNibble(val));
+          Device.SetToneOctave(5, HiNibble(val));
           break;
-        case DataChunk::REG_FREQMIXER:
+        case DataChunk::REG_TONEMIXER:
           Device.SetToneMixer(val);
           break;
         case DataChunk::REG_NOISEMIXER:

@@ -68,8 +68,7 @@ namespace ETracker
 
     const Line& GetLine(uint_t idx) const
     {
-      static const Line STUB;
-      return Lines.size() > idx ? Lines[idx] : STUB;
+      return Lines[idx];
     }
   };
 
@@ -99,8 +98,7 @@ namespace ETracker
 
     const Line& GetLine(uint_t idx) const
     {
-      static const Line STUB = 0;
-      return Lines.size() > idx ? Lines[idx] : STUB;
+      return Lines[idx];
     }
   };
 
@@ -369,6 +367,7 @@ namespace ETracker
         if (!*enabled)
         {
           dst.SampleIterator.Disable();
+          dst.OrnamentIterator.Reset();
         }
       }
       if (const uint_t* note = src.GetNote())
@@ -380,6 +379,7 @@ namespace ETracker
       if (const uint_t* sample = src.GetSample())
       {
         dst.SampleIterator.Set(Data->Samples.Find(*sample));
+        dst.OrnamentIterator.Reset();
       }
       if (const uint_t* ornament = src.GetOrnament())
       {
@@ -421,13 +421,44 @@ namespace ETracker
       }
     }
 
+    class Note
+    {
+    public:
+      Note()
+        : Value(0x7ff)
+      {
+      }
+
+      void Set(uint_t halfTones)
+      {
+        const uint_t TONES_PER_OCTAVE = 12;
+        static const uint_t TONE_TABLE[TONES_PER_OCTAVE] = 
+        {
+          0x5, 0x21, 0x3c, 0x55, 0x6d, 0x84, 0x99, 0xad, 0xc0, 0xd2, 0xe3, 0xf3
+        };
+        Value = ((halfTones / TONES_PER_OCTAVE) << 8) + TONE_TABLE[halfTones % TONES_PER_OCTAVE];
+      }
+
+      void Add(uint_t delta)
+      {
+        Value += delta;
+      }
+
+      uint_t Octave() const
+      {
+        return (Value >> 8) & 7;
+      }
+
+      uint_t Number() const
+      {
+        return Value & 0xff;
+      }
+    private:
+      uint_t Value;
+    };
+
     void SynthesizeChannel(uint_t idx, SAA::ChannelBuilder& channel)
     {
-      static const uint_t TONE_TABLE[] = 
-      {
-        0x5, 0x21, 0x3c, 0x55, 0x6d, 0x84, 0x99, 0xad, 0xc0, 0xd2, 0xe3, 0xf3
-      };
-
       ChannelState& dst = PlayerState[idx];
 
       Sample::Line curLine;
@@ -443,48 +474,37 @@ namespace ETracker
         dst.OrnamentIterator.Next();
       }
       //set tone
-      uint_t toneNumber = 0, toneOctave = 0;
-      if (halfTones == 0x5f)
-      {
-        const uint_t sum = curLine.ToneDeviation + 0x7ff;
-        toneNumber = sum & 0xff;
-        toneOctave = (sum >> 8) & 7;
-      }
-      else
+      Note note;
+      if (halfTones != 0x5f)
       {
         halfTones += Transposition;
         if (halfTones >= 0x100)
         {
           halfTones -= 0x60;
         }
-        toneOctave = halfTones / 12;
-        toneNumber = TONE_TABLE[halfTones % 12];
+        note.Set(halfTones);
       }
-      channel.SetTone(toneOctave, toneNumber);
+      note.Add(curLine.ToneDeviation);
+      channel.SetTone(note.Octave(), note.Number());
       if (curLine.ToneEnabled)
       {
         channel.EnableTone();
       }
 
       //set levels
-      if (curLine.Level[0] >= dst.Attenuation)
-      {
-        curLine.Level[0] -= dst.Attenuation;
-      }
-      if (curLine.Level[1] >= dst.Attenuation)
-      {
-        curLine.Level[1] -= dst.Attenuation;
-      }
       if (dst.SwapSampleChannels)
       {
-        std::swap(curLine.Level[0], curLine.Level[1]);
+        std::swap(curLine.LeftLevel, curLine.RightLevel);
       }
-      channel.SetVolume(curLine.Level[0], curLine.Level[1]);
+      channel.SetVolume(int_t(curLine.LeftLevel) - dst.Attenuation, int_t(curLine.RightLevel) - dst.Attenuation);
 
       //set noise
       if (curLine.NoiseEnabled)
       {
         channel.EnableNoise();
+      }
+      if (curLine.NoiseEnabled || 0 == idx)
+      {
         channel.SetNoise(curLine.NoiseFreq);
       }
     }

@@ -14,6 +14,7 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
+#include <math/numeric.h>
 #include <sound/sample_convert.h>
 #include <sound/mixer_factory.h>
 //boost includes
@@ -237,15 +238,23 @@ namespace ZXTune
   {
     namespace SAA
     {
-      void ChannelBuilder::SetVolume(uint_t left, uint_t right)
+      ChannelBuilder::ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk)
+        : Channel(chan)
+        , Chunk(chunk)
       {
-        SetRegister(Devices::SAA::DataChunk::REG_LEVEL0 + Channel, 16 * right + left);
+        SetRegister(Devices::SAA::DataChunk::REG_TONEMIXER, 0, 1 << chan);
+        SetRegister(Devices::SAA::DataChunk::REG_NOISEMIXER, 0, 1 << chan);
+      }
+
+      void ChannelBuilder::SetVolume(int_t left, int_t right)
+      {
+        SetRegister(Devices::SAA::DataChunk::REG_LEVEL0 + Channel, 16 * Math::Clamp(right, 0, 15) + Math::Clamp(left, 0, 15));
       }
 
       void ChannelBuilder::SetTone(uint_t octave, uint_t note)
       {
         SetRegister(Devices::SAA::DataChunk::REG_TONENUMBER0 + Channel, note);
-        AddRegister(Devices::SAA::DataChunk::REG_OCTAVE01 + Channel / 2, 0 != (Channel & 1) ? (octave << 4) : octave);
+        AddRegister(Devices::SAA::DataChunk::REG_TONEOCTAVE01 + Channel / 2, 0 != (Channel & 1) ? (octave << 4) : octave);
       }
 
       void ChannelBuilder::SetNoise(uint_t type)
@@ -267,7 +276,7 @@ namespace ZXTune
 
       void ChannelBuilder::EnableTone()
       {
-        AddRegister(Devices::SAA::DataChunk::REG_FREQMIXER, 1 << Channel);
+        AddRegister(Devices::SAA::DataChunk::REG_TONEMIXER, 1 << Channel);
       }
 
       void ChannelBuilder::EnableNoise()

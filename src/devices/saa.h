@@ -27,6 +27,7 @@ namespace Devices
   {
     const uint_t CHANNELS = 6;
     const uint_t SOUND_CHANNELS = 2;
+    //6 tones + 2 noises + 2 envelopes
     const uint_t VOICES = 10;
 
     typedef Time::Microseconds Stamp;
@@ -50,18 +51,16 @@ namespace Devices
         REG_TONENUMBER4,
         REG_TONENUMBER5,
 
-        REG_OCTAVE01 = 16,
-        REG_OCTAVE23,
-        REG_OCTAVE45,
+        REG_TONEOCTAVE01 = 16,
+        REG_TONEOCTAVE23,
+        REG_TONEOCTAVE45,
 
-        REG_FREQMIXER = 20,
+        REG_TONEMIXER = 20,
         REG_NOISEMIXER = 21,
         REG_NOISECLOCK = 22,
 
         REG_ENVELOPE0 = 24,
         REG_ENVELOPE1,
-
-        REG_CONTROL = 28,
 
         REG_LAST = 32
       };

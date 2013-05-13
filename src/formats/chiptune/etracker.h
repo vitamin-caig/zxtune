@@ -31,11 +31,12 @@ namespace Formats
       {
         struct Line
         {
-          Line() : Level(), ToneEnabled(), NoiseEnabled(), ToneDeviation(), NoiseFreq()
+          Line() : LeftLevel(), RightLevel(), ToneEnabled(), NoiseEnabled(), ToneDeviation(), NoiseFreq()
           {
           }
 
-          uint_t Level[2];//0-15
+          uint_t LeftLevel;//0-15
+          uint_t RightLevel;//0-15
           bool ToneEnabled;
           bool NoiseEnabled;
           uint_t ToneDeviation;
