@@ -6,6 +6,7 @@ install_samples:
 	$(call copyfile_cmd,$(samples_path)/asc/SANDRA.asc,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/ay/AYMD39.ay,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/chi/ducktale.chi,$(DESTDIR)/Samples)
+	$(call copyfile_cmd,$(samples_path)/cop/axel.cop,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/dmm/popcorn.dmm,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/dst/EchoDreams.dst,$(DESTDIR)/Samples)
 	$(call copyfile_cmd,$(samples_path)/ftc/PA-PA-PA.ftc,$(DESTDIR)/Samples)
