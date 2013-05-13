@@ -131,6 +131,8 @@ namespace Parameters
 
         //! Default value- 8MHz
         const IntType CLOCKRATE_DEFAULT = UINT64_C(8000000);
+        const IntType CLOCKRATE_MIN = UINT64_C(4000000);
+        const IntType CLOCKRATE_MAX = UINT64_C(16000000);
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}

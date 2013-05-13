@@ -137,6 +137,29 @@
     </message>
 </context>
 <context>
+    <name>SAAOptions</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="26"/>
+        <source>Clock frequency, Hz</source>
+        <translation>Тактовая частота, Гц</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="48"/>
+        <source>Interpolation</source>
+        <translation>Интерполяция</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="61"/>
+        <source>No</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="66"/>
+        <source>Yes</source>
+        <translation>Да</translation>
+    </message>
+</context>
+<context>
     <name>SdlOptions</name>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound_sdl.ui" line="20"/>

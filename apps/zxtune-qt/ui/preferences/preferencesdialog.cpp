@@ -15,6 +15,7 @@ Author:
 #include "preferencesdialog.h"
 #include "preferencesdialog.ui.h"
 #include "aym.h"
+#include "saa.h"
 #include "z80.h"
 #include "sound.h"
 #include "mixing.h"
@@ -48,6 +49,7 @@ namespace
       QWidget* const pages[] =
       {
         UI::AYMSettingsWidget::Create(*Categories),
+        UI::SAASettingsWidget::Create(*Categories),
         UI::Z80SettingsWidget::Create(*Categories),
         UI::SoundSettingsWidget::Create(*Categories),
         UI::MixingSettingsWidget::Create(*Categories, 3),
