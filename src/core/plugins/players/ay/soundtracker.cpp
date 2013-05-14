@@ -13,7 +13,7 @@ Author:
 #include "soundtracker.h"
 #include "ay_base.h"
 //library includes
-#include <formats/chiptune/soundtracker.h>
+#include <formats/chiptune/aym/soundtracker.h>
 //boost includes
 #include <boost/make_shared.hpp>
 

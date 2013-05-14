@@ -26,7 +26,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/etracker.h>
+#include <formats/chiptune/saa/etracker.h>
 #include <math/numeric.h>
 
 namespace ETracker

@@ -29,7 +29,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/protracker3.h>
+#include <formats/chiptune/aym/protracker3.h>
 #include <sound/mixer_factory.h>
 //text includes
 #include <core/text/plugins.h>

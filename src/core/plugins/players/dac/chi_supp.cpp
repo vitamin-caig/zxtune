@@ -26,7 +26,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <devices/dac_sample_factories.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/chiptracker.h>
+#include <formats/chiptune/digital/chiptracker.h>
 #include <sound/mixer_factory.h>
 
 #define FILE_TAG AB8BEC8B

@@ -24,7 +24,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/fasttracker.h>
+#include <formats/chiptune/aym/fasttracker.h>
 #include <math/numeric.h>
 
 namespace FastTracker

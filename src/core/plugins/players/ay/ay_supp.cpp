@@ -29,7 +29,7 @@ Author:
 #include <core/conversion/aym.h>
 #include <debug/log.h>
 #include <devices/z80.h>
-#include <formats/chiptune/ay.h>
+#include <formats/chiptune/aym/ay.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
 //std includes

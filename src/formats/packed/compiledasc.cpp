@@ -9,9 +9,9 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//library includes
+//local includes
 #include "container.h"
-#include <formats/chiptune/ascsoundmaster.h>
+#include "formats/chiptune/aym/ascsoundmaster.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>

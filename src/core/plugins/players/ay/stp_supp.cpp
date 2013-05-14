@@ -18,7 +18,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/soundtrackerpro.h>
+#include <formats/chiptune/aym/soundtrackerpro.h>
 //boost includes
 #include <boost/make_shared.hpp>
 

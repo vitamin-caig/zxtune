@@ -29,7 +29,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/protracker1.h>
+#include <formats/chiptune/aym/protracker1.h>
 #include <math/numeric.h>
 
 #define FILE_TAG 2500AED2

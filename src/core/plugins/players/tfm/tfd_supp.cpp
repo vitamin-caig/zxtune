@@ -21,7 +21,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/tfd.h>
+#include <formats/chiptune/fm/tfd.h>
 //boost includes
 #include <boost/make_shared.hpp>
 

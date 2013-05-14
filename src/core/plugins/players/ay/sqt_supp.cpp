@@ -28,7 +28,7 @@ Author:
 #include <core/conversion/aym.h>
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/sqtracker.h>
+#include <formats/chiptune/aym/sqtracker.h>
 //boost includes
 #include <boost/unordered_map.hpp>
 

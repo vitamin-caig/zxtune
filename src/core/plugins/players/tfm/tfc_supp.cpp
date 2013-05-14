@@ -23,7 +23,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/tfc.h>
+#include <formats/chiptune/fm/tfc.h>
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>

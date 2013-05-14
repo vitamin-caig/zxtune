@@ -21,7 +21,7 @@ Author:
 //library includes
 #include <core/module_holder.h>
 #include <devices/dac_sample_factories.h>
-#include <formats/chiptune/digital.h>
+#include <formats/chiptune/digital/digital.h>
 #include <sound/mixer_factory.h>
 
 namespace ZXTune

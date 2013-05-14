@@ -17,7 +17,7 @@ Author:
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/sampletracker.h>
+#include <formats/chiptune/digital/sampletracker.h>
 
 #define FILE_TAG ADBE77A4
 

@@ -29,7 +29,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/globaltracker.h>
+#include <formats/chiptune/aym/globaltracker.h>
 #include <math/numeric.h>
 
 #define FILE_TAG 1F7CDD7C

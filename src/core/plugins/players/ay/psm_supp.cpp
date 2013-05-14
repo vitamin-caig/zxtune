@@ -28,7 +28,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/prosoundmaker.h>
+#include <formats/chiptune/aym/prosoundmaker.h>
 #include <math/numeric.h>
 
 #define FILE_TAG B74E7B96

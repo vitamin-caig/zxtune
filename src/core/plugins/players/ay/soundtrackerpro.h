@@ -18,7 +18,7 @@ Author:
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
 //library includes
-#include <formats/chiptune/soundtrackerpro.h>
+#include <formats/chiptune/aym/soundtrackerpro.h>
 
 namespace SoundTrackerPro
 {

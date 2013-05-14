@@ -23,7 +23,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
-#include <formats/chiptune/ascsoundmaster.h>
+#include <formats/chiptune/aym/ascsoundmaster.h>
 #include <math/numeric.h>
 
 #define FILE_TAG 45B26E38

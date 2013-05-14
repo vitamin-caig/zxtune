@@ -17,7 +17,7 @@ Author:
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/digitalstudio.h>
+#include <formats/chiptune/digital/digitalstudio.h>
 
 #define FILE_TAG 3226C730
 

@@ -9,9 +9,9 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//library includes
+//local includes
 #include "container.h"
-#include <formats/chiptune/soundtrackerpro.h>
+#include "formats/chiptune/aym/soundtrackerpro.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>

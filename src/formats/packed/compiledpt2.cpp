@@ -9,11 +9,11 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//library includes
+//local includes
 #include "container.h"
-#include <formats/chiptune/decoders.h>
-#include <formats/chiptune/metainfo.h>
-#include <formats/chiptune/protracker2.h>
+#include "formats/chiptune/decoders.h"
+#include "formats/chiptune/metainfo.h"
+#include "formats/chiptune/aym/protracker2.h"
 //common includes
 #include <byteorder.h>
 #include <tools.h>

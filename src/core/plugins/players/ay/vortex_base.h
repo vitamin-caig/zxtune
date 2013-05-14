@@ -19,7 +19,7 @@ Author:
 //library includes
 #include <core/module_holder.h>
 #include <devices/aym.h>
-#include <formats/chiptune/protracker3.h>
+#include <formats/chiptune/aym/protracker3.h>
 
 namespace ZXTune
 {

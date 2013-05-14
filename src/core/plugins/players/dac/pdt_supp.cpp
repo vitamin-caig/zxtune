@@ -25,7 +25,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <devices/dac_sample_factories.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/prodigitracker.h>
+#include <formats/chiptune/digital/prodigitracker.h>
 #include <sound/mixer_factory.h>
 //boost includes
 #include <boost/bind.hpp>

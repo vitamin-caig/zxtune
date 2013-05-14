@@ -11,7 +11,7 @@ Author:
 
 //library includes
 #include <formats/archived/decoders.h>
-#include <formats/chiptune/ay.h>
+#include <formats/chiptune/aym/ay.h>
 //std includes
 #include <sstream>
 //boost includes

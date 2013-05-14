@@ -28,7 +28,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/protracker2.h>
+#include <formats/chiptune/aym/protracker2.h>
 
 #define FILE_TAG 077C8579
 
