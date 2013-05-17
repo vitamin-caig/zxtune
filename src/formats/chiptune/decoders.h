@@ -43,6 +43,7 @@ namespace Formats
     Decoder::Ptr CreateProSoundCreatorDecoder();
     Decoder::Ptr CreateFastTrackerDecoder();
     Decoder::Ptr CreateETrackerDecoder();
+    Decoder::Ptr CreateSQDigitalTrackerDecoder();
   }
 }
 
