@@ -1,5 +1,5 @@
 #include "../../utils.h"
-#include <formats/chiptune/protracker3.h>
+#include <formats/chiptune/aym/protracker3.h>
 
 namespace
 {

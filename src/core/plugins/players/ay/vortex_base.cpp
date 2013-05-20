@@ -205,6 +205,7 @@ namespace
 
     void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
+      const int_t prevSlide = dst.ToneSlider.Value;
       if (const bool* enabled = src.GetEnabled())
       {
         dst.PosInSample = dst.PosInOrnament = 0;
@@ -250,6 +251,10 @@ namespace
           dst.ToneSlider.Delta = it->Param2;
           dst.SlidingTargetNote = it->Param3;
           dst.VibrateCounter = 0;
+          if (Version >= 6)
+          {
+            dst.ToneSlider.Value = prevSlide;
+          }
           //tone up                                     freq up
           if (bool(dst.Note < dst.SlidingTargetNote) != bool(dst.ToneSlider.Delta < 0))
           {
@@ -369,7 +374,7 @@ namespace
       if (dst.ToneSlider.Update() &&
           LIMITER != dst.SlidingTargetNote)
       {
-        const int_t absoluteSlidingRange = track.GetSlidingDifference(halfTones, dst.SlidingTargetNote);
+        const int_t absoluteSlidingRange = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
         const int_t realSlidingRange = absoluteSlidingRange - toneOffset;
 
         if ((dst.ToneSlider.Delta > 0 && realSlidingRange < dst.ToneSlider.Delta) ||
