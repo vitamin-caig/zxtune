@@ -90,7 +90,7 @@ public class MainActivity extends FragmentActivity {
       }
       
       @Override
-      public void onStatusChanged(Status status) {
+      public void onStatusChanged(boolean nowPlaying) {
       }
 
       @Override

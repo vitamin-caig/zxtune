@@ -30,9 +30,9 @@ public interface Control {
   public int[] getSpectrumAnalysis();
 
   /*
-   * @return Current playback status
+   * @return true if now playing
    */
-  public Status getStatus();
+  public boolean isPlaying();
   
   /*
    * Start playback of specified item (data or playlist)
@@ -43,11 +43,6 @@ public interface Control {
    * Start/continue playback of current item
    */
   public void play();
-
-  /*
-   * Pause playback
-   */
-  public void pause();
 
   /*
    * Stop playing or do nothing

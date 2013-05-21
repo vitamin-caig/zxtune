@@ -17,13 +17,11 @@ interface IPlaybackControl {
   
   int[] getSpectrumAnalysis();
 
-  String getStatus();
+  boolean isPlaying();
 
   void playItem(in Uri item);
 
   void play();
-  
-  void pause();
 
   void stop();
   

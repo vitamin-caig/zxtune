@@ -56,9 +56,8 @@ public final class RemoteSubscription implements CallbackSubscription {
     public void onReceive(Context context, Intent intent) {
       final String action = intent.getAction();
       if (action.equals(Status.class.getName())) {
-        final Status status =
-            Status.valueOf(intent.getStringExtra(Status.class.getSimpleName()));
-        callback.onStatusChanged(status);
+        final boolean isPlaying = intent.getBooleanExtra(Status.class.getSimpleName(), false);
+        callback.onStatusChanged(isPlaying);
       } else if (action.equals(Item.class.getName())) {
         final Item item = (Item) intent.getParcelableExtra(Item.class.getSimpleName());
         callback.onItemChanged(item);

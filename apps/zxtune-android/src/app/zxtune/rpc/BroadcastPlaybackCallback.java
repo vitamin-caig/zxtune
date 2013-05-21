@@ -34,9 +34,9 @@ public final class BroadcastPlaybackCallback implements Callback {
   }
 
   @Override
-  public void onStatusChanged(Status status) {
+  public void onStatusChanged(boolean nowPlaying) {
     final Intent intent = new Intent(Status.class.getName());
-    intent.putExtra(Status.class.getSimpleName(), status.name());
+    intent.putExtra(Status.class.getSimpleName(), nowPlaying);
     context.sendBroadcast(intent);
   }
 }

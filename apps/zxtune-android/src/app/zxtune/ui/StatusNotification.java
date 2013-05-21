@@ -58,17 +58,13 @@ public class StatusNotification implements Callback {
   }
 
   @Override
-  public void onStatusChanged(Status status) {
-    switch (status) {
-      case PLAYING:
-        builder.setSmallIcon(R.drawable.ic_stat_notify_play);
-        service.startForeground(notificationId, showNotification());
-        break;
-      case PAUSED:
-      case STOPPED:
-        manager.cancel(notificationId);
-        service.stopForeground(true);
-        break;
+  public void onStatusChanged(boolean isPlaying) {
+    if (isPlaying) {
+      builder.setSmallIcon(R.drawable.ic_stat_notify_play);
+      service.startForeground(notificationId, showNotification());
+    } else {
+      manager.cancel(notificationId);
+      service.stopForeground(true);
     }
   }
 

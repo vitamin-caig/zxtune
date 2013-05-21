@@ -12,14 +12,13 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import app.zxtune.playback.Control;
-import app.zxtune.playback.Status;
 
 public class IncomingCallHandler extends PhoneStateListener {
     
   private static final String TAG = IncomingCallHandler.class.getName();
   private final TelephonyManager manager;
   private final Control control;
-  private Status stateOnIncomingCall;
+  private boolean playedOnIncomingCall;
   
   public IncomingCallHandler(Context context, Control control) {
     this.manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
@@ -53,9 +52,8 @@ public class IncomingCallHandler extends PhoneStateListener {
   }
   
   private void processRinging() {
-    stateOnIncomingCall = control.getStatus();
-    if (stateOnIncomingCall.equals(Status.PLAYING)) {
-      control.pause();
+    if (playedOnIncomingCall = control.isPlaying()) {
+      control.stop();
     }
   }
   
@@ -63,13 +61,9 @@ public class IncomingCallHandler extends PhoneStateListener {
   }
   
   private void processIdle() {
-    if (stateOnIncomingCall == null) {
-      return;
-    }
-    final Status nowState = control.getStatus();
-    if (!nowState.equals(Status.STOPPED) && stateOnIncomingCall.equals(Status.PLAYING)) {
+    if (playedOnIncomingCall && !control.isPlaying()) {
+      playedOnIncomingCall = false;
       control.play();
     }
-    stateOnIncomingCall = null;
   }
 }

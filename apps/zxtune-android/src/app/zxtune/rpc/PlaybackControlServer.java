@@ -37,8 +37,8 @@ public class PlaybackControlServer extends IPlaybackControl.Stub {
   }
   
   @Override
-  public String getStatus() {
-    return delegate.getStatus().toString();
+  public boolean isPlaying() {
+    return delegate.isPlaying();
   }
   
   @Override
@@ -51,11 +51,6 @@ public class PlaybackControlServer extends IPlaybackControl.Stub {
     delegate.play();
   }
   
-  @Override
-  public void pause() {
-    delegate.pause();
-  }
-
   @Override
   public void stop() {
     delegate.stop();

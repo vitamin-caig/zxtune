@@ -71,7 +71,7 @@ public class NowPlayingFragment extends Fragment {
           view.setEnabled(connected);
         }
         if (connected) {
-          onStatusChanged(control.getStatus());
+          onStatusChanged(control.isPlaying());
           onItemChanged(control.getItem());
         } else {
           stopUpdating();
@@ -79,19 +79,13 @@ public class NowPlayingFragment extends Fragment {
       }
 
       @Override
-      public void onStatusChanged(Status status) {
-        switch (status) {
-          case PLAYING:
-            startUpdating();
-            playPause.setImageResource(R.drawable.ic_pause);
-            break;
-          case STOPPED:
-            seek.setProgress(0);
-            time.setText(R.string.stub_time);
-          default:
-            stopUpdating();
-            playPause.setImageResource(R.drawable.ic_play);
-            break;
+      public void onStatusChanged(boolean nowPlaying) {
+        if (nowPlaying) {
+          startUpdating();
+          playPause.setImageResource(R.drawable.ic_pause);
+        } else {
+          stopUpdating();
+          playPause.setImageResource(R.drawable.ic_play);
         }
       }
 
@@ -118,9 +112,8 @@ public class NowPlayingFragment extends Fragment {
     playPause.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        final Status status = control.getStatus();
-        if (status.equals(Status.PLAYING)) {
-          control.pause();
+        if (control.isPlaying()) {
+          control.stop();
         } else {
           control.play();
         }

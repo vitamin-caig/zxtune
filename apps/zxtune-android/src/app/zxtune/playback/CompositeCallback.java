@@ -33,10 +33,10 @@ public final class CompositeCallback implements Callback {
   }
 
   @Override
-  public void onStatusChanged(Status status) {
+  public void onStatusChanged(boolean isPlaying) {
     synchronized (delegates) {
       for (Callback cb : delegates) {
-        cb.onStatusChanged(status);
+        cb.onStatusChanged(isPlaying);
       }
     }
   }

@@ -16,7 +16,7 @@ public interface Callback {
   /**
    * Called on status change (all changes before connection are lost)
    */
-  public void onStatusChanged(Status status);
+  public void onStatusChanged(boolean isPlaying);
 
   /**
    * Called on active item change

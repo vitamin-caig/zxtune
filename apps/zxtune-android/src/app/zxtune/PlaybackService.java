@@ -20,17 +20,19 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
-import app.zxtune.ZXTune.Player;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CompositeCallback;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.Status;
 import app.zxtune.playlist.Database;
 import app.zxtune.playlist.Query;
 import app.zxtune.rpc.BroadcastPlaybackCallback;
 import app.zxtune.rpc.PlaybackControlServer;
-import app.zxtune.sound.AsyncPlayback;
+import app.zxtune.sound.AsyncPlayer;
+import app.zxtune.sound.Player;
+import app.zxtune.sound.PlayerEventsListener;
+import app.zxtune.sound.SamplesSource;
+import app.zxtune.sound.StubPlayer;
 import app.zxtune.ui.StatusNotification;
 
 public class PlaybackService extends Service {
@@ -227,25 +229,29 @@ public class PlaybackService extends Service {
     }
 
     @Override
-    public Player createPlayer() {
+    public ZXTune.Player createPlayer() {
       return module.createPlayer();
     }
   }
 
   private class PlaybackControl implements Control {
 
-    private final Callback callback;
-    private PlaybackSource source;
-    private AsyncPlayback playback;
+    private Callback callback;
+    private PlayableItem item;
+    private PlaybackSamplesSource source;
+    private PlaybackEvents events;
+    private Player player;
 
     PlaybackControl(Callback callback) {
       this.callback = callback;
+      this.player = new StubPlayer();
+      this.events = new PlaybackEvents(callback);
       callback.onControlChanged(this);
     }
 
     @Override
     public Item getItem() {
-      return source != null ? source.getItem() : null;
+      return item;
     }
 
     @Override
@@ -259,8 +265,8 @@ public class PlaybackService extends Service {
     }
 
     @Override
-    public Status getStatus() {
-      return source != null ? source.getStatus() : Status.STOPPED;
+    public boolean isPlaying() {
+      return events.isPlaying();
     }
 
     @Override
@@ -268,10 +274,10 @@ public class PlaybackService extends Service {
       Log.d(TAG, "play(" + uri + ")");
       try {
         stop();
-        final PlayableItem item = openItem(uri);
-        source = new PlaybackSource(item, callback);
-        final AsyncPlayback playback = new AsyncPlayback(source);
-        this.playback = playback;
+        item = openItem(uri);
+        source = new PlaybackSamplesSource(item.createPlayer());
+        player = AsyncPlayer.create(source, events);
+        callback.onItemChanged(item);
         play();
       } catch (IOException e) {}
     }
@@ -279,28 +285,13 @@ public class PlaybackService extends Service {
     @Override
     public void play() {
       Log.d(TAG, "play()");
-      if (playback != null) {
-        playback.resume();
-      } else if (source != null) {
-        play(source.getItem().getId());
-      }
+      player.play();
     }
     
     @Override
-    public void pause() {
-      Log.d(TAG, "pause()");
-      if (playback != null) {
-        playback.pause();
-      }
-    }
-
-    @Override
     public void stop() {
       Log.d(TAG, "stop()");
-      if (playback != null) {
-        playback.stop();
-        playback = null;
-      }
+      player.stop();
     }
     
     @Override
@@ -311,92 +302,81 @@ public class PlaybackService extends Service {
       }
     }
   }
+  
+  private static final class PlaybackEvents implements PlayerEventsListener {
 
-  private static class PlaybackSource implements AsyncPlayback.Source {
-
-    private final PlayableItem item;
     private final Callback callback;
-    private Status status;
-    private ZXTune.Player player;
-
-    public PlaybackSource(PlayableItem item, Callback callback) {
-      this.item = item;
+    private boolean playing;
+    
+    public PlaybackEvents(Callback callback) {
       this.callback = callback;
-      this.status = Status.STOPPED;
-      callback.onItemChanged(item);
+    }
+    
+    @Override
+    public void onStart() {
+      callback.onStatusChanged(playing = true);
     }
 
     @Override
-    public void startup(int freqRate) {
-      synchronized (status) {
-        player = item.createPlayer();
-        player.setProperty(ZXTune.Properties.Sound.FREQUENCY, freqRate);
-        player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, 1);
-        callback.onStatusChanged(status = Status.PLAYING);
-      }
+    public void onFinish() {
     }
 
     @Override
-    public void suspend() {
-      synchronized (status) {
-        callback.onStatusChanged(status = Status.PAUSED);
-      }
+    public void onStop() {
+      callback.onStatusChanged(playing = false);
     }
 
     @Override
-    public void resume() {
-      synchronized (status) {
-        callback.onStatusChanged(status = Status.PLAYING);
-      }
+    public void onError(Error e) {
+      Log.d(TAG, "Error occurred: " + e);
+    }
+    
+    public boolean isPlaying() {
+      return playing;
+    }
+  }
+  
+  private static final class PlaybackSamplesSource implements SamplesSource {
+
+    private volatile ZXTune.Player player;
+    
+    public PlaybackSamplesSource(ZXTune.Player player) {
+      this.player = player;
+      player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, 1);
+      player.setPosition(0);
+    }
+    
+    @Override
+    public void initialize(int sampleRate) {
+      player.setProperty(ZXTune.Properties.Sound.FREQUENCY, sampleRate);
     }
 
     @Override
-    public void shutdown() {
-      synchronized (status) {
-        callback.onStatusChanged(status = Status.STOPPED);
-        try {
-          player.release();
-        } finally {
-          player = null;
-        }
-      }
-    }
-
-    @Override
-    public boolean getNextSoundChunk(short[] buf) {
+    public boolean getSamples(short[] buf) {
       return player.render(buf);
     }
 
-    public Item getItem() {
-      return item;
+    @Override
+    public void release() {
+      player.release();
+      player = null;
     }
-
-    public Status getStatus() {
-      return status;
-    }
-
+    
     public TimeStamp getPosition() {
-      synchronized (status) {
-        final int frame = player != null ? player.getPosition() : 0;
-        //TODO
-        return TimeStamp.createFrom(20 * frame, TimeUnit.MILLISECONDS);
-      }
+      final int frame = player != null ? player.getPosition() : 0;
+      //TODO
+      return TimeStamp.createFrom(20 * frame, TimeUnit.MILLISECONDS);
     }
     
     public void setPosition(TimeStamp pos) {
-      synchronized (status) {
-        //TODO
-        final int frame = (int) (pos.convertTo(TimeUnit.MILLISECONDS) / 20);
-        if (player != null) {
-          player.setPosition(frame);
-        }
+      final int frame = (int) (pos.convertTo(TimeUnit.MILLISECONDS) / 20);
+      if (player != null) {
+        player.setPosition(frame);
       }
     }
 
     public int[] getAnalysis() {
-      synchronized (status) {
-        return player != null ? getAnalysis(player) : null;
-      }
+      return player != null ? getAnalysis(player) : null;
     }
 
     static private int[] getAnalysis(ZXTune.Player player) {

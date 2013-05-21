@@ -52,11 +52,11 @@ final class PlaybackControlClient implements Control {
   }
 
   @Override
-  public Status getStatus() {
+  public boolean isPlaying() {
     try {
-      return Status.valueOf(delegate.getStatus());
+      return delegate.isPlaying();
     } catch (RemoteException e) {
-      return null;
+      return false;
     }
   }
 
@@ -76,14 +76,6 @@ final class PlaybackControlClient implements Control {
     }
   }
   
-  @Override
-  public void pause() {
-    try {
-      delegate.pause();
-    } catch (RemoteException e) {
-    }
-  }
-
   @Override
   public void stop() {
     try {
