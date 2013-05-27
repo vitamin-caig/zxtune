@@ -152,7 +152,7 @@ namespace ETracker
     DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<Devices::SAA::CHANNELS>())
+      , Builder(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
     }
@@ -315,7 +315,7 @@ namespace ETracker
     {
       static const Sample STUB_SAMPLE;
       static const Ornament STUB_ORNAMENT;
-      for (uint_t chan = 0; chan != Devices::SAA::CHANNELS; ++chan)
+      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
@@ -345,7 +345,7 @@ namespace ETracker
     {
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Devices::SAA::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -510,7 +510,7 @@ namespace ETracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, Devices::SAA::CHANNELS> PlayerState;
+    boost::array<ChannelState, SAA::TRACK_CHANNELS> PlayerState;
     boost::array<uint_t, 2> Noise;
     uint_t Transposition;
   };
@@ -521,7 +521,7 @@ namespace ETracker
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::SAA::CHANNELS, Devices::SAA::SOUND_CHANNELS))
+      , Info(CreateTrackInfo(Data, SAA::TRACK_CHANNELS))
     {
     }
 

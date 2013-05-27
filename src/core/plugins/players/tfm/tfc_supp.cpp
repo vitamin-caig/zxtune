@@ -333,7 +333,7 @@ namespace
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateStreamInfo(Data->Count(), Devices::TFM::CHANNELS, 0))
+      , Info(CreateStreamInfo(Data->Count(), 0))
     {
     }
 

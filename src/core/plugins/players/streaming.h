@@ -20,7 +20,7 @@ namespace ZXTune
 {
   namespace Module
   {
-    Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels, uint_t loopFrame = 0);
+    Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame = 0);
 
     StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info);
   }

@@ -154,7 +154,7 @@ namespace FastTracker
     DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
+      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
       Properties->SetFreqtable(TABLE_PROTRACKER3_ST);
@@ -420,7 +420,7 @@ namespace FastTracker
     {
       const Sample* const stubSample = Data->Samples.Find(0);
       const Ornament* const stubOrnament = Data->Ornaments.Find(0);
-      for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
@@ -449,7 +449,7 @@ namespace FastTracker
     {
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -591,7 +591,7 @@ namespace FastTracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
+    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
     int_t Transposition;
   };
 
@@ -601,7 +601,7 @@ namespace FastTracker
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 

@@ -52,8 +52,7 @@ typedef struct
   int Patterns;
   int Frames;
   int LoopFrame;
-  int LogicalChannels;
-  int PhysicalChannels;
+  int Channels;
   int InitialTempo;
 } ZXTuneModuleInfo;
 

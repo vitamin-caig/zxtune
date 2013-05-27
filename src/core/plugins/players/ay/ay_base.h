@@ -29,6 +29,8 @@ namespace ZXTune
   {
     namespace AYM
     {
+      const uint_t TRACK_CHANNELS = 3;
+     
       class ChannelBuilder
       {
       public:

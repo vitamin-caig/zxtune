@@ -32,8 +32,6 @@ Author:
 #include <formats/chiptune/aym/globaltracker.h>
 #include <math/numeric.h>
 
-#define FILE_TAG 1F7CDD7C
-
 namespace GlobalTracker
 {
   enum CmdType
@@ -122,7 +120,7 @@ namespace GlobalTracker
     DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
+      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
       Properties->SetFreqtable(TABLE_PROTRACKER3_ST);
@@ -250,7 +248,7 @@ namespace GlobalTracker
     {
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -363,7 +361,7 @@ namespace GlobalTracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
+    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 
   class Chiptune : public AYM::Chiptune
@@ -372,7 +370,7 @@ namespace GlobalTracker
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 

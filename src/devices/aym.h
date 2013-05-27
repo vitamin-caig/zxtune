@@ -25,7 +25,7 @@ namespace Devices
 {
   namespace AYM
   {
-    const uint_t CHANNELS = 3;
+    const uint_t SOUND_CHANNELS = 3;
     const uint_t VOICES = 5;
 
     typedef Time::Microseconds Stamp;

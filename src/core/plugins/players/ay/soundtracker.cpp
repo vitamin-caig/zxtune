@@ -25,7 +25,7 @@ namespace SoundTracker
     DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
+      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
       Properties->SetFreqtable(TABLE_SOUNDTRACKER);
@@ -487,7 +487,7 @@ namespace SoundTracker
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 

@@ -26,6 +26,8 @@ namespace ZXTune
   {
     namespace SAA
     {
+      const uint_t TRACK_CHANNELS = 6;
+
       class ChannelBuilder
       {
       public:

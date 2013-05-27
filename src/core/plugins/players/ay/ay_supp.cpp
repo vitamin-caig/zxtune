@@ -40,8 +40,6 @@ Author:
 #include <core/text/core.h>
 #include <formats/text/chiptune.h>
 
-#define FILE_TAG 6CDE76E4
-
 namespace
 {
   using namespace ZXTune;
@@ -556,7 +554,7 @@ namespace
   public:
     explicit AYHolder(AYData::Ptr data)
       : Data(data)
-      , Info(CreateStreamInfo(Data->GetFramesCount(), Devices::AYM::CHANNELS))
+      , Info(CreateStreamInfo(Data->GetFramesCount()))
     {
     }
 

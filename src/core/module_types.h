@@ -43,7 +43,7 @@ namespace ZXTune
       virtual uint_t Quirk() const = 0;
       //! Current frame in track (up to Information::FramesCount)
       virtual uint_t Frame() const = 0;
-      //! Current active channels count (up to Information::LogicalChannels)
+      //! Current active channels count (up to Information::Channels)
       virtual uint_t Channels() const = 0;
     };
 
@@ -66,10 +66,8 @@ namespace ZXTune
       virtual uint_t FramesCount() const = 0;
       //! Loop position frame
       virtual uint_t LoopFrame() const = 0;
-      //! Logical channels count
-      virtual uint_t LogicalChannels() const = 0;
-      //! Actual physical channels count
-      virtual uint_t PhysicalChannels() const = 0;
+      //! Channels count
+      virtual uint_t ChannelsCount() const = 0;
       //! Initial tempo
       virtual uint_t Tempo() const = 0;
     };

@@ -289,8 +289,7 @@ namespace ZXTune
       SparsedObjectsStorage<BuilderPtr> Storage;
     };
 
-    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t logicalChannels);
-    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t logicalChannels, uint_t physicalChannels);
+    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
 
     class TrackStateIterator : public Iterator
     {

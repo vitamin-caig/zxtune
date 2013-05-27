@@ -34,8 +34,6 @@ Author:
 //text includes
 #include <core/text/plugins.h>
 
-#define FILE_TAG 3CBC0BBC
-
 namespace ProTracker3
 {
   using namespace ZXTune;
@@ -55,7 +53,7 @@ namespace ProTracker3
       : Data(data)
       , Properties(props)
       , PatOffset(patOffset)
-      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
+      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
     }
@@ -249,9 +247,9 @@ namespace ProTracker3
 
     virtual Cell::Ptr GetChannel(uint_t idx) const
     {
-      return idx < Devices::AYM::CHANNELS
+      return idx < AYM::TRACK_CHANNELS
         ? First->GetChannel(idx)
-        : Second->GetChannel(idx - Devices::AYM::CHANNELS);
+        : Second->GetChannel(idx - AYM::TRACK_CHANNELS);
     }
 
     virtual uint_t CountActiveChannels() const
@@ -345,7 +343,7 @@ namespace ProTracker3
     TSHolder(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Properties(properties)
       , Data(data)
-      , Info(CreateTrackInfo(data, 2 * Devices::AYM::CHANNELS, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(data, 2 * AYM::TRACK_CHANNELS))
     {
     }
 
@@ -371,7 +369,7 @@ namespace ProTracker3
 
       const uint_t version = Vortex::ExtractVersion(*Properties);
       const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chip1, 0);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chip2, Devices::AYM::CHANNELS);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chip2, AYM::TRACK_CHANNELS);
       return CreateTSRenderer(renderer1, renderer2, renderer1->GetTrackState());
     }
   private:

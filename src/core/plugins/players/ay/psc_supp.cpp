@@ -324,7 +324,7 @@ namespace ProSoundCreator
     DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
+      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
       Properties->SetFreqtable(TABLE_ASM);
@@ -487,7 +487,7 @@ namespace ProSoundCreator
     {
       const Sample* const stubSample = Data->Samples.Find(0);
       const Ornament* const stubOrnament = Data->Ornaments.Find(0);
-      for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
@@ -515,7 +515,7 @@ namespace ProSoundCreator
     {
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -523,7 +523,7 @@ namespace ProSoundCreator
           }
         }
       }
-      for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         PlayerState[chan].NoiseAccumulator += NoiseBase;
       }
@@ -702,7 +702,7 @@ namespace ProSoundCreator
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
+    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
     uint_t EnvelopeTone;
     uint_t NoiseBase;
   };
@@ -713,7 +713,7 @@ namespace ProSoundCreator
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 

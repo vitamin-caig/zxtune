@@ -301,10 +301,9 @@ namespace
   class InformationImpl : public Information
   {
   public:
-    InformationImpl(TrackModel::Ptr model, uint_t logicalChannels, uint_t physicChannels)
+    InformationImpl(TrackModel::Ptr model, uint_t channels)
       : Model(model)
-      , LogicChannels(logicalChannels)
-      , PhysicChannels(physicChannels)
+      , Channels(channels)
       , Frames(), LoopFrameNum()
     {
     }
@@ -336,14 +335,9 @@ namespace
       return LoopFrameNum;
     }
 
-    virtual uint_t LogicalChannels() const
+    virtual uint_t ChannelsCount() const
     {
-      return LogicChannels;
-    }
-
-    virtual uint_t PhysicalChannels() const
-    {
-      return PhysicChannels;
+      return Channels;
     }
 
     virtual uint_t Tempo() const
@@ -365,8 +359,7 @@ namespace
     }
   private:
     const TrackModel::Ptr Model;
-    const uint_t LogicChannels;
-    const uint_t PhysicChannels;
+    const uint_t Channels;
     mutable uint_t Frames;
     mutable uint_t LoopFrameNum;
   };
@@ -376,14 +369,9 @@ namespace ZXTune
 {
   namespace Module
   {
-    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t logicalChannels)
+    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
     {
-      return CreateTrackInfo(model, logicalChannels, logicalChannels);
-    }
-
-    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t logicalChannels, uint_t physicalChannels)
-    {
-      return boost::make_shared<InformationImpl>(model, logicalChannels, physicalChannels);
+      return CreateTrackInfo(model, channels);
     }
 
     TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)

@@ -124,8 +124,8 @@ namespace
       StdOut
         << std::endl
         << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props))
-        << Strings::Format(Text::ITEM_INFO_ADDON, Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(),
-          info->LogicalChannels(), info->PhysicalChannels());
+        << Strings::Format(Text::ITEM_INFO_ADDON,
+          Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount());
     }
 
     virtual uint_t BeginFrame(ZXTune::Sound::PlaybackControl::State state)

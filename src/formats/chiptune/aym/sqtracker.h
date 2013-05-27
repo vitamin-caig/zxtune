@@ -18,6 +18,8 @@ Author:
 #include "formats/chiptune/builder_pattern.h"
 //library includes
 #include <formats/chiptune.h>
+//boost includes
+#include <boost/array.hpp>
 
 namespace Formats
 {
@@ -79,7 +81,7 @@ namespace Formats
         };
 
         uint_t Tempo;
-        Channel Channels[3];
+        boost::array<Channel, 3> Channels;
       };
 
       class Builder

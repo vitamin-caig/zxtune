@@ -216,7 +216,7 @@ namespace
     TFDChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateStreamInfo(Data->Count(), Devices::TFM::CHANNELS, data->Loop()))
+      , Info(CreateStreamInfo(Data->Count(), data->Loop()))
     {
     }
 

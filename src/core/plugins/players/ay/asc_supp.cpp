@@ -26,8 +26,6 @@ Author:
 #include <formats/chiptune/aym/ascsoundmaster.h>
 #include <math/numeric.h>
 
-#define FILE_TAG 45B26E38
-
 namespace ASCSoundMaster
 {
   //supported commands and their parameters
@@ -175,7 +173,7 @@ namespace ASCSoundMaster
     DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
       : Data(data)
       , Properties(props)
-      , Builder(PatternsBuilder::Create<Devices::AYM::CHANNELS>())
+      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Builder.GetPatterns();
       Properties->SetFreqtable(TABLE_ASM);
@@ -407,7 +405,7 @@ namespace ASCSoundMaster
       }
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -639,7 +637,7 @@ namespace ASCSoundMaster
   private:
     const ModuleData::Ptr Data;
     uint_t EnvelopeTone;
-    boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
+    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 
   class Chiptune : public AYM::Chiptune
@@ -648,7 +646,7 @@ namespace ASCSoundMaster
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 

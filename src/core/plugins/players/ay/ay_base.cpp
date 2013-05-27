@@ -26,8 +26,6 @@ Author:
 //text includes
 #include <core/text/core.h>
 
-#define FILE_TAG 7D6A549C
-
 namespace
 {
   using namespace ZXTune;

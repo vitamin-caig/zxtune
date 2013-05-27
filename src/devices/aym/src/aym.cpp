@@ -58,7 +58,7 @@ namespace
     0x5502, 0x6620, 0x7730, 0x8844, 0xA1D2, 0xC102, 0xE0A2, 0xFFFF
   } };
 
-  typedef boost::array<uint_t, Devices::AYM::CHANNELS> LayoutData;
+  typedef boost::array<uint_t, Devices::AYM::SOUND_CHANNELS> LayoutData;
 
   const LayoutData LAYOUTS[] =
   {
@@ -175,19 +175,20 @@ namespace
 
     void GetState(ChannelsState& state) const
     {
+      const uint_t TONE_VOICES = 3;
       const uint_t MAX_LEVEL = 100;
       //one channel is noise
-      ChanState& noiseChan = state[CHANNELS];
+      ChanState& noiseChan = state[TONE_VOICES];
       noiseChan = ChanState('N');
       noiseChan.Band = GetToneN();
       //one channel is envelope    
-      ChanState& envChan = state[CHANNELS + 1];
+      ChanState& envChan = state[TONE_VOICES + 1];
       envChan = ChanState('E');
       envChan.Band = 16 * GetToneE();
       //taking into account only periodic envelope
       const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
       const uint_t mixer = ~GetMixer();
-      for (uint_t chan = 0; chan != CHANNELS; ++chan) 
+      for (uint_t chan = 0; chan != TONE_VOICES; ++chan) 
       {
         const uint_t volReg = Registers[DataChunk::REG_VOLA + chan];
         const bool hasNoise = 0 != (mixer & (uint_t(DataChunk::REG_MASK_NOISEA) << chan));
@@ -197,13 +198,13 @@ namespace
         if (hasNoise)
         {
           noiseChan.Enabled = true;
-          noiseChan.LevelInPercents += MAX_LEVEL / CHANNELS;
+          noiseChan.LevelInPercents += MAX_LEVEL / TONE_VOICES;
         }
         //accumulate level in envelope channel      
         if (periodicEnv && hasEnv)
         {        
           envChan.Enabled = true;
-          envChan.LevelInPercents += MAX_LEVEL / CHANNELS;
+          envChan.LevelInPercents += MAX_LEVEL / TONE_VOICES;
         }
         //calculate tone channel
         ChanState& channel = state[chan];
@@ -664,7 +665,7 @@ namespace
     }
   private:
     typedef int_t CoeffType;
-    typedef boost::array<CoeffType, CHANNELS> MultiCoeff;
+    typedef boost::array<CoeffType, SOUND_CHANNELS> MultiCoeff;
 
     static const uint_t PRECISION = 16384;
 
@@ -752,7 +753,7 @@ namespace
     void FeedFilter(const MultiSample& in)
     {
       MultiSample out;
-      for (std::size_t chan = 0; chan != CHANNELS; ++chan)
+      for (std::size_t chan = 0; chan != in.size(); ++chan)
       {
         const uint_t inSum = uint_t(in[chan]) + 2 * In_1[chan] + In_2[chan];
         CoeffType sum = A * inSum >> DCShift;

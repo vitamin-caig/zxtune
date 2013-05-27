@@ -28,7 +28,6 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <devices/aym.h>
 #include <sound/mixer_factory.h>
 //std includes
 #include <set>
@@ -38,8 +37,6 @@ Author:
 #include <boost/make_shared.hpp>
 //text includes
 #include <core/text/plugins.h>
-
-#define FILE_TAG 83089B6F
 
 namespace
 {
@@ -216,13 +213,9 @@ namespace
     {
       return First->LoopFrame();
     }
-    virtual uint_t LogicalChannels() const
+    virtual uint_t ChannelsCount() const
     {
-      return First->LogicalChannels() + Second->LogicalChannels();
-    }
-    virtual uint_t PhysicalChannels() const
-    {
-      return std::max(First->PhysicalChannels(), Second->PhysicalChannels());
+      return First->ChannelsCount() + Second->ChannelsCount();
     }
     virtual uint_t Tempo() const
     {

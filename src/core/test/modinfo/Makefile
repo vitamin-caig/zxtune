@@ -5,7 +5,7 @@ source_files := main
 libraries.common = analysis \
                    binary \
                    core core_plugins_archives_stub core_plugins_containers_stub core_plugins_players \
-                   debug devices devices_aym \
+                   debug devices devices_aym devices_saa \
                    formats_chiptune formats_packed_lha \
                    io \
                    l10n_stub \

@@ -59,7 +59,7 @@ namespace Devices
     // Sound is rendered in unsigned 16-bit values
     typedef uint16_t Sample;
     // 3 channels per sample
-    typedef boost::array<Sample, CHANNELS> MultiSample;
+    typedef boost::array<Sample, SOUND_CHANNELS> MultiSample;
     // Result sound stream receiver
     typedef DataReceiver<MultiSample> Receiver;
 

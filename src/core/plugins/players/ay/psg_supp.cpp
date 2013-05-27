@@ -26,8 +26,6 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-#define FILE_TAG 59843902
-
 namespace
 {
   using namespace ZXTune;
@@ -183,7 +181,7 @@ namespace
     PSGChiptune(ChunksSet::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateStreamInfo(Data->Count(), Devices::AYM::CHANNELS))
+      , Info(CreateStreamInfo(Data->Count()))
     {
     }
 

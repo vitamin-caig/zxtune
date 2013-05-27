@@ -276,7 +276,7 @@ namespace
     Chiptune(ChunksSet::Ptr data, ModuleProperties::Ptr properties, uint_t loopFrame)
       : Data(data)
       , Properties(properties)
-      , Info(CreateStreamInfo(Data->Count(), Devices::AYM::CHANNELS, loopFrame))
+      , Info(CreateStreamInfo(Data->Count(), loopFrame))
     {
     }
 

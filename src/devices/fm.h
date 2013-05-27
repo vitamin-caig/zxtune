@@ -25,7 +25,7 @@ namespace Devices
 {
   namespace FM
   {
-    const uint_t CHANNELS = 1;
+    const uint_t SOUND_CHANNELS = 1;
     const uint_t VOICES = 3;
 
     // Use optimized stamp type- 5% accuracy

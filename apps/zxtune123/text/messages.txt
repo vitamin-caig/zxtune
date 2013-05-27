@@ -353,7 +353,7 @@
 > "Author:  [Author]\n"
 
 < ITEM_INFO_ADDON
-> "Time:    %1%\t"     "Channels:  %2%\t" "Real channels: %3%\n"
+> "Time:    %1%\t"     "Channels:  %2%\n"
 > "\n"
 
 < INPUT_ERROR_NO_FILES

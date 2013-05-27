@@ -240,7 +240,7 @@ namespace SQTracker
     PatternsSet::Ptr CreateFlatPatterns(const OrderList& order) const
     {
       Dbg("Convert patterns");
-      PatternsBuilder builder = PatternsBuilder::Create<Devices::AYM::CHANNELS>();
+      PatternsBuilder builder = PatternsBuilder::Create<AYM::TRACK_CHANNELS>();
       const PatternsSet::Ptr result = builder.GetPatterns();
       for (uint_t pos = 0, lim = order.GetSize(); pos != lim; ++pos)
       {
@@ -277,7 +277,7 @@ namespace SQTracker
         return Delegates[chan];
       }
     private:
-      boost::array<Line::Ptr, Devices::AYM::CHANNELS> Delegates;
+      boost::array<Line::Ptr, AYM::TRACK_CHANNELS> Delegates;
     };
 
     class MultiPattern
@@ -285,7 +285,7 @@ namespace SQTracker
     public:
       MultiPattern(const PatternsSet& rawPats, const Formats::Chiptune::SQTracker::PositionEntry& attrs)
       {
-        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != Delegates.size(); ++chan)
         {
           Delegates[chan] = rawPats.Get(attrs.Channels[chan].Pattern);
         }
@@ -301,7 +301,7 @@ namespace SQTracker
         return MultiLine(Delegates[0]->GetLine(row), Delegates[1]->GetLine(row), Delegates[2]->GetLine(row));
       }
     private:
-      boost::array<Pattern::Ptr, Devices::AYM::CHANNELS> Delegates;
+      boost::array<Pattern::Ptr, AYM::TRACK_CHANNELS> Delegates;
     };
 
     class MutablePatternHelper
@@ -377,9 +377,9 @@ namespace SQTracker
 
     static void ConvertLine(const MultiLine& inLine, const Formats::Chiptune::SQTracker::PositionEntry& patAttrs, uint_t& tempo, MutableLine& outLine)
     {
-      for (uint_t idx = 0; idx != Devices::AYM::CHANNELS; ++idx)
+      for (uint_t idx = 0; idx != patAttrs.Channels.size(); ++idx)
       {
-        const uint_t chan = Devices::AYM::CHANNELS - idx - 1;
+        const uint_t chan = patAttrs.Channels.size() - idx - 1;
         if (const Line::Ptr line = inLine.GetSubline(chan))
         {
           const bool enabledEffects = patAttrs.Channels[chan].EnabledEffects;
@@ -640,7 +640,7 @@ namespace SQTracker
   private:
     void StartNewPattern(const Formats::Chiptune::SQTracker::PositionEntry& posAttrs)
     {
-      for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         PlayerState[chan].Attenuation = posAttrs.Channels[chan].Attenuation;
         PlayerState[chan].Transposition = posAttrs.Channels[chan].Transposition;
@@ -651,9 +651,9 @@ namespace SQTracker
     {
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t idx = 0; idx != Devices::AYM::CHANNELS; ++idx)
+        for (uint_t idx = 0; idx != PlayerState.size(); ++idx)
         {
-          const uint_t chan = Devices::AYM::CHANNELS - idx - 1;
+          const uint_t chan = PlayerState.size() - idx - 1;
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
@@ -709,7 +709,7 @@ namespace SQTracker
           //global
           if (it->Param2)
           {
-            for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+            for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
             {
               PlayerState[chan].Attenuation = it->Param1;
             }
@@ -723,7 +723,7 @@ namespace SQTracker
           //global
           if (it->Param2)
           {
-            for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+            for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
             {
               PlayerState[chan].AddAttenuation(it->Param1);
             }
@@ -738,9 +738,9 @@ namespace SQTracker
 
     void SynthesizeChannelsData(AYM::TrackBuilder& track)
     {
-      for (uint_t idx = 0; idx != Devices::AYM::CHANNELS; ++idx)
+      for (uint_t idx = 0; idx != PlayerState.size(); ++idx)
       {
-        const uint_t chan = Devices::AYM::CHANNELS - idx - 1;
+        const uint_t chan = PlayerState.size() - idx - 1;
         AYM::ChannelBuilder channel = track.GetChannel(chan);
         SynthesizeChannel(PlayerState[chan], channel, track);
       }
@@ -813,7 +813,7 @@ namespace SQTracker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
+    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 
   class Chiptune : public AYM::Chiptune
@@ -822,7 +822,7 @@ namespace SQTracker
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 

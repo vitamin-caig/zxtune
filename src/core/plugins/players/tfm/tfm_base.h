@@ -26,6 +26,8 @@ namespace ZXTune
   {
     namespace TFM
     {
+      const uint_t TRACK_CHANNELS = 6;
+
       class DataIterator : public StateIterator
       {
       public:

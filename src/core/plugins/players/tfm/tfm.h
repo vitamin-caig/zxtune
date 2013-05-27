@@ -21,7 +21,6 @@ namespace Devices
   namespace TFM
   {
     const uint_t CHIPS = 2;
-    const uint_t CHANNELS = 1;
     const uint_t VOICES = Devices::FM::VOICES * CHIPS;
 
     struct DataChunk

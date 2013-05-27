@@ -25,7 +25,6 @@ namespace Devices
 {
   namespace SAA
   {
-    const uint_t CHANNELS = 6;
     const uint_t SOUND_CHANNELS = 2;
     //6 tones + 2 noises + 2 envelopes
     const uint_t VOICES = 10;

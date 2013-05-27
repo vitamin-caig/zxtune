@@ -22,8 +22,6 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-#define FILE_TAG 023C2245
-
 namespace
 {
   using namespace ZXTune;
@@ -154,7 +152,7 @@ namespace
 
   struct VortexState
   {
-    boost::array<ChannelState, Devices::AYM::CHANNELS> ChanState;
+    boost::array<ChannelState, AYM::TRACK_CHANNELS> ChanState;
     CommonState CommState;
   };
 
@@ -193,7 +191,7 @@ namespace
 
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != Devices::AYM::CHANNELS; ++chan)
+        for (uint_t chan = 0; chan != PlayerState.ChanState.size(); ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(TrackChannelStart + chan))
           {
@@ -416,7 +414,7 @@ namespace
     VortexChiptune(Vortex::ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 
