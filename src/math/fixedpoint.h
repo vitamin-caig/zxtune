@@ -151,6 +151,16 @@ namespace Math
       res.Value = res.Value * rh.PRECISION / rh.Value;
       return res;
     }
+
+    bool operator == (const FixedPoint<T, Precision>& rh) const
+    {
+      return Value == rh.Value;
+    }
+
+    bool operator != (const FixedPoint<T, Precision>& rh) const
+    {
+      return Value != rh.Value;
+    }
   private:
     T Value;
   };

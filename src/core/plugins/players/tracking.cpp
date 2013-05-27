@@ -371,7 +371,7 @@ namespace ZXTune
   {
     Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
     {
-      return CreateTrackInfo(model, channels);
+      return boost::make_shared<InformationImpl>(model, channels);
     }
 
     TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)

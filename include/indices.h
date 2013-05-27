@@ -86,6 +86,12 @@ public:
     return Size;
   }
 
+  uint_t Minimum() const
+  {
+    Require(!Empty());
+    return MinValue;
+  }
+
   uint_t Maximum() const
   {
     Require(!Empty());

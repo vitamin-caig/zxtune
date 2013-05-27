@@ -52,6 +52,64 @@ namespace
     Sound::OneChannelReceiver::InDataType Data;
   };
 
+  class TFMDataIterator : public TFM::DataIterator
+  {
+  public:
+    TFMDataIterator(TFM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, TFM::DataRenderer::Ptr renderer)
+      : TrackParams(trackParams)
+      , Delegate(delegate)
+      , State(Delegate->GetStateObserver())
+      , Render(renderer)
+    {
+      FillCurrentChunk();
+    }
+
+    virtual void Reset()
+    {
+      Delegate->Reset();
+      Render->Reset();
+      FillCurrentChunk();
+    }
+
+    virtual bool IsValid() const
+    {
+      return Delegate->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      Delegate->NextFrame(looped);
+      FillCurrentChunk();
+    }
+
+    virtual TrackState::Ptr GetStateObserver() const
+    {
+      return State;
+    }
+
+    virtual Devices::TFM::DataChunk GetData() const
+    {
+      return CurrentChunk;
+    }
+  private:
+    void FillCurrentChunk()
+    {
+      if (Delegate->IsValid())
+      {
+        TFM::TrackBuilder builder;
+        Render->SynthesizeData(*State, builder);
+        builder.GetResult(CurrentChunk);
+      }
+    }
+  private:
+    const TFM::TrackParameters::Ptr TrackParams;
+    const TrackStateIterator::Ptr Delegate;
+    const TrackModelState::Ptr State;
+    const TFM::DataRenderer::Ptr Render;
+    Devices::TFM::DataChunk CurrentChunk;
+  };
+
+
   class TFMAnalyzer : public Analyzer
   {
   public:
@@ -173,6 +231,18 @@ namespace
   private:
     const TFM::Chiptune::Ptr Tune;
   };
+
+  inline uint_t EncodeDetune(int_t in)
+  {
+    if (in >= 0)
+    {
+      return in;
+    }
+    else
+    {
+      return 4 - in;
+    }
+  }
 }
 
 namespace ZXTune
@@ -181,6 +251,91 @@ namespace ZXTune
   {
     namespace TFM
     {
+      ChannelBuilder::ChannelBuilder(uint_t chan, Devices::TFM::DataChunk& chunk)
+        : Channel(chan >= TFM::TRACK_CHANNELS / 2 ? chan - TFM::TRACK_CHANNELS / 2 : chan)
+        , Registers(chunk.Data[chan >= TFM::TRACK_CHANNELS / 2])
+      {
+      }
+
+      void ChannelBuilder::KeyOn()
+      {
+        WriteChipRegister(0x28, Channel | 0xf0);
+      }
+
+      void ChannelBuilder::KeyOff()
+      {
+        WriteChipRegister(0x28, Channel);
+      }
+
+      void ChannelBuilder::SetupConnection(uint_t algorithm, uint_t feedback)
+      {
+        const uint_t val = algorithm | (feedback << 3);
+        WriteChannelRegister(0xb0, val);
+      }
+
+      void ChannelBuilder::SetDetuneMultiple(uint_t op, int_t detune, uint_t multiple)
+      {
+        const uint_t val = (EncodeDetune(detune) << 4) | multiple;
+        WriteOperatorRegister(0x30, op, val);
+      }
+
+      void ChannelBuilder::SetRateScalingAttackRate(uint_t op, uint_t rateScaling, uint_t attackRate)
+      {
+        const uint_t val = (rateScaling << 6) | attackRate;
+        WriteOperatorRegister(0x50, op, val);
+      }
+
+      void ChannelBuilder::SetDecay(uint_t op, uint_t decay)
+      {
+        WriteOperatorRegister(0x60, op, decay);
+      }
+
+      void ChannelBuilder::SetSustain(uint_t op, uint_t sustain)
+      {
+        WriteOperatorRegister(0x70, op, sustain);
+      }
+
+      void ChannelBuilder::SetSustainLevelReleaseRate(uint_t op, uint_t sustainLevel, uint_t releaseRate)
+      {
+        const uint_t val = (sustainLevel << 4) | releaseRate;
+        WriteOperatorRegister(0x80, op, val);
+      }
+
+      void ChannelBuilder::SetEnvelopeType(uint_t op, uint_t type)
+      {
+        WriteOperatorRegister(0x90, op, type);
+      }
+
+      void ChannelBuilder::SetTotalLevel(uint_t op, uint_t totalLevel)
+      {
+        WriteOperatorRegister(0x40, op, totalLevel);
+      }
+
+      void ChannelBuilder::SetTone(uint_t octave, uint_t tone)
+      {
+        const uint_t valHi = octave * 8 + (tone >> 8);
+        const uint_t valLo = tone & 0xff;
+        WriteChannelRegister(0xa4, valHi);
+        WriteChannelRegister(0xa0, valLo);
+      }
+
+      void ChannelBuilder::WriteOperatorRegister(uint_t base, uint_t op, uint_t val)
+      {
+        WriteChannelRegister(base + 4 * op, val);
+      }
+
+      void ChannelBuilder::WriteChannelRegister(uint_t base, uint_t val)
+      {
+        Registers.push_back(Devices::FM::DataChunk::Register(base + Channel, val));
+        Registers.push_back(Devices::FM::DataChunk::Register(base + Channel, val));
+      }
+
+      void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
+      {
+        const Devices::FM::DataChunk::Register reg(idx, val);
+        Registers.push_back(reg);
+      }
+
       Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::TFM::Device::Ptr chip) const
       {
         const TFM::TrackParameters::Ptr trackParams = TFM::TrackParameters::Create(params);
@@ -195,6 +350,11 @@ namespace ZXTune
           return boost::make_shared<TFMAnalyzer>(chip);
         }
         return Analyzer::Ptr();
+      }
+
+      DataIterator::Ptr CreateDataIterator(TFM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+      {
+        return boost::make_shared<TFMDataIterator>(trackParams, iterator, renderer);
       }
 
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
