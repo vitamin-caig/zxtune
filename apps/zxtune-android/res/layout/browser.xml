@@ -7,16 +7,15 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:orientation="horizontal" >
-      <Button
+      <ImageButton
         android:id="@+id/browser_sources"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_weight="0"
-        android:background="@android:drawable/ic_menu_more"
+        android:src="@drawable/ic_browser_folder"
+        style="@style/button"
       />
       <app.zxtune.ui.BreadCrumbsUriView
         android:id="@+id/browser_breadcrumb"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
       />

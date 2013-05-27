@@ -15,11 +15,13 @@ import java.util.List;
 import android.content.Context;
 import android.net.Uri;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import app.zxtune.R;
 
 public class BreadCrumbsUriView extends HorizontalScrollView {
 
@@ -101,8 +103,9 @@ public class BreadCrumbsUriView extends HorizontalScrollView {
   }
 
   private final void createNewButtons(int startId, int endId) {
+    final LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     for (int idx = startId; idx != endId; ++idx) {
-      final Button button = new Button(getContext());
+      final Button button = (Button)inflater.inflate(R.layout.button, container, false);
       button.setOnClickListener(new OnClickListener() {
         @Override
         public void onClick(View v) {

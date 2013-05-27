@@ -32,7 +32,7 @@ public class BrowserFragment extends Fragment
       BreadCrumbsUriView.OnUriSelectionListener,
       DirView.OnEntryClickListener {
 
-  private Button sources;
+  private View sources;
   private BreadCrumbsUriView position;
   private DirView listing;
   private Uri current;
@@ -59,7 +59,7 @@ public class BrowserFragment extends Fragment
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    sources = (Button) view.findViewById(R.id.browser_sources);
+    sources = view.findViewById(R.id.browser_sources);
     sources.setOnClickListener(new SourcesClickListener());
     position = (BreadCrumbsUriView) view.findViewById(R.id.browser_breadcrumb);
     position.setOnUriSelectionListener(this);

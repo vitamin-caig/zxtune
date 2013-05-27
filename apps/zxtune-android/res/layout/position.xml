@@ -7,7 +7,7 @@
   <SeekBar
     android:id="@+id/position_seek"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/item_height"
     android:layout_weight="1"
     android:layout_margin="@dimen/spacing_half"
     android:progressDrawable="@drawable/seekbar"
@@ -16,7 +16,7 @@
   <TextView
     android:id="@+id/position_time"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/item_height"
     android:layout_weight="0"
     android:layout_gravity="center"
     android:layout_margin="@dimen/spacing_half"
