@@ -13,6 +13,11 @@ public class StubPlayer implements Player {
 
   @Override
   public void stop() {}
+  
+  @Override
+  public boolean isPlaying() {
+    return false;
+  }
 
   @Override
   public void release() {}

@@ -45,6 +45,11 @@ final public class AsyncPlayer implements Player {
     Log.d(TAG, "Stop");
     state.stop();
   }
+  
+  @Override
+  public synchronized boolean isPlaying() {
+    return state.isPlaying();
+  }
 
   @Override
   public synchronized void release() {
@@ -115,6 +120,11 @@ final public class AsyncPlayer implements Player {
     
     StartedPlayer() {
       Log.d(TAG, "Started");
+    }
+    
+    @Override
+    public boolean isPlaying() {
+      return true;
     }
 
     @Override

@@ -239,13 +239,11 @@ public class PlaybackService extends Service {
     private Callback callback;
     private PlayableItem item;
     private PlaybackSamplesSource source;
-    private PlaybackEvents events;
     private Player player;
 
     PlaybackControl(Callback callback) {
       this.callback = callback;
       this.player = new StubPlayer();
-      this.events = new PlaybackEvents(callback);
       callback.onControlChanged(this);
     }
 
@@ -266,7 +264,7 @@ public class PlaybackService extends Service {
 
     @Override
     public boolean isPlaying() {
-      return events.isPlaying();
+      return player.isPlaying();
     }
 
     @Override
@@ -276,7 +274,7 @@ public class PlaybackService extends Service {
         stop();
         item = openItem(uri);
         source = new PlaybackSamplesSource(item.createPlayer());
-        player = AsyncPlayer.create(source, events);
+        player = AsyncPlayer.create(source, new PlaybackEvents(callback));
         callback.onItemChanged(item);
         play();
       } catch (IOException e) {}
@@ -306,7 +304,6 @@ public class PlaybackService extends Service {
   private static final class PlaybackEvents implements PlayerEventsListener {
 
     private final Callback callback;
-    private boolean playing;
     
     public PlaybackEvents(Callback callback) {
       this.callback = callback;
@@ -314,7 +311,7 @@ public class PlaybackService extends Service {
     
     @Override
     public void onStart() {
-      callback.onStatusChanged(playing = true);
+      callback.onStatusChanged(true);
     }
 
     @Override
@@ -323,16 +320,12 @@ public class PlaybackService extends Service {
 
     @Override
     public void onStop() {
-      callback.onStatusChanged(playing = false);
+      callback.onStatusChanged(false);
     }
 
     @Override
     public void onError(Error e) {
       Log.d(TAG, "Error occurred: " + e);
-    }
-    
-    public boolean isPlaying() {
-      return playing;
     }
   }
   

@@ -14,6 +14,8 @@ public interface Player {
   public void play();
 
   public void stop();
+  
+  public boolean isPlaying();
 
   public void release();
 }

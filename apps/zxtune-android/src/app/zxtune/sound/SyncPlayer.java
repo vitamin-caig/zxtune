@@ -53,6 +53,11 @@ final class SyncPlayer implements Player {
     assert isActive;
     isActive = false;
   }
+  
+  @Override
+  public boolean isPlaying() {
+    return isActive;
+  }
 
   @Override
   public void release() {
