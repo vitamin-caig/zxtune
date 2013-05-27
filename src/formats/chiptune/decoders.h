@@ -44,6 +44,8 @@ namespace Formats
     Decoder::Ptr CreateFastTrackerDecoder();
     Decoder::Ptr CreateETrackerDecoder();
     Decoder::Ptr CreateSQDigitalTrackerDecoder();
+    Decoder::Ptr CreateTFMMusicMaker05Decoder();
+    Decoder::Ptr CreateTFMMusicMaker13Decoder();
   }
 }
 
