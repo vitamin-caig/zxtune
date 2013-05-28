@@ -259,12 +259,17 @@ namespace ZXTune
 
       void ChannelBuilder::KeyOn()
       {
-        WriteChipRegister(0x28, Channel | 0xf0);
+        SetKey(0xf);
       }
 
       void ChannelBuilder::KeyOff()
       {
-        WriteChipRegister(0x28, Channel);
+        SetKey(0);
+      }
+
+      void ChannelBuilder::SetKey(uint_t mask)
+      {
+        WriteChipRegister(0x28, Channel | (mask << 4));
       }
 
       void ChannelBuilder::SetupConnection(uint_t algorithm, uint_t feedback)

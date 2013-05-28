@@ -35,6 +35,7 @@ namespace ZXTune
 
         void KeyOn();
         void KeyOff();
+        void SetKey(uint_t mask);
         void SetupConnection(uint_t algorithm, uint_t feedback);
         void SetDetuneMultiple(uint_t op, int_t detune, uint_t multiple);
         void SetRateScalingAttackRate(uint_t op, uint_t rateScaling, uint_t attackRate);

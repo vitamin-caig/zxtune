@@ -30,15 +30,22 @@ namespace Math
 
     template<class P>
     explicit FixedPoint(P integer)
-      : Value(Precision * integer)
+      : Value(integer * PRECISION)
     {
     }
 
     template<class N, class D>
     FixedPoint(N nominator, D denominator)
     {
-      const std::pair<N, D> opt = OptimizeRatio(nominator, denominator);
-      Value = Precision * opt.first / opt.second;
+      if (denominator != PRECISION)
+      {
+        const std::pair<N, D> opt = OptimizeRatio(nominator, denominator);
+        Value = opt.first * PRECISION / opt.second;
+      }
+      else
+      {
+        Value = nominator;
+      }
     }
 
     FixedPoint(const FixedPoint<T, Precision>& rh)
@@ -71,7 +78,7 @@ namespace Math
     template<class P>
     FixedPoint<T, Precision>& operator += (P rh)
     {
-      Value += Precision * rh;
+      Value += rh * Precision;
       return *this;
     }
 
@@ -84,7 +91,7 @@ namespace Math
     template<class P>
     FixedPoint<T, Precision>& operator -= (P rh)
     {
-      Value -= Precision * rh;
+      Value -= rh * Precision;
       return *this;
     }
 

@@ -189,13 +189,11 @@ namespace TFMMusicMaker
 
     virtual void SetArpeggio(uint_t add1, uint_t add2)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(ARPEGGIO, add1, add2);
     }
 
     virtual void SetSlide(int_t step)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(TONESLIDE, step);
     }
 
@@ -207,19 +205,16 @@ namespace TFMMusicMaker
 
     virtual void SetVibrato(uint_t speed, uint_t depth)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(VIBRATO, speed, depth);
     }
 
     virtual void SetTotalLevel(uint_t op, uint_t value)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(LEVEL, op, value);
     }
 
     virtual void SetVolumeSlide(uint_t up, uint_t down)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(VOLSLIDE, up, down);
     }
 
@@ -237,13 +232,11 @@ namespace TFMMusicMaker
 
     virtual void SetMultiple(uint_t op, uint_t val)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(MULTIPLE, op, val);
     }
 
     virtual void SetOperatorsMixing(uint_t mask)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(MIXING, mask);
     }
 
@@ -283,13 +276,11 @@ namespace TFMMusicMaker
 
     virtual void SetDropEffects()
     {
-      Require(false);
       Builder.GetChannel().AddCommand(DROPEFFECTS);
     }
 
     virtual void SetFeedback(uint_t val)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(FEEDBACK, val);
     }
 
@@ -308,8 +299,232 @@ namespace TFMMusicMaker
     PatternsBuilder Builder;
   };
 
-  typedef Math::FixedPoint<int_t, 32> NoteType;
-  typedef Math::FixedPoint<int_t, 8> VolumeType;
+  struct Halftones
+  {
+    typedef Math::FixedPoint<int_t, 32> Type;
+
+    static Type Min()
+    {
+      return ValueOf(0);
+    }
+
+    static Type Max()
+    {
+      return ValueOf(0xbff);
+    }
+
+    static Type ValueOf(int_t rawVal)
+    {
+      return Type(rawVal, Type::PRECISION);
+    }
+  };
+
+  struct Level
+  {
+    typedef Math::FixedPoint<int_t, 8> Type;
+
+    static Type Min()
+    {
+      return ValueOf(0);
+    }
+
+    static Type Max()
+    {
+      return ValueOf(0xf8);
+    }
+
+    static Type ValueOf(int_t rawVal)
+    {
+      return Type(rawVal, Type::PRECISION);
+    }
+  };
+
+  struct ArpeggioState
+  {
+  public:
+    ArpeggioState()
+      : Position()
+      , Addons()
+    {
+    }
+
+    void Reset()
+    {
+      Position = 0;
+      std::fill(Addons.begin(), Addons.end(), 0);
+    }
+
+    void SetAddons(uint_t add1, uint_t add2)
+    {
+      if (add1 == 0xf && add2 == 0xf)
+      {
+        Addons[1] = Addons[2] = 0;
+      }
+      else
+      {
+        Addons[1] = add1;
+        Addons[2] = add2;
+      }
+    }
+
+    bool Update()
+    {
+      const uint_t prev = Addons[Position];
+      if (++Position = Addons.size())
+      {
+        Position = 0;
+      }
+      return Addons[Position] != prev;
+    }
+
+    Halftones::Type GetValue() const
+    {
+      return Halftones::Type(Addons[Position]);
+    }
+  private:
+    uint_t Position;
+    boost::array<uint_t, 3> Addons;
+  };
+
+  template<class Category>
+  struct SlideState
+  {
+  public:
+    SlideState()
+      : Enabled()
+      , UpDelta()
+      , DownDelta()
+    {
+    }
+
+    void Reset()
+    {
+      Enabled = false;
+      UpDelta = DownDelta = 0;
+    }
+
+    void Disable()
+    {
+      Enabled = false;
+    }
+
+    void SetDelta(int_t delta)
+    {
+      Enabled = true;
+      if (delta > 0)
+      {
+        UpDelta = delta;
+      }
+      else if (delta < 0)
+      {
+        DownDelta = delta;
+      }
+    }
+
+    bool Update(typename Category::Type& val) const
+    {
+      if (!Enabled)
+      {
+        return false;
+      }
+      const typename Category::Type prev = val;
+      if (UpDelta)
+      {
+        val += Category::ValueOf(UpDelta);
+        val = std::min<typename Category::Type>(val, Category::Max());
+      }
+      if (DownDelta)
+      {
+        val += Category::ValueOf(DownDelta);
+        val = std::max<typename Category::Type>(val, Category::Min());
+      }
+      return val != prev;
+    }
+  private:
+    bool Enabled;
+    int_t UpDelta;
+    int_t DownDelta;
+  };
+
+  typedef SlideState<Halftones> ToneSlideState;
+
+  struct VibratoState
+  {
+  public:
+    VibratoState()
+      : Enabled()
+      , Position()
+      , Speed()
+      , Depth()
+      , Value()
+    {
+    }
+
+    void Reset()
+    {
+      Enabled = false;
+      Position = Speed = Depth = 0;
+      Value = 0;
+    }
+
+    void Disable()
+    {
+      Enabled = false;
+    }
+
+    void ResetValue()
+    {
+      Value = 0;
+    }
+
+    void SetParameters(uint_t speed, uint_t depth)
+    {
+      Enabled = true;
+      if (speed)
+      {
+        Speed = speed;
+      }
+      if (depth)
+      {
+        Depth = depth;
+      }
+      if (speed || depth)
+      {
+        Position = Value = 0;
+      }
+    }
+
+    bool Update()
+    {
+      if (!Enabled)
+      {
+        return false;
+      }
+      const uint_t PRECISION = 256;
+      static const int_t TABLE[32] =
+      {
+        0, 50, 98, 142, 181, 213, 237, 251, 256, 251, 237, 213, 181, 142, 98, 50, 0,
+        -49, -97, -141, -180, -212, -236, -250, -255, -250, -236, -212, -180, -141, -97, -49
+      };
+      const int_t prevVal = Value;
+      Position = (Position + Speed) & 0x3f;
+      Value = TABLE[Position / 2] * Depth / PRECISION;
+      return prevVal != Value;
+    }
+
+    Halftones::Type GetValue() const
+    {
+      return Halftones::ValueOf(Value);
+    }
+  private:
+    bool Enabled;
+    uint_t Position;
+    uint_t Speed;
+    uint_t Depth;
+    int_t Value;
+  };
+
+  typedef SlideState<Level> VolumeSlideState;
 
   struct ChannelState
   {
@@ -322,6 +537,8 @@ namespace TFMMusicMaker
       , HasToneChange(false)
       , HasVolumeChange(false)
       , HasEffBx(false)
+      , Arpeggio()
+      , ToneSlide()
       , PortamentoTarget(-1)
     {
     }
@@ -329,13 +546,17 @@ namespace TFMMusicMaker
     const Instrument* CurInstrument;
     int_t Algorithm;
     uint_t TotalLevel[4];
-    NoteType Note;
-    VolumeType Volume;
+    Halftones::Type Note;
+    Level::Type Volume;
     bool HasToneChange;
     bool HasVolumeChange;
     bool HasEffBx;
 
-    NoteType PortamentoTarget;
+    ArpeggioState Arpeggio;
+    ToneSlideState ToneSlide;
+    VibratoState Vibrato;
+    VolumeSlideState VolumeSlide;
+    Halftones::Type PortamentoTarget;
   };
 
   class DataRenderer : public TFM::DataRenderer
@@ -377,7 +598,7 @@ namespace TFMMusicMaker
 
     void GetNewChannelState(const Cell& src, ChannelState& dst, TFM::ChannelBuilder& channel)
     {
-      int_t multiplies[4] = {-1, -1, -1, -1};
+      const int_t* multiplies[4] = {0, 0, 0, 0};
       bool dropEffects = false;
       bool hasNoteDelay = false;
       bool hasPortamento = false;
@@ -390,7 +611,7 @@ namespace TFMMusicMaker
           hasPortamento = true;
           break;
         case MULTIPLE:
-          multiplies[it->Param1] = it->Param2;
+          multiplies[it->Param1] = &it->Param2;
           break;
         case MIXING:
           hasOpMixer = true;
@@ -398,8 +619,16 @@ namespace TFMMusicMaker
         case NOTEDELAY:
           hasNoteDelay = true;
           break;
+        case DROPEFFECTS:
+          dropEffects = true;
+          break;
         }
       }
+
+      //portamento, vibrato, volume and tone slide are applicable only when effect is specified
+      dst.ToneSlide.Disable();
+      dst.Vibrato.Disable();
+      dst.VolumeSlide.Disable();
 
       if (const bool* enabled = src.GetEnabled())
       {
@@ -440,7 +669,8 @@ namespace TFMMusicMaker
         else
         {
           dst.Note = *note;
-          //...
+          dst.Arpeggio.Reset();
+          dst.Vibrato.ResetValue();
           dst.HasToneChange = true;
           if (!hasNoteDelay && !hasOpMixer)
           {
@@ -450,11 +680,44 @@ namespace TFMMusicMaker
       }
       if (const uint_t* volume = src.GetVolume())
       {
-        const VolumeType newVol = VolumeType(*volume);
+        const Level::Type newVol = Level::Type(*volume);
         if (newVol != dst.Volume)
         {
           dst.Volume = newVol;
           dst.HasVolumeChange = true;
+        }
+      }
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      {
+        switch (it->Type)
+        {
+        case ARPEGGIO:
+          dst.Arpeggio.SetAddons(it->Param1, it->Param2);
+          break;
+        case TONESLIDE:
+          dst.ToneSlide.SetDelta(it->Param1);
+          break;
+        case VIBRATO:
+          //parameter in 1/16 of halftone
+          dst.Vibrato.SetParameters(it->Param1, it->Param2 * Halftones::Type::PRECISION / 16);
+          break;
+        case LEVEL:
+          dst.TotalLevel[it->Param1] = it->Param2;
+          dst.HasVolumeChange = true;
+          break;
+        case VOLSLIDE:
+          dst.VolumeSlide.SetDelta(it->Param1);
+          dst.VolumeSlide.SetDelta(-it->Param2);
+          break;
+        case MULTIPLE:
+          channel.SetDetuneMultiple(it->Param1, dst.CurInstrument->Operators[it->Param1].Detune, it->Param2);
+          break;
+        case MIXING:
+          channel.SetKey(it->Param1);
+          break;
+        case FEEDBACK:
+          channel.SetupConnection(dst.Algorithm, it->Param1);
+          break;
         }
       }
     }
@@ -471,7 +734,7 @@ namespace TFMMusicMaker
       }
     }
 
-    void LoadInstrument(const int_t multiplies[], ChannelState& dst, TFM::ChannelBuilder& channel)
+    void LoadInstrument(const int_t* multiplies[], ChannelState& dst, TFM::ChannelBuilder& channel)
     {
       const Instrument& ins = *dst.CurInstrument;
       channel.SetupConnection(dst.Algorithm = ins.Algorithm, ins.Feedback);
@@ -479,7 +742,7 @@ namespace TFMMusicMaker
       {
         const Instrument::Operator& op = ins.Operators[opIdx];
         dst.TotalLevel[opIdx] = op.TotalLevel;
-        const uint_t multiple = multiplies[opIdx] != -1 ? multiplies[opIdx] : op.Multiple;
+        const uint_t multiple = multiplies[opIdx] ? *multiplies[opIdx] : op.Multiple;
         channel.SetDetuneMultiple(opIdx, op.Detune, multiple);
         channel.SetRateScalingAttackRate(opIdx, op.RateScaling, op.Attack);
         channel.SetDecay(opIdx, op.Decay);
@@ -491,7 +754,6 @@ namespace TFMMusicMaker
 
     void SynthesizeChannelsData(TFM::TrackBuilder& track)
     {
-      //TODO: CHANNELS
       for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
       {
         TFM::ChannelBuilder channel = track.GetChannel(chan);
@@ -502,12 +764,28 @@ namespace TFMMusicMaker
     void SynthesizeChannel(uint_t idx, TFM::ChannelBuilder& channel)
     {
       ChannelState& state = PlayerState[idx];
+      if (state.Vibrato.Update())
+      {
+        state.HasToneChange = true;
+      }
+      if (state.ToneSlide.Update(state.Note))
+      {
+        state.HasToneChange = true;
+      }
+      if (state.Arpeggio.Update())
+      {
+        state.HasToneChange = true;
+      }
 
-      //TODO: update effects
       if (state.HasToneChange)
       {
         SetTone(idx, state, channel);
         state.HasToneChange = false;
+      }
+
+      if (state.VolumeSlide.Update(state.Volume))
+      {
+        state.HasVolumeChange = true;
       }
       if (state.HasVolumeChange)
       {
@@ -522,7 +800,15 @@ namespace TFMMusicMaker
       {
         707, 749, 793, 840, 890, 943, 999, 1059, 1122, 1189, 1259, 1334, 1413, 1497
       };
-      const NoteType note = state.Note;
+      Halftones::Type note = state.Note + state.Arpeggio.GetValue() + state.Vibrato.GetValue();
+      if (note > Halftones::Max())
+      {
+        note = Halftones::Max();
+      }
+      else if (note < Halftones::Min())
+      {
+        note = Halftones::Min();
+      }
       const uint_t totalHalftones = note.Integer();
       const uint_t octave = totalHalftones / 12;
       const uint_t halftone = totalHalftones % 12;
