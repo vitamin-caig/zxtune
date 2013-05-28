@@ -33,6 +33,7 @@ namespace ZXTune
       public:
         ChannelBuilder(uint_t chan, Devices::TFM::DataChunk& chunk);
 
+        void SetMode(uint_t mode);
         void KeyOn();
         void KeyOff();
         void SetKey(uint_t mask);
@@ -45,6 +46,8 @@ namespace ZXTune
         void SetEnvelopeType(uint_t op, uint_t type);
         void SetTotalLevel(uint_t op, uint_t totalLevel);
         void SetTone(uint_t octave, uint_t tone);
+        void SetTone(uint_t op, uint_t octave, uint_t tone);
+        void SetPane(uint_t val);
       private:
         void WriteOperatorRegister(uint_t base, uint_t op, uint_t val);
         void WriteChannelRegister(uint_t base, uint_t val);

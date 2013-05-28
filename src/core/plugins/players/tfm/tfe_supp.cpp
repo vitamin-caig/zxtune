@@ -220,13 +220,11 @@ namespace TFMMusicMaker
 
     virtual void SetSpecialMode(bool on)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(SPECMODE, on);
     }
 
     virtual void SetToneOffset(uint_t op, uint_t offset)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(TONEOFFSET, op, offset);
     }
 
@@ -252,7 +250,6 @@ namespace TFMMusicMaker
 
     virtual void SetPane(uint_t pane)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(PANE, pane);
     }
 
@@ -559,6 +556,22 @@ namespace TFMMusicMaker
     Halftones::Type PortamentoTarget;
   };
 
+  const uint_t SPECIAL_MODE_CHANNEL = 2;
+  const uint_t OPERATORS_COUNT = 4;
+
+  struct PlayerState
+  {
+    PlayerState()
+      : SpecialMode(false)
+      , ToneOffset()
+    {
+    }
+
+    bool SpecialMode;
+    boost::array<int_t, OPERATORS_COUNT> ToneOffset;
+    boost::array<ChannelState, TFM::TRACK_CHANNELS> Channels;
+  };
+
   class DataRenderer : public TFM::DataRenderer
   {
   public:
@@ -569,7 +582,7 @@ namespace TFMMusicMaker
 
     virtual void Reset()
     {
-      std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
+      State = PlayerState();
     }
 
     virtual void SynthesizeData(const TrackModelState& state, TFM::TrackBuilder& track)
@@ -585,20 +598,20 @@ namespace TFMMusicMaker
     {
       if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+        for (uint_t chan = 0; chan != State.Channels.size(); ++chan)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
             TFM::ChannelBuilder channel = track.GetChannel(chan);
-            GetNewChannelState(*src, PlayerState[chan], channel);
+            GetNewChannelState(*src, State.Channels[chan], track, channel);
           }
         }
       }
     }
 
-    void GetNewChannelState(const Cell& src, ChannelState& dst, TFM::ChannelBuilder& channel)
+    void GetNewChannelState(const Cell& src, ChannelState& dst, TFM::TrackBuilder& track, TFM::ChannelBuilder& channel)
     {
-      const int_t* multiplies[4] = {0, 0, 0, 0};
+      const int_t* multiplies[OPERATORS_COUNT] = {0, 0, 0, 0};
       bool dropEffects = false;
       bool hasNoteDelay = false;
       bool hasPortamento = false;
@@ -610,11 +623,31 @@ namespace TFMMusicMaker
         case PORTAMENTO:
           hasPortamento = true;
           break;
+        case SPECMODE:
+          SetSpecialMode(it->Param1 != 0, track);
+          break;
+        case TONEOFFSET:
+          State.ToneOffset[it->Param1] = it->Param2;
+          break;
         case MULTIPLE:
           multiplies[it->Param1] = &it->Param2;
           break;
         case MIXING:
           hasOpMixer = true;
+          break;
+        case PANE:
+          if (1 == it->Param1)
+          {
+            channel.SetPane(0x80);
+          }
+          else if (2 == it->Param1)
+          {
+            channel.SetPane(0x40);
+          }
+          else
+          {
+            channel.SetPane(0xc0);
+          }
           break;
         case NOTEDELAY:
           hasNoteDelay = true;
@@ -722,6 +755,15 @@ namespace TFMMusicMaker
       }
     }
 
+    void SetSpecialMode(bool enabled, TFM::TrackBuilder& track)
+    {
+      if (enabled != State.SpecialMode)
+      {
+        State.SpecialMode = enabled;
+        track.GetChannel(SPECIAL_MODE_CHANNEL).SetMode(enabled ? 0x40 : 0x00);
+      }
+    }
+
     const Instrument* GetNewInstrument(const Cell& src) const
     {
       if (const uint_t* instrument = src.GetSample())
@@ -738,7 +780,7 @@ namespace TFMMusicMaker
     {
       const Instrument& ins = *dst.CurInstrument;
       channel.SetupConnection(dst.Algorithm = ins.Algorithm, ins.Feedback);
-      for (uint_t opIdx = 0; opIdx != 4; ++opIdx)
+      for (uint_t opIdx = 0; opIdx != OPERATORS_COUNT; ++opIdx)
       {
         const Instrument::Operator& op = ins.Operators[opIdx];
         dst.TotalLevel[opIdx] = op.TotalLevel;
@@ -754,7 +796,7 @@ namespace TFMMusicMaker
 
     void SynthesizeChannelsData(TFM::TrackBuilder& track)
     {
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (uint_t chan = 0; chan != State.Channels.size(); ++chan)
       {
         TFM::ChannelBuilder channel = track.GetChannel(chan);
         SynthesizeChannel(chan, channel);
@@ -763,7 +805,7 @@ namespace TFMMusicMaker
 
     void SynthesizeChannel(uint_t idx, TFM::ChannelBuilder& channel)
     {
-      ChannelState& state = PlayerState[idx];
+      ChannelState& state = State.Channels[idx];
       if (state.Vibrato.Update())
       {
         state.HasToneChange = true;
@@ -794,29 +836,67 @@ namespace TFMMusicMaker
       }
     }
 
+    struct RawNote
+    {
+      RawNote()
+        : Octave()
+        , Freq()
+      {
+      }
+
+      RawNote(uint_t octave, uint_t freq)
+        : Octave(octave)
+        , Freq(freq)
+      {
+      }
+
+      uint_t Octave;
+      uint_t Freq;
+    };
+
     void SetTone(uint_t idx, const ChannelState& state, TFM::ChannelBuilder& channel) const
+    {
+      const Halftones::Type note = state.Note + state.Arpeggio.GetValue() + state.Vibrato.GetValue();
+      const RawNote rawNote = ConvertNote(Clamp(note));
+      channel.SetTone(rawNote.Octave, rawNote.Freq);
+      if (idx == SPECIAL_MODE_CHANNEL && State.SpecialMode)
+      {
+        for (uint_t op = 1; op != OPERATORS_COUNT; ++op)
+        {
+          const Halftones::Type opNote = note + Halftones::Type(State.ToneOffset[op]);
+          const RawNote rawOpNote = ConvertNote(Clamp(opNote));
+          channel.SetTone(op, rawOpNote.Octave, rawOpNote.Freq);
+        }
+      }
+    }
+
+    static Halftones::Type Clamp(Halftones::Type val)
+    {
+      if (val > Halftones::Max())
+      {
+        return Halftones::Max();
+      }
+      else if (val < Halftones::Min())
+      {
+        return Halftones::Min();
+      }
+      else
+      {
+        return val;
+      }
+    }
+
+    static RawNote ConvertNote(Halftones::Type note)
     {
       static const uint_t FREQS[] =
       {
         707, 749, 793, 840, 890, 943, 999, 1059, 1122, 1189, 1259, 1334, 1413, 1497
       };
-      Halftones::Type note = state.Note + state.Arpeggio.GetValue() + state.Vibrato.GetValue();
-      if (note > Halftones::Max())
-      {
-        note = Halftones::Max();
-      }
-      else if (note < Halftones::Min())
-      {
-        note = Halftones::Min();
-      }
       const uint_t totalHalftones = note.Integer();
       const uint_t octave = totalHalftones / 12;
       const uint_t halftone = totalHalftones % 12;
-      const uint_t val = FREQS[halftone] + ((FREQS[halftone + 1] - FREQS[halftone]) * note.Fraction() + note.PRECISION / 2) / note.PRECISION;
-      if (idx != 2 || !state.HasEffBx)
-      {
-        channel.SetTone(octave, val);
-      }
+      const uint_t freq = FREQS[halftone] + ((FREQS[halftone + 1] - FREQS[halftone]) * note.Fraction() + note.PRECISION / 2) / note.PRECISION;
+      return RawNote(octave, freq);
     }
 
     void SetLevel(const ChannelState& state, TFM::ChannelBuilder& channel) const
@@ -838,7 +918,7 @@ namespace TFMMusicMaker
       }
       const uint_t mix = MIXER_TABLE[state.Algorithm];
       const uint_t level = LEVELS_TABLE[state.Volume.Integer()];
-      for (uint_t op = 0; op != 4; ++op)
+      for (uint_t op = 0; op != OPERATORS_COUNT; ++op)
       {
         const uint_t out = 0 != (mix & (1 << op)) ? ScaleTL(state.TotalLevel[op], level) : state.TotalLevel[op];
         channel.SetTotalLevel(op, out);
@@ -851,7 +931,7 @@ namespace TFMMusicMaker
     }
   private:
     const ModuleData::Ptr Data;
-    boost::array<ChannelState, TFM::TRACK_CHANNELS> PlayerState;
+    PlayerState State;
   };
 
   class Chiptune : public TFM::Chiptune

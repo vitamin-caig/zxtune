@@ -257,6 +257,11 @@ namespace ZXTune
       {
       }
 
+      void ChannelBuilder::SetMode(uint_t mode)
+      {
+        WriteChipRegister(0x27, mode);
+      }
+
       void ChannelBuilder::KeyOn()
       {
         SetKey(0xf);
@@ -322,6 +327,38 @@ namespace ZXTune
         const uint_t valLo = tone & 0xff;
         WriteChannelRegister(0xa4, valHi);
         WriteChannelRegister(0xa0, valLo);
+      }
+
+      void ChannelBuilder::SetTone(uint_t op, uint_t octave, uint_t tone)
+      {
+        const uint_t valHi = octave * 8 + (tone >> 8);
+        const uint_t valLo = tone & 0xff;
+        assert(Channel == 2);
+        switch (op)
+        {
+        case 0:
+          WriteChipRegister(0xa4, valHi);
+          WriteChipRegister(0xa0, valLo);
+          break;
+        case 1:
+          WriteChipRegister(0xac, valHi);
+          WriteChipRegister(0xa8, valLo);
+          break;
+        case 2:
+          WriteChipRegister(0xae, valHi);
+          WriteChipRegister(0xaa, valLo);
+          break;
+        case 3:
+          //op1 in doc???
+          WriteChipRegister(0xad, valHi);
+          WriteChipRegister(0xa9, valLo);
+          break;
+        }
+      }
+
+      void ChannelBuilder::SetPane(uint_t val)
+      {
+        WriteChannelRegister(0xb4, val);
       }
 
       void ChannelBuilder::WriteOperatorRegister(uint_t base, uint_t op, uint_t val)
