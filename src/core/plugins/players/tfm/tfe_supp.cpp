@@ -68,7 +68,11 @@ namespace TFMMusicMaker
     //val
     TEMPO_INTERLEAVE,
     //even, odd
-    TEMPO_VALUES
+    TEMPO_VALUES,
+    //
+    LOOP_START,
+    //additional count
+    LOOP_STOP
   };
 
   typedef Formats::Chiptune::TFMMusicMaker::Instrument Instrument;
@@ -243,12 +247,12 @@ namespace TFMMusicMaker
 
     virtual void SetLoopStart()
     {
-      Require(false);
+      Builder.GetChannel().AddCommand(LOOP_START);
     }
 
     virtual void SetLoopEnd(uint_t additionalCount)
     {
-      Require(false);
+      Builder.GetChannel().AddCommand(LOOP_STOP, additionalCount);
     }
 
     virtual void SetPane(uint_t pane)
@@ -1124,6 +1128,43 @@ namespace TFMMusicMaker
     }
   };
 
+  struct LoopState
+  {
+  public:
+    LoopState()
+      : Counter()
+    {
+    }
+
+    void Start(const PlainTrackState& state)
+    {
+      if (!Begin.get() || Begin->Line != state.Line || Begin->Position != state.Position)
+      {
+        Begin.reset(new PlainTrackState(state));
+        Counter = 0;
+      }
+    }
+
+    const PlainTrackState* Stop(uint_t repeatCount)
+    {
+      if (Counter >= repeatCount)
+      {
+        return 0;
+      }
+      else
+      {
+        //from original loop processing logic
+        if (++Counter >= repeatCount)
+        {
+          Counter = 16;//max repeat count+1
+        }
+        return Begin.get();
+      }
+    }
+  private:
+    boost::scoped_ptr<const PlainTrackState> Begin;
+    uint_t Counter;
+  };
 
   class TrackStateCursor : public TrackModelState
   {
@@ -1134,6 +1175,7 @@ namespace TFMMusicMaker
       : Data(data)
       , Order(data->GetOrder())
       , Patterns(data->GetPatterns())
+      , NextLineState()
     {
       Reset();
     }
@@ -1209,18 +1251,12 @@ namespace TFMMusicMaker
       Plain.TempoInterleavePeriod = Data->InitialTempoInterleave;
       Plain.TempoInterleaveCounter = 0;
       SetPosition(0);
+      NextLineState = 0;
     }
 
     void SetState(const PlainTrackState& state)
     {
-      SetPosition(state.Position);
-      assert(Plain.Pattern == state.Pattern);
-      SetLine(state.Line);
-      Plain.Quirk = state.Quirk;
-      Plain.EvenTempo = state.EvenTempo;
-      Plain.OddTempo = state.OddTempo;
-      Plain.TempoInterleavePeriod = state.TempoInterleavePeriod;
-      Plain.TempoInterleaveCounter = state.TempoInterleaveCounter;
+      GoTo(state);
       Plain.Frame = state.Frame;
     }
 
@@ -1284,7 +1320,7 @@ namespace TFMMusicMaker
     {
       if (CurLineObject = CurPatternObject->GetLine(Plain.Line))
       {
-        LoadNewTempoParameters();
+        LoadNewLoopTempoParameters();
       }
     }
 
@@ -1296,16 +1332,20 @@ namespace TFMMusicMaker
 
     bool NextLine()
     {
-      Plain.NextLine();
-      if (Plain.Line < CurPatternObject->GetSize())
+      if (NextLineState)
       {
-        LoadLine();
-        return true;
+        GoTo(*NextLineState);
       }
       else
       {
-        return false;
+        Plain.NextLine();
+        if (Plain.Line >= CurPatternObject->GetSize())
+        {
+          return false;
+        }
+        LoadLine();
       }
+      return true;
     }
 
     bool NextPosition()
@@ -1314,30 +1354,50 @@ namespace TFMMusicMaker
       return IsValid();
     }
 
-    void LoadNewTempoParameters()
+    void GoTo(const PlainTrackState& state)
+    {
+      SetPosition(state.Position);
+      assert(Plain.Pattern == state.Pattern);
+      SetLine(state.Line);
+      Plain.Quirk = state.Quirk;
+      Plain.EvenTempo = state.EvenTempo;
+      Plain.OddTempo = state.OddTempo;
+      Plain.TempoInterleavePeriod = state.TempoInterleavePeriod;
+      Plain.TempoInterleaveCounter = state.TempoInterleaveCounter;
+      NextLineState = 0;
+    }
+
+    void LoadNewLoopTempoParameters()
     {
       for (uint_t idx = 0; idx != TFM::TRACK_CHANNELS; ++idx)
       {
         if (const Cell::Ptr chan = CurLineObject->GetChannel(idx))
         {
-          LoadNewTempoParameters(*chan);
+          LoadNewLoopTempoParameters(*chan);
         }
       }
     }
 
-    void LoadNewTempoParameters(const Cell& chan)
+    void LoadNewLoopTempoParameters(const Cell& chan)
     {
       //TODO: chan.FindCommand ?
       for (CommandsIterator it = chan.GetCommands(); it; ++it)
       {
-        if (it->Type == TEMPO_INTERLEAVE)
+        switch (it->Type)
         {
+        case TEMPO_INTERLEAVE:
           Plain.TempoInterleavePeriod = it->Param1;
-        }
-        else if (it->Type == TEMPO_VALUES)
-        {
+          break;
+        case TEMPO_VALUES:
           Plain.EvenTempo = it->Param1;
           Plain.OddTempo = it->Param2;
+          break;
+        case LOOP_START:
+          Loop.Start(Plain);
+          break;
+        case LOOP_STOP:
+          NextLineState = Loop.Stop(it->Param1);
+          break;
         }
       }
     }
@@ -1350,6 +1410,8 @@ namespace TFMMusicMaker
     PlainTrackState Plain;
     Pattern::Ptr CurPatternObject;
     Line::Ptr CurLineObject;
+    LoopState Loop;
+    const PlainTrackState* NextLineState;
   };
 
   class TrackStateIteratorImpl : public TrackStateIterator
@@ -1407,13 +1469,77 @@ namespace TFMMusicMaker
     boost::scoped_ptr<const PlainTrackState> LoopState;
   };
 
+  class InformationImpl : public Information
+  {
+  public:
+    InformationImpl(ModuleData::Ptr data)
+      : Data(data)
+      , Frames(), LoopFrameNum()
+    {
+    }
+
+    virtual uint_t PositionsCount() const
+    {
+      return Data->GetOrder().GetSize();
+    }
+
+    virtual uint_t LoopPosition() const
+    {
+      return Data->GetOrder().GetLoopPosition();
+    }
+
+    virtual uint_t PatternsCount() const
+    {
+      return Data->GetPatterns().GetSize();
+    }
+
+    virtual uint_t FramesCount() const
+    {
+      Initialize();
+      return Frames;
+    }
+
+    virtual uint_t LoopFrame() const
+    {
+      Initialize();
+      return LoopFrameNum;
+    }
+
+    virtual uint_t ChannelsCount() const
+    {
+      return TFM::TRACK_CHANNELS;
+    }
+
+    virtual uint_t Tempo() const
+    {
+      return Data->GetInitialTempo();
+    }
+  private:
+    void Initialize() const
+    {
+      if (Frames)
+      {
+        return;//initialized
+      }
+      TrackStateCursor cursor(Data);
+      cursor.Seek(Data->GetOrder().GetLoopPosition());
+      LoopFrameNum = cursor.GetState().Frame;
+      cursor.Seek(Data->GetOrder().GetSize());
+      Frames = cursor.GetState().Frame;
+    }
+  private:
+    const ModuleData::Ptr Data;
+    mutable uint_t Frames;
+    mutable uint_t LoopFrameNum;
+  };
+
   class Chiptune : public TFM::Chiptune
   {
   public:
     Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, TFM::TRACK_CHANNELS))
+      , Info(boost::make_shared<InformationImpl>(Data))
     {
     }
 
