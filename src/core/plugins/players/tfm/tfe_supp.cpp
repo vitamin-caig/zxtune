@@ -26,6 +26,7 @@ Author:
 #include <math/fixedpoint.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/scoped_ptr.hpp>
 
 namespace TFMMusicMaker
 {
@@ -63,7 +64,11 @@ namespace TFMMusicMaker
     //
     DROPEFFECTS,
     //val
-    FEEDBACK
+    FEEDBACK,
+    //val
+    TEMPO_INTERLEAVE,
+    //even, odd
+    TEMPO_VALUES
   };
 
   typedef Formats::Chiptune::TFMMusicMaker::Instrument Instrument;
@@ -131,7 +136,6 @@ namespace TFMMusicMaker
 
     virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod)
     {
-      Require(evenTempo == oddTempo);
       Data->EvenInitialTempo = evenTempo;
       Data->OddInitialTempo = oddTempo;
       Data->InitialTempoInterleave = interleavePeriod;
@@ -279,12 +283,12 @@ namespace TFMMusicMaker
 
     virtual void SetTempoInterleave(uint_t val)
     {
+      Builder.GetChannel().AddCommand(TEMPO_INTERLEAVE, val);
     }
 
     virtual void SetTempoValues(uint_t even, uint_t odd)
     {
-      Require(even == odd);
-      Builder.GetLine().SetTempo(even);
+      Builder.GetChannel().AddCommand(TEMPO_VALUES, even, odd);
     }
   private:
     const ModuleData::RWPtr Data;
@@ -1062,6 +1066,347 @@ namespace TFMMusicMaker
     PlayerState State;
   };
 
+  // TrackStateModel and TrackStateIterator with alternative tempo logic and loop support
+  //TODO: refactor with common code and remove C&P
+  class StubPattern : public Pattern
+  {
+    StubPattern()
+    {
+    }
+  public:
+    virtual Line::Ptr GetLine(uint_t /*row*/) const
+    {
+      return Line::Ptr();
+    }
+
+    virtual uint_t GetSize() const
+    {
+      return 0;
+    }
+
+    static Ptr Create()
+    {
+      static StubPattern instance;
+      return Ptr(&instance, NullDeleter<Pattern>());
+    }
+  };
+  
+  struct PlainTrackState
+  {
+    uint_t Frame;
+    uint_t Position;
+    uint_t Pattern;
+    uint_t Line;
+    uint_t Quirk;
+    uint_t EvenTempo;
+    uint_t OddTempo;
+    uint_t TempoInterleavePeriod;
+    uint_t TempoInterleaveCounter;
+
+    PlainTrackState()
+      : Frame(), Position(), Pattern(), Line(), Quirk(), EvenTempo(), OddTempo(), TempoInterleavePeriod(), TempoInterleaveCounter()
+    {
+    }
+
+    uint_t GetTempo() const
+    {
+      return TempoInterleaveCounter >= TempoInterleavePeriod ? OddTempo : EvenTempo;
+    }
+
+    void NextLine()
+    {
+      Quirk = 0;
+      ++Line;
+      if (++TempoInterleaveCounter >= 2 * TempoInterleavePeriod)
+      {
+        TempoInterleaveCounter -= 2 * TempoInterleavePeriod;
+      }
+    }
+  };
+
+
+  class TrackStateCursor : public TrackModelState
+  {
+  public:
+    typedef boost::shared_ptr<TrackStateCursor> Ptr;
+
+    explicit TrackStateCursor(ModuleData::Ptr data)
+      : Data(data)
+      , Order(data->GetOrder())
+      , Patterns(data->GetPatterns())
+    {
+      Reset();
+    }
+
+    //TrackState
+    virtual uint_t Position() const
+    {
+      return Plain.Position;
+    }
+
+    virtual uint_t Pattern() const
+    {
+      return Plain.Pattern;
+    }
+
+    virtual uint_t PatternSize() const
+    {
+      return CurPatternObject->GetSize();
+    }
+
+    virtual uint_t Line() const
+    {
+      return Plain.Line;
+    }
+
+    virtual uint_t Tempo() const
+    {
+      return Plain.GetTempo();
+    }
+
+    virtual uint_t Quirk() const
+    {
+      return Plain.Quirk;
+    }
+
+    virtual uint_t Frame() const
+    {
+      return Plain.Frame;
+    }
+
+    virtual uint_t Channels() const
+    {
+      return CurLineObject ? CurLineObject->CountActiveChannels() : 0;
+    }
+
+    //TrackModelState
+    virtual Pattern::Ptr PatternObject() const
+    {
+      return CurPatternObject;
+    }
+
+    virtual Line::Ptr LineObject() const
+    {
+      return CurLineObject;
+    }
+
+    //navigation
+    bool IsValid() const
+    {
+      return Plain.Position < Order.GetSize();
+    }
+
+    const PlainTrackState& GetState() const
+    {
+      return Plain;
+    }
+
+    void Reset()
+    {
+      Plain.Frame = 0;
+      Plain.EvenTempo = Data->EvenInitialTempo;
+      Plain.OddTempo = Data->OddInitialTempo;
+      Plain.TempoInterleavePeriod = Data->InitialTempoInterleave;
+      Plain.TempoInterleaveCounter = 0;
+      SetPosition(0);
+    }
+
+    void SetState(const PlainTrackState& state)
+    {
+      SetPosition(state.Position);
+      assert(Plain.Pattern == state.Pattern);
+      SetLine(state.Line);
+      Plain.Quirk = state.Quirk;
+      Plain.EvenTempo = state.EvenTempo;
+      Plain.OddTempo = state.OddTempo;
+      Plain.TempoInterleavePeriod = state.TempoInterleavePeriod;
+      Plain.TempoInterleaveCounter = state.TempoInterleaveCounter;
+      Plain.Frame = state.Frame;
+    }
+
+    void Seek(uint_t position)
+    {
+      if (Plain.Position > position ||
+          (Plain.Position == position && (0 != Plain.Line || 0 != Plain.Quirk)))
+      {
+        Reset();
+      }
+      while (IsValid() && Plain.Position != position)
+      {
+        Plain.Frame += Plain.GetTempo();
+        if (!NextLine())
+        {
+          NextPosition();
+        }
+      }
+    }
+
+    bool NextFrame()
+    {
+      return NextQuirk() || NextLine() || NextPosition();
+    }
+  private:
+    void SetPosition(uint_t pos)
+    {
+      Plain.Position = pos;
+      if (IsValid())
+      {
+        SetPattern(Order.GetPatternIndex(Plain.Position));
+      }
+      else
+      {
+        SetStubPattern();
+      }
+    }
+
+    void SetStubPattern()
+    {
+      Plain.Pattern = 0;
+      CurPatternObject = StubPattern::Create();
+      SetLine(0);
+    }
+
+    void SetPattern(uint_t pat)
+    {
+      Plain.Pattern = pat;
+      CurPatternObject = Patterns.Get(Plain.Pattern);
+      SetLine(0);
+    }
+
+    void SetLine(uint_t line)
+    {
+      Plain.Quirk = 0;
+      Plain.Line = line;
+      LoadLine();
+    }
+
+    void LoadLine()
+    {
+      if (CurLineObject = CurPatternObject->GetLine(Plain.Line))
+      {
+        LoadNewTempoParameters();
+      }
+    }
+
+    bool NextQuirk()
+    {
+      ++Plain.Frame;
+      return ++Plain.Quirk < Plain.GetTempo();
+    }
+
+    bool NextLine()
+    {
+      Plain.NextLine();
+      if (Plain.Line < CurPatternObject->GetSize())
+      {
+        LoadLine();
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+
+    bool NextPosition()
+    {
+      SetPosition(Plain.Position + 1);
+      return IsValid();
+    }
+
+    void LoadNewTempoParameters()
+    {
+      for (uint_t idx = 0; idx != TFM::TRACK_CHANNELS; ++idx)
+      {
+        if (const Cell::Ptr chan = CurLineObject->GetChannel(idx))
+        {
+          LoadNewTempoParameters(*chan);
+        }
+      }
+    }
+
+    void LoadNewTempoParameters(const Cell& chan)
+    {
+      //TODO: chan.FindCommand ?
+      for (CommandsIterator it = chan.GetCommands(); it; ++it)
+      {
+        if (it->Type == TEMPO_INTERLEAVE)
+        {
+          Plain.TempoInterleavePeriod = it->Param1;
+        }
+        else if (it->Type == TEMPO_VALUES)
+        {
+          Plain.EvenTempo = it->Param1;
+          Plain.OddTempo = it->Param2;
+        }
+      }
+    }
+  private:
+    //context
+    const ModuleData::Ptr Data;
+    const OrderList& Order;
+    const PatternsSet& Patterns;
+    //state
+    PlainTrackState Plain;
+    Pattern::Ptr CurPatternObject;
+    Line::Ptr CurLineObject;
+  };
+
+  class TrackStateIteratorImpl : public TrackStateIterator
+  {
+  public:
+    explicit TrackStateIteratorImpl(ModuleData::Ptr data)
+      : Data(data)
+      , Cursor(boost::make_shared<TrackStateCursor>(data))
+    {
+    }
+
+    virtual void Reset()
+    {
+      Cursor->Reset();
+    }
+
+    virtual bool IsValid() const
+    {
+      return Cursor->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      if (!Cursor->IsValid())
+      {
+        return;
+      }
+      else if (!Cursor->NextFrame() && looped)
+      {
+        MoveToLoop();
+      }
+    }
+
+    virtual TrackModelState::Ptr GetStateObserver() const
+    {
+      return Cursor;
+    }
+  private:
+    void MoveToLoop()
+    {
+      if (LoopState.get())
+      {
+        Cursor->SetState(*LoopState);
+      }
+      else
+      {
+        Cursor->Seek(Data->GetOrder().GetLoopPosition());
+        const PlainTrackState& loop = Cursor->GetState();
+        LoopState.reset(new PlainTrackState(loop));
+      }
+    }
+  private:
+    const ModuleData::Ptr Data;
+    const TrackStateCursor::Ptr Cursor;
+    boost::scoped_ptr<const PlainTrackState> LoopState;
+  };
+
   class Chiptune : public TFM::Chiptune
   {
   public:
@@ -1084,7 +1429,7 @@ namespace TFMMusicMaker
 
     virtual TFM::DataIterator::Ptr CreateDataIterator(TFM::TrackParameters::Ptr trackParams) const
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const TrackStateIterator::Ptr iterator = boost::make_shared<TrackStateIteratorImpl>(Data);
       const TFM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
       return TFM::CreateDataIterator(trackParams, iterator, renderer);
     }
