@@ -7,6 +7,12 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] TFM Music Maker modules support v0.1-v1.2 (TF0) and v1.3+ (TFE)
+[*] Fixed SQD playback
+[*] Fixed PT3 playback
+
+--- Rev2395 from 13.05.2013
+
 [+] SAA1099 emulation support
 [+] Sam Coupe ETracker modules support (COP)
 [+] HQ interpolation for AY chip
