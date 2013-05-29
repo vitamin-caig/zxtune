@@ -199,7 +199,6 @@ namespace TFMMusicMaker
 
     virtual void SetPortamento(int_t step)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(PORTAMENTO, step);
     }
 
@@ -255,19 +254,16 @@ namespace TFMMusicMaker
 
     virtual void SetNoteRetrig(uint_t period)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(NOTERETRIG, period);
     }
 
     virtual void SetNoteCut(uint_t quirk)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(NOTECUT, quirk);
     }
 
     virtual void SetNoteDelay(uint_t quirk)
     {
-      Require(false);
       Builder.GetChannel().AddCommand(NOTEDELAY, quirk);
     }
 
@@ -302,17 +298,27 @@ namespace TFMMusicMaker
 
     static Type Min()
     {
-      return ValueOf(0);
+      return FromFraction(0);
     }
 
     static Type Max()
     {
-      return ValueOf(0xbff);
+      return FromFraction(0xbff);
     }
 
-    static Type ValueOf(int_t rawVal)
+    static Type Stub()
     {
-      return Type(rawVal, Type::PRECISION);
+      return FromFraction(-1);
+    }
+
+    static Type FromFraction(int_t val)
+    {
+      return Type(val, Type::PRECISION);
+    }
+
+    static Type FromInteger(int_t val)
+    {
+      return Type(val);
     }
   };
 
@@ -322,17 +328,22 @@ namespace TFMMusicMaker
 
     static Type Min()
     {
-      return ValueOf(0);
+      return FromFraction(0);
     }
 
     static Type Max()
     {
-      return ValueOf(0xf8);
+      return FromFraction(0xf8);
     }
 
-    static Type ValueOf(int_t rawVal)
+    static Type FromFraction(int_t val)
     {
-      return Type(rawVal, Type::PRECISION);
+      return Type(val, Type::PRECISION);
+    }
+
+    static Type FromInteger(int_t val)
+    {
+      return Type(val);
     }
   };
 
@@ -342,6 +353,7 @@ namespace TFMMusicMaker
     ArpeggioState()
       : Position()
       , Addons()
+      , Value()
     {
     }
 
@@ -349,6 +361,7 @@ namespace TFMMusicMaker
     {
       Position = 0;
       std::fill(Addons.begin(), Addons.end(), 0);
+      Value = 0;
     }
 
     void SetAddons(uint_t add1, uint_t add2)
@@ -366,21 +379,23 @@ namespace TFMMusicMaker
 
     bool Update()
     {
-      const uint_t prev = Addons[Position];
+      const uint_t prev = Value;
+      Value = Addons[Position];
       if (++Position = Addons.size())
       {
         Position = 0;
       }
-      return Addons[Position] != prev;
+      return Value != prev;
     }
 
     Halftones::Type GetValue() const
     {
-      return Halftones::Type(Addons[Position]);
+      return Halftones::FromInteger(Value);
     }
   private:
     uint_t Position;
     boost::array<uint_t, 3> Addons;
+    uint_t Value;
   };
 
   template<class Category>
@@ -392,12 +407,6 @@ namespace TFMMusicMaker
       , UpDelta()
       , DownDelta()
     {
-    }
-
-    void Reset()
-    {
-      Enabled = false;
-      UpDelta = DownDelta = 0;
     }
 
     void Disable()
@@ -427,12 +436,12 @@ namespace TFMMusicMaker
       const typename Category::Type prev = val;
       if (UpDelta)
       {
-        val += Category::ValueOf(UpDelta);
+        val += Category::FromFraction(UpDelta);
         val = std::min<typename Category::Type>(val, Category::Max());
       }
       if (DownDelta)
       {
-        val += Category::ValueOf(DownDelta);
+        val += Category::FromFraction(DownDelta);
         val = std::max<typename Category::Type>(val, Category::Min());
       }
       return val != prev;
@@ -457,13 +466,6 @@ namespace TFMMusicMaker
     {
     }
 
-    void Reset()
-    {
-      Enabled = false;
-      Position = Speed = Depth = 0;
-      Value = 0;
-    }
-
     void Disable()
     {
       Enabled = false;
@@ -474,7 +476,7 @@ namespace TFMMusicMaker
       Value = 0;
     }
 
-    void SetParameters(uint_t speed, uint_t depth)
+    void SetParameters(uint_t speed, int_t depth)
     {
       Enabled = true;
       if (speed)
@@ -495,69 +497,158 @@ namespace TFMMusicMaker
     {
       if (!Enabled)
       {
+        if (Value != 0)
+        {
+          Value = 0;
+          Position = 0;
+          return true;
+        }
         return false;
       }
-      const uint_t PRECISION = 256;
-      static const int_t TABLE[32] =
+      //use signed values
+      const int_t PRECISION = 256;
+      const int_t TABLE[] =
       {
-        0, 50, 98, 142, 181, 213, 237, 251, 256, 251, 237, 213, 181, 142, 98, 50, 0,
-        -49, -97, -141, -180, -212, -236, -250, -255, -250, -236, -212, -180, -141, -97, -49
-      };
+        0, 49, 97, 142, 181, 212, 236, 251, 256, 251, 236, 212, 181, 142, 97, 49,
+        0, -49, -97, -142, -181, -212, -236, -251, -256, -251, -236, -212, -181, -142, -97, -49
+      };      
       const int_t prevVal = Value;
-      Position = (Position + Speed) & 0x3f;
       Value = TABLE[Position / 2] * Depth / PRECISION;
+      Position = (Position + Speed) & 0x3f;
       return prevVal != Value;
     }
 
     Halftones::Type GetValue() const
     {
-      return Halftones::ValueOf(Value);
+      return Halftones::FromFraction(Value);
     }
   private:
     bool Enabled;
     uint_t Position;
     uint_t Speed;
-    uint_t Depth;
+    int_t Depth;
     int_t Value;
   };
 
   typedef SlideState<Level> VolumeSlideState;
 
+  struct PortamentoState
+  {
+  public:
+    PortamentoState()
+      : Enabled()
+      , Step()
+      , Target(Halftones::Stub())
+    {
+    }
+
+    void Disable()
+    {
+      Enabled = false;
+    }
+
+    void SetTarget(Halftones::Type tgt)
+    {
+      Enabled = true;
+      Target = tgt;
+    }
+
+    void SetStep(uint_t step)
+    {
+      Enabled = true;
+      if (step)
+      {
+        Step = Halftones::FromFraction(step);
+      }
+    }
+
+    bool Update(Halftones::Type& note) const
+    {
+      if (!Enabled
+       || Target == Halftones::Stub()
+       || Step == Halftones::FromFraction(0))
+      {
+        return false;
+      }
+      else if (note > Target)
+      {
+        return PortamentoDown(note);
+      }
+      else
+      {
+        return PortamentoUp(note);
+      }
+    }
+  private:
+    bool PortamentoDown(Halftones::Type& note) const
+    {
+      const Halftones::Type next = note - Step;
+      if (next < Target)
+      {
+        return false;
+      }
+      note = next;
+      return true;
+    }
+
+    bool PortamentoUp(Halftones::Type& note) const
+    {
+      const Halftones::Type next = note + Step;
+      if (next > Target)
+      {
+        return false;
+      }
+      note = next;
+      return true;
+    }
+  private:
+    bool Enabled;
+    Halftones::Type Step;
+    Halftones::Type Target;
+  };
+
+  const uint_t NO_VALUE = ~uint_t(0);
+  const uint_t SPECIAL_MODE_CHANNEL = 2;
+  const uint_t OPERATORS_COUNT = 4;
+
   struct ChannelState
   {
     ChannelState()
       : CurInstrument(0)
-      , Algorithm(-1)
+      , Algorithm(NO_VALUE)
       , TotalLevel()
-      , Note(-1)
-      , Volume(31)
+      , Note(Halftones::Stub())
+      , Volume(Level::Max())
       , HasToneChange(false)
       , HasVolumeChange(false)
-      , HasEffBx(false)
       , Arpeggio()
       , ToneSlide()
-      , PortamentoTarget(-1)
+      , Vibrato()
+      , VolumeSlide()
+      , Portamento()
+      , NoteRetrig(NO_VALUE)
+      , NoteCut(NO_VALUE)
+      , NoteDelay(NO_VALUE)
     {
     }
 
     const Instrument* CurInstrument;
-    int_t Algorithm;
-    uint_t TotalLevel[4];
+    uint_t Algorithm;
+    uint_t TotalLevel[OPERATORS_COUNT];
     Halftones::Type Note;
     Level::Type Volume;
     bool HasToneChange;
     bool HasVolumeChange;
-    bool HasEffBx;
 
     ArpeggioState Arpeggio;
     ToneSlideState ToneSlide;
     VibratoState Vibrato;
     VolumeSlideState VolumeSlide;
-    Halftones::Type PortamentoTarget;
+    PortamentoState Portamento;
+    uint_t NoteRetrig;
+    uint_t NoteCut;
+    uint_t NoteDelay;
   };
-
-  const uint_t SPECIAL_MODE_CHANNEL = 2;
-  const uint_t OPERATORS_COUNT = 4;
 
   struct PlayerState
   {
@@ -587,11 +678,12 @@ namespace TFMMusicMaker
 
     virtual void SynthesizeData(const TrackModelState& state, TFM::TrackBuilder& track)
     {
-      if (0 == state.Quirk())
+      const uint_t quirk = state.Quirk();
+      if (0 == quirk)
       {
         GetNewLineState(state, track);
       }
-      SynthesizeChannelsData(track);
+      SynthesizeChannelsData(quirk, track);
     }
   private:
     void GetNewLineState(const TrackModelState& state, TFM::TrackBuilder& track)
@@ -611,9 +703,15 @@ namespace TFMMusicMaker
 
     void GetNewChannelState(const Cell& src, ChannelState& dst, TFM::TrackBuilder& track, TFM::ChannelBuilder& channel)
     {
+      //portamento, vibrato, volume and tone slide are applicable only when effect is specified
+      dst.ToneSlide.Disable();
+      dst.Vibrato.Disable();
+      dst.VolumeSlide.Disable();
+      dst.Portamento.Disable();
+      dst.NoteRetrig = dst.NoteCut = dst.NoteDelay = NO_VALUE;
+
       const int_t* multiplies[OPERATORS_COUNT] = {0, 0, 0, 0};
       bool dropEffects = false;
-      bool hasNoteDelay = false;
       bool hasPortamento = false;
       bool hasOpMixer = false;
       for (CommandsIterator it = src.GetCommands(); it; ++it)
@@ -649,8 +747,14 @@ namespace TFMMusicMaker
             channel.SetPane(0xc0);
           }
           break;
+        case NOTERETRIG:
+          dst.NoteRetrig = it->Param1;
+          break;
+        case NOTECUT:
+          dst.NoteCut = it->Param1;
+          break;
         case NOTEDELAY:
-          hasNoteDelay = true;
+          dst.NoteDelay = it->Param1;
           break;
         case DROPEFFECTS:
           dropEffects = true;
@@ -658,10 +762,7 @@ namespace TFMMusicMaker
         }
       }
 
-      //portamento, vibrato, volume and tone slide are applicable only when effect is specified
-      dst.ToneSlide.Disable();
-      dst.Vibrato.Disable();
-      dst.VolumeSlide.Disable();
+      const bool hasNoteDelay = dst.NoteDelay != NO_VALUE;
 
       if (const bool* enabled = src.GetEnabled())
       {
@@ -689,7 +790,7 @@ namespace TFMMusicMaker
         {
           if (const uint_t* volume = src.GetVolume())
           {
-            dst.Volume = *volume;
+            dst.Volume = Level::FromInteger(*volume);
           }
           dst.CurInstrument = newInstrument;
           LoadInstrument(multiplies, dst, channel);
@@ -697,11 +798,11 @@ namespace TFMMusicMaker
         }
         if (hasPortamento)
         {
-          dst.PortamentoTarget = *note;
+          dst.Portamento.SetTarget(Halftones::FromInteger(*note));
         }
         else
         {
-          dst.Note = *note;
+          dst.Note = Halftones::FromInteger(*note);
           dst.Arpeggio.Reset();
           dst.Vibrato.ResetValue();
           dst.HasToneChange = true;
@@ -713,7 +814,7 @@ namespace TFMMusicMaker
       }
       if (const uint_t* volume = src.GetVolume())
       {
-        const Level::Type newVol = Level::Type(*volume);
+        const Level::Type newVol = Level::FromInteger(*volume);
         if (newVol != dst.Volume)
         {
           dst.Volume = newVol;
@@ -729,6 +830,9 @@ namespace TFMMusicMaker
           break;
         case TONESLIDE:
           dst.ToneSlide.SetDelta(it->Param1);
+          break;
+        case PORTAMENTO:
+          dst.Portamento.SetStep(it->Param1);
           break;
         case VIBRATO:
           //parameter in 1/16 of halftone
@@ -794,18 +898,23 @@ namespace TFMMusicMaker
       }
     }
 
-    void SynthesizeChannelsData(TFM::TrackBuilder& track)
+    void SynthesizeChannelsData(uint_t quirk, TFM::TrackBuilder& track)
     {
       for (uint_t chan = 0; chan != State.Channels.size(); ++chan)
       {
         TFM::ChannelBuilder channel = track.GetChannel(chan);
         SynthesizeChannel(chan, channel);
+        ProcessNoteEffects(quirk, chan, channel);
       }
     }
 
     void SynthesizeChannel(uint_t idx, TFM::ChannelBuilder& channel)
     {
       ChannelState& state = State.Channels[idx];
+      if (state.Portamento.Update(state.Note))
+      {
+        state.HasToneChange = true;
+      }
       if (state.Vibrato.Update())
       {
         state.HasToneChange = true;
@@ -836,6 +945,25 @@ namespace TFMMusicMaker
       }
     }
 
+    void ProcessNoteEffects(uint_t quirk, uint_t idx, TFM::ChannelBuilder& channel)
+    {
+      ChannelState& state = State.Channels[idx];
+      if (state.NoteRetrig != NO_VALUE && 0 == quirk % state.NoteRetrig)
+      {
+        channel.KeyOff();
+        channel.KeyOn();
+      }
+      if (quirk == state.NoteCut)
+      {
+        channel.KeyOff();
+      }
+      if (quirk == state.NoteDelay)
+      {
+        channel.KeyOff();
+        channel.KeyOn();
+      }
+    }
+
     struct RawNote
     {
       RawNote()
@@ -863,7 +991,7 @@ namespace TFMMusicMaker
       {
         for (uint_t op = 1; op != OPERATORS_COUNT; ++op)
         {
-          const Halftones::Type opNote = note + Halftones::Type(State.ToneOffset[op]);
+          const Halftones::Type opNote = note + Halftones::FromInteger(State.ToneOffset[op]);
           const RawNote rawOpNote = ConvertNote(Clamp(opNote));
           channel.SetTone(op, rawOpNote.Octave, rawOpNote.Freq);
         }
@@ -895,7 +1023,7 @@ namespace TFMMusicMaker
       const uint_t totalHalftones = note.Integer();
       const uint_t octave = totalHalftones / 12;
       const uint_t halftone = totalHalftones % 12;
-      const uint_t freq = FREQS[halftone] + ((FREQS[halftone + 1] - FREQS[halftone]) * note.Fraction() + note.PRECISION / 2) / note.PRECISION;
+      const uint_t freq = FREQS[halftone] + ((FREQS[halftone + 1] - FREQS[halftone]) * note.Fraction()/* + note.PRECISION / 2*/) / note.PRECISION;
       return RawNote(octave, freq);
     }
 
@@ -912,7 +1040,7 @@ namespace TFMMusicMaker
         0x6e, 0x70, 0x71, 0x72, 0x73, 0x74, 0x76, 0x77,
         0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7e, 0x7f
       };
-      if (state.Algorithm < 0)
+      if (state.Algorithm == NO_VALUE)
       {
         return;
       }

@@ -369,7 +369,6 @@ namespace ZXTune
       void ChannelBuilder::WriteChannelRegister(uint_t base, uint_t val)
       {
         Registers.push_back(Devices::FM::DataChunk::Register(base + Channel, val));
-        Registers.push_back(Devices::FM::DataChunk::Register(base + Channel, val));
       }
 
       void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
