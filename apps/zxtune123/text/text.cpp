@@ -139,13 +139,6 @@ extern const Char ERROR_INVALID_PARAMETER[] = {
   'I','n','v','a','l','i','d',' ','p','a','r','a','m','e','t','e','r',' ','\'','%','1','%','\'',' ','i','n',' ',
   'p','a','r','a','m','e','t','e','r',' ','s','t','r','i','n','g',' ','\'','%','2','%','\'','.',0
 };
-extern const Char FILTER_DESC[] = {
-  's','p','e','c','i','f','y',' ','b','a','n','d','p','a','s','s',' ','f','i','l','t','e','r',' ','(','[','o',
-  'r','d','e','r',',',']','l','o','w','-','h','i','g','h',')',0
-};
-extern const Char FILTER_KEY[] = {
-  'f','i','l','t','e','r',0
-};
 extern const Char FRAMEDURATION_DESC[] = {
   's','p','e','c','i','f','y',' ','f','r','a','m','e',' ','d','u','r','a','t','i','o','n',' ','i','n',' ','u',
   'S',0
@@ -722,10 +715,6 @@ extern const Char SILENT_KEY[] = {
 };
 extern const Char SOUND_BACKEND_PARAMS[] = {
   'p','a','r','a','m','e','t','e','r','s',0
-};
-extern const Char SOUND_ERROR_INVALID_FILTER[] = {
-  'I','n','v','a','l','i','d',' ','f','i','l','t','e','r',' ','p','a','r','a','m','e','t','e','r',':',' ','\'',
-  '%','1','%','\'','.',0
 };
 extern const Char SOUND_ERROR_NO_BACKEND[] = {
   'F','a','i','l','e','d',' ','t','o',' ','c','r','e','a','t','e',' ','a','n','y',' ','b','a','c','k','e','n',
