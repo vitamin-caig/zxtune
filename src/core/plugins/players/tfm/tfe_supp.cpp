@@ -574,40 +574,32 @@ namespace TFMMusicMaker
     {
       if (!Enabled
        || Target == Halftones::Stub()
+       || Target == note
        || Step == Halftones::FromFraction(0))
       {
         return false;
       }
-      else if (note > Target)
+      else if (Target > note)
       {
-        return PortamentoDown(note);
+        PortamentoUp(note);
       }
       else
       {
-        return PortamentoUp(note);
+        PortamentoDown(note);
       }
+      return true;
     }
   private:
-    bool PortamentoDown(Halftones::Type& note) const
-    {
-      const Halftones::Type next = note - Step;
-      if (next < Target)
-      {
-        return false;
-      }
-      note = next;
-      return true;
-    }
-
-    bool PortamentoUp(Halftones::Type& note) const
+    void PortamentoUp(Halftones::Type& note) const
     {
       const Halftones::Type next = note + Step;
-      if (next > Target)
-      {
-        return false;
-      }
-      note = next;
-      return true;
+      note = std::min(next, Target);
+    }
+
+    void PortamentoDown(Halftones::Type& note) const
+    {
+      const Halftones::Type next = note - Step;
+      note = std::max(next, Target);
     }
   private:
     bool Enabled;
@@ -696,6 +688,7 @@ namespace TFMMusicMaker
   private:
     void GetNewLineState(const TrackModelState& state, TFM::TrackBuilder& track)
     {
+      ResetOneLineEffects();
       if (const Line::Ptr line = state.LineObject())
       {
         for (uint_t chan = 0; chan != State.Channels.size(); ++chan)
@@ -709,15 +702,22 @@ namespace TFMMusicMaker
       }
     }
 
+    void ResetOneLineEffects()
+    {
+      for (uint_t chan = 0; chan != State.Channels.size(); ++chan)
+      {
+        ChannelState& dst = State.Channels[chan];
+        //portamento, vibrato, volume and tone slide are applicable only when effect is specified
+        dst.ToneSlide.Disable();
+        dst.Vibrato.Disable();
+        dst.VolumeSlide.Disable();
+        dst.Portamento.Disable();
+        dst.NoteRetrig = dst.NoteCut = dst.NoteDelay = NO_VALUE;
+      }
+    }
+
     void GetNewChannelState(const Cell& src, ChannelState& dst, TFM::TrackBuilder& track, TFM::ChannelBuilder& channel)
     {
-      //portamento, vibrato, volume and tone slide are applicable only when effect is specified
-      dst.ToneSlide.Disable();
-      dst.Vibrato.Disable();
-      dst.VolumeSlide.Disable();
-      dst.Portamento.Disable();
-      dst.NoteRetrig = dst.NoteCut = dst.NoteDelay = NO_VALUE;
-
       const int_t* multiplies[OPERATORS_COUNT] = {0, 0, 0, 0};
       bool dropEffects = false;
       bool hasPortamento = false;
