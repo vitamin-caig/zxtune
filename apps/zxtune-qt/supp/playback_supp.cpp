@@ -51,11 +51,6 @@ namespace
       return Module;
     }
 
-    virtual ZXTune::Sound::Converter::Ptr GetFilter() const
-    {
-      return ZXTune::Sound::Converter::Ptr();
-    }
-
     virtual ZXTune::Sound::BackendCallback::Ptr GetCallback() const
     {
       return Callback;

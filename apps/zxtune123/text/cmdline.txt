@@ -158,12 +158,6 @@
 < LOOP_DESC
 > "loop playback"
 
-< FILTER_KEY
-> CMD_FILTER_KEY
-
-< FILTER_DESC
-> "specify bandpass filter ([order,]low-high)"
-
 < INPUT_SECTION
 > "Input options"
 

@@ -58,9 +58,6 @@
 = CMD_LOOP_KEY
 > "loop"
 
-= CMD_FILTER_KEY
-> "filter"
-
 = CMD_INPUT_FILE_KEY
 > "file"
 

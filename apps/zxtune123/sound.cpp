@@ -23,7 +23,6 @@ Author:
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
-#include <sound/filter.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
@@ -52,10 +51,6 @@ namespace
 
   static const String NOTUSED_MARK("\x01\x02");
 
-  const uint_t DEFAULT_FILTER_ORDER = 10;
-
-  const Char MATRIX_DELIMITERS[] = {';', ',', '-', '\0'};
-
   template<class T>
   inline T FromString(const String& str)
   {
@@ -66,31 +61,6 @@ namespace
       return res;
     }
     throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
-  }
-
-  ZXTune::Sound::Converter::Ptr CreateFilter(uint_t freq, const String& str)
-  {
-    //[order,]low-hi
-    const Char PARAM_DELIMITER(',');
-    const Char BANDPASS_DELIMITER('-');
-    if (1 == std::count(str.begin(), str.end(), BANDPASS_DELIMITER) &&
-        1 >= std::count(str.begin(), str.end(), PARAM_DELIMITER))
-    {
-      const String::size_type paramDPos(str.find(PARAM_DELIMITER));
-      const String::size_type rangeDPos(str.find(BANDPASS_DELIMITER));
-      if (String::npos == paramDPos || paramDPos < rangeDPos)
-      {
-        const uint_t order = String::npos == paramDPos ? DEFAULT_FILTER_ORDER : FromString<unsigned>(str.substr(0, paramDPos));
-        const String::size_type rangeBegin(String::npos == paramDPos ? 0 : paramDPos + 1);
-        const uint_t lowCutoff = FromString<uint_t>(str.substr(rangeBegin, rangeDPos - rangeBegin));
-        const uint_t highCutoff = FromString<uint_t>(str.substr(rangeDPos + 1));
-        ZXTune::Sound::Filter::Ptr filter;
-        ThrowIfError(ZXTune::Sound::CreateFIRFilter(order, filter));
-        ThrowIfError(filter->SetBandpassParameters(freq, lowCutoff, highCutoff));
-        return filter;
-      }
-    }
-    throw MakeFormattedError(THIS_LINE, Text::SOUND_ERROR_INVALID_FILTER, str);
   }
 
   class CommonBackendParameters
@@ -126,24 +96,9 @@ namespace
       }
     }
 
-    void SetFilter(const String& filter)
-    {
-      if (!filter.empty())
-      {
-        Parameters::IntType freq = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
-        Params->FindValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
-        Filter = CreateFilter(static_cast<uint_t>(freq), filter);
-      }
-    }
-
     Parameters::Accessor::Ptr GetDefaultParameters() const
     {
       return Params;
-    }
-
-    ZXTune::Sound::Converter::Ptr GetFilter() const
-    {
-      return Filter;
     }
 
     Time::Microseconds GetFrameDuration() const
@@ -154,7 +109,6 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Params;
-    ZXTune::Sound::Converter::Ptr Filter;
   };
 
   class CreateBackendParams : public ZXTune::Sound::CreateBackendParameters
@@ -175,11 +129,6 @@ namespace
     virtual ZXTune::Module::Holder::Ptr GetModule() const
     {
       return Module;
-    }
-
-    virtual ZXTune::Sound::Converter::Ptr GetFilter() const
-    {
-      return Params.GetFilter();
     }
 
     virtual ZXTune::Sound::BackendCallback::Ptr GetCallback() const
@@ -222,7 +171,6 @@ namespace
         (Text::FRAMEDURATION_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Sound::FRAMEDURATION.FullPath()]), Text::FRAMEDURATION_DESC)
         (Text::FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE.FullPath()]), Text::FREQTABLE_DESC)
         (Text::LOOP_KEY, bool_switch(&Looped), Text::LOOP_DESC)
-        (Text::FILTER_KEY, value<String>(&Filter), Text::FILTER_DESC)
       ;
     }
 
@@ -246,7 +194,6 @@ namespace
       }
       Params->SetSoundParameters(SoundOptions);
       Params->SetLooped(Looped);
-      Params->SetFilter(Filter);
     }
 
     void Initialize()
@@ -321,7 +268,6 @@ namespace
     Strings::Map SoundOptions;
 
     bool Looped;
-    String Filter;
 
     ZXTune::Sound::BackendCreator::Ptr Creator;
   };

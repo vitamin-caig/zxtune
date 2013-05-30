@@ -419,16 +419,6 @@ namespace
     const Module::Renderer::Ptr Renderer;
     const PlaybackControl::Ptr Control;
   };
-
-  Receiver::Ptr CreateRenderTarget(Converter::Ptr filter, Receiver::Ptr endpoint)
-  {
-    if (filter)
-    {
-      filter->SetTarget(endpoint);
-      return filter;
-    }
-    return endpoint;
-  }
 }
 
 namespace ZXTune
@@ -440,8 +430,7 @@ namespace ZXTune
       worker->Test();
       const Module::Holder::Ptr holder = params->GetModule();
       const ChunkPtr buffer = boost::make_shared<Chunk>();
-      const Receiver::Ptr bufferTarget = boost::make_shared<BufferRenderer>(boost::ref(*buffer));
-      const Receiver::Ptr target = CreateRenderTarget(params->GetFilter(), bufferTarget);
+      const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*buffer));
       const Module::Renderer::Ptr moduleRenderer = boost::make_shared<SafeRendererWrapper>(holder->CreateRenderer(params->GetParameters(), target));
       const Renderer::Ptr renderer = boost::make_shared<Renderer>(moduleRenderer, buffer);
       const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(holder, worker, CreateCallback(params, worker), renderer);

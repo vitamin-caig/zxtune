@@ -107,11 +107,6 @@ html> "</pre>\n"
 > SAMPLE_BEGIN "--" CMD_CONVERT_KEY " mode=${mode},filename=${filename}" SAMPLE_END
 > SAMPLE_SECT_END
 
-= SAMPLE_FILTER
-> SAMPLE_SECT_BEGIN
-> SAMPLE_BEGIN "--" CMD_FILTER_KEY " 30,20-20000" SAMPLE_END
-> SAMPLE_SECT_END
-
 #main text
 < __RAWHEADER__
 en> HEADER
@@ -308,14 +303,6 @@ en> SAMPLE_WAV_RESULT_1
 
 en> "file (if extension is not specified exactly, it's added automatically).\n"
 en> "Non-existing fields are skipped.\n"
-
-en> HEAD_BEGIN "OTHER SOUND OPTIONS" HEAD_END
-en> PRE_BEGIN "--" CMD_FILTER_KEY PRE_END " used to specify bandpass filter with specified order and frequency range."
-
-en> SAMPLE_FILTER
-
-en> "specifies 30's order bandpass filter for range from 20Hz till 20kHz. "
-en> "Specifying order is not required (10 used by default).\n"
 
 en> HEAD_BEGIN "CONVERSION" HEAD_END
 en> "To convert chiptune(s) from initial format to another one, use --" CMD_CONVERT_KEY " key with "

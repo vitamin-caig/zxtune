@@ -115,12 +115,6 @@ with
 file (if extension is not specified exactly, it's added automatically).
 Non-existing fields are skipped.
 
-OTHER SOUND OPTIONS
---filter used to specify bandpass filter with specified order and frequency range.
-	--filter 30,20-20000
-
-specifies 30's order bandpass filter for range from 20Hz till 20kHz. Specifying order is not required (10 used by default).
-
 CONVERSION
 To convert chiptune(s) from initial format to another one, use --convert key with mandatory parameters which are used to specify working mode and target. Syntax is:
 	--convert mode=${mode},filename=${filename}

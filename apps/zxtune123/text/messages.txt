@@ -365,9 +365,6 @@
 < SOUND_ERROR_NO_BACKEND
 > "Failed to create any backend."
 
-< SOUND_ERROR_INVALID_FILTER
-> "Invalid filter parameter: '%1%'."
-
 < COMMON_ERROR
 > "Error: %1%"
 
