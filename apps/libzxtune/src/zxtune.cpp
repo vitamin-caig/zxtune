@@ -32,6 +32,8 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/static_assert.hpp>
+#include <boost/type_traits/is_signed.hpp>
 
 namespace Text
 {
@@ -86,7 +88,11 @@ namespace
   typedef HandlesCache<Binary::Container::Ptr> ContainersCache;
   typedef HandlesCache<ZXTune::Module::Holder::Ptr> ModulesCache;
 
-  class BufferRender : public ZXTune::Sound::Receiver
+  BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
+  BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
+  BOOST_STATIC_ASSERT(boost::is_signed<Sound::Sample::Type>::value);
+
+  class BufferRender : public Sound::Receiver
   {
   public:
     typedef boost::shared_ptr<BufferRender> Ptr;
@@ -97,7 +103,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const ZXTune::Sound::OutputSample& data)
+    virtual void ApplyData(const Sound::Sample& data)
     {
       Buffer.Put(&data, 1);
     }
@@ -111,18 +117,18 @@ namespace
       return DoneSamples;
     }
 
-    std::size_t GetSamples(std::size_t count, ZXTune::Sound::OutputSample* target)
+    std::size_t GetSamples(std::size_t count, Sound::Sample* target)
     {
-      const ZXTune::Sound::OutputSample* part1 = 0;
+      const Sound::Sample* part1 = 0;
       std::size_t part1Size = 0;
-      const ZXTune::Sound::OutputSample* part2 = 0;
+      const Sound::Sample* part2 = 0;
       std::size_t part2Size = 0;
       if (const std::size_t toGet = Buffer.Peek(count, part1, part1Size, part2, part2Size))
       {
-        ZXTune::Sound::ChangeSignCopy(part1, part1 + part1Size, target);
+        std::memcpy(target, part1, part1Size * sizeof(*part1));
         if (part2)
         {
-          ZXTune::Sound::ChangeSignCopy(part2, part2 + part2Size, target + part1Size);
+          std::memcpy(target + part1Size, part2, part2Size * sizeof(*part2));
         }
         Buffer.Consume(toGet);
         DoneSamples += toGet;
@@ -144,7 +150,7 @@ namespace
       DoneSamples = 0;
     }
   private:
-    CycleBuffer<ZXTune::Sound::OutputSample> Buffer;
+    CycleBuffer<Sound::Sample> Buffer;
     std::size_t DoneSamples;
   };
 
@@ -160,7 +166,7 @@ namespace
     {
     }
 
-    std::size_t RenderSound(ZXTune::Sound::OutputSample* target, std::size_t samples)
+    std::size_t RenderSound(Sound::Sample* target, std::size_t samples)
     {
       std::size_t result = 0;
       while (samples)
@@ -349,7 +355,7 @@ int ZXTune_RenderSound(ZXTuneHandle player, void* buffer, size_t samples)
   try
   {
     const PlayerWrapper::Ptr wrapper = PlayersCache::Instance().Get(player);
-    return wrapper->RenderSound(static_cast<ZXTune::Sound::OutputSample*>(buffer), samples);
+    return wrapper->RenderSound(static_cast<Sound::Sample*>(buffer), samples);
   }
   catch (const Error&)
   {
