@@ -38,7 +38,7 @@ namespace Sound
 
     void ToS16() {}
 
-    void ToU8(void* target) const
+    void ToU8(void*) const
     {
       assert(!"Should not be called");
     }

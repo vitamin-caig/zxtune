@@ -28,7 +28,6 @@ Author:
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
-#include <boost/noncopyable.hpp>
 #include <boost/thread/condition_variable.hpp>
 //text includes
 #include "text/backends.h"
@@ -37,21 +36,23 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
-
   const Debug::Stream Dbg("Sound::Backend::Sdl");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+}
 
+namespace Sound
+{
+namespace Sdl
+{
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
 
-  class SdlBackendParameters
+  class BackendParameters
   {
   public:
-    explicit SdlBackendParameters(const Parameters::Accessor& accessor)
+    explicit BackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -147,40 +148,38 @@ namespace
     CycledIterator<Buffer*> FillIter, PlayIter;
   };
 
-  class SdlBackendWorker : public BackendWorker
-                         , private boost::noncopyable
+  class BackendWorker : public Sound::BackendWorker
   {
   public:
-    SdlBackendWorker(Sdl::Api::Ptr api, Parameters::Accessor::Ptr params)
-      : Api(api)
-      , BackendParams(params)
-      , RenderingParameters(RenderParameters::Create(BackendParams))
-      , WasInitialized(Api->SDL_WasInit(SDL_INIT_EVERYTHING))
+    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
+      : SdlApi(api)
+      , Params(params)
+      , WasInitialized(SdlApi->SDL_WasInit(SDL_INIT_EVERYTHING))
       , Queue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT)
     {
       if (0 == WasInitialized)
       {
         Dbg("Initializing");
-        CheckCall(Api->SDL_Init(SDL_INIT_AUDIO) == 0, THIS_LINE);
+        CheckCall(SdlApi->SDL_Init(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
       else if (0 == (WasInitialized & SDL_INIT_AUDIO))
       {
         Dbg("Initializing sound subsystem");
-        CheckCall(Api->SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
+        CheckCall(SdlApi->SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
     }
 
-    virtual ~SdlBackendWorker()
+    virtual ~BackendWorker()
     {
       if (0 == WasInitialized)
       {
         Dbg("Shutting down");
-        Api->SDL_Quit();
+        SdlApi->SDL_Quit();
       }
       else if (0 == (WasInitialized & SDL_INIT_AUDIO))
       {
         Dbg("Shutting down sound subsystem");
-        Api->SDL_QuitSubSystem(SDL_INIT_AUDIO);
+        SdlApi->SDL_QuitSubSystem(SDL_INIT_AUDIO);
       }
     }
 
@@ -195,21 +194,24 @@ namespace
 
       SDL_AudioSpec format;
       format.format = -1;
-      switch (sizeof(Sample))
+      const bool sampleSigned = Sample::MID == 0;
+      switch (Sample::BITS)
       {
-      case 1:
-        format.format = SAMPLE_SIGNED ? AUDIO_S8 : AUDIO_U8;
+      case 8:
+        format.format = sampleSigned ? AUDIO_S8 : AUDIO_U8;
         break;
-      case 2:
-        format.format = SAMPLE_SIGNED ? AUDIO_S16SYS : AUDIO_U16SYS;
+      case 16:
+        format.format = sampleSigned ? AUDIO_S16SYS : AUDIO_U16SYS;
         break;
       default:
         assert(!"Invalid format");
       }
 
-      format.freq = RenderingParameters->SoundFreq();
-      format.channels = static_cast< ::Uint8>(OUTPUT_CHANNELS);
-      format.samples = RenderingParameters->SamplesPerFrame();
+      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
+      const BackendParameters backend(*Params);
+      format.freq = sound->SoundFreq();
+      format.channels = static_cast< ::Uint8>(Sample::CHANNELS);
+      format.samples = sound->SamplesPerFrame();
       //fix if size is not power of 2
       if (0 != (format.samples & (format.samples - 1)))
       {
@@ -222,28 +224,27 @@ namespace
       }
       format.callback = OnBuffer;
       format.userdata = &Queue;
-      const SdlBackendParameters params(*BackendParams);
-      Queue.SetSize(params.GetBuffersCount());
-      CheckCall(Api->SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
-      Api->SDL_PauseAudio(0);
+      Queue.SetSize(backend.GetBuffersCount());
+      CheckCall(SdlApi->SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
+      SdlApi->SDL_PauseAudio(0);
     }
 
     virtual void Shutdown()
     {
       Dbg("Shutdown");
-      Api->SDL_CloseAudio();
+      SdlApi->SDL_CloseAudio();
     }
 
     virtual void Pause()
     {
       Dbg("Pause");
-      Api->SDL_PauseAudio(1);
+      SdlApi->SDL_PauseAudio(1);
     }
 
     virtual void Resume()
     {
       Dbg("Resume");
-      Api->SDL_PauseAudio(0);
+      SdlApi->SDL_PauseAudio(0);
     }
 
     virtual void BufferReady(Chunk& buffer)
@@ -260,7 +261,7 @@ namespace
     {
       if (!ok)
       {
-        if (const char* txt = Api->SDL_GetError())
+        if (const char* txt = SdlApi->SDL_GetError())
         {
           throw MakeFormattedError(loc,
             translate("Error in SDL backend: %1%."), FromStdString(txt));
@@ -275,9 +276,8 @@ namespace
       queue->GetData(stream, len);
     }
   private:
-    const Sdl::Api::Ptr Api;
-    const Parameters::Accessor::Ptr BackendParams;
-    const RenderParameters::Ptr RenderingParameters;
+    const Api::Ptr SdlApi;
+    const Parameters::Accessor::Ptr Params;
     const ::Uint32 WasInitialized;
     BuffersQueue Queue;
   };
@@ -285,11 +285,11 @@ namespace
   const String ID = Text::SDL_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("SDL support backend");
 
-  class SdlBackendCreator : public BackendCreator
+  class BackendCreator : public Sound::BackendCreator
   {
   public:
-    explicit SdlBackendCreator(Sdl::Api::Ptr api)
-      : Api(api)
+    explicit BackendCreator(Api::Ptr api)
+      : SdlApi(api)
     {
     }
 
@@ -318,7 +318,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new SdlBackendWorker(Api, allParams));
+        const BackendWorker::Ptr worker(new BackendWorker(SdlApi, allParams));
         return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
@@ -328,28 +328,26 @@ namespace
       }
     }
   private:
-    const Sdl::Api::Ptr Api;
+    const Api::Ptr SdlApi;
   };
-}
+}//Sdl
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterSdlBackend(BackendsEnumerator& enumerator)
   {
-    void RegisterSdlBackend(BackendsEnumerator& enumerator)
+    try
     {
-      try
-      {
-        const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
-        const SDL_version* const vers = api->SDL_Linked_Version();
-        Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
-        const BackendCreator::Ptr creator(new SdlBackendCreator(api));
-        enumerator.RegisterCreator(creator);
-      }
-      catch (const Error& e)
-      {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAPABILITIES, e));
-      }
+      const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
+      const SDL_version* const vers = api->SDL_Linked_Version();
+      Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
+      const BackendCreator::Ptr creator(new Sdl::BackendCreator(api));
+      enumerator.RegisterCreator(creator);
+    }
+    catch (const Error& e)
+    {
+      enumerator.RegisterCreator(CreateUnavailableBackendStub(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, e));
     }
   }
 }

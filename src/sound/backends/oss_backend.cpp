@@ -43,12 +43,14 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
-
   const Debug::Stream Dbg("Sound::Backend::Oss");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+}
 
+namespace Sound
+{
+namespace Oss
+{
   const uint_t MAX_OSS_VOLUME = 100;
 
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
@@ -146,8 +148,8 @@ namespace
   {
   public:
     explicit SoundFormat(int supportedFormats)
-      : Native(GetSoundFormat(SAMPLE_SIGNED))
-      , Negated(GetSoundFormat(!SAMPLE_SIGNED))
+      : Native(GetSoundFormat(Sample::MID == 0))
+      , Negated(GetSoundFormat(Sample::MID != 0))
       , NativeSupported(0 != (supportedFormats & Native))
       , NegatedSupported(0 != (supportedFormats & Negated))
     {
@@ -156,11 +158,6 @@ namespace
     bool IsSupported() const
     {
       return NativeSupported || NegatedSupported;
-    }
-    
-    bool ChangeSign() const
-    {
-      return !NativeSupported && NegatedSupported;
     }
     
     int Get() const
@@ -193,42 +190,41 @@ namespace
   };
 
 
-  class OssVolumeControl : public VolumeControl
+  class VolumeControl : public Sound::VolumeControl
   {
   public:
-    OssVolumeControl(boost::mutex& stateMutex, AutoDescriptor& mixer)
+    VolumeControl(boost::mutex& stateMutex, AutoDescriptor& mixer)
       : StateMutex(stateMutex), MixHandle(mixer)
     {
     }
 
-    virtual MultiGain GetVolume() const
+    virtual Gain GetVolume() const
     {
       Dbg("GetVolume");
-      boost::mutex::scoped_lock lock(StateMutex);
-      MultiGain volume;
+      const boost::mutex::scoped_lock lock(StateMutex);
+      Gain volume;
       if (MixHandle.Valid())
       {
         boost::array<uint8_t, sizeof(int)> buf;
         MixHandle.Ioctl(SOUND_MIXER_READ_VOLUME, &buf[0], THIS_LINE);
-        std::transform(buf.begin(), buf.begin() + OUTPUT_CHANNELS, volume.begin(),
-          std::bind2nd(std::divides<Gain>(), MAX_OSS_VOLUME));
+        volume = Gain(Gain::Type(buf[0], MAX_OSS_VOLUME), Gain::Type(buf[1], MAX_OSS_VOLUME));
       }
       return volume;
     }
 
-    virtual void SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const Gain& volume)
     {
-      if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
+      if (!volume.IsNormalized())
       {
         throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
       Dbg("SetVolume");
-      boost::mutex::scoped_lock lock(StateMutex);
+      const boost::mutex::scoped_lock lock(StateMutex);
       if (MixHandle.Valid())
       {
         boost::array<uint8_t, sizeof(int)> buf = { {0} };
-        std::transform(volume.begin(), volume.end(), buf.begin(),
-          std::bind2nd(std::multiplies<Gain>(), MAX_OSS_VOLUME));
+        buf[0] = (volume.Left() * MAX_OSS_VOLUME).Integer();
+        buf[1] = (volume.Right() * MAX_OSS_VOLUME).Integer();
         MixHandle.Ioctl(SOUND_MIXER_WRITE_VOLUME, &buf[0], THIS_LINE);
       }
     }
@@ -237,10 +233,10 @@ namespace
     AutoDescriptor& MixHandle;
   };
 
-  class OssBackendParameters
+  class BackendParameters
   {
   public:
-    explicit OssBackendParameters(const Parameters::Accessor& accessor)
+    explicit BackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -262,19 +258,17 @@ namespace
     const Parameters::Accessor& Accessor;
   };
 
-  class OssBackendWorker : public BackendWorker
-                         , private boost::noncopyable
+  class BackendWorker : public Sound::BackendWorker
   {
   public:
-    explicit OssBackendWorker(Parameters::Accessor::Ptr params)
-      : BackendParams(params)
-      , RenderingParameters(RenderParameters::Create(BackendParams))
-      , ChangeSign(false)
-      , VolumeController(new OssVolumeControl(StateMutex, MixHandle))
+    explicit BackendWorker(Parameters::Accessor::Ptr params)
+      : Params(params)
+      , Format(-1)
+      , VolumeController(new VolumeControl(StateMutex, MixHandle))
     {
     }
 
-    virtual ~OssBackendWorker()
+    virtual ~BackendWorker()
     {
       assert(!DevHandle.Valid() || !"OssBackend should be stopped before destruction.");
     }
@@ -283,8 +277,8 @@ namespace
     {
       AutoDescriptor tmpMixer;
       AutoDescriptor tmpDevice;
-      bool tmpSign = false;
-      SetupDevices(tmpDevice, tmpMixer, tmpSign);
+      int tmpFormat = -1;
+      SetupDevices(tmpDevice, tmpMixer, tmpFormat);
       Dbg("Tested!");
     }
 
@@ -296,7 +290,7 @@ namespace
     virtual void Startup()
     {
       assert(!MixHandle.Valid() && !DevHandle.Valid());
-      SetupDevices(DevHandle, MixHandle, ChangeSign);
+      SetupDevices(DevHandle, MixHandle, Format);
       Dbg("Successfully opened");
     }
 
@@ -304,6 +298,7 @@ namespace
     {
       DevHandle.Close();
       MixHandle.Close();
+      Format = -1;
       Dbg("Successfully closed");
     }
 
@@ -317,9 +312,17 @@ namespace
 
     virtual void BufferReady(Chunk& buffer)
     {
-      if (ChangeSign)
+      switch (Format)
       {
-        buffer.ChangeSign();
+      case AFMT_S16_LE:
+      case AFMT_S16_BE:
+        buffer.ToS16();
+        break;
+      case AFMT_U8:
+        buffer.ToU8();
+        break;
+      default:
+        assert(!"Invalid format");
       }
       assert(DevHandle.Valid());
       std::size_t toWrite(buffer.size() * sizeof(buffer.front()));
@@ -332,13 +335,14 @@ namespace
       }
     }
   private:
-    void SetupDevices(AutoDescriptor& device, AutoDescriptor& mixer, bool& changeSign) const
+    void SetupDevices(AutoDescriptor& device, AutoDescriptor& mixer, int& fmt) const
     {
-      const OssBackendParameters params(*BackendParams);
+      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
+      const BackendParameters backend(*Params);
 
-      AutoDescriptor tmpMixer(params.GetMixerName(), O_RDWR);
-      AutoDescriptor tmpDevice(params.GetDeviceName(), O_WRONLY | O_NONBLOCK);
-      BOOST_STATIC_ASSERT(1 == sizeof(Sample) || 2 == sizeof(Sample));
+      AutoDescriptor tmpMixer(backend.GetMixerName(), O_RDWR);
+      AutoDescriptor tmpDevice(backend.GetDeviceName(), O_WRONLY | O_NONBLOCK);
+      BOOST_STATIC_ASSERT(8 == Sample::BITS || 16 == Sample::BITS);
       int tmp = 0;
       tmpDevice.Ioctl(SNDCTL_DSP_GETFMTS, &tmp, THIS_LINE);
       Dbg("Supported formats %1%", tmp);
@@ -351,32 +355,31 @@ namespace
       Dbg("Setting format to %1%", tmp);
       tmpDevice.Ioctl(SNDCTL_DSP_SETFMT, &tmp, THIS_LINE);
 
-      tmp = OUTPUT_CHANNELS;
+      tmp = Sample::CHANNELS;
       Dbg("Setting channels to %1%", tmp);
       tmpDevice.Ioctl(SNDCTL_DSP_CHANNELS, &tmp, THIS_LINE);
 
-      tmp = RenderingParameters->SoundFreq();
+      tmp = sound->SoundFreq();
       Dbg("Setting frequency to %1%", tmp);
       tmpDevice.Ioctl(SNDCTL_DSP_SPEED, &tmp, THIS_LINE);
 
       device.Swap(tmpDevice);
       mixer.Swap(tmpMixer);
-      changeSign = format.ChangeSign();
+      fmt = format.Get();
     }
   private:
-    const Parameters::Accessor::Ptr BackendParams;
-    const RenderParameters::Ptr RenderingParameters;
+    const Parameters::Accessor::Ptr Params;
     boost::mutex StateMutex;
     AutoDescriptor MixHandle;
     AutoDescriptor DevHandle;
-    bool ChangeSign;
+    int Format;
     const VolumeControl::Ptr VolumeController;
   };
 
   const String ID = Text::OSS_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("OSS sound system backend");
 
-  class OssBackendCreator : public BackendCreator
+  class BackendCreator : public Sound::BackendCreator
   {
   public:
     virtual String Id() const
@@ -404,7 +407,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new OssBackendWorker(allParams));
+        const BackendWorker::Ptr worker(new BackendWorker(allParams));
         return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
@@ -414,16 +417,14 @@ namespace
       }
     }
   };
-}
+}//Oss
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterOssBackend(BackendsEnumerator& enumerator)
   {
-    void RegisterOssBackend(BackendsEnumerator& enumerator)
-    {
-      const BackendCreator::Ptr creator(new OssBackendCreator());
-      enumerator.RegisterCreator(creator);
-    }
+    const BackendCreator::Ptr creator(new Oss::BackendCreator());
+    enumerator.RegisterCreator(creator);
   }
 }
