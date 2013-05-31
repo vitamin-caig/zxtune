@@ -224,19 +224,19 @@ namespace
     QTreeWidgetItem* const Archives;
   };
 
-  bool IsPlaybackBackend(const ZXTune::Sound::BackendInformation& backend)
+  bool IsPlaybackBackend(const Sound::BackendInformation& backend)
   {
-    return ZXTune::Sound::CAP_TYPE_SYSTEM == (backend.Capabilities() & ZXTune::Sound::CAP_TYPE_MASK);
+    return Sound::CAP_TYPE_SYSTEM == (backend.Capabilities() & Sound::CAP_TYPE_MASK);
   }
 
-  bool IsFilesaveBackend(const ZXTune::Sound::BackendInformation& backend)
+  bool IsFilesaveBackend(const Sound::BackendInformation& backend)
   {
-    return ZXTune::Sound::CAP_TYPE_FILE == (backend.Capabilities() & ZXTune::Sound::CAP_TYPE_MASK);
+    return Sound::CAP_TYPE_FILE == (backend.Capabilities() & Sound::CAP_TYPE_MASK);
   }
 
-  bool IsHardwareBackend(const ZXTune::Sound::BackendInformation& backend)
+  bool IsHardwareBackend(const Sound::BackendInformation& backend)
   {
-    return ZXTune::Sound::CAP_TYPE_HARDWARE == (backend.Capabilities() & ZXTune::Sound::CAP_TYPE_MASK);
+    return Sound::CAP_TYPE_HARDWARE == (backend.Capabilities() & Sound::CAP_TYPE_MASK);
   }
 
   template<class T>
@@ -268,7 +268,7 @@ namespace
     {
     }
 
-    void AddBackend(const ZXTune::Sound::BackendInformation& backend)
+    void AddBackend(const Sound::BackendInformation& backend)
     {
       if (IsPlaybackBackend(backend))
       {
@@ -291,12 +291,12 @@ namespace
       }
     }
   private:
-    void AddBackend(QTreeWidgetItem& root, const ZXTune::Sound::BackendInformation& backend)
+    void AddBackend(QTreeWidgetItem& root, const Sound::BackendInformation& backend)
     {
       //root
       QTreeWidgetItem* const backendItem = CreateRootItem(root, backend.Description(), backend.Status());
       //features
-      if (uint_t features = backend.Capabilities() & ZXTune::Sound::CAP_FEAT_MASK)
+      if (uint_t features = backend.Capabilities() & Sound::CAP_FEAT_MASK)
       {
         QTreeWidgetItem* const featuresItem = CreateTreeWidgetItem(backendItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Features"));
         FillBackendFeatures(features, *featuresItem);
@@ -305,7 +305,7 @@ namespace
 
     void FillBackendFeatures(uint_t feats, QTreeWidgetItem& root)
     {
-      AddCapability(feats, ZXTune::Sound::CAP_FEAT_HWVOLUME, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware volume control"));
+      AddCapability(feats, Sound::CAP_FEAT_HWVOLUME, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware volume control"));
     }
   private:
     QTreeWidget& Widget;
@@ -361,9 +361,9 @@ namespace
     {
       BackendsTreeHelper tree(*backendsTree);
 
-      for (ZXTune::Sound::BackendCreator::Iterator::Ptr backends = ZXTune::Sound::EnumerateBackends(); backends->IsValid(); backends->Next())
+      for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends(); backends->IsValid(); backends->Next())
       {
-        const ZXTune::Sound::BackendInformation::Ptr backend = backends->Get();
+        const Sound::BackendInformation::Ptr backend = backends->Get();
         tree.AddBackend(*backend);
       }
     }

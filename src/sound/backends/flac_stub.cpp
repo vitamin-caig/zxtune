@@ -17,13 +17,10 @@ Author:
 //text includes
 #include "text/backends.h"
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterFlacBackend(BackendsEnumerator& enumerator)
   {
-    void RegisterFlacBackend(BackendsEnumerator& enumerator)
-    {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::FLAC_BACKEND_ID, L10n::translate("FLAC support backend."), CAP_TYPE_FILE)); 
-    }
+    enumerator.RegisterCreator(CreateDisabledBackendStub(Text::FLAC_BACKEND_ID, L10n::translate("FLAC support backend."), CAP_TYPE_FILE)); 
   }
 }

@@ -189,7 +189,7 @@ namespace
     const std::clock_t Start;
   };
 
-  class FinishPlaybackCallback : public ZXTune::Sound::BackendCallback
+  class FinishPlaybackCallback : public Sound::BackendCallback
   {
   public:
     virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
@@ -247,8 +247,8 @@ namespace
       Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
 
       FinishPlaybackCallback cb;
-      const ZXTune::Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null", ZXTune::Sound::BackendCallback::Ptr(&cb, NullDeleter<ZXTune::Sound::BackendCallback>()));
-      const ZXTune::Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
+      const Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null", Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
+      const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
       const AutoTimer timer;
       for (unsigned i = 0; i != Iterations; ++i)
       {
@@ -381,8 +381,8 @@ namespace
 
     void PlayItem(ZXTune::Module::Holder::Ptr holder)
     {
-      const ZXTune::Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
-      const ZXTune::Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
+      const Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
+      const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
 
       const Time::Microseconds frameDuration = Sounder->GetFrameDuration();
 
@@ -392,17 +392,20 @@ namespace
 
       Display->SetModule(holder, backend, frameDuration);
 
-      ZXTune::Sound::Gain curVolume = ZXTune::Sound::Gain();
-      const ZXTune::Sound::VolumeControl::Ptr volCtrl = backend->GetVolumeControl();
+      const Sound::Gain::Type minVol(0, 0);
+      const Sound::Gain::Type maxVol(1);
+      const Sound::Gain::Type volStep(5, 100);
+      Sound::Gain::Type curVolume;
+      const Sound::VolumeControl::Ptr volCtrl = backend->GetVolumeControl();
       if (volCtrl)
       {
-        const ZXTune::Sound::MultiGain allVolume = volCtrl->GetVolume();
-        curVolume = std::accumulate(allVolume.begin(), allVolume.end(), curVolume) / allVolume.size();
+        const Sound::Gain allVolume = volCtrl->GetVolume();
+        curVolume = (allVolume.Left() + allVolume.Right()) / 2;
       }
 
       for (;;)
       {
-        ZXTune::Sound::PlaybackControl::State state = control->GetCurrentState();
+        Sound::PlaybackControl::State state = control->GetCurrentState();
 
         const uint_t curFrame = Display->BeginFrame(state);
 
@@ -422,23 +425,23 @@ namespace
           case Console::INPUT_KEY_DOWN:
             if (volCtrl)
             {
-              curVolume = std::max(0.0, curVolume - 0.05);
-              ZXTune::Sound::MultiGain allVol;
-              allVol.assign(curVolume);
+              curVolume -= volStep;
+              curVolume = std::max(minVol, curVolume);
+              const Sound::Gain allVol(curVolume, curVolume);
               volCtrl->SetVolume(allVol);
             }
             break;
           case Console::INPUT_KEY_UP:
             if (volCtrl)
             {
-              curVolume = std::min(1.0, curVolume + 0.05);
-              ZXTune::Sound::MultiGain allVol;
-              allVol.assign(curVolume);
+              curVolume += volStep;
+              curVolume = std::min(maxVol, curVolume);
+              const Sound::Gain allVol(curVolume, curVolume);
               volCtrl->SetVolume(allVol);
             }
             break;
           case Console::INPUT_KEY_ENTER:
-            if (ZXTune::Sound::PlaybackControl::STARTED == state)
+            if (Sound::PlaybackControl::STARTED == state)
             {
               control->Pause();
               Console::Self().WaitForKeyRelease();
@@ -451,13 +454,13 @@ namespace
             break;
           case ' ':
             control->Stop();
-            state = ZXTune::Sound::PlaybackControl::STOPPED;
+            state = Sound::PlaybackControl::STOPPED;
             Console::Self().WaitForKeyRelease();
             break;
           }
         }
 
-        if (ZXTune::Sound::PlaybackControl::STOPPED == state)
+        if (Sound::PlaybackControl::STOPPED == state)
         {
           break;
         }

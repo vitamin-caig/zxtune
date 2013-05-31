@@ -9,13 +9,12 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//local includes
-#include "internal_types.h"
 //common includes
 #include <error.h>
 //library includes
 #include <l10n/api.h>
 #include <math/numeric.h>
+#include <math/fixedpoint.h>
 #include <sound/gainer.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -23,18 +22,12 @@ Author:
 
 #define FILE_TAG F5996093
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune::Sound;
-
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   class GainCore
   {
-    typedef uint64_t LevelType;
-    typedef int64_t StepType;
-    static const LevelType DIVIDER = LevelType(1) << 32;
-    BOOST_STATIC_ASSERT(8 * sizeof(LevelType) >= boost::static_log2<DIVIDER>::value + 8 * sizeof(Sample));
   public:
     GainCore()
       : Level()
@@ -42,50 +35,54 @@ namespace
     {
     }
 
-    Sample Apply(Sample in)
+    int_t Apply(int_t in)
     {
-      if (DIVIDER == Level)
+      static const Coeff ONE(1);
+      static const Coeff ZERO(0);
+      if (Level == ONE)
       {
         return in;
       }
-      else if (0 == Level)
+      else if (Level == ZERO)
       {
-        return SAMPLE_MID;
+        return 0;
       }
-      const int_t normalized = int_t(in) - SAMPLE_MID;
-      const int_t scaled = Level * normalized / DIVIDER;
-      return static_cast<Sample>(scaled + SAMPLE_MID);
+      return (Level * in).Integer();
     }
 
-    void SetGain(Gain in)
+    void SetGain(double in)
     {
-      if (!Math::InRange<Gain>(in, 0.0f, 1.0f))
+      if (!Math::InRange<double>(in, 0.0, 1.0))
       {
         throw Error(THIS_LINE, translate("Failed to set gain value: out of range."));
       }
-      Level = static_cast<LevelType>(in * DIVIDER);
+      Level = in;
     }
 
-    void SetFading(Gain delta, uint_t step)
+    void SetFading(double delta, uint_t step)
     {
-      Step = static_cast<StepType>(delta * DIVIDER / step);
+      Step = Coeff(delta) / step;
     }
 
     void ApplyStep()
     {
-      if (Step)
+      static const Coeff ONE(1);
+      static const Coeff ZERO(0);
+      if (Step != ZERO)
       {
         Level += Step;
-        if (Level > DIVIDER)
+        if (Level > ONE)
         {
-          Level = Step >= 0 ? DIVIDER : 0;
-          Step = 0;
+          Level = Step < ZERO ? ZERO : ONE;
+          Step = ZERO;
         }
       }
     }
   private:
-    LevelType Level;
-    StepType Step;
+    typedef Math::FixedPoint<int64_t, 1 << 31> Coeff;
+    BOOST_STATIC_ASSERT(8 * sizeof(Coeff) >= boost::static_log2<Coeff::PRECISION>::value + Sample::BITS);
+    Coeff Level;
+    Coeff Step;
   };
 
   class FixedPointGainer : public FadeGainer
@@ -97,15 +94,11 @@ namespace
     {
     }
 
-    virtual void ApplyData(const OutputSample& data)
+    virtual void ApplyData(const Sample& in)
     {
-      OutputSample result;
-      for (uint_t chan = 0; chan != result.size(); ++chan)
-      {
-        result[chan] = Core.Apply(data[chan]);
-      }
+      const Sample out(Core.Apply(in.Left()), Core.Apply(in.Right()));
       Core.ApplyStep();
-      return Delegate->ApplyData(result);
+      return Delegate->ApplyData(out);
     }
 
     virtual void Flush()
@@ -118,12 +111,12 @@ namespace
       Delegate = delegate ? delegate : Receiver::CreateStub();
     }
 
-    virtual void SetGain(Gain gain)
+    virtual void SetGain(double gain)
     {
       Core.SetGain(gain);
     }
 
-    virtual void SetFading(Gain delta, uint_t step)
+    virtual void SetFading(double delta, uint_t step)
     {
       Core.SetFading(delta, step);
     }
@@ -133,13 +126,10 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  FadeGainer::Ptr CreateFadeGainer()
   {
-    FadeGainer::Ptr CreateFadeGainer()
-    {
-      return boost::make_shared<FixedPointGainer>();
-    }
+    return boost::make_shared<FixedPointGainer>();
   }
 }

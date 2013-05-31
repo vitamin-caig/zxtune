@@ -38,11 +38,10 @@ namespace
   public:
     FileBackendsSet()
     {
-      using namespace ZXTune::Sound;
-      for (BackendCreator::Iterator::Ptr backends = EnumerateBackends(); backends->IsValid(); backends->Next())
+      for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends(); backends->IsValid(); backends->Next())
       {
-        const BackendCreator::Ptr creator = backends->Get();
-        if (0 != (creator->Capabilities() & CAP_TYPE_FILE))
+        const Sound::BackendCreator::Ptr creator = backends->Get();
+        if (0 != (creator->Capabilities() & Sound::CAP_TYPE_FILE))
         {
           Ids.insert(std::make_pair(creator->Id(), creator->Status()));
         }

@@ -31,7 +31,7 @@ public:
   static QPointer<MainWindow> Create(Parameters::Container::Ptr options, const Strings::Array& cmdline);
 
 public slots:
-  virtual void StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
+  virtual void StartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
   virtual void StopModule() = 0;
 
   //File menu

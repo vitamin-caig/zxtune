@@ -46,13 +46,13 @@ namespace
       //DAC
       Parameters::BooleanValue::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
 
-      Require(connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
+      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
       Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
     }
 
-    virtual void InitState(ZXTune::Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
+    virtual void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
       const Playlist::Item::Capabilities caps(item);
       AYMOptions->setVisible(caps.IsAYM());

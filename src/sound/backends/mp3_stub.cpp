@@ -17,13 +17,10 @@ Author:
 //text includes
 #include "text/backends.h"
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterMp3Backend(BackendsEnumerator& enumerator)
   {
-    void RegisterMp3Backend(BackendsEnumerator& enumerator)
-    {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::MP3_BACKEND_ID, L10n::translate("MP3 support backend"), CAP_TYPE_FILE)); 
-    }
+    enumerator.RegisterCreator(CreateDisabledBackendStub(Text::MP3_BACKEND_ID, L10n::translate("MP3 support backend"), CAP_TYPE_FILE)); 
   }
 }

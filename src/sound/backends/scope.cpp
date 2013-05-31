@@ -22,10 +22,8 @@ Author:
 #include <boost/algorithm/string/split.hpp>
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune::Sound;
-
   typedef std::list<BackendCreator::Ptr> CreatorsList;
 
   CreatorsList GetAvailableSystemBackends()
@@ -78,17 +76,14 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  BackendsScope::Ptr BackendsScope::CreateSystemScope(Parameters::Accessor::Ptr params)
   {
-    BackendsScope::Ptr BackendsScope::CreateSystemScope(Parameters::Accessor::Ptr params)
-    {
-      Parameters::StringType order;
-      params->FindValue(Parameters::ZXTune::Sound::Backends::ORDER, order);
-      Strings::Array ordered;
-      boost::algorithm::split(ordered, order, !boost::algorithm::is_alnum());
-      return boost::make_shared<SystemBackendsScope>(ordered);
-    }
+    Parameters::StringType order;
+    params->FindValue(Parameters::ZXTune::Sound::Backends::ORDER, order);
+    Strings::Array ordered;
+    boost::algorithm::split(ordered, order, !boost::algorithm::is_alnum());
+    return boost::make_shared<SystemBackendsScope>(ordered);
   }
 }

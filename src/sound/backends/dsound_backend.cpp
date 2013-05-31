@@ -36,25 +36,18 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
-
   const Debug::Stream Dbg("Sound::Backend::DirectSound");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+}
 
+namespace Sound
+{
+namespace DirectSound
+{
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const uint_t LATENCY_MIN = 20;
   const uint_t LATENCY_MAX = 10000;
-
-  /*
-
-   From http://msdn.microsoft.com/en-us/library/windows/desktop/dd797880(v=vs.85).aspx :
-
-   For 8-bit PCM data, each sample is represented by a single unsigned data byte.
-   For 16-bit PCM data, each sample is represented by a 16-bit signed value.
-  */
-  const bool SamplesShouldBeConverted = (sizeof(Sample) > 1) != SAMPLE_SIGNED;
 
   HWND GetWindowHandle()
   {
@@ -104,33 +97,33 @@ namespace
     return res;
   }
 
-  typedef boost::shared_ptr<IDirectSound> DirectSoundDevicePtr;
+  typedef boost::shared_ptr<IDirectSound> DirectSoundPtr;
   typedef boost::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
 
-  DirectSoundDevicePtr OpenDevice(DirectSound::Api& api, const String& device)
+  DirectSoundPtr OpenDevice(Api& api, const String& device)
   {
     Dbg("OpenDevice(%1%)", device);
-    DirectSoundDevicePtr::pointer raw = 0;
+    DirectSoundPtr::pointer raw = 0;
     const std::auto_ptr<GUID> deviceUuid = String2Guid(device);
     CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
-    const DirectSoundDevicePtr result = DirectSoundDevicePtr(raw, &ReleaseRef);
+    const DirectSoundPtr result = DirectSoundPtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
     Dbg("Opened");
     return result;
   }
 
-  DirectSoundBufferPtr CreateSecondaryBuffer(DirectSoundDevicePtr device, uint_t sampleRate, uint_t bufferInMs)
+  DirectSoundBufferPtr CreateSecondaryBuffer(DirectSoundPtr device, uint_t sampleRate, uint_t bufferInMs)
   {
     Dbg("CreateSecondaryBuffer");
     WAVEFORMATEX format;
     std::memset(&format, 0, sizeof(format));
     format.cbSize = sizeof(format);
     format.wFormatTag = WAVE_FORMAT_PCM;
-    format.nChannels = OUTPUT_CHANNELS;
+    format.nChannels = Sample::CHANNELS;
     format.nSamplesPerSec = static_cast< ::DWORD>(sampleRate);
-    format.nBlockAlign = sizeof(OutputSample);
+    format.nBlockAlign = sizeof(Sample);
     format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
-    format.wBitsPerSample = 8 * sizeof(Sample);
+    format.wBitsPerSample = Sample::BITS;
 
     DSBUFFERDESC buffer;
     std::memset(&buffer, 0, sizeof(buffer));
@@ -147,7 +140,7 @@ namespace
     return secondary;
   }
 
-  DirectSoundBufferPtr CreatePrimaryBuffer(DirectSoundDevicePtr device)
+  DirectSoundBufferPtr CreatePrimaryBuffer(DirectSoundPtr device)
   {
     Dbg("CreatePrimaryBuffer");
     DSBUFFERDESC buffer;
@@ -307,49 +300,48 @@ namespace
 
   //in centidecibell
   //use simple scale method due to less error in forward and backward conversion
-  Gain AttenuationToGain(int_t cdB)
+  Gain::Type AttenuationToGain(int_t cdB)
   {
-    return 1.0 - Gain(cdB) / DSBVOLUME_MIN;
+    return Gain::Type(1) - Gain::Type(cdB, DSBVOLUME_MIN);
   }
 
-  int_t GainToAttenuation(Gain level)
+  int_t GainToAttenuation(Gain::Type level)
   {
-    return static_cast<int_t>((1.0 - level) * DSBVOLUME_MIN);
+    return ((Gain::Type(1) - level) * DSBVOLUME_MIN).Integer();
   }
 
-  class DirectSoundVolumeControl : public VolumeControl
+  class VolumeControl : public Sound::VolumeControl
   {
   public:
-    explicit DirectSoundVolumeControl(DirectSoundBufferPtr buffer)
+    explicit VolumeControl(DirectSoundBufferPtr buffer)
       : Buffer(buffer)
     {
     }
 
-    virtual MultiGain GetVolume() const
+    virtual Gain GetVolume() const
     {
       const VolPan vols = GetVolumeImpl();
-      BOOST_STATIC_ASSERT(OUTPUT_CHANNELS == 2);
+      BOOST_STATIC_ASSERT(Sample::CHANNELS == 2);
       //in hundredths of a decibel
       const int_t attLeft = vols.first - (vols.second > 0 ? vols.second : 0);
       const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);
-      const MultiGain volume = { {AttenuationToGain(attLeft), AttenuationToGain(attRight)} };
-      Dbg("GetVolume(vol=%1% pan=%2%) = {%3%, %4%}", 
-        vols.first, vols.second, volume[0], volume[1]);
+      const Gain volume(AttenuationToGain(attLeft), AttenuationToGain(attRight));
+      Dbg("GetVolume(vol=%1% pan=%2%)", vols.first, vols.second);
       return volume;
     }
 
-    virtual void SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const Gain& volume)
     {
-      if (volume.end() != std::find_if(volume.begin(), volume.end(), std::bind2nd(std::greater<Gain>(), Gain(1.0))))
+      if (!volume.IsNormalized())
       {
         throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
-      const int_t attLeft = GainToAttenuation(volume[0]);
-      const int_t attRight = GainToAttenuation(volume[1]);
+      const int_t attLeft = GainToAttenuation(volume.Left());
+      const int_t attRight = GainToAttenuation(volume.Right());
       const LONG vol = std::max(attLeft, attRight);
       //pan is negative for left
       const LONG pan = attLeft < vol ? vol - attLeft : vol - attRight;
-      Dbg("SetVolume(%1%, %2%) => vol=%3% pan=%4%", volume[0], volume[1], vol, pan);
+      Dbg("SetVolume(vol=%1% pan=%2%)", vol, pan);
       SetVolumeImpl(VolPan(vol, pan));
     }
   private:
@@ -372,10 +364,10 @@ namespace
     const DirectSoundBufferPtr Buffer;
   };
 
-  class DirectSoundBackendParameters
+  class BackendParameters
   {
   public:
-    explicit DirectSoundBackendParameters(const Parameters::Accessor& accessor)
+    explicit BackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -402,11 +394,11 @@ namespace
     const Parameters::Accessor& Accessor;
   };
 
-  class DirectSoundBackendWorker : public BackendWorker
+  class BackendWorker : public Sound::BackendWorker
   {
   public:
-    DirectSoundBackendWorker(DirectSound::Api::Ptr api, Parameters::Accessor::Ptr params)
-      : Api(api)
+    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
+      : DsApi(api)
       , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
     {
@@ -445,9 +437,20 @@ namespace
 
     virtual void BufferReady(Chunk& buffer)
     {
-      if (SamplesShouldBeConverted)
+      /*
+
+       From http://msdn.microsoft.com/en-us/library/windows/desktop/dd797880(v=vs.85).aspx :
+
+       For 8-bit PCM data, each sample is represented by a single unsigned data byte.
+       For 16-bit PCM data, each sample is represented by a 16-bit signed value.
+      */
+      if (Sample::BITS == 16)
       {
-        buffer.ChangeSign();
+        buffer.ToS16();
+      }
+      else
+      {
+        buffer.ToU8();
       }
       Objects.Stream->Add(buffer);
     }
@@ -459,27 +462,27 @@ namespace
   private:
     struct DSObjects
     {
-      DirectSoundDevicePtr Device;
+      DirectSoundPtr Device;
       StreamBuffer::Ptr Stream;
       VolumeControl::Ptr Volume;
     };
 
     DSObjects OpenDevices()
     {
-      const DirectSoundBackendParameters params(*BackendParams);
+      const BackendParameters params(*BackendParams);
       const String device = params.GetDevice();
       DSObjects res;
-      res.Device = OpenDevice(*Api, device);
+      res.Device = OpenDevice(*DsApi, device);
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
       const Time::Milliseconds frameDuration = RenderingParameters->FrameDuration();
       res.Stream = boost::make_shared<StreamBuffer>(buffer, boost::posix_time::millisec(frameDuration.Get()));
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
-      res.Volume = boost::make_shared<DirectSoundVolumeControl>(primary);
+      res.Volume = boost::make_shared<VolumeControl>(primary);
       return res;
     }
   private:
-    const DirectSound::Api::Ptr Api;
+    const Api::Ptr DsApi;
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
     DSObjects Objects; 
@@ -488,11 +491,11 @@ namespace
   const String ID = Text::DSOUND_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("DirectSound support backend.");
 
-  class DirectSoundBackendCreator : public BackendCreator
+  class BackendCreator : public Sound::BackendCreator
   {
   public:
-    explicit DirectSoundBackendCreator(DirectSound::Api::Ptr api)
-      : Api(api)
+    explicit BackendCreator(Api::Ptr api)
+      : DsApi(api)
     {
     }
 
@@ -521,7 +524,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new DirectSoundBackendWorker(Api, allParams));
+        const BackendWorker::Ptr worker(new BackendWorker(DsApi, allParams));
         return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
@@ -531,10 +534,10 @@ namespace
       }
     }
   private:
-    const DirectSound::Api::Ptr Api;
+    const Api::Ptr DsApi;
   };
 
-  class DirectSoundDevice : public DirectSound::Device
+  class DirectSoundDevice : public Device
   {
   public:
     DirectSoundDevice(const String& id, const String& name)
@@ -557,10 +560,10 @@ namespace
     const String NameValue;
   };
 
-  class DevicesIterator : public DirectSound::Device::Iterator
+  class DevicesIterator : public Device::Iterator
   {
   public:
-    explicit DevicesIterator(DirectSound::Api::Ptr api)
+    explicit DevicesIterator(Api::Ptr api)
       : Current(Devices.begin())
     {
       if (DS_OK != api->DirectSoundEnumerateA(&EnumerateDevicesCallback, &Devices))
@@ -580,11 +583,11 @@ namespace
       return Current != Devices.end();
     }
 
-    virtual DirectSound::Device::Ptr Get() const
+    virtual Device::Ptr Get() const
     {
       return IsValid()
         ? boost::make_shared<DirectSoundDevice>(Current->first, Current->second)
-        : DirectSound::Device::Ptr();
+        : Device::Ptr();
     }
 
     virtual void Next()
@@ -610,47 +613,45 @@ namespace
     DevicesArray Devices;
     DevicesArray::const_iterator Current;
   };
-}
+}//DirectSound
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
   {
-    void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
+    try
+    {
+      const DirectSound::Api::Ptr api = DirectSound::LoadDynamicApi();
+      if (DirectSound::DevicesIterator(api).IsValid())
+      {
+        const BackendCreator::Ptr creator(new DirectSound::BackendCreator(api));
+        enumerator.RegisterCreator(creator);
+      }
+      else
+      {
+        throw Error(THIS_LINE, translate("No suitable output devices found"));
+      }
+    }
+    catch (const Error& e)
+    {
+      enumerator.RegisterCreator(CreateUnavailableBackendStub(DirectSound::ID, DirectSound::DESCRIPTION, DirectSound::CAPABILITIES, e));
+    }
+  }
+
+  namespace DirectSound
+  {
+    Device::Iterator::Ptr EnumerateDevices()
     {
       try
       {
-        const DirectSound::Api::Ptr api = DirectSound::LoadDynamicApi();
-        if (DevicesIterator(api).IsValid())
-        {
-          const BackendCreator::Ptr creator(new DirectSoundBackendCreator(api));
-          enumerator.RegisterCreator(creator);
-        }
-        else
-        {
-          throw Error(THIS_LINE, translate("No suitable output devices found"));
-        }
+        const Api::Ptr api = LoadDynamicApi();
+        return Device::Iterator::Ptr(new DevicesIterator(api));
       }
       catch (const Error& e)
       {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAPABILITIES, e));
-      }
-    }
-
-    namespace DirectSound
-    {
-      Device::Iterator::Ptr EnumerateDevices()
-      {
-        try
-        {
-          const Api::Ptr api = LoadDynamicApi();
-          return Device::Iterator::Ptr(new DevicesIterator(api));
-        }
-        catch (const Error& e)
-        {
-          Dbg("%1%", e.ToString());
-          return Device::Iterator::CreateStub();
-        }
+        Dbg("%1%", e.ToString());
+        return Device::Iterator::CreateStub();
       }
     }
   }

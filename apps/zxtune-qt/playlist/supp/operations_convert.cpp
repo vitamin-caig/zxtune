@@ -31,7 +31,7 @@ Author:
 namespace
 {
   //TODO: rework
-  class ConvertCallback : public ZXTune::Sound::BackendCallback
+  class ConvertCallback : public Sound::BackendCallback
   {
     enum EventType
     {
@@ -94,7 +94,7 @@ namespace
   class ConvertVisitor : public Playlist::Item::Visitor
   {
   public:
-    ConvertVisitor(uint_t totalItems, ZXTune::Sound::BackendCreator::Ptr creator, Parameters::Accessor::Ptr params, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
+    ConvertVisitor(uint_t totalItems, Sound::BackendCreator::Ptr creator, Parameters::Accessor::Ptr params, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
       : TotalItems(totalItems)
       , DoneItems(0)
       , Callback(cb)
@@ -126,10 +126,10 @@ namespace
         const ZXTune::Module::Information::Ptr info = item->GetModuleInformation();
         const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
         ConvertCallback cb(*framesProgress);
-        const ZXTune::Sound::CreateBackendParameters::Ptr params = MakeBackendParameters(BackendParameters, item,
-          ZXTune::Sound::BackendCallback::Ptr(&cb, NullDeleter<ZXTune::Sound::BackendCallback>()));
-        const ZXTune::Sound::Backend::Ptr backend = Creator->CreateBackend(params);
-        const ZXTune::Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
+        const Sound::CreateBackendParameters::Ptr params = MakeBackendParameters(BackendParameters, item,
+          Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
+        const Sound::Backend::Ptr backend = Creator->CreateBackend(params);
+        const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
         control->Play();
         cb.WaitForFinish();
         control->Stop();
@@ -145,23 +145,22 @@ namespace
     const uint_t TotalItems;
     uint_t DoneItems;
     Log::ProgressCallback& Callback;
-    const ZXTune::Sound::BackendCreator::Ptr Creator;
+    const Sound::BackendCreator::Ptr Creator;
     const Parameters::Accessor::Ptr BackendParameters;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 
-  ZXTune::Sound::BackendCreator::Ptr FindBackendCreator(const String& id)
+  Sound::BackendCreator::Ptr FindBackendCreator(const String& id)
   {
-    using namespace ZXTune::Sound;
-    for (BackendCreator::Iterator::Ptr backends = EnumerateBackends(); backends->IsValid(); backends->Next())
+    for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends(); backends->IsValid(); backends->Next())
     {
-      const BackendCreator::Ptr creator = backends->Get();
+      const Sound::BackendCreator::Ptr creator = backends->Get();
       if (creator->Id() == id)
       {
         return creator;
       }
     }
-    return BackendCreator::Ptr();
+    return Sound::BackendCreator::Ptr();
   }
 
 
@@ -194,7 +193,7 @@ namespace
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
-    const ZXTune::Sound::BackendCreator::Ptr Creator;
+    const Sound::BackendCreator::Ptr Creator;
     const Parameters::Accessor::Ptr Params;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };

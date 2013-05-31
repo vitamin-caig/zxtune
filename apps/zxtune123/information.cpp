@@ -98,12 +98,12 @@ namespace
     static const CapsPair BACKENDS_CAPS[] =
     {
       // Type-related capabilities
-      CapsPair(ZXTune::Sound::CAP_TYPE_STUB, Text::INFO_CAP_STUB),
-      CapsPair(ZXTune::Sound::CAP_TYPE_SYSTEM, Text::INFO_CAP_SYSTEM),
-      CapsPair(ZXTune::Sound::CAP_TYPE_FILE, Text::INFO_CAP_FILE),
-      CapsPair(ZXTune::Sound::CAP_TYPE_HARDWARE, Text::INFO_CAP_HARDWARE),
+      CapsPair(Sound::CAP_TYPE_STUB, Text::INFO_CAP_STUB),
+      CapsPair(Sound::CAP_TYPE_SYSTEM, Text::INFO_CAP_SYSTEM),
+      CapsPair(Sound::CAP_TYPE_FILE, Text::INFO_CAP_FILE),
+      CapsPair(Sound::CAP_TYPE_HARDWARE, Text::INFO_CAP_HARDWARE),
       // Features-related capabilities
-      CapsPair(ZXTune::Sound::CAP_FEAT_HWVOLUME, Text::INFO_CAP_HWVOLUME),
+      CapsPair(Sound::CAP_FEAT_HWVOLUME, Text::INFO_CAP_HWVOLUME),
       //limiter
       CapsPair()
     };
@@ -125,7 +125,7 @@ namespace
     }
   }
   
-  inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)
+  inline void ShowBackend(const Sound::BackendInformation& info)
   {
     const Error& status = info.Status();
     StdOut << Strings::Format(Text::INFO_BACKEND_INFO,
@@ -134,8 +134,7 @@ namespace
   
   inline void ShowBackends()
   {
-    using namespace ZXTune::Sound;
-    for (BackendCreator::Iterator::Ptr backends = EnumerateBackends();
+    for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
       backends->IsValid(); backends->Next())
     {
       ShowBackend(*backends->Get());

@@ -14,26 +14,23 @@ Author:
 //library includes
 #include <l10n/api.h>
 //boost includes
-#include <boost/ref.hpp>
 #include <boost/make_shared.hpp>
 
 #define FILE_TAG B368C82C
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune::Sound;
-
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   class VolumeControlDelegate : public VolumeControl
   {
   public:
-    explicit VolumeControlDelegate(const VolumeControl::Ptr& delegate)
+    explicit VolumeControlDelegate(VolumeControl::Ptr delegate)
       : Delegate(delegate)
     {
     }
 
-    virtual MultiGain GetVolume() const
+    virtual Gain GetVolume() const
     {
       if (const VolumeControl::Ptr delegate = Delegate.lock())
       {
@@ -42,7 +39,7 @@ namespace
       throw Error(THIS_LINE, translate("Failed to get volume in invalid state."));
     }
 
-    virtual void SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const Gain& volume)
     {
       if (const VolumeControl::Ptr delegate = Delegate.lock())
       {
@@ -55,13 +52,10 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate)
   {
-    VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate)
-    {
-      return boost::make_shared<VolumeControlDelegate>(boost::cref(delegate));
-    }
+    return boost::make_shared<VolumeControlDelegate>(delegate);
   }
 }

@@ -22,16 +22,40 @@ Author:
 #include <sound/sound_parameters.h>
 #include <sound/receiver.h>
 #include <sound/render_params.h>
-#include <sound/sample_convert.h>
 //text includes
 #include <core/text/core.h>
 
-namespace
+namespace ZXTune
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
+  using namespace Module;
 
   const Debug::Stream Dbg("Core::AYBase");
+
+  class AYMReceiver : public Devices::AYM::Receiver
+  {
+  public:
+    AYMReceiver(Sound::ThreeChannelsReceiver::Ptr target)
+      : Target(target)
+    {
+    }
+
+    virtual void ApplyData(const Devices::AYM::MultiSample& data)
+    {
+      BOOST_STATIC_ASSERT(Sound::ThreeChannelsReceiver::InDataType::static_size == 3);
+      Data[0] = static_cast<int16_t>(data[0] ^ 0x8000);
+      Data[1] = static_cast<int16_t>(data[1] ^ 0x8000);
+      Data[2] = static_cast<int16_t>(data[2] ^ 0x8000);
+      Target->ApplyData(Data);
+    }
+
+    virtual void Flush()
+    {
+      Target->Flush();
+    }
+  private:
+    const Sound::ThreeChannelsReceiver::Ptr Target;
+    Sound::ThreeChannelsReceiver::InDataType Data;
+  };
 
   class AYMDataIterator : public AYM::DataIterator
   {
@@ -194,7 +218,7 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Sound::OutputSample& sample)
+    virtual void ApplyData(const Sound::Sample& sample)
     {
       Target->ApplyData(sample);
     }
@@ -203,7 +227,7 @@ namespace
     {
       if (Start == State->Frame())
       {
-        Target->SetFading(Sound::Gain(-1), Fading);
+        Target->SetFading(-1, Fading);
       }
       Target->Flush();
     }
@@ -231,14 +255,14 @@ namespace
     const Time::Microseconds frameDuration = renderParams->FrameDuration();
     if (fadeIn != 0)
     {
-      gainer->SetGain(Sound::Gain());
+      gainer->SetGain(0);
       const uint_t fadeInSamples = fadeIn * renderParams->SoundFreq() / frameDuration.PER_SECOND;
       Dbg("Fade in for %1% samples", fadeInSamples);
-      gainer->SetFading(Sound::Gain(1), fadeInSamples);
+      gainer->SetFading(1, fadeInSamples);
     }
     else
     {
-      gainer->SetGain(Sound::Gain(1));
+      gainer->SetGain(1);
     }
     if (fadeOut != 0)
     {
@@ -402,7 +426,7 @@ namespace ZXTune
 
       Devices::AYM::Receiver::Ptr CreateReceiver(Sound::ThreeChannelsReceiver::Ptr target)
       {
-        return boost::static_pointer_cast<Devices::AYM::Receiver>(target);
+        return boost::make_shared<AYMReceiver>(target);
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)

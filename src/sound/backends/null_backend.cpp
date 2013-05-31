@@ -28,12 +28,11 @@ namespace
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 }
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
-
-  class NullBackendWorker : public BackendWorker
+namespace Null
+{
+  class BackendWorker : public Sound::BackendWorker
   {
   public:
     virtual void Test()
@@ -66,17 +65,20 @@ namespace
     }
   };
 
-  class NullBackendCreator : public BackendCreator
+  const String ID = Text::NULL_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("Null output backend");
+
+  class BackendCreator : public Sound::BackendCreator
   {
   public:
     virtual String Id() const
     {
-      return Text::NULL_BACKEND_ID;
+      return ID;
     }
 
     virtual String Description() const
     {
-      return translate("Null output backend");
+      return DESCRIPTION;
     }
 
     virtual uint_t Capabilities() const
@@ -94,7 +96,7 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new NullBackendWorker());
+        const BackendWorker::Ptr worker(new BackendWorker());
         return Sound::CreateBackend(params, worker);
       }
       catch (const Error& e)
@@ -104,16 +106,14 @@ namespace
       }
     }
   };
-}
+}//Null
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterNullBackend(BackendsEnumerator& enumerator)
   {
-    void RegisterNullBackend(BackendsEnumerator& enumerator)
-    {
-      const BackendCreator::Ptr creator(new NullBackendCreator());
-      enumerator.RegisterCreator(creator);
-    }
+    const BackendCreator::Ptr creator(new Null::BackendCreator());
+    enumerator.RegisterCreator(creator);
   }
 }

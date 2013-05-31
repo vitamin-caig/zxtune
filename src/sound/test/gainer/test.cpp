@@ -8,15 +8,11 @@
 
 #define FILE_TAG B5BAF4C1
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune::Sound;
-
-  BOOST_STATIC_ASSERT(SAMPLE_MIN == 0 && SAMPLE_MID == 32768 && SAMPLE_MAX == 65535);
-
-  const int_t THRESHOLD = 5 * (SAMPLE_MAX - SAMPLE_MIN) / 1000;//0.5%
+  const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;//0.5%
   
-  const Gain GAINS[] = {
+  const double GAINS[] = {
     0.0f,
     1.0f,
     0.5f,
@@ -28,39 +24,39 @@ namespace
     "empty", "full", "middle", "-10dB", "-0.45dB"
   };
   
-  const Gain INVALID_GAIN = 2.0f;
+  const double INVALID_GAIN = 2.0f;
 
-  const Sample INPUTS[] = {
-    SAMPLE_MIN,
-    SAMPLE_MID,
-    SAMPLE_MAX
+  const Sample::Type INPUTS[] = {
+    Sample::MIN,
+    Sample::MID,
+    Sample::MAX
   };
   
   const String INPUT_NAMES[] = {
-    "zero", "half", "maximum"
+    "min", "mid", "max"
   };
   
-  const Sample OUTS[] = {
+  const Sample::Type OUTS[] = {
   //zero matrix
-     SAMPLE_MID,
-     SAMPLE_MID,
-     SAMPLE_MID,
+     Sample::MID,
+     Sample::MID,
+     Sample::MID,
   //full matrix
-     SAMPLE_MIN,
-     SAMPLE_MID,
-     SAMPLE_MAX,
+     Sample::MIN,
+     Sample::MID,
+     Sample::MAX,
   //mid matrix
-     SAMPLE_MID/2,
-     SAMPLE_MID,
-     (SAMPLE_MAX+SAMPLE_MID)/2,
+     (Sample::MID+Sample::MIN)/2,
+     Sample::MID,
+     (Sample::MID+Sample::MAX)/2,
   //-10dB
-     Sample(SAMPLE_MID+0.1f*(SAMPLE_MIN-SAMPLE_MID)),
-     SAMPLE_MID,
-     Sample(SAMPLE_MID+0.1f*(SAMPLE_MAX-SAMPLE_MID)),
+     Sample::MID+(int_t(Sample::MIN)-Sample::MID)/10,
+     Sample::MID,
+     Sample::MID+(int_t(Sample::MAX)-Sample::MID)/10,
   //-0.45dB
-     Sample(SAMPLE_MID+0.9f*(SAMPLE_MIN-SAMPLE_MID)),
-     SAMPLE_MID,
-     Sample(SAMPLE_MID+0.9f*(SAMPLE_MAX-SAMPLE_MID)),
+     Sample::MID+9*(int_t(Sample::MIN)-Sample::MID)/10,
+     Sample::MID,
+     Sample::MID+9*(int_t(Sample::MAX)-Sample::MID)/10
   };
 
   bool ShowIfError(const Error& e)
@@ -79,24 +75,32 @@ namespace
     {
     }
     
-    virtual void ApplyData(const OutputSample& data)
+    virtual void ApplyData(const Sample& data)
     {
-      for (uint_t chan = 0; chan != data.size(); ++chan)
+      if (Check(data.Left(), ToCompare.Left()) && Check(data.Right(), ToCompare.Right()))
       {
-        if (Math::Absolute(int_t(data[chan]) - ToCompare) > THRESHOLD)
-          throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%3%>",
-            data[0], data[1], ToCompare);
+        std::cout << "passed\n";
       }
-      std::cout << "Passed";
+      else
+      {
+        std::cout << "failed\n";
+        throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
+          data.Left(), data.Right(), ToCompare.Left(), ToCompare.Right());
+      }
     }
     
     virtual void Flush()
     {
     }
     
-    void SetData(const Sample& tc)
+    void SetData(const Sample::Type& tc)
     {
-      ToCompare = tc;
+      ToCompare = Sample(tc, tc);
+    }
+  private:
+    static bool Check(Sample::Type data, Sample::Type ref)
+    {
+      return Math::Absolute(int_t(data) - ref) <= THRESHOLD;
     }
   private:
     Sample ToCompare;
@@ -105,7 +109,7 @@ namespace
 
 int main()
 {
-  using namespace ZXTune::Sound;
+  using namespace Sound;
   
   try
   {
@@ -130,18 +134,17 @@ int main()
       throw Error(THIS_LINE, str);
     }
 
-    const Sample* result(OUTS);
+    const Sample::Type* result(OUTS);
     for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
     {
-      std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
+      std::cout << "--- Test for " << GAIN_NAMES[matrix] << " gain ---\n";
       gainer->SetGain(GAINS[matrix]);
       for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
       {
+        std::cout << "Checking for " << INPUT_NAMES[input] << " input: ";
         tgt->SetData(*result);
-        OutputSample in;
-        in.fill(INPUTS[input]);
+        const Sample in(INPUTS[input], INPUTS[input]);
         gainer->ApplyData(in);
-        std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
       }
     }
     std::cout << " Succeed!" << std::endl;
@@ -149,5 +152,6 @@ int main()
   catch (const Error& e)
   {
     std::cerr << e.ToString();
+    return 1;
   }
 }

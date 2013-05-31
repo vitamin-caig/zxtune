@@ -109,7 +109,7 @@ namespace
 
     void FillDevices()
     {
-      using namespace ZXTune::Sound;
+      using namespace Sound;
       for (DirectSound::Device::Iterator::Ptr availableDevices = DirectSound::EnumerateDevices();
         availableDevices->IsValid(); availableDevices->Next())
       {
@@ -127,7 +127,7 @@ namespace
       {
       }
 
-      explicit Device(const ZXTune::Sound::DirectSound::Device& in)
+      explicit Device(const Sound::DirectSound::Device& in)
         : Name(ToQString(in.Name()))
         , Id(in.Id())
       {

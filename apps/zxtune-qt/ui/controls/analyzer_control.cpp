@@ -85,13 +85,13 @@ namespace
       const unsigned UPDATE_FPS = 10;
       Timer.setInterval(1000 / UPDATE_FPS);
 
-      Require(connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(ZXTune::Sound::Backend::Ptr))));
+      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr))));
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
       Require(connect(&Timer, SIGNAL(timeout()), SLOT(UpdateState())));
     }
 
-    virtual void InitState(ZXTune::Sound::Backend::Ptr player)
+    virtual void InitState(Sound::Backend::Ptr player)
     {
       Analyzer = player->GetAnalyzer();
       CloseState();

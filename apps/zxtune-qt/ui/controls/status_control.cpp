@@ -38,13 +38,13 @@ namespace
       //setup self
       setupUi(this);
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
+      this->connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr)));
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
     }
 
-    virtual void InitState(ZXTune::Sound::Backend::Ptr player)
+    virtual void InitState(Sound::Backend::Ptr player)
     {
       TrackState = player->GetTrackState();
       CloseState();

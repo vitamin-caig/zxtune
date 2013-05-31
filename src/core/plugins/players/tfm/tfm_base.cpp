@@ -14,7 +14,6 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <sound/sample_convert.h>
 #include <sound/mixer_factory.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -39,7 +38,8 @@ namespace
     virtual void ApplyData(const Devices::TFM::Sample& data)
     {
       BOOST_STATIC_ASSERT(Sound::OneChannelReceiver::InDataType::static_size == 1);
-      Data[0] = Sound::ToSample(data);
+      //TODO
+      Data[0] = data ^ 0x8000;
       Target->ApplyData(Data);
     }
 

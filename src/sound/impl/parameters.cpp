@@ -13,11 +13,11 @@ Author:
 #include <zxtune.h>
 #include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
-#include <sound/sound_types.h>
+#include <sound/gain.h>
 
 namespace
 {
-  BOOST_STATIC_ASSERT(ZXTune::Sound::OUTPUT_CHANNELS == 2);
+  BOOST_STATIC_ASSERT(Sound::Gain::CHANNELS == 2);
 
   struct MixerValue
   {

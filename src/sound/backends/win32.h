@@ -18,25 +18,22 @@ Author:
 //boost includes
 #include <boost/shared_ptr.hpp>
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  namespace Win32
   {
-    namespace Win32
+    class Device
     {
-      class Device
-      {
-      public:
-        typedef boost::shared_ptr<const Device> Ptr;
-        typedef ObjectIterator<Ptr> Iterator;
-        virtual ~Device() {}
+    public:
+      typedef boost::shared_ptr<const Device> Ptr;
+      typedef ObjectIterator<Ptr> Iterator;
+      virtual ~Device() {}
 
-        virtual int_t Id() const = 0;
-        virtual String Name() const = 0;
-      };
+      virtual int_t Id() const = 0;
+      virtual String Name() const = 0;
+    };
 
-      Device::Iterator::Ptr EnumerateDevices();
-    }
+    Device::Iterator::Ptr EnumerateDevices();
   }
 }
 

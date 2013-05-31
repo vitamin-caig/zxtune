@@ -13,8 +13,8 @@ Author:
 #include "dac_base.h"
 //library includes
 #include <core/core_parameters.h>
+#include <sound/multichannel_sample.h>
 #include <sound/render_params.h>
-#include <sound/sample_convert.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -57,8 +57,8 @@ namespace
     virtual void ApplyData(const Devices::DAC::MultiSoundSample& data)
     {
       assert(data.size() == Channels);
-      typename Sound::FixedChannelsSample<Channels>::Type out;
-      std::transform(data.begin(), data.end(), out.begin(), &Sound::ToSample<Devices::DAC::SoundSample>);
+      typename Sound::MultichannelSample<Channels>::Type out;
+      std::transform(data.begin(), data.end(), out.begin(), std::bind2nd(std::divides<uint_t>(), 2));
       Target->ApplyData(out);
     }
 

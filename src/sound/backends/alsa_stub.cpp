@@ -18,21 +18,19 @@ Author:
 //text includes
 #include "text/backends.h"
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterAlsaBackend(BackendsEnumerator& enumerator)
   {
-    void RegisterAlsaBackend(BackendsEnumerator& enumerator)
-    {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::ALSA_BACKEND_ID, L10n::translate("ALSA sound system backend"), CAP_TYPE_SYSTEM));
-    }
+    enumerator.RegisterCreator(CreateDisabledBackendStub(Text::ALSA_BACKEND_ID, L10n::translate("ALSA sound system backend"), CAP_TYPE_SYSTEM));
+  }
 
-    namespace Alsa
+  namespace Alsa
+  {
+    Device::Iterator::Ptr EnumerateDevices()
     {
-      Device::Iterator::Ptr EnumerateDevices()
-      {
-        return Device::Iterator::CreateStub();
-      }
+      return Device::Iterator::CreateStub();
     }
   }
 }
+

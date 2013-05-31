@@ -15,7 +15,6 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <math/numeric.h>
-#include <sound/sample_convert.h>
 #include <sound/mixer_factory.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -38,8 +37,9 @@ namespace
     virtual void ApplyData(const Devices::SAA::MultiSample& data)
     {
       BOOST_STATIC_ASSERT(Sound::TwoChannelsReceiver::InDataType::static_size == 2);
-      Data[0] = Sound::ToSample(data[0]);
-      Data[1] = Sound::ToSample(data[1]);
+      //TODO:
+      Data[0] = data[0] ^ 0x8000;
+      Data[1] = data[1] ^ 0x8000;
       Target->ApplyData(Data);
     }
 

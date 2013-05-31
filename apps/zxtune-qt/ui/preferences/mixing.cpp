@@ -18,8 +18,8 @@ Author:
 #include "supp/options.h"
 #include "ui/utils.h"
 //library includes
-#include <sound/sound_types.h>
 #include <sound/mixer_parameters.h>
+#include <sound/sample.h>
 //qt includes
 #include <QtGui/QLabel>
 
@@ -49,7 +49,7 @@ namespace
       for (uint_t inChan = 0; inChan != channels; ++inChan)
       {
         channelNames->addWidget(new QLabel(QLatin1String(INPUT_CHANNEL_NAMES[inChan]), this));
-        for (uint_t outChan = 0; outChan != ZXTune::Sound::OUTPUT_CHANNELS; ++outChan)
+        for (uint_t outChan = 0; outChan != Sound::Sample::CHANNELS; ++outChan)
         {
           UI::MixerWidget* const mixer = UI::MixerWidget::Create(*this, static_cast<UI::MixerWidget::Channel>(outChan));
           channelValues->addWidget(mixer);

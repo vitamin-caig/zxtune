@@ -8,33 +8,30 @@
 **/
 
 #pragma once
-#ifndef __SOUND_BACKEND_ATTRS_H_DEFINED__
-#define __SOUND_BACKEND_ATTRS_H_DEFINED__
+#ifndef SOUND_BACKEND_ATTRS_H_DEFINED
+#define SOUND_BACKEND_ATTRS_H_DEFINED
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  //! @brief Set of backend capabilities
+  enum
   {
-    //! @brief Set of backend capabilities
-    enum
-    {
-      //! Type-related capabilities
-      CAP_TYPE_MASK = 0xff,
-      //! Stub purposes
-      CAP_TYPE_STUB = 1,
-      //! Real sound subsystem playback
-      CAP_TYPE_SYSTEM = 2,
-      //! Saving to file capabilities
-      CAP_TYPE_FILE = 4,
-      //! Specific devices playback
-      CAP_TYPE_HARDWARE = 8,
+    //! Type-related capabilities
+    CAP_TYPE_MASK = 0xff,
+    //! Stub purposes
+    CAP_TYPE_STUB = 1,
+    //! Real sound subsystem playback
+    CAP_TYPE_SYSTEM = 2,
+    //! Saving to file capabilities
+    CAP_TYPE_FILE = 4,
+    //! Specific devices playback
+    CAP_TYPE_HARDWARE = 8,
 
-      //! Features-related capabilities
-      CAP_FEAT_MASK = 0xff00,
-      //! Hardware volume control
-      CAP_FEAT_HWVOLUME = 0x100
-    };
-  }
+    //! Features-related capabilities
+    CAP_FEAT_MASK = 0xff00,
+    //! Hardware volume control
+    CAP_FEAT_HWVOLUME = 0x100
+  };
 }
 
-#endif //__SOUND_BACKEND_ATTRS_H_DEFINED__
+#endif //SOUND_BACKEND_ATTRS_H_DEFINED

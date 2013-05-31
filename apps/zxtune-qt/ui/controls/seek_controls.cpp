@@ -35,15 +35,15 @@ namespace
       timePosition->setRange(0, 0);
       this->connect(timePosition, SIGNAL(sliderReleased()), SLOT(EndSeeking()));
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
+      this->connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
       supp.connect(this, SIGNAL(OnSeeking(int)), SLOT(Seek(int)));
       timePosition->setStyle(new UI::ClickNGoSliderStyle(*timePosition));
     }
 
-    virtual void InitState(ZXTune::Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item)
+    virtual void InitState(Sound::Backend::Ptr player, Playlist::Item::Data::Ptr item)
     {
       Item = item;
       TrackState = player->GetTrackState();

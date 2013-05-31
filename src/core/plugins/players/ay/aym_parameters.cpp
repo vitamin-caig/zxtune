@@ -21,7 +21,7 @@ Author:
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/render_params.h>
-#include <sound/sound_types.h>
+#include <sound/sample.h>
 //std includes
 #include <cstring>
 #include <numeric>
@@ -103,18 +103,13 @@ namespace
     }
   }
 
-  Sound::Sample ToSample(Devices::AYM::Sample in)
-  {
-    return Sound::SAMPLE_MID + in / 2;
-  }
-
   Devices::AYM::VolTable PrepareVolumeTable(const Devices::AYM::VolTable& in)
   {
     Devices::AYM::VolTable res;
     for (uint_t idx = 0; idx != res.size(); ++idx)
     {
       //should be compilation error in case of different types
-      res[idx] = ToSample(in[idx]);
+      res[idx] = 0x8000 + in[idx] / 2;
     }
     return res;
   }

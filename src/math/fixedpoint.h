@@ -29,28 +29,26 @@ namespace Math
     }
 
     template<class P>
-    explicit FixedPoint(P integer)
-      : Value(integer * PRECISION)
+    explicit FixedPoint(P val)
+      : Value(val * PRECISION)
     {
     }
 
     template<class N, class D>
     FixedPoint(N nominator, D denominator)
     {
-      if (denominator != PRECISION)
-      {
-        const std::pair<N, D> opt = OptimizeRatio(nominator, denominator);
-        Value = opt.first * PRECISION / opt.second;
-      }
-      else
-      {
-        Value = nominator;
-      }
+      Set(nominator, denominator);
     }
 
     FixedPoint(const FixedPoint<T, Precision>& rh)
       : Value(rh.Value)
     {
+    }
+
+    template<class T1, unsigned Precision1>
+    FixedPoint(const FixedPoint<T1, Precision1>& rh)
+    {
+      Set(rh.Value, Precision1);
     }
 
     T Integer() const
@@ -63,9 +61,10 @@ namespace Math
       return Value % Precision;
     }
 
-    FixedPoint<T, Precision>& operator = (T rh)
+    template<class P>
+    FixedPoint<T, Precision>& operator = (P rh)
     {
-      Value = rh * Precision;
+      Value = static_cast<T>(rh * Precision);
       return *this;
     }
 
@@ -99,22 +98,6 @@ namespace Math
     {
       Value -= rh.Value;
       return *this;
-    }
-
-    template<class P>
-    bool operator < (P rh) const
-    {
-      return Integer() < rh;
-    }
-
-    bool operator < (const FixedPoint<T, Precision>& rh) const
-    {
-      return Value < rh.Value;
-    }
-
-    bool operator > (const FixedPoint<T, Precision>& rh) const
-    {
-      return Value > rh.Value;
     }
 
     FixedPoint<T, Precision> operator + (const FixedPoint<T, Precision>& rh) const
@@ -159,6 +142,34 @@ namespace Math
       return res;
     }
 
+    /*
+    template<class P>
+    bool operator < (P rh) const
+    {
+      return Integer() < rh;
+    }
+    */
+
+    bool operator < (const FixedPoint<T, Precision>& rh) const
+    {
+      return Value < rh.Value;
+    }
+
+    bool operator <= (const FixedPoint<T, Precision>& rh) const
+    {
+      return Value <= rh.Value;
+    }
+
+    bool operator > (const FixedPoint<T, Precision>& rh) const
+    {
+      return Value > rh.Value;
+    }
+
+    bool operator >= (const FixedPoint<T, Precision>& rh) const
+    {
+      return Value >= rh.Value;
+    }
+
     bool operator == (const FixedPoint<T, Precision>& rh) const
     {
       return Value == rh.Value;
@@ -168,6 +179,23 @@ namespace Math
     {
       return Value != rh.Value;
     }
+  private:
+    template<class N, class D>
+    void Set(N nominator, D denominator)
+    {
+      if (denominator != static_cast<D>(PRECISION))
+      {
+        const std::pair<N, D> opt = OptimizeRatio(nominator, denominator);
+        Value = opt.first * PRECISION / opt.second;
+      }
+      else
+      {
+        Value = nominator;
+      }
+    }
+
+    template<typename, unsigned>
+    friend class FixedPoint;
   private:
     T Value;
   };

@@ -25,11 +25,8 @@ Author:
 
 #define FILE_TAG AE42FD5E
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
-
   const Debug::Stream Dbg("Sound::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
@@ -102,29 +99,26 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  BackendsEnumerator& BackendsEnumerator::Instance()
   {
-    BackendsEnumerator& BackendsEnumerator::Instance()
-    {
-      static BackendsEnumeratorImpl instance;
-      return instance;
-    }
+    static BackendsEnumeratorImpl instance;
+    return instance;
+  }
 
-    BackendCreator::Iterator::Ptr EnumerateBackends()
-    {
-      return BackendsEnumerator::Instance().Enumerate();
-    }
+  BackendCreator::Iterator::Ptr EnumerateBackends()
+  {
+    return BackendsEnumerator::Instance().Enumerate();
+  }
 
-    BackendCreator::Ptr CreateDisabledBackendStub(const String& id, const char* description, uint_t caps)
-    {
-      return CreateUnavailableBackendStub(id, description, caps, Error(THIS_LINE, translate("Not supported in current configuration")));
-    }
+  BackendCreator::Ptr CreateDisabledBackendStub(const String& id, const char* description, uint_t caps)
+  {
+    return CreateUnavailableBackendStub(id, description, caps, Error(THIS_LINE, translate("Not supported in current configuration")));
+  }
 
-    BackendCreator::Ptr CreateUnavailableBackendStub(const String& id, const char* description, uint_t caps, const Error& status)
-    {
-      return boost::make_shared<UnavailableBackend>(id, description, caps, status);
-    }
+  BackendCreator::Ptr CreateUnavailableBackendStub(const String& id, const char* description, uint_t caps, const Error& status)
+  {
+    return boost::make_shared<UnavailableBackend>(id, description, caps, status);
   }
 }

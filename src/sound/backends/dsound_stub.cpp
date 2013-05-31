@@ -17,21 +17,19 @@ Author:
 //text includes
 #include "text/backends.h"
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
   {
-    void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
-    {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::DSOUND_BACKEND_ID, L10n::translate("DirectSound support backend."), CAP_TYPE_SYSTEM));
-    }
+    enumerator.RegisterCreator(CreateDisabledBackendStub(Text::DSOUND_BACKEND_ID, L10n::translate("DirectSound support backend."), CAP_TYPE_SYSTEM));
+  }
 
-    namespace DirectSound
+  namespace DirectSound
+  {
+    Device::Iterator::Ptr EnumerateDevices()
     {
-      Device::Iterator::Ptr EnumerateDevices()
-      {
-        return Device::Iterator::CreateStub();
-      }
+      return Device::Iterator::CreateStub();
     }
   }
 }
+

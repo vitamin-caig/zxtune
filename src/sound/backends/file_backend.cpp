@@ -36,39 +36,36 @@ namespace
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 }
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune;
-  using namespace Sound;
-
-  const Char COMMON_FILE_BACKEND_ID[] = {'f', 'i', 'l', 'e', '\0'};
-
+namespace File
+{
   class StateFieldsSource : public Strings::SkipFieldsSource
   {
   public:
-    explicit StateFieldsSource(const Module::TrackState& state)
+    explicit StateFieldsSource(const ZXTune::Module::TrackState& state)
       : State(state)
     {
     }
 
     String GetFieldValue(const String& fieldName) const
     {
-      if (fieldName == Module::ATTR_CURRENT_POSITION)
+      if (fieldName == ZXTune::Module::ATTR_CURRENT_POSITION)
       {
         return Parameters::ConvertToString(State.Position());
       }
-      else if (fieldName == Module::ATTR_CURRENT_PATTERN)
+      else if (fieldName == ZXTune::Module::ATTR_CURRENT_PATTERN)
       {
         return Parameters::ConvertToString(State.Pattern());
       }
-      else if (fieldName == Module::ATTR_CURRENT_LINE)
+      else if (fieldName == ZXTune::Module::ATTR_CURRENT_LINE)
       {
         return Parameters::ConvertToString(State.Line());
       }
       return Strings::SkipFieldsSource::GetFieldValue(fieldName);
     }
   private:
-    const Module::TrackState& State;
+    const ZXTune::Module::TrackState& State;
   };
 
   class TrackStateTemplate
@@ -76,14 +73,14 @@ namespace
   public:
     explicit TrackStateTemplate(const String& templ)
       : Template(Strings::Template::Create(templ))
-      , CurPosition(HasField(templ, Module::ATTR_CURRENT_POSITION))
-      , CurPattern(HasField(templ, Module::ATTR_CURRENT_PATTERN))
-      , CurLine(HasField(templ, Module::ATTR_CURRENT_LINE))
+      , CurPosition(HasField(templ, ZXTune::Module::ATTR_CURRENT_POSITION))
+      , CurPattern(HasField(templ, ZXTune::Module::ATTR_CURRENT_PATTERN))
+      , CurLine(HasField(templ, ZXTune::Module::ATTR_CURRENT_LINE))
       , Result(Template->Instantiate(Strings::SkipFieldsSource()))
     {
     }
 
-    String Instantiate(const Module::TrackState& state) const
+    String Instantiate(const ZXTune::Module::TrackState& state) const
     {
       if (CurPosition.Update(state.Position()) ||
           CurPattern.Update(state.Pattern()) ||
@@ -211,7 +208,7 @@ namespace
     {
     }
 
-    ChunkStream::Ptr GetStream(const Module::TrackState& state) const
+    ChunkStream::Ptr GetStream(const ZXTune::Module::TrackState& state) const
     {
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
@@ -235,15 +232,15 @@ namespace
     void SetProperties(FileStream& stream) const
     {
       Parameters::StringType str;
-      if (Properties->FindValue(Module::ATTR_TITLE, str) && !str.empty())
+      if (Properties->FindValue(ZXTune::Module::ATTR_TITLE, str) && !str.empty())
       {
         stream.SetTitle(str);
       }
-      if (Properties->FindValue(Module::ATTR_AUTHOR, str) && !str.empty())
+      if (Properties->FindValue(ZXTune::Module::ATTR_AUTHOR, str) && !str.empty())
       {
         stream.SetAuthor(str);
       }
-      if (Properties->FindValue(Module::ATTR_COMMENT, str) && !str.empty())
+      if (Properties->FindValue(ZXTune::Module::ATTR_COMMENT, str) && !str.empty())
       {
         stream.SetComment(str);
       }
@@ -262,10 +259,10 @@ namespace
     mutable String Filename;
   };
 
-  class FileBackendWorker : public BackendWorker, public BackendCallback
+  class BackendWorker : public Sound::BackendWorker, public Sound::BackendCallback
   {
   public:
-    FileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
+    BackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
       : Params(params)
       , Factory(factory)
       , Stream(ChunkStream::CreateStub())
@@ -309,13 +306,13 @@ namespace
     }
 
     //BackendCallback
-    virtual void OnStart(Module::Holder::Ptr module)
+    virtual void OnStart(ZXTune::Module::Holder::Ptr module)
     {
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
       Source.reset(new StreamSource(Params, Factory, props));
     }
 
-    virtual void OnFrame(const Module::TrackState& state)
+    virtual void OnFrame(const ZXTune::Module::TrackState& state)
     {
       if (ChunkStream::Ptr newStream = Source->GetStream(state))
       {
@@ -352,15 +349,14 @@ namespace
     std::auto_ptr<StreamSource> Source;
     ChunkStream::Ptr Stream;
   };
-}
+}//File
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
   {
-    BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
-    {
-      return boost::make_shared<FileBackendWorker>(params, factory);
-    }
+    return boost::make_shared<File::BackendWorker>(params, factory);
   }
 }
+

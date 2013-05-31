@@ -15,9 +15,9 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Sound
 {
-  class RenderParametersImpl : public ZXTune::Sound::RenderParameters
+  class RenderParametersImpl : public RenderParameters
   {
   public:
     explicit RenderParametersImpl(Parameters::Accessor::Ptr params)
@@ -61,13 +61,10 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  RenderParameters::Ptr RenderParameters::Create(Parameters::Accessor::Ptr soundParameters)
   {
-    RenderParameters::Ptr RenderParameters::Create(Parameters::Accessor::Ptr soundParameters)
-    {
-      return boost::make_shared<RenderParametersImpl>(soundParameters);
-    }
+    return boost::make_shared<RenderParametersImpl>(soundParameters);
   }
 }

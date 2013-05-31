@@ -104,7 +104,7 @@ namespace
       //connect root actions
       Require(Playlist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev())));
       Require(Playlist->connect(Controls, SIGNAL(OnNext()), SLOT(Next())));
-      Require(Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play())));
+      Require(Playlist->connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play())));
       Require(Playlist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play())));
       Require(Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause())));
       Require(Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop())));

@@ -19,28 +19,25 @@ Author:
 //boost includes
 #include <boost/shared_ptr.hpp>
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  namespace Alsa
   {
-    namespace Alsa
+    class Device
     {
-      class Device
-      {
-      public:
-        typedef boost::shared_ptr<const Device> Ptr;
-        typedef ObjectIterator<Ptr> Iterator;
-        virtual ~Device() {}
+    public:
+      typedef boost::shared_ptr<const Device> Ptr;
+      typedef ObjectIterator<Ptr> Iterator;
+      virtual ~Device() {}
 
-        virtual String Id() const = 0;
-        virtual String Name() const = 0;
-        virtual String CardName() const = 0;
+      virtual String Id() const = 0;
+      virtual String Name() const = 0;
+      virtual String CardName() const = 0;
 
-        virtual Strings::Array Mixers() const = 0;
-      };
+      virtual Strings::Array Mixers() const = 0;
+    };
 
-      Device::Iterator::Ptr EnumerateDevices();
-    }
+    Device::Iterator::Ptr EnumerateDevices();
   }
 }
 

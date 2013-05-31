@@ -111,10 +111,10 @@ namespace
     const Parameters::Container::Ptr Params;
   };
 
-  class CreateBackendParams : public ZXTune::Sound::CreateBackendParameters
+  class CreateBackendParams : public Sound::CreateBackendParameters
   {
   public:
-    CreateBackendParams(const CommonBackendParameters& params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback)
+    CreateBackendParams(const CommonBackendParameters& params, ZXTune::Module::Holder::Ptr module, Sound::BackendCallback::Ptr callback)
       : Params(params)
       , Module(module)
       , Callback(callback)
@@ -131,30 +131,30 @@ namespace
       return Module;
     }
 
-    virtual ZXTune::Sound::BackendCallback::Ptr GetCallback() const
+    virtual Sound::BackendCallback::Ptr GetCallback() const
     {
       return Callback;
     }
   private:
     const CommonBackendParameters& Params;
     const ZXTune::Module::Holder::Ptr Module;
-    const ZXTune::Sound::BackendCallback::Ptr Callback;
+    const Sound::BackendCallback::Ptr Callback;
   };
 
-  class Sound : public SoundComponent
+  class Component : public SoundComponent
   {
-    typedef std::list<std::pair<ZXTune::Sound::BackendCreator::Ptr, String> > PerBackendOptions;
+    typedef std::list<std::pair<Sound::BackendCreator::Ptr, String> > PerBackendOptions;
   public:
-    explicit Sound(Parameters::Container::Ptr configParams)
+    explicit Component(Parameters::Container::Ptr configParams)
       : Params(new CommonBackendParameters(configParams))
       , OptionsDescription(Text::SOUND_SECTION)
       , Looped(false)
     {
       using namespace boost::program_options;
-      for (ZXTune::Sound::BackendCreator::Iterator::Ptr backends = ZXTune::Sound::EnumerateBackends();
+      for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
         backends->IsValid(); backends->Next())
       {
-        const ZXTune::Sound::BackendCreator::Ptr creator = backends->Get();
+        const Sound::BackendCreator::Ptr creator = backends->Get();
         if (creator->Status())
         {
           continue;
@@ -187,7 +187,7 @@ namespace
         {
           if (it->second != NOTUSED_MARK && !it->second.empty())
           {
-            const ZXTune::Sound::BackendCreator::Ptr creator = it->first;
+            const Sound::BackendCreator::Ptr creator = it->first;
             Params->SetBackendParameters(creator->Id(), it->second);
           }
         }
@@ -200,17 +200,17 @@ namespace
     {
     }
 
-    virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint, ZXTune::Sound::BackendCallback::Ptr callback)
+    virtual Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint, Sound::BackendCallback::Ptr callback)
     {
-      const ZXTune::Sound::CreateBackendParameters::Ptr createParams(new CreateBackendParams(*Params, module, callback));
-      ZXTune::Sound::Backend::Ptr backend;
+      const Sound::CreateBackendParameters::Ptr createParams(new CreateBackendParams(*Params, module, callback));
+      Sound::Backend::Ptr backend;
       if (!Creator)
       {
-        std::list<ZXTune::Sound::BackendCreator::Ptr> backends;
+        std::list<Sound::BackendCreator::Ptr> backends;
         {
           for (PerBackendOptions::const_iterator it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim; ++it)
           {
-            const ZXTune::Sound::BackendCreator::Ptr creator = it->first;
+            const Sound::BackendCreator::Ptr creator = it->first;
             if (it->second != NOTUSED_MARK || creator->Id() == typeHint)
             {
               backends.push_back(creator);
@@ -224,7 +224,7 @@ namespace
             boost::mem_fn(&PerBackendOptions::value_type::first));
         }
 
-        for (std::list<ZXTune::Sound::BackendCreator::Ptr>::const_iterator it =
+        for (std::list<Sound::BackendCreator::Ptr>::const_iterator it =
           backends.begin(), lim = backends.end(); it != lim; ++it)
         {
           Dbg("Trying backend %1%", (*it)->Id());
@@ -269,11 +269,11 @@ namespace
 
     bool Looped;
 
-    ZXTune::Sound::BackendCreator::Ptr Creator;
+    Sound::BackendCreator::Ptr Creator;
   };
 }
 
 std::auto_ptr<SoundComponent> SoundComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::auto_ptr<SoundComponent>(new Sound(configParams));
+  return std::auto_ptr<SoundComponent>(new Component(configParams));
 }

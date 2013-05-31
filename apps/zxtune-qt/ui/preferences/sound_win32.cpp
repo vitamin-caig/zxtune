@@ -43,7 +43,7 @@ namespace
     {
     }
 
-    explicit Device(const ZXTune::Sound::Win32::Device& in)
+    explicit Device(const Sound::Win32::Device& in)
       : Name(ToQString(in.Name()))
       , Id(in.Id())
     {
@@ -129,7 +129,7 @@ namespace
 
     void FillDevices()
     {
-      using namespace ZXTune::Sound;
+      using namespace Sound;
       for (Win32::Device::Iterator::Ptr availableDevices = Win32::EnumerateDevices();
         availableDevices->IsValid(); availableDevices->Next())
       {

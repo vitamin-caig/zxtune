@@ -47,13 +47,13 @@ namespace
     StdOut << dump;
   }
 
-  inline Char StateSymbol(ZXTune::Sound::PlaybackControl::State state)
+  inline Char StateSymbol(Sound::PlaybackControl::State state)
   {
     switch (state)
     {
-    case ZXTune::Sound::PlaybackControl::STARTED:
+    case Sound::PlaybackControl::STARTED:
       return '>';
-    case ZXTune::Sound::PlaybackControl::PAUSED:
+    case Sound::PlaybackControl::PAUSED:
       return '#';
     default:
       return '\?';
@@ -101,7 +101,7 @@ namespace
       }
     }
 
-    virtual void SetModule(ZXTune::Module::Holder::Ptr module, ZXTune::Sound::Backend::Ptr player, Time::Microseconds frameDuration)
+    virtual void SetModule(ZXTune::Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration)
     {
       const ZXTune::Module::Information::Ptr info = module->GetModuleInformation();
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
@@ -128,7 +128,7 @@ namespace
           Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount());
     }
 
-    virtual uint_t BeginFrame(ZXTune::Sound::PlaybackControl::State state)
+    virtual uint_t BeginFrame(Sound::PlaybackControl::State state)
     {
       const uint_t curFrame = TrackState->Frame();
       if (Silent || Quiet)
@@ -176,7 +176,7 @@ namespace
       }
     }
   private:
-    void ShowPlaybackStatus(uint_t frame, ZXTune::Sound::PlaybackControl::State state) const
+    void ShowPlaybackStatus(uint_t frame, Sound::PlaybackControl::State state) const
     {
       const Char MARKER = '\x1';
       String data = Strings::Format(Text::PLAYBACK_STATUS, Time::MicrosecondsDuration(frame, FrameDuration).ToString(), MARKER);

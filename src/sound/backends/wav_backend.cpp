@@ -33,11 +33,8 @@ Author:
 
 #define FILE_TAG EF5CB4C6
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
-
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
 #ifdef USE_PRAGMA_PACK
@@ -102,8 +99,6 @@ namespace
    - RIFF stands for Resource Interchange File Format. 
   */
  
-  const bool SamplesShouldBeConverted = sizeof(Sample) > 1 && !SAMPLE_SIGNED;
-
   class ListMetadata : public Dump
   {
   public:
@@ -181,12 +176,12 @@ namespace
       std::memcpy(Format.Type, WAVEfmt, sizeof(WAVEfmt));
       Format.ChunkSize = fromLE<uint32_t>(16);
       Format.Compression = fromLE<uint16_t>(1);//PCM
-      Format.Channels = fromLE<uint16_t>(OUTPUT_CHANNELS);
+      Format.Channels = fromLE<uint16_t>(Sample::CHANNELS);
       std::memcpy(Format.DataId, DATA, sizeof(DATA));
       Format.Samplerate = fromLE(static_cast<uint32_t>(soundFreq));
-      Format.BytesPerSec = fromLE(static_cast<uint32_t>(soundFreq * sizeof(OutputSample)));
-      Format.Align = fromLE<uint16_t>(sizeof(OutputSample));
-      Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
+      Format.BytesPerSec = fromLE(static_cast<uint32_t>(soundFreq * sizeof(Sample)));
+      Format.Align = fromLE<uint16_t>(sizeof(Sample));
+      Format.BitsPerSample = fromLE<uint16_t>(Sample::BITS);
       Flush();
     }
 
@@ -211,9 +206,13 @@ namespace
 
     virtual void ApplyData(const ChunkPtr& data)
     {
-      if (SamplesShouldBeConverted)
+      if (Sample::BITS == 16)
       {
-        data->ChangeSign();
+        data->ToS16();
+      }
+      else
+      {
+        data->ToU8();
       }
       const std::size_t sizeInBytes = data->size() * sizeof(data->front());
       Stream->ApplyData(Binary::DataAdapter(&data->front(), sizeInBytes));
@@ -310,14 +309,11 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterWavBackend(BackendsEnumerator& enumerator)
   {
-    void RegisterWavBackend(BackendsEnumerator& enumerator)
-    {
-      const BackendCreator::Ptr creator(new WavBackendCreator());
-      enumerator.RegisterCreator(creator);
-    }
+    const BackendCreator::Ptr creator(new WavBackendCreator());
+    enumerator.RegisterCreator(creator);
   }
 }

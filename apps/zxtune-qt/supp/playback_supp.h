@@ -38,7 +38,7 @@ public slots:
   virtual void Pause() = 0;
   virtual void Seek(int frame) = 0;
 signals:
-  void OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr);
+  void OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr);
   void OnUpdateState();
   void OnPauseModule();
   void OnResumeModule();
@@ -47,6 +47,6 @@ signals:
   void ErrorOccurred(const Error&);
 };
 
-ZXTune::Sound::CreateBackendParameters::Ptr MakeBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, ZXTune::Sound::BackendCallback::Ptr callback);
+Sound::CreateBackendParameters::Ptr MakeBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module, Sound::BackendCallback::Ptr callback);
 
 #endif //ZXTUNE_PLAYBACK_SUPP_H_DEFINED

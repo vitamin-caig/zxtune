@@ -53,10 +53,10 @@ namespace
   Strings::Array GetSystemBackends(Parameters::Accessor::Ptr params)
   {
     Strings::Array result;
-    const ZXTune::Sound::BackendsScope::Ptr scope = ZXTune::Sound::BackendsScope::CreateSystemScope(params);
-    for (ZXTune::Sound::BackendCreator::Iterator::Ptr it = scope->Enumerate(); it->IsValid(); it->Next())
+    const Sound::BackendsScope::Ptr scope = Sound::BackendsScope::CreateSystemScope(params);
+    for (Sound::BackendCreator::Iterator::Ptr it = scope->Enumerate(); it->IsValid(); it->Next())
     {
-      const ZXTune::Sound::BackendCreator::Ptr creator = it->Get();
+      const Sound::BackendCreator::Ptr creator = it->Get();
       result.push_back(creator->Id());
     }
     return result;

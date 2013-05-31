@@ -22,9 +22,9 @@ namespace Benchmark
     template<unsigned Channels>
     double Test(const Time::Milliseconds& duration, uint_t soundFreq)
     {
-      const typename ZXTune::Sound::FixedChannelsMixer<Channels>::Ptr mixer = ZXTune::Sound::FixedChannelsMatrixMixer<Channels>::Create();
+      const typename Sound::FixedChannelsMixer<Channels>::Ptr mixer = Sound::FixedChannelsMatrixMixer<Channels>::Create();
 
-      typename ZXTune::Sound::FixedChannelsSample<Channels>::Type input;
+      typename Sound::MultichannelSample<Channels>::Type input;
       const Timer timer;
       const uint_t totalFrames = uint64_t(duration.Get()) * soundFreq / duration.PER_SECOND;
       for (uint_t frame = 0; frame != totalFrames; ++frame)
