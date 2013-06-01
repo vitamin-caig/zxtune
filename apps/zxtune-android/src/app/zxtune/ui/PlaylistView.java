@@ -16,12 +16,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.R;
-import app.zxtune.playlist.Query;
 import app.zxtune.playlist.Item;
+import app.zxtune.playlist.Query;
 
 public class PlaylistView extends ListView
     implements

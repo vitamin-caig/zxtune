@@ -10,6 +10,7 @@ import java.util.concurrent.Exchanger;
 
 import android.os.Process;
 import android.util.Log;
+import app.zxtune.TimeStamp;
 
 /**
  * 
@@ -33,7 +34,7 @@ final class SyncPlayer implements Player {
   }
 
   @Override
-  public void play() {
+  public void startPlayback() {
     try {
       startConsumeThread();
       produceCycle();
@@ -49,14 +50,24 @@ final class SyncPlayer implements Player {
   }
 
   @Override
-  public void stop() {
+  public void stopPlayback() {
     assert isActive;
     isActive = false;
   }
   
   @Override
-  public boolean isPlaying() {
+  public void setPosition(TimeStamp pos) {
+    source.setPosition(pos);
+  }
+  
+  @Override
+  public boolean isStarted() {
     return isActive;
+  }
+  
+  @Override
+  public TimeStamp getPosition() {
+    return source.getPosition();
   }
 
   @Override

@@ -8,6 +8,7 @@ package app.zxtune.sound;
 
 import android.os.Process;
 import android.util.Log;
+import app.zxtune.TimeStamp;
 
 /**
  * Asynchronous player state machine
@@ -35,20 +36,31 @@ final public class AsyncPlayer implements Player {
   }
 
   @Override
-  public synchronized void play() {
+  public synchronized void startPlayback() {
     Log.d(TAG, "Play");
-    state.play();
+    state.startPlayback();
   }
 
   @Override
-  public synchronized void stop() {
+  public synchronized void stopPlayback() {
     Log.d(TAG, "Stop");
-    state.stop();
+    state.stopPlayback();
   }
   
   @Override
-  public synchronized boolean isPlaying() {
-    return state.isPlaying();
+  public synchronized void setPosition(TimeStamp position) {
+    Log.d(TAG, "Seek");
+    state.setPosition(position);
+  }
+  
+  @Override
+  public synchronized boolean isStarted() {
+    return state.isStarted();
+  }
+  
+  @Override
+  public synchronized TimeStamp getPosition() {
+    return state.getPosition();
   }
 
   @Override
@@ -109,7 +121,7 @@ final public class AsyncPlayer implements Player {
     }
 
     @Override
-    public void play() {
+    public void startPlayback() {
       playThread = new PlayThread();
       playThread.start();
       waitForStateChange();
@@ -123,14 +135,9 @@ final public class AsyncPlayer implements Player {
     }
     
     @Override
-    public boolean isPlaying() {
-      return true;
-    }
-
-    @Override
-    public void stop() {
+    public void stopPlayback() {
       try {
-        sync.stop();
+        sync.stopPlayback();
         waitForStateChange();
         playThread.join();
         playThread = null;
@@ -139,13 +146,28 @@ final public class AsyncPlayer implements Player {
         e.printStackTrace();
       }
     }
+
+    @Override
+    public void setPosition(TimeStamp position) {
+      sync.setPosition(position);
+    }
+    
+    @Override
+    public boolean isStarted() {
+      return true;
+    }
+    
+    @Override
+    public TimeStamp getPosition() {
+      return sync.getPosition();
+    }
   }
 
   private class PlayThread extends Thread {
     @Override
     public void run() {
       Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
-      sync.play();
+      sync.startPlayback();
     }
   };
 }

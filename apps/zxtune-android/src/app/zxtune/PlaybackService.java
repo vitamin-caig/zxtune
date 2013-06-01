@@ -254,7 +254,7 @@ public class PlaybackService extends Service {
 
     @Override
     public TimeStamp getPlaybackPosition() {
-      return source != null ? source.getPosition() : null;
+      return player.getPosition();
     }
 
     @Override
@@ -264,7 +264,7 @@ public class PlaybackService extends Service {
 
     @Override
     public boolean isPlaying() {
-      return player.isPlaying();
+      return player.isStarted();
     }
 
     @Override
@@ -273,6 +273,9 @@ public class PlaybackService extends Service {
       try {
         stop();
         item = openItem(uri);
+        if (player != null) {
+          player.release();
+        }
         source = new PlaybackSamplesSource(item.createPlayer());
         player = AsyncPlayer.create(source, new PlaybackEvents(callback));
         callback.onItemChanged(item);
@@ -282,22 +285,17 @@ public class PlaybackService extends Service {
 
     @Override
     public void play() {
-      Log.d(TAG, "play()");
-      player.play();
+      player.startPlayback();
     }
     
     @Override
     public void stop() {
-      Log.d(TAG, "stop()");
-      player.stop();
+      player.stopPlayback();
     }
     
     @Override
     public void setPlaybackPosition(TimeStamp pos) {
-      Log.d(TAG, "seek()");
-      if (source != null) {
-        source.setPosition(pos);
-      }
+      player.setPosition(pos);
     }
   }
   
@@ -350,24 +348,24 @@ public class PlaybackService extends Service {
     }
 
     @Override
+    public TimeStamp getPosition() {
+      final int frame = player.getPosition();
+      //TODO
+      return TimeStamp.createFrom(20 * frame, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public void setPosition(TimeStamp pos) {
+      final int frame = (int) (pos.convertTo(TimeUnit.MILLISECONDS) / 20);
+      player.setPosition(frame);
+    }
+    
+    @Override
     public void release() {
       player.release();
       player = null;
     }
     
-    public TimeStamp getPosition() {
-      final int frame = player != null ? player.getPosition() : 0;
-      //TODO
-      return TimeStamp.createFrom(20 * frame, TimeUnit.MILLISECONDS);
-    }
-    
-    public void setPosition(TimeStamp pos) {
-      final int frame = (int) (pos.convertTo(TimeUnit.MILLISECONDS) / 20);
-      if (player != null) {
-        player.setPosition(frame);
-      }
-    }
-
     public int[] getAnalysis() {
       return player != null ? getAnalysis(player) : null;
     }
