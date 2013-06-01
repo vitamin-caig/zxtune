@@ -21,10 +21,15 @@ Author:
 #include <sound/mixer_factory.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/type_traits/is_signed.hpp>
 
 namespace
 {
-  class BufferTarget : public ZXTune::Sound::Receiver
+  BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
+  BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
+  BOOST_STATIC_ASSERT(boost::is_signed<Sound::Sample::Type>::value);
+
+  class BufferTarget : public Sound::Receiver
   {
   public:
     typedef boost::shared_ptr<BufferTarget> Ptr;
@@ -34,7 +39,7 @@ namespace
     {
     }
     
-    virtual void ApplyData(const ZXTune::Sound::OutputSample& data)
+    virtual void ApplyData(const Sound::Sample& data)
     {
       Buffer.Put(&data, 1);
     }
@@ -45,24 +50,23 @@ namespace
 
     std::size_t GetSamples(std::size_t count, int16_t* target)
     {
-      using namespace ZXTune;
-      const Sound::OutputSample* part1 = 0;
+      const Sound::Sample* part1 = 0;
       std::size_t part1Size = 0;
-      const Sound::OutputSample* part2 = 0;
+      const Sound::Sample* part2 = 0;
       std::size_t part2Size = 0;
-      if (const std::size_t got = Buffer.Peek(count / Sound::OUTPUT_CHANNELS, part1, part1Size, part2, part2Size))
+      if (const std::size_t got = Buffer.Peek(count / Sound::Sample::CHANNELS, part1, part1Size, part2, part2Size))
       {
-        Sound::ChangeSignCopy(part1, part1 + part1Size, safe_ptr_cast<Sound::OutputSample*>(target));
+        std::memcpy(target, part1, part1Size * sizeof(*part1));
         if (part2)
         {
-          Sound::ChangeSignCopy(part2, part2 + part2Size, safe_ptr_cast<Sound::OutputSample*>(target) + part1Size);
+          std::memcpy(target + part1Size * Sound::Sample::CHANNELS, part2, part2Size * sizeof(*part2));
         }
-        return Buffer.Consume(got) * Sound::OUTPUT_CHANNELS;
+        return Buffer.Consume(got) * Sound::Sample::CHANNELS;
       }
       return 0;
     }
   private:
-    CycleBuffer<ZXTune::Sound::OutputSample> Buffer;
+    CycleBuffer<Sound::Sample> Buffer;
   };
 
   class PlayerControl : public Player::Control
