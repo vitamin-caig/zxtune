@@ -6,8 +6,11 @@
  */
 package app.zxtune.sound;
 
-class StubPlayerEventsListener implements PlayerEventsListener {
+public class StubPlayerEventsListener implements PlayerEventsListener {
 
+  // permit inheritance
+  protected StubPlayerEventsListener() {}
+  
   @Override
   public void onStart() {}
 

@@ -21,6 +21,8 @@ public final class TimeStamp implements Comparable<TimeStamp> {
     this.value = UNIT.convert(val, unit); 
   }
   
+  public static final TimeStamp EMPTY = createFrom(0, UNIT);
+  
   public static TimeStamp createFrom(long val, TimeUnit unit) {
     return new TimeStamp(val, unit);
   }

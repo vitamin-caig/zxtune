@@ -33,6 +33,8 @@ import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesSource;
 import app.zxtune.sound.StubPlayer;
+import app.zxtune.sound.StubVisualizer;
+import app.zxtune.sound.Visualizer;
 import app.zxtune.ui.StatusNotification;
 
 public class PlaybackService extends Service {
@@ -64,7 +66,7 @@ public class PlaybackService extends Service {
     Log.d(TAG, "Destroying");
     callHandler.unregister();
     callHandler = null;
-    ctrl.stop();
+    ctrl.release();
     stopSelf();
   }
 
@@ -115,6 +117,51 @@ public class PlaybackService extends Service {
   interface PlayableItem extends Item, Releaseable {
 
     public ZXTune.Player createPlayer();
+  }
+  
+  private static class StubPlayableItem implements PlayableItem {
+    
+    private static final String EMPTY_STRING = "";
+    
+    private StubPlayableItem() {
+    }
+    
+    public Uri getId() {
+      return Uri.EMPTY;
+    }
+
+    public Uri getDataId() {
+      return Uri.EMPTY;
+    }
+
+    public String getTitle() {
+      return EMPTY_STRING;
+    }
+
+    public String getAuthor() {
+      return EMPTY_STRING;
+    }
+
+    public TimeStamp getDuration() {
+      return TimeStamp.EMPTY;
+    }
+
+    public ZXTune.Player createPlayer() {
+      throw new IllegalStateException("Should not be called");
+    }
+
+    @Override
+    public void release() {
+    }
+
+    public static PlayableItem instance() {
+      return Holder.INSTANCE;
+    }
+
+    //onDemand holder idiom
+    private static class Holder {
+      public static final PlayableItem INSTANCE = new StubPlayableItem();
+    }  
   }
 
   private PlayableItem openItem(Uri uri) throws IOException {
@@ -218,6 +265,11 @@ public class PlaybackService extends Service {
     }
 
     @Override
+    public ZXTune.Player createPlayer() {
+      return module.createPlayer();
+    }
+
+    @Override
     public void release() {
       try {
         if (module != null) {
@@ -227,23 +279,20 @@ public class PlaybackService extends Service {
         module = null;
       }
     }
-
-    @Override
-    public ZXTune.Player createPlayer() {
-      return module.createPlayer();
-    }
   }
 
-  private class PlaybackControl implements Control {
+  private class PlaybackControl implements Control, Releaseable {
 
     private Callback callback;
     private PlayableItem item;
-    private PlaybackSamplesSource source;
     private Player player;
+    private Visualizer visualizer;
 
     PlaybackControl(Callback callback) {
       this.callback = callback;
-      this.player = new StubPlayer();
+      this.item = StubPlayableItem.instance();
+      this.player = StubPlayer.instance();
+      this.visualizer = StubVisualizer.instance();
       callback.onControlChanged(this);
     }
 
@@ -259,7 +308,15 @@ public class PlaybackService extends Service {
 
     @Override
     public int[] getSpectrumAnalysis() {
-      return source != null ? source.getAnalysis() : null;
+      final int MAX_VOICES = 16;
+      final int[] bands = new int[MAX_VOICES];
+      final int[] levels = new int[MAX_VOICES];
+      final int chans = visualizer.getSpectrum(bands, levels);
+      final int[] result = new int[chans];
+      for (int i = 0; i != chans; ++i) {
+        result[i] = 256 * levels[i] + bands[i];
+      }
+      return result;
     }
 
     @Override
@@ -271,13 +328,16 @@ public class PlaybackService extends Service {
     public void play(Uri uri) {
       Log.d(TAG, "play(" + uri + ")");
       try {
-        stop();
-        item = openItem(uri);
-        if (player != null) {
-          player.release();
-        }
-        source = new PlaybackSamplesSource(item.createPlayer());
-        player = AsyncPlayer.create(source, new PlaybackEvents(callback));
+        final PlayableItem newItem = openItem(uri);
+        final ZXTune.Player lowPlayer = newItem.createPlayer();
+        final SamplesSource source = new PlaybackSamplesSource(lowPlayer);
+        final PlayerEventsListener events = new PlaybackEvents(callback);
+        final Visualizer newVisualizer = new PlaybackVisualizer(lowPlayer);
+
+        release();
+        player = AsyncPlayer.create(source, events);
+        item = newItem;
+        visualizer = newVisualizer;
         callback.onItemChanged(item);
         play();
       } catch (IOException e) {}
@@ -296,6 +356,17 @@ public class PlaybackService extends Service {
     @Override
     public void setPlaybackPosition(TimeStamp pos) {
       player.setPosition(pos);
+    }
+    
+    @Override
+    public void release() {
+      stop();
+      visualizer = StubVisualizer.instance();
+      try {
+        player.release();
+      } finally {
+        player = StubPlayer.instance();
+      }
     }
   }
   
@@ -329,7 +400,7 @@ public class PlaybackService extends Service {
   
   private static final class PlaybackSamplesSource implements SamplesSource {
 
-    private volatile ZXTune.Player player;
+    private ZXTune.Player player;
     
     public PlaybackSamplesSource(ZXTune.Player player) {
       this.player = player;
@@ -365,20 +436,19 @@ public class PlaybackService extends Service {
       player.release();
       player = null;
     }
+  }
+  
+  private static final class PlaybackVisualizer implements Visualizer {
     
-    public int[] getAnalysis() {
-      return player != null ? getAnalysis(player) : null;
+    private final ZXTune.Player player;
+    
+    public PlaybackVisualizer(ZXTune.Player player) {
+      this.player = player;
     }
 
-    static private int[] getAnalysis(ZXTune.Player player) {
-      final int[] bands = new int[8];
-      final int[] levels = new int[8];
-      final int size = player.analyze(bands, levels);
-      final int[] result = new int[size];
-      for (int i = 0; i != size; ++i) {
-        result[i] = 256 * levels[i] + bands[i];
-      }
-      return result;
+    @Override
+    public int getSpectrum(int[] bands, int[] levels) {
+      return player.analyze(bands, levels);
     }
   }
 }

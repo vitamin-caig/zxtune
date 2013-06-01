@@ -6,13 +6,12 @@
  */
 package app.zxtune.sound;
 
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.TimeStamp;
 
 public class StubPlayer implements Player {
   
-  private final static TimeStamp position = TimeStamp.createFrom(0, TimeUnit.MILLISECONDS); 
+  // permit inheritance
+  protected StubPlayer() {}
 
   @Override
   public void startPlayback() {}
@@ -30,7 +29,7 @@ public class StubPlayer implements Player {
   
   @Override
   public TimeStamp getPosition() {
-    return position;
+    return TimeStamp.EMPTY;
   }
 
   @Override

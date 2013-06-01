@@ -14,7 +14,6 @@ import android.os.RemoteException;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.Status;
 
 final class PlaybackControlClient implements Control {
 
