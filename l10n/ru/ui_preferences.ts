@@ -150,13 +150,18 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="61"/>
-        <source>No</source>
+        <source>None</source>
         <translation>Нет</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="66"/>
-        <source>Yes</source>
-        <translation>Да</translation>
+        <source>Performance</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="71"/>
+        <source>Quality</source>
+        <translation>Качество</translation>
     </message>
 </context>
 <context>

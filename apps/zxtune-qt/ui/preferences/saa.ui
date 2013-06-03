@@ -58,12 +58,17 @@
        <widget class="QComboBox" name="interpolationValue">
         <item>
          <property name="text">
-          <string>No</string>
+          <string>None</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string>Yes</string>
+          <string>Performance</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Quality</string>
          </property>
         </item>
        </widget>
