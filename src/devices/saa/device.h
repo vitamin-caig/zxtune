@@ -248,7 +248,7 @@ namespace Devices
         Subdevices[1].Tick(ticks);
       }
 
-      MultiSample GetLevels() const
+      Sound::Sample GetLevels() const
       {
         FastSample out = Subdevices[0].GetLevels();
         out.Add(Subdevices[1].GetLevels());

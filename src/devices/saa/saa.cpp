@@ -101,7 +101,7 @@ namespace
       Device.Tick(ticks);
     }
 
-    MultiSample GetLevels() const
+    Sound::Sample GetLevels() const
     {
       return Device.GetLevels();
     }
@@ -250,7 +250,7 @@ namespace
   public:
     virtual ~Renderer() {}
 
-    virtual void Render(const Stamp& tillTime, Receiver& target) = 0;
+    virtual void Render(const Stamp& tillTime, Sound::Receiver& target) = 0;
   };
 
   /*
@@ -265,7 +265,7 @@ namespace
     {
     }
 
-    virtual void Render(const Stamp& tillTime, Receiver& target)
+    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
     {
       for (;;)
       {
@@ -286,9 +286,9 @@ namespace
       }
     }
   private:
-    void RenderNextSample(Receiver& target)
+    void RenderNextSample(Sound::Receiver& target)
     {
-      const MultiSample& sndLevel = PSG.GetLevels();
+      const Sound::Sample& sndLevel = PSG.GetLevels();
       target.ApplyData(sndLevel);
       Clock.NextSample();
     }
@@ -309,7 +309,7 @@ namespace
     {
     }
 
-    virtual void Render(const Stamp& tillTime, Receiver& target)
+    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
     {
       for (;;)
       {
@@ -330,39 +330,35 @@ namespace
       }
     }
   private:
-    void RenderNextSample(Receiver& target)
+    void RenderNextSample(Sound::Receiver& target)
     {
-      const MultiSample curLevel = PSG.GetLevels();
-      const MultiSample& sndLevel = Interpolate(curLevel);
+      const Sound::Sample curLevel = PSG.GetLevels();
+      const Sound::Sample& sndLevel = Interpolate(curLevel);
       target.ApplyData(sndLevel);
       Clock.NextSample();
     }
 
-    MultiSample Interpolate(const MultiSample& newLevel)
+    Sound::Sample Interpolate(const Sound::Sample& newLevel)
     {
-      const MultiSample out =
-      {{
-        Average(PrevLevel[0], newLevel[0]),
-        Average(PrevLevel[1], newLevel[1]),
-      }};
+      const Sound::Sample out(Average(PrevLevel.Left(), newLevel.Left()), Average(PrevLevel.Right(), newLevel.Right()));
       PrevLevel = newLevel;
       return out;
     }
 
-    static Sample Average(Sample first, Sample second)
+    static Sound::Sample::Type Average(Sound::Sample::Type first, Sound::Sample::Type second)
     {
-      return static_cast<Sample>((uint_t(first) + second) / 2);
+      return static_cast<Sound::Sample::Type>((int_t(first) + second) / 2);
     }
   private:
     ClockSource& Clock;
     SAARenderer& PSG;
-    MultiSample PrevLevel;
+    Sound::Sample PrevLevel;
   };
 
   class RegularSAAChip : public Chip
   {
   public:
-    RegularSAAChip(ChipParameters::Ptr params, Receiver::Ptr target)
+    RegularSAAChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
       : Params(params)
       , Target(target)
       , Clock()
@@ -381,7 +377,7 @@ namespace
     {
       ApplyParameters();
       Renderer& source = GetRenderer();
-      RenderChunks(source, *Target);
+      RenderChunks(source);
       Target->Flush();
     }
 
@@ -420,8 +416,9 @@ namespace
       }
     }
 
-    void RenderChunks(Renderer& source, Receiver& target)
+    void RenderChunks(Renderer& source)
     {
+      Sound::Receiver& target = *Target;
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
         const DataChunk& chunk = *it;
@@ -435,7 +432,7 @@ namespace
     }
   private:
     const ChipParameters::Ptr Params;
-    const Receiver::Ptr Target;
+    const Sound::Receiver::Ptr Target;
     SAARenderer PSG;
     ClockSource Clock;
     DataCache BufferedData;
@@ -449,7 +446,7 @@ namespace Devices
 {
   namespace SAA
   {
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target)
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
     {
       return Chip::Ptr(new RegularSAAChip(params, target));
     }

@@ -58,20 +58,14 @@ namespace Devices
         Value += rh.Value;
       }
 
-      MultiSample Convert() const
+      Sound::Sample Convert() const
       {
-        const MultiSample res =
-        {{
-          ToSample(Left()),
-          ToSample(Right())
-        }};
-        return res;
+        return Sound::Sample(ToSample(Left()), ToSample(Right()));
       }
     private:
-      static Sample ToSample(uint_t idx)
+      static Sound::Sample::Type ToSample(uint_t idx)
       {
-        //TODO
-        return 32768 + (idx << 8) + (idx << 5);
+        return Sound::Sample::MID + (idx << 8) + (idx << 5);
       }
     private:
       uint_t Value;

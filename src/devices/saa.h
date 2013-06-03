@@ -17,6 +17,7 @@ Author:
 #include <data_streaming.h>
 #include <types.h>
 //library includes
+#include <sound/receiver.h>
 #include <time/stamp.h>
 //boost includes
 #include <boost/array.hpp>
@@ -25,7 +26,6 @@ namespace Devices
 {
   namespace SAA
   {
-    const uint_t SOUND_CHANNELS = 2;
     //6 tones + 2 noises + 2 envelopes
     const uint_t VOICES = 10;
 
@@ -122,12 +122,6 @@ namespace Devices
       virtual void GetState(ChannelsState& state) const = 0;
     };
 
-    // Sound is rendered in unsigned 16-bit values
-    typedef uint16_t Sample;
-    typedef boost::array<Sample, SOUND_CHANNELS> MultiSample;
-    // Result sound stream receiver
-    typedef DataReceiver<MultiSample> Receiver;
-
     enum InterpolationType
     {
       INTERPOLATION_NONE = 0,
@@ -148,7 +142,7 @@ namespace Devices
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }
 

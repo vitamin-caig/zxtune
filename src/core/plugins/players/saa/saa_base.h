@@ -117,8 +117,6 @@ namespace ZXTune
 
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
 
-      Devices::SAA::Receiver::Ptr CreateReceiver(Sound::TwoChannelsReceiver::Ptr target);
-
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
     }
   }

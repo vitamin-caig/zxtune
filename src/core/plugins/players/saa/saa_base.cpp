@@ -26,32 +26,6 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class SAAReceiver : public Devices::SAA::Receiver
-  {
-  public:
-    SAAReceiver(Sound::TwoChannelsReceiver::Ptr target)
-      : Target(target)
-    {
-    }
-
-    virtual void ApplyData(const Devices::SAA::MultiSample& data)
-    {
-      BOOST_STATIC_ASSERT(Sound::TwoChannelsReceiver::InDataType::static_size == 2);
-      //TODO:
-      Data[0] = data[0] ^ 0x8000;
-      Data[1] = data[1] ^ 0x8000;
-      Target->ApplyData(Data);
-    }
-
-    virtual void Flush()
-    {
-      Target->Flush();
-    }
-  private:
-    const Sound::TwoChannelsReceiver::Ptr Target;
-    Sound::TwoChannelsReceiver::InDataType Data;
-  };
-
   class SAADataIterator : public SAA::DataIterator
   {
   public:
@@ -220,11 +194,8 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::TwoChannelsStreamMixer::Ptr mixer = Sound::CreateTwoChannelsStreamMixer(params);
-      mixer->SetTarget(target);
-      const Devices::SAA::Receiver::Ptr receiver = SAA::CreateReceiver(mixer);
       const Devices::SAA::ChipParameters::Ptr chipParams = SAA::CreateChipParameters(params);
-      const Devices::SAA::Chip::Ptr chip = Devices::SAA::CreateChip(chipParams, receiver);
+      const Devices::SAA::Chip::Ptr chip = Devices::SAA::CreateChip(chipParams, target);
       return Tune->CreateRenderer(params, chip);
     }
   private:
@@ -308,11 +279,6 @@ namespace ZXTune
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
       {
         return boost::make_shared<SAARenderer>(trackParams, iterator, device);
-      }
-
-      Devices::SAA::Receiver::Ptr CreateReceiver(Sound::TwoChannelsReceiver::Ptr target)
-      {
-        return boost::make_shared<SAAReceiver>(target);
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
