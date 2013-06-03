@@ -195,7 +195,7 @@ namespace ChipTracker
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::FourChannelsMixer::Ptr mixer = Sound::CreateFourChannelsMixer(params);
+      const Sound::FourChannelsStreamMixer::Ptr mixer = Sound::CreateFourChannelsStreamMixer(params);
       mixer->SetTarget(target);
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);

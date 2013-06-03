@@ -40,11 +40,11 @@ namespace Sound
   }
 
   template<unsigned Channels>
-  class PollingMixer : public FixedChannelsMixer<Channels>
+  class PollingStreamMixer : public FixedChannelsStreamMixer<Channels>
   {
-    typedef FixedChannelsMatrixMixer<Channels> MixerType;
+    typedef FixedChannelsMatrixStreamMixer<Channels> MixerType;
   public:
-    explicit PollingMixer(Parameters::Accessor::Ptr params)
+    explicit PollingStreamMixer(Parameters::Accessor::Ptr params)
       : Params(params)
       , Delegate(MixerType::Create())
     {
@@ -97,23 +97,23 @@ namespace Sound
 
 namespace Sound
 {
-  OneChannelMixer::Ptr CreateOneChannelMixer(Parameters::Accessor::Ptr params)
+  OneChannelStreamMixer::Ptr CreateOneChannelStreamMixer(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<PollingMixer<1> >(params);
+    return boost::make_shared<PollingStreamMixer<1> >(params);
   }
 
-  TwoChannelsMixer::Ptr CreateTwoChannelsMixer(Parameters::Accessor::Ptr params)
+  TwoChannelsStreamMixer::Ptr CreateTwoChannelsStreamMixer(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<PollingMixer<2> >(params);
+    return boost::make_shared<PollingStreamMixer<2> >(params);
   }
 
-  ThreeChannelsMixer::Ptr CreateThreeChannelsMixer(Parameters::Accessor::Ptr params)
+  ThreeChannelsStreamMixer::Ptr CreateThreeChannelsStreamMixer(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<PollingMixer<3> >(params);
+    return boost::make_shared<PollingStreamMixer<3> >(params);
   }
 
-  FourChannelsMixer::Ptr CreateFourChannelsMixer(Parameters::Accessor::Ptr params)
+  FourChannelsStreamMixer::Ptr CreateFourChannelsStreamMixer(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<PollingMixer<4> >(params);
+    return boost::make_shared<PollingStreamMixer<4> >(params);
   }
 }

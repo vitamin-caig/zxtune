@@ -221,7 +221,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::OneChannelMixer::Ptr mixer = Sound::CreateOneChannelMixer(params);
+      const Sound::OneChannelStreamMixer::Ptr mixer = Sound::CreateOneChannelStreamMixer(params);
       mixer->SetTarget(target);
       const Devices::TFM::Receiver::Ptr receiver = TFM::CreateReceiver(mixer);
       const Devices::TFM::ChipParameters::Ptr chipParams = TFM::CreateChipParameters(params);

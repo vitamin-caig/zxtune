@@ -414,7 +414,7 @@ namespace ZXTune
 
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
       {
-        const Sound::ThreeChannelsMixer::Ptr mixer = Sound::CreateThreeChannelsMixer(params);
+        const Sound::ThreeChannelsStreamMixer::Ptr mixer = Sound::CreateThreeChannelsStreamMixer(params);
         const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
         const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
         const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);

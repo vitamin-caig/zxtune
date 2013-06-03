@@ -15,6 +15,6 @@ msgstr ""
 msgid "Failed to set gain value: out of range."
 msgstr "Ошибка установки уровня: превышение допустимого значения."
 
-#: impl/mixer.cpp:63
+#: impl/mixer.cpp:64 impl/mixer.cpp:88
 msgid "Failed to set mixer matrix: gain is out of range."
 msgstr "Ошибка установки микширования: превышение допустимого значения уровня."

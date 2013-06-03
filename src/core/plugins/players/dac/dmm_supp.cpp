@@ -515,7 +515,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::ThreeChannelsMixer::Ptr mixer = Sound::CreateThreeChannelsMixer(params);
+      const Sound::ThreeChannelsStreamMixer::Ptr mixer = Sound::CreateThreeChannelsStreamMixer(params);
       mixer->SetTarget(target);
       const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);

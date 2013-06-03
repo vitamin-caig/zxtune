@@ -220,7 +220,7 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::TwoChannelsMixer::Ptr mixer = Sound::CreateTwoChannelsMixer(params);
+      const Sound::TwoChannelsStreamMixer::Ptr mixer = Sound::CreateTwoChannelsStreamMixer(params);
       mixer->SetTarget(target);
       const Devices::SAA::Receiver::Ptr receiver = SAA::CreateReceiver(mixer);
       const Devices::SAA::ChipParameters::Ptr chipParams = SAA::CreateChipParameters(params);

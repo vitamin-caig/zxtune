@@ -31,7 +31,6 @@ namespace Benchmark
       {
         mixer->ApplyData(input);
       }
-      mixer->Flush();
       const Time::Nanoseconds elapsed = timer.Elapsed<Time::Nanoseconds>();
       const Time::Nanoseconds emulated(duration);
       return double(emulated.Get()) / elapsed.Get();
