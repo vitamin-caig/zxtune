@@ -16,6 +16,7 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
+#include <sound/lpfilter.h>
 #include <time/oscillator.h>
 //std includes
 #include <cassert>
@@ -355,6 +356,79 @@ namespace
     Sound::Sample PrevLevel;
   };
 
+  //minimal period is 512
+  const uint_t FREQ_DIVIDER = 8;
+
+  class HQRenderer : public Renderer
+  {
+  public:
+    HQRenderer(ClockSource& clock, SAARenderer& psg)
+      : Clock(clock)
+      , PSG(psg)
+      , ClockFreq()
+      , SoundFreq()
+    {
+    }
+
+    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    {
+      if (ClockFreq != clockFreq || SoundFreq != soundFreq)
+      {
+        Filter.SetParameters(clockFreq / FREQ_DIVIDER, soundFreq / 4);
+        ClockFreq = clockFreq;
+        SoundFreq = soundFreq;
+      }
+    }
+
+    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
+    {
+      for (;;)
+      {
+        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
+        if (!(nextSampleTime < tillTime))
+        {
+          break;
+        }
+        else if (const uint_t ticksPassed = Clock.NextTime(nextSampleTime))
+        {
+          RenderTicks(ticksPassed);
+        }
+        RenderNextSample(target);
+      }
+      if (const uint_t ticksPassed = Clock.NextTime(tillTime))
+      {
+        PSG.Tick(ticksPassed);
+      }
+    }
+  private:
+    void RenderTicks(uint_t ticksPassed)
+    {
+      while (ticksPassed >= FREQ_DIVIDER)
+      {
+        const Sound::Sample curLevel = PSG.GetLevels();
+        Filter.Feed(curLevel);
+        PSG.Tick(FREQ_DIVIDER);
+        ticksPassed -= FREQ_DIVIDER;
+      }
+      if (ticksPassed)
+      {
+        PSG.Tick(ticksPassed);
+      }
+    }
+
+    void RenderNextSample(Sound::Receiver& target)
+    {
+      target.ApplyData(Filter.Get());
+      Clock.NextSample();
+    }
+  private:
+    ClockSource& Clock;
+    SAARenderer& PSG;
+    uint64_t ClockFreq;
+    uint_t SoundFreq;
+    Sound::LPFilter Filter;
+  };
+
   class RegularSAAChip : public Chip
   {
   public:
@@ -364,6 +438,7 @@ namespace
       , Clock()
       , LQ(Clock, PSG)
       , MQ(Clock, PSG)
+      , HQ(Clock, PSG)
     {
       Reset();
     }
@@ -403,6 +478,7 @@ namespace
       const uint_t sndFreq = Params->SoundFreq();
       Clock.SetFrequency(clock, sndFreq);
       Analyser.SetClockRate(clock);
+      HQ.SetFrequency(clock, sndFreq);
     }
 
     Renderer& GetRenderer()
@@ -411,6 +487,8 @@ namespace
       {
       case INTERPOLATION_LQ:
         return MQ;
+      case INTERPOLATION_HQ:
+        return HQ;
       default:
         return LQ;
       }
@@ -439,6 +517,7 @@ namespace
     AnalysisMap Analyser;
     LQRenderer LQ;
     MQRenderer MQ;
+    HQRenderer HQ;
   };
 }
 

@@ -142,6 +142,13 @@ namespace Math
       return res;
     }
 
+    FixedPoint<T, Precision> operator >> (int shift) const
+    {
+      FixedPoint<T, Precision> res(*this);
+      res.Value >>= shift;
+      return res;
+    }
+
     /*
     template<class P>
     bool operator < (P rh) const
