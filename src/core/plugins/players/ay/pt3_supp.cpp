@@ -28,6 +28,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
+#include <devices/turbosound.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/protracker3.h>
 #include <sound/mixer_factory.h>
@@ -359,17 +360,11 @@ namespace ProTracker3
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::ThreeChannelsStreamMixer::Ptr mixer = Sound::CreateThreeChannelsStreamMixer(params);
-      mixer->SetTarget(target);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
-      const boost::array<Devices::AYM::Receiver::Ptr, 2> tsMixer = CreateTSAYMixer(receiver);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, tsMixer[0]);
-      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, tsMixer[1]);
-
+      const std::pair<Devices::AYM::Chip::Ptr, Devices::AYM::Chip::Ptr> chips = Devices::TurboSound::CreateChipsPair(chipParams, target);
       const uint_t version = Vortex::ExtractVersion(*Properties);
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chip1, 0);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chip2, AYM::TRACK_CHANNELS);
+      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chips.first, 0);
+      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chips.second, AYM::TRACK_CHANNELS);
       return CreateTSRenderer(renderer1, renderer2, renderer1->GetTrackState());
     }
   private:

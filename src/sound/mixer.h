@@ -29,10 +29,10 @@ namespace Sound
   {
   public:
     typedef typename MultichannelSample<Channels>::Type InDataType;
-    typedef boost::shared_ptr<FixedChannelsMixer<Channels> > Ptr;
+    typedef boost::shared_ptr<const FixedChannelsMixer<Channels> > Ptr;
     virtual ~FixedChannelsMixer() {}
 
-    virtual Sample ApplyData(const InDataType& in) = 0;
+    virtual Sample ApplyData(const InDataType& in) const = 0;
   };
 
   typedef FixedChannelsMixer<1> OneChannelMixer;

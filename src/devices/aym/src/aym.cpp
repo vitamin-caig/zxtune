@@ -16,12 +16,11 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
+#include <sound/lpfilter.h>
 #include <time/oscillator.h>
 //std includes
 #include <cassert>
-#include <cmath>
 #include <functional>
-#include <limits>
 #include <memory>
 #include <numeric>
 //boost includes
@@ -43,19 +42,26 @@ namespace
   BOOST_STATIC_ASSERT(DataChunk::REG_LAST < 8 * sizeof(uint_t));
 
   // chip-specific volume tables- ym supports 32 volume steps, ay - only 16
+  typedef boost::array<Sound::Sample::Type, 32> VolTable;
+
+  inline Sound::Sample::Type ToSample(uint_t val)
+  {
+    return Sound::Sample::MID + val * (Sound::Sample::MAX - Sound::Sample::MID) / (Sound::Sample::MAX - Sound::Sample::MIN);
+  }
+
   const VolTable AYVolumeTab =
   { {
-    0x0000, 0x0000, 0x0340, 0x0340, 0x04C0, 0x04C0, 0x06F2, 0x06F2,
-    0x0A44, 0x0A44, 0x0F13, 0x0F13, 0x1510, 0x1510, 0x227E, 0x227E,
-    0x289F, 0x289F, 0x414E, 0x414E, 0x5B21, 0x5B21, 0x7258, 0x7258,
-    0x905E, 0x905E, 0xB550, 0xB550, 0xD7A0, 0xD7A0, 0xFFFF, 0xFFFF
+    ToSample(0x0000), ToSample(0x0000), ToSample(0x0340), ToSample(0x0340), ToSample(0x04C0), ToSample(0x04C0), ToSample(0x06F2), ToSample(0x06F2),
+    ToSample(0x0A44), ToSample(0x0A44), ToSample(0x0F13), ToSample(0x0F13), ToSample(0x1510), ToSample(0x1510), ToSample(0x227E), ToSample(0x227E),
+    ToSample(0x289F), ToSample(0x289F), ToSample(0x414E), ToSample(0x414E), ToSample(0x5B21), ToSample(0x5B21), ToSample(0x7258), ToSample(0x7258),
+    ToSample(0x905E), ToSample(0x905E), ToSample(0xB550), ToSample(0xB550), ToSample(0xD7A0), ToSample(0xD7A0), ToSample(0xFFFF), ToSample(0xFFFF)
   } };
   const VolTable YMVolumeTab =
   { {
-    0x0000, 0x0000, 0x00EF, 0x01D0, 0x0290, 0x032A, 0x03EE, 0x04D2,
-    0x0611, 0x0782, 0x0912, 0x0A36, 0x0C31, 0x0EB6, 0x1130, 0x13A0,
-    0x1751, 0x1BF5, 0x20E2, 0x2594, 0x2CA1, 0x357F, 0x3E45, 0x475E,
-    0x5502, 0x6620, 0x7730, 0x8844, 0xA1D2, 0xC102, 0xE0A2, 0xFFFF
+    ToSample(0x0000), ToSample(0x0000), ToSample(0x00EF), ToSample(0x01D0), ToSample(0x0290), ToSample(0x032A), ToSample(0x03EE), ToSample(0x04D2),
+    ToSample(0x0611), ToSample(0x0782), ToSample(0x0912), ToSample(0x0A36), ToSample(0x0C31), ToSample(0x0EB6), ToSample(0x1130), ToSample(0x13A0),
+    ToSample(0x1751), ToSample(0x1BF5), ToSample(0x20E2), ToSample(0x2594), ToSample(0x2CA1), ToSample(0x357F), ToSample(0x3E45), ToSample(0x475E),
+    ToSample(0x5502), ToSample(0x6620), ToSample(0x7730), ToSample(0x8844), ToSample(0xA1D2), ToSample(0xC102), ToSample(0xE0A2), ToSample(0xFFFF)
   } };
 
   typedef boost::array<uint_t, Devices::AYM::SOUND_CHANNELS> LayoutData;
@@ -79,7 +85,7 @@ namespace
       : Registers()
       , Beeper()
     {
-      Registers[DataChunk::REG_MIXER ] = 0xff;
+      Registers[DataChunk::REG_MIXER] = 0xff;
     }
 
     void SetDutyCycle(uint_t value, uint_t mask)
@@ -90,7 +96,7 @@ namespace
     void Reset()
     {
       std::fill(Registers.begin(), Registers.end(), 0);
-      Registers[DataChunk::REG_MIXER ] = 0xff;
+      Registers[DataChunk::REG_MIXER] = 0xff;
       Device.Reset();
       Beeper = 0;
     }
@@ -262,11 +268,7 @@ namespace
     uint_t Beeper;
   };
 
-  static Sample Average(Sample first, Sample second)
-  {
-    return static_cast<Sample>((uint_t(first) + second) / 2);
-  }
-
+  /*
   class RelayoutTarget : public Receiver
   {
   public:
@@ -323,6 +325,7 @@ namespace
   private:
     Receiver& Delegate;
   };
+  */
 
   class ClockSource
   {
@@ -455,52 +458,77 @@ namespace
   {
   public:
     MultiVolumeTable()
-      : Table()
+      : Type(static_cast<ChipType>(-1))
+      , Mixer()
     {
       Reset();
     }
 
     void Reset()
     {
-      Set(GetAY38910VolTable());
+      SetType(TYPE_AY38910);
     }
 
-    void Set(const VolTable& table)
+    void SetType(ChipType type)
     {
-      BOOST_STATIC_ASSERT(0 == sizeof(AlignedSample) % sizeof(uint_t));
-      if (Table != &table)
+      if (Type != type)
       {
-        for (uint_t idx = 0; idx != Lookup.size(); ++idx)
-        {
-          const MultiSample res =
-          {{
-            table[idx & HIGH_LEVEL_A],
-            table[(idx >> BITS_PER_LEVEL) & HIGH_LEVEL_A],
-            table[idx >> 2 * BITS_PER_LEVEL]
-          }};
-          Lookup[idx] = res;
-        }
-        Table = &table;
+        Type = type;
+        FillLookupTable(GetVolumeTable(type));
       }
     }
 
-    MultiSample Get(uint_t in) const
+    void SetMixer(const MixerType& mixer)
     {
-      return Lookup[in];
+      Mixer = &mixer;
+    }
+
+    Sound::Sample Get(uint_t in) const
+    {
+      return Mixer->ApplyData(Lookup[in]);
     }
   private:
-    const VolTable* Table;
+    static const VolTable& GetVolumeTable(ChipType type)
+    {
+      switch (type)
+      {
+      case TYPE_YM2149F:
+        return YMVolumeTab;
+      default:
+        return AYVolumeTab;
+      }
+    }
+
+    typedef MixerType::InDataType MultiSample;
+
+    void FillLookupTable(const VolTable& table)
+    {
+      BOOST_STATIC_ASSERT(0 == sizeof(AlignedSample) % sizeof(uint_t));
+      for (uint_t idx = 0; idx != Lookup.size(); ++idx)
+      {
+        const MultiSample res =
+        {{
+          table[idx & HIGH_LEVEL_A],
+          table[(idx >> BITS_PER_LEVEL) & HIGH_LEVEL_A],
+          table[idx >> 2 * BITS_PER_LEVEL]
+        }};
+        Lookup[idx] = res;
+      }
+    }
+  private:
+    ChipType Type;
+    const MixerType* Mixer;
 
     struct AlignedSample : MultiSample
     {
-      Sample Alignment;
+      Sound::Sample::Type Alignment;
       
       void operator = (const MultiSample& rh)
       {
         static_cast<MultiSample&>(*this) = rh;
       }
     };
-    boost::array<AlignedSample, 1 << 3 * BITS_PER_LEVEL> Lookup;
+    boost::array<AlignedSample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
   };
 
   class Renderer
@@ -508,7 +536,7 @@ namespace
   public:
     virtual ~Renderer() {}
 
-    virtual void Render(const Stamp& tillTime, Receiver& target) = 0;
+    virtual void Render(const Stamp& tillTime, Sound::Receiver& target) = 0;
   };
 
   /*
@@ -524,7 +552,7 @@ namespace
     {
     }
 
-    virtual void Render(const Stamp& tillTime, Receiver& target)
+    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
     {
       for (;;)
       {
@@ -545,10 +573,10 @@ namespace
       }
     }
   private:
-    void RenderNextSample(Receiver& target)
+    void RenderNextSample(Sound::Receiver& target)
     {
       const uint_t psgLevel = PSG.GetLevels();
-      const MultiSample& sndLevel = Table.Get(psgLevel);
+      const Sound::Sample sndLevel = Table.Get(psgLevel);
       target.ApplyData(sndLevel);
       Clock.NextSample();
     }
@@ -571,7 +599,7 @@ namespace
     {
     }
 
-    virtual void Render(const Stamp& tillTime, Receiver& target)
+    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
     {
       for (;;)
       {
@@ -592,31 +620,31 @@ namespace
       }
     }
   private:
-    void RenderNextSample(Receiver& target)
+    void RenderNextSample(Sound::Receiver& target)
     {
       const uint_t psgLevel = PSG.GetLevels();
-      const MultiSample& curLevel = Table.Get(psgLevel);
-      const MultiSample& sndLevel = Interpolate(curLevel);
+      const Sound::Sample curLevel = Table.Get(psgLevel);
+      const Sound::Sample sndLevel = Interpolate(curLevel);
       target.ApplyData(sndLevel);
       Clock.NextSample();
     }
 
-    MultiSample Interpolate(const MultiSample& newLevel)
+    Sound::Sample Interpolate(const Sound::Sample& newLevel)
     {
-      const MultiSample out =
-      {{
-        Average(PrevLevel[0], newLevel[0]),
-        Average(PrevLevel[1], newLevel[1]),
-        Average(PrevLevel[2], newLevel[2]),
-      }};
+      const Sound::Sample out(Average(PrevLevel.Left(), newLevel.Left()), Average(PrevLevel.Right(), newLevel.Right()));
       PrevLevel = newLevel;
       return out;
+    }
+
+    static Sound::Sample::Type Average(Sound::Sample::Type first, Sound::Sample::Type second)
+    {
+      return static_cast<Sound::Sample::Type>((int_t(first) + second) / 2);
     }
   private:
     ClockSource& Clock;
     AYMRenderer& PSG;
     const MultiVolumeTable& Table;
-    MultiSample PrevLevel;
+    Sound::Sample PrevLevel;
   };
 
   /*
@@ -639,11 +667,13 @@ namespace
     {
       if (ClockFreq != clockFreq || SoundFreq != soundFreq)
       {
-        CalculateFilter(clockFreq, soundFreq);
+        Filter.SetParameters(clockFreq, soundFreq / 4);
+        ClockFreq = clockFreq;
+        SoundFreq = soundFreq;
       }
     }
 
-    virtual void Render(const Stamp& tillTime, Receiver& target)
+    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
     {
       for (;;)
       {
@@ -664,112 +694,20 @@ namespace
       }
     }
   private:
-    typedef int_t CoeffType;
-    typedef boost::array<CoeffType, SOUND_CHANNELS> MultiCoeff;
-
-    static const uint_t PRECISION = 16384;
-
-    static CoeffType MakeFixed(float f, CoeffType multiply)
-    {
-      return static_cast<CoeffType>(f * multiply);
-    }
-
-    void CalculateFilter(uint64_t clockFreq, uint_t soundFreq)
-    {
-      /*
-        A0 * Y[i] = B0 * X[i] + B1 * X[i-1] + B2 * X[i-2] - A1 * Y[i-1] - A2 * Y[i-2]
-
-        For LPF filter:
-          d = cutoffFrq / sampleRate
-          w0 = 2 * PI * d
-          alpha = sin(w0) / 2;
-
-          A0 = 1 + alpha
-          A1 = -2 * cos(w0) (always < 0)
-          A2 = (1 - alpha)
-
-          B0 = B2 = (1 - cos(w0))/2
-          B1 = 2B0
-
-          Y[i] = A(X[i] + 2X[i-1] + X[i-2]) + BY[i-1] - CY[i-2]
-
-          SIN = sin(w0)
-          COS = cos(w0)
-
-          A = B0/A0
-          B = A1/A0
-          C = A2/A0
-
-          http://we.easyelectronics.ru/Theory/chestno-prostoy-cifrovoy-filtr.html
-          http://howtodoit.com.ua/tsifrovoy-bih-filtr-iir-filter/
-          http://www.ece.uah.edu/~jovanov/CPE621/notes/msp430_filter.pdf
-      */
-      const uint_t sampleFreq = clockFreq;
-      const uint_t cutOffFreq = soundFreq / 4;
-      const float w0 = 3.14159265358f * 2.0f * cutOffFreq / sampleFreq;
-      const float q = 1.0f;
-      //specify gain to avoid overload
-      const float gain = 0.98f;
-
-      const float sinus = sin(w0);
-      const float cosine = cos(w0);
-      const float alpha = sinus / (2.0f * q);
-
-      const float a0 = (1.0f + alpha) / gain;
-      const float a1 = -2.0f * cosine;
-      const float a2 = 1.0f - alpha;
-      const float b0 = (1.0f - cosine) / 2.0f;
-
-      const float a = b0 / a0;
-      const float b = -a1 / a0;
-      const float c = a2 / a0;
-
-      //1 bit- floor rounding
-      //2 bits- scale for A (4)
-      DCShift = Math::Log2(static_cast<uint_t>(1.0f / a)) - 3;
-
-      A = MakeFixed(a, PRECISION << DCShift);
-      B = MakeFixed(b, PRECISION);
-      C = MakeFixed(c, PRECISION);
-
-      In_1 = In_2 = MultiSample();
-      Out_1 = Out_2 = MultiCoeff();
-
-      ClockFreq = clockFreq;
-      SoundFreq = soundFreq;
-    }
-
     void RenderTicks(uint_t ticksPassed)
     {
       while (ticksPassed--)
       {
         const uint_t psgLevel = PSG.GetLevels();
-        const MultiSample& curLevel = Table.Get(psgLevel);
-        FeedFilter(curLevel);
+        const Sound::Sample curLevel = Table.Get(psgLevel);
+        Filter.Feed(curLevel);
         PSG.Tick(1);
       }
     }
 
-    void FeedFilter(const MultiSample& in)
+    void RenderNextSample(Sound::Receiver& target)
     {
-      MultiSample out;
-      for (std::size_t chan = 0; chan != in.size(); ++chan)
-      {
-        const uint_t inSum = uint_t(in[chan]) + 2 * In_1[chan] + In_2[chan];
-        CoeffType sum = A * inSum >> DCShift;
-        sum += B * Out_1[chan];
-        sum -= C * Out_2[chan];
-        out[chan] = sum / PRECISION;
-      }
-      Out_2 = Out_1;
-      Out_1 = out;
-      In_2 = In_1;
-      In_1 = in;
-    }
-
-    void RenderNextSample(Receiver& target)
-    {
-      target.ApplyData(Out_1);
+      target.ApplyData(Filter.Get());
       Clock.NextSample();
     }
   private:
@@ -778,16 +716,13 @@ namespace
     const MultiVolumeTable& Table;
     uint64_t ClockFreq;
     uint_t SoundFreq;
-    MultiSample In_1, In_2;
-    MultiSample Out_1, Out_2;
-    uint_t DCShift;
-    CoeffType A, B, C;
+    Sound::LPFilter Filter;
   };
 
   class RegularAYMChip : public Chip
   {
   public:
-    RegularAYMChip(ChipParameters::Ptr params, Receiver::Ptr target)
+    RegularAYMChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
       : Params(params)
       , Target(target)
       , Clock()
@@ -808,10 +743,11 @@ namespace
       ApplyParameters();
       Renderer& source = GetRenderer();
       const LayoutType layout = Params->Layout();
-      if (LAYOUT_ABC == layout)
+      //if (LAYOUT_ABC == layout)
       {
         RenderChunks(source, *Target);
       }
+      /*
       else if (LAYOUT_MONO == layout)
       {
         MonoTarget monoTarget(*Target);
@@ -822,6 +758,7 @@ namespace
         RelayoutTarget relayoutTarget(*Target, layout);
         RenderChunks(source, relayoutTarget);
       }
+      */
       Target->Flush();
     }
 
@@ -849,7 +786,8 @@ namespace
       const uint_t sndFreq = Params->SoundFreq();
       Clock.SetFrequency(clock, sndFreq);
       Analyser.SetClockRate(clock);
-      VolTable.Set(Params->VolumeTable());
+      VolTable.SetType(Params->Type());
+      VolTable.SetMixer(Params->Mixer());
       HQ.SetFrequency(clock, sndFreq);
     }
 
@@ -866,7 +804,7 @@ namespace
       }
     }
 
-    void RenderChunks(Renderer& source, Receiver& target)
+    void RenderChunks(Renderer& source, Sound::Receiver& target)
     {
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
@@ -881,7 +819,7 @@ namespace
     }
   private:
     const ChipParameters::Ptr Params;
-    const Receiver::Ptr Target;
+    const Sound::Receiver::Ptr Target;
     AYMRenderer PSG;
     ClockSource Clock;
     DataCache BufferedData;
@@ -897,17 +835,7 @@ namespace Devices
 {
   namespace AYM
   {
-    const VolTable& GetAY38910VolTable()
-    {
-      return AYVolumeTab;
-    }
-
-    const VolTable& GetYM2149FVolTable()
-    {
-      return YMVolumeTab;
-    }
-
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target)
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
     {
       return Chip::Ptr(new RegularAYMChip(params, target));
     }

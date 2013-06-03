@@ -28,7 +28,7 @@ Author:
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <sound/mixer_factory.h>
+#include <devices/turbosound.h>
 //std includes
 #include <set>
 #include <typeinfo>
@@ -251,17 +251,12 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::ThreeChannelsStreamMixer::Ptr mixer = Sound::CreateThreeChannelsStreamMixer(params);
-      mixer->SetTarget(target);
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
-      const boost::array<Devices::AYM::Receiver::Ptr, 2> tsMixer = CreateTSAYMixer(receiver);
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, tsMixer[0]);
-      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, tsMixer[1]);
+      const std::pair<Devices::AYM::Chip::Ptr, Devices::AYM::Chip::Ptr> chips = Devices::TurboSound::CreateChipsPair(chipParams, target);
 
       const Information::Ptr info = GetModuleInformation();
-      const Renderer::Ptr renderer1 = Holder1->CreateRenderer(params, chip1);
-      const Renderer::Ptr renderer2 = Holder2->CreateRenderer(params, chip2);
+      const Renderer::Ptr renderer1 = Holder1->CreateRenderer(params, chips.first);
+      const Renderer::Ptr renderer2 = Holder2->CreateRenderer(params, chips.second);
       return CreateTSRenderer(renderer1, renderer2);
     }
   private:

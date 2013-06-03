@@ -25,7 +25,6 @@ namespace ZXTune
   {
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second);
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, TrackState::Ptr state);
-    boost::array<Devices::AYM::Receiver::Ptr, 2> CreateTSAYMixer(Devices::AYM::Receiver::Ptr target);
   }
 }
 #endif //__CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__

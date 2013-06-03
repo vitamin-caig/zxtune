@@ -13,10 +13,10 @@ Author:
 #ifndef DEVICES_AYM_CHIP_H_DEFINED
 #define DEVICES_AYM_CHIP_H_DEFINED
 
-//common includes
-#include <data_streaming.h>
 //library includes
 #include <devices/aym.h>
+#include <sound/mixer.h>
+#include <sound/receiver.h>
 
 //supporting for AY/YM-based modules
 namespace Devices
@@ -56,18 +56,6 @@ namespace Devices
       virtual void GetState(ChannelsState& state) const = 0;
     };
 
-    // Sound is rendered in unsigned 16-bit values
-    typedef uint16_t Sample;
-    // 3 channels per sample
-    typedef boost::array<Sample, SOUND_CHANNELS> MultiSample;
-    // Result sound stream receiver
-    typedef DataReceiver<MultiSample> Receiver;
-
-    typedef boost::array<Sample, 32> VolTable;
-
-    const VolTable& GetAY38910VolTable();
-    const VolTable& GetYM2149FVolTable();
-
     enum LayoutType
     {
       LAYOUT_ABC = 0,
@@ -88,6 +76,16 @@ namespace Devices
       INTERPOLATION_HQ = 2
     };
 
+    enum ChipType
+    {
+      TYPE_AY38910 = 0,
+      TYPE_YM2149F = 1
+    };
+
+    const uint_t SOUND_CHANNELS = 3;
+
+    typedef Sound::FixedChannelsMixer<SOUND_CHANNELS> MixerType;
+
     class ChipParameters
     {
     public:
@@ -97,15 +95,16 @@ namespace Devices
 
       virtual uint64_t ClockFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
-      virtual const VolTable& VolumeTable() const = 0;
+      virtual ChipType Type() const = 0;
       virtual InterpolationType Interpolation() const = 0;
       virtual uint_t DutyCycleValue() const = 0;
       virtual uint_t DutyCycleMask() const = 0;
       virtual LayoutType Layout() const = 0;
+      virtual const MixerType& Mixer() const = 0;
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }
 

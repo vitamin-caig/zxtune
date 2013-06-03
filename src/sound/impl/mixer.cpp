@@ -75,7 +75,7 @@ namespace Sound
   {
     typedef FixedChannelsMatrixMixer<Channels> Base;
   public:
-    virtual Sample ApplyData(const typename Base::InDataType& in)
+    virtual Sample ApplyData(const typename Base::InDataType& in) const
     {
       return Core.Mix(in);
     }

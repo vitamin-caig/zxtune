@@ -99,109 +99,6 @@ namespace
     const Analyzer::Ptr Second;
   };
 
-  template<class T>
-  inline T Avg(T val1, T val2)
-  {
-    return (val1 + val2) / 2;
-  }
-
-  template<class T, std::size_t N>
-  boost::array<T, N> Avg(const boost::array<T, N>& val1, const boost::array<T, N>& val2)
-  {
-    boost::array<T, N> res;
-    for (uint_t chan = 0; chan != N; ++chan)
-    {
-      res[chan] = Avg(val1[chan], val2[chan]);
-    }
-    return res;
-  }
-
-  template<class SampleType>
-  class DoubleMixer
-  {
-  public:
-    typedef boost::shared_ptr<DoubleMixer> Ptr;
-
-    DoubleMixer()
-      : InCursor()
-      , OutCursor()
-    {
-    }
-
-    void Store(const SampleType& in)
-    {
-      Buffer[InCursor++] = in;
-    }
-
-    SampleType Mix(const SampleType& in)
-    {
-      return Avg(static_cast<const SampleType&>(Buffer[OutCursor++]), in);
-    }
-  private:
-    boost::array<SampleType, 65536> Buffer;
-    uint16_t InCursor;
-    uint16_t OutCursor;
-  };
-
-  template<class SampleType>
-  class FirstReceiver : public DataReceiver<SampleType>
-  {
-  public:
-    explicit FirstReceiver(typename DoubleMixer<SampleType>::Ptr mixer)
-      : Mixer(mixer)
-    {
-    }
-
-    virtual void ApplyData(const SampleType& data)
-    {
-      Mixer->Store(data);
-    }
-
-    virtual void Flush()
-    {
-    }
-  private:
-    const typename DoubleMixer<SampleType>::Ptr Mixer;
-  };
-
-  template<class SampleType>
-  class SecondReceiver : public DataReceiver<SampleType>
-  {
-  public:
-    SecondReceiver(typename DoubleMixer<SampleType>::Ptr mixer, typename DataReceiver<SampleType>::Ptr delegate)
-      : Mixer(mixer)
-      , Delegate(delegate)
-    {
-    }
-
-    virtual void ApplyData(const SampleType& data)
-    {
-      Delegate->ApplyData(Mixer->Mix(data));
-    }
-
-    virtual void Flush()
-    {
-      Delegate->Flush();
-    }
-  private:
-    const typename DoubleMixer<SampleType>::Ptr Mixer;
-    const typename DataReceiver<SampleType>::Ptr Delegate;
-  };
-
-  template<class SampleType>
-  boost::array<typename DataReceiver<SampleType>::Ptr, 2> CreateTSMixer(typename DataReceiver<SampleType>::Ptr target)
-  {
-    const typename DoubleMixer<SampleType>::Ptr mixer = boost::make_shared<DoubleMixer<SampleType> >();
-    const boost::array<typename DataReceiver<SampleType>::Ptr, 2> res =
-    {
-      {
-        boost::make_shared<FirstReceiver<SampleType> >(mixer),
-        boost::make_shared<SecondReceiver<SampleType> >(mixer, target)
-      }
-    };
-    return res;
-  }
-
   class TSRenderer : public Renderer
   {
   public:
@@ -259,11 +156,6 @@ namespace ZXTune
     Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, TrackState::Ptr state)
     {
       return boost::make_shared<TSRenderer>(first, second, state);
-    }
-
-    boost::array<Devices::AYM::Receiver::Ptr, 2> CreateTSAYMixer(Devices::AYM::Receiver::Ptr target)
-    {
-      return CreateTSMixer<Devices::AYM::MultiSample>(target);
     }
   }
 }

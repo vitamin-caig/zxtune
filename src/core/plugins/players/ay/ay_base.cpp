@@ -18,7 +18,6 @@ Author:
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/gainer.h>
-#include <sound/mixer_factory.h>
 #include <sound/sound_parameters.h>
 #include <sound/receiver.h>
 #include <sound/render_params.h>
@@ -30,32 +29,6 @@ namespace ZXTune
   using namespace Module;
 
   const Debug::Stream Dbg("Core::AYBase");
-
-  class AYMReceiver : public Devices::AYM::Receiver
-  {
-  public:
-    AYMReceiver(Sound::ThreeChannelsReceiver::Ptr target)
-      : Target(target)
-    {
-    }
-
-    virtual void ApplyData(const Devices::AYM::MultiSample& data)
-    {
-      BOOST_STATIC_ASSERT(Sound::ThreeChannelsReceiver::InDataType::static_size == 3);
-      Data[0] = static_cast<int16_t>(data[0] ^ 0x8000);
-      Data[1] = static_cast<int16_t>(data[1] ^ 0x8000);
-      Data[2] = static_cast<int16_t>(data[2] ^ 0x8000);
-      Target->ApplyData(Data);
-    }
-
-    virtual void Flush()
-    {
-      Target->Flush();
-    }
-  private:
-    const Sound::ThreeChannelsReceiver::Ptr Target;
-    Sound::ThreeChannelsReceiver::InDataType Data;
-  };
 
   class AYMDataIterator : public AYM::DataIterator
   {
@@ -414,19 +387,16 @@ namespace ZXTune
 
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
       {
-        const Sound::ThreeChannelsStreamMixer::Ptr mixer = Sound::CreateThreeChannelsStreamMixer(params);
-        const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(mixer);
+        //TODO: return fading support
         const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-        const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, receiver);
+        const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, target);
+        return holder.CreateRenderer(params, chip);
+        /*
         const Renderer::Ptr result = holder.CreateRenderer(params, chip);
         const Sound::Receiver::Ptr fading = CreateFadingTarget(params, holder.GetModuleInformation(), result->GetTrackState(), target);
         mixer->SetTarget(fading);
         return result;
-      }
-
-      Devices::AYM::Receiver::Ptr CreateReceiver(Sound::ThreeChannelsReceiver::Ptr target)
-      {
-        return boost::make_shared<AYMReceiver>(target);
+        */
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)

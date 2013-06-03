@@ -20,6 +20,8 @@ Author:
 #include <devices/aym/chip.h>
 #include <l10n/api.h>
 #include <math/numeric.h>
+#include <sound/matrix_mixer.h>
+#include <sound/mixer_factory.h>
 #include <sound/render_params.h>
 #include <sound/sample.h>
 //std includes
@@ -103,29 +105,13 @@ namespace
     }
   }
 
-  Devices::AYM::VolTable PrepareVolumeTable(const Devices::AYM::VolTable& in)
-  {
-    Devices::AYM::VolTable res;
-    for (uint_t idx = 0; idx != res.size(); ++idx)
-    {
-      //should be compilation error in case of different types
-      res[idx] = 0x8000 + in[idx] / 2;
-    }
-    return res;
-  }
-
-  const Devices::AYM::VolTable VolumeTables[] = 
-  {
-    PrepareVolumeTable(Devices::AYM::GetAY38910VolTable()),
-    PrepareVolumeTable(Devices::AYM::GetYM2149FVolTable())
-  };
-
   class ChipParametersImpl : public Devices::AYM::ChipParameters
   {
   public:
     explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
       , SoundParams(Sound::RenderParameters::Create(params))
+      , MixerObject(Sound::FixedChannelsMatrixMixer<Devices::AYM::SOUND_CHANNELS>::Create())
     {
     }
 
@@ -146,11 +132,11 @@ namespace
       return SoundParams->SoundFreq();
     }
 
-    virtual const Devices::AYM::VolTable& VolumeTable() const
+    virtual Devices::AYM::ChipType Type() const
     {
       Parameters::IntType intVal = 0;
       Params->FindValue(Parameters::ZXTune::Core::AYM::TYPE, intVal);
-      return VolumeTables[intVal != 0];
+      return static_cast<Devices::AYM::ChipType>(intVal);
     }
 
     virtual Devices::AYM::InterpolationType Interpolation() const
@@ -208,9 +194,17 @@ namespace
       }
       return Devices::AYM::LAYOUT_ABC;
     }
+
+    virtual const Devices::AYM::MixerType& Mixer() const
+    {
+      const Sound::FixedChannelsMatrixMixer<3>::Matrix mtx = Sound::ReadThreeChannelsMixerMatrix(*Params);
+      MixerObject->SetMatrix(mtx);
+      return *MixerObject;
+    }
   private:
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
+    const Sound::FixedChannelsMatrixMixer<Devices::AYM::SOUND_CHANNELS>::Ptr MixerObject;
   };
 
   class TrackParametersImpl : public AYM::TrackParameters

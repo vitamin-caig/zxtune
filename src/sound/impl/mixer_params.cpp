@@ -116,4 +116,17 @@ namespace Sound
   {
     return boost::make_shared<PollingStreamMixer<4> >(params);
   }
+
+  FixedChannelsMatrixMixer<3>::Matrix ReadThreeChannelsMixerMatrix(const Parameters::Accessor& params)
+  {
+    boost::array<MultiConfigValue, 3> mtx;
+    GetMatrix(params, &mtx.front(), &mtx.back() + 1);
+    FixedChannelsMatrixMixer<3>::Matrix res;
+    for (uint_t inChan = 0; inChan != mtx.size(); ++inChan)
+    {
+      const MultiConfigValue& cfg = mtx[inChan];
+      res[inChan] = Gain(cfg[0], cfg[1]);
+    }
+    return res;
+  }
 }

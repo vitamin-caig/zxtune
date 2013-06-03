@@ -14,7 +14,7 @@
 //common includes
 #include <parameters.h>
 //library includes
-#include <sound/mixer.h>
+#include <sound/matrix_mixer.h>
 
 namespace Sound
 {
@@ -69,6 +69,8 @@ namespace Sound
   {
     return CreateFourChannelsMixer(params);
   }
+
+  FixedChannelsMatrixMixer<3>::Matrix ReadThreeChannelsMixerMatrix(const Parameters::Accessor& params);
 }
 
 #endif //SOUND_MIXER_FACTORY_H_DEFINED
