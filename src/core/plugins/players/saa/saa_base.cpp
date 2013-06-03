@@ -15,11 +15,8 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <math/numeric.h>
-#include <sound/mixer_factory.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/core.h>
 
 namespace
 {

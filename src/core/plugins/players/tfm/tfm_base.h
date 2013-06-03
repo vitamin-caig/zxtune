@@ -111,8 +111,6 @@ namespace ZXTune
 
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device);
 
-      Devices::TFM::Receiver::Ptr CreateReceiver(Sound::OneChannelReceiver::Ptr target);
-
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
     }
   }

@@ -10,8 +10,8 @@ Author:
 */
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_TFM_DEFINED
-#define CORE_PLUGINS_PLAYERS_TFM_DEFINED
+#ifndef DEVICES_TFM_DEFINED
+#define DEVICES_TFM_DEFINED
 
 //library includes
 #include <devices/fm.h>
@@ -55,11 +55,9 @@ namespace Devices
       virtual void GetState(ChannelsState& state) const = 0;
     };
 
-    using Devices::FM::Sample;
-    using Devices::FM::Receiver;
     using Devices::FM::ChipParameters;
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }
 
-#endif //CORE_PLUGINS_PLAYERS_TFM_DEFINED
+#endif //DEVICES_TFM_DEFINED

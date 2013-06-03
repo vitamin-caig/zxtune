@@ -14,43 +14,13 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <sound/mixer_factory.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/core.h>
-
-#define FILE_TAG FE68BDBE
 
 namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  class TFMReceiver : public Devices::TFM::Receiver
-  {
-  public:
-    TFMReceiver(Sound::OneChannelReceiver::Ptr target)
-      : Target(target)
-    {
-    }
-
-    virtual void ApplyData(const Devices::TFM::Sample& data)
-    {
-      BOOST_STATIC_ASSERT(Sound::OneChannelReceiver::InDataType::static_size == 1);
-      //TODO
-      Data[0] = data ^ 0x8000;
-      Target->ApplyData(Data);
-    }
-
-    virtual void Flush()
-    {
-      Target->Flush();
-    }
-  private:
-    const Sound::OneChannelReceiver::Ptr Target;
-    Sound::OneChannelReceiver::InDataType Data;
-  };
 
   class TFMDataIterator : public TFM::DataIterator
   {
@@ -221,11 +191,8 @@ namespace
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::OneChannelStreamMixer::Ptr mixer = Sound::CreateOneChannelStreamMixer(params);
-      mixer->SetTarget(target);
-      const Devices::TFM::Receiver::Ptr receiver = TFM::CreateReceiver(mixer);
       const Devices::TFM::ChipParameters::Ptr chipParams = TFM::CreateChipParameters(params);
-      const Devices::TFM::Chip::Ptr chip = Devices::TFM::CreateChip(chipParams, receiver);
+      const Devices::TFM::Chip::Ptr chip = Devices::TFM::CreateChip(chipParams, target);
       return Tune->CreateRenderer(params, chip);
     }
   private:
@@ -401,11 +368,6 @@ namespace ZXTune
       Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
       {
         return boost::make_shared<TFMRenderer>(trackParams, iterator, device);
-      }
-
-      Devices::TFM::Receiver::Ptr CreateReceiver(Sound::OneChannelReceiver::Ptr target)
-      {
-        return boost::make_shared<TFMReceiver>(target);
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)

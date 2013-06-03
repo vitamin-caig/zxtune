@@ -17,6 +17,7 @@ Author:
 #include <data_streaming.h>
 #include <types.h>
 //library includes
+#include <sound/receiver.h>
 #include <time/stamp.h>
 //boost includes
 #include <boost/array.hpp>
@@ -25,11 +26,9 @@ namespace Devices
 {
   namespace FM
   {
-    const uint_t SOUND_CHANNELS = 1;
     const uint_t VOICES = 3;
 
-    // Use optimized stamp type- 5% accuracy
-    typedef Time::Stamp<uint64_t, 1 << 20> Stamp;
+    typedef Time::Microseconds Stamp;
 
     struct DataChunk
     {
@@ -109,11 +108,6 @@ namespace Devices
       virtual void GetState(ChannelsState& state) const = 0;
     };
 
-    // Sound is rendered in unsigned 16-bit values
-    typedef uint16_t Sample;
-    // Result sound stream receiver
-    typedef DataReceiver<Sample> Receiver;
-
     class ChipParameters
     {
     public:
@@ -126,7 +120,7 @@ namespace Devices
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }
 

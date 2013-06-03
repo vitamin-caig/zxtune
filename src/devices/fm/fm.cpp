@@ -92,7 +92,7 @@ namespace
       ::YM2203Write(YM2203.get(), 1, reg.Value);
     }
 
-    void RenderSamples(uint_t count, Receiver& tgt)
+    void RenderSamples(uint_t count, Sound::Receiver& tgt)
     {
       assert(YM2203);
       if (count == 1)
@@ -105,7 +105,7 @@ namespace
       {
         std::vector<YM2203SampleType> buf(count);
         ::YM2203UpdateOne(YM2203.get(), &buf[0], count);
-        std::for_each(buf.begin(), buf.end(), boost::bind(&Receiver::ApplyData, &tgt, boost::bind(&ConvertToSample, _1)));
+        std::for_each(buf.begin(), buf.end(), boost::bind(&Sound::Receiver::ApplyData, &tgt, boost::bind(&ConvertToSample, _1)));
       }
     }
 
@@ -126,9 +126,9 @@ namespace
       return res;
     }
   private:
-    static Sample ConvertToSample(YM2203SampleType level)
+    static Sound::Sample ConvertToSample(YM2203SampleType level)
     {
-      return static_cast<Sample>(int_t(level) + 32768);
+      return Sound::Sample(level, level);
     }
   private:
     typedef boost::shared_ptr<void> ChipPtr;
@@ -140,7 +140,7 @@ namespace
   class MameChip : public Chip
   {
   public:
-    MameChip(ChipParameters::Ptr params, Receiver::Ptr target)
+    MameChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
       : Params(params)
       , Target(target)
     {
@@ -190,7 +190,7 @@ namespace
     }
   private:
     const ChipParameters::Ptr Params;
-    const Receiver::Ptr Target;
+    const Sound::Receiver::Ptr Target;
     ChipAdapter Render;
     Time::Oscillator<Stamp> Clock;
     std::vector<DataChunk> Buffer;
@@ -201,7 +201,7 @@ namespace Devices
 {
   namespace FM
   {
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target)
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
     {
       return boost::make_shared<MameChip>(params, target);
     }

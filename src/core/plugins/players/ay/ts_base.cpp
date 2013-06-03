@@ -265,10 +265,5 @@ namespace ZXTune
     {
       return CreateTSMixer<Devices::AYM::MultiSample>(target);
     }
-
-    boost::array<Devices::FM::Receiver::Ptr, 2> CreateTFMMixer(Devices::FM::Receiver::Ptr target)
-    {
-      return CreateTSMixer<Devices::FM::Sample>(target);
-    }
   }
 }

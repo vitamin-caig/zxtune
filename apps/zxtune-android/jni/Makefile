@@ -6,7 +6,7 @@ source_dirs := .
 libraries.common = analysis \
                    binary \
                    core core_plugins_archives_stub core_plugins_containers_stub core_plugins_players \
-                   devices devices_aym devices_saa \
+                   devices devices_aym devices_fm devices_saa \
                    formats_chiptune formats_packed_lha \
                    l10n_stub sound strings \
                    tools

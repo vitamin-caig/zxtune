@@ -14,11 +14,11 @@ Author:
 #define CORE_PLUGINS_PLAYERS_TFM_PARAMETERS_DEFINED
 
 //local includes
-#include "tfm.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
 //library includes
 #include <core/module_holder.h>
+#include <devices/tfm.h>
 
 namespace ZXTune
 {
