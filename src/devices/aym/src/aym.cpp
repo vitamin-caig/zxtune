@@ -268,65 +268,6 @@ namespace
     uint_t Beeper;
   };
 
-  /*
-  class RelayoutTarget : public Receiver
-  {
-  public:
-    RelayoutTarget(Receiver& delegate, LayoutType layout)
-      : Delegate(delegate)
-      , Layout(LAYOUTS[layout])
-    {
-    }
-
-    virtual void ApplyData(const MultiSample& in)
-    {
-      const MultiSample out =
-      {{
-        in[Layout[0]],
-        in[Layout[1]],
-        in[Layout[2]]
-      }};
-      return Delegate.ApplyData(out);
-    }
-
-    virtual void Flush()
-    {
-      return Delegate.Flush();
-    }
-  private:
-    Receiver& Delegate;
-    const LayoutData Layout;
-  };
-
-  class MonoTarget : public Receiver
-  {
-  public:
-    MonoTarget(Receiver& delegate)
-      : Delegate(delegate)
-    {
-    }
-
-    virtual void ApplyData(const MultiSample& in)
-    {
-      const Sample average = static_cast<Sample>(std::accumulate(in.begin(), in.end(), uint_t(0)) / in.size());
-      const MultiSample out =
-      {{
-        average,
-        average,
-        average
-      }};
-      Delegate.ApplyData(out);
-    }
-
-    virtual void Flush()
-    {
-      return Delegate.Flush();
-    }
-  private:
-    Receiver& Delegate;
-  };
-  */
-
   class ClockSource
   {
   public:
@@ -458,52 +399,62 @@ namespace
   {
   public:
     MultiVolumeTable()
-      : Type(static_cast<ChipType>(-1))
-      , Mixer()
+      : Table(0)
+      , Layout(0)
+      , MixerFingerprint()
     {
-      Reset();
     }
 
-    void Reset()
+    void SetParameters(ChipType type, LayoutType layout, const MixerType& mixer)
     {
-      SetType(TYPE_AY38910);
-    }
-
-    void SetType(ChipType type)
-    {
-      if (Type != type)
+      static const MultiSample IN_A = {{Sound::Sample::MAX, Sound::Sample::MID, Sound::Sample::MID}};
+      static const MultiSample IN_B = {{Sound::Sample::MID, Sound::Sample::MAX, Sound::Sample::MID}};
+      static const MultiSample IN_C = {{Sound::Sample::MID, Sound::Sample::MID, Sound::Sample::MAX}};
+      const boost::array<Sound::Sample, SOUND_CHANNELS> newFingerPrint =
+      {{
+        mixer.ApplyData(IN_A),
+        mixer.ApplyData(IN_B),
+        mixer.ApplyData(IN_C)
+      }};
+      const VolTable* const newTable = GetVolumeTable(type);
+      const LayoutData* const newLayout = GetLayout(layout);
+      if (Table != newTable || Layout != newLayout || MixerFingerprint != newFingerPrint)
       {
-        Type = type;
-        FillLookupTable(GetVolumeTable(type));
+        Table = newTable;
+        Layout = newLayout;
+        MixerFingerprint = newFingerPrint;
+        FillLookupTable(mixer);
       }
-    }
-
-    void SetMixer(const MixerType& mixer)
-    {
-      Mixer = &mixer;
     }
 
     Sound::Sample Get(uint_t in) const
     {
-      return Mixer->ApplyData(Lookup[in]);
+      return Lookup[in];
     }
   private:
-    static const VolTable& GetVolumeTable(ChipType type)
+    static const VolTable* GetVolumeTable(ChipType type)
     {
       switch (type)
       {
       case TYPE_YM2149F:
-        return YMVolumeTab;
+        return &YMVolumeTab;
       default:
-        return AYVolumeTab;
+        return &AYVolumeTab;
       }
+    }
+
+    static const LayoutData* GetLayout(LayoutType type)
+    {
+      return type == LAYOUT_MONO
+        ? 0
+        : LAYOUTS + type;
     }
 
     typedef MixerType::InDataType MultiSample;
 
-    void FillLookupTable(const VolTable& table)
+    void FillLookupTable(const MixerType& mixer)
     {
-      BOOST_STATIC_ASSERT(0 == sizeof(AlignedSample) % sizeof(uint_t));
+      const VolTable& table = *Table;
       for (uint_t idx = 0; idx != Lookup.size(); ++idx)
       {
         const MultiSample res =
@@ -512,23 +463,34 @@ namespace
           table[(idx >> BITS_PER_LEVEL) & HIGH_LEVEL_A],
           table[idx >> 2 * BITS_PER_LEVEL]
         }};
-        Lookup[idx] = res;
+        Lookup[idx] = Mix(res, mixer);
+      }
+    }
+
+    Sound::Sample Mix(const MultiSample& in, const MixerType& mixer) const
+    {
+      if (Layout)
+      {
+        const MultiSample out =
+        {{
+          in[Layout->at(0)],
+          in[Layout->at(1)],
+          in[Layout->at(2)]
+        }};
+        return mixer.ApplyData(out);
+      }
+      else//mono
+      {
+        const Sound::Sample::Type avg = (int_t(in[0]) + in[1] + in[2]) / SOUND_CHANNELS;
+        const MultiSample out = {{avg, avg, avg}};
+        return mixer.ApplyData(out);
       }
     }
   private:
-    ChipType Type;
-    const MixerType* Mixer;
-
-    struct AlignedSample : MultiSample
-    {
-      Sound::Sample::Type Alignment;
-      
-      void operator = (const MultiSample& rh)
-      {
-        static_cast<MultiSample&>(*this) = rh;
-      }
-    };
-    boost::array<AlignedSample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
+    const VolTable* Table;
+    const LayoutData* Layout;
+    boost::array<Sound::Sample, SOUND_CHANNELS> MixerFingerprint;
+    boost::array<Sound::Sample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
   };
 
   class Renderer
@@ -742,23 +704,7 @@ namespace
     {
       ApplyParameters();
       Renderer& source = GetRenderer();
-      const LayoutType layout = Params->Layout();
-      //if (LAYOUT_ABC == layout)
-      {
-        RenderChunks(source, *Target);
-      }
-      /*
-      else if (LAYOUT_MONO == layout)
-      {
-        MonoTarget monoTarget(*Target);
-        RenderChunks(source, monoTarget);
-      }
-      else
-      {
-        RelayoutTarget relayoutTarget(*Target, layout);
-        RenderChunks(source, relayoutTarget);
-      }
-      */
+      RenderChunks(source, *Target);
       Target->Flush();
     }
 
@@ -776,7 +722,6 @@ namespace
       PSG.Reset();
       Clock.Reset();
       BufferedData.Reset();
-      VolTable.Reset();
     }
   private:
     void ApplyParameters()
@@ -786,8 +731,7 @@ namespace
       const uint_t sndFreq = Params->SoundFreq();
       Clock.SetFrequency(clock, sndFreq);
       Analyser.SetClockRate(clock);
-      VolTable.SetType(Params->Type());
-      VolTable.SetMixer(Params->Mixer());
+      VolTable.SetParameters(Params->Type(), Params->Layout(), Params->Mixer());
       HQ.SetFrequency(clock, sndFreq);
     }
 

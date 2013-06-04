@@ -45,6 +45,11 @@ namespace Sound
     {
       return static_cast<Type>(Value >> SHIFT);
     }
+
+    bool operator == (const Sample& rh) const
+    {
+      return Value == rh.Value;
+    }
   private:
     typedef uint32_t StorageType;
     static const uint_t SHIFT = 8 * sizeof(StorageType) / 2;
