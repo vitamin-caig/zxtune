@@ -20,7 +20,7 @@ Author:
 #include "core/plugins/players/simple_orderlist.h"
 //library includes
 #include <core/module_holder.h>
-#include <devices/dac_sample_factories.h>
+#include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/digital.h>
 #include <sound/mixer_factory.h>
 
@@ -294,9 +294,8 @@ namespace ZXTune
           {
             const typename Sound::FixedChannelsStreamMixer<Channels>::Ptr mixer = Sound::CreateStreamMixer(params, Sound::MultichannelSample<Channels>());
             mixer->SetTarget(target);
-            const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
             const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-            const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(Channels, BaseFreq, chipParams, receiver));
+            const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BaseFreq, chipParams, mixer));
             for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
             {
               chip->SetSample(idx, Data->Samples.Get(idx));

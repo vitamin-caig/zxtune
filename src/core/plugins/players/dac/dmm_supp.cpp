@@ -29,7 +29,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <devices/dac_sample_factories.h>
+#include <devices/dac/sample_factories.h>
 #include <math/numeric.h>
 #include <sound/mixer_factory.h>
 //std includes
@@ -517,9 +517,8 @@ namespace
     {
       const Sound::ThreeChannelsStreamMixer::Ptr mixer = Sound::CreateThreeChannelsStreamMixer(params);
       mixer->SetTarget(target);
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DMM::CHANNELS_COUNT, DMM::BASE_FREQ, chipParams, receiver));
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DMM::BASE_FREQ, chipParams, mixer));
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
         chip->SetSample(idx, Data->Samples.Get(idx));

@@ -99,9 +99,6 @@ namespace ZXTune
         std::vector<Devices::DAC::DataChunk::ChannelData> Data;
       };
 
-      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::FixedChannelsReceiver<3>::Ptr target);
-      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::FixedChannelsReceiver<4>::Ptr target);
-
       Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device);
       Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
     }

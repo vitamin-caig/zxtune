@@ -27,7 +27,7 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <devices/dac_sample_factories.h>
+#include <devices/dac/sample_factories.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/sqdigitaltracker.h>
 #include <sound/mixer_factory.h>
@@ -197,9 +197,8 @@ namespace SQDigitalTracker
     {
       const Sound::FourChannelsStreamMixer::Ptr mixer = Sound::CreateFourChannelsStreamMixer(params);
       mixer->SetTarget(target);
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(CHANNELS_COUNT, BASE_FREQ, chipParams, receiver));
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BASE_FREQ, chipParams, mixer));
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
         chip->SetSample(idx, Data->Samples.Get(idx));

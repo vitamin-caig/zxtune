@@ -10,45 +10,52 @@ Author:
 */
 
 //library includes
-#include <devices/dac_sample_factories.h>
+#include <devices/dac/sample_factories.h>
 //std includes
+#include <cmath>
 #include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
 
 namespace
 {
-  const uint_t NO_GAIN = uint_t(-1);
+  const uint_t NO_RMS = uint_t(-1);
 
-  static const Devices::DAC::SoundSample AYVolumeTab[] =
+  inline Sound::Sample::Type ToSample(uint_t val)
   {
-    0x0000, 0x0340, 0x04C0, 0x06F2,
-    0x0A44, 0x0F13, 0x1510, 0x227E,
-    0x289F, 0x414E, 0x5B21, 0x7258,
-    0x905E, 0xB550, 0xD7A0, 0xFFFF,
+    return Sound::Sample::MID + val * (Sound::Sample::MAX - Sound::Sample::MID) / (Sound::Sample::MAX - Sound::Sample::MIN);
+  }
+
+  static const Sound::Sample::Type AYVolumeTab[] =
+  {
+    ToSample(0x0000), ToSample(0x0340), ToSample(0x04C0), ToSample(0x06F2),
+    ToSample(0x0A44), ToSample(0x0F13), ToSample(0x1510), ToSample(0x227E),
+    ToSample(0x289F), ToSample(0x414E), ToSample(0x5B21), ToSample(0x7258),
+    ToSample(0x905E), ToSample(0xB550), ToSample(0xD7A0), ToSample(0xFFFF)
   };
+
+  inline Sound::Sample::Type FromU8(uint8_t inSample)
+  {
+    BOOST_STATIC_ASSERT(Sound::Sample::MID == 0);
+    BOOST_STATIC_ASSERT(Sound::Sample::MAX == 32767);
+    return (Sound::Sample::Type(inSample) - 128) * 256;
+  }
+
+  inline Sound::Sample::Type FromU4Lo(uint8_t inSample)
+  {
+    return AYVolumeTab[inSample & 0x0f];
+  }
+
+  inline Sound::Sample::Type FromU4Hi(uint8_t inSample)
+  {
+    return AYVolumeTab[inSample >> 4];
+  }
 }
 
 namespace Devices
 {
   namespace DAC
   {
-    inline SoundSample FromU8(uint8_t inSample)
-    {
-      //simply shift bits
-      return SoundSample(inSample) << (8 * (sizeof(SoundSample) - sizeof(inSample)));
-    }
-
-    inline SoundSample FromU4Lo(uint8_t inSample)
-    {
-      return AYVolumeTab[inSample & 0x0f];
-    }
-
-    inline SoundSample FromU4Hi(uint8_t inSample)
-    {
-      return AYVolumeTab[inSample >> 4];
-    }
-
     class BaseSample : public Sample
     {
     public:
@@ -57,7 +64,7 @@ namespace Devices
         , StartValue(static_cast<const uint8_t*>(content->Start()))
         , SizeValue(content->Size())
         , LoopValue(loop)
-        , GainValue(NO_GAIN)
+        , RmsValue(NO_RMS)
       {
       }
 
@@ -71,25 +78,26 @@ namespace Devices
         return LoopValue;
       }
 
-      virtual SoundSample Average() const
+      virtual uint_t Rms() const
       {
-        if (GainValue != NO_GAIN)
+        if (RmsValue == NO_RMS)
         {
-          uint_t avg = 0;
+          uint64_t sum = 0;
           for (std::size_t idx = 0, lim = Size(); idx != lim; ++idx)
           {
-            avg += Get(idx);
+            const int_t val = int_t(Get(idx)) - Sound::Sample::MID;
+            sum += val * val;
           }
-          GainValue = avg / Size();
+          RmsValue = static_cast<uint_t>(std::sqrt(float(sum) / Size()));
         }
-        return GainValue;
+        return RmsValue;
       }
     protected:
       const Binary::Data::Ptr Content;
       const uint8_t* const StartValue;
       const std::size_t SizeValue;
       const std::size_t LoopValue;
-      mutable uint_t GainValue;
+      mutable uint_t RmsValue;
     };
     
     class U8Sample : public BaseSample
@@ -100,11 +108,11 @@ namespace Devices
       {
       }
 
-      virtual SoundSample Get(std::size_t pos) const
+      virtual Sound::Sample::Type Get(std::size_t pos) const
       {
         return pos < SizeValue
           ? FromU8(StartValue[pos])
-          : SILENT;
+          : Sound::Sample::MID;
       }
     };
 
@@ -116,11 +124,11 @@ namespace Devices
       {
       }
 
-      virtual SoundSample Get(std::size_t pos) const
+      virtual Sound::Sample::Type Get(std::size_t pos) const
       {
         return pos < SizeValue
           ? FromU4Lo(StartValue[pos])
-          : SILENT;
+          : Sound::Sample::MID;
       }
     };
 
@@ -132,7 +140,7 @@ namespace Devices
       {
       }
 
-      virtual SoundSample Get(std::size_t pos) const
+      virtual Sound::Sample::Type Get(std::size_t pos) const
       {
         if (pos < SizeValue * 2)
         {
@@ -143,7 +151,7 @@ namespace Devices
         }
         else
         {
-          return SILENT;
+          return Sound::Sample::MID;
         }
       }
 

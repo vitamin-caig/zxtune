@@ -1,5 +1,5 @@
 library_name := devices
 path_step := ../..
-source_dirs := dac z80
+source_dirs := z80
 
 include $(path_step)/makefile.mak

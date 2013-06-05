@@ -45,31 +45,6 @@ namespace
     const Sound::RenderParameters::Ptr Delegate;
   };
 
-  template<unsigned Channels>
-  class DACReceiver : public Devices::DAC::Receiver
-  {
-  public:
-    explicit DACReceiver(typename Sound::FixedChannelsReceiver<Channels>::Ptr target)
-      : Target(target)
-    {
-    }
-
-    virtual void ApplyData(const Devices::DAC::MultiSoundSample& data)
-    {
-      assert(data.size() == Channels);
-      typename Sound::MultichannelSample<Channels>::Type out;
-      std::transform(data.begin(), data.end(), out.begin(), std::bind2nd(std::divides<uint_t>(), 2));
-      Target->ApplyData(out);
-    }
-
-    virtual void Flush()
-    {
-      Target->Flush();
-    }
-  private:
-    const typename Sound::FixedChannelsReceiver<Channels>::Ptr Target;
-  };
-
   class DACAnalyzer : public Analyzer
   {
   public:
@@ -156,16 +131,6 @@ namespace ZXTune
       TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
       {
         return boost::make_shared<TrackParametersImpl>(params);
-      }
-
-      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::FixedChannelsReceiver<3>::Ptr target)
-      {
-        return boost::make_shared<DACReceiver<3> >(target);
-      }
-
-      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::FixedChannelsReceiver<4>::Ptr target)
-      {
-        return boost::make_shared<DACReceiver<4> >(target);
       }
 
       Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device)

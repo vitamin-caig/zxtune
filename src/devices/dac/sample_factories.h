@@ -15,7 +15,7 @@ Author:
 
 //library includes
 #include <binary/data.h>
-#include <devices/dac_sample.h>
+#include <devices/dac/sample.h>
 
 namespace Devices
 {

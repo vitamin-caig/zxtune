@@ -13,10 +13,9 @@ Author:
 #ifndef __DEVICES_DAC_H_DEFINED__
 #define __DEVICES_DAC_H_DEFINED__
 
-//common includes
-#include <data_streaming.h>
 //library includes
-#include <devices/dac_sample.h>
+#include <devices/dac/sample.h>
+#include <sound/mixer.h>
 #include <time/stamp.h>
 
 //supporting for multichannel sample-based DAC
@@ -24,6 +23,8 @@ namespace Devices
 {
   namespace DAC
   {
+    typedef Time::Microseconds Stamp;
+
     struct DataChunk
     {
       struct ChannelData
@@ -100,7 +101,7 @@ namespace Devices
         }
       };
 
-      Time::Microseconds TimeStamp;
+      Stamp TimeStamp;
       std::vector<ChannelData> Channels;
     };
 
@@ -142,11 +143,6 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
-    // Variable channels per sample
-    typedef std::vector<SoundSample> MultiSoundSample;
-    // Result sound stream receiver
-    typedef DataReceiver<MultiSoundSample> Receiver;
-
     class ChipParameters
     {
     public:
@@ -159,7 +155,8 @@ namespace Devices
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(uint_t channels, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target);
+    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::ThreeChannelsStreamMixer::Ptr target);
+    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::FourChannelsStreamMixer::Ptr target);
   }
 }
 

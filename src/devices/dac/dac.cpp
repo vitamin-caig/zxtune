@@ -14,90 +14,211 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
+#include <math/fixedpoint.h>
 #include <math/numeric.h>
 //std includes
 #include <cmath>
-#include <limits>
-#include <numeric>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/scoped_array.hpp>
 
 namespace
 {
   using namespace Devices::DAC;
 
-  const uint_t FIXED_POINT_PRECISION = 256;
-
-  const uint_t MAX_LEVEL = 100;
-
-  const uint_t NOTES = 72;
-  //table in Hz
-  const boost::array<double, NOTES> FREQ_TABLE =
-  {
-    {
-    //octave1
-    32.70,  34.65,  36.71,  38.89,  41.20,  43.65,  46.25,  49.00,  51.91,  55.00,  58.27,  61.73,
-    //octave2
-    65.41,  69.29,  73.42,  77.78,  82.41,  87.30,  92.50,  98.00, 103.82, 110.00, 116.54, 123.46,
-    //octave3
-    130.82, 138.58, 146.84, 155.56, 164.82, 174.60, 185.00, 196.00, 207.64, 220.00, 233.08, 246.92,
-    //octave4
-    261.64, 277.16, 293.68, 311.12, 329.64, 349.20, 370.00, 392.00, 415.28, 440.00, 466.16, 493.84,
-    //octave5
-    523.28, 554.32, 587.36, 622.24, 659.28, 698.40, 740.00, 784.00, 830.56, 880.00, 932.32, 987.68,
-    //octave6
-    1046.5, 1108.6, 1174.7, 1244.5, 1318.6, 1396.8, 1480.0, 1568.0, 1661.1, 1760.0, 1864.6, 1975.4
-    }
-  };
-
-  template<class T>
-  inline T sign(T val)
-  {
-    return val > 0 ? 1 : (val < 0 ? -1 : 0);
-  }
-
-  inline uint_t GetStepByFrequency(double freq, uint_t soundFreq, uint_t sampleFreq)
-  {
-    return static_cast<uint_t>(freq * FIXED_POINT_PRECISION *
-      sampleFreq / (FREQ_TABLE[0] * soundFreq));
-  }
-
-  class StubSample : public Sample
+  class FastSample
   {
   public:
-    virtual SoundSample Get(std::size_t /*pos*/) const
+    typedef boost::shared_ptr<const FastSample> Ptr;
+
+    explicit FastSample(std::size_t idx, Sample::Ptr in)
+      : Index(static_cast<uint_t>(idx))
+      , Rms(in->Rms())
+      , Data(new Sound::Sample::Type[in->Size()])
+      , Size(in->Size())
+      , Loop(std::min(Size, in->Loop()))
     {
-      return SILENT;
+      for (std::size_t pos = 0; pos != Size; ++pos)
+      {
+        Data[pos] = in->Get(pos);
+      }
     }
 
-    virtual std::size_t Size() const
+    FastSample()
+      : Index(-1)
+      , Rms(0)
+      , Data(new Sound::Sample::Type[1])
+      , Size(1)
+      , Loop(1)
     {
-      return 1;
     }
 
-    virtual std::size_t Loop() const
+    uint_t GetIndex() const
     {
-      return 1;
+      return Index;
     }
 
-    virtual SoundSample Average() const
+    uint_t GetRms() const
     {
-      return SILENT;
+      return Rms;
     }
+
+    typedef Math::FixedPoint<uint_t, 256> Position;
+    typedef Math::FixedPoint<int_t, 100> Level;
+
+    class Iterator
+    {
+    public:
+      Iterator()
+        : Data()
+        , Step()
+        , Limit()
+        , Loop()
+        , Pos()
+      {
+      }
+
+      bool IsValid() const
+      {
+        return Data && Pos < Limit;
+      }
+
+      uint_t GetPosition() const
+      {
+        return Pos.Integer();
+      }
+
+      Sound::Sample::Type GetNearest() const
+      {
+        assert(IsValid());
+        return Data[Pos.Integer()];
+      }
+
+      void Reset()
+      {
+        Pos = 0;
+      }
+
+      void Next()
+      {
+        Pos = GetNextPos();
+      }
+
+      void SetPosition(uint_t pos)
+      {
+        Pos = pos;
+      }
+
+      void SetStep(Position step)
+      {
+        Step = step;
+      }
+
+      void SetSample(const FastSample& sample)
+      {
+        Data = sample.Data.get();
+        Limit = sample.Size;
+        Loop = sample.Loop;
+        Pos = std::min(Pos, Limit);
+      }
+    private:
+      Position GetNextPos() const
+      {
+        const Position res = Pos + Step;
+        return res < Limit ? res : Loop;
+      }
+    private:
+      const Sound::Sample::Type* Data;
+      Position Step;
+      Position Limit;
+      Position Loop;
+      Position Pos;
+    };
+  private:
+    friend Iterator;
+    const uint_t Index;
+    const uint_t Rms;
+    const boost::scoped_array<Sound::Sample::Type> Data;
+    const std::size_t Size;
+    const std::size_t Loop;
   };
 
-  inline uint_t AvgToGain(SoundSample avg)
+  class ClockSource
   {
-    return Math::Absolute(int_t(avg) - SILENT);
-  }
+  public:
+    explicit ClockSource(uint_t sampleFreq)
+      : SampleFreq(sampleFreq)
+      , SoundFreq()
+    {
+      Reset();
+    }
+
+    void Reset()
+    {
+      CurrentTime = Stamp();
+    }
+
+    void SetSoundFreq(uint_t soundFreq)
+    {
+      SoundFreq = soundFreq;
+    }
+
+    FastSample::Position GetStep(int_t halftones, int_t slideHz) const
+    {
+      //http://www.phy.mtu.edu/~suits/notefreqs.html
+      static const Frequency NOTES[] =
+      {
+      //C           C#/Db       D           D#/Eb       E           F           F#/Gb       G           G#/Ab       A           A#/Bb       B
+        //octave1
+          CHz(3270),  CHz(3465),  CHz(3671),  CHz(3889),  CHz(4120),  CHz(4365),  CHz(4625),  CHz(4900),  CHz(5191),  CHz(5500),  CHz(5827),  CHz(6174),
+        //octave2
+          CHz(6541),  CHz(6930),  CHz(7342),  CHz(7778),  CHz(8241),  CHz(8731),  CHz(9250),  CHz(9800), CHz(10383), CHz(11000), CHz(11654), CHz(12347),
+        //octave3
+         CHz(13081), CHz(13859), CHz(14683), CHz(15556), CHz(16481), CHz(17461), CHz(18500), CHz(19600), CHz(20765), CHz(22000), CHz(23308), CHz(24694),
+        //octave4
+         CHz(26163), CHz(27718), CHz(29366), CHz(31113), CHz(32963), CHz(34923), CHz(36999), CHz(39200), CHz(41530), CHz(44000), CHz(46616), CHz(49388),
+        //octave5
+         CHz(52325), CHz(55437), CHz(58733), CHz(62225), CHz(65926), CHz(69846), CHz(73999), CHz(78399), CHz(83061), CHz(88000), CHz(93233), CHz(98777),
+        //octave6
+        CHz(104650),CHz(110873),CHz(117466),CHz(124451),CHz(131851),CHz(139691),CHz(147998),CHz(156798),CHz(166122),CHz(176000),CHz(186466),CHz(197553),
+        //octave7
+        CHz(209300),CHz(221746),CHz(234932),CHz(248902),CHz(263702),CHz(279383),CHz(295996),CHz(313596),CHz(332244),CHz(352000),CHz(372931),CHz(395107),
+        //octave8
+        CHz(418601),CHz(443492),CHz(469864),CHz(497803)
+      };
+      const int_t notesCount = ArraySize(NOTES);
+      const Frequency freq = NOTES[Math::Clamp<int_t>(halftones, 0, notesCount - 1)] + Frequency(slideHz);
+      //step 1 is for first note
+      return FastSample::Position(int64_t((freq * SampleFreq).Integer()), (NOTES[0] * SoundFreq).Integer());
+    }
+
+    uint_t Advance(Stamp nextTime)
+    {
+      const Stamp now = CurrentTime;
+      CurrentTime = nextTime;
+      return static_cast<uint_t>(uint64_t(nextTime.Get() - now.Get()) * SoundFreq / CurrentTime.PER_SECOND);
+    }
+  private:
+    //in centiHz
+    typedef Math::FixedPoint<int_t, 100> Frequency;
+
+    static inline Frequency CHz(uint_t frq)
+    {
+      return Frequency(frq, Frequency::PRECISION);
+    }
+  private:
+    const uint_t SampleFreq;
+    uint_t SoundFreq;
+    Stamp CurrentTime;
+  };
 
   class SamplesStorage
   {
   public:
     SamplesStorage()
-      : MaxGain()
+      : MaxRms()
     {
     }
 
@@ -106,30 +227,32 @@ namespace
       if (sample)
       {
         Content.resize(std::max(Content.size(), idx + 1));
-        const uint_t gain = AvgToGain(sample->Average());
-        Content[idx] = sample;
-        MaxGain = std::max(MaxGain, gain);
+        const FastSample::Ptr fast = boost::make_shared<FastSample>(idx, sample);
+        Content[idx] = fast;
+        MaxRms = std::max(MaxRms, fast->GetRms());
       }
     }
 
-    const Sample* Get(std::size_t idx) const
+    FastSample::Ptr Get(std::size_t idx) const
     {
-      static const StubSample STUB;
-      const Sample::Ptr val = idx < Content.size() ? Content[idx] : Sample::Ptr();
-      return val
-        ? val.get()
-        : &STUB;
+      static FastSample STUB;
+      if (const FastSample::Ptr val = idx < Content.size() ? Content[idx] : FastSample::Ptr())
+      {
+        return val;
+      }
+      return FastSample::Ptr(&STUB, NullDeleter<FastSample>());
     }
 
-    uint_t GetMaxGain() const
+    uint_t GetMaxRms() const
     {
-      return MaxGain;
+      return MaxRms;
     }
   private:
-    uint_t MaxGain;
-    std::vector<Sample::Ptr> Content;
+    uint_t MaxRms;
+    std::vector<FastSample::Ptr> Content;
   };
 
+  /*
   struct LinearInterpolation
   {
     static uint_t MapInterpolation(uint_t fract)
@@ -166,67 +289,113 @@ namespace
       boost::array<uint_t, FIXED_POINT_PRECISION> Table;
     };
   };
+  */
 
   //channel state type
   struct ChannelState
   {
-    ChannelState(const Sample* sample = 0, uint_t sampleIndex = 0)
-      : Enabled(), Level(MAX_LEVEL), Note(), NoteSlide(), FreqSlide(), CurSample(sample), CurSampleIndex(sampleIndex), PosInSample(), SampleStep(1)
+    ChannelState()
+      : Enabled()
+      , Note()
+      , NoteSlide()
+      , FreqSlide()
+      , Level(1)
+    {
+    }
+
+    explicit ChannelState(FastSample::Ptr sample)
+      : Enabled()
+      , Note()
+      , NoteSlide()
+      , FreqSlide()
+      , Source(sample)
+      , Level(1)
     {
     }
 
     bool Enabled;
-    uint_t Level;
     uint_t Note;
     //current slide in halftones
     int_t NoteSlide;
     //current slide in Hz
     int_t FreqSlide;
-    //using pointer for performance
-    const Sample* CurSample;
-    uint_t CurSampleIndex;
-    //in fixed point
-    uint_t PosInSample;
-    //in fixed point
-    uint_t SampleStep;
+    //sample
+    FastSample::Ptr Source;
+    FastSample::Iterator Iterator;
+    FastSample::Level Level;
 
-    void SkipStep()
+    void Update(const SamplesStorage& samples, const ClockSource& clock, const DataChunk::ChannelData& state)
     {
-      assert(CurSample);
-      PosInSample += SampleStep;
-      const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
-      if (pos >= CurSample->Size())
+      //'enabled' field changed
+      if (const bool* enabled = state.GetEnabled())
       {
-        if (CurSample->Loop() >= CurSample->Size())
-        {
-          Enabled = false;
-          PosInSample = 0;
-        }
-        else
-        {
-          PosInSample = CurSample->Loop() * FIXED_POINT_PRECISION;
-        }
+        Enabled = *enabled;
+      }
+      //note changed
+      if (const uint_t* note = state.GetNote())
+      {
+        Note = *note;
+      }
+      //note slide changed
+      if (const int_t* noteSlide = state.GetNoteSlide())
+      {
+        NoteSlide = *noteSlide;
+      }
+      //frequency slide changed
+      if (const int_t* freqSlideHz = state.GetFreqSlideHz())
+      {
+        FreqSlide = *freqSlideHz;
+      }
+      //sample changed
+      if (const uint_t* sampleNum = state.GetSampleNum())
+      {
+        Source = samples.Get(*sampleNum);
+        Iterator.SetSample(*Source);
+      }
+      //position in sample changed
+      if (const uint_t* posInSample = state.GetPosInSample())
+      {
+        assert(Source);
+        Iterator.SetPosition(*posInSample);
+      }
+      //level changed
+      if (const uint_t* levelInPercents = state.GetLevelInPercents())
+      {
+        assert(*levelInPercents <= FastSample::Level::PRECISION);
+        Level = FastSample::Level(*levelInPercents, FastSample::Level::PRECISION);
+      }
+      if (0 != (state.Mask & (DataChunk::ChannelData::NOTE | DataChunk::ChannelData::NOTESLIDE | DataChunk::ChannelData::FREQSLIDEHZ)))
+      {
+        Iterator.SetStep(clock.GetStep(Note + NoteSlide, FreqSlide));
       }
     }
 
-    SoundSample GetValue() const
+    Sound::Sample::Type GetNearest() const
     {
       if (Enabled)
       {
-        const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
-        assert(CurSample);
-        return Amplify(CurSample->Get(pos));
+        return Amplify(Iterator.GetNearest());
       }
       else
       {
-        return SILENT;
+        return Sound::Sample::MID;
       }
     }
 
+    void Next()
+    {
+      if (Enabled)
+      {
+        Iterator.Next();
+        Enabled = Iterator.IsValid();
+      }
+    }
+
+    /*
     template<class Policy>
     SoundSample GetInterpolatedValue() const
     {
-      if (Enabled)
+      if (Position.IsEnabled())
       {
         const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
         assert(CurSample);
@@ -249,42 +418,34 @@ namespace
         return SILENT;
       }
     }
+    */
 
-    ChanState Analyze(uint_t maxGain) const
+    ChanState Analyze(uint_t maxRms) const
     {
       ChanState result;
       if ( (result.Enabled = Enabled) )
       {
         result.Band = Note + NoteSlide;
-        assert(CurSample);
-        const uint_t gain = AvgToGain(CurSample->Average());
-        result.LevelInPercents = gain * Level / maxGain;
+        const uint_t rms = Source->GetRms();
+        result.LevelInPercents = (Level * rms / maxRms).Fraction();
       }
       return result;
     }
   private:
-    SoundSample Amplify(SoundSample val) const
+    Sound::Sample::Type Amplify(Sound::Sample::Type val) const
     {
-      assert(Level <= MAX_LEVEL);
-      const int_t mid = SILENT;
-      const int64_t delta = int_t(val) - mid;
-      const int_t scaledDelta = static_cast<int_t>(delta * int_t(Level) / int_t(MAX_LEVEL));
-      assert(Math::Absolute(scaledDelta) <= Math::Absolute(delta));
-      return static_cast<SoundSample>(mid + scaledDelta);
+      return (Level * val).Integer();
     }
   };
 
-  class ChipImpl : public Chip
+  template<unsigned Channels>
+  class FixedChannelsChip : public Chip
   {
   public:
-    ChipImpl(uint_t channels, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
-      : Channels(channels)
-      , SampleFreq(sampleFreq)
-      , Params(params)
+    FixedChannelsChip(uint_t sampleFreq, ChipParameters::Ptr params, typename Sound::FixedChannelsStreamMixer<Channels>::Ptr target)
+      : Params(params)
       , Target(target)
-      , CurrentTime(0)
-      , State(Channels)
-      , TableFreq(0)
+      , Clock(sampleFreq)
     {
       Reset();
     }
@@ -297,30 +458,26 @@ namespace
 
     virtual void RenderData(const DataChunk& src)
     {
-      const uint_t soundFreq = Params->SoundFreq();
+      Clock.SetSoundFreq(Params->SoundFreq());
 
       // update internal state
       std::for_each(src.Channels.begin(), src.Channels.end(),
-        boost::bind(&ChipImpl::UpdateState, this, _1));
+        boost::bind(&FixedChannelsChip::UpdateState, this, _1));
 
-      // calculate new step
-      std::for_each(State.begin(), State.end(),
-        boost::bind(&ChipImpl::CalcSampleStep, this, soundFreq, _1));
-
-      // samples to apply
-      const uint_t doSamples = static_cast<uint_t>(uint64_t(src.TimeStamp.Get() - CurrentTime.Get()) * soundFreq / CurrentTime.PER_SECOND);
-
-      const std::const_mem_fun_ref_t<SoundSample, ChannelState> getter = Params->Interpolate()
-        ? std::const_mem_fun_ref_t<SoundSample, ChannelState>(&ChannelState::GetInterpolatedValue<CosineInterpolation>)
-        : std::mem_fun_ref(&ChannelState::GetValue);
-      MultiSoundSample result(Channels);
-      for (uint_t smp = 0; smp != doSamples; ++smp)
+      if (const uint_t doSamples = Clock.Advance(src.TimeStamp))
       {
-        std::transform(State.begin(), State.end(), result.begin(), getter);
-        std::for_each(State.begin(), State.end(), std::mem_fun_ref(&ChannelState::SkipStep));
-        Target->ApplyData(result);
+        typename Sound::MultichannelSample<Channels>::Type result;
+        for (uint_t smp = 0; smp != doSamples; ++smp)
+        {
+          for (uint_t chan = 0; chan != Channels; ++chan)
+          {
+            ChannelState& state = State[chan];
+            result[chan] = state.GetNearest();
+            state.Next();
+          }
+          Target->ApplyData(result);
+        }
       }
-      CurrentTime = src.TimeStamp;
     }
 
     virtual void Flush()
@@ -337,23 +494,23 @@ namespace
       dst.Note = src.Note;
       dst.NoteSlide = src.NoteSlide;
       dst.FreqSlideHz = src.FreqSlide;
-      dst.SampleNum = src.CurSampleIndex;
-      dst.PosInSample = src.PosInSample / FIXED_POINT_PRECISION;
-      dst.LevelInPercents = src.Level;
+      dst.SampleNum = src.Source->GetIndex();
+      dst.PosInSample = src.Iterator.GetPosition();
+      dst.LevelInPercents = src.Level.Fraction();
     }
 
     virtual void GetState(ChannelsState& state) const
     {
       state.resize(State.size());
       std::transform(State.begin(), State.end(), state.begin(),
-        std::bind2nd(std::mem_fun_ref(&ChannelState::Analyze), Samples.GetMaxGain()));
+        std::bind2nd(std::mem_fun_ref(&ChannelState::Analyze), Samples.GetMaxRms()));
     }
 
     /// reset internal state to initial
     virtual void Reset()
     {
-      CurrentTime = Time::Microseconds();
-      std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0), 0));
+      Clock.Reset();
+      std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0)));
     }
 
   private:
@@ -361,79 +518,14 @@ namespace
     {
       assert(state.Channel < State.size());
       ChannelState& chan(State[state.Channel]);
-      //'enabled' field changed
-      if (const bool* enabled = state.GetEnabled())
-      {
-        chan.Enabled = *enabled;
-      }
-      //note changed
-      if (const uint_t* note = state.GetNote())
-      {
-        chan.Note = *note;
-      }
-      //note slide changed
-      if (const int_t* noteSlide = state.GetNoteSlide())
-      {
-        chan.NoteSlide = *noteSlide;
-      }
-      //frequency slide changed
-      if (const int_t* freqSlideHz = state.GetFreqSlideHz())
-      {
-        chan.FreqSlide = *freqSlideHz;
-      }
-      //sample changed
-      if (const uint_t* sampleNum = state.GetSampleNum())
-      {
-        chan.CurSampleIndex = *sampleNum;
-        chan.CurSample = Samples.Get(chan.CurSampleIndex);
-        chan.PosInSample = std::min<uint_t>(chan.PosInSample, FIXED_POINT_PRECISION * chan.CurSample->Size() - 1);
-      }
-      //position in sample changed
-      if (const uint_t* posInSample = state.GetPosInSample())
-      {
-        assert(chan.CurSample);
-        chan.PosInSample = FIXED_POINT_PRECISION * std::min<uint_t>(*posInSample, chan.CurSample->Size() - 1);
-      }
-      //level changed
-      if (const uint_t* levelInPercents = state.GetLevelInPercents())
-      {
-        assert(*levelInPercents <= MAX_LEVEL);
-        chan.Level = *levelInPercents;
-      }
-    }
-
-    void CalcSampleStep(uint_t freq, ChannelState& state)
-    {
-      // cached frequency precalc table
-      if (TableFreq != freq)
-      {
-        TableFreq = freq;
-        std::transform(FREQ_TABLE.begin(), FREQ_TABLE.end(), FreqTable.begin(),
-          boost::bind(GetStepByFrequency, _1, TableFreq, SampleFreq));
-        //determine maximal notes count by zero limiter in table
-        MaxNotes = static_cast<uint_t>(std::distance(FreqTable.begin(), std::find(FreqTable.begin(), FreqTable.end(), 0)));
-      }
-      const int_t toneStep = static_cast<int_t>(FreqTable[Math::Clamp<int_t>(int_t(state.Note) + state.NoteSlide,
-        0, MaxNotes - 1)]);
-      state.SampleStep = state.FreqSlide
-        ? Math::Clamp<int_t>(toneStep + sign(state.FreqSlide) * static_cast<int_t>(GetStepByFrequency(double(Math::Absolute(state.FreqSlide)), TableFreq, SampleFreq)),
-          int_t(FreqTable.front()), int_t(FreqTable.back()))
-        : toneStep;
-      assert(state.SampleStep);
+      chan.Update(Samples, Clock, state);
     }
   private:
-    const uint_t Channels;
-    const uint_t SampleFreq;
     const ChipParameters::Ptr Params;
-    const Receiver::Ptr Target;
+    const typename Sound::FixedChannelsStreamMixer<Channels>::Ptr Target;
     SamplesStorage Samples;
-    Time::Microseconds CurrentTime;
-    std::vector<ChannelState> State;
-
-    //steps calc
-    uint_t TableFreq;
-    uint_t MaxNotes;
-    boost::array<uint_t, NOTES> FreqTable;
+    ClockSource Clock;
+    boost::array<ChannelState, Channels> State;
   };
 }
 
@@ -441,9 +533,14 @@ namespace Devices
 {
   namespace DAC
   {
-    Chip::Ptr CreateChip(uint_t channels, uint_t sampleFreq, ChipParameters::Ptr params, Receiver::Ptr target)
+    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::ThreeChannelsStreamMixer::Ptr target)
     {
-      return boost::make_shared<ChipImpl>(channels, sampleFreq, params, target);
+      return boost::make_shared<FixedChannelsChip<3> >(sampleFreq, params, target);
+    }
+
+    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::FourChannelsStreamMixer::Ptr target)
+    {
+      return boost::make_shared<FixedChannelsChip<4> >(sampleFreq, params, target);
     }
   }
 }
