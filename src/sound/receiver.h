@@ -14,16 +14,14 @@
 //common includes
 #include <data_streaming.h>
 //library includes
+#include <sound/chunk.h>
 #include <sound/multichannel_sample.h>
 
 namespace Sound
 {
   //! @brief Simple sound stream endpoint receiver
-  typedef DataReceiver<Sample> Receiver;
-  //! @brief Simple sound stream source
-  typedef DataTransmitter<Sample> Transmitter;
-  //! @brief Simle sound stream converter
-  typedef DataTransceiver<Sample> Converter;
+  typedef DataReceiver<Chunk::Ptr> Receiver;
+  typedef DataTransceiver<Chunk::Ptr, Chunk::Ptr> Converter;
   //! @brief Channel count-specific receivers
   template<unsigned Channels>
   class FixedChannelsReceiver : public DataReceiver<typename MultichannelSample<Channels>::Type> {};

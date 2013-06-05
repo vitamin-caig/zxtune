@@ -455,9 +455,9 @@ namespace Win32
       Objects.Device->Resume();
     }
 
-    virtual void BufferReady(Chunk& buffer)
+    virtual void BufferReady(Chunk::Ptr buffer)
     {
-      Objects.Target->Write(buffer);
+      Objects.Target->Write(*buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const

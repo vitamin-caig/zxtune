@@ -83,49 +83,42 @@ namespace Sound
   class BufferRenderer : public Receiver
   {
   public:
-    explicit BufferRenderer(Chunk& buf) : Buffer(buf)
+    explicit BufferRenderer(BackendWorker& worker)
+      : Worker(worker)
     {
-      Buffer.reserve(1000);//seems to be enough in most cases
     }
 
-    virtual void ApplyData(const Sample& samp)
+    virtual void ApplyData(const Chunk::Ptr& chunk)
     {
-      Buffer.push_back(samp);
+      Worker.BufferReady(chunk);
     }
 
     virtual void Flush()
     {
     }
   private:
-    Chunk& Buffer;
+    BackendWorker& Worker;
   };
-
-  typedef boost::shared_ptr<Chunk> ChunkPtr;
 
   class Renderer
   {
   public:
     typedef boost::shared_ptr<Renderer> Ptr;
 
-    Renderer(ZXTune::Module::Renderer::Ptr renderer, ChunkPtr buffer)
+    Renderer(ZXTune::Module::Renderer::Ptr renderer)
       : Source(renderer)
       , State(Source->GetTrackState())
-      , Buffer(buffer)
     {
     }
 
-    bool RenderFrame(BackendCallback& callback, BackendWorker& worker)
+    bool RenderFrame(BackendCallback& callback)
     {
       callback.OnFrame(*State);
-      Buffer->clear();
-      const bool res = Source->RenderFrame();
-      worker.BufferReady(*Buffer);
-      return res;
+      return Source->RenderFrame();
     }
   private:
     const ZXTune::Module::Renderer::Ptr Source;
     const ZXTune::Module::TrackState::Ptr State;
-    const ChunkPtr Buffer;
   };
 
   class AsyncWrapper : public Async::Worker
@@ -220,7 +213,7 @@ namespace Sound
   private:
     void RenderFrame()
     {
-      Playing = Render->RenderFrame(*Callback, *Delegate);
+      Playing = Render->RenderFrame(*Callback);
     }
   private:
     const ZXTune::Module::Holder::Ptr Holder;
@@ -427,10 +420,9 @@ namespace Sound
   {
     worker->Test();
     const ZXTune::Module::Holder::Ptr holder = params->GetModule();
-    const ChunkPtr buffer = boost::make_shared<Chunk>();
-    const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*buffer));
+    const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*worker));
     const ZXTune::Module::Renderer::Ptr moduleRenderer = boost::make_shared<SafeRendererWrapper>(holder->CreateRenderer(params->GetParameters(), target));
-    const Renderer::Ptr renderer = boost::make_shared<Renderer>(moduleRenderer, buffer);
+    const Renderer::Ptr renderer = boost::make_shared<Renderer>(moduleRenderer);
     const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(holder, worker, CreateCallback(params, worker), renderer);
     const Async::Job::Ptr job = Async::CreateJob(asyncWorker);
     return boost::make_shared<BackendInternal>(worker, moduleRenderer, job);

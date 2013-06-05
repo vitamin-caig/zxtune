@@ -16,12 +16,16 @@
 //std includes
 #include <vector>
 #include <cstring>
+//boost includes
+#include <boost/shared_ptr.hpp>
 
 namespace Sound
 {
   //! @brief Block of sound data
   struct Chunk : public std::vector<Sample>
   {
+    typedef boost::shared_ptr<Chunk> Ptr;
+
     Chunk()
     {
     }
@@ -29,6 +33,29 @@ namespace Sound
     explicit Chunk(std::size_t size)
       : std::vector<Sample>(size)
     {
+    }
+
+    typedef Sample* iterator;
+    typedef const Sample* const_iterator;
+
+    iterator begin()
+    {
+      return &front();
+    }
+
+    const_iterator begin() const
+    {
+      return &front();
+    }
+
+    iterator end()
+    {
+      return &back() + 1;
+    }
+
+    const_iterator end() const
+    {
+      return &back() + 1;
     }
 
     void ToS16(void* target) const

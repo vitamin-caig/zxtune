@@ -16,6 +16,7 @@ Author:
 //library includes
 #include <math/fixedpoint.h>
 #include <math/numeric.h>
+#include <sound/chunk_builder.h>
 //std includes
 #include <cmath>
 //boost includes
@@ -219,6 +220,12 @@ namespace
       CurrentTime = nextTime;
       return static_cast<uint_t>(uint64_t(nextTime.Get() - now.Get()) * SoundFreq / CurrentTime.PER_SECOND);
     }
+
+    uint_t SamplesTill(Stamp nextTime) const
+    {
+      //TODO
+      return static_cast<uint_t>(uint64_t(nextTime.Get() - CurrentTime.Get()) * SoundFreq / CurrentTime.PER_SECOND) + 2;
+    }
   private:
     //in centiHz
     typedef Math::FixedPoint<int_t, 100> Frequency;
@@ -396,7 +403,7 @@ namespace
   public:
     virtual ~Renderer() {}
 
-    virtual void RenderData(const Stamp tillTime, Sound::Receiver& target) = 0;
+    virtual void RenderData(const Stamp tillTime, Sound::ChunkBuilder& target) = 0;
   };
 
   template<unsigned Channels>
@@ -410,7 +417,7 @@ namespace
     {
     }
 
-    virtual void RenderData(const Stamp tillTime, Sound::Receiver& target)
+    virtual void RenderData(const Stamp tillTime, Sound::ChunkBuilder& target)
     {
       typename Sound::MultichannelSample<Channels>::Type result;
       for (uint_t counter = Clock.Advance(tillTime); counter != 0; --counter)
@@ -421,7 +428,7 @@ namespace
           result[chan] = state.GetNearest();
           state.Next();
         }
-        target.ApplyData(Mixer.ApplyData(result));
+        target.Add(Mixer.ApplyData(result));
       }
     }
   private:
@@ -441,7 +448,7 @@ namespace
     {
     }
 
-    virtual void RenderData(const Stamp tillTime, Sound::Receiver& target)
+    virtual void RenderData(const Stamp tillTime, Sound::ChunkBuilder& target)
     {
       static const CosineTable COSTABLE;
       typename Sound::MultichannelSample<Channels>::Type result;
@@ -453,7 +460,7 @@ namespace
           result[chan] = state.GetInterpolated(COSTABLE.Get());
           state.Next();
         }
-        target.ApplyData(Mixer.ApplyData(result));
+        target.Add(Mixer.ApplyData(result));
       }
     }
   private:
@@ -482,7 +489,36 @@ namespace
     ChannelState* const State;
   };
 
+  class DataCache
+  {
+  public:
+    void Add(const DataChunk& src)
+    {
+      Buffer.push_back(src);
+    }
 
+    const DataChunk* GetBegin() const
+    {
+      return &Buffer.front();
+    }
+    
+    const DataChunk* GetEnd() const
+    {
+      return &Buffer.back() + 1;
+    }
+
+    void Reset()
+    {
+      Buffer.clear();
+    }
+
+    Stamp GetTillTime() const
+    {
+      return Buffer.empty() ? Stamp() : Buffer.back().TimeStamp;
+    }
+  private:
+    std::vector<DataChunk> Buffer;
+  };
 
   template<unsigned Channels>
   class FixedChannelsChip : public Chip
@@ -507,18 +543,21 @@ namespace
 
     virtual void RenderData(const DataChunk& src)
     {
-      Clock.SetSoundFreq(Params->SoundFreq());
-
-      // update internal state
-      std::for_each(src.Channels.begin(), src.Channels.end(),
-        boost::bind(&FixedChannelsChip::UpdateState, this, _1));
-
-      Renderer& renderer = GetRenderer();
-      renderer.RenderData(src.TimeStamp, *Target);
+      BufferedData.Add(src);
     }
 
     virtual void Flush()
     {
+      const Stamp till = BufferedData.GetTillTime();
+      if (!(till == Stamp(0)))
+      {
+        Clock.SetSoundFreq(Params->SoundFreq());
+        Renderer& source = GetRenderer();
+        Sound::ChunkBuilder builder;
+        builder.Reserve(Clock.SamplesTill(till));
+        RenderChunks(source, builder);
+        Target->ApplyData(builder.GetResult());
+      }
       Target->Flush();
     }
 
@@ -548,12 +587,25 @@ namespace
     {
       Clock.Reset();
       std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0)));
+      BufferedData.Reset();
     }
 
   private:
     Renderer& GetRenderer()
     {
       return Params->Interpolate() ? static_cast<Renderer&>(MQ) : static_cast<Renderer&>(LQ);
+    }
+
+    void RenderChunks(Renderer& render, Sound::ChunkBuilder& builder)
+    {
+      for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
+      {
+        const DataChunk& chunk = *it;
+        render.RenderData(chunk.TimeStamp, builder);
+        std::for_each(chunk.Channels.begin(), chunk.Channels.end(),
+          boost::bind(&FixedChannelsChip::UpdateState, this, _1));
+      }
+      BufferedData.Reset();
     }
 
     void UpdateState(const DataChunk::ChannelData& state)
@@ -569,6 +621,7 @@ namespace
     SamplesStorage Samples;
     ClockSource Clock;
     boost::array<ChannelState, Channels> State;
+    DataCache BufferedData;
     LQRenderer<Channels> LQ;
     MQRenderer<Channels> MQ;
   };

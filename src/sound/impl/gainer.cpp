@@ -94,11 +94,14 @@ namespace Sound
     {
     }
 
-    virtual void ApplyData(const Sample& in)
+    virtual void ApplyData(const Chunk::Ptr& in)
     {
-      const Sample out(Core.Apply(in.Left()), Core.Apply(in.Right()));
-      Core.ApplyStep();
-      return Delegate->ApplyData(out);
+      for (Chunk::iterator it = in->begin(), lim = in->end(); it != lim; ++it)
+      {
+        *it = Sample(Core.Apply(it->Left()), Core.Apply(it->Right()));
+        Core.ApplyStep();
+      }
+      return Delegate->ApplyData(in);
     }
 
     virtual void Flush()

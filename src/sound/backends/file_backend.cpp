@@ -208,7 +208,7 @@ namespace File
     {
     }
 
-    ChunkStream::Ptr GetStream(const ZXTune::Module::TrackState& state) const
+    Receiver::Ptr GetStream(const ZXTune::Module::TrackState& state) const
     {
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
@@ -219,14 +219,14 @@ namespace File
         SetProperties(*result);
         if (const uint_t buffers = FileParams.GetBuffersCount())
         {
-          return Async::DataReceiver<ChunkPtr>::Create(1, buffers, result);
+          return Async::DataReceiver<Chunk::Ptr>::Create(1, buffers, result);
         }
         else
         {
           return result;
         }
       }
-      return ChunkStream::Ptr();
+      return Receiver::Ptr();
     }
   private:
     void SetProperties(FileStream& stream) const
@@ -265,7 +265,7 @@ namespace File
     BackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
       : Params(params)
       , Factory(factory)
-      , Stream(ChunkStream::CreateStub())
+      , Stream(Receiver::CreateStub())
     {
     }
 
@@ -291,12 +291,10 @@ namespace File
     {
     }
 
-    virtual void BufferReady(Chunk& buffer)
+    virtual void BufferReady(Chunk::Ptr buffer)
     {
       assert(Stream);
-      const ChunkPtr chunk = boost::make_shared<Chunk>();
-      chunk->swap(buffer);
-      Stream->ApplyData(chunk);
+      Stream->ApplyData(buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -314,7 +312,7 @@ namespace File
 
     virtual void OnFrame(const ZXTune::Module::TrackState& state)
     {
-      if (ChunkStream::Ptr newStream = Source->GetStream(state))
+      if (const Receiver::Ptr newStream = Source->GetStream(state))
       {
         SetStream(newStream);
       }
@@ -322,7 +320,7 @@ namespace File
 
     virtual void OnStop()
     {
-      SetStream(ChunkStream::CreateStub());
+      SetStream(Receiver::CreateStub());
       Source.reset();
     }
 
@@ -338,7 +336,7 @@ namespace File
     {
     }
   private:
-    void SetStream(ChunkStream::Ptr str)
+    void SetStream(Receiver::Ptr str)
     {
       Stream->Flush();
       Stream = str;
@@ -347,7 +345,7 @@ namespace File
     const Parameters::Accessor::Ptr Params;
     const FileStreamFactory::Ptr Factory;
     std::auto_ptr<StreamSource> Source;
-    ChunkStream::Ptr Stream;
+    Receiver::Ptr Stream;
   };
 }//File
 }//Sound

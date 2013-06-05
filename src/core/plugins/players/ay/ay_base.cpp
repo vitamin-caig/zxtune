@@ -180,6 +180,7 @@ namespace ZXTune
     Devices::AYM::DataChunk FlushChunk;
   };
 
+  /*
   class FadeoutFilter : public Sound::Receiver
   {
   public:
@@ -251,6 +252,7 @@ namespace ZXTune
       return gainer;
     }
   }
+  */
 
   class AYMHolder : public AYM::Holder
   {

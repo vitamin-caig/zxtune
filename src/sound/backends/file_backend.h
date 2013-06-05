@@ -20,11 +20,7 @@ Author:
 
 namespace Sound
 {
-  typedef boost::shared_ptr<Chunk> ChunkPtr;
-
-  typedef DataReceiver<ChunkPtr> ChunkStream;
-
-  class FileStream : public ChunkStream
+  class FileStream : public Receiver
   {
   public:
     typedef boost::shared_ptr<FileStream> Ptr;

@@ -47,7 +47,7 @@ msgstr ""
 msgid "ALSA sound system backend"
 msgstr "Поддержка подсистемы ALSA"
 
-#: alsa_backend.cpp:837 dsound_backend.cpp:533 flac_backend.cpp:321
+#: alsa_backend.cpp:837 dsound_backend.cpp:533 flac_backend.cpp:322
 #: mp3_backend.cpp:388 null_backend.cpp:105 ogg_backend.cpp:459
 #: oss_backend.cpp:416 sdl_backend.cpp:327 wav_backend.cpp:306
 #: win32_backend.cpp:546
@@ -63,27 +63,27 @@ msgstr "Не найдено ни одного подходящего устро�
 msgid "Invalid module specified for backend."
 msgstr "Неправильный модуль."
 
-#: backend_impl.cpp:157
+#: backend_impl.cpp:150
 msgid "Failed to initialize playback."
 msgstr "Ошибка инициализации воспроизведения."
 
-#: backend_impl.cpp:173
+#: backend_impl.cpp:166
 msgid "Failed to finalize playback."
 msgstr "Ошибка завершения воспроизведения."
 
-#: backend_impl.cpp:188
+#: backend_impl.cpp:181
 msgid "Failed to pause playback."
 msgstr "Ошибка приостановки воспроизведения."
 
-#: backend_impl.cpp:203
+#: backend_impl.cpp:196
 msgid "Failed to resume playback."
 msgstr "Ошибка возобновления воспроизведения."
 
-#: backend_impl.cpp:361
+#: backend_impl.cpp:354
 msgid "Failed to stop playback."
 msgstr "Ошибка останова воспроизведения."
 
-#: backend_impl.cpp:373
+#: backend_impl.cpp:366
 msgid "Failed to set playback position."
 msgstr "Ошибка позиционирования воспроизведения."
 
@@ -119,12 +119,12 @@ msgstr "Шаблон имени результирующего файла не �
 msgid "Error in FLAC backend."
 msgstr "Ошибка в подсистеме вывода FLAC."
 
-#: flac_backend.cpp:189
+#: flac_backend.cpp:190
 #, boost-format
 msgid "Error in FLAC backend (code %1%)."
 msgstr "Ошибка в подсистеме вывода FLAC: код %1%."
 
-#: flac_backend.cpp:232 flac_stub.cpp:24
+#: flac_backend.cpp:233 flac_stub.cpp:24
 msgid "FLAC support backend."
 msgstr "Поддержка вывода FLAC"
 

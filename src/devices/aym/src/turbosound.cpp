@@ -26,30 +26,32 @@ namespace TurboSound
     typedef boost::shared_ptr<DoubleMixer> Ptr;
 
     DoubleMixer()
-      : InCursor()
-      , OutCursor()
     {
     }
 
-    void Store(Sound::Sample in)
+    void Store(Sound::Chunk::Ptr in)
     {
-      Buffer[InCursor++] = in;
+      Buffer = in;
     }
 
-    Sound::Sample Mix(Sound::Sample in)
+    Sound::Chunk::Ptr Mix(Sound::Chunk::Ptr in)
     {
-      const Sound::Sample mix = Buffer[OutCursor++];
-      return Sound::Sample(Mix(in.Left(), mix.Left()), Mix(in.Right(), mix.Right()));
+      assert(in->size() == Buffer->size());
+      std::transform(Buffer->begin(), Buffer->end(), in->begin(), Buffer->begin(), &MixAll);
+      return Buffer;
     }
   private:
-    static inline Sound::Sample::Type Mix(Sound::Sample::Type lh, Sound::Sample::Type rh)
+    static inline Sound::Sample::Type MixChannel(Sound::Sample::Type lh, Sound::Sample::Type rh)
     {
       return (int_t(lh) + rh) / 2;
     }
+
+    static inline Sound::Sample MixAll(Sound::Sample lh, Sound::Sample rh)
+    {
+      return Sound::Sample(MixChannel(lh.Left(), rh.Left()), MixChannel(lh.Right(), rh.Right()));
+    }
   private:
-    boost::array<Sound::Sample, 65536> Buffer;
-    uint16_t InCursor;
-    uint16_t OutCursor;
+    Sound::Chunk::Ptr Buffer;
   };
 
   class FirstReceiver : public Sound::Receiver
@@ -60,7 +62,7 @@ namespace TurboSound
     {
     }
 
-    virtual void ApplyData(const Sound::Sample& data)
+    virtual void ApplyData(const Sound::Chunk::Ptr& data)
     {
       Mixer->Store(data);
     }
@@ -81,7 +83,7 @@ namespace TurboSound
     {
     }
 
-    virtual void ApplyData(const Sound::Sample& data)
+    virtual void ApplyData(const Sound::Chunk::Ptr& data)
     {
       Delegate->ApplyData(Mixer->Mix(data));
     }

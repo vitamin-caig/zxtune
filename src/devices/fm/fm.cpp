@@ -15,6 +15,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <devices/fm.h>
+#include <sound/chunk_builder.h>
 #include <time/oscillator.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -92,20 +93,21 @@ namespace
       ::YM2203Write(YM2203.get(), 1, reg.Value);
     }
 
-    void RenderSamples(uint_t count, Sound::Receiver& tgt)
+    void RenderSamples(uint_t count, Sound::ChunkBuilder& tgt)
     {
       assert(YM2203);
       if (count == 1)
       {
         YM2203SampleType buf = 0;
         ::YM2203UpdateOne(YM2203.get(), &buf, 1);
-        tgt.ApplyData(ConvertToSample(buf));
+        tgt.Add(ConvertToSample(buf));
       }
       else
       {
         std::vector<YM2203SampleType> buf(count);
         ::YM2203UpdateOne(YM2203.get(), &buf[0], count);
-        std::for_each(buf.begin(), buf.end(), boost::bind(&Sound::Receiver::ApplyData, &tgt, boost::bind(&ConvertToSample, _1)));
+        Sound::Sample* const target = tgt.Allocate(count);
+        std::transform(buf.begin(), buf.end(), target, boost::bind(&ConvertToSample, _1));
       }
     }
 
@@ -153,9 +155,15 @@ namespace
 
     virtual void Flush()
     {
-      ApplyParameters();
-      std::for_each(Buffer.begin(), Buffer.end(), boost::bind(&MameChip::RenderSingleChunk, this, _1));
-      Buffer.clear();
+      const Stamp tillTime = GetTillTime();
+      if (!(tillTime == Stamp(0)))
+      {
+        ApplyParameters();
+        Sound::ChunkBuilder builder;
+        builder.Reserve(GetSamplesTill(tillTime));
+        RenderChunks(builder);
+        Target->ApplyData(builder.GetResult());
+      }
       Target->Flush();
     }
 
@@ -171,6 +179,11 @@ namespace
       state = Render.GetState();
     }
   private:
+    Stamp GetTillTime() const
+    {
+      return Buffer.empty() ? Stamp() : Buffer.back().TimeStamp;
+    }
+
     void ApplyParameters()
     {
       const uint64_t clockFreq = Params->ClockFreq();
@@ -179,14 +192,24 @@ namespace
       Clock.SetFrequency(sndFreq);
     }
 
-    void RenderSingleChunk(const DataChunk& src)
+    uint_t GetSamplesTill(Stamp stamp) const
     {
-      Render.WriteRegisters(src.Data.begin(), src.Data.end());
-      if (const uint_t outFrames = static_cast<uint_t>(Clock.GetTickAtTime(src.TimeStamp) - Clock.GetCurrentTick()))
+      //TODO
+      return Clock.GetTickAtTime(stamp) - Clock.GetCurrentTick() + 2;
+    }
+
+    void RenderChunks(Sound::ChunkBuilder& builder)
+    {
+      for (std::vector<DataChunk>::const_iterator it = Buffer.begin(), lim = Buffer.end(); it != lim; ++it)
       {
-        Render.RenderSamples(outFrames, *Target);
-        Clock.AdvanceTick(outFrames);
+        Render.WriteRegisters(it->Data.begin(), it->Data.end());
+        if (const uint_t samples = GetSamplesTill(it->TimeStamp))
+        {
+          Render.RenderSamples(samples, builder);
+          Clock.AdvanceTick(samples);
+        }
       }
+      Buffer.clear();
     }
   private:
     const ChipParameters::Ptr Params;

@@ -95,7 +95,7 @@ namespace Mp3
     {
     }
 
-    virtual void ApplyData(const ChunkPtr& data)
+    virtual void ApplyData(const Chunk::Ptr& data)
     {
       //work with 16-bit
       BOOST_STATIC_ASSERT(Sample::BITS == 16);

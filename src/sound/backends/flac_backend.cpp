@@ -65,6 +65,7 @@ namespace Flac
 
   inline FlacSample ConvertSample(Sample in)
   {
+    BOOST_STATIC_ASSERT(Sample::MID == 0);
     return FlacSample(in.Left(), in.Right());
   }
 
@@ -141,7 +142,7 @@ namespace Flac
       Dbg("Stream initialized");
     }
 
-    virtual void ApplyData(const ChunkPtr& data)
+    virtual void ApplyData(const Chunk::Ptr& data)
     {
       if (const std::size_t samples = data->size())
       {

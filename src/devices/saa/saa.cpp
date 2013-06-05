@@ -16,6 +16,7 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
+#include <sound/chunk_builder.h>
 #include <sound/lpfilter.h>
 #include <time/oscillator.h>
 //std includes
@@ -156,6 +157,12 @@ namespace
       PsgOscillator.AdvanceTime(stamp.Get() - prevStamp.Get());
       return static_cast<uint_t>(PsgOscillator.GetCurrentTick() - prevTick);
     }
+
+    uint_t SamplesTill(Stamp stamp) const
+    {
+      //TODO: investigate for adding reason
+      return SndOscillator.GetTickAtTime(stamp) - SndOscillator.GetCurrentTick() + 2;
+    }
   private:
     Time::Oscillator<Stamp> SndOscillator;
     Time::TimedOscillator<Stamp> PsgOscillator;
@@ -182,6 +189,11 @@ namespace
     void Reset()
     {
       Buffer.clear();
+    }
+
+    Stamp GetTillTime() const
+    {
+      return Buffer.empty() ? Stamp() : Buffer.back().TimeStamp;
     }
   private:
     std::vector<DataChunk> Buffer;
@@ -251,7 +263,7 @@ namespace
   public:
     virtual ~Renderer() {}
 
-    virtual void Render(const Stamp& tillTime, Sound::Receiver& target) = 0;
+    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target) = 0;
   };
 
   /*
@@ -266,7 +278,7 @@ namespace
     {
     }
 
-    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
+    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
     {
       for (;;)
       {
@@ -287,10 +299,10 @@ namespace
       }
     }
   private:
-    void RenderNextSample(Sound::Receiver& target)
+    void RenderNextSample(Sound::ChunkBuilder& target)
     {
       const Sound::Sample& sndLevel = PSG.GetLevels();
-      target.ApplyData(sndLevel);
+      target.Add(sndLevel);
       Clock.NextSample();
     }
   private:
@@ -310,7 +322,7 @@ namespace
     {
     }
 
-    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
+    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
     {
       for (;;)
       {
@@ -331,11 +343,11 @@ namespace
       }
     }
   private:
-    void RenderNextSample(Sound::Receiver& target)
+    void RenderNextSample(Sound::ChunkBuilder& target)
     {
       const Sound::Sample curLevel = PSG.GetLevels();
       const Sound::Sample& sndLevel = Interpolate(curLevel);
-      target.ApplyData(sndLevel);
+      target.Add(sndLevel);
       Clock.NextSample();
     }
 
@@ -380,7 +392,7 @@ namespace
       }
     }
 
-    virtual void Render(const Stamp& tillTime, Sound::Receiver& target)
+    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
     {
       for (;;)
       {
@@ -416,9 +428,9 @@ namespace
       }
     }
 
-    void RenderNextSample(Sound::Receiver& target)
+    void RenderNextSample(Sound::ChunkBuilder& target)
     {
-      target.ApplyData(Filter.Get());
+      target.Add(Filter.Get());
       Clock.NextSample();
     }
   private:
@@ -450,9 +462,16 @@ namespace
 
     virtual void Flush()
     {
-      ApplyParameters();
-      Renderer& source = GetRenderer();
-      RenderChunks(source);
+      const Stamp till = BufferedData.GetTillTime();
+      if (!(till == Stamp(0)))
+      {
+        ApplyParameters();
+        Renderer& source = GetRenderer();
+        Sound::ChunkBuilder builder;
+        builder.Reserve(Clock.SamplesTill(till));
+        RenderChunks(source, builder);
+        Target->ApplyData(builder.GetResult());
+      }
       Target->Flush();
     }
 
@@ -494,9 +513,8 @@ namespace
       }
     }
 
-    void RenderChunks(Renderer& source)
+    void RenderChunks(Renderer& source, Sound::ChunkBuilder& target)
     {
-      Sound::Receiver& target = *Target;
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
         const DataChunk& chunk = *it;

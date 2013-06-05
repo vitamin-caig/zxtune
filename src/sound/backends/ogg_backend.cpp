@@ -286,7 +286,7 @@ namespace Ogg
       Stream->Flush();
     }
 
-    virtual void ApplyData(const ChunkPtr& data)
+    virtual void ApplyData(const Chunk::Ptr& data)
     {
       State->Encode(*data);
       State->Save(*Stream);

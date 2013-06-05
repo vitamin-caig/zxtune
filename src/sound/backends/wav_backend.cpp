@@ -204,7 +204,7 @@ namespace Sound
     {
     }
 
-    virtual void ApplyData(const ChunkPtr& data)
+    virtual void ApplyData(const Chunk::Ptr& data)
     {
       if (Sample::BITS == 16)
       {

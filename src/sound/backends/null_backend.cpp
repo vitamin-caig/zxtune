@@ -55,7 +55,7 @@ namespace Null
     {
     }
 
-    virtual void BufferReady(Chunk& /*buffer*/)
+    virtual void BufferReady(Chunk::Ptr /*buffer*/)
     {
     }
 
