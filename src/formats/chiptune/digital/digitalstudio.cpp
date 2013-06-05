@@ -292,7 +292,7 @@ namespace Chiptune
           patBuilder.StartLine(lineNum);
           if (!ParseLine(srcLine, patBuilder, target))
           {
-            patBuilder.Finish(lineNum);
+            patBuilder.Finish(lineNum + 1);
             break;
           }
         }
