@@ -16,12 +16,12 @@
 
 namespace Math
 {
-  template<class T, unsigned Precision>
+  template<class T, T Precision>
   class FixedPoint
   {
   public:
     typedef T ValueType;
-    static const unsigned PRECISION = Precision;
+    static const T PRECISION = Precision;
 
     FixedPoint()
       : Value()
@@ -45,10 +45,15 @@ namespace Math
     {
     }
 
-    template<class T1, unsigned Precision1>
+    template<class T1, T1 Precision1>
     FixedPoint(const FixedPoint<T1, Precision1>& rh)
     {
       Set(rh.Value, Precision1);
+    }
+
+    T Round() const
+    {
+      return (Value + Precision / 2) / Precision;
     }
 
     T Integer() const
@@ -149,14 +154,6 @@ namespace Math
       return res;
     }
 
-    /*
-    template<class P>
-    bool operator < (P rh) const
-    {
-      return Integer() < rh;
-    }
-    */
-
     bool operator < (const FixedPoint<T, Precision>& rh) const
     {
       return Value < rh.Value;
@@ -201,7 +198,7 @@ namespace Math
       }
     }
 
-    template<typename, unsigned>
+    template<typename V, V>
     friend class FixedPoint;
   private:
     T Value;

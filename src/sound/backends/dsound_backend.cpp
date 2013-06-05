@@ -302,12 +302,12 @@ namespace DirectSound
   //use simple scale method due to less error in forward and backward conversion
   Gain::Type AttenuationToGain(int_t cdB)
   {
-    return Gain::Type(1) - Gain::Type(cdB, DSBVOLUME_MIN);
+    return Gain::Type(1) - Gain::Type(cdB, int(DSBVOLUME_MIN));
   }
 
   int_t GainToAttenuation(Gain::Type level)
   {
-    return ((Gain::Type(1) - level) * DSBVOLUME_MIN).Integer();
+    return ((Gain::Type(1) - level) * int(DSBVOLUME_MIN)).Round();
   }
 
   class VolumeControl : public Sound::VolumeControl

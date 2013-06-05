@@ -355,8 +355,8 @@ namespace Win32
       boost::array<uint16_t, Sample::CHANNELS> buffer;
       BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
       Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
-      const Gain::Type l(buffer[0], MAX_WIN32_VOLUME);
-      const Gain::Type r(buffer[1], MAX_WIN32_VOLUME);
+      const Gain::Type l(uint_t(buffer[0]), MAX_WIN32_VOLUME);
+      const Gain::Type r(uint_t(buffer[1]), MAX_WIN32_VOLUME);
       return Gain(l, r);
     }
 

@@ -35,10 +35,11 @@ namespace Math
   template<class T1, class T2>
   inline std::pair<T1, T2> OptimizeRatio(T1 first, T2 second)
   {
+    BOOST_STATIC_ASSERT(sizeof(T1) >= sizeof(T2));
     while (0 == ((first | second) & 1))
     {
-      first >>= 1;
-      second >>= 1;
+      first /= T1(2);
+      second /= T2(2);
     }
     return std::make_pair(first, second);
   }
