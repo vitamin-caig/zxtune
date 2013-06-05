@@ -18,18 +18,6 @@
 namespace Sound
 {
   template<unsigned Channels>
-  class FixedChannelsMatrixStreamMixer : public FixedChannelsStreamMixer<Channels>
-  {
-  public:
-    typedef boost::shared_ptr<FixedChannelsMatrixStreamMixer> Ptr;
-    typedef boost::array< ::Sound::Gain, Channels> Matrix;
-
-    virtual void SetMatrix(const Matrix& data) = 0;
-
-    static Ptr Create();
-  };
-
-  template<unsigned Channels>
   class FixedChannelsMatrixMixer : public FixedChannelsMixer<Channels>
   {
   public:
@@ -40,6 +28,11 @@ namespace Sound
 
     static Ptr Create();
   };
+
+  typedef FixedChannelsMatrixMixer<1> OneChannelMatrixMixer;
+  typedef FixedChannelsMatrixMixer<2> TwoChannelsMatrixMixer;
+  typedef FixedChannelsMatrixMixer<3> ThreeChannelsMatrixMixer;
+  typedef FixedChannelsMatrixMixer<4> FourChannelsMatrixMixer;
 }
 
 #endif //SOUND_MATRIC_MIXER_H_DEFINED

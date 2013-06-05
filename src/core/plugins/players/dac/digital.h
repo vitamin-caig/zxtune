@@ -292,10 +292,10 @@ namespace ZXTune
 
           virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
           {
-            const typename Sound::FixedChannelsStreamMixer<Channels>::Ptr mixer = Sound::CreateStreamMixer(params, Sound::MultichannelSample<Channels>());
-            mixer->SetTarget(target);
+            const typename Sound::FixedChannelsMatrixMixer<Channels>::Ptr mixer = Sound::FixedChannelsMatrixMixer<Channels>::Create();
+            Sound::FillMixer(*params, *mixer);
             const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-            const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BaseFreq, chipParams, mixer));
+            const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BaseFreq, chipParams, mixer, target));
             for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
             {
               chip->SetSample(idx, Data->Samples.Get(idx));

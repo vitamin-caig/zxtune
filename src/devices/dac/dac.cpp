@@ -442,8 +442,9 @@ namespace
   class FixedChannelsChip : public Chip
   {
   public:
-    FixedChannelsChip(uint_t sampleFreq, ChipParameters::Ptr params, typename Sound::FixedChannelsStreamMixer<Channels>::Ptr target)
+    FixedChannelsChip(uint_t sampleFreq, ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer, Sound::Receiver::Ptr target)
       : Params(params)
+      , Mixer(mixer)
       , Target(target)
       , Clock(sampleFreq)
     {
@@ -475,7 +476,7 @@ namespace
             result[chan] = state.GetNearest();
             state.Next();
           }
-          Target->ApplyData(result);
+          Target->ApplyData(Mixer->ApplyData(result));
         }
       }
     }
@@ -522,7 +523,8 @@ namespace
     }
   private:
     const ChipParameters::Ptr Params;
-    const typename Sound::FixedChannelsStreamMixer<Channels>::Ptr Target;
+    const typename Sound::FixedChannelsMixer<Channels>::Ptr Mixer;
+    const Sound::Receiver::Ptr Target;
     SamplesStorage Samples;
     ClockSource Clock;
     boost::array<ChannelState, Channels> State;
@@ -533,14 +535,14 @@ namespace Devices
 {
   namespace DAC
   {
-    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::ThreeChannelsStreamMixer::Ptr target)
+    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
     {
-      return boost::make_shared<FixedChannelsChip<3> >(sampleFreq, params, target);
+      return boost::make_shared<FixedChannelsChip<3> >(sampleFreq, params, mixer, target);
     }
 
-    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::FourChannelsStreamMixer::Ptr target)
+    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
     {
-      return boost::make_shared<FixedChannelsChip<4> >(sampleFreq, params, target);
+      return boost::make_shared<FixedChannelsChip<4> >(sampleFreq, params, mixer, target);
     }
   }
 }

@@ -197,14 +197,13 @@ namespace
 
     virtual const Devices::AYM::MixerType& Mixer() const
     {
-      const Sound::FixedChannelsMatrixMixer<3>::Matrix mtx = Sound::ReadThreeChannelsMixerMatrix(*Params);
-      MixerObject->SetMatrix(mtx);
+      Sound::FillMixer(*Params, *MixerObject);
       return *MixerObject;
     }
   private:
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
-    const Sound::FixedChannelsMatrixMixer<Devices::AYM::SOUND_CHANNELS>::Ptr MixerObject;
+    const Sound::ThreeChannelsMatrixMixer::Ptr MixerObject;
   };
 
   class TrackParametersImpl : public AYM::TrackParameters

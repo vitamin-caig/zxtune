@@ -180,10 +180,10 @@ namespace ProDigiTracker
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::FourChannelsStreamMixer::Ptr mixer = Sound::CreateFourChannelsStreamMixer(params);
-      mixer->SetTarget(target);
+      const Sound::FourChannelsMatrixMixer::Ptr mixer = Sound::FourChannelsMatrixMixer::Create();
+      Sound::FillMixer(*params, *mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BASE_FREQ, chipParams, mixer));
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BASE_FREQ, chipParams, mixer, target));
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
         chip->SetSample(idx, Data->Samples.Get(idx));

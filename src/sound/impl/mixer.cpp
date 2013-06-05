@@ -31,46 +31,6 @@ namespace Sound
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   template<unsigned Channels>
-  class StreamMixer : public FixedChannelsMatrixStreamMixer<Channels>
-  {
-    typedef FixedChannelsMatrixStreamMixer<Channels> Base;
-  public:
-    StreamMixer()
-      : Endpoint(Receiver::CreateStub())
-    {
-    }
-
-    virtual void ApplyData(const typename Base::InDataType& in)
-    {
-      const Sample out = Core.Mix(in);
-      return Endpoint->ApplyData(out);
-    }
-    
-    virtual void Flush()
-    {
-      Endpoint->Flush();
-    }
-    
-    virtual void SetTarget(Receiver::Ptr rcv)
-    {
-      Endpoint = rcv ? rcv : Receiver::CreateStub();
-    }
-    
-    virtual void SetMatrix(const typename Base::Matrix& data)
-    {
-      const typename Base::Matrix::const_iterator it = std::find_if(data.begin(), data.end(), std::not1(std::mem_fun_ref(&Gain::IsNormalized)));
-      if (it != data.end())
-      {
-        throw Error(THIS_LINE, translate("Failed to set mixer matrix: gain is out of range."));
-      }
-      Core.SetMatrix(data);
-    }
-  private:
-    Receiver::Ptr Endpoint;
-    MixerCore<Channels> Core;
-  };
-
-  template<unsigned Channels>
   class Mixer : public FixedChannelsMatrixMixer<Channels>
   {
     typedef FixedChannelsMatrixMixer<Channels> Base;
@@ -87,59 +47,40 @@ namespace Sound
       {
         throw Error(THIS_LINE, translate("Failed to set mixer matrix: gain is out of range."));
       }
-      Core.SetMatrix(data);
+      if (LastMatrix != data)
+      {
+        Core.SetMatrix(data);
+        LastMatrix = data;
+      }
     }
   private:
     MixerCore<Channels> Core;
+    typename Base::Matrix LastMatrix;
   };
 }
 
 namespace Sound
 {
   template<>
-  FixedChannelsMatrixStreamMixer<1>::Ptr FixedChannelsMatrixStreamMixer<1>::Create()
-  {
-    return boost::make_shared<StreamMixer<1> >();
-  }
-
-  template<>
-  FixedChannelsMatrixStreamMixer<2>::Ptr FixedChannelsMatrixStreamMixer<2>::Create()
-  {
-    return boost::make_shared<StreamMixer<2> >();
-  }
-
-  template<>
-  FixedChannelsMatrixStreamMixer<3>::Ptr FixedChannelsMatrixStreamMixer<3>::Create()
-  {
-    return boost::make_shared<StreamMixer<3> >();
-  }
-
-  template<>
-  FixedChannelsMatrixStreamMixer<4>::Ptr FixedChannelsMatrixStreamMixer<4>::Create()
-  {
-    return boost::make_shared<StreamMixer<4> >();
-  }
-
-  template<>
-  FixedChannelsMatrixMixer<1>::Ptr FixedChannelsMatrixMixer<1>::Create()
+  OneChannelMatrixMixer::Ptr OneChannelMatrixMixer::Create()
   {
     return boost::make_shared<Mixer<1> >();
   }
 
   template<>
-  FixedChannelsMatrixMixer<2>::Ptr FixedChannelsMatrixMixer<2>::Create()
+  TwoChannelsMatrixMixer::Ptr TwoChannelsMatrixMixer::Create()
   {
     return boost::make_shared<Mixer<2> >();
   }
 
   template<>
-  FixedChannelsMatrixMixer<3>::Ptr FixedChannelsMatrixMixer<3>::Create()
+  ThreeChannelsMatrixMixer::Ptr ThreeChannelsMatrixMixer::Create()
   {
     return boost::make_shared<Mixer<3> >();
   }
 
   template<>
-  FixedChannelsMatrixMixer<4>::Ptr FixedChannelsMatrixMixer<4>::Create()
+  FourChannelsMatrixMixer::Ptr FourChannelsMatrixMixer::Create()
   {
     return boost::make_shared<Mixer<4> >();
   }

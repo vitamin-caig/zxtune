@@ -18,6 +18,7 @@ Author:
 namespace Sound
 {
   typedef boost::array<Gain::Type, Sample::CHANNELS> MultiConfigValue;
+  const uint_t CONFIG_VALUE_PRECISION = 100;
 
   void GetMatrixRow(const Parameters::Accessor& params, uint_t channels, uint_t inChan, MultiConfigValue& out)
   {
@@ -26,107 +27,49 @@ namespace Sound
       const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(channels, inChan, outChan);
       Parameters::IntType val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(channels, inChan, outChan);
       params.FindValue(name, val);
-      out[outChan] = Gain::Type(static_cast<uint_t>(val), 100);
-    }
-  }
-
-  void GetMatrix(const Parameters::Accessor& params, MultiConfigValue* outBegin, MultiConfigValue* outEnd)
-  {
-    const uint_t channels = outEnd - outBegin;
-    for (MultiConfigValue* it = outBegin; it != outEnd; ++it)
-    {
-      GetMatrixRow(params, channels, it - outBegin, *it);
+      out[outChan] = Gain::Type(static_cast<uint_t>(val), CONFIG_VALUE_PRECISION);
     }
   }
 
   template<unsigned Channels>
-  class PollingStreamMixer : public FixedChannelsStreamMixer<Channels>
+  void GetMatrix(const Parameters::Accessor& params, typename FixedChannelsMatrixMixer<Channels>::Matrix& res)
   {
-    typedef FixedChannelsMatrixStreamMixer<Channels> MixerType;
-  public:
-    explicit PollingStreamMixer(Parameters::Accessor::Ptr params)
-      : Params(params)
-      , Delegate(MixerType::Create())
+    MultiConfigValue row;
+    for (uint_t inChan = 0; inChan != res.size(); ++inChan)
     {
-      UpdateMatrix();
+      GetMatrixRow(params, Channels, inChan, row);
+      res[inChan] = Gain(row[0], row[1]);
     }
+  }
 
-    virtual void ApplyData(const typename MixerType::InDataType& inData)
-    {
-      Delegate->ApplyData(inData);
-    }
-
-    virtual void Flush()
-    {
-      Delegate->Flush();
-      UpdateMatrix();
-    }
-    
-    virtual void SetTarget(Receiver::Ptr rcv)
-    {
-      Delegate->SetTarget(rcv);
-    }
-  private:
-    void UpdateMatrix()
-    {
-      const MatrixType oldMatrix = LastMatrix;
-      GetMatrix(*Params, &LastMatrix.front(), &LastMatrix.back() + 1);
-      if (oldMatrix != LastMatrix)
-      {
-        SetMatrix();
-      }
-    }
-
-    void SetMatrix()
-    {
-      typename MixerType::Matrix mtx;
-      for (uint_t inChan = 0; inChan != Channels; ++inChan)
-      {
-        const MultiConfigValue& cfg = LastMatrix[inChan];
-        mtx[inChan] = Gain(cfg[0], cfg[1]);
-      }
-      Delegate->SetMatrix(mtx);
-    }
-  private:
-    const Parameters::Accessor::Ptr Params;
-    const typename MixerType::Ptr Delegate;
-    typedef boost::array<MultiConfigValue, Channels> MatrixType;
-    MatrixType LastMatrix;
-  };
+  template<unsigned Channels>
+  void FillMixerInternal(const Parameters::Accessor& params, FixedChannelsMatrixMixer<Channels>& mixer)
+  {
+    typename FixedChannelsMatrixMixer<Channels>::Matrix res;
+    GetMatrix<Channels>(params, res);
+    mixer.SetMatrix(res);
+  }
 }
 
 namespace Sound
 {
-  OneChannelStreamMixer::Ptr CreateOneChannelStreamMixer(Parameters::Accessor::Ptr params)
+  void FillMixer(const Parameters::Accessor& params, OneChannelMatrixMixer& mixer)
   {
-    return boost::make_shared<PollingStreamMixer<1> >(params);
+    FillMixerInternal<1>(params, mixer);
   }
 
-  TwoChannelsStreamMixer::Ptr CreateTwoChannelsStreamMixer(Parameters::Accessor::Ptr params)
+  void FillMixer(const Parameters::Accessor& params, TwoChannelsMatrixMixer& mixer)
   {
-    return boost::make_shared<PollingStreamMixer<2> >(params);
+    FillMixerInternal<2>(params, mixer);
   }
 
-  ThreeChannelsStreamMixer::Ptr CreateThreeChannelsStreamMixer(Parameters::Accessor::Ptr params)
+  void FillMixer(const Parameters::Accessor& params, ThreeChannelsMatrixMixer& mixer)
   {
-    return boost::make_shared<PollingStreamMixer<3> >(params);
+    FillMixerInternal<3>(params, mixer);
   }
 
-  FourChannelsStreamMixer::Ptr CreateFourChannelsStreamMixer(Parameters::Accessor::Ptr params)
+  void FillMixer(const Parameters::Accessor& params, FourChannelsMatrixMixer& mixer)
   {
-    return boost::make_shared<PollingStreamMixer<4> >(params);
-  }
-
-  FixedChannelsMatrixMixer<3>::Matrix ReadThreeChannelsMixerMatrix(const Parameters::Accessor& params)
-  {
-    boost::array<MultiConfigValue, 3> mtx;
-    GetMatrix(params, &mtx.front(), &mtx.back() + 1);
-    FixedChannelsMatrixMixer<3>::Matrix res;
-    for (uint_t inChan = 0; inChan != mtx.size(); ++inChan)
-    {
-      const MultiConfigValue& cfg = mtx[inChan];
-      res[inChan] = Gain(cfg[0], cfg[1]);
-    }
-    return res;
+    FillMixerInternal<4>(params, mixer);
   }
 }

@@ -17,14 +17,6 @@
 namespace Sound
 {
   template<unsigned Channels>
-  class FixedChannelsStreamMixer : public DataTransceiver<typename MultichannelSample<Channels>::Type, Sample> {};
-
-  typedef FixedChannelsStreamMixer<1> OneChannelStreamMixer;
-  typedef FixedChannelsStreamMixer<2> TwoChannelsStreamMixer;
-  typedef FixedChannelsStreamMixer<3> ThreeChannelsStreamMixer;
-  typedef FixedChannelsStreamMixer<4> FourChannelsStreamMixer;
-
-  template<unsigned Channels>
   class FixedChannelsMixer
   {
   public:

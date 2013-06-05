@@ -51,6 +51,11 @@ namespace Sound
       //TODO: use Math::Clamp
       return LeftVal >= MIN && LeftVal <= MAX && RightVal >= MIN && RightVal <= MAX;
     }
+
+    bool operator == (const Gain& rh) const
+    {
+      return LeftVal == rh.LeftVal && RightVal == rh.RightVal;
+    }
   private:
     Type LeftVal;
     Type RightVal;
