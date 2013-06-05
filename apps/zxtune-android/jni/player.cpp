@@ -15,10 +15,10 @@ Author:
 #include "player.h"
 #include "properties.h"
 #include "zxtune.h"
-//common includes
-#include <cycle_buffer.h>
 //library includes
 #include <sound/mixer_factory.h>
+//std includes
+#include <deque>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/type_traits/is_signed.hpp>
@@ -34,14 +34,9 @@ namespace
   public:
     typedef boost::shared_ptr<BufferTarget> Ptr;
 
-    BufferTarget()
-      : Buffer(32768)
+    virtual void ApplyData(const Sound::Chunk::Ptr& data)
     {
-    }
-    
-    virtual void ApplyData(const Sound::Sample& data)
-    {
-      Buffer.Put(&data, 1);
+      Buffers.push_back(Buff(data));
     }
 
     virtual void Flush()
@@ -50,23 +45,40 @@ namespace
 
     std::size_t GetSamples(std::size_t count, int16_t* target)
     {
-      const Sound::Sample* part1 = 0;
-      std::size_t part1Size = 0;
-      const Sound::Sample* part2 = 0;
-      std::size_t part2Size = 0;
-      if (const std::size_t got = Buffer.Peek(count / Sound::Sample::CHANNELS, part1, part1Size, part2, part2Size))
+      if (Buffers.empty())
       {
-        std::memcpy(target, part1, part1Size * sizeof(*part1));
-        if (part2)
-        {
-          std::memcpy(target + part1Size * Sound::Sample::CHANNELS, part2, part2Size * sizeof(*part2));
-        }
-        return Buffer.Consume(got) * Sound::Sample::CHANNELS;
+        return 0;
       }
-      return 0;
+      Buff& cur = Buffers.front();
+      const std::size_t samples = count / Sound::Sample::CHANNELS;
+      const std::size_t copied = cur.Get(samples, target);
+      if (0 == cur.Avail)
+      {
+        Buffers.pop_front();
+      }
+      return copied * Sound::Sample::CHANNELS;
     }
   private:
-    CycleBuffer<Sound::Sample> Buffer;
+    struct Buff
+    {
+      explicit Buff(Sound::Chunk::Ptr data)
+        : Data(data)
+        , Avail(data->size())
+      {
+      }
+      
+      std::size_t Get(std::size_t count, void* target)
+      {
+        const std::size_t toCopy = std::min(count, Avail);
+        std::memcpy(target, &Data->back() + 1 - Avail, toCopy * sizeof(Data->front()));
+        Avail -= toCopy;
+        return toCopy;
+      }
+    
+      Sound::Chunk::Ptr Data;
+      std::size_t Avail;
+    };
+    std::deque<Buff> Buffers;
   };
 
   class PlayerControl : public Player::Control

@@ -157,7 +157,7 @@ namespace
       Position Pos;
     };
   private:
-    friend Iterator;
+    friend class Iterator;
     const uint_t Index;
     const uint_t Rms;
     const boost::scoped_array<Sound::Sample::Type> Data;

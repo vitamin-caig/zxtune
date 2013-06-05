@@ -49,6 +49,7 @@ namespace Sound
 
     Chunk::Ptr GetResult()
     {
+      Content->resize(Pos - &Content->front());
       return Content;
     }
   private:
