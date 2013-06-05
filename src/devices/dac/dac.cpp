@@ -33,10 +33,11 @@ namespace
   public:
     typedef boost::shared_ptr<const FastSample> Ptr;
 
+    //use additional sample for interpolation
     explicit FastSample(std::size_t idx, Sample::Ptr in)
       : Index(static_cast<uint_t>(idx))
       , Rms(in->Rms())
-      , Data(new Sound::Sample::Type[in->Size()])
+      , Data(new Sound::Sample::Type[in->Size() + 1])
       , Size(in->Size())
       , Loop(std::min(Size, in->Loop()))
     {
@@ -44,12 +45,13 @@ namespace
       {
         Data[pos] = in->Get(pos);
       }
+      Data[Size] = Data[Size - 1];
     }
 
     FastSample()
       : Index(-1)
       , Rms(0)
-      , Data(new Sound::Sample::Type[1])
+      , Data(new Sound::Sample::Type[2])
       , Size(1)
       , Loop(1)
     {
@@ -94,6 +96,23 @@ namespace
       {
         assert(IsValid());
         return Data[Pos.Integer()];
+      }
+
+      Sound::Sample::Type GetInterpolated(const uint_t* lookup) const
+      {
+        assert(IsValid());
+        if (const int_t fract = Pos.Fraction())
+        {
+          const Sound::Sample::Type* const cur = Data + Pos.Integer();
+          const int_t curVal = *cur;
+          const int_t nextVal = *(cur + 1);
+          const int_t delta = nextVal - curVal;
+          return static_cast<Sound::Sample::Type>(curVal + delta * lookup[fract] / Position::PRECISION);
+        }
+        else
+        {
+          return Data[Pos.Integer()];
+        }
       }
 
       void Reset()
@@ -252,45 +271,6 @@ namespace
     std::vector<FastSample::Ptr> Content;
   };
 
-  /*
-  struct LinearInterpolation
-  {
-    static uint_t MapInterpolation(uint_t fract)
-    {
-      return fract;
-    }
-  };
-
-  struct CosineInterpolation
-  {
-    static uint_t MapInterpolation(uint_t fract)
-    {
-      static const CosineTable TABLE;
-      return TABLE[fract];
-    }
-  private:
-    class CosineTable
-    {
-    public:
-      CosineTable()
-      {
-        for (uint_t idx = 0; idx != FIXED_POINT_PRECISION; ++idx)
-        {
-          const double rad = idx * 3.14159265358 / FIXED_POINT_PRECISION;
-          Table[idx] = static_cast<uint_t>(FIXED_POINT_PRECISION * (1.0 - cos(rad)) / 2.0);
-        }
-      }
-
-      uint_t operator[](uint_t idx) const
-      {
-        return Table[idx];
-      }
-    private:
-      boost::array<uint_t, FIXED_POINT_PRECISION> Table;
-    };
-  };
-  */
-
   //channel state type
   struct ChannelState
   {
@@ -372,14 +352,16 @@ namespace
 
     Sound::Sample::Type GetNearest() const
     {
-      if (Enabled)
-      {
-        return Amplify(Iterator.GetNearest());
-      }
-      else
-      {
-        return Sound::Sample::MID;
-      }
+      return Enabled
+        ? Amplify(Iterator.GetNearest())
+        : Sound::Sample::MID;
+    }
+
+    Sound::Sample::Type GetInterpolated(const uint_t* lookup) const
+    {
+      return Enabled
+        ? Amplify(Iterator.GetInterpolated(lookup))
+        : Sound::Sample::MID;
     }
 
     void Next()
@@ -390,35 +372,6 @@ namespace
         Enabled = Iterator.IsValid();
       }
     }
-
-    /*
-    template<class Policy>
-    SoundSample GetInterpolatedValue() const
-    {
-      if (Position.IsEnabled())
-      {
-        const uint_t pos = PosInSample / FIXED_POINT_PRECISION;
-        assert(CurSample);
-        const SoundSample cur = CurSample->Get(pos);
-        if (const uint_t fract = PosInSample % FIXED_POINT_PRECISION)
-        {
-          const SoundSample next = CurSample->Get(pos + 1);
-          const int_t delta = int_t(next) - int_t(cur);
-          const int_t mappedFract = Policy::MapInterpolation(fract);
-          const SoundSample value = static_cast<SoundSample>(int_t(cur) + delta * mappedFract / int_t(FIXED_POINT_PRECISION));
-          return Amplify(value);
-        }
-        else
-        {
-          return Amplify(cur);
-        }
-      }
-      else
-      {
-        return SILENT;
-      }
-    }
-    */
 
     ChanState Analyze(uint_t maxRms) const
     {
@@ -438,6 +391,99 @@ namespace
     }
   };
 
+  class Renderer
+  {
+  public:
+    virtual ~Renderer() {}
+
+    virtual void RenderData(const Stamp tillTime, Sound::Receiver& target) = 0;
+  };
+
+  template<unsigned Channels>
+  class LQRenderer : public Renderer
+  {
+  public:
+    LQRenderer(ClockSource& clock, const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
+      : Clock(clock)
+      , Mixer(mixer)
+      , State(state)
+    {
+    }
+
+    virtual void RenderData(const Stamp tillTime, Sound::Receiver& target)
+    {
+      typename Sound::MultichannelSample<Channels>::Type result;
+      for (uint_t counter = Clock.Advance(tillTime); counter != 0; --counter)
+      {
+        for (uint_t chan = 0; chan != Channels; ++chan)
+        {
+          ChannelState& state = State[chan];
+          result[chan] = state.GetNearest();
+          state.Next();
+        }
+        target.ApplyData(Mixer.ApplyData(result));
+      }
+    }
+  private:
+    ClockSource& Clock;
+    const Sound::FixedChannelsMixer<Channels>& Mixer;
+    ChannelState* const State;
+  };
+
+  template<unsigned Channels>
+  class MQRenderer : public Renderer
+  {
+  public:
+    MQRenderer(ClockSource& clock, const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
+      : Clock(clock)
+      , Mixer(mixer)
+      , State(state)
+    {
+    }
+
+    virtual void RenderData(const Stamp tillTime, Sound::Receiver& target)
+    {
+      static const CosineTable COSTABLE;
+      typename Sound::MultichannelSample<Channels>::Type result;
+      for (uint_t counter = Clock.Advance(tillTime); counter != 0; --counter)
+      {
+        for (uint_t chan = 0; chan != Channels; ++chan)
+        {
+          ChannelState& state = State[chan];
+          result[chan] = state.GetInterpolated(COSTABLE.Get());
+          state.Next();
+        }
+        target.ApplyData(Mixer.ApplyData(result));
+      }
+    }
+  private:
+    class CosineTable
+    {
+    public:
+      CosineTable()
+      {
+        for (uint_t idx = 0; idx != FastSample::Position::PRECISION; ++idx)
+        {
+          const double rad = 3.14159265358 * idx / FastSample::Position::PRECISION;
+          Table[idx] = static_cast<uint_t>(FastSample::Position::PRECISION * (1.0 - cos(rad)) / 2.0);
+        }
+      }
+
+      const uint_t* Get() const
+      {
+        return &Table[0];
+      }
+    private:
+      boost::array<uint_t, FastSample::Position::PRECISION> Table;
+    };
+  private:
+    ClockSource& Clock;
+    const Sound::FixedChannelsMixer<Channels>& Mixer;
+    ChannelState* const State;
+  };
+
+
+
   template<unsigned Channels>
   class FixedChannelsChip : public Chip
   {
@@ -447,6 +493,8 @@ namespace
       , Mixer(mixer)
       , Target(target)
       , Clock(sampleFreq)
+      , LQ(Clock, *Mixer, &State[0])
+      , MQ(Clock, *Mixer, &State[0])
     {
       Reset();
     }
@@ -465,20 +513,8 @@ namespace
       std::for_each(src.Channels.begin(), src.Channels.end(),
         boost::bind(&FixedChannelsChip::UpdateState, this, _1));
 
-      if (const uint_t doSamples = Clock.Advance(src.TimeStamp))
-      {
-        typename Sound::MultichannelSample<Channels>::Type result;
-        for (uint_t smp = 0; smp != doSamples; ++smp)
-        {
-          for (uint_t chan = 0; chan != Channels; ++chan)
-          {
-            ChannelState& state = State[chan];
-            result[chan] = state.GetNearest();
-            state.Next();
-          }
-          Target->ApplyData(Mixer->ApplyData(result));
-        }
-      }
+      Renderer& renderer = GetRenderer();
+      renderer.RenderData(src.TimeStamp, *Target);
     }
 
     virtual void Flush()
@@ -515,6 +551,11 @@ namespace
     }
 
   private:
+    Renderer& GetRenderer()
+    {
+      return Params->Interpolate() ? static_cast<Renderer&>(MQ) : static_cast<Renderer&>(LQ);
+    }
+
     void UpdateState(const DataChunk::ChannelData& state)
     {
       assert(state.Channel < State.size());
@@ -528,6 +569,8 @@ namespace
     SamplesStorage Samples;
     ClockSource Clock;
     boost::array<ChannelState, Channels> State;
+    LQRenderer<Channels> LQ;
+    MQRenderer<Channels> MQ;
   };
 }
 
