@@ -247,9 +247,9 @@ namespace Sdl
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void BufferReady(Chunk& buffer)
+    virtual void BufferReady(Chunk::Ptr buffer)
     {
-      Queue.AddData(buffer);
+      Queue.AddData(*buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const

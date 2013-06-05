@@ -195,7 +195,9 @@ namespace
     uint_t GetSamplesTill(Stamp stamp) const
     {
       //TODO
-      return Clock.GetTickAtTime(stamp) - Clock.GetCurrentTick() + 2;
+      return Clock.GetCurrentTime() < stamp
+        ? Clock.GetTickAtTime(stamp) - Clock.GetCurrentTick() + 2
+        : 0;
     }
 
     void RenderChunks(Sound::ChunkBuilder& builder)

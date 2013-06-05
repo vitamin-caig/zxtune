@@ -43,7 +43,7 @@ namespace Sound
     {
       Sample* res = Pos;
       Pos += size;
-      assert(Pos < &Content->back());
+      assert(Pos <= &Content->back() + 1);
       return res;
     }
 

@@ -627,8 +627,8 @@ namespace Alsa
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
         const long volRange = maxVol - minVol;
 
-        const long leftVol = static_cast<long>((volume.Left() * volRange).Integer() + minVol);
-        const long rightVol = static_cast<long>((volume.Right() * volRange).Integer() + minVol);
+        const long leftVol = static_cast<long>((volume.Left() * volRange).Round() + minVol);
+        const long rightVol = static_cast<long>((volume.Right() * volRange).Round() + minVol);
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, leftVol), THIS_LINE);
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, rightVol), THIS_LINE);
       }
@@ -756,9 +756,9 @@ namespace Alsa
       Objects.Dev->Resume();
     }
 
-    virtual void BufferReady(Chunk& buffer)
+    virtual void BufferReady(Chunk::Ptr buffer)
     {
-      Objects.Dev->Write(buffer);
+      Objects.Dev->Write(*buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
