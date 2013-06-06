@@ -88,7 +88,7 @@ namespace
       {
         const Sound::Gain vol = Controller->GetVolume();
         const Sound::Gain::Type gain = std::max(vol.Left(), vol.Right());
-        volumeLevel->setValue(static_cast<int>((gain * volumeLevel->maximum()).Integer()));
+        volumeLevel->setValue(static_cast<int>((gain * volumeLevel->maximum()).Round()));
       }
       catch (const Error&)
       {

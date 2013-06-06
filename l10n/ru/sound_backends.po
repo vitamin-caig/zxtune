@@ -59,33 +59,33 @@ msgstr "Ошибка создания подсистемы вывода '%1%'."
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
-#: backend_impl.cpp:45
-msgid "Invalid module specified for backend."
-msgstr "Неправильный модуль."
-
-#: backend_impl.cpp:150
+#: backend_impl.cpp:104
 msgid "Failed to initialize playback."
 msgstr "Ошибка инициализации воспроизведения."
 
-#: backend_impl.cpp:166
+#: backend_impl.cpp:120
 msgid "Failed to finalize playback."
 msgstr "Ошибка завершения воспроизведения."
 
-#: backend_impl.cpp:181
+#: backend_impl.cpp:135
 msgid "Failed to pause playback."
 msgstr "Ошибка приостановки воспроизведения."
 
-#: backend_impl.cpp:196
+#: backend_impl.cpp:150
 msgid "Failed to resume playback."
 msgstr "Ошибка возобновления воспроизведения."
 
-#: backend_impl.cpp:354
+#: backend_impl.cpp:308
 msgid "Failed to stop playback."
 msgstr "Ошибка останова воспроизведения."
 
-#: backend_impl.cpp:366
+#: backend_impl.cpp:320
 msgid "Failed to set playback position."
 msgstr "Ошибка позиционирования воспроизведения."
+
+#: backend_impl.cpp:381
+msgid "Invalid module specified for backend."
+msgstr "Неправильный модуль."
 
 #: dsound_backend.cpp:65
 #, boost-format

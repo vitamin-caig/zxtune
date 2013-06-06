@@ -368,8 +368,8 @@ namespace Win32
       }
       boost::array<uint16_t, Sample::CHANNELS> buffer =
       {{
-        static_cast<uint16_t>((volume.Left() * MAX_WIN32_VOLUME).Integer()),
-        static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Integer())
+        static_cast<uint16_t>((volume.Left() * MAX_WIN32_VOLUME).Round()),
+        static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Round())
       }};
       BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
       Device->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));

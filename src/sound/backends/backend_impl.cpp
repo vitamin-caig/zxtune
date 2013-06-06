@@ -22,7 +22,7 @@ Author:
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
-#include <boost/thread/thread.hpp>
+#include <boost/ref.hpp>
 
 #define FILE_TAG B3D60DB5
 
@@ -34,52 +34,6 @@ namespace
 
 namespace Sound
 {
-  class SafeRendererWrapper : public ZXTune::Module::Renderer
-  {
-  public:
-    explicit SafeRendererWrapper(ZXTune::Module::Renderer::Ptr player)
-      : Delegate(player)
-    {
-      if (!Delegate.get())
-      {
-        throw Error(THIS_LINE, translate("Invalid module specified for backend."));
-      }
-    }
-
-    virtual ZXTune::Module::TrackState::Ptr GetTrackState() const
-    {
-      const boost::mutex::scoped_lock lock(Mutex);
-      return Delegate->GetTrackState();
-    }
-
-    virtual ZXTune::Module::Analyzer::Ptr GetAnalyzer() const
-    {
-      const boost::mutex::scoped_lock lock(Mutex);
-      return Delegate->GetAnalyzer();
-    }
-
-    virtual bool RenderFrame()
-    {
-      const boost::mutex::scoped_lock lock(Mutex);
-      return Delegate->RenderFrame();
-    }
-
-    virtual void Reset()
-    {
-      const boost::mutex::scoped_lock lock(Mutex);
-      return Delegate->Reset();
-    }
-
-    virtual void SetPosition(uint_t frame)
-    {
-      const boost::mutex::scoped_lock lock(Mutex);
-      return Delegate->SetPosition(frame);
-    }
-  private:
-    const ZXTune::Module::Renderer::Ptr Delegate;
-    mutable boost::mutex Mutex;
-  };
-
   class BufferRenderer : public Receiver
   {
   public:
@@ -421,7 +375,11 @@ namespace Sound
     worker->Test();
     const ZXTune::Module::Holder::Ptr holder = params->GetModule();
     const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*worker));
-    const ZXTune::Module::Renderer::Ptr moduleRenderer = boost::make_shared<SafeRendererWrapper>(holder->CreateRenderer(params->GetParameters(), target));
+    const ZXTune::Module::Renderer::Ptr moduleRenderer = holder->CreateRenderer(params->GetParameters(), target);
+    if (!moduleRenderer)
+    {
+      throw Error(THIS_LINE, translate("Invalid module specified for backend."));
+    }
     const Renderer::Ptr renderer = boost::make_shared<Renderer>(moduleRenderer);
     const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(holder, worker, CreateCallback(params, worker), renderer);
     const Async::Job::Ptr job = Async::CreateJob(asyncWorker);
