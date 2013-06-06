@@ -24,6 +24,8 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CompositeCallback;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.PlayableItem;
+import app.zxtune.playback.StubPlayableItem;
 import app.zxtune.playlist.Database;
 import app.zxtune.playlist.Query;
 import app.zxtune.rpc.BroadcastPlaybackCallback;
@@ -114,55 +116,6 @@ public class PlaybackService extends Service {
     return binder;
   }
 
-  interface PlayableItem extends Item, Releaseable {
-
-    public ZXTune.Player createPlayer();
-  }
-  
-  private static class StubPlayableItem implements PlayableItem {
-    
-    private static final String EMPTY_STRING = "";
-    
-    private StubPlayableItem() {
-    }
-    
-    public Uri getId() {
-      return Uri.EMPTY;
-    }
-
-    public Uri getDataId() {
-      return Uri.EMPTY;
-    }
-
-    public String getTitle() {
-      return EMPTY_STRING;
-    }
-
-    public String getAuthor() {
-      return EMPTY_STRING;
-    }
-
-    public TimeStamp getDuration() {
-      return TimeStamp.EMPTY;
-    }
-
-    public ZXTune.Player createPlayer() {
-      throw new IllegalStateException("Should not be called");
-    }
-
-    @Override
-    public void release() {
-    }
-
-    public static PlayableItem instance() {
-      return Holder.INSTANCE;
-    }
-
-    //onDemand holder idiom
-    private static class Holder {
-      public static final PlayableItem INSTANCE = new StubPlayableItem();
-    }  
-  }
 
   private PlayableItem openItem(Uri uri) throws IOException {
     final Uri dataUri = getDataUri(uri);
