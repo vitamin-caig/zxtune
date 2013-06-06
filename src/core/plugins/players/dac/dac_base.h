@@ -80,10 +80,20 @@ namespace ZXTune
           Data.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
         }
 
+        void DropPosInSample()
+        {
+          Data.Mask &= ~Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
+        }
+
         void SetLevelInPercents(uint_t levelInPercents)
         {
-          Data.LevelInPercents = levelInPercents;
-          Data.Mask |= Devices::DAC::DataChunk::ChannelData::LEVELINPERCENTS;
+          Data.Level = Devices::DAC::LevelType(levelInPercents, Devices::DAC::LevelType::PRECISION);
+          Data.Mask |= Devices::DAC::DataChunk::ChannelData::LEVEL;
+        }
+
+        Devices::DAC::DataChunk::ChannelData& GetState() const
+        {
+          return Data;
         }
       private:
         Devices::DAC::DataChunk::ChannelData& Data;

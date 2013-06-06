@@ -15,6 +15,7 @@ Author:
 
 //library includes
 #include <devices/dac/sample.h>
+#include <math/fixedpoint.h>
 #include <sound/mixer.h>
 #include <time/stamp.h>
 
@@ -24,6 +25,7 @@ namespace Devices
   namespace DAC
   {
     typedef Time::Microseconds Stamp;
+    typedef Math::FixedPoint<int_t, 100> LevelType;
 
     struct DataChunk
     {
@@ -38,7 +40,7 @@ namespace Devices
           , FreqSlideHz()
           , SampleNum()
           , PosInSample()
-          , LevelInPercents()
+          , Level()
         {
         }
 
@@ -50,7 +52,7 @@ namespace Devices
           FREQSLIDEHZ = 8,
           SAMPLENUM = 16,
           POSINSAMPLE = 32,
-          LEVELINPERCENTS = 64,
+          LEVEL = 64,
 
           ALL_PARAMETERS = 127
         };
@@ -63,7 +65,7 @@ namespace Devices
         int_t FreqSlideHz;
         uint_t SampleNum;
         uint_t PosInSample;
-        uint_t LevelInPercents;
+        LevelType Level;
 
         const bool* GetEnabled() const
         {
@@ -95,9 +97,9 @@ namespace Devices
           return 0 != (Mask & POSINSAMPLE) ? &PosInSample : 0;
         }
 
-        const uint_t* GetLevelInPercents() const
+        const LevelType* GetLevel() const
         {
-          return 0 != (Mask & LEVELINPERCENTS) ? &LevelInPercents : 0;
+          return 0 != (Mask & LEVEL) ? &Level : 0;
         }
       };
 

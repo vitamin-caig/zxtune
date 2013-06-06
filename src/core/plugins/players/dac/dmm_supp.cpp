@@ -541,16 +541,6 @@ namespace
       , Iterator(CreateTrackStateIterator(Data))
       , LastRenderTime(0)
     {
-#ifdef SELF_TEST
-//perform self-test
-      Devices::DAC::DataChunk chunk;
-      while (Iterator->IsValid())
-      {
-        RenderData(chunk);
-        Iterator->NextFrame(false);
-      }
-      Reset();
-#endif
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -633,16 +623,16 @@ namespace
       {
       }
 
-      void OnFrame(Devices::DAC::DataChunk::ChannelData& dst)
+      void OnFrame(DAC::ChannelDataBuilder& builder)
       {
-        (this->*Effect)(dst);
+        (this->*Effect)(builder);
       }
 
-      void OnNote(const Cell& src, const DMM::ModuleData& data, Devices::DAC::DataChunk::ChannelData& dst)
+      void OnNote(const Cell& src, const DMM::ModuleData& data, DAC::ChannelDataBuilder& builder)
       {
         //if has new sample, start from it, else use previous sample
-        const uint_t oldPos = src.GetSample() ? 0 : dst.PosInSample;
-        ParseNote(src, dst);
+        const uint_t oldPos = src.GetSample() ? 0 : builder.GetState().PosInSample;
+        ParseNote(src, builder);
         CommandsIterator it = src.GetCommands();
         if (!it)
         {
@@ -735,10 +725,10 @@ namespace
             break;
           case DMM::MIX_SAMPLE:
             {
-              DacState = dst;
+              DacState = builder.GetState();
               DacState.PosInSample = oldPos;
               const DMM::ModuleData::MixedChannel& mix = data.Mixes[it->Param1];
-              ParseNote(mix.Mixin, dst);
+              ParseNote(mix.Mixin, builder);
               MixPeriod = mix.Period;
               Effect = &ChannelState::Mix;
             }
@@ -747,19 +737,19 @@ namespace
         }
       }
 
-      void GetState(Devices::DAC::DataChunk::ChannelData& dst)
+      void GetState(DAC::ChannelDataBuilder& builder)
       {
-        dst.Note = Note;
-        dst.NoteSlide = NoteSlide;
+        builder.SetNote(Note);
+        builder.SetNoteSlide(NoteSlide);
         //FreqSlide in 1/256 steps
         //step 44 is C-1@3.5Mhz AY
         //C-1 is 32.7 Hz
-        dst.FreqSlideHz = FreqSlide * 327 / 440;
-        dst.SampleNum = Sample;
-        dst.LevelInPercents = 100 * Volume / 15;
+        builder.SetFreqSlideHz(FreqSlide * 327 / 440);
+        builder.SetSampleNum(Sample);
+        builder.SetLevelInPercents(Volume * 100 / 15);
       }
     private:
-      void ParseNote(const Cell& src, Devices::DAC::DataChunk::ChannelData& dst)
+      void ParseNote(const Cell& src, DAC::ChannelDataBuilder& builder)
       {
         if (const uint_t* note = src.GetNote())
         {
@@ -774,39 +764,33 @@ namespace
         }
         if (const bool* enabled = src.GetEnabled())
         {
-          dst.Mask |= Devices::DAC::DataChunk::ChannelData::ENABLED;
-          dst.Enabled = *enabled;
-          if (!dst.Enabled)
+          builder.SetEnabled(*enabled);
+          if (!*enabled)
           {
             NoteSlide = FreqSlide = 0;
           }
         }
-        else
-        {
-          dst.Mask &= ~Devices::DAC::DataChunk::ChannelData::ENABLED;
-        }
         if (const uint_t* sample = src.GetSample())
         {
           Sample = *sample;
-          dst.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
-          dst.PosInSample = 0;
+          builder.SetPosInSample(0);
         }
         else
         {
-          dst.Mask &= ~Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
+          builder.DropPosInSample();
         }
       }
 
-      void NoEffect(Devices::DAC::DataChunk::ChannelData& /*dst*/)
+      void NoEffect(DAC::ChannelDataBuilder& /*builder*/)
       {
       }
 
-      void FreqFloat(Devices::DAC::DataChunk::ChannelData& /*dst*/)
+      void FreqFloat(DAC::ChannelDataBuilder& /*builder*/)
       {
         SlideFreq(FreqSlideStep);
       }
 
-      void Vibrato(Devices::DAC::DataChunk::ChannelData& /*dst*/)
+      void Vibrato(DAC::ChannelDataBuilder& /*builder*/)
       {
         if (Step(VibratoPeriod))
         {
@@ -815,7 +799,7 @@ namespace
         }
       }
 
-      void Arpeggio(Devices::DAC::DataChunk::ChannelData& /*dst*/)
+      void Arpeggio(DAC::ChannelDataBuilder& /*builder*/)
       {
         if (Step(ArpeggioPeriod))
         {
@@ -825,7 +809,7 @@ namespace
         }
       }
 
-      void NoteFloat(Devices::DAC::DataChunk::ChannelData& /*dst*/)
+      void NoteFloat(DAC::ChannelDataBuilder& /*builder*/)
       {
         if (Step(NoteSlidePeriod))
         {
@@ -834,16 +818,16 @@ namespace
         }
       }
 
-      void DoubleNote(Devices::DAC::DataChunk::ChannelData& dst)
+      void DoubleNote(DAC::ChannelDataBuilder& builder)
       {
         if (Step(NoteDoublePeriod))
         {
-          ParseNote(OldData, dst);
+          ParseNote(OldData, builder);
           DisableEffect();
         }
       }
 
-      void Attack(Devices::DAC::DataChunk::ChannelData& /*dst*/)
+      void Attack(DAC::ChannelDataBuilder& /*builder*/)
       {
         if (Step(AttackPeriod))
         {
@@ -856,7 +840,7 @@ namespace
         }
       }
 
-      void Decay(Devices::DAC::DataChunk::ChannelData& /*dst*/)
+      void Decay(DAC::ChannelDataBuilder& /*builder*/)
       {
         if (Step(DecayPeriod))
         {
@@ -869,18 +853,18 @@ namespace
         }
       }
 
-      void Mix(Devices::DAC::DataChunk::ChannelData& dst)
+      void Mix(DAC::ChannelDataBuilder& builder)
       {
         if (Step(MixPeriod))
         {
-          ParseNote(OldData, dst);
-          dst = DacState;
-          //restore all
+          ParseNote(OldData, builder);
+          //restore a6ll
           const uint_t prevStep = GetStep() + FreqSlide;
           const uint_t FPS = 50;//TODO
           const uint_t skipped = MixPeriod * prevStep * DMM::RENDERS_PER_SEC / FPS / 256;
-          dst.PosInSample += skipped;
-          dst.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
+          Devices::DAC::DataChunk::ChannelData& dst = builder.GetState();
+          dst = DacState;
+          builder.SetPosInSample(dst.PosInSample + skipped);
 
           DisableEffect();
         }
@@ -959,7 +943,7 @@ namespace
       Cell OldData;
       Devices::DAC::DataChunk::ChannelData DacState;
 
-      typedef void (ChannelState::*EffectFunc)(Devices::DAC::DataChunk::ChannelData&);
+      typedef void (ChannelState::*EffectFunc)(DAC::ChannelDataBuilder&);
       EffectFunc Effect;
     };
 
@@ -971,19 +955,20 @@ namespace
       for (uint_t chan = 0; chan != DMM::CHANNELS_COUNT; ++chan)
       {
         Devices::DAC::DataChunk::ChannelData dst;
+        DAC::ChannelDataBuilder builder(dst);
         Device->GetChannelState(chan, dst);
 
         ChannelState& chanState = Chans[chan];
-        chanState.OnFrame(dst);
+        chanState.OnFrame(builder);
         //begin note
         if (line && 0 == state->Quirk())
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
-            chanState.OnNote(*src, *Data, dst);
+            chanState.OnNote(*src, *Data, builder);
           }
         }
-        chanState.GetState(dst);
+        chanState.GetState(builder);
         res.push_back(dst);
       }
       chunk.Channels.swap(res);

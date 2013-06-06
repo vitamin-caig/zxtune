@@ -22,6 +22,7 @@ namespace Sound
     static const uint_t CHANNELS = 2;
     static const uint_t BITS = 16;
     typedef int16_t Type;
+    typedef int_t WideType;
     static const Type MIN = -32768;
     static const Type MID = 0;
     static const Type MAX = 32767;
@@ -31,17 +32,18 @@ namespace Sound
     {
     }
 
-    Sample(Type left, Type right)
+    template<class T>
+    Sample(T left, T right)
       : Value((StorageType(static_cast<uint16_t>(right)) << SHIFT) | static_cast<uint16_t>(left))
     {
     }
 
-    Type Left() const
+    WideType Left() const
     {
       return static_cast<Type>(Value);
     }
 
-    Type Right() const
+    WideType Right() const
     {
       return static_cast<Type>(Value >> SHIFT);
     }

@@ -14,7 +14,6 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
-#include <math/fixedpoint.h>
 #include <math/numeric.h>
 #include <sound/chunk_builder.h>
 //std includes
@@ -28,6 +27,8 @@ Author:
 namespace
 {
   using namespace Devices::DAC;
+
+  const uint_t NO_INDEX = uint_t(-1);
 
   class FastSample
   {
@@ -50,7 +51,7 @@ namespace
     }
 
     FastSample()
-      : Index(-1)
+      : Index(NO_INDEX)
       , Rms(0)
       , Data(new Sound::Sample::Type[2])
       , Size(1)
@@ -69,7 +70,6 @@ namespace
     }
 
     typedef Math::FixedPoint<uint_t, 256> Position;
-    typedef Math::FixedPoint<int_t, 100> Level;
 
     class Iterator
     {
@@ -309,7 +309,7 @@ namespace
     //sample
     FastSample::Ptr Source;
     FastSample::Iterator Iterator;
-    FastSample::Level Level;
+    LevelType Level;
 
     void Update(const SamplesStorage& samples, const ClockSource& clock, const DataChunk::ChannelData& state)
     {
@@ -346,10 +346,9 @@ namespace
         Iterator.SetPosition(*posInSample);
       }
       //level changed
-      if (const uint_t* levelInPercents = state.GetLevelInPercents())
+      if (const LevelType* level = state.GetLevel())
       {
-        assert(*levelInPercents <= FastSample::Level::PRECISION);
-        Level = FastSample::Level(*levelInPercents, FastSample::Level::PRECISION);
+        Level = *level;
       }
       if (0 != (state.Mask & (DataChunk::ChannelData::NOTE | DataChunk::ChannelData::NOTESLIDE | DataChunk::ChannelData::FREQSLIDEHZ)))
       {
@@ -387,14 +386,14 @@ namespace
       {
         result.Band = Note + NoteSlide;
         const uint_t rms = Source->GetRms();
-        result.LevelInPercents = (Level * rms / maxRms).Fraction();
+        result.LevelInPercents = (Level * rms * 100 / maxRms).Round();
       }
       return result;
     }
   private:
     Sound::Sample::Type Amplify(Sound::Sample::Type val) const
     {
-      return (Level * val).Integer();
+      return (Level * val).Round();
     }
   };
 
@@ -564,15 +563,20 @@ namespace
     virtual void GetChannelState(uint_t chan, DataChunk::ChannelData& dst) const
     {
       const ChannelState& src = State[chan];
+      dst = DataChunk::ChannelData();
       dst.Channel = chan;
-      dst.Mask = DataChunk::ChannelData::ALL_PARAMETERS;
-      dst.Enabled = src.Enabled;
-      dst.Note = src.Note;
-      dst.NoteSlide = src.NoteSlide;
-      dst.FreqSlideHz = src.FreqSlide;
-      dst.SampleNum = src.Source->GetIndex();
-      dst.PosInSample = src.Iterator.GetPosition();
-      dst.LevelInPercents = src.Level.Fraction();
+      const uint_t samIdx = src.Source->GetIndex();
+      if (samIdx != NO_INDEX)
+      {
+        dst.Mask = DataChunk::ChannelData::ALL_PARAMETERS;
+        dst.Enabled = src.Enabled;
+        dst.Note = src.Note;
+        dst.NoteSlide = src.NoteSlide;
+        dst.FreqSlideHz = src.FreqSlide;
+        dst.SampleNum = samIdx;
+        dst.PosInSample = src.Iterator.GetPosition();
+        dst.Level = src.Level;
+      }
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -601,9 +605,9 @@ namespace
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
         const DataChunk& chunk = *it;
-        render.RenderData(chunk.TimeStamp, builder);
         std::for_each(chunk.Channels.begin(), chunk.Channels.end(),
           boost::bind(&FixedChannelsChip::UpdateState, this, _1));
+        render.RenderData(chunk.TimeStamp, builder);
       }
       BufferedData.Reset();
     }
