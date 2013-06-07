@@ -54,33 +54,64 @@ namespace Sound
     BackendWorker& Worker;
   };
 
-  class Renderer
+  class RendererWrapper : public ZXTune::Module::Renderer
   {
   public:
-    typedef boost::shared_ptr<Renderer> Ptr;
-
-    Renderer(ZXTune::Module::Renderer::Ptr renderer)
-      : Source(renderer)
-      , State(Source->GetTrackState())
+    RendererWrapper(ZXTune::Module::Holder::Ptr holder, ZXTune::Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
+      : Holder(holder)
+      , Delegate(delegate)
+      , Callback(callback)
+      , State(Delegate->GetTrackState())
+      , SeekRequest(NO_SEEK)
     {
     }
 
-    bool RenderFrame(BackendCallback& callback)
+    virtual ZXTune::Module::TrackState::Ptr GetTrackState() const
     {
-      callback.OnFrame(*State);
-      return Source->RenderFrame();
+      return State;
+    }
+
+    virtual ZXTune::Module::Analyzer::Ptr GetAnalyzer() const
+    {
+      return Delegate->GetAnalyzer();
+    }
+
+    virtual bool RenderFrame()
+    {
+      if (SeekRequest != NO_SEEK)
+      {
+        Delegate->SetPosition(SeekRequest);
+        SeekRequest = NO_SEEK;
+      }
+      Callback->OnFrame(*State);
+      return Delegate->RenderFrame();
+    }
+
+    virtual void Reset()
+    {
+      SeekRequest = NO_SEEK;
+      Delegate->Reset();
+      Callback->OnStart(Holder);
+    }
+
+    virtual void SetPosition(uint_t frame)
+    {
+      SeekRequest = frame;
     }
   private:
-    const ZXTune::Module::Renderer::Ptr Source;
+    static const uint_t NO_SEEK = ~uint_t(0);
+    const ZXTune::Module::Holder::Ptr Holder;
+    const ZXTune::Module::Renderer::Ptr Delegate;
+    const BackendCallback::Ptr Callback;
     const ZXTune::Module::TrackState::Ptr State;
+    volatile uint_t SeekRequest;
   };
 
   class AsyncWrapper : public Async::Worker
   {
   public:
-    AsyncWrapper(ZXTune::Module::Holder::Ptr holder, BackendWorker::Ptr worker, BackendCallback::Ptr callback, Renderer::Ptr render)
-      : Holder(holder)
-      , Delegate(worker)
+    AsyncWrapper(BackendWorker::Ptr worker, BackendCallback::Ptr callback, ZXTune::Module::Renderer::Ptr render)
+      : Delegate(worker)
       , Callback(callback)
       , Render(render)
       , Playing(false)
@@ -92,7 +123,7 @@ namespace Sound
       try
       {
         Dbg("Initializing");
-        Callback->OnStart(Holder);
+        Render->Reset();
         Delegate->Startup();
         Playing = true;
         //initial frame rendering
@@ -167,14 +198,13 @@ namespace Sound
   private:
     void RenderFrame()
     {
-      Playing = Render->RenderFrame(*Callback);
+      Playing = Render->RenderFrame();
     }
   private:
-    const ZXTune::Module::Holder::Ptr Holder;
     const BackendWorker::Ptr Delegate;
     const BackendCallback::Ptr Callback;
-    const Renderer::Ptr Render;
-    bool Playing;
+    const ZXTune::Module::Renderer::Ptr Render;
+    volatile bool Playing;
   };
 
   class CompositeBackendCallback : public BackendCallback
@@ -301,7 +331,6 @@ namespace Sound
       try
       {
         Job->Stop();
-        Renderer->Reset();
       }
       catch (const Error& e)
       {
@@ -375,15 +404,12 @@ namespace Sound
     worker->Test();
     const ZXTune::Module::Holder::Ptr holder = params->GetModule();
     const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*worker));
-    const ZXTune::Module::Renderer::Ptr moduleRenderer = holder->CreateRenderer(params->GetParameters(), target);
-    if (!moduleRenderer)
-    {
-      throw Error(THIS_LINE, translate("Invalid module specified for backend."));
-    }
-    const Renderer::Ptr renderer = boost::make_shared<Renderer>(moduleRenderer);
-    const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(holder, worker, CreateCallback(params, worker), renderer);
+    const ZXTune::Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params->GetParameters(), target);
+    const BackendCallback::Ptr callback = CreateCallback(params, worker);
+    const ZXTune::Module::Renderer::Ptr renderer = boost::make_shared<RendererWrapper>(holder, origRenderer, callback);
+    const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(worker, callback, renderer);
     const Async::Job::Ptr job = Async::CreateJob(asyncWorker);
-    return boost::make_shared<BackendInternal>(worker, moduleRenderer, job);
+    return boost::make_shared<BackendInternal>(worker, renderer, job);
   }
 
   BackendCallback::Ptr CreateCompositeCallback(BackendCallback::Ptr first, BackendCallback::Ptr second)

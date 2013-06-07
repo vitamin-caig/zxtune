@@ -392,7 +392,7 @@ namespace
 
       Display->SetModule(holder, backend, frameDuration);
 
-      const Sound::Gain::Type minVol(0, 0);
+      const Sound::Gain::Type minVol(0);
       const Sound::Gain::Type maxVol(1);
       const Sound::Gain::Type volStep(5, 100);
       Sound::Gain::Type curVolume;

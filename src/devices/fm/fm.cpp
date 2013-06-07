@@ -75,8 +75,10 @@ namespace
 
     void Reset()
     {
-      assert(YM2203);
-      ::YM2203ResetChip(YM2203.get());
+      if (YM2203.get())
+      {
+        ::YM2203ResetChip(YM2203.get());
+      }
     }
 
     template<class It>
