@@ -153,7 +153,7 @@ public class PlaylistView extends ListView
       final TextView title = (TextView) view.findViewById(R.id.playlist_item_title);
       final TextView author = (TextView) view.findViewById(R.id.playlist_item_author);
       if (0 == item.getTitle().length()) {
-        title.setText(item.getDataUri());
+        title.setText(item.getLocation().toString());
       } else {
         title.setText(item.getTitle());
       }
@@ -162,7 +162,7 @@ public class PlaylistView extends ListView
 
     private void bindDuration(Item item, View view) {
       final TextView duration = (TextView) view.findViewById(R.id.playlist_item_duration);
-      duration.setText(item.getDuration());
+      duration.setText(item.getDuration().toString());
     }
     
     private void bindState(PlayitemStateSource source, Item item, View view) {

@@ -28,9 +28,9 @@ public class Provider extends ContentProvider {
   @Override
   public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
     final Query query = new Query(uri);
-    final Database.Query dbQuery = new Database.Query(selection, sortOrder);
-    dbQuery.setSelectionById(query.getId());
-    final Cursor result = db.queryPlaylistItems(projection, dbQuery.getSelection(), selectionArgs, dbQuery.getSortOrder());
+    final String select = Database.playlistSelection(selection, query.getId());
+    final String sort = Database.defaultPlaylistOrder();
+    final Cursor result = db.queryPlaylistItems(projection, select, selectionArgs, sort);
     result.setNotificationUri(getContext().getContentResolver(), Query.unparse(null));
     return result;
   }
@@ -50,9 +50,8 @@ public class Provider extends ContentProvider {
   @Override
   public int delete(Uri uri, String selection, String[] selectionArgs) {
     final Query query = new Query(uri);
-    final Database.Query dbQuery = new Database.Query(selection, null);
-    dbQuery.setSelectionById(query.getId());
-    final int count = db.deletePlaylistItems(dbQuery.getSelection(), selectionArgs);
+    final String select = Database.playlistSelection(selection, query.getId());
+    final int count = db.deletePlaylistItems(select, selectionArgs);
     getContext().getContentResolver().notifyChange(uri, null);
     return count;
   }
@@ -60,9 +59,8 @@ public class Provider extends ContentProvider {
   @Override
   public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
     final Query query = new Query(uri);
-    final Database.Query dbQuery = new Database.Query(selection, null);
-    dbQuery.setSelectionById(query.getId());
-    final int count = db.updatePlaylistItems(values, dbQuery.getSelection(), selectionArgs);
+    final String select = Database.playlistSelection(selection, query.getId());
+    final int count = db.updatePlaylistItems(values, select, selectionArgs);
     getContext().getContentResolver().notifyChange(uri, null);
     return count;
   }

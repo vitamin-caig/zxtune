@@ -26,7 +26,6 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.Status;
 import app.zxtune.playlist.Query;
 
 public class PlaylistFragment extends Fragment {

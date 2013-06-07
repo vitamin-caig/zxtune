@@ -7,42 +7,48 @@
 
 package app.zxtune.playlist;
 
+import java.util.concurrent.TimeUnit;
+
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import app.zxtune.TimeStamp;
+import app.zxtune.ZXTune;
 
 public class Item {
 
   final private long id;
-  final private String dataUri;
+  final private Uri location;
   final private String type;
   final private String title;
   final private String author;
-  final private String duration;
+  final private TimeStamp duration;
 
   public Item(Cursor cursor) {
     id = cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal());
-    dataUri = cursor.getString(Database.Tables.Playlist.Fields.uri.ordinal());
+    location = Uri.parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal()));
     type = cursor.getString(Database.Tables.Playlist.Fields.type.ordinal());
     title = cursor.getString(Database.Tables.Playlist.Fields.title.ordinal());
     author = cursor.getString(Database.Tables.Playlist.Fields.author.ordinal());
-    duration = formatDuration(cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal()));
+    duration = TimeStamp.createFrom(cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal()), TimeUnit.MILLISECONDS);
   }
-  
-  private static String formatDuration(int totalMs) {
-    final int totalSec = totalMs / 1000;
-    final int totalMin = totalSec / 60;
-    final int totalHour = totalMin / 60;
-    final int min = totalMin % 60;
-    final int sec = totalSec % 60;
-    return totalHour != 0 ? String.format("%d:%d:%d", totalHour, min, sec) : String.format("%d:%02d", min, sec);
+
+  public Item(Uri uri, ZXTune.Module module) {
+    id = -1;
+    location = uri;
+    type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
+    title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
+    author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
+    //TODO
+    duration = TimeStamp.createFrom(module.getDuration() * 20, TimeUnit.MILLISECONDS);
   }
   
   public Uri getUri() {
     return Query.unparse(id);
   }
   
-  public String getDataUri() {
-    return dataUri;
+  public Uri getLocation() {
+    return location;
   }
 
   public String getType() {
@@ -57,7 +63,17 @@ public class Item {
     return title;
   }
 
-  public String getDuration() {
+  public TimeStamp getDuration() {
     return duration;
+  }
+
+  public ContentValues toContentValues() {
+    final ContentValues values = new ContentValues();
+    values.put(Database.Tables.Playlist.Fields.location.name(), location.toString());
+    values.put(Database.Tables.Playlist.Fields.type.name(), type);
+    values.put(Database.Tables.Playlist.Fields.author.name(), author);
+    values.put(Database.Tables.Playlist.Fields.title.name(), title);
+    values.put(Database.Tables.Playlist.Fields.duration.name(), duration.convertTo(TimeUnit.MILLISECONDS));
+    return values;
   }
 }

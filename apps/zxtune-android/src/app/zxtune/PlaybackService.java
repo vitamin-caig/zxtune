@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import android.app.Service;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -26,7 +25,6 @@ import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.StubPlayableItem;
-import app.zxtune.playlist.Database;
 import app.zxtune.playlist.Query;
 import app.zxtune.rpc.BroadcastPlaybackCallback;
 import app.zxtune.rpc.PlaybackControlServer;
@@ -89,24 +87,14 @@ public class PlaybackService extends Service {
       ctrl.play(uri);
     } else if (action.equals(Intent.ACTION_INSERT)) {
       Log.d(TAG, "Adding to playlist all modules from " + uri);
-      final Uri dataUri = getDataUri(uri);
-      final ZXTune.Module module = openModule(dataUri);
+      final ZXTune.Module module = openModule(uri);
       addModuleToPlaylist(uri, module);
     }
   }
 
   private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
-    final String type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
-    final String author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
-    final String title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
-    final int duration = module.getDuration() * 20;//TODO
-    final ContentValues values = new ContentValues();
-    values.put(Database.Tables.Playlist.Fields.uri.name(), uri.toString());
-    values.put(Database.Tables.Playlist.Fields.type.name(), type);
-    values.put(Database.Tables.Playlist.Fields.author.name(), author);
-    values.put(Database.Tables.Playlist.Fields.title.name(), title);
-    values.put(Database.Tables.Playlist.Fields.duration.name(), duration);
-    getContentResolver().insert(Query.unparse(null), values);
+    final app.zxtune.playlist.Item item = new app.zxtune.playlist.Item(uri, module); 
+    getContentResolver().insert(Query.unparse(null), item.toContentValues());
   }
 
 
@@ -136,11 +124,10 @@ public class PlaybackService extends Service {
   private Uri getPlaylistItemDataUri(Uri uri) {
     Cursor cursor = null;
     try {
-      final String[] projection = {Database.Tables.Playlist.Fields.uri.name()};
-      cursor = getContentResolver().query(uri, projection, null, null, null);
+      cursor = getContentResolver().query(uri, null, null, null, null);
       if (cursor != null && cursor.moveToFirst()) {
-        final String dataUri = cursor.getString(0);
-        return Uri.parse(dataUri);
+        final app.zxtune.playlist.Item item = new app.zxtune.playlist.Item(cursor);
+        return item.getLocation();
       }
       throw new RuntimeException();
     } finally {
