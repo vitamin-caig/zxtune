@@ -19,6 +19,7 @@ Author:
 #include <math/numeric.h>
 #include <sound/gainer.h>
 #include <sound/sound_parameters.h>
+#include <sound/mixer_factory.h>
 #include <sound/receiver.h>
 #include <sound/render_params.h>
 //text includes
@@ -391,7 +392,9 @@ namespace ZXTune
       {
         //TODO: return fading support
         const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-        const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, target);
+        const Sound::ThreeChannelsMatrixMixer::Ptr mixer = Sound::ThreeChannelsMatrixMixer::Create();
+        Sound::FillMixer(*params, *mixer);
+        const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, mixer, target);
         return holder.CreateRenderer(params, chip);
         /*
         const Renderer::Ptr result = holder.CreateRenderer(params, chip);

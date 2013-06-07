@@ -52,6 +52,7 @@ namespace Devices
     public:
       typedef boost::shared_ptr<Chip> Ptr;
 
+      virtual void ReloadParameters() = 0;
       virtual void GetState(ChannelsState& state) const = 0;
     };
 

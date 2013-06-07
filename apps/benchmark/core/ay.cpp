@@ -26,7 +26,6 @@ namespace
       : Clock(clockFreq)
       , Sound(soundFreq)
       , Interpolate(interpolate)
-      , MixerObj(Sound::FixedChannelsMatrixMixer<3>::Create())
     {
     }
 
@@ -64,16 +63,10 @@ namespace
     {
       return Devices::AYM::LAYOUT_ABC;
     }
-
-    virtual const Devices::AYM::MixerType& Mixer() const
-    {
-      return *MixerObj;
-    }
   private:
     const uint64_t Clock;
     const uint_t Sound;
     const Devices::AYM::InterpolationType Interpolate;
-    const Devices::AYM::MixerType::Ptr MixerObj;
   };
 
 }
@@ -85,7 +78,7 @@ namespace Benchmark
     Devices::AYM::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t soundFreq, Devices::AYM::InterpolationType interpolate)
     {
       const Devices::AYM::ChipParameters::Ptr params = boost::make_shared<AYParameters>(clockFreq, soundFreq, interpolate);
-      return Devices::AYM::CreateChip(params, Sound::Receiver::CreateStub());
+      return Devices::AYM::CreateChip(params, Sound::ThreeChannelsMatrixMixer::Create(), Sound::Receiver::CreateStub());
     }
 
     double Test(Devices::AYM::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)

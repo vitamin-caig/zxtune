@@ -53,6 +53,7 @@ namespace Devices
     public:
       typedef boost::shared_ptr<Chip> Ptr;
 
+      virtual void ReloadParameters() = 0;
       virtual void GetState(ChannelsState& state) const = 0;
     };
 
@@ -82,10 +83,6 @@ namespace Devices
       TYPE_YM2149F = 1
     };
 
-    const uint_t SOUND_CHANNELS = 3;
-
-    typedef Sound::FixedChannelsMixer<SOUND_CHANNELS> MixerType;
-
     class ChipParameters
     {
     public:
@@ -100,11 +97,10 @@ namespace Devices
       virtual uint_t DutyCycleValue() const = 0;
       virtual uint_t DutyCycleMask() const = 0;
       virtual LayoutType Layout() const = 0;
-      virtual const MixerType& Mixer() const = 0;
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
   }
 }
 

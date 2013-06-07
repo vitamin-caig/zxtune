@@ -30,6 +30,8 @@ namespace Sound
   typedef FixedChannelsReceiver<2> TwoChannelsReceiver;
   typedef FixedChannelsReceiver<3> ThreeChannelsReceiver;
   typedef FixedChannelsReceiver<4> FourChannelsReceiver;
+
+  std::pair<Receiver::Ptr, Receiver::Ptr> CreateReceiversPair(Sound::Receiver::Ptr target);
 }
 
 #endif //__SOUND_RECEIVER_H_DEFINED__

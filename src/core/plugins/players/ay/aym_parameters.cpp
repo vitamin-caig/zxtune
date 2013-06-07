@@ -21,7 +21,6 @@ Author:
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/matrix_mixer.h>
-#include <sound/mixer_factory.h>
 #include <sound/render_params.h>
 #include <sound/sample.h>
 //std includes
@@ -111,7 +110,6 @@ namespace
     explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
       , SoundParams(Sound::RenderParameters::Create(params))
-      , MixerObject(Sound::FixedChannelsMatrixMixer<Devices::AYM::SOUND_CHANNELS>::Create())
     {
     }
 
@@ -194,16 +192,9 @@ namespace
       }
       return Devices::AYM::LAYOUT_ABC;
     }
-
-    virtual const Devices::AYM::MixerType& Mixer() const
-    {
-      Sound::FillMixer(*Params, *MixerObject);
-      return *MixerObject;
-    }
   private:
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
-    const Sound::ThreeChannelsMatrixMixer::Ptr MixerObject;
   };
 
   class TrackParametersImpl : public AYM::TrackParameters

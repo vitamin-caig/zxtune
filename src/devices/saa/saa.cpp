@@ -368,9 +368,6 @@ namespace
     Sound::Sample PrevLevel;
   };
 
-  //minimal period is 512
-  const uint_t FREQ_DIVIDER = 8;
-
   class HQRenderer : public Renderer
   {
   public:
@@ -413,6 +410,9 @@ namespace
       }
     }
   private:
+    //minimal period is 512
+    static const uint_t FREQ_DIVIDER = 8;
+
     void RenderTicks(uint_t ticksPassed)
     {
       while (ticksPassed >= FREQ_DIVIDER)
@@ -441,6 +441,69 @@ namespace
     Sound::LPFilter Filter;
   };
 
+  class RenderersSet
+  {
+  public:
+    RenderersSet(ClockSource& clock, SAARenderer& psg)
+      : ClockFreq()
+      , SoundFreq()
+      , Clock(clock)
+      , LQ(clock, psg)
+      , MQ(clock, psg)
+      , HQ(clock, psg)
+      , Current()
+    {
+    }
+
+    void Reset()
+    {
+      Clock.Reset();
+      ClockFreq = 0;
+      SoundFreq = 0;
+      Current = 0;
+    }
+
+    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    {
+      if (ClockFreq != clockFreq || SoundFreq != soundFreq)
+      {
+        Clock.SetFrequency(clockFreq, soundFreq);
+        HQ.SetFrequency(clockFreq, soundFreq);
+        ClockFreq = clockFreq;
+        SoundFreq = soundFreq;
+      }
+    }
+
+    void SetInterpolation(InterpolationType type)
+    {
+      switch (type)
+      {
+      case INTERPOLATION_LQ:
+        Current = &MQ;
+        break;
+      case INTERPOLATION_HQ:
+        Current = &HQ;
+        break;
+      default:
+        Current = &LQ;
+        break;
+      }
+    }
+
+    Renderer& Get() const
+    {
+      return *Current;
+    }
+  private:
+    uint64_t ClockFreq;
+    uint_t SoundFreq;
+    ClockSource& Clock;
+    LQRenderer LQ;
+    MQRenderer MQ;
+    HQRenderer HQ;
+    Renderer* Current;
+  };
+
   class RegularSAAChip : public Chip
   {
   public:
@@ -448,11 +511,9 @@ namespace
       : Params(params)
       , Target(target)
       , Clock()
-      , LQ(Clock, PSG)
-      , MQ(Clock, PSG)
-      , HQ(Clock, PSG)
+      , Renderers(Clock, PSG)
     {
-      Reset();
+      RegularSAAChip::Reset();
     }
 
     virtual void RenderData(const DataChunk& src)
@@ -465,14 +526,29 @@ namespace
       const Stamp till = BufferedData.GetTillTime();
       if (!(till == Stamp(0)))
       {
-        ApplyParameters();
-        Renderer& source = GetRenderer();
         Sound::ChunkBuilder builder;
         builder.Reserve(Clock.SamplesTill(till));
-        RenderChunks(source, builder);
+        RenderChunks(builder);
         Target->ApplyData(builder.GetResult());
       }
       Target->Flush();
+    }
+
+    virtual void Reset()
+    {
+      PSG.Reset();
+      BufferedData.Reset();
+      Renderers.Reset();
+      ReloadParameters();
+    }
+
+    virtual void ReloadParameters()
+    {
+      const uint64_t clock = Params->ClockFreq();
+      const uint_t sndFreq = Params->SoundFreq();
+      Renderers.SetFrequency(clock, sndFreq);
+      Renderers.SetInterpolation(Params->Interpolation());
+      Analyser.SetClockRate(clock);
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -483,38 +559,10 @@ namespace
         it->Band = it->Enabled ? Analyser.GetBandByPeriod(it->Band) : 0;
       }
     }
-
-    virtual void Reset()
-    {
-      PSG.Reset();
-      Clock.Reset();
-      BufferedData.Reset();
-    }
   private:
-    void ApplyParameters()
+    void RenderChunks(Sound::ChunkBuilder& target)
     {
-      const uint64_t clock = Params->ClockFreq();
-      const uint_t sndFreq = Params->SoundFreq();
-      Clock.SetFrequency(clock, sndFreq);
-      Analyser.SetClockRate(clock);
-      HQ.SetFrequency(clock, sndFreq);
-    }
-
-    Renderer& GetRenderer()
-    {
-      switch (Params->Interpolation())
-      {
-      case INTERPOLATION_LQ:
-        return MQ;
-      case INTERPOLATION_HQ:
-        return HQ;
-      default:
-        return LQ;
-      }
-    }
-
-    void RenderChunks(Renderer& source, Sound::ChunkBuilder& target)
-    {
+      Renderer& source = Renderers.Get();
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
         const DataChunk& chunk = *it;
@@ -533,9 +581,7 @@ namespace
     ClockSource Clock;
     DataCache BufferedData;
     AnalysisMap Analyser;
-    LQRenderer LQ;
-    MQRenderer MQ;
-    HQRenderer HQ;
+    RenderersSet Renderers;
   };
 }
 

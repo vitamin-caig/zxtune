@@ -361,7 +361,9 @@ namespace ProTracker3
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
       const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const std::pair<Devices::AYM::Chip::Ptr, Devices::AYM::Chip::Ptr> chips = Devices::TurboSound::CreateChipsPair(chipParams, target);
+      const Sound::ThreeChannelsMatrixMixer::Ptr mixer = Sound::ThreeChannelsMatrixMixer::Create();
+      Sound::FillMixer(*params, *mixer);
+      const std::pair<Devices::AYM::Chip::Ptr, Devices::AYM::Chip::Ptr> chips = Devices::TurboSound::CreateChipsPair(chipParams, mixer, target);
       const uint_t version = Vortex::ExtractVersion(*Properties);
       const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chips.first, 0);
       const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chips.second, AYM::TRACK_CHANNELS);

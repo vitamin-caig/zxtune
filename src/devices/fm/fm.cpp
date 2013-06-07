@@ -148,6 +148,7 @@ namespace
       : Params(params)
       , Target(target)
     {
+      MameChip::Reset();
     }
 
     virtual void RenderData(const DataChunk& src)
@@ -160,7 +161,6 @@ namespace
       const Stamp tillTime = GetTillTime();
       if (!(tillTime == Stamp(0)))
       {
-        ApplyParameters();
         Sound::ChunkBuilder builder;
         builder.Reserve(GetSamplesTill(tillTime));
         RenderChunks(builder);
@@ -174,6 +174,15 @@ namespace
       Render.Reset();
       Clock.Reset();
       Buffer.clear();
+      ReloadParameters();
+    }
+
+    virtual void ReloadParameters()
+    {
+      const uint64_t clockFreq = Params->ClockFreq();
+      const uint_t sndFreq = Params->SoundFreq();
+      Render.SetParams(clockFreq, sndFreq);
+      Clock.SetFrequency(sndFreq);
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -184,14 +193,6 @@ namespace
     Stamp GetTillTime() const
     {
       return Buffer.empty() ? Stamp() : Buffer.back().TimeStamp;
-    }
-
-    void ApplyParameters()
-    {
-      const uint64_t clockFreq = Params->ClockFreq();
-      const uint_t sndFreq = Params->SoundFreq();
-      Render.SetParams(clockFreq, sndFreq);
-      Clock.SetFrequency(sndFreq);
     }
 
     uint_t GetSamplesTill(Stamp stamp) const
