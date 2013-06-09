@@ -188,7 +188,7 @@ public final class ZXTune {
    * @param Content raw content
    * @return New object
    */
-  static Data createData(byte[] content) {
+  public static Data createData(byte[] content) {
     return new NativeData(content);
   }
 

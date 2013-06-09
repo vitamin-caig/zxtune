@@ -28,7 +28,6 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.Status;
 
 public class NowPlayingFragment extends Fragment {
 
@@ -39,7 +38,9 @@ public class NowPlayingFragment extends Fragment {
   private Releaseable connection;
   private Control control;
   private SpectrumAnalyzerView analyzer;
-  private ImageButton playPause; 
+  private ImageButton prev;
+  private ImageButton playPause;
+  private ImageButton next;
   private SeekBar seek;
   private TextView time;
 
@@ -106,9 +107,17 @@ public class NowPlayingFragment extends Fragment {
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
     analyzer = (SpectrumAnalyzerView) view.findViewById(R.id.analyzer);
+    prev = (ImageButton) view.findViewById(R.id.controls_prev);
     playPause = (ImageButton) view.findViewById(R.id.controls_play_pause);
+    next = (ImageButton) view.findViewById(R.id.controls_next);
     seek = (SeekBar) view.findViewById(R.id.position_seek);
     time = (TextView) view.findViewById(R.id.position_time);
+    prev.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        control.prev();
+      }
+    });
     playPause.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -117,6 +126,12 @@ public class NowPlayingFragment extends Fragment {
         } else {
           control.play();
         }
+      }
+    });
+    next.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        control.next();
       }
     });
     seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {

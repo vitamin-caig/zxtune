@@ -25,5 +25,9 @@ interface IPlaybackControl {
 
   void stop();
   
+  void next();
+  
+  void prev();
+  
   void setPlaybackPosition(in long ms);
 }

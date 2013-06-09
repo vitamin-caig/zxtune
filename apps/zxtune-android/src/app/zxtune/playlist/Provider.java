@@ -14,6 +14,7 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
+import android.text.TextUtils;
 
 public class Provider extends ContentProvider {
 
@@ -29,7 +30,7 @@ public class Provider extends ContentProvider {
   public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
     final Query query = new Query(uri);
     final String select = Database.playlistSelection(selection, query.getId());
-    final String sort = Database.defaultPlaylistOrder();
+    final String sort = TextUtils.isEmpty(sortOrder) ? Database.defaultPlaylistOrder() : sortOrder;
     final Cursor result = db.queryPlaylistItems(projection, select, selectionArgs, sort);
     result.setNotificationUri(getContext().getContentResolver(), Query.unparse(null));
     return result;

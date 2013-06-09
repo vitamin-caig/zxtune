@@ -50,6 +50,16 @@ public interface Control {
   public void stop();
   
   /*
+   * Play next item
+   */
+  public void next();
+  
+  /*
+   * Play previous item
+   */
+  public void prev();
+  
+  /*
    * Change playback position
    */
   public void setPlaybackPosition(TimeStamp pos);

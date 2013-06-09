@@ -17,12 +17,15 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CompositeCallback;
 import app.zxtune.playback.Control;
+import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.Iterator;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.StubPlayableItem;
 import app.zxtune.playlist.Query;
@@ -41,9 +44,14 @@ public class PlaybackService extends Service {
 
   private final static String TAG = PlaybackService.class.getName();
 
+  private final Handler handler;
   private PlaybackControl ctrl;
   private IBinder binder;
-  private IncomingCallHandler callHandler; 
+  private IncomingCallHandler callHandler;
+  
+  public PlaybackService() {
+    this.handler = new Handler();
+  }
 
   @Override
   public void onCreate() {
@@ -87,14 +95,19 @@ public class PlaybackService extends Service {
       ctrl.play(uri);
     } else if (action.equals(Intent.ACTION_INSERT)) {
       Log.d(TAG, "Adding to playlist all modules from " + uri);
-      final ZXTune.Module module = openModule(uri);
-      addModuleToPlaylist(uri, module);
+      addModuleToPlaylist(uri);
     }
   }
 
-  private void addModuleToPlaylist(Uri uri, ZXTune.Module module) {
-    final app.zxtune.playlist.Item item = new app.zxtune.playlist.Item(uri, module); 
-    getContentResolver().insert(Query.unparse(null), item.toContentValues());
+  private void addModuleToPlaylist(Uri uri) {
+    try {
+      final ZXTune.Module module = FileIterator.loadModule(uri);
+      final app.zxtune.playlist.Item item = new app.zxtune.playlist.Item(uri, module);
+      module.release();
+      getContentResolver().insert(Query.unparse(null), item.toContentValues());
+    } catch (IOException e) {
+      Log.d(TAG, e.toString());
+    }
   }
 
 
@@ -104,132 +117,17 @@ public class PlaybackService extends Service {
     return binder;
   }
 
-
-  private PlayableItem openItem(Uri uri) throws IOException {
-    final Uri dataUri = getDataUri(uri);
-    final ZXTune.Module module = openModule(dataUri);
-    return new ActiveItem(uri, dataUri, module);
-  }
-
-  private Uri getDataUri(Uri uri) {
-    if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
-      Log.d(TAG, " playlist reference scheme");
-      return getPlaylistItemDataUri(uri);
-    } else {
-      Log.d(TAG, " direct data scheme");
-      return uri;
-    }
-  }
-
-  private Uri getPlaylistItemDataUri(Uri uri) {
-    Cursor cursor = null;
-    try {
-      cursor = getContentResolver().query(uri, null, null, null, null);
-      if (cursor != null && cursor.moveToFirst()) {
-        final app.zxtune.playlist.Item item = new app.zxtune.playlist.Item(cursor);
-        return item.getLocation();
-      }
-      throw new RuntimeException();
-    } finally {
-      if (cursor != null) {
-        cursor.close();
-      }
-    }
-  }
-
-  private static ZXTune.Module openModule(Uri path) {
-    final byte[] content = loadFile(path.getPath());
-    final ZXTune.Data data = ZXTune.createData(content);
-    final ZXTune.Module module = data.createModule();
-    data.release();
-    return module;
-  }
-
-  private static byte[] loadFile(String path) {
-    try {
-      final File file = new File(path);
-      final FileInputStream stream = new FileInputStream(file);
-      final int size = (int) file.length();
-      byte[] result = new byte[size];
-      stream.read(result, 0, size);
-      stream.close();
-      return result;
-    } catch (IOException e) {
-      Log.d(TAG, e.toString());
-      return null;
-    }
-  }
-
-  private static class ActiveItem implements PlayableItem {
-
-    private ZXTune.Module module;
-    private final Uri id;
-    private final Uri dataId;
-    private final String title;
-    private final String author;
-    private final TimeStamp duration;
-
-    public ActiveItem(Uri id, Uri dataId, ZXTune.Module module) {
-      this.module = module;
-      this.id = id;
-      this.dataId = dataId;
-      this.title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
-      this.author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
-      //TODO
-      this.duration = TimeStamp.createFrom(20 * module.getDuration(), TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public Uri getId() {
-      return id;
-    }
-
-    @Override
-    public Uri getDataId() {
-      return dataId;
-    }
-
-    @Override
-    public String getTitle() {
-      return title;
-    }
-
-    @Override
-    public String getAuthor() {
-      return author;
-    }
-
-    @Override
-    public TimeStamp getDuration() {
-      return duration;
-    }
-
-    @Override
-    public ZXTune.Player createPlayer() {
-      return module.createPlayer();
-    }
-
-    @Override
-    public void release() {
-      try {
-        if (module != null) {
-          module.release();
-        }
-      } finally {
-        module = null;
-      }
-    }
-  }
-
   private class PlaybackControl implements Control, Releaseable {
 
     private Callback callback;
+    private Iterator iterator;
     private PlayableItem item;
     private Player player;
     private Visualizer visualizer;
 
     PlaybackControl(Callback callback) {
       this.callback = callback;
+      this.iterator = null;//TODO
       this.item = StubPlayableItem.instance();
       this.player = StubPlayer.instance();
       this.visualizer = StubVisualizer.instance();
@@ -268,19 +166,25 @@ public class PlaybackService extends Service {
     public void play(Uri uri) {
       Log.d(TAG, "play(" + uri + ")");
       try {
-        final PlayableItem newItem = openItem(uri);
-        final ZXTune.Player lowPlayer = newItem.createPlayer();
-        final SamplesSource source = new PlaybackSamplesSource(lowPlayer);
-        final PlayerEventsListener events = new PlaybackEvents(callback);
-        final Visualizer newVisualizer = new PlaybackVisualizer(lowPlayer);
-
-        release();
-        player = AsyncPlayer.create(source, events);
-        item = newItem;
-        visualizer = newVisualizer;
-        callback.onItemChanged(item);
-        play();
+        final Iterator newIterator = Iterator.create(getApplicationContext(), uri);
+        play(newIterator);
+        iterator = newIterator;
       } catch (IOException e) {}
+    }
+    
+    private void play(Iterator newIterator) throws IOException {
+      final PlayableItem newItem = newIterator.getItem();
+      final ZXTune.Player lowPlayer = newItem.createPlayer();
+      final SamplesSource source = new PlaybackSamplesSource(lowPlayer);
+      final PlayerEventsListener events = new PlaybackEvents(callback);
+      final Visualizer newVisualizer = new PlaybackVisualizer(lowPlayer);
+
+      release();
+      player = AsyncPlayer.create(source, events);
+      item = newItem;
+      visualizer = newVisualizer;
+      callback.onItemChanged(item);
+      play();
     }
 
     @Override
@@ -291,6 +195,28 @@ public class PlaybackService extends Service {
     @Override
     public void stop() {
       player.stopPlayback();
+    }
+    
+    @Override
+    public void next() {
+      try {
+        if (iterator.next()) {
+          play(iterator);
+        }
+      } catch (IOException e) {
+        Log.d(TAG, e.toString());
+      }
+    }
+    
+    @Override
+    public void prev() {
+      try {
+        if (iterator.prev()) {
+          play(iterator);
+        }
+      } catch (IOException e) {
+        Log.d(TAG, e.toString());
+      }
     }
     
     @Override
@@ -310,7 +236,7 @@ public class PlaybackService extends Service {
     }
   }
   
-  private static final class PlaybackEvents implements PlayerEventsListener {
+  private final class PlaybackEvents implements PlayerEventsListener {
 
     private final Callback callback;
     
@@ -325,6 +251,12 @@ public class PlaybackService extends Service {
 
     @Override
     public void onFinish() {
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          ctrl.next();
+        }
+      });
     }
 
     @Override

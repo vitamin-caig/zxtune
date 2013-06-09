@@ -57,6 +57,16 @@ public class PlaybackControlServer extends IPlaybackControl.Stub {
   }
   
   @Override
+  public void next() {
+    delegate.next();
+  }
+  
+  @Override
+  public void prev() {
+    delegate.prev();
+  }
+  
+  @Override
   public void setPlaybackPosition(long ms) {
     delegate.setPlaybackPosition(TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS));
   }

@@ -84,6 +84,22 @@ final class PlaybackControlClient implements Control {
   }
   
   @Override
+  public void next() {
+    try {
+      delegate.next();
+    } catch (RemoteException e) {
+    }
+  }
+  
+  @Override
+  public void prev() {
+    try {
+      delegate.prev();
+    } catch (RemoteException e) {
+    }
+  }
+  
+  @Override
   public void setPlaybackPosition(TimeStamp pos) {
     try {
       delegate.setPlaybackPosition(pos.convertTo(TimeUnit.MILLISECONDS));
