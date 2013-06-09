@@ -89,7 +89,7 @@ public final class LocalVfs {
     }
 
     public Vfs.Entry resolve(Uri uri) {
-      if (uri.getScheme() != SCHEME) {
+      if (!uri.getScheme().equals(SCHEME)) {
         return null;
       }
       final File obj = new File(uri.getPath());
