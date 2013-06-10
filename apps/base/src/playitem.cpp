@@ -29,6 +29,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
+
     virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
     {
       return false;
@@ -63,6 +68,11 @@ namespace
     explicit PathPropertiesAccessor(IO::Identifier::Ptr id)
       : Id(id)
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return 1;
     }
 
     virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const

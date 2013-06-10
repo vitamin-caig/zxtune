@@ -84,7 +84,7 @@ namespace
 
     virtual uint_t Version() const
     {
-      return 1;
+      return Params->Version();
     }
 
     virtual uint_t BaseSampleFreq() const

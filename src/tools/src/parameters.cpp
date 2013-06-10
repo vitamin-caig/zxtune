@@ -161,10 +161,16 @@ namespace
   {
   public:
     ContainerImpl()
+      : VersionValue(0)
     {
     }
 
     //accessor virtuals
+    virtual uint_t Version() const
+    {
+      return VersionValue;
+    }
+
     virtual bool FindValue(const NameType& name, IntType& val) const
     {
       return FindByName(Integers, name, val);
@@ -199,33 +205,58 @@ namespace
     //visitor virtuals
     virtual void SetValue(const NameType& name, IntType val)
     {
-      Integers[name] = val;
-      Strings.erase(name);
-      Datas.erase(name);
+      if (Set(Integers[name], val) | Strings.erase(name) | Datas.erase(name))
+      {
+        ++VersionValue;
+      }
     }
 
     virtual void SetValue(const NameType& name, const StringType& val)
     {
-      Integers.erase(name);
-      Strings[name] = val;
-      Datas.erase(name);
+      if (Integers.erase(name) | Set(Strings[name], val) | Datas.erase(name))
+      {
+        ++VersionValue;
+      }
     }
 
     virtual void SetValue(const NameType& name, const DataType& val)
     {
-      Integers.erase(name);
-      Strings.erase(name);
-      Datas[name] = val;
+      if (Integers.erase(name) | Strings.erase(name) | Set(Datas[name], val))
+      {
+        ++VersionValue;
+      }
     }
 
     //modifier virtuals
     virtual void RemoveValue(const NameType& name)
     {
-      Integers.erase(name);
-      Strings.erase(name);
-      Datas.erase(name);
+      if (Integers.erase(name) | Strings.erase(name) | Datas.erase(name))
+      {
+        ++VersionValue;
+      }
     }
   private:
+    template<class Type>
+    static std::size_t Set(Type& dst, const Type& src)
+    {
+      if (dst != src)
+      {
+        dst = src;
+        return 1;
+      }
+      else
+      {
+        return 0;
+      }
+    }
+
+    static std::size_t Set(DataType& dst, const DataType& src)
+    {
+      dst = src;
+      return 1;
+    }
+  private:
+    uint_t VersionValue;
     typedef std::map<NameType, IntType> IntegerMap;
     typedef std::map<NameType, StringType> StringMap;
     typedef std::map<NameType, DataType> DataMap;
@@ -281,6 +312,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return First->Version() + Second->Version();
+    }
+
     virtual bool FindValue(const NameType& name, IntType& val) const
     {
       return First->FindValue(name, val) || 
@@ -318,6 +354,11 @@ namespace
       , Second(second)
       , Third(third)
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return First->Version() + Second->Version() + Third->Version();
     }
 
     virtual bool FindValue(const NameType& name, IntType& val) const
@@ -402,6 +443,11 @@ namespace
       : Delegate(delegate)
       , Callback(callback)
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Delegate->Version();
     }
 
     virtual bool FindValue(const NameType& name, IntType& val) const

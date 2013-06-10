@@ -105,6 +105,12 @@ namespace
     }
 
     // accessor virtuals
+    virtual uint_t Version() const
+    {
+      //assume that content will not be changed after building
+      return 1;
+    }
+
     virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
       if (name == ATTR_SIZE)

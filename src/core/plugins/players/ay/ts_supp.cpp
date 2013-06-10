@@ -147,6 +147,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
+
     virtual bool FindValue(const NameType& name, IntType& val) const
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);

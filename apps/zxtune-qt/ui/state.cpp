@@ -58,6 +58,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return Delegate->Version();
+    }
+
     virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
     {
       Delegate->SetValue(Prefix + name, val);

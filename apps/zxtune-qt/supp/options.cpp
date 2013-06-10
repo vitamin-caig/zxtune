@@ -35,6 +35,16 @@ namespace
   class SettingsContainer : public Container
   {
   public:
+    SettingsContainer()
+      : VersionValue()
+    {
+    }
+
+    virtual uint_t Version() const
+    {
+      return VersionValue;
+    }
+
     virtual bool FindValue(const NameType& name, IntType& val) const
     {
       const Value value(Storage, name);
@@ -97,12 +107,14 @@ namespace
     {
       Value value(Storage, name);
       value.Set(QVariant(qlonglong(val)));
+      ++VersionValue;
     }
 
     virtual void SetValue(const NameType& name, const StringType& val)
     {
       Value value(Storage, name);
       value.Set(QVariant(ToQString(ConvertToString(val))));
+      ++VersionValue;
     }
 
     virtual void SetValue(const NameType& name, const DataType& val)
@@ -110,12 +122,14 @@ namespace
       Value value(Storage, name);
       const QByteArray arr(val.empty() ? QByteArray() : QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size()));
       value.Set(QVariant(arr));
+      ++VersionValue;
     }
 
     virtual void RemoveValue(const NameType& name)
     {
       Value val(Storage, name);
       val.Remove();
+      ++VersionValue;
     }
   private:
     typedef boost::shared_ptr<QSettings> SettingsPtr;
@@ -194,6 +208,7 @@ namespace
       mutable QString ParamName;
     };
   private:
+    uint_t VersionValue;
     mutable SettingsStorage Storage;
   };
 
@@ -204,6 +219,11 @@ namespace
       : Persistent(delegate)
       , Temporary(Container::Create())
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Temporary->Version();
     }
 
     virtual bool FindValue(const NameType& name, IntType& val) const

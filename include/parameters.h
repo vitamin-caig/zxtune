@@ -185,6 +185,8 @@ namespace Parameters
 
     virtual ~Accessor() {}
 
+    virtual uint_t Version() const = 0;
+
     //! Accessing integer parameters
     virtual bool FindValue(const NameType& name, IntType& val) const = 0;
     //! Accessing string parameters

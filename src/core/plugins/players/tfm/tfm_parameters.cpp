@@ -54,7 +54,7 @@ namespace
 
     virtual uint_t Version() const
     {
-      return 1;
+      return Params->Version();
     }
 
     virtual uint64_t ClockFreq() const

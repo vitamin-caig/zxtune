@@ -47,6 +47,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return Merged->Version();
+    }
+
     virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
       return Merged->FindValue(name, val);

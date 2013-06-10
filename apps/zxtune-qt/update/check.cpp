@@ -53,6 +53,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
+
     virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
       if (name == Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING)
