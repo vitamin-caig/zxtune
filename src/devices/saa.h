@@ -119,7 +119,6 @@ namespace Devices
     public:
       typedef boost::shared_ptr<Chip> Ptr;
 
-      virtual void ReloadParameters() = 0;
       virtual void GetState(ChannelsState& state) const = 0;
     };
 
@@ -137,6 +136,7 @@ namespace Devices
 
       virtual ~ChipParameters() {}
 
+      virtual uint_t Version() const = 0;
       virtual uint64_t ClockFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
       virtual InterpolationType Interpolation() const = 0;

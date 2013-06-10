@@ -15,6 +15,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <devices/fm.h>
+#include <devices/details/parameters_helper.h>
 #include <sound/chunk_builder.h>
 #include <time/oscillator.h>
 //boost includes
@@ -161,6 +162,7 @@ namespace
       const Stamp tillTime = GetTillTime();
       if (!(tillTime == Stamp(0)))
       {
+        SynchronizeParameters();
         Sound::ChunkBuilder builder;
         builder.Reserve(GetSamplesTill(tillTime));
         RenderChunks(builder);
@@ -171,18 +173,10 @@ namespace
 
     virtual void Reset()
     {
+      Params.Reset();
       Render.Reset();
       Clock.Reset();
       Buffer.clear();
-      ReloadParameters();
-    }
-
-    virtual void ReloadParameters()
-    {
-      const uint64_t clockFreq = Params->ClockFreq();
-      const uint_t sndFreq = Params->SoundFreq();
-      Render.SetParams(clockFreq, sndFreq);
-      Clock.SetFrequency(sndFreq);
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -190,6 +184,17 @@ namespace
       state = Render.GetState();
     }
   private:
+    void SynchronizeParameters()
+    {
+      if (Params.IsChanged())
+      {
+        const uint64_t clockFreq = Params->ClockFreq();
+        const uint_t sndFreq = Params->SoundFreq();
+        Render.SetParams(clockFreq, sndFreq);
+        Clock.SetFrequency(sndFreq);
+      }
+    }
+
     Stamp GetTillTime() const
     {
       return Buffer.empty() ? Stamp() : Buffer.back().TimeStamp;
@@ -217,7 +222,7 @@ namespace
       Buffer.clear();
     }
   private:
-    const ChipParameters::Ptr Params;
+    Devices::Details::ParametersHelper<ChipParameters> Params;
     const Sound::Receiver::Ptr Target;
     ChipAdapter Render;
     Time::Oscillator<Stamp> Clock;

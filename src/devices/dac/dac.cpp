@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include <devices/dac.h>
+#include <devices/details/parameters_helper.h>
 //common includes
 #include <tools.h>
 //library includes
@@ -521,6 +522,52 @@ namespace
   };
 
   template<unsigned Channels>
+  class RenderersSet
+  {
+  public:
+    RenderersSet(ClockSource& clock, const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
+      : Clock(clock)
+      , LQ(clock, mixer, state)
+      , MQ(clock, mixer, state)
+      , Current()
+    {
+    }
+
+    void Reset()
+    {
+      Clock.Reset();
+      Current = 0;
+    }
+
+    void SetFrequency(uint_t sampleFreq, uint_t soundFreq)
+    {
+      Clock.SetFreq(sampleFreq, soundFreq);
+    }
+
+    void SetInterpolation(bool type)
+    {
+      if (type)
+      {
+        Current = &MQ;
+      }
+      else
+      {
+        Current = &LQ;
+      }
+    }
+
+    Renderer& Get() const
+    {
+      return *Current;
+    }
+  private:
+    ClockSource& Clock;
+    LQRenderer<Channels> LQ;
+    MQRenderer<Channels> MQ;
+    Renderer* Current;
+  };
+
+  template<unsigned Channels>
   class FixedChannelsChip : public Chip
   {
   public:
@@ -528,10 +575,10 @@ namespace
       : Params(params)
       , Mixer(mixer)
       , Target(target)
-      , LQ(Clock, *Mixer, &State[0])
-      , MQ(Clock, *Mixer, &State[0])
+      , Clock()
+      , Renderers(Clock, *Mixer, &State[0])
     {
-      Reset();
+      FixedChannelsChip::Reset();
     }
 
     /// Set sample for work
@@ -550,11 +597,10 @@ namespace
       const Stamp till = BufferedData.GetTillTime();
       if (!(till == Stamp(0)))
       {
-        Clock.SetFreq(Params->BaseSampleFreq(), Params->SoundFreq());
-        Renderer& source = GetRenderer();
+        SynchronizeParameters();
         Sound::ChunkBuilder builder;
         builder.Reserve(Clock.SamplesTill(till));
-        RenderChunks(source, builder);
+        RenderChunks(builder);
         Target->ApplyData(builder.GetResult());
       }
       Target->Flush();
@@ -589,19 +635,25 @@ namespace
     /// reset internal state to initial
     virtual void Reset()
     {
-      Clock.Reset();
+      Params.Reset();
+      Renderers.Reset();
       std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0)));
       BufferedData.Reset();
     }
 
   private:
-    Renderer& GetRenderer()
+    void SynchronizeParameters()
     {
-      return Params->Interpolate() ? static_cast<Renderer&>(MQ) : static_cast<Renderer&>(LQ);
+      if (Params.IsChanged())
+      {
+        Renderers.SetFrequency(Params->BaseSampleFreq(), Params->SoundFreq());
+        Renderers.SetInterpolation(Params->Interpolate());
+      }
     }
 
-    void RenderChunks(Renderer& render, Sound::ChunkBuilder& builder)
+    void RenderChunks(Sound::ChunkBuilder& builder)
     {
+      Renderer& render = Renderers.Get();
       for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
         const DataChunk& chunk = *it;
@@ -615,19 +667,17 @@ namespace
     void UpdateState(const DataChunk::ChannelData& state)
     {
       assert(state.Channel < State.size());
-      ChannelState& chan(State[state.Channel]);
-      chan.Update(Samples, Clock, state);
+      State[state.Channel].Update(Samples, Clock, state);
     }
   private:
-    const ChipParameters::Ptr Params;
+    Devices::Details::ParametersHelper<ChipParameters> Params;
     const typename Sound::FixedChannelsMixer<Channels>::Ptr Mixer;
     const Sound::Receiver::Ptr Target;
     SamplesStorage Samples;
     ClockSource Clock;
     boost::array<ChannelState, Channels> State;
+    RenderersSet<Channels> Renderers;
     DataCache BufferedData;
-    LQRenderer<Channels> LQ;
-    MQRenderer<Channels> MQ;
   };
 }
 

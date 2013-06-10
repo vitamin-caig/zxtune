@@ -16,6 +16,7 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
+#include <devices/details/parameters_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/lpfilter.h>
 #include <time/oscillator.h>
@@ -768,6 +769,7 @@ namespace
       const Stamp till = BufferedData.GetTillTime();
       if (!(till == Stamp(0)))
       {
+        SynchronizeParameters();
         Sound::ChunkBuilder builder;
         builder.Reserve(Clock.SamplesTill(till));
         RenderChunks(builder);
@@ -778,21 +780,10 @@ namespace
 
     virtual void Reset()
     {
+      Params.Reset();
       PSG.Reset();
       BufferedData.Reset();
       Renderers.Reset();
-      ReloadParameters();
-    }
-
-    virtual void ReloadParameters()
-    {
-      PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
-      const uint64_t clock = Params->ClockFreq() / AYM_CLOCK_DIVISOR;
-      const uint_t sndFreq = Params->SoundFreq();
-      Renderers.SetFrequency(clock, sndFreq);
-      Renderers.SetInterpolation(Params->Interpolation());
-      Analyser.SetClockRate(clock);
-      VolTable.SetParameters(Params->Type(), Params->Layout(), *Mixer);
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -804,6 +795,20 @@ namespace
       }
     }
   private:
+    void SynchronizeParameters()
+    {
+      if (Params.IsChanged())
+      {
+        PSG.SetDutyCycle(Params->DutyCycleValue(), Params->DutyCycleMask());
+        const uint64_t clock = Params->ClockFreq() / AYM_CLOCK_DIVISOR;
+        const uint_t sndFreq = Params->SoundFreq();
+        Renderers.SetFrequency(clock, sndFreq);
+        Renderers.SetInterpolation(Params->Interpolation());
+        Analyser.SetClockRate(clock);
+        VolTable.SetParameters(Params->Type(), Params->Layout(), *Mixer);
+      }
+    }
+
     void RenderChunks(Sound::ChunkBuilder& builder)
     {
       Renderer& source = Renderers.Get();
@@ -819,7 +824,7 @@ namespace
       BufferedData.Reset();
     }
   private:
-    const ChipParameters::Ptr Params;
+    Devices::Details::ParametersHelper<ChipParameters> Params;
     const Sound::ThreeChannelsMixer::Ptr Mixer;
     const Sound::Receiver::Ptr Target;
     AYMRenderer PSG;

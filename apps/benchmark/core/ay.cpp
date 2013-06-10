@@ -29,6 +29,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
+
     virtual uint64_t ClockFreq() const
     {
       return Clock;

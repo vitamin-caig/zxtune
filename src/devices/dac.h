@@ -152,6 +152,7 @@ namespace Devices
 
       virtual ~ChipParameters() {}
 
+      virtual uint_t Version() const = 0;
       virtual uint_t BaseSampleFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
       virtual bool Interpolate() const = 0;

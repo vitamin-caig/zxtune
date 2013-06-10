@@ -52,6 +52,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
+
     virtual uint64_t ClockFreq() const
     {
       Parameters::IntType val = Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT;

@@ -82,6 +82,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
+
     virtual uint_t BaseSampleFreq() const
     {
       Parameters::IntType intVal = 0;

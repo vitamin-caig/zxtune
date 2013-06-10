@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include <devices/z80.h>
+#include <devices/details/parameters_helper.h>
 //3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
 //boost includes
@@ -169,33 +170,105 @@ namespace
     const ChipIO::Ptr Ports;
   };
 
+  class ClockSource
+  {
+  public:
+    ClockSource()
+      : ClockFreq()
+      , IntDuration()
+    {
+    }
+
+    void Reset()
+    {
+      ClockFreq = 0;
+      IntDuration = 0;
+      Clock.Reset();
+    }
+
+    void SetParameters(uint64_t clockFreq, uint_t intDuration)
+    {
+      if (clockFreq != ClockFreq || intDuration != IntDuration)
+      {
+        ClockFreq = clockFreq;
+        IntDuration = intDuration;
+        Clock.SetFrequency(ClockFreq);
+      }
+    }
+
+    void AdvanceTick(uint_t delta)
+    {
+      Clock.AdvanceTick(delta);
+    }
+
+    void Seek(const Stamp time)
+    {
+      Clock.Reset();
+      const uint64_t tick = Clock.GetTickAtTime(time);
+      Clock.SetFrequency(ClockFreq);
+      Clock.AdvanceTick(tick);
+    }
+
+    const Oscillator& GetOscillator() const
+    {
+      return Clock;
+    }
+
+    uint64_t GetCurrentTick() const
+    {
+      return Clock.GetCurrentTick();
+    }
+
+    Stamp GetCurrentTime() const
+    {
+      return Clock.GetCurrentTime();
+    }
+
+    uint64_t GetTickAtTime(const Stamp till) const
+    {
+      return Clock.GetTickAtTime(till);
+    }
+
+    uint64_t GetIntEnd() const
+    {
+      return Clock.GetCurrentTick() + IntDuration;
+    }
+  private:
+    uint64_t ClockFreq;
+    uint_t IntDuration;
+    Oscillator Clock;
+  };
+
   class Z80Chip : public Chip
   {
   public:
     Z80Chip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
       : Params(params)
-      , Bus(new ExtendedIOBus(Clock, memory, ports))
+      , Bus(new ExtendedIOBus(Clock.GetOscillator(), memory, ports))
       , Context(Bus->ConnectCPU())
     {
+      Z80Chip::Reset();
     }
 
     Z80Chip(ChipParameters::Ptr params, const Dump& memory, ChipIO::Ptr ports)
       : Params(params)
-      , Bus(new SimpleIOBus(Clock, memory, ports))
+      , Bus(new SimpleIOBus(Clock.GetOscillator(), memory, ports))
       , Context(Bus->ConnectCPU())
     {
+      Z80Chip::Reset();
     }
 
     virtual void Reset()
     {
+      Params.Reset();
       z80ex_reset(Context.get());
       Clock.Reset();
     }
 
     virtual void Interrupt()
     {
-      Clock.SetFrequency(Params->ClockFreq());
-      const uint64_t limit = Clock.GetCurrentTick() + Params->IntTicks();
+      SynchronizeParameters();
+      const uint64_t limit = Clock.GetIntEnd();
       while (Clock.GetCurrentTick() < limit)
       {
         if (uint_t tick = z80ex_int(Context.get()))
@@ -209,7 +282,6 @@ namespace
 
     virtual void Execute(const Stamp& till)
     {
-      Clock.SetFrequency(Params->ClockFreq());
       const uint64_t endTick = Clock.GetTickAtTime(till);
       while (Clock.GetCurrentTick() < endTick)
       {
@@ -308,16 +380,21 @@ namespace
 
     virtual void SetTime(const Stamp& time)
     {
-      Clock.Reset();
-      const uint64_t tick = Clock.GetTickAtTime(time);
-      Clock.SetFrequency(Params->ClockFreq());
-      Clock.AdvanceTick(tick);
+      Clock.Seek(time);
     }
   private:
-    const ChipParameters::Ptr Params;
+    void SynchronizeParameters()
+    {
+      if (Params.IsChanged())
+      {
+        Clock.SetParameters(Params->ClockFreq(), Params->IntTicks());
+      }
+    }
+  private:
+    Devices::Details::ParametersHelper<ChipParameters> Params;
     const boost::scoped_ptr<IOBus> Bus;
     const boost::shared_ptr<Z80EX_CONTEXT> Context;
-    Oscillator Clock;
+    ClockSource Clock;
   };
 }
 

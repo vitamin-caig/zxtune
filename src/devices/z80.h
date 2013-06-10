@@ -87,6 +87,7 @@ namespace Devices
       typedef boost::shared_ptr<const ChipParameters> Ptr;
       virtual ~ChipParameters() {}
 
+      virtual uint_t Version() const = 0;
       virtual uint_t IntTicks() const = 0;
       virtual uint64_t ClockFreq() const = 0;
     };

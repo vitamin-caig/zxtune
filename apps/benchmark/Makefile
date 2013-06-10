@@ -2,7 +2,7 @@ binary_name := benchmark
 path_step := ../..
 source_files := main
 
-libraries.common = devices devices_aym l10n_stub sound tools
+libraries.common = devices_aym devices_z80 l10n_stub sound tools
 libraries.3rdparty = z80ex
 
 libraries := benchmark

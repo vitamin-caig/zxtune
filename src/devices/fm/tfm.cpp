@@ -53,11 +53,6 @@ namespace TFM
       std::for_each(Delegates.begin(), Delegates.end(), boost::mem_fn(&Devices::FM::Chip::Reset));
     }
 
-    virtual void ReloadParameters()
-    {
-      std::for_each(Delegates.begin(), Delegates.end(), boost::mem_fn(&Devices::FM::Chip::ReloadParameters));
-    }
-
     virtual void GetState(Devices::TFM::ChannelsState& state) const
     {
       for (uint_t idx = 0; idx != Delegates.size(); ++idx)

@@ -26,6 +26,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
+
     virtual uint_t IntTicks() const
     {
       return Int;

@@ -113,6 +113,11 @@ namespace
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
+
     virtual uint64_t ClockFreq() const
     {
       Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
