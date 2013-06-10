@@ -300,6 +300,7 @@ namespace Chiptune
 
       static bool ParseLine(const Pattern::Line& srcLine, PatternBuilder& patBuilder, Builder& target)
       {
+        bool result = true;
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
         {
           const Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
@@ -322,7 +323,7 @@ namespace Chiptune
             }
             else if (NOTE_END == note)
             {
-              return false;
+              result = false;
             }
           }
           else
@@ -331,7 +332,7 @@ namespace Chiptune
             target.SetSample(srcChan.Sample);
           }
         }
-        return true;
+        return result;
       }
 
       static bool IsEmptyLine(const Pattern::Line& srcLine)
