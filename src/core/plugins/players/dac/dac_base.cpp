@@ -82,6 +82,13 @@ namespace
     {
     }
 
+    virtual uint_t BaseSampleFreq() const
+    {
+      Parameters::IntType intVal = 0;
+      Params->FindValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, intVal);
+      return static_cast<uint_t>(intVal);
+    }
+
     virtual uint_t SoundFreq() const
     {
       return SoundParams->SoundFreq();

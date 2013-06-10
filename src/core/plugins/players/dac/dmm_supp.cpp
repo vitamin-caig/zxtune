@@ -60,7 +60,7 @@ namespace DMM
   const uint_t TICKS_PER_CYCLE = 119 + 116 + 111 + 10;
   //C-1 step 44/256 32.7Hz = ~1689 samples/sec
   const uint_t C_1_STEP = 44;
-  const uint_t BASE_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
+  const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
   const uint_t RENDERS_PER_SEC = Z80_FREQ / TICKS_PER_CYCLE;
 
 #ifdef USE_PRAGMA_PACK
@@ -501,6 +501,7 @@ namespace
         Properties->SetSource(usedSize, fixedRegion);
       }
       Properties->SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
+      Properties->SetSamplesFreq(DMM::SAMPLES_FREQ);
     }
 
     virtual Information::Ptr GetModuleInformation() const
@@ -518,7 +519,7 @@ namespace
       const Sound::ThreeChannelsMatrixMixer::Ptr mixer = Sound::ThreeChannelsMatrixMixer::Create();
       Sound::FillMixer(*params, *mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(DMM::BASE_FREQ, chipParams, mixer, target));
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
         chip->SetSample(idx, Data->Samples.Get(idx));

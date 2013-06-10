@@ -28,13 +28,6 @@ namespace SampleTracker
 
   const std::size_t CHANNELS_COUNT = 3;
 
-  const uint64_t Z80_FREQ = 3500000;
-  //109+113+113+10=345 ticks/out cycle = 10144 outs/sec
-  const uint_t TICKS_PER_CYCLE = 109 + 113 + 113 + 10;
-  //C-1 step 22/256 32.7Hz = ~871 samples/sec
-  const uint_t C_1_STEP = 22;
-  const uint_t BASE_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
-
   typedef DAC::ModuleData ModuleData;
   typedef DAC::DataBuilder DataBuilder;
   typedef DAC::Digital<CHANNELS_COUNT>::Holder Holder;
@@ -84,7 +77,7 @@ namespace STR
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared<SampleTracker::Holder>(modData, properties, ::SampleTracker::BASE_FREQ);
+        return boost::make_shared<SampleTracker::Holder>(modData, properties);
       }
       return Holder::Ptr();
     }

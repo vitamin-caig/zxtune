@@ -35,6 +35,7 @@ namespace ZXTune
 
       virtual void SetComment(const String& comment) = 0;
       virtual void SetFreqtable(const String& table) = 0;
+      virtual void SetSamplesFreq(uint_t freq) = 0;
       virtual void SetVersion(uint_t major, uint_t minor) = 0;
       virtual void SetSource(std::size_t usedSize, const ModuleRegion& fixedRegion) = 0;
       virtual void SetSource(Formats::Chiptune::Container::Ptr source) = 0;

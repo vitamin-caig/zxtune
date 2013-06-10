@@ -445,6 +445,12 @@ namespace Chiptune
       "20{8}"
     );
 
+    const uint64_t Z80_FREQ = 3500000;
+    // step is not changed in AY and SounDrive versions
+    const uint_t C_1_STEP = 88;
+    const uint_t SD_TICKS_PER_CYCLE = 356;
+    const uint_t AY_TICKS_PER_CYCLE = 344;
+
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
@@ -497,6 +503,9 @@ namespace Chiptune
         const Indices& usedSamples = statistic.GetUsedSamples();
         SamplesSet samples;
         format.ParseSamples(usedSamples, samples);
+
+        const uint_t cycleTicks = samples.Is4Bit() ? AY_TICKS_PER_CYCLE : SD_TICKS_PER_CYCLE;
+        target.SetSamplesFrequency(Z80_FREQ * C_1_STEP / cycleTicks / 256);
 
         const String program = String(Text::DIGITALSTUDIO_DECODER_DESCRIPTION) + 
           (samples.Is4Bit() ? Text::DIGITALSTUDIO_VERSION_AY : Text::DIGITALSTUDIO_VERSION_DAC);

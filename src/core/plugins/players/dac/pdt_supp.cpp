@@ -37,9 +37,12 @@ Author:
 namespace ProDigiTracker
 {
   const uint_t CHANNELS_COUNT = 4;
-  //all samples has base freq at 2kHz (C-1)
-  const uint_t BASE_FREQ = 2000;
 
+  const uint64_t Z80_FREQ = 3500000;
+  const uint_t TICKS_PER_CYCLE = 374;
+  const uint_t C_1_STEP = 46;
+  const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
+  
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
@@ -92,6 +95,7 @@ namespace ProDigiTracker
       , Builder(PatternsBuilder::Create<ProDigiTracker::CHANNELS_COUNT>())
     {
       Data->Patterns = Builder.GetPatterns();
+      Properties->SetSamplesFreq(SAMPLES_FREQ);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
@@ -183,7 +187,7 @@ namespace ProDigiTracker
       const Sound::FourChannelsMatrixMixer::Ptr mixer = Sound::FourChannelsMatrixMixer::Create();
       Sound::FillMixer(*params, *mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BASE_FREQ, chipParams, mixer, target));
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
         chip->SetSample(idx, Data->Samples.Get(idx));

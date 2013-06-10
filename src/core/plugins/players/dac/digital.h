@@ -88,6 +88,11 @@ namespace ZXTune
           Data->InitialTempo = tempo;
         }
 
+        virtual void SetSamplesFrequency(uint_t freq)
+        {
+          Properties->SetSamplesFreq(freq);
+        }
+
         virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit)
         {
           Data->Samples.Add(index, is4Bit
@@ -272,11 +277,10 @@ namespace ZXTune
         class Holder : public ZXTune::Module::Holder
         {
         public:
-          Holder(ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t baseFreq)
+          Holder(ModuleData::Ptr data, ModuleProperties::Ptr properties)
             : Data(data)
             , Properties(properties)
             , Info(CreateTrackInfo(Data, Channels))
-            , BaseFreq(baseFreq)
           {
           }
 
@@ -295,7 +299,7 @@ namespace ZXTune
             const typename Sound::FixedChannelsMatrixMixer<Channels>::Ptr mixer = Sound::FixedChannelsMatrixMixer<Channels>::Create();
             Sound::FillMixer(*params, *mixer);
             const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-            const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BaseFreq, chipParams, mixer, target));
+            const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
             for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
             {
               chip->SetSample(idx, Data->Samples.Get(idx));
@@ -306,7 +310,6 @@ namespace ZXTune
           const ModuleData::Ptr Data;
           const ModuleProperties::Ptr Properties;
           const Information::Ptr Info;
-          const uint_t BaseFreq;
         };
       };
     }

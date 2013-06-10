@@ -40,6 +40,8 @@ namespace Parameters
         extern const NameType PREFIX = Core::PREFIX + "dac";
 
         extern const NameType INTERPOLATION = PREFIX + "interpolation";
+
+        extern const NameType SAMPLES_FREQUENCY = PREFIX + "samples_frequency";
       }
 
       namespace Z80

@@ -168,8 +168,8 @@ namespace
   class ClockSource
   {
   public:
-    explicit ClockSource(uint_t sampleFreq)
-      : SampleFreq(sampleFreq)
+    ClockSource()
+      : SampleFreq()
       , SoundFreq()
     {
       Reset();
@@ -180,8 +180,9 @@ namespace
       CurrentTime = Stamp();
     }
 
-    void SetSoundFreq(uint_t soundFreq)
+    void SetFreq(uint_t sampleFreq, uint_t soundFreq)
     {
+      SampleFreq = sampleFreq;
       SoundFreq = soundFreq;
     }
 
@@ -235,7 +236,7 @@ namespace
       return Frequency(frq, Frequency::PRECISION);
     }
   private:
-    const uint_t SampleFreq;
+    uint_t SampleFreq;
     uint_t SoundFreq;
     Stamp CurrentTime;
   };
@@ -523,11 +524,10 @@ namespace
   class FixedChannelsChip : public Chip
   {
   public:
-    FixedChannelsChip(uint_t sampleFreq, ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer, Sound::Receiver::Ptr target)
+    FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer, Sound::Receiver::Ptr target)
       : Params(params)
       , Mixer(mixer)
       , Target(target)
-      , Clock(sampleFreq)
       , LQ(Clock, *Mixer, &State[0])
       , MQ(Clock, *Mixer, &State[0])
     {
@@ -550,7 +550,7 @@ namespace
       const Stamp till = BufferedData.GetTillTime();
       if (!(till == Stamp(0)))
       {
-        Clock.SetSoundFreq(Params->SoundFreq());
+        Clock.SetFreq(Params->BaseSampleFreq(), Params->SoundFreq());
         Renderer& source = GetRenderer();
         Sound::ChunkBuilder builder;
         builder.Reserve(Clock.SamplesTill(till));
@@ -635,14 +635,14 @@ namespace Devices
 {
   namespace DAC
   {
-    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
     {
-      return boost::make_shared<FixedChannelsChip<3> >(sampleFreq, params, mixer, target);
+      return boost::make_shared<FixedChannelsChip<3> >(params, mixer, target);
     }
 
-    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
     {
-      return boost::make_shared<FixedChannelsChip<4> >(sampleFreq, params, mixer, target);
+      return boost::make_shared<FixedChannelsChip<4> >(params, mixer, target);
     }
   }
 }

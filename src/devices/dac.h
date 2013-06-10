@@ -152,13 +152,14 @@ namespace Devices
 
       virtual ~ChipParameters() {}
 
+      virtual uint_t BaseSampleFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
       virtual bool Interpolate() const = 0;
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
-    Chip::Ptr CreateChip(uint_t sampleFreq, ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
   }
 }
 

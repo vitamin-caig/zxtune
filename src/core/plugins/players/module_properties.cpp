@@ -75,6 +75,11 @@ namespace
       Container->SetValue(Parameters::ZXTune::Core::AYM::TABLE, table);
     }
 
+    virtual void SetSamplesFreq(uint_t freq)
+    {
+      Container->SetValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, freq);
+    }
+
     virtual void SetVersion(uint_t major, uint_t minor)
     {
       assert(minor < 10);

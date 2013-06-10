@@ -1,6 +1,6 @@
 /*
 Abstract:
-  PDT modules playback support
+  CHI modules playback support
 
 Last changed:
   $Id$
@@ -37,8 +37,22 @@ namespace ChipTracker
   using namespace ZXTune::Module;
 
   const std::size_t CHANNELS_COUNT = 4;
-  const std::size_t BASE_FREQ = 2000;
 
+  const uint64_t Z80_FREQ = 3500000;
+  //one cycle is 4 outputs
+  const uint_t OUTS_PER_CYCLE = 4;
+  const uint_t TICKS_PER_CYCLE = 890;
+  const uint_t C_1_STEP = 72;
+  //Z80_FREQ * (C_1_STEP / 256) / (TICKS_PER_CYCLE / OUTS_PER_CYCLE)
+  const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP * OUTS_PER_CYCLE / TICKS_PER_CYCLE / 256;
+
+  inline int_t StepToHz(int_t step)
+  {
+    //C-1 frequency is 32.7Hz
+    //step * 32.7 / c-1_step
+    return step * 3270 / int_t(C_1_STEP * 100);
+  }
+  
   enum CmdType
   {
     EMPTY,
@@ -97,6 +111,7 @@ namespace ChipTracker
       , Builder(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
       Data->Patterns = Builder.GetPatterns();
+      Properties->SetSamplesFreq(SAMPLES_FREQ);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
@@ -198,7 +213,7 @@ namespace ChipTracker
       const Sound::FourChannelsMatrixMixer::Ptr mixer = Sound::FourChannelsMatrixMixer::Create();
       Sound::FillMixer(*params, *mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BASE_FREQ, chipParams, mixer, target));
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
         chip->SetSample(idx, Data->Samples.Get(idx));
@@ -220,6 +235,11 @@ namespace ChipTracker
       }
       int_t Sliding;
       int_t Glissade;
+
+      void Reset()
+      {
+        Sliding = Glissade = 0;
+      }
 
       bool Update()
       {
@@ -324,9 +344,7 @@ namespace ChipTracker
         if (gliss.Update())
         {
           DAC::ChannelDataBuilder builder = track.GetChannel(chan);
-          //step 72 is C-1@3.5MHz for SounDrive player
-          //C-1 is 65.41Hz (real C-2)
-          builder.SetFreqSlideHz(gliss.Sliding * 6541 / 7200);
+          builder.SetFreqSlideHz(StepToHz(gliss.Sliding));
         }
       }
     }
@@ -343,7 +361,6 @@ namespace ChipTracker
           {
             GetNewChannelState(*src, Gliss[chan], builder);
           }
-          builder.SetFreqSlideHz(0);
         }
       }
     };
@@ -360,8 +377,7 @@ namespace ChipTracker
       }
       if (const uint_t* note = src.GetNote())
       {
-        //start from octave 2
-        builder.SetNote(*note + 12);
+        builder.SetNote(*note);
         builder.SetPosInSample(0);
       }
       if (const uint_t* sample = src.GetSample())
@@ -369,6 +385,8 @@ namespace ChipTracker
         builder.SetSampleNum(*sample);
         builder.SetPosInSample(0);
       }
+      builder.SetFreqSlideHz(0);
+      gliss.Reset();
       for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
         switch (it->Type)

@@ -27,6 +27,7 @@ namespace Chiptune
       }
 
       virtual void SetInitialTempo(uint_t /*tempo*/) {}
+      virtual void SetSamplesFrequency(uint_t /*freq*/) {}
       virtual void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::Data::Ptr /*content*/, bool /*is4Bit*/) {}
       virtual void SetPositions(const std::vector<uint_t>& /*positions*/, uint_t /*loop*/) {}
 

@@ -44,6 +44,11 @@ namespace Formats
           return Delegate.SetInitialTempo(tempo);
         }
 
+        virtual void SetSamplesFrequency(uint_t freq)
+        {
+          return Delegate.SetSamplesFrequency(freq);
+        }
+
         virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr data, bool is4Bit)
         {
           return Delegate.SetSample(index, loop, data, is4Bit);

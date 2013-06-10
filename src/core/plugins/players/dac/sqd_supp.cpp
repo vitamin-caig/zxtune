@@ -35,8 +35,12 @@ Author:
 namespace SQDigitalTracker
 {
   const std::size_t CHANNELS_COUNT = 4;
-  const uint_t BASE_FREQ = 2000;
 
+  const uint64_t Z80_FREQ = 3500000;
+  const uint_t TICKS_PER_CYCLE = 346;
+  const uint_t C_1_STEP = 44;
+  const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
+  
   //supported tracking commands
   enum CmdType
   {
@@ -97,6 +101,7 @@ namespace SQDigitalTracker
       , Builder(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
       Data->Patterns = Builder.GetPatterns();
+      Properties->SetSamplesFreq(SAMPLES_FREQ);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
@@ -198,7 +203,7 @@ namespace SQDigitalTracker
       const Sound::FourChannelsMatrixMixer::Ptr mixer = Sound::FourChannelsMatrixMixer::Create();
       Sound::FillMixer(*params, *mixer);
       const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(BASE_FREQ, chipParams, mixer, target));
+      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
         chip->SetSample(idx, Data->Samples.Get(idx));
