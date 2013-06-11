@@ -22,27 +22,6 @@ namespace
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class TrackParametersImpl : public SAA::TrackParameters
-  {
-  public:
-    explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
-      : Delegate(Sound::RenderParameters::Create(params))
-    {
-    }
-
-    virtual bool Looped() const
-    {
-      return Delegate->Looped();
-    }
-
-    virtual Time::Microseconds FrameDuration() const
-    {
-      return Delegate->FrameDuration();
-    }
-  private:
-    const Sound::RenderParameters::Ptr Delegate;
-  };
-
   class ChipParametersImpl : public Devices::SAA::ChipParameters
   {
   public:
@@ -90,11 +69,6 @@ namespace ZXTune
       Devices::SAA::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
       {
         return boost::make_shared<ChipParametersImpl>(params);
-      }
-
-      TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
-      {
-        return boost::make_shared<TrackParametersImpl>(params);
       }
     }
   }

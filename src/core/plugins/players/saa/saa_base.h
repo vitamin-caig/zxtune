@@ -19,6 +19,7 @@ Author:
 #include "core/plugins/players/tracking.h"
 //library includes
 #include <core/module_holder.h>
+#include <sound/render_params.h>
 
 namespace ZXTune
 {
@@ -106,16 +107,16 @@ namespace ZXTune
 
         virtual Information::Ptr GetInformation() const = 0;
         virtual ModuleProperties::Ptr GetProperties() const = 0;
-        virtual DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr params) const = 0;
+        virtual DataIterator::Ptr CreateDataIterator() const = 0;
 
         virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::SAA::Device::Ptr chip) const;
       };
 
       Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device);
 
-      DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
+      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
     }

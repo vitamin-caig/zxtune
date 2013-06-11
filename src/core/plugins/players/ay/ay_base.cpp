@@ -176,7 +176,7 @@ namespace ZXTune
       Iterator->Reset();
       Device->Reset();
       FlushChunk = Devices::AYM::DataChunk();
-      FrameDuration = Time::Microseconds();
+      FrameDuration = Devices::AYM::Stamp();
       Looped = false;
     }
 
@@ -206,7 +206,7 @@ namespace ZXTune
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Device::Ptr Device;
     Devices::AYM::DataChunk FlushChunk;
-    Time::Microseconds FrameDuration;
+    Devices::AYM::Stamp FrameDuration;
     bool Looped;
   };
 

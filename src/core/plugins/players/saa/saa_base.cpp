@@ -14,6 +14,7 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
+#include <devices/details/parameters_helper.h>
 #include <math/numeric.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -26,9 +27,8 @@ namespace
   class SAADataIterator : public SAA::DataIterator
   {
   public:
-    SAADataIterator(SAA::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, SAA::DataRenderer::Ptr renderer)
-      : TrackParams(trackParams)
-      , Delegate(delegate)
+    SAADataIterator(TrackStateIterator::Ptr delegate, SAA::DataRenderer::Ptr renderer)
+      : Delegate(delegate)
       , State(Delegate->GetStateObserver())
       , Render(renderer)
     {
@@ -73,7 +73,6 @@ namespace
       }
     }
   private:
-    const SAA::TrackParameters::Ptr TrackParams;
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
     const SAA::DataRenderer::Ptr Render;
@@ -111,10 +110,12 @@ namespace
   class SAARenderer : public Renderer
   {
   public:
-    SAARenderer(SAA::TrackParameters::Ptr params, SAA::DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
+    SAARenderer(Sound::RenderParameters::Ptr params, SAA::DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
       : Params(params)
       , Iterator(iterator)
       , Device(device)
+      , FrameDuration()
+      , Looped()
     {
 #ifndef NDEBUG
 //perform self-test
@@ -137,19 +138,23 @@ namespace
     {
       if (Iterator->IsValid())
       {
+        SynchronizeParameters();
         Devices::SAA::DataChunk chunk = Iterator->GetData();
         chunk.TimeStamp = FlushChunk.TimeStamp;
         CommitChunk(chunk);
-        Iterator->NextFrame(Params->Looped());
+        Iterator->NextFrame(Looped);
       }
       return Iterator->IsValid();
     }
 
     virtual void Reset()
     {
+      Params.Reset();
       Iterator->Reset();
       Device->Reset();
       FlushChunk = Devices::SAA::DataChunk();
+      FrameDuration = Devices::SAA::Stamp();
+      Looped = false;
     }
 
     virtual void SetPosition(uint_t frameNum)
@@ -157,18 +162,29 @@ namespace
       SeekIterator(*Iterator, frameNum);
     }
   private:
+    void SynchronizeParameters()
+    {
+      if (Params.IsChanged())
+      {
+        FrameDuration = Params->FrameDuration();
+        Looped = Params->Looped();
+      }
+    }
+
     void CommitChunk(const Devices::SAA::DataChunk& chunk)
     {
       Device->RenderData(chunk);
-      FlushChunk.TimeStamp += Params->FrameDuration();
+      FlushChunk.TimeStamp += FrameDuration;
       Device->RenderData(FlushChunk);
       Device->Flush();
     }
   private:
-    const SAA::TrackParameters::Ptr Params;
+    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
     const SAA::DataIterator::Ptr Iterator;
     const Devices::SAA::Device::Ptr Device;
     Devices::SAA::DataChunk FlushChunk;
+    Devices::SAA::Stamp FrameDuration;
+    bool Looped;
   };
 
   class SAAHolder : public Holder
@@ -254,9 +270,9 @@ namespace ZXTune
 
       Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::SAA::Device::Ptr chip) const
       {
-        const SAA::TrackParameters::Ptr trackParams = SAA::TrackParameters::Create(params);
-        const SAA::DataIterator::Ptr iterator = CreateDataIterator(trackParams);
-        return SAA::CreateRenderer(trackParams, iterator, chip);
+        const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+        const SAA::DataIterator::Ptr iterator = CreateDataIterator();
+        return SAA::CreateRenderer(renderParams, iterator, chip);
       }
 
       Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)
@@ -268,14 +284,14 @@ namespace ZXTune
         return Analyzer::Ptr();
       }
 
-      DataIterator::Ptr CreateDataIterator(SAA::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
       {
-        return boost::make_shared<SAADataIterator>(trackParams, iterator, renderer);
+        return boost::make_shared<SAADataIterator>(iterator, renderer);
       }
 
-      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
+      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
       {
-        return boost::make_shared<SAARenderer>(trackParams, iterator, device);
+        return boost::make_shared<SAARenderer>(params, iterator, device);
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)

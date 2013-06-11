@@ -535,11 +535,11 @@ namespace ETracker
       return Properties;
     }
 
-    virtual SAA::DataIterator::Ptr CreateDataIterator(SAA::TrackParameters::Ptr trackParams) const
+    virtual SAA::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const SAA::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
-      return SAA::CreateDataIterator(trackParams, iterator, renderer);
+      return SAA::CreateDataIterator(iterator, renderer);
     }
   private:
     const ModuleData::Ptr Data;
