@@ -484,9 +484,10 @@ namespace ZXTune
       {
         const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version, trackChannelStart);
         const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(data);
+        const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
         const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
         const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(trackParams, iterator, renderer);
-        return AYM::CreateRenderer(trackParams, dataIter, device);
+        return AYM::CreateRenderer(renderParams, dataIter, device);
       }
 
       AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)

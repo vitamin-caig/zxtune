@@ -207,62 +207,39 @@ namespace
   public:
     explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
-      , Delegate(Sound::RenderParameters::Create(params))
     {
-      UpdateParameters();
     }
 
-    virtual Time::Microseconds FrameDuration() const
+    virtual uint_t Version() const
     {
-      return Delegate->FrameDuration();
+      return Params->Version();
     }
 
-    virtual bool Looped() const
-    {
-      return Delegate->Looped();
-    }
-
-    virtual const FrequencyTable& FreqTable() const
-    {
-      //assume that FreqTable called quite rarely
-      UpdateParameters();
-      return Table;
-    }
-  private:
-    void UpdateParameters() const
-    {
-      UpdateTable();
-    }
-
-    void UpdateTable() const
+    virtual void FreqTable(FrequencyTable& table) const
     {
       Parameters::StringType newName;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newName))
       {
-        if (newName != TableName)
-        {
-          ThrowIfError(GetFreqTable(newName, Table));
-        }
-        return;
+        ThrowIfError(GetFreqTable(newName, table));
       }
-      Parameters::DataType newData;
-      if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newData))
+      else
       {
-        // as dump
-        if (newData.size() != Table.size() * sizeof(Table.front()))
+        Parameters::DataType newData;
+        if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newData))
         {
-          throw MakeFormattedError(THIS_LINE,
-            translate("Invalid frequency table size (%1%)."), newData.size());
+          // as dump
+          if (newData.size() != table.size() * sizeof(table.front()))
+          {
+            throw MakeFormattedError(THIS_LINE,
+              translate("Invalid frequency table size (%1%)."), newData.size());
+          }
+          std::memcpy(&table.front(), &newData.front(), newData.size());
         }
-        std::memcpy(&Table.front(), &newData.front(), newData.size());
       }
     }
   private:
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr Delegate;
-    //freqtable
-    mutable String TableName;
-    mutable FrequencyTable Table;
   };
 }
 

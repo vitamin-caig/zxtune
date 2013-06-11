@@ -29,6 +29,7 @@ Author:
 #include <core/conversion/aym.h>
 #include <debug/log.h>
 #include <devices/z80.h>
+#include <devices/details/parameters_helper.h>
 #include <formats/chiptune/aym/ay.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
@@ -354,12 +355,14 @@ namespace
   class AYRenderer : public Renderer
   {
   public:
-    AYRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, Computer::Ptr comp, AYDataChannel::Ptr device)
+    AYRenderer(Sound::RenderParameters::Ptr params, StateIterator::Ptr iterator, Computer::Ptr comp, AYDataChannel::Ptr device)
       : Params(params)
       , Iterator(iterator)
       , Comp(comp)
       , Device(device)
       , State(Iterator->GetStateObserver())
+      , FrameDuration()
+      , Looped()
     {
     }
 
@@ -377,20 +380,23 @@ namespace
     {
       if (Iterator->IsValid())
       {
-        LastTime += Params->FrameDuration();
+        SynchronizeParameters();
+        LastTime += FrameDuration;
         Comp->NextFrame(LastTime);
         Device->RenderFrame(LastTime);
-        Iterator->NextFrame(Params->Looped());
+        Iterator->NextFrame(Looped);
       }
       return Iterator->IsValid();
     }
 
     virtual void Reset()
     {
+      Params.Reset();
       Iterator->Reset();
       Comp->Reset();
       Device->Reset();
-      LastTime = Devices::Z80::Stamp();
+      FrameDuration = LastTime = Devices::Z80::Stamp();
+      Looped = false;
     }
 
     virtual void SetPosition(uint_t frame)
@@ -400,22 +406,33 @@ namespace
         //rewind
         Iterator->Reset();
       }
-      const Devices::Z80::Stamp period = Params->FrameDuration();
+      SynchronizeParameters();
       Devices::Z80::Stamp newTime = LastTime; 
       while (State->Frame() < frame && Iterator->IsValid())
       {
-        newTime += period;
+        newTime += FrameDuration;
         Iterator->NextFrame(false);
       }
-      Comp->SeekState(newTime, period);
+      Comp->SeekState(newTime, FrameDuration);
     }
   private:
-    const AYM::TrackParameters::Ptr Params;
+    void SynchronizeParameters()
+    {
+      if (Params.IsChanged())
+      {
+        FrameDuration = Params->FrameDuration();
+        Looped = Params->Looped();
+      }
+    }
+  private:
+    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
     const StateIterator::Ptr Iterator;
     const Computer::Ptr Comp;
     const AYDataChannel::Ptr Device;
     const TrackState::Ptr State;
     Devices::Z80::Stamp LastTime;
+    Devices::Z80::Stamp FrameDuration;
+    bool Looped;
   };
 
   class AYData : public Formats::Chiptune::AY::Builder
@@ -585,8 +602,8 @@ namespace
       const AYDataChannel::Ptr ayChannel = AYDataChannel::Create(chip);
       const PortsPlexer::Ptr cpuPorts = PortsPlexer::Create(ayChannel);
       const Computer::Ptr comp = boost::make_shared<ComputerImpl>(Data, cpuParams, cpuPorts);
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return boost::make_shared<AYRenderer>(trackParams, iterator, comp, ayChannel);
+      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+      return boost::make_shared<AYRenderer>(renderParams, iterator, comp, ayChannel);
     }
   private:
     const AYData::Ptr Data;

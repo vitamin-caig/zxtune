@@ -22,6 +22,7 @@ Author:
 //library includes
 #include <core/module_holder.h>
 #include <devices/aym.h>
+#include <sound/render_params.h>
 
 namespace ZXTune
 {
@@ -126,7 +127,7 @@ namespace ZXTune
 
       DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device);
+      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device);
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);

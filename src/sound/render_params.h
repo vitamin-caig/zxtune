@@ -26,6 +26,8 @@ namespace Sound
 
     virtual ~RenderParameters() {}
 
+    virtual uint_t Version() const = 0;
+
     //! Rendering sound frequency
     virtual uint_t SoundFreq() const = 0;
     //! Frame duration in us

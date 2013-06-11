@@ -25,6 +25,11 @@ namespace Sound
     {
     }
 
+    virtual uint_t Version() const
+    {
+      return Params->Version();
+    }
+
     virtual uint_t SoundFreq() const
     {
       using namespace Parameters::ZXTune::Sound;

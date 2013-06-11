@@ -361,78 +361,41 @@ namespace SoundTracker
     EnvelopeState EnvState;
   };
 
-  class DataIterator : public AYM::DataIterator
+  class DataRenderer : public AYM::DataRenderer
   {
   public:
-    DataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, ModuleData::Ptr data)
-      : TrackParams(trackParams)
-      , Delegate(delegate)
-      , State(Delegate->GetStateObserver())
-      , Data(data)
+    explicit DataRenderer(ModuleData::Ptr data)
+      : Data(data)
       , StateA(Data, EnvType, EnvTone)
       , StateB(Data, EnvType, EnvTone)
       , StateC(Data, EnvType, EnvTone)
-      , EnvType(0)
-      , EnvTone(0)
+      , EnvType()
+      , EnvTone()
     {
-      SwitchToNewLine();
     }
 
     virtual void Reset()
     {
-      Delegate->Reset();
       StateA.Reset();
       StateB.Reset();
       StateC.Reset();
       EnvType = EnvTone = 0;
-      SwitchToNewLine();
     }
 
-    virtual bool IsValid() const
+    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      return Delegate->IsValid();
-    }
-
-    virtual void NextFrame(bool looped)
-    {
-      if (Delegate->IsValid())
+      if (0 == state.Quirk())
       {
-        Delegate->NextFrame(looped);
-        StateA.Iterate();
-        StateB.Iterate();
-        StateC.Iterate();
-        if (Delegate->IsValid() && 0 == State->Quirk())
-        {
-          SwitchToNewLine();
-        }
+        SwitchToNewLine(state);
       }
-    }
-
-    virtual TrackState::Ptr GetStateObserver() const
-    {
-      return State;
-    }
-
-    virtual void GetData(Devices::AYM::DataChunk& chunk) const
-    {
-      if (Delegate->IsValid())
-      {
-        AYM::TrackBuilder track(TrackParams->FreqTable());
-
-        SynthesizeChannelsData(track);
-        track.GetResult(chunk);
-      }
-      else
-      {
-        assert(!"SoundTracker: invalid iterator access");
-        chunk = Devices::AYM::DataChunk();
-      }
+      SynthesizeChannelsData(state, track);
+      IterateState();
     }
   private:
-    void SwitchToNewLine()
+    void SwitchToNewLine(const TrackModelState& state)
     {
-      assert(0 == State->Quirk());
-      if (const Line::Ptr line = State->LineObject())
+      assert(0 == state.Quirk());
+      if (const Line::Ptr line = state.LineObject())
       {
         if (const Cell::Ptr chan = line->GetChannel(0))
         {
@@ -449,9 +412,9 @@ namespace SoundTracker
       }
     }
 
-    void SynthesizeChannelsData(AYM::TrackBuilder& track) const
+    void SynthesizeChannelsData(const TrackState& state, AYM::TrackBuilder& track) const
     {
-      const int_t transposition = Data->Order->GetTransposition(State->Position());
+      const int_t transposition = Data->Order->GetTransposition(state.Position());
       {
         ChannelBuilder channel(transposition, track, 0);
         StateA.Synthesize(channel);
@@ -470,10 +433,14 @@ namespace SoundTracker
         track.SetEnvelopeTone(EnvTone);
       }
     }
+
+    void IterateState()
+    {
+      StateA.Iterate();
+      StateB.Iterate();
+      StateC.Iterate();
+    }
   private:
-    const AYM::TrackParameters::Ptr TrackParams;
-    const TrackStateIterator::Ptr Delegate;
-    const TrackModelState::Ptr State;
     const ModuleData::Ptr Data;
     ChannelState StateA;
     ChannelState StateB;
@@ -504,7 +471,8 @@ namespace SoundTracker
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
       const TrackStateIterator::Ptr iter = CreateTrackStateIterator(Data);
-      return boost::make_shared<DataIterator>(trackParams, iter, Data);
+      const DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      return AYM::CreateDataIterator(trackParams, iter, renderer);
     }
   private:
     const ModuleData::Ptr Data;
