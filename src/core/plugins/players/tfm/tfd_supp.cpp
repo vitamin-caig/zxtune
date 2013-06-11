@@ -230,7 +230,7 @@ namespace
       return Properties;
     }
 
-    virtual TFM::DataIterator::Ptr CreateDataIterator(TFM::TrackParameters::Ptr /*trackParams*/) const
+    virtual TFM::DataIterator::Ptr CreateDataIterator() const
     {
       const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
       return boost::make_shared<TFDDataIterator>(iter, Data);

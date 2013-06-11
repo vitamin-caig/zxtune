@@ -14,6 +14,7 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
+#include <devices/details/parameters_helper.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -25,9 +26,8 @@ namespace
   class TFMDataIterator : public TFM::DataIterator
   {
   public:
-    TFMDataIterator(TFM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, TFM::DataRenderer::Ptr renderer)
-      : TrackParams(trackParams)
-      , Delegate(delegate)
+    TFMDataIterator(TrackStateIterator::Ptr delegate, TFM::DataRenderer::Ptr renderer)
+      : Delegate(delegate)
       , State(Delegate->GetStateObserver())
       , Render(renderer)
     {
@@ -72,7 +72,6 @@ namespace
       }
     }
   private:
-    const TFM::TrackParameters::Ptr TrackParams;
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
     const TFM::DataRenderer::Ptr Render;
@@ -111,10 +110,12 @@ namespace
   class TFMRenderer : public Renderer
   {
   public:
-    TFMRenderer(TFM::TrackParameters::Ptr params, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
+    TFMRenderer(Sound::RenderParameters::Ptr params, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
       : Params(params)
       , Iterator(iterator)
       , Device(device)
+      , FrameDuration()
+      , Looped()
     {
 #ifndef NDEBUG
 //perform self-test
@@ -137,19 +138,23 @@ namespace
     {
       if (Iterator->IsValid())
       {
+        SynchronizeParameters();
         Devices::TFM::DataChunk chunk = Iterator->GetData();
         chunk.TimeStamp = FlushChunk.TimeStamp;
         CommitChunk(chunk);
-        Iterator->NextFrame(Params->Looped());
+        Iterator->NextFrame(Looped);
       }
       return Iterator->IsValid();
     }
 
     virtual void Reset()
     {
+      Params.Reset();
       Iterator->Reset();
       Device->Reset();
       FlushChunk = Devices::TFM::DataChunk();
+      FrameDuration = Devices::TFM::Stamp();
+      Looped = false;
     }
 
     virtual void SetPosition(uint_t frameNum)
@@ -157,18 +162,29 @@ namespace
       SeekIterator(*Iterator, frameNum);
     }
   private:
+    void SynchronizeParameters()
+    {
+      if (Params.IsChanged())
+      {
+        FrameDuration = Params->FrameDuration();
+        Looped = Params->Looped();
+      }
+    }
+
     void CommitChunk(const Devices::TFM::DataChunk& chunk)
     {
       Device->RenderData(chunk);
-      FlushChunk.TimeStamp += Params->FrameDuration();
+      FlushChunk.TimeStamp += FrameDuration;
       Device->RenderData(FlushChunk);
       Device->Flush();
     }
   private:
-    const TFM::TrackParameters::Ptr Params;
+    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Device::Ptr Device;
     Devices::TFM::DataChunk FlushChunk;
+    Devices::TFM::Stamp FrameDuration;
+    bool Looped;
   };
 
   class TFMHolder : public Holder
@@ -346,9 +362,9 @@ namespace ZXTune
 
       Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::TFM::Device::Ptr chip) const
       {
-        const TFM::TrackParameters::Ptr trackParams = TFM::TrackParameters::Create(params);
-        const TFM::DataIterator::Ptr iterator = CreateDataIterator(trackParams);
-        return TFM::CreateRenderer(trackParams, iterator, chip);
+        const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(params);
+        const TFM::DataIterator::Ptr iterator = CreateDataIterator();
+        return TFM::CreateRenderer(soundParams, iterator, chip);
       }
 
       Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device)
@@ -360,14 +376,14 @@ namespace ZXTune
         return Analyzer::Ptr();
       }
 
-      DataIterator::Ptr CreateDataIterator(TFM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
       {
-        return boost::make_shared<TFMDataIterator>(trackParams, iterator, renderer);
+        return boost::make_shared<TFMDataIterator>(iterator, renderer);
       }
 
-      Renderer::Ptr CreateRenderer(TrackParameters::Ptr trackParams, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
+      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
       {
-        return boost::make_shared<TFMRenderer>(trackParams, iterator, device);
+        return boost::make_shared<TFMRenderer>(params, iterator, device);
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)

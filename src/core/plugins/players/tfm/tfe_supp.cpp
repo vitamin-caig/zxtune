@@ -1553,11 +1553,11 @@ namespace TFMMusicMaker
       return Properties;
     }
 
-    virtual TFM::DataIterator::Ptr CreateDataIterator(TFM::TrackParameters::Ptr trackParams) const
+    virtual TFM::DataIterator::Ptr CreateDataIterator() const
     {
       const TrackStateIterator::Ptr iterator = boost::make_shared<TrackStateIteratorImpl>(Data);
       const TFM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
-      return TFM::CreateDataIterator(trackParams, iterator, renderer);
+      return TFM::CreateDataIterator(iterator, renderer);
     }
   private:
     const ModuleData::Ptr Data;

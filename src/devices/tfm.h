@@ -23,13 +23,15 @@ namespace Devices
     const uint_t CHIPS = 2;
     const uint_t VOICES = Devices::FM::VOICES * CHIPS;
 
+    using Devices::FM::Stamp;
+
     struct DataChunk
     {
       DataChunk() : TimeStamp()
       {
       }
 
-      FM::Stamp TimeStamp;
+      Stamp TimeStamp;
       boost::array<Devices::FM::DataChunk::Registers, CHIPS> Data;
     };
 
