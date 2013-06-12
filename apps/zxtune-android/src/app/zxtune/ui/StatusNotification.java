@@ -25,7 +25,7 @@ public class StatusNotification implements Callback {
   private final Service service;
   private final NotificationManager manager;
   private final NotificationCompat.Builder builder;
-  private final static int notificationId = R.drawable.ic_launcher;
+  private final static int notificationId = R.drawable.ic_stat_notify_play;
 
   public StatusNotification(Service service, Intent intent) {
     this.service = service;
