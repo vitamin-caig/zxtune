@@ -53,6 +53,11 @@ namespace Devices
       {
         return Params.get();
       }
+
+      const ParamsType& operator * () const
+      {
+        return *Params;
+      }
     private:
       const typename ParamsType::Ptr Params;
       mutable uint_t Version;

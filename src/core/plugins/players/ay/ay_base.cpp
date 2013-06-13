@@ -317,6 +317,51 @@ namespace ZXTune
   private:
     const AYM::Chiptune::Ptr Tune;
   };
+
+  class PollingMixerChip : public Devices::AYM::Chip
+  {
+  public:
+    PollingMixerChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+      : Params(params)
+      , Mixer(Sound::ThreeChannelsMatrixMixer::Create())
+      , Delegate(Devices::AYM::CreateChip(AYM::CreateChipParameters(params), Mixer, target))
+    {
+    }
+
+    virtual void RenderData(const Devices::AYM::DataChunk& src)
+    {
+      return Delegate->RenderData(src);
+    }
+
+    virtual void Flush()
+    {
+      if (Params.IsChanged())
+      {
+        Sound::FillMixer(*Params, *Mixer);
+      }
+      return Delegate->Flush();
+    }
+
+    virtual void Reset()
+    {
+      Params.Reset();
+      return Delegate->Reset();
+    }
+
+    virtual void GetState(Devices::AYM::ChannelsState& state) const
+    {
+      return Delegate->GetState(state);
+    }
+
+    static Devices::AYM::Chip::Ptr Create(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+    {
+      return boost::make_shared<PollingMixerChip>(params, target);
+    }
+  private:
+    Devices::Details::ParametersHelper<Parameters::Accessor> Params;
+    const Sound::ThreeChannelsMatrixMixer::Ptr Mixer;
+    const Devices::AYM::Chip::Ptr Delegate;
+  };
 }
 
 namespace ZXTune
@@ -421,10 +466,7 @@ namespace ZXTune
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
       {
         //TODO: return fading support
-        const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-        const Sound::ThreeChannelsMatrixMixer::Ptr mixer = Sound::ThreeChannelsMatrixMixer::Create();
-        Sound::FillMixer(*params, *mixer);
-        const Devices::AYM::Chip::Ptr chip = Devices::AYM::CreateChip(chipParams, mixer, target);
+        const Devices::AYM::Chip::Ptr chip = PollingMixerChip::Create(params, target);
         return holder.CreateRenderer(params, chip);
         /*
         const Renderer::Ptr result = holder.CreateRenderer(params, chip);
