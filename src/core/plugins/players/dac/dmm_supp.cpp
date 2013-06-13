@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "dac_base.h"
+#include "digital.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/players/creation_result.h"
@@ -49,6 +49,9 @@ namespace
 
 namespace DMM
 {
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
   const std::size_t MAX_POSITIONS_COUNT = 0x32;
   const std::size_t MAX_PATTERN_SIZE = 64;
   const std::size_t PATTERNS_COUNT = 24;
@@ -191,34 +194,12 @@ namespace DMM
 
   const std::size_t SAMPLES_ADDR = 0xc000;
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  class ModuleData : public TrackModel
+  class ModuleData : public DAC::ModuleData
   {
   public:
     typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
-    ModuleData()
-      : InitialTempo()
-    {
-    }
-
-    virtual uint_t GetInitialTempo() const
-    {
-      return InitialTempo;
-    }
-
-    virtual const OrderList& GetOrder() const
-    {
-      return *Order;
-    }
-
-    virtual const PatternsSet& GetPatterns() const
-    {
-      return *Patterns;
-    }
 
     struct MixedChannel
     {
@@ -231,10 +212,6 @@ namespace DMM
       }
     };
 
-    uint_t InitialTempo;
-    OrderList::Ptr Order;
-    PatternsSet::Ptr Patterns;
-    SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
     boost::array<MixedChannel, 64> Mixes;
   };
 
@@ -341,628 +318,529 @@ namespace DMM
       }
     }
   }
-}
 
-namespace
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  // perform module 'playback' right after creating (debug purposes)
-  #ifndef NDEBUG
-  #define SELF_TEST
-  #endif
-
-  Renderer::Ptr CreateDMMRenderer(Parameters::Accessor::Ptr params, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
-
-  class DMMHolder : public Holder
+  void ParsePattern(uint_t size, const Pattern& src, PatternsBuilder& builder)
   {
-    static void ParsePattern(uint_t size, const DMM::Pattern& src, PatternsBuilder& builder)
+    for (uint_t lineNum = 0; lineNum != size; ++lineNum)
     {
-      for (uint_t lineNum = 0; lineNum != size; ++lineNum)
+      const Pattern::Line& srcLine = src.Lines[lineNum];
+      builder.SetLine(lineNum);
+      for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
       {
-        const DMM::Pattern::Line& srcLine = src.Lines[lineNum];
-        builder.SetLine(lineNum);
-        for (uint_t chanNum = 0; chanNum != DMM::CHANNELS_COUNT; ++chanNum)
+        builder.SetChannel(chanNum);
+        const Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
+        ParseChannel(srcChan, builder.GetChannel());
+        if (srcChan.NoteCommand == SET_TEMPO && srcChan.SampleParam)
         {
-          builder.SetChannel(chanNum);
-          const DMM::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          DMM::ParseChannel(srcChan, builder.GetChannel());
-          if (srcChan.NoteCommand == DMM::SET_TEMPO && srcChan.SampleParam)
-          {
-            builder.GetLine().SetTempo(srcChan.SampleParam);
-          }
+          builder.GetLine().SetTempo(srcChan.SampleParam);
         }
       }
     }
+  }
 
+  ModuleData::Ptr Parse(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
+  {
+    ModuleData::RWPtr Data = boost::make_shared<ModuleData>();
+    //assume data is correct
+    const Binary::TypedContainer& data(*rawData);
+    const Header& header = *data.GetField<Header>(0);
+
+    //fill order
+    const uint_t positionsCount = header.Length + 1;
+    Data->Order = boost::make_shared<SimpleOrderList>(header.Loop, header.Positions.begin(), header.Positions.begin() + positionsCount);
+
+    //fill patterns
+    const std::size_t patternsCount = 1 + *std::max_element(header.Positions.begin(), header.Positions.begin() + positionsCount);
+    const uint_t patternSize = header.PatternSize;
+    {
+      PatternsBuilder builder = PatternsBuilder::Create<CHANNELS_COUNT>();
+      Data->Patterns = builder.GetPatterns();
+      for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, PATTERNS_COUNT); ++patIdx)
+      {
+        const Pattern* const src = safe_ptr_cast<const Pattern*>(&header + 1) + patIdx * patternSize;
+        builder.SetPattern(patIdx);
+        ParsePattern(patternSize, *src, builder);
+      }
+    }
+
+    //big mixins amount support
+    for (std::size_t mixIdx = 0; mixIdx != 64; ++mixIdx)
+    {
+      const MixedLine& src = header.Mixings[mixIdx];
+      ModuleData::MixedChannel& dst = Data->Mixes[mixIdx];
+      ParseChannel(src.Mixin, dst.Mixin);
+      dst.Period = src.Period;
+    }
+
+    const bool is4bitSamples = true;//TODO: detect
+    std::size_t lastData = 256 * header.HeaderSizeSectors;
+
+    //bank => Data
+    typedef std::map<std::size_t, Binary::Container::Ptr> Bank2Data;
+    Bank2Data regions;
+    for (std::size_t layIdx = 0; layIdx != header.EndOfBanks.size(); ++layIdx)
+    {
+      static const std::size_t BANKS[] = {0x50, 0x51, 0x53, 0x54, 0x56, 0x57};
+
+      const uint_t bankNum = BANKS[layIdx];
+      const std::size_t bankEnd = fromLE(header.EndOfBanks[layIdx]);
+      if (bankEnd <= SAMPLES_ADDR)
+      {
+        Dbg("Skipping bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
+        continue;
+      }
+      const std::size_t bankSize = bankEnd - SAMPLES_ADDR;
+      const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
+      if (is4bitSamples)
+      {
+        const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
+        const Binary::Container::Ptr packedSample = rawData->GetSubcontainer(lastData, realSize);
+        regions[bankNum] = packedSample;
+        Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
+        lastData += realSize;
+      }
+      else
+      {
+        regions[bankNum] = rawData->GetSubcontainer(lastData, alignedBankSize);
+        Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize, lastData);
+        lastData += alignedBankSize;
+      }
+    }
+
+    for (uint_t samIdx = 1; samIdx != SAMPLES_COUNT; ++samIdx)
+    {
+      const SampleInfo& srcSample = header.SampleDescriptions[samIdx - 1];
+      if (srcSample.Name[0] == '.')
+      {
+        Dbg("No sample %1%", samIdx);
+        continue;
+      }
+      const std::size_t sampleStart = fromLE(srcSample.Start);
+      const std::size_t sampleEnd = fromLE(srcSample.Limit);
+      const std::size_t sampleLoop = fromLE(srcSample.Loop);
+      Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank), sampleStart, sampleEnd, sampleLoop);
+      if (sampleStart < SAMPLES_ADDR ||
+          sampleStart > sampleEnd ||
+          sampleStart > sampleLoop)
+      {
+        Dbg("Skipped due to invalid layout");
+        continue;
+      }
+      if (!regions.count(srcSample.Bank))
+      {
+        Dbg("Skipped. No data");
+        continue;
+      }
+      const Binary::Container::Ptr bankData = regions[srcSample.Bank];
+      const std::size_t offsetInBank = sampleStart - SAMPLES_ADDR;
+      const std::size_t limitInBank = sampleEnd - SAMPLES_ADDR;
+      const std::size_t sampleSize = limitInBank - offsetInBank;
+      const uint_t multiplier = is4bitSamples ? 2 : 1;
+      if (limitInBank > multiplier * bankData->Size())
+      {
+        Dbg("Skipped. Not enough data");
+        continue;
+      }
+      const std::size_t realSampleSize = sampleSize >= 12 ? (sampleSize - 12) : sampleSize;
+      if (const Binary::Data::Ptr content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
+      {
+        const std::size_t loop = sampleLoop - sampleStart;
+        Data->Samples.Add(samIdx, is4bitSamples
+          ? Devices::DAC::CreateU4PackedSample(content, loop)
+          : Devices::DAC::CreateU8Sample(content, loop));
+      }
+    }
+    Data->InitialTempo = header.Tempo;
+
+    usedSize = lastData;
+
+    //meta properties
+    {
+      const ModuleRegion fixedRegion(sizeof(header), sizeof(Pattern::Line) * patternsCount * patternSize);
+      properties->SetSource(usedSize, fixedRegion);
+    }
+    properties->SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
+    properties->SetSamplesFreq(SAMPLES_FREQ);
+    return Data;
+  }
+
+  class ChannelState
+  {
   public:
-    DMMHolder(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
-      : Data(boost::make_shared<DMM::ModuleData>())
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, DMM::CHANNELS_COUNT))
+    ChannelState()
+      //values are from player' defaults
+      : FreqSlideStep(1)
+      , VibratoPeriod(4)
+      , VibratoStep(3)
+      , ArpeggioPeriod(1)
+      , ArpeggioStep(18)
+      , NoteSlidePeriod(2)
+      , NoteSlideStep(12)
+      , NoteDoublePeriod(3)
+      , AttackPeriod(1)
+      , AttackLimit(15)
+      , DecayPeriod(1)
+      , DecayLimit(1)
+      , MixPeriod(3)
+      , Counter(0)
+      , Note(0)
+      , NoteSlide(0)
+      , FreqSlide(0)
+      , Volume(15)
+      , Sample(0)
+      , Effect(&ChannelState::NoEffect)
     {
-      //assume data is correct
-      const Binary::TypedContainer& data(*rawData);
-      const DMM::Header& header = *data.GetField<DMM::Header>(0);
-
-      //fill order
-      const uint_t positionsCount = header.Length + 1;
-      Data->Order = boost::make_shared<SimpleOrderList>(header.Loop, header.Positions.begin(), header.Positions.begin() + positionsCount);
-
-      //fill patterns
-      const std::size_t patternsCount = 1 + *std::max_element(header.Positions.begin(), header.Positions.begin() + positionsCount);
-      const uint_t patternSize = header.PatternSize;
-      {
-        PatternsBuilder builder = PatternsBuilder::Create<DMM::CHANNELS_COUNT>();
-        Data->Patterns = builder.GetPatterns();
-        for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, DMM::PATTERNS_COUNT); ++patIdx)
-        {
-          const DMM::Pattern* const src = safe_ptr_cast<const DMM::Pattern*>(&header + 1) + patIdx * patternSize;
-          builder.SetPattern(patIdx);
-          ParsePattern(patternSize, *src, builder);
-        }
-      }
-
-      //big mixins amount support
-      for (std::size_t mixIdx = 0; mixIdx != 64; ++mixIdx)
-      {
-        const DMM::MixedLine& src = header.Mixings[mixIdx];
-        DMM::ModuleData::MixedChannel& dst = Data->Mixes[mixIdx];
-        ParseChannel(src.Mixin, dst.Mixin);
-        dst.Period = src.Period;
-      }
-
-      const bool is4bitSamples = true;//TODO: detect
-      std::size_t lastData = 256 * header.HeaderSizeSectors;
-
-      //bank => Data
-      typedef std::map<std::size_t, Binary::Container::Ptr> Bank2Data;
-      Bank2Data regions;
-      for (std::size_t layIdx = 0; layIdx != header.EndOfBanks.size(); ++layIdx)
-      {
-        static const std::size_t BANKS[] = {0x50, 0x51, 0x53, 0x54, 0x56, 0x57};
-
-        const uint_t bankNum = BANKS[layIdx];
-        const std::size_t bankEnd = fromLE(header.EndOfBanks[layIdx]);
-        if (bankEnd <= DMM::SAMPLES_ADDR)
-        {
-          Dbg("Skipping bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
-          continue;
-        }
-        const std::size_t bankSize = bankEnd - DMM::SAMPLES_ADDR;
-        const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
-        if (is4bitSamples)
-        {
-          const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
-          const Binary::Container::Ptr packedSample = rawData->GetSubcontainer(lastData, realSize);
-          regions[bankNum] = packedSample;
-          Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
-          lastData += realSize;
-        }
-        else
-        {
-          regions[bankNum] = rawData->GetSubcontainer(lastData, alignedBankSize);
-          Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize, lastData);
-          lastData += alignedBankSize;
-        }
-      }
-
-      for (uint_t samIdx = 1; samIdx != DMM::SAMPLES_COUNT; ++samIdx)
-      {
-        const DMM::SampleInfo& srcSample = header.SampleDescriptions[samIdx - 1];
-        if (srcSample.Name[0] == '.')
-        {
-          Dbg("No sample %1%", samIdx);
-          continue;
-        }
-        const std::size_t sampleStart = fromLE(srcSample.Start);
-        const std::size_t sampleEnd = fromLE(srcSample.Limit);
-        const std::size_t sampleLoop = fromLE(srcSample.Loop);
-        Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank), sampleStart, sampleEnd, sampleLoop);
-        if (sampleStart < DMM::SAMPLES_ADDR ||
-            sampleStart > sampleEnd ||
-            sampleStart > sampleLoop)
-        {
-          Dbg("Skipped due to invalid layout");
-          continue;
-        }
-        if (!regions.count(srcSample.Bank))
-        {
-          Dbg("Skipped. No data");
-          continue;
-        }
-        const Binary::Container::Ptr bankData = regions[srcSample.Bank];
-        const std::size_t offsetInBank = sampleStart - DMM::SAMPLES_ADDR;
-        const std::size_t limitInBank = sampleEnd - DMM::SAMPLES_ADDR;
-        const std::size_t sampleSize = limitInBank - offsetInBank;
-        const uint_t multiplier = is4bitSamples ? 2 : 1;
-        if (limitInBank > multiplier * bankData->Size())
-        {
-          Dbg("Skipped. Not enough data");
-          continue;
-        }
-        const std::size_t realSampleSize = sampleSize >= 12 ? (sampleSize - 12) : sampleSize;
-        if (const Binary::Data::Ptr content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
-        {
-          const std::size_t loop = sampleLoop - sampleStart;
-          Data->Samples.Add(samIdx, is4bitSamples
-            ? Devices::DAC::CreateU4PackedSample(content, loop)
-            : Devices::DAC::CreateU8Sample(content, loop));
-        }
-      }
-      Data->InitialTempo = header.Tempo;
-
-      usedSize = lastData;
-
-      //meta properties
-      {
-        const ModuleRegion fixedRegion(sizeof(header), sizeof(DMM::Pattern::Line) * patternsCount * patternSize);
-        Properties->SetSource(usedSize, fixedRegion);
-      }
-      Properties->SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
-      Properties->SetSamplesFreq(DMM::SAMPLES_FREQ);
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    void OnFrame(DAC::ChannelDataBuilder& builder)
     {
-      return Info;
+      (this->*Effect)(builder);
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    void OnNote(const Cell& src, const ModuleData& data, DAC::ChannelDataBuilder& builder)
     {
-      return Properties;
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
-    {
-      const Sound::ThreeChannelsMatrixMixer::Ptr mixer = Sound::ThreeChannelsMatrixMixer::Create();
-      Sound::FillMixer(*params, *mixer);
-      const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
-      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
+      //if has new sample, start from it, else use previous sample
+      const uint_t oldPos = src.GetSample() ? 0 : builder.GetState().PosInSample;
+      ParseNote(src, builder);
+      CommandsIterator it = src.GetCommands();
+      if (!it)
       {
-        chip->SetSample(idx, Data->Samples.Get(idx));
+        return;
       }
-      return CreateDMMRenderer(params, Data, chip);
+      OldData = src;
+      for (; it; ++it)
+      {
+        switch (it->Type)
+        {
+        case EMPTY_CMD:
+          DisableEffect();
+          break;
+        case FREQ_FLOAT:
+          if (it->Param1)
+          {
+            Effect = &ChannelState::FreqFloat;
+            FreqSlideStep = it->Param1;
+          }
+          else
+          {
+            FreqSlideStep *= it->Param2;
+          }
+          break;
+        case VIBRATO:
+          if (it->Param1)
+          {
+            Effect = &ChannelState::Vibrato;
+          }
+          else
+          {
+            VibratoStep = it->Param2;
+            VibratoPeriod = it->Param3;
+          }
+          break;
+        case ARPEGGIO:
+          if (it->Param1)
+          {
+            Effect = &ChannelState::Arpeggio;
+          }
+          else
+          {
+            ArpeggioStep = it->Param2;
+            ArpeggioPeriod = it->Param3;
+          }
+          break;
+        case TONE_SLIDE:
+          if (it->Param1)
+          {
+            Effect = &ChannelState::NoteFloat;
+            NoteSlideStep = it->Param1;
+          }
+          else
+          {
+            NoteSlideStep *= it->Param2;
+            NoteSlidePeriod = it->Param3;
+          }
+          break;
+        case DOUBLE_NOTE:
+          if (it->Param1)
+          {
+            Effect = &ChannelState::DoubleNote;
+          }
+          else
+          {
+            NoteDoublePeriod = it->Param2;
+          }
+          break;
+        case VOL_ATTACK:
+          if (it->Param1)
+          {
+            Effect = &ChannelState::Attack;
+          }
+          else
+          {
+            AttackLimit = it->Param2;
+            AttackPeriod = it->Param3;
+          }
+          break;
+        case VOL_DECAY:
+          if (it->Param1)
+          {
+            Effect = &ChannelState::Decay;
+          }
+          else
+          {
+            DecayLimit = it->Param2;
+            DecayPeriod = it->Param3;
+          }
+          break;
+        case MIX_SAMPLE:
+          {
+            DacState = builder.GetState();
+            DacState.PosInSample = oldPos;
+            const ModuleData::MixedChannel& mix = data.Mixes[it->Param1];
+            ParseNote(mix.Mixin, builder);
+            MixPeriod = mix.Period;
+            Effect = &ChannelState::Mix;
+          }
+          break;
+        }
+      }
+    }
+
+    void GetState(DAC::ChannelDataBuilder& builder)
+    {
+      builder.SetNote(Note);
+      builder.SetNoteSlide(NoteSlide);
+      //FreqSlide in 1/256 steps
+      //step 44 is C-1@3.5Mhz AY
+      //C-1 is 32.7 Hz
+      builder.SetFreqSlideHz(FreqSlide * 327 / 440);
+      builder.SetSampleNum(Sample);
+      builder.SetLevelInPercents(Volume * 100 / 15);
     }
   private:
-    const DMM::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    const Information::Ptr Info;
+    void ParseNote(const Cell& src, DAC::ChannelDataBuilder& builder)
+    {
+      if (const uint_t* note = src.GetNote())
+      {
+        Counter = 0;
+        VibratoStep = ArpeggioStep = 0;
+        Note = *note;
+        NoteSlide = FreqSlide = 0;
+      }
+      if (const uint_t* volume = src.GetVolume())
+      {
+        Volume = *volume;
+      }
+      if (const bool* enabled = src.GetEnabled())
+      {
+        builder.SetEnabled(*enabled);
+        if (!*enabled)
+        {
+          NoteSlide = FreqSlide = 0;
+        }
+      }
+      if (const uint_t* sample = src.GetSample())
+      {
+        Sample = *sample;
+        builder.SetPosInSample(0);
+      }
+      else
+      {
+        builder.DropPosInSample();
+      }
+    }
+
+    void NoEffect(DAC::ChannelDataBuilder& /*builder*/)
+    {
+    }
+
+    void FreqFloat(DAC::ChannelDataBuilder& /*builder*/)
+    {
+      SlideFreq(FreqSlideStep);
+    }
+
+    void Vibrato(DAC::ChannelDataBuilder& /*builder*/)
+    {
+      if (Step(VibratoPeriod))
+      {
+        VibratoStep = -VibratoStep;
+        SlideFreq(VibratoStep);
+      }
+    }
+
+    void Arpeggio(DAC::ChannelDataBuilder& /*builder*/)
+    {
+      if (Step(ArpeggioPeriod))
+      {
+        ArpeggioStep = -ArpeggioStep;
+        NoteSlide += ArpeggioStep;
+        FreqSlide = 0;
+      }
+    }
+
+    void NoteFloat(DAC::ChannelDataBuilder& /*builder*/)
+    {
+      if (Step(NoteSlidePeriod))
+      {
+        NoteSlide += NoteSlideStep;
+        FreqSlide = 0;
+      }
+    }
+
+    void DoubleNote(DAC::ChannelDataBuilder& builder)
+    {
+      if (Step(NoteDoublePeriod))
+      {
+        ParseNote(OldData, builder);
+        DisableEffect();
+      }
+    }
+
+    void Attack(DAC::ChannelDataBuilder& /*builder*/)
+    {
+      if (Step(AttackPeriod))
+      {
+        ++Volume;
+        if (AttackLimit < Volume)
+        {
+          --Volume;
+          DisableEffect();
+        }
+      }
+    }
+
+    void Decay(DAC::ChannelDataBuilder& /*builder*/)
+    {
+      if (Step(DecayPeriod))
+      {
+        --Volume;
+        if (DecayLimit > Volume)
+        {
+          ++Volume;
+          DisableEffect();
+        }
+      }
+    }
+
+    void Mix(DAC::ChannelDataBuilder& builder)
+    {
+      if (Step(MixPeriod))
+      {
+        ParseNote(OldData, builder);
+        //restore a6ll
+        const uint_t prevStep = GetStep() + FreqSlide;
+        const uint_t FPS = 50;//TODO
+        const uint_t skipped = MixPeriod * prevStep * RENDERS_PER_SEC / FPS / 256;
+        Devices::DAC::DataChunk::ChannelData& dst = builder.GetState();
+        dst = DacState;
+        builder.SetPosInSample(dst.PosInSample + skipped);
+
+        DisableEffect();
+      }
+    }
+
+    bool Step(uint_t period)
+    {
+      if (++Counter == period)
+      {
+        Counter = 0;
+        return true;
+      }
+      return false;
+    }
+
+    void SlideFreq(int_t step)
+    {
+      const int_t nextStep = GetStep() + FreqSlide + step;
+      if (nextStep <= 0 || nextStep >= 0x0c00)
+      {
+        DisableEffect();
+      }
+      else
+      {
+        FreqSlide += step;
+        NoteSlide = 0;
+      }
+    }
+
+    uint_t GetStep() const
+    {
+      static const uint_t STEPS[] =
+      {
+        44, 47, 50, 53, 56, 59, 63, 66, 70, 74, 79, 83,
+        88, 94, 99, 105, 111, 118, 125, 133, 140, 149, 158, 167,
+        177, 187, 199, 210, 223, 236, 250, 265, 281, 297, 315, 334,
+        354, 375, 397, 421, 446, 472, 500, 530, 561, 595, 630, 668,
+        707, 749, 794, 841, 891, 944, 1001, 1060, 1123, 1189, 1216, 1335
+      };
+      return STEPS[Note + NoteSlide];
+    }
+
+    void DisableEffect()
+    {
+      Effect = &ChannelState::NoEffect;
+    }
+  private:
+    int_t FreqSlideStep;
+
+    uint_t VibratoPeriod;//VBT_x
+    int_t VibratoStep;//VBF_x * VBA1/VBA2
+    
+    uint_t ArpeggioPeriod;//APT_x
+    int_t ArpeggioStep;//APF_x * APA1/APA2
+
+    uint_t NoteSlidePeriod;//SUT_x/SDT_x
+    int_t NoteSlideStep;
+
+    uint_t NoteDoublePeriod;//DUT_x
+
+    uint_t AttackPeriod;//ATT_x
+    uint_t AttackLimit;//ATL_x
+
+    uint_t DecayPeriod;//DYT_x
+    uint_t DecayLimit;//DYL_x
+
+    uint_t MixPeriod;
+
+    uint_t Counter;//COUN_x
+    uint_t Note;  //NOTN_x
+    uint_t NoteSlide;
+    uint_t FreqSlide;
+    uint_t Volume;//pVOL_x
+    uint_t Sample;
+
+    Cell OldData;
+    Devices::DAC::DataChunk::ChannelData DacState;
+
+    typedef void (ChannelState::*EffectFunc)(DAC::ChannelDataBuilder&);
+    EffectFunc Effect;
   };
 
-  class DMMRenderer : public Renderer
+  class DataRenderer : public DAC::DataRenderer
   {
   public:
-    DMMRenderer(Parameters::Accessor::Ptr params, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    explicit DataRenderer(ModuleData::Ptr data)
       : Data(data)
-      , Params(DAC::TrackParameters::Create(params))
-      , Device(device)
-      , Iterator(CreateTrackStateIterator(Data))
-      , LastRenderTime(0)
     {
-    }
-
-    virtual TrackState::Ptr GetTrackState() const
-    {
-      return Iterator->GetStateObserver();
-    }
-
-    virtual Analyzer::Ptr GetAnalyzer() const
-    {
-      return DAC::CreateAnalyzer(Device);
-    }
-
-    virtual bool RenderFrame()
-    {
-      if (Iterator->IsValid())
-      {
-        LastRenderTime += Params->FrameDuration();
-        Devices::DAC::DataChunk chunk;
-        RenderData(chunk);
-        chunk.TimeStamp = LastRenderTime;
-        Device->RenderData(chunk);
-        Device->Flush();
-        Iterator->NextFrame(Params->Looped());
-      }
-      return Iterator->IsValid();
+      Reset();
     }
 
     virtual void Reset()
     {
-      Device->Reset();
-      Iterator->Reset();
-      LastRenderTime = Time::Microseconds();
       std::fill(Chans.begin(), Chans.end(), ChannelState());
     }
 
-    virtual void SetPosition(uint_t frame)
+    virtual void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
     {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      if (frame < state->Frame())
+      const Line::Ptr line = 0 == state.Quirk() ? state.LineObject() : Line::Ptr();
+      for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
-        //reset to beginning in case of moving back
-        Iterator->Reset();
-      }
-      //fast forward
-      Devices::DAC::DataChunk chunk;
-      while (state->Frame() < frame && Iterator->IsValid())
-      {
-        //do not update tick for proper rendering
-        RenderData(chunk);
-        Iterator->NextFrame(false);
-      }
-    }
-
-  private:
-    class ChannelState
-    {
-    public:
-      ChannelState()
-        //values are from player' defaults
-        : FreqSlideStep(1)
-        , VibratoPeriod(4)
-        , VibratoStep(3)
-        , ArpeggioPeriod(1)
-        , ArpeggioStep(18)
-        , NoteSlidePeriod(2)
-        , NoteSlideStep(12)
-        , NoteDoublePeriod(3)
-        , AttackPeriod(1)
-        , AttackLimit(15)
-        , DecayPeriod(1)
-        , DecayLimit(1)
-        , MixPeriod(3)
-        , Counter(0)
-        , Note(0)
-        , NoteSlide(0)
-        , FreqSlide(0)
-        , Volume(15)
-        , Sample(0)
-        , Effect(&ChannelState::NoEffect)
-      {
-      }
-
-      void OnFrame(DAC::ChannelDataBuilder& builder)
-      {
-        (this->*Effect)(builder);
-      }
-
-      void OnNote(const Cell& src, const DMM::ModuleData& data, DAC::ChannelDataBuilder& builder)
-      {
-        //if has new sample, start from it, else use previous sample
-        const uint_t oldPos = src.GetSample() ? 0 : builder.GetState().PosInSample;
-        ParseNote(src, builder);
-        CommandsIterator it = src.GetCommands();
-        if (!it)
-        {
-          return;
-        }
-        OldData = src;
-        for (; it; ++it)
-        {
-          switch (it->Type)
-          {
-          case DMM::EMPTY_CMD:
-            DisableEffect();
-            break;
-          case DMM::FREQ_FLOAT:
-            if (it->Param1)
-            {
-              Effect = &ChannelState::FreqFloat;
-              FreqSlideStep = it->Param1;
-            }
-            else
-            {
-              FreqSlideStep *= it->Param2;
-            }
-            break;
-          case DMM::VIBRATO:
-            if (it->Param1)
-            {
-              Effect = &ChannelState::Vibrato;
-            }
-            else
-            {
-              VibratoStep = it->Param2;
-              VibratoPeriod = it->Param3;
-            }
-            break;
-          case DMM::ARPEGGIO:
-            if (it->Param1)
-            {
-              Effect = &ChannelState::Arpeggio;
-            }
-            else
-            {
-              ArpeggioStep = it->Param2;
-              ArpeggioPeriod = it->Param3;
-            }
-            break;
-          case DMM::TONE_SLIDE:
-            if (it->Param1)
-            {
-              Effect = &ChannelState::NoteFloat;
-              NoteSlideStep = it->Param1;
-            }
-            else
-            {
-              NoteSlideStep *= it->Param2;
-              NoteSlidePeriod = it->Param3;
-            }
-            break;
-          case DMM::DOUBLE_NOTE:
-            if (it->Param1)
-            {
-              Effect = &ChannelState::DoubleNote;
-            }
-            else
-            {
-              NoteDoublePeriod = it->Param2;
-            }
-            break;
-          case DMM::VOL_ATTACK:
-            if (it->Param1)
-            {
-              Effect = &ChannelState::Attack;
-            }
-            else
-            {
-              AttackLimit = it->Param2;
-              AttackPeriod = it->Param3;
-            }
-            break;
-          case DMM::VOL_DECAY:
-            if (it->Param1)
-            {
-              Effect = &ChannelState::Decay;
-            }
-            else
-            {
-              DecayLimit = it->Param2;
-              DecayPeriod = it->Param3;
-            }
-            break;
-          case DMM::MIX_SAMPLE:
-            {
-              DacState = builder.GetState();
-              DacState.PosInSample = oldPos;
-              const DMM::ModuleData::MixedChannel& mix = data.Mixes[it->Param1];
-              ParseNote(mix.Mixin, builder);
-              MixPeriod = mix.Period;
-              Effect = &ChannelState::Mix;
-            }
-            break;
-          }
-        }
-      }
-
-      void GetState(DAC::ChannelDataBuilder& builder)
-      {
-        builder.SetNote(Note);
-        builder.SetNoteSlide(NoteSlide);
-        //FreqSlide in 1/256 steps
-        //step 44 is C-1@3.5Mhz AY
-        //C-1 is 32.7 Hz
-        builder.SetFreqSlideHz(FreqSlide * 327 / 440);
-        builder.SetSampleNum(Sample);
-        builder.SetLevelInPercents(Volume * 100 / 15);
-      }
-    private:
-      void ParseNote(const Cell& src, DAC::ChannelDataBuilder& builder)
-      {
-        if (const uint_t* note = src.GetNote())
-        {
-          Counter = 0;
-          VibratoStep = ArpeggioStep = 0;
-          Note = *note;
-          NoteSlide = FreqSlide = 0;
-        }
-        if (const uint_t* volume = src.GetVolume())
-        {
-          Volume = *volume;
-        }
-        if (const bool* enabled = src.GetEnabled())
-        {
-          builder.SetEnabled(*enabled);
-          if (!*enabled)
-          {
-            NoteSlide = FreqSlide = 0;
-          }
-        }
-        if (const uint_t* sample = src.GetSample())
-        {
-          Sample = *sample;
-          builder.SetPosInSample(0);
-        }
-        else
-        {
-          builder.DropPosInSample();
-        }
-      }
-
-      void NoEffect(DAC::ChannelDataBuilder& /*builder*/)
-      {
-      }
-
-      void FreqFloat(DAC::ChannelDataBuilder& /*builder*/)
-      {
-        SlideFreq(FreqSlideStep);
-      }
-
-      void Vibrato(DAC::ChannelDataBuilder& /*builder*/)
-      {
-        if (Step(VibratoPeriod))
-        {
-          VibratoStep = -VibratoStep;
-          SlideFreq(VibratoStep);
-        }
-      }
-
-      void Arpeggio(DAC::ChannelDataBuilder& /*builder*/)
-      {
-        if (Step(ArpeggioPeriod))
-        {
-          ArpeggioStep = -ArpeggioStep;
-          NoteSlide += ArpeggioStep;
-          FreqSlide = 0;
-        }
-      }
-
-      void NoteFloat(DAC::ChannelDataBuilder& /*builder*/)
-      {
-        if (Step(NoteSlidePeriod))
-        {
-          NoteSlide += NoteSlideStep;
-          FreqSlide = 0;
-        }
-      }
-
-      void DoubleNote(DAC::ChannelDataBuilder& builder)
-      {
-        if (Step(NoteDoublePeriod))
-        {
-          ParseNote(OldData, builder);
-          DisableEffect();
-        }
-      }
-
-      void Attack(DAC::ChannelDataBuilder& /*builder*/)
-      {
-        if (Step(AttackPeriod))
-        {
-          ++Volume;
-          if (AttackLimit < Volume)
-          {
-            --Volume;
-            DisableEffect();
-          }
-        }
-      }
-
-      void Decay(DAC::ChannelDataBuilder& /*builder*/)
-      {
-        if (Step(DecayPeriod))
-        {
-          --Volume;
-          if (DecayLimit > Volume)
-          {
-            ++Volume;
-            DisableEffect();
-          }
-        }
-      }
-
-      void Mix(DAC::ChannelDataBuilder& builder)
-      {
-        if (Step(MixPeriod))
-        {
-          ParseNote(OldData, builder);
-          //restore a6ll
-          const uint_t prevStep = GetStep() + FreqSlide;
-          const uint_t FPS = 50;//TODO
-          const uint_t skipped = MixPeriod * prevStep * DMM::RENDERS_PER_SEC / FPS / 256;
-          Devices::DAC::DataChunk::ChannelData& dst = builder.GetState();
-          dst = DacState;
-          builder.SetPosInSample(dst.PosInSample + skipped);
-
-          DisableEffect();
-        }
-      }
-
-      bool Step(uint_t period)
-      {
-        if (++Counter == period)
-        {
-          Counter = 0;
-          return true;
-        }
-        return false;
-      }
-
-      void SlideFreq(int_t step)
-      {
-        const int_t nextStep = GetStep() + FreqSlide + step;
-        if (nextStep <= 0 || nextStep >= 0x0c00)
-        {
-          DisableEffect();
-        }
-        else
-        {
-          FreqSlide += step;
-          NoteSlide = 0;
-        }
-      }
-
-      uint_t GetStep() const
-      {
-        static const uint_t STEPS[] =
-        {
-          44, 47, 50, 53, 56, 59, 63, 66, 70, 74, 79, 83,
-          88, 94, 99, 105, 111, 118, 125, 133, 140, 149, 158, 167,
-          177, 187, 199, 210, 223, 236, 250, 265, 281, 297, 315, 334,
-          354, 375, 397, 421, 446, 472, 500, 530, 561, 595, 630, 668,
-          707, 749, 794, 841, 891, 944, 1001, 1060, 1123, 1189, 1216, 1335
-        };
-        return STEPS[Note + NoteSlide];
-      }
-
-      void DisableEffect()
-      {
-        Effect = &ChannelState::NoEffect;
-      }
-    private:
-      int_t FreqSlideStep;
-
-      uint_t VibratoPeriod;//VBT_x
-      int_t VibratoStep;//VBF_x * VBA1/VBA2
-      
-      uint_t ArpeggioPeriod;//APT_x
-      int_t ArpeggioStep;//APF_x * APA1/APA2
-
-      uint_t NoteSlidePeriod;//SUT_x/SDT_x
-      int_t NoteSlideStep;
-
-      uint_t NoteDoublePeriod;//DUT_x
-
-      uint_t AttackPeriod;//ATT_x
-      uint_t AttackLimit;//ATL_x
-
-      uint_t DecayPeriod;//DYT_x
-      uint_t DecayLimit;//DYL_x
-
-      uint_t MixPeriod;
-
-      uint_t Counter;//COUN_x
-      uint_t Note;  //NOTN_x
-      uint_t NoteSlide;
-      uint_t FreqSlide;
-      uint_t Volume;//pVOL_x
-      uint_t Sample;
-
-      Cell OldData;
-      Devices::DAC::DataChunk::ChannelData DacState;
-
-      typedef void (ChannelState::*EffectFunc)(DAC::ChannelDataBuilder&);
-      EffectFunc Effect;
-    };
-
-    void RenderData(Devices::DAC::DataChunk& chunk)
-    {
-      std::vector<Devices::DAC::DataChunk::ChannelData> res;
-      const TrackModelState::Ptr state = Iterator->GetStateObserver();
-      const Line::Ptr line = state->LineObject();
-      for (uint_t chan = 0; chan != DMM::CHANNELS_COUNT; ++chan)
-      {
-        Devices::DAC::DataChunk::ChannelData dst;
-        DAC::ChannelDataBuilder builder(dst);
-        Device->GetChannelState(chan, dst);
+        DAC::ChannelDataBuilder builder = track.GetChannel(chan);
 
         ChannelState& chanState = Chans[chan];
         chanState.OnFrame(builder);
         //begin note
-        if (line && 0 == state->Quirk())
+        if (line)
         {
           if (const Cell::Ptr src = line->GetChannel(chan))
           {
@@ -970,33 +848,62 @@ namespace
           }
         }
         chanState.GetState(builder);
-        res.push_back(dst);
       }
-      chunk.Channels.swap(res);
     }
   private:
-    const DMM::ModuleData::Ptr Data;
-    const DAC::TrackParameters::Ptr Params;
-    const Devices::DAC::Chip::Ptr Device;
-    const TrackStateIterator::Ptr Iterator;
-    boost::array<ChannelState, DMM::CHANNELS_COUNT> Chans;
-    Time::Microseconds LastRenderTime;
+    const ModuleData::Ptr Data;
+    boost::array<ChannelState, CHANNELS_COUNT> Chans;
   };
 
-  Renderer::Ptr CreateDMMRenderer(Parameters::Accessor::Ptr params, DMM::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  class Chiptune : public DAC::Chiptune
   {
-    return Renderer::Ptr(new DMMRenderer(params, data, device));
-  }
+  public:
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
+    {
+    }
 
-  bool CheckDMM(const Binary::Container& data)
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual DAC::DataIterator::Ptr CreateDataIterator() const
+    {
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      return DAC::CreateDataIterator(iterator, renderer);
+    }
+
+    virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const
+    {
+      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
+      {
+        chip->SetSample(idx, Data->Samples.Get(idx));
+      }
+    }
+  private:
+    const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
+    const Information::Ptr Info;
+  };
+
+  bool Check(const Binary::Container& data)
   {
     //check for header
     const std::size_t size(data.Size());
-    if (sizeof(DMM::Header) > size)
+    if (sizeof(Header) > size)
     {
       return false;
     }
-    const DMM::Header* const header(safe_ptr_cast<const DMM::Header*>(data.Start()));
+    const Header* const header(safe_ptr_cast<const Header*>(data.Start()));
     if (!(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32 || header->PatternSize == 24))
     {
       return false;
@@ -1012,15 +919,15 @@ namespace
       static const std::size_t BANKS[] = {0x50, 0x51, 0x53, 0x54, 0x56, 0x57};
 
       const std::size_t bankEnd = fromLE(header->EndOfBanks[layIdx]);
-      if (bankEnd < DMM::SAMPLES_ADDR)
+      if (bankEnd < SAMPLES_ADDR)
       {
         return false;
       }
-      if (bankEnd == DMM::SAMPLES_ADDR)
+      if (bankEnd == SAMPLES_ADDR)
       {
         continue;
       }
-      const std::size_t bankSize = bankEnd - DMM::SAMPLES_ADDR;
+      const std::size_t bankSize = bankEnd - SAMPLES_ADDR;
       const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
       const std::size_t realSize = is4bitSamples
         ? 256 * (1 + alignedBankSize / 512)
@@ -1033,9 +940,9 @@ namespace
       return false;
     }
 
-    for (uint_t samIdx = 0; samIdx != DMM::SAMPLES_COUNT; ++samIdx)
+    for (uint_t samIdx = 0; samIdx != SAMPLES_COUNT; ++samIdx)
     {
-      const DMM::SampleInfo& srcSample = header->SampleDescriptions[samIdx];
+      const SampleInfo& srcSample = header->SampleDescriptions[samIdx];
       if (srcSample.Name[0] == '.')
       {
         continue;
@@ -1043,7 +950,7 @@ namespace
       const std::size_t sampleStart = fromLE(srcSample.Start);
       const std::size_t sampleEnd = fromLE(srcSample.Limit);
       const std::size_t sampleLoop = fromLE(srcSample.Loop);
-      if (sampleStart < DMM::SAMPLES_ADDR ||
+      if (sampleStart < SAMPLES_ADDR ||
           sampleStart > sampleEnd ||
           sampleStart > sampleLoop)
       {
@@ -1053,8 +960,8 @@ namespace
       {
         return false;
       }
-      const std::size_t offsetInBank = sampleStart - DMM::SAMPLES_ADDR;
-      const std::size_t limitInBank = sampleEnd - DMM::SAMPLES_ADDR;
+      const std::size_t offsetInBank = sampleStart - SAMPLES_ADDR;
+      const std::size_t limitInBank = sampleEnd - SAMPLES_ADDR;
       const std::size_t sampleSize = limitInBank - offsetInBank;
       const std::size_t rawSampleSize = is4bitSamples ? sampleSize / 2 : sampleSize;
       if (rawSampleSize > regions[srcSample.Bank].second)
@@ -1069,6 +976,7 @@ namespace
 namespace
 {
   using namespace ZXTune;
+  using namespace ZXTune::Module;
 
   //plugin attributes
   const Char ID[] = {'D', 'M', 'M', 0};
@@ -1102,7 +1010,7 @@ namespace
 
     virtual bool Check(const Binary::Container& inputData) const
     {
-      return Format->Match(inputData) && CheckDMM(inputData);
+      return Format->Match(inputData) && DMM::Check(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
@@ -1114,9 +1022,9 @@ namespace
     {
       try
       {
-        assert(Check(*data));
-        const Holder::Ptr holder(new DMMHolder(properties, data, usedSize));
-        return holder;
+        const DMM::ModuleData::Ptr modData = DMM::Parse(properties, data, usedSize);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DMM::Chiptune>(modData, properties);
+        return DAC::CreateHolder(chiptune);
       }
       catch (const Error&/*e*/)
       {

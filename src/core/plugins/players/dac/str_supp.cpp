@@ -10,7 +10,6 @@ Author:
 */
 
 //local includes
-#include "dac_base.h"
 #include "digital.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
@@ -30,7 +29,6 @@ namespace SampleTracker
 
   typedef DAC::ModuleData ModuleData;
   typedef DAC::DataBuilder DataBuilder;
-  typedef DAC::Digital<CHANNELS_COUNT>::Holder Holder;
 
   /*
     0x0016 0x0017 0x0019 0x001a 0x001c 0x001e 0x001f 0x0021 0x0023 0x0025 0x0027 0x002a
@@ -77,7 +75,8 @@ namespace STR
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared<SampleTracker::Holder>(modData, properties);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(modData, properties, ::SampleTracker::CHANNELS_COUNT);
+        return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
     }

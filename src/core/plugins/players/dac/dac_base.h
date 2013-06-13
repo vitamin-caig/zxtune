@@ -13,10 +13,14 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
 
+//local includes
+#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/tracking.h"
 //library includes
-#include <core/module_types.h>
+#include <core/module_holder.h>
 #include <devices/dac.h>
 #include <sound/receiver.h>
+#include <sound/render_params.h>
 
 namespace ZXTune
 {
@@ -24,18 +28,6 @@ namespace ZXTune
   {
     namespace DAC
     {
-      class TrackParameters
-      {
-      public:
-        typedef boost::shared_ptr<const TrackParameters> Ptr;
-        virtual ~TrackParameters() {}
-
-        virtual bool Looped() const = 0;
-        virtual Time::Microseconds FrameDuration() const = 0;
-
-        static Ptr Create(Parameters::Accessor::Ptr params);
-      };
-
       class ChannelDataBuilder
       {
       public:
@@ -109,8 +101,46 @@ namespace ZXTune
         std::vector<Devices::DAC::DataChunk::ChannelData> Data;
       };
 
+      class DataRenderer
+      {
+      public:
+        typedef boost::shared_ptr<DataRenderer> Ptr;
+
+        virtual ~DataRenderer() {}
+
+        virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
+        virtual void Reset() = 0;
+      };
+
+      class DataIterator : public StateIterator
+      {
+      public:
+        typedef boost::shared_ptr<DataIterator> Ptr;
+
+        virtual void GetData(Devices::DAC::DataChunk& data) const = 0;
+      };
+
+      class Chiptune
+      {
+      public:
+        typedef boost::shared_ptr<const Chiptune> Ptr;
+        virtual ~Chiptune() {}
+
+        virtual Information::Ptr GetInformation() const = 0;
+        virtual Parameters::Accessor::Ptr GetProperties() const = 0;
+        virtual DataIterator::Ptr CreateDataIterator() const = 0;
+        virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const = 0;
+      };
+
       Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device);
+
+      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+
+      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
+
       Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+
+      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
     }
   }
 }

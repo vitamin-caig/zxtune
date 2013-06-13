@@ -30,7 +30,6 @@ namespace DigitalStudio
 
   typedef DAC::ModuleData ModuleData;
   typedef DAC::DataBuilder DataBuilder;
-  typedef DAC::Digital<CHANNELS_COUNT>::Holder Holder;
 }
 
 namespace DST
@@ -68,7 +67,8 @@ namespace DST
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared< ::DigitalStudio::Holder>(modData, properties);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(modData, properties, ::DigitalStudio::CHANNELS_COUNT);
+        return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
     }

@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "dac_base.h"
+#include "digital.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
@@ -65,37 +65,7 @@ namespace ChipTracker
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  class ModuleData : public TrackModel
-  {
-  public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
-    typedef boost::shared_ptr<const ModuleData> Ptr;
-
-    ModuleData()
-      : InitialTempo()
-    {
-    }
-
-    virtual uint_t GetInitialTempo() const
-    {
-      return InitialTempo;
-    }
-
-    virtual const OrderList& GetOrder() const
-    {
-      return *Order;
-    }
-
-    virtual const PatternsSet& GetPatterns() const
-    {
-      return *Patterns;
-    }
-
-    uint_t InitialTempo;
-    OrderList::Ptr Order;
-    PatternsSet::Ptr Patterns;
-    SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
-  };
+  typedef DAC::ModuleData ModuleData;
 
   std::auto_ptr<Formats::Chiptune::ChipTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
 }
@@ -181,153 +151,41 @@ namespace ChipTracker
     PatternsBuilder Builder;
   };
 
-  // perform module 'playback' right after creating (debug purposes)
-  #ifndef NDEBUG
-  #define SELF_TEST
-  #endif
-
-  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
-
-  class ModuleHolder : public Holder
+  struct GlissData
   {
-  public:
-    ModuleHolder(ModuleData::Ptr data, ModuleProperties::Ptr properties)
-      : Data(data)
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
+    GlissData() : Sliding(), Glissade()
     {
+    }
+    int_t Sliding;
+    int_t Glissade;
+
+    void Reset()
+    {
+      Sliding = Glissade = 0;
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    bool Update()
     {
-      return Info;
+      Sliding += Glissade;
+      return Glissade != 0;
     }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Properties;
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
-    {
-      const Sound::FourChannelsMatrixMixer::Ptr mixer = Sound::FourChannelsMatrixMixer::Create();
-      Sound::FillMixer(*params, *mixer);
-      const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
-      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
-      {
-        chip->SetSample(idx, Data->Samples.Get(idx));
-      }
-      return CreateModuleRenderer(params, Data, chip);
-    }
-  private:
-    const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
-    const Information::Ptr Info;
   };
 
-  class ModuleRenderer : public Renderer
+  class DataRenderer : public DAC::DataRenderer
   {
-    struct GlissData
-    {
-      GlissData() : Sliding(), Glissade()
-      {
-      }
-      int_t Sliding;
-      int_t Glissade;
-
-      void Reset()
-      {
-        Sliding = Glissade = 0;
-      }
-
-      bool Update()
-      {
-        Sliding += Glissade;
-        return Glissade != 0;
-      }
-    };
   public:
-    ModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    explicit DataRenderer(ModuleData::Ptr data)
       : Data(data)
-      , Params(DAC::TrackParameters::Create(params))
-      , Device(device)
-      , Iterator(CreateTrackStateIterator(Data))
-      , LastRenderTime(0)
     {
-#ifdef SELF_TEST
-//perform self-test
-      Devices::DAC::DataChunk chunk;
-      while (Iterator->IsValid())
-      {
-        RenderData(chunk);
-        Iterator->NextFrame(false);
-      }
       Reset();
-#endif
-    }
-
-    virtual TrackState::Ptr GetTrackState() const
-    {
-      return Iterator->GetStateObserver();
-    }
-
-    virtual Analyzer::Ptr GetAnalyzer() const
-    {
-      return DAC::CreateAnalyzer(Device);
-    }
-
-    virtual bool RenderFrame()
-    {
-      if (Iterator->IsValid())
-      {
-        LastRenderTime += Params->FrameDuration();
-        Devices::DAC::DataChunk chunk;
-        RenderData(chunk);
-        chunk.TimeStamp = LastRenderTime;
-        Device->RenderData(chunk);
-        Device->Flush();
-        Iterator->NextFrame(Params->Looped());
-      }
-      return Iterator->IsValid();
     }
 
     virtual void Reset()
     {
-      Device->Reset();
-      Iterator->Reset();
       std::fill(Gliss.begin(), Gliss.end(), GlissData());
-      LastRenderTime = Time::Microseconds();
     }
 
-    virtual void SetPosition(uint_t frame)
-    {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      if (frame < state->Frame())
-      {
-        //reset to beginning in case of moving back
-        Iterator->Reset();
-      }
-      //fast forward
-      Devices::DAC::DataChunk chunk;
-      while (state->Frame() < frame && Iterator->IsValid())
-      {
-        //do not update tick for proper rendering
-        RenderData(chunk);
-        Iterator->NextFrame(false);
-      }
-    }
-
-  private:
-    void RenderData(Devices::DAC::DataChunk& chunk)
-    {
-      const TrackModelState::Ptr state = Iterator->GetStateObserver();
-      DAC::TrackBuilder track;
-      SynthesizeData(*state, track);
-      track.GetResult(chunk.Channels);
-    }
-
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
     {
       SynthesizeChannelsData(track);
       if (0 == state.Quirk())
@@ -335,7 +193,7 @@ namespace ChipTracker
         GetNewLineState(state, track);
       }
     }
-
+  private:
     void SynthesizeChannelsData(DAC::TrackBuilder& track)
     {
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
@@ -404,17 +262,48 @@ namespace ChipTracker
     }
   private:
     const ModuleData::Ptr Data;
-    const DAC::TrackParameters::Ptr Params;
-    const Devices::DAC::Chip::Ptr Device;
-    const TrackStateIterator::Ptr Iterator;
     boost::array<GlissData, CHANNELS_COUNT> Gliss;
-    Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  class Chiptune : public DAC::Chiptune
   {
-    return Renderer::Ptr(new ModuleRenderer(params, data, device));
-  }
+  public:
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual DAC::DataIterator::Ptr CreateDataIterator() const
+    {
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      return DAC::CreateDataIterator(iterator, renderer);
+    }
+
+    virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const
+    {
+      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
+      {
+        chip->SetSample(idx, Data->Samples.Get(idx));
+      }
+    }
+  private:
+    const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
+    const Information::Ptr Info;
+  };
 }
 
 namespace CHI
@@ -452,7 +341,8 @@ namespace CHI
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared< ::ChipTracker::ModuleHolder>(modData, properties);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ChipTracker::Chiptune>(modData, properties);
+        return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
     }

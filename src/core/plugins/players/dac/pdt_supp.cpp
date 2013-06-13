@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "dac_base.h"
+#include "digital.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
@@ -48,36 +48,12 @@ namespace ProDigiTracker
 
   typedef SimpleOrnament Ornament;
 
-  class ModuleData : public TrackModel
+  class ModuleData : public DAC::ModuleData
   {
   public:
     typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
-    ModuleData()
-      : InitialTempo()
-    {
-    }
-
-    virtual uint_t GetInitialTempo() const
-    {
-      return InitialTempo;
-    }
-
-    virtual const OrderList& GetOrder() const
-    {
-      return *Order;
-    }
-
-    virtual const PatternsSet& GetPatterns() const
-    {
-      return *Patterns;
-    }
-
-    uint_t InitialTempo;
-    OrderList::Ptr Order;
-    PatternsSet::Ptr Patterns;
-    SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
@@ -160,155 +136,43 @@ namespace ProDigiTracker
     PatternsBuilder Builder;
   };
 
-  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
-
-  class ModuleHolder : public Holder
+  struct OrnamentState
   {
-  public:
-    ModuleHolder(ModuleData::Ptr data, ModuleProperties::Ptr properties)
-      : Data(data)
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
-    {   
+    OrnamentState() : Object(), Position()
+    {
+    }
+    const Ornament* Object;
+    std::size_t Position;
+
+    int_t GetOffset() const
+    {
+      return Object ? Object->GetLine(Position) : 0;
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    void Update()
     {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Properties;
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
-    {
-      const Sound::FourChannelsMatrixMixer::Ptr mixer = Sound::FourChannelsMatrixMixer::Create();
-      Sound::FillMixer(*params, *mixer);
-      const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
-      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
+      if (Object && Position++ >= Object->GetSize())
       {
-        chip->SetSample(idx, Data->Samples.Get(idx));
+        Position = Object->GetLoop();
       }
-      return CreateModuleRenderer(params, Data, chip);
     }
-  private:
-    const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
-    const Information::Ptr Info;
   };
 
-  class ModuleRenderer : public Renderer
+  class DataRenderer : public DAC::DataRenderer
   {
-    struct OrnamentState
-    {
-      OrnamentState() : Object(), Position()
-      {
-      }
-      const Ornament* Object;
-      std::size_t Position;
-
-      int_t GetOffset() const
-      {
-        return Object ? Object->GetLine(Position) : 0;
-      }
-
-      void Update()
-      {
-        if (Object && Position++ >= Object->GetSize())
-        {
-          Position = Object->GetLoop();
-        }
-      }
-
-      void Reset()
-      {
-        Position = 0;
-      }
-    };
   public:
-    ModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    explicit DataRenderer(ModuleData::Ptr data)
       : Data(data)
-      , Params(DAC::TrackParameters::Create(params))
-      , Device(device)
-      , Iterator(CreateTrackStateIterator(Data))
-      , LastRenderTime(0)
     {
-#ifndef NDEBUG
-//perform self-test
-      Devices::DAC::DataChunk chunk;
-      while (Iterator->IsValid())
-      {
-        RenderData(chunk);
-        Iterator->NextFrame(false);
-      }
       Reset();
-#endif
-    }
-
-    virtual TrackState::Ptr GetTrackState() const
-    {
-      return Iterator->GetStateObserver();
-    }
-
-    virtual Analyzer::Ptr GetAnalyzer() const
-    {
-      return DAC::CreateAnalyzer(Device);
-    }
-
-    virtual bool RenderFrame()
-    {
-      if (Iterator->IsValid())
-      {
-        LastRenderTime += Params->FrameDuration();
-        Devices::DAC::DataChunk chunk;
-        RenderData(chunk);
-        chunk.TimeStamp = LastRenderTime;
-        Device->RenderData(chunk);
-        Device->Flush();
-        Iterator->NextFrame(Params->Looped());
-      }
-      return Iterator->IsValid();
     }
 
     virtual void Reset()
     {
-      Device->Reset();
-      Iterator->Reset();
-      std::for_each(Ornaments.begin(), Ornaments.end(), std::mem_fun_ref(&OrnamentState::Reset));
-      LastRenderTime = Time::Microseconds();
+      std::fill(Ornaments.begin(), Ornaments.end(), OrnamentState());
     }
 
-    virtual void SetPosition(uint_t frame)
-    {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      if (frame < state->Frame())
-      {
-        //reset to beginning in case of moving back
-        Iterator->Reset();
-      }
-      //fast forward
-      Devices::DAC::DataChunk chunk;
-      while (state->Frame() < frame && Iterator->IsValid())
-      {
-        //do not update tick for proper rendering
-        RenderData(chunk);
-        Iterator->NextFrame(false);
-      }
-    }
-
-  private:
-    void RenderData(Devices::DAC::DataChunk& chunk)
-    {
-      const TrackModelState::Ptr state = Iterator->GetStateObserver();
-      DAC::TrackBuilder track;
-      SynthesizeData(*state, track);
-      track.GetResult(chunk.Channels);
-    }
-
-    void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
     {
       SynthesizeChannelsData(track);
       if (0 == state.Quirk())
@@ -316,7 +180,7 @@ namespace ProDigiTracker
         GetNewLineState(state, track);
       }
     }  
-
+  private:
     void SynthesizeChannelsData(DAC::TrackBuilder& track)
     {
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
@@ -371,19 +235,49 @@ namespace ProDigiTracker
       }
     }
   private:
-    const Information::Ptr Info;
     const ModuleData::Ptr Data;
-    const DAC::TrackParameters::Ptr Params;
-    const Devices::DAC::Chip::Ptr Device;
-    const TrackStateIterator::Ptr Iterator;
     boost::array<OrnamentState, CHANNELS_COUNT> Ornaments;
-    Time::Microseconds LastRenderTime;
   };
 
-  Renderer::Ptr CreateModuleRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+  class Chiptune : public DAC::Chiptune
   {
-    return Renderer::Ptr(new ModuleRenderer(params, data, device));
-  }
+  public:
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual DAC::DataIterator::Ptr CreateDataIterator() const
+    {
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      return DAC::CreateDataIterator(iterator, renderer);
+    }
+
+    virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const
+    {
+      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
+      {
+        chip->SetSample(idx, Data->Samples.Get(idx));
+      }
+    }
+  private:
+    const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
+    const Information::Ptr Info;
+  };
 }
 
 namespace PDT
@@ -422,7 +316,8 @@ namespace PDT
       {
         usedSize = container->Size();
         properties->SetSource(container);
-        return boost::make_shared< ::ProDigiTracker::ModuleHolder>(modData, properties);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ProDigiTracker::Chiptune>(modData, properties);
+        return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
     }

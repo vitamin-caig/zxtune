@@ -137,180 +137,108 @@ namespace ZXTune
         PatternsBuilder Builder;
       };
 
-      //TODO: remote this template namespace
-      template<uint_t Channels>
-      struct Digital
+      class SimpleDataRenderer : public DAC::DataRenderer
       {
-        class Renderer : public ZXTune::Module::Renderer
+      public:
+        SimpleDataRenderer(ModuleData::Ptr data, uint_t channels)
+          : Data(data)
+          , Channels(channels)
         {
-        public:
-          Renderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
-            : Data(data)
-            , Params(DAC::TrackParameters::Create(params))
-            , Device(device)
-            , Iterator(CreateTrackStateIterator(Data))
-            , LastRenderTime(0)
+        }
+
+        virtual void Reset()
+        {
+        }
+
+        virtual void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
+        {
+          if (0 == state.Quirk())
           {
-      #ifndef NDEBUG
-      //perform self-test
-            Devices::DAC::DataChunk chunk;
-            while (Iterator->IsValid())
+            GetNewLineState(state, track);
+          }
+        }
+      private:
+        void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
+        {
+          if (const Line::Ptr line = state.LineObject())
+          {
+            for (uint_t chan = 0; chan != Channels; ++chan)
             {
-              RenderData(chunk);
-              Iterator->NextFrame(false);
-            }
-            Reset();
-      #endif
-          }
-
-          virtual TrackState::Ptr GetTrackState() const
-          {
-            return Iterator->GetStateObserver();
-          }
-
-          virtual Analyzer::Ptr GetAnalyzer() const
-          {
-            return DAC::CreateAnalyzer(Device);
-          }
-
-          virtual bool RenderFrame()
-          {
-            if (Iterator->IsValid())
-            {
-              LastRenderTime += Params->FrameDuration();
-              Devices::DAC::DataChunk chunk;
-              RenderData(chunk);
-              chunk.TimeStamp = LastRenderTime;
-              Device->RenderData(chunk);
-              Device->Flush();
-              Iterator->NextFrame(Params->Looped());
-            }
-            return Iterator->IsValid();
-          }
-
-          virtual void Reset()
-          {
-            Device->Reset();
-            Iterator->Reset();
-            LastRenderTime = Time::Microseconds();
-          }
-
-          virtual void SetPosition(uint_t frame)
-          {
-            const TrackState::Ptr state = Iterator->GetStateObserver();
-            if (frame < state->Frame())
-            {
-              //reset to beginning in case of moving back
-              Iterator->Reset();
-            }
-            //fast forward
-            Devices::DAC::DataChunk chunk;
-            while (state->Frame() < frame && Iterator->IsValid())
-            {
-              //do not update tick for proper rendering
-              RenderData(chunk);
-              Iterator->NextFrame(false);
-            }
-          }
-
-        private:
-          void RenderData(Devices::DAC::DataChunk& chunk)
-          {
-            const TrackModelState::Ptr state = Iterator->GetStateObserver();
-            DAC::TrackBuilder track;
-            SynthesizeData(*state, track);
-            track.GetResult(chunk.Channels);
-          }
-
-          void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
-          {
-            if (0 == state.Quirk())
-            {
-              GetNewLineState(state, track);
-            }
-          }
-
-          void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
-          {
-            if (const Line::Ptr line = state.LineObject())
-            {
-              for (uint_t chan = 0; chan != Channels; ++chan)
+              if (const Cell::Ptr src = line->GetChannel(chan))
               {
-                if (const Cell::Ptr src = line->GetChannel(chan))
-                {
-                  ChannelDataBuilder builder = track.GetChannel(chan);
-                  GetNewChannelState(*src, builder);
-                }
+                ChannelDataBuilder builder = track.GetChannel(chan);
+                GetNewChannelState(*src, builder);
               }
             }
           }
+        }
 
-          void GetNewChannelState(const Cell& src, ChannelDataBuilder& builder)
-          {
-            if (const bool* enabled = src.GetEnabled())
-            {
-              builder.SetEnabled(*enabled);
-              if (!*enabled)
-              {
-                builder.SetPosInSample(0);
-              }
-            }
-            if (const uint_t* note = src.GetNote())
-            {
-              builder.SetNote(*note);
-              builder.SetPosInSample(0);
-            }
-            if (const uint_t* sample = src.GetSample())
-            {
-              builder.SetSampleNum(*sample);
-              builder.SetPosInSample(0);
-            }
-          }
-        private:
-          const ModuleData::Ptr Data;
-          const DAC::TrackParameters::Ptr Params;
-          const Devices::DAC::Chip::Ptr Device;
-          const TrackStateIterator::Ptr Iterator;
-          Time::Microseconds LastRenderTime;
-        };
-
-        class Holder : public ZXTune::Module::Holder
+        void GetNewChannelState(const Cell& src, ChannelDataBuilder& builder)
         {
-        public:
-          Holder(ModuleData::Ptr data, ModuleProperties::Ptr properties)
-            : Data(data)
-            , Properties(properties)
-            , Info(CreateTrackInfo(Data, Channels))
+          if (const bool* enabled = src.GetEnabled())
           {
-          }
-
-          virtual Information::Ptr GetModuleInformation() const
-          {
-            return Info;
-          }
-
-          virtual Parameters::Accessor::Ptr GetModuleProperties() const
-          {
-            return Properties;
-          }
-
-          virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
-          {
-            const typename Sound::FixedChannelsMatrixMixer<Channels>::Ptr mixer = Sound::FixedChannelsMatrixMixer<Channels>::Create();
-            Sound::FillMixer(*params, *mixer);
-            const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-            const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(chipParams, mixer, target));
-            for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
+            builder.SetEnabled(*enabled);
+            if (!*enabled)
             {
-              chip->SetSample(idx, Data->Samples.Get(idx));
+              builder.SetPosInSample(0);
             }
-            return boost::make_shared<Renderer>(params, Data, chip);
           }
-        private:
-          const ModuleData::Ptr Data;
-          const ModuleProperties::Ptr Properties;
-          const Information::Ptr Info;
-        };
+          if (const uint_t* note = src.GetNote())
+          {
+            builder.SetNote(*note);
+            builder.SetPosInSample(0);
+          }
+          if (const uint_t* sample = src.GetSample())
+          {
+            builder.SetSampleNum(*sample);
+            builder.SetPosInSample(0);
+          }
+        }
+      private:
+        const ModuleData::Ptr Data;
+        const uint_t Channels;
+      };
+
+      class SimpleChiptune : public DAC::Chiptune
+      {
+      public:
+        SimpleChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
+          : Data(data)
+          , Properties(properties)
+          , Info(CreateTrackInfo(Data, channels))
+          , Channels(channels)
+        {
+        }
+
+        virtual Information::Ptr GetInformation() const
+        {
+          return Info;
+        }
+
+        virtual Parameters::Accessor::Ptr GetProperties() const
+        {
+          return Properties;
+        }
+
+        virtual DAC::DataIterator::Ptr CreateDataIterator() const
+        {
+          const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+          const DAC::DataRenderer::Ptr renderer = boost::make_shared<SimpleDataRenderer>(Data, Channels);
+          return DAC::CreateDataIterator(iterator, renderer);
+        }
+
+        virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const
+        {
+          for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
+          {
+            chip->SetSample(idx, Data->Samples.Get(idx));
+          }
+        }
+      private:
+        const ModuleData::Ptr Data;
+        const Parameters::Accessor::Ptr Properties;
+        const Information::Ptr Info;
+        const uint_t Channels;
       };
     }
   }
