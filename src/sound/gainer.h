@@ -12,6 +12,7 @@
 #define SOUND_GAINER_H_DEFINED
 
 //library includes
+#include <sound/gain.h>
 #include <sound/receiver.h>
 
 namespace Sound
@@ -26,13 +27,13 @@ namespace Sound
     //! @brief Setting up the gain value
     //! @param gain Levels
     //! @throw Error
-    virtual void SetGain(double gain) = 0;
+    virtual void SetGain(Gain::Type gain) = 0;
     
     //! @brief Setting up the fading
     //! @param delta Gain changing
-    //! @param step Samples count to apply delta
+    //! @param step Frames count to apply delta
     //! @throw Error
-    virtual void SetFading(double delta, uint_t step) = 0;
+    virtual void SetFading(Gain::Type delta, uint_t step) = 0;
   };
 
   //! @brief Creating gainer insance

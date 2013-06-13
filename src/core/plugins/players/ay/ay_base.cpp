@@ -210,39 +210,48 @@ namespace ZXTune
     bool Looped;
   };
 
-  /*
   class FadeoutFilter : public Sound::Receiver
   {
   public:
-    FadeoutFilter(TrackState::Ptr state, uint_t startFrame, uint_t samplesToFade, Sound::FadeGainer::Ptr target)
-      : State(state)
-      , Start(startFrame)
-      , Fading(samplesToFade)
+    typedef boost::shared_ptr<FadeoutFilter> Ptr;
+
+    FadeoutFilter(uint_t start, uint_t duration, Sound::FadeGainer::Ptr target)
+      : Start(start)
+      , Duration(duration)
       , Target(target)
     {
     }
 
-    virtual void ApplyData(const Sound::Sample& sample)
+    virtual void ApplyData(const Sound::Chunk::Ptr& chunk)
     {
-      Target->ApplyData(sample);
+      Target->ApplyData(chunk);
     }
 
     virtual void Flush()
     {
-      if (Start == State->Frame())
+      if (const TrackState::Ptr state = State.lock())
       {
-        Target->SetFading(-1, Fading);
+        if (state->Frame() >= Start)
+        {
+          Target->SetFading(Sound::Gain::Type(-1), Duration);
+          State = boost::weak_ptr<TrackState>();
+        }
       }
       Target->Flush();
     }
+
+    void SetTrackState(TrackState::Ptr state)
+    {
+      State = state;
+    }
   private:
-    const TrackState::Ptr State;
-    uint_t Start;
-    const uint_t Fading;
+    const uint_t Start;
+    const uint_t Duration;
     const Sound::FadeGainer::Ptr Target;
+    boost::weak_ptr<const TrackState> State;
   };
 
-  Sound::Receiver::Ptr CreateFadingTarget(Parameters::Accessor::Ptr params, Information::Ptr info, TrackState::Ptr state, Sound::Receiver::Ptr target)
+  Sound::FadeGainer::Ptr CreateFadeGainer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
   {
     Parameters::IntType fadeIn = Parameters::ZXTune::Sound::FADEIN_DEFAULT;
     Parameters::IntType fadeOut = Parameters::ZXTune::Sound::FADEOUT_DEFAULT;
@@ -250,39 +259,41 @@ namespace ZXTune
     params->FindValue(Parameters::ZXTune::Sound::FADEOUT, fadeOut);
     if (fadeIn == 0 && fadeOut == 0)
     {
-      return target;
+      return Sound::FadeGainer::Ptr();
     }
     Dbg("Using fade in for %1% uS, fade out for %2% uS", fadeIn, fadeOut);
-    const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
     const Sound::FadeGainer::Ptr gainer = Sound::CreateFadeGainer();
     gainer->SetTarget(target);
-    const Time::Microseconds frameDuration = renderParams->FrameDuration();
     if (fadeIn != 0)
     {
-      gainer->SetGain(0);
-      const uint_t fadeInSamples = fadeIn * renderParams->SoundFreq() / frameDuration.PER_SECOND;
-      Dbg("Fade in for %1% samples", fadeInSamples);
-      gainer->SetFading(1, fadeInSamples);
+      gainer->SetGain(Sound::Gain::Type());
+      const uint_t frameDuration = Sound::RenderParameters::Create(params)->FrameDuration().Get();
+      const uint_t fadeInFrames = (fadeIn + frameDuration) / frameDuration;
+      Dbg("Fade in for %1% frames", fadeInFrames);
+      gainer->SetFading(Sound::Gain::Type(1), fadeInFrames);
     }
     else
     {
-      gainer->SetGain(1);
+      gainer->SetGain(Sound::Gain::Type(1));
     }
-    if (fadeOut != 0)
-    {
-      const uint_t fadeOutFrames = 1 + fadeOut / frameDuration.Get();
-      const uint_t fadeOutSamples = fadeOut * renderParams->SoundFreq() / frameDuration.PER_SECOND;
-      const uint_t totalFrames = info->FramesCount();
-      const uint_t startFadingFrame = totalFrames - fadeOutFrames;
-      Dbg("Fade out for %1% samples starting from %2% frame out of %3%", fadeOutSamples, startFadingFrame, totalFrames);
-      return boost::make_shared<FadeoutFilter>(state, startFadingFrame, fadeOutSamples, gainer);
-    }
-    else
-    {
-      return gainer;
-    }
+    return gainer;
   }
-  */
+
+  FadeoutFilter::Ptr CreateFadeOutFilter(Parameters::Accessor::Ptr params, Information::Ptr info, Sound::FadeGainer::Ptr target)
+  {
+    Parameters::IntType fadeOut = Parameters::ZXTune::Sound::FADEOUT_DEFAULT;
+    params->FindValue(Parameters::ZXTune::Sound::FADEOUT, fadeOut);
+    if (fadeOut == 0)
+    {
+      return FadeoutFilter::Ptr();
+    }
+    const uint_t frameDuration = Sound::RenderParameters::Create(params)->FrameDuration().Get();
+    const uint_t fadeOutFrames = (fadeOut + frameDuration) / frameDuration;
+    const uint_t totalFrames = info->FramesCount();
+    const uint_t startFadingFrame = totalFrames - fadeOutFrames;
+    Dbg("Fade out for %1% frames starting from %2% frame out of %3%", fadeOutFrames, startFadingFrame, totalFrames);
+    return boost::make_shared<FadeoutFilter>(startFadingFrame, fadeOutFrames, target);
+  }
 
   class AYMHolder : public AYM::Holder
   {
@@ -465,15 +476,27 @@ namespace ZXTune
 
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
       {
-        //TODO: return fading support
-        const Devices::AYM::Chip::Ptr chip = PollingMixerChip::Create(params, target);
-        return holder.CreateRenderer(params, chip);
-        /*
-        const Renderer::Ptr result = holder.CreateRenderer(params, chip);
-        const Sound::Receiver::Ptr fading = CreateFadingTarget(params, holder.GetModuleInformation(), result->GetTrackState(), target);
-        mixer->SetTarget(fading);
-        return result;
-        */
+        if (const Sound::FadeGainer::Ptr fade = CreateFadeGainer(params, target))
+        {
+          if (FadeoutFilter::Ptr fadeout = CreateFadeOutFilter(params, holder.GetModuleInformation(), fade))
+          {
+            const Devices::AYM::Chip::Ptr chip = PollingMixerChip::Create(params, fadeout);
+            const Renderer::Ptr result = holder.CreateRenderer(params, chip);
+            fadeout->SetTrackState(result->GetTrackState());
+            return result;
+          }
+          else
+          {
+            //only fade in
+            const Devices::AYM::Chip::Ptr chip = PollingMixerChip::Create(params, fade);
+            return holder.CreateRenderer(params, chip);
+          }
+        }
+        else
+        {
+          const Devices::AYM::Chip::Ptr chip = PollingMixerChip::Create(params, target);
+          return holder.CreateRenderer(params, chip);
+        }
       }
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)

@@ -35,7 +35,7 @@ namespace Sound
     {
     }
 
-    int_t Apply(int_t in)
+    Sample Apply(Sample in) const
     {
       static const Coeff ONE(1);
       static const Coeff ZERO(0);
@@ -45,21 +45,23 @@ namespace Sound
       }
       else if (Level == ZERO)
       {
-        return 0;
+        return Sample();
       }
-      return (Level * in).Integer();
+      return Sample((Level * in.Left()).Round(), (Level * in.Right()).Round());
     }
 
-    void SetGain(double in)
+    void SetGain(Gain::Type in)
     {
-      if (!Math::InRange<double>(in, 0.0, 1.0))
+      static const Gain::Type MIN(0, Gain::Type::PRECISION);
+      static const Gain::Type MAX(Gain::Type::PRECISION, Gain::Type::PRECISION);
+      if (in < MIN || in > MAX)
       {
         throw Error(THIS_LINE, translate("Failed to set gain value: out of range."));
       }
-      Level = in;
+      Level = Coeff(in);
     }
 
-    void SetFading(double delta, uint_t step)
+    void SetFading(Gain::Type delta, uint_t step)
     {
       Step = Coeff(delta) / step;
     }
@@ -71,7 +73,7 @@ namespace Sound
       if (Step != ZERO)
       {
         Level += Step;
-        if (Level > ONE)
+        if (Level > ONE || Level < ZERO)
         {
           Level = Step < ZERO ? ZERO : ONE;
           Step = ZERO;
@@ -98,9 +100,9 @@ namespace Sound
     {
       for (Chunk::iterator it = in->begin(), lim = in->end(); it != lim; ++it)
       {
-        *it = Sample(Core.Apply(it->Left()), Core.Apply(it->Right()));
-        Core.ApplyStep();
+        *it = Core.Apply(*it);
       }
+      Core.ApplyStep();
       return Delegate->ApplyData(in);
     }
 
@@ -114,12 +116,12 @@ namespace Sound
       Delegate = delegate ? delegate : Receiver::CreateStub();
     }
 
-    virtual void SetGain(double gain)
+    virtual void SetGain(Gain::Type gain)
     {
       Core.SetGain(gain);
     }
 
-    virtual void SetFading(double delta, uint_t step)
+    virtual void SetFading(Gain::Type delta, uint_t step)
     {
       Core.SetFading(delta, step);
     }
