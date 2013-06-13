@@ -23,7 +23,7 @@ if (!scalar(@PackageNames))
 
 for my $folder (glob("Builds/Revision${Revision}_*"))
 {
-  die "Invalid folder format (${folder})" unless ${folder} =~ /Revision${Revision}_([^_]+)_(.*)/;
+  die "Invalid folder format (${folder})" unless ${folder} =~ /Revision${Revision}_([^_]+)/;
   die 'Not a folder' unless -d ${folder};
   my $platform = $1;
   my $arch = $2;
@@ -73,6 +73,12 @@ for my $folder (glob("Builds/Revision${Revision}_*"))
         $opsys = 'Redhat';
         $type = 'Package';
       }
+      elsif (${file} =~ /${package}_r${Revision}.apk/)
+      {
+        $opsys = 'Android';
+        $type = 'Package';
+        $arch = 'any';
+      }
       else
       {
         #print "Skipping ${file}\n";
@@ -95,11 +101,11 @@ my $answer = <>;
 chomp $answer;
 exit 0 unless ${answer} eq 'yes';
 
-for my $opsys qw(Redhat Ubuntu Archlinux Dingux Linux Windows)
+for my $opsys qw(Redhat Ubuntu Archlinux Dingux Linux Android Windows)
 {
   for my $compiler qw(gcc vc80 vc71)
   {
-    for my $arch qw(mipsel armhf arm x86_64 x86)
+    for my $arch qw(mipsel armhf arm x86_64 x86 any)
     {
       for my $package (@PackageNames)
       {
