@@ -48,7 +48,7 @@ namespace Math
     template<class T1, T1 Precision1>
     FixedPoint(const FixedPoint<T1, Precision1>& rh)
     {
-      Set(rh.Value, Precision1);
+      Set(rh.Raw(), Precision1);
     }
 
     T Round() const
@@ -66,6 +66,11 @@ namespace Math
       return Value % Precision;
     }
 
+    T Raw() const
+    {
+      return Value;
+    }
+
     template<class P>
     FixedPoint<T, Precision>& operator = (P rh)
     {
@@ -77,6 +82,12 @@ namespace Math
     {
       Value = rh.Value;
       return *this;
+    }
+
+    template<class T1, T1 Precision1>
+    FixedPoint<T, Precision>& operator = (const FixedPoint<T1, Precision1>& rh)
+    {
+      Set(rh.Raw(), Precision1);
     }
 
     template<class P>
@@ -197,9 +208,6 @@ namespace Math
         Value = nominator;
       }
     }
-
-    template<typename V, V>
-    friend class FixedPoint;
   private:
     T Value;
   };
