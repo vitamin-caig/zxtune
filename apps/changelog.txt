@@ -7,6 +7,17 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] HQ interpolation for SAA chiptunes
+[+] Precise sample frequency setup for DAC chiptunes
+[*] Fixed TF0/TFE playback
+[*] Speedup sound pipeline
+[*] Speedup AYM renderer
+[*] Speedup DAC renderer
+[*] Fixed DST playback
+[*] Speedup parameters polling
+
+--- Rev2416 from 29.05.2013
+
 [+] TFM Music Maker modules support v0.1-v1.2 (TF0) and v1.3+ (TFE)
 [*] Fixed SQD playback
 [*] Fixed PT3 playback
