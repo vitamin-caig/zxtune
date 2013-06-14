@@ -110,9 +110,9 @@ namespace
   class DetectCallback : public ZXTune::Module::DetectCallback
   {
   public:
-    DetectCallback(Parameters::Accessor::Ptr params, const String& path, const OnItemCallback& callback, bool showLogs)
+    DetectCallback(Parameters::Accessor::Ptr params, IO::Identifier::Ptr id, const OnItemCallback& callback, bool showLogs)
       : Params(params)
-      , Path(path)
+      , Id(id)
       , Callback(callback)
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
     {
@@ -125,8 +125,8 @@ namespace
 
     virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Module::Holder::Ptr holder) const
     {
-      const String subpath = location->GetPath()->AsString();
-      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(Path, subpath), Params);
+      const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(subId), Params);
       const ZXTune::Module::Holder::Ptr result = ZXTune::Module::CreateMixedPropertiesHolder(holder, moduleParams);
       Callback(result);
     }
@@ -137,7 +137,7 @@ namespace
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    const String Path;
+    const IO::Identifier::Ptr Id;
     const OnItemCallback& Callback;
     const Log::ProgressCallback::Ptr ProgressCallback;
   };
@@ -215,11 +215,10 @@ namespace
       try
       {
         const IO::Identifier::Ptr id = IO::ResolveUri(uri);
-        const String path = id->Path();
 
-        const DetectCallback detectCallback(Params, path, callback, ShowProgress);
+        const DetectCallback detectCallback(Params, id, callback, ShowProgress);
         Log::ProgressCallback& progress = ShowProgress ? *detectCallback.GetProgress() : Log::ProgressCallback::Stub();
-        const Binary::Container::Ptr data = IO::OpenData(path, *Params, progress);
+        const Binary::Container::Ptr data = IO::OpenData(id->Path(), *Params, progress);
 
         const String subpath = id->Subpath();
         if (subpath.empty())

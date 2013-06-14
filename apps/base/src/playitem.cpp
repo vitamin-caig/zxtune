@@ -128,21 +128,6 @@ namespace
   };
 }
 
-Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String& subpath)
-{
-  try
-  {
-    const IO::Identifier::Ptr id = IO::ResolveUri(path);
-    const IO::Identifier::Ptr subId = id->WithSubpath(subpath);
-    return CreatePathProperties(subId);
-  }
-  catch (const Error&)
-  {
-    //formally impossible situation
-    return boost::make_shared<UnresolvedPathPropertiesAccessor>(path);
-  }
-}
-
 Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
 {
   try
