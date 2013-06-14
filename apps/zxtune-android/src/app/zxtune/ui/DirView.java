@@ -223,7 +223,6 @@ public class DirView extends ListView
     }
 
     public ItemData(Vfs.File file) {
-      put(Tags.ICON, R.drawable.ic_browser_file);
       put(Tags.NAME, file.name());
       put(Tags.SIZE, file.size());
       put(Tags.URI, file.uri());
