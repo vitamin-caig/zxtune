@@ -521,6 +521,7 @@ namespace
 
     AYData::Ptr GetResult() const
     {
+      Data->Memory = Delegate->Result();
       return Data;
     }
   private:
