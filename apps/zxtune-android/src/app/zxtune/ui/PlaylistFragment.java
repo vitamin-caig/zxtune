@@ -11,9 +11,12 @@
 package app.zxtune.ui;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,6 +35,7 @@ public class PlaylistFragment extends Fragment {
 
   private static final String TAG = PlaylistFragment.class.getName();
   private Releaseable connection;
+  private SavedState state;
   private Control control;
   private PlaylistView listing;
   private Uri nowPlaying = Uri.EMPTY;
@@ -52,6 +56,12 @@ public class PlaylistFragment extends Fragment {
     connection = subscription.subscribe(new PlaybackCallback());
   }
 
+  @Override
+  public void onAttach(Activity activity) {
+    super.onAttach(activity);
+    state = new SavedState(PreferenceManager.getDefaultSharedPreferences(activity));
+  }
+  
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.playlist, container, false) : null;
@@ -74,6 +84,18 @@ public class PlaylistFragment extends Fragment {
     listing.setData(cursor);
   }
 
+  @Override
+  public void onStart() {
+    super.onStart();
+    listing.setSelection(state.getCurrentViewPosition());
+  }
+  
+  @Override
+  public void onStop() {
+    super.onStop();
+    state.setCurrentViewPosition(listing.getFirstVisiblePosition());
+  }
+  
   @Override
   public void onDestroy() {
     super.onDestroy();
@@ -126,6 +148,27 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void onItemChanged(Item item) {
       nowPlaying = item != null ? item.getId() : Uri.EMPTY;
+    }
+  }
+  
+  private static class SavedState {
+    
+    private final static String PREF_PLAYLIST = "playlist_";
+    private final static String PREF_PLAYLIST_VIEWPOS = PREF_PLAYLIST + "viewpos";
+    private final SharedPreferences prefs;
+
+    public SavedState(SharedPreferences prefs) {
+      this.prefs = prefs;
+    }
+    
+    public int getCurrentViewPosition() {
+      return prefs.getInt(PREF_PLAYLIST_VIEWPOS, 0);
+    }
+    
+    public void setCurrentViewPosition(int pos) {
+      final Editor editor = prefs.edit();
+      editor.putInt(PREF_PLAYLIST_VIEWPOS, pos);
+      editor.commit();
     }
   }
 }
