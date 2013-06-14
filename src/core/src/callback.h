@@ -13,31 +13,15 @@ Author:
 #ifndef __CORE_PLUGINS_CALLBACK_H_DEFINED__
 #define __CORE_PLUGINS_CALLBACK_H_DEFINED__
 
-//local includes
-#include "core/plugins/enumerator.h"
 //core includes
-#include <core/module_holder.h>
+#include <core/module_detect.h>
 //common includes
-#include <error.h>
 #include <progress_callback.h>
 
 namespace ZXTune
 {
   namespace Module
   {
-    class DetectCallback
-    {
-    public:
-      virtual ~DetectCallback() {}
-
-      //! @brief Returns plugins parameters
-      virtual Parameters::Accessor::Ptr GetPluginsParameters() const = 0;
-      //! @brief Process module
-      virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const = 0;
-      //! @brief Logging callback
-      virtual Log::ProgressCallback* GetProgress() const = 0;
-    };
-
     // Helper classes
     class DetectCallbackDelegate : public DetectCallback
     {

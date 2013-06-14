@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "ts_base.h"
-#include "core/src/core.h"
+#include "core/plugins/enumerator.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
@@ -25,7 +25,7 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
-#include <core/module_detect.h>
+#include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/turbosound.h>
@@ -71,6 +71,34 @@ namespace
   const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
 
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
+
+  class NestedDataLocation : public DataLocation
+  {
+  public:
+    NestedDataLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData)
+      : Parent(parent)
+      , SubData(subData)
+    {
+    }
+
+    virtual Binary::Container::Ptr GetData() const
+    {
+      return SubData;
+    }
+
+    virtual Analysis::Path::Ptr GetPath() const
+    {
+      return Parent->GetPath();
+    }
+
+    virtual Analysis::Path::Ptr GetPluginsChain() const
+    {
+      return Parent->GetPluginsChain();
+    }
+  private:
+    const DataLocation::Ptr Parent;
+    const Binary::Container::Ptr SubData;
+  };
 
   using namespace Parameters;
   class MergedModuleProperties : public Accessor
@@ -340,14 +368,14 @@ namespace
         return Analysis::CreateUnmatchedResult(lookahead);
       }
 
-      const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
+      const DataLocation::Ptr firstSubLocation = boost::make_shared<NestedDataLocation>(inputData, data->GetSubcontainer(0, firstModuleSize));
       const Module::AYM::Holder::Ptr holder1 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(firstSubLocation));
       if (!holder1)
       {
         Dbg("Invalid first module holder");
         return Analysis::CreateUnmatchedResult(dataSize);
       }
-      const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
+      const DataLocation::Ptr secondSubLocation = boost::make_shared<NestedDataLocation>(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
       const Module::AYM::Holder::Ptr holder2 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(secondSubLocation));
       if (!holder2)
       {

@@ -10,12 +10,12 @@ Author:
 */
 
 //local includes
+#include "enumerator.h"
 #include "registrator.h"
 #include "archives/plugins_list.h"
 #include "containers/plugins_list.h"
 #include "players/plugins_list.h"
 #include "core/src/callback.h"
-#include "core/src/core.h"
 //common includes
 #include <error_tools.h>
 #include <tools.h>
@@ -24,6 +24,7 @@ Author:
 #include <core/convert_parameters.h>
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
+#include <core/module_open.h>
 #include <debug/log.h>
 #include <l10n/api.h>
 //std includes
@@ -90,35 +91,6 @@ namespace
     {
       RegisterPlayerPlugins(*this);
     }
-  };
-
-  class DetectCallbackAdapter : public Module::DetectCallback
-  {
-  public:
-    DetectCallbackAdapter(const DetectParameters& detectParams, Parameters::Accessor::Ptr coreParams)
-      : DetectParams(detectParams)
-      , CoreParams(coreParams)
-    {
-    }
-
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
-    {
-      return CoreParams;
-    }
-
-    virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const
-    {
-      const Analysis::Path::Ptr subPath = location->GetPath();
-      return DetectParams.ProcessModule(subPath->AsString(), holder);
-    }
-
-    virtual Log::ProgressCallback* GetProgress() const
-    {
-      return DetectParams.GetProgressCallback();
-    }
-  private:
-    const DetectParameters& DetectParams;
-    const Parameters::Accessor::Ptr CoreParams;
   };
 
   class SimplePluginDescription : public Plugin
@@ -239,34 +211,6 @@ namespace ZXTune
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)
   {
     return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
-  }
-
-  void DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams, Binary::Container::Ptr data)
-  {
-    if (!data.get())
-    {
-      throw Error(THIS_LINE, translate("Invalid parameters specified."));
-    }
-    const DataLocation::Ptr location = CreateLocation(pluginsParams, data);
-    const DetectCallbackAdapter callback(detectParams, pluginsParams);
-    Module::Detect(location, callback);
-  }
-
-  Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath)
-  {
-    if (!data.get())
-    {
-      throw Error(THIS_LINE, translate("Invalid parameters specified."));
-    }
-    if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, subpath))
-    {
-      if (const Module::Holder::Ptr res = Module::Open(location))
-      {
-        return res;
-      }
-    }
-    throw MakeFormattedError(THIS_LINE,
-      translate("Failed to find specified submodule starting from path '%1%'."), subpath);
   }
 
   namespace Module

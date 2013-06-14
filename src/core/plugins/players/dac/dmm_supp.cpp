@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "digital.h"
+#include "core/plugins/enumerator.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
 #include "core/plugins/players/creation_result.h"

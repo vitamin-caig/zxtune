@@ -24,6 +24,7 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
+#include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
@@ -340,7 +341,8 @@ namespace
       try
       {
         const Binary::Container::Ptr data = Source->GetData();
-        const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(CoreParams, data, ModuleId->Subpath());
+        const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ModuleId->Subpath());
+        const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location);
         const Parameters::Accessor::Ptr pathParams = CreatePathProperties(ModuleId);
         const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams);
         return ZXTune::Module::CreateMixedPropertiesHolder(module, moduleParams);
@@ -568,10 +570,10 @@ namespace
   };
  
 
-  class DetectParametersAdapter : public ZXTune::DetectParameters
+  class DetectCallback : public ZXTune::Module::DetectCallback
   {
   public:
-    DetectParametersAdapter(Playlist::Item::DetectParameters& delegate,
+    DetectCallback(Playlist::Item::DetectParameters& delegate,
                             DynamicAttributesProvider::Ptr attributes,
                             CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, IO::Identifier::Ptr dataId)
       : Delegate(delegate)
@@ -583,8 +585,14 @@ namespace
     {
     }
 
-    virtual void ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
+      return CoreParams;
+    }
+
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Module::Holder::Ptr holder) const
+    {
+      const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
@@ -597,7 +605,7 @@ namespace
       Delegate.ProcessItem(playitem);
     }
 
-    virtual Log::ProgressCallback* GetProgressCallback() const
+    virtual Log::ProgressCallback* GetProgress() const
     {
       return &ProgressCallback;
     }
@@ -624,18 +632,17 @@ namespace
     {
       const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
-      const String dataPath = id->Path();
-      const Binary::Container::Ptr data = Provider->GetData(dataPath);
-      const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
-
       const String subPath = id->Subpath();
       if (subPath.empty())
       {
-        ZXTune::DetectModules(CoreParams, params, data);
+        const Binary::Container::Ptr data = Provider->GetData(id->Path());
+        const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
+        const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
+        ZXTune::Module::Detect(location, detectCallback);
       }
-      else if (const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(CoreParams, data, subPath))
+      else
       {
-        params.ProcessModule(subPath, module);
+        OpenModule(path, detectParams);
       }
     }
 
@@ -643,13 +650,14 @@ namespace
     {
       const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
-      const String dataPath = id->Path();
-      const Binary::Container::Ptr data = Provider->GetData(dataPath);
-      const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
+      const Binary::Container::Ptr data = Provider->GetData(id->Path());
+      const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
 
-      const String subPath = id->Subpath();
-      const ZXTune::Module::Holder::Ptr result = ZXTune::OpenModule(CoreParams, data, subPath);
-      params.ProcessModule(subPath, result);
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, id->Subpath());
+      if (const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location))
+      {
+        detectCallback.ProcessModule(location, module);
+      }
     }
   private:
     const CachedDataProvider::Ptr Provider;

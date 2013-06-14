@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "archive_supp_common.h"
 #include "core/src/callback.h"
-#include "core/src/core.h"
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes

@@ -25,6 +25,7 @@ Author:
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
+#include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/api.h>
@@ -106,10 +107,10 @@ namespace
     const Console& Cons;
   };
 
-  class DetectParametersImpl : public ZXTune::DetectParameters
+  class DetectCallback : public ZXTune::Module::DetectCallback
   {
   public:
-    DetectParametersImpl(Parameters::Accessor::Ptr params, const String& path, const OnItemCallback& callback, bool showLogs)
+    DetectCallback(Parameters::Accessor::Ptr params, const String& path, const OnItemCallback& callback, bool showLogs)
       : Params(params)
       , Path(path)
       , Callback(callback)
@@ -117,14 +118,20 @@ namespace
     {
     }
 
-    virtual void ProcessModule(const String& subpath, ZXTune::Module::Holder::Ptr holder) const
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
+      return Params;
+    }
+
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Module::Holder::Ptr holder) const
+    {
+      const String subpath = location->GetPath()->AsString();
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(Path, subpath), Params);
       const ZXTune::Module::Holder::Ptr result = ZXTune::Module::CreateMixedPropertiesHolder(holder, moduleParams);
       Callback(result);
     }
 
-    virtual Log::ProgressCallback* GetProgressCallback() const
+    virtual Log::ProgressCallback* GetProgress() const
     {
       return ProgressCallback.get();
     }
@@ -210,18 +217,23 @@ namespace
         const IO::Identifier::Ptr id = IO::ResolveUri(uri);
         const String path = id->Path();
 
-        const DetectParametersImpl params(Params, path, callback, ShowProgress);
-        Log::ProgressCallback& progress = ShowProgress ? *params.GetProgressCallback() : Log::ProgressCallback::Stub();
+        const DetectCallback detectCallback(Params, path, callback, ShowProgress);
+        Log::ProgressCallback& progress = ShowProgress ? *detectCallback.GetProgress() : Log::ProgressCallback::Stub();
         const Binary::Container::Ptr data = IO::OpenData(path, *Params, progress);
 
         const String subpath = id->Subpath();
         if (subpath.empty())
         {
-          ZXTune::DetectModules(Params, params, data);
+          const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
+          ZXTune::Module::Detect(location, detectCallback);
         }
-        else if (const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(Params, data, subpath))
+        else
         {
-          params.ProcessModule(subpath, module);
+          const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(Params, data, subpath);
+          if (const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location))
+          {
+            detectCallback.ProcessModule(location, module);
+          }
         }
       }
       catch (const Error& e)

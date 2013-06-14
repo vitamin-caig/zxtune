@@ -2,8 +2,7 @@
 #include <progress_callback.h>
 #include <template_parameters.h>
 #include <binary/container_factories.h>
-#include <core/module_detect.h>
-#include <core/module_holder.h>
+#include <core/module_open.h>
 #include <io/api.h>
 #include <iostream>
 
@@ -17,8 +16,8 @@ namespace
     const String filename = fullPath;//TODO: split if required
     const String subpath = String();
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
-    const Module::Holder::Ptr module = OpenModule(emptyParams, data, subpath);
-    return module;
+    const DataLocation::Ptr dataLocation = CreateLocation(data);
+    return Module::Open(dataLocation);
   }
 
   void ShowModuleInfo(const Module::Information& info)

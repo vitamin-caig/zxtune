@@ -8,19 +8,17 @@
 **/
 
 #pragma once
-#ifndef __CORE_MODULE_DETECT_H_DEFINED__
-#define __CORE_MODULE_DETECT_H_DEFINED__
+#ifndef CORE_MODULE_DETECT_H_DEFINED
+#define CORE_MODULE_DETECT_H_DEFINED
 
+//common includes
+#include <parameters.h>
 //library includes
 #include <binary/container.h>
+#include <core/data_location.h>
 #include <core/module_holder.h>//for Module::Holder::Ptr
 
 //forward declarations
-namespace Parameters
-{
-  class Accessor;
-}
-
 namespace Log
 {
   class ProgressCallback;
@@ -29,39 +27,26 @@ namespace Log
 //! @brief Global library namespace
 namespace ZXTune
 {
-  //forward declarations
-  class Plugin;
-
-  //! @brief Paremeters for modules' detection
-  class DetectParameters
+  namespace Module
   {
-  public:
-    virtual ~DetectParameters() {}
+    class DetectCallback
+    {
+    public:
+      virtual ~DetectCallback() {}
 
-    //! @brief Called on each detected module.
-    //! @param subpath Subpath for processed module
-    //! @param holder Found module
-    virtual void ProcessModule(const String& subpath, Module::Holder::Ptr holder) const = 0;
+      //! @brief Returns plugins parameters
+      virtual Parameters::Accessor::Ptr GetPluginsParameters() const = 0;
+      //! @brief Process module
+      virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const = 0;
+      //! @brief Logging callback
+      virtual Log::ProgressCallback* GetProgress() const = 0;
+    };
 
-    //! @brief Request for progress callback
-    //! @return 0 if client doesn't want to receive progress notifications
-    virtual Log::ProgressCallback* GetProgressCallback() const = 0;
-  };
-
-  //! @brief Perform module detection
-  //! @param pluginsParams Detection parameters
-  //! @param detectParams %Parameters set
-  //! @param data Input data container
-  //! @throw Error in case of error
-  void DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams, Binary::Container::Ptr data);
-
-  //! @brief Perform single module opening
-  //! @param pluginsParams Opening parameters
-  //! @param data Input data container
-  //! @param subpath Path in input data to open
-  //! @return Result module
-  //! @throw Error in case of error
-  Module::Holder::Ptr OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath);
+    //! @param location Start data location
+    //! @param params Detect callback
+    //! @return Size in bytes of source data processed
+    std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback);
+  }
 }
 
-#endif //__CORE_MODULE_DETECT_H_DEFINED__
+#endif //CORE_MODULE_DETECT_H_DEFINED

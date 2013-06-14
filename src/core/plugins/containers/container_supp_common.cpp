@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "container_supp_common.h"
 #include "core/src/callback.h"
-#include "core/src/core.h"
 #include "core/plugins/utils.h"
 //library includes
 #include <core/plugin_attrs.h>

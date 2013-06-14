@@ -16,7 +16,6 @@ Author:
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/streaming.h"
-#include "core/src/core.h"
 //common includes
 #include <tools.h>
 //library includes

@@ -12,7 +12,7 @@ Author:
 //local includes
 #include "container_supp_common.h"
 #include <core/src/callback.h>
-#include <core/src/core.h>
+#include <core/plugins/enumerator.h>
 #include <core/plugins/registrator.h>
 #include <core/plugins/utils.h>
 //common includes

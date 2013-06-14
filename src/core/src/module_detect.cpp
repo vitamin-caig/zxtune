@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "callback.h"
-#include "core.h"
+#include "core/plugins/enumerator.h"
 #include "core/plugins/plugins_types.h"
 #include "core/plugins/players/ay/ay_base.h"
 //common includes
@@ -156,11 +156,13 @@ namespace ZXTune
 
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
     {
-      if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(ArchivePluginsEnumerator::Create()->Enumerate(), location, callback))
+      const ArchivePluginsEnumerator::Ptr usedArchivePlugins = ArchivePluginsEnumerator::Create();
+      if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedArchivePlugins->Enumerate(), location, callback))
       {
         return usedSize;
       }
-      return DetectByPlugins<PlayerPlugin>(PlayerPluginsEnumerator::Create()->Enumerate(), location, callback);
+      const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
+      return DetectByPlugins<PlayerPlugin>(usedPlayerPlugins->Enumerate(), location, callback);
     }
 
     Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)

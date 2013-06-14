@@ -81,7 +81,7 @@ namespace
 
 namespace ZXTune
 {
-  DataLocation::Ptr CreateLocation(Parameters::Accessor::Ptr /*coreParams*/, Binary::Container::Ptr data)
+  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data)
   {
     return boost::make_shared<UnresolvedLocation>(data);
   }
