@@ -56,8 +56,6 @@ namespace SQDigitalTracker
   using namespace ZXTune::Module;
 
   typedef DAC::ModuleData ModuleData;
-
-  std::auto_ptr<Formats::Chiptune::SQDigitalTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
 }
 
 namespace SQDigitalTracker
@@ -65,18 +63,18 @@ namespace SQDigitalTracker
   class DataBuilder : public Formats::Chiptune::SQDigitalTracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
       : Data(data)
       , Properties(props)
       , Builder(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
       Data->Patterns = Builder.GetPatterns();
-      Properties->SetSamplesFreq(SAMPLES_FREQ);
+      Properties.SetSamplesFreq(SAMPLES_FREQ);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return *Properties;
+      return Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -137,7 +135,7 @@ namespace SQDigitalTracker
     }
   private:
     const ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    PropertiesBuilder& Properties;
     PatternsBuilder Builder;
   };
 
@@ -347,15 +345,14 @@ namespace SQD
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
       const ::SQDigitalTracker::ModuleData::RWPtr modData = boost::make_shared< ::SQDigitalTracker::ModuleData>();
       ::SQDigitalTracker::DataBuilder builder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQDigitalTracker::Parse(*data, builder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::SQDigitalTracker::Chiptune>(modData, properties);
+        properties.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::SQDigitalTracker::Chiptune>(modData, properties.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();

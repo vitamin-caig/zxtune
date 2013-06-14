@@ -48,7 +48,7 @@ namespace ZXTune
     std::size_t Offset;
     std::size_t Size;
 
-    uint_t Checksum(const Binary::Container& container) const;
+    uint_t Checksum(const Binary::Data& container) const;
     Binary::Container::Ptr Extract(const Binary::Container& container) const;
   };
 }

@@ -411,7 +411,7 @@ namespace
   class VortexChiptune : public AYM::Chiptune
   {
   public:
-    VortexChiptune(Vortex::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    VortexChiptune(Vortex::ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
@@ -423,7 +423,7 @@ namespace
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -437,7 +437,7 @@ namespace
     }
   private:
     const Vortex::ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
@@ -490,7 +490,7 @@ namespace ZXTune
         return AYM::CreateRenderer(renderParams, dataIter, device);
       }
 
-      AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+      AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       {
         return boost::make_shared<VortexChiptune>(data, properties);
       }

@@ -116,8 +116,7 @@ namespace TFMMusicMaker
     SparsedObjectsStorage<Instrument> Instruments;
   };
 
-  std::auto_ptr<Formats::Chiptune::TFMMusicMaker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
-  TFM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
+  TFM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
 }
 
 namespace TFMMusicMaker
@@ -125,7 +124,7 @@ namespace TFMMusicMaker
   class DataBuilder : public Formats::Chiptune::TFMMusicMaker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
       : Data(data)
       , Properties(props)
       , Builder(PatternsBuilder::Create<TFM::TRACK_CHANNELS>())
@@ -135,7 +134,7 @@ namespace TFMMusicMaker
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return *Properties;
+      return Properties;
     }
 
     virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod)
@@ -151,7 +150,7 @@ namespace TFMMusicMaker
 
     virtual void SetComment(const String& comment)
     {
-      Properties->SetComment(comment);
+      Properties.SetComment(comment);
     }
 
     virtual void SetInstrument(uint_t index, const Formats::Chiptune::TFMMusicMaker::Instrument& instrument)
@@ -296,7 +295,7 @@ namespace TFMMusicMaker
     }
   private:
     const ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    PropertiesBuilder& Properties;
     PatternsBuilder Builder;
   };
 
@@ -1536,7 +1535,7 @@ namespace TFMMusicMaker
   class Chiptune : public TFM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(boost::make_shared<InformationImpl>(Data))
@@ -1548,7 +1547,7 @@ namespace TFMMusicMaker
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -1561,19 +1560,14 @@ namespace TFMMusicMaker
     }
   private:
     const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
 
 namespace TFMMusicMaker
 {
-  std::auto_ptr<Formats::Chiptune::TFMMusicMaker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
-  {
-    return std::auto_ptr<Formats::Chiptune::TFMMusicMaker::Builder>(new DataBuilder(data, props));
-  }
-
-  TFM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+  TFM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
   {
     return boost::make_shared<Chiptune>(data, properties);
   }
@@ -1607,15 +1601,14 @@ namespace TFE
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
       const ::TFMMusicMaker::ModuleData::RWPtr modData = boost::make_shared< ::TFMMusicMaker::ModuleData>();
-      const std::auto_ptr<Formats::Chiptune::TFMMusicMaker::Builder> dataBuilder = ::TFMMusicMaker::CreateDataBuilder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*data, *dataBuilder))
+      ::TFMMusicMaker::DataBuilder dataBuilder(modData, properties);
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*data, dataBuilder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const TFM::Chiptune::Ptr chiptune = ::TFMMusicMaker::CreateChiptune(modData, properties);
+        properties.SetSource(container);
+        const TFM::Chiptune::Ptr chiptune = ::TFMMusicMaker::CreateChiptune(modData, properties.GetResult());
         return TFM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

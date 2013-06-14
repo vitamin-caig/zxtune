@@ -59,15 +59,14 @@ namespace DST
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
       const ::DigitalStudio::ModuleData::RWPtr modData = boost::make_shared< ::DigitalStudio::ModuleData>();
       const std::auto_ptr<Formats::Chiptune::Digital::Builder> builder = ::DigitalStudio::DataBuilder::Create< ::DigitalStudio::CHANNELS_COUNT>(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(*data, *builder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(modData, properties, ::DigitalStudio::CHANNELS_COUNT);
+        properties.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(modData, properties.GetResult(), ::DigitalStudio::CHANNELS_COUNT);
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();

@@ -339,7 +339,7 @@ namespace DMM
     }
   }
 
-  ModuleData::Ptr Parse(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
+  ModuleData::Ptr Parse(PropertiesBuilder& properties, Binary::Container::Ptr rawData)
   {
     ModuleData::RWPtr Data = boost::make_shared<ModuleData>();
     //assume data is correct
@@ -453,15 +453,13 @@ namespace DMM
     }
     Data->InitialTempo = header.Tempo;
 
-    usedSize = lastData;
-
     //meta properties
     {
       const ModuleRegion fixedRegion(sizeof(header), sizeof(Pattern::Line) * patternsCount * patternSize);
-      properties->SetSource(usedSize, fixedRegion);
+      properties.SetSource(rawData, lastData, fixedRegion);
     }
-    properties->SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
-    properties->SetSamplesFreq(SAMPLES_FREQ);
+    properties.SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
+    properties.SetSamplesFreq(SAMPLES_FREQ);
     return Data;
   }
 
@@ -1019,12 +1017,12 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
       try
       {
-        const DMM::ModuleData::Ptr modData = DMM::Parse(properties, data, usedSize);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DMM::Chiptune>(modData, properties);
+        const DMM::ModuleData::Ptr modData = DMM::Parse(properties, data);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DMM::Chiptune>(modData, properties.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       catch (const Error&/*e*/)

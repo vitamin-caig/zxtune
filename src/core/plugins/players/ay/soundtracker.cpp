@@ -22,38 +22,38 @@ namespace SoundTracker
   class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData& data, PropertiesBuilder& props)
       : Data(data)
       , Properties(props)
       , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data->Patterns = Builder.GetPatterns();
-      Properties->SetFreqtable(TABLE_SOUNDTRACKER);
+      Data.Patterns = Builder.GetPatterns();
+      Properties.SetFreqtable(TABLE_SOUNDTRACKER);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return *Properties;
+      return Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data->InitialTempo = tempo;
+      Data.InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::SoundTracker::Sample& sample)
     {
-      Data->Samples.Add(index, sample);
+      Data.Samples.Add(index, sample);
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::SoundTracker::Ornament& ornament)
     {
-      Data->Ornaments.Add(index, Ornament(ornament.begin(), ornament.end()));
+      Data.Ornaments.Add(index, Ornament(ornament.begin(), ornament.end()));
     }
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::SoundTracker::PositionEntry>& positions)
     {
-      Data->Order = boost::make_shared<OrderListWithTransposition>(positions.begin(), positions.end());
+      Data.Order = boost::make_shared<OrderListWithTransposition>(positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -98,8 +98,8 @@ namespace SoundTracker
       Builder.GetChannel().AddCommand(SoundTracker::NOENVELOPE);
     }
   private:
-    const ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    ModuleData& Data;
+    PropertiesBuilder& Properties;
     PatternsBuilder Builder;
   };
 
@@ -451,7 +451,7 @@ namespace SoundTracker
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
@@ -463,7 +463,7 @@ namespace SoundTracker
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -476,19 +476,19 @@ namespace SoundTracker
     }
   private:
     const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
  
 namespace SoundTracker
 {
-  std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+  std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> CreateDataBuilder(ModuleData& data, PropertiesBuilder& props)
   {
     return std::auto_ptr<Formats::Chiptune::SoundTracker::Builder>(new DataBuilder(data, props));
   }
 
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
   {
     return boost::make_shared<SoundTracker::Chiptune>(data, properties);
   }

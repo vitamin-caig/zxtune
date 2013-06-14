@@ -12,6 +12,8 @@ Author:
 //local includes
 #include "creation_result.h"
 #include "core/src/callback.h"
+//library includes
+#include <core/module_attrs.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -27,11 +29,14 @@ namespace
     {
       return Analysis::CreateUnmatchedResult(format, data);
     }
-    const Module::ModuleProperties::RWPtr properties = Module::ModuleProperties::Create(type, inputData);
-    std::size_t usedSize = 0;
-    if (Module::Holder::Ptr holder = factory->CreateModule(properties, data, usedSize))
+    Module::PropertiesBuilder properties;
+    properties.SetType(type);
+    properties.SetLocation(inputData);
+    if (Module::Holder::Ptr holder = factory->CreateModule(properties, data))
     {
       callback.ProcessModule(inputData, holder);
+      Parameters::IntType usedSize = 0;
+      properties.GetResult()->FindValue(Module::ATTR_SIZE, usedSize);
       return Analysis::CreateMatchedResult(usedSize);
     }
     return Analysis::CreateUnmatchedResult(format, data);

@@ -108,8 +108,7 @@ namespace GlobalTracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  std::auto_ptr<Formats::Chiptune::GlobalTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
 }
 
 namespace GlobalTracker
@@ -117,38 +116,38 @@ namespace GlobalTracker
   class DataBuilder : public Formats::Chiptune::GlobalTracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData& data, PropertiesBuilder& props)
       : Data(data)
       , Properties(props)
       , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data->Patterns = Builder.GetPatterns();
-      Properties->SetFreqtable(TABLE_PROTRACKER3_ST);
+      Data.Patterns = Builder.GetPatterns();
+      Properties.SetFreqtable(TABLE_PROTRACKER3_ST);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return *Properties;
+      return Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data->InitialTempo = tempo;
+      Data.InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::GlobalTracker::Sample& sample)
     {
-      Data->Samples.Add(index, Sample(sample));
+      Data.Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::GlobalTracker::Ornament& ornament)
     {
-      Data->Ornaments.Add(index, SimpleOrnament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
+      Data.Ornaments.Add(index, SimpleOrnament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data.Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -198,8 +197,8 @@ namespace GlobalTracker
       Builder.GetChannel().AddCommand(NOENVELOPE);
     }
   private:
-    const ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    ModuleData& Data;
+    PropertiesBuilder& Properties;
     PatternsBuilder Builder;
   };
 
@@ -367,7 +366,7 @@ namespace GlobalTracker
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
@@ -379,7 +378,7 @@ namespace GlobalTracker
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -392,19 +391,14 @@ namespace GlobalTracker
     }
   private:
     const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
 
 namespace GlobalTracker
 {
-  std::auto_ptr<Formats::Chiptune::GlobalTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
-  {
-    return std::auto_ptr<Formats::Chiptune::GlobalTracker::Builder>(new DataBuilder(data, props));
-  }
-
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
   {
     return boost::make_shared<Chiptune>(data, properties);
   }
@@ -437,15 +431,14 @@ namespace GTR
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
     {
       const ::GlobalTracker::ModuleData::RWPtr modData = boost::make_shared< ::GlobalTracker::ModuleData>();
-      const std::auto_ptr<Formats::Chiptune::GlobalTracker::Builder> dataBuilder = ::GlobalTracker::CreateDataBuilder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::GlobalTracker::Parse(*rawData, *dataBuilder))
+      ::GlobalTracker::DataBuilder dataBuilder(*modData, properties);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::GlobalTracker::Parse(*rawData, dataBuilder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::GlobalTracker::CreateChiptune(modData, properties);
+        properties.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::GlobalTracker::CreateChiptune(modData, properties.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

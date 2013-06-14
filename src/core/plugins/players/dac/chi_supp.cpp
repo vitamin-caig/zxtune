@@ -66,8 +66,6 @@ namespace ChipTracker
   using namespace ZXTune::Module;
 
   typedef DAC::ModuleData ModuleData;
-
-  std::auto_ptr<Formats::Chiptune::ChipTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
 }
 
 namespace ChipTracker
@@ -75,23 +73,23 @@ namespace ChipTracker
   class DataBuilder : public Formats::Chiptune::ChipTracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
       : Data(data)
       , Properties(props)
       , Builder(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
       Data->Patterns = Builder.GetPatterns();
-      Properties->SetSamplesFreq(SAMPLES_FREQ);
+      Properties.SetSamplesFreq(SAMPLES_FREQ);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return *Properties;
+      return Properties;
     }
 
     virtual void SetVersion(uint_t major, uint_t minor)
     {
-      Properties->SetVersion(major, minor);
+      Properties.SetVersion(major, minor);
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -147,7 +145,7 @@ namespace ChipTracker
     }
   private:
     const ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    PropertiesBuilder& Properties;
     PatternsBuilder Builder;
   };
 
@@ -333,15 +331,14 @@ namespace CHI
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
       const ::ChipTracker::ModuleData::RWPtr modData = boost::make_shared< ::ChipTracker::ModuleData>();
       ::ChipTracker::DataBuilder builder(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(*data, builder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ChipTracker::Chiptune>(modData, properties);
+        properties.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ChipTracker::Chiptune>(modData, properties.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();

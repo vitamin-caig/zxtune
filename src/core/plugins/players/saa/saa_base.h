@@ -106,7 +106,7 @@ namespace ZXTune
         virtual ~Chiptune() {}
 
         virtual Information::Ptr GetInformation() const = 0;
-        virtual ModuleProperties::Ptr GetProperties() const = 0;
+        virtual Parameters::Accessor::Ptr GetProperties() const = 0;
         virtual DataIterator::Ptr CreateDataIterator() const = 0;
 
         virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::SAA::Device::Ptr chip) const;

@@ -67,15 +67,14 @@ namespace STR
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
       const ::SampleTracker::ModuleData::RWPtr modData = boost::make_shared< ::SampleTracker::ModuleData>();
       const std::auto_ptr<Formats::Chiptune::Digital::Builder> builder = ::SampleTracker::DataBuilder::Create< ::SampleTracker::CHANNELS_COUNT>(modData, properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(*data, *builder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(modData, properties, ::SampleTracker::CHANNELS_COUNT);
+        properties.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(modData, properties.GetResult(), ::SampleTracker::CHANNELS_COUNT);
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();

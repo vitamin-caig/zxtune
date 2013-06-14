@@ -178,7 +178,7 @@ namespace
   class PSGChiptune : public AYM::Chiptune
   {
   public:
-    PSGChiptune(ChunksSet::Ptr data, ModuleProperties::Ptr properties)
+    PSGChiptune(ChunksSet::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateStreamInfo(Data->Count()))
@@ -190,7 +190,7 @@ namespace
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -202,7 +202,7 @@ namespace
     }
   private:
     const ChunksSet::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
@@ -233,18 +233,17 @@ namespace
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
       using namespace Formats::Chiptune;
       Builder builder;
       if (const Container::Ptr container = PSG::Parse(*data, builder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
+        properties.SetSource(container);
         const ChunksSet::Ptr data = builder.Result();
         if (data->Count())
         {
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, properties);
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, properties.GetResult());
           return AYM::CreateHolder(chiptune);
         }
       }

@@ -140,8 +140,7 @@ namespace ETracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  std::auto_ptr<Formats::Chiptune::ETracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
-  SAA::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
+  SAA::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
 }
 
 namespace ETracker
@@ -149,7 +148,7 @@ namespace ETracker
   class DataBuilder : public Formats::Chiptune::ETracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
       : Data(data)
       , Properties(props)
       , Builder(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
@@ -159,7 +158,7 @@ namespace ETracker
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return *Properties;
+      return Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -234,7 +233,7 @@ namespace ETracker
     }
   private:
     const ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    PropertiesBuilder& Properties;
     PatternsBuilder Builder;
   };
 
@@ -518,7 +517,7 @@ namespace ETracker
   class Chiptune : public SAA::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, SAA::TRACK_CHANNELS))
@@ -530,7 +529,7 @@ namespace ETracker
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -543,19 +542,14 @@ namespace ETracker
     }
   private:
     const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
 
 namespace ETracker
 {
-  std::auto_ptr<Formats::Chiptune::ETracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
-  {
-    return std::auto_ptr<Formats::Chiptune::ETracker::Builder>(new DataBuilder(data, props));
-  }
-
-  SAA::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+  SAA::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
   {
     return boost::make_shared<Chiptune>(data, properties);
   }
@@ -588,15 +582,14 @@ namespace COP
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
     {
       const ::ETracker::ModuleData::RWPtr modData = boost::make_shared< ::ETracker::ModuleData>();
-      const std::auto_ptr<Formats::Chiptune::ETracker::Builder> dataBuilder = ::ETracker::CreateDataBuilder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(*rawData, *dataBuilder))
+      ::ETracker::DataBuilder dataBuilder(modData, properties);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(*rawData, dataBuilder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const SAA::Chiptune::Ptr chiptune = ::ETracker::CreateChiptune(modData, properties);
+        properties.SetSource(container);
+        const SAA::Chiptune::Ptr chiptune = ::ETracker::CreateChiptune(modData, properties.GetResult());
         return SAA::CreateHolder(chiptune);
       }
       return Holder::Ptr();

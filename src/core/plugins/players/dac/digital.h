@@ -64,7 +64,7 @@ namespace ZXTune
 
       class DataBuilder : public Formats::Chiptune::Digital::Builder
       {
-        DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props, const PatternsBuilder& builder)
+        DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props, const PatternsBuilder& builder)
           : Data(data)
           , Properties(props)
           , Builder(builder)
@@ -73,14 +73,14 @@ namespace ZXTune
         }
       public:
         template<uint_t Channels>
-        static std::auto_ptr<Formats::Chiptune::Digital::Builder> Create(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+        static std::auto_ptr<Formats::Chiptune::Digital::Builder> Create(ModuleData::RWPtr data, PropertiesBuilder& props)
         {
           return std::auto_ptr<Formats::Chiptune::Digital::Builder>(new DataBuilder(data, props, PatternsBuilder::Create<Channels>()));
         }
 
         virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
         {
-          return *Properties;
+          return Properties;
         }
 
         virtual void SetInitialTempo(uint_t tempo)
@@ -90,7 +90,7 @@ namespace ZXTune
 
         virtual void SetSamplesFrequency(uint_t freq)
         {
-          Properties->SetSamplesFreq(freq);
+          Properties.SetSamplesFreq(freq);
         }
 
         virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr content, bool is4Bit)
@@ -133,7 +133,7 @@ namespace ZXTune
         }
       private:
         const ModuleData::RWPtr Data;
-        const ModuleProperties::RWPtr Properties;
+        PropertiesBuilder& Properties;
         PatternsBuilder Builder;
       };
 

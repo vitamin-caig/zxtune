@@ -86,7 +86,7 @@ namespace
   class Builder : public Formats::Chiptune::YM::Builder
   {
   public:
-    explicit Builder(ModuleProperties& props)
+    explicit Builder(PropertiesBuilder& props)
       : Props(props)
       , Loop(0)
       , Data(new ChunksArray())
@@ -95,17 +95,17 @@ namespace
 
     virtual void SetVersion(const String& version)
     {
-      Props.GetInternalContainer()->SetValue(ATTR_VERSION, version);
+      Props.SetVersion(version);
     }
 
     virtual void SetChipType(bool ym)
     {
-      Props.GetInternalContainer()->SetValue(Parameters::ZXTune::Core::AYM::TYPE, ym ? 1 : 0);
+      Props.SetValue(Parameters::ZXTune::Core::AYM::TYPE, ym ? 1 : 0);
     }
 
     virtual void SetStereoMode(uint_t mode)
     {
-      Props.GetInternalContainer()->SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, VtxMode2AymLayout(mode));
+      Props.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, VtxMode2AymLayout(mode));
     }
 
     virtual void SetLoop(uint_t loop)
@@ -120,12 +120,12 @@ namespace
 
     virtual void SetClockrate(uint64_t freq)
     {
-      Props.GetInternalContainer()->SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, freq);
+      Props.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, freq);
     }
 
     virtual void SetIntFreq(uint_t freq)
     {
-      Props.GetInternalContainer()->SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
+      Props.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
     }
 
     virtual void SetTitle(const String& title)
@@ -147,7 +147,7 @@ namespace
     {
       if (year)
       {
-        Props.GetInternalContainer()->SetValue(ATTR_DATE, year);
+        Props.SetValue(ATTR_DATE, year);
       }
     }
 
@@ -176,7 +176,7 @@ namespace
       }
     }
 
-    ChunksSet::Ptr Result() const
+    ChunksSet::Ptr GetResult() const
     {
       return ChunksSet::Ptr(new ChunksSet(Data));
     }
@@ -192,7 +192,7 @@ namespace
       return Data->back();
     }
   private:
-    ModuleProperties& Props;
+    PropertiesBuilder& Props;
     uint_t Loop;
     mutable std::auto_ptr<ChunksArray> Data;
   };
@@ -273,7 +273,7 @@ namespace
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(ChunksSet::Ptr data, ModuleProperties::Ptr properties, uint_t loopFrame)
+    Chiptune(ChunksSet::Ptr data, Parameters::Accessor::Ptr properties, uint_t loopFrame)
       : Data(data)
       , Properties(properties)
       , Info(CreateStreamInfo(Data->Count(), loopFrame))
@@ -285,7 +285,7 @@ namespace
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -297,7 +297,7 @@ namespace
     }
   private:
     const ChunksSet::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
@@ -328,18 +328,17 @@ namespace VTX
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
       using namespace Formats::Chiptune;
-      Builder builder(*properties);
+      Builder builder(properties);
       if (const Container::Ptr container = YM::ParseVTX(*data, builder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const ChunksSet::Ptr data = builder.Result();
+        properties.SetSource(container);
+        const ChunksSet::Ptr data = builder.GetResult();
         if (data->Count())
         {
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, properties, builder.GetLoop());
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, properties.GetResult(), builder.GetLoop());
           return AYM::CreateHolder(chiptune);
         }
       }
@@ -376,17 +375,16 @@ namespace YM
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
-      Builder builder(*properties);
+      Builder builder(properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::YM::ParseYM(*data, builder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const ChunksSet::Ptr data = builder.Result();
+        properties.SetSource(container);
+        const ChunksSet::Ptr data = builder.GetResult();
         if (data->Count())
         {
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, properties, builder.GetLoop());
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, properties.GetResult(), builder.GetLoop());
           return AYM::CreateHolder(chiptune);
         }
       }

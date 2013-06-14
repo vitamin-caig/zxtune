@@ -65,7 +65,7 @@ namespace
   class Builder : public Formats::Chiptune::TFD::Builder
   {
   public:
-   explicit Builder(ModuleProperties& props)
+   explicit Builder(PropertiesBuilder& props)
     : Props(props)
     , Loop(0)
     , Chip(0)
@@ -139,7 +139,7 @@ namespace
       std::fill_n(std::back_inserter(*Data), count, Devices::TFM::DataChunk());
     }
   private:
-    ModuleProperties& Props;
+    PropertiesBuilder& Props;
     uint_t Loop;
     mutable std::auto_ptr<ChunksArray> Data;
     uint_t Chip;
@@ -213,7 +213,7 @@ namespace
   class TFDChiptune : public TFM::Chiptune
   {
   public:
-    TFDChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    TFDChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateStreamInfo(Data->Count(), data->Loop()))
@@ -225,7 +225,7 @@ namespace
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -237,7 +237,7 @@ namespace
     }
   private:
     const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
@@ -268,17 +268,16 @@ namespace TFD
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
     {
-      Builder builder(*properties);
+      Builder builder(properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFD::Parse(*data, builder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
+        properties.SetSource(container);
         const ModuleData::Ptr data = builder.GetResult();
         if (data->Count())
         {
-          const TFM::Chiptune::Ptr chiptune = boost::make_shared<TFDChiptune>(data, properties);
+          const TFM::Chiptune::Ptr chiptune = boost::make_shared<TFDChiptune>(data, properties.GetResult());
           return TFM::CreateHolder(chiptune);
         }
       }

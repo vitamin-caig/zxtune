@@ -15,7 +15,6 @@ Author:
 
 //local includes
 #include "aym_parameters.h"
-#include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
 //common includes
 #include <error.h>
@@ -110,7 +109,7 @@ namespace ZXTune
         virtual ~Chiptune() {}
 
         virtual Information::Ptr GetInformation() const = 0;
-        virtual ModuleProperties::Ptr GetProperties() const = 0;
+        virtual Parameters::Accessor::Ptr GetProperties() const = 0;
         virtual AYM::DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
       };
 

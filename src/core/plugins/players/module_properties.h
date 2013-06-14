@@ -27,22 +27,35 @@ namespace ZXTune
 
   namespace Module
   {
-    class ModuleProperties : public Parameters::Accessor, public Formats::Chiptune::MetaBuilder
+    class PropertiesBuilder : public Parameters::Visitor, public Formats::Chiptune::MetaBuilder
     {
     public:
-      typedef boost::shared_ptr<const ModuleProperties> Ptr;
-      typedef boost::shared_ptr<ModuleProperties> RWPtr;
+      PropertiesBuilder();
 
-      virtual void SetComment(const String& comment) = 0;
-      virtual void SetFreqtable(const String& table) = 0;
-      virtual void SetSamplesFreq(uint_t freq) = 0;
-      virtual void SetVersion(uint_t major, uint_t minor) = 0;
-      virtual void SetSource(std::size_t usedSize, const ModuleRegion& fixedRegion) = 0;
-      virtual void SetSource(Formats::Chiptune::Container::Ptr source) = 0;
+      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val);
+      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val);
+      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val);
 
-      virtual Parameters::Modifier::Ptr GetInternalContainer() const = 0;
+      virtual void SetProgram(const String& program);
+      virtual void SetTitle(const String& title);
+      virtual void SetAuthor(const String& author);
 
-      static RWPtr Create(const String& type, DataLocation::Ptr location);
+      void SetType(const String& type);
+      void SetLocation(DataLocation::Ptr location);
+      void SetSource(Binary::Data::Ptr data, std::size_t usedSize, const ModuleRegion& fixedRegion);
+      void SetSource(Formats::Chiptune::Container::Ptr source);
+      void SetComment(const String& comment);
+      void SetFreqtable(const String& table);
+      void SetSamplesFreq(uint_t freq);
+      void SetVersion(uint_t major, uint_t minor);
+      void SetVersion(const String& version);
+
+      Parameters::Accessor::Ptr GetResult() const
+      {
+        return Container;
+      }
+    private:
+      const Parameters::Container::Ptr Container;
     };
   }
 }

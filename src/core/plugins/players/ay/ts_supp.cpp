@@ -265,7 +265,7 @@ namespace
   class TSHolder : public Holder
   {
   public:
-    TSHolder(ModuleProperties::Ptr props, const AYM::Holder::Ptr& holder1, const AYM::Holder::Ptr& holder2)
+    TSHolder(Parameters::Accessor::Ptr props, const AYM::Holder::Ptr& holder1, const AYM::Holder::Ptr& holder2)
       : Properties(props)
       , Holder1(holder1), Holder2(holder2)
       , Info(new MergedModuleInfo(Holder1->GetModuleInformation(), Holder2->GetModuleInformation()))
@@ -296,7 +296,7 @@ namespace
       return CreateTSRenderer(renderer1, renderer2);
     }
   private:
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const AYM::Holder::Ptr Holder1;
     const AYM::Holder::Ptr Holder2;
     const Information::Ptr Info;
@@ -382,9 +382,11 @@ namespace
         Dbg("Failed to create second module holder");
         return Analysis::CreateUnmatchedResult(dataSize);
       }
-      const ModuleProperties::RWPtr properties = ModuleProperties::Create(ID, inputData);
-      properties->SetSource(dataSize, ModuleRegion(0, dataSize));
-      const Module::Holder::Ptr holder(new TSHolder(properties, holder1, holder2));
+      PropertiesBuilder properties;
+      properties.SetType(ID);
+      properties.SetLocation(inputData);
+      properties.SetSource(data, dataSize, ModuleRegion(0, dataSize));
+      const Module::Holder::Ptr holder(new TSHolder(properties.GetResult(), holder1, holder2));
       callback.ProcessModule(inputData, holder);
       return Analysis::CreateMatchedResult(dataSize);
     }

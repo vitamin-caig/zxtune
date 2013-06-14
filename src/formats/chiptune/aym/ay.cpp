@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "ay.h"
+#include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -174,39 +175,6 @@ namespace AY
     const RangeChecker::Ptr Ranges;
     const uint8_t* const Start;
     const uint8_t* const Finish;
-  };
-
-  class Container : public Formats::Chiptune::Container
-  {
-  public:
-    Container(Binary::Container::Ptr delegate, uint_t crc)
-      : Delegate(delegate)
-      , Checksum(crc)
-    {
-    }
-
-    virtual const void* Start() const
-    {
-      return Delegate->Start();
-    }
-
-    virtual std::size_t Size() const
-    {
-      return Delegate->Size();
-    }
-
-    virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
-    {
-      return Delegate->GetSubcontainer(offset, size);
-    }
-
-    virtual uint_t FixedChecksum() const
-    {
-      return Checksum;
-    }
-  private:
-    const Binary::Container::Ptr Delegate;
-    const uint_t Checksum;
   };
 
   class StubBuilder : public Builder
@@ -550,7 +518,7 @@ namespace AY
         }
       }
       const Binary::Container::Ptr containerData = rawData.GetSubcontainer(0, data.GetSize());
-      return boost::make_shared<Container>(containerData, crc);
+      return CreateKnownCrcContainer(containerData, crc);
     }
     catch (const std::exception&)
     {

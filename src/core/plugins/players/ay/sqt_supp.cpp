@@ -446,7 +446,7 @@ namespace SQTracker
     mutable PatternsSet::Ptr FlatPatterns;
   };
 
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
 }
 
 namespace SQTracker
@@ -476,17 +476,17 @@ namespace SQTracker
   class DataBuilder : public Formats::Chiptune::SQTracker::Builder
   {
   public:
-    explicit DataBuilder(ModuleProperties::RWPtr props)
+    explicit DataBuilder(PropertiesBuilder& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
       , Builder(SingleChannelPatternsBuilder::Create())
     {
-      Properties->SetFreqtable(TABLE_SQTRACKER);
+      Properties.SetFreqtable(TABLE_SQTRACKER);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return *Properties;
+      return Properties;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::SQTracker::Sample& sample)
@@ -575,7 +575,7 @@ namespace SQTracker
     }
   private:
     const ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    PropertiesBuilder& Properties;
     SingleChannelPatternsBuilder Builder;
     std::vector<Formats::Chiptune::SQTracker::PositionEntry> Positions;
     uint_t Loop;
@@ -819,7 +819,7 @@ namespace SQTracker
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
@@ -831,7 +831,7 @@ namespace SQTracker
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -844,14 +844,14 @@ namespace SQTracker
     }
   private:
     const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
 
 namespace SQTracker
 {
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
   {
     return boost::make_shared<Chiptune>(data, properties);
   }
@@ -884,15 +884,14 @@ namespace SQT
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
     {
       ::SQTracker::DataBuilder dataBuilder(properties);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(*rawData, dataBuilder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
+        properties.SetSource(container);
         const ::SQTracker::ModuleData::Ptr modData = dataBuilder.GetResult();
-        const AYM::Chiptune::Ptr chiptune = ::SQTracker::CreateChiptune(modData, properties);
+        const AYM::Chiptune::Ptr chiptune = ::SQTracker::CreateChiptune(modData, properties.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

@@ -142,8 +142,7 @@ namespace FastTracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  std::auto_ptr<Formats::Chiptune::FastTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props);
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties);
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
 }
 
 namespace FastTracker
@@ -151,38 +150,38 @@ namespace FastTracker
   class DataBuilder : public Formats::Chiptune::FastTracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
+    DataBuilder(ModuleData& data, PropertiesBuilder& props)
       : Data(data)
       , Properties(props)
       , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data->Patterns = Builder.GetPatterns();
-      Properties->SetFreqtable(TABLE_PROTRACKER3_ST);
+      Data.Patterns = Builder.GetPatterns();
+      Properties.SetFreqtable(TABLE_PROTRACKER3_ST);
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      return *Properties;
+      return Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data->InitialTempo = tempo;
+      Data.InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::FastTracker::Sample& sample)
     {
-      Data->Samples.Add(index, Sample(sample));
+      Data.Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::FastTracker::Ornament& ornament)
     {
-      Data->Ornaments.Add(index, Ornament(ornament));
+      Data.Ornaments.Add(index, Ornament(ornament));
     }
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::FastTracker::PositionEntry>& positions, uint_t loop)
     {
-      Data->Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
+      Data.Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
@@ -255,8 +254,8 @@ namespace FastTracker
       Builder.GetChannel().AddCommand(SLIDE_NOTE, int_t(step));
     }
   private:
-    const ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
+    ModuleData& Data;
+    PropertiesBuilder& Properties;
     PatternsBuilder Builder;
   };
 
@@ -598,7 +597,7 @@ namespace FastTracker
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
@@ -610,7 +609,7 @@ namespace FastTracker
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
@@ -623,19 +622,14 @@ namespace FastTracker
     }
   private:
     const ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 }
 
 namespace FastTracker
 {
-  std::auto_ptr<Formats::Chiptune::FastTracker::Builder> CreateDataBuilder(ModuleData::RWPtr data, ModuleProperties::RWPtr props)
-  {
-    return std::auto_ptr<Formats::Chiptune::FastTracker::Builder>(new DataBuilder(data, props));
-  }
-
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ModuleProperties::Ptr properties)
+  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
   {
     return boost::make_shared<Chiptune>(data, properties);
   }
@@ -668,15 +662,14 @@ namespace FTC
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
     {
       const ::FastTracker::ModuleData::RWPtr modData = boost::make_shared< ::FastTracker::ModuleData>();
-      const std::auto_ptr<Formats::Chiptune::FastTracker::Builder> dataBuilder = ::FastTracker::CreateDataBuilder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::FastTracker::Parse(*rawData, *dataBuilder))
+      ::FastTracker::DataBuilder dataBuilder(*modData, properties);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::FastTracker::Parse(*rawData, dataBuilder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::FastTracker::CreateChiptune(modData, properties);
+        properties.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::FastTracker::CreateChiptune(modData, properties.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

@@ -434,35 +434,23 @@ namespace
     bool Looped;
   };
 
-  class AYData : public Formats::Chiptune::AY::Builder
+  class AYData
   {
   public:
+    typedef boost::shared_ptr<AYData> RWPtr;
     typedef boost::shared_ptr<const AYData> Ptr;
 
-    AYData(ModuleProperties::RWPtr properties, uint_t defaultDuration)
-      : Properties(properties)
-      , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
-      , Frames(defaultDuration)
+    AYData()
+      : Frames()
       , Registers()
       , StackPointer()
     {
     }
 
-    ModuleProperties::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    uint_t GetFramesCount() const
-    {
-      return Frames;
-    }
-
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
-      const Binary::Container::Ptr memory = Delegate->Result();
-      const uint8_t* const rawMemory = static_cast<const uint8_t*>(memory->Start());
-      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + memory->Size()), ports);
+      const uint8_t* const rawMemory = static_cast<const uint8_t*>(Memory->Start());
+      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + Memory->Size()), ports);
       Devices::Z80::Registers regs;
       regs.Mask = ~0;
       std::fill(regs.Data.begin(), regs.Data.end(), Registers);
@@ -473,37 +461,53 @@ namespace
       return result;
     }
 
-    //AYDataTarget
+    uint_t Frames;
+    uint16_t Registers;
+    uint16_t StackPointer;
+    Binary::Data::Ptr Memory;
+  };
+
+  class AYDataBuilder : public Formats::Chiptune::AY::Builder
+  {
+  public:
+    explicit AYDataBuilder(PropertiesBuilder& props, uint_t defaultDuration)
+      : Properties(props)
+      , Data(boost::make_shared<AYData>())
+      , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
+    {
+      Data->Frames = defaultDuration;
+    }
+
     virtual void SetTitle(const String& title)
     {
-      Properties->SetTitle(title);
+      Properties.SetTitle(title);
     }
 
     virtual void SetAuthor(const String& author)
     {
-      Properties->SetAuthor(author);
+      Properties.SetAuthor(author);
     }
 
     virtual void SetComment(const String& comment)
     {
-      Properties->SetComment(comment);
+      Properties.SetComment(comment);
     }
 
     virtual void SetDuration(uint_t duration, uint_t fadeout)
     {
-      Frames = duration;
+      Data->Frames = duration;
       if (fadeout)
       {
         Dbg("Using fadeout of %1% frames", fadeout);
         static const Time::Microseconds FADING_STEP(20000);
-        Properties->GetInternalContainer()->SetValue(Parameters::ZXTune::Sound::FADEOUT, FADING_STEP.Get() * fadeout);
+        Properties.SetValue(Parameters::ZXTune::Sound::FADEOUT, FADING_STEP.Get() * fadeout);
       }
     }
 
     virtual void SetRegisters(uint16_t reg, uint16_t sp)
     {
-      Registers = reg;
-      StackPointer = sp;
+      Data->Registers = reg;
+      Data->StackPointer = sp;
     }
 
     virtual void SetRoutines(uint16_t init, uint16_t play)
@@ -515,12 +519,15 @@ namespace
     {
       Delegate->AddBlock(addr, src, size);
     }
+
+    AYData::Ptr GetResult() const
+    {
+      return Data;
+    }
   private:
-    const ModuleProperties::RWPtr Properties;
+    PropertiesBuilder& Properties;
+    const AYData::RWPtr Data;
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
-    uint_t Frames;
-    uint16_t Registers;
-    uint16_t StackPointer;
   };
 
   class ComputerImpl : public Computer
@@ -573,9 +580,10 @@ namespace
   class AYHolder : public AYM::Holder
   {
   public:
-    explicit AYHolder(AYData::Ptr data)
+    AYHolder(AYData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
-      , Info(CreateStreamInfo(Data->GetFramesCount()))
+      , Info(CreateStreamInfo(Data->Frames))
+      , Properties(properties)
     {
     }
 
@@ -586,7 +594,7 @@ namespace
 
     virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      return Data->GetProperties();
+      return Properties;
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
@@ -607,6 +615,7 @@ namespace
   private:
     const AYData::Ptr Data;
     const Information::Ptr Info;
+    const Parameters::Accessor::Ptr Properties;
   };
 }
 
@@ -646,7 +655,7 @@ namespace AYModule
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
     {
       try
       {
@@ -655,12 +664,11 @@ namespace AYModule
         Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
         //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
-        const boost::shared_ptr<AYData> result = boost::make_shared<AYData>(properties, static_cast<uint_t>(defaultDuration));
-        if (Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, *result))
+        AYDataBuilder builder(properties, static_cast<uint_t>(defaultDuration));
+        if (Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, builder))
         {
-          usedSize = container->Size();
-          properties->SetSource(container);
-          return boost::make_shared<AYHolder>(result);
+          properties.SetSource(container);
+          return boost::make_shared<AYHolder>(builder.GetResult(), properties.GetResult());
         }
       }
       catch (const Error&/*e*/)

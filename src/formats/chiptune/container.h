@@ -44,6 +44,11 @@ namespace Formats
       {
         return Delegate->GetSubcontainer(offset, size);
       }
+
+      virtual uint_t Checksum() const
+      {
+        return Crc32(safe_ptr_cast<const uint8_t*>(Delegate->Start()), Delegate->Size());
+      }
     protected:
       const Binary::Container::Ptr Delegate;
     };
