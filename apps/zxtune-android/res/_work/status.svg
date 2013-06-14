@@ -22,6 +22,17 @@
   <defs
      id="defs4">
     <linearGradient
+       id="linearGradient3781">
+      <stop
+         style="stop-color:#696969;stop-opacity:1;"
+         offset="0"
+         id="stop3783" />
+      <stop
+         style="stop-color:#0a0a0a;stop-opacity:1;"
+         offset="1"
+         id="stop3785" />
+    </linearGradient>
+    <linearGradient
        id="linearGradient3856">
       <stop
          style="stop-color:#828282;stop-opacity:1;"
@@ -82,6 +93,16 @@
          result="result2"
          operator="in" />
     </filter>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3781"
+       id="linearGradient3787"
+       x1="45"
+       y1="3"
+       x2="45"
+       y2="123"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.85776464,0,0,0.85776465,10.016575,932.55173)" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -90,11 +111,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8237469"
-     inkscape:cx="14.664323"
-     inkscape:cy="57.482789"
+     inkscape:zoom="3.9933812"
+     inkscape:cx="32.38871"
+     inkscape:cy="63.150816"
      inkscape:document-units="px"
-     inkscape:current-layer="g3836"
+     inkscape:current-layer="v8"
      showgrid="true"
      inkscape:window-width="1280"
      inkscape:window-height="726"
@@ -120,27 +141,33 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Android3"
-     inkscape:groupmode="layer"
-     id="layer1"
+     style="display:inline"
      transform="translate(0,-924.36218)"
-     style="display:none">
+     id="v8"
+     inkscape:groupmode="layer"
+     inkscape:label="Android22">
+    <path
+       style="fill:url(#linearGradient3787);fill-opacity:1;stroke:none"
+       d="m 10.016575,952.28032 c 0,-17.15529 17.155293,-17.15529 17.155293,-17.15529 l 72.909992,0 c 0,0 17.15529,0 17.15529,17.15529 l 0,72.90998 c 0,17.1553 -17.15529,17.1553 -17.15529,17.1553 l -72.909992,0 c 0,0 -17.155293,0 -17.155293,-17.1553 z"
+       id="path3011"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccccc" />
     <path
        style="fill:#ffffff;fill-opacity:1;stroke:none"
-       d="m 76.5,928.36217 0,90.00003 c 0,0 -10,-10 -25,-10 -15,0 -30,10 -30,20 0,10 15,20 30,20 15,0 35,-10 35,-20 l 0,-70.00003 c 0,0 5,0 10,10 5,10 0,25 0,25 0,0 10,-10 10,-20 0,-10 0,-15 -15,-25 -15,-10 -15,-20 -15,-20 z"
-       id="path3045"
+       d="m 75.409961,938.37874 0,73.66046 c 0,0 -9.027803,-8.1844 -22.569508,-8.1844 -13.541704,0 -27.083409,8.1844 -27.083409,16.3689 0,8.1845 13.541705,16.3691 27.083409,16.3691 13.541705,0 31.597311,-8.1846 31.597311,-16.3691 l 0,-57.29147 c 0,0 4.513902,0 9.027803,8.18451 4.513898,8.18449 0,20.46123 0,20.46123 0,0 9.027803,-8.18449 9.027803,-16.36899 0,-8.1845 0,-12.27675 -13.541704,-20.46124 -13.541705,-8.1845 -13.541705,-16.369 -13.541705,-16.369 z"
+       id="path3007"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cczzzcczczzc" />
   </g>
   <g
      style="display:inline"
      transform="translate(0,-924.36218)"
-     id="g3836"
+     id="v9"
      inkscape:groupmode="layer"
      inkscape:label="Android23">
     <path
@@ -149,5 +176,18 @@
        id="path3838"
        d="m 76.5,928.36217 0,90.00003 c 0,0 -10,-10 -25,-10 -15,0 -30,10 -30,20 0,10 15,20 30,20 15,0 35,-10 35,-20 l 0,-70.00003 c 0,0 5,0 10,10 5,10 0,25 0,25 0,0 10,-10 10,-20 0,-10 0,-15 -15,-25 -15,-10 -15,-20 -15,-20 z"
        style="fill:url(#linearGradient3862);fill-opacity:1;fill-rule:nonzero;stroke:none;filter:url(#filter3882)" />
+  </g>
+  <g
+     inkscape:label="Android3"
+     inkscape:groupmode="layer"
+     id="v11"
+     transform="translate(0,-924.36218)"
+     style="display:inline">
+    <path
+       style="fill:#ffffff;fill-opacity:1;stroke:none"
+       d="m 76.5,928.36217 0,90.00003 c 0,0 -10,-10 -25,-10 -15,0 -30,10 -30,20 0,10 15,20 30,20 15,0 35,-10 35,-20 l 0,-70.00003 c 0,0 5,0 10,10 5,10 0,25 0,25 0,0 10,-10 10,-20 0,-10 0,-15 -15,-25 -15,-10 -15,-20 -15,-20 z"
+       id="path3045"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cczzzcczczzc" />
   </g>
 </svg>
