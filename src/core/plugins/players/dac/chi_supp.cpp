@@ -73,12 +73,12 @@ namespace ChipTracker
   class DataBuilder : public Formats::Chiptune::ChipTracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<CHANNELS_COUNT>())
+      , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
-      Data->Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetSamplesFreq(SAMPLES_FREQ);
     }
 
@@ -109,44 +109,49 @@ namespace ChipTracker
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Builder.GetChannel().SetEnabled(true);
-      Builder.GetChannel().SetNote(note);
+      Patterns.GetChannel().SetEnabled(true);
+      Patterns.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetSlide(int_t step)
     {
-      Builder.GetChannel().AddCommand(SLIDE, step);
+      Patterns.GetChannel().AddCommand(SLIDE, step);
     }
 
     virtual void SetSampleOffset(uint_t offset)
     {
-      Builder.GetChannel().AddCommand(SAMPLE_OFFSET, offset);
+      Patterns.GetChannel().AddCommand(SAMPLE_OFFSET, offset);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    const ModuleData::RWPtr Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   struct GlissData
@@ -331,14 +336,13 @@ namespace CHI
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ChipTracker::ModuleData::RWPtr modData = boost::make_shared< ::ChipTracker::ModuleData>();
-      ::ChipTracker::DataBuilder builder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(*data, builder))
+      ::ChipTracker::DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ChipTracker::Chiptune>(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ChipTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();

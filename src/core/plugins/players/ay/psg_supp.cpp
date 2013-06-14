@@ -56,7 +56,7 @@ namespace
     const std::auto_ptr<ChunksArray> Data;  
   };
 
-  class Builder : public Formats::Chiptune::PSG::Builder
+  class DataBuilder : public Formats::Chiptune::PSG::Builder
   {
   public:
     virtual void AddChunks(std::size_t count)
@@ -77,7 +77,7 @@ namespace
       }
     }
 
-    ChunksSet::Ptr Result() const
+    ChunksSet::Ptr GetResult() const
     {
       Allocate(0);
       return ChunksSet::Ptr(new ChunksSet(Data));
@@ -233,17 +233,17 @@ namespace
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
       using namespace Formats::Chiptune;
-      Builder builder;
-      if (const Container::Ptr container = PSG::Parse(*data, builder))
+      DataBuilder dataBuilder;
+      if (const Container::Ptr container = PSG::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const ChunksSet::Ptr data = builder.Result();
+        const ChunksSet::Ptr data = dataBuilder.GetResult();
         if (data->Count())
         {
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, properties.GetResult());
+          propBuilder.SetSource(container);
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, propBuilder.GetResult());
           return AYM::CreateHolder(chiptune);
         }
       }

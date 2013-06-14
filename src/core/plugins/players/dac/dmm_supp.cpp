@@ -198,7 +198,6 @@ namespace DMM
   class ModuleData : public DAC::ModuleData
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
 
@@ -341,7 +340,7 @@ namespace DMM
 
   ModuleData::Ptr Parse(PropertiesBuilder& properties, Binary::Container::Ptr rawData)
   {
-    ModuleData::RWPtr Data = boost::make_shared<ModuleData>();
+    const boost::shared_ptr<ModuleData> Data = boost::make_shared<ModuleData>();
     //assume data is correct
     const Binary::TypedContainer& data(*rawData);
     const Header& header = *data.GetField<Header>(0);
@@ -355,7 +354,7 @@ namespace DMM
     const uint_t patternSize = header.PatternSize;
     {
       PatternsBuilder builder = PatternsBuilder::Create<CHANNELS_COUNT>();
-      Data->Patterns = builder.GetPatterns();
+      Data->Patterns = builder.GetResult();
       for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, PATTERNS_COUNT); ++patIdx)
       {
         const Pattern* const src = safe_ptr_cast<const Pattern*>(&header + 1) + patIdx * patternSize;
@@ -1017,12 +1016,12 @@ namespace
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr data) const
     {
       try
       {
-        const DMM::ModuleData::Ptr modData = DMM::Parse(properties, data);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DMM::Chiptune>(modData, properties.GetResult());
+        const DMM::ModuleData::Ptr modData = DMM::Parse(propBuilder, data);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DMM::Chiptune>(modData, propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       catch (const Error&/*e*/)

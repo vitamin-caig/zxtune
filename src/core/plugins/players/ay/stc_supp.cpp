@@ -48,14 +48,13 @@ namespace STC
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr data) const
     {
-      const ::SoundTracker::ModuleData::RWPtr modData = boost::make_shared< ::SoundTracker::ModuleData>();
-      const std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> dataBuilder = ::SoundTracker::CreateDataBuilder(*modData, properties);
+      const std::auto_ptr< ::SoundTracker::DataBuilder> dataBuilder = ::SoundTracker::CreateDataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SoundTracker::ParseCompiled(*data, *dataBuilder))
       {
-        properties.SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::SoundTracker::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::SoundTracker::CreateChiptune(dataBuilder->GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

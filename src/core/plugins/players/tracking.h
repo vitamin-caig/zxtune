@@ -362,7 +362,7 @@ namespace ZXTune
         return *CurChannel;
       }
 
-      PatternsSet::Ptr GetPatterns() const
+      PatternsSet::Ptr GetResult() const
       {
         return Patterns;
       }

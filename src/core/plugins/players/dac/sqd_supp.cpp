@@ -63,12 +63,12 @@ namespace SQDigitalTracker
   class DataBuilder : public Formats::Chiptune::SQDigitalTracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<CHANNELS_COUNT>())
+      , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
-      Data->Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetSamplesFreq(SAMPLES_FREQ);
     }
 
@@ -94,49 +94,54 @@ namespace SQDigitalTracker
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Builder.GetChannel().SetEnabled(true);
-      Builder.GetChannel().SetNote(note);
+      Patterns.GetChannel().SetEnabled(true);
+      Patterns.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetVolume(uint_t volume)
     {
-      Builder.GetChannel().SetVolume(volume);
+      Patterns.GetChannel().SetVolume(volume);
     }
 
     virtual void SetVolumeSlidePeriod(uint_t period)
     {
-      Builder.GetChannel().AddCommand(VOLUME_SLIDE_PERIOD, period);
+      Patterns.GetChannel().AddCommand(VOLUME_SLIDE_PERIOD, period);
     }
 
     virtual void SetVolumeSlideDirection(int_t direction)
     {
-      Builder.GetChannel().AddCommand(VOLUME_SLIDE, direction);
+      Patterns.GetChannel().AddCommand(VOLUME_SLIDE, direction);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    const ModuleData::RWPtr Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   struct VolumeState
@@ -345,14 +350,13 @@ namespace SQD
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::SQDigitalTracker::ModuleData::RWPtr modData = boost::make_shared< ::SQDigitalTracker::ModuleData>();
-      ::SQDigitalTracker::DataBuilder builder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQDigitalTracker::Parse(*data, builder))
+      ::SQDigitalTracker::DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQDigitalTracker::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::SQDigitalTracker::Chiptune>(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::SQDigitalTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();

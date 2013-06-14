@@ -83,7 +83,6 @@ namespace TFMMusicMaker
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -124,12 +123,12 @@ namespace TFMMusicMaker
   class DataBuilder : public Formats::Chiptune::TFMMusicMaker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<TFM::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<TFM::TRACK_CHANNELS>())
     {
-      Data->Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
@@ -165,138 +164,143 @@ namespace TFMMusicMaker
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetKeyOff()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Builder.GetChannel().SetNote(note);
+      Patterns.GetChannel().SetNote(note);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Builder.GetChannel().SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetInstrument(uint_t ins)
     {
-      Builder.GetChannel().SetSample(ins);
+      Patterns.GetChannel().SetSample(ins);
     }
 
     virtual void SetArpeggio(uint_t add1, uint_t add2)
     {
-      Builder.GetChannel().AddCommand(ARPEGGIO, add1, add2);
+      Patterns.GetChannel().AddCommand(ARPEGGIO, add1, add2);
     }
 
     virtual void SetSlide(int_t step)
     {
-      Builder.GetChannel().AddCommand(TONESLIDE, step);
+      Patterns.GetChannel().AddCommand(TONESLIDE, step);
     }
 
     virtual void SetPortamento(int_t step)
     {
-      Builder.GetChannel().AddCommand(PORTAMENTO, step);
+      Patterns.GetChannel().AddCommand(PORTAMENTO, step);
     }
 
     virtual void SetVibrato(uint_t speed, uint_t depth)
     {
-      Builder.GetChannel().AddCommand(VIBRATO, speed, depth);
+      Patterns.GetChannel().AddCommand(VIBRATO, speed, depth);
     }
 
     virtual void SetTotalLevel(uint_t op, uint_t value)
     {
-      Builder.GetChannel().AddCommand(LEVEL, op, value);
+      Patterns.GetChannel().AddCommand(LEVEL, op, value);
     }
 
     virtual void SetVolumeSlide(uint_t up, uint_t down)
     {
-      Builder.GetChannel().AddCommand(VOLSLIDE, up, down);
+      Patterns.GetChannel().AddCommand(VOLSLIDE, up, down);
     }
 
     virtual void SetSpecialMode(bool on)
     {
-      Builder.GetChannel().AddCommand(SPECMODE, on);
+      Patterns.GetChannel().AddCommand(SPECMODE, on);
     }
 
     virtual void SetToneOffset(uint_t op, uint_t offset)
     {
-      Builder.GetChannel().AddCommand(TONEOFFSET, op, offset);
+      Patterns.GetChannel().AddCommand(TONEOFFSET, op, offset);
     }
 
     virtual void SetMultiple(uint_t op, uint_t val)
     {
-      Builder.GetChannel().AddCommand(MULTIPLE, op, val);
+      Patterns.GetChannel().AddCommand(MULTIPLE, op, val);
     }
 
     virtual void SetOperatorsMixing(uint_t mask)
     {
-      Builder.GetChannel().AddCommand(MIXING, mask);
+      Patterns.GetChannel().AddCommand(MIXING, mask);
     }
 
     virtual void SetLoopStart()
     {
-      Builder.GetChannel().AddCommand(LOOP_START);
+      Patterns.GetChannel().AddCommand(LOOP_START);
     }
 
     virtual void SetLoopEnd(uint_t additionalCount)
     {
-      Builder.GetChannel().AddCommand(LOOP_STOP, additionalCount);
+      Patterns.GetChannel().AddCommand(LOOP_STOP, additionalCount);
     }
 
     virtual void SetPane(uint_t pane)
     {
-      Builder.GetChannel().AddCommand(PANE, pane);
+      Patterns.GetChannel().AddCommand(PANE, pane);
     }
 
     virtual void SetNoteRetrig(uint_t period)
     {
-      Builder.GetChannel().AddCommand(NOTERETRIG, period);
+      Patterns.GetChannel().AddCommand(NOTERETRIG, period);
     }
 
     virtual void SetNoteCut(uint_t quirk)
     {
-      Builder.GetChannel().AddCommand(NOTECUT, quirk);
+      Patterns.GetChannel().AddCommand(NOTECUT, quirk);
     }
 
     virtual void SetNoteDelay(uint_t quirk)
     {
-      Builder.GetChannel().AddCommand(NOTEDELAY, quirk);
+      Patterns.GetChannel().AddCommand(NOTEDELAY, quirk);
     }
 
     virtual void SetDropEffects()
     {
-      Builder.GetChannel().AddCommand(DROPEFFECTS);
+      Patterns.GetChannel().AddCommand(DROPEFFECTS);
     }
 
     virtual void SetFeedback(uint_t val)
     {
-      Builder.GetChannel().AddCommand(FEEDBACK, val);
+      Patterns.GetChannel().AddCommand(FEEDBACK, val);
     }
 
     virtual void SetTempoInterleave(uint_t val)
     {
-      Builder.GetChannel().AddCommand(TEMPO_INTERLEAVE, val);
+      Patterns.GetChannel().AddCommand(TEMPO_INTERLEAVE, val);
     }
 
     virtual void SetTempoValues(uint_t even, uint_t odd)
     {
-      Builder.GetChannel().AddCommand(TEMPO_VALUES, even, odd);
+      Patterns.GetChannel().AddCommand(TEMPO_VALUES, even, odd);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    const ModuleData::RWPtr Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   struct Halftones
@@ -1601,14 +1605,13 @@ namespace TFE
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::TFMMusicMaker::ModuleData::RWPtr modData = boost::make_shared< ::TFMMusicMaker::ModuleData>();
-      ::TFMMusicMaker::DataBuilder dataBuilder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*data, dataBuilder))
+      ::TFMMusicMaker::DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const TFM::Chiptune::Ptr chiptune = ::TFMMusicMaker::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const TFM::Chiptune::Ptr chiptune = ::TFMMusicMaker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return TFM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

@@ -51,7 +51,6 @@ namespace ProDigiTracker
   class ModuleData : public DAC::ModuleData
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     SparsedObjectsStorage<Ornament> Ornaments;
@@ -63,12 +62,12 @@ namespace ProDigiTracker
   class DataBuilder : public Formats::Chiptune::ProDigiTracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<ProDigiTracker::CHANNELS_COUNT>())
+      , Patterns(PatternsBuilder::Create<ProDigiTracker::CHANNELS_COUNT>())
     {
-      Data->Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetSamplesFreq(SAMPLES_FREQ);
     }
 
@@ -99,39 +98,44 @@ namespace ProDigiTracker
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Builder.GetChannel().SetEnabled(true);
-      Builder.GetChannel().SetNote(note);
+      Patterns.GetChannel().SetEnabled(true);
+      Patterns.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    const ModuleData::RWPtr Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   struct OrnamentState
@@ -306,14 +310,13 @@ namespace PDT
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ProDigiTracker::ModuleData::RWPtr modData = boost::make_shared< ::ProDigiTracker::ModuleData>();
-      ::ProDigiTracker::DataBuilder builder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(*data, builder))
+      ::ProDigiTracker::DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ProDigiTracker::Chiptune>(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ProDigiTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();

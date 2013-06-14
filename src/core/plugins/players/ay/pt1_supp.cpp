@@ -82,7 +82,6 @@ namespace ProTracker1
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -120,12 +119,12 @@ namespace ProTracker1
   class DataBuilder : public Formats::Chiptune::ProTracker1::Builder
   {
   public:
-    DataBuilder(ModuleData& data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data.Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetFreqtable(TABLE_PROTRACKER3_ST);
     }
 
@@ -136,74 +135,79 @@ namespace ProTracker1
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data.InitialTempo = tempo;
+      Data->InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker1::Sample& sample)
     {
-      Data.Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker1::Ornament& ornament)
     {
-      Data.Ornaments.Add(index, Ornament(ornament.Lines.begin(), ornament.Lines.end()));
+      Data->Ornaments.Add(index, Ornament(ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data.Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Builder.GetChannel().SetEnabled(true);
-      Builder.GetChannel().SetNote(note);
+      Patterns.GetChannel().SetEnabled(true);
+      Patterns.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Builder.GetChannel().SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Builder.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Builder.GetChannel().AddCommand(NOENVELOPE);
+      Patterns.GetChannel().AddCommand(NOENVELOPE);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    ModuleData& Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   const uint_t LIMITER = ~uint_t(0);
@@ -432,14 +436,13 @@ namespace PT1
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ProTracker1::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker1::ModuleData>();
-      ::ProTracker1::DataBuilder dataBuilder(*modData, properties);
+      ::ProTracker1::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker1::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::ProTracker1::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::ProTracker1::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

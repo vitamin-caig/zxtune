@@ -184,7 +184,6 @@ namespace SQTracker
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -241,7 +240,7 @@ namespace SQTracker
     {
       Dbg("Convert patterns");
       PatternsBuilder builder = PatternsBuilder::Create<AYM::TRACK_CHANNELS>();
-      const PatternsSet::Ptr result = builder.GetPatterns();
+      const PatternsSet::Ptr result = builder.GetResult();
       for (uint_t pos = 0, lim = order.GetSize(); pos != lim; ++pos)
       {
         const uint_t patIdx = order.GetPatternIndex(pos);
@@ -479,7 +478,7 @@ namespace SQTracker
     explicit DataBuilder(PropertiesBuilder& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(SingleChannelPatternsBuilder::Create())
+      , Patterns(SingleChannelPatternsBuilder::Create())
     {
       Properties.SetFreqtable(TABLE_SQTRACKER);
     }
@@ -507,76 +506,76 @@ namespace SQTracker
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void SetTempoAddon(uint_t addon)
     {
-      Builder.GetChannel().AddCommand(TEMPO_ADDON, addon);
+      Patterns.GetChannel().AddCommand(TEMPO_ADDON, addon);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      MutableCell& channel = Builder.GetChannel();
+      MutableCell& channel = Patterns.GetChannel();
       channel.SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetEnabled(true);
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetEnabled(true);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Builder.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetGlissade(int_t val)
     {
-      Builder.GetChannel().AddCommand(GLISS, val);
+      Patterns.GetChannel().AddCommand(GLISS, val);
     }
 
     virtual void SetAttenuation(uint_t att)
     {
-      Builder.GetChannel().AddCommand(ATTENUATION, att);
+      Patterns.GetChannel().AddCommand(ATTENUATION, att);
     }
 
     virtual void SetAttenuationAddon(int_t add)
     {
-      Builder.GetChannel().AddCommand(ATTENUATION_ADDON, add);
+      Patterns.GetChannel().AddCommand(ATTENUATION_ADDON, add);
     }
 
     virtual void SetGlobalAttenuation(uint_t att)
     {
-      Builder.GetChannel().AddCommand(ATTENUATION, att, true);
+      Patterns.GetChannel().AddCommand(ATTENUATION, att, true);
     }
 
     virtual void SetGlobalAttenuationAddon(int_t add)
     {
-      Builder.GetChannel().AddCommand(ATTENUATION_ADDON, add, true);
+      Patterns.GetChannel().AddCommand(ATTENUATION_ADDON, add, true);
     }
 
     ModuleData::Ptr GetResult()
     {
-      Data->RawPatterns = Builder.GetPatterns();
+      Data->RawPatterns = Patterns.GetResult();
       return Data;
     }
   private:
-    const ModuleData::RWPtr Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    SingleChannelPatternsBuilder Builder;
+    SingleChannelPatternsBuilder Patterns;
     std::vector<Formats::Chiptune::SQTracker::PositionEntry> Positions;
     uint_t Loop;
   };
@@ -884,14 +883,13 @@ namespace SQT
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      ::SQTracker::DataBuilder dataBuilder(properties);
+      ::SQTracker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const ::SQTracker::ModuleData::Ptr modData = dataBuilder.GetResult();
-        const AYM::Chiptune::Ptr chiptune = ::SQTracker::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::SQTracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

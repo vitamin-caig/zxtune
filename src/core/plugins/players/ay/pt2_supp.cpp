@@ -88,7 +88,6 @@ namespace ProTracker2
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -126,12 +125,12 @@ namespace ProTracker2
   class DataBuilder : public Formats::Chiptune::ProTracker2::Builder
   {
   public:
-    DataBuilder(ModuleData& data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data.Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetFreqtable(TABLE_PROTRACKER2);
     }
 
@@ -142,43 +141,43 @@ namespace ProTracker2
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data.InitialTempo = tempo;
+      Data->InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker2::Sample& sample)
     {
-      Data.Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker2::Ornament& ornament)
     {
-      Data.Ornaments.Add(index, Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
+      Data->Ornaments.Add(index, Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data.Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      MutableCell& channel = Builder.GetChannel();
+      MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
       if (Command* cmd = channel.FindCommand(GLISS_NOTE))
       {
@@ -192,52 +191,57 @@ namespace ProTracker2
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Builder.GetChannel().SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetGlissade(int_t val)
     {
-      Builder.GetChannel().AddCommand(GLISS, val);
+      Patterns.GetChannel().AddCommand(GLISS, val);
     }
 
     virtual void SetNoteGliss(int_t val, uint_t limit)
     {
-      Builder.GetChannel().AddCommand(GLISS_NOTE, val, limit);
+      Patterns.GetChannel().AddCommand(GLISS_NOTE, val, limit);
     }
 
     virtual void SetNoGliss()
     {
-      Builder.GetChannel().AddCommand(NOGLISS);
+      Patterns.GetChannel().AddCommand(NOGLISS);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Builder.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Builder.GetChannel().AddCommand(NOENVELOPE);
+      Patterns.GetChannel().AddCommand(NOENVELOPE);
     }
 
     virtual void SetNoiseAddon(int_t val)
     {
-      Builder.GetChannel().AddCommand(NOISE_ADD, val);
+      Patterns.GetChannel().AddCommand(NOISE_ADD, val);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    ModuleData& Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   const uint_t LIMITER = ~uint_t(0);
@@ -516,14 +520,13 @@ namespace PT2
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ProTracker2::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker2::ModuleData>();
-      ::ProTracker2::DataBuilder dataBuilder(*modData, properties);
+      ::ProTracker2::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::ProTracker2::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::ProTracker2::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

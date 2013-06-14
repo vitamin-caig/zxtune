@@ -282,7 +282,6 @@ namespace ProSoundCreator
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -320,12 +319,12 @@ namespace ProSoundCreator
   class DataBuilder : public Formats::Chiptune::ProSoundCreator::Builder
   {
   public:
-    DataBuilder(ModuleData& data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data.Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetFreqtable(TABLE_ASM);
     }
 
@@ -336,115 +335,120 @@ namespace ProSoundCreator
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data.InitialTempo = tempo;
+      Data->InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProSoundCreator::Sample& sample)
     {
-      Data.Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProSoundCreator::Ornament& ornament)
     {
-      Data.Ornaments.Add(index, Ornament(ornament));
+      Data->Ornaments.Add(index, Ornament(ornament));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data.Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      MutableCell& channel = Builder.GetChannel();
+      MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
       channel.SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Builder.GetChannel().SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Builder.GetChannel().AddCommand(ENVELOPE, type, value);
+      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetEnvelope()
     {
-      Builder.GetChannel().AddCommand(ENVELOPE);
+      Patterns.GetChannel().AddCommand(ENVELOPE);
     }
 
     virtual void SetNoEnvelope()
     {
-      Builder.GetChannel().AddCommand(NOENVELOPE);
+      Patterns.GetChannel().AddCommand(NOENVELOPE);
     }
 
     virtual void SetNoiseBase(uint_t val)
     {
-      Builder.GetChannel().AddCommand(NOISE_BASE, val);
+      Patterns.GetChannel().AddCommand(NOISE_BASE, val);
     }
 
     virtual void SetBreakSample()
     {
-      Builder.GetChannel().AddCommand(BREAK_SAMPLE);
+      Patterns.GetChannel().AddCommand(BREAK_SAMPLE);
     }
 
     virtual void SetBreakOrnament()
     {
-      Builder.GetChannel().AddCommand(BREAK_ORNAMENT);
+      Patterns.GetChannel().AddCommand(BREAK_ORNAMENT);
     }
 
     virtual void SetNoOrnament()
     {
-      Builder.GetChannel().AddCommand(NO_ORNAMENT);
+      Patterns.GetChannel().AddCommand(NO_ORNAMENT);
     }
 
     virtual void SetGliss(uint_t absStep)
     {
-      Builder.GetChannel().AddCommand(GLISS, absStep);
+      Patterns.GetChannel().AddCommand(GLISS, absStep);
     }
 
     virtual void SetSlide(int_t delta)
     {
-      Builder.GetChannel().AddCommand(SLIDE, delta);
+      Patterns.GetChannel().AddCommand(SLIDE, delta);
     }
 
     virtual void SetVolumeSlide(uint_t period, int_t delta)
     {
-      Builder.GetChannel().AddCommand(VOLUME_SLIDE, period, delta);
+      Patterns.GetChannel().AddCommand(VOLUME_SLIDE, period, delta);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    ModuleData& Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   struct ChannelState
@@ -774,14 +778,13 @@ namespace PSC
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ProSoundCreator::ModuleData::RWPtr modData = boost::make_shared< ::ProSoundCreator::ModuleData>();
-      ::ProSoundCreator::DataBuilder dataBuilder(*modData, properties);
+      ::ProSoundCreator::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProSoundCreator::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::ProSoundCreator::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::ProSoundCreator::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

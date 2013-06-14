@@ -152,11 +152,11 @@ namespace
     const ChiptuneDataPtr Data;  
   };
 
-  class Builder : public Formats::Chiptune::TFC::Builder
+  class DataBuilder : public Formats::Chiptune::TFC::Builder
   {
   public:
-    explicit Builder(PropertiesBuilder& props)
-     : Props(props)
+    explicit DataBuilder(PropertiesBuilder& props)
+     : Properties(props)
      , Data(new ChiptuneData())
      , Channel(0)
     {
@@ -164,27 +164,27 @@ namespace
 
     virtual void SetVersion(const String& version)
     {
-      Props.SetProgram(Text::TFC_COMPILER_VERSION + version);
+      Properties.SetProgram(Text::TFC_COMPILER_VERSION + version);
     }
 
     virtual void SetIntFreq(uint_t freq)
     {
-      Props.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
+      Properties.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
     }
 
     virtual void SetTitle(const String& title)
     {
-      Props.SetTitle(title);
+      Properties.SetTitle(title);
     }
 
     virtual void SetAuthor(const String& author)
     {
-      Props.SetAuthor(author);
+      Properties.SetAuthor(author);
     }
 
     virtual void SetComment(const String& comment)
     {
-      Props.SetComment(comment);
+      Properties.SetComment(comment);
     }
 
     virtual void StartChannel(uint_t idx)
@@ -250,7 +250,7 @@ namespace
       return (*Data)[Channel];
     }
   private:
-    PropertiesBuilder& Props;
+    PropertiesBuilder& Properties;
     mutable ChiptuneDataPtr Data;
     uint_t Channel;
     uint_t Frequency[6];
@@ -385,16 +385,16 @@ namespace TFC
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      Builder builder(properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFC::Parse(*data, builder))
+      DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFC::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const ModuleData::Ptr data = builder.GetResult();
+        const ModuleData::Ptr data = dataBuilder.GetResult();
         if (data->Count())
         {
-          const TFM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, properties.GetResult());
+          propBuilder.SetSource(container);
+          const TFM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, propBuilder.GetResult());
           return TFM::CreateHolder(chiptune);
         }
       }

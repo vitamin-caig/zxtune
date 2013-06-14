@@ -33,7 +33,6 @@ namespace ZXTune
       class ModuleData : public TrackModel
       {
       public:
-        typedef boost::shared_ptr<ModuleData> RWPtr;
         typedef boost::shared_ptr<const ModuleData> Ptr;
 
         ModuleData()
@@ -64,18 +63,18 @@ namespace ZXTune
 
       class DataBuilder : public Formats::Chiptune::Digital::Builder
       {
-        DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props, const PatternsBuilder& builder)
-          : Data(data)
+        DataBuilder(PropertiesBuilder& props, const PatternsBuilder& builder)
+          : Data(boost::make_shared<ModuleData>())
           , Properties(props)
-          , Builder(builder)
+          , Patterns(builder)
         {
-          Data->Patterns = Builder.GetPatterns();
+          Data->Patterns = Patterns.GetResult();
         }
       public:
         template<uint_t Channels>
-        static std::auto_ptr<Formats::Chiptune::Digital::Builder> Create(ModuleData::RWPtr data, PropertiesBuilder& props)
+        static std::auto_ptr<DataBuilder> Create(PropertiesBuilder& props)
         {
-          return std::auto_ptr<Formats::Chiptune::Digital::Builder>(new DataBuilder(data, props, PatternsBuilder::Create<Channels>()));
+          return std::auto_ptr<DataBuilder>(new DataBuilder(props, PatternsBuilder::Create<Channels>()));
         }
 
         virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
@@ -107,34 +106,39 @@ namespace ZXTune
 
         virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
         {
-          Builder.SetPattern(index);
-          return Builder;
+          Patterns.SetPattern(index);
+          return Patterns;
         }
 
         virtual void StartChannel(uint_t index)
         {
-          Builder.SetChannel(index);
+          Patterns.SetChannel(index);
         }
 
         virtual void SetRest()
         {
-          Builder.GetChannel().SetEnabled(false);
+          Patterns.GetChannel().SetEnabled(false);
         }
 
         virtual void SetNote(uint_t note)
         {
-          Builder.GetChannel().SetEnabled(true);
-          Builder.GetChannel().SetNote(note);
+          Patterns.GetChannel().SetEnabled(true);
+          Patterns.GetChannel().SetNote(note);
         }
 
         virtual void SetSample(uint_t sample)
         {
-          Builder.GetChannel().SetSample(sample);
+          Patterns.GetChannel().SetSample(sample);
+        }
+
+        ModuleData::Ptr GetResult() const
+        {
+          return Data;
         }
       private:
-        const ModuleData::RWPtr Data;
+        const boost::shared_ptr<ModuleData> Data;
         PropertiesBuilder& Properties;
-        PatternsBuilder Builder;
+        PatternsBuilder Patterns;
       };
 
       class SimpleDataRenderer : public DAC::DataRenderer

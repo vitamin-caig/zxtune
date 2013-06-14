@@ -109,7 +109,6 @@ namespace ProSoundMaker
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -148,12 +147,12 @@ namespace ProSoundMaker
   class DataBuilder : public Formats::Chiptune::ProSoundMaker::Builder
   {
   public:
-    DataBuilder(ModuleData& data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data.Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetFreqtable(TABLE_PROSOUNDMAKER);
     }
 
@@ -164,64 +163,64 @@ namespace ProSoundMaker
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProSoundMaker::Sample& sample)
     {
-      Data.Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProSoundMaker::Ornament& ornament)
     {
-      Data.Ornaments.Add(index, Ornament(ornament));
+      Data->Ornaments.Add(index, Ornament(ornament));
     }
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::ProSoundMaker::PositionEntry>& positions, uint_t loop)
     {
-      Data.Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
+      Data->Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Builder.GetChannel().SetEnabled(true);
-      Builder.GetChannel().SetNote(note);
+      Patterns.GetChannel().SetEnabled(true);
+      Patterns.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t volume)
     {
-      Builder.GetChannel().SetVolume(volume);
+      Patterns.GetChannel().SetVolume(volume);
     }
 
     virtual void DisableOrnament()
     {
-      Builder.GetChannel().AddCommand(NOORNAMENT);
+      Patterns.GetChannel().AddCommand(NOORNAMENT);
     }
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      MutableCell& channel = Builder.GetChannel();
+      MutableCell& channel = Patterns.GetChannel();
       if (Command* cmd = channel.FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
@@ -234,7 +233,7 @@ namespace ProSoundMaker
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      MutableCell& channel = Builder.GetChannel();
+      MutableCell& channel = Patterns.GetChannel();
       if (Command* cmd = channel.FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);
@@ -247,7 +246,7 @@ namespace ProSoundMaker
 
     virtual void SetEnvelopeNote(uint_t note)
     {
-      MutableCell& channel = Builder.GetChannel();
+      MutableCell& channel = Patterns.GetChannel();
       if (Command* cmd = channel.FindCommand(ENVELOPE))
       {
         cmd->Param3 = int_t(note);
@@ -257,10 +256,15 @@ namespace ProSoundMaker
         channel.AddCommand(ENVELOPE, -1, -1, int_t(note));
       }
     }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
+    }
   private:
-    ModuleData& Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   struct SampleState
@@ -607,14 +611,13 @@ namespace PSM
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ProSoundMaker::ModuleData::RWPtr modData = boost::make_shared< ::ProSoundMaker::ModuleData>();
-      ::ProSoundMaker::DataBuilder dataBuilder(*modData, properties);
+      ::ProSoundMaker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProSoundMaker::ParseCompiled(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::ProSoundMaker::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::ProSoundMaker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

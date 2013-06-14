@@ -131,7 +131,6 @@ namespace ASCSoundMaster
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -169,12 +168,12 @@ namespace ASCSoundMaster
   class DataBuilder : public Formats::Chiptune::ASCSoundMaster::Builder
   {
   public:
-    DataBuilder(ModuleData& data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data.Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetFreqtable(TABLE_ASM);
     }
 
@@ -185,47 +184,47 @@ namespace ASCSoundMaster
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data.InitialTempo = tempo;
+      Data->InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ASCSoundMaster::Sample& sample)
     {
-      Data.Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ASCSoundMaster::Ornament& ornament)
     {
-      Data.Ornaments.Add(index, Ornament(ornament));
+      Data->Ornaments.Add(index, Ornament(ornament));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data.Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      if (!Builder.GetChannel().FindCommand(BREAK_SAMPLE))
+      if (!Patterns.GetChannel().FindCommand(BREAK_SAMPLE))
       {
-        Builder.GetChannel().SetEnabled(true);
+        Patterns.GetChannel().SetEnabled(true);
       }
-      if (Command* cmd = Builder.GetChannel().FindCommand(SLIDE))
+      if (Command* cmd = Patterns.GetChannel().FindCommand(SLIDE))
       {
         //set slide to note
         cmd->Type = SLIDE_NOTE;
@@ -233,99 +232,103 @@ namespace ASCSoundMaster
       }
       else
       {
-        Builder.GetChannel().SetNote(note);
+        Patterns.GetChannel().SetNote(note);
       }
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Builder.GetChannel().SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetEnvelopeType(uint_t type)
     {
-      if (Command* cmd = Builder.GetChannel().FindCommand(ENVELOPE))
+      if (Command* cmd = Patterns.GetChannel().FindCommand(ENVELOPE))
       {
         cmd->Param1 = int_t(type);
       }
       else
       {
-        Builder.GetChannel().AddCommand(ENVELOPE, int_t(type), -1);
+        Patterns.GetChannel().AddCommand(ENVELOPE, int_t(type), -1);
       }
     }
 
     virtual void SetEnvelopeTone(uint_t tone)
     {
-      if (Command* cmd = Builder.GetChannel().FindCommand(ENVELOPE))
+      if (Command* cmd = Patterns.GetChannel().FindCommand(ENVELOPE))
       {
         cmd->Param2 = int_t(tone);
       }
       else
       {
         //strange situation
-        Builder.GetChannel().AddCommand(ENVELOPE, -1, int_t(tone));
+        Patterns.GetChannel().AddCommand(ENVELOPE, -1, int_t(tone));
       }
     }
 
     virtual void SetEnvelope()
     {
-      Builder.GetChannel().AddCommand(ENVELOPE_ON);
+      Patterns.GetChannel().AddCommand(ENVELOPE_ON);
     }
 
     virtual void SetNoEnvelope()
     {
-      Builder.GetChannel().AddCommand(ENVELOPE_OFF);
+      Patterns.GetChannel().AddCommand(ENVELOPE_OFF);
     }
 
     virtual void SetNoise(uint_t val)
     {
-      Builder.GetChannel().AddCommand(NOISE, val);
+      Patterns.GetChannel().AddCommand(NOISE, val);
     }
 
     virtual void SetContinueSample()
     {
-      Builder.GetChannel().AddCommand(CONT_SAMPLE);
+      Patterns.GetChannel().AddCommand(CONT_SAMPLE);
     }
 
     virtual void SetContinueOrnament()
     {
-      Builder.GetChannel().AddCommand(CONT_ORNAMENT);
+      Patterns.GetChannel().AddCommand(CONT_ORNAMENT);
     }
 
     virtual void SetGlissade(int_t val)
     {
-      Builder.GetChannel().AddCommand(GLISS, val);
+      Patterns.GetChannel().AddCommand(GLISS, val);
     }
 
     virtual void SetSlide(int_t steps)
     {
-      Builder.GetChannel().AddCommand(SLIDE, steps);
+      Patterns.GetChannel().AddCommand(SLIDE, steps);
     }
 
     virtual void SetVolumeSlide(uint_t period, int_t delta)
     {
-      Builder.GetChannel().AddCommand(AMPLITUDE_SLIDE, period, delta);
+      Patterns.GetChannel().AddCommand(AMPLITUDE_SLIDE, period, delta);
     }
 
     virtual void SetBreakSample()
     {
-      Builder.GetChannel().AddCommand(BREAK_SAMPLE);
+      Patterns.GetChannel().AddCommand(BREAK_SAMPLE);
     }
 
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
+    }
   private:
-    ModuleData& Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   const uint_t LIMITER(~uint_t(0));
@@ -708,14 +711,13 @@ namespace ASC
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ASCSoundMaster::ModuleData::RWPtr modData = boost::make_shared< ::ASCSoundMaster::ModuleData>();
-      ::ASCSoundMaster::DataBuilder dataBuilder(*modData, properties);
+      ::ASCSoundMaster::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::ASCSoundMaster::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::ASCSoundMaster::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

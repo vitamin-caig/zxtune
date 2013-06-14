@@ -437,7 +437,6 @@ namespace
   class AYData
   {
   public:
-    typedef boost::shared_ptr<AYData> RWPtr;
     typedef boost::shared_ptr<const AYData> Ptr;
 
     AYData()
@@ -526,7 +525,7 @@ namespace
     }
   private:
     PropertiesBuilder& Properties;
-    const AYData::RWPtr Data;
+    const boost::shared_ptr<AYData> Data;
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
   };
 
@@ -655,7 +654,7 @@ namespace AYModule
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
       try
       {
@@ -664,11 +663,11 @@ namespace AYModule
         Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
         //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
-        AYDataBuilder builder(properties, static_cast<uint_t>(defaultDuration));
+        AYDataBuilder builder(propBuilder, static_cast<uint_t>(defaultDuration));
         if (Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, builder))
         {
-          properties.SetSource(container);
-          return boost::make_shared<AYHolder>(builder.GetResult(), properties.GetResult());
+          propBuilder.SetSource(container);
+          return boost::make_shared<AYHolder>(builder.GetResult(), propBuilder.GetResult());
         }
       }
       catch (const Error&/*e*/)

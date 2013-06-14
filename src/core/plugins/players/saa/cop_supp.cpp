@@ -110,7 +110,6 @@ namespace ETracker
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -148,12 +147,12 @@ namespace ETracker
   class DataBuilder : public Formats::Chiptune::ETracker::Builder
   {
   public:
-    DataBuilder(ModuleData::RWPtr data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
     {
-      Data->Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
@@ -183,58 +182,63 @@ namespace ETracker
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Builder.GetChannel().SetNote(note);
+      Patterns.GetChannel().SetNote(note);
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetAttenuation(uint_t vol)
     {
-      Builder.GetChannel().SetVolume(15 - vol);
+      Patterns.GetChannel().SetVolume(15 - vol);
     }
 
     virtual void SetSwapSampleChannels(bool swapChannels)
     {
-      Builder.GetChannel().AddCommand(SWAPCHANNELS, swapChannels);
+      Patterns.GetChannel().AddCommand(SWAPCHANNELS, swapChannels);
     }
 
     virtual void SetEnvelope(uint_t value)
     {
-      Builder.GetChannel().AddCommand(ENVELOPE, value);
+      Patterns.GetChannel().AddCommand(ENVELOPE, value);
     }
 
     virtual void SetNoise(uint_t type)
     {
-      Builder.GetChannel().AddCommand(NOISE, type);
+      Patterns.GetChannel().AddCommand(NOISE, type);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    const ModuleData::RWPtr Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   template<class Object>
@@ -582,14 +586,13 @@ namespace COP
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ETracker::ModuleData::RWPtr modData = boost::make_shared< ::ETracker::ModuleData>();
-      ::ETracker::DataBuilder dataBuilder(modData, properties);
+      ::ETracker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const SAA::Chiptune::Ptr chiptune = ::ETracker::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const SAA::Chiptune::Ptr chiptune = ::ETracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return SAA::CreateHolder(chiptune);
       }
       return Holder::Ptr();

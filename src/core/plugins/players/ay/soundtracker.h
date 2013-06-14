@@ -73,7 +73,6 @@ namespace SoundTracker
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -103,7 +102,13 @@ namespace SoundTracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  std::auto_ptr<Formats::Chiptune::SoundTracker::Builder> CreateDataBuilder(ModuleData& data, PropertiesBuilder& props);
+  class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
+  {
+  public:
+    virtual ModuleData::Ptr GetResult() const = 0;
+  };
+
+  std::auto_ptr<DataBuilder> CreateDataBuilder(PropertiesBuilder& propBuilder);
 
   AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
 }

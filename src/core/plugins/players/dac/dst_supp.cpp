@@ -59,14 +59,13 @@ namespace DST
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::DigitalStudio::ModuleData::RWPtr modData = boost::make_shared< ::DigitalStudio::ModuleData>();
-      const std::auto_ptr<Formats::Chiptune::Digital::Builder> builder = ::DigitalStudio::DataBuilder::Create< ::DigitalStudio::CHANNELS_COUNT>(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(*data, *builder))
+      const std::auto_ptr< ::DigitalStudio::DataBuilder> dataBuilder = ::DigitalStudio::DataBuilder::Create< ::DigitalStudio::CHANNELS_COUNT>(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(*rawData, *dataBuilder))
       {
-        properties.SetSource(container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(modData, properties.GetResult(), ::DigitalStudio::CHANNELS_COUNT);
+        propBuilder.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), ::DigitalStudio::CHANNELS_COUNT);
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();

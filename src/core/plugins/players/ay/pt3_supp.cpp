@@ -48,14 +48,14 @@ namespace ProTracker3
   class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
   {
   public:
-    DataBuilder(ModuleData& data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
       , PatOffset(0)
       , Version(6)
-      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data.Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
     }
 
     virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
@@ -81,44 +81,44 @@ namespace ProTracker3
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data.InitialTempo = tempo;
+      Data->InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker3::Sample& sample)
     {
       //TODO: use common types
-      Data.Samples.Add(index, Vortex::Sample(sample.Loop, sample.Lines.begin(), sample.Lines.end()));
+      Data->Samples.Add(index, Vortex::Sample(sample.Loop, sample.Lines.begin(), sample.Lines.end()));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker3::Ornament& ornament)
     {
-      Data.Ornaments.Add(index, Vortex::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
+      Data->Ornaments.Add(index, Vortex::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data.Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      MutableCell& channel = Builder.GetChannel();
+      MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
       if (Command* cmd = channel.FindCommand(Vortex::GLISS_NOTE))
       {
@@ -132,75 +132,80 @@ namespace ProTracker3
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Builder.GetChannel().SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetGlissade(uint_t period, int_t val)
     {
-      Builder.GetChannel().AddCommand(Vortex::GLISS, period, val);
+      Patterns.GetChannel().AddCommand(Vortex::GLISS, period, val);
     }
 
     virtual void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/)
     {
       //ignore limit
-      Builder.GetChannel().AddCommand(Vortex::GLISS_NOTE, period, val);
+      Patterns.GetChannel().AddCommand(Vortex::GLISS_NOTE, period, val);
     }
 
     virtual void SetSampleOffset(uint_t offset)
     {
-      Builder.GetChannel().AddCommand(Vortex::SAMPLEOFFSET, offset);
+      Patterns.GetChannel().AddCommand(Vortex::SAMPLEOFFSET, offset);
     }
 
     virtual void SetOrnamentOffset(uint_t offset)
     {
-      Builder.GetChannel().AddCommand(Vortex::ORNAMENTOFFSET, offset);
+      Patterns.GetChannel().AddCommand(Vortex::ORNAMENTOFFSET, offset);
     }
 
     virtual void SetVibrate(uint_t ontime, uint_t offtime)
     {
-      Builder.GetChannel().AddCommand(Vortex::VIBRATE, ontime, offtime);
+      Patterns.GetChannel().AddCommand(Vortex::VIBRATE, ontime, offtime);
     }
 
     virtual void SetEnvelopeSlide(uint_t period, int_t val)
     {
-      Builder.GetChannel().AddCommand(Vortex::SLIDEENV, period, val);
+      Patterns.GetChannel().AddCommand(Vortex::SLIDEENV, period, val);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Builder.GetChannel().AddCommand(Vortex::ENVELOPE, type, value);
+      Patterns.GetChannel().AddCommand(Vortex::ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Builder.GetChannel().AddCommand(Vortex::NOENVELOPE);
+      Patterns.GetChannel().AddCommand(Vortex::NOENVELOPE);
     }
 
     virtual void SetNoiseBase(uint_t val)
     {
-      Builder.GetChannel().AddCommand(Vortex::NOISEBASE, val);
+      Patterns.GetChannel().AddCommand(Vortex::NOISEBASE, val);
     }
 
     uint_t GetPatOffset() const
     {
       return PatOffset;
     }
+
+    ModuleData::RWPtr GetResult() const
+    {
+      return Data;
+    }
   private:
-    ModuleData& Data;
+    const ModuleData::RWPtr Data;
     PropertiesBuilder& Properties;
     uint_t PatOffset;
     uint_t Version;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 }
 
@@ -400,24 +405,24 @@ namespace PT3
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ProTracker3::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker3::ModuleData>();
-      ::ProTracker3::DataBuilder dataBuilder(*modData, properties);
+      ::ProTracker3::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseCompiled(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
+        propBuilder.SetSource(container);
         const uint_t patOffset = dataBuilder.GetPatOffset();
+        const ::ProTracker3::ModuleData::RWPtr modData = dataBuilder.GetResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           //TurboSound modules
-          properties.SetComment(Text::PT3_TURBOSOUND_MODULE);
+          propBuilder.SetComment(Text::PT3_TURBOSOUND_MODULE);
           modData->Patterns = ::ProTracker3::CreateTSPatterns(patOffset, modData->Patterns);
-          return boost::make_shared< ::ProTracker3::TSHolder>(modData, properties.GetResult());
+          return boost::make_shared< ::ProTracker3::TSHolder>(modData, propBuilder.GetResult());
         }
         else
         {
-          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties.GetResult());
+          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, propBuilder.GetResult());
           return AYM::CreateHolder(chiptune);
         }
       }
@@ -454,14 +459,13 @@ namespace Vortex2
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::ProTracker3::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker3::ModuleData>();
-      ::ProTracker3::DataBuilder dataBuilder(*modData, properties);
+      ::ProTracker3::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseVortexTracker2(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();

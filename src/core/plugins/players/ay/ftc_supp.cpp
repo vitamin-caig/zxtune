@@ -112,7 +112,6 @@ namespace FastTracker
   class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
     ModuleData()
@@ -150,12 +149,12 @@ namespace FastTracker
   class DataBuilder : public Formats::Chiptune::FastTracker::Builder
   {
   public:
-    DataBuilder(ModuleData& data, PropertiesBuilder& props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Builder(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
-      Data.Patterns = Builder.GetPatterns();
+      Data->Patterns = Patterns.GetResult();
       Properties.SetFreqtable(TABLE_PROTRACKER3_ST);
     }
 
@@ -166,43 +165,43 @@ namespace FastTracker
 
     virtual void SetInitialTempo(uint_t tempo)
     {
-      Data.InitialTempo = tempo;
+      Data->InitialTempo = tempo;
     }
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::FastTracker::Sample& sample)
     {
-      Data.Samples.Add(index, Sample(sample));
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::FastTracker::Ornament& ornament)
     {
-      Data.Ornaments.Add(index, Ornament(ornament));
+      Data->Ornaments.Add(index, Ornament(ornament));
     }
 
     virtual void SetPositions(const std::vector<Formats::Chiptune::FastTracker::PositionEntry>& positions, uint_t loop)
     {
-      Data.Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
+      Data->Order = boost::make_shared<OrderListWithTransposition>(loop, positions.begin(), positions.end());
     }
 
     virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Builder.SetPattern(index);
-      return Builder;
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Builder.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Builder.GetChannel().SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      MutableCell& channel = Builder.GetChannel();
+      MutableCell& channel = Patterns.GetChannel();
       channel.SetEnabled(true);
       if (Command* cmd = channel.FindCommand(SLIDE_NOTE))
       {
@@ -216,47 +215,52 @@ namespace FastTracker
 
     virtual void SetSample(uint_t sample)
     {
-      Builder.GetChannel().SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Builder.GetChannel().SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Builder.GetChannel().SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t tone)
     {
-      Builder.GetChannel().AddCommand(ENVELOPE, int_t(type), int_t(tone));
+      Patterns.GetChannel().AddCommand(ENVELOPE, int_t(type), int_t(tone));
     }
 
     virtual void SetNoEnvelope()
     {
-      Builder.GetChannel().AddCommand(ENVELOPE_OFF);
+      Patterns.GetChannel().AddCommand(ENVELOPE_OFF);
     }
 
     virtual void SetNoise(uint_t val)
     {
-      Builder.GetChannel().AddCommand(NOISE, val);
+      Patterns.GetChannel().AddCommand(NOISE, val);
     }
 
     virtual void SetSlide(uint_t step)
     {
-      Builder.GetChannel().AddCommand(SLIDE, int_t(step));
+      Patterns.GetChannel().AddCommand(SLIDE, int_t(step));
     }
 
     virtual void SetNoteSlide(uint_t step)
     {
-      Builder.GetChannel().AddCommand(SLIDE_NOTE, int_t(step));
+      Patterns.GetChannel().AddCommand(SLIDE_NOTE, int_t(step));
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    ModuleData& Data;
+    const boost::shared_ptr<ModuleData> Data;
     PropertiesBuilder& Properties;
-    PatternsBuilder Builder;
+    PatternsBuilder Patterns;
   };
 
   template<class Object>
@@ -662,14 +666,13 @@ namespace FTC
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      const ::FastTracker::ModuleData::RWPtr modData = boost::make_shared< ::FastTracker::ModuleData>();
-      ::FastTracker::DataBuilder dataBuilder(*modData, properties);
+      ::FastTracker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::FastTracker::Parse(*rawData, dataBuilder))
       {
-        properties.SetSource(container);
-        const AYM::Chiptune::Ptr chiptune = ::FastTracker::CreateChiptune(modData, properties.GetResult());
+        propBuilder.SetSource(container);
+        const AYM::Chiptune::Ptr chiptune = ::FastTracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();
