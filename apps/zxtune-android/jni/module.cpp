@@ -17,14 +17,14 @@ Author:
 #include "properties.h"
 #include "zxtune.h"
 //library includes
-#include <core/module_detect.h>
+#include <core/module_open.h>
 
 namespace Module
 {
   int Create(Binary::Container::Ptr data)
   {
-    const Parameters::Accessor::Ptr params = Parameters::Container::Create();
-    const ZXTune::Module::Holder::Ptr module = ZXTune::OpenModule(params, data, String());
+    const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
+    const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location);
     Dbg("Module::Create(data=%p)=%p", data.get(), module.get());
     return Storage::Instance().Add(module);
   }
