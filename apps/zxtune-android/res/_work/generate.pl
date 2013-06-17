@@ -8,7 +8,7 @@ my $traits = {
               status =>   {'-ldpi' => '18x18', '-mdpi' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48'},
               status_v8 => {'' => '25x25'},
               status_v9 => {'-ldpi' => '12x19', '-mdpi' => '16x25', '-hdpi' => '24x38'},
-              listicon => {'-ldpi' => '24x24', '-mdpi' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'}
+              icon => {'-ldpi' => '24x24', '-mdpi' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'},
              };
 
 sub convert
@@ -38,8 +38,12 @@ sub convert
   }
 }
 
-convert({source => 'icon.svg', target => 'ic_launcher.png', category => 'launcher'});
+convert({source => 'logo.svg', target => 'ic_launcher.png', category => 'launcher'});
 convert({source => 'status.svg:v11', target => 'ic_stat_notify_play.png', category => 'status', qualifiers => '-v11'});
 convert({source => 'status.svg:v9', target => 'ic_stat_notify_play.png', category => 'status_v9', qualifiers => '-v9'});
 convert({source => 'status.svg:v8', target => 'ic_stat_notify_play.png', category => 'status_v8', qualifiers => '-v8'});
-convert({source => 'folder.svg', target => 'ic_browser_folder.png', category => 'listicon'});
+convert({source => 'folder.svg', target => 'ic_browser_folder.png', category => 'icon'});
+convert({source => 'play.svg', target => 'ic_play.png', category => 'icon'});
+convert({source => 'next.svg', target => 'ic_next.png', category => 'icon'});
+convert({source => 'prev.svg', target => 'ic_prev.png', category => 'icon'});
+convert({source => 'pause.svg', target => 'ic_pause.png', category => 'icon'});
