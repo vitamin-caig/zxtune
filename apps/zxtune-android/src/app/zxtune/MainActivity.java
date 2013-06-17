@@ -73,9 +73,11 @@ public class MainActivity extends FragmentActivity {
     RetainedCallbackSubscriptionFragment.register(manager, transaction);
     transaction.commit();
     final ViewPager pager = (ViewPager) findViewById(R.id.view_pager);
-    final int childs = pager.getChildCount();
-    pager.setOffscreenPageLimit(childs);
-    pager.setAdapter(new Adapter(childs));
+    if (null != pager) {
+      final int childs = pager.getChildCount();
+      pager.setOffscreenPageLimit(childs);
+      pager.setAdapter(new Adapter(childs));
+    }
   }
   
   private void quit() {
