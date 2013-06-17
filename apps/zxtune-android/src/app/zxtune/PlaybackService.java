@@ -7,15 +7,11 @@
 
 package app.zxtune;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Service;
-import android.content.ContentResolver;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
@@ -273,6 +269,7 @@ public class PlaybackService extends Service {
   private static final class PlaybackSamplesSource implements SamplesSource {
 
     private ZXTune.Player player;
+    private volatile TimeStamp seekRequest;
     
     public PlaybackSamplesSource(ZXTune.Player player) {
       this.player = player;
@@ -287,6 +284,11 @@ public class PlaybackService extends Service {
 
     @Override
     public boolean getSamples(short[] buf) {
+      if (seekRequest != null) {
+        final int frame = (int) (seekRequest.convertTo(TimeUnit.MILLISECONDS) / 20);
+        player.setPosition(frame);
+        seekRequest = null;
+      }
       return player.render(buf);
     }
 
@@ -299,8 +301,7 @@ public class PlaybackService extends Service {
 
     @Override
     public void setPosition(TimeStamp pos) {
-      final int frame = (int) (pos.convertTo(TimeUnit.MILLISECONDS) / 20);
-      player.setPosition(frame);
+      seekRequest = pos;
     }
     
     @Override
