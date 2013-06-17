@@ -10,7 +10,6 @@ Author:
 */
 
 //local includes
-#include "data.h"
 #include "debug.h"
 #include "module.h"
 #include "player.h"
@@ -19,11 +18,7 @@ Author:
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Handle_1Close
   (JNIEnv* /*env*/, jclass /*self*/, jint handle)
 {
-  if (Data::Storage::Instance().Fetch(handle))
-  {
-    Dbg("Released data (handle=%1%)", handle);
-  }
-  else if (Module::Storage::Instance().Fetch(handle))
+  if (Module::Storage::Instance().Fetch(handle))
   {
     Dbg("Released module (handle=%1%)", handle);
   }

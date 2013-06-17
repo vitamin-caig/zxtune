@@ -10,13 +10,15 @@ Author:
 */
 
 //local includes
-#include "data.h"
 #include "debug.h"
 #include "module.h"
 #include "player.h"
 #include "properties.h"
 #include "zxtune.h"
+//common includes
+#include <error.h>
 //library includes
+#include <binary/container_factories.h>
 #include <core/module_open.h>
 
 namespace Module
@@ -36,6 +38,17 @@ namespace Module
     }
   }
 }
+
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
+  (JNIEnv* env, jclass /*self*/, jbyteArray buffer)
+{
+  const jsize size = env->GetArrayLength(buffer);
+  std::auto_ptr<Dump> content(new Dump(size));
+  env->GetByteArrayRegion(buffer, 0, size, safe_ptr_cast<jbyte*>(&content->front()));
+  const Binary::Container::Ptr data = Binary::CreateContainer(content);
+  return Module::Create(data);
+}
+
 
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1GetDuration
   (JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)

@@ -101,20 +101,6 @@ public final class ZXTune {
   }
 
   /**
-   * Abstract data storage used to create module upon
-   */
-  public interface Data extends Releaseable {
-
-    /**
-     * Creates new module object
-     * 
-     * @return New module
-     * @throws RuntimeException in case of error
-     */
-    public Module createModule();
-  }
-
-  /**
    * Module interface
    */
   public interface Module extends Releaseable, Properties.Accessor {
@@ -188,8 +174,8 @@ public final class ZXTune {
    * @param Content raw content
    * @return New object
    */
-  public static Data createData(byte[] content) {
-    return new NativeData(content);
+  public static Module loadModule(byte[] content) {
+    return new NativeModule(Module_Create(content));
   }
 
   /**
@@ -210,18 +196,6 @@ public final class ZXTune {
     public void release() {
       Handle_Close(handle);
       handle = 0;
-    }
-  }
-
-  private static final class NativeData extends NativeObject implements Data {
-
-    NativeData(byte[] data) {
-      super(Data_Create(data));
-    }
-
-    @Override
-    public Module createModule() {
-      return new NativeModule(Data_CreateModule(handle));
     }
   }
 
@@ -306,12 +280,9 @@ public final class ZXTune {
   // working with handles
   private static native void Handle_Close(int handle);
 
-  // working with data
-  private static native int Data_Create(byte[] data);
-
-  private static native int Data_CreateModule(int data);
-
   // working with module
+  private static native int Module_Create(byte[] data);
+
   private static native int Module_GetDuration(int module);
 
   private static native long Module_GetProperty(int module, String name, long defVal);

@@ -45,13 +45,7 @@ public class FileIterator extends Iterator {
     
   public static ZXTune.Module loadModule(Uri path) throws IOException {
     final byte[] content = loadFile(path.getPath());
-    final ZXTune.Data data = ZXTune.createData(content);
-    try {
-      final ZXTune.Module module = data.createModule();
-      return module;
-    } finally {
-      data.release();
-    }
+    return ZXTune.loadModule(content);
   }
 
   private static byte[] loadFile(String path) throws IOException {

@@ -17,19 +17,11 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Handle_1Close
 
 /*
  * Class:     app_zxtune_ZXTune
- * Method:    Data_Create
+ * Method:    Module_Create
  * Signature: ([B)I
  */
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Data_1Create
+JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
   (JNIEnv *, jclass, jbyteArray);
-
-/*
- * Class:     app_zxtune_ZXTune
- * Method:    Data_CreateModule
- * Signature: (I)I
- */
-JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Data_1CreateModule
-  (JNIEnv *, jclass, jint);
 
 /*
  * Class:     app_zxtune_ZXTune
@@ -197,17 +189,6 @@ extern "C" {
 }
 #endif
 #endif
-/* Header for class app_zxtune_ZXTune_Data */
-
-#ifndef _Included_app_zxtune_ZXTune_Data
-#define _Included_app_zxtune_ZXTune_Data
-#ifdef __cplusplus
-extern "C" {
-#endif
-#ifdef __cplusplus
-}
-#endif
-#endif
 /* Header for class app_zxtune_ZXTune_Module */
 
 #ifndef _Included_app_zxtune_ZXTune_Module
@@ -245,17 +226,6 @@ extern "C" {
 
 #ifndef _Included_app_zxtune_ZXTune_NativeObject
 #define _Included_app_zxtune_ZXTune_NativeObject
-#ifdef __cplusplus
-extern "C" {
-#endif
-#ifdef __cplusplus
-}
-#endif
-#endif
-/* Header for class app_zxtune_ZXTune_NativeData */
-
-#ifndef _Included_app_zxtune_ZXTune_NativeData
-#define _Included_app_zxtune_ZXTune_NativeData
 #ifdef __cplusplus
 extern "C" {
 #endif
