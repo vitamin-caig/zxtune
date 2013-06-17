@@ -31,33 +31,15 @@ Author:
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/dac/sample_factories.h>
-#include <math/numeric.h>
-#include <sound/mixer_factory.h>
-//std includes
-#include <utility>
-//boost includes
-#include <boost/bind.hpp>
-#include <boost/scoped_ptr.hpp>
-//text includes
-#include <formats/text/chiptune.h>
+#include <formats/chiptune/decoders.h>
+#include <formats/chiptune/digital/digitalmusicmaker.h>
 
-#define FILE_TAG 312C703E
-
-namespace
-{
-  const Debug::Stream Dbg("Core::DMMSupp");
-}
-
-namespace DMM
+namespace DigitalMusicMaker
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
-  const std::size_t MAX_POSITIONS_COUNT = 0x32;
-  const std::size_t MAX_PATTERN_SIZE = 64;
-  const std::size_t PATTERNS_COUNT = 24;
   const std::size_t CHANNELS_COUNT = 3;
-  const std::size_t SAMPLES_COUNT = 16;//15 really
 
   const uint64_t Z80_FREQ = 3500000;
   //119+116+111+10=356 ticks/out cycle = 9831 outs/sec (AY)
@@ -67,81 +49,12 @@ namespace DMM
   const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
   const uint_t RENDERS_PER_SEC = Z80_FREQ / TICKS_PER_CYCLE;
 
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct Pattern
+  inline int_t StepToHz(int_t step)
   {
-    PACK_PRE struct Line
-    {
-      PACK_PRE struct Channel
-      {
-        uint8_t NoteCommand;
-        uint8_t SampleParam;
-        uint8_t Effect;
-      } PACK_POST;
-
-      Channel Channels[CHANNELS_COUNT];
-    } PACK_POST;
-
-    Line Lines[1];//at least 1
-  } PACK_POST;
-
-  PACK_PRE struct SampleInfo
-  {
-    uint8_t Name[9];
-    uint16_t Start;
-    uint8_t Bank;
-    uint16_t Limit;
-    uint16_t Loop;
-  } PACK_POST;
-
-  PACK_PRE struct MixedLine
-  {
-    Pattern::Line::Channel Mixin;
-    uint8_t Period;
-  } PACK_POST;
-
-  PACK_PRE struct Header
-  {
-    //+0
-    boost::array<uint16_t, 6> EndOfBanks;
-    //+0x0c
-    uint8_t PatternSize;
-    //+0x0d
-    uint8_t Padding1;
-    //+0x0e
-    boost::array<uint8_t, 0x32> Positions;
-    //+0x40
-    uint8_t Tempo;
-    //+0x41
-    uint8_t Loop;
-    //+0x42
-    uint8_t Padding2;
-    //+0x43
-    uint8_t Length;
-    //+0x44
-    uint8_t HeaderSizeSectors;
-    //+0x45
-    MixedLine Mixings[5];
-    //+0x59
-    uint8_t Padding3;
-    //+0x5a
-    SampleInfo SampleDescriptions[SAMPLES_COUNT];
-    //+0x15a
-    uint8_t Padding4[4];
-    //+0x15e
-    //patterns starts here
-  } PACK_POST;
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  BOOST_STATIC_ASSERT(sizeof(MixedLine) == 4);
-  BOOST_STATIC_ASSERT(sizeof(SampleInfo) == 16);
-  BOOST_STATIC_ASSERT(sizeof(Header) == 0x15e);
-  BOOST_STATIC_ASSERT(sizeof(Pattern::Line) == 9);
+    //C-1 frequency is 32.7Hz
+    //step * 32.7 / c-1_step
+    return step * 3270 / int_t(C_1_STEP * 100);
+  }
 
   //supported tracking commands
   enum CmdType
@@ -166,35 +79,6 @@ namespace DMM
     MIX_SAMPLE,
   };
 
-  enum
-  {
-    NOTE_BASE = 1,
-    NO_DATA = 70,
-    REST_NOTE = 61,
-    SET_TEMPO = 62,
-    SET_FREQ_FLOAT = 63,
-    SET_VIBRATO = 64,
-    SET_ARPEGGIO = 65,
-    SET_SLIDE = 66,
-    SET_DOUBLE = 67,
-    SET_ATTACK = 68,
-    SET_DECAY = 69,
-
-    FX_FLOAT_UP = 1,
-    FX_FLOAT_DN = 2,
-    FX_VIBRATO = 3,
-    FX_ARPEGGIO = 4,
-    FX_STEP_UP = 5,
-    FX_STEP_DN = 6,
-    FX_DOUBLE = 7,
-    FX_ATTACK = 8,
-    FX_DECAY = 9,
-    FX_MIX = 10,
-    FX_DISABLE = 15
-  };
-
-  const std::size_t SAMPLES_ADDR = 0xc000;
-
   class ModuleData : public DAC::ModuleData
   {
   public:
@@ -214,253 +98,182 @@ namespace DMM
 
     boost::array<MixedChannel, 64> Mixes;
   };
+}
 
-  void ParseChannel(const Pattern::Line::Channel& srcChan, MutableCell& dstChan)
+namespace DigitalMusicMaker
+{
+  class ChannelBuilder : public Formats::Chiptune::DigitalMusicMaker::ChannelBuilder
   {
-    const uint_t note = srcChan.NoteCommand;
-    if (NO_DATA == note)
+  public:
+    explicit ChannelBuilder(MutableCell& cell)
+      : Target(cell)
     {
-      return;
     }
-    if (note < SET_TEMPO)
-    {
-      if (note)
-      {
-        if (note != REST_NOTE)
-        {
-          dstChan.SetEnabled(true);
-          dstChan.SetNote(note - NOTE_BASE);
-        }
-        else
-        {
-          dstChan.SetEnabled(false);
-        }
-      }
-      const uint_t params = srcChan.SampleParam;
-      if (const uint_t sample = params >> 4)
-      {
-        dstChan.SetSample(sample);
-      }
-      if (const uint_t volume = params & 15)
-      {
-        dstChan.SetVolume(volume);
-      }
-      switch (srcChan.Effect)
-      {
-      case 0:
-        break;
-      case FX_FLOAT_UP:
-        dstChan.AddCommand(FREQ_FLOAT, 1);
-        break;
-      case FX_FLOAT_DN:
-        dstChan.AddCommand(FREQ_FLOAT, -1);
-        break;
-      case FX_VIBRATO:
-        dstChan.AddCommand(VIBRATO, true);
-        break;
-      case FX_ARPEGGIO:
-        dstChan.AddCommand(ARPEGGIO, true);
-        break;
-      case FX_STEP_UP:
-        dstChan.AddCommand(TONE_SLIDE, 1);
-        break;
-      case FX_STEP_DN:
-        dstChan.AddCommand(TONE_SLIDE, -1);
-        break;
-      case FX_DOUBLE:
-        dstChan.AddCommand(DOUBLE_NOTE, true);
-        break;
-      case FX_ATTACK:
-        dstChan.AddCommand(VOL_ATTACK, true);
-        break;
-      case FX_DECAY:
-        dstChan.AddCommand(VOL_DECAY, true);
-        break;
-      case FX_DISABLE:
-        dstChan.AddCommand(EMPTY_CMD);
-        break;
-      default:
-        {
-          const uint_t mixNum = srcChan.Effect - FX_MIX;
-          //according to player there can be up to 64 mixins (with enabled 4)
-          dstChan.AddCommand(MIX_SAMPLE, mixNum % 64);
-        }
-        break; 
-      }
-    }
-    else
-    {
-      switch (note)
-      {
-      case SET_TEMPO:
-        break;
-      case SET_FREQ_FLOAT:
-        dstChan.AddCommand(FREQ_FLOAT, 0, srcChan.SampleParam);
-        break;
-      case SET_VIBRATO:
-        dstChan.AddCommand(VIBRATO, false, srcChan.SampleParam, srcChan.Effect);
-        break;
-      case SET_ARPEGGIO:
-        dstChan.AddCommand(ARPEGGIO, false, srcChan.SampleParam, srcChan.Effect);
-        break;
-      case SET_SLIDE:
-        dstChan.AddCommand(TONE_SLIDE, 0, srcChan.SampleParam, srcChan.Effect);
-        break;
-      case SET_DOUBLE:
-        dstChan.AddCommand(DOUBLE_NOTE, false, srcChan.SampleParam);
-        break;
-      case SET_ATTACK:
-        dstChan.AddCommand(VOL_ATTACK, false, srcChan.SampleParam & 15, srcChan.Effect);
-        break;
-      case SET_DECAY:
-        dstChan.AddCommand(VOL_DECAY, false, srcChan.SampleParam & 15, srcChan.Effect);
-        break;
-      }
-    }
-  }
 
-  void ParsePattern(uint_t size, const Pattern& src, PatternsBuilder& builder)
+    virtual void SetRest()
+    {
+      Target.SetEnabled(false);
+    }
+
+    virtual void SetNote(uint_t note)
+    {
+      Target.SetEnabled(true);
+      Target.SetNote(note);
+    }
+
+    virtual void SetSample(uint_t sample)
+    {
+      Target.SetSample(sample);
+    }
+
+    virtual void SetVolume(uint_t volume)
+    {
+      Target.SetVolume(volume);
+    }
+
+    virtual void SetFloat(int_t direction)
+    {
+      Target.AddCommand(FREQ_FLOAT, direction);
+    }
+
+    virtual void SetFloatParam(uint_t step)
+    {
+      Target.AddCommand(FREQ_FLOAT, 0, step);
+    }
+
+    virtual void SetVibrato()
+    {
+      Target.AddCommand(VIBRATO, true);
+    }
+
+    virtual void SetVibratoParams(uint_t step, uint_t period)
+    {
+      Target.AddCommand(VIBRATO, false, step, period);
+    }
+
+    virtual void SetArpeggio()
+    {
+      Target.AddCommand(ARPEGGIO, true);
+    }
+
+    virtual void SetArpeggioParams(uint_t step, uint_t period)
+    {
+      Target.AddCommand(ARPEGGIO, false, step, period);
+    }
+
+    virtual void SetSlide(int_t direction)
+    {
+      Target.AddCommand(TONE_SLIDE, direction);
+    }
+
+    virtual void SetSlideParams(uint_t step, uint_t period)
+    {
+      Target.AddCommand(TONE_SLIDE, 0, step, period);
+    }
+
+    virtual void SetDoubleNote()
+    {
+      Target.AddCommand(DOUBLE_NOTE, true);
+    }
+
+    virtual void SetDoubleNoteParam(uint_t period)
+    {
+      Target.AddCommand(DOUBLE_NOTE, false, period);
+    }
+
+    virtual void SetVolumeAttack()
+    {
+      Target.AddCommand(VOL_ATTACK, true);
+    }
+
+    virtual void SetVolumeAttackParams(uint_t limit, uint_t period)
+    {
+      Target.AddCommand(VOL_ATTACK, false, limit, period);
+    }
+
+    virtual void SetVolumeDecay()
+    {
+      Target.AddCommand(VOL_DECAY, true);
+    }
+
+    virtual void SetVolumeDecayParams(uint_t limit, uint_t period)
+    {
+      Target.AddCommand(VOL_DECAY, false, limit, period);
+    }
+
+    virtual void SetMixSample(uint_t idx)
+    {
+      Target.AddCommand(MIX_SAMPLE, idx);
+    }
+
+    virtual void SetNoEffects()
+    {
+      Target.AddCommand(EMPTY_CMD);
+    }
+  private:
+    MutableCell& Target;
+  };
+
+  class DataBuilder : public Formats::Chiptune::DigitalMusicMaker::Builder
   {
-    for (uint_t lineNum = 0; lineNum != size; ++lineNum)
+  public:
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
+      , Properties(props)
+      , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
-      const Pattern::Line& srcLine = src.Lines[lineNum];
-      builder.SetLine(lineNum);
-      for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
-      {
-        builder.SetChannel(chanNum);
-        const Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-        ParseChannel(srcChan, builder.GetChannel());
-        if (srcChan.NoteCommand == SET_TEMPO && srcChan.SampleParam)
-        {
-          builder.GetLine().SetTempo(srcChan.SampleParam);
-        }
-      }
-    }
-  }
-
-  ModuleData::Ptr Parse(PropertiesBuilder& properties, Binary::Container::Ptr rawData)
-  {
-    const boost::shared_ptr<ModuleData> Data = boost::make_shared<ModuleData>();
-    //assume data is correct
-    const Binary::TypedContainer& data(*rawData);
-    const Header& header = *data.GetField<Header>(0);
-
-    //fill order
-    const uint_t positionsCount = header.Length + 1;
-    Data->Order = boost::make_shared<SimpleOrderList>(header.Loop, header.Positions.begin(), header.Positions.begin() + positionsCount);
-
-    //fill patterns
-    const std::size_t patternsCount = 1 + *std::max_element(header.Positions.begin(), header.Positions.begin() + positionsCount);
-    const uint_t patternSize = header.PatternSize;
-    {
-      PatternsBuilder builder = PatternsBuilder::Create<CHANNELS_COUNT>();
-      Data->Patterns = builder.GetResult();
-      for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, PATTERNS_COUNT); ++patIdx)
-      {
-        const Pattern* const src = safe_ptr_cast<const Pattern*>(&header + 1) + patIdx * patternSize;
-        builder.SetPattern(patIdx);
-        ParsePattern(patternSize, *src, builder);
-      }
+      Data->Patterns = Patterns.GetResult();
+      Properties.SetSamplesFreq(SAMPLES_FREQ);
     }
 
-    //big mixins amount support
-    for (std::size_t mixIdx = 0; mixIdx != 64; ++mixIdx)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      const MixedLine& src = header.Mixings[mixIdx];
-      ModuleData::MixedChannel& dst = Data->Mixes[mixIdx];
-      ParseChannel(src.Mixin, dst.Mixin);
-      dst.Period = src.Period;
+      return Properties;
     }
 
-    const bool is4bitSamples = true;//TODO: detect
-    std::size_t lastData = 256 * header.HeaderSizeSectors;
-
-    //bank => Data
-    typedef std::map<std::size_t, Binary::Container::Ptr> Bank2Data;
-    Bank2Data regions;
-    for (std::size_t layIdx = 0; layIdx != header.EndOfBanks.size(); ++layIdx)
+    virtual void SetInitialTempo(uint_t tempo)
     {
-      static const std::size_t BANKS[] = {0x50, 0x51, 0x53, 0x54, 0x56, 0x57};
-
-      const uint_t bankNum = BANKS[layIdx];
-      const std::size_t bankEnd = fromLE(header.EndOfBanks[layIdx]);
-      if (bankEnd <= SAMPLES_ADDR)
-      {
-        Dbg("Skipping bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
-        continue;
-      }
-      const std::size_t bankSize = bankEnd - SAMPLES_ADDR;
-      const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
-      if (is4bitSamples)
-      {
-        const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
-        const Binary::Container::Ptr packedSample = rawData->GetSubcontainer(lastData, realSize);
-        regions[bankNum] = packedSample;
-        Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
-        lastData += realSize;
-      }
-      else
-      {
-        regions[bankNum] = rawData->GetSubcontainer(lastData, alignedBankSize);
-        Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize, lastData);
-        lastData += alignedBankSize;
-      }
+      Data->InitialTempo = tempo;
     }
 
-    for (uint_t samIdx = 1; samIdx != SAMPLES_COUNT; ++samIdx)
+    virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
     {
-      const SampleInfo& srcSample = header.SampleDescriptions[samIdx - 1];
-      if (srcSample.Name[0] == '.')
-      {
-        Dbg("No sample %1%", samIdx);
-        continue;
-      }
-      const std::size_t sampleStart = fromLE(srcSample.Start);
-      const std::size_t sampleEnd = fromLE(srcSample.Limit);
-      const std::size_t sampleLoop = fromLE(srcSample.Loop);
-      Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank), sampleStart, sampleEnd, sampleLoop);
-      if (sampleStart < SAMPLES_ADDR ||
-          sampleStart > sampleEnd ||
-          sampleStart > sampleLoop)
-      {
-        Dbg("Skipped due to invalid layout");
-        continue;
-      }
-      if (!regions.count(srcSample.Bank))
-      {
-        Dbg("Skipped. No data");
-        continue;
-      }
-      const Binary::Container::Ptr bankData = regions[srcSample.Bank];
-      const std::size_t offsetInBank = sampleStart - SAMPLES_ADDR;
-      const std::size_t limitInBank = sampleEnd - SAMPLES_ADDR;
-      const std::size_t sampleSize = limitInBank - offsetInBank;
-      const uint_t multiplier = is4bitSamples ? 2 : 1;
-      if (limitInBank > multiplier * bankData->Size())
-      {
-        Dbg("Skipped. Not enough data");
-        continue;
-      }
-      const std::size_t realSampleSize = sampleSize >= 12 ? (sampleSize - 12) : sampleSize;
-      if (const Binary::Data::Ptr content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
-      {
-        const std::size_t loop = sampleLoop - sampleStart;
-        Data->Samples.Add(samIdx, is4bitSamples
-          ? Devices::DAC::CreateU4PackedSample(content, loop)
-          : Devices::DAC::CreateU8Sample(content, loop));
-      }
+      Data->Samples.Add(index, Devices::DAC::CreateU4PackedSample(sample, loop));
     }
-    Data->InitialTempo = header.Tempo;
 
-    //meta properties
+    virtual std::auto_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> SetSampleMixin(uint_t index, uint_t period)
     {
-      const ModuleRegion fixedRegion(sizeof(header), sizeof(Pattern::Line) * patternsCount * patternSize);
-      properties.SetSource(rawData, lastData, fixedRegion);
+      ModuleData::MixedChannel& dst = Data->Mixes[index];
+      dst.Period = period;
+      return std::auto_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(dst.Mixin));
     }
-    properties.SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
-    properties.SetSamplesFreq(SAMPLES_FREQ);
-    return Data;
-  }
+
+    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    {
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+    }
+
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    {
+      Patterns.SetPattern(index);
+      return Patterns;
+    }
+
+    virtual std::auto_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder> StartChannel(uint_t index)
+    {
+      Patterns.SetChannel(index);
+      return std::auto_ptr<Formats::Chiptune::DigitalMusicMaker::ChannelBuilder>(new ChannelBuilder(Patterns.GetChannel()));
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
+    }
+  private:
+    const boost::shared_ptr<ModuleData> Data;
+    PropertiesBuilder& Properties;
+    PatternsBuilder Patterns;
+  };
 
   class ChannelState
   {
@@ -608,10 +421,7 @@ namespace DMM
     {
       builder.SetNote(Note);
       builder.SetNoteSlide(NoteSlide);
-      //FreqSlide in 1/256 steps
-      //step 44 is C-1@3.5Mhz AY
-      //C-1 is 32.7 Hz
-      builder.SetFreqSlideHz(FreqSlide * 327 / 440);
+      builder.SetFreqSlideHz(StepToHz(FreqSlide));
       builder.SetSampleNum(Sample);
       builder.SetLevelInPercents(Volume * 100 / 15);
     }
@@ -892,93 +702,15 @@ namespace DMM
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-
-  bool Check(const Binary::Container& data)
-  {
-    //check for header
-    const std::size_t size(data.Size());
-    if (sizeof(Header) > size)
-    {
-      return false;
-    }
-    const Header* const header(safe_ptr_cast<const Header*>(data.Start()));
-    if (!(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32 || header->PatternSize == 24))
-    {
-      return false;
-    }
-
-    const bool is4bitSamples = true;//TODO: detect
-    std::size_t lastData = 256 * header->HeaderSizeSectors;
-
-    typedef std::map<std::size_t, std::pair<std::size_t, std::size_t> > Bank2OffsetAndSize;
-    Bank2OffsetAndSize regions;
-    for (std::size_t layIdx = 0; layIdx != header->EndOfBanks.size(); ++layIdx)
-    {
-      static const std::size_t BANKS[] = {0x50, 0x51, 0x53, 0x54, 0x56, 0x57};
-
-      const std::size_t bankEnd = fromLE(header->EndOfBanks[layIdx]);
-      if (bankEnd < SAMPLES_ADDR)
-      {
-        return false;
-      }
-      if (bankEnd == SAMPLES_ADDR)
-      {
-        continue;
-      }
-      const std::size_t bankSize = bankEnd - SAMPLES_ADDR;
-      const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
-      const std::size_t realSize = is4bitSamples
-        ? 256 * (1 + alignedBankSize / 512)
-        : alignedBankSize;
-      regions[BANKS[layIdx]] = std::make_pair(lastData, realSize);
-      lastData += realSize;
-    }
-    if (lastData > size)
-    {
-      return false;
-    }
-
-    for (uint_t samIdx = 0; samIdx != SAMPLES_COUNT; ++samIdx)
-    {
-      const SampleInfo& srcSample = header->SampleDescriptions[samIdx];
-      if (srcSample.Name[0] == '.')
-      {
-        continue;
-      }
-      const std::size_t sampleStart = fromLE(srcSample.Start);
-      const std::size_t sampleEnd = fromLE(srcSample.Limit);
-      const std::size_t sampleLoop = fromLE(srcSample.Loop);
-      if (sampleStart < SAMPLES_ADDR ||
-          sampleStart > sampleEnd ||
-          sampleStart > sampleLoop)
-      {
-        return false;
-      }
-      if (!regions.count(srcSample.Bank))
-      {
-        return false;
-      }
-      const std::size_t offsetInBank = sampleStart - SAMPLES_ADDR;
-      const std::size_t limitInBank = sampleEnd - SAMPLES_ADDR;
-      const std::size_t sampleSize = limitInBank - offsetInBank;
-      const std::size_t rawSampleSize = is4bitSamples ? sampleSize / 2 : sampleSize;
-      if (rawSampleSize > regions[srcSample.Bank].second)
-      {
-        return false;
-      }
-    }
-    return true;
-  }
 }
 
-namespace
+namespace DMM
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
 
   //plugin attributes
   const Char ID[] = {'D', 'M', 'M', 0};
-  const Char* const INFO = Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION;
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
 
   const std::string DMM_FORMAT(
@@ -998,40 +730,37 @@ namespace
     "02-38"
   );
 
-  class DMMModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    DMMModulesFactory()
-      : Format(Binary::Format::Create(DMM_FORMAT, sizeof(DMM::Header)))
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+      : Decoder(decoder)
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
+    virtual bool Check(const Binary::Container& data) const
     {
-      return Format->Match(inputData) && DMM::Check(inputData);
+      return Decoder->Check(data);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
     {
-      return Format;
+      return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
-      try
+      ::DigitalMusicMaker::DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalMusicMaker::Parse(*rawData, dataBuilder))
       {
-        const DMM::ModuleData::Ptr modData = DMM::Parse(propBuilder, data);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DMM::Chiptune>(modData, propBuilder.GetResult());
+        propBuilder.SetSource(container);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::DigitalMusicMaker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
-      }
-      catch (const Error&/*e*/)
-      {
-        Dbg("Failed to create holder");
       }
       return Holder::Ptr();
     }
   private:
-    const Binary::Format::Ptr Format;
+    const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
 
@@ -1039,8 +768,9 @@ namespace ZXTune
 {
   void RegisterDMMSupport(PlayerPluginsRegistrator& registrator)
   {
-    const ModulesFactory::Ptr factory = boost::make_shared<DMMModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateDigitalMusicMakerDecoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<DMM::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(DMM::ID, decoder->GetDescription(), DMM::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

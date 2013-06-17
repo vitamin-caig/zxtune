@@ -129,7 +129,11 @@ namespace
 
       void SetPosition(uint_t pos)
       {
-        Pos = pos;
+        const Position newPos = Position(pos);
+        if (newPos < Pos)
+        {
+          Pos = newPos;
+        }
       }
 
       void SetStep(Position step)
