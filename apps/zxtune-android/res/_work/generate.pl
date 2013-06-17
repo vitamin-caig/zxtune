@@ -4,11 +4,11 @@ use strict;
 use Data::Dumper;
 
 my $traits = {
-              launcher => {'-ldpi' => '36x36', '-mdpi' => '48x48', '-hdpi' => '72x72', '-xhdpi' => '96x96'},
-              status =>   {'-ldpi' => '18x18', '-mdpi' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48'},
+              launcher => {'-ldpi' => '36x36', '' => '48x48', '-hdpi' => '72x72', '-xhdpi' => '96x96'},
+              status => {'-ldpi' => '18x18', '' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48'},
               status_v8 => {'' => '25x25'},
-              status_v9 => {'-ldpi' => '12x19', '-mdpi' => '16x25', '-hdpi' => '24x38'},
-              icon => {'-ldpi' => '24x24', '-mdpi' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'},
+              status_v9 => {'-ldpi' => '12x19', '' => '16x25', '-hdpi' => '24x38'},
+              icon => {'-ldpi' => '24x24', '' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'},
              };
 
 sub convert
