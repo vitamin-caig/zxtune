@@ -13,19 +13,24 @@ Author:
 #include "location.h"
 #include "core/plugins/enumerator.h"
 //common includes
+#include <error_tools.h>
 #include <tools.h>
 //library includes
 #include <debug/log.h>
+#include <l10n/api.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
 #include <src/core/text/core.h>
+
+#define FILE_TAG BCCC5654
 
 namespace
 {
   using namespace ZXTune;
 
   const Debug::Stream Dbg("Core");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
   Analysis::Path::Ptr CreateEmptyPath()
   {
@@ -97,8 +102,7 @@ namespace ZXTune
       Dbg("Resolving '%1%'", toResolve);
       if (!(resolvedLocation = TryToOpenLocation(*usedPlugins, *coreParams, resolvedLocation, *unresolved)))
       {
-        Dbg("Failed to resolve subpath '%1%'", toResolve);
-        return DataLocation::Ptr();
+        throw MakeFormattedError(THIS_LINE, translate("Failed to resolve subpath '%1%'."), subpath);
       }
     }
     Dbg("Resolved '%1%'", subpath);

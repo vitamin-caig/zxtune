@@ -23,10 +23,17 @@ namespace Module
 {
   int Create(Binary::Container::Ptr data)
   {
-    const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-    const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location);
-    Dbg("Module::Create(data=%p)=%p", data.get(), module.get());
-    return Storage::Instance().Add(module);
+    try
+    {
+      const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
+      const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location);
+      Dbg("Module::Create(data=%p)=%p", data.get(), module.get());
+      return Storage::Instance().Add(module);
+    }
+    catch (const Error&)
+    {
+      return 0;
+    }
   }
 }
 

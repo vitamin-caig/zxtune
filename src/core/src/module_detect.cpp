@@ -18,16 +18,20 @@ Author:
 #include <error.h>
 //library includes
 #include <debug/log.h>
+#include <l10n/api.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
 #include <src/core/text/plugins.h>
+
+#define FILE_TAG 006E56AA
 
 namespace
 {
   using namespace ZXTune;
 
   const Debug::Stream Dbg("Core::Detection");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
@@ -56,6 +60,10 @@ namespace
 
     Module::Holder::Ptr GetResult() const
     {
+      if (!Result)
+      {
+        throw Error(THIS_LINE, translate("Failed to find module at specified location."));
+      }
       return Result;
     }
   private:
