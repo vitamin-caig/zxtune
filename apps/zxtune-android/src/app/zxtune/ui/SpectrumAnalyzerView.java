@@ -7,10 +7,9 @@
 
 package app.zxtune.ui;
 
-import java.util.Arrays;
-
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
@@ -22,9 +21,12 @@ public class SpectrumAnalyzerView extends View {
   private static final int BAR_WIDTH = 4;
   private static final int BAR_PADDING = 1;
   private static final int FALL_SPEED = 10;
+
   private final Rect visibleRect = new Rect();
-  private int[] bitmap;
-  private int barColor;
+  private final Rect barRect = new Rect();
+  private Paint paint;
+  private int[] levels;
+  private boolean[] changes;
 
   public SpectrumAnalyzerView(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
@@ -42,14 +44,17 @@ public class SpectrumAnalyzerView extends View {
   }
   
   public void update(int[] spectrum) {
-    fallBitmap();
+    fallBars();
     final int height = visibleRect.height();
-    final int maxBands = visibleRect.width() / BAR_WIDTH;
     for (int sp : spectrum) {
       final int band = sp & 0xff;
       final int level = sp >> 8;
-      if (level != 0 && band < maxBands) {
-        drawBar(band, level * height / MAX_LEVEL);
+      if (level != 0 && band < levels.length) {
+        final int newLvl = level * height / MAX_LEVEL;
+        if (newLvl > levels[band]) {
+          levels[band] = newLvl;
+          changes[band] = true;
+        }
       }
     }
     invalidate(visibleRect);
@@ -64,17 +69,24 @@ public class SpectrumAnalyzerView extends View {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     
-    final int width = visibleRect.width();
+    barRect.left = visibleRect.left;
+    barRect.right = barRect.left + BAR_WIDTH;
     final int height = visibleRect.height();
-    canvas.drawBitmap(bitmap, bitmap.length - width, -width, 
-      visibleRect.left, visibleRect.top, width, height, 
-      false, null);
+    for (int band = 0; band != levels.length; ++band) {
+      if (changes[band]) {
+        barRect.top = visibleRect.top + height - levels[band];
+        canvas.drawRect(barRect, paint);
+        changes[band] = false;
+      }
+      barRect.offset(BAR_WIDTH + BAR_PADDING, 0);
+    }
   }
   
   private void init() {
     fillVisibleRect(getWidth(), getHeight());
     setWillNotDraw(false);
-    barColor = getResources().getColor(R.color.primary);
+    paint = new Paint();
+    paint.setColor(getResources().getColor(R.color.primary));
   }
   
   private void fillVisibleRect(int w, int h) {
@@ -82,22 +94,18 @@ public class SpectrumAnalyzerView extends View {
     visibleRect.right = w - visibleRect.left - getPaddingRight();
     visibleRect.top = getPaddingTop();
     visibleRect.bottom = h - visibleRect.top - getPaddingBottom();
-    bitmap = new int[w * h];
+    barRect.bottom = visibleRect.bottom;
+    levels = new int[w / BAR_WIDTH];
+    changes = new boolean[levels.length];
   }
   
-  private void fallBitmap() {
+  private void fallBars() {
     final int fall = visibleRect.height() * FALL_SPEED / MAX_LEVEL;
-    final int delta = visibleRect.width() * fall;
-    System.arraycopy(bitmap, delta, bitmap, 0, bitmap.length - delta);
-    Arrays.fill(bitmap, bitmap.length - delta, bitmap.length, 0);
-  }
-  
-  private void drawBar(int band, int height) {
-    int offset = band * BAR_WIDTH;
-    final int delta = visibleRect.width();
-    for (int h = 0; h != height; ++h) {
-      Arrays.fill(bitmap, offset, offset + BAR_WIDTH - BAR_PADDING, barColor);
-      offset += delta;
+    for (int i = 0; i != levels.length; ++i) {
+      if (levels[i] != 0) {
+        levels[i] = Math.max(0, levels[i] - fall);
+        changes[i] = true;
+      }
     }
   }
 }
