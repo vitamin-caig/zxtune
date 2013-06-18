@@ -113,9 +113,15 @@ namespace Formats
         virtual void SetNoiseBase(uint_t val) = 0;
       };
 
-      Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
-      Formats::Chiptune::Container::Ptr ParseVortexTracker2(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
+
+      class Decoder : public Formats::Chiptune::Decoder
+      {
+      public:
+        typedef boost::shared_ptr<const Decoder> Ptr;
+
+        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+      };
 
       class ChiptuneBuilder : public Builder
       {
@@ -124,7 +130,14 @@ namespace Formats
         virtual Binary::Data::Ptr GetResult() const = 0;
       };
 
-      ChiptuneBuilder::Ptr CreateVortexTracker2Builder();
+      Decoder::Ptr CreateDecoder();
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+
+      namespace VortexTracker2
+      {
+        Decoder::Ptr CreateDecoder();
+        ChiptuneBuilder::Ptr CreateBuilder();
+      }
     }
   }
 }

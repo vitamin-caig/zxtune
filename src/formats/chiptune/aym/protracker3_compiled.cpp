@@ -917,10 +917,10 @@ namespace Chiptune
       "*3"      // next position or limiter (255 % 3 == 0)
     );
 
-    class Decoder : public Formats::Chiptune::Decoder
+    class BinaryDecoder : public Decoder
     {
     public:
-      Decoder()
+      BinaryDecoder()
         : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
@@ -943,13 +943,18 @@ namespace Chiptune
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
         Builder& stub = GetStubBuilder();
-        return ParseCompiled(rawData, stub);
+        return Formats::Chiptune::ProTracker3::Parse(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return Formats::Chiptune::ProTracker3::Parse(data, target);
       }
     private:
       const Binary::Format::Ptr Format;
     };
 
-    Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& rawData, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
       const Binary::TypedContainer data = CreateContainer(rawData);
 
@@ -994,11 +999,16 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
+
+    Decoder::Ptr CreateDecoder()
+    {
+      return boost::make_shared<BinaryDecoder>();
+    }
   }// namespace ProTracker3
 
   Decoder::Ptr CreateProTracker3Decoder()
   {
-    return boost::make_shared<ProTracker3::Decoder>();
+    return ProTracker3::CreateDecoder();
   }
 }// namespace Chiptune
 }// namespace Formats

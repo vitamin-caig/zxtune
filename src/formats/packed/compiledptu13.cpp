@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include "container.h"
-#include "formats/chiptune/decoders.h"
 #include "formats/chiptune/metainfo.h"
 #include "formats/chiptune/aym/protracker3_detail.h"
 //common includes
@@ -36,6 +35,8 @@ namespace CompiledPTU13
   const std::size_t MAX_MODULE_SIZE = 0xb900;
   const std::size_t PLAYER_SIZE = 0x900;
 
+  namespace ProTracker3 = Formats::Chiptune::ProTracker3;
+
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -57,8 +58,8 @@ namespace CompiledPTU13
     uint8_t Length;
     uint8_t Loop;
     uint16_t PatternsOffset;
-    boost::array<uint16_t, Formats::Chiptune::ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
-    boost::array<uint16_t, Formats::Chiptune::ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+    boost::array<uint16_t, ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
+    boost::array<uint16_t, ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
     uint8_t Positions[1];//finished by marker
   } PACK_POST;
 
@@ -126,7 +127,6 @@ namespace Formats
     public:
       CompiledPTU13Decoder()
         : Player(Binary::Format::Create(CompiledPTU13::FORMAT, CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader)))
-        , Decoder(Formats::Chiptune::CreateProTracker3Decoder())
       {
       }
 
@@ -142,6 +142,8 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
+        namespace ProTracker3 = Formats::Chiptune::ProTracker3;
+
         if (!Player->Match(rawData))
         {
           return Container::Ptr();
@@ -180,7 +182,7 @@ namespace Formats
           builder->FixLEWord(idx, -int_t(dataAddr));
         }
         const Binary::Container::Ptr fixedModule = builder->GetResult();
-        if (Formats::Chiptune::Container::Ptr fixedParsed = Decoder->Decode(*fixedModule))
+        if (Formats::Chiptune::Container::Ptr fixedParsed = ProTracker3::Parse(*fixedModule, ProTracker3::GetStubBuilder()))
         {
           return CreatePackedContainer(fixedParsed, playerSize + fixedParsed->Size());
         }
@@ -189,7 +191,6 @@ namespace Formats
       }
     private:
       const Binary::Format::Ptr Player;
-      const Formats::Chiptune::Decoder::Ptr Decoder;
     };
 
     Decoder::Ptr CreateCompiledPTU13Decoder()

@@ -29,7 +29,6 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <devices/turbosound.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/protracker3.h>
 #include <sound/mixer_factory.h>
 //text includes
@@ -51,7 +50,7 @@ namespace ProTracker3
     explicit DataBuilder(PropertiesBuilder& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , PatOffset(0)
+      , PatOffset(Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
       , Version(6)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
@@ -376,21 +375,11 @@ namespace ProTracker3
     const ModuleData::Ptr Data;
     const Information::Ptr Info;
   };
-}
-
-namespace PT3
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'P', 'T', '3', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors | SupportedVortexFormatConvertors;
 
   class Factory : public ModulesFactory
   {
   public:
-    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::ProTracker3::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -408,7 +397,7 @@ namespace PT3
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
     {
       ::ProTracker3::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseCompiled(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
         const uint_t patOffset = dataBuilder.GetPatOffset();
@@ -429,8 +418,18 @@ namespace PT3
       return Holder::Ptr();
     }
   private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
+    const Formats::Chiptune::ProTracker3::Decoder::Ptr Decoder;
   };
+}
+
+namespace PT3
+{
+  using namespace ZXTune;
+  using namespace ZXTune::Module;
+
+  //plugin attributes
+  const Char ID[] = {'P', 'T', '3', 0};
+  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors | SupportedVortexFormatConvertors;
 }
 
 namespace Vortex2
@@ -440,55 +439,22 @@ namespace Vortex2
 
   const Char ID[] = {'T', 'X', 'T', 0};
   const uint_t CAPS = PT3::CAPS;
-
-  class Factory : public ModulesFactory
-  {
-  public:
-    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
-      : Decoder(decoder)
-    {
-    }
-
-    virtual bool Check(const Binary::Container& inputData) const
-    {
-      return Decoder->Check(inputData);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
-    {
-      ::ProTracker3::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseVortexTracker2(*rawData, dataBuilder))
-      {
-        propBuilder.SetSource(*container);
-        const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
-        return AYM::CreateHolder(chiptune);
-      }
-      return Holder::Ptr();
-    }
-  private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
-  };
 }
 
 namespace ZXTune
 {
   void RegisterPT3Support(PlayerPluginsRegistrator& registrator)
   {
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker3Decoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<PT3::Factory>(decoder);
+    const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::CreateDecoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<ProTracker3::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription(), PT3::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 
   void RegisterTXTSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateVortexTracker2Decoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<Vortex2::Factory>(decoder);
+    const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateDecoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<ProTracker3::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(Vortex2::ID, decoder->GetDescription(), Vortex2::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }

@@ -44,10 +44,10 @@ namespace Formats
 {
 namespace Chiptune
 {
+namespace ProTracker3
+{
   namespace VortexTracker2
   {
-    using namespace ProTracker3;
-
     /*
       Common module structure:
 
@@ -1218,10 +1218,29 @@ namespace Chiptune
 
     const std::size_t MIN_SIZE = 256;
 
-    class Decoder : public Formats::Chiptune::Decoder
+    Formats::Chiptune::Container::Ptr ParseText(const Binary::Container& data, Builder& target)
+    {
+      try
+      {
+        Binary::InputStream input(data);
+        VortexTracker2::Format format(input, target);
+        format.ParseHeader();
+        const std::size_t limit = format.ParseBody(); 
+
+        const Binary::Container::Ptr subData = data.GetSubcontainer(0, limit);
+        return CreateCalculatingCrcContainer(subData, 0, limit);
+      }
+      catch (const std::exception&)
+      {
+        Dbg("Failed to create");
+        return Formats::Chiptune::Container::Ptr();
+      }
+    }
+
+    class TextDecoder : public Decoder
     {
     public:
-      Decoder()
+      TextDecoder()
         : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
@@ -1244,18 +1263,23 @@ namespace Chiptune
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
         Builder& stub = GetStubBuilder();
-        return ParseVortexTracker2(rawData, stub);
+        return ParseText(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return ParseText(data, target);
       }
     private:
       const Binary::Format::Ptr Format;
     };
 
-    class Builder : public Formats::Chiptune::ProTracker3::ChiptuneBuilder
-                  , public Formats::Chiptune::MetaBuilder
-                  , public Formats::Chiptune::PatternBuilder
+    class TextBuilder : public ChiptuneBuilder
+                      , public MetaBuilder
+                      , public PatternBuilder
     {
     public:
-      Builder()
+      TextBuilder()
         : Context(Patterns)
       {
       }
@@ -1516,38 +1540,22 @@ namespace Chiptune
       std::vector<PatternObject> Patterns;
       BuildContext Context;
     };
-  }// namespace VortexTracker2
 
-  namespace ProTracker3
-  {
-    Formats::Chiptune::Container::Ptr ParseVortexTracker2(const Binary::Container& data, Builder& target)
+    Decoder::Ptr CreateDecoder()
     {
-      try
-      {
-        Binary::InputStream input(data);
-        VortexTracker2::Format format(input, target);
-        format.ParseHeader();
-        const std::size_t limit = format.ParseBody(); 
-
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, limit);
-        return CreateCalculatingCrcContainer(subData, 0, limit);
-      }
-      catch (const std::exception&)
-      {
-        Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
-      }
+      return boost::make_shared<TextDecoder>();
     }
 
-    ChiptuneBuilder::Ptr CreateVortexTracker2Builder()
+    ChiptuneBuilder::Ptr CreateBuilder()
     {
-      return boost::make_shared<VortexTracker2::Builder>();
+      return boost::make_shared<TextBuilder>();
     }
-  }
+  }//VortexTracker2
+  }//ProTracker3
 
   Decoder::Ptr CreateVortexTracker2Decoder()
   {
-    return boost::make_shared<VortexTracker2::Decoder>();
+    return ProTracker3::VortexTracker2::CreateDecoder();
   }
 }// namespace Chiptune
 }// namespace Formats
