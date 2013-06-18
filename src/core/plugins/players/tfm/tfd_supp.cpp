@@ -276,7 +276,7 @@ namespace TFD
         const ModuleData::Ptr data = dataBuilder.GetResult();
         if (data->Count())
         {
-          propBuilder.SetSource(container);
+          propBuilder.SetSource(*container);
           const TFM::Chiptune::Ptr chiptune = boost::make_shared<TFDChiptune>(data, propBuilder.GetResult());
           return TFM::CreateHolder(chiptune);
         }

@@ -716,7 +716,7 @@ namespace ASC
       ::ASCSoundMaster::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::ASCSoundMaster::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }

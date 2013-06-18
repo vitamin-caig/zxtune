@@ -31,7 +31,7 @@ namespace
     }
     Module::PropertiesBuilder properties;
     properties.SetType(type);
-    properties.SetLocation(inputData);
+    properties.SetLocation(*inputData);
     if (Module::Holder::Ptr holder = factory->CreateModule(properties, data))
     {
       callback.ProcessModule(inputData, holder);

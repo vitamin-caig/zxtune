@@ -242,7 +242,7 @@ namespace
         const ChunksSet::Ptr data = dataBuilder.GetResult();
         if (data->Count())
         {
-          propBuilder.SetSource(container);
+          propBuilder.SetSource(*container);
           const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, propBuilder.GetResult());
           return AYM::CreateHolder(chiptune);
         }

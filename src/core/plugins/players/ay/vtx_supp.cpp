@@ -334,10 +334,10 @@ namespace VTX
       DataBuilder dataBuilder(propBuilder);
       if (const Container::Ptr container = YM::ParseVTX(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
         const ChunksSet::Ptr data = dataBuilder.GetResult();
         if (data->Count())
         {
+          propBuilder.SetSource(*container);
           const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, propBuilder.GetResult(), dataBuilder.GetLoop());
           return AYM::CreateHolder(chiptune);
         }
@@ -380,10 +380,10 @@ namespace YM
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::YM::ParseYM(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
         const ChunksSet::Ptr data = dataBuilder.GetResult();
         if (data->Count())
         {
+          propBuilder.SetSource(*container);
           const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, propBuilder.GetResult(), dataBuilder.GetLoop());
           return AYM::CreateHolder(chiptune);
         }

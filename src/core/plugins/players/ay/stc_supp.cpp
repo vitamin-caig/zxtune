@@ -53,7 +53,7 @@ namespace STC
       const std::auto_ptr< ::SoundTracker::DataBuilder> dataBuilder = ::SoundTracker::CreateDataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SoundTracker::ParseCompiled(*data, *dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::SoundTracker::CreateChiptune(dataBuilder->GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }

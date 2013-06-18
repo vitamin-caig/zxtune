@@ -441,7 +441,7 @@ namespace PT1
       ::ProTracker1::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker1::Parse(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::ProTracker1::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }

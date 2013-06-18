@@ -616,7 +616,7 @@ namespace PSM
       ::ProSoundMaker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProSoundMaker::ParseCompiled(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::ProSoundMaker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }

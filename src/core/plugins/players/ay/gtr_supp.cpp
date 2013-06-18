@@ -440,7 +440,7 @@ namespace GTR
       ::GlobalTracker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::GlobalTracker::Parse(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::GlobalTracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }

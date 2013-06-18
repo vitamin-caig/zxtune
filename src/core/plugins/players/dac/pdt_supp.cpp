@@ -315,7 +315,7 @@ namespace PDT
       ::ProDigiTracker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ProDigiTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }

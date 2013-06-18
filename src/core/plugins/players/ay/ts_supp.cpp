@@ -29,6 +29,7 @@ Author:
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <devices/turbosound.h>
+#include <formats/chiptune/container.h>
 #include <sound/mixer_factory.h>
 //std includes
 #include <set>
@@ -99,7 +100,6 @@ namespace
     const DataLocation::Ptr Parent;
     const Binary::Container::Ptr SubData;
   };
-
   using namespace Parameters;
   class MergedModuleProperties : public Accessor
   {
@@ -384,8 +384,8 @@ namespace
       }
       PropertiesBuilder properties;
       properties.SetType(ID);
-      properties.SetLocation(inputData);
-      properties.SetSource(data, dataSize, ModuleRegion(0, dataSize));
+      properties.SetLocation(*inputData);
+      properties.SetSource(Formats::Chiptune::CalculatingCrcContainer(data, 0, dataSize));
       const Module::Holder::Ptr holder(new TSHolder(properties.GetResult(), holder1, holder2));
       callback.ProcessModule(inputData, holder);
       return Analysis::CreateMatchedResult(dataSize);

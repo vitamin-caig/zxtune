@@ -410,7 +410,7 @@ namespace PT3
       ::ProTracker3::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseCompiled(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const uint_t patOffset = dataBuilder.GetPatOffset();
         const ::ProTracker3::ModuleData::RWPtr modData = dataBuilder.GetResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
@@ -464,7 +464,7 @@ namespace Vortex2
       ::ProTracker3::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseVortexTracker2(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }

@@ -78,32 +78,22 @@ namespace Module
     Container->SetValue(ATTR_TYPE, type);
   }
 
-  void PropertiesBuilder::SetLocation(DataLocation::Ptr location)
+  void PropertiesBuilder::SetLocation(const DataLocation& location)
   {
-    const String& container = location->GetPluginsChain()->AsString();
+    const String& container = location.GetPluginsChain()->AsString();
     if (!container.empty())
     {
       Container->SetValue(ATTR_CONTAINER, container);
     }
   }
 
-  void PropertiesBuilder::SetSource(Binary::Data::Ptr data, std::size_t usedSize, const ModuleRegion& fixedRegion)
+  void PropertiesBuilder::SetSource(const Formats::Chiptune::Container& source)
   {
-    Container->SetValue(ATTR_SIZE, usedSize);
-    const ModuleRegion usedRegion = ModuleRegion(0, usedSize);
-    Container->SetValue(ATTR_CRC, usedRegion.Checksum(*data));
-    Container->SetValue(ATTR_FIXEDCRC, fixedRegion.Checksum(*data));
-    const uint8_t* const start = static_cast<const uint8_t*>(data->Start());
-    Container->SetValue(ATTR_CONTENT, Parameters::DataType(start, start + usedSize));
-  }
-
-  void PropertiesBuilder::SetSource(Formats::Chiptune::Container::Ptr source)
-  {
-    Container->SetValue(ATTR_SIZE, source->Size());
-    Container->SetValue(ATTR_CRC, source->Checksum());
-    Container->SetValue(ATTR_FIXEDCRC, source->FixedChecksum());
-    const uint8_t* const start = static_cast<const uint8_t*>(source->Start());
-    Container->SetValue(ATTR_CONTENT, Parameters::DataType(start, start + source->Size()));
+    Container->SetValue(ATTR_SIZE, source.Size());
+    Container->SetValue(ATTR_CRC, source.Checksum());
+    Container->SetValue(ATTR_FIXEDCRC, source.FixedChecksum());
+    const uint8_t* const start = static_cast<const uint8_t*>(source.Start());
+    Container->SetValue(ATTR_CONTENT, Parameters::DataType(start, start + source.Size()));
   }
 
   void PropertiesBuilder::SetComment(const String& comment)

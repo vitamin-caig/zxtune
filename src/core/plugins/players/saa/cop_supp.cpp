@@ -591,7 +591,7 @@ namespace COP
       ::ETracker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const SAA::Chiptune::Ptr chiptune = ::ETracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return SAA::CreateHolder(chiptune);
       }

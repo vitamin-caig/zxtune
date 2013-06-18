@@ -54,7 +54,7 @@ namespace STP
       const std::auto_ptr< ::SoundTrackerPro::DataBuilder> dataBuilder = ::SoundTrackerPro::CreateDataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*data, *dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::SoundTrackerPro::CreateChiptune(dataBuilder->GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }

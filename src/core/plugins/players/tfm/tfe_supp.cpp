@@ -1610,7 +1610,7 @@ namespace TFE
       ::TFMMusicMaker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const TFM::Chiptune::Ptr chiptune = ::TFMMusicMaker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
         return TFM::CreateHolder(chiptune);
       }

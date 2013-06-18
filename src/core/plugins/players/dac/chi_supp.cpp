@@ -341,7 +341,7 @@ namespace CHI
       ::ChipTracker::DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(*rawData, dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ChipTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }

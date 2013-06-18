@@ -53,7 +53,7 @@ namespace ST3
       const std::auto_ptr< ::SoundTracker::DataBuilder> dataBuilder = ::SoundTracker::CreateDataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SoundTracker::ParseVersion3(*data, *dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::SoundTracker::CreateChiptune(dataBuilder->GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }

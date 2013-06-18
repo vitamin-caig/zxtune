@@ -665,9 +665,9 @@ namespace AYModule
         //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
         AYDataBuilder builder(propBuilder, static_cast<uint_t>(defaultDuration));
-        if (Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, builder))
+        if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, builder))
         {
-          propBuilder.SetSource(container);
+          propBuilder.SetSource(*container);
           return boost::make_shared<AYHolder>(builder.GetResult(), propBuilder.GetResult());
         }
       }

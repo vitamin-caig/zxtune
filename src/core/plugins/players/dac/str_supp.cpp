@@ -72,7 +72,7 @@ namespace STR
       const std::auto_ptr< ::SampleTracker::DataBuilder> dataBuilder = ::SampleTracker::DataBuilder::Create< ::SampleTracker::CHANNELS_COUNT>(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(*rawData, *dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), ::SampleTracker::CHANNELS_COUNT);
         return DAC::CreateHolder(chiptune);
       }

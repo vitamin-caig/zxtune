@@ -64,7 +64,7 @@ namespace DST
       const std::auto_ptr< ::DigitalStudio::DataBuilder> dataBuilder = ::DigitalStudio::DataBuilder::Create< ::DigitalStudio::CHANNELS_COUNT>(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalStudio::Parse(*rawData, *dataBuilder))
       {
-        propBuilder.SetSource(container);
+        propBuilder.SetSource(*container);
         const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), ::DigitalStudio::CHANNELS_COUNT);
         return DAC::CreateHolder(chiptune);
       }

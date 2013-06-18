@@ -34,23 +34,6 @@ namespace ZXTune
 
   typedef PluginsEnumerator<ArchivePlugin> ArchivePluginsEnumerator;
   typedef PluginsEnumerator<PlayerPlugin> PlayerPluginsEnumerator;
-
-  //TODO: remove
-  struct ModuleRegion
-  {
-    ModuleRegion() : Offset(), Size()
-    {
-    }
-    ModuleRegion(std::size_t off, std::size_t sz)
-      : Offset(off), Size(sz)
-    {
-    }
-    std::size_t Offset;
-    std::size_t Size;
-
-    uint_t Checksum(const Binary::Data& container) const;
-    Binary::Container::Ptr Extract(const Binary::Container& container) const;
-  };
 }
 
 #endif //__CORE_PLUGINS_ENUMERATOR_H_DEFINED__

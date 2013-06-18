@@ -393,7 +393,7 @@ namespace TFC
         const ModuleData::Ptr data = dataBuilder.GetResult();
         if (data->Count())
         {
-          propBuilder.SetSource(container);
+          propBuilder.SetSource(*container);
           const TFM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, propBuilder.GetResult());
           return TFM::CreateHolder(chiptune);
         }

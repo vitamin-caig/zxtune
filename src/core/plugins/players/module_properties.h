@@ -23,8 +23,6 @@ Author:
 
 namespace ZXTune
 {
-  struct ModuleRegion;
-
   namespace Module
   {
     class PropertiesBuilder : public Parameters::Visitor, public Formats::Chiptune::MetaBuilder
@@ -41,9 +39,8 @@ namespace ZXTune
       virtual void SetAuthor(const String& author);
 
       void SetType(const String& type);
-      void SetLocation(DataLocation::Ptr location);
-      void SetSource(Binary::Data::Ptr data, std::size_t usedSize, const ModuleRegion& fixedRegion);
-      void SetSource(Formats::Chiptune::Container::Ptr source);
+      void SetLocation(const DataLocation& location);
+      void SetSource(const Formats::Chiptune::Container& source);
       void SetComment(const String& comment);
       void SetFreqtable(const String& table);
       void SetSamplesFreq(uint_t freq);
