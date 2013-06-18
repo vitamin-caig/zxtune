@@ -53,9 +53,18 @@ namespace Formats
         virtual void AddData(const Dump& registers) = 0;
       };
 
-      Formats::Chiptune::Container::Ptr ParseYM(const Binary::Container& data, Builder& target);
-      Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
+
+      class Decoder : public Formats::Chiptune::Decoder
+      {
+      public:
+        typedef boost::shared_ptr<const Decoder> Ptr;
+
+        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+      };
+
+      Decoder::Ptr CreateYMDecoder();
+      Decoder::Ptr CreateVTXDecoder();
     }
   }
 }

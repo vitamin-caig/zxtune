@@ -361,7 +361,7 @@ namespace Chiptune
       const std::size_t packedSize = fromLE(hdr.PackedSize);
       const Binary::Container::Ptr packed = rawData.GetSubcontainer(packedOffset, packedSize);
       const std::size_t unpackedSize = fromLE(hdr.OriginalSize);
-      if (Formats::Packed::Container::Ptr unpacked = Formats::Packed::Lha::DecodeRawData(*packed, FromCharArray(hdr.Method), unpackedSize))
+      if (const Formats::Packed::Container::Ptr unpacked = Formats::Packed::Lha::DecodeRawData(*packed, FromCharArray(hdr.Method), unpackedSize))
       {
         if (ParseUnpacked(*unpacked, target))
         {
@@ -383,10 +383,10 @@ namespace Chiptune
       "00"         //level
     );
 
-    class Decoder : public Formats::Chiptune::Decoder
+    class YMDecoder : public Formats::Chiptune::YM::Decoder
     {
     public:
-      Decoder()
+      YMDecoder()
         : Format(Binary::Format::Create(FORMAT))
       {
       }
@@ -410,6 +410,11 @@ namespace Chiptune
       {
         Builder& stub = GetStubBuilder();
         return ParseYM(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return ParseYM(data, target);
       }
     private:
       const Binary::Format::Ptr Format;
@@ -508,6 +513,59 @@ namespace Chiptune
       return false;
     }
 
+    Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& rawData, Builder& target)
+    {
+      if (!FastCheck(rawData))
+      {
+        return Formats::Chiptune::Container::Ptr();
+      }
+      try
+      {
+        Binary::InputStream stream(rawData);
+        const RawBasicHeader& hdr = stream.ReadField<VTX::RawBasicHeader>();
+        const uint_t chipType = fromLE(hdr.ChipType);
+        const bool ym = chipType == CHIP_YM || chipType == CHIP_YM_OLD;
+        const bool newVersion = chipType == CHIP_YM || chipType == CHIP_AY;
+        target.SetChipType(ym);
+        target.SetStereoMode(hdr.LayoutMode);
+        target.SetLoop(fromLE(hdr.Loop));
+        target.SetClockrate(fromLE(hdr.Clockrate));
+        target.SetIntFreq(hdr.IntFreq);
+        if (newVersion)
+        {
+          target.SetYear(fromLE(stream.ReadField<uint16_t>()));
+        }
+        const uint_t unpackedSize = fromLE(stream.ReadField<uint32_t>());
+        target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+        if (newVersion)
+        {
+          target.SetProgram(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetEditor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+          target.SetComment(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
+        }
+
+        const std::size_t packedOffset = stream.GetPosition();
+        Dbg("Packed data at %1%", packedOffset);
+        const Binary::Container::Ptr packed = stream.ReadRestData();
+        if (const Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
+        {
+          const std::size_t unpackedSize = unpacked->Size();
+          Require(0 == (unpackedSize % sizeof(RegistersDump)));
+          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), unpackedSize, sizeof(RegistersDump), target);
+          const std::size_t packedSize = unpacked->PackedSize();
+          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
+          return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
+        }
+        Dbg("Failed to decode ym data");
+      }
+      catch (const std::exception&)
+      {
+        Dbg("Failed to parse");
+      }
+      return Formats::Chiptune::Container::Ptr();
+    }
+
     const std::string FORMAT(
       "('a|'A|'y|'Y)('y|'Y|'m|'M)" //type
       "00-06"          //layout
@@ -516,7 +574,7 @@ namespace Chiptune
       "19-64"          //intfreq, 25..100Hz
     );
 
-    class Decoder : public Formats::Chiptune::Decoder
+    class Decoder : public Formats::Chiptune::YM::Decoder
     {
     public:
       Decoder()
@@ -544,6 +602,11 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return ParseVTX(rawData, stub);
       }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return ParseVTX(data, target);
+      }
     private:
       const Binary::Format::Ptr Format;
     };
@@ -551,74 +614,31 @@ namespace Chiptune
 
   namespace YM
   {
-    Formats::Chiptune::Container::Ptr ParseVTX(const Binary::Container& rawData, Builder& target)
-    {
-      if (!VTX::FastCheck(rawData))
-      {
-        return Formats::Chiptune::Container::Ptr();
-      }
-      try
-      {
-        Binary::InputStream stream(rawData);
-        const VTX::RawBasicHeader& hdr = stream.ReadField<VTX::RawBasicHeader>();
-        const uint_t chipType = fromLE(hdr.ChipType);
-        const bool ym = chipType == VTX::CHIP_YM || chipType == VTX::CHIP_YM_OLD;
-        const bool newVersion = chipType == VTX::CHIP_YM || chipType == VTX::CHIP_AY;
-        target.SetChipType(ym);
-        target.SetStereoMode(hdr.LayoutMode);
-        target.SetLoop(fromLE(hdr.Loop));
-        target.SetClockrate(fromLE(hdr.Clockrate));
-        target.SetIntFreq(hdr.IntFreq);
-        if (newVersion)
-        {
-          target.SetYear(fromLE(stream.ReadField<uint16_t>()));
-        }
-        const uint_t unpackedSize = fromLE(stream.ReadField<uint32_t>());
-        target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        if (newVersion)
-        {
-          target.SetProgram(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetEditor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetComment(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        }
-
-        const std::size_t packedOffset = stream.GetPosition();
-        Dbg("Packed data at %1%", packedOffset);
-        const Binary::Container::Ptr packed = stream.ReadRestData();
-        if (Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
-        {
-          const std::size_t unpackedSize = unpacked->Size();
-          Require(0 == (unpackedSize % sizeof(RegistersDump)));
-          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), unpackedSize, sizeof(RegistersDump), target);
-          const std::size_t packedSize = unpacked->PackedSize();
-          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
-          return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
-        }
-        Dbg("Failed to decode ym data");
-      }
-      catch (const std::exception&)
-      {
-        Dbg("Failed to parse");
-      }
-      return Formats::Chiptune::Container::Ptr();
-    }
-
     Builder& GetStubBuilder()
     {
       static StubBuilder stub;
       return stub;
     }
-  }
 
-  Formats::Chiptune::Decoder::Ptr CreateVTXDecoder()
-  {
-    return boost::make_shared<VTX::Decoder>();
+    Decoder::Ptr CreateYMDecoder()
+    {
+      return boost::make_shared<YMDecoder>();
+    }
+
+    Decoder::Ptr CreateVTXDecoder()
+    {
+      return boost::make_shared<VTX::Decoder>();
+    }
   }
 
   Formats::Chiptune::Decoder::Ptr CreateYMDecoder()
   {
-    return boost::make_shared<YM::Decoder>();
+    return YM::CreateYMDecoder();
+  }
+
+  Formats::Chiptune::Decoder::Ptr CreateVTXDecoder()
+  {
+    return YM::CreateVTXDecoder();
   }
 }//namespace Chiptune
 }//namespace Formats

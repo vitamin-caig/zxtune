@@ -22,7 +22,6 @@ Author:
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/ym.h>
 #include <sound/sound_parameters.h>
 //boost includes
@@ -302,18 +301,19 @@ namespace
   };
 }
 
-namespace VTX
+namespace YMVTX
 {
   using namespace ZXTune;
 
   //plugin attributes
-  const Char ID[] = {'V', 'T', 'X', 0};
+  const Char ID_VTX[] = {'V', 'T', 'X', 0};
+  const Char ID_YM[] = {'Y', 'M', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
 
   class Factory : public ModulesFactory
   {
   public:
-    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::YM::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -332,7 +332,7 @@ namespace VTX
     {
       using namespace Formats::Chiptune;
       DataBuilder dataBuilder(propBuilder);
-      if (const Container::Ptr container = YM::ParseVTX(*rawData, dataBuilder))
+      if (const Container::Ptr container = Decoder->Parse(*rawData, dataBuilder))
       {
         const ChunksSet::Ptr data = dataBuilder.GetResult();
         if (data->Count())
@@ -345,53 +345,7 @@ namespace VTX
       return Holder::Ptr();
     }
   private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
-  };
-}
-
-namespace YM
-{
-  using namespace ZXTune;
-
-  //plugin attributes
-  const Char ID[] = {'Y', 'M', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
-
-  class Factory : public ModulesFactory
-  {
-  public:
-    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
-      : Decoder(decoder)
-    {
-    }
-
-    virtual bool Check(const Binary::Container& data) const
-    {
-      return Decoder->Check(data);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
-    {
-      DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::YM::ParseYM(*rawData, dataBuilder))
-      {
-        const ChunksSet::Ptr data = dataBuilder.GetResult();
-        if (data->Count())
-        {
-          propBuilder.SetSource(*container);
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, propBuilder.GetResult(), dataBuilder.GetLoop());
-          return AYM::CreateHolder(chiptune);
-        }
-      }
-      return Holder::Ptr();
-    }
-  private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
+    const Formats::Chiptune::YM::Decoder::Ptr Decoder;
   };
 }
 
@@ -399,17 +353,17 @@ namespace ZXTune
 {
   void RegisterVTXSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateVTXDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<VTX::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(VTX::ID, decoder->GetDescription(), VTX::CAPS, factory);
+    const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateVTXDecoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<YMVTX::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(YMVTX::ID_VTX, decoder->GetDescription(), YMVTX::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 
   void RegisterYMSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateYMDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<YM::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(YM::ID, decoder->GetDescription(), YM::CAPS, factory);
+    const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
+    const ModulesFactory::Ptr factory = boost::make_shared<YMVTX::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(YMVTX::ID_YM, decoder->GetDescription(), YMVTX::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }
