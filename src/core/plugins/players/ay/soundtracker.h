@@ -15,6 +15,7 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
@@ -102,15 +103,7 @@ namespace SoundTracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
-  {
-  public:
-    virtual ModuleData::Ptr GetResult() const = 0;
-  };
-
-  std::auto_ptr<DataBuilder> CreateDataBuilder(PropertiesBuilder& propBuilder);
-
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
+  ModulesFactory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder);
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_SOUNDTRACKER_DEFINED__

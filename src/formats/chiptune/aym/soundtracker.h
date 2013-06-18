@@ -86,13 +86,29 @@ namespace Formats
         virtual void SetNoEnvelope() = 0;
       };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
-      //TODO: group together
-      Formats::Chiptune::Container::Ptr ParseVersion3(const Binary::Container& rawData, Builder& target);
-      Binary::Container::Ptr InsertVersion3Metainformation(const Binary::Container& rawData, const Dump& info);
-
       Builder& GetStubBuilder();
+
+      class Decoder : public Formats::Chiptune::Decoder
+      {
+      public:
+        typedef boost::shared_ptr<const Decoder> Ptr;
+
+        virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
+      };
+
+      namespace Ver1
+      {
+        Decoder::Ptr CreateUncompiledDecoder();
+        Decoder::Ptr CreateCompiledDecoder();
+      }
+
+      namespace Ver3
+      {
+        Decoder::Ptr CreateDecoder();
+
+        Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+        Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info);
+      }
     }
   }
 }

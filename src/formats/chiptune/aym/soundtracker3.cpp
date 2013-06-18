@@ -716,7 +716,7 @@ namespace Chiptune
     "?02-16"      // uint16_t PatternsOffset;
     );
 
-    class Decoder : public Formats::Chiptune::Decoder
+    class Decoder : public Formats::Chiptune::SoundTracker::Decoder
     {
     public:
       Decoder()
@@ -742,7 +742,12 @@ namespace Chiptune
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
         Builder& stub = GetStubBuilder();
-        return SoundTracker::ParseVersion3(rawData, stub);
+        return SoundTracker::Ver3::Parse(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return SoundTracker::Ver3::Parse(data, target);
       }
     private:
       const Binary::Format::Ptr Format;
@@ -751,103 +756,111 @@ namespace Chiptune
 
   namespace SoundTracker
   {
-    Formats::Chiptune::Container::Ptr ParseVersion3(const Binary::Container& rawData, Builder& target)
+    namespace Ver3
     {
-      using namespace SoundTracker3;
-
-      const Binary::TypedContainer data(CreateContainer(rawData));
-
-      if (!FastCheck(data))
+      Decoder::Ptr CreateDecoder()
       {
-        return Formats::Chiptune::Container::Ptr();
+        return boost::make_shared<SoundTracker3::Decoder>();
       }
 
-      try
-      {
-        const Format format(data);
-
-        format.ParseCommonProperties(target);
-
-        StatisticCollectingBuilder statistic(target);
-        format.ParsePositions(statistic);
-        const Indices& usedPatterns = statistic.GetUsedPatterns();
-        format.ParsePatterns(usedPatterns, statistic);
-        Require(statistic.HasNonEmptyPatterns());
-        const Indices& usedSamples = statistic.GetUsedSamples();
-        format.ParseSamples(usedSamples, statistic);
-        Require(statistic.HasNonEmptySamples());
-        const Indices& usedOrnaments = statistic.GetUsedOrnaments();
-        format.ParseOrnaments(usedOrnaments, target);
-
-        const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
-      }
-      catch (const std::exception&)
-      {
-        Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
-      }
-    }
-
-    Binary::Container::Ptr InsertVersion3Metainformation(const Binary::Container& rawData, const Dump& info)
-    {
-      StatisticCollectingBuilder statistic(GetStubBuilder());
-      if (Binary::Container::Ptr parsed = ParseVersion3(rawData, statistic))
+      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
       {
         using namespace SoundTracker3;
-        const Binary::TypedContainer typedHelper(CreateContainer(*parsed));
-        const RawHeader& header = *typedHelper.GetField<RawHeader>(0);
-        const std::size_t headerSize = sizeof(header);
-        const std::size_t infoSize = info.size();
-        const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
-        const RawId* const id = typedHelper.GetField<RawId>(headerSize);
-        if (id && id->Check())
+
+        const Binary::TypedContainer data(CreateContainer(rawData));
+
+        if (!FastCheck(data))
         {
-          patch->OverwriteData(headerSize, info);
+          return Formats::Chiptune::Container::Ptr();
         }
-        else
+
+        try
         {
-          patch->InsertData(headerSize, info);
-          const int_t delta = static_cast<int_t>(infoSize);
-          patch->FixLEWord(offsetof(RawHeader, PositionsOffset), delta);
-          patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
-          patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);
-          patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
-          const std::size_t patternsStart = fromLE(header.PatternsOffset);
+          const Format format(data);
+
+          format.ParseCommonProperties(target);
+
+          StatisticCollectingBuilder statistic(target);
+          format.ParsePositions(statistic);
           const Indices& usedPatterns = statistic.GetUsedPatterns();
-          for (Indices::Iterator it = usedPatterns.Items(); it; ++it)
-          {
-            const std::size_t patOffsets = patternsStart + *it * sizeof(RawPattern);
-            patch->FixLEWord(patOffsets + 0, delta);
-            patch->FixLEWord(patOffsets + 2, delta);
-            patch->FixLEWord(patOffsets + 4, delta);
-          }
-          //fix all samples and ornaments
-          const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
-          const RawOrnaments& orns = *typedHelper.GetField<RawOrnaments>(ornamentsStart);
-          for (uint_t idx = 0; idx != orns.Count; ++idx)
-          {
-            const std::size_t ornOffset = ornamentsStart + offsetof(RawOrnaments, Offsets) + idx * sizeof(uint16_t);
-            patch->FixLEWord(ornOffset, delta);
-          }
-          const std::size_t samplesStart = fromLE(header.SamplesOffset);
-          const RawSamples& sams = *typedHelper.GetField<RawSamples>(samplesStart);
-          for (uint_t idx = 0; idx != sams.Count; ++idx)
-          {
-            const std::size_t samOffset = samplesStart + offsetof(RawSamples, Offsets) + idx * sizeof(uint16_t);
-            patch->FixLEWord(samOffset, delta);
-          }
+          format.ParsePatterns(usedPatterns, statistic);
+          Require(statistic.HasNonEmptyPatterns());
+          const Indices& usedSamples = statistic.GetUsedSamples();
+          format.ParseSamples(usedSamples, statistic);
+          Require(statistic.HasNonEmptySamples());
+          const Indices& usedOrnaments = statistic.GetUsedOrnaments();
+          format.ParseOrnaments(usedOrnaments, target);
+
+          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
+          const RangeChecker::Range fixedRange = format.GetFixedArea();
+          return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
         }
-        return patch->GetResult();
+        catch (const std::exception&)
+        {
+          Dbg("Failed to create");
+          return Formats::Chiptune::Container::Ptr();
+        }
       }
-      return Binary::Container::Ptr();
+
+      Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info)
+      {
+        using namespace SoundTracker3;
+        StatisticCollectingBuilder statistic(GetStubBuilder());
+        if (Binary::Container::Ptr parsed = Parse(rawData, statistic))
+        {
+          const Binary::TypedContainer typedHelper(CreateContainer(*parsed));
+          const RawHeader& header = *typedHelper.GetField<RawHeader>(0);
+          const std::size_t headerSize = sizeof(header);
+          const std::size_t infoSize = info.size();
+          const PatchedDataBuilder::Ptr patch = PatchedDataBuilder::Create(*parsed);
+          const RawId* const id = typedHelper.GetField<RawId>(headerSize);
+          if (id && id->Check())
+          {
+            patch->OverwriteData(headerSize, info);
+          }
+          else
+          {
+            patch->InsertData(headerSize, info);
+            const int_t delta = static_cast<int_t>(infoSize);
+            patch->FixLEWord(offsetof(RawHeader, PositionsOffset), delta);
+            patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
+            patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);
+            patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
+            const std::size_t patternsStart = fromLE(header.PatternsOffset);
+            const Indices& usedPatterns = statistic.GetUsedPatterns();
+            for (Indices::Iterator it = usedPatterns.Items(); it; ++it)
+            {
+              const std::size_t patOffsets = patternsStart + *it * sizeof(RawPattern);
+              patch->FixLEWord(patOffsets + 0, delta);
+              patch->FixLEWord(patOffsets + 2, delta);
+              patch->FixLEWord(patOffsets + 4, delta);
+            }
+            //fix all samples and ornaments
+            const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
+            const RawOrnaments& orns = *typedHelper.GetField<RawOrnaments>(ornamentsStart);
+            for (uint_t idx = 0; idx != orns.Count; ++idx)
+            {
+              const std::size_t ornOffset = ornamentsStart + offsetof(RawOrnaments, Offsets) + idx * sizeof(uint16_t);
+              patch->FixLEWord(ornOffset, delta);
+            }
+            const std::size_t samplesStart = fromLE(header.SamplesOffset);
+            const RawSamples& sams = *typedHelper.GetField<RawSamples>(samplesStart);
+            for (uint_t idx = 0; idx != sams.Count; ++idx)
+            {
+              const std::size_t samOffset = samplesStart + offsetof(RawSamples, Offsets) + idx * sizeof(uint16_t);
+              patch->FixLEWord(samOffset, delta);
+            }
+          }
+          return patch->GetResult();
+        }
+        return Binary::Container::Ptr();
+      }
     }
-  }// namespace SoundTracker
+  }
 
   Decoder::Ptr CreateSoundTracker3Decoder()
   {
-    return boost::make_shared<SoundTracker3::Decoder>();
+    return SoundTracker::Ver3::CreateDecoder();
   }
 }// namespace Chiptune
 }// namespace Formats

@@ -148,15 +148,15 @@ namespace Formats
         if (CompiledST3::IsInfoEmpty(metainfo))
         {
           Dbg("Player has empty metainfo");
-          if (const Binary::Container::Ptr originalModule = Formats::Chiptune::SoundTracker::ParseVersion3(*modData, stub))
+          if (const Binary::Container::Ptr originalModule = Formats::Chiptune::SoundTracker::Ver3::Parse(*modData, stub))
           {
             const std::size_t originalSize = originalModule->Size();
             return CreatePackedContainer(originalModule, playerSize + originalSize);
           }
         }
-        else if (const Binary::Container::Ptr fixedModule = Formats::Chiptune::SoundTracker::InsertVersion3Metainformation(*modData, metainfo))
+        else if (const Binary::Container::Ptr fixedModule = Formats::Chiptune::SoundTracker::Ver3::InsertMetainformation(*modData, metainfo))
         {
-          if (Formats::Chiptune::SoundTracker::ParseVersion3(*fixedModule, stub))
+          if (Formats::Chiptune::SoundTracker::Ver3::Parse(*fixedModule, stub))
           {
             const std::size_t originalSize = fixedModule->Size() - metainfo.size();
             return CreatePackedContainer(fixedModule, playerSize + originalSize);

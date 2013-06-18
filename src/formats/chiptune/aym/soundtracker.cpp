@@ -34,8 +34,9 @@ namespace Formats
 {
 namespace Chiptune
 {
-  namespace SoundTracker
+  namespace SoundTrackerUncompiled
   {
+    using namespace SoundTracker;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
 #endif
@@ -145,30 +146,6 @@ namespace Chiptune
     BOOST_STATIC_ASSERT(offsetof(RawHeader, Patterns) == 3009);
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
-
-    class StubBuilder : public Builder
-    {
-    public:
-      virtual MetaBuilder& GetMetaBuilder()
-      {
-        return GetStubMetaBuilder();
-      }
-      virtual void SetInitialTempo(uint_t /*tempo*/) {}
-      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
-      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
-      virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/) {}
-      virtual PatternBuilder& StartPattern(uint_t /*index*/)
-      {
-        return GetStubPatternBuilder();
-      }
-      virtual void StartChannel(uint_t /*index*/) {}
-      virtual void SetRest() {}
-      virtual void SetNote(uint_t /*note*/) {}
-      virtual void SetSample(uint_t /*sample*/) {}
-      virtual void SetOrnament(uint_t /*ornament*/) {}
-      virtual void SetEnvelope(uint_t /*type*/, uint_t /*value*/) {}
-      virtual void SetNoEnvelope() {}
-    };
 
     class Format
     {
@@ -463,39 +440,7 @@ namespace Chiptune
       "20-40"
     );
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      Decoder()
-        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
-      {
-      }
-
-      virtual String GetDescription() const
-      {
-        return Text::SOUNDTRACKER_DECODER_DESCRIPTION;
-      }
-
-      virtual Binary::Format::Ptr GetFormat() const
-      {
-        return Format;
-      }
-
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        return FastCheck(rawData) && Format->Match(rawData);
-      }
-
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
-      {
-        Builder& stub = GetStubBuilder();
-        return Parse(rawData, stub);
-      }
-    private:
-      const Binary::Format::Ptr Format;
-    };
-
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr ParseUncompiled(const Binary::Container& data, Builder& target)
     {
       if (!FastCheck(data))
       {
@@ -532,16 +477,88 @@ namespace Chiptune
       }
     }
 
+    class Decoder : public Formats::Chiptune::SoundTracker::Decoder
+    {
+    public:
+      Decoder()
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
+      {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::SOUNDTRACKER_DECODER_DESCRIPTION;
+      }
+
+      virtual Binary::Format::Ptr GetFormat() const
+      {
+        return Format;
+      }
+
+      virtual bool Check(const Binary::Container& rawData) const
+      {
+        return FastCheck(rawData) && Format->Match(rawData);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      {
+        Builder& stub = GetStubBuilder();
+        return ParseUncompiled(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return ParseUncompiled(data, target);
+      }
+    private:
+      const Binary::Format::Ptr Format;
+    };
+  }//namespace SoundTrackerUncompiled
+
+  namespace SoundTracker
+  {
+    class StubBuilder : public Builder
+    {
+    public:
+      virtual MetaBuilder& GetMetaBuilder()
+      {
+        return GetStubMetaBuilder();
+      }
+      virtual void SetInitialTempo(uint_t /*tempo*/) {}
+      virtual void SetSample(uint_t /*index*/, const Sample& /*sample*/) {}
+      virtual void SetOrnament(uint_t /*index*/, const Ornament& /*ornament*/) {}
+      virtual void SetPositions(const std::vector<PositionEntry>& /*positions*/) {}
+      virtual PatternBuilder& StartPattern(uint_t /*index*/)
+      {
+        return GetStubPatternBuilder();
+      }
+      virtual void StartChannel(uint_t /*index*/) {}
+      virtual void SetRest() {}
+      virtual void SetNote(uint_t /*note*/) {}
+      virtual void SetSample(uint_t /*sample*/) {}
+      virtual void SetOrnament(uint_t /*ornament*/) {}
+      virtual void SetEnvelope(uint_t /*type*/, uint_t /*value*/) {}
+      virtual void SetNoEnvelope() {}
+    };
+
     Builder& GetStubBuilder()
     {
       static StubBuilder stub;
       return stub;
     }
-  }// namespace SoundTracker
+
+    namespace Ver1
+    {
+      Decoder::Ptr CreateUncompiledDecoder()
+      {
+        return boost::make_shared<SoundTrackerUncompiled::Decoder>();
+      }
+    }
+  }
 
   Decoder::Ptr CreateSoundTrackerDecoder()
   {
-    return boost::make_shared<SoundTracker::Decoder>();
+    return SoundTracker::Ver1::CreateUncompiledDecoder();
   }
 }// namespace Chiptune
 }// namespace Formats

@@ -708,45 +708,8 @@ namespace Chiptune
     "00-0f"       // first sample index
     );
 
-    class Decoder : public Formats::Chiptune::Decoder
-    {
-    public:
-      Decoder()
-        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
-      {
-      }
-
-      virtual String GetDescription() const
-      {
-        return Text::SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION;
-      }
-
-      virtual Binary::Format::Ptr GetFormat() const
-      {
-        return Format;
-      }
-
-      virtual bool Check(const Binary::Container& rawData) const
-      {
-        return FastCheck(rawData) && Format->Match(rawData);
-      }
-
-      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
-      {
-        Builder& stub = GetStubBuilder();
-        return ParseCompiled(rawData, stub);
-      }
-    private:
-      const Binary::Format::Ptr Format;
-    };
-  }//SoundTrackerCompiled
-
-  namespace SoundTracker
-  {
     Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& rawData, Builder& target)
     {
-      using namespace SoundTrackerCompiled;
-
       if (!FastCheck(rawData))
       {
         return Formats::Chiptune::Container::Ptr();
@@ -779,11 +742,59 @@ namespace Chiptune
         return Formats::Chiptune::Container::Ptr();
       }
     }
+
+    class Decoder : public Formats::Chiptune::SoundTracker::Decoder
+    {
+    public:
+      Decoder()
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
+      {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::SOUNDTRACKERCOMPILED_DECODER_DESCRIPTION;
+      }
+
+      virtual Binary::Format::Ptr GetFormat() const
+      {
+        return Format;
+      }
+
+      virtual bool Check(const Binary::Container& rawData) const
+      {
+        return FastCheck(rawData) && Format->Match(rawData);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      {
+        Builder& stub = GetStubBuilder();
+        return ParseCompiled(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return ParseCompiled(data, target);
+      }
+    private:
+      const Binary::Format::Ptr Format;
+    };
+  }//SoundTrackerCompiled
+
+  namespace SoundTracker
+  {
+    namespace Ver1
+    {
+      Decoder::Ptr CreateCompiledDecoder()
+      {
+        return boost::make_shared<SoundTrackerCompiled::Decoder>();
+      }
+    }
   }// namespace SoundTracker
 
   Decoder::Ptr CreateSoundTrackerCompiledDecoder()
   {
-    return boost::make_shared<SoundTrackerCompiled::Decoder>();
+    return SoundTracker::Ver1::CreateCompiledDecoder();
   }
 }// namespace Chiptune
 }// namespace Formats

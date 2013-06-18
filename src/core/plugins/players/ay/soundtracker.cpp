@@ -19,10 +19,10 @@ Author:
 
 namespace SoundTracker
 {
-  class DataBuilderImpl : public DataBuilder
+  class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
   {
   public:
-    explicit DataBuilderImpl(PropertiesBuilder& props)
+    explicit DataBuilder(PropertiesBuilder& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
@@ -98,7 +98,7 @@ namespace SoundTracker
       Patterns.GetChannel().AddCommand(SoundTracker::NOENVELOPE);
     }
 
-    virtual ModuleData::Ptr GetResult() const
+    ModuleData::Ptr GetResult() const
     {
       return Data;
     }
@@ -484,17 +484,45 @@ namespace SoundTracker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
+
+  class Factory : public ModulesFactory
+  {
+  public:
+    explicit Factory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
+      : Decoder(decoder)
+    {
+    }
+
+    virtual bool Check(const Binary::Container& data) const
+    {
+      return Decoder->Check(data);
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Decoder->GetFormat();
+    }
+
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr data) const
+    {
+      DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*data, dataBuilder))
+      {
+        propBuilder.SetSource(*container);
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        return AYM::CreateHolder(chiptune);
+      }
+      return Holder::Ptr();
+    }
+  private:
+    const Formats::Chiptune::SoundTracker::Decoder::Ptr Decoder;
+  };
 }
  
 namespace SoundTracker
 {
-  std::auto_ptr<DataBuilder> CreateDataBuilder(PropertiesBuilder& propBuilder)
+  ModulesFactory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
   {
-    return std::auto_ptr<DataBuilder>(new DataBuilderImpl(propBuilder));
-  }
-
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<SoundTracker::Chiptune>(data, properties);
+    return boost::make_shared<Factory>(decoder);
   }
 }
