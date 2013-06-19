@@ -219,7 +219,7 @@ public class BrowserFragment extends Fragment
           return pos;
         }
       }
-      return null;
+      return new PathAndPosition(0, newPath);
     }
     
     // checks if rh is nested path relative to lh
