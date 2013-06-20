@@ -655,17 +655,17 @@ namespace AYModule
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       try
       {
-        assert(Formats::Chiptune::AY::GetModulesCount(*rawData) == 1);
+        assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
 
         Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
         //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
         AYDataBuilder builder(propBuilder, static_cast<uint_t>(defaultDuration));
-        if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, builder))
+        if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
         {
           propBuilder.SetSource(*container);
           return boost::make_shared<AYHolder>(builder.GetResult(), propBuilder.GetResult());

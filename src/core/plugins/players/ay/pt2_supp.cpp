@@ -520,10 +520,10 @@ namespace PT2
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       ::ProTracker2::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::ProTracker2::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());

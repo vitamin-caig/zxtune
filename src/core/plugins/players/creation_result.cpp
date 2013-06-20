@@ -32,7 +32,7 @@ namespace
     Module::PropertiesBuilder properties;
     properties.SetType(type);
     properties.SetLocation(*inputData);
-    if (Module::Holder::Ptr holder = factory->CreateModule(properties, data))
+    if (Module::Holder::Ptr holder = factory->CreateModule(properties, *data))
     {
       callback.ProcessModule(inputData, holder);
       Parameters::IntType usedSize = 0;
@@ -64,6 +64,17 @@ namespace
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
       return DetectModuleInLocation(Factory, Description->Id(), inputData, callback);
+    }
+
+    virtual Module::Holder::Ptr Open(const Binary::Container& data) const
+    {
+      if (!Factory->Check(data))
+      {
+        return Module::Holder::Ptr();
+      }
+      Module::PropertiesBuilder properties;
+      properties.SetType(Description->Id());
+      return Factory->CreateModule(properties, data);
     }
   private:
     const Plugin::Ptr Description;

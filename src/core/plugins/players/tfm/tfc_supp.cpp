@@ -385,10 +385,10 @@ namespace TFC
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFC::Parse(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
       {
         const ModuleData::Ptr data = dataBuilder.GetResult();
         if (data->Count())

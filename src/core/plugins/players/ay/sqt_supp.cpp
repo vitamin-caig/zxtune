@@ -883,10 +883,10 @@ namespace SQT
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       ::SQTracker::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::SQTracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());

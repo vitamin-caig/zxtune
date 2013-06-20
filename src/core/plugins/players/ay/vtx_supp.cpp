@@ -328,11 +328,10 @@ namespace YMVTX
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      using namespace Formats::Chiptune;
       DataBuilder dataBuilder(propBuilder);
-      if (const Container::Ptr container = Decoder->Parse(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         const ChunksSet::Ptr data = dataBuilder.GetResult();
         if (data->Count())

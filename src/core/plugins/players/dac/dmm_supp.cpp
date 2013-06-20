@@ -748,10 +748,10 @@ namespace DMM
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       ::DigitalMusicMaker::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalMusicMaker::Parse(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
         const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::DigitalMusicMaker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());

@@ -711,10 +711,10 @@ namespace ASC
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       ::ASCSoundMaster::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::ASCSoundMaster::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());

@@ -49,10 +49,10 @@ namespace STP
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr data) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       const std::auto_ptr< ::SoundTrackerPro::DataBuilder> dataBuilder = ::SoundTrackerPro::CreateDataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(*data, *dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, *dataBuilder))
       {
         propBuilder.SetSource(*container);
         const AYM::Chiptune::Ptr chiptune = ::SoundTrackerPro::CreateChiptune(dataBuilder->GetResult(), propBuilder.GetResult());

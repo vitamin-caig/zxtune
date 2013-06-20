@@ -22,8 +22,10 @@ namespace ZXTune
   namespace Module
   {
     //! @param location Source data location
-    //! @return Object is exists. No object elsewhere
+    //! @throw Error if no object detected
     Holder::Ptr Open(DataLocation::Ptr location);
+
+    Holder::Ptr Open(const Binary::Container& data);
   }
 }
 

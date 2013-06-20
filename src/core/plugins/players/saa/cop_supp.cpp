@@ -586,10 +586,10 @@ namespace COP
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       ::ETracker::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
         const SAA::Chiptune::Ptr chiptune = ::ETracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());

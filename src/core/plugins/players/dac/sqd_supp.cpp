@@ -350,10 +350,10 @@ namespace SQD
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       ::SQDigitalTracker::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQDigitalTracker::Parse(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQDigitalTracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
         const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::SQDigitalTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());

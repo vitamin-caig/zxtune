@@ -26,7 +26,7 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace PSG
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
@@ -175,10 +175,10 @@ namespace
     Devices::AYM::DataChunk CurrentChunk;
   };
 
-  class PSGChiptune : public AYM::Chiptune
+  class Chiptune : public AYM::Chiptune
   {
   public:
-    PSGChiptune(ChunksSet::Ptr data, Parameters::Accessor::Ptr properties)
+    Chiptune(ChunksSet::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
       , Info(CreateStreamInfo(Data->Count()))
@@ -207,18 +207,19 @@ namespace
   };
 }
 
-namespace
+namespace PSG
 {
   using namespace ZXTune;
+  using namespace ZXTune::Module;
 
   //plugin attributes
   const Char ID[] = {'P', 'S', 'G', 0};
   const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
 
-  class PSGModulesFactory : public ModulesFactory
+  class Factory : public ModulesFactory
   {
   public:
-    explicit PSGModulesFactory(Formats::Chiptune::Decoder::Ptr decoder)
+    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
@@ -233,17 +234,16 @@ namespace
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      using namespace Formats::Chiptune;
-      DataBuilder dataBuilder;
-      if (const Container::Ptr container = PSG::Parse(*rawData, dataBuilder))
+      ::PSG::DataBuilder dataBuilder;
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
       {
-        const ChunksSet::Ptr data = dataBuilder.GetResult();
+        const ::PSG::ChunksSet::Ptr data = dataBuilder.GetResult();
         if (data->Count())
         {
           propBuilder.SetSource(*container);
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PSGChiptune>(data, propBuilder.GetResult());
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared< ::PSG::Chiptune>(data, propBuilder.GetResult());
           return AYM::CreateHolder(chiptune);
         }
       }
@@ -259,8 +259,8 @@ namespace ZXTune
   void RegisterPSGSupport(PlayerPluginsRegistrator& registrator)
   {
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSGDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<PSGModulesFactory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    const ModulesFactory::Ptr factory = boost::make_shared<PSG::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PSG::ID, decoder->GetDescription(), PSG::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

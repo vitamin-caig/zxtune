@@ -310,10 +310,10 @@ namespace PDT
       return Decoder->GetFormat();
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, Binary::Container::Ptr rawData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       ::ProDigiTracker::DataBuilder dataBuilder(propBuilder);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(*rawData, dataBuilder))
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
         const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ProDigiTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());

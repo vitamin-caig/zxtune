@@ -14,6 +14,7 @@ Author:
 #include "ts_base.h"
 #include "core/plugins/enumerator.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
 #include "core/src/callback.h"
@@ -73,42 +74,14 @@ namespace
 
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
 
-  class NestedDataLocation : public DataLocation
+  class MergedModuleProperties : public Parameters::Accessor
   {
-  public:
-    NestedDataLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData)
-      : Parent(parent)
-      , SubData(subData)
-    {
-    }
-
-    virtual Binary::Container::Ptr GetData() const
-    {
-      return SubData;
-    }
-
-    virtual Analysis::Path::Ptr GetPath() const
-    {
-      return Parent->GetPath();
-    }
-
-    virtual Analysis::Path::Ptr GetPluginsChain() const
-    {
-      return Parent->GetPluginsChain();
-    }
-  private:
-    const DataLocation::Ptr Parent;
-    const Binary::Container::Ptr SubData;
-  };
-  using namespace Parameters;
-  class MergedModuleProperties : public Accessor
-  {
-    static bool IsSingleProperty(const NameType& propName)
+    static bool IsSingleProperty(const Parameters::NameType& propName)
     {
       return propName == Parameters::ZXTune::Core::AYM::TABLE;
     }
 
-    static void MergeStringProperty(const NameType& propName, String& lh, const String& rh)
+    static void MergeStringProperty(const Parameters::NameType& propName, String& lh, const String& rh)
     {
       if (!IsSingleProperty(propName) && lh != rh)
       {
@@ -117,7 +90,7 @@ namespace
       }
     }
 
-    class MergedStringsVisitor : public Visitor
+    class MergedStringsVisitor : public Parameters::Visitor
     {
     public:
       explicit MergedStringsVisitor(Visitor& delegate)
@@ -125,7 +98,7 @@ namespace
       {
       }
 
-      virtual void SetValue(const NameType& name, IntType val)
+      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
       {
         if (DoneIntegers.insert(name).second)
         {
@@ -133,7 +106,7 @@ namespace
         }
       }
 
-      virtual void SetValue(const NameType& name, const StringType& val)
+      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
       {
         const StringsValuesMap::iterator it = Strings.find(name);
         if (it == Strings.end())
@@ -146,7 +119,7 @@ namespace
         }
       }
 
-      virtual void SetValue(const NameType& name, const DataType& val)
+      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
       {
         if (DoneDatas.insert(name).second)
         {
@@ -162,14 +135,14 @@ namespace
         }
       }
     private:
-      Visitor& Delegate;
-      typedef std::map<NameType, StringType> StringsValuesMap;
+      Parameters::Visitor& Delegate;
+      typedef std::map<Parameters::NameType, Parameters::StringType> StringsValuesMap;
       StringsValuesMap Strings;
-      std::set<NameType> DoneIntegers;
-      std::set<NameType> DoneDatas;
+      std::set<Parameters::NameType> DoneIntegers;
+      std::set<Parameters::NameType> DoneDatas;
     };
   public:
-    MergedModuleProperties(Accessor::Ptr first, Accessor::Ptr second)
+    MergedModuleProperties(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second)
       : First(first)
       , Second(second)
     {
@@ -180,12 +153,12 @@ namespace
       return 1;
     }
 
-    virtual bool FindValue(const NameType& name, IntType& val) const
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    virtual bool FindValue(const NameType& name, StringType& val) const
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
       String val1, val2;
       const bool res1 = First->FindValue(name, val1);
@@ -202,12 +175,12 @@ namespace
       return res1 || res2;
     }
 
-    virtual bool FindValue(const NameType& name, DataType& val) const
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    virtual void Process(Visitor& visitor) const
+    virtual void Process(Parameters::Visitor& visitor) const
     {
       MergedStringsVisitor mergedVisitor(visitor);
       First->Process(mergedVisitor);
@@ -215,8 +188,8 @@ namespace
       mergedVisitor.ProcessRestStrings();
     }
   private:
-    const Accessor::Ptr First;
-    const Accessor::Ptr Second;
+    const Parameters::Accessor::Ptr First;
+    const Parameters::Accessor::Ptr Second;
   };
 
   class MergedModuleInfo : public Information
@@ -303,9 +276,9 @@ namespace
   };
 }
 
-namespace
+namespace TS
 {
-  using namespace ::ZXTune;
+  using namespace ZXTune;
 
   //plugin attributes
   const Char* const ID = TS_PLUGIN_ID;
@@ -321,78 +294,145 @@ namespace
     "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
   );
 
-  /////////////////////////////////////////////////////////////////////////////
-  class TSPlugin : public PlayerPlugin
+  class ModuleTraits
   {
   public:
-    typedef boost::shared_ptr<const TSPlugin> Ptr;
-
-    TSPlugin()
-      : Description(CreatePluginDescription(ID, INFO, CAPS))
-      , FooterFormat(Binary::Format::Create(TS_FOOTER_FORMAT))
+    ModuleTraits(const Binary::Data& data, std::size_t footerOffset)
+      : FooterOffset(footerOffset)
+      , Foot(footerOffset != data.Size() ? safe_ptr_cast<const Footer*>(static_cast<const uint8_t*>(data.Start()) + footerOffset) : 0)
+      , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
+      , SecondSize(Foot ? fromLE(Foot->Size2) : 0)
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    bool Matched() const
     {
-      return Description;
+      return Foot != 0 && FooterOffset == FirstSize + SecondSize;
+    }
+
+    std::size_t NextOffset() const
+    {
+      if (Foot == 0)
+      {
+        return FooterOffset;
+      }
+      const std::size_t totalSize = FirstSize + SecondSize;
+      if (totalSize < FooterOffset)
+      {
+        return FooterOffset - totalSize;
+      }
+      else
+      {
+        return FooterOffset + sizeof(*Foot);
+      }
+    }
+
+    Binary::Container::Ptr GetFirstContent(const Binary::Container& data) const
+    {
+      return data.GetSubcontainer(0, FirstSize);
+    }
+
+    Binary::Container::Ptr GetSecondContent(const Binary::Container& data) const
+    {
+      return data.GetSubcontainer(FirstSize, SecondSize);
+    }
+
+    Binary::Container::Ptr GetTotalContent(const Binary::Container& data) const
+    {
+      return data.GetSubcontainer(0, FooterOffset + sizeof(*Foot));
+    }
+  private:
+    const std::size_t FooterOffset;
+    const Footer* const Foot;
+    const std::size_t FirstSize;
+    const std::size_t SecondSize;
+  };
+
+  class FooterFormat : public Binary::Format
+  {
+  public:
+    typedef boost::shared_ptr<const FooterFormat> Ptr;
+
+    FooterFormat()
+      : Delegate(Binary::Format::Create(TS_FOOTER_FORMAT))
+    {
+    }
+
+    virtual bool Match(const Binary::Data& data) const
+    {
+      const ModuleTraits traits = GetTraits(data);
+      return traits.Matched();
+    }
+
+    virtual std::size_t NextMatchOffset(const Binary::Data& data) const
+    {
+      const ModuleTraits traits = GetTraits(data);
+      return traits.NextOffset();
+    }
+
+    ModuleTraits GetTraits(const Binary::Data& data) const
+    {
+      return ModuleTraits(data, Delegate->NextMatchOffset(data));
+    }
+  private:
+    const Binary::Format::Ptr Delegate;
+  };
+
+  class Factory : public ModulesFactory
+  {
+  public:
+    Factory()
+      : Format(boost::make_shared<FooterFormat>())
+    {
+    }
+
+    virtual bool Check(const Binary::Container& inputData) const
+    {
+      return Format->Match(inputData);
     }
 
     virtual Binary::Format::Ptr GetFormat() const
     {
-      //TODO:
-      return FooterFormat;
+      return Format;
     }
 
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
+    virtual Module::Holder::Ptr CreateModule(Module::PropertiesBuilder& properties, const Binary::Container& data) const
     {
-      const Binary::Container::Ptr data = inputData->GetData();
-      const uint8_t* const rawData = static_cast<const uint8_t*>(data->Start());
-      const std::size_t size = data->Size();
-      const std::size_t footerOffset = FooterFormat->NextMatchOffset(*data);
-      //no footer in nearest data
-      if (footerOffset == size)
+      const ModuleTraits traits = Format->GetTraits(data);
+      if (!traits.Matched())
       {
-        return Analysis::CreateUnmatchedResult(size);
+        return Module::Holder::Ptr();
       }
-      const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
-      const std::size_t firstModuleSize = fromLE(footer.Size1);
-      const std::size_t secondModuleSize = fromLE(footer.Size2);
-      const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
-      const std::size_t dataSize = footerOffset + sizeof(footer);
-      if (!totalModulesSize || totalModulesSize != footerOffset)
+      try
       {
-        const std::size_t lookahead = !totalModulesSize || totalModulesSize > footerOffset
-          ? dataSize
-          : footerOffset - totalModulesSize;
-        return Analysis::CreateUnmatchedResult(lookahead);
+        const Module::AYM::Holder::Ptr holder1 = OpenAYMModule(traits.GetFirstContent(data));
+        if (!holder1)
+        {
+          Dbg("Invalid first module holder");
+          return Module::Holder::Ptr();
+        }
+        const Module::AYM::Holder::Ptr holder2 = OpenAYMModule(traits.GetSecondContent(data));
+        if (!holder2)
+        {
+          Dbg("Failed to create second module holder");
+          return Module::Holder::Ptr();
+        }
+        const Binary::Container::Ptr total = traits.GetTotalContent(data);
+        properties.SetSource(Formats::Chiptune::CalculatingCrcContainer(total, 0, total->Size()));
+        return boost::make_shared<TSHolder>(properties.GetResult(), holder1, holder2);
       }
-
-      const DataLocation::Ptr firstSubLocation = boost::make_shared<NestedDataLocation>(inputData, data->GetSubcontainer(0, firstModuleSize));
-      const Module::AYM::Holder::Ptr holder1 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(firstSubLocation));
-      if (!holder1)
+      catch (const Error& e)
       {
-        Dbg("Invalid first module holder");
-        return Analysis::CreateUnmatchedResult(dataSize);
+        return Module::Holder::Ptr();
       }
-      const DataLocation::Ptr secondSubLocation = boost::make_shared<NestedDataLocation>(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
-      const Module::AYM::Holder::Ptr holder2 = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(secondSubLocation));
-      if (!holder2)
-      {
-        Dbg("Failed to create second module holder");
-        return Analysis::CreateUnmatchedResult(dataSize);
-      }
-      PropertiesBuilder properties;
-      properties.SetType(ID);
-      properties.SetLocation(*inputData);
-      properties.SetSource(Formats::Chiptune::CalculatingCrcContainer(data, 0, dataSize));
-      const Module::Holder::Ptr holder(new TSHolder(properties.GetResult(), holder1, holder2));
-      callback.ProcessModule(inputData, holder);
-      return Analysis::CreateMatchedResult(dataSize);
     }
   private:
-    const Plugin::Ptr Description;
-    const Binary::Format::Ptr FooterFormat;
+    static Module::AYM::Holder::Ptr OpenAYMModule(Binary::Container::Ptr data)
+    {
+      return boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(*data));
+    }
+  private:
+    const FooterFormat::Ptr Format;
   };
 }
 
@@ -400,7 +440,8 @@ namespace ZXTune
 {
   void RegisterTSSupport(PlayerPluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new TSPlugin());
+    const ModulesFactory::Ptr factory = boost::make_shared<TS::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TS::ID, TS::INFO, TS::CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

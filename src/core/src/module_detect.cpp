@@ -162,6 +162,19 @@ namespace ZXTune
       return callback.GetResult();
     }
 
+    Holder::Ptr Open(const Binary::Container& data)
+    {
+      for (PlayerPlugin::Iterator::Ptr usedPlugins = PlayerPluginsEnumerator::Create()->Enumerate(); usedPlugins->IsValid(); usedPlugins->Next())
+      {
+        const PlayerPlugin::Ptr plugin = usedPlugins->Get();
+        if (const Holder::Ptr res = plugin->Open(data))
+        {
+          return res;
+        }
+      }
+      throw Error(THIS_LINE, translate("Failed to find module at specified location."));
+    }
+
     std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
     {
       const ArchivePluginsEnumerator::Ptr usedArchivePlugins = ArchivePluginsEnumerator::Create();
