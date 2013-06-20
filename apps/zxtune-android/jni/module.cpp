@@ -27,8 +27,7 @@ namespace Module
   {
     try
     {
-      const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-      const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location);
+      const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(*data);
       Dbg("Module::Create(data=%p)=%p", data.get(), module.get());
       return Storage::Instance().Add(module);
     }
