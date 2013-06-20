@@ -43,7 +43,7 @@ public class PlaybackService extends Service {
   private final Handler handler;
   private PlaybackControl ctrl;
   private IBinder binder;
-  private IncomingCallHandler callHandler;
+  private PhoneCallHandler callHandler;
   
   public PlaybackService() {
     this.handler = new Handler();
@@ -61,7 +61,7 @@ public class PlaybackService extends Service {
     callback.add(notification).add(broadcast);
     ctrl = new PlaybackControl(callback);
     binder = new PlaybackControlServer(ctrl);
-    callHandler = new IncomingCallHandler(this, ctrl);
+    callHandler = new PhoneCallHandler(this, ctrl);
     callHandler.register();
   }
 

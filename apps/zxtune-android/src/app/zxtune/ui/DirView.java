@@ -196,7 +196,7 @@ public class DirView extends ListView
       if (convertView != null) {
         holder = (ViewHolder) convertView.getTag();
       } else {
-        convertView = inflater.inflate(R.layout.dirview_item, null);
+        convertView = inflater.inflate(R.layout.dirview_item, parent, false);
         holder = new ViewHolder();
         holder.icon = (ImageView) convertView.findViewById(R.id.dirview_item_icon);
         holder.name = (TextView) convertView.findViewById(R.id.dirview_item_name);

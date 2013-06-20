@@ -24,9 +24,12 @@ public class SpectrumAnalyzerView extends View {
 
   private final Rect visibleRect = new Rect();
   private final Rect barRect = new Rect();
+  private final Rect updateRect = new Rect();
   private Paint paint;
   private int[] levels;
   private boolean[] changes;
+  private int lowerChange;
+  private int upperChange;
 
   public SpectrumAnalyzerView(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
@@ -57,7 +60,11 @@ public class SpectrumAnalyzerView extends View {
         }
       }
     }
-    invalidate(visibleRect);
+    for (lowerChange = 0; lowerChange != changes.length && !changes[lowerChange]; ++lowerChange);
+    for (upperChange = changes.length - 1; upperChange > lowerChange && !changes[upperChange]; --upperChange);
+    updateRect.left = BAR_WIDTH * lowerChange;
+    updateRect.right = BAR_WIDTH * (upperChange + 1);
+    invalidate(updateRect);
   }
   
   @Override
@@ -69,16 +76,16 @@ public class SpectrumAnalyzerView extends View {
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     
-    barRect.left = visibleRect.left;
-    barRect.right = barRect.left + BAR_WIDTH;
+    barRect.left = visibleRect.left + BAR_WIDTH * lowerChange;
+    barRect.right = barRect.left + BAR_WIDTH - BAR_PADDING;
     final int height = visibleRect.height();
-    for (int band = 0; band != levels.length; ++band) {
+    for (int band = lowerChange; band <= upperChange; ++band) {
       if (changes[band]) {
         barRect.top = visibleRect.top + height - levels[band];
         canvas.drawRect(barRect, paint);
         changes[band] = false;
       }
-      barRect.offset(BAR_WIDTH + BAR_PADDING, 0);
+      barRect.offset(BAR_WIDTH, 0);
     }
   }
   
@@ -95,6 +102,8 @@ public class SpectrumAnalyzerView extends View {
     visibleRect.top = getPaddingTop();
     visibleRect.bottom = h - visibleRect.top - getPaddingBottom();
     barRect.bottom = visibleRect.bottom;
+    updateRect.top = visibleRect.top;
+    updateRect.bottom = visibleRect.bottom;
     levels = new int[w / BAR_WIDTH];
     changes = new boolean[levels.length];
   }

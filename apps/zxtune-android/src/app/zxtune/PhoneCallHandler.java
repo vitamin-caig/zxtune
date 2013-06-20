@@ -1,6 +1,6 @@
 /*
  * @file
- * @brief Incoming calls handler
+ * @brief Phone calls handler
  * @version $Id:$
  * @author (C) Vitamin/CAIG
  */
@@ -13,14 +13,14 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import app.zxtune.playback.Control;
 
-public class IncomingCallHandler extends PhoneStateListener {
+public class PhoneCallHandler extends PhoneStateListener {
     
-  private static final String TAG = IncomingCallHandler.class.getName();
+  private static final String TAG = PhoneCallHandler.class.getName();
   private final TelephonyManager manager;
   private final Control control;
-  private boolean playedOnIncomingCall;
+  private boolean playedOnCall;
   
-  public IncomingCallHandler(Context context, Control control) {
+  public PhoneCallHandler(Context context, Control control) {
     this.manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
     this.control = control;
   }
@@ -39,30 +39,27 @@ public class IncomingCallHandler extends PhoneStateListener {
   public void onCallStateChanged(int state, String incomingNumber) {
     Log.d(TAG, "Process call state to " + state);
     switch (state) {
-      case TelephonyManager.CALL_STATE_RINGING:
-        processRinging();
+      case TelephonyManager.CALL_STATE_RINGING://incoming call
+        processCall();
         break;
-      case TelephonyManager.CALL_STATE_OFFHOOK:
-        processOffhook();
+      case TelephonyManager.CALL_STATE_OFFHOOK://outgoing call
+        processCall();
         break;
-      case TelephonyManager.CALL_STATE_IDLE:
+      case TelephonyManager.CALL_STATE_IDLE://hangout
         processIdle();
         break;
     }
   }
   
-  private void processRinging() {
-    if (playedOnIncomingCall = control.isPlaying()) {
+  private void processCall() {
+    if (playedOnCall = control.isPlaying()) {
       control.stop();
     }
   }
   
-  private void processOffhook() {
-  }
-  
   private void processIdle() {
-    if (playedOnIncomingCall && !control.isPlaying()) {
-      playedOnIncomingCall = false;
+    if (playedOnCall && !control.isPlaying()) {
+      playedOnCall = false;
       control.play();
     }
   }
