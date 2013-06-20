@@ -14,17 +14,20 @@ import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import android.content.Context;
 import android.net.Uri;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 
@@ -63,14 +66,6 @@ public class DirView extends ListView
     }
   }
   
-  private static class Tags {
-
-    static final String ICON = "icon";
-    static final String NAME = "name";
-    static final String SIZE = "size";
-    static final String URI = "uri";
-  }
-
   private OnEntryClickListener listener;
 
   public DirView(Context context) {
@@ -109,9 +104,9 @@ public class DirView extends ListView
   public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
     final ItemData item = (ItemData) parent.getAdapter().getItem(position);
     if (item.isFile()) {
-      listener.onFileClick(item.getUri());
+      listener.onFileClick(item.uri);
     } else {
-      listener.onDirClick(item.getUri());
+      listener.onDirClick(item.uri);
     }
   }
 
@@ -119,9 +114,9 @@ public class DirView extends ListView
   public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
     final ItemData item = (ItemData) parent.getAdapter().getItem(position);
     if (item.isFile()) {
-      return listener.onFileLongClick(item.getUri());
+      return listener.onFileLongClick(item.uri);
     } else {
-      return listener.onDirLongClick(item.getUri());
+      return listener.onDirLongClick(item.uri);
     }
   }
 
@@ -137,23 +132,18 @@ public class DirView extends ListView
 
     final Vfs.Entry[] entries = dir != null ? dir.list() : null;
     if (entries == null) {
-      final List<Map<String, Object>> stubData = Collections.emptyList();
+      final List<ItemData> stubData = Collections.emptyList();
       setData(stubData);
     } else {
       Arrays.sort(entries, new CompareEntries());
-      final List<Map<String, Object>> data = new DelayedListViewItems(entries);
+      final List<ItemData> data = new DelayedListViewItems(entries);
       setData(data);
     }
   }
 
-  private final void setData(List<Map<String, Object>> data) {
-    final String[] fromFields = {Tags.ICON, Tags.NAME, Tags.SIZE};
-    final int[] toFields = {R.id.dirview_item_icon, R.id.dirview_item_name, R.id.dirview_item_size};
-
-    final SimpleAdapter adapter =
-        new SimpleAdapter(getContext(), data, R.layout.dirview_item, fromFields, toFields);
+  private final void setData(List<ItemData> data) {
+    final ListAdapter adapter = new DirViewAdapter(getContext(), data);
     setAdapter(adapter);
-    adapter.notifyDataSetChanged();
   }
 
   private static class CompareEntries implements Comparator<Vfs.Entry> {
@@ -174,26 +164,88 @@ public class DirView extends ListView
       return lh.name().compareToIgnoreCase(rh.name());
     }
   }
+  
+  private static class DirViewAdapter extends BaseAdapter {
+    
+    private final LayoutInflater inflater;
+    private final List<ItemData> items;
+    
+    public DirViewAdapter(Context context, List<ItemData> items) {
+      this.inflater = LayoutInflater.from(context);
+      this.items = items;
+    }
+    
+    @Override
+    public int getCount() {
+      return items.size();
+    }
+    
+    @Override
+    public ItemData getItem(int position) {
+      return items.get(position);
+    }
+    
+    @Override
+    public long getItemId(int position) {
+      return position;
+    }
+    
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+      ViewHolder holder;
+      if (convertView != null) {
+        holder = (ViewHolder) convertView.getTag();
+      } else {
+        convertView = inflater.inflate(R.layout.dirview_item, null);
+        holder = new ViewHolder();
+        holder.icon = (ImageView) convertView.findViewById(R.id.dirview_item_icon);
+        holder.name = (TextView) convertView.findViewById(R.id.dirview_item_name);
+        holder.size = (TextView) convertView.findViewById(R.id.dirview_item_size);
+        convertView.setTag(holder);
+      }
+      final ItemData item = getItem(position);
+      if (item.isFile()) {
+        holder.icon.setVisibility(GONE);
+        holder.size.setVisibility(VISIBLE);
+        holder.size.setText(item.size.toString());
+      } else {
+        holder.icon.setVisibility(VISIBLE);
+        holder.size.setVisibility(GONE);
+      }
+      holder.name.setText(item.name);
+      return convertView;
+    }
+    
+    private static class ViewHolder {
+      public ImageView icon;
+      public TextView name;
+      public TextView size;
+    }
+  }
 
-  private static class DelayedListViewItems extends AbstractList<Map<String, Object>> {
+  private static class DelayedListViewItems extends AbstractList<ItemData> {
 
-    private final Object[] content;
+    private Vfs.Entry[] entries;
+    private final ItemData[] content;
+    private int cachedCount;
 
     public DelayedListViewItems(Vfs.Entry[] entries) {
-      content = new Object[entries.length];
-      System.arraycopy(entries, 0, content, 0, entries.length);
+      this.entries = entries;
+      this.content = new ItemData[entries.length];
+      this.cachedCount = 0;
     }
 
     @Override
-    public Map<String, Object> get(int index) {
-      final Object val = content[index];
-      if (val instanceof Map<?, ?>) {
-        return (Map<String, Object>) val;
-      } else {
-        final ItemData res = createItemData((Vfs.Entry) content[index]);
-        content[index] = res;
-        return res;
+    public ItemData get(int index) {
+      ItemData val = content[index];
+      if (val == null) {
+        val = createItemData(entries[index]);
+        content[index] = val;
+        if (++cachedCount == entries.length) {
+          entries = null;
+        }
       }
+      return val;
     }
 
     @Override
@@ -212,28 +264,26 @@ public class DirView extends ListView
     }
   }
 
-  private static class ItemData extends HashMap<String, Object> {
+  private static class ItemData {
 
-    private static final long serialVersionUID = 1L;
+    public final String name;
+    public final Long size;
+    public final Uri uri;
 
     public ItemData(Vfs.Dir dir) {
-      put(Tags.ICON, R.drawable.ic_browser_folder);
-      put(Tags.NAME, dir.name());
-      put(Tags.URI, dir.uri());
+      this.name = dir.name();
+      this.size = null;
+      this.uri = dir.uri();
     }
 
     public ItemData(Vfs.File file) {
-      put(Tags.NAME, file.name());
-      put(Tags.SIZE, file.size());
-      put(Tags.URI, file.uri());
+      this.name = file.name();
+      this.size = file.size();
+      this.uri = file.uri();
     }
 
     public final boolean isFile() {
-      return containsKey(Tags.SIZE);
-    }
-
-    public final Uri getUri() {
-      return (Uri) get(Tags.URI);
+      return size != null;
     }
   }
 }

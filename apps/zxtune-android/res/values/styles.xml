@@ -4,7 +4,6 @@
     <item name="android:textColor">@color/primary</item>
     <item name="android:textSize">@dimen/text_medium</item>
     <item name="android:singleLine">true</item>
-    <item name="android:ellipsize">marquee</item>
   </style>
   <style name="text_aux">
     <item name="android:textColor">@color/secondary</item>

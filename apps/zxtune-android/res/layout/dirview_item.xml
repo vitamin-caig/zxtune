@@ -4,14 +4,15 @@
     >
     <ImageView
       android:id="@+id/dirview_item_icon"
+      android:src="@drawable/ic_browser_folder"
       android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      android:layout_height="match_parent"
       android:layout_weight="0"
     />
     <TextView
       android:id="@+id/dirview_item_name"
       android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      android:layout_height="match_parent"
       android:layout_gravity="left|center"
       android:layout_weight="1"
       android:layout_marginLeft="@dimen/spacing_full"
@@ -21,7 +22,7 @@
     <TextView
       android:id="@+id/dirview_item_size"
       android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      android:layout_height="match_parent"
       android:layout_gravity="right|center"
       android:layout_weight="0"
       style="@style/text_main"
