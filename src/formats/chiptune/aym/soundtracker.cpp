@@ -556,7 +556,7 @@ namespace Chiptune
     }
   }
 
-  Decoder::Ptr CreateSoundTrackerDecoder()
+  Formats::Chiptune::Decoder::Ptr CreateSoundTrackerDecoder()
   {
     return SoundTracker::Ver1::CreateUncompiledDecoder();
   }

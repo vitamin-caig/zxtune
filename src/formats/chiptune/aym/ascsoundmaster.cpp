@@ -50,9 +50,23 @@ namespace Chiptune
     const std::size_t MAX_SAMPLE_SIZE = 150;
     const std::size_t ORNAMENTS_COUNT = 32;
     const std::size_t MAX_ORNAMENT_SIZE = 30;
-    const std::size_t MIN_PATTERN_SIZE = 1;//???
+    const std::size_t MIN_PATTERN_SIZE = 8;//???
     const std::size_t MAX_PATTERN_SIZE = 64;//???
     const std::size_t MAX_PATTERNS_COUNT = 32;//TODO
+
+    /*
+
+      Typical module structure
+
+      Header
+      Optional id
+      Patterns list
+      Patterns data
+      Samples list
+      Samples data
+      Ornaments list
+      Ornaments data
+    */
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -334,6 +348,7 @@ namespace Chiptune
         , UsedSamples(0, SAMPLES_COUNT - 1)
         , UsedOrnaments(0, ORNAMENTS_COUNT - 1)
       {
+        UsedSamples.Insert(0);
         UsedOrnaments.Insert(0);
       }
 
@@ -466,7 +481,6 @@ namespace Chiptune
 
       const Indices& GetUsedSamples() const
       {
-        Require(!UsedSamples.Empty());
         return UsedSamples;
       }
 
@@ -547,11 +561,6 @@ namespace Chiptune
       return offsetof(HeaderType, Positions) + hdr.Length;
     }
 
-    void CheckTempo(uint_t tempo)
-    {
-      Require(Math::InRange<uint_t>(tempo, 3, 50));
-    }
-
     template<class Version>
     class TypedHeader : public Header
     {
@@ -630,9 +639,7 @@ namespace Chiptune
 
       void ParseCommonProperties(Builder& builder) const
       {
-        const uint_t tempo = Source->GetTempo();
-        CheckTempo(tempo);
-        builder.SetInitialTempo(tempo);
+        builder.SetInitialTempo(Source->GetTempo());
         MetaBuilder& meta = builder.GetMetaBuilder();
         meta.SetProgram(Source->GetProgram());
         if (Id.Check())
@@ -679,12 +686,17 @@ namespace Chiptune
         Dbg("Samples: %1% to parse", samples.Count());
         const std::size_t baseOffset = Source->GetSamplesOffset();
         const RawSamplesList& list = GetServiceObject<RawSamplesList>(baseOffset);
+        std::size_t prevOffset = list.Offsets[0] - sizeof(RawSample::Line);
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
           Dbg("Parse sample %1%", samIdx);
-          const Sample& result = ParseSample(baseOffset + fromLE(list.Offsets[samIdx]));
+          const std::size_t curOffset = fromLE(list.Offsets[samIdx]);
+          Require(curOffset > prevOffset);
+          Require(0 == (curOffset - prevOffset) % sizeof(RawSample::Line));
+          const Sample& result = ParseSample(baseOffset + curOffset);
           builder.SetSample(samIdx, result);
+          prevOffset = curOffset;
         }
       }
 
@@ -693,13 +705,17 @@ namespace Chiptune
         Dbg("Ornaments: %1% to parse", ornaments.Count());
         const std::size_t baseOffset = Source->GetOrnamentsOffset();
         const RawOrnamentsList& list = GetServiceObject<RawOrnamentsList>(baseOffset);
+        std::size_t prevOffset = list.Offsets[0] - sizeof(RawOrnament::Line);
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          const std::size_t ornOffset = baseOffset + fromLE(list.Offsets[ornIdx]);
-          Dbg("Parse ornament %1% at %2%", ornIdx, ornOffset);
-          const Ornament& result = ParseOrnament(ornOffset);
+          Dbg("Parse ornament %1%", ornIdx);
+          const std::size_t curOffset = fromLE(list.Offsets[ornIdx]);
+          Require(curOffset > prevOffset);
+          Require(0 == (curOffset - prevOffset) % sizeof(RawOrnament::Line));
+          const Ornament& result = ParseOrnament(baseOffset + curOffset);
           builder.SetOrnament(ornIdx, result);
+          prevOffset = curOffset;
         }
       }
 
@@ -1107,11 +1123,19 @@ namespace Chiptune
           return false;
         }
         const std::size_t idSize = GetAreaSize(IDENTIFIER);
-        return idSize == 0 || idSize >= sizeof(RawId);
+        if (idSize != 0 && idSize < sizeof(RawId))
+        {
+          return false;
+        }
+        return true;
       }
 
       bool CheckSamples() const
       {
+        if (GetAreaAddress(SAMPLES) < GetAreaAddress(PATTERNS))
+        {
+          return false;
+        }
         const std::size_t size = GetAreaSize(SAMPLES);
         if (Undefined == size)
         {
@@ -1123,6 +1147,10 @@ namespace Chiptune
 
       bool CheckOrnaments() const
       {
+        if (GetAreaAddress(ORNAMENTS) < GetAreaAddress(SAMPLES))
+        {
+          return false;
+        }
         const std::size_t size = GetAreaSize(ORNAMENTS);
         if (Undefined == size)
         {
@@ -1134,21 +1162,6 @@ namespace Chiptune
     private:
       const std::size_t HeaderSize;
     };
-
-    bool AreSequenced(uint16_t lh, uint16_t rh, std::size_t multiply)
-    {
-      const std::size_t lhNorm = fromLE(lh);
-      const std::size_t rhNorm = fromLE(rh);
-      if (lhNorm > rhNorm)
-      {
-        return false;
-      }
-      else if (lhNorm < rhNorm)
-      {
-        return 0 == (rhNorm - lhNorm) % multiply;
-      }
-      return false;
-    }
 
     bool FastCheck(const Binary::TypedContainer& data, const Areas& areas)
     {
@@ -1162,12 +1175,7 @@ namespace Chiptune
       }
       if (const RawSamplesList* samplesList = data.GetField<RawSamplesList>(areas.GetAreaAddress(SAMPLES)))
       {
-        if (fromLE(samplesList->Offsets[0]) < sizeof(*samplesList))
-        {
-          return false;
-        }
-        if (samplesList->Offsets.end() != std::adjacent_find(samplesList->Offsets.begin(), samplesList->Offsets.end(),
-          !boost::bind(&AreSequenced, _1, _2, sizeof(RawSample::Line))))
+        if (fromLE(samplesList->Offsets[0]) != sizeof(*samplesList))
         {
           return false;
         }
@@ -1183,11 +1191,6 @@ namespace Chiptune
       if (const RawOrnamentsList* ornamentsList = data.GetField<RawOrnamentsList>(areas.GetAreaAddress(ORNAMENTS)))
       {
         if (fromLE(ornamentsList->Offsets[0]) < sizeof(*ornamentsList))
-        {
-          return false;
-        }
-        if (ornamentsList->Offsets.end() != std::adjacent_find(ornamentsList->Offsets.begin(), ornamentsList->Offsets.end(),
-          !boost::bind(&AreSequenced, _1, _2, sizeof(RawOrnament::Line))))
         {
           return false;
         }

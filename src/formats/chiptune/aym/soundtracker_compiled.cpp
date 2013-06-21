@@ -792,7 +792,7 @@ namespace Chiptune
     }
   }// namespace SoundTracker
 
-  Decoder::Ptr CreateSoundTrackerCompiledDecoder()
+  Formats::Chiptune::Decoder::Ptr CreateSoundTrackerCompiledDecoder()
   {
     return SoundTracker::Ver1::CreateCompiledDecoder();
   }
