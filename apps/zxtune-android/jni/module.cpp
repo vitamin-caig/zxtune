@@ -41,11 +41,17 @@ namespace Module
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
   (JNIEnv* env, jclass /*self*/, jbyteArray buffer)
 {
-  const jsize size = env->GetArrayLength(buffer);
-  std::auto_ptr<Dump> content(new Dump(size));
-  env->GetByteArrayRegion(buffer, 0, size, safe_ptr_cast<jbyte*>(&content->front()));
-  const Binary::Container::Ptr data = Binary::CreateContainer(content);
-  return Module::Create(data);
+  if (const jsize size = env->GetArrayLength(buffer))
+  {
+    std::auto_ptr<Dump> content(new Dump(size));
+    env->GetByteArrayRegion(buffer, 0, size, safe_ptr_cast<jbyte*>(&content->front()));
+    const Binary::Container::Ptr data = Binary::CreateContainer(content);
+    return Module::Create(data);
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 

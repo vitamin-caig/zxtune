@@ -44,8 +44,12 @@ public class FileIterator extends Iterator {
   }
     
   public static ZXTune.Module loadModule(Uri path) throws IOException {
-    final byte[] content = loadFile(path.getPath());
-    return ZXTune.loadModule(content);
+    try {
+      final byte[] content = loadFile(path.getPath());
+      return ZXTune.loadModule(content);
+    } catch (RuntimeException e) {
+      throw new IOException(e.toString());
+    }
   }
 
   private static byte[] loadFile(String path) throws IOException {

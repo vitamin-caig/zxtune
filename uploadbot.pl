@@ -101,7 +101,7 @@ my $answer = <>;
 chomp $answer;
 exit 0 unless ${answer} eq 'yes';
 
-for my $opsys qw(Redhat Ubuntu Archlinux Dingux Linux Android Windows)
+for my $opsys qw(Redhat Ubuntu Archlinux Dingux Linux Windows Android)
 {
   for my $compiler qw(gcc vc80 vc71)
   {
