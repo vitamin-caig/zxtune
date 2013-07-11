@@ -28,12 +28,12 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
+import app.zxtune.sound.Visualizer;
 
 public class NowPlayingFragment extends Fragment {
 
   private final static String TAG = NowPlayingFragment.class.getName();
   private final Handler timer;
-  private final Runnable updateAnalyzerTask;
   private final Runnable updateUiTask;
   private Releaseable connection;
   private Control control;
@@ -50,7 +50,6 @@ public class NowPlayingFragment extends Fragment {
 
   public NowPlayingFragment() {
     this.timer = new Handler();
-    this.updateAnalyzerTask = new UpdateAnalyzerTask();
     this.updateUiTask = new UpdateUiTask();
   }
   
@@ -167,28 +166,27 @@ public class NowPlayingFragment extends Fragment {
 
   private void startUpdating() {
     Log.d(TAG, "Start updating UI");
-    timer.post(updateAnalyzerTask);
     timer.post(updateUiTask);
+    analyzer.setSource(new Visualizer() {
+      @Override
+      public int getSpectrum(int[] bands, int[] levels) {
+        final int[] spc = control.getSpectrumAnalysis();
+        assert bands.length >= spc.length;
+        assert levels.length >= spc.length;
+        for (int idx = 0; idx != spc.length; ++idx) {
+          final int val = spc[idx];
+          bands[idx] = val & 0xff;
+          levels[idx] = val >> 8;
+        }
+        return spc.length;
+      }
+    });
   }
 
   private void stopUpdating() {
     Log.d(TAG, "Stop updating UI");
     timer.removeCallbacks(updateUiTask);
-    timer.removeCallbacks(updateAnalyzerTask);
-  }
-  
-  private class UpdateAnalyzerTask implements Runnable {
-    
-    @Override
-    public void run() {
-      final int[] spectrum = control.getSpectrumAnalysis();
-      if (spectrum == null) {
-        return;
-      }
-      analyzer.update(spectrum);
-      
-      timer.postDelayed(this, 100);
-    }
+    analyzer.setSource(null);
   }
 
   private class UpdateUiTask implements Runnable {
