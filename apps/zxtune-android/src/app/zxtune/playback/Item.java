@@ -15,7 +15,7 @@ import app.zxtune.TimeStamp;
 public interface Item {
 
   /**
-   * @return Unique item identifier
+   * @return Unique item identifier - may be equal to dataId in case of plain file playback
    */
   public Uri getId();
 

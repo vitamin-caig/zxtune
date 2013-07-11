@@ -99,7 +99,8 @@ public class FileIterator extends Iterator {
 
     @Override
     public TimeStamp getDuration() {
-      return TimeStamp.createFrom(20 * module.getDuration(), TimeUnit.MILLISECONDS);
+      final long frameDuration = module.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT);
+      return TimeStamp.createFrom(frameDuration * module.getDuration(), TimeUnit.MICROSECONDS);
     }
 
     @Override

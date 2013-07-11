@@ -45,4 +45,12 @@ public final class TimeStamp implements Comparable<TimeStamp> {
   public int compareTo(TimeStamp rh) {
     return value == rh.value ? 0 : (value < rh.value ? -1 : +1);
   }
+  
+  public long divides(TimeStamp rh) {
+    return value / rh.value;
+  }
+  
+  public TimeStamp multiplies(long count) {
+    return new TimeStamp(value * count, UNIT);
+  }
 }

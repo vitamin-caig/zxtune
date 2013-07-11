@@ -11,5 +11,8 @@ import app.zxtune.ZXTune;
 
 public interface PlayableItem extends Item, Releaseable {
 
+  /**
+   * @return Newly created low-level player
+   */
   public ZXTune.Player createPlayer();
 }

@@ -16,7 +16,7 @@ public abstract class Iterator {
 
   /**
    *  Retrieve current position' item
-   * @return Newly loaded item
+   *  @return Newly loaded item
    */
   public abstract PlayableItem getItem();
 

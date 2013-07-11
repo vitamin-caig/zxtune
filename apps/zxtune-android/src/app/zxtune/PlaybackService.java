@@ -23,6 +23,7 @@ import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.PlayableItem;
+import app.zxtune.playback.StubIterator;
 import app.zxtune.playback.StubPlayableItem;
 import app.zxtune.playlist.Query;
 import app.zxtune.rpc.BroadcastPlaybackCallback;
@@ -123,7 +124,7 @@ public class PlaybackService extends Service {
 
     PlaybackControl(Callback callback) {
       this.callback = callback;
-      this.iterator = null;//TODO
+      this.iterator = StubIterator.instance();
       this.item = StubPlayableItem.instance();
       this.player = StubPlayer.instance();
       this.visualizer = StubVisualizer.instance();
@@ -269,11 +270,14 @@ public class PlaybackService extends Service {
   private static final class PlaybackSamplesSource implements SamplesSource {
 
     private ZXTune.Player player;
+    private TimeStamp frameDuration;
     private volatile TimeStamp seekRequest;
     
     public PlaybackSamplesSource(ZXTune.Player player) {
       this.player = player;
-      player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, 1);
+      final long frameDurationUs = player.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT); 
+      this.frameDuration = TimeStamp.createFrom(frameDurationUs, TimeUnit.MICROSECONDS);
+      player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, ZXTune.Properties.Core.Aym.INTERPOLATION_LQ);
       player.setPosition(0);
     }
     
@@ -285,7 +289,7 @@ public class PlaybackService extends Service {
     @Override
     public boolean getSamples(short[] buf) {
       if (seekRequest != null) {
-        final int frame = (int) (seekRequest.convertTo(TimeUnit.MILLISECONDS) / 20);
+        final int frame = (int) seekRequest.divides(frameDuration); 
         player.setPosition(frame);
         seekRequest = null;
       }
@@ -294,9 +298,12 @@ public class PlaybackService extends Service {
 
     @Override
     public TimeStamp getPosition() {
-      final int frame = player.getPosition();
-      //TODO
-      return TimeStamp.createFrom(20 * frame, TimeUnit.MILLISECONDS);
+      TimeStamp res = seekRequest;
+      if (res == null) {
+        final int frame = player.getPosition();
+        res = frameDuration.multiplies(frame); 
+      }
+      return res;
     }
 
     @Override
