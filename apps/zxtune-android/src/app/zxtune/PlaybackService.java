@@ -25,6 +25,8 @@ import app.zxtune.playback.Iterator;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.StubIterator;
 import app.zxtune.playback.StubPlayableItem;
+import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.VisualizerStub;
 import app.zxtune.playlist.Query;
 import app.zxtune.rpc.BroadcastPlaybackCallback;
 import app.zxtune.rpc.PlaybackControlServer;
@@ -33,8 +35,6 @@ import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesSource;
 import app.zxtune.sound.StubPlayer;
-import app.zxtune.sound.StubVisualizer;
-import app.zxtune.sound.Visualizer;
 import app.zxtune.ui.StatusNotification;
 
 public class PlaybackService extends Service {
@@ -127,7 +127,7 @@ public class PlaybackService extends Service {
       this.iterator = StubIterator.instance();
       this.item = StubPlayableItem.instance();
       this.player = StubPlayer.instance();
-      this.visualizer = StubVisualizer.instance();
+      this.visualizer = VisualizerStub.instance();
       callback.onControlChanged(this);
     }
 
@@ -224,11 +224,11 @@ public class PlaybackService extends Service {
     @Override
     public void release() {
       stop();
-      visualizer = StubVisualizer.instance();
+      visualizer = null;
       try {
         player.release();
       } finally {
-        player = StubPlayer.instance();
+        player = null;
       }
     }
   }

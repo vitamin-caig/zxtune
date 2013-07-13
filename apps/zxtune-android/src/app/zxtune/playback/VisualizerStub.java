@@ -4,12 +4,12 @@
  * @version $Id:$
  * @author
  */
-package app.zxtune.sound;
+package app.zxtune.playback;
 
-public class StubVisualizer implements Visualizer {
-  
+public class VisualizerStub implements Visualizer {
+
   // permit inheritance
-  protected StubVisualizer() {}
+  protected VisualizerStub() {}
 
   @Override
   public int getSpectrum(int[] bands, int[] levels) {
@@ -22,6 +22,6 @@ public class StubVisualizer implements Visualizer {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final Visualizer INSTANCE = new StubVisualizer();
+    public static final Visualizer INSTANCE = new VisualizerStub();
   }  
 }

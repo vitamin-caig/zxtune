@@ -4,10 +4,9 @@
   android:layout_width="fill_parent"
   android:layout_height="wrap_content"
   >
-  <app.zxtune.ui.SpectrumAnalyzerView
-    android:id="@+id/analyzer"
-    android:layout_width="fill_parent"
-    android:layout_height="50px"
+  <app.zxtune.ui.VisualizerView
+    android:id="@+id/visualizer"
+    style="@style/block"
   />
   <include layout="@layout/position"/>
   <include layout="@layout/controls"/>

@@ -1,6 +1,6 @@
 /*
  * @file
- * @brief SpectrumAnalyzerView class
+ * @brief VisualizerView class
  * @version $Id:$
  * @author (C) Vitamin/CAIG
  */
@@ -15,10 +15,10 @@ import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
 import app.zxtune.R;
-import app.zxtune.sound.StubVisualizer;
-import app.zxtune.sound.Visualizer;
+import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.VisualizerStub;
 
-public class SpectrumAnalyzerView extends View {
+public class VisualizerView extends View {
   
   private Visualizer source;
   private Handler timer;
@@ -26,26 +26,26 @@ public class SpectrumAnalyzerView extends View {
 
   private Rect visibleRect;
   
-  private SpectrumAnalyzer analyzer;
+  private SpectrumVisualizer visualizer;
   
-  public SpectrumAnalyzerView(Context context, AttributeSet attrs, int defStyle) {
+  public VisualizerView(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
     init();
   }
   
-  public SpectrumAnalyzerView(Context context, AttributeSet attrs) {
+  public VisualizerView(Context context, AttributeSet attrs) {
     super(context, attrs);
     init();
   }
   
-  public SpectrumAnalyzerView(Context context) {
+  public VisualizerView(Context context) {
     super(context);
     init();
   }
   
   public void setSource(Visualizer source) {
     if (source == null) {
-      this.source = StubVisualizer.instance();
+      this.source = VisualizerStub.instance();
       timer.removeCallbacks(updateTask);
     } else {
       this.source = source;
@@ -61,16 +61,15 @@ public class SpectrumAnalyzerView extends View {
   @Override
   protected void onDraw(Canvas canvas) {
     super.onDraw(canvas);
-    analyzer.draw(canvas);
+    visualizer.draw(canvas);
   }
   
   private void init() {
-    source = StubVisualizer.instance();
+    source = VisualizerStub.instance();
     timer = new Handler();
-    updateTask = new UpdateSpectrumTask();
+    updateTask = new UpdateViewTask();
     visibleRect = new Rect();
-    analyzer = new SpectrumAnalyzer();
-    fillVisibleRect(getWidth(), getHeight());
+    visualizer = new SpectrumVisualizer();
     setWillNotDraw(false);
   }
   
@@ -79,10 +78,10 @@ public class SpectrumAnalyzerView extends View {
     visibleRect.right = w - visibleRect.left - getPaddingRight();
     visibleRect.top = getPaddingTop();
     visibleRect.bottom = h - visibleRect.top - getPaddingBottom();
-    analyzer.sizeChanged();
+    visualizer.sizeChanged();
   }
   
-  private final class SpectrumAnalyzer {
+  private final class SpectrumVisualizer {
     
     private static final int MAX_LEVEL = 100;
     private static final int BAR_WIDTH = 4;
@@ -90,7 +89,6 @@ public class SpectrumAnalyzerView extends View {
     private static final int FALL_SPEED = 10;
 
     private final Rect barRect;
-    private final Rect updateRect;
     private final Paint paint;
     private final int[] bands;
     private final int[] levels;
@@ -99,9 +97,8 @@ public class SpectrumAnalyzerView extends View {
     private int lowerChange;
     private int upperChange;
     
-    public SpectrumAnalyzer() {
+    public SpectrumVisualizer() {
       this.barRect = new Rect();
-      this.updateRect = new Rect();
       this.paint = new Paint();
       this.paint.setColor(getResources().getColor(R.color.primary));
       this.bands = new int[16];
@@ -110,8 +107,6 @@ public class SpectrumAnalyzerView extends View {
     
     public void sizeChanged() {
       barRect.bottom = visibleRect.bottom;
-      updateRect.top = visibleRect.top;
-      updateRect.bottom = visibleRect.bottom;
       values = new int[visibleRect.width() / BAR_WIDTH];
       changes = new boolean[values.length];
     }
@@ -119,9 +114,9 @@ public class SpectrumAnalyzerView extends View {
     public void update() {
       final int channels = source.getSpectrum(bands, levels);
       updateValues(channels);
-      updateRect.left = BAR_WIDTH * lowerChange;
-      updateRect.right = BAR_WIDTH * (upperChange + 1);
-      postInvalidate(updateRect.left, updateRect.top, updateRect.right, updateRect.bottom);
+      final int updateLeft = visibleRect.left + BAR_WIDTH * lowerChange;
+      final int updateRight = visibleRect.left + BAR_WIDTH * (upperChange + 1);
+      postInvalidate(updateLeft, visibleRect.top, updateRight, visibleRect.bottom);
     }
 
     public void draw(Canvas canvas) {
@@ -167,11 +162,11 @@ public class SpectrumAnalyzerView extends View {
     }
   }
   
-  private final class UpdateSpectrumTask implements Runnable {
+  private final class UpdateViewTask implements Runnable {
     
     @Override
     public void run() {
-      analyzer.update();
+      visualizer.update();
       timer.postDelayed(this, 100);
     }
   }

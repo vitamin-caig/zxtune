@@ -4,7 +4,7 @@
  * @version $Id:$
  * @author
  */
-package app.zxtune.sound;
+package app.zxtune.playback;
 
 /**
  * Interface intented to get different visual-related 

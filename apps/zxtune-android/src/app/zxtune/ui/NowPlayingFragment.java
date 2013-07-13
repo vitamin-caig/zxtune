@@ -28,7 +28,7 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
-import app.zxtune.sound.Visualizer;
+import app.zxtune.playback.Visualizer;
 
 public class NowPlayingFragment extends Fragment {
 
@@ -37,7 +37,7 @@ public class NowPlayingFragment extends Fragment {
   private final Runnable updateUiTask;
   private Releaseable connection;
   private Control control;
-  private SpectrumAnalyzerView analyzer;
+  private VisualizerView visualizer;
   private ImageButton prev;
   private ImageButton playPause;
   private ImageButton next;
@@ -105,7 +105,7 @@ public class NowPlayingFragment extends Fragment {
 
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
-    analyzer = (SpectrumAnalyzerView) view.findViewById(R.id.analyzer);
+    visualizer = (VisualizerView) view.findViewById(R.id.visualizer);
     prev = (ImageButton) view.findViewById(R.id.controls_prev);
     playPause = (ImageButton) view.findViewById(R.id.controls_play_pause);
     next = (ImageButton) view.findViewById(R.id.controls_next);
@@ -167,7 +167,7 @@ public class NowPlayingFragment extends Fragment {
   private void startUpdating() {
     Log.d(TAG, "Start updating UI");
     timer.post(updateUiTask);
-    analyzer.setSource(new Visualizer() {
+    visualizer.setSource(new Visualizer() {
       @Override
       public int getSpectrum(int[] bands, int[] levels) {
         final int[] spc = control.getSpectrumAnalysis();
@@ -186,7 +186,7 @@ public class NowPlayingFragment extends Fragment {
   private void stopUpdating() {
     Log.d(TAG, "Stop updating UI");
     timer.removeCallbacks(updateUiTask);
-    analyzer.setSource(null);
+    visualizer.setSource(null);
   }
 
   private class UpdateUiTask implements Runnable {

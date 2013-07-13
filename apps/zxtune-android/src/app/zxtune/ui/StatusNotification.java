@@ -15,10 +15,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import app.zxtune.R;
+import app.zxtune.playback.Callback;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.Callback;
-import app.zxtune.playback.Status;
 
 public class StatusNotification implements Callback {
 
