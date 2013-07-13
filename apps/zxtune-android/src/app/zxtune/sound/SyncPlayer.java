@@ -56,20 +56,10 @@ final class SyncPlayer implements Player {
   }
   
   @Override
-  public void setPosition(TimeStamp pos) {
-    source.setPosition(pos);
-  }
-  
-  @Override
   public boolean isStarted() {
     return isActive;
   }
   
-  @Override
-  public TimeStamp getPosition() {
-    return source.getPosition();
-  }
-
   @Override
   public void release() {
     assert consumeThread == null;

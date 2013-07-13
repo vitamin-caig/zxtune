@@ -20,16 +20,8 @@ public class StubPlayer implements Player {
   public void stopPlayback() {}
   
   @Override
-  public void setPosition(TimeStamp pos) {}
-  
-  @Override
   public boolean isStarted() {
     return false;
-  }
-  
-  @Override
-  public TimeStamp getPosition() {
-    return TimeStamp.EMPTY;
   }
 
   @Override

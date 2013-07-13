@@ -7,10 +7,7 @@
 
 package app.zxtune.ui;
 
-import java.util.concurrent.TimeUnit;
-
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,8 +15,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.SeekBar;
-import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
 import app.zxtune.RetainedCallbackSubscriptionFragment;

@@ -48,21 +48,10 @@ final public class AsyncPlayer implements Player {
   }
   
   @Override
-  public synchronized void setPosition(TimeStamp position) {
-    Log.d(TAG, "Seek");
-    state.setPosition(position);
-  }
-  
-  @Override
   public synchronized boolean isStarted() {
     return state.isStarted();
   }
   
-  @Override
-  public synchronized TimeStamp getPosition() {
-    return state.getPosition();
-  }
-
   @Override
   public synchronized void release() {
     sync.release();
@@ -148,18 +137,8 @@ final public class AsyncPlayer implements Player {
     }
 
     @Override
-    public void setPosition(TimeStamp position) {
-      sync.setPosition(position);
-    }
-    
-    @Override
     public boolean isStarted() {
       return true;
-    }
-    
-    @Override
-    public TimeStamp getPosition() {
-      return sync.getPosition();
     }
   }
 

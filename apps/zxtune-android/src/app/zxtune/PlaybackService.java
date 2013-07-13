@@ -23,6 +23,7 @@ import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.PlayableItem;
+import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.StubIterator;
 import app.zxtune.playback.StubPlayableItem;
 import app.zxtune.playback.Visualizer;
@@ -119,6 +120,7 @@ public class PlaybackService extends Service {
     private Callback callback;
     private Iterator iterator;
     private PlayableItem item;
+    private SeekableSamplesSource source;
     private Player player;
     private Visualizer visualizer;
 
@@ -126,6 +128,7 @@ public class PlaybackService extends Service {
       this.callback = callback;
       this.iterator = StubIterator.instance();
       this.item = StubPlayableItem.instance();
+      this.source = null;
       this.player = StubPlayer.instance();
       this.visualizer = VisualizerStub.instance();
       callback.onControlChanged(this);
@@ -138,7 +141,7 @@ public class PlaybackService extends Service {
 
     @Override
     public TimeStamp getPlaybackPosition() {
-      return player.getPosition();
+      return source.getPosition();
     }
 
     @Override
@@ -172,13 +175,14 @@ public class PlaybackService extends Service {
     private void play(Iterator newIterator) throws IOException {
       final PlayableItem newItem = newIterator.getItem();
       final ZXTune.Player lowPlayer = newItem.createPlayer();
-      final SamplesSource source = new PlaybackSamplesSource(lowPlayer);
+      final SeekableSamplesSource newSource = new SeekableSamplesSource(lowPlayer, newItem.getDuration());
       final PlayerEventsListener events = new PlaybackEvents(callback);
       final Visualizer newVisualizer = new PlaybackVisualizer(lowPlayer);
 
       release();
-      player = AsyncPlayer.create(source, events);
+      player = AsyncPlayer.create(newSource, events);
       item = newItem;
+      source = newSource;
       visualizer = newVisualizer;
       callback.onItemChanged(item);
       play();
@@ -218,12 +222,13 @@ public class PlaybackService extends Service {
     
     @Override
     public void setPlaybackPosition(TimeStamp pos) {
-      player.setPosition(pos);
+      source.setPosition(pos);
     }
     
     @Override
     public void release() {
       stop();
+      source = null;
       visualizer = null;
       try {
         player.release();
@@ -267,14 +272,16 @@ public class PlaybackService extends Service {
     }
   }
   
-  private static final class PlaybackSamplesSource implements SamplesSource {
+  private static final class SeekableSamplesSource implements SamplesSource, SeekControl {
 
     private ZXTune.Player player;
-    private TimeStamp frameDuration;
+    private final TimeStamp totalDuration;
+    private final TimeStamp frameDuration;
     private volatile TimeStamp seekRequest;
     
-    public PlaybackSamplesSource(ZXTune.Player player) {
+    public SeekableSamplesSource(ZXTune.Player player, TimeStamp totalDuration) {
       this.player = player;
+      this.totalDuration = totalDuration;
       final long frameDurationUs = player.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT); 
       this.frameDuration = TimeStamp.createFrom(frameDurationUs, TimeUnit.MICROSECONDS);
       player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, ZXTune.Properties.Core.Aym.INTERPOLATION_LQ);
@@ -297,6 +304,17 @@ public class PlaybackService extends Service {
     }
 
     @Override
+    public void release() {
+      player.release();
+      player = null;
+    }
+    
+    @Override
+    public TimeStamp getDuration() {
+      return totalDuration; 
+    }
+
+    @Override
     public TimeStamp getPosition() {
       TimeStamp res = seekRequest;
       if (res == null) {
@@ -309,12 +327,6 @@ public class PlaybackService extends Service {
     @Override
     public void setPosition(TimeStamp pos) {
       seekRequest = pos;
-    }
-    
-    @Override
-    public void release() {
-      player.release();
-      player = null;
     }
   }
   

@@ -27,15 +27,6 @@ public interface SamplesSource {
   public boolean getSamples(short[] buf);
   
   /**
-   * @param pos Absolute time position to seek  
-   */
-  public void setPosition(TimeStamp pos);
-  
-  /**
-   * @return Absolute time position of playback
-   */
-  public TimeStamp getPosition();
-  /**
    * Release all internal resources
    */
   public void release();
