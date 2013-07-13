@@ -19,6 +19,7 @@ import java.util.List;
 import android.content.Context;
 import android.net.Uri;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -198,18 +199,17 @@ public class DirView extends ListView
       } else {
         convertView = inflater.inflate(R.layout.dirview_item, parent, false);
         holder = new ViewHolder();
-        holder.icon = (ImageView) convertView.findViewById(R.id.dirview_item_icon);
         holder.name = (TextView) convertView.findViewById(R.id.dirview_item_name);
         holder.size = (TextView) convertView.findViewById(R.id.dirview_item_size);
         convertView.setTag(holder);
       }
       final ItemData item = getItem(position);
       if (item.isFile()) {
-        holder.icon.setVisibility(GONE);
+        holder.name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
         holder.size.setVisibility(VISIBLE);
         holder.size.setText(item.size.toString());
       } else {
-        holder.icon.setVisibility(VISIBLE);
+        holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_browser_folder, 0, 0, 0);
         holder.size.setVisibility(GONE);
       }
       holder.name.setText(item.name);
@@ -217,7 +217,6 @@ public class DirView extends ListView
     }
     
     private static class ViewHolder {
-      public ImageView icon;
       public TextView name;
       public TextView size;
     }

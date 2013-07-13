@@ -54,15 +54,14 @@ public class SeekControlView {
     if (control == null) {
       timer.removeCallbacks(updateTask);
       this.control = SeekControlStub.instance();
-      currentTime.setText(R.string.stub_time);
-      totalTime.setText(R.string.stub_time);
-      currentPosition.setProgress(0);
+      currentPosition.setEnabled(false);
     } else {
       this.control = control;
       final TimeStamp duration = control.getDuration();
       totalTime.setText(duration.toString());
       currentPosition.setProgress(0);
       currentPosition.setMax((int) duration.convertTo(TimeUnit.SECONDS));
+      currentPosition.setEnabled(true);
       updateTask.run();
     }
   }
