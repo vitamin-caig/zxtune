@@ -28,31 +28,24 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
 
 public class NowPlayingFragment extends Fragment {
 
   private final static String TAG = NowPlayingFragment.class.getName();
-  private final Handler timer;
-  private final Runnable updateUiTask;
   private Releaseable connection;
   private Control control;
+  private SeekControlView seek;
   private VisualizerView visualizer;
   private ImageButton prev;
   private ImageButton playPause;
   private ImageButton next;
-  private SeekBar seek;
-  private TextView time;
 
   public static Fragment createInstance() {
     return new NowPlayingFragment();
   }
 
-  public NowPlayingFragment() {
-    this.timer = new Handler();
-    this.updateUiTask = new UpdateUiTask();
-  }
-  
   @Override
   public void onActivityCreated(Bundle savedInstanceState) {
     super.onActivityCreated(savedInstanceState);
@@ -91,9 +84,6 @@ public class NowPlayingFragment extends Fragment {
 
       @Override
       public void onItemChanged(Item item) {
-        if (item != null) {
-          seek.setMax((int) item.getDuration().convertTo(TimeUnit.SECONDS));
-        }
       }
     });
   }
@@ -105,12 +95,11 @@ public class NowPlayingFragment extends Fragment {
 
   @Override
   public void onViewCreated(View view, Bundle savedInstanceState) {
+    seek = new SeekControlView(view);
     visualizer = (VisualizerView) view.findViewById(R.id.visualizer);
     prev = (ImageButton) view.findViewById(R.id.controls_prev);
     playPause = (ImageButton) view.findViewById(R.id.controls_play_pause);
     next = (ImageButton) view.findViewById(R.id.controls_next);
-    seek = (SeekBar) view.findViewById(R.id.position_seek);
-    time = (TextView) view.findViewById(R.id.position_time);
     prev.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -133,21 +122,6 @@ public class NowPlayingFragment extends Fragment {
         control.next();
       }
     });
-    seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-      @Override
-      public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        if (fromUser) {
-          final TimeStamp pos = TimeStamp.createFrom(progress, TimeUnit.SECONDS);
-          control.setPlaybackPosition(pos);
-        }
-      }
-      
-      @Override
-      public void onStartTrackingTouch(SeekBar seekBar) {}
-      
-      @Override
-      public void onStopTrackingTouch(SeekBar seekBar) {}
-    });
   }
 
   @Override
@@ -166,7 +140,22 @@ public class NowPlayingFragment extends Fragment {
 
   private void startUpdating() {
     Log.d(TAG, "Start updating UI");
-    timer.post(updateUiTask);
+    seek.setControl(new SeekControl() {
+      @Override
+      public TimeStamp getDuration() {
+        return control.getItem().getDuration();
+      }
+
+      @Override
+      public TimeStamp getPosition() {
+        return control.getPlaybackPosition();
+      }
+
+      @Override
+      public void setPosition(TimeStamp position) {
+        control.setPlaybackPosition(position);
+      }
+    });
     visualizer.setSource(new Visualizer() {
       @Override
       public int getSpectrum(int[] bands, int[] levels) {
@@ -185,23 +174,7 @@ public class NowPlayingFragment extends Fragment {
 
   private void stopUpdating() {
     Log.d(TAG, "Stop updating UI");
-    timer.removeCallbacks(updateUiTask);
+    seek.setControl(null);
     visualizer.setSource(null);
   }
-
-  private class UpdateUiTask implements Runnable {
-    
-    @Override
-    public void run() {
-
-      final TimeStamp pos = control.getPlaybackPosition();
-      if (pos == null) {
-        return;
-      }
-      seek.setProgress((int) pos.convertTo(TimeUnit.SECONDS));
-      time.setText(pos.toString());
-
-      timer.postDelayed(this, 1000);
-    }
-  };
 }

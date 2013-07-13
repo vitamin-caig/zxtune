@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ZXTune beta</string>
-    <string name="stub_time">--:--.-</string>
+    <string name="stub_time">--:--</string>
     <string name="menu_quit">Quit</string>
 </resources>

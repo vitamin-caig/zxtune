@@ -13,20 +13,21 @@
   <style name="block">
     <item name="android:layout_width">match_parent</item>
     <item name="android:layout_height">@dimen/item_height</item>
-    <item name="android:paddingTop">@dimen/spacing_half</item>
-    <item name="android:paddingBottom">@dimen/spacing_half</item>
-    <item name="android:paddingLeft">@dimen/spacing_full</item>
-    <item name="android:paddingRight">@dimen/spacing_full</item>
+  </style>
+  <style name="block_element">
+    <item name="android:layout_height">match_parent</item>
+    <item name="android:layout_margin">@dimen/spacing_half</item>
+  </style>
+  <style name="block_element_text" parent="block_element">
+    <item name="android:textColor">@color/primary</item>
+    <item name="android:textSize">@dimen/text_medium</item>
   </style>
   <!--
     Styles' inheritance is the only way to make it work.
     Seems that on buttons the attribute that works like "android:textAppearance" is the "style" one.
   -->
-  <style name="button" parent="text_main">
-    <item name="android:layout_width">wrap_content</item>
-    <item name="android:layout_height">@dimen/item_height</item>
+  <style name="button" parent="block_element_text">
     <item name="android:padding">@dimen/spacing_half</item>
-    <item name="android:layout_margin">@dimen/spacing_half</item>
     <item name="android:background">@drawable/btn_background</item>
   </style>
 </resources>

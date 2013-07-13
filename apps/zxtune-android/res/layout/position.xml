@@ -1,26 +1,34 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  style="@style/block"
   android:orientation="horizontal"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content"
   >
-  <SeekBar
-    android:id="@+id/position_seek"
-    android:layout_width="wrap_content"
-    android:layout_height="@dimen/item_height"
-    android:layout_weight="1"
-    android:layout_margin="@dimen/spacing_half"
-    android:progressDrawable="@drawable/seekbar"
-    android:thumb="@android:color/transparent"
-    />
   <TextView
+    style="@style/block_element"
     android:id="@+id/position_time"
     android:layout_width="wrap_content"
-    android:layout_height="@dimen/item_height"
     android:layout_weight="0"
+    android:textColor="@color/primary"
+    android:textSize="@dimen/text_small"
+    android:gravity="center"
+    android:text="@string/stub_time"
+    />
+  <SeekBar
+    style="@style/block_element"
+    android:id="@+id/position_seek"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
     android:layout_gravity="center"
-    android:layout_margin="@dimen/spacing_half"
-    style="@style/text_main"
+    />
+  <TextView
+    style="@style/block_element"
+    android:id="@+id/position_duration"
+    android:layout_width="wrap_content"
+    android:layout_weight="0"
+    android:textColor="@color/primary"
+    android:textSize="@dimen/text_small"
+    android:gravity="center"
     android:text="@string/stub_time"
     />
 </LinearLayout>
