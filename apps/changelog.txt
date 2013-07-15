@@ -7,6 +7,22 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+TODO
+
+--- Rev2496 from 21.06.2013
+
+[+] zxtune-android: handle outgoing calls
+[*] zxtune-android: fixed crash of file browser history navigation
+[*] zxtune-android: speedup file browser
+[*] zxtune-android: fixed crash on empty/big files open/adding
+[*] Slightly relaxed AS0/ASC detection
+
+--- Rev2484 from 17.06.2013
+
+[+] zxtune-android: initial release
+
+--- Rev2466 from 13.06.2013
+
 [+] HQ interpolation for SAA chiptunes
 [+] Precise sample frequency setup for DAC chiptunes
 [*] Fixed TF0/TFE playback
@@ -620,4 +636,130 @@ Annotation:
 
 [+] DataSqueezer support (DSQ)
 [+] 64-bit windows builds
-[+] MinGW builds
+
+--- Rev546 from 22.06.2010
+
+[+] zxtune-qt: dingux mipsel platform support
+[+] ztune-qt: volume control
+
+--- Rev539 from 09.06.2010
+
+[*] Speedup TS modules searching
+[+] zxtune-qt: track status view
+
+--- Rev525 from 24.05.2010
+
+[*] Natural frequency table support for VortexTracker modules
+[*] Fixes in TRD processing
+[*] Fixes in TS detection
+
+--- Rev506 from 16.05.2010
+
+[*] HRiP processing fixes
+[+] Support cuesheets generating in WAV backend
+
+--- Rev493 from 10.05.2010
+
+[+] zxtune-qt: spectrum analyzer
+[*] Detection fixes
+
+--- Rev473 from 05.05.2010
+
+[+] zxtune-qt: initial release
+[*] Fixes in PT2 playback
+
+--- Rev461 from 26.04.2010
+
+[*] Detection speedup
+[*] Fixes in PSG playback
+
+--- Rev435 from 08.04.2010
+
+[+] Support big-endian platforms
+[*] Detection speedup
+
+--- Rev424 from 31.03.2010
+
+[+] Support dingux mipsel platform
+[+] SDL backend support
+
+--- Rev413 from 25.03.2010
+
+[+] Fixes in STP detecton
+
+--- Rev406 from 22.03.2010
+
+[+] TurboSound (TS) support
+
+--- Rev394 from 10.03.2010
+
+[*] Fixes in ASC detection
+
+--- Rev384 from 02.03.2010
+
+[+] Conversion support to ZX50
+
+--- Rev369 from 26.02.2010
+
+[*] Fixes in PT3 detection
+
+--- Rev351 from 08.02.2010
+
+[*] Fixes in PT3 detection/playback
+
+--- Rev334 from 01.02.2010
+
+[+] Support windows x86_64 platform
+[+] Support mingw x86 platform
+[+] Support linux x86/amd64 platforms
+
+--- Rev325 from 29.01.2010
+
+[*] zxtune123 fixes
+
+--- Rev324 from 28.01.2010
+
+[+] zxtune123: initial release (former cmdline_test)
+[+] Raw scanner support
+[+] Conversion support to PSG
+[+] Duty cycle support for AY/YM chip emulation
+
+--- Rev108 from 28.08.2009
+
+[+] ProDigiTracker (PDT) support
+[+] SoundTrackerPro (STP) support
+[+] FDI container support
+
+--- Rev100 from 30.06.2009
+
+[+] SCL container support
+[+] Conversion support to TXT
+
+--- Rev77 from 23.06.2009
+
+[+] Hrust1.x/2.x container support
+[+] HRiP container support
+
+--- Rev69 from 19.06.2009
+
+[+] Bandpass filter support
+
+--- Rev56 from 10.06.2009
+
+[+] Hobeta container support
+[*] Fixes in PT3 playback
+
+--- Rev50 from 07.06.2009
+
+[+] Initial release as cmdline_test
+[+] PSG format support
+[+] ASC Sound Master v1.xx (ASC) support
+[+] ProTracker v2.xx (PT2) support
+[+] ProTracker v3.xx (PT3) support
+[+] SoundTracker Compiled (STC) support
+[+] ChipTracker (CHI) support
+[+] TRD container support
+[+] WAV output support
+[+] WIN32 sound backend support
+[+] OSS backend support
+[+] ALSA backend support
