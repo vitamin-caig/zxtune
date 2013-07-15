@@ -214,6 +214,16 @@
         <source>Cache size, MiB</source>
         <translation>Размер кэша, Мб</translation>
     </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="93"/>
+        <source>Store all module attributes and properties instead of only custom</source>
+        <translation>Сохранять все свойства и атрибуты модулей, а не только измененные или минимально необходимые</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="96"/>
+        <source>Store full modules&apos; attributes in saved playlists</source>
+        <translation>Сохранять все атрибуты модулей при сохранении списков</translation>
+    </message>
 </context>
 <context>
     <name>UI::MixerWidget</name>

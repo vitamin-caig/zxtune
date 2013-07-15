@@ -35,6 +35,7 @@ namespace Playlist
     enum ExportFlagValues
     {
       SAVE_ATTRIBUTES = 1,
+      RELATIVE_PATHS = 2
     };
 
     typedef uint_t ExportFlags;

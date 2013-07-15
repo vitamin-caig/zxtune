@@ -70,6 +70,23 @@ namespace Parameters
         const IntType FILES_LIMIT_DEFAULT = 1000;
         //@}
       }
+
+      namespace Store
+      {
+        const std::string NAMESPACE_NAME("Store");
+
+        const NameType PREFIX = Playlist::PREFIX + NAMESPACE_NAME;
+
+        //@{
+
+        //! @name Store full properties set instead of only changed
+
+        //! Parameter name
+        const NameType PROPERTIES = PREFIX + "Properties";
+        //! Default value
+        const IntType PROPERTIES_DEFAULT = 0;
+        //@}
+      }
     }
   }
 }

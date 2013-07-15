@@ -25,6 +25,7 @@ Author:
 #include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
 #include "playlist/supp/storage.h"
+#include "supp/options.h"
 #include "ui/state.h"
 #include "ui/utils.h"
 #include "ui/controls/overlay_progress.h"
@@ -436,19 +437,15 @@ namespace
     virtual void Save()
     {
       QStringList filters;
-      filters << Playlist::UI::View::tr("Simple playlist (*.xspf)");
-      filters << Playlist::UI::View::tr("Playlist with module's attributes (*.xspf)");
+      filters << Playlist::UI::View::tr("Playlist with relative paths (*.xspf)");
+      filters << Playlist::UI::View::tr("Playlist with absolute paths (*.xspf)");
 
       QString filename = Controller->GetName();
       int usedFilter = 0;
       if (UI::SaveFileDialog(Playlist::UI::View::tr("Save playlist"),
         QLatin1String("xspf"), filters, filename, &usedFilter))
       {
-        Playlist::IO::ExportFlags flags = 0;
-        if (1 == usedFilter)
-        {
-          flags |= Playlist::IO::SAVE_ATTRIBUTES;
-        }
+        const Playlist::IO::ExportFlags flags = GetSavePlaylistFlags(0 == usedFilter);
         Playlist::Save(Controller, filename, flags);
       }
     }
@@ -657,6 +654,23 @@ namespace
         Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
         model->PerformOperation(op);
       }
+    }
+
+    Playlist::IO::ExportFlags GetSavePlaylistFlags(bool relPaths) const
+    {
+      const Parameters::Accessor::Ptr options = GlobalOptions::Instance().Get();
+      Parameters::IntType val = Parameters::ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT;
+      options->FindValue(Parameters::ZXTuneQT::Playlist::Store::PROPERTIES, val);
+      Playlist::IO::ExportFlags res = 0;
+      if (val)
+      {
+        res |= Playlist::IO::SAVE_ATTRIBUTES;
+      }
+      if (relPaths)
+      {
+        res |= Playlist::IO::RELATIVE_PATHS;
+      }
+      return res;
     }
   private:
     const UI::State::Ptr LayoutState;

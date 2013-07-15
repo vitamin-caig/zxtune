@@ -26,6 +26,7 @@ Author:
 //boost includes
 #include <boost/scoped_ptr.hpp>
 //qt includes
+#include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
@@ -150,9 +151,23 @@ namespace
 
     void SaveModuleLocation(const String& location)
     {
-      Dbg("  saving item location %1%", location);
-      const QUrl url(ToQString(location));
-      XML.writeTextElement(QLatin1String(XSPF::ITEM_LOCATION_TAG), DataToQString(url.toEncoded()));
+      Dbg("  saving absolute item location %1%", location);
+      SaveModuleLocation(ToQString(location));
+    }
+
+    void SaveModuleLocation(const String& location, const QDir& root)
+    {
+      Dbg("  saving relative item location %1%", location);
+      const QString path = ToQString(location);
+      const QString rel = root.relativeFilePath(path);
+      if (path == root.absoluteFilePath(rel))
+      {
+        SaveModuleLocation(rel);
+      }
+      else
+      {
+        SaveModuleLocation(path);
+      }
     }
 
     void SaveModuleProperties(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
@@ -180,6 +195,11 @@ namespace
       params.Process(saver);
     }
   private:
+    void SaveModuleLocation(const QString& location)
+    {
+      XML.writeTextElement(QLatin1String(XSPF::ITEM_LOCATION_TAG), DataToQString(QUrl(location).toEncoded()));
+    }
+
     virtual void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
     {
     }
@@ -265,9 +285,10 @@ namespace
   class XSPFWriter
   {
   public:
-    XSPFWriter(QIODevice& device, bool saveAttributes)
+    XSPFWriter(QIODevice& device, bool saveAttributes, const QDir* root)
       : XML(&device)
       , SaveAttributes(saveAttributes)
+      , Root(root)
     {
       XML.setAutoFormatting(true);
       XML.setAutoFormattingIndent(2);
@@ -307,7 +328,14 @@ namespace
     {
       Dbg("Save playitem");
       ItemPropertiesSaver saver(XML);
-      saver.SaveModuleLocation(item->GetFullPath());
+      if (Root)
+      {
+        saver.SaveModuleLocation(item->GetFullPath(), *Root);
+      }
+      else
+      {
+        saver.SaveModuleLocation(item->GetFullPath());
+      }
       const Parameters::Accessor::Ptr adjustedParams = item->GetAdjustedParameters();
       if (const ZXTune::Module::Holder::Ptr holder = SaveAttributes ? item->GetModule() : ZXTune::Module::Holder::Ptr())
       {
@@ -324,6 +352,7 @@ namespace
   private:
     QXmlStreamWriter XML;
     const bool SaveAttributes;
+    const QDir* Root;
   };
 
   class ProgressCallbackWrapper : public Playlist::IO::ExportCallback
@@ -363,7 +392,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb, ExportFlags flags)
+    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb, unsigned flags)
     {
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
@@ -372,7 +401,8 @@ namespace Playlist
       }
       try
       {
-        XSPFWriter writer(device, 0 != (flags & SAVE_ATTRIBUTES));
+        const boost::scoped_ptr<QDir> root(0 != (flags & RELATIVE_PATHS) ? new QDir(QFileInfo(filename).absolutePath()) : 0);
+        XSPFWriter writer(device, 0 != (flags & SAVE_ATTRIBUTES), root.get());
         const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
         const unsigned itemsCount = container->GetItemsCount();
         writer.WriteProperties(*playlistProperties, itemsCount);
