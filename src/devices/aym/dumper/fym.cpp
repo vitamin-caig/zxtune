@@ -102,7 +102,7 @@ namespace
       StoreString(result, author);
 
 
-      assert(0 == rawDump.size() % DataChunk::REG_LAST);
+      assert(0 == rawDump.size() % DataChunk::REG_LAST_AY);
       const bool storeBeeper = false;
       const uint_t storedRegisters = storeBeeper ? (DataChunk::REG_BEEPER + 1) : DataChunk::REG_LAST_AY;
       result.resize(headerSize + framesCount * storedRegisters);
@@ -110,7 +110,7 @@ namespace
       {
         for (uint_t frm = 0; frm < framesCount; ++frm)
         {
-          result[headerSize + framesCount * reg + frm] = rawDump[DataChunk::REG_LAST * frm + reg];
+          result[headerSize + framesCount * reg + frm] = rawDump[DataChunk::REG_LAST_AY * frm + reg];
         }
       }
       CompressBlock(result, data);
