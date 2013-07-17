@@ -73,21 +73,28 @@ namespace
 
     virtual void ApplyData(const ZXTune::Module::Holder::Ptr& holder)
     {
-      const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
-      const String id = GetModuleId(*props);
-      if (const Binary::Data::Ptr result = ZXTune::Module::Convert(*holder, *ConversionParameter, props))
+      try
       {
-        //prepare result filename
-        const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
-        const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
-        stream->ApplyData(*result);
-        Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
+        const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
+        const String id = GetModuleId(*props);
+        if (const Binary::Data::Ptr result = ZXTune::Module::Convert(*holder, *ConversionParameter, props))
+        {
+          //prepare result filename
+          const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
+          const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
+          stream->ApplyData(*result);
+          Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
+        }
+        else
+        {
+          Parameters::StringType type;
+          props->FindValue(ZXTune::Module::ATTR_TYPE, type);
+          Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, type));
+        }
       }
-      else
+      catch (const Error& e)
       {
-        Parameters::StringType type;
-        props->FindValue(ZXTune::Module::ATTR_TYPE, type);
-        Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, type));
+        StdOut << e.ToString();
       }
     }
 

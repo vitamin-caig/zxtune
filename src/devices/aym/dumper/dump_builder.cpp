@@ -302,6 +302,11 @@ namespace
 
     virtual void GetDump(Dump& result) const
     {
+      if (FramesToSkip)
+      {
+        Builder->WriteFrame(FramesToSkip, State->GetCurrent(), State->GetDeltaFromPrevious());
+        FramesToSkip = 0;
+      }
       Builder->GetResult(result);
     }
   private:
@@ -309,7 +314,7 @@ namespace
     const FramedDumpBuilder::Ptr Builder;
     const std::auto_ptr<RenderState> State;
     std::vector<DataChunk> Buffer;
-    uint_t FramesToSkip;
+    mutable uint_t FramesToSkip;
   };
 }
 
