@@ -34,10 +34,10 @@ namespace ZXTune
       class ChannelBuilder
       {
       public:
-        ChannelBuilder(uint_t chan, const FrequencyTable& table, Devices::AYM::DataChunk& chunk)
+        ChannelBuilder(uint_t chan, const FrequencyTable& table, Devices::AYM::DataChunk::Registers& data)
           : Channel(chan)
           , Table(table)
-          , Chunk(chunk)
+          , Data(data)
         {
         }
 
@@ -50,7 +50,7 @@ namespace ZXTune
       private:
         const uint_t Channel;
         const FrequencyTable& Table;
-        Devices::AYM::DataChunk& Chunk;
+        Devices::AYM::DataChunk::Registers& Data;
       };
 
       class TrackBuilder
@@ -59,7 +59,7 @@ namespace ZXTune
         explicit TrackBuilder(const FrequencyTable& table)
           : Table(table)
         {
-          Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_MIXER;
+          Data[Devices::AYM::DataChunk::REG_MIXER] = 0;
         }
 
         void SetNoise(uint_t level);
@@ -71,16 +71,16 @@ namespace ZXTune
 
         ChannelBuilder GetChannel(uint_t chan)
         {
-          return ChannelBuilder(chan, Table, Chunk);
+          return ChannelBuilder(chan, Table, Data);
         }
 
-        void GetResult(Devices::AYM::DataChunk& result) const
+        const Devices::AYM::DataChunk::Registers& GetResult() const
         {
-          result = Chunk;
+          return Data;
         }
       private:
         const FrequencyTable& Table;
-        Devices::AYM::DataChunk Chunk;
+        Devices::AYM::DataChunk::Registers Data;
       };
 
       class DataRenderer
@@ -99,7 +99,7 @@ namespace ZXTune
       public:
         typedef boost::shared_ptr<DataIterator> Ptr;
 
-        virtual void GetData(Devices::AYM::DataChunk& chunk) const = 0;
+        virtual Devices::AYM::DataChunk::Registers GetData() const = 0;
       };
 
       class Chiptune
@@ -130,6 +130,11 @@ namespace ZXTune
       Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
+
+      typedef std::vector<Devices::AYM::DataChunk::Registers> RegistersArray;
+      typedef boost::shared_ptr<const RegistersArray> RegistersArrayPtr;
+
+      Chiptune::Ptr CreateStreamedChiptune(RegistersArrayPtr data, Parameters::Accessor::Ptr properties, uint_t loopFrame);
     }
   }
 }

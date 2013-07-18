@@ -38,11 +38,12 @@ namespace
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk& state, const DataChunk& update)
+    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& state, const DataChunk::Registers& update)
     {
       assert(framesPassed);
+      Data.reserve(Data.size() + framesPassed * DataChunk::REG_LAST_AY);
       std::back_insert_iterator<Dump> inserter(Data);
-      for (uint_t skips = 0; skips < framesPassed - 1; ++skips)
+      if (const uint_t toSkip = framesPassed - 1)
       {
         Dump dup;
         if (Data.size() >= DataChunk::REG_LAST_AY)
@@ -53,14 +54,18 @@ namespace
         {
           dup.resize(DataChunk::REG_LAST_AY);
         }
-        std::copy(dup.begin(), dup.end(), inserter);
+        for (uint_t skips = 0; skips < toSkip; ++skips)
+        {
+          std::copy(dup.begin(), dup.end(), inserter);
+        }
       }
-      DataChunk fixedState(state);
-      if (0 == (update.Mask & (1 << DataChunk::REG_ENV)))
+      DataChunk::Registers fixedState(state);
+      if (!update.Has(DataChunk::REG_ENV))
       {
-        fixedState.Data[DataChunk::REG_ENV] = NO_R13;
+        fixedState[DataChunk::REG_ENV] = NO_R13;
       }
-      std::copy(fixedState.Data.begin(), fixedState.Data.begin() + DataChunk::REG_LAST_AY, inserter);
+      const uint8_t* const rawStart = &fixedState[0];
+      std::copy(rawStart, rawStart + DataChunk::REG_LAST_AY, inserter);
     }
   private:
     Dump Data;

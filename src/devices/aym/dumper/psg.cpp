@@ -13,8 +13,6 @@ Author:
 #include "dump_builder.h"
 //common includes
 #include <tools.h>
-//library includes
-#include <math/bitops.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //std includes
@@ -55,17 +53,17 @@ namespace
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk& /*state*/, const DataChunk& update)
+    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& /*state*/, const DataChunk::Registers& update)
     {
       assert(framesPassed);
 
       Dump frame;
-      std::back_insert_iterator<Dump> inserter(frame);
       //SKIP_INTS code groups 4 skipped interrupts
       const uint_t SKIP_GROUP_SIZE = 4;
       const uint_t groupsSkipped = framesPassed / SKIP_GROUP_SIZE;
       const uint_t remainInts = framesPassed % SKIP_GROUP_SIZE;
-      frame.reserve(groupsSkipped + remainInts + 2 * Math::CountBits(update.Mask) + 1);
+      frame.reserve(groupsSkipped + remainInts + 2 * DataChunk::REG_LAST_AY + 1);
+      std::back_insert_iterator<Dump> inserter(frame);
       if (groupsSkipped)
       {
         *inserter = SKIP_INTS;
@@ -73,17 +71,18 @@ namespace
       }
       std::fill_n(inserter, remainInts, INTERRUPT);
       //store data
-      for (uint_t reg = 0, mask = update.Mask; mask && reg < DataChunk::REG_BEEPER; ++reg, mask >>= 1)
+      for (uint_t reg = 0; reg < DataChunk::REG_LAST_AY; ++reg)
       {
-        if (mask & 1)
+        if (update.Has(reg))
         {
           *inserter = static_cast<Dump::value_type>(reg);
-          *inserter = update.Data[reg];
+          *inserter = update[reg];
         }
       }
       *inserter = END_MUS;
       assert(!Data.empty());
       Data.pop_back();//delete limiter
+      Data.reserve(Data.size() + frame.size());
       std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
     }
   private:

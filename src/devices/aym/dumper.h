@@ -40,7 +40,6 @@ namespace Devices
       {
         NONE,
         NORMAL,
-        MAXIMUM
       };
 
       virtual Time::Microseconds FrameDuration() const = 0;

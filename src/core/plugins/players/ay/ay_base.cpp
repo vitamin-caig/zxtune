@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "core/plugins/players/streaming.h"
 //common includes
 #include <tools.h>
 //library includes
@@ -68,9 +69,9 @@ namespace ZXTune
       return State;
     }
 
-    virtual void GetData(Devices::AYM::DataChunk& chunk) const
+    virtual Devices::AYM::DataChunk::Registers GetData() const
     {
-      chunk = CurrentChunk;
+      return CurrentData;
     }
   private:
     void FillCurrentChunk()
@@ -80,7 +81,7 @@ namespace ZXTune
         SynchronizeParameters();
         AYM::TrackBuilder builder(Table);
         Render->SynthesizeData(*State, builder);
-        builder.GetResult(CurrentChunk);
+        CurrentData = builder.GetResult();
       }
     }
 
@@ -96,7 +97,7 @@ namespace ZXTune
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
     const AYM::DataRenderer::Ptr Render;
-    Devices::AYM::DataChunk CurrentChunk;
+    Devices::AYM::DataChunk::Registers CurrentData;
     FrequencyTable Table;
   };
 
@@ -161,8 +162,8 @@ namespace ZXTune
       {
         SynchronizeParameters();
         Devices::AYM::DataChunk chunk;
-        Iterator->GetData(chunk);
         chunk.TimeStamp = FlushChunk.TimeStamp;
+        chunk.Data = Iterator->GetData();
         CommitChunk(chunk);
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
@@ -373,6 +374,98 @@ namespace ZXTune
     const Sound::ThreeChannelsMatrixMixer::Ptr Mixer;
     const Devices::AYM::Chip::Ptr Delegate;
   };
+
+  class StreamDataIterator : public AYM::DataIterator
+  {
+  public:
+    StreamDataIterator(StateIterator::Ptr delegate, AYM::RegistersArrayPtr data)
+      : Delegate(delegate)
+      , State(Delegate->GetStateObserver())
+      , Data(data)
+    {
+      UpdateCurrentState();
+    }
+
+    virtual void Reset()
+    {
+      CurrentState = Devices::AYM::DataChunk::Registers();
+      Delegate->Reset();
+      UpdateCurrentState();
+    }
+
+    virtual bool IsValid() const
+    {
+      return Delegate->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      Delegate->NextFrame(looped);
+      UpdateCurrentState();
+    }
+
+    virtual TrackState::Ptr GetStateObserver() const
+    {
+      return State;
+    }
+
+    virtual Devices::AYM::DataChunk::Registers GetData() const
+    {
+      return CurrentState;
+    }
+  private:
+    void UpdateCurrentState()
+    {
+      if (Delegate->IsValid())
+      {
+        const Devices::AYM::DataChunk::Registers& inRegs = (*Data)[State->Frame()];
+        CurrentState.Reset(Devices::AYM::DataChunk::REG_ENV);
+        for (uint_t reg = 0; reg != Devices::AYM::DataChunk::REG_LAST; ++reg)
+        {
+          if (inRegs.Has(reg))
+          {
+            CurrentState[reg] = inRegs[reg];
+          }
+        }
+      }
+    }
+  private:
+    const StateIterator::Ptr Delegate;
+    const TrackState::Ptr State;
+    const AYM::RegistersArrayPtr Data;
+    Devices::AYM::DataChunk::Registers CurrentState;
+  };
+
+  class AYMStreamedChiptune : public AYM::Chiptune
+  {
+  public:
+    AYMStreamedChiptune(AYM::RegistersArrayPtr data, Parameters::Accessor::Ptr properties, uint_t loopFrame)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateStreamInfo(Data->size(), loopFrame))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr /*trackParams*/) const
+    {
+      const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
+      return boost::make_shared<StreamDataIterator>(iter, Data);
+    }
+  private:
+    const AYM::RegistersArrayPtr Data;
+    const Parameters::Accessor::Ptr Properties;
+    const Information::Ptr Info;
+  };
 }
 
 namespace ZXTune
@@ -391,54 +484,46 @@ namespace ZXTune
       void ChannelBuilder::SetTone(uint_t tone)
       {
         const uint_t reg = Devices::AYM::DataChunk::REG_TONEA_L + 2 * Channel;
-        Chunk.Data[reg] = static_cast<uint8_t>(tone & 0xff);
-        Chunk.Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
-        Chunk.Mask |= (1 << reg) | (1 << (reg + 1));
+        Data[reg] = static_cast<uint8_t>(tone & 0xff);
+        Data[reg + 1] = static_cast<uint8_t>(tone >> 8);
       }
 
       void ChannelBuilder::SetLevel(int_t level)
       {
         const uint_t reg = Devices::AYM::DataChunk::REG_VOLA + Channel;
-        Chunk.Data[reg] = static_cast<uint8_t>(Math::Clamp<int_t>(level, 0, 15));
-        Chunk.Mask |= 1 << reg;
+        Data[reg] = static_cast<uint8_t>(Math::Clamp<int_t>(level, 0, 15));
       }
 
       void ChannelBuilder::DisableTone()
       {
-        Chunk.Data[Devices::AYM::DataChunk::REG_MIXER] |= (Devices::AYM::DataChunk::REG_MASK_TONEA << Channel);
-        Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_MIXER;
+        Data[Devices::AYM::DataChunk::REG_MIXER] |= (Devices::AYM::DataChunk::REG_MASK_TONEA << Channel);
       }
 
       void ChannelBuilder::EnableEnvelope()
       {
         const uint_t reg = Devices::AYM::DataChunk::REG_VOLA + Channel;
-        Chunk.Data[reg] |= Devices::AYM::DataChunk::REG_MASK_ENV;
-        Chunk.Mask |= 1 << reg;
+        Data[reg] |= Devices::AYM::DataChunk::REG_MASK_ENV;
       }
 
       void ChannelBuilder::DisableNoise()
       {
-        Chunk.Data[Devices::AYM::DataChunk::REG_MIXER] |= (Devices::AYM::DataChunk::REG_MASK_NOISEA << Channel);
-        Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_MIXER;
+        Data[Devices::AYM::DataChunk::REG_MIXER] |= (Devices::AYM::DataChunk::REG_MASK_NOISEA << Channel);
       }
 
       void TrackBuilder::SetNoise(uint_t level)
       {
-        Chunk.Data[Devices::AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(level & 31);
-        Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_TONEN;
+        Data[Devices::AYM::DataChunk::REG_TONEN] = static_cast<uint8_t>(level & 31);
       }
 
       void TrackBuilder::SetEnvelopeType(uint_t type)
       {
-        Chunk.Data[Devices::AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(type);
-        Chunk.Mask |= 1 << Devices::AYM::DataChunk::REG_ENV;
+        Data[Devices::AYM::DataChunk::REG_ENV] = static_cast<uint8_t>(type);
       }
 
       void TrackBuilder::SetEnvelopeTone(uint_t tone)
       {
-        Chunk.Data[Devices::AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
-        Chunk.Data[Devices::AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
-        Chunk.Mask |= (1 << Devices::AYM::DataChunk::REG_TONEE_L) | (1 << Devices::AYM::DataChunk::REG_TONEE_H);
+        Data[Devices::AYM::DataChunk::REG_TONEE_L] = static_cast<uint8_t>(tone & 0xff);
+        Data[Devices::AYM::DataChunk::REG_TONEE_H] = static_cast<uint8_t>(tone >> 8);
       }
 
       uint_t TrackBuilder::GetFrequency(int_t halfTone) const
@@ -502,6 +587,11 @@ namespace ZXTune
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
       {
         return boost::make_shared<AYMHolder>(chiptune);
+      }
+
+      Chiptune::Ptr CreateStreamedChiptune(RegistersArrayPtr data, Parameters::Accessor::Ptr properties, uint_t loopFrame)
+      {
+        return boost::make_shared<AYMStreamedChiptune>(data, properties, loopFrame);
       }
     }
   }

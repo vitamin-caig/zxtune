@@ -73,30 +73,28 @@ namespace
     bool SelectRegister(uint_t reg)
     {
       Register = reg;
-      return Register < Devices::AYM::DataChunk::REG_BEEPER;
+      return Register < Devices::AYM::DataChunk::REG_LAST_AY;
     }
 
     bool SetValue(const Devices::AYM::Stamp& timeStamp, uint8_t val)
     {
-      if (Register < Devices::AYM::DataChunk::REG_BEEPER)
+      if (Register < Devices::AYM::DataChunk::REG_LAST_AY)
       {
-        Devices::AYM::DataChunk data;
-        data.TimeStamp = timeStamp;
-        data.Mask = 1 << Register;
-        data.Data[Register] = val;
-        Chip->RenderData(data);
+        Devices::AYM::DataChunk chunk;
+        chunk.TimeStamp = timeStamp;
+        chunk.Data[Register] = val;
+        Chip->RenderData(chunk);
         return true;
       }
       return false;
     }
 
-    void SetBeeper(const Devices::AYM::Stamp& timeStamp, uint8_t val)
+    void SetBeeper(const Devices::AYM::Stamp& timeStamp, bool val)
     {
-      Devices::AYM::DataChunk data;
-      data.TimeStamp = timeStamp;
-      data.Mask = 1 << Devices::AYM::DataChunk::REG_BEEPER;
-      data.Data[Devices::AYM::DataChunk::REG_BEEPER] = val;
-      Chip->RenderData(data);
+      Devices::AYM::DataChunk chunk;
+      chunk.TimeStamp = timeStamp;
+      chunk.Data.SetBeeper(val);
+      Chip->RenderData(chunk);
     }
 
     void RenderFrame(const Devices::AYM::Stamp& till)
@@ -152,9 +150,7 @@ namespace
       }
       else if (IsBeeperPort(port))
       {
-        static const uint8_t REG_VALUES[] = {0, 14, 14, 15};
-        const uint8_t value = REG_VALUES[(data & 24) >> 3];
-        AyData->SetBeeper(timeStamp.GetCurrentTime(), value);
+        AyData->SetBeeper(timeStamp.GetCurrentTime(), 0 != (data & 16));
         //beeper means nothing
       }
       return false;

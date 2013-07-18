@@ -63,8 +63,7 @@ namespace
       Delegate->GetResult(rawDump);
       Require(0 == rawDump.size() % DataChunk::REG_LAST_AY);
       const uint32_t framesCount = rawDump.size() / DataChunk::REG_LAST_AY;
-      const bool storeBeeper = false;
-      const uint_t storedRegisters = storeBeeper ? (DataChunk::REG_BEEPER + 1) : DataChunk::REG_LAST_AY;
+      const uint_t storedRegisters = DataChunk::REG_LAST_AY;
 
       const String& title = Params->Title();
       const String author = Params->Author();
@@ -96,7 +95,7 @@ namespace
       Binary::Compression::Zlib::Compress(result, data);
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk& state, const DataChunk& update)
+    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& state, const DataChunk::Registers& update)
     {
       return Delegate->WriteFrame(framesPassed, state, update);
     }

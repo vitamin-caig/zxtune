@@ -14,7 +14,6 @@ Author:
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
-#include "core/plugins/players/streaming.h"
 //common includes
 #include <tools.h>
 //library includes
@@ -31,31 +30,6 @@ namespace
 {
   using namespace ZXTune;
   using namespace ZXTune::Module;
-
-  typedef std::vector<Devices::AYM::DataChunk> ChunksArray;
-
-  class ChunksSet
-  {
-  public:
-    typedef boost::shared_ptr<const ChunksSet> Ptr;
-
-    explicit ChunksSet(std::auto_ptr<ChunksArray> data)
-      : Data(data)
-    {
-    }
-
-    std::size_t Count() const
-    {
-      return Data->size();
-    }
-
-    const Devices::AYM::DataChunk& Get(std::size_t frameNum) const
-    {
-      return Data->at(frameNum);
-    }
-  private:
-    const std::auto_ptr<ChunksArray> Data;  
-  };
 
   Devices::AYM::LayoutType VtxMode2AymLayout(uint_t mode)
   {
@@ -88,7 +62,7 @@ namespace
     explicit DataBuilder(PropertiesBuilder& props)
       : Properties(props)
       , Loop(0)
-      , Data(new ChunksArray())
+      , Data(boost::make_shared<AYM::RegistersArray>())
     {
     }
 
@@ -162,22 +136,23 @@ namespace
 
     virtual void AddData(const Dump& registers)
     {
-      Devices::AYM::DataChunk& chunk = Allocate();
+      Devices::AYM::DataChunk::Registers& data = Allocate();
       const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::DataChunk::REG_ENV + 1);
       for (uint_t reg = 0, mask = 1; reg != availRegs; ++reg, mask <<= 1)
       {
         const uint8_t val = registers[reg];
         if (reg != Devices::AYM::DataChunk::REG_ENV || val != 0xff)
         {
-          chunk.Data[reg] = val;
-          chunk.Mask |= mask;
+          data[reg] = val;
         }
       }
     }
 
-    ChunksSet::Ptr GetResult() const
+    AYM::RegistersArrayPtr GetResult() const
     {
-      return ChunksSet::Ptr(new ChunksSet(Data));
+      return Data->empty()
+        ? AYM::RegistersArrayPtr()
+        : Data;
     }
 
     uint_t GetLoop() const
@@ -185,119 +160,15 @@ namespace
       return Loop;
     }
   private:
-    Devices::AYM::DataChunk& Allocate()
+    Devices::AYM::DataChunk::Registers& Allocate()
     {
-      Data->push_back(Devices::AYM::DataChunk());
+      Data->push_back(Devices::AYM::DataChunk::Registers());
       return Data->back();
     }
   private:
     PropertiesBuilder& Properties;
     uint_t Loop;
-    mutable std::auto_ptr<ChunksArray> Data;
-  };
-
-  class DataIterator : public AYM::DataIterator
-  {
-  public:
-    DataIterator(StateIterator::Ptr delegate, ChunksSet::Ptr data)
-      : Delegate(delegate)
-      , State(Delegate->GetStateObserver())
-      , Data(data)
-    {
-      UpdateCurrentState();
-    }
-
-    virtual void Reset()
-    {
-      CurrentChunk = Devices::AYM::DataChunk();
-      Delegate->Reset();
-      UpdateCurrentState();
-    }
-
-    virtual bool IsValid() const
-    {
-      return Delegate->IsValid();
-    }
-
-    virtual void NextFrame(bool looped)
-    {
-      Delegate->NextFrame(looped);
-      UpdateCurrentState();
-    }
-
-    virtual TrackState::Ptr GetStateObserver() const
-    {
-      return State;
-    }
-
-    virtual void GetData(Devices::AYM::DataChunk& chunk) const
-    {
-       chunk = CurrentChunk;
-    }
-  private:
-    void UpdateCurrentState()
-    {
-      if (Delegate->IsValid())
-      {
-        const uint_t frameNum = State->Frame();
-        const Devices::AYM::DataChunk& inChunk = Data->Get(frameNum);
-        ResetEnvelopeChanges();
-        for (uint_t reg = 0, mask = inChunk.Mask; mask; ++reg, mask >>= 1)
-        {
-          if (0 != (mask & 1))
-          {
-            UpdateRegister(reg, inChunk.Data[reg]);
-          }
-        }
-      }
-    }
-
-    void ResetEnvelopeChanges()
-    {
-      CurrentChunk.Mask &= ~(uint_t(1) << Devices::AYM::DataChunk::REG_ENV);
-    }
-
-    void UpdateRegister(uint_t reg, uint8_t data)
-    {
-      CurrentChunk.Mask |= uint_t(1) << reg;
-      CurrentChunk.Data[reg] = data;
-    }
-  private:
-    const StateIterator::Ptr Delegate;
-    const TrackState::Ptr State;
-    const ChunksSet::Ptr Data;
-    Devices::AYM::DataChunk CurrentChunk;
-  };
-
-  class Chiptune : public AYM::Chiptune
-  {
-  public:
-    Chiptune(ChunksSet::Ptr data, Parameters::Accessor::Ptr properties, uint_t loopFrame)
-      : Data(data)
-      , Properties(properties)
-      , Info(CreateStreamInfo(Data->Count(), loopFrame))
-    {
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr /*trackParams*/) const
-    {
-      const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
-      return boost::make_shared<DataIterator>(iter, Data);
-    }
-  private:
-    const ChunksSet::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
+    mutable boost::shared_ptr<AYM::RegistersArray> Data;
   };
 }
 
@@ -333,11 +204,10 @@ namespace YMVTX
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        const ChunksSet::Ptr data = dataBuilder.GetResult();
-        if (data->Count())
+        if (const AYM::RegistersArrayPtr data = dataBuilder.GetResult())
         {
           propBuilder.SetSource(*container);
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, propBuilder.GetResult(), dataBuilder.GetLoop());
+          const AYM::Chiptune::Ptr chiptune = AYM::CreateStreamedChiptune(data, propBuilder.GetResult(), dataBuilder.GetLoop());
           return AYM::CreateHolder(chiptune);
         }
       }

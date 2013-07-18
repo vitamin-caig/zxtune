@@ -52,20 +52,20 @@ namespace
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk& /*state*/, const DataChunk& update)
+    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& /*state*/, const DataChunk::Registers& update)
     {
+      Data.reserve(Data.size() + framesPassed * 32);
       assert(framesPassed);
       for (uint_t skips = 0; skips < framesPassed - 1; ++skips)
       {
         AddNochangesMessage();
       }
       AddFrameNumber();
-      for (uint_t reg = 0, mask = update.Mask; mask && reg < DataChunk::REG_LAST_AY; ++reg, mask >>= 1)
+      for (uint_t reg = 0; reg < DataChunk::REG_LAST_AY; ++reg)
       {
-        if (mask & 1)
+        if (update.Has(reg))
         {
-          const uint8_t data = update.Data[reg];
-          AddData(data);
+          AddData(update[reg]);
         }
         else
         {
@@ -84,7 +84,7 @@ namespace
 
     void AddFrameNumber()
     {
-      const String number = Strings::Format(FRAME_NUMBER_FORMAT, FrameNumber);
+      //const String number = Strings::Format(FRAME_NUMBER_FORMAT, FrameNumber);
       //std::copy(number.begin(), number.end(), std::back_inserter(Data));
     }
 

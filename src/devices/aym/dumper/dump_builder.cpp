@@ -26,25 +26,19 @@ namespace
 
     virtual void Reset() = 0;
 
-    virtual void Update(const DataChunk& delta) = 0;
-    virtual void Flush(const Stamp& stamp) = 0;
-
-    virtual DataChunk GetCurrent() const = 0;
-    virtual DataChunk GetDeltaFromPrevious() const = 0;
+    virtual void Add(const DataChunk::Registers& delta) = 0;
+    virtual DataChunk::Registers GetBase() const = 0;
+    virtual DataChunk::Registers GetDelta() const = 0;
+    virtual void CommitDelta() = 0;
   };
 
-  void ApplyMerge(DataChunk& dst, const DataChunk& src)
+  void ApplyMerge(DataChunk::Registers& dst, const DataChunk::Registers& src)
   {
-    if (0 == src.Mask)
+    for (uint_t reg = 0; reg != DataChunk::REG_LAST_AY; ++reg)
     {
-      return;
-    }
-    for (uint_t reg = 0, mask = 1; reg < DataChunk::REG_LAST; ++reg, mask <<= 1)
-    {
-      if (src.Mask & mask)
+      if (src.Has(reg))
       {
-        dst.Mask |= mask;
-        dst.Data[reg] = src.Data[reg];
+        dst[reg] = src[reg];
       }
     }
   }
@@ -54,198 +48,59 @@ namespace
   public:
     virtual void Reset()
     {
-      Current = DataChunk();
-      Delta = DataChunk();
+      Base = DataChunk::Registers();
+      Delta = DataChunk::Registers();
     }
 
-    virtual void Update(const DataChunk& delta)
+    virtual void Add(const DataChunk::Registers& delta)
     {
-      ApplyMerge(Current, delta);
       ApplyMerge(Delta, delta);
     }
 
-    void Flush(const Stamp& stamp)
+    virtual DataChunk::Registers GetBase() const
     {
-      Delta.Mask = 0;
-      Current.TimeStamp = stamp;
+      return Base;
     }
 
-    virtual DataChunk GetCurrent() const
-    {
-      return Current;
-    }
-
-    virtual DataChunk GetDeltaFromPrevious() const
+    virtual DataChunk::Registers GetDelta() const
     {
       return Delta;
     }
-  private:
-    DataChunk Current;
-    DataChunk Delta;
+
+    void CommitDelta()
+    {
+      ApplyMerge(Base, Delta);
+      Delta = DataChunk::Registers();
+    }
+  protected:
+    DataChunk::Registers Base;
+    DataChunk::Registers Delta;
   };
 
-  void ApplyOptimizedMerge(DataChunk& dst, const DataChunk& src)
-  {
-    if (0 == src.Mask)
-    {
-      return;
-    }
-    for (uint_t reg = 0, mask = 1; reg < DataChunk::REG_LAST; ++reg, mask <<= 1)
-    {
-      if (src.Mask & mask)
-      {
-        const uint8_t oldReg = dst.Data[reg];
-        const uint8_t newReg = src.Data[reg];
-        if (oldReg != newReg || reg == DataChunk::REG_ENV)
-        {
-          dst.Mask |= mask;
-          dst.Data[reg] = src.Data[reg];
-        }
-      }
-    }
-  }
-
-  class OptimizedRenderState : public RenderState
+  class OptimizedRenderState : public NotOptimizedRenderState
   {
   public:
-    virtual void Reset()
+    virtual void Add(const DataChunk::Registers& delta)
     {
-      Current = DataChunk();
-      Delta = DataChunk();
-    }
-
-    virtual void Update(const DataChunk& delta)
-    {
-      ApplyOptimizedMerge(Current, delta);
-      ApplyOptimizedMerge(Delta, delta);
-    }
-
-    void Flush(const Stamp& stamp)
-    {
-      Delta.Mask = 0;
-      Current.TimeStamp = stamp;
-    }
-
-    virtual DataChunk GetCurrent() const
-    {
-      return Current;
-    }
-
-    virtual DataChunk GetDeltaFromPrevious() const
-    {
-      return Delta;
-    }
-  private:
-    DataChunk Current;
-    DataChunk Delta;
-  };
-
-  class ExtraOptimizedRenderState : public RenderState
-  {
-  public:
-    virtual void Reset()
-    {
-      Previous = DataChunk();
-      Current = DataChunk();
-    }
-
-    virtual void Update(const DataChunk& delta)
-    {
-      static const uint8_t MASKS[] =
+      for (uint_t reg = 0; reg != DataChunk::REG_LAST_AY; ++reg)
       {
-        0xff, 0x0f,//tonea
-        0xff, 0x0f,//toneb
-        0xff, 0x0f,//tonec
-        0x1f,//tonen
-        0x3f,//mixer
-        0x1f, 0x1f, 0x1f,//volumes
-        0xff, 0xff,//envelope tone
-        0x1f,//envelope type
-        0xff//beeper?
-      };
-      if (0 == delta.Mask)
-      {
-        return;
-      }
-
-      //update only different and r13
-      for (uint_t reg = 0, mask = 1; reg < DataChunk::REG_LAST; ++reg, mask <<= 1)
-      {
-        if (delta.Mask & mask)
+        if (!delta.Has(reg))
         {
-          const uint8_t valBits = MASKS[reg];
-          const uint8_t oldReg = Current.Data[reg];
-          const uint8_t newReg = delta.Data[reg] & valBits;
-          if (oldReg != newReg || reg == DataChunk::REG_ENV)
+          continue;
+        }
+        const uint8_t newVal = delta[reg];
+        if (DataChunk::REG_ENV != reg && Base.Has(reg))
+        {
+          uint8_t& base = Base[reg];
+          if (newVal == base)
           {
-            Current.Mask |= mask;
-            Current.Data[reg] = newReg;
+            Delta.Reset(reg);
+            continue;
           }
         }
+        Delta[reg] = newVal;
       }
     }
-
-    void Flush(const Stamp& stamp)
-    {
-      const DataChunk& delta = GetDeltaFromPrevious();
-      ApplyOptimizedMerge(Previous, delta);
-      Current.TimeStamp = stamp;
-      Current.Mask &= ~delta.Mask;
-    }
-
-    virtual DataChunk GetCurrent() const
-    {
-      return Current;
-    }
-
-    virtual DataChunk GetDeltaFromPrevious() const
-    {
-      uint_t uselessRegisters = 0;
-
-      //Current.Mask contain info about registers changed since last Flush call relatively to Previous
-      const uint8_t mixer = ~GetRegister(DataChunk::REG_MIXER);
-      for (uint_t chan = 0; chan != 3; ++chan)
-      {
-        if (const bool zeroVolume = 0 == GetRegister(DataChunk::REG_VOLA + chan))
-        {
-          uselessRegisters |= ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)) << chan * 2;
-        }
-      }
-      if (const bool noiseDisabled = 0 == (mixer & (DataChunk::REG_MASK_NOISEA | DataChunk::REG_MASK_NOISEB | DataChunk::REG_MASK_NOISEC)))
-      {
-        uselessRegisters |= 1 << DataChunk::REG_TONEN;
-      }
-      if (const bool envelopeDisabled = 0 == ((GetRegister(DataChunk::REG_VOLA) | GetRegister(DataChunk::REG_VOLB) | GetRegister(DataChunk::REG_VOLC)) & DataChunk::REG_MASK_ENV))
-      {
-        uselessRegisters |= (1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H);
-      }
-
-      DataChunk result;
-      const uint_t changedRegisters = Current.Mask & ~uselessRegisters;
-      for (uint_t reg = 0, mask = 1; reg < DataChunk::REG_LAST; ++reg, mask <<= 1)
-      {
-        if (changedRegisters & mask)
-        {
-          const uint8_t oldReg = Previous.Data[reg];
-          const uint8_t newReg = Current.Data[reg];
-          if (oldReg != newReg || reg == DataChunk::REG_ENV)
-          {
-            result.Mask |= mask;
-            result.Data[reg] = newReg;
-          }
-        }
-      }
-      return result;
-    }
-  private:
-    uint8_t GetRegister(uint_t idx) const
-    {
-      const uint_t regMask = 1 << idx;
-      return 0 != (Current.Mask & regMask) ? Current.Data[idx] : Previous.Data[idx];
-    }
-  private:
-    DataChunk Previous;
-    DataChunk Current;
   };
 
   class FrameDumper : public Dumper
@@ -256,6 +111,7 @@ namespace
       , Builder(builder)
       , State(state)
       , FramesToSkip(0)
+      , LastFrame()
     {
       Reset();
     }
@@ -267,25 +123,26 @@ namespace
 
     virtual void Flush()
     {
-      const DataChunk& current = State->GetCurrent();
-      Stamp nextFrame = current.TimeStamp;
+      Stamp nextFrame = LastFrame;
       nextFrame += FrameDuration;
       for (std::vector<DataChunk>::iterator it = Buffer.begin(), lim = Buffer.end(); it != lim; ++it)
       {
         if (it->TimeStamp < nextFrame)
         {
-          State->Update(*it);
+          State->Add(it->Data);
         }
         else 
         {
           ++FramesToSkip;
-          const DataChunk& delta = State->GetDeltaFromPrevious();
-          if (delta.Mask)
+          const DataChunk::Registers delta = State->GetDelta();
+          if (!delta.Empty())
           {
+            State->CommitDelta();
+            const DataChunk::Registers& current = State->GetBase();
             Builder->WriteFrame(FramesToSkip, current, delta);
             FramesToSkip = 0;
           }
-          State->Flush(nextFrame);
+          LastFrame = nextFrame;
           nextFrame += FrameDuration;
         }
       }
@@ -298,13 +155,16 @@ namespace
       Buffer.clear();
       State->Reset();
       FramesToSkip = 0;
+      LastFrame = Stamp();
     }
 
     virtual void GetDump(Dump& result) const
     {
       if (FramesToSkip)
       {
-        Builder->WriteFrame(FramesToSkip, State->GetCurrent(), State->GetDeltaFromPrevious());
+        const DataChunk::Registers delta = State->GetDelta();
+        State->CommitDelta();
+        Builder->WriteFrame(FramesToSkip, State->GetBase(), delta);
         FramesToSkip = 0;
       }
       Builder->GetResult(result);
@@ -315,6 +175,7 @@ namespace
     const std::auto_ptr<RenderState> State;
     std::vector<DataChunk> Buffer;
     mutable uint_t FramesToSkip;
+    Stamp LastFrame;
   };
 }
 
@@ -329,9 +190,6 @@ namespace Devices
       {
       case DumperParameters::NONE:
         state.reset(new NotOptimizedRenderState());
-        break;
-      case DumperParameters::MAXIMUM:
-        state.reset(new ExtraOptimizedRenderState());
         break;
       default:
         state.reset(new OptimizedRenderState());

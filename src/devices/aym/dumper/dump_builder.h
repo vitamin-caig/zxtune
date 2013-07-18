@@ -35,7 +35,7 @@ namespace Devices
     public:
       typedef boost::shared_ptr<FramedDumpBuilder> Ptr;
 
-      virtual void WriteFrame(uint_t framesPassed, const DataChunk& state, const DataChunk& update) = 0;
+      virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& state, const DataChunk::Registers& update) = 0;
     };
 
     Dumper::Ptr CreateDumper(DumperParameters::Ptr params, FramedDumpBuilder::Ptr builder);

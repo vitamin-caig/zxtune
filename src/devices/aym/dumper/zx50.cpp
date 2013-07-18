@@ -13,8 +13,6 @@ Author:
 #include "dump_builder.h"
 //common includes
 #include <tools.h>
-//library includes
-#include <math/bitops.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //std includes
@@ -42,25 +40,30 @@ namespace
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk& /*state*/, const DataChunk& update)
+    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& /*state*/, const DataChunk::Registers& update)
     {
       assert(framesPassed);
 
       Dump frame;
-      frame.reserve(framesPassed * sizeof(uint16_t) + Math::CountBits(update.Mask));
+      frame.reserve(DataChunk::REG_LAST_AY);
       std::back_insert_iterator<Dump> inserter(frame);
-      //skipped frames
-      std::fill_n(inserter, sizeof(uint16_t) * (framesPassed - 1), 0);
-      *inserter = static_cast<Dump::value_type>(update.Mask & 0xff);
-      *inserter = static_cast<Dump::value_type>(update.Mask >> 8);
-      for (uint_t reg = 0, mask = update.Mask; mask && reg < DataChunk::REG_BEEPER; ++reg, mask >>= 1)
+      uint_t mask = 0;
+      for (uint_t reg = 0; reg < DataChunk::REG_LAST_AY; ++reg)
       {
-        if (mask & 1)
+        if (update.Has(reg))
         {
-          *inserter = update.Data[reg];
+          *inserter = update[reg];
+          mask |= 1 << reg;
         }
       }
-      std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
+      //commit
+      Data.reserve(Data.size() + framesPassed * sizeof(uint16_t) + DataChunk::REG_LAST_AY);
+      std::back_insert_iterator<Dump> data(Data);
+      //skipped frames
+      std::fill_n(data, sizeof(uint16_t) * (framesPassed - 1), 0);
+      *data = static_cast<Dump::value_type>(mask & 0xff);
+      *data = static_cast<Dump::value_type>(mask >> 8);
+      std::copy(frame.begin(), frame.end(), data);
     }
   private:
     Dump Data;

@@ -48,12 +48,9 @@ namespace Devices
         REG_TONEE_L,
         REG_TONEE_H,
         REG_ENV,
-        //Due to performance issues, lets AY emulate also beeper.
-        //Register is like a volume registers. If it's not zero, it overrides all channels output
-        REG_BEEPER,
         //limiter
-        REG_LAST_AY = REG_ENV + 1,
         REG_LAST,
+        REG_LAST_AY = REG_ENV + 1,
       };
 
       //masks
@@ -72,6 +69,9 @@ namespace Devices
         REG_MASK_NOISEB = 0x10,
         REG_MASK_TONEC = 0x04,
         REG_MASK_NOISEC = 0x20,
+
+        MASK_BEEPER = 1 << REG_LAST,
+        MASK_BEEPER_VALUE = 1 << (REG_LAST + 1),
       };
 
       enum
@@ -83,13 +83,70 @@ namespace Devices
         CHANNEL_MASK_E = 16,
       };
 
-      DataChunk() : TimeStamp(), Mask(), Data()
+      class Registers
+      {
+      public:
+        Registers()
+          : Mask()
+          , Data()
+        {
+        }
+
+        bool Empty() const
+        {
+          return 0 == Mask;
+        }
+
+        bool Has(uint_t reg) const
+        {
+          return reg < REG_LAST && 0 != (Mask & (1 << reg));
+        }
+
+        uint8_t& operator [] (uint_t reg)
+        {
+          assert(reg < REG_LAST);
+          Mask |= 1 << reg;
+          return Data[reg];
+        }
+
+        void Reset(uint_t reg)
+        {
+          assert(reg < REG_LAST);
+          Mask &= ~(1 << reg);
+        }
+
+        uint8_t operator [] (uint_t reg) const
+        {
+          assert(Has(reg));
+          return Data[reg];
+        }
+
+        void SetBeeper(bool val)
+        {
+          Mask |= val ? (MASK_BEEPER | MASK_BEEPER_VALUE) : MASK_BEEPER;
+        }
+
+        bool GetBeeper() const
+        {
+          assert(HasBeeper());
+          return 0 != (Mask & MASK_BEEPER_VALUE);
+        }
+
+        bool HasBeeper() const
+        {
+          return 0 != (Mask & MASK_BEEPER);
+        }
+      private:
+        uint16_t Mask;
+        boost::array<uint8_t, REG_LAST> Data;
+      };
+
+      DataChunk() : TimeStamp(), Data()
       {
       }
 
       Stamp TimeStamp;
-      uint32_t Mask;
-      boost::array<uint8_t, REG_LAST> Data;
+      Registers Data;
     };
 
     class Device

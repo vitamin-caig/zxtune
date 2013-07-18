@@ -36,12 +36,13 @@ namespace
   {
     // set of registers which required input data masking (4 or 5 lsb)
     REGS_4BIT_SET = (1 << DataChunk::REG_TONEA_H) | (1 << DataChunk::REG_TONEB_H) |
-                    (1 << DataChunk::REG_TONEC_H) | (1 << DataChunk::REG_ENV) | (1 << DataChunk::REG_BEEPER),
+                    (1 << DataChunk::REG_TONEC_H) | (1 << DataChunk::REG_ENV),
     REGS_5BIT_SET = (1 << DataChunk::REG_TONEN) | (1 << DataChunk::REG_VOLA) |
                     (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC),
   };
 
-  BOOST_STATIC_ASSERT(DataChunk::REG_LAST < 8 * sizeof(uint_t));
+  BOOST_STATIC_ASSERT(DataChunk::REG_LAST == 14);
+  BOOST_STATIC_ASSERT(sizeof(DataChunk::Registers) == 16);
 
   inline Sound::Sample::Type ToSample(uint_t val)
   {
@@ -103,64 +104,66 @@ namespace
       Beeper = 0;
     }
 
-    void SetNewData(const DataChunk& data)
+    void SetNewData(const DataChunk& chunk)
     {
-      for (uint_t idx = 0, mask = 1; idx != Registers.size(); ++idx, mask <<= 1)
+      uint_t used = 0;
+      for (uint_t reg = 0; reg != Registers.size(); ++reg)
       {
-        if (0 == (data.Mask & mask))
+        if (!chunk.Data.Has(reg))
         {
           //no new data
           continue;
         }
         //copy registers
-        uint8_t reg = data.Data[idx];
+        uint8_t val = chunk.Data[reg];
+        const uint_t mask = 1 << reg;
         //limit values
         if (mask & REGS_4BIT_SET)
         {
-          reg &= 0x0f;
+          val &= 0x0f;
         }
         else if (mask & REGS_5BIT_SET)
         {
-          reg &= 0x1f;
+          val &= 0x1f;
         }
-        Registers[idx] = reg;
+        Registers[reg] = val;
+        used |= mask;
       }
-      if (data.Mask & (1 << DataChunk::REG_MIXER))
+      if (used & (1 << DataChunk::REG_MIXER))
       {
         Device.SetMixer(GetMixer());
       }
-      if (data.Mask & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)))
+      if (used & ((1 << DataChunk::REG_TONEA_L) | (1 << DataChunk::REG_TONEA_H)))
       {
         Device.SetToneA(GetToneA());
       }
-      if (data.Mask & ((1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H)))
+      if (used & ((1 << DataChunk::REG_TONEB_L) | (1 << DataChunk::REG_TONEB_H)))
       {
         Device.SetToneB(GetToneB());
       }
-      if (data.Mask & ((1 << DataChunk::REG_TONEC_L) | (1 << DataChunk::REG_TONEC_H)))
+      if (used & ((1 << DataChunk::REG_TONEC_L) | (1 << DataChunk::REG_TONEC_H)))
       {
         Device.SetToneC(GetToneC());
       }
-      if (data.Mask & (1 << DataChunk::REG_TONEN))
+      if (used & (1 << DataChunk::REG_TONEN))
       {
         Device.SetToneN(GetToneN());
       }
-      if (data.Mask & ((1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)))
+      if (used & ((1 << DataChunk::REG_TONEE_L) | (1 << DataChunk::REG_TONEE_H)))
       {
         Device.SetToneE(GetToneE());
       }
-      if (data.Mask & (1 << DataChunk::REG_ENV))
+      if (used & (1 << DataChunk::REG_ENV))
       {
         Device.SetEnvType(GetEnvType());
       }
-      if (data.Mask & ((1 << DataChunk::REG_VOLA) | (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC)))
+      if (used & ((1 << DataChunk::REG_VOLA) | (1 << DataChunk::REG_VOLB) | (1 << DataChunk::REG_VOLC)))
       {
         Device.SetLevel(Registers[DataChunk::REG_VOLA], Registers[DataChunk::REG_VOLB], Registers[DataChunk::REG_VOLC]);
       }
-      if (data.Mask & (1 << DataChunk::REG_BEEPER))
+      if (chunk.Data.HasBeeper())
       {
-        const uint_t inLevel = ((data.Data[DataChunk::REG_BEEPER] & DataChunk::REG_MASK_VOL) << 1) + 1;
-        Beeper = inLevel | (inLevel << BITS_PER_LEVEL) | (inLevel << 2 * BITS_PER_LEVEL);
+        Beeper = chunk.Data.GetBeeper() ? HIGH_LEVEL : LOW_LEVEL;
       }
     }
 
