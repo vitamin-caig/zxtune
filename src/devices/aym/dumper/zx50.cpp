@@ -40,24 +40,21 @@ namespace
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& /*state*/, const DataChunk::Registers& update)
+    virtual void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update)
     {
       assert(framesPassed);
 
       Dump frame;
-      frame.reserve(DataChunk::REG_LAST_AY);
+      frame.reserve(Registers::TOTAL);
       std::back_insert_iterator<Dump> inserter(frame);
       uint_t mask = 0;
-      for (uint_t reg = 0; reg < DataChunk::REG_LAST_AY; ++reg)
+      for (Registers::IndicesIterator it(update); it; ++it)
       {
-        if (update.Has(reg))
-        {
-          *inserter = update[reg];
-          mask |= 1 << reg;
-        }
+        *inserter = update[*it];
+        mask |= 1 << *it;
       }
       //commit
-      Data.reserve(Data.size() + framesPassed * sizeof(uint16_t) + DataChunk::REG_LAST_AY);
+      Data.reserve(Data.size() + framesPassed * sizeof(uint16_t) + Registers::TOTAL);
       std::back_insert_iterator<Dump> data(Data);
       //skipped frames
       std::fill_n(data, sizeof(uint16_t) * (framesPassed - 1), 0);

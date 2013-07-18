@@ -73,16 +73,16 @@ namespace
     bool SelectRegister(uint_t reg)
     {
       Register = reg;
-      return Register < Devices::AYM::DataChunk::REG_LAST_AY;
+      return Register < Devices::AYM::Registers::TOTAL;
     }
 
     bool SetValue(const Devices::AYM::Stamp& timeStamp, uint8_t val)
     {
-      if (Register < Devices::AYM::DataChunk::REG_LAST_AY)
+      if (Register < Devices::AYM::Registers::TOTAL)
       {
         Devices::AYM::DataChunk chunk;
         chunk.TimeStamp = timeStamp;
-        chunk.Data[Register] = val;
+        chunk.Data[static_cast<Devices::AYM::Registers::Index>(Register)] = val;
         Chip->RenderData(chunk);
         return true;
       }

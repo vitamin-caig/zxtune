@@ -26,20 +26,17 @@ namespace
 
     virtual void Reset() = 0;
 
-    virtual void Add(const DataChunk::Registers& delta) = 0;
-    virtual DataChunk::Registers GetBase() const = 0;
-    virtual DataChunk::Registers GetDelta() const = 0;
+    virtual void Add(const Registers& delta) = 0;
+    virtual Registers GetBase() const = 0;
+    virtual Registers GetDelta() const = 0;
     virtual void CommitDelta() = 0;
   };
 
-  void ApplyMerge(DataChunk::Registers& dst, const DataChunk::Registers& src)
+  void ApplyMerge(Registers& dst, const Registers& src)
   {
-    for (uint_t reg = 0; reg != DataChunk::REG_LAST_AY; ++reg)
+    for (Registers::IndicesIterator it(src); it; ++it)
     {
-      if (src.Has(reg))
-      {
-        dst[reg] = src[reg];
-      }
+      dst[*it] = src[*it];
     }
   }
 
@@ -48,21 +45,21 @@ namespace
   public:
     virtual void Reset()
     {
-      Base = DataChunk::Registers();
-      Delta = DataChunk::Registers();
+      Base = Registers();
+      Delta = Registers();
     }
 
-    virtual void Add(const DataChunk::Registers& delta)
+    virtual void Add(const Registers& delta)
     {
       ApplyMerge(Delta, delta);
     }
 
-    virtual DataChunk::Registers GetBase() const
+    virtual Registers GetBase() const
     {
       return Base;
     }
 
-    virtual DataChunk::Registers GetDelta() const
+    virtual Registers GetDelta() const
     {
       return Delta;
     }
@@ -70,26 +67,23 @@ namespace
     void CommitDelta()
     {
       ApplyMerge(Base, Delta);
-      Delta = DataChunk::Registers();
+      Delta = Registers();
     }
   protected:
-    DataChunk::Registers Base;
-    DataChunk::Registers Delta;
+    Registers Base;
+    Registers Delta;
   };
 
   class OptimizedRenderState : public NotOptimizedRenderState
   {
   public:
-    virtual void Add(const DataChunk::Registers& delta)
+    virtual void Add(const Registers& delta)
     {
-      for (uint_t reg = 0; reg != DataChunk::REG_LAST_AY; ++reg)
+      for (Registers::IndicesIterator it(delta); it; ++it)
       {
-        if (!delta.Has(reg))
-        {
-          continue;
-        }
+        const Registers::Index reg = *it;
         const uint8_t newVal = delta[reg];
-        if (DataChunk::REG_ENV != reg && Base.Has(reg))
+        if (Registers::ENV != reg && Base.Has(reg))
         {
           uint8_t& base = Base[reg];
           if (newVal == base)
@@ -134,11 +128,11 @@ namespace
         else 
         {
           ++FramesToSkip;
-          const DataChunk::Registers delta = State->GetDelta();
+          const Registers delta = State->GetDelta();
           if (!delta.Empty())
           {
             State->CommitDelta();
-            const DataChunk::Registers& current = State->GetBase();
+            const Registers& current = State->GetBase();
             Builder->WriteFrame(FramesToSkip, current, delta);
             FramesToSkip = 0;
           }
@@ -162,7 +156,7 @@ namespace
     {
       if (FramesToSkip)
       {
-        const DataChunk::Registers delta = State->GetDelta();
+        const Registers delta = State->GetDelta();
         State->CommitDelta();
         Builder->WriteFrame(FramesToSkip, State->GetBase(), delta);
         FramesToSkip = 0;

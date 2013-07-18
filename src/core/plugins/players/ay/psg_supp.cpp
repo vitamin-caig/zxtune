@@ -43,10 +43,10 @@ namespace PSG
 
     virtual void SetRegister(uint_t reg, uint_t val)
     {
-      if (Data.get() && !Data->empty())
+      if (Data.get() && !Data->empty() && reg < Devices::AYM::Registers::TOTAL)
       {
-        Devices::AYM::DataChunk::Registers& data = Data->back();
-        data[reg] = val;
+        Devices::AYM::Registers& data = Data->back();
+        data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
       }
     }
 
@@ -68,7 +68,7 @@ namespace PSG
     void Append(std::size_t count)
     {
       Data->reserve(Data->size() + count);
-      std::fill_n(std::back_inserter(*Data), count, Devices::AYM::DataChunk::Registers());
+      std::fill_n(std::back_inserter(*Data), count, Devices::AYM::Registers());
     }
   private:
     mutable boost::shared_ptr<AYM::RegistersArray> Data;

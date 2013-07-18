@@ -43,19 +43,19 @@ namespace Devices
 
       void SetMixer(uint_t mixer)
       {
-        GenA.SetMasked(0 != (mixer & DataChunk::REG_MASK_TONEA));
-        GenB.SetMasked(0 != (mixer & DataChunk::REG_MASK_TONEB));
-        GenC.SetMasked(0 != (mixer & DataChunk::REG_MASK_TONEC));
+        GenA.SetMasked(0 != (mixer & Registers::MASK_TONEA));
+        GenB.SetMasked(0 != (mixer & Registers::MASK_TONEB));
+        GenC.SetMasked(0 != (mixer & Registers::MASK_TONEC));
         NoiseMask = HIGH_LEVEL;
-        if (0 == (mixer & DataChunk::REG_MASK_NOISEA))
+        if (0 == (mixer & Registers::MASK_NOISEA))
         {
           NoiseMask ^= HIGH_LEVEL_A;
         }
-        if (0 == (mixer & DataChunk::REG_MASK_NOISEB))
+        if (0 == (mixer & Registers::MASK_NOISEB))
         {
           NoiseMask ^= HIGH_LEVEL_B;
         }
-        if (0 == (mixer & DataChunk::REG_MASK_NOISEC))
+        if (0 == (mixer & Registers::MASK_NOISEC))
         {
           NoiseMask ^= HIGH_LEVEL_C;
         }
@@ -136,7 +136,7 @@ namespace Devices
       void SetLevel(uint_t chan, uint_t reg)
       {
         const uint_t shift = chan * BITS_PER_LEVEL;
-        if (0 != (reg & DataChunk::REG_MASK_ENV))
+        if (0 != (reg & Registers::MASK_ENV))
         {
           EnvelopeMask |= 1 << shift;
         }

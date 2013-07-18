@@ -136,14 +136,14 @@ namespace
 
     virtual void AddData(const Dump& registers)
     {
-      Devices::AYM::DataChunk::Registers& data = Allocate();
-      const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::DataChunk::REG_ENV + 1);
+      Devices::AYM::Registers& data = Allocate();
+      const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::Registers::ENV + 1);
       for (uint_t reg = 0, mask = 1; reg != availRegs; ++reg, mask <<= 1)
       {
         const uint8_t val = registers[reg];
-        if (reg != Devices::AYM::DataChunk::REG_ENV || val != 0xff)
+        if (reg != Devices::AYM::Registers::ENV || val != 0xff)
         {
-          data[reg] = val;
+          data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
         }
       }
     }
@@ -160,9 +160,9 @@ namespace
       return Loop;
     }
   private:
-    Devices::AYM::DataChunk::Registers& Allocate()
+    Devices::AYM::Registers& Allocate()
     {
-      Data->push_back(Devices::AYM::DataChunk::Registers());
+      Data->push_back(Devices::AYM::Registers());
       return Data->back();
     }
   private:

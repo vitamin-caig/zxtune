@@ -53,7 +53,7 @@ namespace
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& /*state*/, const DataChunk::Registers& update)
+    virtual void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update)
     {
       assert(framesPassed);
 
@@ -62,7 +62,7 @@ namespace
       const uint_t SKIP_GROUP_SIZE = 4;
       const uint_t groupsSkipped = framesPassed / SKIP_GROUP_SIZE;
       const uint_t remainInts = framesPassed % SKIP_GROUP_SIZE;
-      frame.reserve(groupsSkipped + remainInts + 2 * DataChunk::REG_LAST_AY + 1);
+      frame.reserve(groupsSkipped + remainInts + 2 * Registers::TOTAL + 1);
       std::back_insert_iterator<Dump> inserter(frame);
       if (groupsSkipped)
       {
@@ -71,13 +71,10 @@ namespace
       }
       std::fill_n(inserter, remainInts, INTERRUPT);
       //store data
-      for (uint_t reg = 0; reg < DataChunk::REG_LAST_AY; ++reg)
+      for (Registers::IndicesIterator it(update); it; ++it)
       {
-        if (update.Has(reg))
-        {
-          *inserter = static_cast<Dump::value_type>(reg);
-          *inserter = update[reg];
-        }
+        *inserter = static_cast<Dump::value_type>(*it);
+        *inserter = update[*it];
       }
       *inserter = END_MUS;
       assert(!Data.empty());

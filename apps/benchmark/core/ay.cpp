@@ -91,11 +91,10 @@ namespace Benchmark
       using namespace Devices::AYM;
       const Timer timer;
       DataChunk chunk;
-      chunk.Data[DataChunk::REG_MIXER] = DataChunk::REG_MASK_TONEA | DataChunk::REG_MASK_NOISEB | DataChunk::REG_MASK_TONEC | DataChunk::REG_MASK_NOISEC;
-      chunk.Data[DataChunk::REG_VOLA] = 0;
-      chunk.Data[DataChunk::REG_VOLB] = DataChunk::REG_MASK_VOL;
-      chunk.Data[DataChunk::REG_VOLC] = DataChunk::REG_MASK_ENV | DataChunk::REG_MASK_VOL;
-      chunk.Mask = (1 << DataChunk::REG_BEEPER) - 1;
+      chunk.Data[Registers::MIXER] = Registers::MASK_TONEA | Registers::MASK_NOISEB | Registers::MASK_TONEC | Registers::MASK_NOISEC;
+      chunk.Data[Registers::VOLA] = 0;
+      chunk.Data[Registers::VOLB] = Registers::MASK_VOL;
+      chunk.Data[Registers::VOLC] = Registers::MASK_ENV | Registers::MASK_VOL;
       const Stamp period = frameDuration;
       const uint_t frames = Stamp(duration).Get() / period.Get();
       for (uint_t val = 0; val != frames; ++val)
@@ -106,12 +105,12 @@ namespace Benchmark
         const uint_t envLo = tonLo;
         const uint_t envHi = (val &  0xff00) >> 8;
         const uint_t envTp = (val & 0xf0000) >> 16;
-        chunk.Data[DataChunk::REG_TONEA_L] = chunk.Data[DataChunk::REG_TONEB_L] = chunk.Data[DataChunk::REG_TONEC_L] = tonLo;
-        chunk.Data[DataChunk::REG_TONEA_H] = chunk.Data[DataChunk::REG_TONEB_H] = chunk.Data[DataChunk::REG_TONEC_H] = tonHi;
-        chunk.Data[DataChunk::REG_TONEN] = noise;
-        chunk.Data[DataChunk::REG_TONEE_L] = envLo;
-        chunk.Data[DataChunk::REG_TONEE_H] = envHi;
-        chunk.Data[DataChunk::REG_ENV] = envTp;
+        chunk.Data[Registers::TONEA_L] = chunk.Data[Registers::TONEB_L] = chunk.Data[Registers::TONEC_L] = tonLo;
+        chunk.Data[Registers::TONEA_H] = chunk.Data[Registers::TONEB_H] = chunk.Data[Registers::TONEC_H] = tonHi;
+        chunk.Data[Registers::TONEN] = noise;
+        chunk.Data[Registers::TONEE_L] = envLo;
+        chunk.Data[Registers::TONEE_H] = envHi;
+        chunk.Data[Registers::ENV] = envTp;
         chunk.TimeStamp += period;
         dev.RenderData(chunk);
         dev.Flush();

@@ -52,7 +52,7 @@ namespace
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& /*state*/, const DataChunk::Registers& update)
+    virtual void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update)
     {
       Data.reserve(Data.size() + framesPassed * 32);
       assert(framesPassed);
@@ -61,17 +61,14 @@ namespace
         AddNochangesMessage();
       }
       AddFrameNumber();
-      for (uint_t reg = 0; reg < DataChunk::REG_LAST_AY; ++reg)
+      Dump str(Registers::TOTAL * 2, ' ');
+      for (Registers::IndicesIterator it(update); it; ++it)
       {
-        if (update.Has(reg))
-        {
-          AddData(update[reg]);
-        }
-        else
-        {
-          AddNoData();
-        }
+        const uint8_t val = update[*it];
+        str[*it * 2 + 0] = HexSymbol(val >> 4);
+        str[*it * 2 + 1] = HexSymbol(val & 15);
       }
+      AddData(str);
       AddEndOfFrame();
     }
   private:
@@ -88,18 +85,9 @@ namespace
       //std::copy(number.begin(), number.end(), std::back_inserter(Data));
     }
 
-    void AddData(uint8_t data)
+    void AddData(const Dump& str)
     {
-      const uint8_t hiNibble = data >> 4;
-      const uint8_t loNibble = data & 0x0f;
-      Data.push_back(HexSymbol(hiNibble));
-      Data.push_back(HexSymbol(loNibble));
-    }
-
-    void AddNoData()
-    {
-      Data.push_back(' ');
-      Data.push_back(' ');
+      std::copy(str.begin(), str.end(), std::back_inserter(Data));
     }
 
     void AddEndOfFrame()

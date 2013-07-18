@@ -34,7 +34,7 @@ namespace ZXTune
       class ChannelBuilder
       {
       public:
-        ChannelBuilder(uint_t chan, const FrequencyTable& table, Devices::AYM::DataChunk::Registers& data)
+        ChannelBuilder(uint_t chan, const FrequencyTable& table, Devices::AYM::Registers& data)
           : Channel(chan)
           , Table(table)
           , Data(data)
@@ -50,7 +50,7 @@ namespace ZXTune
       private:
         const uint_t Channel;
         const FrequencyTable& Table;
-        Devices::AYM::DataChunk::Registers& Data;
+        Devices::AYM::Registers& Data;
       };
 
       class TrackBuilder
@@ -59,7 +59,7 @@ namespace ZXTune
         explicit TrackBuilder(const FrequencyTable& table)
           : Table(table)
         {
-          Data[Devices::AYM::DataChunk::REG_MIXER] = 0;
+          Data[Devices::AYM::Registers::MIXER] = 0;
         }
 
         void SetNoise(uint_t level);
@@ -74,13 +74,13 @@ namespace ZXTune
           return ChannelBuilder(chan, Table, Data);
         }
 
-        const Devices::AYM::DataChunk::Registers& GetResult() const
+        const Devices::AYM::Registers& GetResult() const
         {
           return Data;
         }
       private:
         const FrequencyTable& Table;
-        Devices::AYM::DataChunk::Registers Data;
+        Devices::AYM::Registers Data;
       };
 
       class DataRenderer
@@ -99,7 +99,7 @@ namespace ZXTune
       public:
         typedef boost::shared_ptr<DataIterator> Ptr;
 
-        virtual Devices::AYM::DataChunk::Registers GetData() const = 0;
+        virtual Devices::AYM::Registers GetData() const = 0;
       };
 
       class Chiptune
@@ -131,7 +131,7 @@ namespace ZXTune
 
       Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
 
-      typedef std::vector<Devices::AYM::DataChunk::Registers> RegistersArray;
+      typedef std::vector<Devices::AYM::Registers> RegistersArray;
       typedef boost::shared_ptr<const RegistersArray> RegistersArrayPtr;
 
       Chiptune::Ptr CreateStreamedChiptune(RegistersArrayPtr data, Parameters::Accessor::Ptr properties, uint_t loopFrame);

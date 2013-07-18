@@ -38,34 +38,34 @@ namespace
       data = Data;
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& state, const DataChunk::Registers& update)
+    virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update)
     {
       assert(framesPassed);
-      Data.reserve(Data.size() + framesPassed * DataChunk::REG_LAST_AY);
+      Data.reserve(Data.size() + framesPassed * Registers::TOTAL);
       std::back_insert_iterator<Dump> inserter(Data);
       if (const uint_t toSkip = framesPassed - 1)
       {
         Dump dup;
-        if (Data.size() >= DataChunk::REG_LAST_AY)
+        if (Data.empty())
         {
-          dup.assign(Data.end() - DataChunk::REG_LAST_AY, Data.end());
+          dup.resize(Registers::TOTAL);
         }
         else
         {
-          dup.resize(DataChunk::REG_LAST_AY);
+          dup.assign(Data.end() - Registers::TOTAL, Data.end());
         }
         for (uint_t skips = 0; skips < toSkip; ++skips)
         {
           std::copy(dup.begin(), dup.end(), inserter);
         }
       }
-      DataChunk::Registers fixedState(state);
-      if (!update.Has(DataChunk::REG_ENV))
+      Registers fixedState(state);
+      if (!update.Has(Registers::ENV))
       {
-        fixedState[DataChunk::REG_ENV] = NO_R13;
+        fixedState[Registers::ENV] = NO_R13;
       }
-      const uint8_t* const rawStart = &fixedState[0];
-      std::copy(rawStart, rawStart + DataChunk::REG_LAST_AY, inserter);
+      const uint8_t* const rawStart = &fixedState[Registers::TONEA_L];
+      std::copy(rawStart, rawStart + Registers::TOTAL, inserter);
     }
   private:
     Dump Data;

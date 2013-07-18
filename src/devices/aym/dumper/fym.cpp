@@ -61,9 +61,9 @@ namespace
     {
       Dump rawDump;
       Delegate->GetResult(rawDump);
-      Require(0 == rawDump.size() % DataChunk::REG_LAST_AY);
-      const uint32_t framesCount = rawDump.size() / DataChunk::REG_LAST_AY;
-      const uint_t storedRegisters = DataChunk::REG_LAST_AY;
+      Require(0 == rawDump.size() % Registers::TOTAL);
+      const uint32_t framesCount = rawDump.size() / Registers::TOTAL;
+      const uint_t storedRegisters = Registers::TOTAL;
 
       const String& title = Params->Title();
       const String author = Params->Author();
@@ -85,7 +85,7 @@ namespace
       for (uint_t reg = 0; reg < storedRegisters; ++reg)
       {
         uint8_t* const result = static_cast<uint8_t*>(builder.Allocate(framesCount));
-        for (uint_t frm = 0, inOffset = reg; frm < framesCount; ++frm, inOffset += DataChunk::REG_LAST_AY)
+        for (uint_t frm = 0, inOffset = reg; frm < framesCount; ++frm, inOffset += Registers::TOTAL)
         {
           result[frm] = rawDump[inOffset];
         }
@@ -95,7 +95,7 @@ namespace
       Binary::Compression::Zlib::Compress(result, data);
     }
 
-    virtual void WriteFrame(uint_t framesPassed, const DataChunk::Registers& state, const DataChunk::Registers& update)
+    virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update)
     {
       return Delegate->WriteFrame(framesPassed, state, update);
     }
