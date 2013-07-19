@@ -31,7 +31,7 @@ namespace Binary
       uint8_t* Decompress(const uint8_t* inBegin, const uint8_t* inEnd, uint8_t* outBegin, uint8_t* outEnd);
 
       //! Easy-to-use helper with transactional behaviour
-      void Compress(const Dump& input, Dump& output)
+      inline void Compress(const Dump& input, Dump& output)
       {
         Dump result(CalculateCompressedSizeUpperBound(input.size()));
         const uint8_t* const in = &input[0];
@@ -42,7 +42,7 @@ namespace Binary
       }
       
       //! Easy-to-use helper with transactional behaviour
-      void Decompress(const Dump& input, Dump& output)
+      inline void Decompress(const Dump& input, Dump& output)
       {
         Dump result(output.size());
         const uint8_t* const in = &input[0];

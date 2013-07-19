@@ -192,6 +192,8 @@ namespace Chiptune
         }
       } PACK_POST;
 
+      const std::size_t FOOTER_SIZE = 1;
+
       bool FastCheck(const void* data, std::size_t size)
       {
         if (size < sizeof(RawHeader))
@@ -200,8 +202,7 @@ namespace Chiptune
         }
         const RawHeader& hdr = *static_cast<const RawHeader*>(data);
         const std::size_t hdrLen = hdr.GetDataOffset();
-        const std::size_t ftrLen = 1;//final byte
-        if (hdrLen + fromLE(hdr.PackedSize) + ftrLen > size)
+        if (hdrLen + fromLE(hdr.PackedSize) + FOOTER_SIZE > size)
         {
           return false;
         }
@@ -365,7 +366,7 @@ namespace Chiptune
       {
         if (ParseUnpacked(*unpacked, target))
         {
-          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
+          const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize + Compressed::FOOTER_SIZE);
           return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
         }
       }
