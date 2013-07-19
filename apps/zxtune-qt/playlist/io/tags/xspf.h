@@ -6,6 +6,7 @@
 namespace XSPF
 {
 extern const Char APPLICATION_ATTR[];
+extern const Char EMBEDDED_PREFIX[];
 extern const Char EXTENDED_PROPERTY_NAME_ATTR[];
 extern const Char EXTENDED_PROPERTY_TAG[];
 extern const Char EXTENSION_TAG[];

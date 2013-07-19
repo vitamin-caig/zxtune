@@ -278,6 +278,18 @@ namespace
 
   const QLatin1String ITEMS_MIMETYPE("application/playlist.items");
 
+  struct SaveCases
+  {
+    enum
+    {
+      RELPATHS,
+      ABSPATHS,
+      CONTENT,
+
+      TOTAL
+    };
+  };
+
   class ViewImpl : public Playlist::UI::View
   {
   public:
@@ -437,15 +449,16 @@ namespace
     virtual void Save()
     {
       QStringList filters;
-      filters << Playlist::UI::View::tr("Playlist with relative paths (*.xspf)");
-      filters << Playlist::UI::View::tr("Playlist with absolute paths (*.xspf)");
+      filters.insert(SaveCases::RELPATHS, Playlist::UI::View::tr("Playlist with relative paths (*.xspf)"));
+      filters.insert(SaveCases::ABSPATHS, Playlist::UI::View::tr("Playlist with absolute paths (*.xspf)"));
+      filters.insert(SaveCases::CONTENT, Playlist::UI::View::tr("Playlist with embedded modules' data (*.xspf)"));
 
       QString filename = Controller->GetName();
-      int usedFilter = 0;
+      int saveCase = 0;
       if (UI::SaveFileDialog(Playlist::UI::View::tr("Save playlist"),
-        QLatin1String("xspf"), filters, filename, &usedFilter))
+        QLatin1String("xspf"), filters, filename, &saveCase))
       {
-        const Playlist::IO::ExportFlags flags = GetSavePlaylistFlags(0 == usedFilter);
+        const Playlist::IO::ExportFlags flags = GetSavePlaylistFlags(saveCase);
         Playlist::Save(Controller, filename, flags);
       }
     }
@@ -656,7 +669,7 @@ namespace
       }
     }
 
-    Playlist::IO::ExportFlags GetSavePlaylistFlags(bool relPaths) const
+    Playlist::IO::ExportFlags GetSavePlaylistFlags(int saveCase) const
     {
       const Parameters::Accessor::Ptr options = GlobalOptions::Instance().Get();
       Parameters::IntType val = Parameters::ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT;
@@ -666,9 +679,14 @@ namespace
       {
         res |= Playlist::IO::SAVE_ATTRIBUTES;
       }
-      if (relPaths)
+      switch (saveCase)
       {
+      case SaveCases::RELPATHS:
         res |= Playlist::IO::RELATIVE_PATHS;
+        break;
+      case SaveCases::CONTENT:
+        res |= Playlist::IO::SAVE_CONTENT;
+        break;
       }
       return res;
     }

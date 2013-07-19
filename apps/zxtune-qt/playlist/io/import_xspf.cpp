@@ -113,14 +113,15 @@ namespace
   class XSPFReader
   {
   public:
-    XSPFReader(const QString& basePath, const QString& autoName, QIODevice& device)
-      : BaseDir(basePath)
+    XSPFReader(const QFileInfo& file, QIODevice& device)
+      : File(file)
+      , BaseDir(File.absoluteDir())
       , XML(&device)
       , Version(LAST_VERSION)
       , Properties(Parameters::Container::Create())
       , Items(boost::make_shared<Playlist::IO::ContainerItems>())
     {
-      Properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(autoName));
+      Properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(File.baseName()));
     }
 
     bool Parse()
@@ -235,7 +236,8 @@ namespace
     String ParseTrackitemLocation()
     {
       assert(XML.isStartElement() && XML.name() == XSPF::ITEM_LOCATION_TAG);
-      const QString location = XML.readElementText();;
+      const QString inLocation = XML.readElementText();
+      const QString location = inLocation.startsWith(XSPF::EMBEDDED_PREFIX) ? File.absoluteFilePath() + inLocation : inLocation;
       const QUrl url(QUrl::fromPercentEncoding(location.toUtf8()));
       const QString& itemLocation = url.isRelative()
         ? BaseDir.absoluteFilePath(url.toString())
@@ -325,6 +327,7 @@ namespace
         : res;
     }
   private:
+    const QFileInfo File;
     const QDir BaseDir;
     QXmlStreamReader XML;
     //context
@@ -342,9 +345,7 @@ namespace
       assert(!"Failed to open playlist");
       return Playlist::IO::Container::Ptr();
     }
-    const QString basePath = fileInfo.absolutePath();
-    const QString autoName = fileInfo.baseName();
-    XSPFReader reader(basePath, autoName, device);
+    XSPFReader reader(fileInfo, device);
     if (!reader.Parse())
     {
       Dbg("Failed to parse");

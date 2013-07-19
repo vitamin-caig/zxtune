@@ -73,7 +73,7 @@ msgstr "Неправильный размер частотной таблицы 
 msgid "Invalid frequency table '%1%'."
 msgstr "Неправильное значение частотной таблицы '%1%'."
 
-#: src/location_open.cpp:105
+#: src/location_open.cpp:135
 #, boost-format
 msgid "Failed to resolve subpath '%1%'."
 msgstr "Ошибка получения данных по пути '%1%'."

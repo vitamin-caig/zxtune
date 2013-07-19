@@ -23,6 +23,9 @@ Author:
 #include <debug/log.h>
 #include <sound/sound_parameters.h>
 #include <io/text/io.h>
+#include <core/plugins/containers/zdata_supp.h>
+//std includes
+#include <set>
 //boost includes
 #include <boost/scoped_ptr.hpp>
 //qt includes
@@ -39,6 +42,8 @@ Author:
 namespace
 {
   const Debug::Stream Dbg("Playlist::IO::XSPF");
+
+  const QLatin1String ENDL("\n");
 
   const unsigned XSPF_VERSION = 1;
 
@@ -194,6 +199,14 @@ namespace
       ExtendedPropertiesSaver saver(XML, &KeepOnlyParameters);
       params.Process(saver);
     }
+
+    void SaveData(const Binary::Data& content)
+    {
+      Dbg(" Save content");
+      XML.writeCharacters(ENDL);
+      XML.writeCDATA(QString::fromAscii(static_cast<const char*>(content.Start()), content.Size()));
+      XML.writeCharacters(ENDL);
+    }
   private:
     void SaveModuleLocation(const QString& location)
     {
@@ -257,6 +270,7 @@ namespace
         name != ZXTune::Module::ATTR_TITLE &&
         name != ZXTune::Module::ATTR_COMMENT &&
         //skip redundand properties
+        name != ZXTune::Module::ATTR_CONTENT &&
         //skip all the parameters
         !IsParameter(name)
       ;
@@ -282,13 +296,157 @@ namespace
     QXmlStreamWriter& XML;
   };
 
+  class ItemWriter
+  {
+  public:
+    virtual ~ItemWriter() {}
+
+    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const = 0;
+  };
+
+  class ItemFullLocationWriter : public ItemWriter
+  {
+  public:
+    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    {
+      saver.SaveModuleLocation(item.GetFullPath());
+    }
+  };
+
+  class ItemRelativeLocationWriter : public ItemWriter
+  {
+  public:
+    explicit ItemRelativeLocationWriter(const QString& dirName)
+      : Root(dirName)
+    {
+    }
+
+    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    {
+      saver.SaveModuleLocation(item.GetFullPath(), Root);
+    }
+  private:
+    const QDir Root;
+  };
+
+  class ItemContentLocationWriter : public ItemWriter
+  {
+  public:
+    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    {
+      if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
+      {
+        const Binary::Data::Ptr rawContent = ZXTune::Module::GetRawData(*holder);
+        const ZXTune::DataLocation::Ptr container = ZXTune::BuildZdataContainer(*rawContent);
+        const String id = container->GetPath()->AsString();
+        saver.SaveModuleLocation(XSPF::EMBEDDED_PREFIX + id);
+        if (Ids.insert(id).second)
+        {
+          saver.SaveData(*container->GetData());
+        }
+        else
+        {
+          Dbg("Use already stored data for id=%1%", id);
+        }
+      }
+      else
+      {
+        static const ItemFullLocationWriter fallback;
+        fallback.Save(item, saver);
+      }
+    }
+  private:
+    mutable std::set<String> Ids;
+  };
+
+  class ItemShortPropertiesWriter : public ItemWriter
+  {
+  public:
+    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    {
+      const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();
+      saver.SaveStubModuleProperties(*adjustedParams);
+      saver.SaveAdjustedParameters(*adjustedParams);
+    }
+  };
+
+  class ItemFullPropertiesWriter : public ItemWriter
+  {
+  public:
+    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    {
+      if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
+      {
+        const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+        const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
+        saver.SaveModuleProperties(*info, *props);
+        const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();
+        saver.SaveAdjustedParameters(*adjustedParams);
+      }
+      else
+      {
+        static const ItemShortPropertiesWriter fallback;
+        fallback.Save(item, saver);
+      }
+    }
+  };
+
+  class ItemCompositeWriter : public ItemWriter
+  {
+  public:
+    ItemCompositeWriter(std::auto_ptr<ItemWriter> loc, std::auto_ptr<ItemWriter> props)
+      : Location(loc)
+      , Properties(props)
+    {
+    }
+
+    virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
+    {
+      Location->Save(item, saver);
+      Properties->Save(item, saver);
+    }
+  private:
+    const std::auto_ptr<ItemWriter> Location;
+    const std::auto_ptr<ItemWriter> Properties;
+  };
+
+  std::auto_ptr<const ItemWriter> CreateWriter(const QString& filename, Playlist::IO::ExportFlags flags)
+  {
+    std::auto_ptr<ItemWriter> location;
+    std::auto_ptr<ItemWriter> props;
+    if (0 != (flags & Playlist::IO::SAVE_CONTENT))
+    {
+      location.reset(new ItemContentLocationWriter());
+      props.reset(new ItemShortPropertiesWriter());
+    }
+    else
+    {
+      if (0 != (flags & Playlist::IO::SAVE_ATTRIBUTES))
+      {
+        props.reset(new ItemFullPropertiesWriter());
+      }
+      else
+      {
+        props.reset(new ItemShortPropertiesWriter());
+      }
+      if (0 != (flags & Playlist::IO::RELATIVE_PATHS))
+      {
+        location.reset(new ItemRelativeLocationWriter(QFileInfo(filename).absolutePath()));
+      }
+      else
+      {
+        location.reset(new ItemFullLocationWriter());
+      }
+    }
+    return std::auto_ptr<const ItemWriter>(new ItemCompositeWriter(location, props));
+  }
+
   class XSPFWriter
   {
   public:
-    XSPFWriter(QIODevice& device, bool saveAttributes, const QDir* root)
+    XSPFWriter(QIODevice& device, const ItemWriter& writer)
       : XML(&device)
-      , SaveAttributes(saveAttributes)
-      , Root(root)
+      , Writer(writer)
     {
       XML.setAutoFormatting(true);
       XML.setAutoFormattingIndent(2);
@@ -328,31 +486,11 @@ namespace
     {
       Dbg("Save playitem");
       ItemPropertiesSaver saver(XML);
-      if (Root)
-      {
-        saver.SaveModuleLocation(item->GetFullPath(), *Root);
-      }
-      else
-      {
-        saver.SaveModuleLocation(item->GetFullPath());
-      }
-      const Parameters::Accessor::Ptr adjustedParams = item->GetAdjustedParameters();
-      if (const ZXTune::Module::Holder::Ptr holder = SaveAttributes ? item->GetModule() : ZXTune::Module::Holder::Ptr())
-      {
-        const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
-        const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
-        saver.SaveModuleProperties(*info, *props);
-      }
-      else
-      {
-        saver.SaveStubModuleProperties(*adjustedParams);
-      }
-      saver.SaveAdjustedParameters(*adjustedParams);
+      Writer.Save(*item, saver);
     }
   private:
     QXmlStreamWriter XML;
-    const bool SaveAttributes;
-    const QDir* Root;
+    const ItemWriter& Writer;
   };
 
   class ProgressCallbackWrapper : public Playlist::IO::ExportCallback
@@ -392,7 +530,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb, unsigned flags)
+    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb, ExportFlags flags)
     {
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
@@ -401,8 +539,8 @@ namespace Playlist
       }
       try
       {
-        const boost::scoped_ptr<QDir> root(0 != (flags & RELATIVE_PATHS) ? new QDir(QFileInfo(filename).absolutePath()) : 0);
-        XSPFWriter writer(device, 0 != (flags & SAVE_ATTRIBUTES), root.get());
+        const std::auto_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
+        XSPFWriter writer(device, *itemWriter);
         const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
         const unsigned itemsCount = container->GetItemsCount();
         writer.WriteProperties(*playlistProperties, itemsCount);
