@@ -57,7 +57,12 @@ namespace Binary
       dst[size] = 0;
     }
 
-    void Trim(std::size_t size)
+    std::size_t Size() const
+    {
+      return Content->size();
+    }
+
+    void Resize(std::size_t size)
     {
       Content->resize(size);
     }
