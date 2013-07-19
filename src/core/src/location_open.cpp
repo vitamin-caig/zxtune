@@ -70,6 +70,36 @@ namespace
     const Binary::Container::Ptr Data;
   };
 
+  class GeneratedLocation : public DataLocation
+  {
+  public:
+    GeneratedLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
+      : Data(data)
+      , Path(Analysis::ParsePath(path, Text::MODULE_SUBPATH_DELIMITER[0]))
+      , Plugins(Analysis::ParsePath(plugin, Text::MODULE_CONTAINERS_DELIMITER[0]))
+    {
+    }
+
+    virtual Binary::Container::Ptr GetData() const
+    {
+      return Data;
+    }
+
+    virtual Analysis::Path::Ptr GetPath() const
+    {
+      return Path;
+    }
+
+    virtual Analysis::Path::Ptr GetPluginsChain() const
+    {
+      return Plugins;
+    }
+  private:
+    const Binary::Container::Ptr Data;
+    const Analysis::Path::Ptr Path;
+    const Analysis::Path::Ptr Plugins;
+  };
+
   DataLocation::Ptr TryToOpenLocation(const ArchivePluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const Analysis::Path& subPath)
   {
     for (ArchivePlugin::Iterator::Ptr iter = plugins.Enumerate(); iter->IsValid(); iter->Next())
@@ -107,5 +137,10 @@ namespace ZXTune
     }
     Dbg("Resolved '%1%'", subpath);
     return resolvedLocation;
+  }
+
+  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
+  {
+    return boost::make_shared<GeneratedLocation>(data, plugin, path);
   }
 }

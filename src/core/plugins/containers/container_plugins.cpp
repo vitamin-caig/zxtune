@@ -47,6 +47,7 @@ namespace
 namespace ZXTune
 {
   void RegisterRawContainer(ArchivePluginsRegistrator& registrator);
+  void RegisterZdataContainer(ArchivePluginsRegistrator& registrator);
 
   void RegisterContainerPlugins(ArchivePluginsRegistrator& registrator)
   {
@@ -60,5 +61,7 @@ namespace ZXTune
       const ArchivePlugin::Ptr plugin = CreateContainerPlugin(FromStdString(desc.Id), desc.Caps, decoder);
       registrator.RegisterPlugin(plugin);
     }
+
+    RegisterZdataContainer(registrator);
   }
 }

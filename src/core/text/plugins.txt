@@ -17,6 +17,9 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < RAW_PLUGIN_PREFIX
 > "+"
 
+< ZDATA_PLUGIN_PREFIX
+> "zdata:"
+
 #PT3
 < PT3_TURBOSOUND_MODULE
 > "TurboSound module"
@@ -32,3 +35,7 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 #TS
 < TS_PLUGIN_INFO
 > "TurboSound"
+
+#ZDATA
+< ZDATA_PLUGIN_INFO
+> "Zdata"
