@@ -132,42 +132,39 @@ public class PlaylistView extends ListView
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
+      final ViewHolder holder = (ViewHolder) view.getTag();
       final Item item = new Item(cursor);
-      bindType(item, view);
-      bindTitle(item, view);
-      bindDuration(item, view);
-      bindState(source, item, view);
+      if (0 == item.getTitle().length()) {
+        holder.title.setText(item.getLocation().toString());
+      } else {
+        holder.title.setText(item.getTitle());
+      }
+      holder.author.setText(item.getAuthor());
+      holder.type.setText(item.getType());
+      holder.duration.setText(item.getDuration().toString());
+      view.setBackgroundResource(source.isPlaying(item.getUri()) ? R.drawable.ic_playing : 0);
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-      return inflater.inflate(R.layout.playlist_item, parent, false);
+      final View view = inflater.inflate(R.layout.playlist_item, parent, false);
+      view.setTag(new ViewHolder(view));
+      return view;
     }
+  }
 
-    private void bindType(Item item, View view) {
-      final TextView type = (TextView) view.findViewById(R.id.playlist_item_type);
-      type.setText(item.getType());
-    }
+  private static class ViewHolder {
 
-    private void bindTitle(Item item, View view) {
-      final TextView title = (TextView) view.findViewById(R.id.playlist_item_title);
-      final TextView author = (TextView) view.findViewById(R.id.playlist_item_author);
-      if (0 == item.getTitle().length()) {
-        title.setText(item.getLocation().toString());
-      } else {
-        title.setText(item.getTitle());
-      }
-      author.setText(item.getAuthor());
-    }
-
-    private void bindDuration(Item item, View view) {
-      final TextView duration = (TextView) view.findViewById(R.id.playlist_item_duration);
-      duration.setText(item.getDuration().toString());
-    }
+    final TextView title;
+    final TextView author;
+    final TextView duration;
+    final TextView type;
     
-    private void bindState(PlayitemStateSource source, Item item, View view) {
-      final boolean playing = source.isPlaying(item.getUri());
-      view.setBackgroundResource(playing ? R.drawable.ic_playing : 0);
+    public ViewHolder(View view) {
+      this.title = (TextView) view.findViewById(R.id.playlist_item_title);
+      this.author = (TextView) view.findViewById(R.id.playlist_item_author);
+      this.duration = (TextView) view.findViewById(R.id.playlist_item_duration);
+      this.type = (TextView) view.findViewById(R.id.playlist_item_type);
     }
   }
 }

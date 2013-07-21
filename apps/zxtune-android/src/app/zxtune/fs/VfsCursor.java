@@ -6,6 +6,9 @@
  */
 package app.zxtune.fs;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 import android.database.AbstractCursor;
 
 public class VfsCursor extends AbstractCursor {
@@ -30,7 +33,13 @@ public class VfsCursor extends AbstractCursor {
   private int resolvedEntriesCount;
 
   public VfsCursor(Vfs.Dir dir) {
-    this.entries = dir.list();
+    final Vfs.Entry[] entries = dir.list();
+    if (entries != null) {
+      Arrays.sort(entries, new CompareEntries());
+      this.entries = entries;
+    } else {
+      this.entries = new Vfs.Entry[0];
+    }
   }
   
   @Override
@@ -118,5 +127,24 @@ public class VfsCursor extends AbstractCursor {
       res[Columns.SIZE] = Long.valueOf(asFile.size());
     }
     return res;
+  }
+
+  private static class CompareEntries implements Comparator<Vfs.Entry> {
+
+    @Override
+    public int compare(Vfs.Entry lh, Vfs.Entry rh) {
+      final int byType = compareByType(lh, rh);
+      return byType != 0 ? byType : compareByName(lh, rh);
+    }
+    
+    private static int compareByType(Vfs.Entry lh, Vfs.Entry rh) {
+      final int lhDir = lh instanceof Vfs.Dir ? 1 : 0;
+      final int rhDir = rh instanceof Vfs.Dir ? 1 : 0;
+      return rhDir - lhDir;
+    }
+    
+    private static int compareByName(Vfs.Entry lh, Vfs.Entry rh) {
+      return lh.name().compareToIgnoreCase(rh.name());
+    }
   }
 }

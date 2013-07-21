@@ -129,24 +129,6 @@ public class DirView extends ListView
     setAdapter(adapter);
   }
 
-  /*
-   * private static class CompareEntries implements Comparator<Vfs.Entry> {
-   * @Override
-   * public int compare(Vfs.Entry lh, Vfs.Entry rh) {
-   * final int byType = compareByType(lh, rh);
-   * return byType != 0 ? byType : compareByName(lh, rh);
-   * }
-   * private static int compareByType(Vfs.Entry lh, Vfs.Entry rh) {
-   * final int lhDir = lh instanceof Vfs.Dir ? 1 : 0;
-   * final int rhDir = rh instanceof Vfs.Dir ? 1 : 0;
-   * return rhDir - lhDir;
-   * }
-   * private static int compareByName(Vfs.Entry lh, Vfs.Entry rh) {
-   * return lh.name().compareToIgnoreCase(rh.name());
-   * }
-   * }
-   */
-
   private static class DirViewCursorAdapter extends CursorAdapter {
 
     private final LayoutInflater inflater;
