@@ -1,36 +1,27 @@
 /*
  * @file
- * 
  * @brief DirView class
- * 
  * @version $Id:$
- * 
  * @author (C) Vitamin/CAIG
  */
 
 package app.zxtune.ui;
 
-import java.util.AbstractList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
+import android.app.Activity;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
+import android.support.v4.widget.CursorAdapter;
 import android.util.AttributeSet;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
+import app.zxtune.fs.VfsCursor;
 
 public class DirView extends ListView
     implements
@@ -66,7 +57,7 @@ public class DirView extends ListView
       return false;
     }
   }
-  
+
   private OnEntryClickListener listener;
 
   public DirView(Context context) {
@@ -103,21 +94,23 @@ public class DirView extends ListView
 
   @Override
   public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-    final ItemData item = (ItemData) parent.getAdapter().getItem(position);
-    if (item.isFile()) {
-      listener.onFileClick(item.uri);
+    final Cursor cursor = (Cursor) parent.getAdapter().getItem(position);
+    final Uri uri = Uri.parse(cursor.getString(VfsCursor.Columns.URI));
+    if (VfsCursor.Types.FILE == cursor.getInt(VfsCursor.Columns.TYPE)) {
+      listener.onFileClick(uri);
     } else {
-      listener.onDirClick(item.uri);
+      listener.onDirClick(uri);
     }
   }
 
   @Override
   public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-    final ItemData item = (ItemData) parent.getAdapter().getItem(position);
-    if (item.isFile()) {
-      return listener.onFileLongClick(item.uri);
+    final Cursor cursor = (Cursor) parent.getAdapter().getItem(position);
+    final Uri uri = Uri.parse(cursor.getString(VfsCursor.Columns.URI));
+    if (VfsCursor.Types.FILE == cursor.getInt(VfsCursor.Columns.TYPE)) {
+      return listener.onFileLongClick(uri);
     } else {
-      return listener.onDirLongClick(item.uri);
+      return listener.onDirLongClick(uri);
     }
   }
 
@@ -130,159 +123,74 @@ public class DirView extends ListView
   }
 
   public void setDir(Vfs.Dir dir) {
-
-    final Vfs.Entry[] entries = dir != null ? dir.list() : null;
-    if (entries == null) {
-      final List<ItemData> stubData = Collections.emptyList();
-      setData(stubData);
-    } else {
-      Arrays.sort(entries, new CompareEntries());
-      final List<ItemData> data = new DelayedListViewItems(entries);
-      setData(data);
-    }
-  }
-
-  private final void setData(List<ItemData> data) {
-    final ListAdapter adapter = new DirViewAdapter(getContext(), data);
+    final Cursor cursor = new VfsCursor(dir);
+    ((Activity) getContext()).startManagingCursor(cursor);
+    final CursorAdapter adapter = new DirViewCursorAdapter(getContext(), cursor, false);
     setAdapter(adapter);
   }
 
-  private static class CompareEntries implements Comparator<Vfs.Entry> {
+  /*
+   * private static class CompareEntries implements Comparator<Vfs.Entry> {
+   * @Override
+   * public int compare(Vfs.Entry lh, Vfs.Entry rh) {
+   * final int byType = compareByType(lh, rh);
+   * return byType != 0 ? byType : compareByName(lh, rh);
+   * }
+   * private static int compareByType(Vfs.Entry lh, Vfs.Entry rh) {
+   * final int lhDir = lh instanceof Vfs.Dir ? 1 : 0;
+   * final int rhDir = rh instanceof Vfs.Dir ? 1 : 0;
+   * return rhDir - lhDir;
+   * }
+   * private static int compareByName(Vfs.Entry lh, Vfs.Entry rh) {
+   * return lh.name().compareToIgnoreCase(rh.name());
+   * }
+   * }
+   */
 
-    @Override
-    public int compare(Vfs.Entry lh, Vfs.Entry rh) {
-      final int byType = compareByType(lh, rh);
-      return byType != 0 ? byType : compareByName(lh, rh);
-    }
+  private static class DirViewCursorAdapter extends CursorAdapter {
 
-    private static int compareByType(Vfs.Entry lh, Vfs.Entry rh) {
-      final int lhDir = lh instanceof Vfs.Dir ? 1 : 0;
-      final int rhDir = rh instanceof Vfs.Dir ? 1 : 0;
-      return rhDir - lhDir;
-    }
-
-    private static int compareByName(Vfs.Entry lh, Vfs.Entry rh) {
-      return lh.name().compareToIgnoreCase(rh.name());
-    }
-  }
-  
-  private static class DirViewAdapter extends BaseAdapter {
-    
     private final LayoutInflater inflater;
-    private final List<ItemData> items;
-    
-    public DirViewAdapter(Context context, List<ItemData> items) {
-      this.inflater = LayoutInflater.from(context);
-      this.items = items;
+
+    public DirViewCursorAdapter(Context context, Cursor cursor, boolean autoRequery) {
+      super(context, cursor, autoRequery);
+      inflater = LayoutInflater.from(context);
     }
-    
-    @Override
-    public int getCount() {
-      return items.size();
+
+    public DirViewCursorAdapter(Context context, Cursor cursor, int flags) {
+      super(context, cursor, flags);
+      inflater = LayoutInflater.from(context);
     }
-    
+
     @Override
-    public ItemData getItem(int position) {
-      return items.get(position);
-    }
-    
-    @Override
-    public long getItemId(int position) {
-      return position;
-    }
-    
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-      ViewHolder holder;
-      if (convertView != null) {
-        holder = (ViewHolder) convertView.getTag();
-      } else {
-        convertView = inflater.inflate(R.layout.dirview_item, parent, false);
-        holder = new ViewHolder();
-        holder.name = (TextView) convertView.findViewById(R.id.dirview_item_name);
-        holder.size = (TextView) convertView.findViewById(R.id.dirview_item_size);
-        convertView.setTag(holder);
+    public void bindView(View view, Context context, Cursor cursor) {
+      final ViewHolder holder = (ViewHolder) view.getTag();
+      holder.name.setText(cursor.getString(VfsCursor.Columns.NAME));
+      switch (cursor.getInt(VfsCursor.Columns.TYPE)) {
+        case VfsCursor.Types.DIR:
+          holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_browser_folder, 0, 0, 0);
+          holder.size.setVisibility(GONE);
+          break;
+        case VfsCursor.Types.FILE:
+          holder.name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+          holder.size.setVisibility(VISIBLE);
+          holder.size.setText(Long.toString(cursor.getLong(VfsCursor.Columns.SIZE)));
+          break;
       }
-      final ItemData item = getItem(position);
-      if (item.isFile()) {
-        holder.name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-        holder.size.setVisibility(VISIBLE);
-        holder.size.setText(item.size.toString());
-      } else {
-        holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_browser_folder, 0, 0, 0);
-        holder.size.setVisibility(GONE);
-      }
-      holder.name.setText(item.name);
-      return convertView;
     }
-    
+
+    @Override
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+      final View res = inflater.inflate(R.layout.dirview_item, parent, false);
+      final ViewHolder holder = new ViewHolder();
+      holder.name = (TextView) res.findViewById(R.id.dirview_item_name);
+      holder.size = (TextView) res.findViewById(R.id.dirview_item_size);
+      res.setTag(holder);
+      return res;
+    }
+
     private static class ViewHolder {
       public TextView name;
       public TextView size;
-    }
-  }
-
-  private static class DelayedListViewItems extends AbstractList<ItemData> {
-
-    private Vfs.Entry[] entries;
-    private final ItemData[] content;
-    private int cachedCount;
-
-    public DelayedListViewItems(Vfs.Entry[] entries) {
-      this.entries = entries;
-      this.content = new ItemData[entries.length];
-      this.cachedCount = 0;
-    }
-
-    @Override
-    public ItemData get(int index) {
-      ItemData val = content[index];
-      if (val == null) {
-        val = createItemData(entries[index]);
-        content[index] = val;
-        if (++cachedCount == entries.length) {
-          entries = null;
-        }
-      }
-      return val;
-    }
-
-    @Override
-    public int size() {
-      return content.length;
-    }
-
-    private static ItemData createItemData(Vfs.Entry entry) {
-      if (entry instanceof Vfs.Dir) {
-        return new ItemData((Vfs.Dir) entry);
-      } else if (entry instanceof Vfs.File) {
-        return new ItemData((Vfs.File) entry);
-      } else {
-        throw new UnsupportedOperationException();
-      }
-    }
-  }
-
-  private static class ItemData {
-
-    public final String name;
-    public final Long size;
-    public final Uri uri;
-
-    public ItemData(Vfs.Dir dir) {
-      this.name = dir.name();
-      this.size = null;
-      this.uri = dir.uri();
-    }
-
-    public ItemData(Vfs.File file) {
-      this.name = file.name();
-      this.size = file.size();
-      this.uri = file.uri();
-    }
-
-    public final boolean isFile() {
-      return size != null;
     }
   }
 }
