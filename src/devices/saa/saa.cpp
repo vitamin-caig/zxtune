@@ -17,10 +17,10 @@ Author:
 #include <tools.h>
 //library includes
 #include <devices/details/chunks_cache.h>
+#include <devices/details/clock_source.h>
 #include <devices/details/parameters_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/lpfilter.h>
-#include <time/oscillator.h>
 //std includes
 #include <cassert>
 #include <cmath>
@@ -122,53 +122,7 @@ namespace
     SAADevice Device;
   };
 
-  class ClockSource
-  {
-  public:
-    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
-    {
-      SndOscillator.SetFrequency(soundFreq);
-      PsgOscillator.SetFrequency(clockFreq);
-    }
-
-    void Reset()
-    {
-      PsgOscillator.Reset();
-      SndOscillator.Reset();
-    }
-
-    Stamp GetCurrentTime() const
-    {
-      return PsgOscillator.GetCurrentTime();
-    }
-
-    Stamp GetNextSampleTime() const
-    {
-      return SndOscillator.GetCurrentTime();
-    }
-
-    void NextSample()
-    {
-      SndOscillator.AdvanceTick();
-    }
-
-    uint_t NextTime(const Stamp& stamp)
-    {
-      const Stamp prevStamp = PsgOscillator.GetCurrentTime();
-      const uint64_t prevTick = PsgOscillator.GetCurrentTick();
-      PsgOscillator.AdvanceTime(stamp.Get() - prevStamp.Get());
-      return static_cast<uint_t>(PsgOscillator.GetCurrentTick() - prevTick);
-    }
-
-    uint_t SamplesTill(Stamp stamp) const
-    {
-      //TODO: investigate for adding reason
-      return SndOscillator.GetTickAtTime(stamp) - SndOscillator.GetCurrentTick() + 2;
-    }
-  private:
-    Time::Oscillator<Stamp> SndOscillator;
-    Time::TimedOscillator<Stamp> PsgOscillator;
-  };
+  typedef Devices::Details::ClockSource<Stamp> ClockSource;
 
   class AnalysisMap
   {
