@@ -11,8 +11,6 @@
 package app.zxtune.ui;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -35,7 +33,7 @@ public class PlaylistFragment extends Fragment {
 
   private static final String TAG = PlaylistFragment.class.getName();
   private Releaseable connection;
-  private SavedState state;
+  private PlaylistState state;
   private Control control;
   private PlaylistView listing;
   private Uri nowPlaying = Uri.EMPTY;
@@ -59,7 +57,7 @@ public class PlaylistFragment extends Fragment {
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
-    state = new SavedState(PreferenceManager.getDefaultSharedPreferences(activity));
+    state = new PlaylistState(PreferenceManager.getDefaultSharedPreferences(activity));
   }
   
   @Override
@@ -148,27 +146,6 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void onItemChanged(Item item) {
       nowPlaying = item != null ? item.getId() : Uri.EMPTY;
-    }
-  }
-  
-  private static class SavedState {
-    
-    private final static String PREF_PLAYLIST = "playlist_";
-    private final static String PREF_PLAYLIST_VIEWPOS = PREF_PLAYLIST + "viewpos";
-    private final SharedPreferences prefs;
-
-    public SavedState(SharedPreferences prefs) {
-      this.prefs = prefs;
-    }
-    
-    public int getCurrentViewPosition() {
-      return prefs.getInt(PREF_PLAYLIST_VIEWPOS, 0);
-    }
-    
-    public void setCurrentViewPosition(int pos) {
-      final Editor editor = prefs.edit();
-      editor.putInt(PREF_PLAYLIST_VIEWPOS, pos);
-      editor.commit();
     }
   }
 }

@@ -1,49 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<app.zxtune.ui.CheckableLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/block"
-    android:orientation="horizontal"
-    >
+    android:background="@drawable/checkable_background"
+    android:orientation="horizontal" >
+
     <LinearLayout
-      android:orientation="vertical"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_gravity="left|center"
-      android:layout_weight="1"
-      android:layout_marginRight="@dimen/spacing_full"
-      >
-      <TextView
-        android:id="@+id/playlist_item_title"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@style/text_main"
+        android:layout_height="fill_parent"
+        android:layout_marginLeft="@dimen/spacing_half"
+        android:layout_marginRight="@dimen/spacing_half"
         android:layout_weight="1"
-      />
-      <TextView
-        android:id="@+id/playlist_item_author"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        style="@style/text_aux"
-        android:layout_weight="0"
-      />
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/playlist_item_title"
+            style="@style/text_main"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/playlist_item_author"
+            style="@style/text_aux"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
-    <LinearLayout
-      android:orientation="vertical"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_gravity="right|center"
-      android:layout_weight="0"
-      >
-      <TextView
+
+    <TextView
         android:id="@+id/playlist_item_duration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         style="@style/text_main"
-      />
-      <TextView
-        android:id="@+id/playlist_item_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        style="@style/text_aux"
-      />
-    </LinearLayout>
-</LinearLayout>
+        android:layout_marginLeft="@dimen/spacing_half"
+        android:layout_marginRight="@dimen/spacing_half"
+        android:layout_weight="0"
+        android:layout_gravity="center_vertical"
+        android:drawablePadding="@dimen/spacing_half" />
+
+</app.zxtune.ui.CheckableLinearLayout>

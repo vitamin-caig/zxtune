@@ -11,6 +11,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.widget.CursorAdapter;
+import android.text.Html;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,10 +23,7 @@ import app.zxtune.R;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.Query;
 
-public class PlaylistView extends ListView
-    implements
-      AdapterView.OnItemClickListener,
-      AdapterView.OnItemLongClickListener {
+public class PlaylistView extends ListView {
 
   public interface OnPlayitemClickListener {
 
@@ -50,7 +48,7 @@ public class PlaylistView extends ListView
     }
   }
 
-  private static class StubPlayitemStateSource implements PlayitemStateSource{
+  private static class StubPlayitemStateSource implements PlayitemStateSource {
 
     @Override
     public boolean isPlaying(Uri playlistUri) {
@@ -58,7 +56,7 @@ public class PlaylistView extends ListView
     }
   }
 
-  private PlayitemStateSource source;
+  private PlayitemStateSource state;
   private OnPlayitemClickListener listener;
 
   public PlaylistView(Context context) {
@@ -79,16 +77,16 @@ public class PlaylistView extends ListView
   private void setupView() {
     listener = new StubOnPlayitemClickListener();
     super.setLongClickable(true);
-    super.setOnItemClickListener(this);
-    super.setOnItemLongClickListener(this);
+    super.setOnItemClickListener(new OnPlaylistItemClickListener());
+    super.setOnItemLongClickListener(new OnPlaylistItemLongClickListener());
   }
 
   public void setOnPlayitemClickListener(OnPlayitemClickListener listener) {
     this.listener = null != listener ? listener : new StubOnPlayitemClickListener();
   }
-  
+
   public void setPlayitemStateSource(PlayitemStateSource source) {
-    this.source = null != source ? source : new StubPlayitemStateSource();
+    this.state = null != source ? source : new StubPlayitemStateSource();
   }
 
   public void setData(Cursor cursor) {
@@ -96,24 +94,18 @@ public class PlaylistView extends ListView
     this.setAdapter(adapter);
   }
 
-  @Override
-  public void setOnItemClickListener(OnItemClickListener l) {
-    throw new UnsupportedOperationException();
+  private class OnPlaylistItemClickListener implements AdapterView.OnItemClickListener {
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+      listener.onPlayitemClick(Query.unparse(id));
+    }
   }
 
-  @Override
-  public void setOnItemLongClickListener(OnItemLongClickListener l) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-    listener.onPlayitemClick(Query.unparse(id));
-  }
-
-  @Override
-  public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-    return listener.onPlayitemLongClick(Query.unparse(id));
+  private class OnPlaylistItemLongClickListener implements AdapterView.OnItemLongClickListener {
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+      return listener.onPlayitemLongClick(Query.unparse(id));
+    }
   }
 
   private class PlaylistCursorAdapter extends CursorAdapter {
@@ -122,12 +114,12 @@ public class PlaylistView extends ListView
 
     public PlaylistCursorAdapter(Context context, Cursor cursor, boolean autoRequery) {
       super(context, cursor, autoRequery);
-      inflater = LayoutInflater.from(context);
+      this.inflater = LayoutInflater.from(context);
     }
 
     public PlaylistCursorAdapter(Context context, Cursor cursor, int flags) {
       super(context, cursor, flags);
-      inflater = LayoutInflater.from(context);
+      this.inflater = LayoutInflater.from(context);
     }
 
     @Override
@@ -135,14 +127,14 @@ public class PlaylistView extends ListView
       final ViewHolder holder = (ViewHolder) view.getTag();
       final Item item = new Item(cursor);
       if (0 == item.getTitle().length()) {
-        holder.title.setText(item.getLocation().toString());
+        holder.title.setText(item.getLocation().getLastPathSegment());
       } else {
         holder.title.setText(item.getTitle());
       }
       holder.author.setText(item.getAuthor());
-      holder.type.setText(item.getType());
       holder.duration.setText(item.getDuration().toString());
-      view.setBackgroundResource(source.isPlaying(item.getUri()) ? R.drawable.ic_playing : 0);
+      final int icon = state.isPlaying(item.getUri()) ? R.drawable.ic_stat_notify_play : 0;
+      holder.duration.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0);
     }
 
     @Override
@@ -158,13 +150,11 @@ public class PlaylistView extends ListView
     final TextView title;
     final TextView author;
     final TextView duration;
-    final TextView type;
-    
+
     public ViewHolder(View view) {
       this.title = (TextView) view.findViewById(R.id.playlist_item_title);
       this.author = (TextView) view.findViewById(R.id.playlist_item_author);
       this.duration = (TextView) view.findViewById(R.id.playlist_item_duration);
-      this.type = (TextView) view.findViewById(R.id.playlist_item_type);
     }
   }
 }
