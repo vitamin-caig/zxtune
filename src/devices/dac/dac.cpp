@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include <devices/dac.h>
+#include <devices/details/chunks_cache.h>
 #include <devices/details/parameters_helper.h>
 //common includes
 #include <tools.h>
@@ -494,37 +495,6 @@ namespace
     ChannelState* const State;
   };
 
-  class DataCache
-  {
-  public:
-    void Add(const DataChunk& src)
-    {
-      Buffer.push_back(src);
-    }
-
-    const DataChunk* GetBegin() const
-    {
-      return &Buffer.front();
-    }
-    
-    const DataChunk* GetEnd() const
-    {
-      return &Buffer.back() + 1;
-    }
-
-    void Reset()
-    {
-      Buffer.clear();
-    }
-
-    Stamp GetTillTime() const
-    {
-      return Buffer.empty() ? Stamp() : Buffer.back().TimeStamp;
-    }
-  private:
-    std::vector<DataChunk> Buffer;
-  };
-
   template<unsigned Channels>
   class RenderersSet
   {
@@ -681,7 +651,7 @@ namespace
     ClockSource Clock;
     boost::array<ChannelState, Channels> State;
     RenderersSet<Channels> Renderers;
-    DataCache BufferedData;
+    Devices::Details::ChunksCache<DataChunk, Stamp> BufferedData;
   };
 }
 

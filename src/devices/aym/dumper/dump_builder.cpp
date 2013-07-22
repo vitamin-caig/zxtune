@@ -11,6 +11,8 @@ Author:
 
 //local includes
 #include "dump_builder.h"
+//library includes
+#include <devices/details/chunks_cache.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -112,14 +114,14 @@ namespace
 
     virtual void RenderData(const DataChunk& src)
     {
-      Buffer.push_back(src);
+      Buffer.Add(src);
     }
 
     virtual void Flush()
     {
       Stamp nextFrame = LastFrame;
       nextFrame += FrameDuration;
-      for (std::vector<DataChunk>::iterator it = Buffer.begin(), lim = Buffer.end(); it != lim; ++it)
+      for (const DataChunk* it = Buffer.GetBegin(), *lim = Buffer.GetEnd(); it != lim; ++it)
       {
         if (it->TimeStamp < nextFrame)
         {
@@ -140,13 +142,13 @@ namespace
           nextFrame += FrameDuration;
         }
       }
-      Buffer.clear();
+      Buffer.Reset();
     }
 
     virtual void Reset()
     {
       Builder->Initialize();
-      Buffer.clear();
+      Buffer.Reset();
       State->Reset();
       FramesToSkip = 0;
       LastFrame = Stamp();
@@ -167,7 +169,7 @@ namespace
     const Stamp FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     const std::auto_ptr<RenderState> State;
-    std::vector<DataChunk> Buffer;
+    Devices::Details::ChunksCache<DataChunk, Stamp> Buffer;
     mutable uint_t FramesToSkip;
     Stamp LastFrame;
   };

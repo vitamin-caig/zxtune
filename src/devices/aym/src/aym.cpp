@@ -16,6 +16,7 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
+#include <devices/details/chunks_cache.h>
 #include <devices/details/parameters_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/lpfilter.h>
@@ -322,37 +323,6 @@ namespace
     Time::TimedOscillator<Stamp> PsgOscillator;
   };
 
-  class DataCache
-  {
-  public:
-    void Add(const DataChunk& src)
-    {
-      Buffer.push_back(src);
-    }
-
-    const DataChunk* GetBegin() const
-    {
-      return &Buffer.front();
-    }
-    
-    const DataChunk* GetEnd() const
-    {
-      return &Buffer.back() + 1;
-    }
-
-    void Reset()
-    {
-      Buffer.clear();
-    }
-
-    Stamp GetTillTime() const
-    {
-      return Buffer.empty() ? Stamp() : Buffer.back().TimeStamp;
-    }
-  private:
-    std::vector<DataChunk> Buffer;
-  };
-  
   class AnalysisMap
   {
   public:
@@ -833,7 +803,7 @@ namespace
     const Sound::Receiver::Ptr Target;
     AYMRenderer PSG;
     ClockSource Clock;
-    DataCache BufferedData;
+    Devices::Details::ChunksCache<DataChunk, Stamp> BufferedData;
     AnalysisMap Analyser;
     MultiVolumeTable VolTable;
     RenderersSet Renderers;

@@ -15,6 +15,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <devices/fm.h>
+#include <devices/details/chunks_cache.h>
 #include <devices/details/parameters_helper.h>
 #include <sound/chunk_builder.h>
 #include <time/oscillator.h>
@@ -154,12 +155,12 @@ namespace
 
     virtual void RenderData(const DataChunk& src)
     {
-      Buffer.push_back(src);
+      Buffer.Add(src);
     }
 
     virtual void Flush()
     {
-      const Stamp tillTime = GetTillTime();
+      const Stamp tillTime = Buffer.GetTillTime();
       if (!(tillTime == Stamp(0)))
       {
         SynchronizeParameters();
@@ -176,7 +177,7 @@ namespace
       Params.Reset();
       Render.Reset();
       Clock.Reset();
-      Buffer.clear();
+      Buffer.Reset();
     }
 
     virtual void GetState(ChannelsState& state) const
@@ -195,11 +196,6 @@ namespace
       }
     }
 
-    Stamp GetTillTime() const
-    {
-      return Buffer.empty() ? Stamp() : Buffer.back().TimeStamp;
-    }
-
     uint_t GetSamplesTill(Stamp stamp) const
     {
       //TODO
@@ -210,7 +206,7 @@ namespace
 
     void RenderChunks(Sound::ChunkBuilder& builder)
     {
-      for (std::vector<DataChunk>::const_iterator it = Buffer.begin(), lim = Buffer.end(); it != lim; ++it)
+      for (const DataChunk* it = Buffer.GetBegin(), *lim = Buffer.GetEnd(); it != lim; ++it)
       {
         Render.WriteRegisters(it->Data.begin(), it->Data.end());
         if (const uint_t samples = GetSamplesTill(it->TimeStamp))
@@ -219,14 +215,14 @@ namespace
           Clock.AdvanceTick(samples);
         }
       }
-      Buffer.clear();
+      Buffer.Reset();
     }
   private:
     Devices::Details::ParametersHelper<ChipParameters> Params;
     const Sound::Receiver::Ptr Target;
     ChipAdapter Render;
     Time::Oscillator<Stamp> Clock;
-    std::vector<DataChunk> Buffer;
+    Devices::Details::ChunksCache<DataChunk, Stamp> Buffer;
   };
 }
 
