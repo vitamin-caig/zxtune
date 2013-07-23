@@ -34,4 +34,4 @@ void YM2203WriteRegs(void *chip, int reg, unsigned char val);
 void YM2203SetMute(void *chip,int mask);
 
 
-void YM2203GetAllTL(void *chip,int *levels,int *freqs);
+void YM2203GetState(void *chip, uint_t *attenuations, uint_t *periods);

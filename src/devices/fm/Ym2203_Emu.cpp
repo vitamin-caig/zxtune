@@ -1368,48 +1368,54 @@ void YM2203SetMute(void *chip,int mask)
 	F2203->mute=mask;
 }
 
-int GetFreq(uint64_t clock, uint8_t regHi, uint8_t regLo, unsigned scale)
+uint_t GetPeriod(uint8_t regHi, uint8_t regLo, unsigned scale)
 {
-  const unsigned counter = (unsigned(regHi & 7) << 8) | regLo;
-  const unsigned octave = (regHi & 0x38) >> 3;
-  return clock * 100 * counter * (1 << octave) / (scale << 21);
+  if (const unsigned counter = (unsigned(regHi & 7) << 8) | regLo)
+  {
+    const unsigned octave = (regHi & 0x38) >> 3;
+    return (scale << 21) / (counter << octave);
+  }
+  else
+  {
+    return scale << 21;
+  }
 }
 
-void YM2203GetAllTL(void *chip,int *levels, int* freqs)
+void YM2203GetState(void *chip, uint_t *attenuations, uint_t *periods)
 {
-	const int slotMap[8]={ 0x08,0x08,0x08,0x08,0x0c,0x0e,0x0e,0x0f };
-	const int opn_pres[4] = { 2*12 , 2*12 , 6*12 , 3*12 };
-	int aa,vol,algo,div;
+	const uint_t slotMap[8]={ 0x08,0x08,0x08,0x08,0x0c,0x0e,0x0e,0x0f };
+	const uint_t opn_pres[4] = { 2*12 , 2*12 , 6*12 , 3*12 };
 	YM2203 *F2203;
 	
 	F2203=(YM2203*)chip;
 	
-  const unsigned scale = opn_pres[F2203->OPN.ST.prescaler_sel & 3];
-	for(aa=0;aa<3;aa++)
+  const uint_t scale = opn_pres[F2203->OPN.ST.prescaler_sel & 3];
+	for (uint_t c = 0; c < 3; ++c)
 	{
-		algo=slotMap[F2203->CH[aa].ALGO&7];
-		vol=0;
-		div=0;
-
-    const int freq = GetFreq(F2203->OPN.ST.clock, F2203->REGS[0xa4 + aa], F2203->REGS[0xa0 + aa], scale);
+		const uint_t algo = slotMap[F2203->CH[c].ALGO&7];
+		uint_t att = 0;
+		uint_t div = 0;
 		if(algo&1)
 		{
-		  vol+=F2203->CH[aa].SLOT[SLOT1].vol_out; div++;
+		  att += F2203->CH[c].SLOT[SLOT1].vol_out; div++;
 		}
 		if(algo&2)
 		{
-		  vol+=F2203->CH[aa].SLOT[SLOT2].vol_out; div++;
+		  att += F2203->CH[c].SLOT[SLOT2].vol_out; div++;
 		}
 		if(algo&4)
 		{
-		  vol+=F2203->CH[aa].SLOT[SLOT3].vol_out; div++;
+		  att += F2203->CH[c].SLOT[SLOT3].vol_out; div++;
 		}
 		if(algo&8)
 		{
-		  vol+=F2203->CH[aa].SLOT[SLOT4].vol_out; div++;
+		  att += F2203->CH[c].SLOT[SLOT4].vol_out; div++;
 		}
-
-		levels[aa]=vol/div;
-		freqs[aa] = freq;
+		att /= div;
+    attenuations[c] = att;
+		if (att < 1024)
+		{
+		  periods[c] = GetPeriod(F2203->REGS[0xa4 + c], F2203->REGS[0xa0 + c], scale);
+		}
 	}
 }

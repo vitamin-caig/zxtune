@@ -15,6 +15,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <devices/fm.h>
+#include <devices/details/analysis_map.h>
 #include <devices/details/chunks_cache.h>
 #include <devices/details/clock_source.h>
 #include <devices/details/parameters_helper.h>
@@ -30,36 +31,6 @@ namespace FM
 {
   namespace Details
   {
-    //TODO: extract
-    inline uint_t GetBandByFreq(uint_t freq)
-    {
-      //table in Hz * FREQ_MULTIPLIER
-      static const uint_t FREQ_TABLE[] =
-      {
-        //octave1
-        3270,   3465,   3671,   3889,   4120,   4365,   4625,   4900,   5191,   5500,   5827,   6173,
-        //octave2
-        6541,   6929,   7342,   7778,   8241,   8730,   9250,   9800,  10382,  11000,  11654,  12346,
-        //octave3
-        13082,  13858,  14684,  15556,  16482,  17460,  18500,  19600,  20764,  22000,  23308,  24692,
-        //octave4
-        26164,  27716,  29368,  31112,  32964,  34920,  37000,  39200,  41528,  44000,  46616,  49384,
-        //octave5
-        52328,  55432,  58736,  62224,  65928,  69840,  74000,  78400,  83056,  88000,  93232,  98768,
-        //octave6
-        104650, 110860, 117470, 124450, 131860, 139680, 148000, 156800, 166110, 176000, 186460, 197540,
-        //octave7
-        209310, 221720, 234940, 248890, 263710, 279360, 296000, 313600, 332220, 352000, 372930, 395070,
-        //octave8
-        418620, 443460, 469890, 497790, 527420, 558720, 592000, 627200, 664450, 704000, 745860, 790140,
-        //octave9
-        837200, 886980, 939730, 995610,1054800,1117500,1184000,1254400,1329000,1408000,1491700,1580400
-      };
-      const uint_t maxBand = static_cast<uint_t>(ArraySize(FREQ_TABLE) - 1);
-      const uint_t currentBand = static_cast<uint_t>(std::lower_bound(FREQ_TABLE, ArrayEnd(FREQ_TABLE), freq) - FREQ_TABLE);
-      return std::min(currentBand, maxBand);
-    }
-
     typedef int32_t YM2203SampleType;
     typedef boost::shared_ptr<void> ChipPtr;
 
@@ -76,6 +47,7 @@ namespace FM
 
       bool SetNewParams(uint64_t clock, uint_t sndFreq)
       {
+        Analyser.SetClockRate(clock);
         if (clock != LastClockrate || sndFreq != LastSoundFreq)
         {
           LastClockrate = clock;
@@ -104,15 +76,15 @@ namespace FM
         std::transform(inBegin, inEnd, out, &ConvertToSample);
       }
 
-      static void ConvertState(const int* vols, const int* freqs, ChanState* res, uint_t baseIdx)
+      void ConvertState(const uint_t* attenuations, const uint_t* periods, ChanState* res, uint_t baseIdx) const
       {
         for (uint_t idx = 0; idx != VOICES; ++idx)
         {
           res[idx] = ChanState('A' + idx + baseIdx);
-          if ((res[idx].Enabled = vols[idx] < 1024))
+          if ((res[idx].Enabled = attenuations[idx] < 1024))
           {
-            res[idx].LevelInPercents = (100 * (1024 - vols[idx])) / 1024;
-            res[idx].Band = GetBandByFreq(freqs[idx]);
+            res[idx].LevelInPercents = (100 * (1024 - attenuations[idx])) / 1024;
+            res[idx].Band = Analyser.GetBandByPeriod(periods[idx]);
           }
         }
       }
@@ -126,6 +98,7 @@ namespace FM
     private:
       uint64_t LastClockrate;
       uint_t LastSoundFreq;
+      Devices::Details::AnalysisMap Analyser;
     };
 
     template<class ChipTraits>

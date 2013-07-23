@@ -62,12 +62,12 @@ namespace TFM
     {
       assert(Chip1);
       ChannelsState res(VOICES);
-      boost::array<int, FM::VOICES> vols;
-      boost::array<int, FM::VOICES> freqs;
-      ::YM2203GetAllTL(Chip1.get(), &vols[0], &freqs[0]);
-      Helper.ConvertState(vols.begin(), freqs.begin(), &res[0], 0u);
-      ::YM2203GetAllTL(Chip2.get(), &vols[0], &freqs[0]);
-      Helper.ConvertState(vols.begin(), freqs.begin(), &res[FM::VOICES], FM::VOICES);
+      boost::array<uint_t, FM::VOICES> attenuations;
+      boost::array<uint_t, FM::VOICES> periods;
+      ::YM2203GetState(Chip1.get(), &attenuations[0], &periods[0]);
+      Helper.ConvertState(attenuations.begin(), periods.begin(), &res[0], 0u);
+      ::YM2203GetState(Chip2.get(), &attenuations[0], &periods[0]);
+      Helper.ConvertState(attenuations.begin(), periods.begin(), &res[FM::VOICES], FM::VOICES);
       return res;
     }
   private:
