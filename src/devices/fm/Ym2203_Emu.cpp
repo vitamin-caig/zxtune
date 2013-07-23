@@ -114,7 +114,7 @@ static const uint8_t eg_inc[19*RATE_STEPS]={
 #define O(a) (a*RATE_STEPS)
 
 /*note that there is no O(17) in this table - it's directly in the code */
-static const uint8_t eg_rate_select[32+64+32]={	/* Envelope Generator rates (32 + 64 rates + 32 RKS) */
+static const uint_t eg_rate_select[32+64+32]={	/* Envelope Generator rates (32 + 64 rates + 32 RKS) */
 /* 32 infinite time rates */
 O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
 O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
@@ -161,7 +161,7 @@ O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16)
 /*mask  2047, 1023, 511, 255, 127, 63, 31, 15, 7,  3, 1,  0,  0,  0,  0,  0 */
 
 #define O(a) (a*1)
-static const uint8_t eg_rate_shift[32+64+32]={	/* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
+static const uint_t eg_rate_shift[32+64+32]={	/* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
 /* 32 infinite time rates */
 O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
 O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
@@ -203,7 +203,7 @@ O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0)
 };
 #undef O
 
-static const uint8_t dt_tab[4 * 32]={
+static const uint_t dt_tab[4 * 32]={
 /* this is YM2151 and YM2612 phase increment data (in 10.10 fixed point format)*/
 /* FD=0 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -222,7 +222,7 @@ static const uint8_t dt_tab[4 * 32]={
 
 /* OPN key frequency number -> key code follow table */
 /* fnum higher 4bit -> keycode lower 2bit */
-static const uint8_t opn_fktable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
+static const uint_t opn_fktable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
 
 /* register number to channel number , slot offset */
 #define OPN_CHAN(N) (N&3)
@@ -238,12 +238,12 @@ static const uint8_t opn_fktable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
 typedef struct
 {
 	int32_t	*DT;		/* detune          :dt_tab[DT] */
-	uint8_t	KSR;		/* key scale rate  :3-KSR */
+	uint_t	KSR;		/* key scale rate  :3-KSR */
 	uint32_t	ar;			/* attack rate  */
 	uint32_t	d1r;		/* decay rate   */
 	uint32_t	d2r;		/* sustain rate */
 	uint32_t	rr;			/* release rate */
-	uint8_t	ksr;		/* key scale rate  :kcode>>(3-KSR) */
+	uint_t	ksr;		/* key scale rate  :kcode>>(3-KSR) */
 	uint32_t	mul;		/* multiple        :ML_TABLE[ML] */
 
 	/* Phase Generator */
@@ -251,23 +251,23 @@ typedef struct
 	uint32_t	Incr;		/* phase step */
 
 	/* Envelope Generator */
-	uint8_t	state;		/* phase type */
+	uint_t	state;		/* phase type */
 	uint32_t	tl;			/* total level: TL << 3 */
 	int32_t	volume;		/* envelope counter */
 	uint32_t	sl;			/* sustain level:sl_table[SL] */
 	uint32_t	vol_out;	/* current output from EG circuit (without AM from LFO) */
 
-	uint8_t	eg_sh_ar;	/*  (attack state) */
-	uint8_t	eg_sel_ar;	/*  (attack state) */
-	uint8_t	eg_sh_d1r;	/*  (decay state) */
-	uint8_t	eg_sel_d1r;	/*  (decay state) */
-	uint8_t	eg_sh_d2r;	/*  (sustain state) */
-	uint8_t	eg_sel_d2r;	/*  (sustain state) */
-	uint8_t	eg_sh_rr;	/*  (release state) */
-	uint8_t	eg_sel_rr;	/*  (release state) */
+	uint_t	eg_sh_ar;	/*  (attack state) */
+	uint_t	eg_sel_ar;	/*  (attack state) */
+	uint_t	eg_sh_d1r;	/*  (decay state) */
+	uint_t	eg_sel_d1r;	/*  (decay state) */
+	uint_t	eg_sh_d2r;	/*  (sustain state) */
+	uint_t	eg_sel_d2r;	/*  (sustain state) */
+	uint_t	eg_sh_rr;	/*  (release state) */
+	uint_t	eg_sel_rr;	/*  (release state) */
 
-	uint8_t	ssg;		/* SSG-EG waveform */
-	uint8_t	ssgn;		/* SSG-EG negated output */
+	uint_t	ssg;		/* SSG-EG waveform */
+	uint_t	ssgn;		/* SSG-EG negated output */
 
 	uint32_t	key;		/* 0=last key was KEY OFF, 1=KEY ON */
 } FM_SLOT;
@@ -276,8 +276,8 @@ typedef struct
 {
 	FM_SLOT	SLOT[4];	/* four SLOTs (operators) */
 
-	uint8_t	ALGO;		/* algorithm */
-	uint8_t	FB;			/* feedback shift */
+	uint_t	ALGO;		/* algorithm */
+	uint_t	FB;			/* feedback shift */
 	int32_t	op1_out[2];	/* op1 output for feedback */
 
 	int32_t	*connect1;	/* SLOT1 output pointer */
@@ -289,7 +289,7 @@ typedef struct
 	int32_t	mem_value;	/* delayed sample (MEM) value */
 
 	uint32_t	fc;			/* fnum,blk:adjusted to sample rate */
-	uint8_t	kcode;		/* key code:                        */
+	uint_t	kcode;		/* key code:                        */
 } FM_CH;
 
 
@@ -298,13 +298,9 @@ typedef struct
 	uint64_t		clock;		/* master clock  (Hz)   */
 	int		rate;		/* sampling rate (Hz)   */
 	double	freqbase;	/* frequency base       */
-	uint8_t	address;	/* address register     */
-	uint8_t	irq;		/* interrupt level      */
-	uint8_t	irqmask;	/* irq mask             */
-	uint8_t	status;		/* status flag          */
 	uint32_t	mode;		/* mode  CSM / 3SLOT    */
-	uint8_t	prescaler_sel;/* prescaler selector */
-	uint8_t	fn_h;		/* freq latch           */
+	uint_t	prescaler_sel;/* prescaler selector */
+	uint_t	fn_h;		/* freq latch           */
 	/* local time tables */
 	int32_t	dt_tab[8][32];/* DeTune table       */
 } FM_ST;
@@ -319,8 +315,8 @@ typedef struct
 typedef struct
 {
 	uint32_t  fc[3];			/* fnum3,blk3: calculated */
-	uint8_t	fn_h;			/* freq3 latch */
-	uint8_t	kcode[3];		/* key code */
+	uint_t	fn_h;			/* freq3 latch */
+	uint_t	kcode[3];		/* key code */
 } FM_3SLOT;
 
 /* OPN/A/B common state */
@@ -492,7 +488,7 @@ inline void set_tl(FM_SLOT *SLOT , int v)
 /* set attack rate & key scale  */
 inline void set_ar_ksr(FM_CH *CH,FM_SLOT *SLOT,int v)
 {
-	uint8_t old_KSR = SLOT->KSR;
+	uint_t old_KSR = SLOT->KSR;
 
 	SLOT->ar = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
 
@@ -818,7 +814,7 @@ inline void refresh_fc_eg_chan(FM_CH *CH )
 }
 
 /* initialize time tables */
-static void init_timetables( FM_ST *ST , const uint8_t *dttable )
+static void init_timetables( FM_ST *ST)
 {
 	int i,d;
 	double rate;
@@ -826,7 +822,7 @@ static void init_timetables( FM_ST *ST , const uint8_t *dttable )
 	/* DeTune table */
 	for (d = 0;d <= 3;d++){
 		for (i = 0;i <= 31;i++){
-			rate = ((double)dttable[d*32 + i]) * SIN_LEN  * ST->freqbase  * (1<<FREQ_SH) / ((double)(1<<20));
+			rate = ((double)dt_tab[d*32 + i]) * SIN_LEN  * ST->freqbase  * (1<<FREQ_SH) / ((double)(1<<20));
 			ST->dt_tab[d][i]   = (int32_t) rate;
 			ST->dt_tab[d+4][i] = -ST->dt_tab[d][i];
 		}
@@ -960,7 +956,7 @@ static void OPNSetPres(FM_OPN *OPN , int pres)
 	OPN->eg_timer_overflow = ( 3 ) * (1<<EG_SH);
 
 	/* make time tables */
-	init_timetables( &OPN->ST, dt_tab );
+	init_timetables( &OPN->ST);
 
 	/* there are 2048 FNUMs that can be generated using FNUM/BLK registers
         but LFO works with one more bit of a precision so we really need 4096 elements */
@@ -978,7 +974,7 @@ static void OPNSetPres(FM_OPN *OPN , int pres)
 /* write a OPN mode register 0x20-0x2f */
 static void OPNWriteMode(FM_OPN *OPN, int r, int v)
 {
-	uint8_t c;
+	uint_t c;
 	FM_CH *CH;
 
 	switch(r){
@@ -1006,11 +1002,9 @@ static void OPNWriteReg(FM_STATE* state, FM_OPN *OPN, int r, int v)
 	FM_CH *CH;
 	FM_SLOT *SLOT;
 
-	uint8_t c = OPN_CHAN(r);
+	const uint_t c = OPN_CHAN(r);
 
 	if (c == 3) return; /* 0xX3,0xX7,0xXB,0xXF */
-
-	if (r >= 0x100) c+=3;
 
 	CH = OPN->P_CH;
 	CH = &CH[c];
@@ -1128,8 +1122,8 @@ static void OPNWriteReg(FM_STATE* state, FM_OPN *OPN, int r, int v)
 		switch( OPN_SLOT(r) ){
 		case 0:		/* 0xa0-0xa2 : FNUM1 */
 			{
-				uint32_t fn = (((uint32_t)( (OPN->ST.fn_h)&7))<<8) + v;
-				uint8_t blk = OPN->ST.fn_h>>3;
+				const uint32_t fn = (((uint32_t)( (OPN->ST.fn_h)&7))<<8) + v;
+				const uint_t blk = OPN->ST.fn_h>>3;
 				/* keyscale code */
 				CH->kcode = (blk<<2) | opn_fktable[fn >> 7];
 				/* phase increment counter */
@@ -1144,8 +1138,8 @@ static void OPNWriteReg(FM_STATE* state, FM_OPN *OPN, int r, int v)
 		case 2:		/* 0xa8-0xaa : 3CH FNUM1 */
 			if(r < 0x100)
 			{
-				uint32_t fn = (((uint32_t)(OPN->SL3.fn_h&7))<<8) + v;
-				uint8_t blk = OPN->SL3.fn_h>>3;
+				const uint32_t fn = (((uint32_t)(OPN->SL3.fn_h&7))<<8) + v;
+				const uint_t blk = OPN->SL3.fn_h>>3;
 				/* keyscale code */
 				OPN->SL3.kcode[c]= (blk<<2) | opn_fktable[fn >> 7];
 				/* phase increment counter */
