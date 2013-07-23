@@ -206,8 +206,8 @@ static unsigned int sin_tab[SIN_LEN];
 /* 0.75, 1.5,  3,    6,    12,   24,   48   (dB)*/
 
 /* 0 - 15: 0, 3, 6, 9,12,15,18,21,24,27,30,33,36,39,42,93 (dB)*/
-#define SC(db) (UINT32) ( db * (4.0/ENV_STEP) )
-static const UINT32 sl_table[16]={
+#define SC(db) (uint32_t) ( db * (4.0/ENV_STEP) )
+static const uint32_t sl_table[16]={
  SC( 0),SC( 1),SC( 2),SC(3 ),SC(4 ),SC(5 ),SC(6 ),SC( 7),
  SC( 8),SC( 9),SC(10),SC(11),SC(12),SC(13),SC(14),SC(31)
 };
@@ -215,7 +215,7 @@ static const UINT32 sl_table[16]={
 
 
 #define RATE_STEPS (8)
-static const UINT8 eg_inc[19*RATE_STEPS]={
+static const uint8_t eg_inc[19*RATE_STEPS]={
 
 /*cycle:0 1  2 3  4 5  6 7*/
 
@@ -248,7 +248,7 @@ static const UINT8 eg_inc[19*RATE_STEPS]={
 #define O(a) (a*RATE_STEPS)
 
 /*note that there is no O(17) in this table - it's directly in the code */
-static const UINT8 eg_rate_select[32+64+32]={	/* Envelope Generator rates (32 + 64 rates + 32 RKS) */
+static const uint8_t eg_rate_select[32+64+32]={	/* Envelope Generator rates (32 + 64 rates + 32 RKS) */
 /* 32 infinite time rates */
 O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
 O(18),O(18),O(18),O(18),O(18),O(18),O(18),O(18),
@@ -295,7 +295,7 @@ O(16),O(16),O(16),O(16),O(16),O(16),O(16),O(16)
 /*mask  2047, 1023, 511, 255, 127, 63, 31, 15, 7,  3, 1,  0,  0,  0,  0,  0 */
 
 #define O(a) (a*1)
-static const UINT8 eg_rate_shift[32+64+32]={	/* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
+static const uint8_t eg_rate_shift[32+64+32]={	/* Envelope Generator counter shifts (32 + 64 rates + 32 RKS) */
 /* 32 infinite time rates */
 O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
 O(0),O(0),O(0),O(0),O(0),O(0),O(0),O(0),
@@ -337,7 +337,7 @@ O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0)
 };
 #undef O
 
-static const UINT8 dt_tab[4 * 32]={
+static const uint8_t dt_tab[4 * 32]={
 /* this is YM2151 and YM2612 phase increment data (in 10.10 fixed point format)*/
 /* FD=0 */
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -356,12 +356,12 @@ static const UINT8 dt_tab[4 * 32]={
 
 /* OPN key frequency number -> key code follow table */
 /* fnum higher 4bit -> keycode lower 2bit */
-static const UINT8 opn_fktable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
+static const uint8_t opn_fktable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
 
 
 /* 8 LFO speed parameters */
 /* each value represents number of samples that one LFO level will last for */
-static const UINT32 lfo_samples_per_step[8] = {108, 77, 71, 67, 62, 44, 8, 5};
+static const uint32_t lfo_samples_per_step[8] = {108, 77, 71, 67, 62, 44, 8, 5};
 
 
 
@@ -382,7 +382,7 @@ static const UINT32 lfo_samples_per_step[8] = {108, 77, 71, 67, 62, 44, 8, 5};
     1 for 5.9 dB
     0 for 11.8 dB
 */
-static const UINT8 lfo_ams_depth_shift[4] = {8, 3, 1, 0};
+static const uint8_t lfo_ams_depth_shift[4] = {8, 3, 1, 0};
 
 
 
@@ -406,7 +406,7 @@ static const UINT8 lfo_ams_depth_shift[4] = {8, 3, 1, 0};
    samples (32*432=13824; 32 because we store only a quarter of whole
             waveform in the table below)
 */
-static const UINT8 lfo_pm_output[7*8][8]={ /* 7 bits meaningful (of F-NUMBER), 8 LFO output levels per one depth (out of 32), 8 LFO depths */
+static const uint8_t lfo_pm_output[7*8][8]={ /* 7 bits meaningful (of F-NUMBER), 8 LFO output levels per one depth (out of 32), 8 LFO depths */
 /* FNUM BIT 4: 000 0001xxxx */
 /* DEPTH 0 */ {0,   0,   0,   0,   0,   0,   0,   0},
 /* DEPTH 1 */ {0,   0,   0,   0,   0,   0,   0,   0},
@@ -480,7 +480,7 @@ static const UINT8 lfo_pm_output[7*8][8]={ /* 7 bits meaningful (of F-NUMBER), 8
 };
 
 /* all 128 LFO PM waveforms */
-static INT32 lfo_pm_table[128*8*32]; /* 128 combinations of 7 bits meaningful (of F-NUMBER), 8 LFO depths, 32 LFO output levels per one depth */
+static int32_t lfo_pm_table[128*8*32]; /* 128 combinations of 7 bits meaningful (of F-NUMBER), 8 LFO depths, 32 LFO output levels per one depth */
 
 
 
@@ -505,42 +505,42 @@ static INT32 lfo_pm_table[128*8*32]; /* 128 combinations of 7 bits meaningful (o
 /* struct describing a single operator (SLOT) */
 typedef struct
 {
-	INT32	*DT;		/* detune          :dt_tab[DT] */
-	UINT8	KSR;		/* key scale rate  :3-KSR */
-	UINT32	ar;			/* attack rate  */
-	UINT32	d1r;		/* decay rate   */
-	UINT32	d2r;		/* sustain rate */
-	UINT32	rr;			/* release rate */
-	UINT8	ksr;		/* key scale rate  :kcode>>(3-KSR) */
-	UINT32	mul;		/* multiple        :ML_TABLE[ML] */
+	int32_t	*DT;		/* detune          :dt_tab[DT] */
+	uint8_t	KSR;		/* key scale rate  :3-KSR */
+	uint32_t	ar;			/* attack rate  */
+	uint32_t	d1r;		/* decay rate   */
+	uint32_t	d2r;		/* sustain rate */
+	uint32_t	rr;			/* release rate */
+	uint8_t	ksr;		/* key scale rate  :kcode>>(3-KSR) */
+	uint32_t	mul;		/* multiple        :ML_TABLE[ML] */
 
 	/* Phase Generator */
-	UINT32	phase;		/* phase counter */
-	UINT32	Incr;		/* phase step */
+	uint32_t	phase;		/* phase counter */
+	uint32_t	Incr;		/* phase step */
 
 	/* Envelope Generator */
-	UINT8	state;		/* phase type */
-	UINT32	tl;			/* total level: TL << 3 */
-	INT32	volume;		/* envelope counter */
-	UINT32	sl;			/* sustain level:sl_table[SL] */
-	UINT32	vol_out;	/* current output from EG circuit (without AM from LFO) */
+	uint8_t	state;		/* phase type */
+	uint32_t	tl;			/* total level: TL << 3 */
+	int32_t	volume;		/* envelope counter */
+	uint32_t	sl;			/* sustain level:sl_table[SL] */
+	uint32_t	vol_out;	/* current output from EG circuit (without AM from LFO) */
 
-	UINT8	eg_sh_ar;	/*  (attack state) */
-	UINT8	eg_sel_ar;	/*  (attack state) */
-	UINT8	eg_sh_d1r;	/*  (decay state) */
-	UINT8	eg_sel_d1r;	/*  (decay state) */
-	UINT8	eg_sh_d2r;	/*  (sustain state) */
-	UINT8	eg_sel_d2r;	/*  (sustain state) */
-	UINT8	eg_sh_rr;	/*  (release state) */
-	UINT8	eg_sel_rr;	/*  (release state) */
+	uint8_t	eg_sh_ar;	/*  (attack state) */
+	uint8_t	eg_sel_ar;	/*  (attack state) */
+	uint8_t	eg_sh_d1r;	/*  (decay state) */
+	uint8_t	eg_sel_d1r;	/*  (decay state) */
+	uint8_t	eg_sh_d2r;	/*  (sustain state) */
+	uint8_t	eg_sel_d2r;	/*  (sustain state) */
+	uint8_t	eg_sh_rr;	/*  (release state) */
+	uint8_t	eg_sel_rr;	/*  (release state) */
 
-	UINT8	ssg;		/* SSG-EG waveform */
-	UINT8	ssgn;		/* SSG-EG negated output */
+	uint8_t	ssg;		/* SSG-EG waveform */
+	uint8_t	ssgn;		/* SSG-EG negated output */
 
-	UINT32	key;		/* 0=last key was KEY OFF, 1=KEY ON */
+	uint32_t	key;		/* 0=last key was KEY OFF, 1=KEY ON */
 
 	/* LFO */
-	UINT32	AMmask;		/* AM enable flag */
+	uint32_t	AMmask;		/* AM enable flag */
 
 } FM_SLOT;
 
@@ -548,50 +548,50 @@ typedef struct
 {
 	FM_SLOT	SLOT[4];	/* four SLOTs (operators) */
 
-	UINT8	ALGO;		/* algorithm */
-	UINT8	FB;			/* feedback shift */
-	INT32	op1_out[2];	/* op1 output for feedback */
+	uint8_t	ALGO;		/* algorithm */
+	uint8_t	FB;			/* feedback shift */
+	int32_t	op1_out[2];	/* op1 output for feedback */
 
-	INT32	*connect1;	/* SLOT1 output pointer */
-	INT32	*connect3;	/* SLOT3 output pointer */
-	INT32	*connect2;	/* SLOT2 output pointer */
-	INT32	*connect4;	/* SLOT4 output pointer */
+	int32_t	*connect1;	/* SLOT1 output pointer */
+	int32_t	*connect3;	/* SLOT3 output pointer */
+	int32_t	*connect2;	/* SLOT2 output pointer */
+	int32_t	*connect4;	/* SLOT4 output pointer */
 
-	INT32	*mem_connect;/* where to put the delayed sample (MEM) */
-	INT32	mem_value;	/* delayed sample (MEM) value */
+	int32_t	*mem_connect;/* where to put the delayed sample (MEM) */
+	int32_t	mem_value;	/* delayed sample (MEM) value */
 
-	INT32	pms;		/* channel PMS */
-	UINT8	ams;		/* channel AMS */
+	int32_t	pms;		/* channel PMS */
+	uint8_t	ams;		/* channel AMS */
 
-	UINT32	fc;			/* fnum,blk:adjusted to sample rate */
-	UINT8	kcode;		/* key code:                        */
-	UINT32	block_fnum;	/* current blk/fnum value for this slot (can be different betweeen slots of one channel in 3slot mode) */
+	uint32_t	fc;			/* fnum,blk:adjusted to sample rate */
+	uint8_t	kcode;		/* key code:                        */
+	uint32_t	block_fnum;	/* current blk/fnum value for this slot (can be different betweeen slots of one channel in 3slot mode) */
 } FM_CH;
 
 
 typedef struct
 {
 	void *	param;		/* this chip parameter  */
-	UINT64		clock;		/* master clock  (Hz)   */
+	uint64_t		clock;		/* master clock  (Hz)   */
 	int		rate;		/* sampling rate (Hz)   */
 	double	freqbase;	/* frequency base       */
 	double	TimerBase;	/* Timer base time      */
 #if FM_BUSY_FLAG_SUPPORT
 	double	BusyExpire;	/* ExpireTime of Busy clear */
 #endif
-	UINT8	address;	/* address register     */
-	UINT8	irq;		/* interrupt level      */
-	UINT8	irqmask;	/* irq mask             */
-	UINT8	status;		/* status flag          */
-	UINT32	mode;		/* mode  CSM / 3SLOT    */
-	UINT8	prescaler_sel;/* prescaler selector */
-	UINT8	fn_h;		/* freq latch           */
-	INT32	TA;			/* timer a              */
-	INT32	TAC;		/* timer a counter      */
-	UINT8	TB;			/* timer b              */
-	INT32	TBC;		/* timer b counter      */
+	uint8_t	address;	/* address register     */
+	uint8_t	irq;		/* interrupt level      */
+	uint8_t	irqmask;	/* irq mask             */
+	uint8_t	status;		/* status flag          */
+	uint32_t	mode;		/* mode  CSM / 3SLOT    */
+	uint8_t	prescaler_sel;/* prescaler selector */
+	uint8_t	fn_h;		/* freq latch           */
+	int32_t	TA;			/* timer a              */
+	int32_t	TAC;		/* timer a counter      */
+	uint8_t	TB;			/* timer b              */
+	int32_t	TBC;		/* timer b counter      */
 	/* local time tables */
-	INT32	dt_tab[8][32];/* DeTune table       */
+	int32_t	dt_tab[8][32];/* DeTune table       */
 	/* Extention Timer and IRQ handler */
 	//FM_TIMERHANDLER	Timer_Handler;
 	//FM_IRQHANDLER	IRQ_Handler;
@@ -607,50 +607,50 @@ typedef struct
 /* OPN 3slot struct */
 typedef struct
 {
-	UINT32  fc[3];			/* fnum3,blk3: calculated */
-	UINT8	fn_h;			/* freq3 latch */
-	UINT8	kcode[3];		/* key code */
-	UINT32	block_fnum[3];	/* current fnum value for this slot (can be different betweeen slots of one channel in 3slot mode) */
+	uint32_t  fc[3];			/* fnum3,blk3: calculated */
+	uint8_t	fn_h;			/* freq3 latch */
+	uint8_t	kcode[3];		/* key code */
+	uint32_t	block_fnum[3];	/* current fnum value for this slot (can be different betweeen slots of one channel in 3slot mode) */
 } FM_3SLOT;
 
 /* OPN/A/B common state */
 typedef struct
 {
-	UINT8	type;			/* chip type */
+	uint8_t	type;			/* chip type */
 	FM_ST	ST;				/* general state */
 	FM_3SLOT SL3;			/* 3 slot mode state */
 	FM_CH	*P_CH;			/* pointer of CH */
 	unsigned int pan[6*2];	/* fm channels output masks (0xffffffff = enable) */
 
-	UINT32	eg_cnt;			/* global envelope generator counter */
-	UINT32	eg_timer;		/* global envelope generator counter works at frequency = chipclock/64/3 */
-	UINT32	eg_timer_add;	/* step of eg_timer */
-	UINT32	eg_timer_overflow;/* envelope generator timer overlfows every 3 samples (on real chip) */
+	uint32_t	eg_cnt;			/* global envelope generator counter */
+	uint32_t	eg_timer;		/* global envelope generator counter works at frequency = chipclock/64/3 */
+	uint32_t	eg_timer_add;	/* step of eg_timer */
+	uint32_t	eg_timer_overflow;/* envelope generator timer overlfows every 3 samples (on real chip) */
 
 
 	/* there are 2048 FNUMs that can be generated using FNUM/BLK registers
         but LFO works with one more bit of a precision so we really need 4096 elements */
 
-	UINT32	fn_table[4096];	/* fnumber->increment counter */
+	uint32_t	fn_table[4096];	/* fnumber->increment counter */
 
 
 	/* LFO */
-	UINT32	lfo_cnt;
-	UINT32	lfo_inc;
+	uint32_t	lfo_cnt;
+	uint32_t	lfo_inc;
 
-	UINT32	lfo_freq[8];	/* LFO FREQ table */
+	uint32_t	lfo_freq[8];	/* LFO FREQ table */
 } FM_OPN;
 
 /* current chip state */
 typedef struct
 {
-  INT32	m2,c1,c2;		/* Phase Modulation input for operators 2,3,4 */
-  INT32	mem;			/* one sample delay memory */
+  int32_t	m2,c1,c2;		/* Phase Modulation input for operators 2,3,4 */
+  int32_t	mem;			/* one sample delay memory */
 
-  INT32	out_fm[8];		/* outputs of working channels */
+  int32_t	out_fm[8];		/* outputs of working channels */
 
-  UINT32	LFO_AM;			/* runtime LFO calculations helper */
-  INT32	LFO_PM;			/* runtime LFO calculations helper */
+  uint32_t	LFO_AM;			/* runtime LFO calculations helper */
+  int32_t	LFO_PM;			/* runtime LFO calculations helper */
 } FM_STATE;
 
 
@@ -815,7 +815,7 @@ inline void TimerBOver(FM_ST *ST)
 
 
 #if FM_BUSY_FLAG_SUPPORT
-inline UINT8 FM_STATUS_FLAG(FM_ST *ST)
+inline uint8_t FM_STATUS_FLAG(FM_ST *ST)
 {
 	if( ST->BusyExpire )
 	{
@@ -866,13 +866,13 @@ inline void FM_KEYOFF(FM_CH *CH , int s )
 /* set algorithm connection */
 static void setup_connection(FM_STATE* state, FM_CH *CH, int ch )
 {
-	INT32 *carrier = &state->out_fm[ch];
+	int32_t *carrier = &state->out_fm[ch];
 
-	INT32 **om1 = &CH->connect1;
-	INT32 **om2 = &CH->connect3;
-	INT32 **oc1 = &CH->connect2;
+	int32_t **om1 = &CH->connect1;
+	int32_t **om2 = &CH->connect3;
+	int32_t **oc1 = &CH->connect2;
 
-	INT32 **memc = &CH->mem_connect;
+	int32_t **memc = &CH->mem_connect;
 
 	switch( CH->ALGO ){
 	case 0:
@@ -967,7 +967,7 @@ inline void set_tl(FM_CH *CH,FM_SLOT *SLOT , int v)
 /* set attack rate & key scale  */
 inline void set_ar_ksr(FM_CH *CH,FM_SLOT *SLOT,int v)
 {
-	UINT8 old_KSR = SLOT->KSR;
+	uint8_t old_KSR = SLOT->KSR;
 
 	SLOT->ar = (v&0x1f) ? 32 + ((v&0x1f)<<1) : 0;
 
@@ -1024,9 +1024,9 @@ inline void set_sl_rr(FM_SLOT *SLOT,int v)
 
 
 
-inline signed int op_calc(UINT32 phase, unsigned int env, signed int pm)
+inline signed int op_calc(uint32_t phase, unsigned int env, signed int pm)
 {
-	UINT32 p;
+	uint32_t p;
 
 	p = (env<<3) + sin_tab[ ( ((signed int)((phase & ~FREQ_MASK) + (pm<<15))) >> FREQ_SH ) & SIN_MASK ];
 
@@ -1035,9 +1035,9 @@ inline signed int op_calc(UINT32 phase, unsigned int env, signed int pm)
 	return tl_tab[p];
 }
 
-inline signed int op_calc1(UINT32 phase, unsigned int env, signed int pm)
+inline signed int op_calc1(uint32_t phase, unsigned int env, signed int pm)
 {
-	UINT32 p;
+	uint32_t p;
 
 	p = (env<<3) + sin_tab[ ( ((signed int)((phase & ~FREQ_MASK) + pm      )) >> FREQ_SH ) & SIN_MASK ];
 
@@ -1049,8 +1049,8 @@ inline signed int op_calc1(UINT32 phase, unsigned int env, signed int pm)
 /* advance LFO to next sample */
 inline void advance_lfo(FM_STATE* state, FM_OPN *OPN)
 {
-	UINT8 pos;
-	UINT8 prev_pos;
+	uint8_t pos;
+	uint8_t prev_pos;
 
 	if (OPN->lfo_inc)	/* LFO enabled ? */
 	{
@@ -1129,7 +1129,7 @@ inline void advance_eg_channel(FM_OPN *OPN, FM_SLOT *SLOT)
 					//SLOT->volume += 4 * eg_inc[SLOT->eg_sel_d1r + ((OPN->eg_cnt>>SLOT->eg_sh_d1r)&7)];
 					SLOT->volume += SSGEG_SCALE * eg_inc[SLOT->eg_sel_d1r + ((OPN->eg_cnt>>SLOT->eg_sh_d1r)&7)];
 
-					if ( SLOT->volume >= (INT32)(SLOT->sl) )
+					if ( SLOT->volume >= (int32_t)(SLOT->sl) )
 						SLOT->state = EG_SUS;
 				}
 			}
@@ -1139,7 +1139,7 @@ inline void advance_eg_channel(FM_OPN *OPN, FM_SLOT *SLOT)
 				{
 					SLOT->volume += eg_inc[SLOT->eg_sel_d1r + ((OPN->eg_cnt>>SLOT->eg_sh_d1r)&7)];
 
-					if ( SLOT->volume >= (INT32)(SLOT->sl) )
+					if ( SLOT->volume >= (int32_t)(SLOT->sl) )
 						SLOT->state = EG_SUS;
 				}
 			}
@@ -1215,7 +1215,7 @@ inline void advance_eg_channel(FM_OPN *OPN, FM_SLOT *SLOT)
 
 		}
 
-		out = SLOT->tl + ((UINT32)SLOT->volume);
+		out = SLOT->tl + ((uint32_t)SLOT->volume);
 
 		if ((SLOT->ssg&0x08) && (SLOT->ssgn&2) && (SLOT->state != EG_OFF/*Alone Coder*/))	/* negate output (changes come from alternate bit, init comes from attack bit) */
 			out ^= 511/*Alone Coder*/; //((1<<ENV_BITS)-1); /* 1023 */
@@ -1240,7 +1240,7 @@ inline void chan_calc(FM_STATE* state, FM_OPN *OPN, FM_CH *CH)
 {
 	unsigned int eg_out;
 
-	UINT32 AM = state->LFO_AM >> CH->ams;
+	uint32_t AM = state->LFO_AM >> CH->ams;
 
 
 	state->m2 = state->c1 = state->c2 = state->mem = 0;
@@ -1249,7 +1249,7 @@ inline void chan_calc(FM_STATE* state, FM_OPN *OPN, FM_CH *CH)
 
 	eg_out = volume_calc(&CH->SLOT[SLOT1]);
 	{
-		INT32 out = CH->op1_out[0] + CH->op1_out[1];
+		int32_t out = CH->op1_out[0] + CH->op1_out[1];
 		CH->op1_out[0] = CH->op1_out[1];
 
 		if( !CH->connect1 ){
@@ -1294,15 +1294,15 @@ inline void chan_calc(FM_STATE* state, FM_OPN *OPN, FM_CH *CH)
 	/* add support for 3 slot mode */
 
 
-		UINT32 block_fnum = CH->block_fnum;
+		uint32_t block_fnum = CH->block_fnum;
 
-		UINT32 fnum_lfo   = ((block_fnum & 0x7f0) >> 4) * 32 * 8;
-		INT32  lfo_fn_table_index_offset = lfo_pm_table[ fnum_lfo + CH->pms + state->LFO_PM ];
+		uint32_t fnum_lfo   = ((block_fnum & 0x7f0) >> 4) * 32 * 8;
+		int32_t  lfo_fn_table_index_offset = lfo_pm_table[ fnum_lfo + CH->pms + state->LFO_PM ];
 
 		if (lfo_fn_table_index_offset)	/* LFO phase modulation active */
 		{
-			UINT8  blk;
-			UINT32 fn;
+			uint8_t  blk;
+			uint32_t fn;
 			int kc,fc;
 
 			block_fnum = block_fnum*2 + lfo_fn_table_index_offset;
@@ -1387,7 +1387,7 @@ inline void refresh_fc_eg_chan(FM_CH *CH )
 }
 
 /* initialize time tables */
-static void init_timetables( FM_ST *ST , const UINT8 *dttable )
+static void init_timetables( FM_ST *ST , const uint8_t *dttable )
 {
 	int i,d;
 	double rate;
@@ -1401,7 +1401,7 @@ static void init_timetables( FM_ST *ST , const UINT8 *dttable )
 	for (d = 0;d <= 3;d++){
 		for (i = 0;i <= 31;i++){
 			rate = ((double)dttable[d*32 + i]) * SIN_LEN  * ST->freqbase  * (1<<FREQ_SH) / ((double)(1<<20));
-			ST->dt_tab[d][i]   = (INT32) rate;
+			ST->dt_tab[d][i]   = (int32_t) rate;
 			ST->dt_tab[d+4][i] = -ST->dt_tab[d][i];
 #if 0
 			logerror("FM.C: DT [%2i %2i] = %8x  \n", d, i, ST->dt_tab[d][i] );
@@ -1516,14 +1516,14 @@ static int init_tables(void)
 	/* build LFO PM modulation table */
 	for(i = 0; i < 8; i++) /* 8 PM depths */
 	{
-		UINT8 fnum;
+		uint8_t fnum;
 		for (fnum=0; fnum<128; fnum++) /* 7 bits meaningful of F-NUMBER */
 		{
-			UINT8 value;
-			UINT8 step;
-			UINT32 offset_depth = i;
-			UINT32 offset_fnum_bit;
-			UINT32 bit_tmp;
+			uint8_t value;
+			uint8_t step;
+			uint32_t offset_depth = i;
+			uint32_t offset_fnum_bit;
+			uint32_t bit_tmp;
 
 			for (step=0; step<8; step++)
 			{
@@ -1593,7 +1593,7 @@ static void OPNSetPres(FM_OPN *OPN , int pres , int TimerPres, int SSGpres)
 	OPN->ST.freqbase = 1.0;
 #endif
 
-	OPN->eg_timer_add  = (UINT32)((1<<EG_SH)  *  OPN->ST.freqbase);
+	OPN->eg_timer_add  = (uint32_t)((1<<EG_SH)  *  OPN->ST.freqbase);
 	OPN->eg_timer_overflow = ( 3 ) * (1<<EG_SH);
 
 
@@ -1613,7 +1613,7 @@ static void OPNSetPres(FM_OPN *OPN , int pres , int TimerPres, int SSGpres)
 	{
 		/* freq table for octave 7 */
 		/* OPN phase increment counter = 20bit */
-		OPN->fn_table[i] = (UINT32)( (double)i * 32 * OPN->ST.freqbase * (1<<(FREQ_SH-10)) ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
+		OPN->fn_table[i] = (uint32_t)( (double)i * 32 * OPN->ST.freqbase * (1<<(FREQ_SH-10)) ); /* -10 because chip works with 10.10 fixed point, while we use 16.16 */
 #if 0
 		logerror("FM.C: fn_table[%4i] = %08x (dec=%8i)\n",
 				 i, OPN->fn_table[i]>>6,OPN->fn_table[i]>>6 );
@@ -1625,7 +1625,7 @@ static void OPNSetPres(FM_OPN *OPN , int pres , int TimerPres, int SSGpres)
 	{
 		/* Amplitude modulation: 64 output levels (triangle waveform); 1 level lasts for one of "lfo_samples_per_step" samples */
 		/* Phase modulation: one entry from lfo_pm_output lasts for one of 4 * "lfo_samples_per_step" samples  */
-		OPN->lfo_freq[i] = (UINT32)((1.0 / lfo_samples_per_step[i]) * (1<<LFO_SH) * OPN->ST.freqbase);
+		OPN->lfo_freq[i] = (uint32_t)((1.0 / lfo_samples_per_step[i]) * (1<<LFO_SH) * OPN->ST.freqbase);
 #if 0
 		logerror("FM.C: lfo_freq[%i] = %08x (dec=%8i)\n",
 				 i, OPN->lfo_freq[i],OPN->lfo_freq[i] );
@@ -1638,7 +1638,7 @@ static void OPNSetPres(FM_OPN *OPN , int pres , int TimerPres, int SSGpres)
 /* write a OPN mode register 0x20-0x2f */
 static void OPNWriteMode(FM_OPN *OPN, int r, int v)
 {
-	UINT8 c;
+	uint8_t c;
 	FM_CH *CH;
 
 	switch(r){
@@ -1689,7 +1689,7 @@ static void OPNWriteReg(FM_STATE* state, FM_OPN *OPN, int r, int v)
 	FM_CH *CH;
 	FM_SLOT *SLOT;
 
-	UINT8 c = OPN_CHAN(r);
+	uint8_t c = OPN_CHAN(r);
 
 	if (c == 3) return; /* 0xX3,0xX7,0xXB,0xXF */
 
@@ -1816,8 +1816,8 @@ static void OPNWriteReg(FM_STATE* state, FM_OPN *OPN, int r, int v)
 		switch( OPN_SLOT(r) ){
 		case 0:		/* 0xa0-0xa2 : FNUM1 */
 			{
-				UINT32 fn = (((UINT32)( (OPN->ST.fn_h)&7))<<8) + v;
-				UINT8 blk = OPN->ST.fn_h>>3;
+				uint32_t fn = (((uint32_t)( (OPN->ST.fn_h)&7))<<8) + v;
+				uint8_t blk = OPN->ST.fn_h>>3;
 				/* keyscale code */
 				CH->kcode = (blk<<2) | opn_fktable[fn >> 7];
 				/* phase increment counter */
@@ -1835,8 +1835,8 @@ static void OPNWriteReg(FM_STATE* state, FM_OPN *OPN, int r, int v)
 		case 2:		/* 0xa8-0xaa : 3CH FNUM1 */
 			if(r < 0x100)
 			{
-				UINT32 fn = (((UINT32)(OPN->SL3.fn_h&7))<<8) + v;
-				UINT8 blk = OPN->SL3.fn_h>>3;
+				uint32_t fn = (((uint32_t)(OPN->SL3.fn_h&7))<<8) + v;
+				uint8_t blk = OPN->SL3.fn_h>>3;
 				/* keyscale code */
 				OPN->SL3.kcode[c]= (blk<<2) | opn_fktable[fn >> 7];
 				/* phase increment counter */
@@ -1941,7 +1941,7 @@ void OPNPrescaler_w(FM_OPN *OPN , int addr, int pre_divider)
 /* here's the virtual YM2203(OPN) */
 typedef struct
 {
-	UINT8 REGS[256];		/* registers         */
+	uint8_t REGS[256];		/* registers         */
 	FM_STATE State;
 	FM_OPN OPN;				/* OPN state         */
 	FM_CH CH[3];			/* channel state     */
@@ -1949,7 +1949,7 @@ typedef struct
 } YM2203;
 
 /* Generate samples for one of the YM2203s */
-void YM2203UpdateOne(void *chip, INT32 *buffer, int length)
+void YM2203UpdateOne(void *chip, int32_t *buffer, int length)
 {
 	YM2203 *F2203 = (YM2203*)chip;
 	FM_OPN *OPN =   &F2203->OPN;
@@ -1980,13 +1980,13 @@ void YM2203UpdateOne(void *chip, INT32 *buffer, int length)
 	state->LFO_AM = 0;
 	state->LFO_PM = 0;
 
-	static INT32 stub = 0;
-	const INT32* const out0 = F2203->mute & 0x01 ? state->out_fm + 0 : &stub;
-	const INT32* const out1 = F2203->mute & 0x02 ? state->out_fm + 1 : &stub;
-	const INT32* const out2 = F2203->mute & 0x04 ? state->out_fm + 2 : &stub;
+	static int32_t stub = 0;
+	const int32_t* const out0 = F2203->mute & 0x01 ? state->out_fm + 0 : &stub;
+	const int32_t* const out1 = F2203->mute & 0x02 ? state->out_fm + 1 : &stub;
+	const int32_t* const out2 = F2203->mute & 0x04 ? state->out_fm + 2 : &stub;
 
 	/* buffering */
-	for (INT32* buf = buffer, *lim = buffer + length; buf != lim; ++buf)
+	for (int32_t* buf = buffer, *lim = buffer + length; buf != lim; ++buf)
 	{
 	  state->out_fm[0] = state->out_fm[1] = state->out_fm[2] = 0;
 
@@ -2049,7 +2049,7 @@ void YM2203ResetChip(void *chip)
    'clock' is the chip clock in Hz
    'rate' is sampling rate
 */
-void * YM2203Init(UINT64 clock, int rate)
+void * YM2203Init(uint64_t clock, int rate)
 {
 	YM2203 *F2203;
 
@@ -2090,7 +2090,7 @@ void YM2203Shutdown(void *chip)
 }
 
 /* YM2203 I/O interface */
-int YM2203Write(void *chip,int a,UINT8 v)
+int YM2203Write(void *chip,int a,uint8_t v)
 {
 	YM2203 *F2203 = (YM2203*)chip;
 	FM_OPN *OPN = &F2203->OPN;
@@ -2181,7 +2181,7 @@ void YM2203SetMute(void *chip,int mask)
 	F2203->mute=mask;
 }
 
-int GetFreq(UINT64 clock, UINT8 regHi, UINT8 regLo, unsigned scale)
+int GetFreq(uint64_t clock, uint8_t regHi, uint8_t regLo, unsigned scale)
 {
   const unsigned counter = (unsigned(regHi & 7) << 8) | regLo;
   const unsigned octave = (regHi & 0x38) >> 3;
