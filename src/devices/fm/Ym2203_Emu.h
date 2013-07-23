@@ -27,7 +27,7 @@ void YM2203ResetChip(void *chip);
 /*
 ** update one of chip
 */
-void YM2203UpdateOne(void *chip, short *buffer, int length);
+void YM2203UpdateOne(void *chip, INT32 *buffer, int length);
 
 /*
 ** Write
@@ -35,6 +35,7 @@ void YM2203UpdateOne(void *chip, short *buffer, int length);
 */
 int YM2203Write(void *chip,int a,unsigned char v);
 
+void YM2203WriteRegs(void *chip, int reg, unsigned char val);
 
 void YM2203SetMute(void *chip,int mask);
 

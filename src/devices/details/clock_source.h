@@ -51,6 +51,11 @@ namespace Devices
         SndOscillator.AdvanceTick();
       }
 
+      void SkipSamples(uint_t samples)
+      {
+        SndOscillator.AdvanceTick(samples);
+      }
+
       uint_t NextTime(const StampType& stamp)
       {
         const StampType prevStamp = PsgOscillator.GetCurrentTime();

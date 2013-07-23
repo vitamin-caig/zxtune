@@ -97,7 +97,7 @@ namespace Devices
       //Currently played tone level percentage
       uint_t LevelInPercents;
     };
-    typedef boost::array<ChanState, VOICES> ChannelsState;
+    typedef std::vector<ChanState> ChannelsState;
 
     // Describes real device
     class Chip : public Device

@@ -47,7 +47,7 @@ namespace Devices
     };
 
     using Devices::FM::ChanState;
-    typedef boost::array<ChanState, VOICES> ChannelsState;
+    using Devices::FM::ChannelsState;
 
     class Chip : public Device
     {

@@ -1,6 +1,6 @@
 /*
 Abstract:
-  TFM chip adapter
+  TFM chips implementation
 
 Last changed:
   $Id$
@@ -9,79 +9,86 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//local includes
+#include "chip.h"
 //library includes
 #include <devices/tfm.h>
 //boost includes
 #include <boost/make_shared.hpp>
-#include <boost/mem_fn.hpp>
 
 namespace Devices
 {
 namespace TFM
 {
-  class TurboChip : public Chip
+  class ChipAdapter
   {
   public:
-    TurboChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
+    void SetParams(uint64_t clock, uint_t sndFreq)
     {
-      const std::pair<Sound::Receiver::Ptr, Sound::Receiver::Ptr> targets = Sound::CreateReceiversPair(target);
-      Delegates[0] = Devices::FM::CreateChip(params, targets.first);
-      Delegates[1] = Devices::FM::CreateChip(params, targets.second);
-    }
-
-    virtual void RenderData(const DataChunk& src)
-    {
-      Devices::FM::DataChunk chunk;
-      chunk.TimeStamp = src.TimeStamp;
-      for (uint_t idx = 0; idx != Delegates.size(); ++idx)
+      if (Helper.SetNewParams(clock, sndFreq))
       {
-        chunk.Data = src.Data[idx];
-        Delegates[idx]->RenderData(chunk);
+        Chip1 = Helper.CreateChip();
+        Chip2 = Helper.CreateChip();
       }
     }
 
-    virtual void Flush()
+    void Reset()
     {
-      for (uint_t idx = 0; idx != Delegates.size(); ++idx)
+      if (Chip1)
       {
-        Delegates[idx]->Flush();
+        ::YM2203ResetChip(Chip1.get());
+        ::YM2203ResetChip(Chip2.get());
       }
     }
 
-    virtual void Reset()
+    void WriteRegisters(const Devices::TFM::DataChunk& chunk)
     {
-      std::for_each(Delegates.begin(), Delegates.end(), boost::mem_fn(&Devices::FM::Chip::Reset));
+      assert(Chip1);
+      Helper.WriteRegisters(chunk.Data[0].begin(), chunk.Data[0].end(), Chip1.get());
+      Helper.WriteRegisters(chunk.Data[1].begin(), chunk.Data[1].end(), Chip2.get());
     }
 
-    virtual void GetState(Devices::TFM::ChannelsState& state) const
+    void RenderSamples(uint_t count, Sound::ChunkBuilder& tgt)
     {
-      for (uint_t idx = 0; idx != Delegates.size(); ++idx)
-      {
-        Devices::FM::ChannelsState subState;
-        Delegates[idx]->GetState(subState);
-        const std::size_t inChans = subState.size();
-        for (uint_t chan = 0; chan != inChans; ++chan)
-        {
-          Devices::FM::ChanState& dst = state[idx * inChans + chan];
-          dst = subState[chan];
-          dst.Name = Char(dst.Name + idx * inChans);
-          dst.Band += idx * inChans;
-        }
-      }
+      assert(Chip1);
+      Sound::Sample* const out = tgt.Allocate(count);
+      FM::Details::YM2203SampleType* const outRaw = safe_ptr_cast<FM::Details::YM2203SampleType*>(out);
+      ::YM2203UpdateOne(Chip1.get(), outRaw, count);
+      ::YM2203UpdateOne(Chip2.get(), outRaw, count);
+      Helper.ConvertSamples(outRaw, outRaw + count, out);
+    }
+
+    ChannelsState GetState() const
+    {
+      assert(Chip1);
+      ChannelsState res(VOICES);
+      boost::array<int, FM::VOICES> vols;
+      boost::array<int, FM::VOICES> freqs;
+      ::YM2203GetAllTL(Chip1.get(), &vols[0], &freqs[0]);
+      Helper.ConvertState(vols.begin(), freqs.begin(), &res[0], 0u);
+      ::YM2203GetAllTL(Chip2.get(), &vols[0], &freqs[0]);
+      Helper.ConvertState(vols.begin(), freqs.begin(), &res[FM::VOICES], FM::VOICES);
+      return res;
     }
   private:
-    boost::array<Devices::FM::Chip::Ptr, CHIPS> Delegates;
+    FM::Details::ChipAdapterHelper Helper;
+    FM::Details::ChipPtr Chip1;
+    FM::Details::ChipPtr Chip2;
   };
-}//TFM
-}//Devices
 
-namespace Devices
-{
-  namespace TFM
+  struct Traits
   {
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
-    {
-      return boost::make_shared<TurboChip>(params, target);
-    }
+    typedef Chip BaseClass;
+    typedef DataChunk DataChunkType;
+    typedef Stamp StampType;
+    typedef ChipAdapter AdapterType;
+  };
+
+  typedef FM::Details::BaseChip<Traits> TFMChip;
+
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
+  {
+    return boost::make_shared<TFMChip>(params, target);
   }
+}
 }

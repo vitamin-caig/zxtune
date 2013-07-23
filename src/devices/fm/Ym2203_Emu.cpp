@@ -1439,6 +1439,14 @@ static void reset_channels( FM_ST *ST , FM_CH *CH , int num )
 /* initialize generic tables */
 static int init_tables(void)
 {
+  //TODO: fix
+  static bool initialized = false;
+
+  if (initialized)
+  {
+    return 1;
+  }
+
 	signed int i,x;
 	signed int n;
 	double o,m;
@@ -1543,6 +1551,7 @@ static int init_tables(void)
 		}
 	}
 
+	initialized = true;
 	return 1;
 }
 
@@ -1940,13 +1949,11 @@ typedef struct
 } YM2203;
 
 /* Generate samples for one of the YM2203s */
-void YM2203UpdateOne(void *chip, short *buffer, int length)
+void YM2203UpdateOne(void *chip, INT32 *buffer, int length)
 {
 	YM2203 *F2203 = (YM2203*)chip;
 	FM_OPN *OPN =   &F2203->OPN;
 	FM_STATE *state = &F2203->State;
-	int i;
-	short *buf = buffer;
 	FM_CH	*cch[3];
 
 	cch[0]   = &F2203->CH[0];
@@ -1973,13 +1980,15 @@ void YM2203UpdateOne(void *chip, short *buffer, int length)
 	state->LFO_AM = 0;
 	state->LFO_PM = 0;
 
+	static INT32 stub = 0;
+	const INT32* const out0 = F2203->mute & 0x01 ? state->out_fm + 0 : &stub;
+	const INT32* const out1 = F2203->mute & 0x02 ? state->out_fm + 1 : &stub;
+	const INT32* const out2 = F2203->mute & 0x04 ? state->out_fm + 2 : &stub;
+
 	/* buffering */
-	for (i=0; i < length ; i++)
+	for (INT32* buf = buffer, *lim = buffer + length; buf != lim; ++buf)
 	{
-		/* clear outputs */
-		state->out_fm[0] = 0;
-		state->out_fm[1] = 0;
-		state->out_fm[2] = 0;
+	  state->out_fm[0] = state->out_fm[1] = state->out_fm[2] = 0;
 
 		/* advance envelope generator */
 		OPN->eg_timer += OPN->eg_timer_add;
@@ -1998,23 +2007,7 @@ void YM2203UpdateOne(void *chip, short *buffer, int length)
 		chan_calc(state, OPN, cch[1] );
 		chan_calc(state, OPN, cch[2] );
 
-		/* buffering */
-		{
-			int lt;
-
-			//lt = out_fm[0] + out_fm[1] + out_fm[2];
-			lt=0;
-			if(F2203->mute&0x01) lt+=state->out_fm[0];
-			if(F2203->mute&0x02) lt+=state->out_fm[1];
-			if(F2203->mute&0x04) lt+=state->out_fm[2];
-
-			lt >>= FINAL_SH;
-
-			Limit( lt , MAXOUT, MINOUT );
-
-			/* buffering */
-			buf[i] += lt;
-		}
+		*buf += (*out0 + *out1 + *out2) >> FINAL_SH;
 
 		/* timer A control */
 		INTERNAL_TIMER_A( &F2203->OPN.ST , cch[2] )
@@ -2139,6 +2132,24 @@ int YM2203Write(void *chip,int a,UINT8 v)
 	return OPN->ST.irq;
 }
 
+void YM2203WriteRegs(void *chip, int reg, unsigned char val)
+{
+	YM2203 *F2203 = (YM2203*)chip;
+	FM_OPN *OPN = &F2203->OPN;
+	if (reg >= 0x2d && reg <= 0x2f)
+	{
+	  OPNPrescaler_w(OPN, reg, 1);
+	}
+	F2203->REGS[reg] = val;
+	if (0x20 == (reg & 0xf0))
+	{
+	  OPNWriteMode(OPN, reg, val);
+	}
+	else
+	{
+	  OPNWriteReg(&F2203->State, OPN, reg, val);
+	}
+}
 
 
 int YM2203TimerOver(void *chip,int c)
