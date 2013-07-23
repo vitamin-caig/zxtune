@@ -29,12 +29,6 @@ void YM2203ResetChip(void *chip);
 */
 void YM2203UpdateOne(void *chip, int32_t *buffer, int length);
 
-/*
-** Write
-** return : InterruptLevel
-*/
-int YM2203Write(void *chip,int a,unsigned char v);
-
 void YM2203WriteRegs(void *chip, int reg, unsigned char val);
 
 void YM2203SetMute(void *chip,int mask);
