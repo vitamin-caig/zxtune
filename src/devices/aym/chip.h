@@ -84,8 +84,11 @@ namespace Devices
       virtual LayoutType Layout() const = 0;
     };
 
+    const uint_t SOUND_CHANNELS = 3;
+    typedef Sound::ThreeChannelsMixer MixerType;
+
     /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target);
   }
 }
 

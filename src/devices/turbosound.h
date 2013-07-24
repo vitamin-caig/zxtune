@@ -55,8 +55,9 @@ namespace Devices
     };
 
     using AYM::ChipParameters;
+    using AYM::MixerType;
 
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target);
   }
 }
 
