@@ -46,11 +46,11 @@ namespace
     static const Char LETTERS[] = {'A', 'B', 'C', 'N', 'E'};
     static const uint_t MASKS[] =
     {
-      Devices::AYM::DataChunk::CHANNEL_MASK_A,
-      Devices::AYM::DataChunk::CHANNEL_MASK_B,
-      Devices::AYM::DataChunk::CHANNEL_MASK_C,
-      Devices::AYM::DataChunk::CHANNEL_MASK_N,
-      Devices::AYM::DataChunk::CHANNEL_MASK_E
+      Devices::AYM::CHANNEL_MASK_A,
+      Devices::AYM::CHANNEL_MASK_B,
+      Devices::AYM::CHANNEL_MASK_C,
+      Devices::AYM::CHANNEL_MASK_N,
+      Devices::AYM::CHANNEL_MASK_E
     };
     BOOST_STATIC_ASSERT(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS));
     const std::size_t pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;

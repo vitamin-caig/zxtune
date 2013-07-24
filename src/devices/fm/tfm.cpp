@@ -58,17 +58,16 @@ namespace TFM
       Helper.ConvertSamples(outRaw, outRaw + count, out);
     }
 
-    ChannelsState GetState() const
+    void GetState(ChannelsState& result) const
     {
       assert(Chip1);
-      ChannelsState res(VOICES);
+      result.resize(VOICES);
       boost::array<uint_t, FM::VOICES> attenuations;
       boost::array<uint_t, FM::VOICES> periods;
       ::YM2203GetState(Chip1.get(), &attenuations[0], &periods[0]);
-      Helper.ConvertState(attenuations.begin(), periods.begin(), &res[0], 0u);
+      Helper.ConvertState(attenuations.begin(), periods.begin(), &result[0]);
       ::YM2203GetState(Chip2.get(), &attenuations[0], &periods[0]);
-      Helper.ConvertState(attenuations.begin(), periods.begin(), &res[FM::VOICES], FM::VOICES);
-      return res;
+      Helper.ConvertState(attenuations.begin(), periods.begin(), &result[FM::VOICES]);
     }
   private:
     FM::Details::ChipAdapterHelper Helper;

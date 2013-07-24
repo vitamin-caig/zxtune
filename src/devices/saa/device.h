@@ -122,32 +122,33 @@ namespace Devices
         return out;
       }
 
-      void GetState(ChanState* state) const
+      void GetState(ChannelState* state) const
       {
         const uint_t MAX_IN_LEVEL = 30;
-        const uint_t MAX_OUT_LEVEL = 100;
         for (uint_t chan = 0; chan != 3; ++chan)
         {
-          state[chan].LevelInPercents = (Levels[chan].Left() + Levels[chan].Right()) * MAX_OUT_LEVEL / MAX_IN_LEVEL;
-          if (!Tones[chan].IsMasked())
+          state[chan] = ChannelState();
+          if ((state[chan].Enabled = !Tones[chan].IsMasked()))
           {
             state[chan].Band = 2 * Tones[chan].GetHalfPeriod();
-            state[chan].Enabled = true;
+            state[chan].Level = LevelType(Levels[chan].Left() + Levels[chan].Right(), MAX_IN_LEVEL);
           }
         }
+        ChannelState& noiseChan = state[3];
+        noiseChan = ChannelState();
         if (const uint_t mixer = Noise.GetMixer())
         {
-          ChanState& noiseChan = state[3];
-          noiseChan.Band = Noise.GetPeriod();
           noiseChan.Enabled = true;
-          noiseChan.LevelInPercents = (state[0].LevelInPercents + state[1].LevelInPercents + state[2].LevelInPercents) / 3;
+          noiseChan.Band = Noise.GetPeriod();
+          noiseChan.Level = (state[0].Level + state[1].Level + state[2].Level) / 3;
         }
+        ChannelState& envChan = state[4];
+        envChan = ChannelState();
         if (const uint_t period = Envelope.GetRepetitionPeriod())
         {
-          ChanState& envChan = state[4];
-          envChan.Band = period;
           envChan.Enabled = true;
-          envChan.LevelInPercents = state[2].LevelInPercents;
+          envChan.Band = period;
+          envChan.Level = state[2].Level;
         }
       }
     private:

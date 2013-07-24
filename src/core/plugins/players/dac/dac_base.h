@@ -79,7 +79,7 @@ namespace ZXTune
 
         void SetLevelInPercents(uint_t levelInPercents)
         {
-          Data.Level = Devices::DAC::LevelType(levelInPercents, Devices::DAC::LevelType::PRECISION);
+          Data.Level = Devices::LevelType(levelInPercents, Devices::LevelType::PRECISION);
           Data.Mask |= Devices::DAC::DataChunk::ChannelData::LEVEL;
         }
 

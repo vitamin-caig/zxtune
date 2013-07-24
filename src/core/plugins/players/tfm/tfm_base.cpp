@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "tfm_base.h"
+#include "core/plugins/players/analyzer.h"
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
@@ -91,17 +92,7 @@ namespace
     {
       Devices::TFM::ChannelsState state;
       Device->GetState(state);
-      channels.resize(state.size());
-      std::transform(state.begin(), state.end(), channels.begin(), &ConvertChannelState);
-    }
-  private:
-    static Analyzer::ChannelState ConvertChannelState(const Devices::TFM::ChanState& in)
-    {
-      Analyzer::ChannelState out;
-      out.Enabled = in.Enabled;
-      out.Band = in.Band;
-      out.Level = in.LevelInPercents;
-      return out;
+      ConvertAnalyzerState(state.begin(), state.end(), channels);
     }
   private:
     const Devices::TFM::Chip::Ptr Device;

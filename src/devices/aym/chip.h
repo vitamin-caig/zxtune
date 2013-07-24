@@ -15,6 +15,7 @@ Author:
 
 //library includes
 #include <devices/aym.h>
+#include <devices/state.h>
 #include <sound/mixer.h>
 #include <sound/receiver.h>
 
@@ -23,29 +24,7 @@ namespace Devices
 {
   namespace AYM
   {
-    //channels state
-    struct ChanState
-    {
-      ChanState()
-        : Name(' '), Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      explicit ChanState(Char name)
-        : Name(name), Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      //Short channel abbreviation
-      Char Name;
-      //Is channel enabled to output
-      bool Enabled;
-      //Currently played tone band (up to 96)
-      uint_t Band;
-      //Currently played tone level percentage
-      uint_t LevelInPercents;
-    };
-    typedef boost::array<ChanState, VOICES> ChannelsState;
+    typedef FixedChannelsCountState<VOICES> ChannelsState;
 
     // Describes real device
     class Chip : public Device
@@ -54,6 +33,15 @@ namespace Devices
       typedef boost::shared_ptr<Chip> Ptr;
 
       virtual void GetState(ChannelsState& state) const = 0;
+    };
+
+    enum ChannelMasks
+    {
+      CHANNEL_MASK_A = 1,
+      CHANNEL_MASK_B = 2,
+      CHANNEL_MASK_C = 4,
+      CHANNEL_MASK_N = 8,
+      CHANNEL_MASK_E = 16,
     };
 
     enum LayoutType

@@ -258,6 +258,8 @@ namespace DAC
     std::vector<FastSample::Ptr> Content;
   };
 
+  typedef Math::FixedPoint<int, LevelType::PRECISION> SignedLevelType;
+
   //channel state type
   struct ChannelState
   {
@@ -289,7 +291,7 @@ namespace DAC
     //sample
     FastSample::Ptr Source;
     FastSample::Iterator Iterator;
-    LevelType Level;
+    SignedLevelType Level;
 
     void Update(const SamplesStorage& samples, const ClockSource& clock, const DataChunk::ChannelData& state)
     {
@@ -359,14 +361,14 @@ namespace DAC
       }
     }
 
-    ChanState Analyze(uint_t maxRms) const
+    Devices::ChannelState Analyze(uint_t maxRms) const
     {
-      ChanState result;
+      Devices::ChannelState result;
       if ( (result.Enabled = Enabled) )
       {
         result.Band = Note + NoteSlide;
         const uint_t rms = Source->GetRms();
-        result.LevelInPercents = (Level * rms * 100 / maxRms).Round();
+        result.Level = Level * rms / maxRms;
       }
       return result;
     }
@@ -551,25 +553,6 @@ namespace DAC
         Target->ApplyData(builder.GetResult());
       }
       Target->Flush();
-    }
-
-    virtual void GetChannelState(uint_t chan, DataChunk::ChannelData& dst) const
-    {
-      const ChannelState& src = State[chan];
-      dst = DataChunk::ChannelData();
-      dst.Channel = chan;
-      const uint_t samIdx = src.Source->GetIndex();
-      if (samIdx != NO_INDEX)
-      {
-        dst.Mask = DataChunk::ChannelData::ALL_PARAMETERS;
-        dst.Enabled = src.Enabled;
-        dst.Note = src.Note;
-        dst.NoteSlide = src.NoteSlide;
-        dst.FreqSlideHz = src.FreqSlide;
-        dst.SampleNum = samIdx;
-        dst.PosInSample = src.Iterator.GetPosition();
-        dst.Level = src.Level;
-      }
     }
 
     virtual void GetState(ChannelsState& state) const

@@ -14,8 +14,8 @@ Author:
 #define __DEVICES_DAC_H_DEFINED__
 
 //library includes
+#include <devices/state.h>
 #include <devices/dac/sample.h>
-#include <math/fixedpoint.h>
 #include <sound/mixer.h>
 #include <time/stamp.h>
 
@@ -25,7 +25,6 @@ namespace Devices
   namespace DAC
   {
     typedef Time::Microseconds Stamp;
-    typedef Math::FixedPoint<int_t, 100> LevelType;
 
     struct DataChunk
     {
@@ -107,22 +106,7 @@ namespace Devices
       std::vector<ChannelData> Channels;
     };
 
-    //channels state
-    struct ChanState
-    {
-      ChanState()
-        : Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      //Is channel enabled to output
-      bool Enabled;
-      //Currently played tone band (up to 96)
-      uint_t Band;
-      //Currently played tone level percentage
-      uint_t LevelInPercents;
-    };
-    typedef std::vector<ChanState> ChannelsState;
+    typedef MultiChannelState ChannelsState;
 
     class Chip
     {
@@ -137,8 +121,6 @@ namespace Devices
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
       virtual void Flush() = 0;
-      virtual void GetChannelState(uint_t chan, DataChunk::ChannelData& dst) const = 0;
-
       virtual void GetState(ChannelsState& state) const = 0;
 
       /// reset internal state to initial

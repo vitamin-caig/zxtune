@@ -46,7 +46,6 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
-    using Devices::FM::ChanState;
     using Devices::FM::ChannelsState;
 
     class Chip : public Device

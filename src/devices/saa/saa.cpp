@@ -113,10 +113,6 @@ namespace SAA
 
     void GetState(ChannelsState& state) const
     {
-      for (uint_t chan = 0; chan != state.size(); ++chan)
-      {
-        state[chan] = ChanState(static_cast<Char>('A' + chan));
-      }
       Device.GetState(state);
     }
   private:

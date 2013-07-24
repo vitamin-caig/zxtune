@@ -17,6 +17,7 @@ Author:
 #include <data_streaming.h>
 #include <types.h>
 //library includes
+#include <devices/state.h>
 #include <sound/receiver.h>
 #include <time/stamp.h>
 //boost includes
@@ -89,29 +90,7 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
-    //channels state
-    struct ChanState
-    {
-      ChanState()
-        : Name(' '), Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      explicit ChanState(Char name)
-        : Name(name), Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      //Short channel abbreviation
-      Char Name;
-      //Is channel enabled to output
-      bool Enabled;
-      //Currently played tone band (up to 96)
-      uint_t Band;
-      //Currently played tone level percentage
-      uint_t LevelInPercents;
-    };
-    typedef boost::array<ChanState, VOICES> ChannelsState;
+    typedef FixedChannelsCountState<VOICES> ChannelsState;
 
     // Describes real device
     class Chip : public Device

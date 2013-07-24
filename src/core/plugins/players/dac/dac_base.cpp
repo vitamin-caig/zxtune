@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "dac_base.h"
+#include "core/plugins/players/analyzer.h"
 //library includes
 #include <core/core_parameters.h>
 #include <devices/details/parameters_helper.h>
@@ -130,17 +131,7 @@ namespace
     {
       Devices::DAC::ChannelsState state;
       Device->GetState(state);
-      channels.resize(state.size());
-      std::transform(state.begin(), state.end(), channels.begin(), &ConvertChannelState);
-    }
-  private:
-    static Analyzer::ChannelState ConvertChannelState(const Devices::DAC::ChanState& in)
-    {
-      Analyzer::ChannelState out;
-      out.Enabled = in.Enabled;
-      out.Band = in.Band;
-      out.Level = in.LevelInPercents;
-      return out;
+      ConvertAnalyzerState(state.begin(), state.end(), channels);
     }
   private:
     const Devices::DAC::Chip::Ptr Device;
@@ -255,11 +246,6 @@ namespace
         Sound::FillMixer(*Params, *Mixer);
       }
       return Delegate->Flush();
-    }
-
-    virtual void GetChannelState(uint_t chan, Devices::DAC::DataChunk::ChannelData& dst) const
-    {
-      return Delegate->GetChannelState(chan, dst);
     }
 
     virtual void GetState(Devices::DAC::ChannelsState& state) const

@@ -191,14 +191,14 @@ namespace AYM
     void GetState(ChannelsState& state) const
     {
       const uint_t TONE_VOICES = 3;
-      const uint_t MAX_LEVEL = 100;
+      const LevelType DELTA(1, TONE_VOICES);
       //one channel is noise
-      ChanState& noiseChan = state[TONE_VOICES];
-      noiseChan = ChanState('N');
+      ChannelState& noiseChan = state[TONE_VOICES];
+      noiseChan = ChannelState();
       noiseChan.Band = GetToneN();
       //one channel is envelope    
-      ChanState& envChan = state[TONE_VOICES + 1];
-      envChan = ChanState('E');
+      ChannelState& envChan = state[TONE_VOICES + 1];
+      envChan = ChannelState();
       envChan.Band = 16 * GetToneE();
       //taking into account only periodic envelope
       const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
@@ -213,21 +213,22 @@ namespace AYM
         if (hasNoise)
         {
           noiseChan.Enabled = true;
-          noiseChan.LevelInPercents += MAX_LEVEL / TONE_VOICES;
+          noiseChan.Level += DELTA;
         }
         //accumulate level in envelope channel      
         if (periodicEnv && hasEnv)
         {        
           envChan.Enabled = true;
-          envChan.LevelInPercents += MAX_LEVEL / TONE_VOICES;
+          envChan.Level += DELTA;
         }
         //calculate tone channel
-        ChanState& channel = state[chan];
-        channel.Name = static_cast<Char>('A' + chan);
+        ChannelState& channel = state[chan];
+        channel = ChannelState();
         if (hasTone)
         {
           channel.Enabled = true;
-          channel.LevelInPercents = (volReg & Registers::MASK_VOL) * MAX_LEVEL / 15;
+          const uint_t MAX_VOL = Registers::MASK_VOL;
+          channel.Level = LevelType(volReg & Registers::MASK_VOL, MAX_VOL);
           //Use full period
           channel.Band = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] +
             Regs[Registers::TONEA_L + chan * 2]);

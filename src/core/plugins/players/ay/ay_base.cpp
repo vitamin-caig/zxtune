@@ -11,6 +11,7 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "core/plugins/players/analyzer.h"
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <tools.h>
@@ -113,17 +114,7 @@ namespace ZXTune
     {
       Devices::AYM::ChannelsState state;
       Device->GetState(state);
-      channels.resize(state.size());
-      std::transform(state.begin(), state.end(), channels.begin(), &ConvertChannelsState);
-    }
-  private:
-    static Analyzer::ChannelState ConvertChannelsState(const Devices::AYM::ChanState& in)
-    {
-      Analyzer::ChannelState out;
-      out.Enabled = in.Enabled;
-      out.Band = in.Band;
-      out.Level = in.LevelInPercents;
-      return out;
+      ConvertAnalyzerState(state.begin(), state.end(), channels);
     }
   private:
     const Devices::AYM::Chip::Ptr Device;
