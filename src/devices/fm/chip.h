@@ -139,6 +139,7 @@ namespace FM
         Adapter.Reset();
         Clock.Reset();
         Buffer.Reset();
+        SynchronizeParameters();
       }
 
       virtual void GetState(MultiChannelState& state) const

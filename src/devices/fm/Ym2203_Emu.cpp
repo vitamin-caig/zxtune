@@ -1383,8 +1383,8 @@ uint_t GetPeriod(uint8_t regHi, uint8_t regLo, unsigned scale)
 
 void YM2203GetState(void *chip, uint_t *attenuations, uint_t *periods)
 {
-	const uint_t slotMap[8]={ 0x08,0x08,0x08,0x08,0x0c,0x0e,0x0e,0x0f };
-	const uint_t opn_pres[4] = { 2*12 , 2*12 , 6*12 , 3*12 };
+	static const uint_t slotMap[8]={ 0x08,0x08,0x08,0x08,0x0c,0x0e,0x0e,0x0f };
+	static const uint_t opn_pres[4] = { 2*12 , 2*12 , 6*12 , 3*12 };
 	YM2203 *F2203;
 	
 	F2203=(YM2203*)chip;

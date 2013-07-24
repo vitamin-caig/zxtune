@@ -43,14 +43,12 @@ namespace TFM
 
     void WriteRegisters(const Devices::TFM::DataChunk& chunk)
     {
-      assert(Chip1);
       Helper.WriteRegisters(chunk.Data[0].begin(), chunk.Data[0].end(), Chip1.get());
       Helper.WriteRegisters(chunk.Data[1].begin(), chunk.Data[1].end(), Chip2.get());
     }
 
     void RenderSamples(uint_t count, Sound::ChunkBuilder& tgt)
     {
-      assert(Chip1);
       Sound::Sample* const out = tgt.Allocate(count);
       FM::Details::YM2203SampleType* const outRaw = safe_ptr_cast<FM::Details::YM2203SampleType*>(out);
       ::YM2203UpdateOne(Chip1.get(), outRaw, count);
@@ -60,7 +58,6 @@ namespace TFM
 
     void GetState(MultiChannelState& state) const
     {
-      assert(Chip1);
       MultiChannelState res;
       res.reserve(VOICES);
       boost::array<uint_t, FM::VOICES> attenuations;
