@@ -120,6 +120,7 @@ namespace ZXTune
         typedef boost::shared_ptr<const Holder> Ptr;
 
         virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const = 0;
+        virtual AYM::Chiptune::Ptr GetChiptune() const = 0;
       };
 
       Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device);

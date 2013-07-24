@@ -16,6 +16,7 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
+#include <devices/turbosound.h>
 #include <devices/details/analysis_map.h>
 #include <devices/details/chunks_cache.h>
 #include <devices/details/clock_source.h>
@@ -83,201 +84,6 @@ namespace AYM
   };
 
   const uint_t AYM_CLOCK_DIVISOR = 8;
-
-  class AYMRenderer
-  {
-  public:
-    AYMRenderer()
-      : Regs()
-      , Beeper()
-    {
-      Regs[Registers::MIXER] = 0xff;
-    }
-
-    void SetDutyCycle(uint_t value, uint_t mask)
-    {
-      Device.SetDutyCycle(value, mask);
-    }
-
-    void Reset()
-    {
-      std::fill(Regs.begin(), Regs.end(), 0);
-      Regs[Registers::MIXER] = 0xff;
-      Device.Reset();
-      Beeper = 0;
-    }
-
-    void SetNewData(const Registers& data)
-    {
-      uint_t used = 0;
-      for (Registers::IndicesIterator it(data); it; ++it)
-      {
-        const Registers::Index reg = *it;
-        if (!data.Has(reg))
-        {
-          //no new data
-          continue;
-        }
-        //copy registers
-        uint8_t val = data[reg];
-        const uint_t mask = 1 << reg;
-        //limit values
-        if (mask & REGS_4BIT_SET)
-        {
-          val &= 0x0f;
-        }
-        else if (mask & REGS_5BIT_SET)
-        {
-          val &= 0x1f;
-        }
-        Regs[reg] = val;
-        used |= mask;
-      }
-      if (used & (1 << Registers::MIXER))
-      {
-        Device.SetMixer(GetMixer());
-      }
-      if (used & ((1 << Registers::TONEA_L) | (1 << Registers::TONEA_H)))
-      {
-        Device.SetToneA(GetToneA());
-      }
-      if (used & ((1 << Registers::TONEB_L) | (1 << Registers::TONEB_H)))
-      {
-        Device.SetToneB(GetToneB());
-      }
-      if (used & ((1 << Registers::TONEC_L) | (1 << Registers::TONEC_H)))
-      {
-        Device.SetToneC(GetToneC());
-      }
-      if (used & (1 << Registers::TONEN))
-      {
-        Device.SetToneN(GetToneN());
-      }
-      if (used & ((1 << Registers::TONEE_L) | (1 << Registers::TONEE_H)))
-      {
-        Device.SetToneE(GetToneE());
-      }
-      if (used & (1 << Registers::ENV))
-      {
-        Device.SetEnvType(GetEnvType());
-      }
-      if (used & ((1 << Registers::VOLA) | (1 << Registers::VOLB) | (1 << Registers::VOLC)))
-      {
-        Device.SetLevel(Regs[Registers::VOLA], Regs[Registers::VOLB], Regs[Registers::VOLC]);
-      }
-      if (data.HasBeeper())
-      {
-        Beeper = data.GetBeeper() ? HIGH_LEVEL : LOW_LEVEL;
-      }
-    }
-
-    void Tick(uint_t ticks)
-    {
-      Device.Tick(ticks);
-    }
-
-    uint_t GetLevels() const
-    {
-      if (Beeper)
-      {
-        return Beeper;
-      }
-      else
-      {
-        return Device.GetLevels();
-      }
-    }
-
-    void GetState(MultiChannelState& state) const
-    {
-      const uint_t TONE_VOICES = 3;
-      const LevelType COMMON_LEVEL_DELTA(1, TONE_VOICES);
-      const LevelType EMPTY_LEVEL;
-      LevelType noiseLevel, envLevel;
-      //taking into account only periodic envelope
-      const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
-      const uint_t mixer = ~GetMixer();
-      for (uint_t chan = 0; chan != TONE_VOICES; ++chan) 
-      {
-        const uint_t volReg = Regs[Registers::VOLA + chan];
-        const bool hasNoise = 0 != (mixer & (uint_t(Registers::MASK_NOISEA) << chan));
-        const bool hasTone = 0 != (mixer & (uint_t(Registers::MASK_TONEA) << chan));
-        const bool hasEnv = 0 != (volReg & Registers::MASK_ENV);
-        //accumulate level in noise channel
-        if (hasNoise)
-        {
-          noiseLevel += COMMON_LEVEL_DELTA;
-        }
-        //accumulate level in envelope channel      
-        if (periodicEnv && hasEnv)
-        {        
-          envLevel += COMMON_LEVEL_DELTA;
-        }
-        //calculate tone channel
-        ChannelState& channel = state[chan];
-        channel = ChannelState();
-        if (hasTone)
-        {
-          const uint_t MAX_VOL = Registers::MASK_VOL;
-          const LevelType level(volReg & Registers::MASK_VOL, MAX_VOL);
-          const uint_t band = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] +
-            Regs[Registers::TONEA_L + chan * 2]);
-          state.push_back(ChannelState(band, level));
-        }
-      }
-      if (noiseLevel != EMPTY_LEVEL)
-      {
-        state.push_back(ChannelState(GetToneN(), noiseLevel));
-      }
-      if (envLevel != EMPTY_LEVEL)
-      {
-        state.push_back(ChannelState(16 * GetToneE(), envLevel));
-      }  
-    }
-  private:
-    uint_t GetMixer() const
-    {
-      return Regs[Registers::MIXER];
-    }
-
-    uint_t GetToneA() const
-    {
-      return 256 * Regs[Registers::TONEA_H] + Regs[Registers::TONEA_L];
-    }
-
-    uint_t GetToneB() const
-    {
-      return 256 * Regs[Registers::TONEB_H] + Regs[Registers::TONEB_L];
-    }
-
-    uint_t GetToneC() const
-    {
-      return 256 * Regs[Registers::TONEC_H] + Regs[Registers::TONEC_L];
-    }
-
-    uint_t GetToneN() const
-    {
-      return 2 * Regs[Registers::TONEN];//for optimization
-    }
-
-    uint_t GetToneE() const
-    {
-      return 256 * Regs[Registers::TONEE_H] + Regs[Registers::TONEE_L];
-    }
-
-    uint_t GetEnvType() const
-    {
-      return Regs[Registers::ENV];
-    }
-  private:
-    //registers state
-    boost::array<uint_t, Registers::TOTAL> Regs;
-    //device
-    AYMDevice Device;
-    uint_t Beeper;
-  };
-
-  typedef Details::ClockSource<Stamp> ClockSource;
 
   class MultiVolumeTable
   {
@@ -375,6 +181,261 @@ namespace AYM
     boost::array<Sound::Sample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
   };
 
+  class SingleAYChip
+  {
+  public:
+    explicit SingleAYChip(const MultiVolumeTable& table)
+      : Table(table)
+      , Regs()
+      , Beeper()
+    {
+      Regs[Registers::MIXER] = 0xff;
+    }
+
+    void SetDutyCycle(uint_t value, uint_t mask)
+    {
+      Device.SetDutyCycle(value, mask);
+    }
+
+    void Reset()
+    {
+      std::fill(Regs.begin(), Regs.end(), 0);
+      Regs[Registers::MIXER] = 0xff;
+      Device.Reset();
+      Beeper = 0;
+    }
+
+    void SetNewData(const Registers& data)
+    {
+      uint_t used = 0;
+      for (Registers::IndicesIterator it(data); it; ++it)
+      {
+        const Registers::Index reg = *it;
+        if (!data.Has(reg))
+        {
+          //no new data
+          continue;
+        }
+        //copy registers
+        uint8_t val = data[reg];
+        const uint_t mask = 1 << reg;
+        //limit values
+        if (mask & REGS_4BIT_SET)
+        {
+          val &= 0x0f;
+        }
+        else if (mask & REGS_5BIT_SET)
+        {
+          val &= 0x1f;
+        }
+        Regs[reg] = val;
+        used |= mask;
+      }
+      if (used & (1 << Registers::MIXER))
+      {
+        Device.SetMixer(GetMixer());
+      }
+      if (used & ((1 << Registers::TONEA_L) | (1 << Registers::TONEA_H)))
+      {
+        Device.SetToneA(GetToneA());
+      }
+      if (used & ((1 << Registers::TONEB_L) | (1 << Registers::TONEB_H)))
+      {
+        Device.SetToneB(GetToneB());
+      }
+      if (used & ((1 << Registers::TONEC_L) | (1 << Registers::TONEC_H)))
+      {
+        Device.SetToneC(GetToneC());
+      }
+      if (used & (1 << Registers::TONEN))
+      {
+        Device.SetToneN(GetToneN());
+      }
+      if (used & ((1 << Registers::TONEE_L) | (1 << Registers::TONEE_H)))
+      {
+        Device.SetToneE(GetToneE());
+      }
+      if (used & (1 << Registers::ENV))
+      {
+        Device.SetEnvType(GetEnvType());
+      }
+      if (used & ((1 << Registers::VOLA) | (1 << Registers::VOLB) | (1 << Registers::VOLC)))
+      {
+        Device.SetLevel(Regs[Registers::VOLA], Regs[Registers::VOLB], Regs[Registers::VOLC]);
+      }
+      if (data.HasBeeper())
+      {
+        Beeper = data.GetBeeper() ? HIGH_LEVEL : LOW_LEVEL;
+      }
+    }
+
+    void Tick(uint_t ticks)
+    {
+      Device.Tick(ticks);
+    }
+
+    Sound::Sample GetLevels() const
+    {
+      return Table.Get(Beeper ? Beeper : Device.GetLevels());
+    }
+
+    Sound::Sample GetLevelsNoBeeper() const
+    {
+      return Table.Get(Device.GetLevels());
+    }
+
+    void GetState(MultiChannelState& state) const
+    {
+      const uint_t TONE_VOICES = 3;
+      const LevelType COMMON_LEVEL_DELTA(1, TONE_VOICES);
+      const LevelType EMPTY_LEVEL;
+      LevelType noiseLevel, envLevel;
+      //taking into account only periodic envelope
+      const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
+      const uint_t mixer = ~GetMixer();
+      for (uint_t chan = 0; chan != TONE_VOICES; ++chan) 
+      {
+        const uint_t volReg = Regs[Registers::VOLA + chan];
+        const bool hasNoise = 0 != (mixer & (uint_t(Registers::MASK_NOISEA) << chan));
+        const bool hasTone = 0 != (mixer & (uint_t(Registers::MASK_TONEA) << chan));
+        const bool hasEnv = 0 != (volReg & Registers::MASK_ENV);
+        //accumulate level in noise channel
+        if (hasNoise)
+        {
+          noiseLevel += COMMON_LEVEL_DELTA;
+        }
+        //accumulate level in envelope channel      
+        if (periodicEnv && hasEnv)
+        {        
+          envLevel += COMMON_LEVEL_DELTA;
+        }
+        //calculate tone channel
+        if (hasTone)
+        {
+          const uint_t MAX_VOL = Registers::MASK_VOL;
+          const LevelType level(volReg & Registers::MASK_VOL, MAX_VOL);
+          const uint_t band = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] +
+            Regs[Registers::TONEA_L + chan * 2]);
+          state.push_back(ChannelState(band, level));
+        }
+      }
+      if (noiseLevel != EMPTY_LEVEL)
+      {
+        state.push_back(ChannelState(GetToneN(), noiseLevel));
+      }
+      if (envLevel != EMPTY_LEVEL)
+      {
+        state.push_back(ChannelState(16 * GetToneE(), envLevel));
+      }  
+    }
+  private:
+    uint_t GetMixer() const
+    {
+      return Regs[Registers::MIXER];
+    }
+
+    uint_t GetToneA() const
+    {
+      return 256 * Regs[Registers::TONEA_H] + Regs[Registers::TONEA_L];
+    }
+
+    uint_t GetToneB() const
+    {
+      return 256 * Regs[Registers::TONEB_H] + Regs[Registers::TONEB_L];
+    }
+
+    uint_t GetToneC() const
+    {
+      return 256 * Regs[Registers::TONEC_H] + Regs[Registers::TONEC_L];
+    }
+
+    uint_t GetToneN() const
+    {
+      return 2 * Regs[Registers::TONEN];//for optimization
+    }
+
+    uint_t GetToneE() const
+    {
+      return 256 * Regs[Registers::TONEE_H] + Regs[Registers::TONEE_L];
+    }
+
+    uint_t GetEnvType() const
+    {
+      return Regs[Registers::ENV];
+    }
+  private:
+    const MultiVolumeTable& Table;
+    //registers state
+    boost::array<uint_t, Registers::TOTAL> Regs;
+    //device
+    AYMDevice Device;
+    uint_t Beeper;
+  };
+
+  Sound::Sample::Type Average(Sound::Sample::WideType first, Sound::Sample::WideType second)
+  {
+    return static_cast<Sound::Sample::Type>((first + second) / 2);
+  }
+
+  Sound::Sample Average(Sound::Sample first, Sound::Sample second)
+  {
+    return Sound::Sample(Average(first.Left(), second.Left()), Average(first.Right(), second.Right()));
+  }
+
+  class DoubleAYChip
+  {
+  public:
+    explicit DoubleAYChip(const MultiVolumeTable& table)
+      : Chip0(table)
+      , Chip1(table)
+    {
+    }
+
+    void SetDutyCycle(uint_t value, uint_t mask)
+    {
+      Chip0.SetDutyCycle(value, mask);
+      Chip1.SetDutyCycle(value, mask);
+    }
+
+    void Reset()
+    {
+      Chip0.Reset();
+      Chip1.Reset();
+    }
+
+    void SetNewData(const TurboSound::Registers& data)
+    {
+      Chip0.SetNewData(data[0]);
+      Chip1.SetNewData(data[1]);
+    }
+
+    void Tick(uint_t ticks)
+    {
+      Chip0.Tick(ticks);
+      Chip1.Tick(ticks);
+    }
+
+    Sound::Sample GetLevels() const
+    {
+      using namespace Sound;
+      const Sample s0 = Chip0.GetLevelsNoBeeper();
+      const Sample s1 = Chip1.GetLevelsNoBeeper();
+      return Average(s0, s1);
+    }
+
+    void GetState(MultiChannelState& state) const
+    {
+      Chip0.GetState(state);
+      Chip1.GetState(state);
+    }
+  private:
+    SingleAYChip Chip0;
+    SingleAYChip Chip1;
+  };
+
+  typedef Details::ClockSource<Stamp> ClockSource;
+
+
   class Renderer
   {
   public:
@@ -386,13 +447,13 @@ namespace AYM
   /*
     Simple decimation algorithm without any filtering
   */
+  template<class PSGType>
   class LQRenderer : public Renderer
   {
   public:
-    LQRenderer(ClockSource& clock, AYMRenderer& psg, const MultiVolumeTable& tab)
+    LQRenderer(ClockSource& clock, PSGType& psg)
       : Clock(clock)
       , PSG(psg)
-      , Table(tab)
     {
     }
 
@@ -419,27 +480,25 @@ namespace AYM
   private:
     void RenderNextSample(Sound::ChunkBuilder& target)
     {
-      const uint_t psgLevel = PSG.GetLevels();
-      const Sound::Sample sndLevel = Table.Get(psgLevel);
+      const Sound::Sample sndLevel = PSG.GetLevels();
       target.Add(sndLevel);
       Clock.NextSample();
     }
   private:
     ClockSource& Clock;
-    AYMRenderer& PSG;
-    const MultiVolumeTable& Table;
+    PSGType& PSG;
   };
 
   /*
     Simple decimation with post simple FIR filter (0.5, 0.5)
   */
+  template<class PSGType>
   class MQRenderer : public Renderer
   {
   public:
-    MQRenderer(ClockSource& clock, AYMRenderer& psg, const MultiVolumeTable& tab)
+    MQRenderer(ClockSource& clock, PSGType& psg)
       : Clock(clock)
       , PSG(psg)
-      , Table(tab)
     {
     }
 
@@ -466,8 +525,7 @@ namespace AYM
   private:
     void RenderNextSample(Sound::ChunkBuilder& target)
     {
-      const uint_t psgLevel = PSG.GetLevels();
-      const Sound::Sample curLevel = Table.Get(psgLevel);
+      const Sound::Sample curLevel = PSG.GetLevels();
       const Sound::Sample sndLevel = Interpolate(curLevel);
       target.Add(sndLevel);
       Clock.NextSample();
@@ -475,19 +533,13 @@ namespace AYM
 
     Sound::Sample Interpolate(const Sound::Sample& newLevel)
     {
-      const Sound::Sample out(Average(PrevLevel.Left(), newLevel.Left()), Average(PrevLevel.Right(), newLevel.Right()));
+      const Sound::Sample out = Average(PrevLevel, newLevel);
       PrevLevel = newLevel;
       return out;
     }
-
-    static Sound::Sample::Type Average(Sound::Sample::Type first, Sound::Sample::Type second)
-    {
-      return static_cast<Sound::Sample::Type>((int_t(first) + second) / 2);
-    }
   private:
     ClockSource& Clock;
-    AYMRenderer& PSG;
-    const MultiVolumeTable& Table;
+    PSGType& PSG;
     Sound::Sample PrevLevel;
   };
 
@@ -495,13 +547,13 @@ namespace AYM
     Decimation is performed after 2-order IIR LPF
     Cutoff freq of LPF should be less than Nyquist frequency of target signal
   */
+  template<class PSGType>
   class HQRenderer : public Renderer
   {
   public:
-    HQRenderer(ClockSource& clock, AYMRenderer& psg, const MultiVolumeTable& tab)
+    HQRenderer(ClockSource& clock, PSGType& psg)
       : Clock(clock)
       , PSG(psg)
-      , Table(tab)
     {
     }
 
@@ -535,8 +587,7 @@ namespace AYM
     {
       while (ticksPassed--)
       {
-        const uint_t psgLevel = PSG.GetLevels();
-        const Sound::Sample curLevel = Table.Get(psgLevel);
+        const Sound::Sample curLevel = PSG.GetLevels();
         Filter.Feed(curLevel);
         PSG.Tick(1);
       }
@@ -549,21 +600,21 @@ namespace AYM
     }
   private:
     ClockSource& Clock;
-    AYMRenderer& PSG;
-    const MultiVolumeTable& Table;
+    PSGType& PSG;
     Sound::LPFilter Filter;
   };
 
+  template<class PSGType>
   class RenderersSet
   {
   public:
-    RenderersSet(ClockSource& clock, AYMRenderer& psg, const MultiVolumeTable& tab)
+    RenderersSet(ClockSource& clock, PSGType& psg)
       : ClockFreq()
       , SoundFreq()
       , Clock(clock)
-      , LQ(clock, psg, tab)
-      , MQ(clock, psg, tab)
-      , HQ(clock, psg, tab)
+      , LQ(clock, psg)
+      , MQ(clock, psg)
+      , HQ(clock, psg)
       , Current()
     {
     }
@@ -611,26 +662,28 @@ namespace AYM
     uint64_t ClockFreq;
     uint_t SoundFreq;
     ClockSource& Clock;
-    LQRenderer LQ;
-    MQRenderer MQ;
-    HQRenderer HQ;
+    LQRenderer<PSGType> LQ;
+    MQRenderer<PSGType> MQ;
+    HQRenderer<PSGType> HQ;
     Renderer* Current;
   };
 
-  class RegularAYMChip : public Chip
+  template<class Traits>
+  class SoundChip : public Traits::ChipBaseType
   {
   public:
-    RegularAYMChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
+    SoundChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
       : Params(params)
       , Mixer(mixer)
       , Target(target)
+      , PSG(VolTable)
       , Clock()
-      , Renderers(Clock, PSG, VolTable)
+      , Renderers(Clock, PSG)
     {
-      RegularAYMChip::Reset();
+      SoundChip::Reset();
     }
 
-    virtual void RenderData(const DataChunk& src)
+    virtual void RenderData(const typename Traits::DataChunkType& src)
     {
       BufferedData.Add(src);
     }
@@ -660,7 +713,7 @@ namespace AYM
     virtual void GetState(MultiChannelState& state) const
     {
       MultiChannelState res;
-      res.reserve(VOICES);
+      res.reserve(Traits::VOICES);
       PSG.GetState(res);
       for (MultiChannelState::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
       {
@@ -686,9 +739,9 @@ namespace AYM
     void RenderChunks(Sound::ChunkBuilder& builder)
     {
       Renderer& source = Renderers.Get();
-      for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
+      for (const typename Traits::DataChunkType* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
       {
-        const DataChunk& chunk = *it;
+        const typename Traits::DataChunkType& chunk = *it;
         if (Clock.GetCurrentTime() < chunk.TimeStamp)
         {
           source.Render(chunk.TimeStamp, builder);
@@ -701,17 +754,41 @@ namespace AYM
     Details::ParametersHelper<ChipParameters> Params;
     const Sound::ThreeChannelsMixer::Ptr Mixer;
     const Sound::Receiver::Ptr Target;
-    AYMRenderer PSG;
-    ClockSource Clock;
-    Details::ChunksCache<DataChunk, Stamp> BufferedData;
-    Details::AnalysisMap Analyser;
     MultiVolumeTable VolTable;
-    RenderersSet Renderers;
+    typename Traits::PSGType PSG;
+    ClockSource Clock;
+    Details::ChunksCache<typename Traits::DataChunkType, Stamp> BufferedData;
+    Details::AnalysisMap Analyser;
+    RenderersSet<typename Traits::PSGType> Renderers;
+  };
+
+  struct SingleAYTraits
+  {
+    typedef DataChunk DataChunkType;
+    typedef SingleAYChip PSGType;
+    typedef Chip ChipBaseType;
+    static const uint_t VOICES = AYM::VOICES;
   };
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
   {
-    return Chip::Ptr(new RegularAYMChip(params, mixer, target));
+    return Chip::Ptr(new SoundChip<SingleAYTraits>(params, mixer, target));
+  }
+}
+
+namespace TurboSound
+{
+  struct DoubleAYTraits
+  {
+    typedef DataChunk DataChunkType;
+    typedef AYM::DoubleAYChip PSGType;
+    typedef Chip ChipBaseType;
+    static const uint_t VOICES = TurboSound::VOICES;
+  };
+
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
+  {
+    return Chip::Ptr(new AYM::SoundChip<DoubleAYTraits>(params, mixer, target));
   }
 }
 }

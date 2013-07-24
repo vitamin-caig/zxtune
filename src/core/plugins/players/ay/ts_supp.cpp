@@ -25,11 +25,9 @@ Author:
 //library includes
 #include <core/convert_parameters.h>
 #include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <devices/turbosound.h>
 #include <formats/chiptune/container.h>
 #include <sound/mixer_factory.h>
 //std includes
@@ -73,207 +71,6 @@ namespace
   const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
 
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
-
-  class MergedModuleProperties : public Parameters::Accessor
-  {
-    static bool IsSingleProperty(const Parameters::NameType& propName)
-    {
-      return propName == Parameters::ZXTune::Core::AYM::TABLE;
-    }
-
-    static void MergeStringProperty(const Parameters::NameType& propName, String& lh, const String& rh)
-    {
-      if (!IsSingleProperty(propName) && lh != rh)
-      {
-        lh += '/';
-        lh += rh;
-      }
-    }
-
-    class MergedStringsVisitor : public Parameters::Visitor
-    {
-    public:
-      explicit MergedStringsVisitor(Visitor& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)
-      {
-        if (DoneIntegers.insert(name).second)
-        {
-          return Delegate.SetValue(name, val);
-        }
-      }
-
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val)
-      {
-        const StringsValuesMap::iterator it = Strings.find(name);
-        if (it == Strings.end())
-        {
-          Strings.insert(StringsValuesMap::value_type(name, val));
-        }
-        else
-        {
-          MergeStringProperty(name, it->second, val);
-        }
-      }
-
-      virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val)
-      {
-        if (DoneDatas.insert(name).second)
-        {
-          return Delegate.SetValue(name, val);
-        }
-      }
-
-      void ProcessRestStrings() const
-      {
-        for (StringsValuesMap::const_iterator it = Strings.begin(), lim = Strings.end(); it != lim; ++it)
-        {
-          Delegate.SetValue(it->first, it->second);
-        }
-      }
-    private:
-      Parameters::Visitor& Delegate;
-      typedef std::map<Parameters::NameType, Parameters::StringType> StringsValuesMap;
-      StringsValuesMap Strings;
-      std::set<Parameters::NameType> DoneIntegers;
-      std::set<Parameters::NameType> DoneDatas;
-    };
-  public:
-    MergedModuleProperties(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second)
-      : First(first)
-      , Second(second)
-    {
-    }
-
-    virtual uint_t Version() const
-    {
-      return 1;
-    }
-
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
-    {
-      return First->FindValue(name, val) || Second->FindValue(name, val);
-    }
-
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
-    {
-      String val1, val2;
-      const bool res1 = First->FindValue(name, val1);
-      const bool res2 = Second->FindValue(name, val2);
-      if (res1 && res2)
-      {
-        MergeStringProperty(name, val1, val2);
-        val = val1;
-      }
-      else if (res1 != res2)
-      {
-        val = res1 ? val1 : val2;
-      }
-      return res1 || res2;
-    }
-
-    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
-    {
-      return First->FindValue(name, val) || Second->FindValue(name, val);
-    }
-
-    virtual void Process(Parameters::Visitor& visitor) const
-    {
-      MergedStringsVisitor mergedVisitor(visitor);
-      First->Process(mergedVisitor);
-      Second->Process(mergedVisitor);
-      mergedVisitor.ProcessRestStrings();
-    }
-  private:
-    const Parameters::Accessor::Ptr First;
-    const Parameters::Accessor::Ptr Second;
-  };
-
-  class MergedModuleInfo : public Information
-  {
-  public:
-    MergedModuleInfo(Information::Ptr lh, Information::Ptr rh)
-      : First(lh)
-      , Second(rh)
-    {
-    }
-    virtual uint_t PositionsCount() const
-    {
-      return First->PositionsCount();
-    }
-    virtual uint_t LoopPosition() const
-    {
-      return First->LoopPosition();
-    }
-    virtual uint_t PatternsCount() const
-    {
-      return First->PatternsCount() + Second->PatternsCount();
-    }
-    virtual uint_t FramesCount() const
-    {
-      return First->FramesCount();
-    }
-    virtual uint_t LoopFrame() const
-    {
-      return First->LoopFrame();
-    }
-    virtual uint_t ChannelsCount() const
-    {
-      return First->ChannelsCount() + Second->ChannelsCount();
-    }
-    virtual uint_t Tempo() const
-    {
-      return std::min(First->Tempo(), Second->Tempo());
-    }
-  private:
-    const Information::Ptr First;
-    const Information::Ptr Second;
-  };
-
-  //////////////////////////////////////////////////////////////////////////
-
-  class TSHolder : public Holder
-  {
-  public:
-    TSHolder(Parameters::Accessor::Ptr props, const AYM::Holder::Ptr& holder1, const AYM::Holder::Ptr& holder2)
-      : Properties(props)
-      , Holder1(holder1), Holder2(holder2)
-      , Info(new MergedModuleInfo(Holder1->GetModuleInformation(), Holder2->GetModuleInformation()))
-    {
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      const Parameters::Accessor::Ptr mixProps = boost::make_shared<MergedModuleProperties>(Holder1->GetModuleProperties(), Holder2->GetModuleProperties());
-      return Parameters::CreateMergedAccessor(Properties, mixProps);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
-    {
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Sound::ThreeChannelsMatrixMixer::Ptr mixer = Sound::ThreeChannelsMatrixMixer::Create();
-      Sound::FillMixer(*params, *mixer);
-      const std::pair<Devices::AYM::Chip::Ptr, Devices::AYM::Chip::Ptr> chips = Devices::TurboSound::CreateChipsPair(chipParams, mixer, target);
-
-      const Information::Ptr info = GetModuleInformation();
-      const Renderer::Ptr renderer1 = Holder1->CreateRenderer(params, chips.first);
-      const Renderer::Ptr renderer2 = Holder2->CreateRenderer(params, chips.second);
-      return CreateTSRenderer(renderer1, renderer2);
-    }
-  private:
-    const Parameters::Accessor::Ptr Properties;
-    const AYM::Holder::Ptr Holder1;
-    const AYM::Holder::Ptr Holder2;
-    const Information::Ptr Info;
-  };
 }
 
 namespace TS
@@ -405,21 +202,22 @@ namespace TS
       }
       try
       {
-        const Module::AYM::Holder::Ptr holder1 = OpenAYMModule(traits.GetFirstContent(data));
-        if (!holder1)
+        const Module::AYM::Chiptune::Ptr tune1 = OpenAYMModule(traits.GetFirstContent(data));
+        if (!tune1)
         {
           Dbg("Invalid first module holder");
           return Module::Holder::Ptr();
         }
-        const Module::AYM::Holder::Ptr holder2 = OpenAYMModule(traits.GetSecondContent(data));
-        if (!holder2)
+        const Module::AYM::Chiptune::Ptr tune2 = OpenAYMModule(traits.GetSecondContent(data));
+        if (!tune2)
         {
           Dbg("Failed to create second module holder");
           return Module::Holder::Ptr();
         }
         const Binary::Container::Ptr total = traits.GetTotalContent(data);
         properties.SetSource(Formats::Chiptune::CalculatingCrcContainer(total, 0, total->Size()));
-        return boost::make_shared<TSHolder>(properties.GetResult(), holder1, holder2);
+        const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties.GetResult(), tune1, tune2);
+        return TurboSound::CreateHolder(chiptune);
       }
       catch (const Error& e)
       {
@@ -427,9 +225,16 @@ namespace TS
       }
     }
   private:
-    static Module::AYM::Holder::Ptr OpenAYMModule(Binary::Container::Ptr data)
+    static Module::AYM::Chiptune::Ptr OpenAYMModule(Binary::Container::Ptr data)
     {
-      return boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(*data));
+      if (const Module::AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(*data)))
+      {
+        return holder->GetChiptune();
+      }
+      else
+      {
+        return Module::AYM::Chiptune::Ptr();
+      }
     }
   private:
     const FooterFormat::Ptr Format;

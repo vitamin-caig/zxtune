@@ -299,6 +299,11 @@ namespace ZXTune
       const AYM::DataIterator::Ptr iterator = Tune->CreateDataIterator(trackParams);
       return AYM::CreateRenderer(renderParams, iterator, chip);
     }
+
+    virtual AYM::Chiptune::Ptr GetChiptune() const
+    {
+      return Tune;
+    }
   private:
     const AYM::Chiptune::Ptr Tune;
   };

@@ -111,6 +111,7 @@ namespace ZXTune
 
         ModuleData()
           : InitialTempo()
+          , Version(6)
         {
         }
 
@@ -134,14 +135,10 @@ namespace ZXTune
         PatternsSet::Ptr Patterns;
         SparsedObjectsStorage<Sample> Samples;
         SparsedObjectsStorage<Ornament> Ornaments;
+        uint_t Version;
       };
 
-      uint_t ExtractVersion(const Parameters::Accessor& props);
-
-      //creating simple player based on parsed data and parameters
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, ModuleData::Ptr data,
-         uint_t version, Devices::AYM::Chip::Ptr device, uint_t trackChannelStart = 0);
-
+      AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart);
       AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
     }
   }

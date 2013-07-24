@@ -608,6 +608,11 @@ namespace
       const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
       return boost::make_shared<AYRenderer>(renderParams, iterator, comp, ayChannel);
     }
+
+    virtual AYM::Chiptune::Ptr GetChiptune() const
+    {
+      return AYM::Chiptune::Ptr();
+    }
   private:
     const AYData::Ptr Data;
     const Information::Ptr Info;

@@ -51,7 +51,6 @@ namespace ProTracker3
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
       , PatOffset(Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
-      , Version(6)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
       Data->Patterns = Patterns.GetResult();
@@ -64,12 +63,12 @@ namespace ProTracker3
 
     virtual void SetVersion(uint_t version)
     {
-      Properties.SetVersion(3, Version = version);
+      Properties.SetVersion(3, Data->Version = version);
     }
 
     virtual void SetNoteTable(Formats::Chiptune::ProTracker3::NoteTable table)
     {
-      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Version);
+      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Data->Version);
       Properties.SetFreqtable(freqTable);
     }
 
@@ -203,7 +202,6 @@ namespace ProTracker3
     const ModuleData::RWPtr Data;
     PropertiesBuilder& Properties;
     uint_t PatOffset;
-    uint_t Version;
     PatternsBuilder Patterns;
   };
 }
@@ -261,11 +259,11 @@ namespace ProTracker3
 
     virtual uint_t GetTempo() const
     {
-      if (const uint_t tempo = First->GetTempo())
+      if (const uint_t tempo = Second->GetTempo())
       {
         return tempo;
       }
-      return Second->GetTempo();
+      return First->GetTempo();
     }
 
     static Line::Ptr Create(Line::Ptr first, Line::Ptr second)
@@ -339,40 +337,36 @@ namespace ProTracker3
     return boost::make_shared<TSPatternsSet>(patOffset, pats);
   }
 
-  class TSHolder : public Holder
+  class TSChiptune : public TurboSound::Chiptune
   {
   public:
-    TSHolder(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Properties(properties)
-      , Data(data)
-      , Info(CreateTrackInfo(data, 2 * AYM::TRACK_CHANNELS))
+    TSChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(data, TurboSound::TRACK_CHANNELS))
     {
     }
 
-    virtual Information::Ptr GetModuleInformation() const
+    virtual Information::Ptr GetInformation() const
     {
       return Info;
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    virtual TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Sound::ThreeChannelsMatrixMixer::Ptr mixer = Sound::ThreeChannelsMatrixMixer::Create();
-      Sound::FillMixer(*params, *mixer);
-      const std::pair<Devices::AYM::Chip::Ptr, Devices::AYM::Chip::Ptr> chips = Devices::TurboSound::CreateChipsPair(chipParams, mixer, target);
-      const uint_t version = Vortex::ExtractVersion(*Properties);
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, Data, version, chips.first, 0);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, Data, version, chips.second, AYM::TRACK_CHANNELS);
-      return CreateTSRenderer(renderer1, renderer2, renderer1->GetTrackState());
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const AYM::DataRenderer::Ptr first = Vortex::CreateDataRenderer(Data, 0);
+      const AYM::DataRenderer::Ptr second = Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS);
+      return TurboSound::CreateDataIterator(trackParams, iterator, first, second);
     }
   private:
-    const Parameters::Accessor::Ptr Properties;
     const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
 
@@ -407,7 +401,8 @@ namespace ProTracker3
           //TurboSound modules
           propBuilder.SetComment(Text::PT3_TURBOSOUND_MODULE);
           modData->Patterns = ::ProTracker3::CreateTSPatterns(patOffset, modData->Patterns);
-          return boost::make_shared< ::ProTracker3::TSHolder>(modData, propBuilder.GetResult());
+          const TurboSound::Chiptune::Ptr chiptune = boost::make_shared<TSChiptune>(modData, propBuilder.GetResult());
+          return TurboSound::CreateHolder(chiptune);
         }
         else
         {

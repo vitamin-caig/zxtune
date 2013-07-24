@@ -144,6 +144,11 @@ namespace
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), chip);
     }
+
+    virtual Module::AYM::Chiptune::Ptr GetChiptune() const
+    {
+      return Delegate->GetChiptune();
+    }
   private:
     const Module::AYM::Holder::Ptr Delegate;
     const Parameters::Accessor::Ptr Properties;
