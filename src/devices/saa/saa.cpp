@@ -111,7 +111,7 @@ namespace SAA
       return Device.GetLevels();
     }
 
-    void GetState(ChannelsState& state) const
+    void GetState(MultiChannelState& state) const
     {
       Device.GetState(state);
     }
@@ -406,13 +406,15 @@ namespace SAA
       Renderers.Reset();
     }
 
-    virtual void GetState(ChannelsState& state) const
+    virtual void GetState(MultiChannelState& state) const
     {
-      PSG.GetState(state);
-      for (ChannelsState::iterator it = state.begin(), lim = state.end(); it != lim; ++it)
+      MultiChannelState res;
+      PSG.GetState(res);
+      for (MultiChannelState::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
       {
-        it->Band = it->Enabled ? Analyser.GetBandByPeriod(it->Band) : 0;
+        it->Band = Analyser.GetBandByPeriod(it->Band);
       }
+      state.swap(res);
     }
   private:
     void SynchronizeParameters()

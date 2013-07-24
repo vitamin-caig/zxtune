@@ -119,24 +119,6 @@ namespace
     Devices::DAC::DataChunk CurrentChunk;
   };
 
-  class DACAnalyzer : public Analyzer
-  {
-  public:
-    explicit DACAnalyzer(Devices::DAC::Chip::Ptr device)
-      : Device(device)
-    {
-    }
-
-    virtual void GetState(std::vector<Analyzer::ChannelState>& channels) const
-    {
-      Devices::DAC::ChannelsState state;
-      Device->GetState(state);
-      ConvertAnalyzerState(state.begin(), state.end(), channels);
-    }
-  private:
-    const Devices::DAC::Chip::Ptr Device;
-  };
-
   class DACRenderer : public Renderer
   {
   public:
@@ -161,7 +143,7 @@ namespace
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return DAC::CreateAnalyzer(Device);
+      return CreateAnalyzer(Device);
     }
 
     virtual bool RenderFrame()
@@ -248,7 +230,7 @@ namespace
       return Delegate->Flush();
     }
 
-    virtual void GetState(Devices::DAC::ChannelsState& state) const
+    virtual void GetState(Devices::MultiChannelState& state) const
     {
       return Delegate->GetState(state);
     }
@@ -340,11 +322,6 @@ namespace ZXTune
         const std::vector<DataChunk::ChannelData>::iterator last = std::remove_if(Data.begin(), Data.end(),
           boost::bind(&DataChunk::ChannelData::Mask, _1) == 0u);
         result.assign(Data.begin(), last);
-      }
-
-      Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device)
-      {
-        return boost::make_shared<DACAnalyzer>(device);
       }
 
       Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)

@@ -122,33 +122,26 @@ namespace Devices
         return out;
       }
 
-      void GetState(ChannelState* state) const
+      void GetState(MultiChannelState& state) const
       {
         const uint_t MAX_IN_LEVEL = 30;
+        LevelType toneLevels[3];
         for (uint_t chan = 0; chan != 3; ++chan)
         {
-          state[chan] = ChannelState();
-          if ((state[chan].Enabled = !Tones[chan].IsMasked()))
+          toneLevels[chan] = LevelType(Levels[chan].Left() + Levels[chan].Right(), MAX_IN_LEVEL);
+          if (!Tones[chan].IsMasked())
           {
-            state[chan].Band = 2 * Tones[chan].GetHalfPeriod();
-            state[chan].Level = LevelType(Levels[chan].Left() + Levels[chan].Right(), MAX_IN_LEVEL);
+            state.push_back(ChannelState(2 * Tones[chan].GetHalfPeriod(), toneLevels[chan]));
           }
         }
-        ChannelState& noiseChan = state[3];
-        noiseChan = ChannelState();
-        if (const uint_t mixer = Noise.GetMixer())
+        if (Noise.GetMixer())
         {
-          noiseChan.Enabled = true;
-          noiseChan.Band = Noise.GetPeriod();
-          noiseChan.Level = (state[0].Level + state[1].Level + state[2].Level) / 3;
+          const LevelType level = (toneLevels[0] + toneLevels[1] + toneLevels[2]) / 3;
+          state.push_back(ChannelState(Noise.GetPeriod(), level));
         }
-        ChannelState& envChan = state[4];
-        envChan = ChannelState();
         if (const uint_t period = Envelope.GetRepetitionPeriod())
         {
-          envChan.Enabled = true;
-          envChan.Band = period;
-          envChan.Level = state[2].Level;
+          state.push_back(ChannelState(period, toneLevels[2]));
         }
       }
     private:
@@ -256,10 +249,10 @@ namespace Devices
         return out.Convert();
       }
 
-    void GetState(ChannelsState& state) const
+    void GetState(MultiChannelState& state) const
     {
-      Subdevices[0].GetState(&state[0]);
-      Subdevices[1].GetState(&state[VOICES / 2]);
+      Subdevices[0].GetState(state);
+      Subdevices[1].GetState(state);
     }
     private:
       SAASubDevice Subdevices[2];

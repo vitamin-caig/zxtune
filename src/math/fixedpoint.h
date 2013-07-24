@@ -88,6 +88,7 @@ namespace Math
     FixedPoint<T, Precision>& operator = (const FixedPoint<T1, Precision1>& rh)
     {
       Set(rh.Raw(), Precision1);
+      return *this;
     }
 
     template<class P>

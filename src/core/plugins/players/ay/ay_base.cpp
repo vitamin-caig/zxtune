@@ -102,24 +102,6 @@ namespace ZXTune
     FrequencyTable Table;
   };
 
-  class AYMAnalyzer : public Analyzer
-  {
-  public:
-    explicit AYMAnalyzer(Devices::AYM::Chip::Ptr device)
-      : Device(device)
-    {
-    }
-
-    virtual void GetState(std::vector<Analyzer::ChannelState>& channels) const
-    {
-      Devices::AYM::ChannelsState state;
-      Device->GetState(state);
-      ConvertAnalyzerState(state.begin(), state.end(), channels);
-    }
-  private:
-    const Devices::AYM::Chip::Ptr Device;
-  };
-
   class AYMRenderer : public Renderer
   {
   public:
@@ -351,7 +333,7 @@ namespace ZXTune
       return Delegate->Reset();
     }
 
-    virtual void GetState(Devices::AYM::ChannelsState& state) const
+    virtual void GetState(Devices::MultiChannelState& state) const
     {
       return Delegate->GetState(state);
     }
@@ -533,9 +515,9 @@ namespace ZXTune
 
       Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)
       {
-        if (Devices::AYM::Chip::Ptr chip = boost::dynamic_pointer_cast<Devices::AYM::Chip>(device))
+        if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
         {
-          return boost::make_shared<AYMAnalyzer>(chip);
+          return Module::CreateAnalyzer(src);
         }
         return Analyzer::Ptr();
       }

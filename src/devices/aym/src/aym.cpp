@@ -188,18 +188,12 @@ namespace AYM
       }
     }
 
-    void GetState(ChannelsState& state) const
+    void GetState(MultiChannelState& state) const
     {
       const uint_t TONE_VOICES = 3;
-      const LevelType DELTA(1, TONE_VOICES);
-      //one channel is noise
-      ChannelState& noiseChan = state[TONE_VOICES];
-      noiseChan = ChannelState();
-      noiseChan.Band = GetToneN();
-      //one channel is envelope    
-      ChannelState& envChan = state[TONE_VOICES + 1];
-      envChan = ChannelState();
-      envChan.Band = 16 * GetToneE();
+      const LevelType COMMON_LEVEL_DELTA(1, TONE_VOICES);
+      const LevelType EMPTY_LEVEL;
+      LevelType noiseLevel, envLevel;
       //taking into account only periodic envelope
       const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
       const uint_t mixer = ~GetMixer();
@@ -212,28 +206,33 @@ namespace AYM
         //accumulate level in noise channel
         if (hasNoise)
         {
-          noiseChan.Enabled = true;
-          noiseChan.Level += DELTA;
+          noiseLevel += COMMON_LEVEL_DELTA;
         }
         //accumulate level in envelope channel      
         if (periodicEnv && hasEnv)
         {        
-          envChan.Enabled = true;
-          envChan.Level += DELTA;
+          envLevel += COMMON_LEVEL_DELTA;
         }
         //calculate tone channel
         ChannelState& channel = state[chan];
         channel = ChannelState();
         if (hasTone)
         {
-          channel.Enabled = true;
           const uint_t MAX_VOL = Registers::MASK_VOL;
-          channel.Level = LevelType(volReg & Registers::MASK_VOL, MAX_VOL);
-          //Use full period
-          channel.Band = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] +
+          const LevelType level(volReg & Registers::MASK_VOL, MAX_VOL);
+          const uint_t band = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] +
             Regs[Registers::TONEA_L + chan * 2]);
+          state.push_back(ChannelState(band, level));
         }
-      } 
+      }
+      if (noiseLevel != EMPTY_LEVEL)
+      {
+        state.push_back(ChannelState(GetToneN(), noiseLevel));
+      }
+      if (envLevel != EMPTY_LEVEL)
+      {
+        state.push_back(ChannelState(16 * GetToneE(), envLevel));
+      }  
     }
   private:
     uint_t GetMixer() const
@@ -658,13 +657,16 @@ namespace AYM
       Renderers.Reset();
     }
 
-    virtual void GetState(ChannelsState& state) const
+    virtual void GetState(MultiChannelState& state) const
     {
-      PSG.GetState(state);
-      for (ChannelsState::iterator it = state.begin(), lim = state.end(); it != lim; ++it)
+      MultiChannelState res;
+      res.reserve(VOICES);
+      PSG.GetState(res);
+      for (MultiChannelState::iterator it = res.begin(), lim = res.end(); it != lim; ++it)
       {
-        it->Band = it->Enabled ? Analyser.GetBandByPeriod(it->Band) : 0;
+        it->Band = Analyser.GetBandByPeriod(it->Band);
       }
+      state.swap(res);
     }
   private:
     void SynchronizeParameters()

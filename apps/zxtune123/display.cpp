@@ -210,7 +210,7 @@ namespace
         std::bind2nd(std::minus<int_t>(), fallspeed));
       for (std::vector<ZXTune::Module::Analyzer::ChannelState>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
       {
-        if (it->Enabled && it->Band < AnalyzerData.size())
+        if (it->Band < AnalyzerData.size())
         {
           AnalyzerData[it->Band] = it->Level;
         }

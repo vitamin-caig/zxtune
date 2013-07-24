@@ -84,13 +84,11 @@ namespace ZXTune
       struct ChannelState
       {
         ChannelState()
-          : Enabled()
-          , Band()
+          : Band()
           , Level()
         {
         }
 
-        bool Enabled;
         uint_t Band;
         uint_t Level;
       };

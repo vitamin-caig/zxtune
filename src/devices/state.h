@@ -15,8 +15,10 @@ Author:
 
 //library includes
 #include <math/fixedpoint.h>
+//std includes
+#include <vector>
 //boost includes
-#include <boost/array.hpp>
+#include <boost/shared_ptr.hpp>
 
 namespace Devices
 {
@@ -27,12 +29,16 @@ namespace Devices
   struct ChannelState
   {
     ChannelState()
-      : Enabled(), Band(), Level()
+      : Band(), Level()
     {
     }
 
-    //Is channel enabled to output, else other fields are not set
-    bool Enabled;
+    ChannelState(uint_t band, LevelType level)
+      : Band(band)
+      , Level(level)
+    {
+    }
+
     //Currently played tone band (up to 96)
     uint_t Band;
     //Currently played tone level percentage
@@ -40,9 +46,15 @@ namespace Devices
   };
 
   typedef std::vector<ChannelState> MultiChannelState;
-  
-  template<unsigned Channels>
-  class FixedChannelsCountState : public boost::array<ChannelState, Channels> {};
+
+  class StateSource
+  {
+  public:
+    typedef boost::shared_ptr<const StateSource> Ptr;
+    virtual ~StateSource() {}
+
+    virtual void GetState(MultiChannelState& result) const = 0;
+  };
 }
 
 #endif //DEVICES_STATE_H_DEFINED

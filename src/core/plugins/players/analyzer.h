@@ -1,6 +1,6 @@
 /*
 Abstract:
-  Analyzer helper routines
+  Analyzer adapter factory
 
 Last changed:
   $Id$
@@ -10,29 +10,19 @@ Author:
 */
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_ANALYZER_HELPER_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_ANALYZER_HELPER_H_DEFINED
+#ifndef CORE_PLUGINS_PLAYERS_ANALYZER_H_DEFINED
+#define CORE_PLUGINS_PLAYERS_ANALYZER_H_DEFINED
 
 //library includes
 #include <core/module_types.h>
+#include <devices/state.h>
 
 namespace ZXTune
 {
   namespace Module
   {
-    template<class It>
-    void ConvertAnalyzerState(It begin, It end, std::vector<Analyzer::ChannelState>& channels)
-    {
-      channels.resize(std::distance(begin, end));
-      std::vector<Analyzer::ChannelState>::iterator out = channels.begin();
-      for (It it = begin; it != end; ++it, ++out)
-      {
-        out->Enabled = it->Enabled;
-        out->Band = it->Band;
-        out->Level = it->Level.Raw();
-      }
-    }
+    Analyzer::Ptr CreateAnalyzer(Devices::StateSource::Ptr state);
   }
 }
 
-#endif //CORE_PLUGINS_PLAYERS_ANALYZER_HELPER_H_DEFINED
+#endif //CORE_PLUGINS_PLAYERS_ANALYZER_H_DEFINED

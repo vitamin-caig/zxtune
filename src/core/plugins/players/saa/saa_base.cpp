@@ -80,24 +80,6 @@ namespace
     Devices::SAA::DataChunk CurrentChunk;
   };
 
-  class SAAAnalyzer : public Analyzer
-  {
-  public:
-    explicit SAAAnalyzer(Devices::SAA::Chip::Ptr device)
-      : Device(device)
-    {
-    }
-
-    virtual void GetState(std::vector<Analyzer::ChannelState>& channels) const
-    {
-      Devices::SAA::ChannelsState state;
-      Device->GetState(state);
-      ConvertAnalyzerState(state.begin(), state.end(), channels);
-    }
-  private:
-    const Devices::SAA::Chip::Ptr Device;
-  };
-
   class SAARenderer : public Renderer
   {
   public:
@@ -268,9 +250,9 @@ namespace ZXTune
 
       Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)
       {
-        if (Devices::SAA::Chip::Ptr chip = boost::dynamic_pointer_cast<Devices::SAA::Chip>(device))
+        if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::SAA::Chip>(device))
         {
-          return boost::make_shared<SAAAnalyzer>(chip);
+          return Module::CreateAnalyzer(src);
         }
         return Analyzer::Ptr();
       }

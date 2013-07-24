@@ -132,8 +132,6 @@ namespace ZXTune
         virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const = 0;
       };
 
-      Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device);
-
       DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
       Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);

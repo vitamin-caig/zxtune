@@ -104,14 +104,10 @@ namespace
       ChannelsState result;
       Analyser->GetState(result);
       uint_t doneEntries = 0;
-      for (ChannelsState::const_iterator it = result.begin(), lim = result.end(); it != lim && doneEntries != maxEntries; ++it)
+      for (ChannelsState::const_iterator it = result.begin(), lim = result.end(); it != lim && doneEntries != maxEntries; ++it, ++doneEntries)
       {
-        if (it->Enabled)
-        {
-          bands[doneEntries] = it->Band;
-          levels[doneEntries] = it->Level;
-          ++doneEntries;
-        }
+        bands[doneEntries] = it->Band;
+        levels[doneEntries] = it->Level;
       }
       return doneEntries;
     }

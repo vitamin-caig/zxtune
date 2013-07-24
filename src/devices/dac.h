@@ -106,9 +106,7 @@ namespace Devices
       std::vector<ChannelData> Channels;
     };
 
-    typedef MultiChannelState ChannelsState;
-
-    class Chip
+    class Chip : public StateSource
     {
     public:
       typedef boost::shared_ptr<Chip> Ptr;
@@ -121,7 +119,6 @@ namespace Devices
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
       virtual void Flush() = 0;
-      virtual void GetState(ChannelsState& state) const = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;

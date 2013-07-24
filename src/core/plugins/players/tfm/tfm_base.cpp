@@ -80,24 +80,6 @@ namespace
   };
 
 
-  class TFMAnalyzer : public Analyzer
-  {
-  public:
-    explicit TFMAnalyzer(Devices::TFM::Chip::Ptr device)
-      : Device(device)
-    {
-    }
-
-    virtual void GetState(std::vector<Analyzer::ChannelState>& channels) const
-    {
-      Devices::TFM::ChannelsState state;
-      Device->GetState(state);
-      ConvertAnalyzerState(state.begin(), state.end(), channels);
-    }
-  private:
-    const Devices::TFM::Chip::Ptr Device;
-  };
-
   class TFMRenderer : public Renderer
   {
   public:
@@ -360,9 +342,9 @@ namespace ZXTune
 
       Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device)
       {
-        if (Devices::TFM::Chip::Ptr chip = boost::dynamic_pointer_cast<Devices::TFM::Chip>(device))
+        if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
         {
-          return boost::make_shared<TFMAnalyzer>(chip);
+          return Module::CreateAnalyzer(src);
         }
         return Analyzer::Ptr();
       }

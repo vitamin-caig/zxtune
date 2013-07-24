@@ -363,14 +363,10 @@ namespace DAC
 
     Devices::ChannelState Analyze(uint_t maxRms) const
     {
-      Devices::ChannelState result;
-      if ( (result.Enabled = Enabled) )
-      {
-        result.Band = Note + NoteSlide;
-        const uint_t rms = Source->GetRms();
-        result.Level = Level * rms / maxRms;
-      }
-      return result;
+      assert(Enabled);
+      const uint_t rms = Source->GetRms();
+      const LevelType level = Level * rms / maxRms;
+      return Devices::ChannelState(Note + NoteSlide, level);
     }
   private:
     Sound::Sample::Type Amplify(Sound::Sample::Type val) const
@@ -555,11 +551,18 @@ namespace DAC
       Target->Flush();
     }
 
-    virtual void GetState(ChannelsState& state) const
+    virtual void GetState(MultiChannelState& state) const
     {
-      state.resize(State.size());
-      std::transform(State.begin(), State.end(), state.begin(),
-        std::bind2nd(std::mem_fun_ref(&ChannelState::Analyze), Samples.GetMaxRms()));
+      MultiChannelState res;
+      res.reserve(State.size());
+      for (const ChannelState* it = State.begin(), *lim = State.end(); it != lim; ++it)
+      {
+        if (it->Enabled)
+        {
+          res.push_back(it->Analyze(Samples.GetMaxRms()));
+        }
+      }
+      res.swap(state);
     }
 
     /// reset internal state to initial

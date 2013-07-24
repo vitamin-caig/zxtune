@@ -63,7 +63,7 @@ namespace
 
   inline void StoreValue(const ZXTune::Module::Analyzer::ChannelState& chan, Analyzed& result)
   {
-    if (chan.Enabled && chan.Band < MAX_BANDS)
+    if (chan.Band < MAX_BANDS)
     {
       result[chan.Band].Set(chan.Level);
     }

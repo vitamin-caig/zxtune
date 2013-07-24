@@ -90,15 +90,11 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
-    typedef FixedChannelsCountState<VOICES> ChannelsState;
-
     // Describes real device
-    class Chip : public Device
+    class Chip : public Device, public StateSource
     {
     public:
       typedef boost::shared_ptr<Chip> Ptr;
-
-      virtual void GetState(ChannelsState& state) const = 0;
     };
 
     enum InterpolationType

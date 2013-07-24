@@ -46,14 +46,10 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
-    using Devices::FM::ChannelsState;
-
-    class Chip : public Device
+    class Chip : public Device, public StateSource
     {
     public:
       typedef boost::shared_ptr<Chip> Ptr;
-
-      virtual void GetState(ChannelsState& state) const = 0;
     };
 
     using Devices::FM::ChipParameters;
