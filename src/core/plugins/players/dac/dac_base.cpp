@@ -201,55 +201,27 @@ namespace
   };
 
   template<unsigned Channels>
-  class PollingMixerChip : public Devices::DAC::Chip
+  Devices::DAC::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
   {
-  public:
-    PollingMixerChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-      : Params(params)
-      , Mixer(Sound::FixedChannelsMatrixMixer<Channels>::Create())
-      , Delegate(Devices::DAC::CreateChip(DAC::CreateChipParameters(params), Mixer, target))
-    {
-    }
+    typedef Sound::FixedChannelsMatrixMixer<Channels> MixerType;
+    const typename MixerType::Ptr mixer = MixerType::Create();
+    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
+    const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(pollParams);
+    return Devices::DAC::CreateChip(chipParams, mixer, target);
+  }
 
-    virtual void SetSample(uint_t idx, Devices::DAC::Sample::Ptr sample)
+  Devices::DAC::Chip::Ptr CreateChip(unsigned channels, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  {
+    switch (channels)
     {
-      return Delegate->SetSample(idx, sample);
-    }
-
-    virtual void RenderData(const Devices::DAC::DataChunk& src)
-    {
-      return Delegate->RenderData(src);
-    }
-
-    virtual void Flush()
-    {
-      if (Params.IsChanged())
-      {
-        Sound::FillMixer(*Params, *Mixer);
-      }
-      return Delegate->Flush();
-    }
-
-    virtual void GetState(Devices::MultiChannelState& state) const
-    {
-      return Delegate->GetState(state);
-    }
-
-    virtual void Reset()
-    {
-      Params.Reset();
-      return Delegate->Reset();
-    }
-
-    static Devices::DAC::Chip::Ptr Create(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-    {
-      return boost::make_shared<PollingMixerChip>(params, target);
-    }
-  private:
-    Devices::Details::ParametersHelper<Parameters::Accessor> Params;
-    const typename Sound::FixedChannelsMatrixMixer<Channels>::Ptr Mixer;
-    const Devices::DAC::Chip::Ptr Delegate;
-  };
+    case 3:
+      return CreateChip<3>(params, target);
+    case 4:
+      return CreateChip<4>(params, target);
+    default:
+      return Devices::DAC::Chip::Ptr();
+    };
+  }
 
   class DACHolder : public Holder
   {
@@ -273,22 +245,9 @@ namespace
     {
       const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
       const DAC::DataIterator::Ptr iterator = Tune->CreateDataIterator();
-      const Devices::DAC::Chip::Ptr chip = CreateChip(params, target);
+      const Devices::DAC::Chip::Ptr chip = CreateChip(Tune->GetInformation()->ChannelsCount(), params, target);
       Tune->GetSamples(chip);
       return DAC::CreateRenderer(renderParams, iterator, chip);
-    }
-  private:
-    Devices::DAC::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
-    {
-      switch (Tune->GetInformation()->ChannelsCount())
-      {
-      case 3:
-        return PollingMixerChip<3>::Create(params, target);
-      case 4:
-        return PollingMixerChip<4>::Create(params, target);
-      default:
-        return Devices::DAC::Chip::Ptr();
-      };
     }
   private:
     const DAC::Chiptune::Ptr Tune;

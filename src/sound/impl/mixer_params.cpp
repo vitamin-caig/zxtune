@@ -49,20 +49,64 @@ namespace Sound
     GetMatrix<Channels>(params, res);
     mixer.SetMatrix(res);
   }
+
+
+  template<class MixerType>
+  class MixerNotificationParameters : public Parameters::Accessor
+  {
+  public:
+    MixerNotificationParameters(Parameters::Accessor::Ptr params, typename MixerType::Ptr mixer)
+      : Params(params)
+      , Mixer(mixer)
+      , LastVersion(~params->Version())
+    {
+    }
+
+    virtual uint_t Version() const
+    {
+      const uint_t newVers = Params->Version();
+      if (newVers != LastVersion)
+      {
+        FillMixer(*Params, *Mixer);
+        LastVersion = newVers;
+      }
+      return newVers;
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
+    {
+      return Params->FindValue(name, val);
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
+    {
+      return Params->FindValue(name, val);
+    }
+
+    virtual bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const
+    {
+      return Params->FindValue(name, val);
+    }
+
+    virtual void Process(Parameters::Visitor& visitor) const
+    {
+      return Params->Process(visitor);
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+    const typename MixerType::Ptr Mixer;
+    mutable uint_t LastVersion;
+  };
+
+  template<unsigned Channels>
+  Parameters::Accessor::Ptr CreateMixerNotificationParametersInternal(Parameters::Accessor::Ptr params, typename FixedChannelsMatrixMixer<Channels>::Ptr mixer)
+  {
+    return boost::make_shared<MixerNotificationParameters<FixedChannelsMatrixMixer<Channels> > >(params, mixer);
+  }
 }
 
 namespace Sound
 {
-  void FillMixer(const Parameters::Accessor& params, OneChannelMatrixMixer& mixer)
-  {
-    FillMixerInternal<1>(params, mixer);
-  }
-
-  void FillMixer(const Parameters::Accessor& params, TwoChannelsMatrixMixer& mixer)
-  {
-    FillMixerInternal<2>(params, mixer);
-  }
-
   void FillMixer(const Parameters::Accessor& params, ThreeChannelsMatrixMixer& mixer)
   {
     FillMixerInternal<3>(params, mixer);
@@ -71,5 +115,15 @@ namespace Sound
   void FillMixer(const Parameters::Accessor& params, FourChannelsMatrixMixer& mixer)
   {
     FillMixerInternal<4>(params, mixer);
+  }
+
+  Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate, ThreeChannelsMatrixMixer::Ptr mixer)
+  {
+    return CreateMixerNotificationParametersInternal<3>(delegate, mixer);
+  }
+
+  Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate, FourChannelsMatrixMixer::Ptr mixer)
+  {
+    return CreateMixerNotificationParametersInternal<4>(delegate, mixer);
   }
 }

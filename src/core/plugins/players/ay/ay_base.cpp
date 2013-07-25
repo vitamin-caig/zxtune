@@ -308,50 +308,14 @@ namespace ZXTune
     const AYM::Chiptune::Ptr Tune;
   };
 
-  class PollingMixerChip : public Devices::AYM::Chip
+  Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
   {
-  public:
-    PollingMixerChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-      : Params(params)
-      , Mixer(Sound::ThreeChannelsMatrixMixer::Create())
-      , Delegate(Devices::AYM::CreateChip(AYM::CreateChipParameters(params), Mixer, target))
-    {
-    }
-
-    virtual void RenderData(const Devices::AYM::DataChunk& src)
-    {
-      return Delegate->RenderData(src);
-    }
-
-    virtual void Flush()
-    {
-      if (Params.IsChanged())
-      {
-        Sound::FillMixer(*Params, *Mixer);
-      }
-      return Delegate->Flush();
-    }
-
-    virtual void Reset()
-    {
-      Params.Reset();
-      return Delegate->Reset();
-    }
-
-    virtual void GetState(Devices::MultiChannelState& state) const
-    {
-      return Delegate->GetState(state);
-    }
-
-    static Devices::AYM::Chip::Ptr Create(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-    {
-      return boost::make_shared<PollingMixerChip>(params, target);
-    }
-  private:
-    Devices::Details::ParametersHelper<Parameters::Accessor> Params;
-    const Sound::ThreeChannelsMatrixMixer::Ptr Mixer;
-    const Devices::AYM::Chip::Ptr Delegate;
-  };
+    typedef Sound::ThreeChannelsMatrixMixer MixerType;
+    const MixerType::Ptr mixer = MixerType::Create();
+    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
+    const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(pollParams);
+    return Devices::AYM::CreateChip(chipParams, mixer, target);
+  }
 
   class StreamDataIterator : public AYM::DataIterator
   {
@@ -543,7 +507,7 @@ namespace ZXTune
         {
           if (FadeoutFilter::Ptr fadeout = CreateFadeOutFilter(params, holder.GetModuleInformation(), fade))
           {
-            const Devices::AYM::Chip::Ptr chip = PollingMixerChip::Create(params, fadeout);
+            const Devices::AYM::Chip::Ptr chip = CreateChip(params, fadeout);
             const Renderer::Ptr result = holder.CreateRenderer(params, chip);
             fadeout->SetTrackState(result->GetTrackState());
             return result;
@@ -551,13 +515,13 @@ namespace ZXTune
           else
           {
             //only fade in
-            const Devices::AYM::Chip::Ptr chip = PollingMixerChip::Create(params, fade);
+            const Devices::AYM::Chip::Ptr chip = CreateChip(params, fade);
             return holder.CreateRenderer(params, chip);
           }
         }
         else
         {
-          const Devices::AYM::Chip::Ptr chip = PollingMixerChip::Create(params, target);
+          const Devices::AYM::Chip::Ptr chip = CreateChip(params, target);
           return holder.CreateRenderer(params, chip);
         }
       }

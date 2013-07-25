@@ -18,10 +18,11 @@
 
 namespace Sound
 {
-  void FillMixer(const Parameters::Accessor& params, OneChannelMatrixMixer& mixer);
-  void FillMixer(const Parameters::Accessor& params, TwoChannelsMatrixMixer& mixer);
   void FillMixer(const Parameters::Accessor& params, ThreeChannelsMatrixMixer& mixer);
   void FillMixer(const Parameters::Accessor& params, FourChannelsMatrixMixer& mixer);
+
+  Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate, ThreeChannelsMatrixMixer::Ptr mixer);
+  Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate, FourChannelsMatrixMixer::Ptr mixer);
 }
 
 #endif //SOUND_MIXER_FACTORY_H_DEFINED
