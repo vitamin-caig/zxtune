@@ -17,37 +17,14 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace Module
-{
-  Analysis::Result::Ptr DetectInLocation(const Factory& factory, const String& type, ZXTune::DataLocation::Ptr inputData, const DetectCallback& callback)
-  {
-    const Binary::Container::Ptr data = inputData->GetData();
-    const Binary::Format::Ptr format = factory.GetFormat();
-    if (!factory.Check(*data))
-    {
-      return Analysis::CreateUnmatchedResult(format, data);
-    }
-    PropertiesBuilder properties;
-    properties.SetType(type);
-    properties.SetLocation(*inputData);
-    if (const Holder::Ptr holder = factory.CreateModule(properties, *data))
-    {
-      callback.ProcessModule(inputData, holder);
-      Parameters::IntType usedSize = 0;
-      properties.GetResult()->FindValue(Module::ATTR_SIZE, usedSize);
-      return Analysis::CreateMatchedResult(usedSize);
-    }
-    return Analysis::CreateUnmatchedResult(format, data);
-  }
-}
-
 namespace ZXTune
 {
   class CommonPlayerPlugin : public PlayerPlugin
   {
   public:
-    CommonPlayerPlugin(Plugin::Ptr descr, Module::Factory::Ptr factory)
+    CommonPlayerPlugin(Plugin::Ptr descr, Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
       : Description(descr)
+      , Decoder(decoder)
       , Factory(factory)
     {
     }
@@ -59,36 +36,51 @@ namespace ZXTune
 
     virtual Binary::Format::Ptr GetFormat() const
     {
-      return Factory->GetFormat();
+      return Decoder->GetFormat();
     }
 
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
-      return Module::DetectInLocation(*Factory, Description->Id(), inputData, callback);
+      const Binary::Container::Ptr data = inputData->GetData();
+      if (Decoder->Check(*data))
+      {
+        Module::PropertiesBuilder properties;
+        properties.SetType(Description->Id());
+        properties.SetLocation(*inputData);
+        if (const Module::Holder::Ptr holder = Factory->CreateModule(properties, *data))
+        {
+          callback.ProcessModule(inputData, holder);
+          Parameters::IntType usedSize = 0;
+          properties.GetResult()->FindValue(Module::ATTR_SIZE, usedSize);
+          return Analysis::CreateMatchedResult(usedSize);
+        }
+      }
+      return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), data);
     }
 
     virtual Module::Holder::Ptr Open(const Binary::Container& data) const
     {
-      if (!Factory->Check(data))
+      if (Decoder->Check(data))
       {
-        return Module::Holder::Ptr();
+        Module::PropertiesBuilder properties;
+        properties.SetType(Description->Id());
+        return Factory->CreateModule(properties, data);
       }
-      Module::PropertiesBuilder properties;
-      properties.SetType(Description->Id());
-      return Factory->CreateModule(properties, data);
+      return Module::Holder::Ptr();
     }
   private:
     const Plugin::Ptr Description;
+    const Formats::Chiptune::Decoder::Ptr Decoder;
     const Module::Factory::Ptr Factory;
   };
 }
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps,
-    Module::Factory::Ptr factory)
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps,
+    Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, info, caps);
-    return PlayerPlugin::Ptr(new CommonPlayerPlugin(description, factory));
+    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps);
+    return PlayerPlugin::Ptr(new CommonPlayerPlugin(description, decoder, factory));
   }
 }

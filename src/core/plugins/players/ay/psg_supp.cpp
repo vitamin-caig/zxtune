@@ -76,21 +76,6 @@ namespace PSG
   class Factory : public Module::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
-      : Decoder(decoder)
-    {
-    }
-
-    virtual bool Check(const Binary::Container& data) const
-    {
-      return Decoder->Check(data);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder;
@@ -105,8 +90,6 @@ namespace PSG
       }
       return Holder::Ptr();
     }
-  private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
 }
@@ -120,8 +103,8 @@ namespace ZXTune
     const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSGDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::PSG::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::PSG::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

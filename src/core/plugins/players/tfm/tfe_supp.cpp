@@ -1608,13 +1608,13 @@ namespace ZXTune
     {
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver05::CreateDecoder();
       const Module::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_05, decoder->GetDescription(), CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_05, CAPS, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver13::CreateDecoder();
       const Module::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_13, decoder->GetDescription(), CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_13, CAPS, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

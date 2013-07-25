@@ -611,22 +611,29 @@ namespace AY
     const Parameters::Accessor::Ptr Properties;
   };
 
+  //TODO: extract
   const std::string HEADER_FORMAT(
     "'Z'X'A'Y" // uint8_t Signature[4];
     "'E'M'U'L" // only one type is supported now
+    "??" //versions
+    "??" //player offset
+    "??" //author offset
+    "??" //misc offset
+    "00" //first module
+    "00" //last module
   );
 
-  class Factory : public Module::Factory
+  class Decoder : public Formats::Chiptune::Decoder
   {
   public:
-    Factory()
+    Decoder()
       : Format(Binary::Format::Create(HEADER_FORMAT))
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
+    virtual String GetDescription() const
     {
-      return Formats::Chiptune::AY::GetModulesCount(inputData) == 1;
+      return Text::AY_EMUL_DECODER_DESCRIPTION;
     }
 
     virtual Binary::Format::Ptr GetFormat() const
@@ -634,6 +641,22 @@ namespace AY
       return Format;
     }
 
+    virtual bool Check(const Binary::Container& rawData) const
+    {
+      return Formats::Chiptune::AY::GetModulesCount(rawData) == 1;
+    }
+
+    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+    {
+      return Formats::Chiptune::AY::Parse(rawData, 0, Formats::Chiptune::AY::GetStubBuilder());
+    }
+  private:
+    const Binary::Format::Ptr Format;
+  };
+
+  class Factory : public Module::Factory
+  {
+  public:
     virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       try
@@ -656,8 +679,6 @@ namespace AY
       }
       return Holder::Ptr();
     }
-  private:
-    const Binary::Format::Ptr Format;
   };
 }
 }
@@ -668,11 +689,11 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'A', 'Y', 0};
-    const Char* const INFO = Text::AY_EMUL_DECODER_DESCRIPTION;
     const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
 
+    const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::AY::Decoder>();
     const Module::Factory::Ptr factory = boost::make_shared<Module::AY::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

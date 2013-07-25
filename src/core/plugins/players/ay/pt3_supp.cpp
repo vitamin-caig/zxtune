@@ -371,16 +371,6 @@ namespace ProTracker3
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
-    {
-      return Decoder->Check(inputData);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
@@ -421,7 +411,7 @@ namespace ZXTune
 
     const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::CreateDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker3::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 
@@ -433,7 +423,7 @@ namespace ZXTune
 
     const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker3::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

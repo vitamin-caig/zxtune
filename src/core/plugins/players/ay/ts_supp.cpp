@@ -163,22 +163,44 @@ namespace TS
     const Binary::Format::Ptr Delegate;
   };
 
-  class Factory : public Module::Factory
+  class Decoder : public Formats::Chiptune::Decoder
   {
   public:
-    Factory()
-      : Format(boost::make_shared<FooterFormat>())
+    explicit Decoder(Binary::Format::Ptr format)
+      : Format(format)
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
+    virtual String GetDescription() const
     {
-      return Format->Match(inputData);
+      return Text::TS_PLUGIN_INFO;
     }
 
     virtual Binary::Format::Ptr GetFormat() const
     {
       return Format;
+    }
+
+    virtual bool Check(const Binary::Container& rawData) const
+    {
+      return Format->Match(rawData);
+    }
+
+    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const
+    {
+      //TODO?
+      return Formats::Chiptune::Container::Ptr();
+    }
+  private:
+    const Binary::Format::Ptr Format;
+  };
+
+  class Factory : public Module::Factory
+  {
+  public:
+    explicit Factory(FooterFormat::Ptr format)
+      : Format(format)
+    {
     }
 
     virtual Module::Holder::Ptr CreateModule(Module::PropertiesBuilder& properties, const Binary::Container& data) const
@@ -236,11 +258,12 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'T', 'S', 0};
-    const Char* const INFO = Text::TS_PLUGIN_INFO;
     const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
 
-    const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
+    const Module::TS::FooterFormat::Ptr format = boost::make_shared<Module::TS::FooterFormat>();
+    const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::TS::Decoder>(format);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>(format);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

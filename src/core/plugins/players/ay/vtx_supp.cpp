@@ -178,16 +178,6 @@ namespace YMVTX
     {
     }
 
-    virtual bool Check(const Binary::Container& data) const
-    {
-      return Decoder->Check(data);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
@@ -218,7 +208,7 @@ namespace ZXTune
 
     const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateVTXDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 
@@ -230,7 +220,7 @@ namespace ZXTune
 
     const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

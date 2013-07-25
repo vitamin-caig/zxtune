@@ -676,16 +676,6 @@ namespace ASCSoundMaster
     {
     }
 
-    virtual bool Check(const Binary::Container& data) const
-    {
-      return Decoder->Check(data);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
@@ -714,13 +704,13 @@ namespace ZXTune
     {
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder();
       const Module::Factory::Ptr factory = boost::make_shared<Module::ASCSoundMaster::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_0, decoder->GetDescription(), CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_0, CAPS, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver1::CreateDecoder();
       const Module::Factory::Ptr factory = boost::make_shared<Module::ASCSoundMaster::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_1, decoder->GetDescription(), CAPS, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_1, CAPS, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

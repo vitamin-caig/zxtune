@@ -495,16 +495,6 @@ namespace SoundTracker
     {
     }
 
-    virtual bool Check(const Binary::Container& data) const
-    {
-      return Decoder->Check(data);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);

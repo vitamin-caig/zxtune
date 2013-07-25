@@ -19,6 +19,7 @@ Author:
 //library includes
 #include <binary/container.h>
 #include <core/module_holder.h>
+#include <formats/chiptune.h>
 
 namespace Module
 {
@@ -28,19 +29,13 @@ namespace Module
     typedef boost::shared_ptr<const Factory> Ptr;
     virtual ~Factory() {}
 
-    //! @brief Checking if data contains module
-    //! @return true if possibly yes, false if defenitely no
-    virtual bool Check(const Binary::Container& inputData) const = 0;
-
-    virtual Binary::Format::Ptr GetFormat() const = 0;
-
     virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, const Binary::Container& data) const = 0;
   };
 }
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps, Module::Factory::Ptr factory);
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory);
 }
 
 #endif //__CORE_PLUGINS_PLAYER_CREATION_RESULT_H_DEFINED__
