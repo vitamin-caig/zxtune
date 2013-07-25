@@ -35,11 +35,13 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+}
 
+namespace Module
+{
+namespace AYM
+{
   //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
   {
@@ -202,7 +204,7 @@ namespace
     const Sound::RenderParameters::Ptr SoundParams;
   };
 
-  class TrackParametersImpl : public AYM::TrackParameters
+  class TrackParametersImpl : public TrackParameters
   {
   public:
     explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
@@ -241,23 +243,15 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr Delegate;
   };
-}
 
-namespace ZXTune
-{
-  namespace Module
+  Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
   {
-    namespace AYM
-    {
-      Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
-      {
-        return boost::make_shared<ChipParametersImpl>(params);
-      }
-
-      TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
-      {
-        return boost::make_shared<TrackParametersImpl>(params);
-      }
-    }
+    return boost::make_shared<ChipParametersImpl>(params);
   }
+
+  TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
+  {
+    return boost::make_shared<TrackParametersImpl>(params);
+  }
+}
 }

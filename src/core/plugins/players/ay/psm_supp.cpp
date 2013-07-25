@@ -31,6 +31,8 @@ Author:
 #include <formats/chiptune/aym/prosoundmaker.h>
 #include <math/numeric.h>
 
+namespace Module
+{
 namespace ProSoundMaker
 {
   //supported commands and parameters
@@ -101,9 +103,6 @@ namespace ProSoundMaker
     }
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef SimpleOrderListWithTransposition<Formats::Chiptune::ProSoundMaker::PositionEntry> OrderListWithTransposition;
 
   class ModuleData : public TrackModel
@@ -137,12 +136,6 @@ namespace ProSoundMaker
     SparsedObjectsStorage<Sample> Samples;
     SparsedObjectsStorage<Ornament> Ornaments;
   };
-}
-
-namespace ProSoundMaker
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
 
   class DataBuilder : public Formats::Chiptune::ProSoundMaker::Builder
   {
@@ -574,26 +567,8 @@ namespace ProSoundMaker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace ProSoundMaker
-{
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
-  }
-}
-
-namespace PSM
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'P', 'S', 'M', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -613,11 +588,11 @@ namespace PSM
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::ProSoundMaker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProSoundMaker::ParseCompiled(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const AYM::Chiptune::Ptr chiptune = ::ProSoundMaker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -626,17 +601,19 @@ namespace PSM
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterPSMSupport(PlayerPluginsRegistrator& registrator)
   {
-    //direct modules
-    {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProSoundMakerCompiledDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<PSM::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PSM::ID, decoder->GetDescription(), PSM::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
+    //plugin attributes
+    const Char ID[] = {'P', 'S', 'M', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProSoundMakerCompiledDecoder();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::ProSoundMaker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }

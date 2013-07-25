@@ -16,11 +16,8 @@ Author:
 #include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class StubPattern : public Pattern
   {
     StubPattern()
@@ -363,20 +360,14 @@ namespace
     mutable uint_t Frames;
     mutable uint_t LoopFrameNum;
   };
-}
 
-namespace ZXTune
-{
-  namespace Module
+  Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
   {
-    Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
-    {
-      return boost::make_shared<InformationImpl>(model, channels);
-    }
+    return boost::make_shared<InformationImpl>(model, channels);
+  }
 
-    TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)
-    {
-      return boost::make_shared<TrackStateIteratorImpl>(model);
-    }
+  TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model)
+  {
+    return boost::make_shared<TrackStateIteratorImpl>(model);
   }
 }

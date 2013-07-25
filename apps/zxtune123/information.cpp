@@ -375,26 +375,26 @@ namespace
     static const AttrType ATTRIBUTES[] =
     {
       //external
-      AttrType(ZXTune::Module::ATTR_EXTENSION, Text::INFO_ATTRIBUTES_EXTENSION),
-      AttrType(ZXTune::Module::ATTR_FILENAME, Text::INFO_ATTRIBUTES_FILENAME),
-      AttrType(ZXTune::Module::ATTR_PATH, Text::INFO_ATTRIBUTES_PATH),
-      AttrType(ZXTune::Module::ATTR_FULLPATH, Text::INFO_ATTRIBUTES_FULLPATH),
+      AttrType(Module::ATTR_EXTENSION, Text::INFO_ATTRIBUTES_EXTENSION),
+      AttrType(Module::ATTR_FILENAME, Text::INFO_ATTRIBUTES_FILENAME),
+      AttrType(Module::ATTR_PATH, Text::INFO_ATTRIBUTES_PATH),
+      AttrType(Module::ATTR_FULLPATH, Text::INFO_ATTRIBUTES_FULLPATH),
       //internal
-      AttrType(ZXTune::Module::ATTR_TYPE, Text::INFO_ATTRIBUTES_TYPE),
-      AttrType(ZXTune::Module::ATTR_CONTAINER, Text::INFO_ATTRIBUTES_CONTAINER),
-      AttrType(ZXTune::Module::ATTR_SUBPATH, Text::INFO_ATTRIBUTES_SUBPATH),
-      AttrType(ZXTune::Module::ATTR_AUTHOR, Text::INFO_ATTRIBUTES_AUTHOR),
-      AttrType(ZXTune::Module::ATTR_TITLE, Text::INFO_ATTRIBUTES_TITLE),
-      AttrType(ZXTune::Module::ATTR_PROGRAM, Text::INFO_ATTRIBUTES_PROGRAM),
-      AttrType(ZXTune::Module::ATTR_COMPUTER, Text::INFO_ATTRIBUTES_COMPUTER),
-      AttrType(ZXTune::Module::ATTR_DATE, Text::INFO_ATTRIBUTES_DATE),
-      AttrType(ZXTune::Module::ATTR_COMMENT, Text::INFO_ATTRIBUTES_COMMENT),
-      AttrType(ZXTune::Module::ATTR_CRC, Text::INFO_ATTRIBUTES_CRC),
-      AttrType(ZXTune::Module::ATTR_SIZE, Text::INFO_ATTRIBUTES_SIZE),
+      AttrType(Module::ATTR_TYPE, Text::INFO_ATTRIBUTES_TYPE),
+      AttrType(Module::ATTR_CONTAINER, Text::INFO_ATTRIBUTES_CONTAINER),
+      AttrType(Module::ATTR_SUBPATH, Text::INFO_ATTRIBUTES_SUBPATH),
+      AttrType(Module::ATTR_AUTHOR, Text::INFO_ATTRIBUTES_AUTHOR),
+      AttrType(Module::ATTR_TITLE, Text::INFO_ATTRIBUTES_TITLE),
+      AttrType(Module::ATTR_PROGRAM, Text::INFO_ATTRIBUTES_PROGRAM),
+      AttrType(Module::ATTR_COMPUTER, Text::INFO_ATTRIBUTES_COMPUTER),
+      AttrType(Module::ATTR_DATE, Text::INFO_ATTRIBUTES_DATE),
+      AttrType(Module::ATTR_COMMENT, Text::INFO_ATTRIBUTES_COMMENT),
+      AttrType(Module::ATTR_CRC, Text::INFO_ATTRIBUTES_CRC),
+      AttrType(Module::ATTR_SIZE, Text::INFO_ATTRIBUTES_SIZE),
       //runtime
-      AttrType(ZXTune::Module::ATTR_CURRENT_POSITION, Text::INFO_ATTRIBUTES_CURRENT_POSITION),
-      AttrType(ZXTune::Module::ATTR_CURRENT_PATTERN, Text::INFO_ATTRIBUTES_CURRENT_PATTERN),
-      AttrType(ZXTune::Module::ATTR_CURRENT_LINE, Text::INFO_ATTRIBUTES_CURRENT_LINE)
+      AttrType(Module::ATTR_CURRENT_POSITION, Text::INFO_ATTRIBUTES_CURRENT_POSITION),
+      AttrType(Module::ATTR_CURRENT_PATTERN, Text::INFO_ATTRIBUTES_CURRENT_PATTERN),
+      AttrType(Module::ATTR_CURRENT_LINE, Text::INFO_ATTRIBUTES_CURRENT_LINE)
     };
     StdOut << Text::INFO_LIST_ATTRIBUTES_TITLE << std::endl;
     std::for_each(ATTRIBUTES, ArrayEnd(ATTRIBUTES), ShowAttribute);
@@ -404,17 +404,17 @@ namespace
   {
     static const String FREQTABLES[] =
     {
-      ZXTune::Module::TABLE_SOUNDTRACKER,
-      ZXTune::Module::TABLE_PROTRACKER2,
-      ZXTune::Module::TABLE_PROTRACKER3_3,
-      ZXTune::Module::TABLE_PROTRACKER3_4,
-      ZXTune::Module::TABLE_PROTRACKER3_3_ASM,
-      ZXTune::Module::TABLE_PROTRACKER3_4_ASM,
-      ZXTune::Module::TABLE_PROTRACKER3_3_REAL,
-      ZXTune::Module::TABLE_PROTRACKER3_4_REAL,
-      ZXTune::Module::TABLE_ASM,
-      ZXTune::Module::TABLE_SOUNDTRACKER_PRO,
-      ZXTune::Module::TABLE_NATURAL_SCALED
+      Module::TABLE_SOUNDTRACKER,
+      Module::TABLE_PROTRACKER2,
+      Module::TABLE_PROTRACKER3_3,
+      Module::TABLE_PROTRACKER3_4,
+      Module::TABLE_PROTRACKER3_3_ASM,
+      Module::TABLE_PROTRACKER3_4_ASM,
+      Module::TABLE_PROTRACKER3_3_REAL,
+      Module::TABLE_PROTRACKER3_4_REAL,
+      Module::TABLE_ASM,
+      Module::TABLE_SOUNDTRACKER_PRO,
+      Module::TABLE_NATURAL_SCALED
     };
     StdOut << Text::INFO_LIST_FREQTABLES_TITLE;
     std::copy(FREQTABLES, ArrayEnd(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));

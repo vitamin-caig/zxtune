@@ -17,6 +17,8 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
+namespace Module
+{
 namespace SoundTracker
 {
   class DataBuilder : public Formats::Chiptune::SoundTracker::Builder
@@ -485,7 +487,7 @@ namespace SoundTracker
     const Information::Ptr Info;
   };
 
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
@@ -517,12 +519,10 @@ namespace SoundTracker
   private:
     const Formats::Chiptune::SoundTracker::Decoder::Ptr Decoder;
   };
-}
- 
-namespace SoundTracker
-{
-  ModulesFactory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
+
+  Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
   {
     return boost::make_shared<Factory>(decoder);
   }
+}
 }

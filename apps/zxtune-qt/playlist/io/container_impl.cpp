@@ -77,9 +77,9 @@ namespace
     }
 
     //common
-    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    virtual Module::Holder::Ptr GetModule() const
     {
-      return ZXTune::Module::Holder::Ptr();
+      return Module::Holder::Ptr();
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
@@ -195,7 +195,7 @@ namespace
     }
 
     //common
-    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    virtual Module::Holder::Ptr GetModule() const
     {
       AcquireDelegate();
       return Delegate->GetModule();

@@ -17,12 +17,14 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
+namespace Module
+{
 namespace SoundTrackerPro
 {
-  class DataBuilderImpl : public DataBuilder
+  class DataBuilder : public Formats::Chiptune::SoundTrackerPro::Builder
   {
   public:
-    explicit DataBuilderImpl(PropertiesBuilder& props)
+    explicit DataBuilder(PropertiesBuilder& props)
       : Data(boost::make_shared<ModuleData>())
       , Properties(props)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
@@ -335,17 +337,42 @@ namespace SoundTrackerPro
     const Information::Ptr Info;
   };
 
-}
- 
-namespace SoundTrackerPro
-{
-  std::auto_ptr<DataBuilder> CreateDataBuilder(PropertiesBuilder& propBuilder)
+  class Factory : public Module::Factory
   {
-    return std::auto_ptr<DataBuilder>(new DataBuilderImpl(propBuilder));
-  }
+  public:
+    explicit Factory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
+      : Decoder(decoder)
+    {
+    }
 
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+    virtual bool Check(const Binary::Container& data) const
+    {
+      return Decoder->Check(data);
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Decoder->GetFormat();
+    }
+
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    {
+      DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
+      {
+        propBuilder.SetSource(*container);
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        return AYM::CreateHolder(chiptune);
+      }
+      return Holder::Ptr();
+    }
+  private:
+    const Formats::Chiptune::SoundTrackerPro::Decoder::Ptr Decoder;
+  };
+
+  Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
   {
-    return boost::make_shared<Chiptune>(data, properties);
+    return boost::make_shared<Factory>(decoder);
   }
+}
 }

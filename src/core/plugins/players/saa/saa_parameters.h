@@ -18,14 +18,11 @@ Author:
 //library includes
 #include <devices/saa.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace SAA
   {
-    namespace SAA
-    {
-      Devices::SAA::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
-    }
+    Devices::SAA::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
   }
 }
 

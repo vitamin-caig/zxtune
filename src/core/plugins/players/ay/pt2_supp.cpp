@@ -30,6 +30,8 @@ Author:
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/protracker2.h>
 
+namespace Module
+{
 namespace ProTracker2
 {
   //supported commands and parameters
@@ -80,9 +82,6 @@ namespace ProTracker2
     }
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef SimpleOrnament Ornament;
 
   class ModuleData : public TrackModel
@@ -117,11 +116,6 @@ namespace ProTracker2
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
-}
-
-namespace ProTracker2
-{
   class DataBuilder : public Formats::Chiptune::ProTracker2::Builder
   {
   public:
@@ -483,26 +477,8 @@ namespace ProTracker2
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace ProTracker2
-{
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
-  }
-}
-
-namespace PT2
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'P', 'T', '2', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -522,11 +498,11 @@ namespace PT2
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::ProTracker2::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const AYM::Chiptune::Ptr chiptune = ::ProTracker2::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -535,17 +511,19 @@ namespace PT2
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterPT2Support(PlayerPluginsRegistrator& registrator)
   {
-    //direct modules
-    {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<PT2::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT2::ID, decoder->GetDescription(), PT2::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
+    //plugin attributes
+    const Char ID[] = {'P', 'T', '2', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker2::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }

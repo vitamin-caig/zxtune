@@ -107,7 +107,7 @@ namespace
     const Console& Cons;
   };
 
-  class DetectCallback : public ZXTune::Module::DetectCallback
+  class DetectCallback : public Module::DetectCallback
   {
   public:
     DetectCallback(Parameters::Accessor::Ptr params, IO::Identifier::Ptr id, const OnItemCallback& callback, bool showLogs)
@@ -123,11 +123,11 @@ namespace
       return Params;
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
     {
       const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(subId), Params);
-      const ZXTune::Module::Holder::Ptr result = ZXTune::Module::CreateMixedPropertiesHolder(holder, moduleParams);
+      const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
       Callback(result);
     }
 
@@ -224,12 +224,12 @@ namespace
         if (subpath.empty())
         {
           const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-          ZXTune::Module::Detect(location, detectCallback);
+          Module::Detect(location, detectCallback);
         }
         else
         {
           const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(Params, data, subpath);
-          const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location);
+          const Module::Holder::Ptr module = Module::Open(location);
           detectCallback.ProcessModule(location, module);
         }
       }

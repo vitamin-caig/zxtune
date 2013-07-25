@@ -54,10 +54,10 @@ namespace Sound
     BackendWorker& Worker;
   };
 
-  class RendererWrapper : public ZXTune::Module::Renderer
+  class RendererWrapper : public Module::Renderer
   {
   public:
-    RendererWrapper(ZXTune::Module::Holder::Ptr holder, ZXTune::Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
+    RendererWrapper(Module::Holder::Ptr holder, Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
       : Holder(holder)
       , Delegate(delegate)
       , Callback(callback)
@@ -66,12 +66,12 @@ namespace Sound
     {
     }
 
-    virtual ZXTune::Module::TrackState::Ptr GetTrackState() const
+    virtual Module::TrackState::Ptr GetTrackState() const
     {
       return State;
     }
 
-    virtual ZXTune::Module::Analyzer::Ptr GetAnalyzer() const
+    virtual Module::Analyzer::Ptr GetAnalyzer() const
     {
       return Delegate->GetAnalyzer();
     }
@@ -100,17 +100,17 @@ namespace Sound
     }
   private:
     static const uint_t NO_SEEK = ~uint_t(0);
-    const ZXTune::Module::Holder::Ptr Holder;
-    const ZXTune::Module::Renderer::Ptr Delegate;
+    const Module::Holder::Ptr Holder;
+    const Module::Renderer::Ptr Delegate;
     const BackendCallback::Ptr Callback;
-    const ZXTune::Module::TrackState::Ptr State;
+    const Module::TrackState::Ptr State;
     volatile uint_t SeekRequest;
   };
 
   class AsyncWrapper : public Async::Worker
   {
   public:
-    AsyncWrapper(BackendWorker::Ptr worker, BackendCallback::Ptr callback, ZXTune::Module::Renderer::Ptr render)
+    AsyncWrapper(BackendWorker::Ptr worker, BackendCallback::Ptr callback, Module::Renderer::Ptr render)
       : Delegate(worker)
       , Callback(callback)
       , Render(render)
@@ -203,7 +203,7 @@ namespace Sound
   private:
     const BackendWorker::Ptr Delegate;
     const BackendCallback::Ptr Callback;
-    const ZXTune::Module::Renderer::Ptr Render;
+    const Module::Renderer::Ptr Render;
     volatile bool Playing;
   };
 
@@ -216,13 +216,13 @@ namespace Sound
     {
     }
 
-    virtual void OnStart(ZXTune::Module::Holder::Ptr module)
+    virtual void OnStart(Module::Holder::Ptr module)
     {
       First->OnStart(module);
       Second->OnStart(module);
     }
 
-    virtual void OnFrame(const ZXTune::Module::TrackState& state)
+    virtual void OnFrame(const Module::TrackState& state)
     {
       First->OnFrame(state);
       Second->OnFrame(state);
@@ -259,11 +259,11 @@ namespace Sound
   class StubBackendCallback : public BackendCallback
   {
   public:
-    virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
+    virtual void OnStart(Module::Holder::Ptr /*module*/)
     {
     }
 
-    virtual void OnFrame(const ZXTune::Module::TrackState& /*state*/)
+    virtual void OnFrame(const Module::TrackState& /*state*/)
     {
     }
 
@@ -310,7 +310,7 @@ namespace Sound
   class ControlInternal : public PlaybackControl
   {
   public:
-    ControlInternal(Async::Job::Ptr job, ZXTune::Module::Renderer::Ptr renderer)
+    ControlInternal(Async::Job::Ptr job, Module::Renderer::Ptr renderer)
       : Job(job)
       , Renderer(renderer)
     {
@@ -358,25 +358,25 @@ namespace Sound
     }
   private:
     const Async::Job::Ptr Job;
-    const ZXTune::Module::Renderer::Ptr Renderer;
+    const Module::Renderer::Ptr Renderer;
   };
 
   class BackendInternal : public Backend
   {
   public:
-    BackendInternal(BackendWorker::Ptr worker, ZXTune::Module::Renderer::Ptr renderer, Async::Job::Ptr job)
+    BackendInternal(BackendWorker::Ptr worker, Module::Renderer::Ptr renderer, Async::Job::Ptr job)
       : Worker(worker)
       , Renderer(renderer)
       , Control(boost::make_shared<ControlInternal>(job, renderer))
     {
     }
 
-    virtual ZXTune::Module::TrackState::Ptr GetTrackState() const
+    virtual Module::TrackState::Ptr GetTrackState() const
     {
       return Renderer->GetTrackState();
     }
 
-    virtual ZXTune::Module::Analyzer::Ptr GetAnalyzer() const
+    virtual Module::Analyzer::Ptr GetAnalyzer() const
     {
       return Renderer->GetAnalyzer();
     }
@@ -392,7 +392,7 @@ namespace Sound
     }
   private:
     const BackendWorker::Ptr Worker;
-    const ZXTune::Module::Renderer::Ptr Renderer;
+    const Module::Renderer::Ptr Renderer;
     const PlaybackControl::Ptr Control;
   };
 }
@@ -402,11 +402,11 @@ namespace Sound
   Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
   {
     worker->Test();
-    const ZXTune::Module::Holder::Ptr holder = params->GetModule();
+    const Module::Holder::Ptr holder = params->GetModule();
     const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*worker));
-    const ZXTune::Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params->GetParameters(), target);
+    const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params->GetParameters(), target);
     const BackendCallback::Ptr callback = CreateCallback(params, worker);
-    const ZXTune::Module::Renderer::Ptr renderer = boost::make_shared<RendererWrapper>(holder, origRenderer, callback);
+    const Module::Renderer::Ptr renderer = boost::make_shared<RendererWrapper>(holder, origRenderer, callback);
     const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(worker, callback, renderer);
     const Async::Job::Ptr job = Async::CreateJob(asyncWorker);
     return boost::make_shared<BackendInternal>(worker, renderer, job);

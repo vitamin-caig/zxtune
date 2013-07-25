@@ -16,13 +16,16 @@ Author:
 //library includes
 #include <core/plugin_attrs.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace AYM
   {
-    const uint_t SupportedAYMFormatConvertors = CAP_CONV_PSG | CAP_CONV_ZX50 | CAP_CONV_AYDUMP | CAP_CONV_FYM;
+    const uint_t SupportedFormatConvertors = ZXTune::CAP_CONV_PSG | ZXTune::CAP_CONV_ZX50 | ZXTune::CAP_CONV_AYDUMP | ZXTune::CAP_CONV_FYM;
+  }
 
-    const uint_t SupportedVortexFormatConvertors = 0;
+  namespace Vortex
+  {
+    const uint_t SupportedFormatConvertors = 0;
   }
 }
 

@@ -61,7 +61,7 @@ namespace
 
   typedef boost::array<BandLevel, MAX_BANDS> Analyzed;
 
-  inline void StoreValue(const ZXTune::Module::Analyzer::ChannelState& chan, Analyzed& result)
+  inline void StoreValue(const Module::Analyzer::ChannelState& chan, Analyzed& result)
   {
     if (chan.Band < MAX_BANDS)
     {
@@ -171,8 +171,8 @@ namespace
   private:
     QTimer Timer;
     const QPalette Palette;
-    ZXTune::Module::Analyzer::Ptr Analyzer;
-    std::vector<ZXTune::Module::Analyzer::ChannelState> State;
+    Module::Analyzer::Ptr Analyzer;
+    std::vector<Module::Analyzer::ChannelState> State;
     Analyzed Levels;
   };
 }

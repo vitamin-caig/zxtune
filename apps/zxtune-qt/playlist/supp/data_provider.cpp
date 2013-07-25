@@ -336,20 +336,20 @@ namespace
     {
     }
 
-    ZXTune::Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
+    Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
       try
       {
         const Binary::Container::Ptr data = Source->GetData();
         const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ModuleId->Subpath());
-        const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location);
+        const Module::Holder::Ptr module = Module::Open(location);
         const Parameters::Accessor::Ptr pathParams = CreatePathProperties(ModuleId);
         const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams);
-        return ZXTune::Module::CreateMixedPropertiesHolder(module, moduleParams);
+        return Module::CreateMixedPropertiesHolder(module, moduleParams);
       }
       catch (const Error&)
       {
-        return ZXTune::Module::Holder::Ptr();
+        return Module::Holder::Ptr();
       }
     }
 
@@ -397,7 +397,7 @@ namespace
       String result = DisplayNameTemplate->Instantiate(adapter);
       if (result == DummyDisplayName)
       {
-        if (!properties.FindValue(ZXTune::Module::ATTR_FULLPATH, result))
+        if (!properties.FindValue(Module::ATTR_FULLPATH, result))
         {
           result.clear();
         }
@@ -420,16 +420,16 @@ namespace
       : Attributes(attributes)
       , Source(source)
       , AdjustedParams(adjustedParams)
-      , Type(GetStringProperty(moduleProps, ZXTune::Module::ATTR_TYPE))
-      , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_CRC)))
-      , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_FIXEDCRC)))
-      , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_SIZE)))
+      , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
+      , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
+      , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
+      , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, Module::ATTR_SIZE)))
     {
       Duration.SetCount(frames);
       LoadProperties(moduleProps);
     }
 
-    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    virtual Module::Holder::Ptr GetModule() const
     {
       try
       {
@@ -440,7 +440,7 @@ namespace
       {
         State = e;
       }
-      return ZXTune::Module::Holder::Ptr();
+      return Module::Holder::Ptr();
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
@@ -502,7 +502,7 @@ namespace
   private:
     Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      if (const ZXTune::Module::Holder::Ptr holder = GetModule())
+      if (const Module::Holder::Ptr holder = GetModule())
       {
         return holder->GetModuleProperties();
       }
@@ -527,8 +527,8 @@ namespace
     void LoadProperties(const Parameters::Accessor& props) const
     {
       DisplayName = Attributes->GetDisplayName(props);
-      Author = GetStringProperty(props, ZXTune::Module::ATTR_AUTHOR);
-      Title = GetStringProperty(props, ZXTune::Module::ATTR_TITLE);
+      Author = GetStringProperty(props, Module::ATTR_AUTHOR);
+      Title = GetStringProperty(props, Module::ATTR_TITLE);
       const Time::Microseconds period(GetIntProperty(props, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT));
       Duration.SetPeriod(period);
     }
@@ -570,7 +570,7 @@ namespace
   };
  
 
-  class DetectCallback : public ZXTune::Module::DetectCallback
+  class DetectCallback : public Module::DetectCallback
   {
   public:
     DetectCallback(Playlist::Item::DetectParameters& delegate,
@@ -590,11 +590,11 @@ namespace
       return CoreParams;
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
     {
       const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
       const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
       const Parameters::Accessor::Ptr pathProps = CreatePathProperties(moduleId);
@@ -638,7 +638,7 @@ namespace
         const Binary::Container::Ptr data = Provider->GetData(id->Path());
         const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
         const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
-        ZXTune::Module::Detect(location, detectCallback);
+        Module::Detect(location, detectCallback);
       }
       else
       {
@@ -654,7 +654,7 @@ namespace
       const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
 
       const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, id->Subpath());
-      const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(location);
+      const Module::Holder::Ptr module = Module::Open(location);
       detectCallback.ProcessModule(location, module);
     }
   private:

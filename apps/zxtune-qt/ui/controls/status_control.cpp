@@ -83,7 +83,7 @@ namespace
       ::StatusControl::changeEvent(event);
     }
   private:
-    ZXTune::Module::TrackState::Ptr TrackState;
+    Module::TrackState::Ptr TrackState;
   };
 }
 

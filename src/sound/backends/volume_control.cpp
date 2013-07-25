@@ -15,6 +15,7 @@ Author:
 #include <l10n/api.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/weak_ptr.hpp>
 
 #define FILE_TAG B368C82C
 

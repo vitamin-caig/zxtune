@@ -17,16 +17,13 @@ Author:
 #include <core/data_location.h>
 #include <core/module_holder.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
-  {
-    //! @param location Source data location
-    //! @throw Error if no object detected
-    Holder::Ptr Open(DataLocation::Ptr location);
+  //! @param location Source data location
+  //! @throw Error if no object detected
+  Holder::Ptr Open(ZXTune::DataLocation::Ptr location);
 
-    Holder::Ptr Open(const Binary::Container& data);
-  }
+  Holder::Ptr Open(const Binary::Container& data);
 }
 
 #endif //CORE_MODULE_OPEN_H_DEFINED

@@ -31,11 +31,10 @@ Author:
 
 #define FILE_TAG AB8BEC8B
 
+namespace Module
+{
 namespace ChipTracker
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const std::size_t CHANNELS_COUNT = 4;
 
   const uint64_t Z80_FREQ = 3500000;
@@ -62,14 +61,8 @@ namespace ChipTracker
     SLIDE
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef DAC::ModuleData ModuleData;
-}
 
-namespace ChipTracker
-{
   class DataBuilder : public Formats::Chiptune::ChipTracker::Builder
   {
   public:
@@ -307,18 +300,8 @@ namespace ChipTracker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace CHI
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'C', 'H', 'I', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -338,11 +321,11 @@ namespace CHI
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::ChipTracker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ChipTracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ChipTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -351,14 +334,19 @@ namespace CHI
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterCHISupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'C', 'H', 'I', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateChipTrackerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<CHI::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(CHI::ID, decoder->GetDescription(), CHI::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::ChipTracker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

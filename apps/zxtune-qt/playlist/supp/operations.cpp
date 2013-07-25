@@ -591,7 +591,7 @@ namespace
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
     {
       const String path = data->GetFullPath();
-      if (ZXTune::Module::Holder::Ptr holder = data->GetModule())
+      if (Module::Holder::Ptr holder = data->GetModule())
       {
         ExportItem(path, *holder);
       }
@@ -601,11 +601,11 @@ namespace
       }
     }
 
-    void ExportItem(const String& path, const ZXTune::Module::Holder& item)
+    void ExportItem(const String& path, const Module::Holder& item)
     {
       try
       {
-        const Binary::Data::Ptr result = ZXTune::Module::GetRawData(item);
+        const Binary::Data::Ptr result = Module::GetRawData(item);
         const Parameters::Accessor::Ptr props = item.GetModuleProperties();
         const String filename = NameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
         Save(*result, filename);

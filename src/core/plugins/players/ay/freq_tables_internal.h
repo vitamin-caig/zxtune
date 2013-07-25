@@ -18,13 +18,10 @@ Author:
 //library includes
 #include <core/freq_tables.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
-  {
-    // getting frequency table data by name
-    Error GetFreqTable(const String& id, FrequencyTable& result);
-  }
+  // getting frequency table data by name
+  Error GetFreqTable(const String& id, FrequencyTable& result);
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_FREQ_TABLES_INTERNAL_DEFINED__

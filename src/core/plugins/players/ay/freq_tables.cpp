@@ -25,8 +25,11 @@ Author:
 
 namespace
 {
-  using namespace ZXTune::Module;
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+}
 
+namespace Module
+{
   // prefix for reverted frequency tables
   const Char REVERT_TABLE_MARK = '~';
 
@@ -237,35 +240,27 @@ namespace
     }
   };
 
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
-
-namespace ZXTune
-{
-  namespace Module
+  Error GetFreqTable(const String& id, FrequencyTable& result)
   {
-    Error GetFreqTable(const String& id, FrequencyTable& result)
+    //check if required to revert table
+    const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
+    const String idNormal = doRevert ? id.substr(1) : id;
+    //find if table is supported
+    const FreqTableEntry* const entry = std::find_if(TABLES, ArrayEnd(TABLES),
+      boost::bind(&FreqTableEntry::Name, _1) == idNormal);
+    if (entry == ArrayEnd(TABLES))
     {
-      //check if required to revert table
-      const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
-      const String idNormal = doRevert ? id.substr(1) : id;
-      //find if table is supported
-      const FreqTableEntry* const entry = std::find_if(TABLES, ArrayEnd(TABLES),
-        boost::bind(&FreqTableEntry::Name, _1) == idNormal);
-      if (entry == ArrayEnd(TABLES))
-      {
-        return MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);
-      }
-      //copy result forward (normal) or backward (reverted)
-      if (doRevert)
-      {
-        std::copy(entry->Table.rbegin(), entry->Table.rend(), result.begin());
-      }
-      else
-      {
-        std::copy(entry->Table.begin(), entry->Table.end(), result.begin());
-      }
-      return Error();
+      return MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);
     }
+    //copy result forward (normal) or backward (reverted)
+    if (doRevert)
+    {
+      std::copy(entry->Table.rbegin(), entry->Table.rend(), result.begin());
+    }
+    else
+    {
+      std::copy(entry->Table.begin(), entry->Table.end(), result.begin());
+    }
+    return Error();
   }
 }

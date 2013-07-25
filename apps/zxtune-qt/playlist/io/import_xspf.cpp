@@ -55,14 +55,14 @@ namespace
 
   std::string ITEM_DISABLED_PROPERTIES[] =
   {
-    ZXTune::Module::ATTR_CRC,
-    ZXTune::Module::ATTR_FIXEDCRC,
-    ZXTune::Module::ATTR_SIZE,
-    ZXTune::Module::ATTR_CONTAINER,
-    ZXTune::Module::ATTR_TYPE,
-    ZXTune::Module::ATTR_VERSION,
-    ZXTune::Module::ATTR_PROGRAM,
-    ZXTune::Module::ATTR_DATE
+    Module::ATTR_CRC,
+    Module::ATTR_FIXEDCRC,
+    Module::ATTR_SIZE,
+    Module::ATTR_CONTAINER,
+    Module::ATTR_TYPE,
+    Module::ATTR_VERSION,
+    Module::ATTR_PROGRAM,
+    Module::ATTR_DATE
   };
 
   class PropertiesFilter : public Parameters::Visitor
@@ -251,19 +251,19 @@ namespace
       if (attr == XSPF::ITEM_CREATOR_TAG)
       {
         const String author = ConvertString(XML.readElementText());
-        props.SetValue(ZXTune::Module::ATTR_AUTHOR, author);
+        props.SetValue(Module::ATTR_AUTHOR, author);
         Dbg("  parsed author %1%", author);
      }
       else if (attr == XSPF::ITEM_TITLE_TAG)
       {
         const String title = ConvertString(XML.readElementText());
-        props.SetValue(ZXTune::Module::ATTR_TITLE, title);
+        props.SetValue(Module::ATTR_TITLE, title);
         Dbg("  parsed title %1%", title);
       }
       else if (attr == XSPF::ITEM_ANNOTATION_TAG)
       {
         const String annotation = ConvertString(XML.readElementText());
-        props.SetValue(ZXTune::Module::ATTR_COMMENT, annotation);
+        props.SetValue(Module::ATTR_COMMENT, annotation);
         Dbg("  parsed comment %1%", annotation);
       }
       else if (attr == XSPF::EXTENSION_TAG)

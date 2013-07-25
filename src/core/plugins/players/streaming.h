@@ -16,14 +16,11 @@ Author:
 //local includes
 #include "iterator.h"
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
-  {
-    Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame = 0);
+  Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame = 0);
 
-    StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info);
-  }
+  StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info);
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_STREAMING_H_DEFINED__

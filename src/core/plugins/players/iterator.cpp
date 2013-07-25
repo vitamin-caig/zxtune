@@ -12,21 +12,18 @@ Author:
 //local includes
 #include "iterator.h"
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  void SeekIterator(StateIterator& iter, uint_t frameNum)
   {
-    void SeekIterator(StateIterator& iter, uint_t frameNum)
+    const TrackState::Ptr state = iter.GetStateObserver();
+    if (state->Frame() > frameNum)
     {
-      const TrackState::Ptr state = iter.GetStateObserver();
-      if (state->Frame() > frameNum)
-      {
-        iter.Reset();
-      }
-      while (state->Frame() < frameNum && iter.IsValid())
-      {
-        iter.NextFrame(false);
-      }
+      iter.Reset();
+    }
+    while (state->Frame() < frameNum && iter.IsValid())
+    {
+      iter.NextFrame(false);
     }
   }
 }

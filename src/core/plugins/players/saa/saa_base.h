@@ -15,111 +15,107 @@ Author:
 
 //local includes
 #include "saa_parameters.h"
-#include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/tracking.h"
 //library includes
 #include <core/module_holder.h>
 #include <sound/render_params.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace SAA
   {
-    namespace SAA
+    const uint_t TRACK_CHANNELS = 6;
+
+    class ChannelBuilder
     {
-      const uint_t TRACK_CHANNELS = 6;
+    public:
+      ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk);
 
-      class ChannelBuilder
+      void SetVolume(int_t left, int_t right);
+      void SetTone(uint_t octave, uint_t note);
+      void SetNoise(uint_t type);
+      void AddNoise(uint_t type);
+      void SetEnvelope(uint_t type);
+      void EnableTone();
+      void EnableNoise();
+    private:
+      void SetRegister(uint_t reg, uint_t val)
       {
-      public:
-        ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk);
+        Chunk.Data[reg] = static_cast<uint8_t>(val);
+        Chunk.Mask |= 1 << reg;
+      }
 
-        void SetVolume(int_t left, int_t right);
-        void SetTone(uint_t octave, uint_t note);
-        void SetNoise(uint_t type);
-        void AddNoise(uint_t type);
-        void SetEnvelope(uint_t type);
-        void EnableTone();
-        void EnableNoise();
-      private:
-        void SetRegister(uint_t reg, uint_t val)
-        {
-          Chunk.Data[reg] = static_cast<uint8_t>(val);
-          Chunk.Mask |= 1 << reg;
-        }
-
-        void SetRegister(uint_t reg, uint_t val, uint_t mask)
-        {
-          Chunk.Data[reg] &= ~mask;
-          AddRegister(reg, val);
-        }
-
-        void AddRegister(uint_t reg, uint_t val)
-        {
-          Chunk.Data[reg] |= static_cast<uint8_t>(val);
-          Chunk.Mask |= 1 << reg;
-        }
-      private:
-        const uint_t Channel;
-        Devices::SAA::DataChunk& Chunk;
-      };
-
-      class TrackBuilder
+      void SetRegister(uint_t reg, uint_t val, uint_t mask)
       {
-      public:
-        ChannelBuilder GetChannel(uint_t chan)
-        {
-          return ChannelBuilder(chan, Chunk);
-        }
+        Chunk.Data[reg] &= ~mask;
+        AddRegister(reg, val);
+      }
 
-        void GetResult(Devices::SAA::DataChunk& result) const
-        {
-          result = Chunk;
-        }
-      private:
-        Devices::SAA::DataChunk Chunk;
-      };
-
-      class DataRenderer
+      void AddRegister(uint_t reg, uint_t val)
       {
-      public:
-        typedef boost::shared_ptr<DataRenderer> Ptr;
+        Chunk.Data[reg] |= static_cast<uint8_t>(val);
+        Chunk.Mask |= 1 << reg;
+      }
+    private:
+      const uint_t Channel;
+      Devices::SAA::DataChunk& Chunk;
+    };
 
-        virtual ~DataRenderer() {}
-
-        virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
-        virtual void Reset() = 0;
-      };
-
-      class DataIterator : public StateIterator
+    class TrackBuilder
+    {
+    public:
+      ChannelBuilder GetChannel(uint_t chan)
       {
-      public:
-        typedef boost::shared_ptr<DataIterator> Ptr;
+        return ChannelBuilder(chan, Chunk);
+      }
 
-        virtual Devices::SAA::DataChunk GetData() const = 0;
-      };
-
-      class Chiptune
+      void GetResult(Devices::SAA::DataChunk& result) const
       {
-      public:
-        typedef boost::shared_ptr<const Chiptune> Ptr;
-        virtual ~Chiptune() {}
+        result = Chunk;
+      }
+    private:
+      Devices::SAA::DataChunk Chunk;
+    };
 
-        virtual Information::Ptr GetInformation() const = 0;
-        virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-        virtual DataIterator::Ptr CreateDataIterator() const = 0;
+    class DataRenderer
+    {
+    public:
+      typedef boost::shared_ptr<DataRenderer> Ptr;
 
-        virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::SAA::Device::Ptr chip) const;
-      };
+      virtual ~DataRenderer() {}
 
-      Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device);
+      virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
+      virtual void Reset() = 0;
+    };
 
-      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+    class DataIterator : public StateIterator
+    {
+    public:
+      typedef boost::shared_ptr<DataIterator> Ptr;
 
-      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
+      virtual Devices::SAA::DataChunk GetData() const = 0;
+    };
 
-      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
-    }
+    class Chiptune
+    {
+    public:
+      typedef boost::shared_ptr<const Chiptune> Ptr;
+      virtual ~Chiptune() {}
+
+      virtual Information::Ptr GetInformation() const = 0;
+      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
+      virtual DataIterator::Ptr CreateDataIterator() const = 0;
+
+      virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::SAA::Device::Ptr chip) const;
+    };
+
+    Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device);
+
+    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
+
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }
 

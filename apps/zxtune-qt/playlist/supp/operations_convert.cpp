@@ -45,12 +45,12 @@ namespace
     {
     }
 
-    virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
+    virtual void OnStart(Module::Holder::Ptr /*module*/)
     {
       Event.Reset();
     }
 
-    virtual void OnFrame(const ZXTune::Module::TrackState& state)
+    virtual void OnFrame(const Module::TrackState& state)
     {
       try
       {
@@ -107,7 +107,7 @@ namespace
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
     {
       const String path = data->GetFullPath();
-      if (ZXTune::Module::Holder::Ptr holder = data->GetModule())
+      if (Module::Holder::Ptr holder = data->GetModule())
       {
         ConvertItem(path, holder);
       }
@@ -118,12 +118,12 @@ namespace
       ++DoneItems;
     }
   private:
-    void ConvertItem(const String& path, ZXTune::Module::Holder::Ptr item)
+    void ConvertItem(const String& path, Module::Holder::Ptr item)
     {
       try
       {
         const Log::ProgressCallback::Ptr curItemProgress = Log::CreateNestedPercentProgressCallback(TotalItems, DoneItems, Callback);
-        const ZXTune::Module::Information::Ptr info = item->GetModuleInformation();
+        const Module::Information::Ptr info = item->GetModuleInformation();
         const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
         ConvertCallback cb(*framesProgress);
         const Sound::CreateBackendParameters::Ptr params = MakeBackendParameters(BackendParameters, item,

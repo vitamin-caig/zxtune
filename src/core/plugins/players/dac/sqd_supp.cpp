@@ -32,6 +32,8 @@ Author:
 #include <formats/chiptune/digital/sqdigitaltracker.h>
 #include <sound/mixer_factory.h>
 
+namespace Module
+{
 namespace SQDigitalTracker
 {
   const std::size_t CHANNELS_COUNT = 4;
@@ -52,14 +54,8 @@ namespace SQDigitalTracker
     VOLUME_SLIDE,
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef DAC::ModuleData ModuleData;
-}
 
-namespace SQDigitalTracker
-{
   class DataBuilder : public Formats::Chiptune::SQDigitalTracker::Builder
   {
   public:
@@ -321,18 +317,8 @@ namespace SQDigitalTracker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace SQD
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'S', 'Q', 'D', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -352,11 +338,11 @@ namespace SQD
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::SQDigitalTracker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQDigitalTracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::SQDigitalTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -365,14 +351,19 @@ namespace SQD
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterSQDSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'S', 'Q', 'D', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQDigitalTrackerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<SQD::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(SQD::ID, decoder->GetDescription(), SQD::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::SQDigitalTracker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

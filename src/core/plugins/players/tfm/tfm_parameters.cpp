@@ -17,15 +17,14 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  class ChipParametersImpl : public Devices::TFM::ChipParameters
+namespace TFM
+{
+  class ChipParameters : public Devices::TFM::ChipParameters
   {
   public:
-    explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
+    explicit ChipParameters(Parameters::Accessor::Ptr params)
       : Params(params)
       , SoundParams(Sound::RenderParameters::Create(params))
     {
@@ -51,18 +50,10 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
   };
-}
 
-namespace ZXTune
-{
-  namespace Module
+  Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
   {
-    namespace TFM
-    {
-      Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
-      {
-        return boost::make_shared<ChipParametersImpl>(params);
-      }
-    }
+    return boost::make_shared<ChipParameters>(params);
   }
+}
 }

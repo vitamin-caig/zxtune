@@ -105,7 +105,7 @@ namespace
     }
   private:
     Playlist::Item::Data::Ptr Item;
-    ZXTune::Module::TrackState::Ptr TrackState;
+    Module::TrackState::Ptr TrackState;
   };
 }
 

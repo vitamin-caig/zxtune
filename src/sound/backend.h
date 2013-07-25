@@ -117,10 +117,10 @@ namespace Sound
     virtual ~Backend() {}
 
     //! @brief Current tracking status
-    virtual ZXTune::Module::TrackState::Ptr GetTrackState() const = 0;
+    virtual Module::TrackState::Ptr GetTrackState() const = 0;
 
     //! @brief Getting analyzer interface
-    virtual ZXTune::Module::Analyzer::Ptr GetAnalyzer() const = 0;
+    virtual Module::Analyzer::Ptr GetAnalyzer() const = 0;
 
     //! @brief Gettint playback controller
     virtual PlaybackControl::Ptr GetPlaybackControl() const = 0;
@@ -136,8 +136,8 @@ namespace Sound
     typedef boost::shared_ptr<BackendCallback> Ptr;
     virtual ~BackendCallback() {}
 
-    virtual void OnStart(ZXTune::Module::Holder::Ptr module) = 0;
-    virtual void OnFrame(const ZXTune::Module::TrackState& state) = 0;
+    virtual void OnStart(Module::Holder::Ptr module) = 0;
+    virtual void OnFrame(const Module::TrackState& state) = 0;
     virtual void OnStop() = 0;
     virtual void OnPause() = 0;
     virtual void OnResume() = 0;
@@ -153,7 +153,7 @@ namespace Sound
     virtual ~CreateBackendParameters() {}
 
     virtual Parameters::Accessor::Ptr GetParameters() const = 0;
-    virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
+    virtual Module::Holder::Ptr GetModule() const = 0;
     virtual BackendCallback::Ptr GetCallback() const = 0;
   };
 

@@ -18,59 +18,56 @@ Author:
 //common includes
 #include <progress_callback.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  // Helper classes
+  class DetectCallbackDelegate : public DetectCallback
   {
-    // Helper classes
-    class DetectCallbackDelegate : public DetectCallback
+  public:
+    explicit DetectCallbackDelegate(const DetectCallback& delegate)
+      : Delegate(delegate)
     {
-    public:
-      explicit DetectCallbackDelegate(const DetectCallback& delegate)
-        : Delegate(delegate)
-      {
-      }
+    }
 
-      virtual Parameters::Accessor::Ptr GetPluginsParameters() const
-      {
-        return Delegate.GetPluginsParameters();
-      }
-
-      virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const
-      {
-        return Delegate.ProcessModule(location, holder);
-      }
-
-      virtual Log::ProgressCallback* GetProgress() const
-      {
-        return Delegate.GetProgress();
-      }
-    protected:
-      const DetectCallback& Delegate;
-    };
-
-    class CustomProgressDetectCallbackAdapter : public DetectCallbackDelegate
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
-    public:
-      CustomProgressDetectCallbackAdapter(const DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
-        : DetectCallbackDelegate(delegate)
-        , Progress(progress)
-      {
-      }
+      return Delegate.GetPluginsParameters();
+    }
 
-      CustomProgressDetectCallbackAdapter(const DetectCallback& delegate)
-        : DetectCallbackDelegate(delegate)
-      {
-      }
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
+    {
+      return Delegate.ProcessModule(location, holder);
+    }
 
-      virtual Log::ProgressCallback* GetProgress() const
-      {
-        return Progress.get();
-      }
-    private:
-      const Log::ProgressCallback::Ptr Progress;
-    };
-  }
+    virtual Log::ProgressCallback* GetProgress() const
+    {
+      return Delegate.GetProgress();
+    }
+  protected:
+    const DetectCallback& Delegate;
+  };
+
+  class CustomProgressDetectCallbackAdapter : public DetectCallbackDelegate
+  {
+  public:
+    CustomProgressDetectCallbackAdapter(const DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
+      : DetectCallbackDelegate(delegate)
+      , Progress(progress)
+    {
+    }
+
+    CustomProgressDetectCallbackAdapter(const DetectCallback& delegate)
+      : DetectCallbackDelegate(delegate)
+    {
+    }
+
+    virtual Log::ProgressCallback* GetProgress() const
+    {
+      return Progress.get();
+    }
+  private:
+    const Log::ProgressCallback::Ptr Progress;
+  };
 }
 
 #endif //__CORE_PLUGINS_CALLBACK_H_DEFINED__

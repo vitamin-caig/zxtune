@@ -25,15 +25,18 @@ Author:
 #include <sound/mixer_factory.h>
 #include <sound/receiver.h>
 #include <sound/render_params.h>
+//boost includes
+#include <boost/weak_ptr.hpp>
 //text includes
 #include <core/text/core.h>
 
-namespace ZXTune
+namespace
 {
-  using namespace Module;
-
   const Debug::Stream Dbg("Core::AYBase");
+}
 
+namespace Module
+{
   class AYMDataIterator : public AYM::DataIterator
   {
   public:
@@ -407,134 +410,131 @@ namespace ZXTune
   };
 }
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace AYM
   {
-    namespace AYM
+    void ChannelBuilder::SetTone(int_t halfTones, int_t offset)
     {
-      void ChannelBuilder::SetTone(int_t halfTones, int_t offset)
-      {
-        const int_t halftone = Math::Clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
-        const uint_t tone = (Table[halftone] + offset) & 0xfff;
-        SetTone(tone);
-      }
+      const int_t halftone = Math::Clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
+      const uint_t tone = (Table[halftone] + offset) & 0xfff;
+      SetTone(tone);
+    }
 
-      void ChannelBuilder::SetTone(uint_t tone)
-      {
-        using namespace Devices::AYM;
-        const uint_t reg = Registers::TONEA_L + 2 * Channel;
-        Data[static_cast<Registers::Index>(reg)] = static_cast<uint8_t>(tone & 0xff);
-        Data[static_cast<Registers::Index>(reg + 1)] = static_cast<uint8_t>(tone >> 8);
-      }
+    void ChannelBuilder::SetTone(uint_t tone)
+    {
+      using namespace Devices::AYM;
+      const uint_t reg = Registers::TONEA_L + 2 * Channel;
+      Data[static_cast<Registers::Index>(reg)] = static_cast<uint8_t>(tone & 0xff);
+      Data[static_cast<Registers::Index>(reg + 1)] = static_cast<uint8_t>(tone >> 8);
+    }
 
-      void ChannelBuilder::SetLevel(int_t level)
-      {
-        using namespace Devices::AYM;
-        const uint_t reg = Registers::VOLA + Channel;
-        Data[static_cast<Registers::Index>(reg)] = static_cast<uint8_t>(Math::Clamp<int_t>(level, 0, 15));
-      }
+    void ChannelBuilder::SetLevel(int_t level)
+    {
+      using namespace Devices::AYM;
+      const uint_t reg = Registers::VOLA + Channel;
+      Data[static_cast<Registers::Index>(reg)] = static_cast<uint8_t>(Math::Clamp<int_t>(level, 0, 15));
+    }
 
-      void ChannelBuilder::DisableTone()
-      {
-        Data[Devices::AYM::Registers::MIXER] |= (Devices::AYM::Registers::MASK_TONEA << Channel);
-      }
+    void ChannelBuilder::DisableTone()
+    {
+      Data[Devices::AYM::Registers::MIXER] |= (Devices::AYM::Registers::MASK_TONEA << Channel);
+    }
 
-      void ChannelBuilder::EnableEnvelope()
-      {
-        using namespace Devices::AYM;
-        const uint_t reg = Registers::VOLA + Channel;
-        Data[static_cast<Registers::Index>(reg)] |= Registers::MASK_ENV;
-      }
+    void ChannelBuilder::EnableEnvelope()
+    {
+      using namespace Devices::AYM;
+      const uint_t reg = Registers::VOLA + Channel;
+      Data[static_cast<Registers::Index>(reg)] |= Registers::MASK_ENV;
+    }
 
-      void ChannelBuilder::DisableNoise()
-      {
-        Data[Devices::AYM::Registers::MIXER] |= (Devices::AYM::Registers::MASK_NOISEA << Channel);
-      }
+    void ChannelBuilder::DisableNoise()
+    {
+      Data[Devices::AYM::Registers::MIXER] |= (Devices::AYM::Registers::MASK_NOISEA << Channel);
+    }
 
-      void TrackBuilder::SetNoise(uint_t level)
-      {
-        Data[Devices::AYM::Registers::TONEN] = static_cast<uint8_t>(level & 31);
-      }
+    void TrackBuilder::SetNoise(uint_t level)
+    {
+      Data[Devices::AYM::Registers::TONEN] = static_cast<uint8_t>(level & 31);
+    }
 
-      void TrackBuilder::SetEnvelopeType(uint_t type)
-      {
-        Data[Devices::AYM::Registers::ENV] = static_cast<uint8_t>(type);
-      }
+    void TrackBuilder::SetEnvelopeType(uint_t type)
+    {
+      Data[Devices::AYM::Registers::ENV] = static_cast<uint8_t>(type);
+    }
 
-      void TrackBuilder::SetEnvelopeTone(uint_t tone)
-      {
-        Data[Devices::AYM::Registers::TONEE_L] = static_cast<uint8_t>(tone & 0xff);
-        Data[Devices::AYM::Registers::TONEE_H] = static_cast<uint8_t>(tone >> 8);
-      }
+    void TrackBuilder::SetEnvelopeTone(uint_t tone)
+    {
+      Data[Devices::AYM::Registers::TONEE_L] = static_cast<uint8_t>(tone & 0xff);
+      Data[Devices::AYM::Registers::TONEE_H] = static_cast<uint8_t>(tone >> 8);
+    }
 
-      uint_t TrackBuilder::GetFrequency(int_t halfTone) const
-      {
-        return Table[halfTone];
-      }
+    uint_t TrackBuilder::GetFrequency(int_t halfTone) const
+    {
+      return Table[halfTone];
+    }
 
-      int_t TrackBuilder::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const
-      {
-        const int_t halfFrom = Math::Clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(Table.size()) - 1);
-        const int_t halfTo = Math::Clamp<int_t>(halfToneTo, 0, static_cast<int_t>(Table.size()) - 1);
-        const int_t toneFrom = Table[halfFrom];
-        const int_t toneTo = Table[halfTo];
-        return toneTo - toneFrom;
-      }
+    int_t TrackBuilder::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const
+    {
+      const int_t halfFrom = Math::Clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(Table.size()) - 1);
+      const int_t halfTo = Math::Clamp<int_t>(halfToneTo, 0, static_cast<int_t>(Table.size()) - 1);
+      const int_t toneFrom = Table[halfFrom];
+      const int_t toneTo = Table[halfTo];
+      return toneTo - toneFrom;
+    }
 
-      Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)
+    Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)
+    {
+      if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
       {
-        if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
+        return Module::CreateAnalyzer(src);
+      }
+      return Analyzer::Ptr();
+    }
+
+    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+    {
+      return boost::make_shared<AYMDataIterator>(trackParams, iterator, renderer);
+    }
+
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
+    {
+      return boost::make_shared<AYMRenderer>(params, iterator, device);
+    }
+
+    Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+    {
+      if (const Sound::FadeGainer::Ptr fade = CreateFadeGainer(params, target))
+      {
+        if (FadeoutFilter::Ptr fadeout = CreateFadeOutFilter(params, holder.GetModuleInformation(), fade))
         {
-          return Module::CreateAnalyzer(src);
-        }
-        return Analyzer::Ptr();
-      }
-
-      DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
-      {
-        return boost::make_shared<AYMDataIterator>(trackParams, iterator, renderer);
-      }
-
-      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
-      {
-        return boost::make_shared<AYMRenderer>(params, iterator, device);
-      }
-
-      Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-      {
-        if (const Sound::FadeGainer::Ptr fade = CreateFadeGainer(params, target))
-        {
-          if (FadeoutFilter::Ptr fadeout = CreateFadeOutFilter(params, holder.GetModuleInformation(), fade))
-          {
-            const Devices::AYM::Chip::Ptr chip = CreateChip(params, fadeout);
-            const Renderer::Ptr result = holder.CreateRenderer(params, chip);
-            fadeout->SetTrackState(result->GetTrackState());
-            return result;
-          }
-          else
-          {
-            //only fade in
-            const Devices::AYM::Chip::Ptr chip = CreateChip(params, fade);
-            return holder.CreateRenderer(params, chip);
-          }
+          const Devices::AYM::Chip::Ptr chip = CreateChip(params, fadeout);
+          const Renderer::Ptr result = holder.CreateRenderer(params, chip);
+          fadeout->SetTrackState(result->GetTrackState());
+          return result;
         }
         else
         {
-          const Devices::AYM::Chip::Ptr chip = CreateChip(params, target);
+          //only fade in
+          const Devices::AYM::Chip::Ptr chip = CreateChip(params, fade);
           return holder.CreateRenderer(params, chip);
         }
       }
-
-      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+      else
       {
-        return boost::make_shared<AYMHolder>(chiptune);
+        const Devices::AYM::Chip::Ptr chip = CreateChip(params, target);
+        return holder.CreateRenderer(params, chip);
       }
+    }
 
-      Chiptune::Ptr CreateStreamedChiptune(RegistersArrayPtr data, Parameters::Accessor::Ptr properties, uint_t loopFrame)
-      {
-        return boost::make_shared<AYMStreamedChiptune>(data, properties, loopFrame);
-      }
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+    {
+      return boost::make_shared<AYMHolder>(chiptune);
+    }
+
+    Chiptune::Ptr CreateStreamedChiptune(RegistersArrayPtr data, Parameters::Accessor::Ptr properties, uint_t loopFrame)
+    {
+      return boost::make_shared<AYMStreamedChiptune>(data, properties, loopFrame);
     }
   }
 }

@@ -43,29 +43,29 @@ namespace File
   class StateFieldsSource : public Strings::SkipFieldsSource
   {
   public:
-    explicit StateFieldsSource(const ZXTune::Module::TrackState& state)
+    explicit StateFieldsSource(const Module::TrackState& state)
       : State(state)
     {
     }
 
     String GetFieldValue(const String& fieldName) const
     {
-      if (fieldName == ZXTune::Module::ATTR_CURRENT_POSITION)
+      if (fieldName == Module::ATTR_CURRENT_POSITION)
       {
         return Parameters::ConvertToString(State.Position());
       }
-      else if (fieldName == ZXTune::Module::ATTR_CURRENT_PATTERN)
+      else if (fieldName == Module::ATTR_CURRENT_PATTERN)
       {
         return Parameters::ConvertToString(State.Pattern());
       }
-      else if (fieldName == ZXTune::Module::ATTR_CURRENT_LINE)
+      else if (fieldName == Module::ATTR_CURRENT_LINE)
       {
         return Parameters::ConvertToString(State.Line());
       }
       return Strings::SkipFieldsSource::GetFieldValue(fieldName);
     }
   private:
-    const ZXTune::Module::TrackState& State;
+    const Module::TrackState& State;
   };
 
   class TrackStateTemplate
@@ -73,14 +73,14 @@ namespace File
   public:
     explicit TrackStateTemplate(const String& templ)
       : Template(Strings::Template::Create(templ))
-      , CurPosition(HasField(templ, ZXTune::Module::ATTR_CURRENT_POSITION))
-      , CurPattern(HasField(templ, ZXTune::Module::ATTR_CURRENT_PATTERN))
-      , CurLine(HasField(templ, ZXTune::Module::ATTR_CURRENT_LINE))
+      , CurPosition(HasField(templ, Module::ATTR_CURRENT_POSITION))
+      , CurPattern(HasField(templ, Module::ATTR_CURRENT_PATTERN))
+      , CurLine(HasField(templ, Module::ATTR_CURRENT_LINE))
       , Result(Template->Instantiate(Strings::SkipFieldsSource()))
     {
     }
 
-    String Instantiate(const ZXTune::Module::TrackState& state) const
+    String Instantiate(const Module::TrackState& state) const
     {
       if (CurPosition.Update(state.Position()) ||
           CurPattern.Update(state.Pattern()) ||
@@ -208,7 +208,7 @@ namespace File
     {
     }
 
-    Receiver::Ptr GetStream(const ZXTune::Module::TrackState& state) const
+    Receiver::Ptr GetStream(const Module::TrackState& state) const
     {
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
@@ -232,15 +232,15 @@ namespace File
     void SetProperties(FileStream& stream) const
     {
       Parameters::StringType str;
-      if (Properties->FindValue(ZXTune::Module::ATTR_TITLE, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_TITLE, str) && !str.empty())
       {
         stream.SetTitle(str);
       }
-      if (Properties->FindValue(ZXTune::Module::ATTR_AUTHOR, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_AUTHOR, str) && !str.empty())
       {
         stream.SetAuthor(str);
       }
-      if (Properties->FindValue(ZXTune::Module::ATTR_COMMENT, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_COMMENT, str) && !str.empty())
       {
         stream.SetComment(str);
       }
@@ -304,13 +304,13 @@ namespace File
     }
 
     //BackendCallback
-    virtual void OnStart(ZXTune::Module::Holder::Ptr module)
+    virtual void OnStart(Module::Holder::Ptr module)
     {
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
       Source.reset(new StreamSource(Params, Factory, props));
     }
 
-    virtual void OnFrame(const ZXTune::Module::TrackState& state)
+    virtual void OnFrame(const Module::TrackState& state)
     {
       if (const Receiver::Ptr newStream = Source->GetStream(state))
       {

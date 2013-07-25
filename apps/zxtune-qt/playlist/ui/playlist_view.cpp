@@ -239,7 +239,7 @@ namespace
       }
       else
       {
-        const ZXTune::Module::Holder::Ptr holder = item.GetModule();
+        const Module::Holder::Ptr holder = item.GetModule();
         const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
         return ToQString(Tooltip.Get(*properties));
       }

@@ -15,12 +15,15 @@ Author:
 
 //local includes
 #include "ay_base.h"
+#include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
 //library includes
 #include <formats/chiptune/aym/soundtrackerpro.h>
 
+namespace Module
+{
 namespace SoundTrackerPro
 {
   enum CmdType
@@ -60,9 +63,6 @@ namespace SoundTrackerPro
     }
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef SimpleOrderListWithTransposition<Formats::Chiptune::SoundTrackerPro::PositionEntry> OrderListWithTransposition;
   typedef SimpleOrnament Ornament;
 
@@ -98,15 +98,8 @@ namespace SoundTrackerPro
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  class DataBuilder : public Formats::Chiptune::SoundTrackerPro::Builder
-  {
-  public:
-    virtual ModuleData::Ptr GetResult() const = 0;
-  };
-
-  std::auto_ptr<DataBuilder> CreateDataBuilder(PropertiesBuilder& propBuilder);
-
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
+  Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder);
+}
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_SOUNDTRACKERPRO_DEFINED__

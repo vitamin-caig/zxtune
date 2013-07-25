@@ -17,14 +17,11 @@ Author:
 #include <core/module_holder.h>
 #include <core/conversion.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
-  {
-    //! @return Binary::Data::Ptr if cannot convert
-    //! @throw Error in case of internal problems
-    Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params);
-  }
+  //! @return Binary::Data::Ptr if cannot convert
+  //! @throw Error in case of internal problems
+  Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params);
 }
 
 #endif //CORE_CONVERSION_API_H_DEFINED

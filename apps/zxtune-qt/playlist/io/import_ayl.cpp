@@ -278,28 +278,28 @@ namespace
       //ignore "Length", "Address", "Loop", "Time", "Original"
       else if (nameStr == AYL::NAME)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_TITLE, val);
+        Delegate.SetValue(Module::ATTR_TITLE, val);
       }
       else if (nameStr == AYL::AUTHOR)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_AUTHOR, val);
+        Delegate.SetValue(Module::ATTR_AUTHOR, val);
       }
       else if (nameStr == AYL::PROGRAM || nameStr == AYL::TRACKER)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_PROGRAM, val);
+        Delegate.SetValue(Module::ATTR_PROGRAM, val);
       }
       else if (nameStr == AYL::COMPUTER)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_COMPUTER, val);
+        Delegate.SetValue(Module::ATTR_COMPUTER, val);
       }
       else if (nameStr == AYL::DATE)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_DATE, val);
+        Delegate.SetValue(Module::ATTR_DATE, val);
       }
       else if (nameStr == AYL::COMMENT)
       {
         //TODO: process escape sequence
-        Delegate.SetValue(ZXTune::Module::ATTR_COMMENT, val);
+        Delegate.SetValue(Module::ATTR_COMMENT, val);
       }
       //ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }

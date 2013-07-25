@@ -34,6 +34,8 @@ Author:
 
 #define FILE_TAG 30E3A543
 
+namespace Module
+{
 namespace ProDigiTracker
 {
   const uint_t CHANNELS_COUNT = 4;
@@ -43,9 +45,6 @@ namespace ProDigiTracker
   const uint_t C_1_STEP = 46;
   const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
   
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef SimpleOrnament Ornament;
 
   class ModuleData : public DAC::ModuleData
@@ -55,10 +54,7 @@ namespace ProDigiTracker
 
     SparsedObjectsStorage<Ornament> Ornaments;
   };
-}
 
-namespace ProDigiTracker
-{
   class DataBuilder : public Formats::Chiptune::ProDigiTracker::Builder
   {
   public:
@@ -280,18 +276,8 @@ namespace ProDigiTracker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace PDT
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'P', 'D', 'T', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -312,11 +298,11 @@ namespace PDT
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::ProDigiTracker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::ProDigiTracker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -325,14 +311,19 @@ namespace PDT
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterPDTSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'P', 'D', 'T', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProDigiTrackerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<PDT::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PDT::ID, decoder->GetDescription(), PDT::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::ProDigiTracker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

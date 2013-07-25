@@ -175,7 +175,7 @@ namespace
       }
     }
 
-    void SaveModuleProperties(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
+    void SaveModuleProperties(const Module::Information& info, const Parameters::Accessor& props)
     {
       //save common properties
       Dbg(" Save basic properties");
@@ -221,17 +221,17 @@ namespace
     {
       const String value = Parameters::ConvertToString(val);
       const QString valStr = ConvertString(value);
-      if (name == ZXTune::Module::ATTR_TITLE)
+      if (name == Module::ATTR_TITLE)
       {
         Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_TITLE_TAG, valStr);
       }
-      else if (name == ZXTune::Module::ATTR_AUTHOR)
+      else if (name == Module::ATTR_AUTHOR)
       {
         Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_CREATOR_TAG, valStr);
       }
-      else if (name == ZXTune::Module::ATTR_COMMENT)
+      else if (name == Module::ATTR_COMMENT)
       {
         Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
         SaveText(XSPF::ITEM_ANNOTATION_TAG, valStr);
@@ -242,7 +242,7 @@ namespace
     {
     }
   private:
-    void SaveDuration(const ZXTune::Module::Information& info, const Parameters::Accessor& props)
+    void SaveDuration(const Module::Information& info, const Parameters::Accessor& props)
     {
       Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
       props.FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
@@ -260,17 +260,17 @@ namespace
     {
       return
         //skip path-related properties
-        name != ZXTune::Module::ATTR_FULLPATH &&
-        name != ZXTune::Module::ATTR_PATH &&
-        name != ZXTune::Module::ATTR_FILENAME &&
-        name != ZXTune::Module::ATTR_EXTENSION &&
-        name != ZXTune::Module::ATTR_SUBPATH &&
+        name != Module::ATTR_FULLPATH &&
+        name != Module::ATTR_PATH &&
+        name != Module::ATTR_FILENAME &&
+        name != Module::ATTR_EXTENSION &&
+        name != Module::ATTR_SUBPATH &&
         //skip existing properties
-        name != ZXTune::Module::ATTR_AUTHOR &&
-        name != ZXTune::Module::ATTR_TITLE &&
-        name != ZXTune::Module::ATTR_COMMENT &&
+        name != Module::ATTR_AUTHOR &&
+        name != Module::ATTR_TITLE &&
+        name != Module::ATTR_COMMENT &&
         //skip redundand properties
-        name != ZXTune::Module::ATTR_CONTENT &&
+        name != Module::ATTR_CONTENT &&
         //skip all the parameters
         !IsParameter(name)
       ;
@@ -334,9 +334,9 @@ namespace
   public:
     virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
     {
-      if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
+      if (const Module::Holder::Ptr holder = item.GetModule())
       {
-        const Binary::Data::Ptr rawContent = ZXTune::Module::GetRawData(*holder);
+        const Binary::Data::Ptr rawContent = Module::GetRawData(*holder);
         const ZXTune::DataLocation::Ptr container = ZXTune::BuildZdataContainer(*rawContent);
         const String id = container->GetPath()->AsString();
         saver.SaveModuleLocation(XSPF::EMBEDDED_PREFIX + id);
@@ -375,9 +375,9 @@ namespace
   public:
     virtual void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const
     {
-      if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
+      if (const Module::Holder::Ptr holder = item.GetModule())
       {
-        const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+        const Module::Information::Ptr info = holder->GetModuleInformation();
         const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
         saver.SaveModuleProperties(*info, *props);
         const Parameters::Accessor::Ptr adjustedParams = item.GetAdjustedParameters();

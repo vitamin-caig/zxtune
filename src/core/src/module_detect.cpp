@@ -28,11 +28,12 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-
   const Debug::Stream Dbg("Core::Detection");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+}
 
+namespace Module
+{
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
   String EncodeArchivePluginToPath(const String& pluginId)
@@ -40,7 +41,7 @@ namespace
     return ARCHIVE_PLUGIN_PREFIX + pluginId;
   }
 
-  class OpenModuleCallback : public Module::DetectCallback
+  class OpenModuleCallback : public DetectCallback
   {
   public:
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const
@@ -48,7 +49,7 @@ namespace
       return Parameters::Container::Create();
     }
 
-    virtual void ProcessModule(DataLocation::Ptr /*location*/, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, Module::Holder::Ptr holder) const
     {
       Result = holder;
     }
@@ -58,7 +59,7 @@ namespace
       return 0;
     }
 
-    Module::Holder::Ptr GetResult() const
+    Holder::Ptr GetResult() const
     {
       if (!Result)
       {
@@ -67,11 +68,11 @@ namespace
       return Result;
     }
   private:
-    mutable Module::Holder::Ptr Result;
+    mutable Holder::Ptr Result;
   };
   
   template<class T>
-  std::size_t DetectByPlugins(typename T::Iterator::Ptr plugins, DataLocation::Ptr location, const Module::DetectCallback& callback)
+  std::size_t DetectByPlugins(typename T::Iterator::Ptr plugins, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
   {
     for (; plugins->IsValid(); plugins->Next())
     {
@@ -87,16 +88,16 @@ namespace
   }
 
   //TODO: remove
-  class MixedPropertiesHolder : public Module::Holder
+  class MixedPropertiesHolder : public Holder
   {
   public:
-    MixedPropertiesHolder(Module::Holder::Ptr delegate, Parameters::Accessor::Ptr props)
+    MixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
       : Delegate(delegate)
       , Properties(props)
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    virtual Information::Ptr GetModuleInformation() const
     {
       return Delegate->GetModuleInformation();
     }
@@ -106,25 +107,25 @@ namespace
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }
   private:
-    const Module::Holder::Ptr Delegate;
+    const Holder::Ptr Delegate;
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class MixedPropertiesAYMHolder : public Module::AYM::Holder
+  class MixedPropertiesAYMHolder : public AYM::Holder
   {
   public:
-    MixedPropertiesAYMHolder(Module::AYM::Holder::Ptr delegate, Parameters::Accessor::Ptr props)
+    MixedPropertiesAYMHolder(AYM::Holder::Ptr delegate, Parameters::Accessor::Ptr props)
       : Delegate(delegate)
       , Properties(props)
     {
     }
 
-    virtual Module::Information::Ptr GetModuleInformation() const
+    virtual Information::Ptr GetModuleInformation() const
     {
       return Delegate->GetModuleInformation();
     }
@@ -134,70 +135,67 @@ namespace
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
       //???
-      return Module::AYM::CreateRenderer(*this, params, target);
+      return AYM::CreateRenderer(*this, params, target);
     }
 
-    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
     {
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), chip);
     }
 
-    virtual Module::AYM::Chiptune::Ptr GetChiptune() const
+    virtual AYM::Chiptune::Ptr GetChiptune() const
     {
       return Delegate->GetChiptune();
     }
   private:
-    const Module::AYM::Holder::Ptr Delegate;
+    const AYM::Holder::Ptr Delegate;
     const Parameters::Accessor::Ptr Properties;
   };
-}
 
-namespace ZXTune
-{
-  namespace Module
+  Holder::Ptr Open(ZXTune::DataLocation::Ptr location)
   {
-    Holder::Ptr Open(DataLocation::Ptr location)
-    {
-      const PlayerPluginsEnumerator::Ptr usedPlugins = PlayerPluginsEnumerator::Create();
-      const OpenModuleCallback callback;
-      DetectByPlugins<PlayerPlugin>(usedPlugins->Enumerate(), location, callback);
-      return callback.GetResult();
-    }
+    using namespace ZXTune;
+    const PlayerPluginsEnumerator::Ptr usedPlugins = PlayerPluginsEnumerator::Create();
+    const OpenModuleCallback callback;
+    DetectByPlugins<PlayerPlugin>(usedPlugins->Enumerate(), location, callback);
+    return callback.GetResult();
+  }
 
-    Holder::Ptr Open(const Binary::Container& data)
+  Holder::Ptr Open(const Binary::Container& data)
+  {
+    using namespace ZXTune;
+    for (PlayerPlugin::Iterator::Ptr usedPlugins = PlayerPluginsEnumerator::Create()->Enumerate(); usedPlugins->IsValid(); usedPlugins->Next())
     {
-      for (PlayerPlugin::Iterator::Ptr usedPlugins = PlayerPluginsEnumerator::Create()->Enumerate(); usedPlugins->IsValid(); usedPlugins->Next())
+      const PlayerPlugin::Ptr plugin = usedPlugins->Get();
+      if (const Holder::Ptr res = plugin->Open(data))
       {
-        const PlayerPlugin::Ptr plugin = usedPlugins->Get();
-        if (const Holder::Ptr res = plugin->Open(data))
-        {
-          return res;
-        }
+        return res;
       }
-      throw Error(THIS_LINE, translate("Failed to find module at specified location."));
     }
+    throw Error(THIS_LINE, translate("Failed to find module at specified location."));
+  }
 
-    std::size_t Detect(DataLocation::Ptr location, const DetectCallback& callback)
+  std::size_t Detect(ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  {
+    using namespace ZXTune;
+    const ArchivePluginsEnumerator::Ptr usedArchivePlugins = ArchivePluginsEnumerator::Create();
+    if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedArchivePlugins->Enumerate(), location, callback))
     {
-      const ArchivePluginsEnumerator::Ptr usedArchivePlugins = ArchivePluginsEnumerator::Create();
-      if (std::size_t usedSize = DetectByPlugins<ArchivePlugin>(usedArchivePlugins->Enumerate(), location, callback))
-      {
-        return usedSize;
-      }
-      const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
-      return DetectByPlugins<PlayerPlugin>(usedPlayerPlugins->Enumerate(), location, callback);
+      return usedSize;
     }
+    const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
+    return DetectByPlugins<PlayerPlugin>(usedPlayerPlugins->Enumerate(), location, callback);
+  }
 
-    Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
+  Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
+  {
+    if (const AYM::Holder::Ptr aym = boost::dynamic_pointer_cast<const AYM::Holder>(delegate))
     {
-      if (const AYM::Holder::Ptr aym = boost::dynamic_pointer_cast<const AYM::Holder>(delegate))
-      {
-        return boost::make_shared<MixedPropertiesAYMHolder>(aym, props);
-      }
-      return boost::make_shared<MixedPropertiesHolder>(delegate, props);
+      return boost::make_shared<MixedPropertiesAYMHolder>(aym, props);
     }
+    return boost::make_shared<MixedPropertiesHolder>(delegate, props);
   }
 }

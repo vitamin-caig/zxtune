@@ -24,11 +24,10 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
+namespace TurboSound
+{
   class MergedModuleProperties : public Parameters::Accessor
   {
     static void MergeStringProperty(const Parameters::NameType& /*propName*/, String& lh, const String& rh)
@@ -235,7 +234,7 @@ namespace
     const TrackState::Ptr Second;
   };
 
-  class MergedDataIterator : public TurboSound::DataIterator
+  class MergedDataIterator : public DataIterator
   {
   public:
     MergedDataIterator(AYM::DataIterator::Ptr first, AYM::DataIterator::Ptr second)
@@ -278,10 +277,10 @@ namespace
     const AYM::DataIterator::Ptr Second;
   };
 
-  class TurboSoundDataIterator : public TurboSound::DataIterator
+  class DoubleDataIterator : public DataIterator
   {
   public:
-    TurboSoundDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
+    DoubleDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr delegate, AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
       : Params(trackParams)
       , Delegate(delegate)
       , State(Delegate->GetStateObserver())
@@ -356,10 +355,10 @@ namespace
     FrequencyTable Table;
   };
 
-  class TurboSoundRenderer : public Renderer
+  class Renderer : public Module::Renderer
   {
   public:
-    TurboSoundRenderer(Sound::RenderParameters::Ptr params, TurboSound::DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
+    Renderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
       : Params(params)
       , Iterator(iterator)
       , Device(device)
@@ -431,17 +430,17 @@ namespace
     }
   private:
     Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
-    const TurboSound::DataIterator::Ptr Iterator;
+    const DataIterator::Ptr Iterator;
     const Devices::TurboSound::Device::Ptr Device;
     Devices::TurboSound::DataChunk FlushChunk;
     Devices::TurboSound::Stamp FrameDuration;
     bool Looped;
   };
 
-  class TurboSoundChiptune : public TurboSound::Chiptune
+  class MergedChiptune : public Chiptune
   {
   public:
-    TurboSoundChiptune(Parameters::Accessor::Ptr props, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
+    MergedChiptune(Parameters::Accessor::Ptr props, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
       : Properties(props)
       , First(first)
       , Second(second)
@@ -471,55 +470,10 @@ namespace
     const AYM::Chiptune::Ptr Second;
   };
 
-  class PollingMixerChip : public Devices::TurboSound::Chip
+  class Holder : public Module::Holder
   {
   public:
-    PollingMixerChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-      : Params(params)
-      , Mixer(Sound::ThreeChannelsMatrixMixer::Create())
-      , Delegate(Devices::TurboSound::CreateChip(AYM::CreateChipParameters(params), Mixer, target))
-    {
-    }
-
-    virtual void RenderData(const Devices::TurboSound::DataChunk& src)
-    {
-      return Delegate->RenderData(src);
-    }
-
-    virtual void Flush()
-    {
-      if (Params.IsChanged())
-      {
-        Sound::FillMixer(*Params, *Mixer);
-      }
-      return Delegate->Flush();
-    }
-
-    virtual void Reset()
-    {
-      Params.Reset();
-      return Delegate->Reset();
-    }
-
-    virtual void GetState(Devices::MultiChannelState& state) const
-    {
-      return Delegate->GetState(state);
-    }
-
-    static Devices::TurboSound::Chip::Ptr Create(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-    {
-      return boost::make_shared<PollingMixerChip>(params, target);
-    }
-  private:
-    Devices::Details::ParametersHelper<Parameters::Accessor> Params;
-    const Sound::ThreeChannelsMatrixMixer::Ptr Mixer;
-    const Devices::TurboSound::Chip::Ptr Delegate;
-  };
-
-  class TurboSoundHolder : public Holder
-  {
-  public:
-    explicit TurboSoundHolder(TurboSound::Chiptune::Ptr chiptune)
+    explicit Holder(Chiptune::Ptr chiptune)
       : Tune(chiptune)
     {
     }
@@ -539,54 +493,55 @@ namespace
       return TurboSound::CreateRenderer(*Tune, params, target);
     }
   private:
-    const TurboSound::Chiptune::Ptr Tune;
+    const Chiptune::Ptr Tune;
   };
-}
 
-namespace ZXTune
-{
-  namespace Module
+  Devices::TurboSound::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
   {
-    namespace TurboSound
-    {
-      DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
-        AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
-      {
-        return boost::make_shared<TurboSoundDataIterator>(trackParams, iterator, first, second);
-      }
-
-      Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device)
-      {
-        if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
-        {
-          return Module::CreateAnalyzer(src);
-        }
-        return Analyzer::Ptr();
-      }
-
-      Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
-      {
-        return boost::make_shared<TurboSoundChiptune>(params, first, second);
-      }
-
-      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
-      {
-        return boost::make_shared<TurboSoundRenderer>(params, iterator, device);
-      }
-
-      Renderer::Ptr CreateRenderer(const Chiptune& chiptune, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-      {
-        const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
-        const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-        const DataIterator::Ptr iterator = chiptune.CreateDataIterator(trackParams);
-        const Devices::TurboSound::Chip::Ptr chip = PollingMixerChip::Create(params, target);
-        return CreateRenderer(sndParams, iterator, chip);
-      }
-
-      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
-      {
-        return boost::make_shared<TurboSoundHolder>(chiptune);
-      }
-    }
+    typedef Sound::ThreeChannelsMatrixMixer MixerType;
+    const MixerType::Ptr mixer = MixerType::Create();
+    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
+    const Devices::TurboSound::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(pollParams);
+    return Devices::TurboSound::CreateChip(chipParams, mixer, target);
   }
+
+  DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
+    AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
+  {
+    return boost::make_shared<DoubleDataIterator>(trackParams, iterator, first, second);
+  }
+
+  Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device)
+  {
+    if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
+    {
+      return Module::CreateAnalyzer(src);
+    }
+    return Analyzer::Ptr();
+  }
+
+  Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
+  {
+    return boost::make_shared<MergedChiptune>(params, first, second);
+  }
+
+  Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
+  {
+    return boost::make_shared<Renderer>(params, iterator, device);
+  }
+
+  Renderer::Ptr CreateRenderer(const Chiptune& chiptune, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  {
+    const Sound::RenderParameters::Ptr sndParams = Sound::RenderParameters::Create(params);
+    const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
+    const DataIterator::Ptr iterator = chiptune.CreateDataIterator(trackParams);
+    const Devices::TurboSound::Chip::Ptr chip = CreateChip(params, target);
+    return CreateRenderer(sndParams, iterator, chip);
+  }
+
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+  {
+    return boost::make_shared<Holder>(chiptune);
+  }
+}
 }

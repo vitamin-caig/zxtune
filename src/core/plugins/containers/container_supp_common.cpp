@@ -26,11 +26,12 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-
   const Debug::Stream Dbg("Core::ArchivesSupp");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+}
 
+namespace ZXTune
+{
   class LoggerHelper
   {
   public:
@@ -113,7 +114,7 @@ namespace
         const String subPath = file.GetName();
         const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, SubPlugin, subPath);
         const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
-        ZXTune::Module::Detect(subLocation, *nestedProgressCallback);
+        Module::Detect(subLocation, *nestedProgressCallback);
       }
       Logger.Next();
     }

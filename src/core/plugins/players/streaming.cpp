@@ -14,11 +14,8 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const uint_t STREAM_CHANNELS = 1;
 
   class StreamStateCursor : public TrackState
@@ -178,20 +175,14 @@ namespace
   private:
     const StreamStateCursor::Ptr Cursor;
   };
-}
 
-namespace ZXTune
-{
-  namespace Module
+  Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame)
   {
-    Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame)
-    {
-      return boost::make_shared<StreamInfo>(frames, loopFrame);
-    }
+    return boost::make_shared<StreamInfo>(frames, loopFrame);
+  }
 
-    StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)
-    {
-      return boost::make_shared<StreamStateIterator>(info);
-    }
+  StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)
+  {
+    return boost::make_shared<StreamStateIterator>(info);
   }
 }

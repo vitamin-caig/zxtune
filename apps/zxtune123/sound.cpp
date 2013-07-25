@@ -114,7 +114,7 @@ namespace
   class CreateBackendParams : public Sound::CreateBackendParameters
   {
   public:
-    CreateBackendParams(const CommonBackendParameters& params, ZXTune::Module::Holder::Ptr module, Sound::BackendCallback::Ptr callback)
+    CreateBackendParams(const CommonBackendParameters& params, Module::Holder::Ptr module, Sound::BackendCallback::Ptr callback)
       : Params(params)
       , Module(module)
       , Callback(callback)
@@ -126,7 +126,7 @@ namespace
       return Parameters::CreateMergedAccessor(Module->GetModuleProperties(), Params.GetDefaultParameters());
     }
 
-    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    virtual Module::Holder::Ptr GetModule() const
     {
       return Module;
     }
@@ -137,7 +137,7 @@ namespace
     }
   private:
     const CommonBackendParameters& Params;
-    const ZXTune::Module::Holder::Ptr Module;
+    const Module::Holder::Ptr Module;
     const Sound::BackendCallback::Ptr Callback;
   };
 
@@ -200,7 +200,7 @@ namespace
     {
     }
 
-    virtual Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module, const String& typeHint, Sound::BackendCallback::Ptr callback)
+    virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint, Sound::BackendCallback::Ptr callback)
     {
       const Sound::CreateBackendParameters::Ptr createParams(new CreateBackendParams(*Params, module, callback));
       Sound::Backend::Ptr backend;

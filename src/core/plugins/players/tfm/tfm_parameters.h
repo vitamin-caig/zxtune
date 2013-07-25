@@ -18,14 +18,11 @@ Author:
 //library includes
 #include <devices/tfm.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace TFM
   {
-    namespace TFM
-    {
-      Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
-    }
+    Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
   }
 }
 

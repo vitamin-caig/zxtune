@@ -108,7 +108,7 @@ namespace
       setWindowTitle(ToQString(item->GetFullPath()));
 
       //TODO: query only item
-      const ZXTune::Module::Holder::Ptr module = item->GetModule();
+      const Module::Holder::Ptr module = item->GetModule();
       const Parameters::Accessor::Ptr nativeProps = module->GetModuleProperties();
       const Parameters::Container::Ptr adjustedProps = item->GetAdjustedParameters();
       Properties = boost::make_shared<ItemPropertiesContainer>(adjustedProps, nativeProps);
@@ -133,9 +133,9 @@ namespace
   private:
     void FillProperties(const Playlist::Item::Capabilities& caps)
     {
-      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Title"), ZXTune::Module::ATTR_TITLE);
-      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Author"), ZXTune::Module::ATTR_AUTHOR);
-      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Comment"), ZXTune::Module::ATTR_COMMENT);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Title"), Module::ATTR_TITLE);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Author"), Module::ATTR_AUTHOR);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Comment"), Module::ATTR_COMMENT);
 
       QStringList valuesOffOn;
       valuesOffOn << Playlist::UI::PropertiesDialog::tr("Off") << Playlist::UI::PropertiesDialog::tr("On");

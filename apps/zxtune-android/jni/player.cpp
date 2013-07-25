@@ -84,7 +84,7 @@ namespace
   class PlayerControl : public Player::Control
   {
   public:
-    PlayerControl(Parameters::Container::Ptr params, ZXTune::Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
+    PlayerControl(Parameters::Container::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
       : Params(params)
       , Renderer(render)
       , Buffer(buffer)
@@ -100,7 +100,7 @@ namespace
 
     virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const
     {
-      typedef std::vector<ZXTune::Module::Analyzer::ChannelState> ChannelsState;
+      typedef std::vector<Module::Analyzer::ChannelState> ChannelsState;
       ChannelsState result;
       Analyser->GetState(result);
       uint_t doneEntries = 0;
@@ -145,19 +145,19 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Params;
-    const ZXTune::Module::Renderer::Ptr Renderer;
+    const Module::Renderer::Ptr Renderer;
     const BufferTarget::Ptr Buffer;
-    const ZXTune::Module::TrackState::Ptr TrackState;
-    const ZXTune::Module::Analyzer::Ptr Analyser;
+    const Module::TrackState::Ptr TrackState;
+    const Module::Analyzer::Ptr Analyser;
   };
 
-  Player::Control::Ptr CreateControl(const ZXTune::Module::Holder::Ptr module)
+  Player::Control::Ptr CreateControl(const Module::Holder::Ptr module)
   {
     const Parameters::Container::Ptr params = Parameters::Container::Create();
     const Parameters::Accessor::Ptr props = module->GetModuleProperties();
     const Parameters::Accessor::Ptr allProps = Parameters::CreateMergedAccessor(params, props);
     const BufferTarget::Ptr buffer = boost::make_shared<BufferTarget>();
-    const ZXTune::Module::Renderer::Ptr renderer = module->CreateRenderer(allProps, buffer);
+    const Module::Renderer::Ptr renderer = module->CreateRenderer(allProps, buffer);
     return boost::make_shared<PlayerControl>(params, renderer, buffer);
   }
 
@@ -205,7 +205,7 @@ namespace
 
 namespace Player
 {
-  int Create(ZXTune::Module::Holder::Ptr module)
+  int Create(Module::Holder::Ptr module)
   {
     const Player::Control::Ptr ctrl = CreateControl(module);
     Dbg("Player::Create(module=%p)=%p", module.get(), ctrl.get());

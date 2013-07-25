@@ -34,7 +34,7 @@ namespace boost
 
 class CancelError : public std::exception {};
 
-typedef boost::function<void(ZXTune::Module::Holder::Ptr)> OnItemCallback;
+typedef boost::function<void(Module::Holder::Ptr)> OnItemCallback;
 
 class SourceComponent
 {

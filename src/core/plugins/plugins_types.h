@@ -17,15 +17,11 @@ Author:
 #include "core/src/location.h"
 //library includes
 #include <analysis/result.h>
-#include <core/module_holder.h>
+#include <core/module_detect.h>
 #include <core/plugin.h>
 
 namespace ZXTune
 {
-  namespace Module
-  {
-    class DetectCallback;
-  }
   class PlayerPlugin
   {
   public:

@@ -30,11 +30,10 @@ Author:
 //text includes
 #include <core/text/plugins.h>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
+namespace TFC
+{
   struct FrameData
   {
     uint_t Number;
@@ -255,12 +254,6 @@ namespace
     uint_t Channel;
     uint_t Frequency[6];
   };
-}
-
-namespace
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
 
   class DataIterator : public TFM::DataIterator
   {
@@ -357,17 +350,8 @@ namespace
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace TFC
-{
-  using namespace ZXTune;
-
-  //plugin attributes
-  const Char ID[] = {'T', 'F', 'C', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_FM | CAP_CONV_RAW;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -404,14 +388,19 @@ namespace TFC
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterTFCSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'T', 'F', 'C', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_FM | CAP_CONV_RAW;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFCDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<TFC::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TFC::ID, decoder->GetDescription(), TFC::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::TFC::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

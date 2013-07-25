@@ -31,7 +31,7 @@ inline String OptimizeString(const String& str, Char replace = '\?')
   return res;
 }
 
-inline Log::ProgressCallback::Ptr CreateProgressCallback(const ZXTune::Module::DetectCallback& callback, uint_t limit)
+inline Log::ProgressCallback::Ptr CreateProgressCallback(const Module::DetectCallback& callback, uint_t limit)
 {
   if (Log::ProgressCallback* cb = callback.GetProgress())
   {

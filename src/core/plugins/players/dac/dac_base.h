@@ -22,124 +22,121 @@ Author:
 #include <sound/receiver.h>
 #include <sound/render_params.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace DAC
   {
-    namespace DAC
+    class ChannelDataBuilder
     {
-      class ChannelDataBuilder
+    public:
+      explicit ChannelDataBuilder(Devices::DAC::DataChunk::ChannelData& data)
+        : Data(data)
       {
-      public:
-        explicit ChannelDataBuilder(Devices::DAC::DataChunk::ChannelData& data)
-          : Data(data)
-        {
-        }
+      }
 
-        void SetEnabled(bool enabled)
-        {
-          Data.Enabled = enabled;
-          Data.Mask |= Devices::DAC::DataChunk::ChannelData::ENABLED;
-        }
-
-        void SetNote(uint_t note)
-        {
-          Data.Note = note;
-          Data.Mask |= Devices::DAC::DataChunk::ChannelData::NOTE;
-        }
-
-        void SetNoteSlide(int_t noteSlide)
-        {
-          Data.NoteSlide = noteSlide;
-          Data.Mask |= Devices::DAC::DataChunk::ChannelData::NOTESLIDE;
-        }
-
-        void SetFreqSlideHz(int_t freqSlideHz)
-        {
-          Data.FreqSlideHz = freqSlideHz;
-          Data.Mask |= Devices::DAC::DataChunk::ChannelData::FREQSLIDEHZ;
-        }
-
-        void SetSampleNum(uint_t sampleNum)
-        {
-          Data.SampleNum = sampleNum;
-          Data.Mask |= Devices::DAC::DataChunk::ChannelData::SAMPLENUM;
-        }
-
-        void SetPosInSample(uint_t posInSample)
-        {
-          Data.PosInSample = posInSample;
-          Data.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
-        }
-
-        void DropPosInSample()
-        {
-          Data.Mask &= ~Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
-        }
-
-        void SetLevelInPercents(uint_t levelInPercents)
-        {
-          Data.Level = Devices::LevelType(levelInPercents, Devices::LevelType::PRECISION);
-          Data.Mask |= Devices::DAC::DataChunk::ChannelData::LEVEL;
-        }
-
-        Devices::DAC::DataChunk::ChannelData& GetState() const
-        {
-          return Data;
-        }
-      private:
-        Devices::DAC::DataChunk::ChannelData& Data;
-      };
-
-      class TrackBuilder
+      void SetEnabled(bool enabled)
       {
-      public:
-        ChannelDataBuilder GetChannel(uint_t chan);
+        Data.Enabled = enabled;
+        Data.Mask |= Devices::DAC::DataChunk::ChannelData::ENABLED;
+      }
 
-        void GetResult(std::vector<Devices::DAC::DataChunk::ChannelData>& result);
-      private:
-        std::vector<Devices::DAC::DataChunk::ChannelData> Data;
-      };
-
-      class DataRenderer
+      void SetNote(uint_t note)
       {
-      public:
-        typedef boost::shared_ptr<DataRenderer> Ptr;
+        Data.Note = note;
+        Data.Mask |= Devices::DAC::DataChunk::ChannelData::NOTE;
+      }
 
-        virtual ~DataRenderer() {}
-
-        virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
-        virtual void Reset() = 0;
-      };
-
-      class DataIterator : public StateIterator
+      void SetNoteSlide(int_t noteSlide)
       {
-      public:
-        typedef boost::shared_ptr<DataIterator> Ptr;
+        Data.NoteSlide = noteSlide;
+        Data.Mask |= Devices::DAC::DataChunk::ChannelData::NOTESLIDE;
+      }
 
-        virtual void GetData(Devices::DAC::DataChunk& data) const = 0;
-      };
-
-      class Chiptune
+      void SetFreqSlideHz(int_t freqSlideHz)
       {
-      public:
-        typedef boost::shared_ptr<const Chiptune> Ptr;
-        virtual ~Chiptune() {}
+        Data.FreqSlideHz = freqSlideHz;
+        Data.Mask |= Devices::DAC::DataChunk::ChannelData::FREQSLIDEHZ;
+      }
 
-        virtual Information::Ptr GetInformation() const = 0;
-        virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-        virtual DataIterator::Ptr CreateDataIterator() const = 0;
-        virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const = 0;
-      };
+      void SetSampleNum(uint_t sampleNum)
+      {
+        Data.SampleNum = sampleNum;
+        Data.Mask |= Devices::DAC::DataChunk::ChannelData::SAMPLENUM;
+      }
 
-      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+      void SetPosInSample(uint_t posInSample)
+      {
+        Data.PosInSample = posInSample;
+        Data.Mask |= Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
+      }
 
-      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
+      void DropPosInSample()
+      {
+        Data.Mask &= ~Devices::DAC::DataChunk::ChannelData::POSINSAMPLE;
+      }
 
-      Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+      void SetLevelInPercents(uint_t levelInPercents)
+      {
+        Data.Level = Devices::LevelType(levelInPercents, Devices::LevelType::PRECISION);
+        Data.Mask |= Devices::DAC::DataChunk::ChannelData::LEVEL;
+      }
 
-      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
-    }
+      Devices::DAC::DataChunk::ChannelData& GetState() const
+      {
+        return Data;
+      }
+    private:
+      Devices::DAC::DataChunk::ChannelData& Data;
+    };
+
+    class TrackBuilder
+    {
+    public:
+      ChannelDataBuilder GetChannel(uint_t chan);
+
+      void GetResult(std::vector<Devices::DAC::DataChunk::ChannelData>& result);
+    private:
+      std::vector<Devices::DAC::DataChunk::ChannelData> Data;
+    };
+
+    class DataRenderer
+    {
+    public:
+      typedef boost::shared_ptr<DataRenderer> Ptr;
+
+      virtual ~DataRenderer() {}
+
+      virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
+      virtual void Reset() = 0;
+    };
+
+    class DataIterator : public StateIterator
+    {
+    public:
+      typedef boost::shared_ptr<DataIterator> Ptr;
+
+      virtual void GetData(Devices::DAC::DataChunk& data) const = 0;
+    };
+
+    class Chiptune
+    {
+    public:
+      typedef boost::shared_ptr<const Chiptune> Ptr;
+      virtual ~Chiptune() {}
+
+      virtual Information::Ptr GetInformation() const = 0;
+      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
+      virtual DataIterator::Ptr CreateDataIterator() const = 0;
+      virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const = 0;
+    };
+
+    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
+
+    Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }
 

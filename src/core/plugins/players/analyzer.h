@@ -17,12 +17,9 @@ Author:
 #include <core/module_types.h>
 #include <devices/state.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
-  {
-    Analyzer::Ptr CreateAnalyzer(Devices::StateSource::Ptr state);
-  }
+  Analyzer::Ptr CreateAnalyzer(Devices::StateSource::Ptr state);
 }
 
 #endif //CORE_PLUGINS_PLAYERS_ANALYZER_H_DEFINED

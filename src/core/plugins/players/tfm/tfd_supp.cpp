@@ -25,11 +25,10 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
+namespace TFD
+{
   typedef std::vector<Devices::TFM::DataChunk> ChunksArray;
 
   class ModuleData
@@ -240,17 +239,8 @@ namespace
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace TFD
-{
-  using namespace ZXTune;
-
-  //plugin attributes
-  const Char ID[] = {'T', 'F', 'D', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_FM | CAP_CONV_RAW;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -287,14 +277,19 @@ namespace TFD
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterTFDSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'T', 'F', 'D', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_FM | CAP_CONV_RAW;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFDDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<TFD::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TFD::ID, decoder->GetDescription(), TFD::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::TFD::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

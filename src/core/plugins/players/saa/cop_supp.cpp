@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "saa_base.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/archives/archive_supp_common.h"
 #include "core/plugins/players/creation_result.h"
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/simple_orderlist.h"
@@ -29,6 +28,8 @@ Author:
 #include <formats/chiptune/saa/etracker.h>
 #include <math/numeric.h>
 
+namespace Module
+{
 namespace ETracker
 {
   //supported commands and parameters
@@ -102,9 +103,6 @@ namespace ETracker
     }
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef SimpleOrderListWithTransposition<Formats::Chiptune::ETracker::PositionEntry> OrderListWithTransposition;
 
   class ModuleData : public TrackModel
@@ -139,11 +137,6 @@ namespace ETracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  SAA::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
-}
-
-namespace ETracker
-{
   class DataBuilder : public Formats::Chiptune::ETracker::Builder
   {
   public:
@@ -549,26 +542,8 @@ namespace ETracker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace ETracker
-{
-  SAA::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
-  }
-}
-
-namespace COP
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'C', 'O', 'P', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_SAA | CAP_CONV_RAW;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -588,11 +563,11 @@ namespace COP
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::ETracker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const SAA::Chiptune::Ptr chiptune = ::ETracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
+        const SAA::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return SAA::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -601,14 +576,19 @@ namespace COP
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterCOPSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'C', 'O', 'P', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_SAA | CAP_CONV_RAW;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateETrackerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<COP::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(COP::ID, decoder->GetDescription(), COP::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::ETracker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

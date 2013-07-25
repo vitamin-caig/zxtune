@@ -25,11 +25,10 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
+namespace Module
+{
 namespace PSG
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class DataBuilder : public Formats::Chiptune::PSG::Builder
   {
   public:
@@ -73,18 +72,8 @@ namespace PSG
   private:
     mutable boost::shared_ptr<AYM::RegistersArray> Data;
   };
-}
 
-namespace PSG
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'P', 'S', 'G', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::SupportedAYMFormatConvertors;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -104,7 +93,7 @@ namespace PSG
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::PSG::DataBuilder dataBuilder;
+      DataBuilder dataBuilder;
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
       {
         if (const AYM::RegistersArrayPtr data = dataBuilder.GetResult())
@@ -120,14 +109,19 @@ namespace PSG
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterPSGSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'P', 'S', 'G', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSGDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<PSG::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PSG::ID, decoder->GetDescription(), PSG::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::PSG::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

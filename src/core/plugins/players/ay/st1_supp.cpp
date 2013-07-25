@@ -16,23 +16,17 @@ Author:
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 
-namespace ST1
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'S', 'T', '1', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
-}
-
 namespace ZXTune
 {
   void RegisterST1Support(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'S', 'T', '1', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+
     const Formats::Chiptune::SoundTracker::Decoder::Ptr decoder = Formats::Chiptune::SoundTracker::Ver1::CreateUncompiledDecoder();
-    const ModulesFactory::Ptr factory = SoundTracker::CreateModulesFactory(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ST1::ID, decoder->GetDescription(), ST1::CAPS, factory);
+    const Module::Factory::Ptr factory = Module::SoundTracker::CreateModulesFactory(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

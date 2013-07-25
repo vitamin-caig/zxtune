@@ -41,14 +41,13 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const Debug::Stream Dbg("Core::TSSupp");
+}
 
-  //plugin attributes
-  const Char TS_PLUGIN_ID[] = {'T', 'S', 0};
-
+namespace Module
+{
+namespace TS
+{
   const std::size_t TS_MIN_SIZE = 256;
   const std::size_t MAX_MODULE_SIZE = 16384;
   const std::size_t TS_MAX_SIZE = MAX_MODULE_SIZE * 2;
@@ -71,17 +70,6 @@ namespace
   const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
 
   BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
-}
-
-namespace TS
-{
-  using namespace ZXTune;
-
-  //plugin attributes
-  const Char* const ID = TS_PLUGIN_ID;
-  const Char* const INFO = Text::TS_PLUGIN_INFO;
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
-
 
   const std::string TS_FOOTER_FORMAT(
     "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
@@ -175,7 +163,7 @@ namespace TS
     const Binary::Format::Ptr Delegate;
   };
 
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     Factory()
@@ -202,13 +190,13 @@ namespace TS
       }
       try
       {
-        const Module::AYM::Chiptune::Ptr tune1 = OpenAYMModule(traits.GetFirstContent(data));
+        const AYM::Chiptune::Ptr tune1 = OpenAYMModule(traits.GetFirstContent(data));
         if (!tune1)
         {
           Dbg("Invalid first module holder");
           return Module::Holder::Ptr();
         }
-        const Module::AYM::Chiptune::Ptr tune2 = OpenAYMModule(traits.GetSecondContent(data));
+        const AYM::Chiptune::Ptr tune2 = OpenAYMModule(traits.GetSecondContent(data));
         if (!tune2)
         {
           Dbg("Failed to create second module holder");
@@ -225,28 +213,34 @@ namespace TS
       }
     }
   private:
-    static Module::AYM::Chiptune::Ptr OpenAYMModule(Binary::Container::Ptr data)
+    static AYM::Chiptune::Ptr OpenAYMModule(Binary::Container::Ptr data)
     {
-      if (const Module::AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const Module::AYM::Holder>(Module::Open(*data)))
+      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Open(*data)))
       {
         return holder->GetChiptune();
       }
       else
       {
-        return Module::AYM::Chiptune::Ptr();
+        return AYM::Chiptune::Ptr();
       }
     }
   private:
     const FooterFormat::Ptr Format;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterTSSupport(PlayerPluginsRegistrator& registrator)
   {
-    const ModulesFactory::Ptr factory = boost::make_shared<TS::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TS::ID, TS::INFO, TS::CAPS, factory);
+    //plugin attributes
+    const Char ID[] = {'T', 'S', 0};
+    const Char* const INFO = Text::TS_PLUGIN_INFO;
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
+
+    const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

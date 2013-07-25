@@ -56,14 +56,14 @@ namespace
   String GetModuleId(const Parameters::Accessor& props)
   {
     String res;
-    props.FindValue(ZXTune::Module::ATTR_FULLPATH, res);
+    props.FindValue(Module::ATTR_FULLPATH, res);
     return res;
   }
 
-  class ConvertEndpoint : public DataReceiver<ZXTune::Module::Holder::Ptr>
+  class ConvertEndpoint : public DataReceiver<Module::Holder::Ptr>
   {
   public:
-    ConvertEndpoint(DisplayComponent& display, const Parameters::Accessor& params, std::auto_ptr<ZXTune::Module::Conversion::Parameter> param, Strings::Template::Ptr templ)
+    ConvertEndpoint(DisplayComponent& display, const Parameters::Accessor& params, std::auto_ptr<Module::Conversion::Parameter> param, Strings::Template::Ptr templ)
       : Display(display)
       , Params(params)
       , ConversionParameter(param)
@@ -71,13 +71,13 @@ namespace
     {
     }
 
-    virtual void ApplyData(const ZXTune::Module::Holder::Ptr& holder)
+    virtual void ApplyData(const Module::Holder::Ptr& holder)
     {
       try
       {
         const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
         const String id = GetModuleId(*props);
-        if (const Binary::Data::Ptr result = ZXTune::Module::Convert(*holder, *ConversionParameter, props))
+        if (const Binary::Data::Ptr result = Module::Convert(*holder, *ConversionParameter, props))
         {
           //prepare result filename
           const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
@@ -88,7 +88,7 @@ namespace
         else
         {
           Parameters::StringType type;
-          props->FindValue(ZXTune::Module::ATTR_TYPE, type);
+          props->FindValue(Module::ATTR_TYPE, type);
           Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, type));
         }
       }
@@ -104,7 +104,7 @@ namespace
   private:
     DisplayComponent& Display;
     const Parameters::Accessor& Params;
-    const std::auto_ptr<ZXTune::Module::Conversion::Parameter> ConversionParameter;
+    const std::auto_ptr<Module::Conversion::Parameter> ConversionParameter;
     const Strings::Template::Ptr FileNameTemplate;
   };
 
@@ -113,7 +113,7 @@ namespace
   {
   public:
     Convertor(const Parameters::Accessor& params, DisplayComponent& display)
-      : Pipe(DataReceiver<ZXTune::Module::Holder::Ptr>::CreateStub())
+      : Pipe(DataReceiver<Module::Holder::Ptr>::CreateStub())
     {
       Parameters::StringType mode;
       if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_MODE), mode))
@@ -125,44 +125,44 @@ namespace
       {
         throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_FILENAME);
       }
-      Parameters::IntType optimization = ZXTune::Module::Conversion::DEFAULT_OPTIMIZATION;
+      Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
       params.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
-      std::auto_ptr<ZXTune::Module::Conversion::Parameter> param;
+      std::auto_ptr<Module::Conversion::Parameter> param;
       if (mode == Text::CONVERSION_MODE_RAW)
       {
-        param.reset(new ZXTune::Module::Conversion::RawConvertParam());
+        param.reset(new Module::Conversion::RawConvertParam());
       }
       else if (mode == Text::CONVERSION_MODE_PSG)
       {
-        param.reset(new ZXTune::Module::Conversion::PSGConvertParam(optimization));
+        param.reset(new Module::Conversion::PSGConvertParam(optimization));
       }
       else if (mode == Text::CONVERSION_MODE_ZX50)
       {
-        param.reset(new ZXTune::Module::Conversion::ZX50ConvertParam(optimization));
+        param.reset(new Module::Conversion::ZX50ConvertParam(optimization));
       }
       else if (mode == Text::CONVERSION_MODE_TXT)
       {
-        param.reset(new ZXTune::Module::Conversion::TXTConvertParam());
+        param.reset(new Module::Conversion::TXTConvertParam());
       }
       else if (mode == Text::CONVERSION_MODE_DEBUGAY)
       {
-        param.reset(new ZXTune::Module::Conversion::DebugAYConvertParam(optimization));
+        param.reset(new Module::Conversion::DebugAYConvertParam(optimization));
       }
       else if (mode == Text::CONVERSION_MODE_AYDUMP)
       {
-        param.reset(new ZXTune::Module::Conversion::AYDumpConvertParam(optimization));
+        param.reset(new Module::Conversion::AYDumpConvertParam(optimization));
       }
       else if (mode == Text::CONVERSION_MODE_FYM)
       {
-        param.reset(new ZXTune::Module::Conversion::FYMConvertParam(optimization));
+        param.reset(new Module::Conversion::FYMConvertParam(optimization));
       }
       else
       {
         throw Error(THIS_LINE, Text::CONVERT_ERROR_INVALID_MODE);
       }
       Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
-      const DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, params, param, templ));
-      Pipe = Async::DataReceiver<ZXTune::Module::Holder::Ptr>::Create(1, 1000, target);
+      const DataReceiver<Module::Holder::Ptr>::Ptr target(new ConvertEndpoint(display, params, param, templ));
+      Pipe = Async::DataReceiver<Module::Holder::Ptr>::Create(1, 1000, target);
     }
 
     ~Convertor()
@@ -170,12 +170,12 @@ namespace
       Pipe->Flush();
     }
 
-    void ProcessItem(ZXTune::Module::Holder::Ptr holder) const
+    void ProcessItem(Module::Holder::Ptr holder) const
     {
       Pipe->ApplyData(holder);
     }
   private:
-    DataReceiver<ZXTune::Module::Holder::Ptr>::Ptr Pipe;
+    DataReceiver<Module::Holder::Ptr>::Ptr Pipe;
   };
 
   class AutoTimer
@@ -199,12 +199,12 @@ namespace
   class FinishPlaybackCallback : public Sound::BackendCallback
   {
   public:
-    virtual void OnStart(ZXTune::Module::Holder::Ptr /*module*/)
+    virtual void OnStart(Module::Holder::Ptr /*module*/)
     {
       Event.Reset();
     }
 
-    virtual void OnFrame(const ZXTune::Module::TrackState& /*state*/)
+    virtual void OnFrame(const Module::TrackState& /*state*/)
     {
     }
 
@@ -243,13 +243,13 @@ namespace
     {
     }
 
-    void ProcessItem(ZXTune::Module::Holder::Ptr holder) const
+    void ProcessItem(Module::Holder::Ptr holder) const
     {
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       String path, type;
-      props->FindValue(ZXTune::Module::ATTR_FULLPATH, path);
-      props->FindValue(ZXTune::Module::ATTR_TYPE, type);
+      props->FindValue(Module::ATTR_FULLPATH, path);
+      props->FindValue(Module::ATTR_TYPE, type);
 
       Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
 
@@ -386,14 +386,14 @@ namespace
       }
     }
 
-    void PlayItem(ZXTune::Module::Holder::Ptr holder)
+    void PlayItem(Module::Holder::Ptr holder)
     {
       const Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
       const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
 
       const Time::Microseconds frameDuration = Sounder->GetFrameDuration();
 
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      const Module::Information::Ptr info = holder->GetModuleInformation();
       const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
       control->Play();
 

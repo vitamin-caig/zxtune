@@ -21,7 +21,7 @@ Author:
 
 namespace Module
 {
-  typedef ObjectsStorage<ZXTune::Module::Holder::Ptr> Storage;
+  typedef ObjectsStorage<Module::Holder::Ptr> Storage;
 
   Storage::HandleType Create(Binary::Container::Ptr data);
 }

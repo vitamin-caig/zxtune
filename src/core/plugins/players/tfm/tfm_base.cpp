@@ -19,11 +19,8 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class TFMDataIterator : public TFM::DataIterator
   {
   public:
@@ -201,168 +198,165 @@ namespace
   }
 }
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace TFM
   {
-    namespace TFM
+    ChannelBuilder::ChannelBuilder(uint_t chan, Devices::TFM::DataChunk& chunk)
+      : Channel(chan >= TFM::TRACK_CHANNELS / 2 ? chan - TFM::TRACK_CHANNELS / 2 : chan)
+      , Registers(chunk.Data[chan >= TFM::TRACK_CHANNELS / 2])
     {
-      ChannelBuilder::ChannelBuilder(uint_t chan, Devices::TFM::DataChunk& chunk)
-        : Channel(chan >= TFM::TRACK_CHANNELS / 2 ? chan - TFM::TRACK_CHANNELS / 2 : chan)
-        , Registers(chunk.Data[chan >= TFM::TRACK_CHANNELS / 2])
-      {
-      }
+    }
 
-      void ChannelBuilder::SetMode(uint_t mode)
-      {
-        WriteChipRegister(0x27, mode);
-      }
+    void ChannelBuilder::SetMode(uint_t mode)
+    {
+      WriteChipRegister(0x27, mode);
+    }
 
-      void ChannelBuilder::KeyOn()
-      {
-        SetKey(0xf);
-      }
+    void ChannelBuilder::KeyOn()
+    {
+      SetKey(0xf);
+    }
 
-      void ChannelBuilder::KeyOff()
-      {
-        SetKey(0);
-      }
+    void ChannelBuilder::KeyOff()
+    {
+      SetKey(0);
+    }
 
-      void ChannelBuilder::SetKey(uint_t mask)
-      {
-        WriteChipRegister(0x28, Channel | (mask << 4));
-      }
+    void ChannelBuilder::SetKey(uint_t mask)
+    {
+      WriteChipRegister(0x28, Channel | (mask << 4));
+    }
 
-      void ChannelBuilder::SetupConnection(uint_t algorithm, uint_t feedback)
-      {
-        const uint_t val = algorithm | (feedback << 3);
-        WriteChannelRegister(0xb0, val);
-      }
+    void ChannelBuilder::SetupConnection(uint_t algorithm, uint_t feedback)
+    {
+      const uint_t val = algorithm | (feedback << 3);
+      WriteChannelRegister(0xb0, val);
+    }
 
-      void ChannelBuilder::SetDetuneMultiple(uint_t op, int_t detune, uint_t multiple)
-      {
-        const uint_t val = (EncodeDetune(detune) << 4) | multiple;
-        WriteOperatorRegister(0x30, op, val);
-      }
+    void ChannelBuilder::SetDetuneMultiple(uint_t op, int_t detune, uint_t multiple)
+    {
+      const uint_t val = (EncodeDetune(detune) << 4) | multiple;
+      WriteOperatorRegister(0x30, op, val);
+    }
 
-      void ChannelBuilder::SetRateScalingAttackRate(uint_t op, uint_t rateScaling, uint_t attackRate)
-      {
-        const uint_t val = (rateScaling << 6) | attackRate;
-        WriteOperatorRegister(0x50, op, val);
-      }
+    void ChannelBuilder::SetRateScalingAttackRate(uint_t op, uint_t rateScaling, uint_t attackRate)
+    {
+      const uint_t val = (rateScaling << 6) | attackRate;
+      WriteOperatorRegister(0x50, op, val);
+    }
 
-      void ChannelBuilder::SetDecay(uint_t op, uint_t decay)
-      {
-        WriteOperatorRegister(0x60, op, decay);
-      }
+    void ChannelBuilder::SetDecay(uint_t op, uint_t decay)
+    {
+      WriteOperatorRegister(0x60, op, decay);
+    }
 
-      void ChannelBuilder::SetSustain(uint_t op, uint_t sustain)
-      {
-        WriteOperatorRegister(0x70, op, sustain);
-      }
+    void ChannelBuilder::SetSustain(uint_t op, uint_t sustain)
+    {
+      WriteOperatorRegister(0x70, op, sustain);
+    }
 
-      void ChannelBuilder::SetSustainLevelReleaseRate(uint_t op, uint_t sustainLevel, uint_t releaseRate)
-      {
-        const uint_t val = (sustainLevel << 4) | releaseRate;
-        WriteOperatorRegister(0x80, op, val);
-      }
+    void ChannelBuilder::SetSustainLevelReleaseRate(uint_t op, uint_t sustainLevel, uint_t releaseRate)
+    {
+      const uint_t val = (sustainLevel << 4) | releaseRate;
+      WriteOperatorRegister(0x80, op, val);
+    }
 
-      void ChannelBuilder::SetEnvelopeType(uint_t op, uint_t type)
-      {
-        WriteOperatorRegister(0x90, op, type);
-      }
+    void ChannelBuilder::SetEnvelopeType(uint_t op, uint_t type)
+    {
+      WriteOperatorRegister(0x90, op, type);
+    }
 
-      void ChannelBuilder::SetTotalLevel(uint_t op, uint_t totalLevel)
-      {
-        WriteOperatorRegister(0x40, op, totalLevel);
-      }
+    void ChannelBuilder::SetTotalLevel(uint_t op, uint_t totalLevel)
+    {
+      WriteOperatorRegister(0x40, op, totalLevel);
+    }
 
-      void ChannelBuilder::SetTone(uint_t octave, uint_t tone)
-      {
-        const uint_t valHi = octave * 8 + (tone >> 8);
-        const uint_t valLo = tone & 0xff;
-        WriteChannelRegister(0xa4, valHi);
-        WriteChannelRegister(0xa0, valLo);
-      }
+    void ChannelBuilder::SetTone(uint_t octave, uint_t tone)
+    {
+      const uint_t valHi = octave * 8 + (tone >> 8);
+      const uint_t valLo = tone & 0xff;
+      WriteChannelRegister(0xa4, valHi);
+      WriteChannelRegister(0xa0, valLo);
+    }
 
-      void ChannelBuilder::SetTone(uint_t op, uint_t octave, uint_t tone)
+    void ChannelBuilder::SetTone(uint_t op, uint_t octave, uint_t tone)
+    {
+      const uint_t valHi = octave * 8 + (tone >> 8);
+      const uint_t valLo = tone & 0xff;
+      assert(Channel == 2);
+      switch (op)
       {
-        const uint_t valHi = octave * 8 + (tone >> 8);
-        const uint_t valLo = tone & 0xff;
-        assert(Channel == 2);
-        switch (op)
-        {
-        case 0:
-          WriteChipRegister(0xa4, valHi);
-          WriteChipRegister(0xa0, valLo);
-          break;
-        case 1:
-          WriteChipRegister(0xac, valHi);
-          WriteChipRegister(0xa8, valLo);
-          break;
-        case 2:
-          WriteChipRegister(0xae, valHi);
-          WriteChipRegister(0xaa, valLo);
-          break;
-        case 3:
-          //op1 in doc???
-          WriteChipRegister(0xad, valHi);
-          WriteChipRegister(0xa9, valLo);
-          break;
-        }
+      case 0:
+        WriteChipRegister(0xa4, valHi);
+        WriteChipRegister(0xa0, valLo);
+        break;
+      case 1:
+        WriteChipRegister(0xac, valHi);
+        WriteChipRegister(0xa8, valLo);
+        break;
+      case 2:
+        WriteChipRegister(0xae, valHi);
+        WriteChipRegister(0xaa, valLo);
+        break;
+      case 3:
+        //op1 in doc???
+        WriteChipRegister(0xad, valHi);
+        WriteChipRegister(0xa9, valLo);
+        break;
       }
+    }
 
-      void ChannelBuilder::SetPane(uint_t val)
-      {
-        WriteChannelRegister(0xb4, val);
-      }
+    void ChannelBuilder::SetPane(uint_t val)
+    {
+      WriteChannelRegister(0xb4, val);
+    }
 
-      void ChannelBuilder::WriteOperatorRegister(uint_t base, uint_t op, uint_t val)
-      {
-        WriteChannelRegister(base + 4 * op, val);
-      }
+    void ChannelBuilder::WriteOperatorRegister(uint_t base, uint_t op, uint_t val)
+    {
+      WriteChannelRegister(base + 4 * op, val);
+    }
 
-      void ChannelBuilder::WriteChannelRegister(uint_t base, uint_t val)
-      {
-        Registers.push_back(Devices::FM::DataChunk::Register(base + Channel, val));
-      }
+    void ChannelBuilder::WriteChannelRegister(uint_t base, uint_t val)
+    {
+      Registers.push_back(Devices::FM::DataChunk::Register(base + Channel, val));
+    }
 
-      void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
-      {
-        const Devices::FM::DataChunk::Register reg(idx, val);
-        Registers.push_back(reg);
-      }
+    void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
+    {
+      const Devices::FM::DataChunk::Register reg(idx, val);
+      Registers.push_back(reg);
+    }
 
-      Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::TFM::Device::Ptr chip) const
-      {
-        const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(params);
-        const TFM::DataIterator::Ptr iterator = CreateDataIterator();
-        return TFM::CreateRenderer(soundParams, iterator, chip);
-      }
+    Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::TFM::Device::Ptr chip) const
+    {
+      const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(params);
+      const TFM::DataIterator::Ptr iterator = CreateDataIterator();
+      return TFM::CreateRenderer(soundParams, iterator, chip);
+    }
 
-      Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device)
+    Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device)
+    {
+      if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
       {
-        if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::StateSource>(device))
-        {
-          return Module::CreateAnalyzer(src);
-        }
-        return Analyzer::Ptr();
+        return Module::CreateAnalyzer(src);
       }
+      return Analyzer::Ptr();
+    }
 
-      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
-      {
-        return boost::make_shared<TFMDataIterator>(iterator, renderer);
-      }
+    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+    {
+      return boost::make_shared<TFMDataIterator>(iterator, renderer);
+    }
 
-      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
-      {
-        return boost::make_shared<TFMRenderer>(params, iterator, device);
-      }
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
+    {
+      return boost::make_shared<TFMRenderer>(params, iterator, device);
+    }
 
-      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
-      {
-        return boost::make_shared<TFMHolder>(chiptune);
-      }
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+    {
+      return boost::make_shared<TFMHolder>(chiptune);
     }
   }
 }

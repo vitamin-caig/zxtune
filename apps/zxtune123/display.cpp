@@ -37,7 +37,7 @@ namespace
   const std::size_t TRACKING_HEIGHT = 3;
   const std::size_t PLAYING_HEIGHT = 2;
 
-  inline void ShowTrackingStatus(const ZXTune::Module::TrackState& state)
+  inline void ShowTrackingStatus(const Module::TrackState& state)
   {
     const String& dump = Strings::Format(Text::TRACKING_STATUS,
       state.Position(), state.Pattern(),
@@ -101,9 +101,9 @@ namespace
       }
     }
 
-    virtual void SetModule(ZXTune::Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration)
+    virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration)
     {
-      const ZXTune::Module::Information::Ptr info = module->GetModuleInformation();
+      const Module::Information::Ptr info = module->GetModuleInformation();
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
       TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
@@ -156,7 +156,7 @@ namespace
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
-          std::vector<ZXTune::Module::Analyzer::ChannelState> curAnalyze;
+          std::vector<Module::Analyzer::ChannelState> curAnalyze;
           Analyzer->GetState(curAnalyze);
           AnalyzerData.resize(ScrSize.first);
           UpdateAnalyzer(curAnalyze, 10);
@@ -204,11 +204,11 @@ namespace
       StdOut << std::flush;
     }
 
-    void UpdateAnalyzer(const std::vector<ZXTune::Module::Analyzer::ChannelState>& inState, int_t fallspeed)
+    void UpdateAnalyzer(const std::vector<Module::Analyzer::ChannelState>& inState, int_t fallspeed)
     {
       std::transform(AnalyzerData.begin(), AnalyzerData.end(), AnalyzerData.begin(),
         std::bind2nd(std::minus<int_t>(), fallspeed));
-      for (std::vector<ZXTune::Module::Analyzer::ChannelState>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
+      for (std::vector<Module::Analyzer::ChannelState>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
       {
         if (it->Band < AnalyzerData.size())
         {
@@ -229,8 +229,8 @@ namespace
     Console::SizeType ScrSize;
     uint_t TotalFrames;
     Time::Microseconds FrameDuration;
-    ZXTune::Module::TrackState::Ptr TrackState;
-    ZXTune::Module::Analyzer::Ptr Analyzer;
+    Module::TrackState::Ptr TrackState;
+    Module::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
   };
 }

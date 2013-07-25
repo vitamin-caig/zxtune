@@ -17,22 +17,20 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-
-  Analysis::Result::Ptr DetectModuleInLocation(ModulesFactory::Ptr factory, const String& type, DataLocation::Ptr inputData, const Module::DetectCallback& callback)
+  Analysis::Result::Ptr DetectInLocation(const Factory& factory, const String& type, ZXTune::DataLocation::Ptr inputData, const DetectCallback& callback)
   {
     const Binary::Container::Ptr data = inputData->GetData();
-    const Binary::Format::Ptr format = factory->GetFormat();
-    if (!factory->Check(*data))
+    const Binary::Format::Ptr format = factory.GetFormat();
+    if (!factory.Check(*data))
     {
       return Analysis::CreateUnmatchedResult(format, data);
     }
-    Module::PropertiesBuilder properties;
+    PropertiesBuilder properties;
     properties.SetType(type);
     properties.SetLocation(*inputData);
-    if (Module::Holder::Ptr holder = factory->CreateModule(properties, *data))
+    if (const Holder::Ptr holder = factory.CreateModule(properties, *data))
     {
       callback.ProcessModule(inputData, holder);
       Parameters::IntType usedSize = 0;
@@ -41,11 +39,14 @@ namespace
     }
     return Analysis::CreateUnmatchedResult(format, data);
   }
+}
 
+namespace ZXTune
+{
   class CommonPlayerPlugin : public PlayerPlugin
   {
   public:
-    CommonPlayerPlugin(Plugin::Ptr descr, ModulesFactory::Ptr factory)
+    CommonPlayerPlugin(Plugin::Ptr descr, Module::Factory::Ptr factory)
       : Description(descr)
       , Factory(factory)
     {
@@ -63,7 +64,7 @@ namespace
 
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
     {
-      return DetectModuleInLocation(Factory, Description->Id(), inputData, callback);
+      return Module::DetectInLocation(*Factory, Description->Id(), inputData, callback);
     }
 
     virtual Module::Holder::Ptr Open(const Binary::Container& data) const
@@ -78,14 +79,14 @@ namespace
     }
   private:
     const Plugin::Ptr Description;
-    const ModulesFactory::Ptr Factory;
+    const Module::Factory::Ptr Factory;
   };
 }
 
 namespace ZXTune
 {
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps,
-    ModulesFactory::Ptr factory)
+    Module::Factory::Ptr factory)
   {
     const Plugin::Ptr description = CreatePluginDescription(id, info, caps);
     return PlayerPlugin::Ptr(new CommonPlayerPlugin(description, factory));

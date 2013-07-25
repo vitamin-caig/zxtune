@@ -17,10 +17,8 @@ Author:
 //text includes
 #include <core/text/plugins.h>
 
-namespace
+namespace ZXTune
 {
-  using namespace ZXTune;
-
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
   String EncodeArchivePluginToPath(const String& pluginId)
@@ -45,11 +43,11 @@ namespace
     const Binary::Container::Ptr rawData = inputData->GetData();
     if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
     {
-      const ZXTune::Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
+      const Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
       const String subPlugin = plugin->Id();
       const String subPath = EncodeArchivePluginToPath(subPlugin);
-      const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, subPlugin, subPath);
-      ZXTune::Module::Detect(subLocation, noProgressCallback);
+      const DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, subPlugin, subPath);
+      Module::Detect(subLocation, noProgressCallback);
       return Analysis::CreateMatchedResult(subData->PackedSize());
     }
     const Binary::Format::Ptr format = decoder.GetFormat();

@@ -25,7 +25,7 @@ String GetModuleTitle(const String& format, const Parameters::Accessor& props)
   String curTitle = fmtTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(props));
   if (curTitle == emptyTitle)
   {
-    props.FindValue(ZXTune::Module::ATTR_FULLPATH, curTitle);
+    props.FindValue(Module::ATTR_FULLPATH, curTitle);
   }
   return curTitle;
 }

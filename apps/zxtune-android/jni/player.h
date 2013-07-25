@@ -36,7 +36,7 @@ namespace Player
 
   typedef ObjectsStorage<Control::Ptr> Storage;
 
-  Storage::HandleType Create(ZXTune::Module::Holder::Ptr module);
+  Storage::HandleType Create(Module::Holder::Ptr module);
 }
 
 #endif //PLAYER_H_DEFINED

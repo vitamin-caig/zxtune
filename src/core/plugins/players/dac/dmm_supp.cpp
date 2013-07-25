@@ -34,11 +34,10 @@ Author:
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/digitalmusicmaker.h>
 
+namespace Module
+{
 namespace DigitalMusicMaker
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const std::size_t CHANNELS_COUNT = 3;
 
   const uint64_t Z80_FREQ = 3500000;
@@ -98,10 +97,7 @@ namespace DigitalMusicMaker
 
     boost::array<MixedChannel, 64> Mixes;
   };
-}
 
-namespace DigitalMusicMaker
-{
   class ChannelBuilder : public Formats::Chiptune::DigitalMusicMaker::ChannelBuilder
   {
   public:
@@ -702,35 +698,8 @@ namespace DigitalMusicMaker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace DMM
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'D', 'M', 'M', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
-
-  const std::string DMM_FORMAT(
-    //bank ends
-    "(?c0-ff){6}"
-    //pat size: 64,48,32,24
-    "%0xxxx000 ?"
-    //positions
-    "(00-17){50}"
-    //tempo (3..30)
-    "03-1e"
-    //loop position
-    "00-32 ?"
-    //length
-    "01-32"
-    //base size
-    "02-38"
-  );
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -750,11 +719,11 @@ namespace DMM
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::DigitalMusicMaker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared< ::DigitalMusicMaker::Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -763,14 +732,19 @@ namespace DMM
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterDMMSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'D', 'M', 'M', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateDigitalMusicMakerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<DMM::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(DMM::ID, decoder->GetDescription(), DMM::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::DigitalMusicMaker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

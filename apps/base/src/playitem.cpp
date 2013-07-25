@@ -41,7 +41,7 @@ namespace
 
     virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
-      if (name == ZXTune::Module::ATTR_FULLPATH)
+      if (name == Module::ATTR_FULLPATH)
       {
         val = Uri;
         return true;
@@ -56,7 +56,7 @@ namespace
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
-      visitor.SetValue(ZXTune::Module::ATTR_FULLPATH, Uri);
+      visitor.SetValue(Module::ATTR_FULLPATH, Uri);
     }
   private:
     const String Uri;
@@ -82,27 +82,27 @@ namespace
 
     virtual bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const
     {
-      if (name == ZXTune::Module::ATTR_SUBPATH)
+      if (name == Module::ATTR_SUBPATH)
       {
         val = Id->Subpath();
         return true;
       }
-      else if (name == ZXTune::Module::ATTR_FILENAME)
+      else if (name == Module::ATTR_FILENAME)
       {
         val = Id->Filename();
         return true;
       }
-      else if (name == ZXTune::Module::ATTR_EXTENSION)
+      else if (name == Module::ATTR_EXTENSION)
       {
         val = Id->Extension();
         return true;
       }
-      else if (name == ZXTune::Module::ATTR_PATH)
+      else if (name == Module::ATTR_PATH)
       {
         val = Id->Path();
         return true;
       }
-      else if (name == ZXTune::Module::ATTR_FULLPATH)
+      else if (name == Module::ATTR_FULLPATH)
       {
         val = Id->Full();
         return true;
@@ -117,11 +117,11 @@ namespace
 
     virtual void Process(Parameters::Visitor& visitor) const
     {
-      visitor.SetValue(ZXTune::Module::ATTR_SUBPATH, Id->Subpath());
-      visitor.SetValue(ZXTune::Module::ATTR_FILENAME, Id->Filename());
-      visitor.SetValue(ZXTune::Module::ATTR_EXTENSION, Id->Extension());
-      visitor.SetValue(ZXTune::Module::ATTR_PATH, Id->Path());
-      visitor.SetValue(ZXTune::Module::ATTR_FULLPATH, Id->Full());
+      visitor.SetValue(Module::ATTR_SUBPATH, Id->Subpath());
+      visitor.SetValue(Module::ATTR_FILENAME, Id->Filename());
+      visitor.SetValue(Module::ATTR_EXTENSION, Id->Extension());
+      visitor.SetValue(Module::ATTR_PATH, Id->Path());
+      visitor.SetValue(Module::ATTR_FULLPATH, Id->Full());
     }
   private:
     const IO::Identifier::Ptr Id;

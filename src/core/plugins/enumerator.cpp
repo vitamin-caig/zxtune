@@ -39,11 +39,12 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-
   const Debug::Stream Dbg("Core::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+}
 
+namespace ZXTune
+{
   template<class PluginType>
   class PluginsContainer : public PluginsRegistrator<PluginType>
                          , public PluginsEnumerator<PluginType>
@@ -167,10 +168,7 @@ namespace
     ArchivePlugin::Iterator::Ptr Archives;
     PlayerPlugin::Iterator::Ptr Players;
   };
-}
 
-namespace ZXTune
-{
   template<>
   ArchivePluginsEnumerator::Ptr ArchivePluginsEnumerator::Create()
   {
@@ -212,17 +210,17 @@ namespace ZXTune
   {
     return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
   }
+}
 
-  namespace Module
+namespace Module
+{
+  Binary::Data::Ptr GetRawData(const Holder& holder)
   {
-    Binary::Data::Ptr GetRawData(const Holder& holder)
+    std::auto_ptr<Parameters::DataType> data(new Parameters::DataType());
+    if (holder.GetModuleProperties()->FindValue(ATTR_CONTENT, *data))
     {
-      std::auto_ptr<Parameters::DataType> data(new Parameters::DataType());
-      if (holder.GetModuleProperties()->FindValue(ATTR_CONTENT, *data))
-      {
-        return Binary::CreateContainer(data);
-      }
-      throw Error(THIS_LINE, translate("Invalid parameters specified."));
+      return Binary::CreateContainer(data);
     }
+    throw Error(THIS_LINE, translate("Invalid parameters specified."));
   }
 }

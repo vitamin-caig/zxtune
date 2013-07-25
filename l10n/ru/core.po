@@ -11,22 +11,22 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: plugins/containers/container_supp_common.cpp:217
+#: plugins/containers/container_supp_common.cpp:218
 #, boost-format
 msgid "%1% processing"
 msgstr "Анализ %1%"
 
-#: plugins/containers/container_supp_common.cpp:218
+#: plugins/containers/container_supp_common.cpp:219
 #, boost-format
 msgid "%1% processing at %2%"
 msgstr "Анализ %1% в %2%"
 
-#: plugins/containers/container_supp_common.cpp:224
+#: plugins/containers/container_supp_common.cpp:225
 #, boost-format
 msgid "%1% processing for %2%"
 msgstr "Анализ %1% для %2%"
 
-#: plugins/containers/container_supp_common.cpp:225
+#: plugins/containers/container_supp_common.cpp:226
 #, boost-format
 msgid "%1% processing for %2% at %3%"
 msgstr "Анализ %1% для %2% в %3%"
@@ -38,37 +38,37 @@ msgstr ""
 "Неправильный минимальный размер блока для анализа (%1%). Должен быть больше "
 "%2%."
 
-#: plugins/enumerator.cpp:225
+#: plugins/enumerator.cpp:224
 msgid "Invalid parameters specified."
 msgstr "Неправильные параметры."
 
-#: plugins/players/ay/aym_parameters.cpp:60
+#: plugins/players/ay/aym_parameters.cpp:62
 #, boost-format
 msgid "Invalid duty cycle mask item: '%1%'."
 msgstr "Неправильное значение канала для задания скважности: '%1%'."
 
-#: plugins/players/ay/aym_parameters.cpp:103
-#: plugins/players/ay/aym_parameters.cpp:189
+#: plugins/players/ay/aym_parameters.cpp:105
+#: plugins/players/ay/aym_parameters.cpp:191
 #, boost-format
 msgid "Invalid layout value (%1%)."
 msgstr "Неправильное значение раскладки каналов (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:128
+#: plugins/players/ay/aym_parameters.cpp:130
 #, boost-format
 msgid "Invalid clock frequency (%1%)."
 msgstr "Неправильное значение тактовой частоты (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:160
+#: plugins/players/ay/aym_parameters.cpp:162
 #, boost-format
 msgid "Invalid duty cycle value (%1%)."
 msgstr "Неправильное значение скважности (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:234
+#: plugins/players/ay/aym_parameters.cpp:236
 #, boost-format
 msgid "Invalid frequency table size (%1%)."
 msgstr "Неправильный размер частотной таблицы (%1%)."
 
-#: plugins/players/ay/freq_tables.cpp:257
+#: plugins/players/ay/freq_tables.cpp:253
 #, boost-format
 msgid "Invalid frequency table '%1%'."
 msgstr "Неправильное значение частотной таблицы '%1%'."
@@ -78,6 +78,6 @@ msgstr "Неправильное значение частотной табли�
 msgid "Failed to resolve subpath '%1%'."
 msgstr "Ошибка получения данных по пути '%1%'."
 
-#: src/module_detect.cpp:65 src/module_detect.cpp:180
+#: src/module_detect.cpp:66 src/module_detect.cpp:178
 msgid "Failed to find module at specified location."
 msgstr "Модуль не найден по указанному пути."

@@ -20,13 +20,13 @@ Author:
 #include <binary/container.h>
 #include <core/module_holder.h>
 
-namespace ZXTune
+namespace Module
 {
-  class ModulesFactory
+  class Factory
   {
   public:
-    typedef boost::shared_ptr<const ModulesFactory> Ptr;
-    virtual ~ModulesFactory() {}
+    typedef boost::shared_ptr<const Factory> Ptr;
+    virtual ~Factory() {}
 
     //! @brief Checking if data contains module
     //! @return true if possibly yes, false if defenitely no
@@ -34,10 +34,13 @@ namespace ZXTune
 
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
-    virtual Module::Holder::Ptr CreateModule(Module::PropertiesBuilder& properties, const Binary::Container& data) const = 0;
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, const Binary::Container& data) const = 0;
   };
+}
 
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps, ModulesFactory::Ptr factory);
+namespace ZXTune
+{
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, const String& info, uint_t caps, Module::Factory::Ptr factory);
 }
 
 #endif //__CORE_PLUGINS_PLAYER_CREATION_RESULT_H_DEFINED__

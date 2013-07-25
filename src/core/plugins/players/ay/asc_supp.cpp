@@ -26,6 +26,8 @@ Author:
 #include <formats/chiptune/aym/ascsoundmaster.h>
 #include <math/numeric.h>
 
+namespace Module
+{
 namespace ASCSoundMaster
 {
   //supported commands and their parameters
@@ -125,9 +127,6 @@ namespace ASCSoundMaster
     }
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class ModuleData : public TrackModel
   {
   public:
@@ -160,11 +159,6 @@ namespace ASCSoundMaster
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
-}
-
-namespace ASCSoundMaster
-{
   class DataBuilder : public Formats::Chiptune::ASCSoundMaster::Builder
   {
   public:
@@ -673,27 +667,8 @@ namespace ASCSoundMaster
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace ASCSoundMaster
-{
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
-  }
-}
-
-namespace ASC
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID_0[] = {'A', 'S', '0', 0};
-  const Char ID_1[] = {'A', 'S', 'C', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
@@ -713,11 +688,11 @@ namespace ASC
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::ASCSoundMaster::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const AYM::Chiptune::Ptr chiptune = ::ASCSoundMaster::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -726,21 +701,26 @@ namespace ASC
     const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterASCSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID_0[] = {'A', 'S', '0', 0};
+    const Char ID_1[] = {'A', 'S', 'C', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
     {
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver0::CreateDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID_0, decoder->GetDescription(), ASC::CAPS, factory);
+      const Module::Factory::Ptr factory = boost::make_shared<Module::ASCSoundMaster::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_0, decoder->GetDescription(), CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder = Formats::Chiptune::ASCSoundMaster::Ver1::CreateDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<ASC::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ASC::ID_1, decoder->GetDescription(), ASC::CAPS, factory);
+      const Module::Factory::Ptr factory = boost::make_shared<Module::ASCSoundMaster::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_1, decoder->GetDescription(), CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

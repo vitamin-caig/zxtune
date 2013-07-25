@@ -27,7 +27,7 @@ namespace Module
   {
     try
     {
-      const ZXTune::Module::Holder::Ptr module = ZXTune::Module::Open(*data);
+      const Module::Holder::Ptr module = Module::Open(*data);
       Dbg("Module::Create(data=%p)=%p", data.get(), module.get());
       return Storage::Instance().Add(module);
     }
@@ -58,7 +58,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1GetDuration
   (JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
 {
-  if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  if (const Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
   {
     return module->GetModuleInformation()->FramesCount();
   }
@@ -68,7 +68,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1GetDuration
 JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lang_String_2J
   (JNIEnv* env, jclass /*self*/, jint moduleHandle, jstring propName, jlong defVal)
 {
-  if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  if (const Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
   {
     const Parameters::Accessor::Ptr params = module->GetModuleProperties();
     const Jni::PropertiesReadHelper props(env, *params);
@@ -80,7 +80,7 @@ JNIEXPORT jlong JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lang_
 JNIEXPORT jstring JNICALL Java_app_zxtune_ZXTune_Module_1GetProperty__ILjava_lang_String_2Ljava_lang_String_2
   (JNIEnv* env, jclass /*self*/, jint moduleHandle, jstring propName, jstring defVal)
 {
-  if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  if (const Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
   {
     const Parameters::Accessor::Ptr params = module->GetModuleProperties();
     const Jni::PropertiesReadHelper props(env, *params);
@@ -93,7 +93,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1CreatePlayer
   (JNIEnv* /*env*/, jclass /*self*/, jint moduleHandle)
 {
   Dbg("Module::CreatePlayer(handle=%x)", moduleHandle);
-  if (const ZXTune::Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
+  if (const Module::Holder::Ptr module = Module::Storage::Instance().Get(moduleHandle))
   {
     return Player::Create(module);
   }

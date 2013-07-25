@@ -20,11 +20,10 @@ Author:
 
 #define FILE_TAG ADBE77A4
 
+namespace Module
+{
 namespace SampleTracker
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const std::size_t CHANNELS_COUNT = 3;
 
   typedef DAC::ModuleData ModuleData;
@@ -38,18 +37,8 @@ namespace SampleTracker
     0x0163 0x0178 0x018e 0x01a6 0x01bf 0x01d9 0x01f6 0x0213 0x0233 0x0254 0x0278 0x029d
     0x02c5 0x02ef 0x031c 0x034b 0x0373 0x03b3 0x03eb 0x0427 0x0466 0x04a9 0x04f0 0x053b
   */
-}
 
-namespace STR
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'S', 'T', 'R', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -69,11 +58,11 @@ namespace STR
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      const std::auto_ptr< ::SampleTracker::DataBuilder> dataBuilder = ::SampleTracker::DataBuilder::Create< ::SampleTracker::CHANNELS_COUNT>(propBuilder);
+      const std::auto_ptr<DataBuilder> dataBuilder = DataBuilder::Create<CHANNELS_COUNT>(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), ::SampleTracker::CHANNELS_COUNT);
+        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), CHANNELS_COUNT);
         return DAC::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -82,14 +71,19 @@ namespace STR
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterSTRSupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID[] = {'S', 'T', 'R', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
+
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSampleTrackerDecoder();
-    const ModulesFactory::Ptr factory = boost::make_shared<STR::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(STR::ID, decoder->GetDescription(), STR::CAPS, factory);
+    const Module::Factory::Ptr factory = boost::make_shared<Module::SampleTracker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

@@ -33,6 +33,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/weak_ptr.hpp>
 //text includes
 #include "text/backends.h"
 

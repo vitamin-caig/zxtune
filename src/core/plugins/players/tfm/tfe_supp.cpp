@@ -28,6 +28,8 @@ Author:
 #include <boost/make_shared.hpp>
 #include <boost/scoped_ptr.hpp>
 
+namespace Module
+{
 namespace TFMMusicMaker
 {
   enum CmdType
@@ -77,9 +79,6 @@ namespace TFMMusicMaker
 
   typedef Formats::Chiptune::TFMMusicMaker::Instrument Instrument;
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class ModuleData : public TrackModel
   {
   public:
@@ -115,11 +114,6 @@ namespace TFMMusicMaker
     SparsedObjectsStorage<Instrument> Instruments;
   };
 
-  TFM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
-}
-
-namespace TFMMusicMaker
-{
   class DataBuilder : public Formats::Chiptune::TFMMusicMaker::Builder
   {
   public:
@@ -1567,27 +1561,8 @@ namespace TFMMusicMaker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace TFMMusicMaker
-{
-  TFM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
-  }
-}
-
-namespace TFE
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID_05[] = {'T', 'F', '0', 0};
-  const Char ID_13[] = {'T', 'F', 'E', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_FM | CAP_CONV_RAW;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder)
@@ -1607,11 +1582,11 @@ namespace TFE
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::TFMMusicMaker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const TFM::Chiptune::Ptr chiptune = ::TFMMusicMaker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
+        const TFM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return TFM::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -1620,21 +1595,26 @@ namespace TFE
     const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterTFESupport(PlayerPluginsRegistrator& registrator)
   {
+    //plugin attributes
+    const Char ID_05[] = {'T', 'F', '0', 0};
+    const Char ID_13[] = {'T', 'F', 'E', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_FM | CAP_CONV_RAW;
     {
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver05::CreateDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<TFE::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TFE::ID_05, decoder->GetDescription(), TFE::CAPS, factory);
+      const Module::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_05, decoder->GetDescription(), CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
     {
       const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder = Formats::Chiptune::TFMMusicMaker::Ver13::CreateDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<TFE::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(TFE::ID_13, decoder->GetDescription(), TFE::CAPS, factory);
+      const Module::Factory::Ptr factory = boost::make_shared<Module::TFMMusicMaker::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID_13, decoder->GetDescription(), CAPS, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

@@ -22,15 +22,14 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  class ChipParametersImpl : public Devices::DAC::ChipParameters
+namespace DAC
+{
+  class ChipParameters : public Devices::DAC::ChipParameters
   {
   public:
-    explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
+    explicit ChipParameters(Parameters::Accessor::Ptr params)
       : Params(params)
       , SoundParams(Sound::RenderParameters::Create(params))
     {
@@ -63,6 +62,7 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
   };
+}
 
   class DACDataIterator : public DAC::DataIterator
   {
@@ -254,54 +254,51 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace DAC
   {
-    namespace DAC
+    ChannelDataBuilder TrackBuilder::GetChannel(uint_t chan)
     {
-      ChannelDataBuilder TrackBuilder::GetChannel(uint_t chan)
+      using namespace Devices::DAC;
+      const std::vector<DataChunk::ChannelData>::iterator existing = std::find_if(Data.begin(), Data.end(),
+        boost::bind(&DataChunk::ChannelData::Channel, _1) == chan);
+      if (existing != Data.end())
       {
-        using namespace Devices::DAC;
-        const std::vector<DataChunk::ChannelData>::iterator existing = std::find_if(Data.begin(), Data.end(),
-          boost::bind(&DataChunk::ChannelData::Channel, _1) == chan);
-        if (existing != Data.end())
-        {
-          return ChannelDataBuilder(*existing);
-        }
-        Data.push_back(DataChunk::ChannelData());
-        DataChunk::ChannelData& newOne = Data.back();
-        newOne.Channel = chan;
-        return ChannelDataBuilder(newOne);
+        return ChannelDataBuilder(*existing);
       }
+      Data.push_back(DataChunk::ChannelData());
+      DataChunk::ChannelData& newOne = Data.back();
+      newOne.Channel = chan;
+      return ChannelDataBuilder(newOne);
+    }
 
-      void TrackBuilder::GetResult(std::vector<Devices::DAC::DataChunk::ChannelData>& result)
-      {
-        using namespace Devices::DAC;
-        const std::vector<DataChunk::ChannelData>::iterator last = std::remove_if(Data.begin(), Data.end(),
-          boost::bind(&DataChunk::ChannelData::Mask, _1) == 0u);
-        result.assign(Data.begin(), last);
-      }
+    void TrackBuilder::GetResult(std::vector<Devices::DAC::DataChunk::ChannelData>& result)
+    {
+      using namespace Devices::DAC;
+      const std::vector<DataChunk::ChannelData>::iterator last = std::remove_if(Data.begin(), Data.end(),
+        boost::bind(&DataChunk::ChannelData::Mask, _1) == 0u);
+      result.assign(Data.begin(), last);
+    }
 
-      Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
-      {
-        return boost::make_shared<ChipParametersImpl>(params);
-      }
+    Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
+    {
+      return boost::make_shared<ChipParameters>(params);
+    }
 
-      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
-      {
-        return boost::make_shared<DACDataIterator>(iterator, renderer);
-      }
+    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+    {
+      return boost::make_shared<DACDataIterator>(iterator, renderer);
+    }
 
-      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
-      {
-        return boost::make_shared<DACRenderer>(params, iterator, device);
-      }
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    {
+      return boost::make_shared<DACRenderer>(params, iterator, device);
+    }
 
-      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
-      {
-        return boost::make_shared<DACHolder>(chiptune);
-      }
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+    {
+      return boost::make_shared<DACHolder>(chiptune);
     }
   }
 }

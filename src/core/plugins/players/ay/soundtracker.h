@@ -22,6 +22,8 @@ Author:
 //library includes
 #include <formats/chiptune/aym/soundtracker.h>
 
+namespace Module
+{
 namespace SoundTracker
 {
   enum CmdType
@@ -65,9 +67,6 @@ namespace SoundTracker
     }
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef SimpleOrderListWithTransposition<Formats::Chiptune::SoundTracker::PositionEntry> OrderListWithTransposition;
   typedef SimpleOrnament Ornament;
 
@@ -103,7 +102,7 @@ namespace SoundTracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  ModulesFactory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder);
+  Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder);
 }
-
+}
 #endif //__CORE_PLUGINS_PLAYERS_SOUNDTRACKER_DEFINED__

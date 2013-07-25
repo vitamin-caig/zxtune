@@ -32,6 +32,8 @@ Author:
 #include <formats/chiptune/aym/globaltracker.h>
 #include <math/numeric.h>
 
+namespace Module
+{
 namespace GlobalTracker
 {
   enum CmdType
@@ -70,9 +72,6 @@ namespace GlobalTracker
     }
   };
 
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   typedef SimpleOrnament Ornament;
 
   class ModuleData : public TrackModel
@@ -107,11 +106,6 @@ namespace GlobalTracker
     SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
-}
-
-namespace GlobalTracker
-{
   class DataBuilder : public Formats::Chiptune::GlobalTracker::Builder
   {
   public:
@@ -398,26 +392,8 @@ namespace GlobalTracker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace GlobalTracker
-{
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
-  }
-}
-
-namespace GTR
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'G', 'T', 'R', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -437,11 +413,11 @@ namespace GTR
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::GlobalTracker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::GlobalTracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const AYM::Chiptune::Ptr chiptune = ::GlobalTracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -450,17 +426,19 @@ namespace GTR
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterGTRSupport(PlayerPluginsRegistrator& registrator)
   {
-    //direct modules
-    {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateGlobalTrackerDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<GTR::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(GTR::ID, decoder->GetDescription(), GTR::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
+    //plugin attributes
+    const Char ID[] = {'G', 'T', 'R', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateGlobalTrackerDecoder();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::GlobalTracker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }

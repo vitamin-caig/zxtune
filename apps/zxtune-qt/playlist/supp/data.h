@@ -16,6 +16,7 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_SUPP_DATA_H_DEFINED
 
 //common includes
+#include <error.h>
 #include <iterator.h>
 #include <parameters.h>
 //library includes
@@ -36,7 +37,7 @@ namespace Playlist
       virtual ~Data() {}
 
       //common
-      virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
+      virtual Module::Holder::Ptr GetModule() const = 0;
       virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
       //playlist-related
       virtual Error GetState() const = 0;

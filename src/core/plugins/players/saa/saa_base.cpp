@@ -20,11 +20,8 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   class SAADataIterator : public SAA::DataIterator
   {
   public:
@@ -189,88 +186,85 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace SAA
   {
-    namespace SAA
+    ChannelBuilder::ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk)
+      : Channel(chan)
+      , Chunk(chunk)
     {
-      ChannelBuilder::ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk)
-        : Channel(chan)
-        , Chunk(chunk)
-      {
-        SetRegister(Devices::SAA::DataChunk::REG_TONEMIXER, 0, 1 << chan);
-        SetRegister(Devices::SAA::DataChunk::REG_NOISEMIXER, 0, 1 << chan);
-      }
+      SetRegister(Devices::SAA::DataChunk::REG_TONEMIXER, 0, 1 << chan);
+      SetRegister(Devices::SAA::DataChunk::REG_NOISEMIXER, 0, 1 << chan);
+    }
 
-      void ChannelBuilder::SetVolume(int_t left, int_t right)
-      {
-        SetRegister(Devices::SAA::DataChunk::REG_LEVEL0 + Channel, 16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
-      }
+    void ChannelBuilder::SetVolume(int_t left, int_t right)
+    {
+      SetRegister(Devices::SAA::DataChunk::REG_LEVEL0 + Channel, 16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
+    }
 
-      void ChannelBuilder::SetTone(uint_t octave, uint_t note)
-      {
-        SetRegister(Devices::SAA::DataChunk::REG_TONENUMBER0 + Channel, note);
-        AddRegister(Devices::SAA::DataChunk::REG_TONEOCTAVE01 + Channel / 2, 0 != (Channel & 1) ? (octave << 4) : octave);
-      }
+    void ChannelBuilder::SetTone(uint_t octave, uint_t note)
+    {
+      SetRegister(Devices::SAA::DataChunk::REG_TONENUMBER0 + Channel, note);
+      AddRegister(Devices::SAA::DataChunk::REG_TONEOCTAVE01 + Channel / 2, 0 != (Channel & 1) ? (octave << 4) : octave);
+    }
 
-      void ChannelBuilder::SetNoise(uint_t type)
-      {
-        const uint_t shift = Channel >= 3 ? 4 : 0;
-        SetRegister(Devices::SAA::DataChunk::REG_NOISECLOCK, type << shift, 0x7 << shift);
-      }
+    void ChannelBuilder::SetNoise(uint_t type)
+    {
+      const uint_t shift = Channel >= 3 ? 4 : 0;
+      SetRegister(Devices::SAA::DataChunk::REG_NOISECLOCK, type << shift, 0x7 << shift);
+    }
 
-      void ChannelBuilder::AddNoise(uint_t type)
-      {
-        const uint_t shift = Channel >= 3 ? 4 : 0;
-        AddRegister(Devices::SAA::DataChunk::REG_NOISECLOCK, type << shift);
-      }
+    void ChannelBuilder::AddNoise(uint_t type)
+    {
+      const uint_t shift = Channel >= 3 ? 4 : 0;
+      AddRegister(Devices::SAA::DataChunk::REG_NOISECLOCK, type << shift);
+    }
 
-      void ChannelBuilder::SetEnvelope(uint_t type)
-      {
-        SetRegister(Devices::SAA::DataChunk::REG_ENVELOPE0 + (Channel >= 3), type);
-      }
+    void ChannelBuilder::SetEnvelope(uint_t type)
+    {
+      SetRegister(Devices::SAA::DataChunk::REG_ENVELOPE0 + (Channel >= 3), type);
+    }
 
-      void ChannelBuilder::EnableTone()
-      {
-        AddRegister(Devices::SAA::DataChunk::REG_TONEMIXER, 1 << Channel);
-      }
+    void ChannelBuilder::EnableTone()
+    {
+      AddRegister(Devices::SAA::DataChunk::REG_TONEMIXER, 1 << Channel);
+    }
 
-      void ChannelBuilder::EnableNoise()
-      {
-        AddRegister(Devices::SAA::DataChunk::REG_NOISEMIXER, 1 << Channel);
-      }
+    void ChannelBuilder::EnableNoise()
+    {
+      AddRegister(Devices::SAA::DataChunk::REG_NOISEMIXER, 1 << Channel);
+    }
 
-      Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::SAA::Device::Ptr chip) const
-      {
-        const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-        const SAA::DataIterator::Ptr iterator = CreateDataIterator();
-        return SAA::CreateRenderer(renderParams, iterator, chip);
-      }
+    Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::SAA::Device::Ptr chip) const
+    {
+      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+      const SAA::DataIterator::Ptr iterator = CreateDataIterator();
+      return SAA::CreateRenderer(renderParams, iterator, chip);
+    }
 
-      Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)
+    Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)
+    {
+      if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::SAA::Chip>(device))
       {
-        if (Devices::StateSource::Ptr src = boost::dynamic_pointer_cast<Devices::SAA::Chip>(device))
-        {
-          return Module::CreateAnalyzer(src);
-        }
-        return Analyzer::Ptr();
+        return Module::CreateAnalyzer(src);
       }
+      return Analyzer::Ptr();
+    }
 
-      DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
-      {
-        return boost::make_shared<SAADataIterator>(iterator, renderer);
-      }
+    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+    {
+      return boost::make_shared<SAADataIterator>(iterator, renderer);
+    }
 
-      Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
-      {
-        return boost::make_shared<SAARenderer>(params, iterator, device);
-      }
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
+    {
+      return boost::make_shared<SAARenderer>(params, iterator, device);
+    }
 
-      Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
-      {
-        return boost::make_shared<SAAHolder>(chiptune);
-      }
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+    {
+      return boost::make_shared<SAAHolder>(chiptune);
     }
   }
 }

@@ -37,6 +37,8 @@ namespace
   const Debug::Stream Dbg("Core::SQTSupp");
 }
 
+namespace Module
+{
 namespace SQTracker
 {
   //supported commands and parameters
@@ -177,9 +179,6 @@ namespace SQTracker
     typedef boost::unordered_map<HashedPosition, uint_t, PositionHash> StorageType;
     StorageType Storage;
   };
-
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
 
   class ModuleData : public TrackModel
   {
@@ -445,11 +444,6 @@ namespace SQTracker
     mutable PatternsSet::Ptr FlatPatterns;
   };
 
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
-}
-
-namespace SQTracker
-{
   class SingleChannelPatternsBuilder : public PatternsBuilder
   {
     SingleChannelPatternsBuilder(boost::shared_ptr<MutablePatternsSet> patterns)
@@ -846,26 +840,8 @@ namespace SQTracker
     const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace SQTracker
-{
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
-  }
-}
-
-namespace SQT
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'S', 'Q', 'T', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | SupportedAYMFormatConvertors;
-
-  class Factory : public ModulesFactory
+  class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
@@ -885,11 +861,11 @@ namespace SQT
 
     virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      ::SQTracker::DataBuilder dataBuilder(propBuilder);
+      DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const AYM::Chiptune::Ptr chiptune = ::SQTracker::CreateChiptune(dataBuilder.GetResult(), propBuilder.GetResult());
+        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
         return AYM::CreateHolder(chiptune);
       }
       return Holder::Ptr();
@@ -898,17 +874,19 @@ namespace SQT
     const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterSQTSupport(PlayerPluginsRegistrator& registrator)
   {
-    //direct modules
-    {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQTrackerDecoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<SQT::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(SQT::ID, decoder->GetDescription(), SQT::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
+    //plugin attributes
+    const Char ID[] = {'S', 'Q', 'T', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQTrackerDecoder();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::SQTracker::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder->GetDescription(), CAPS, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }

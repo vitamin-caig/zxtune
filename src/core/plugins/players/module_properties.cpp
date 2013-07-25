@@ -19,8 +19,6 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace ZXTune
-{
 namespace Module
 {
   PropertiesBuilder::PropertiesBuilder()
@@ -78,7 +76,7 @@ namespace Module
     Container->SetValue(ATTR_TYPE, type);
   }
 
-  void PropertiesBuilder::SetLocation(const DataLocation& location)
+  void PropertiesBuilder::SetLocation(const ZXTune::DataLocation& location)
   {
     const String& container = location.GetPluginsChain()->AsString();
     if (!container.empty())
@@ -129,5 +127,4 @@ namespace Module
       Container->SetValue(ATTR_VERSION, ver);
     }
   }
-}
 }
