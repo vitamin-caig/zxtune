@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
+#include "aym_base.h"
 #include "ts_base.h"
 #include "vortex_base.h"
 #include "core/plugins/registrator.h"
@@ -21,7 +21,6 @@ Author:
 //library includes
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
-#include <devices/turbosound.h>
 //text includes
 #include <core/text/plugins.h>
 
@@ -321,6 +320,39 @@ namespace ProTracker3
     return boost::make_shared<TSPatternsSet>(patOffset, pats);
   }
 
+  class PT3Chiptune : public AYM::Chiptune
+  {
+  public:
+    PT3Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    {
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const AYM::DataRenderer::Ptr renderer = CreateDataRenderer(Data, 0);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+    }
+  private:
+    const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
+    const Information::Ptr Info;
+  };
+
+
   class TSChiptune : public TurboSound::Chiptune
   {
   public:
@@ -380,7 +412,7 @@ namespace ProTracker3
         }
         else
         {
-          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, propBuilder.GetResult());
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PT3Chiptune>(modData, propBuilder.GetResult());
           return AYM::CreateHolder(chiptune);
         }
       }

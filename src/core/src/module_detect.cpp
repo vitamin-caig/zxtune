@@ -13,7 +13,7 @@ Author:
 #include "callback.h"
 #include "core/plugins/enumerator.h"
 #include "core/plugins/plugins_types.h"
-#include "core/plugins/players/ay/ay_base.h"
+#include "core/plugins/players/ay/aym_base.h"
 //common includes
 #include <error.h>
 //library includes

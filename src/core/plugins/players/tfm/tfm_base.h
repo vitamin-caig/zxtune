@@ -29,4 +29,4 @@ namespace Module
   }
 }
 
-#endif //CORE_PLUGINS_PLAYERS_FM_BASE_DEFINED
+#endif //CORE_PLUGINS_PLAYERS_TFM_BASE_DEFINED

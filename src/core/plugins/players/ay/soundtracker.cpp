@@ -484,7 +484,7 @@ namespace SoundTracker
     const Information::Ptr Info;
   };
 
-  class Factory : public Module::Factory
+  class Factory : public AYM::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
@@ -492,22 +492,24 @@ namespace SoundTracker
     {
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
-        return AYM::CreateHolder(chiptune);
+        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
       }
-      return Holder::Ptr();
+      else
+      {
+        return AYM::Chiptune::Ptr();
+      }
     }
   private:
     const Formats::Chiptune::SoundTracker::Decoder::Ptr Decoder;
   };
 
-  Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
+  AYM::Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
   {
     return boost::make_shared<Factory>(decoder);
   }

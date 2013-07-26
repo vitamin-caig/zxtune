@@ -10,15 +10,14 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
+#include "aym_base.h"
+#include "aym_base_track.h"
+#include "aym_plugin.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
 #include <tools.h>
 //library includes
-#include <core/plugin_attrs.h>
-#include <core/conversion/aym.h>
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/sqtracker.h>
@@ -834,19 +833,21 @@ namespace SQTracker
     const Information::Ptr Info;
   };
 
-  class Factory : public Module::Factory
+  class Factory : public AYM::Factory
   {
   public:
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const AYM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
-        return AYM::CreateHolder(chiptune);
+        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
       }
-      return Holder::Ptr();
+      else
+      {
+        return AYM::Chiptune::Ptr();
+      }
     }
   };
 }
@@ -858,11 +859,10 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'S', 'Q', 'T', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQTrackerDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::SQTracker::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::SQTracker::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

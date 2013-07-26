@@ -1,6 +1,6 @@
 /*
 Abstract:
-  DAC-based chiptune interface
+  AYM-based modules support
 
 Last changed:
   $Id$
@@ -10,24 +10,25 @@ Author:
 */
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_DAC_CHIPTUNE_DEFINED
-#define CORE_PLUGINS_PLAYERS_DAC_CHIPTUNE_DEFINED
+#ifndef CORE_PLUGINS_PLAYERS_AYM_CHIPTUNE_H_DEFINED
+#define CORE_PLUGINS_PLAYERS_AYM_CHIPTUNE_H_DEFINED
 
 //local includes
+#include "aym_parameters.h"
 #include "core/plugins/players/tracking.h"
 //library includes
-#include <devices/dac.h>
+#include <devices/aym.h>
 
 namespace Module
 {
-  namespace DAC
+  namespace AYM
   {
     class DataIterator : public StateIterator
     {
     public:
       typedef boost::shared_ptr<DataIterator> Ptr;
 
-      virtual void GetData(Devices::DAC::DataChunk& data) const = 0;
+      virtual Devices::AYM::Registers GetData() const = 0;
     };
 
     class Chiptune
@@ -38,10 +39,9 @@ namespace Module
 
       virtual Information::Ptr GetInformation() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator() const = 0;
-      virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
     };
   }
 }
 
-#endif //CORE_PLUGINS_PLAYERS_DAC_CHIPTUNE_DEFINED
+#endif //CORE_PLUGINS_PLAYERS_AYM_CHIPTUNE_H_DEFINED

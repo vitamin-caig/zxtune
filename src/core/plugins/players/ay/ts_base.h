@@ -14,8 +14,9 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__
 
 //local includes
-#include "ay_base.h"
+#include "aym_base_track.h"
 //library includes
+#include <core/module_holder.h>
 #include <devices/turbosound.h>
 
 namespace Module

@@ -10,16 +10,15 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
+#include "aym_base.h"
+#include "aym_base_stream.h"
+#include "aym_plugin.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/plugin.h"
 //common includes
 #include <tools.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
-#include <core/plugin_attrs.h>
-#include <core/conversion/aym.h>
 #include <formats/chiptune/aym/ym.h>
 #include <sound/sound_parameters.h>
 //boost includes
@@ -29,6 +28,36 @@ namespace Module
 {
 namespace YMVTX
 {
+  typedef std::vector<Devices::AYM::Registers> RegistersArray;
+
+  class StreamModel : public AYM::StreamModel
+  {
+  public:
+    StreamModel(RegistersArray& rh, uint_t loop)
+      : LoopFrame(loop)
+    {
+      Data.swap(rh);
+    }
+
+    virtual uint_t Size() const
+    {
+      return static_cast<uint_t>(Data.size());
+    }
+
+    virtual uint_t Loop() const
+    {
+      return LoopFrame;
+    }
+
+    virtual Devices::AYM::Registers Get(uint_t pos) const
+    {
+      return Data[pos];
+    }
+  private:
+    const uint_t LoopFrame;
+    RegistersArray Data;
+  };
+
   Devices::AYM::LayoutType VtxMode2AymLayout(uint_t mode)
   {
     using namespace Devices::AYM;
@@ -60,7 +89,6 @@ namespace YMVTX
     explicit DataBuilder(PropertiesBuilder& props)
       : Properties(props)
       , Loop(0)
-      , Data(boost::make_shared<AYM::RegistersArray>())
     {
     }
 
@@ -146,30 +174,25 @@ namespace YMVTX
       }
     }
 
-    AYM::RegistersArrayPtr GetResult() const
+    AYM::StreamModel::Ptr GetResult() const
     {
-      return Data->empty()
-        ? AYM::RegistersArrayPtr()
-        : Data;
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
+      return Data.empty()
+        ? AYM::StreamModel::Ptr()
+        : AYM::StreamModel::Ptr(new StreamModel(Data, Loop));
     }
   private:
     Devices::AYM::Registers& Allocate()
     {
-      Data->push_back(Devices::AYM::Registers());
-      return Data->back();
+      Data.push_back(Devices::AYM::Registers());
+      return Data.back();
     }
   private:
     PropertiesBuilder& Properties;
+    mutable RegistersArray Data;
     uint_t Loop;
-    mutable boost::shared_ptr<AYM::RegistersArray> Data;
   };
 
-  class Factory : public Module::Factory
+  class Factory : public AYM::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::YM::Decoder::Ptr decoder)
@@ -177,19 +200,18 @@ namespace YMVTX
     {
     }
 
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        if (const AYM::RegistersArrayPtr data = dataBuilder.GetResult())
+        if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
         {
           propBuilder.SetSource(*container);
-          const AYM::Chiptune::Ptr chiptune = AYM::CreateStreamedChiptune(data, propBuilder.GetResult(), dataBuilder.GetLoop());
-          return AYM::CreateHolder(chiptune);
+          return AYM::CreateStreamedChiptune(data, propBuilder.GetResult());
         }
       }
-      return Holder::Ptr();
+      return AYM::Chiptune::Ptr();
     }
   private:
     const Formats::Chiptune::YM::Decoder::Ptr Decoder;
@@ -203,11 +225,10 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'V', 'T', 'X', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
 
     const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateVTXDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 
@@ -215,11 +236,10 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'Y', 'M', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
 
     const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

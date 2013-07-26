@@ -10,16 +10,13 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
+#include "aym_base.h"
+#include "aym_base_stream.h"
+#include "aym_plugin.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/plugin.h"
-#include "core/plugins/players/module_properties.h"
 //common includes
 #include <tools.h>
 //library includes
-#include <core/module_attrs.h>
-#include <core/plugin_attrs.h>
-#include <core/conversion/aym.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/aym/psg.h>
 //boost includes
@@ -29,66 +26,81 @@ namespace Module
 {
 namespace PSG
 {
+  typedef std::vector<Devices::AYM::Registers> RegistersArray;
+
+  class PSGStreamModel : public AYM::StreamModel
+  {
+  public:
+    explicit PSGStreamModel(RegistersArray& rh)
+    {
+      Data.swap(rh);
+    }
+
+    virtual uint_t Size() const
+    {
+      return static_cast<uint_t>(Data.size());
+    }
+
+    virtual uint_t Loop() const
+    {
+      return 0;
+    }
+
+    virtual Devices::AYM::Registers Get(uint_t pos) const
+    {
+      return Data[pos];
+    }
+  private:
+    RegistersArray Data;
+  };
+
   class DataBuilder : public Formats::Chiptune::PSG::Builder
   {
   public:
     virtual void AddChunks(std::size_t count)
     {
-      if (!Allocate(count))
-      {
-        Append(count);
-      }
+      Append(count);
     }
 
     virtual void SetRegister(uint_t reg, uint_t val)
     {
-      if (Data.get() && !Data->empty() && reg < Devices::AYM::Registers::TOTAL)
+      if (!Data.empty() && reg < Devices::AYM::Registers::TOTAL)
       {
-        Devices::AYM::Registers& data = Data->back();
+        Devices::AYM::Registers& data = Data.back();
         data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
       }
     }
 
-    AYM::RegistersArrayPtr GetResult() const
+    AYM::StreamModel::Ptr GetResult() const
     {
-      return Data;
+      return Data.empty()
+        ? AYM::StreamModel::Ptr()
+        : AYM::StreamModel::Ptr(new PSGStreamModel(Data));
     }
   private:
-    bool Allocate(std::size_t count) const
-    {
-      if (!Data.get())
-      {
-        Data = boost::make_shared<AYM::RegistersArray>(count);
-        return true;
-      }
-      return false;
-    }
-
     void Append(std::size_t count)
     {
-      Data->reserve(Data->size() + count);
-      std::fill_n(std::back_inserter(*Data), count, Devices::AYM::Registers());
+      Data.resize(Data.size() + count);
     }
   private:
-    mutable boost::shared_ptr<AYM::RegistersArray> Data;
+    mutable RegistersArray Data;
   };
 
-  class Factory : public Module::Factory
+  class Factory : public AYM::Factory
   {
   public:
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder;
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
       {
-        if (const AYM::RegistersArrayPtr data = dataBuilder.GetResult())
+        if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
         {
           propBuilder.SetSource(*container);
-          const AYM::Chiptune::Ptr chiptune = AYM::CreateStreamedChiptune(data, propBuilder.GetResult(), 0);
-          return AYM::CreateHolder(chiptune);
+          return AYM::CreateStreamedChiptune(data, propBuilder.GetResult());
         }
       }
-      return Holder::Ptr();
+      return AYM::Chiptune::Ptr();
     }
   };
 }
@@ -100,11 +112,10 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'P', 'S', 'G', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreatePSGDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::PSG::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::PSG::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

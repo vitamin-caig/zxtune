@@ -11,7 +11,7 @@ Author:
 
 #pragma once
 #ifndef CORE_PLUGINS_PLAYERS_TFM_PLUGIN_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_DAC_PLUGIN_H_DEFINED
+#define CORE_PLUGINS_PLAYERS_TFM_PLUGIN_H_DEFINED
 
 //local includes
 #include "tfm_factory.h"

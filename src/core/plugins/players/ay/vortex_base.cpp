@@ -10,8 +10,6 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
-#include "ts_base.h"
 #include "vortex_base.h"
 //common includes
 #include <tools.h>
@@ -405,38 +403,6 @@ namespace Vortex
     State PlayerState;
   };
 
-  class Chiptune : public AYM::Chiptune
-  {
-  public:
-    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
-    {
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
-    {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = CreateDataRenderer(Data, 0);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
-    }
-  private:
-    const ModuleData::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
-  };
-
   String GetFreqTable(NoteTable table, uint_t version)
   {
     switch (table)
@@ -460,11 +426,6 @@ namespace Vortex
   AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart)
   {
     return boost::make_shared<DataRenderer>(data, trackChannelStart);
-  }
-
-  AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
   }
 }
 }

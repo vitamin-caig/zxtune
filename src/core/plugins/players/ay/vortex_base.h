@@ -14,7 +14,7 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__
 
 //local includes
-#include "ay_base.h"
+#include "aym_base_track.h"
 #include "core/plugins/players/simple_ornament.h"
 //library includes
 #include <formats/chiptune/aym/protracker3.h>
@@ -135,7 +135,6 @@ namespace Module
     };
 
     AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart);
-    AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties);
   }
 }
 

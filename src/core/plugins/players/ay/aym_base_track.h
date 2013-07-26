@@ -1,6 +1,6 @@
 /*
 Abstract:
-  AYM-based modules support
+  AYM-based track modules support
 
 Last changed:
   $Id$
@@ -10,15 +10,13 @@ Author:
 */
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__
+#ifndef CORE_PLUGINS_PLAYERS_AYM_BASE_TRACK_H_DEFINED
+#define CORE_PLUGINS_PLAYERS_AYM_BASE_TRACK_H_DEFINED
 
 //local includes
-#include "aym_parameters.h"
-#include "core/plugins/players/tracking.h"
+#include "aym_chiptune.h"
+#include "core/plugins/players/renderer.h"
 //library includes
-#include <core/module_holder.h>
-#include <devices/aym.h>
 #include <sound/render_params.h>
 
 namespace Module
@@ -90,49 +88,8 @@ namespace Module
       virtual void Reset() = 0;
     };
 
-    class DataIterator : public StateIterator
-    {
-    public:
-      typedef boost::shared_ptr<DataIterator> Ptr;
-
-      virtual Devices::AYM::Registers GetData() const = 0;
-    };
-
-    class Chiptune
-    {
-    public:
-      typedef boost::shared_ptr<const Chiptune> Ptr;
-      virtual ~Chiptune() {}
-
-      virtual Information::Ptr GetInformation() const = 0;
-      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual AYM::DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
-    };
-
-    //TODO: refactor
-    class Holder : public Module::Holder
-    {
-    public:
-      typedef boost::shared_ptr<const Holder> Ptr;
-
-      virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const = 0;
-      virtual AYM::Chiptune::Ptr GetChiptune() const = 0;
-    };
-
-    Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device);
-
     DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
-
-    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device);
-    Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
-
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
-
-    typedef std::vector<Devices::AYM::Registers> RegistersArray;
-    typedef boost::shared_ptr<const RegistersArray> RegistersArrayPtr;
-
-    Chiptune::Ptr CreateStreamedChiptune(RegistersArrayPtr data, Parameters::Accessor::Ptr properties, uint_t loopFrame);
   }
 }
 
-#endif //__CORE_PLUGINS_PLAYERS_AY_BASE_H_DEFINED__
+#endif //CORE_PLUGINS_PLAYERS_AYM_BASE_TRACK_H_DEFINED

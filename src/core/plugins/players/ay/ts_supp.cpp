@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
+#include "aym_base.h"
 #include "ts_base.h"
 #include "core/plugins/enumerator.h"
 #include "core/plugins/registrator.h"

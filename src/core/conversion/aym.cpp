@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "api.h"
-#include "core/plugins/players/ay/ay_base.h"
+#include "core/plugins/players/ay/aym_base.h"
 //common includes
 #include <error_tools.h>
 //library includes
