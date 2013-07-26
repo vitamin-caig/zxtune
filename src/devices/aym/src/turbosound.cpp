@@ -59,7 +59,7 @@ namespace TurboSound
       using namespace Sound;
       const Sample s0 = Chip0.GetLevelsNoBeeper();
       const Sample s1 = Chip1.GetLevelsNoBeeper();
-      return AYM::Average(s0, s1);
+      return Sound::Sample::FastAdd(s0, s1);
     }
 
     void GetState(MultiChannelState& state) const
@@ -80,9 +80,29 @@ namespace TurboSound
     static const uint_t VOICES = TurboSound::VOICES;
   };
 
+  class HalfLevelMixer : public MixerType
+  {
+  public:
+    explicit HalfLevelMixer(MixerType::Ptr delegate)
+      : Delegate(delegate)
+      , DelegateRef(*Delegate)
+    {
+    }
+
+    virtual Sound::Sample ApplyData(const MixerType::InDataType& in) const
+    {
+      const Sound::Sample out = DelegateRef.ApplyData(in);
+      return Sound::Sample(out.Left() / 2, out.Right() / 2);
+    }
+  private:
+    const MixerType::Ptr Delegate;
+    const MixerType& DelegateRef;
+  };
+
   Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target)
   {
-    return boost::make_shared<AYM::SoundChip<Traits> >(params, mixer, target);
+    const MixerType::Ptr halfMixer = boost::make_shared<HalfLevelMixer>(mixer);
+    return boost::make_shared<AYM::SoundChip<Traits> >(params, halfMixer, target);
   }
 }
 }

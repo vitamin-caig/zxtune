@@ -52,6 +52,16 @@ namespace Sound
     {
       return Value == rh.Value;
     }
+
+    static Sample FastAdd(Sample lh, Sample rh)
+    {
+      return Sample(lh.Value + rh.Value);
+    }
+  private:
+    explicit Sample(uint_t val)
+      : Value(val)
+    {
+    }
   private:
     typedef uint32_t StorageType;
     static const uint_t SHIFT = 8 * sizeof(StorageType) / 2;
