@@ -11,16 +11,11 @@ Author:
 
 //local includes
 #include "soundtrackerpro.h"
-#include "core/plugins/utils.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/creation_result.h"
+#include "core/plugins/players/plugin.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
-#include <formats/chiptune/decoders.h>
-#include <formats/chiptune/aym/soundtrackerpro.h>
-//boost includes
-#include <boost/make_shared.hpp>
 
 namespace ZXTune
 {

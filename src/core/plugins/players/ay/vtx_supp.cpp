@@ -12,8 +12,7 @@ Author:
 //local includes
 #include "ay_base.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/plugin.h"
 //common includes
 #include <tools.h>
 //library includes

@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "creation_result.h"
+#include "plugin.h"
 #include "core/src/callback.h"
 //library includes
 #include <core/module_attrs.h>
@@ -73,10 +73,7 @@ namespace ZXTune
     const Formats::Chiptune::Decoder::Ptr Decoder;
     const Module::Factory::Ptr Factory;
   };
-}
 
-namespace ZXTune
-{
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps,
     Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
   {

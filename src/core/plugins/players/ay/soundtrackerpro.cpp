@@ -11,9 +11,6 @@ Author:
 
 //local includes
 #include "soundtrackerpro.h"
-#include "ay_base.h"
-//library includes
-#include <formats/chiptune/aym/soundtrackerpro.h>
 //boost includes
 #include <boost/make_shared.hpp>
 

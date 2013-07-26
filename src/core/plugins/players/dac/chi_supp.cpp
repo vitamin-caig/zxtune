@@ -12,24 +12,16 @@ Author:
 //local includes
 #include "digital.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/tracking.h"
 //common includes
-#include <byteorder.h>
-#include <error_tools.h>
 #include <tools.h>
 //library includes
-#include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/chiptracker.h>
-#include <sound/mixer_factory.h>
-
-#define FILE_TAG AB8BEC8B
 
 namespace Module
 {

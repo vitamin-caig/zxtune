@@ -16,7 +16,6 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
-#include <core/convert_parameters.h>
 #include <debug/log.h>
 #include <devices/details/parameters_helper.h>
 #include <math/numeric.h>
@@ -27,8 +26,6 @@ Author:
 #include <sound/render_params.h>
 //boost includes
 #include <boost/weak_ptr.hpp>
-//text includes
-#include <core/text/core.h>
 
 namespace
 {

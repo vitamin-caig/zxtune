@@ -12,14 +12,12 @@ Author:
 //local includes
 #include "tfm_base.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
 #include <contract.h>
 #include <tools.h>
 //library includes
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfmmusicmaker.h>

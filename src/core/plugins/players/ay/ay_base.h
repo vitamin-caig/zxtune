@@ -16,8 +16,6 @@ Author:
 //local includes
 #include "aym_parameters.h"
 #include "core/plugins/players/tracking.h"
-//common includes
-#include <error.h>
 //library includes
 #include <core/module_holder.h>
 #include <devices/aym.h>

@@ -12,6 +12,7 @@ Author:
 //local includes
 #include "soundtracker.h"
 #include "core/plugins/registrator.h"
+#include "core/plugins/players/plugin.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>

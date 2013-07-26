@@ -17,8 +17,6 @@ Author:
 #include "ay_base.h"
 #include "core/plugins/players/simple_ornament.h"
 //library includes
-#include <core/module_holder.h>
-#include <devices/aym.h>
 #include <formats/chiptune/aym/protracker3.h>
 
 namespace Module

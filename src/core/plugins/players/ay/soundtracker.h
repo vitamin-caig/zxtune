@@ -15,8 +15,7 @@ Author:
 
 //local includes
 #include "ay_base.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/factory.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
 //library includes

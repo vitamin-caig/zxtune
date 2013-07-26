@@ -13,7 +13,7 @@ Author:
 #include "dac_base.h"
 #include "digital.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/creation_result.h"
+#include "core/plugins/players/plugin.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>

@@ -13,8 +13,6 @@ Author:
 #include "tfm_base.h"
 #include "core/plugins/players/analyzer.h"
 //library includes
-#include <core/convert_parameters.h>
-#include <core/core_parameters.h>
 #include <devices/details/parameters_helper.h>
 //boost includes
 #include <boost/make_shared.hpp>

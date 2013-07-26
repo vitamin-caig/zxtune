@@ -13,16 +13,13 @@ Author:
 #include "ay_base.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <tools.h>
 //library includes
-#include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
-#include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <core/conversion/aym.h>
@@ -32,12 +29,9 @@ Author:
 #include <formats/chiptune/aym/ay.h>
 #include <sound/sound_parameters.h>
 #include <time/oscillator.h>
-//std includes
-#include <list>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
-#include <core/text/core.h>
 #include <formats/text/chiptune.h>
 
 namespace
@@ -615,14 +609,14 @@ namespace AY
   const std::string HEADER_FORMAT(
     "'Z'X'A'Y" // uint8_t Signature[4];
     "'E'M'U'L" // only one type is supported now
-    "??" //versions
-    "??" //player offset
-    "??" //author offset
-    "??" //misc offset
-    "00" //first module
-    "00" //last module
+    "??"       // versions
+    "??"       // player offset
+    "??"       // author offset
+    "??"       // misc offset
+    "00"       // first module
+    "00"       // last module
   );
-
+  
   class Decoder : public Formats::Chiptune::Decoder
   {
   public:
@@ -659,23 +653,16 @@ namespace AY
   public:
     virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      try
-      {
-        assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
+      assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
 
-        Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
-        //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
+      Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
+      //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
 
-        DataBuilder builder(propBuilder, static_cast<uint_t>(defaultDuration));
-        if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
-        {
-          propBuilder.SetSource(*container);
-          return boost::make_shared<Holder>(builder.GetResult(), propBuilder.GetResult());
-        }
-      }
-      catch (const Error&/*e*/)
+      DataBuilder builder(propBuilder, static_cast<uint_t>(defaultDuration));
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
       {
-        Dbg("Failed to create holder");
+        propBuilder.SetSource(*container);
+        return boost::make_shared<Holder>(builder.GetResult(), propBuilder.GetResult());
       }
       return Holder::Ptr();
     }

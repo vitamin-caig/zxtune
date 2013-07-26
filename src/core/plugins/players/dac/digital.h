@@ -19,10 +19,8 @@ Author:
 #include "core/plugins/players/module_properties.h"
 #include "core/plugins/players/simple_orderlist.h"
 //library includes
-#include <core/module_holder.h>
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/digital.h>
-#include <sound/mixer_factory.h>
 
 namespace Module
 {

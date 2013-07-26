@@ -14,23 +14,14 @@ Author:
 #include "ts_base.h"
 #include "vortex_base.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
-#include <contract.h>
-#include <error_tools.h>
-#include <range_checker.h>
 #include <tools.h>
 //library includes
-#include <core/convert_parameters.h>
-#include <core/core_parameters.h>
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
 #include <devices/turbosound.h>
-#include <formats/chiptune/aym/protracker3.h>
-#include <sound/mixer_factory.h>
 //text includes
 #include <core/text/plugins.h>
 

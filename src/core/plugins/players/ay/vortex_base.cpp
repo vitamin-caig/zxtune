@@ -14,10 +14,8 @@ Author:
 #include "ts_base.h"
 #include "vortex_base.h"
 //common includes
-#include <error_tools.h>
 #include <tools.h>
 //library includes
-#include <core/module_attrs.h>
 #include <math/numeric.h>
 //boost includes
 #include <boost/make_shared.hpp>
