@@ -179,7 +179,9 @@ namespace Module
     {
       const Devices::SAA::ChipParameters::Ptr chipParams = SAA::CreateChipParameters(params);
       const Devices::SAA::Chip::Ptr chip = Devices::SAA::CreateChip(chipParams, target);
-      return Tune->CreateRenderer(params, chip);
+      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+      const SAA::DataIterator::Ptr iterator = Tune->CreateDataIterator();
+      return SAA::CreateRenderer(renderParams, iterator, chip);
     }
   private:
     const SAA::Chiptune::Ptr Tune;
@@ -234,13 +236,6 @@ namespace Module
     void ChannelBuilder::EnableNoise()
     {
       AddRegister(Devices::SAA::DataChunk::REG_NOISEMIXER, 1 << Channel);
-    }
-
-    Renderer::Ptr Chiptune::CreateRenderer(Parameters::Accessor::Ptr params, Devices::SAA::Device::Ptr chip) const
-    {
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      const SAA::DataIterator::Ptr iterator = CreateDataIterator();
-      return SAA::CreateRenderer(renderParams, iterator, chip);
     }
 
     Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)

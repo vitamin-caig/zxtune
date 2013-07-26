@@ -10,9 +10,9 @@ Author:
 */
 
 //local includes
+#include "dac_plugin.h"
 #include "digital.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
 #include "core/plugins/players/tracking.h"
@@ -267,19 +267,21 @@ namespace ProDigiTracker
     const Information::Ptr Info;
   };
 
-  class Factory : public Module::Factory
+  class Factory : public DAC::Factory
   {
   public:
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProDigiTracker::Parse(rawData, dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
-        return DAC::CreateHolder(chiptune);
+        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
       }
-      return Holder::Ptr();
+      else
+      {
+        return DAC::Chiptune::Ptr();
+      }
     }
   };
 }
@@ -291,11 +293,10 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'P', 'D', 'T', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProDigiTrackerDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::ProDigiTracker::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::ProDigiTracker::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

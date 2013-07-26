@@ -10,15 +10,13 @@ Author:
 */
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
+#ifndef CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED
+#define CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED
 
 //local includes
-#include "core/plugins/players/module_properties.h"
-#include "core/plugins/players/tracking.h"
+#include "dac_chiptune.h"
 //library includes
 #include <core/module_holder.h>
-#include <devices/dac.h>
 #include <sound/receiver.h>
 #include <sound/render_params.h>
 
@@ -110,34 +108,10 @@ namespace Module
       virtual void Reset() = 0;
     };
 
-    class DataIterator : public StateIterator
-    {
-    public:
-      typedef boost::shared_ptr<DataIterator> Ptr;
-
-      virtual void GetData(Devices::DAC::DataChunk& data) const = 0;
-    };
-
-    class Chiptune
-    {
-    public:
-      typedef boost::shared_ptr<const Chiptune> Ptr;
-      virtual ~Chiptune() {}
-
-      virtual Information::Ptr GetInformation() const = 0;
-      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator() const = 0;
-      virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const = 0;
-    };
-
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
-
-    Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
-
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }
 
-#endif //__CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
+#endif //CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED

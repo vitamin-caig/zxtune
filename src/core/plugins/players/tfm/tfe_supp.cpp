@@ -77,7 +77,7 @@ namespace TFMMusicMaker
 
   typedef Formats::Chiptune::TFMMusicMaker::Instrument Instrument;
 
-  class ModuleData : public TrackModel
+  class ModuleData
   {
   public:
     typedef boost::shared_ptr<const ModuleData> Ptr;
@@ -87,21 +87,6 @@ namespace TFMMusicMaker
       , OddInitialTempo()
       , InitialTempoInterleave()
     {
-    }
-
-    virtual uint_t GetInitialTempo() const
-    {
-      return EvenInitialTempo;
-    }
-
-    virtual const OrderList& GetOrder() const
-    {
-      return *Order;
-    }
-
-    virtual const PatternsSet& GetPatterns() const
-    {
-      return *Patterns;
     }
 
     uint_t EvenInitialTempo;
@@ -1168,8 +1153,8 @@ namespace TFMMusicMaker
 
     explicit TrackStateCursor(ModuleData::Ptr data)
       : Data(data)
-      , Order(data->GetOrder())
-      , Patterns(data->GetPatterns())
+      , Order(*data->Order)
+      , Patterns(*data->Patterns)
       , NextLineState()
     {
       Reset();
@@ -1453,7 +1438,7 @@ namespace TFMMusicMaker
       }
       else
       {
-        Cursor->Seek(Data->GetOrder().GetLoopPosition());
+        Cursor->Seek(Data->Order->GetLoopPosition());
         const PlainTrackState& loop = Cursor->GetState();
         LoopState.reset(new PlainTrackState(loop));
       }
@@ -1475,17 +1460,17 @@ namespace TFMMusicMaker
 
     virtual uint_t PositionsCount() const
     {
-      return Data->GetOrder().GetSize();
+      return Data->Order->GetSize();
     }
 
     virtual uint_t LoopPosition() const
     {
-      return Data->GetOrder().GetLoopPosition();
+      return Data->Order->GetLoopPosition();
     }
 
     virtual uint_t PatternsCount() const
     {
-      return Data->GetPatterns().GetSize();
+      return Data->Patterns->GetSize();
     }
 
     virtual uint_t FramesCount() const
@@ -1507,7 +1492,7 @@ namespace TFMMusicMaker
 
     virtual uint_t Tempo() const
     {
-      return Data->GetInitialTempo();
+      return Data->EvenInitialTempo;
     }
   private:
     void Initialize() const
@@ -1517,9 +1502,9 @@ namespace TFMMusicMaker
         return;//initialized
       }
       TrackStateCursor cursor(Data);
-      cursor.Seek(Data->GetOrder().GetLoopPosition());
+      cursor.Seek(Data->Order->GetLoopPosition());
       LoopFrameNum = cursor.GetState().Frame;
-      cursor.Seek(Data->GetOrder().GetSize());
+      cursor.Seek(Data->Order->GetSize());
       Frames = cursor.GetState().Frame;
     }
   private:

@@ -10,11 +10,10 @@ Author:
 */
 
 //local includes
+#include "dac_plugin.h"
 #include "digital.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/plugin.h"
 //library includes
-#include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/digital/sampletracker.h>
 
@@ -36,19 +35,21 @@ namespace SampleTracker
     0x02c5 0x02ef 0x031c 0x034b 0x0373 0x03b3 0x03eb 0x0427 0x0466 0x04a9 0x04f0 0x053b
   */
 
-  class Factory : public Module::Factory
+  class Factory : public DAC::Factory
   {
   public:
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual DAC::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       const std::auto_ptr<DataBuilder> dataBuilder = DataBuilder::Create<CHANNELS_COUNT>(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
       {
         propBuilder.SetSource(*container);
-        const DAC::Chiptune::Ptr chiptune = boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), CHANNELS_COUNT);
-        return DAC::CreateHolder(chiptune);
+        return boost::make_shared<DAC::SimpleChiptune>(dataBuilder->GetResult(), propBuilder.GetResult(), CHANNELS_COUNT);
       }
-      return Holder::Ptr();
+      else
+      {
+        return DAC::Chiptune::Ptr();
+      }
     }
   };
 }
@@ -60,11 +61,10 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'S', 'T', 'R', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_3DAC | CAP_CONV_RAW;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSampleTrackerDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::SampleTracker::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::SampleTracker::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

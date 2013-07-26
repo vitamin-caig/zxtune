@@ -399,8 +399,6 @@ namespace GlobalTracker
       }
       return Holder::Ptr();
     }
-  private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
 }

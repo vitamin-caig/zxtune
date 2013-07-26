@@ -13,57 +13,14 @@ Author:
 #include "dac_base.h"
 #include "core/plugins/players/analyzer.h"
 //library includes
-#include <core/core_parameters.h>
 #include <devices/details/parameters_helper.h>
-#include <sound/mixer_factory.h>
 #include <sound/multichannel_sample.h>
-#include <sound/render_params.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 
 namespace Module
 {
-namespace DAC
-{
-  class ChipParameters : public Devices::DAC::ChipParameters
-  {
-  public:
-    explicit ChipParameters(Parameters::Accessor::Ptr params)
-      : Params(params)
-      , SoundParams(Sound::RenderParameters::Create(params))
-    {
-    }
-
-    virtual uint_t Version() const
-    {
-      return Params->Version();
-    }
-
-    virtual uint_t BaseSampleFreq() const
-    {
-      Parameters::IntType intVal = 0;
-      Params->FindValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, intVal);
-      return static_cast<uint_t>(intVal);
-    }
-
-    virtual uint_t SoundFreq() const
-    {
-      return SoundParams->SoundFreq();
-    }
-
-    virtual bool Interpolate() const
-    {
-      Parameters::IntType intVal = 0;
-      Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal);
-      return intVal != 0;
-    }
-  private:
-    const Parameters::Accessor::Ptr Params;
-    const Sound::RenderParameters::Ptr SoundParams;
-  };
-}
-
   class DACDataIterator : public DAC::DataIterator
   {
   public:
@@ -199,59 +156,6 @@ namespace DAC
     Devices::DAC::Stamp FrameDuration;
     bool Looped;
   };
-
-  template<unsigned Channels>
-  Devices::DAC::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-  {
-    typedef Sound::FixedChannelsMatrixMixer<Channels> MixerType;
-    const typename MixerType::Ptr mixer = MixerType::Create();
-    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
-    const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(pollParams);
-    return Devices::DAC::CreateChip(chipParams, mixer, target);
-  }
-
-  Devices::DAC::Chip::Ptr CreateChip(unsigned channels, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
-  {
-    switch (channels)
-    {
-    case 3:
-      return CreateChip<3>(params, target);
-    case 4:
-      return CreateChip<4>(params, target);
-    default:
-      return Devices::DAC::Chip::Ptr();
-    };
-  }
-
-  class DACHolder : public Holder
-  {
-  public:
-    explicit DACHolder(DAC::Chiptune::Ptr chiptune)
-      : Tune(chiptune)
-    {
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Tune->GetInformation();
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Tune->GetProperties();
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
-    {
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      const DAC::DataIterator::Ptr iterator = Tune->CreateDataIterator();
-      const Devices::DAC::Chip::Ptr chip = CreateChip(Tune->GetInformation()->ChannelsCount(), params, target);
-      Tune->GetSamples(chip);
-      return DAC::CreateRenderer(renderParams, iterator, chip);
-    }
-  private:
-    const DAC::Chiptune::Ptr Tune;
-  };
 }
 
 namespace Module
@@ -281,11 +185,6 @@ namespace Module
       result.assign(Data.begin(), last);
     }
 
-    Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
-    {
-      return boost::make_shared<ChipParameters>(params);
-    }
-
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
       return boost::make_shared<DACDataIterator>(iterator, renderer);
@@ -294,11 +193,6 @@ namespace Module
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
     {
       return boost::make_shared<DACRenderer>(params, iterator, device);
-    }
-
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
-    {
-      return boost::make_shared<DACHolder>(chiptune);
     }
   }
 }
