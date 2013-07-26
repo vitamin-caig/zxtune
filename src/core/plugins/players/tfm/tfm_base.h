@@ -14,103 +14,18 @@ Author:
 #define CORE_PLUGINS_PLAYERS_TFM_BASE_DEFINED
 
 //local includes
-#include "tfm_parameters.h"
-#include "core/plugins/players/module_properties.h"
-#include "core/plugins/players/tracking.h"
+#include "tfm_chiptune.h"
+#include "core/plugins/players/renderer.h"
 //library includes
-#include <core/module_holder.h>
 #include <sound/render_params.h>
 
 namespace Module
 {
   namespace TFM
   {
-    const uint_t TRACK_CHANNELS = 6;
-
-    class ChannelBuilder
-    {
-    public:
-      ChannelBuilder(uint_t chan, Devices::TFM::DataChunk& chunk);
-
-      void SetMode(uint_t mode);
-      void KeyOn();
-      void KeyOff();
-      void SetKey(uint_t mask);
-      void SetupConnection(uint_t algorithm, uint_t feedback);
-      void SetDetuneMultiple(uint_t op, int_t detune, uint_t multiple);
-      void SetRateScalingAttackRate(uint_t op, uint_t rateScaling, uint_t attackRate);
-      void SetDecay(uint_t op, uint_t decay);
-      void SetSustain(uint_t op, uint_t sustain);
-      void SetSustainLevelReleaseRate(uint_t op, uint_t sustainLevel, uint_t releaseRate);
-      void SetEnvelopeType(uint_t op, uint_t type);
-      void SetTotalLevel(uint_t op, uint_t totalLevel);
-      void SetTone(uint_t octave, uint_t tone);
-      void SetTone(uint_t op, uint_t octave, uint_t tone);
-      void SetPane(uint_t val);
-    private:
-      void WriteOperatorRegister(uint_t base, uint_t op, uint_t val);
-      void WriteChannelRegister(uint_t base, uint_t val);
-      void WriteChipRegister(uint_t idx, uint_t val);
-    private:
-      const uint_t Channel;
-      Devices::FM::DataChunk::Registers& Registers;
-    };
-
-    class TrackBuilder
-    {
-    public:
-      ChannelBuilder GetChannel(uint_t chan)
-      {
-        return ChannelBuilder(chan, Chunk);
-      }
-
-      void GetResult(Devices::TFM::DataChunk& result) const
-      {
-        result = Chunk;
-      }
-    private:
-      Devices::TFM::DataChunk Chunk;
-    };
-
-    class DataRenderer
-    {
-    public:
-      typedef boost::shared_ptr<DataRenderer> Ptr;
-
-      virtual ~DataRenderer() {}
-
-      virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
-      virtual void Reset() = 0;
-    };
-
-    class DataIterator : public StateIterator
-    {
-    public:
-      typedef boost::shared_ptr<DataIterator> Ptr;
-
-      virtual Devices::TFM::DataChunk GetData() const = 0;
-    };
-
-    class Chiptune
-    {
-    public:
-      typedef boost::shared_ptr<const Chiptune> Ptr;
-      virtual ~Chiptune() {}
-
-      virtual Information::Ptr GetInformation() const = 0;
-      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator() const = 0;
-
-      virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::TFM::Device::Ptr chip) const;
-    };
-
     Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device);
 
-    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
-
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device);
-
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }
 

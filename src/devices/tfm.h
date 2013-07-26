@@ -21,9 +21,11 @@ namespace Devices
   namespace TFM
   {
     const uint_t CHIPS = 2;
-    const uint_t VOICES = Devices::FM::VOICES * CHIPS;
+    const uint_t VOICES = FM::VOICES * CHIPS;
 
     using Devices::FM::Stamp;
+
+    typedef boost::array<FM::Registers, CHIPS> Registers;
 
     struct DataChunk
     {
@@ -32,7 +34,7 @@ namespace Devices
       }
 
       Stamp TimeStamp;
-      boost::array<Devices::FM::DataChunk::Registers, CHIPS> Data;
+      Registers Data;
     };
 
     class Device
@@ -52,7 +54,7 @@ namespace Devices
       typedef boost::shared_ptr<Chip> Ptr;
     };
 
-    using Devices::FM::ChipParameters;
+    using FM::ChipParameters;
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }

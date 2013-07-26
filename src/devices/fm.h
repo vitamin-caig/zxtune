@@ -31,30 +31,30 @@ namespace Devices
 
     typedef Time::Microseconds Stamp;
 
+    struct Register
+    {
+      uint8_t Index;
+      uint8_t Value;
+
+      Register()
+        : Index()
+        , Value()
+      {
+      }
+
+      Register(uint8_t idx, uint8_t val)
+        : Index(idx)
+        , Value(val)
+      {
+      }
+    };
+    typedef std::vector<Register> Registers;
+
     struct DataChunk
     {
       DataChunk() : TimeStamp()
       {
       }
-
-      struct Register
-      {
-        uint8_t Index;
-        uint8_t Value;
-
-        Register()
-          : Index()
-          , Value()
-        {
-        }
-
-        Register(uint8_t idx, uint8_t val)
-          : Index(idx)
-          , Value(val)
-        {
-        }
-      };
-      typedef std::vector<Register> Registers;
 
       Stamp TimeStamp;
       Registers Data;

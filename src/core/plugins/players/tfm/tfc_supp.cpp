@@ -10,15 +10,14 @@ Author:
 */
 
 //local includes
-#include "tfm_base.h"
+#include "tfm_base_stream.h"
+#include "tfm_plugin.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
 #include <tools.h>
 //library includes
-#include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfc.h>
 #include <sound/sound_parameters.h>
@@ -34,7 +33,7 @@ namespace TFC
   struct FrameData
   {
     uint_t Number;
-    Devices::FM::DataChunk::Registers Data;
+    Devices::FM::Registers Data;
 
     FrameData()
       : Number()
@@ -86,7 +85,7 @@ namespace TFC
       Loop = Size - 1;
     }
 
-    const Devices::FM::DataChunk::Registers* Get(uint_t row) const
+    const Devices::FM::Registers* Get(uint_t row) const
     {
       if (row >= Size)
       {
@@ -112,17 +111,15 @@ namespace TFC
   typedef boost::array<ChannelData, 6> ChiptuneData;
   typedef std::auto_ptr<ChiptuneData> ChiptuneDataPtr;
 
-  class ModuleData
+  class ModuleData : public TFM::StreamModel
   {
   public:
-    typedef boost::shared_ptr<const ModuleData> Ptr;
-
     ModuleData(ChiptuneDataPtr data)
       : Data(data)
     {
     }
 
-    uint_t Count() const
+    virtual uint_t Size() const
     {
       const ChiptuneData& data = *Data;
       const uint_t sizes[6] = {data[0].GetSize(), data[1].GetSize(), data[2].GetSize(),
@@ -130,19 +127,24 @@ namespace TFC
       return *std::max_element(sizes, ArrayEnd(sizes));
     }
 
-    Devices::TFM::DataChunk Get(std::size_t frameNum) const
+    virtual uint_t Loop() const
     {
+      return 0;
+    }
+
+    virtual Devices::TFM::Registers Get(uint_t frameNum) const
+    {
+      Devices::TFM::Registers res;
       const ChiptuneData& data = *Data;
-      Devices::TFM::DataChunk result;
       for (uint_t idx = 0; idx != 6; ++idx)
       {
         const uint_t chip = idx < 3 ? 0 : 1;
-        if (const Devices::FM::DataChunk::Registers* regs = data[idx].Get(frameNum))
+        if (const Devices::FM::Registers* regs = data[idx].Get(frameNum))
         {
-          std::copy(regs->begin(), regs->end(), std::back_inserter(result.Data[chip]));
+          std::copy(regs->begin(), regs->end(), std::back_inserter(res[chip]));
         }
       }
-      return result;
+      return res;
     }
   private:
     const ChiptuneDataPtr Data;  
@@ -227,7 +229,7 @@ namespace TFC
     virtual void SetRegister(uint_t idx, uint_t val)
     {
       FrameData& frame = GetChannel().Current();
-      frame.Data.push_back(Devices::FM::DataChunk::Register(idx, val));
+      frame.Data.push_back(Devices::FM::Register(idx, val));
     }
 
     virtual void SetKeyOn()
@@ -236,9 +238,9 @@ namespace TFC
       SetRegister(0x28, 0xf0 | key);
     }
 
-    ModuleData::Ptr GetResult() const
+    TFM::StreamModel::Ptr GetResult() const
     {
-      return ModuleData::Ptr(new ModuleData(Data));
+      return TFM::StreamModel::Ptr(new ModuleData(Data));
     }
   private:
     ChannelData& GetChannel()
@@ -252,119 +254,22 @@ namespace TFC
     uint_t Frequency[6];
   };
 
-  class DataIterator : public TFM::DataIterator
+  class Factory : public TFM::Factory
   {
   public:
-    DataIterator(StateIterator::Ptr delegate, ModuleData::Ptr data)
-      : Delegate(delegate)
-      , State(Delegate->GetStateObserver())
-      , Data(data)
-    {
-      UpdateCurrentState();
-    }
-
-    virtual void Reset()
-    {
-      CurrentChunk = Devices::TFM::DataChunk();
-      Delegate->Reset();
-      UpdateCurrentState();
-    }
-
-    virtual bool IsValid() const
-    {
-      return Delegate->IsValid();
-    }
-
-    virtual void NextFrame(bool looped)
-    {
-      Delegate->NextFrame(looped);
-      UpdateCurrentState();
-    }
-
-    virtual TrackState::Ptr GetStateObserver() const
-    {
-      return State;
-    }
-
-    virtual Devices::TFM::DataChunk GetData() const
-    {
-      Devices::TFM::DataChunk res;
-      std::swap(res, CurrentChunk);
-      return res;
-    }
-  private:
-    void UpdateCurrentState()
-    {
-      if (Delegate->IsValid())
-      {
-        const uint_t frameNum = State->Frame();
-        const Devices::TFM::DataChunk& inChunk = Data->Get(frameNum);
-        for (uint_t idx = 0; idx != Devices::TFM::CHIPS; ++idx)
-        {
-          UpdateChunk(CurrentChunk.Data[idx], inChunk.Data[idx]);
-        }
-      }
-    }
-
-    static void UpdateChunk(Devices::FM::DataChunk::Registers& dst, const Devices::FM::DataChunk::Registers& src)
-    {
-      std::copy(src.begin(), src.end(), std::back_inserter(dst));
-    }
-  private:
-    const StateIterator::Ptr Delegate;
-    const TrackState::Ptr State;
-    const ModuleData::Ptr Data;
-    mutable Devices::TFM::DataChunk CurrentChunk;
-  };
-
-  class Chiptune : public TFM::Chiptune
-  {
-  public:
-    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
-      : Data(data)
-      , Properties(properties)
-      , Info(CreateStreamInfo(Data->Count(), 0))
-    {
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual TFM::DataIterator::Ptr CreateDataIterator() const
-    {
-      const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
-      return boost::make_shared<DataIterator>(iter, Data);
-    }
-  private:
-    const ModuleData::Ptr Data;
-    const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
-  };
-
-  class Factory : public Module::Factory
-  {
-  public:
-    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    virtual TFM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       DataBuilder dataBuilder(propBuilder);
       if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
       {
-        const ModuleData::Ptr data = dataBuilder.GetResult();
-        if (data->Count())
+        const TFM::StreamModel::Ptr data = dataBuilder.GetResult();
+        if (data->Size())
         {
           propBuilder.SetSource(*container);
-          const TFM::Chiptune::Ptr chiptune = boost::make_shared<Chiptune>(data, propBuilder.GetResult());
-          return TFM::CreateHolder(chiptune);
+          return TFM::CreateStreamedChiptune(data, propBuilder.GetResult());
         }
       }
-      return Holder::Ptr();
+      return TFM::Chiptune::Ptr();
     }
   };
 }
@@ -376,11 +281,10 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'T', 'F', 'C', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_FM | CAP_CONV_RAW;
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFCDecoder();
-    const Module::Factory::Ptr factory = boost::make_shared<Module::TFC::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    const Module::TFM::Factory::Ptr factory = boost::make_shared<Module::TFC::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

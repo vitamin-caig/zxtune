@@ -15,9 +15,8 @@ Author:
 
 //local includes
 #include "dac_chiptune.h"
+#include "core/plugins/players/renderer.h"
 //library includes
-#include <core/module_holder.h>
-#include <sound/receiver.h>
 #include <sound/render_params.h>
 
 namespace Module
