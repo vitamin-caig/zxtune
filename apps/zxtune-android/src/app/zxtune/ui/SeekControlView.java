@@ -26,7 +26,7 @@ public class SeekControlView {
   private final Runnable updateTask;
   private SeekControl control;
 
-  public SeekControlView(View layout) {
+  SeekControlView(View layout) {
     this.currentTime = (TextView) layout.findViewById(R.id.position_time);
     this.totalTime = (TextView) layout.findViewById(R.id.position_duration);
     this.currentPosition = (SeekBar) layout.findViewById(R.id.position_seek);

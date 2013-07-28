@@ -42,17 +42,19 @@ public class StatusNotification implements Callback {
   public void onItemChanged(Item item) {
     String title = item.getTitle();
     final String author = item.getAuthor();
-    String ticker;
-    if (0 == title.length() + author.length()) {
-      ticker = title = item.getDataId().toString();
-    } else if (0 == author.length()) {
-      ticker = title;
-    } else if (0 == title.length()) {
-      ticker = author;
+    final boolean noTitle = 0 == title.length();
+    final boolean noAuthor = 0 == author.length();
+    final StringBuilder ticker = new StringBuilder();
+    if (noTitle && noAuthor) {
+      ticker.append(title = item.getDataId().getLastPathSegment());
     } else {
-      ticker = author + " - " + title;
+      ticker.append(title);
+      if (!noTitle && !noAuthor) {
+        ticker.append(" - ");
+      }
+      ticker.append(author);
     }
-    builder.setTicker(ticker).setContentTitle(title).setContentText(author);
+    builder.setTicker(ticker.toString()).setContentTitle(title).setContentText(author);
     showNotification();
   }
 

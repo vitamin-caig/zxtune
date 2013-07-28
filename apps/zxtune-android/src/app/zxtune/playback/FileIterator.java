@@ -67,6 +67,7 @@ public class FileIterator extends Iterator {
   
   private static class FileItem implements PlayableItem {
 
+    private final static String EMPTY_STRING = "";
     private ZXTune.Module module;
     private final Uri id;
     private final Uri dataId;
@@ -89,12 +90,22 @@ public class FileIterator extends Iterator {
 
     @Override
     public String getTitle() {
-      return module.getProperty(ZXTune.Module.Attributes.TITLE, "");
+      return module.getProperty(ZXTune.Module.Attributes.TITLE, EMPTY_STRING);
     }
 
     @Override
     public String getAuthor() {
-      return module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
+      return module.getProperty(ZXTune.Module.Attributes.AUTHOR, EMPTY_STRING);
+    }
+    
+    @Override
+    public String getProgram() {
+      return module.getProperty(ZXTune.Module.Attributes.PROGRAM, EMPTY_STRING);
+    }
+    
+    @Override
+    public String getComment() {
+      return module.getProperty(ZXTune.Module.Attributes.COMMENT, EMPTY_STRING);
     }
 
     @Override

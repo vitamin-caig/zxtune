@@ -3,4 +3,9 @@
     <string name="app_name">ZXTune beta</string>
     <string name="stub_time">--:--</string>
     <string name="menu_quit">Quit</string>
+    <string name="information_title">Title</string>
+    <string name="information_author">Author</string>
+    <string name="information_program">Program</string>
+    <string name="information_comment">Comment</string>
+    <string name="information_location">Location</string>
 </resources>

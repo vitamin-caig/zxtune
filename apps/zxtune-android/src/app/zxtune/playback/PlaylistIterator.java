@@ -76,26 +76,42 @@ class PlaylistIterator extends Iterator {
       return meta.getUri();
     }
 
+    @Override
     public Uri getDataId() {
       return content.getDataId();
     }
 
+    @Override
     public String getTitle() {
       return meta.getTitle();
     }
 
+    @Override
     public String getAuthor() {
       return meta.getAuthor();
     }
+    
+    @Override
+    public String getProgram() {
+      return content.getProgram();
+    }
 
+    @Override
+    public String getComment() {
+      return content.getComment();
+    }
+    
+    @Override
     public TimeStamp getDuration() {
       return meta.getDuration();
     }
     
+    @Override
     public ZXTune.Player createPlayer() {
       return content.createPlayer();
     }
     
+    @Override
     public void release() {
       content.release();
     }

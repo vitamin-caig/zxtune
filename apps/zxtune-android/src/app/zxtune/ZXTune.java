@@ -128,6 +128,16 @@ public final class ZXTune {
        * Author or creator of the module
        */
       public final static String AUTHOR = "Author";
+      
+      /**
+       * Program module created in compatible with
+       */
+      public final static String PROGRAM = "Program";
+      
+      /**
+       * Comment for module
+       */
+      public final static String COMMENT = "Comment";
     }
 
     /**

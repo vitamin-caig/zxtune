@@ -14,7 +14,6 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
-import app.zxtune.R;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.VisualizerStub;
 
@@ -100,7 +99,7 @@ public class VisualizerView extends View {
     public SpectrumVisualizer() {
       this.barRect = new Rect();
       this.paint = new Paint();
-      this.paint.setColor(getResources().getColor(R.color.primary));
+      this.paint.setColor(getResources().getColor(android.R.color.primary_text_dark));
       this.bands = new int[16];
       this.levels = new int[this.bands.length];
     }

@@ -35,6 +35,18 @@ public interface Item {
    * @note may be empty
    */
   public String getAuthor();
+  
+  /**
+   * @return Item's program information
+   * @note may be empty
+   */
+  public String getProgram();
+  
+  /**
+   * @return Item's comment
+   * @note may be empty
+   */
+  public String getComment();
 
   /**
    * @return Item's duration

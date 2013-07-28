@@ -38,6 +38,16 @@ public class StubItem implements Item {
   public String getAuthor() {
     return EMPTY_STRING;
   }
+  
+  @Override
+  public String getProgram() {
+    return EMPTY_STRING;
+  }
+  
+  @Override
+  public String getComment() {
+    return EMPTY_STRING;
+  }
 
   @Override
   public TimeStamp getDuration() {

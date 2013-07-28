@@ -33,6 +33,7 @@ public class NowPlayingFragment extends Fragment {
   private Control control;
   private SeekControlView seek;
   private VisualizerView visualizer;
+  private InformationView info;
   private ImageButton prev;
   private ImageButton playPause;
   private ImageButton next;
@@ -79,6 +80,7 @@ public class NowPlayingFragment extends Fragment {
 
       @Override
       public void onItemChanged(Item item) {
+        info.update(item);
       }
     });
   }
@@ -92,6 +94,7 @@ public class NowPlayingFragment extends Fragment {
   public void onViewCreated(View view, Bundle savedInstanceState) {
     seek = new SeekControlView(view);
     visualizer = (VisualizerView) view.findViewById(R.id.visualizer);
+    info = new InformationView(view);
     prev = (ImageButton) view.findViewById(R.id.controls_prev);
     playPause = (ImageButton) view.findViewById(R.id.controls_play_pause);
     next = (ImageButton) view.findViewById(R.id.controls_next);

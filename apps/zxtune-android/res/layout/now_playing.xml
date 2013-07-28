@@ -12,6 +12,7 @@
     android:paddingTop="@dimen/spacing_half"
     android:paddingBottom="@dimen/spacing_half"
   />
+  <include layout="@layout/information"/>
   <include layout="@layout/position"/>
   <include layout="@layout/controls"/>
 </LinearLayout>
