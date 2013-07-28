@@ -24,8 +24,8 @@ import app.zxtune.playback.Item;
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.SeekControl;
-import app.zxtune.playback.StubIterator;
-import app.zxtune.playback.StubPlayableItem;
+import app.zxtune.playback.IteratorStub;
+import app.zxtune.playback.PlayableItemStub;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.VisualizerStub;
 import app.zxtune.playlist.Query;
@@ -126,8 +126,8 @@ public class PlaybackService extends Service {
 
     PlaybackControl(Callback callback) {
       this.callback = callback;
-      this.iterator = StubIterator.instance();
-      this.item = StubPlayableItem.instance();
+      this.iterator = IteratorStub.instance();
+      this.item = PlayableItemStub.instance();
       this.source = null;
       this.player = StubPlayer.instance();
       this.visualizer = VisualizerStub.instance();

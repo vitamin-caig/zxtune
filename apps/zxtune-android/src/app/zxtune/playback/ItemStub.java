@@ -12,11 +12,11 @@ import app.zxtune.TimeStamp;
 /**
  * 
  */
-public class StubItem implements Item {
+public class ItemStub implements Item {
 
   private static final String EMPTY_STRING = "";
   
-  protected StubItem() {
+  protected ItemStub() {
   }
   
   @Override
@@ -60,6 +60,6 @@ public class StubItem implements Item {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final Item INSTANCE = new StubItem();
+    public static final Item INSTANCE = new ItemStub();
   }  
 }

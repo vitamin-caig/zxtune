@@ -8,9 +8,9 @@ package app.zxtune.playback;
 
 import app.zxtune.ZXTune;
 
-public class StubPlayableItem extends StubItem implements PlayableItem {
+public class PlayableItemStub extends ItemStub implements PlayableItem {
   
-  private StubPlayableItem() {
+  private PlayableItemStub() {
   }
   
   @Override
@@ -28,6 +28,6 @@ public class StubPlayableItem extends StubItem implements PlayableItem {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final PlayableItem INSTANCE = new StubPlayableItem();
+    public static final PlayableItem INSTANCE = new PlayableItemStub();
   }  
 }

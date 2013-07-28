@@ -15,7 +15,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.StubItem;
+import app.zxtune.playback.ItemStub;
 
 class InformationView {
 
@@ -39,7 +39,7 @@ class InformationView {
     this.programField = res.getString(R.string.information_program);
     this.commentField = res.getString(R.string.information_comment);
     this.locationField = res.getString(R.string.information_location);
-    update(StubItem.instance());
+    update(ItemStub.instance());
   }
 
   public void update(Item item) {

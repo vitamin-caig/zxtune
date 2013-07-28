@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/information_frame"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:paddingLeft="@dimen/spacing_full"
+  android:paddingRight="@dimen/spacing_full"
+  >
+  <TextView
+    style="@android:style/TextAppearance.Medium"
+    android:id="@+id/information_content"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    />
+</HorizontalScrollView>

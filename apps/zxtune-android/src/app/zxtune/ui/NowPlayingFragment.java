@@ -23,6 +23,8 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.Iterator;
+import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
 
@@ -34,9 +36,7 @@ public class NowPlayingFragment extends Fragment {
   private SeekControlView seek;
   private VisualizerView visualizer;
   private InformationView info;
-  private ImageButton prev;
-  private ImageButton playPause;
-  private ImageButton next;
+  private PlaybackControlsView ctrls;
 
   public static Fragment createInstance() {
     return new NowPlayingFragment();
@@ -71,11 +71,10 @@ public class NowPlayingFragment extends Fragment {
       public void onStatusChanged(boolean nowPlaying) {
         if (nowPlaying) {
           startUpdating();
-          playPause.setImageResource(R.drawable.ic_pause);
         } else {
           stopUpdating();
-          playPause.setImageResource(R.drawable.ic_play);
         }
+        ctrls.updateStatus();
       }
 
       @Override
@@ -95,28 +94,30 @@ public class NowPlayingFragment extends Fragment {
     seek = new SeekControlView(view);
     visualizer = (VisualizerView) view.findViewById(R.id.visualizer);
     info = new InformationView(view);
-    prev = (ImageButton) view.findViewById(R.id.controls_prev);
-    playPause = (ImageButton) view.findViewById(R.id.controls_play_pause);
-    next = (ImageButton) view.findViewById(R.id.controls_next);
-    prev.setOnClickListener(new OnClickListener() {
+    ctrls = new PlaybackControlsView(view);
+    ctrls.setControls(new PlaybackControl() {
       @Override
-      public void onClick(View v) {
+      public void play() {
+        control.play();
+      }
+      
+      @Override
+      public void stop() {
+        control.stop();
+      }
+      
+      @Override
+      public boolean isPlaying() {
+        return control.isPlaying();
+      }
+      
+      @Override
+      public void prev() {
         control.prev();
       }
-    });
-    playPause.setOnClickListener(new OnClickListener() {
+      
       @Override
-      public void onClick(View v) {
-        if (control.isPlaying()) {
-          control.stop();
-        } else {
-          control.play();
-        }
-      }
-    });
-    next.setOnClickListener(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
+      public void next() {
         control.next();
       }
     });

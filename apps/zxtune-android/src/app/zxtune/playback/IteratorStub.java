@@ -6,9 +6,9 @@
  */
 package app.zxtune.playback;
 
-public final class StubIterator extends Iterator {
+public final class IteratorStub extends Iterator {
 
-  private StubIterator() {
+  private IteratorStub() {
   }
 
   @Override
@@ -33,6 +33,6 @@ public final class StubIterator extends Iterator {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final Iterator INSTANCE = new StubIterator();
+    public static final Iterator INSTANCE = new IteratorStub();
   }  
 }
