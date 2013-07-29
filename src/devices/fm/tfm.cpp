@@ -27,32 +27,35 @@ namespace TFM
     {
       if (Helper.SetNewParams(clock, sndFreq))
       {
-        Chip1 = Helper.CreateChip();
-        Chip2 = Helper.CreateChip();
+        Chips[0] = Helper.CreateChip();
+        Chips[1] = Helper.CreateChip();
       }
     }
 
     void Reset()
     {
-      if (Chip1)
+      if (Chips[0])
       {
-        ::YM2203ResetChip(Chip1.get());
-        ::YM2203ResetChip(Chip2.get());
+        ::YM2203ResetChip(Chips[0].get());
+        ::YM2203ResetChip(Chips[1].get());
       }
     }
 
-    void WriteRegisters(const Devices::TFM::DataChunk& chunk)
+    void WriteRegisters(const Devices::TFM::Registers& regs)
     {
-      Helper.WriteRegisters(chunk.Data[0].begin(), chunk.Data[0].end(), Chip1.get());
-      Helper.WriteRegisters(chunk.Data[1].begin(), chunk.Data[1].end(), Chip2.get());
+      for (Registers::const_iterator it = regs.begin(), lim = regs.end(); it != lim; ++it)
+      {
+        const Register reg = *it;
+        ::YM2203WriteRegs(Chips[reg.Chip()].get(), reg.Index(), reg.Value());
+      }
     }
 
     void RenderSamples(uint_t count, Sound::ChunkBuilder& tgt)
     {
       Sound::Sample* const out = tgt.Allocate(count);
       FM::Details::YM2203SampleType* const outRaw = safe_ptr_cast<FM::Details::YM2203SampleType*>(out);
-      ::YM2203UpdateOne(Chip1.get(), outRaw, count);
-      ::YM2203UpdateOne(Chip2.get(), outRaw, count);
+      ::YM2203UpdateOne(Chips[0].get(), outRaw, count);
+      ::YM2203UpdateOne(Chips[1].get(), outRaw, count);
       Helper.ConvertSamples(outRaw, outRaw + count, out);
     }
 
@@ -62,16 +65,15 @@ namespace TFM
       res.reserve(VOICES);
       boost::array<uint_t, FM::VOICES> attenuations;
       boost::array<uint_t, FM::VOICES> periods;
-      ::YM2203GetState(Chip1.get(), &attenuations[0], &periods[0]);
+      ::YM2203GetState(Chips[0].get(), &attenuations[0], &periods[0]);
       Helper.ConvertState(attenuations.begin(), periods.begin(), res);
-      ::YM2203GetState(Chip2.get(), &attenuations[0], &periods[0]);
+      ::YM2203GetState(Chips[1].get(), &attenuations[0], &periods[0]);
       Helper.ConvertState(attenuations.begin(), periods.begin(), res);
       state.swap(res);
     }
   private:
     FM::Details::ChipAdapterHelper Helper;
-    FM::Details::ChipPtr Chip1;
-    FM::Details::ChipPtr Chip2;
+    boost::array<FM::Details::ChipPtr, TFM::CHIPS> Chips;
   };
 
   struct Traits

@@ -67,9 +67,9 @@ namespace Module
         return State;
       }
 
-      virtual Devices::TFM::Registers GetData() const
+      void GetData(Devices::TFM::Registers& res) const
       {
-        return CurrentData;
+        res.assign(CurrentData.begin(), CurrentData.end());
       }
     private:
       void FillCurrentData()
@@ -78,7 +78,11 @@ namespace Module
         {
           TrackBuilder builder;
           Render->SynthesizeData(*State, builder);
-          CurrentData = builder.GetResult();
+          builder.CaptureResult(CurrentData);
+        }
+        else
+        {
+          CurrentData.clear();
         }
       }
     private:
@@ -89,8 +93,9 @@ namespace Module
     };
 
     ChannelBuilder::ChannelBuilder(uint_t chan, Devices::TFM::Registers& data)
-      : Channel(chan >= TFM::TRACK_CHANNELS / 2 ? chan - TFM::TRACK_CHANNELS / 2 : chan)
-      , Registers(data[chan >= TFM::TRACK_CHANNELS / 2])
+      : Chip(chan >= TFM::TRACK_CHANNELS / 2)
+      , Channel(0 != Chip ? chan - TFM::TRACK_CHANNELS / 2 : chan)
+      , Registers(data)
     {
     }
 
@@ -205,12 +210,12 @@ namespace Module
 
     void ChannelBuilder::WriteChannelRegister(uint_t base, uint_t val)
     {
-      Registers.push_back(Devices::FM::Register(base + Channel, val));
+      Registers.push_back(Devices::TFM::Register(Chip, base + Channel, val));
     }
 
     void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
     {
-      const Devices::FM::Register reg(idx, val);
+      const Devices::TFM::Register reg(Chip, idx, val);
       Registers.push_back(reg);
     }
 

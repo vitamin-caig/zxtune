@@ -25,7 +25,33 @@ namespace Devices
 
     using Devices::FM::Stamp;
 
-    typedef boost::array<FM::Registers, CHIPS> Registers;
+    class Register : public FM::Register
+    {
+    public:
+      Register()
+        : FM::Register()
+      {
+      }
+
+      Register(uint_t chip, FM::Register reg)
+        : FM::Register(reg)
+      {
+        Val |= chip << 16;
+      }
+
+      Register(uint_t chip, uint_t idx, uint_t val)
+        : FM::Register(idx, val)
+      {
+        Val |= chip << 16;
+      }
+
+      uint_t Chip() const
+      {
+        return (Val >> 16) & 0xff;
+      }
+    };
+
+    typedef std::vector<Register> Registers;
 
     struct DataChunk
     {
@@ -44,7 +70,6 @@ namespace Devices
       virtual ~Device() {}
 
       virtual void RenderData(const DataChunk& src) = 0;
-      virtual void Flush() = 0;
       virtual void Reset() = 0;
     };
 

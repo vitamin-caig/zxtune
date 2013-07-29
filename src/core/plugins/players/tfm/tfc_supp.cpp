@@ -132,19 +132,22 @@ namespace TFC
       return 0;
     }
 
-    virtual Devices::TFM::Registers Get(uint_t frameNum) const
+    virtual void Get(uint_t frameNum, Devices::TFM::Registers& res) const
     {
-      Devices::TFM::Registers res;
+      Devices::TFM::Registers result;
       const ChiptuneData& data = *Data;
       for (uint_t idx = 0; idx != 6; ++idx)
       {
         const uint_t chip = idx < 3 ? 0 : 1;
         if (const Devices::FM::Registers* regs = data[idx].Get(frameNum))
         {
-          std::copy(regs->begin(), regs->end(), std::back_inserter(res[chip]));
+          for (Devices::FM::Registers::const_iterator it = regs->begin(), lim = regs->end(); it != lim; ++it)
+          {
+            result.push_back(Devices::TFM::Register(chip, *it));
+          }
         }
       }
-      return res;
+      res.swap(result);
     }
   private:
     const ChiptuneDataPtr Data;  

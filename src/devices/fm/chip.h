@@ -16,7 +16,6 @@ Author:
 //library includes
 #include <devices/fm.h>
 #include <devices/details/analysis_map.h>
-#include <devices/details/chunks_cache.h>
 #include <devices/details/clock_source.h>
 #include <devices/details/parameters_helper.h>
 #include <math/numeric.h>
@@ -60,15 +59,6 @@ namespace FM
       ChipPtr CreateChip() const
       {
         return ChipPtr(::YM2203Init(LastClockrate, LastSoundFreq), &::YM2203Shutdown);
-      }
-
-      template<class It>
-      static void WriteRegisters(It begin, It end, void* chip)
-      {
-        for (It it = begin; it != end; ++it)
-        {
-          ::YM2203WriteRegs(chip, it->Index, it->Value);
-        }
       }
 
       static void ConvertSamples(const YM2203SampleType* inBegin, const YM2203SampleType* inEnd, Sound::Sample* out)
@@ -116,21 +106,11 @@ namespace FM
 
       virtual void RenderData(const typename ChipTraits::DataChunkType& src)
       {
-        Buffer.Add(src);
-      }
-
-      virtual void Flush()
-      {
-        const typename ChipTraits::StampType tillTime = Buffer.GetTillTime();
-        if (!(tillTime == typename ChipTraits::StampType(0)))
+        if (Clock.GetNextSampleTime() < src.TimeStamp)
         {
-          SynchronizeParameters();
-          Sound::ChunkBuilder builder;
-          builder.Reserve(Clock.SamplesTill(tillTime));
-          RenderChunks(builder);
-          Target->ApplyData(builder.GetResult());
+          RenderChunksTill(src.TimeStamp);
         }
-        Target->Flush();
+        Adapter.WriteRegisters(src.Data);
       }
 
       virtual void Reset()
@@ -138,7 +118,6 @@ namespace FM
         Params.Reset();
         Adapter.Reset();
         Clock.Reset();
-        Buffer.Reset();
         SynchronizeParameters();
       }
 
@@ -158,25 +137,22 @@ namespace FM
         }
       }
 
-      void RenderChunks(Sound::ChunkBuilder& builder)
+      void RenderChunksTill(typename ChipTraits::StampType stamp)
       {
-        for (const typename ChipTraits::DataChunkType* it = Buffer.GetBegin(), *lim = Buffer.GetEnd(); it != lim; ++it)
-        {
-          Adapter.WriteRegisters(*it);
-          if (const uint_t samples = Clock.SamplesTill(it->TimeStamp))
-          {
-            Adapter.RenderSamples(samples, builder);
-            Clock.SkipSamples(samples);
-          }
-        }
-        Buffer.Reset();
+        SynchronizeParameters();
+        const uint_t samples = Clock.SamplesTill(stamp);
+        Sound::ChunkBuilder builder;
+        builder.Reserve(samples);
+        Adapter.RenderSamples(samples, builder);
+        Clock.SkipSamples(samples);
+        Target->ApplyData(builder.GetResult());
+        Target->Flush();
       }
     private:
       Devices::Details::ParametersHelper<ChipParameters> Params;
       const Sound::Receiver::Ptr Target;
       typename ChipTraits::AdapterType Adapter;
       Devices::Details::ClockSource<typename ChipTraits::StampType> Clock;
-      Devices::Details::ChunksCache<typename ChipTraits::DataChunkType, typename ChipTraits::StampType> Buffer;
     };
   }
 }

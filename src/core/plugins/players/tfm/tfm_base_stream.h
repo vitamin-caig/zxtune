@@ -28,7 +28,7 @@ namespace Module
 
       virtual uint_t Size() const = 0;
       virtual uint_t Loop() const = 0;
-      virtual Devices::TFM::Registers Get(uint_t pos) const = 0;
+      virtual void Get(uint_t pos, Devices::TFM::Registers& res) const = 0;
     };
 
     Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties);

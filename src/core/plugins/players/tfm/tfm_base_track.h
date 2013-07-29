@@ -50,8 +50,9 @@ namespace Module
       void WriteChannelRegister(uint_t base, uint_t val);
       void WriteChipRegister(uint_t idx, uint_t val);
     private:
+      const uint_t Chip;
       const uint_t Channel;
-      Devices::FM::Registers& Registers;
+      Devices::TFM::Registers& Registers;
     };
 
     class TrackBuilder
@@ -62,9 +63,9 @@ namespace Module
         return ChannelBuilder(chan, Data);
       }
 
-      const Devices::TFM::Registers& GetResult() const
+      void CaptureResult(Devices::TFM::Registers& res)
       {
-        return Data;
+        res.swap(Data);
       }
     private:
       Devices::TFM::Registers Data;

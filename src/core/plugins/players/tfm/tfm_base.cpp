@@ -51,11 +51,14 @@ namespace Module
       if (Iterator->IsValid())
       {
         SynchronizeParameters();
-        Devices::TFM::DataChunk chunk;
-        chunk.TimeStamp = FlushChunk.TimeStamp;
-        chunk.Data = Iterator->GetData();
-        CommitChunk(chunk);
+        if (LastChunk.TimeStamp == Devices::TFM::Stamp())
+        {
+          //first chunk
+          TransferChunk();
+        }
         Iterator->NextFrame(Looped);
+        LastChunk.TimeStamp += FrameDuration;
+        TransferChunk();
       }
       return Iterator->IsValid();
     }
@@ -65,7 +68,7 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      FlushChunk = Devices::TFM::DataChunk();
+      LastChunk.TimeStamp = Devices::TFM::Stamp();
       FrameDuration = Devices::TFM::Stamp();
       Looped = false;
     }
@@ -84,18 +87,16 @@ namespace Module
       }
     }
 
-    void CommitChunk(const Devices::TFM::DataChunk& chunk)
+    void TransferChunk()
     {
-      Device->RenderData(chunk);
-      FlushChunk.TimeStamp += FrameDuration;
-      Device->RenderData(FlushChunk);
-      Device->Flush();
+      Iterator->GetData(LastChunk.Data);
+      Device->RenderData(LastChunk);
     }
   private:
     Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Device::Ptr Device;
-    Devices::TFM::DataChunk FlushChunk;
+    Devices::TFM::DataChunk LastChunk;
     Devices::TFM::Stamp FrameDuration;
     bool Looped;
   };

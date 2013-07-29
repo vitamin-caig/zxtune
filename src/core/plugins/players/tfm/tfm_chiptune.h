@@ -27,7 +27,7 @@ namespace Module
     public:
       typedef boost::shared_ptr<DataIterator> Ptr;
 
-      virtual Devices::TFM::Registers GetData() const = 0;
+      virtual void GetData(Devices::TFM::Registers& res) const = 0;
     };
 
     class Chiptune

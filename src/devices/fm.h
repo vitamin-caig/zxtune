@@ -31,23 +31,32 @@ namespace Devices
 
     typedef Time::Microseconds Stamp;
 
-    struct Register
+    class Register
     {
-      uint8_t Index;
-      uint8_t Value;
-
+    public:
       Register()
-        : Index()
-        , Value()
+        : Val()
       {
       }
 
-      Register(uint8_t idx, uint8_t val)
-        : Index(idx)
-        , Value(val)
+      Register(uint_t idx, uint_t val)
+        : Val((idx << 8) | val)
       {
       }
+
+      uint_t Index() const
+      {
+        return (Val >> 8) & 0xff;
+      }
+
+      uint_t Value() const
+      {
+        return Val & 0xff;
+      }
+    protected:
+      uint_t Val;
     };
+
     typedef std::vector<Register> Registers;
 
     struct DataChunk
@@ -68,9 +77,6 @@ namespace Devices
 
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
-
-      /// flush any collected data
-      virtual void Flush() = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;

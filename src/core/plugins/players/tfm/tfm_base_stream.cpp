@@ -47,11 +47,16 @@ namespace Module
         return State;
       }
 
-      virtual Devices::TFM::Registers GetData() const
+      virtual void GetData(Devices::TFM::Registers& res) const
       {
-        return Delegate->IsValid()
-          ? Data->Get(State->Frame())
-          : Devices::TFM::Registers();
+        if (Delegate->IsValid())
+        {
+          Data->Get(State->Frame(), res);
+        }
+        else
+        {
+          res.clear();
+        }
       }
     private:
       const StateIterator::Ptr Delegate;

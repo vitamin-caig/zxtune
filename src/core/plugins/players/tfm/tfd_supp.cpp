@@ -26,34 +26,12 @@ namespace Module
 {
 namespace TFD
 {
-  struct PackedRegpair
-  {
-  public:
-    PackedRegpair(uint_t chip, uint_t reg, uint_t val)
-      : Val((chip << 16) | (reg << 8) | val)
-    {
-    }
-
-    uint_t Chip() const
-    {
-      return Val >> 16;
-    }
-
-    Devices::FM::Register Value() const
-    {
-      return Devices::FM::Register((Val >> 8) & 255, Val & 255);
-    }
-  private:
-    uint_t Val;
-  };
-
-  typedef std::vector<PackedRegpair> RegistersArray;
   typedef std::vector<std::size_t> OffsetsArray;
 
   class ModuleData : public TFM::StreamModel
   {
   public:
-    ModuleData(RegistersArray& data, OffsetsArray& offsets, uint_t loop)
+    ModuleData(Devices::TFM::Registers& data, OffsetsArray& offsets, uint_t loop)
       : LoopPos(loop)
     {
       Data.swap(data);
@@ -71,20 +49,15 @@ namespace TFD
       return LoopPos;
     }
 
-    virtual Devices::TFM::Registers Get(uint_t frameNum) const
+    virtual void Get(uint_t frameNum, Devices::TFM::Registers& res) const
     {
       const std::size_t start = Offsets[frameNum];
       const std::size_t end = Offsets[frameNum + 1];
-      Devices::TFM::Registers res;
-      for (RegistersArray::const_iterator it = Data.begin() + start, lim = Data.begin() + end; it != lim; ++it)
-      {
-        res[it->Chip()].push_back(it->Value());
-      }
-      return res;
+      res.assign(Data.begin() + start, Data.begin() + end);
     }
   private:
     const uint_t LoopPos;
-    RegistersArray Data;
+    Devices::TFM::Registers Data;
     OffsetsArray Offsets;
   };
 
@@ -136,7 +109,7 @@ namespace TFD
    {
      if (!Offsets.empty())
      {
-       Data.push_back(PackedRegpair(Chip, idx, val));
+       Data.push_back(Devices::TFM::Register(Chip, idx, val));
      }
    }
 
@@ -152,7 +125,7 @@ namespace TFD
   private:
     PropertiesBuilder& Properties;
     uint_t Loop;
-    mutable RegistersArray Data;
+    mutable Devices::TFM::Registers Data;
     mutable OffsetsArray Offsets;
     uint_t Chip;
   };
