@@ -16,6 +16,7 @@ Author:
 #include "core/plugins/players/streaming.h"
 //common includes
 #include <contract.h>
+#include <iterator.h>
 #include <tools.h>
 //library includes
 #include <formats/chiptune/decoders.h>
@@ -30,82 +31,54 @@ namespace Module
 {
 namespace TFC
 {
-  struct FrameData
-  {
-    uint_t Number;
-    Devices::FM::Registers Data;
-
-    FrameData()
-      : Number()
-    {
-    }
-
-    explicit FrameData(uint_t num)
-      : Number(num)
-    {
-    }
-
-    bool operator < (const FrameData& rh) const
-    {
-      return Number < rh.Number;
-    }
-  };
-
   class ChannelData
   {
   public:
     ChannelData()
-      : Size()
-      , Loop()
+      : Loop()
     {
     }
 
     void AddFrame()
     {
-      Size++;
+      Offsets.push_back(Data.size());
     }
 
     void AddFrames(uint_t count)
     {
-      Size += count - 1;
+      Offsets.resize(Offsets.size() + count - 1, Data.size());
     }
 
-    FrameData& Current()
+    void AddRegister(Devices::FM::Register reg)
     {
-      Require(Size != 0);
-      if (Frames.empty() || Frames.back().Number != Size - 1)
-      {
-        Frames.push_back(FrameData(Size - 1));
-      }
-      return Frames.back();
+      Data.push_back(reg);
     }
 
     void SetLoop()
     {
-      Loop = Size - 1;
+      Loop = Offsets.size();
     }
 
-    const Devices::FM::Registers* Get(uint_t row) const
+    RangeIterator<Devices::FM::Registers::const_iterator> Get(std::size_t row) const
     {
-      if (row >= Size)
+      if (row >= Offsets.size())
       {
-        row = Loop + (row - Size) % (Size - Loop);
+        const std::size_t size = Offsets.size();
+        row = Loop + (row - size) % (size - Loop);
       }
-      const FramesList::const_iterator it = std::lower_bound(Frames.begin(), Frames.end(), FrameData(row));
-      return it == Frames.end() || it->Number != row
-        ? 0
-        : &it->Data;
+      const std::size_t start = Offsets[row];
+      const std::size_t end = row != Offsets.size() - 1 ? Offsets[row + 1] : Data.size();
+      return RangeIterator<Devices::FM::Registers::const_iterator>(Data.begin() + start, Data.begin() + end);
     }
 
-    uint_t GetSize() const
+    std::size_t GetSize() const
     {
-      return Size;
+      return Offsets.size();
     }
   private:
-    uint_t Size;
-    typedef std::vector<FrameData> FramesList;
-    FramesList Frames;
-    uint_t Loop;
+    std::vector<std::size_t> Offsets;
+    Devices::FM::Registers Data;
+    std::size_t Loop;
   };
 
   typedef boost::array<ChannelData, 6> ChiptuneData;
@@ -122,9 +95,9 @@ namespace TFC
     virtual uint_t Size() const
     {
       const ChiptuneData& data = *Data;
-      const uint_t sizes[6] = {data[0].GetSize(), data[1].GetSize(), data[2].GetSize(),
+      const std::size_t sizes[6] = {data[0].GetSize(), data[1].GetSize(), data[2].GetSize(),
         data[3].GetSize(), data[4].GetSize(), data[5].GetSize()};
-      return *std::max_element(sizes, ArrayEnd(sizes));
+      return static_cast<uint_t>(*std::max_element(sizes, ArrayEnd(sizes)));
     }
 
     virtual uint_t Loop() const
@@ -139,12 +112,9 @@ namespace TFC
       for (uint_t idx = 0; idx != 6; ++idx)
       {
         const uint_t chip = idx < 3 ? 0 : 1;
-        if (const Devices::FM::Registers* regs = data[idx].Get(frameNum))
+        for (RangeIterator<Devices::FM::Registers::const_iterator> regs = data[idx].Get(frameNum); regs; ++regs)
         {
-          for (Devices::FM::Registers::const_iterator it = regs->begin(), lim = regs->end(); it != lim; ++it)
-          {
-            result.push_back(Devices::TFM::Register(chip, *it));
-          }
+          result.push_back(Devices::TFM::Register(chip, *regs));
         }
       }
       res.swap(result);
@@ -231,8 +201,7 @@ namespace TFC
 
     virtual void SetRegister(uint_t idx, uint_t val)
     {
-      FrameData& frame = GetChannel().Current();
-      frame.Data.push_back(Devices::FM::Register(idx, val));
+      GetChannel().AddRegister(Devices::FM::Register(idx, val));
     }
 
     virtual void SetKeyOn()
