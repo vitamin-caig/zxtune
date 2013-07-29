@@ -17,7 +17,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <devices/details/analysis_map.h>
-#include <devices/details/chunks_cache.h>
 #include <devices/details/clock_source.h>
 #include <devices/details/parameters_helper.h>
 #include <sound/chunk_builder.h>
@@ -34,7 +33,8 @@ namespace Devices
 {
 namespace SAA
 {
-  BOOST_STATIC_ASSERT(DataChunk::REG_LAST <= 8 * sizeof(uint_t));
+  BOOST_STATIC_ASSERT(Registers::TOTAL <= 8 * sizeof(uint_t));
+  BOOST_STATIC_ASSERT(sizeof(Registers) == 32);
 
   class SAARenderer
   {
@@ -44,7 +44,7 @@ namespace SAA
       Device.Reset();
     }
 
-    void SetNewData(const DataChunk& data)
+    void SetNewData(const Registers& data)
     {
       for (uint_t idx = 0, mask = 1; idx != data.Data.size(); ++idx, mask <<= 1)
       {
@@ -56,46 +56,46 @@ namespace SAA
         const uint_t val = data.Data[idx];
         switch (idx)
         {
-        case DataChunk::REG_LEVEL0:
-        case DataChunk::REG_LEVEL1:
-        case DataChunk::REG_LEVEL2:
-        case DataChunk::REG_LEVEL3:
-        case DataChunk::REG_LEVEL4:
-        case DataChunk::REG_LEVEL5:
-          Device.SetLevel(idx - DataChunk::REG_LEVEL0, LoNibble(val), HiNibble(val));
+        case Registers::LEVEL0:
+        case Registers::LEVEL1:
+        case Registers::LEVEL2:
+        case Registers::LEVEL3:
+        case Registers::LEVEL4:
+        case Registers::LEVEL5:
+          Device.SetLevel(idx - Registers::LEVEL0, LoNibble(val), HiNibble(val));
           break;
-        case DataChunk::REG_TONENUMBER0:
-        case DataChunk::REG_TONENUMBER1:
-        case DataChunk::REG_TONENUMBER2:
-        case DataChunk::REG_TONENUMBER3:
-        case DataChunk::REG_TONENUMBER4:
-        case DataChunk::REG_TONENUMBER5:
-          Device.SetToneNumber(idx - DataChunk::REG_TONENUMBER0, val);
+        case Registers::TONENUMBER0:
+        case Registers::TONENUMBER1:
+        case Registers::TONENUMBER2:
+        case Registers::TONENUMBER3:
+        case Registers::TONENUMBER4:
+        case Registers::TONENUMBER5:
+          Device.SetToneNumber(idx - Registers::TONENUMBER0, val);
           break;
-        case DataChunk::REG_TONEOCTAVE01:
+        case Registers::TONEOCTAVE01:
           Device.SetToneOctave(0, LoNibble(val));
           Device.SetToneOctave(1, HiNibble(val));
           break;
-        case DataChunk::REG_TONEOCTAVE23:
+        case Registers::TONEOCTAVE23:
           Device.SetToneOctave(2, LoNibble(val));
           Device.SetToneOctave(3, HiNibble(val));
           break;
-        case DataChunk::REG_TONEOCTAVE45:
+        case Registers::TONEOCTAVE45:
           Device.SetToneOctave(4, LoNibble(val));
           Device.SetToneOctave(5, HiNibble(val));
           break;
-        case DataChunk::REG_TONEMIXER:
+        case Registers::TONEMIXER:
           Device.SetToneMixer(val);
           break;
-        case DataChunk::REG_NOISEMIXER:
+        case Registers::NOISEMIXER:
           Device.SetNoiseMixer(val);
           break;
-        case DataChunk::REG_NOISECLOCK:
+        case Registers::NOISECLOCK:
           Device.SetNoiseControl(val);
           break;
-        case DataChunk::REG_ENVELOPE0:
-        case DataChunk::REG_ENVELOPE1:
-          Device.SetEnvelope(idx - DataChunk::REG_ENVELOPE0, val);
+        case Registers::ENVELOPE0:
+        case Registers::ENVELOPE1:
+          Device.SetEnvelope(idx - Registers::ENVELOPE0, val);
           break;
         }
       }
@@ -353,9 +353,9 @@ namespace SAA
       }
     }
 
-    Renderer& Get() const
+    void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
     {
-      return *Current;
+      Current->Render(tillTime, target);
     }
   private:
     uint64_t ClockFreq;
@@ -381,28 +381,17 @@ namespace SAA
 
     virtual void RenderData(const DataChunk& src)
     {
-      BufferedData.Add(src);
-    }
-
-    virtual void Flush()
-    {
-      const Stamp till = BufferedData.GetTillTime();
-      if (!(till == Stamp(0)))
+      if (Clock.GetNextSampleTime() < src.TimeStamp)
       {
-        SynchronizeParameters();
-        Sound::ChunkBuilder builder;
-        builder.Reserve(Clock.SamplesTill(till));
-        RenderChunks(builder);
-        Target->ApplyData(builder.GetResult());
+        RenderChunksTill(src.TimeStamp);
       }
-      Target->Flush();
+      PSG.SetNewData(src.Data);
     }
 
     virtual void Reset()
     {
       Params.Reset();
       PSG.Reset();
-      BufferedData.Reset();
       Renderers.Reset();
     }
 
@@ -429,26 +418,21 @@ namespace SAA
       }
     }
 
-    void RenderChunks(Sound::ChunkBuilder& target)
+    void RenderChunksTill(Stamp stamp)
     {
-      Renderer& source = Renderers.Get();
-      for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
-      {
-        const DataChunk& chunk = *it;
-        if (Clock.GetCurrentTime() < chunk.TimeStamp)
-        {
-          source.Render(chunk.TimeStamp, target);
-        }
-        PSG.SetNewData(chunk);
-      }
-      BufferedData.Reset();
+      SynchronizeParameters();
+      const uint_t samples = Clock.SamplesTill(stamp);
+      Sound::ChunkBuilder builder;
+      builder.Reserve(samples);
+      Renderers.Render(stamp, builder);
+      Target->ApplyData(builder.GetResult());
+      Target->Flush();
     }
   private:
     Details::ParametersHelper<ChipParameters> Params;
     const Sound::Receiver::Ptr Target;
     SAARenderer PSG;
     ClockSource Clock;
-    Details::ChunksCache<DataChunk, Stamp> BufferedData;
     Details::AnalysisMap Analyser;
     RenderersSet Renderers;
   };

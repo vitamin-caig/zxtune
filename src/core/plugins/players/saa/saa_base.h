@@ -29,7 +29,7 @@ namespace Module
     class ChannelBuilder
     {
     public:
-      ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk);
+      ChannelBuilder(uint_t chan, Devices::SAA::Registers& regs);
 
       void SetVolume(int_t left, int_t right);
       void SetTone(uint_t octave, uint_t note);
@@ -41,24 +41,24 @@ namespace Module
     private:
       void SetRegister(uint_t reg, uint_t val)
       {
-        Chunk.Data[reg] = static_cast<uint8_t>(val);
-        Chunk.Mask |= 1 << reg;
+        Regs.Data[reg] = static_cast<uint8_t>(val);
+        Regs.Mask |= 1 << reg;
       }
 
       void SetRegister(uint_t reg, uint_t val, uint_t mask)
       {
-        Chunk.Data[reg] &= ~mask;
+        Regs.Data[reg] &= ~mask;
         AddRegister(reg, val);
       }
 
       void AddRegister(uint_t reg, uint_t val)
       {
-        Chunk.Data[reg] |= static_cast<uint8_t>(val);
-        Chunk.Mask |= 1 << reg;
+        Regs.Data[reg] |= static_cast<uint8_t>(val);
+        Regs.Mask |= 1 << reg;
       }
     private:
       const uint_t Channel;
-      Devices::SAA::DataChunk& Chunk;
+      Devices::SAA::Registers& Regs;
     };
 
     class TrackBuilder
@@ -66,15 +66,15 @@ namespace Module
     public:
       ChannelBuilder GetChannel(uint_t chan)
       {
-        return ChannelBuilder(chan, Chunk);
+        return ChannelBuilder(chan, Regs);
       }
 
-      void GetResult(Devices::SAA::DataChunk& result) const
+      void GetResult(Devices::SAA::Registers& result) const
       {
-        result = Chunk;
+        result = Regs;
       }
     private:
-      Devices::SAA::DataChunk Chunk;
+      Devices::SAA::Registers Regs;
     };
 
     class DataRenderer
@@ -93,7 +93,7 @@ namespace Module
     public:
       typedef boost::shared_ptr<DataIterator> Ptr;
 
-      virtual Devices::SAA::DataChunk GetData() const = 0;
+      virtual Devices::SAA::Registers GetData() const = 0;
     };
 
     class Chiptune

@@ -32,46 +32,58 @@ namespace Devices
 
     typedef Time::Microseconds Stamp;
 
-    struct DataChunk
+    struct Registers
     {
       //registers offsets in data
       enum
       {
-        REG_LEVEL0 = 0,
-        REG_LEVEL1,
-        REG_LEVEL2,
-        REG_LEVEL3,
-        REG_LEVEL4,
-        REG_LEVEL5,
+        LEVEL0 = 0,
+        LEVEL1,
+        LEVEL2,
+        LEVEL3,
+        LEVEL4,
+        LEVEL5,
 
-        REG_TONENUMBER0 = 8,
-        REG_TONENUMBER1,
-        REG_TONENUMBER2,
-        REG_TONENUMBER3,
-        REG_TONENUMBER4,
-        REG_TONENUMBER5,
+        TONENUMBER0 = 8,
+        TONENUMBER1,
+        TONENUMBER2,
+        TONENUMBER3,
+        TONENUMBER4,
+        TONENUMBER5,
 
-        REG_TONEOCTAVE01 = 16,
-        REG_TONEOCTAVE23,
-        REG_TONEOCTAVE45,
+        TONEOCTAVE01 = 16,
+        TONEOCTAVE23,
+        TONEOCTAVE45,
 
-        REG_TONEMIXER = 20,
-        REG_NOISEMIXER = 21,
-        REG_NOISECLOCK = 22,
+        TONEMIXER = 20,
+        NOISEMIXER = 21,
+        NOISECLOCK = 22,
 
-        REG_ENVELOPE0 = 24,
-        REG_ENVELOPE1,
+        ENVELOPE0 = 24,
+        ENVELOPE1,
 
-        REG_LAST = 32
+        TOTAL = 28
       };
 
-      DataChunk() : TimeStamp(), Mask(), Data()
+      Registers()
+        : Mask()
+      {
+      }
+
+      uint32_t Mask;
+      boost::array<uint8_t, TOTAL> Data;
+    };
+
+    struct DataChunk
+    {
+
+      DataChunk()
+        : TimeStamp(), Data()
       {
       }
 
       Stamp TimeStamp;
-      uint32_t Mask;
-      boost::array<uint8_t, REG_LAST> Data;
+      Registers Data;
     };
 
     class Device
@@ -82,9 +94,6 @@ namespace Devices
 
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
-
-      /// flush any collected data
-      virtual void Flush() = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;

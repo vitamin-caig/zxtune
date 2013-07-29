@@ -30,14 +30,14 @@ namespace Module
       , State(Delegate->GetStateObserver())
       , Render(renderer)
     {
-      FillCurrentChunk();
+      FillCurrentData();
     }
 
     virtual void Reset()
     {
       Delegate->Reset();
       Render->Reset();
-      FillCurrentChunk();
+      FillCurrentData();
     }
 
     virtual bool IsValid() const
@@ -48,7 +48,7 @@ namespace Module
     virtual void NextFrame(bool looped)
     {
       Delegate->NextFrame(looped);
-      FillCurrentChunk();
+      FillCurrentData();
     }
 
     virtual TrackState::Ptr GetStateObserver() const
@@ -56,25 +56,25 @@ namespace Module
       return State;
     }
 
-    virtual Devices::SAA::DataChunk GetData() const
+    virtual Devices::SAA::Registers GetData() const
     {
-      return CurrentChunk;
+      return CurrentData;
     }
   private:
-    void FillCurrentChunk()
+    void FillCurrentData()
     {
       if (Delegate->IsValid())
       {
         SAA::TrackBuilder builder;
         Render->SynthesizeData(*State, builder);
-        builder.GetResult(CurrentChunk);
+        builder.GetResult(CurrentData);
       }
     }
   private:
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
     const SAA::DataRenderer::Ptr Render;
-    Devices::SAA::DataChunk CurrentChunk;
+    Devices::SAA::Registers CurrentData;
   };
 
   class SAARenderer : public Renderer
@@ -109,10 +109,14 @@ namespace Module
       if (Iterator->IsValid())
       {
         SynchronizeParameters();
-        Devices::SAA::DataChunk chunk = Iterator->GetData();
-        chunk.TimeStamp = FlushChunk.TimeStamp;
-        CommitChunk(chunk);
+        if (LastChunk.TimeStamp == Devices::SAA::Stamp())
+        {
+          //first chunk
+          TransferChunk();
+        }
         Iterator->NextFrame(Looped);
+        LastChunk.TimeStamp += FrameDuration;
+        TransferChunk();
       }
       return Iterator->IsValid();
     }
@@ -122,7 +126,7 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      FlushChunk = Devices::SAA::DataChunk();
+      LastChunk.TimeStamp = Devices::SAA::Stamp();
       FrameDuration = Devices::SAA::Stamp();
       Looped = false;
     }
@@ -141,18 +145,16 @@ namespace Module
       }
     }
 
-    void CommitChunk(const Devices::SAA::DataChunk& chunk)
+    void TransferChunk()
     {
-      Device->RenderData(chunk);
-      FlushChunk.TimeStamp += FrameDuration;
-      Device->RenderData(FlushChunk);
-      Device->Flush();
+      LastChunk.Data = Iterator->GetData();
+      Device->RenderData(LastChunk);
     }
   private:
     Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
     const SAA::DataIterator::Ptr Iterator;
     const Devices::SAA::Device::Ptr Device;
-    Devices::SAA::DataChunk FlushChunk;
+    Devices::SAA::DataChunk LastChunk;
     Devices::SAA::Stamp FrameDuration;
     bool Looped;
   };
@@ -192,50 +194,50 @@ namespace Module
 {
   namespace SAA
   {
-    ChannelBuilder::ChannelBuilder(uint_t chan, Devices::SAA::DataChunk& chunk)
+    ChannelBuilder::ChannelBuilder(uint_t chan, Devices::SAA::Registers& regs)
       : Channel(chan)
-      , Chunk(chunk)
+      , Regs(regs)
     {
-      SetRegister(Devices::SAA::DataChunk::REG_TONEMIXER, 0, 1 << chan);
-      SetRegister(Devices::SAA::DataChunk::REG_NOISEMIXER, 0, 1 << chan);
+      SetRegister(Devices::SAA::Registers::TONEMIXER, 0, 1 << chan);
+      SetRegister(Devices::SAA::Registers::NOISEMIXER, 0, 1 << chan);
     }
 
     void ChannelBuilder::SetVolume(int_t left, int_t right)
     {
-      SetRegister(Devices::SAA::DataChunk::REG_LEVEL0 + Channel, 16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
+      SetRegister(Devices::SAA::Registers::LEVEL0 + Channel, 16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
     }
 
     void ChannelBuilder::SetTone(uint_t octave, uint_t note)
     {
-      SetRegister(Devices::SAA::DataChunk::REG_TONENUMBER0 + Channel, note);
-      AddRegister(Devices::SAA::DataChunk::REG_TONEOCTAVE01 + Channel / 2, 0 != (Channel & 1) ? (octave << 4) : octave);
+      SetRegister(Devices::SAA::Registers::TONENUMBER0 + Channel, note);
+      AddRegister(Devices::SAA::Registers::TONEOCTAVE01 + Channel / 2, 0 != (Channel & 1) ? (octave << 4) : octave);
     }
 
     void ChannelBuilder::SetNoise(uint_t type)
     {
       const uint_t shift = Channel >= 3 ? 4 : 0;
-      SetRegister(Devices::SAA::DataChunk::REG_NOISECLOCK, type << shift, 0x7 << shift);
+      SetRegister(Devices::SAA::Registers::NOISECLOCK, type << shift, 0x7 << shift);
     }
 
     void ChannelBuilder::AddNoise(uint_t type)
     {
       const uint_t shift = Channel >= 3 ? 4 : 0;
-      AddRegister(Devices::SAA::DataChunk::REG_NOISECLOCK, type << shift);
+      AddRegister(Devices::SAA::Registers::NOISECLOCK, type << shift);
     }
 
     void ChannelBuilder::SetEnvelope(uint_t type)
     {
-      SetRegister(Devices::SAA::DataChunk::REG_ENVELOPE0 + (Channel >= 3), type);
+      SetRegister(Devices::SAA::Registers::ENVELOPE0 + (Channel >= 3), type);
     }
 
     void ChannelBuilder::EnableTone()
     {
-      AddRegister(Devices::SAA::DataChunk::REG_TONEMIXER, 1 << Channel);
+      AddRegister(Devices::SAA::Registers::TONEMIXER, 1 << Channel);
     }
 
     void ChannelBuilder::EnableNoise()
     {
-      AddRegister(Devices::SAA::DataChunk::REG_NOISEMIXER, 1 << Channel);
+      AddRegister(Devices::SAA::Registers::NOISEMIXER, 1 << Channel);
     }
 
     Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)
