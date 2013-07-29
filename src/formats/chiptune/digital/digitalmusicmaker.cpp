@@ -24,7 +24,6 @@ Author:
 #include <math/numeric.h>
 //std includes
 #include <cstring>
-#include <map>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
@@ -310,11 +309,10 @@ namespace Chiptune
       void ParseSamples(Builder& target) const
       {
         const bool is4bitSamples = true;//TODO: detect
-        typedef std::map<std::size_t, Binary::Container::Ptr> Bank2Data;
-        Bank2Data regions;
+        Binary::Container::Ptr regions[8];
         for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx != Source.EndOfBanks.size(); ++layIdx)
         {
-          static const uint_t BANKS[] = {0x50, 0x51, 0x53, 0x54, 0x56, 0x57};
+          static const uint_t BANKS[] = {0, 1, 3, 4, 6, 7};
 
           const uint_t bankNum = BANKS[layIdx];
           const std::size_t bankEnd = fromLE(Source.EndOfBanks[layIdx]);
@@ -356,8 +354,10 @@ namespace Chiptune
           const std::size_t sampleLoop = fromLE(srcSample.Loop);
           Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank), sampleStart, sampleEnd, sampleLoop);
           Require(sampleStart >= SAMPLES_ADDR && sampleStart <= sampleEnd && sampleStart <= sampleLoop);
-          Require(regions.count(srcSample.Bank));
-          const Binary::Container::Ptr bankData = regions[srcSample.Bank];
+          Require((srcSample.Bank & 0xf8) == 0x50);
+          const uint_t bankIdx = srcSample.Bank & 0x07;
+          const Binary::Container::Ptr bankData = regions[bankIdx];
+          Require(bankData);
           const std::size_t offsetInBank = sampleStart - SAMPLES_ADDR;
           const std::size_t limitInBank = sampleEnd - SAMPLES_ADDR;
           const std::size_t sampleSize = limitInBank - offsetInBank;

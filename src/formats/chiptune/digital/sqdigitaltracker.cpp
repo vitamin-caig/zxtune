@@ -25,7 +25,6 @@ Author:
 #include <strings/format.h>
 //std includes
 #include <cstring>
-#include <map>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
@@ -355,9 +354,8 @@ namespace Chiptune
       void ParseSamples(const Indices& sams, Builder& target) const
       {
         Dbg("Parse %1% samples", sams.Count());
-        //bank => <offset, size>
-        typedef std::map<std::size_t, std::pair<std::size_t, std::size_t> > Bank2OffsetAndSize;
-        Bank2OffsetAndSize regions;
+        //[bank & 7] => <offset, size>
+        std::pair<std::size_t, std::size_t> regions[8] = {};
         for (std::size_t layIdx = 0, cursor = sizeof(Source); layIdx != Source.Layouts.size(); ++layIdx)
         {
           const LayoutInfo& layout = Source.Layouts[layIdx];
@@ -366,7 +364,7 @@ namespace Chiptune
           if (addr >= BIG_SAMPLE_ADDR && addr + size <= SAMPLES_LIMIT)
           {
             Dbg("Used bank %1% at %2$04x..%3$04x", uint_t(layout.Bank), addr, addr + size);
-            regions[layout.Bank] = std::make_pair(cursor, size);
+            regions[layout.Bank & 0x07] = std::make_pair(cursor, size);
           }
           AddRange(cursor, size);
           cursor += size;
@@ -383,9 +381,10 @@ namespace Chiptune
             Dbg("Skip sample %1%", samIdx);
             continue;
           }
-          Require(regions.count(info.Bank));
+          const uint_t bank = info.Bank & 0x07;
+          Require(regions[bank].first);
           const std::size_t sampleBase = rawAddr < SAMPLES_ADDR ? BIG_SAMPLE_ADDR : SAMPLES_ADDR;
-          const std::pair<std::size_t, std::size_t>& offsetSize = regions[info.Bank];
+          const std::pair<std::size_t, std::size_t>& offsetSize = regions[bank];
           const std::size_t size = std::min(SAMPLES_LIMIT - rawAddr, offsetSize.second);
           const std::size_t offset = offsetSize.first + rawAddr - sampleBase;
           if (const Binary::Data::Ptr sample = GetSample(offset, size))
