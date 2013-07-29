@@ -29,14 +29,14 @@ namespace Module
       , State(Delegate->GetStateObserver())
       , Render(renderer)
     {
-      FillCurrentChunk();
+      FillCurrentData();
     }
 
     virtual void Reset()
     {
       Delegate->Reset();
       Render->Reset();
-      FillCurrentChunk();
+      FillCurrentData();
     }
 
     virtual bool IsValid() const
@@ -47,7 +47,7 @@ namespace Module
     virtual void NextFrame(bool looped)
     {
       Delegate->NextFrame(looped);
-      FillCurrentChunk();
+      FillCurrentData();
     }
 
     virtual TrackState::Ptr GetStateObserver() const
@@ -55,25 +55,29 @@ namespace Module
       return State;
     }
 
-    virtual void GetData(Devices::DAC::DataChunk& chunk) const
+    virtual void GetData(Devices::DAC::Channels& res) const
     {
-      chunk = CurrentChunk;
+      res.assign(CurrentData.begin(), CurrentData.end());
     }
   private:
-    void FillCurrentChunk()
+    void FillCurrentData()
     {
       if (Delegate->IsValid())
       {
         DAC::TrackBuilder builder;
         Render->SynthesizeData(*State, builder);
-        builder.GetResult(CurrentChunk.Channels);
+        builder.GetResult(CurrentData);
+      }
+      else
+      {
+        CurrentData.clear();
       }
     }
   private:
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
     const DAC::DataRenderer::Ptr Render;
-    Devices::DAC::DataChunk CurrentChunk;
+    Devices::DAC::Channels CurrentData;
   };
 
   class DACRenderer : public Renderer
@@ -108,11 +112,14 @@ namespace Module
       if (Iterator->IsValid())
       {
         SynchronizeParameters();
-        Devices::DAC::DataChunk chunk;
-        Iterator->GetData(chunk);
-        chunk.TimeStamp = FlushChunk.TimeStamp;
-        CommitChunk(chunk);
+        if (LastChunk.TimeStamp == Devices::DAC::Stamp())
+        {
+          //first chunk
+          TransferChunk();
+        }
         Iterator->NextFrame(Looped);
+        LastChunk.TimeStamp += FrameDuration;
+        TransferChunk();
       }
       return Iterator->IsValid();
     }
@@ -122,7 +129,7 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      FlushChunk = Devices::DAC::DataChunk();
+      LastChunk.TimeStamp = Devices::DAC::Stamp();
       FrameDuration = Devices::DAC::Stamp();
       Looped = false;
     }
@@ -141,18 +148,16 @@ namespace Module
       }
     }
 
-    void CommitChunk(const Devices::DAC::DataChunk& chunk)
+    void TransferChunk()
     {
-      Device->RenderData(chunk);
-      FlushChunk.TimeStamp += FrameDuration;
-      Device->RenderData(FlushChunk);
-      Device->Flush();
+      Iterator->GetData(LastChunk.Data);
+      Device->RenderData(LastChunk);
     }
   private:
     Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
     const DAC::DataIterator::Ptr Iterator;
     const Devices::DAC::Chip::Ptr Device;
-    Devices::DAC::DataChunk FlushChunk;
+    Devices::DAC::DataChunk LastChunk;
     Devices::DAC::Stamp FrameDuration;
     bool Looped;
   };
@@ -165,23 +170,23 @@ namespace Module
     ChannelDataBuilder TrackBuilder::GetChannel(uint_t chan)
     {
       using namespace Devices::DAC;
-      const std::vector<DataChunk::ChannelData>::iterator existing = std::find_if(Data.begin(), Data.end(),
-        boost::bind(&DataChunk::ChannelData::Channel, _1) == chan);
+      const std::vector<ChannelData>::iterator existing = std::find_if(Data.begin(), Data.end(),
+        boost::bind(&ChannelData::Channel, _1) == chan);
       if (existing != Data.end())
       {
         return ChannelDataBuilder(*existing);
       }
-      Data.push_back(DataChunk::ChannelData());
-      DataChunk::ChannelData& newOne = Data.back();
+      Data.push_back(ChannelData());
+      ChannelData& newOne = Data.back();
       newOne.Channel = chan;
       return ChannelDataBuilder(newOne);
     }
 
-    void TrackBuilder::GetResult(std::vector<Devices::DAC::DataChunk::ChannelData>& result)
+    void TrackBuilder::GetResult(Devices::DAC::Channels& result)
     {
       using namespace Devices::DAC;
-      const std::vector<DataChunk::ChannelData>::iterator last = std::remove_if(Data.begin(), Data.end(),
-        boost::bind(&DataChunk::ChannelData::Mask, _1) == 0u);
+      const std::vector<ChannelData>::iterator last = std::remove_if(Data.begin(), Data.end(),
+        boost::bind(&ChannelData::Mask, _1) == 0u);
       result.assign(Data.begin(), last);
     }
 

@@ -27,7 +27,7 @@ namespace Module
     public:
       typedef boost::shared_ptr<DataIterator> Ptr;
 
-      virtual void GetData(Devices::DAC::DataChunk& data) const = 0;
+      virtual void GetData(Devices::DAC::Channels& data) const = 0;
     };
 
     class Chiptune

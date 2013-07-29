@@ -523,7 +523,7 @@ namespace DigitalMusicMaker
         const uint_t prevStep = GetStep() + FreqSlide;
         const uint_t FPS = 50;//TODO
         const uint_t skipped = MixPeriod * prevStep * RENDERS_PER_SEC / FPS / 256;
-        Devices::DAC::DataChunk::ChannelData& dst = builder.GetState();
+        Devices::DAC::ChannelData& dst = builder.GetState();
         dst = DacState;
         builder.SetPosInSample(dst.PosInSample + skipped);
 
@@ -602,7 +602,7 @@ namespace DigitalMusicMaker
     uint_t Sample;
 
     Cell OldData;
-    Devices::DAC::DataChunk::ChannelData DacState;
+    Devices::DAC::ChannelData DacState;
 
     typedef void (ChannelState::*EffectFunc)(DAC::ChannelDataBuilder&);
     EffectFunc Effect;

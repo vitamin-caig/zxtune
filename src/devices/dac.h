@@ -26,84 +26,86 @@ namespace Devices
   {
     typedef Time::Microseconds Stamp;
 
-    struct DataChunk
+    struct ChannelData
     {
-      struct ChannelData
+      ChannelData()
+        : Channel()
+        , Mask()
+        , Enabled()
+        , Note()
+        , NoteSlide()
+        , FreqSlideHz()
+        , SampleNum()
+        , PosInSample()
+        , Level()
       {
-        ChannelData()
-          : Channel()
-          , Mask()
-          , Enabled()
-          , Note()
-          , NoteSlide()
-          , FreqSlideHz()
-          , SampleNum()
-          , PosInSample()
-          , Level()
-        {
-        }
+      }
 
-        enum Flags
-        {
-          ENABLED = 1,
-          NOTE = 2,
-          NOTESLIDE = 4,
-          FREQSLIDEHZ = 8,
-          SAMPLENUM = 16,
-          POSINSAMPLE = 32,
-          LEVEL = 64,
+      enum Flags
+      {
+        ENABLED = 1,
+        NOTE = 2,
+        NOTESLIDE = 4,
+        FREQSLIDEHZ = 8,
+        SAMPLENUM = 16,
+        POSINSAMPLE = 32,
+        LEVEL = 64,
 
-          ALL_PARAMETERS = 127
-        };
-
-        uint_t Channel;
-        uint_t Mask;
-        bool Enabled;
-        uint_t Note;
-        int_t NoteSlide;
-        int_t FreqSlideHz;
-        uint_t SampleNum;
-        uint_t PosInSample;
-        LevelType Level;
-
-        const bool* GetEnabled() const
-        {
-          return 0 != (Mask & ENABLED) ? &Enabled : 0;
-        }
-
-        const uint_t* GetNote() const
-        {
-          return 0 != (Mask & NOTE) ? &Note : 0;
-        }
-
-        const int_t* GetNoteSlide() const
-        {
-          return 0 != (Mask & NOTESLIDE) ? &NoteSlide : 0;
-        }
-
-        const int_t* GetFreqSlideHz() const
-        {
-          return 0 != (Mask & FREQSLIDEHZ) ? &FreqSlideHz : 0;
-        }
-
-        const uint_t* GetSampleNum() const
-        {
-          return 0 != (Mask & SAMPLENUM) ? &SampleNum : 0;
-        }
-
-        const uint_t* GetPosInSample() const
-        {
-          return 0 != (Mask & POSINSAMPLE) ? &PosInSample : 0;
-        }
-
-        const LevelType* GetLevel() const
-        {
-          return 0 != (Mask & LEVEL) ? &Level : 0;
-        }
+        ALL_PARAMETERS = 127
       };
 
+      uint_t Channel;
+      uint_t Mask;
+      bool Enabled;
+      uint_t Note;
+      int_t NoteSlide;
+      int_t FreqSlideHz;
+      uint_t SampleNum;
+      uint_t PosInSample;
+      LevelType Level;
+
+      const bool* GetEnabled() const
+      {
+        return 0 != (Mask & ENABLED) ? &Enabled : 0;
+      }
+
+      const uint_t* GetNote() const
+      {
+        return 0 != (Mask & NOTE) ? &Note : 0;
+      }
+
+      const int_t* GetNoteSlide() const
+      {
+        return 0 != (Mask & NOTESLIDE) ? &NoteSlide : 0;
+      }
+
+      const int_t* GetFreqSlideHz() const
+      {
+        return 0 != (Mask & FREQSLIDEHZ) ? &FreqSlideHz : 0;
+      }
+
+      const uint_t* GetSampleNum() const
+      {
+        return 0 != (Mask & SAMPLENUM) ? &SampleNum : 0;
+      }
+
+      const uint_t* GetPosInSample() const
+      {
+        return 0 != (Mask & POSINSAMPLE) ? &PosInSample : 0;
+      }
+
+      const LevelType* GetLevel() const
+      {
+        return 0 != (Mask & LEVEL) ? &Level : 0;
+      }
+    };
+
+    typedef std::vector<ChannelData> Channels;
+
+    struct DataChunk
+    {
       Stamp TimeStamp;
-      std::vector<ChannelData> Channels;
+      Channels Data;
     };
 
     class Chip : public StateSource
@@ -118,7 +120,6 @@ namespace Devices
 
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
-      virtual void Flush() = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;

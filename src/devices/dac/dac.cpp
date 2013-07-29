@@ -11,7 +11,6 @@ Author:
 
 //local includes
 #include <devices/dac.h>
-#include <devices/details/chunks_cache.h>
 #include <devices/details/freq_table.h>
 #include <devices/details/parameters_helper.h>
 //common includes
@@ -202,17 +201,16 @@ namespace DAC
       return FastSample::Position(int64_t((freq * SampleFreq).Integer()), (baseFreq * SoundFreq).Integer());
     }
 
+    Stamp GetCurrentTime() const
+    {
+      return CurrentTime;
+    }
+
     uint_t Advance(Stamp nextTime)
     {
       const Stamp now = CurrentTime;
       CurrentTime = nextTime;
       return static_cast<uint_t>(uint64_t(nextTime.Get() - now.Get()) * SoundFreq / CurrentTime.PER_SECOND);
-    }
-
-    uint_t SamplesTill(Stamp nextTime) const
-    {
-      //TODO
-      return static_cast<uint_t>(uint64_t(nextTime.Get() - CurrentTime.Get()) * SoundFreq / CurrentTime.PER_SECOND) + 2;
     }
   private:
     uint_t SampleFreq;
@@ -293,7 +291,7 @@ namespace DAC
     FastSample::Iterator Iterator;
     SignedLevelType Level;
 
-    void Update(const SamplesStorage& samples, const ClockSource& clock, const DataChunk::ChannelData& state)
+    void Update(const SamplesStorage& samples, const ClockSource& clock, const ChannelData& state)
     {
       //'enabled' field changed
       if (const bool* enabled = state.GetEnabled())
@@ -332,7 +330,7 @@ namespace DAC
       {
         Level = *level;
       }
-      if (0 != (state.Mask & (DataChunk::ChannelData::NOTE | DataChunk::ChannelData::NOTESLIDE | DataChunk::ChannelData::FREQSLIDEHZ)))
+      if (0 != (state.Mask & (ChannelData::NOTE | ChannelData::NOTESLIDE | ChannelData::FREQSLIDEHZ)))
       {
         Iterator.SetStep(clock.GetStep(Note + NoteSlide, FreqSlide));
       }
@@ -380,24 +378,23 @@ namespace DAC
   public:
     virtual ~Renderer() {}
 
-    virtual void RenderData(const Stamp tillTime, Sound::ChunkBuilder& target) = 0;
+    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target) = 0;
   };
 
   template<unsigned Channels>
   class LQRenderer : public Renderer
   {
   public:
-    LQRenderer(ClockSource& clock, const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
-      : Clock(clock)
-      , Mixer(mixer)
+    LQRenderer(const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
+      : Mixer(mixer)
       , State(state)
     {
     }
 
-    virtual void RenderData(const Stamp tillTime, Sound::ChunkBuilder& target)
+    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target)
     {
       typename Sound::MultichannelSample<Channels>::Type result;
-      for (uint_t counter = Clock.Advance(tillTime); counter != 0; --counter)
+      for (uint_t counter = samples; counter != 0; --counter)
       {
         for (uint_t chan = 0; chan != Channels; ++chan)
         {
@@ -409,7 +406,6 @@ namespace DAC
       }
     }
   private:
-    ClockSource& Clock;
     const Sound::FixedChannelsMixer<Channels>& Mixer;
     ChannelState* const State;
   };
@@ -418,18 +414,17 @@ namespace DAC
   class MQRenderer : public Renderer
   {
   public:
-    MQRenderer(ClockSource& clock, const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
-      : Clock(clock)
-      , Mixer(mixer)
+    MQRenderer(const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
+      : Mixer(mixer)
       , State(state)
     {
     }
 
-    virtual void RenderData(const Stamp tillTime, Sound::ChunkBuilder& target)
+    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target)
     {
       static const CosineTable COSTABLE;
       typename Sound::MultichannelSample<Channels>::Type result;
-      for (uint_t counter = Clock.Advance(tillTime); counter != 0; --counter)
+      for (uint_t counter = samples; counter != 0; --counter)
       {
         for (uint_t chan = 0; chan != Channels; ++chan)
         {
@@ -461,7 +456,6 @@ namespace DAC
       boost::array<uint_t, FastSample::Position::PRECISION> Table;
     };
   private:
-    ClockSource& Clock;
     const Sound::FixedChannelsMixer<Channels>& Mixer;
     ChannelState* const State;
   };
@@ -470,23 +464,16 @@ namespace DAC
   class RenderersSet
   {
   public:
-    RenderersSet(ClockSource& clock, const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
-      : Clock(clock)
-      , LQ(clock, mixer, state)
-      , MQ(clock, mixer, state)
+    RenderersSet(const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
+      : LQ(mixer, state)
+      , MQ(mixer, state)
       , Current()
     {
     }
 
     void Reset()
     {
-      Clock.Reset();
       Current = 0;
-    }
-
-    void SetFrequency(uint_t sampleFreq, uint_t soundFreq)
-    {
-      Clock.SetFreq(sampleFreq, soundFreq);
     }
 
     void SetInterpolation(bool type)
@@ -501,12 +488,11 @@ namespace DAC
       }
     }
 
-    Renderer& Get() const
+    void RenderData(uint_t samples, Sound::ChunkBuilder& target)
     {
-      return *Current;
+      Current->RenderData(samples, target);
     }
   private:
-    ClockSource& Clock;
     LQRenderer<Channels> LQ;
     MQRenderer<Channels> MQ;
     Renderer* Current;
@@ -521,7 +507,7 @@ namespace DAC
       , Mixer(mixer)
       , Target(target)
       , Clock()
-      , Renderers(Clock, *Mixer, &State[0])
+      , Renderers(*Mixer, &State[0])
     {
       FixedChannelsChip::Reset();
     }
@@ -534,21 +520,13 @@ namespace DAC
 
     virtual void RenderData(const DataChunk& src)
     {
-      BufferedData.Add(src);
-    }
-
-    virtual void Flush()
-    {
-      const Stamp till = BufferedData.GetTillTime();
-      if (!(till == Stamp(0)))
+      SynchronizeParameters();
+      if (Clock.GetCurrentTime() < src.TimeStamp)
       {
-        SynchronizeParameters();
-        Sound::ChunkBuilder builder;
-        builder.Reserve(Clock.SamplesTill(till));
-        RenderChunks(builder);
-        Target->ApplyData(builder.GetResult());
+        RenderChunksTill(src.TimeStamp);
       }
-      Target->Flush();
+      std::for_each(src.Data.begin(), src.Data.end(),
+        boost::bind(&FixedChannelsChip::UpdateState, this, _1));
     }
 
     virtual void GetState(MultiChannelState& state) const
@@ -569,9 +547,9 @@ namespace DAC
     virtual void Reset()
     {
       Params.Reset();
+      Clock.Reset();
       Renderers.Reset();
       std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0)));
-      BufferedData.Reset();
     }
 
   private:
@@ -579,25 +557,22 @@ namespace DAC
     {
       if (Params.IsChanged())
       {
-        Renderers.SetFrequency(Params->BaseSampleFreq(), Params->SoundFreq());
+        Clock.SetFreq(Params->BaseSampleFreq(), Params->SoundFreq());
         Renderers.SetInterpolation(Params->Interpolate());
       }
     }
 
-    void RenderChunks(Sound::ChunkBuilder& builder)
+    void RenderChunksTill(Stamp stamp)
     {
-      Renderer& render = Renderers.Get();
-      for (const DataChunk* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
-      {
-        const DataChunk& chunk = *it;
-        std::for_each(chunk.Channels.begin(), chunk.Channels.end(),
-          boost::bind(&FixedChannelsChip::UpdateState, this, _1));
-        render.RenderData(chunk.TimeStamp, builder);
-      }
-      BufferedData.Reset();
+      const uint_t samples = Clock.Advance(stamp);
+      Sound::ChunkBuilder builder;
+      builder.Reserve(samples);
+      Renderers.RenderData(samples, builder);
+      Target->ApplyData(builder.GetResult());
+      Target->Flush();
     }
 
-    void UpdateState(const DataChunk::ChannelData& state)
+    void UpdateState(const ChannelData& state)
     {
       assert(state.Channel < State.size());
       State[state.Channel].Update(Samples, Clock, state);
@@ -610,7 +585,6 @@ namespace DAC
     ClockSource Clock;
     boost::array<ChannelState, Channels> State;
     RenderersSet<Channels> Renderers;
-    Details::ChunksCache<DataChunk, Stamp> BufferedData;
   };
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
