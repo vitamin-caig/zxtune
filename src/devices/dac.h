@@ -118,8 +118,11 @@ namespace Devices
       /// Set sample for work
       virtual void SetSample(uint_t idx, Sample::Ptr sample) = 0;
 
-      /// render single data chunk
+      /// Render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
+
+      /// Same as RenderData but do not produce sound output
+      virtual void UpdateState(const DataChunk& src) = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;

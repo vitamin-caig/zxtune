@@ -468,6 +468,7 @@ namespace DAC
       : LQ(mixer, state)
       , MQ(mixer, state)
       , Current()
+      , State(state)
     {
     }
 
@@ -492,10 +493,19 @@ namespace DAC
     {
       Current->RenderData(samples, target);
     }
+
+    void DropData(uint_t samples)
+    {
+      for (uint_t count = samples; count != 0; --count)
+      {
+        std::for_each(State, State + Channels, std::mem_fun_ref(&ChannelState::Next));
+      }
+    }
   private:
     LQRenderer<Channels> LQ;
     MQRenderer<Channels> MQ;
     Renderer* Current;
+    ChannelState* const State;
   };
 
   template<unsigned Channels>
@@ -526,7 +536,17 @@ namespace DAC
         RenderChunksTill(src.TimeStamp);
       }
       std::for_each(src.Data.begin(), src.Data.end(),
-        boost::bind(&FixedChannelsChip::UpdateState, this, _1));
+        boost::bind(&FixedChannelsChip::UpdateChannelState, this, _1));
+    }
+
+    virtual void UpdateState(const DataChunk& src)
+    {
+      if (Clock.GetCurrentTime() < src.TimeStamp)
+      {
+        DropChunksTill(src.TimeStamp);
+      }
+      std::for_each(src.Data.begin(), src.Data.end(),
+        boost::bind(&FixedChannelsChip::UpdateChannelState, this, _1));
     }
 
     virtual void GetState(MultiChannelState& state) const
@@ -572,7 +592,13 @@ namespace DAC
       Target->Flush();
     }
 
-    void UpdateState(const ChannelData& state)
+    void DropChunksTill(Stamp stamp)
+    {
+      const uint_t samples = Clock.Advance(stamp);
+      Renderers.DropData(samples);
+    }
+
+    void UpdateChannelState(const ChannelData& state)
     {
       assert(state.Channel < State.size());
       State[state.Channel].Update(Samples, Clock, state);
