@@ -11,8 +11,6 @@ Author:
 
 //local includes
 #include "dump_builder.h"
-//library includes
-#include <devices/details/chunks_cache.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -107,51 +105,44 @@ namespace
       , Builder(builder)
       , State(state)
       , FramesToSkip(0)
-      , LastFrame()
+      , NextFrame()
     {
       Reset();
     }
 
     virtual void RenderData(const DataChunk& src)
     {
-      Buffer.Add(src);
+      if (src.TimeStamp < NextFrame)
+      {
+        State->Add(src.Data);
+      }
+      else
+      {
+        FinishFrame();
+      }
     }
 
-    virtual void Flush()
+    virtual void RenderData(const std::vector<DataChunk>& src)
     {
-      Stamp nextFrame = LastFrame;
-      nextFrame += FrameDuration;
-      for (const DataChunk* it = Buffer.GetBegin(), *lim = Buffer.GetEnd(); it != lim; ++it)
+      for (std::vector<DataChunk>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
       {
-        if (it->TimeStamp < nextFrame)
+        if (it->TimeStamp < NextFrame)
         {
           State->Add(it->Data);
         }
         else 
         {
-          ++FramesToSkip;
-          const Registers delta = State->GetDelta();
-          if (!delta.Empty())
-          {
-            State->CommitDelta();
-            const Registers& current = State->GetBase();
-            Builder->WriteFrame(FramesToSkip, current, delta);
-            FramesToSkip = 0;
-          }
-          LastFrame = nextFrame;
-          nextFrame += FrameDuration;
+          FinishFrame();
         }
       }
-      Buffer.Reset();
     }
 
     virtual void Reset()
     {
       Builder->Initialize();
-      Buffer.Reset();
       State->Reset();
       FramesToSkip = 0;
-      LastFrame = Stamp();
+      NextFrame = FrameDuration;
     }
 
     virtual void GetDump(Dump& result) const
@@ -166,12 +157,25 @@ namespace
       Builder->GetResult(result);
     }
   private:
+    void FinishFrame()
+    {
+      ++FramesToSkip;
+      const Registers delta = State->GetDelta();
+      if (!delta.Empty())
+      {
+        State->CommitDelta();
+        const Registers& current = State->GetBase();
+        Builder->WriteFrame(FramesToSkip, current, delta);
+        FramesToSkip = 0;
+      }
+      NextFrame += FrameDuration;
+    }
+  private:
     const Stamp FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     const std::auto_ptr<RenderState> State;
-    Devices::Details::ChunksCache<DataChunk, Stamp> Buffer;
     mutable uint_t FramesToSkip;
-    Stamp LastFrame;
+    Stamp NextFrame;
   };
 }
 

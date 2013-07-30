@@ -199,11 +199,11 @@ namespace Devices
       typedef boost::shared_ptr<Device> Ptr;
       virtual ~Device() {}
 
-      /// render single data chunk
+      /// Render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
 
-      /// flush any collected data
-      virtual void Flush() = 0;
+      /// Render multiple data chunks
+      virtual void RenderData(const std::vector<DataChunk>& src) = 0;
 
       /// reset internal state to initial
       virtual void Reset() = 0;

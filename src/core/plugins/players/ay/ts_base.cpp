@@ -438,7 +438,6 @@ namespace TurboSound
     {
       LastChunk.Data = Iterator->GetData();
       Device->RenderData(LastChunk);
-      Device->Flush();
     }
   private:
     Devices::Details::ParametersHelper<Sound::RenderParameters> Params;

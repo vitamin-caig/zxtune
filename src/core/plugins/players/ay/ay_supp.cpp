@@ -63,7 +63,7 @@ namespace AY
     {
       Chip->Reset();
       Register = 0;
-      FrameStub = Devices::AYM::DataChunk();
+      Chunks.clear();
     }
 
     bool SelectRegister(uint_t reg)
@@ -76,10 +76,9 @@ namespace AY
     {
       if (Register < Devices::AYM::Registers::TOTAL)
       {
-        Devices::AYM::DataChunk chunk;
+        Devices::AYM::DataChunk& chunk = AllocateChunk();
         chunk.TimeStamp = timeStamp;
         chunk.Data[static_cast<Devices::AYM::Registers::Index>(Register)] = val;
-        Chip->RenderData(chunk);
         return true;
       }
       return false;
@@ -87,17 +86,17 @@ namespace AY
 
     void SetBeeper(const Devices::AYM::Stamp& timeStamp, bool val)
     {
-      Devices::AYM::DataChunk chunk;
+      Devices::AYM::DataChunk& chunk = AllocateChunk();
       chunk.TimeStamp = timeStamp;
       chunk.Data.SetBeeper(val);
-      Chip->RenderData(chunk);
     }
 
     void RenderFrame(const Devices::AYM::Stamp& till)
     {
-      FrameStub.TimeStamp = till;
-      Chip->RenderData(FrameStub);
-      Chip->Flush();
+      Devices::AYM::DataChunk& stub = AllocateChunk();
+      stub.TimeStamp = till;
+      Chip->RenderData(Chunks);
+      Chunks.clear();
     }
 
     Analyzer::Ptr GetAnalyzer() const
@@ -105,9 +104,15 @@ namespace AY
       return AYM::CreateAnalyzer(Chip);
     }
   private:
+    Devices::AYM::DataChunk& AllocateChunk()
+    {
+      Chunks.resize(Chunks.size() + 1);          
+      return Chunks.back();
+    }
+  private:
     const Devices::AYM::Device::Ptr Chip;
     uint_t Register;
-    Devices::AYM::DataChunk FrameStub;
+    std::vector<Devices::AYM::DataChunk> Chunks;
   };
 
   class SoundPort

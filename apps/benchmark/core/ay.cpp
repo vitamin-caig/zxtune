@@ -95,6 +95,7 @@ namespace Benchmark
       chunk.Data[Registers::VOLA] = 0;
       chunk.Data[Registers::VOLB] = Registers::MASK_VOL;
       chunk.Data[Registers::VOLC] = Registers::MASK_ENV | Registers::MASK_VOL;
+      dev.RenderData(chunk);
       const Stamp period = frameDuration;
       const uint_t frames = Stamp(duration).Get() / period.Get();
       for (uint_t val = 0; val != frames; ++val)
@@ -113,7 +114,6 @@ namespace Benchmark
         chunk.Data[Registers::ENV] = envTp;
         chunk.TimeStamp += period;
         dev.RenderData(chunk);
-        dev.Flush();
       }
       const Stamp elapsed = timer.Elapsed<Stamp>();
       return double(chunk.TimeStamp.Get()) / elapsed.Get();

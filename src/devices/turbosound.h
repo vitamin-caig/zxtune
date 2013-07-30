@@ -44,7 +44,6 @@ namespace Devices
       virtual ~Device() {}
 
       virtual void RenderData(const DataChunk& src) = 0;
-      virtual void Flush() = 0;
       virtual void Reset() = 0;
     };
 

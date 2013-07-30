@@ -18,7 +18,6 @@ Author:
 #include "volume_table.h"
 //library includes
 #include <devices/details/analysis_map.h>
-#include <devices/details/chunks_cache.h>
 #include <devices/details/parameters_helper.h>
 
 namespace Devices
@@ -42,28 +41,51 @@ namespace AYM
 
     virtual void RenderData(const typename Traits::DataChunkType& src)
     {
-      BufferedData.Add(src);
+      if (Clock.GetNextSampleTime() < src.TimeStamp)
+      {
+        SynchronizeParameters();
+        RenderChunksTill(src.TimeStamp);
+      }
+      PSG.SetNewData(src.Data);
     }
 
-    virtual void Flush()
+    virtual void RenderData(const std::vector<typename Traits::DataChunkType>& src)
     {
-      const Stamp till = BufferedData.GetTillTime();
-      if (!(till == Stamp(0)))
+      if (src.empty())
+      {
+        return;
+      }
+      const Stamp till = src.back().TimeStamp;
+      if (Clock.GetNextSampleTime() < till)
       {
         SynchronizeParameters();
         Sound::ChunkBuilder builder;
         builder.Reserve(Clock.SamplesTill(till));
-        RenderChunks(builder);
+        for (typename std::vector<typename Traits::DataChunkType>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+        {
+          const typename Traits::DataChunkType& chunk = *it;
+          if (Clock.GetCurrentTime() < chunk.TimeStamp)
+          {
+            Renderers.Render(chunk.TimeStamp, builder);
+          }
+          PSG.SetNewData(it->Data);
+        }
         Target->ApplyData(builder.GetResult());
+        Target->Flush();
       }
-      Target->Flush();
+      else
+      {
+        for (typename std::vector<typename Traits::DataChunkType>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
+        {
+          PSG.SetNewData(it->Data);
+        }
+      }
     }
 
     virtual void Reset()
     {
       Params.Reset();
       PSG.Reset();
-      BufferedData.Reset();
       Renderers.Reset();
     }
 
@@ -95,19 +117,14 @@ namespace AYM
       }
     }
 
-    void RenderChunks(Sound::ChunkBuilder& builder)
+    void RenderChunksTill(Stamp stamp)
     {
-      Renderer& source = Renderers.Get();
-      for (const typename Traits::DataChunkType* it = BufferedData.GetBegin(), *lim = BufferedData.GetEnd(); it != lim; ++it)
-      {
-        const typename Traits::DataChunkType& chunk = *it;
-        if (Clock.GetCurrentTime() < chunk.TimeStamp)
-        {
-          source.Render(chunk.TimeStamp, builder);
-        }
-        PSG.SetNewData(chunk.Data);
-      }
-      BufferedData.Reset();
+      const uint_t samples = Clock.SamplesTill(stamp);
+      Sound::ChunkBuilder builder;
+      builder.Reserve(samples);
+      Renderers.Render(stamp, builder);
+      Target->ApplyData(builder.GetResult());
+      Target->Flush();
     }
   private:
     Details::ParametersHelper<ChipParameters> Params;
@@ -116,7 +133,6 @@ namespace AYM
     MultiVolumeTable VolTable;
     typename Traits::PSGType PSG;
     ClockSource Clock;
-    Details::ChunksCache<typename Traits::DataChunkType, Stamp> BufferedData;
     Details::AnalysisMap Analyser;
     RenderersSet<typename Traits::PSGType> Renderers;
   };

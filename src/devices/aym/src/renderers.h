@@ -39,7 +39,7 @@ namespace AYM
   public:
     virtual ~Renderer() {}
 
-    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target) = 0;
+    virtual void Render(Stamp tillTime, Sound::ChunkBuilder& target) = 0;
   };
 
   /*
@@ -55,11 +55,11 @@ namespace AYM
     {
     }
 
-    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
+    virtual void Render(Stamp tillTime, Sound::ChunkBuilder& target)
     {
       for (;;)
       {
-        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
+        const Stamp nextSampleTime = Clock.GetNextSampleTime();
         if (!(nextSampleTime < tillTime))
         {
           break;
@@ -100,11 +100,11 @@ namespace AYM
     {
     }
 
-    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
+    virtual void Render(Stamp tillTime, Sound::ChunkBuilder& target)
     {
       for (;;)
       {
-        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
+        const Stamp nextSampleTime = Clock.GetNextSampleTime();
         if (!(nextSampleTime < tillTime))
         {
           break;
@@ -160,11 +160,11 @@ namespace AYM
       Filter.SetParameters(clockFreq, soundFreq / 4);
     }
 
-    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
+    virtual void Render(Stamp tillTime, Sound::ChunkBuilder& target)
     {
       for (;;)
       {
-        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
+        const Stamp nextSampleTime = Clock.GetNextSampleTime();
         if (!(nextSampleTime < tillTime))
         {
           break;
@@ -252,9 +252,9 @@ namespace AYM
       }
     }
 
-    Renderer& Get() const
+    void Render(Stamp tillTime, Sound::ChunkBuilder& target)
     {
-      return *Current;
+      Current->Render(tillTime, target);
     }
   private:
     uint64_t ClockFreq;
