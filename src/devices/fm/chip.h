@@ -70,7 +70,6 @@ namespace FM
       {
         for (uint_t idx = 0; idx != VOICES; ++idx)
         {
-          res[idx] = ChannelState();
           const uint_t MAX_ATTENUATION = 1024;
           if (attenuations[idx] < MAX_ATTENUATION)
           {

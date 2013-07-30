@@ -387,14 +387,16 @@ namespace TurboSound
       if (Iterator->IsValid())
       {
         SynchronizeParameters();
-        Devices::TurboSound::DataChunk chunk;
-        chunk.TimeStamp = FlushChunk.TimeStamp;
-        chunk.Data = Iterator->GetData();
-        CommitChunk(chunk);
+        if (LastChunk.TimeStamp == Devices::TurboSound::Stamp())
+        {
+          //first chunk
+          TransferChunk();
+        }
         Iterator->NextFrame(Looped);
-        return Iterator->IsValid();
+        LastChunk.TimeStamp += FrameDuration;
+        TransferChunk();
       }
-      return false;
+      return Iterator->IsValid();
     }
 
     virtual void Reset()
@@ -402,14 +404,25 @@ namespace TurboSound
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      FlushChunk = Devices::TurboSound::DataChunk();
+      LastChunk.TimeStamp = Devices::TurboSound::Stamp();
       FrameDuration = Devices::TurboSound::Stamp();
       Looped = false;
     }
 
     virtual void SetPosition(uint_t frameNum)
     {
-      SeekIterator(*Iterator, frameNum);
+      const TrackState::Ptr state = Iterator->GetStateObserver();
+      if (state->Frame() > frameNum)
+      {
+        Iterator->Reset();
+        Device->Reset();
+        LastChunk.TimeStamp = Devices::TurboSound::Stamp();
+      }
+      while (state->Frame() < frameNum && Iterator->IsValid())
+      {
+        TransferChunk();
+        Iterator->NextFrame(false);
+      }
     }
   private:
     void SynchronizeParameters()
@@ -421,18 +434,17 @@ namespace TurboSound
       }
     }
 
-    void CommitChunk(const Devices::TurboSound::DataChunk& chunk)
+    void TransferChunk()
     {
-      Device->RenderData(chunk);
-      FlushChunk.TimeStamp += FrameDuration;
-      Device->RenderData(FlushChunk);
+      LastChunk.Data = Iterator->GetData();
+      Device->RenderData(LastChunk);
       Device->Flush();
     }
   private:
     Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
-    const DataIterator::Ptr Iterator;
+    const TurboSound::DataIterator::Ptr Iterator;
     const Devices::TurboSound::Device::Ptr Device;
-    Devices::TurboSound::DataChunk FlushChunk;
+    Devices::TurboSound::DataChunk LastChunk;
     Devices::TurboSound::Stamp FrameDuration;
     bool Looped;
   };

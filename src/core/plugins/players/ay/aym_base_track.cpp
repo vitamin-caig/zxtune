@@ -71,6 +71,10 @@ namespace Module
           Render->SynthesizeData(*State, builder);
           CurrentData = builder.GetResult();
         }
+        else
+        {
+          CurrentData = Devices::AYM::Registers();
+        }
       }
 
       void SynchronizeParameters()
