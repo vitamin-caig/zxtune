@@ -12,7 +12,7 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
-#include <l10n/api.h>
+#include <l10n/src/library.h>
 
 namespace
 {
