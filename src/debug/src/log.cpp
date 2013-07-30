@@ -9,8 +9,8 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//library includes
-#include <debug/log.h>
+//local includes
+#include "log_real.h"
 //std includes
 #include <cstdio>
 #include <cstring>
@@ -56,9 +56,8 @@ namespace Debug
     std::cerr << '[' << module << "]: " << msg << std::endl;
   }
 
-  Stream::Stream(const std::string& module)
-    : Module(module)
-    , Enabled(DebugSwitch::Instance().EnabledFor(Module))
+  bool IsEnabledFor(const std::string& module)
   {
+    return DebugSwitch::Instance().EnabledFor(module);
   }
 }

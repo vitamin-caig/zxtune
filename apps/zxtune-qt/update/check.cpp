@@ -26,6 +26,8 @@ Author:
 #include <debug/log.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
+//std includes
+#include <ctime>
 //boost includes
 #include <boost/bind.hpp>
 //qt includes
