@@ -11,7 +11,7 @@
 #ifndef L10N_API_H_DEFINED
 #define L10N_API_H_DEFINED
 
-#ifndef NO_L10N
+#ifdef NO_L10N
 #include "src/api_stub.h"
 #else
 #include "src/api_real.h"

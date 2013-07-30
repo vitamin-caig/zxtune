@@ -7,7 +7,7 @@ android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector -fo
 android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now
 #assume that all the platforms are little-endian
 #this required to use boost which doesn't know anything about __armel__ or __mipsel__
-android.definitions = ANDROID __ANDROID__ __LITTLE_ENDIAN__
+android.definitions = ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N
 # x86
 android.x86.toolchain = $(toolchains.root)/x86-linux-android
 android.x86.execprefix = $(android.x86.toolchain)/bin/i686-linux-android-
@@ -40,7 +40,7 @@ dingux.mipsel.execprefix = $(dingux.mipsel.toolchain)/usr/bin/mipsel-linux-
 dingux.mipsel.boost.version = 1.49.0
 dingux.mipsel.qt.version = 4.7.1
 dingux.mipsel.cxx.flags = -mips32
-dingux.mipsel.definitions = 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' 'BOOST_FILESYSTEM_VERSION=2'
+dingux.mipsel.definitions = 'WCHAR_MIN=(0)' 'WCHAR_MAX=((1<<(8*sizeof(wchar_t)))-1)' 'BOOST_FILESYSTEM_VERSION=2' NO_DEBUG_LOGS NO_L10N
 
 #linux.i686
 linux.i686.boost.version = 1.49.0

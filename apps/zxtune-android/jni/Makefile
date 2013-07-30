@@ -8,12 +8,10 @@ libraries.common = analysis \
                    core core_plugins_archives_stub core_plugins_containers_stub core_plugins_players \
                    devices_aym devices_dac devices_fm devices_saa devices_z80 \
                    formats_chiptune formats_packed_lha \
-                   l10n_stub sound strings \
+                   sound strings \
                    tools
 
 libraries.3rdparty = lhasa z80ex
-
-android_libraries := log
 
 include $(path_step)/makefile.mak
 

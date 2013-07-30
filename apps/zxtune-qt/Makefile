@@ -23,7 +23,7 @@ text_files := text/text
 #base
 libraries.common = analysis async binary \
                   core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
-                  debug devices_aym devices_dac devices_fm devices_saa devices_z80 \
+                  devices_aym devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_chiptune formats_packed \
                   io \
                   platform \
@@ -45,12 +45,11 @@ libraries.boost = thread system filesystem
 libraries.qt = Gui Core
 
 ifdef embedded
-libraries.common += l10n_stub
 libraries += ui_embedded playlist_ui_embedded
 depends += apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
 libraries.qt += Network
 else
-libraries.common += l10n
+libraries.common += l10n debug
 libraries += ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update
 depends += $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
 libraries.boost += locale
