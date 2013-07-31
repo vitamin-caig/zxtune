@@ -159,7 +159,7 @@ namespace LZH
 
     static std::size_t GetLZDistHi(uint_t data)
     {
-      return data & 15;
+      return (data & 15) << 8;
     }
   };
 
