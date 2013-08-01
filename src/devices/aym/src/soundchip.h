@@ -41,10 +41,10 @@ namespace AYM
 
     virtual void RenderData(const typename Traits::DataChunkType& src)
     {
-      if (Clock.GetNextSampleTime() < src.TimeStamp)
+      if (Clock.HasSamplesBefore(src.TimeStamp))
       {
         SynchronizeParameters();
-        RenderChunksTill(src.TimeStamp);
+        RenderTill(src.TimeStamp);
       }
       PSG.SetNewData(src.Data);
     }
@@ -55,19 +55,17 @@ namespace AYM
       {
         return;
       }
-      const Stamp till = src.back().TimeStamp;
-      if (Clock.GetNextSampleTime() < till)
+      const Stamp end = src.back().TimeStamp;
+      if (Clock.HasSamplesBefore(end))
       {
         SynchronizeParameters();
+        const uint_t samples = Clock.SamplesTill(end);
         Sound::ChunkBuilder builder;
-        builder.Reserve(Clock.SamplesTill(till));
+        builder.Reserve(samples);
         for (typename std::vector<typename Traits::DataChunkType>::const_iterator it = src.begin(), lim = src.end(); it != lim; ++it)
         {
           const typename Traits::DataChunkType& chunk = *it;
-          if (Clock.GetCurrentTime() < chunk.TimeStamp)
-          {
-            Renderers.Render(chunk.TimeStamp, builder);
-          }
+          Renderers.Render(chunk.TimeStamp, builder);
           PSG.SetNewData(it->Data);
         }
         Target->ApplyData(builder.GetResult());
@@ -117,12 +115,12 @@ namespace AYM
       }
     }
 
-    void RenderChunksTill(Stamp stamp)
+    void RenderTill(Stamp stamp)
     {
       const uint_t samples = Clock.SamplesTill(stamp);
       Sound::ChunkBuilder builder;
       builder.Reserve(samples);
-      Renderers.Render(stamp, builder);
+      Renderers.Render(stamp, samples, builder);
       Target->ApplyData(builder.GetResult());
       Target->Flush();
     }

@@ -17,7 +17,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <devices/details/analysis_map.h>
-#include <devices/details/clock_source.h>
+#include <devices/details/renderers.h>
 #include <devices/details/parameters_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/lpfilter.h>
@@ -121,162 +121,31 @@ namespace SAA
 
   typedef Details::ClockSource<Stamp> ClockSource;
 
-  class Renderer
+  typedef Details::Renderer<Stamp> Renderer;
+  typedef Details::LQRenderer<Stamp, SAARenderer> LQRenderer;
+  typedef Details::MQRenderer<Stamp, SAARenderer> MQRenderer;
+
+  class HQRenderer : public Details::BaseRenderer<Stamp, SAARenderer, HQRenderer>
   {
-  public:
-    virtual ~Renderer() {}
-
-    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target) = 0;
-  };
-
-  /*
-    Simple decimation algorithm without any filtering
-  */
-  class LQRenderer : public Renderer
-  {
-  public:
-    LQRenderer(ClockSource& clock, SAARenderer& psg)
-      : Clock(clock)
-      , PSG(psg)
-    {
-    }
-
-    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
-    {
-      for (;;)
-      {
-        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
-        if (!(nextSampleTime < tillTime))
-        {
-          break;
-        }
-        else if (const uint_t ticksPassed = Clock.NextTime(nextSampleTime))
-        {
-          PSG.Tick(ticksPassed);
-        }
-        RenderNextSample(target);
-      }
-      if (const uint_t ticksPassed = Clock.NextTime(tillTime))
-      {
-        PSG.Tick(ticksPassed);
-      }
-    }
-  private:
-    void RenderNextSample(Sound::ChunkBuilder& target)
-    {
-      const Sound::Sample& sndLevel = PSG.GetLevels();
-      target.Add(sndLevel);
-      Clock.NextSample();
-    }
-  private:
-    ClockSource& Clock;
-    SAARenderer& PSG;
-  };
-
-  /*
-    Simple decimation with post simple FIR filter (0.5, 0.5)
-  */
-  class MQRenderer : public Renderer
-  {
-  public:
-    MQRenderer(ClockSource& clock, SAARenderer& psg)
-      : Clock(clock)
-      , PSG(psg)
-    {
-    }
-
-    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
-    {
-      for (;;)
-      {
-        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
-        if (!(nextSampleTime < tillTime))
-        {
-          break;
-        }
-        else if (const uint_t ticksPassed = Clock.NextTime(nextSampleTime))
-        {
-          PSG.Tick(ticksPassed);
-        }
-        RenderNextSample(target);
-      }
-      if (const uint_t ticksPassed = Clock.NextTime(tillTime))
-      {
-        PSG.Tick(ticksPassed);
-      }
-    }
-  private:
-    void RenderNextSample(Sound::ChunkBuilder& target)
-    {
-      const Sound::Sample curLevel = PSG.GetLevels();
-      const Sound::Sample& sndLevel = Interpolate(curLevel);
-      target.Add(sndLevel);
-      Clock.NextSample();
-    }
-
-    Sound::Sample Interpolate(const Sound::Sample& newLevel)
-    {
-      const Sound::Sample out(Average(PrevLevel.Left(), newLevel.Left()), Average(PrevLevel.Right(), newLevel.Right()));
-      PrevLevel = newLevel;
-      return out;
-    }
-
-    static Sound::Sample::Type Average(Sound::Sample::Type first, Sound::Sample::Type second)
-    {
-      return static_cast<Sound::Sample::Type>((int_t(first) + second) / 2);
-    }
-  private:
-    ClockSource& Clock;
-    SAARenderer& PSG;
-    Sound::Sample PrevLevel;
-  };
-
-  class HQRenderer : public Renderer
-  {
+    typedef Details::BaseRenderer<Stamp, SAARenderer, HQRenderer> Parent;
   public:
     HQRenderer(ClockSource& clock, SAARenderer& psg)
-      : Clock(clock)
-      , PSG(psg)
-      , ClockFreq()
-      , SoundFreq()
+      : Parent(clock, psg)
     {
     }
 
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
     {
-      if (ClockFreq != clockFreq || SoundFreq != soundFreq)
-      {
-        Filter.SetParameters(clockFreq / FREQ_DIVIDER, soundFreq / 4);
-        ClockFreq = clockFreq;
-        SoundFreq = soundFreq;
-      }
+      Filter.SetParameters(clockFreq / FREQ_DIVIDER, soundFreq / 4);
     }
 
-    virtual void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
-    {
-      for (;;)
-      {
-        const Stamp& nextSampleTime = Clock.GetNextSampleTime();
-        if (!(nextSampleTime < tillTime))
-        {
-          break;
-        }
-        else if (const uint_t ticksPassed = Clock.NextTime(nextSampleTime))
-        {
-          RenderTicks(ticksPassed);
-        }
-        RenderNextSample(target);
-      }
-      if (const uint_t ticksPassed = Clock.NextTime(tillTime))
-      {
-        PSG.Tick(ticksPassed);
-      }
-    }
   private:
     //minimal period is 512
     static const uint_t FREQ_DIVIDER = 8;
 
-    void RenderTicks(uint_t ticksPassed)
+    friend Parent;
+
+    void SkipTicks(uint_t ticksPassed)
     {
       while (ticksPassed >= FREQ_DIVIDER)
       {
@@ -291,16 +160,11 @@ namespace SAA
       }
     }
 
-    void RenderNextSample(Sound::ChunkBuilder& target)
+    void RenderSample(Sound::ChunkBuilder& target)
     {
       target.Add(Filter.Get());
-      Clock.NextSample();
     }
   private:
-    ClockSource& Clock;
-    SAARenderer& PSG;
-    uint64_t ClockFreq;
-    uint_t SoundFreq;
     Sound::LPFilter Filter;
   };
 
@@ -353,9 +217,9 @@ namespace SAA
       }
     }
 
-    void Render(const Stamp& tillTime, Sound::ChunkBuilder& target)
+    void Render(Stamp tillTime, uint_t samples, Sound::ChunkBuilder& target)
     {
-      Current->Render(tillTime, target);
+      Current->Render(tillTime, samples, target);
     }
   private:
     uint64_t ClockFreq;
@@ -381,9 +245,10 @@ namespace SAA
 
     virtual void RenderData(const DataChunk& src)
     {
-      if (Clock.GetNextSampleTime() < src.TimeStamp)
+      if (Clock.HasSamplesBefore(src.TimeStamp))
       {
-        RenderChunksTill(src.TimeStamp);
+        SynchronizeParameters();
+        RenderTill(src.TimeStamp);
       }
       PSG.SetNewData(src.Data);
     }
@@ -418,13 +283,12 @@ namespace SAA
       }
     }
 
-    void RenderChunksTill(Stamp stamp)
+    void RenderTill(Stamp stamp)
     {
-      SynchronizeParameters();
       const uint_t samples = Clock.SamplesTill(stamp);
       Sound::ChunkBuilder builder;
       builder.Reserve(samples);
-      Renderers.Render(stamp, builder);
+      Renderers.Render(stamp, samples, builder);
       Target->ApplyData(builder.GetResult());
       Target->Flush();
     }

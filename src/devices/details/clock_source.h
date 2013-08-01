@@ -23,55 +23,121 @@ namespace Devices
     template<class StampType>
     class ClockSource
     {
+      typedef Math::FixedPoint<uint_t, 65536u> FastFixedPoint;
     public:
+      typedef Math::FixedPoint<typename StampType::ValueType, 65536u> FixedPoint;
+      typedef FixedPoint FastStamp;
+
+      ClockSource()
+        : SoundFreq()
+      {
+      }
+
       void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
       {
-        SndOscillator.SetFrequency(soundFreq);
-        PsgOscillator.SetFrequency(clockFreq);
+        SoundFreq = soundFreq;
+        NextSampleTime -= SamplePeriod;
+        SamplePeriod = FixedPoint(StampType::PER_SECOND, soundFreq);
+        SampleFreq = FixedPoint(soundFreq, StampType::PER_SECOND);
+        PsgFreq = FixedPoint(clockFreq, StampType::PER_SECOND);
+        TicksPerSample = FixedPoint(clockFreq, soundFreq);
+        NextSampleTime += SamplePeriod;
       }
 
       void Reset()
       {
-        PsgOscillator.Reset();
-        SndOscillator.Reset();
+        NextSampleTime = SamplePeriod = SampleFreq = CurPsgTime = PsgFreq = 0;
+        TicksDelta = TicksPerSample = 0;
       }
 
-      StampType GetCurrentTime() const
+      uint_t SamplesTill(StampType stamp) const
       {
-        return PsgOscillator.GetCurrentTime();
+        const FastStamp till(stamp.Get());
+        assert(till > NextSampleTime);
+        const FastStamp curSampleStart = NextSampleTime - SamplePeriod;
+        return ((till - curSampleStart) * SampleFreq).Round();
       }
 
-      StampType GetNextSampleTime() const
+      bool HasSamplesBefore(StampType stamp) const
       {
-        return SndOscillator.GetCurrentTime();
+        return HasSamplesBefore(FastStamp(stamp.Get()));
       }
 
-      void NextSample()
+      bool HasSamplesBefore(FastStamp stamp) const
       {
-        SndOscillator.AdvanceTick();
+        return NextSampleTime < stamp;
       }
 
-      void SkipSamples(uint_t samples)
+      void UpdateNextSampleTime()
       {
-        SndOscillator.AdvanceTick(samples);
+        NextSampleTime += SamplePeriod;
       }
 
-      uint_t NextTime(const StampType& stamp)
+      uint_t AllocateSample()
       {
-        const StampType prevStamp = PsgOscillator.GetCurrentTime();
-        const uint64_t prevTick = PsgOscillator.GetCurrentTick();
-        PsgOscillator.AdvanceTime(stamp.Get() - prevStamp.Get());
-        return static_cast<uint_t>(PsgOscillator.GetCurrentTick() - prevTick);
+        TicksDelta += TicksPerSample;
+        return RoundTicks();
       }
 
-      uint_t SamplesTill(const StampType& stamp) const
+      void CommitSamples(uint_t count)
       {
-        //TODO: investigate for adding reason
-        return SndOscillator.GetTickAtTime(stamp) - SndOscillator.GetCurrentTick() + 2;
+        const FixedPoint delta = FixedPoint(StampType::PER_SECOND * count, SoundFreq);
+        CurPsgTime += delta;
+        NextSampleTime += delta;
+      }
+
+      uint_t AdvanceSample()
+      {
+        const uint_t res = AllocateSample();
+        CommitSample();
+        return res;
+      }
+
+      uint_t AdvanceTimeToNextSample()
+      {
+        //synchronization point
+        const uint_t res = AdvanceTime(NextSampleTime);
+        NextSampleTime = CurPsgTime;
+        return res;
+      }
+
+      uint_t AdvanceTime(FastStamp stamp)
+      {
+        if (stamp > CurPsgTime)
+        {
+          TicksDelta += FastFixedPoint(PsgFreq * (stamp - CurPsgTime));
+          CurPsgTime = stamp;
+          return RoundTicks();
+        }
+        else
+        {
+          return 0;
+        }
       }
     private:
-      Time::Oscillator<StampType> SndOscillator;
-      Time::TimedOscillator<StampType> PsgOscillator;
+      void CommitSample()
+      {
+        CurPsgTime += SamplePeriod;
+        NextSampleTime += SamplePeriod;
+      }
+
+      uint_t RoundTicks()
+      {
+        const uint_t res = TicksDelta.Integer();
+        TicksDelta = FastFixedPoint(TicksDelta.Fraction(), FastFixedPoint::PRECISION);
+        return res;
+      }
+    private:
+      uint_t SoundFreq;
+      FastStamp NextSampleTime;
+      FixedPoint SamplePeriod;
+      FixedPoint SampleFreq;
+      FastStamp CurPsgTime;
+      FixedPoint PsgFreq;
+      //tick error accumulator
+      FastFixedPoint TicksDelta;
+      //
+      FastFixedPoint TicksPerSample;
     };
   }
 }
