@@ -16,7 +16,6 @@ Author:
 //library includes
 #include <devices/fm.h>
 #include <devices/details/analysis_map.h>
-#include <devices/details/clock_source.h>
 #include <devices/details/parameters_helper.h>
 #include <math/numeric.h>
 #include <sound/chunk_builder.h>
@@ -34,6 +33,38 @@ namespace FM
     typedef boost::shared_ptr<void> ChipPtr;
 
     BOOST_STATIC_ASSERT(sizeof(YM2203SampleType) == sizeof(Sound::Sample));
+
+    class ClockSource
+    {
+      typedef Math::FixedPoint<Stamp::ValueType, Stamp::PER_SECOND> FixedPoint;
+    public:
+      void SetFrequency(uint_t sndFreq)
+      {
+        Frequency = FixedPoint(sndFreq, Stamp::PER_SECOND);
+      }
+
+      void Reset()
+      {
+        LastTime = Stamp();
+        Frequency = 0;
+      }
+
+      // @return samples to render
+      uint_t AdvanceTo(Stamp stamp)
+      {
+        if (stamp.Get() <= LastTime.Get())
+        {
+          return 0;
+        }
+        const uint_t delta = stamp.Get() - LastTime.Get();
+        const uint_t res = (Frequency * delta).Integer();
+        LastTime += Stamp((FixedPoint(res) / Frequency).Integer());
+        return res;
+      }
+    private:
+      Stamp LastTime;
+      FixedPoint Frequency;
+    };
 
     class ChipAdapterHelper
     {
@@ -105,9 +136,10 @@ namespace FM
 
       virtual void RenderData(const typename ChipTraits::DataChunkType& src)
       {
-        if (Clock.GetNextSampleTime() < src.TimeStamp)
+        if (const uint_t samples = Clock.AdvanceTo(src.TimeStamp))
         {
-          RenderChunksTill(src.TimeStamp);
+          SynchronizeParameters();
+          Render(samples);
         }
         Adapter.WriteRegisters(src.Data);
       }
@@ -132,18 +164,15 @@ namespace FM
           const uint64_t clockFreq = Params->ClockFreq();
           const uint_t sndFreq = Params->SoundFreq();
           Adapter.SetParams(clockFreq, sndFreq);
-          Clock.SetFrequency(clockFreq, sndFreq);
+          Clock.SetFrequency(sndFreq);
         }
       }
 
-      void RenderChunksTill(typename ChipTraits::StampType stamp)
+      void Render(uint_t samples)
       {
-        SynchronizeParameters();
-        const uint_t samples = Clock.SamplesTill(stamp);
         Sound::ChunkBuilder builder;
         builder.Reserve(samples);
         Adapter.RenderSamples(samples, builder);
-        Clock.SkipSamples(samples);
         Target->ApplyData(builder.GetResult());
         Target->Flush();
       }
@@ -151,7 +180,7 @@ namespace FM
       Devices::Details::ParametersHelper<ChipParameters> Params;
       const Sound::Receiver::Ptr Target;
       typename ChipTraits::AdapterType Adapter;
-      Devices::Details::ClockSource<typename ChipTraits::StampType> Clock;
+      ClockSource Clock;
     };
   }
 }
