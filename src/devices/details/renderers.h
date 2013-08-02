@@ -48,12 +48,13 @@ namespace Details
 
   */
 
-  template<class StampType, class PSGType, class Ancestor>
+  template<class StampType, class PSGType>
   class BaseRenderer : public Renderer<StampType>
   {
     typedef typename ClockSource<StampType>::FastStamp FastStamp;
   public:
-    BaseRenderer(ClockSource<StampType>& clock, PSGType& psg)
+    template<class ParameterType>
+    BaseRenderer(ClockSource<StampType>& clock, ParameterType& psg)
       : Clock(clock)
       , PSG(psg)
     {
@@ -84,9 +85,9 @@ namespace Details
     {
       if (const uint_t ticksPassed = Clock.AdvanceTimeToNextSample())
       {
-        GetAncestor().SkipTicks(ticksPassed);
+        PSG.Tick(ticksPassed);
       }
-      GetAncestor().RenderSample(target);
+      target.Add(PSG.GetLevels());
       Clock.UpdateNextSampleTime();
     }
 
@@ -95,8 +96,8 @@ namespace Details
       for (uint_t count = samples; count != 0; --count)
       {
         const uint_t ticksPassed = Clock.AllocateSample();
-        GetAncestor().SkipTicks(ticksPassed);
-        GetAncestor().RenderSample(target);
+        PSG.Tick(ticksPassed);
+        target.Add(PSG.GetLevels());
       }
       Clock.CommitSamples(samples);
     }
@@ -104,84 +105,71 @@ namespace Details
     void RenderSingleSample(Sound::ChunkBuilder& target)
     {
       const uint_t ticksPassed = Clock.AdvanceSample();
-      GetAncestor().SkipTicks(ticksPassed);
-      GetAncestor().RenderSample(target);
+      PSG.Tick(ticksPassed);
+      target.Add(PSG.GetLevels());
     }
 
     void StartNextSample(FastStamp till)
     {
       if (const uint_t ticksPassed = Clock.AdvanceTime(till))
       {
-        GetAncestor().SkipTicks(ticksPassed);
+        PSG.Tick(ticksPassed);
       }
-    }
-
-    Ancestor& GetAncestor()
-    {
-      return *static_cast<Ancestor*>(this);
     }
   protected:
     ClockSource<StampType>& Clock;
-    PSGType& PSG;
+    PSGType PSG;
   };
 
   /*
     Simple decimation algorithm without any filtering
   */
-  template<class StampType, class PSGType>
-  class LQRenderer : public BaseRenderer<StampType, PSGType, LQRenderer<StampType, PSGType> >
+  template<class PSGType>
+  class LQWrapper
   {
-    typedef BaseRenderer<StampType, PSGType, LQRenderer> Parent;
   public:
-    LQRenderer(ClockSource<StampType>& clock, PSGType& psg)
-      : Parent(clock, psg)
+    explicit LQWrapper(PSGType& delegate)
+      : Delegate(delegate)
     {
     }
 
+    void Tick(uint_t ticks)
+    {
+      Delegate.Tick(ticks);
+    }
+
+    Sound::Sample GetLevels() const
+    {
+      return Delegate.GetLevels();
+    }
   private:
-    friend Parent;
-
-    void SkipTicks(uint_t ticks)
-    {
-      Parent::PSG.Tick(ticks);
-    }
-
-    void RenderSample(Sound::ChunkBuilder& target)
-    {
-      const Sound::Sample sndLevel = Parent::PSG.GetLevels();
-      target.Add(sndLevel);
-    }
+    PSGType& Delegate;
   };
 
   /*
     Simple decimation with post simple FIR filter (0.5, 0.5)
   */
-  template<class StampType, class PSGType>
-  class MQRenderer : public BaseRenderer<StampType, PSGType, MQRenderer<StampType, PSGType> >
-  {
-    typedef BaseRenderer<StampType, PSGType, MQRenderer> Parent;
+  template<class PSGType>
+  class MQWrapper
+  { 
   public:
-    MQRenderer(ClockSource<StampType>& clock, PSGType& psg)
-      : Parent(clock, psg)
+    explicit MQWrapper(PSGType& delegate)
+      : Delegate(delegate)
     {
     }
 
+    void Tick(uint_t ticks)
+    {
+      Delegate.Tick(ticks);
+    }
+
+    Sound::Sample GetLevels() const
+    {
+      const Sound::Sample curLevel = Delegate.GetLevels();
+      return Interpolate(curLevel);
+    }
   private:
-    friend Parent;
-
-    void SkipTicks(uint_t ticks)
-    {
-      Parent::PSG.Tick(ticks);
-    }
-
-    void RenderSample(Sound::ChunkBuilder& target)
-    {
-      const Sound::Sample curLevel = Parent::PSG.GetLevels();
-      const Sound::Sample sndLevel = Interpolate(curLevel);
-      target.Add(sndLevel);
-    }
-  
-    Sound::Sample Interpolate(const Sound::Sample& newLevel)
+    Sound::Sample Interpolate(Sound::Sample newLevel) const
     {
       const Sound::Sample out = Average(PrevLevel, newLevel);
       PrevLevel = newLevel;
@@ -198,17 +186,73 @@ namespace Details
       return Sound::Sample(Average(first.Left(), second.Left()), Average(first.Right(), second.Right()));
     }
   private:
-    Sound::Sample PrevLevel;
+    PSGType& Delegate;
+    mutable Sound::Sample PrevLevel;
   };
 
   /*
     Decimation is performed after 2-order IIR LPF
     Cutoff freq of LPF should be less than Nyquist frequency of target signal
   */
-  template<class StampType, class PSGType>
-  class HQRenderer : public BaseRenderer<StampType, PSGType, HQRenderer<StampType, PSGType> >
+  template<class PSGType>
+  class HQWrapper
   {
-    typedef BaseRenderer<StampType, PSGType, HQRenderer> Parent;
+  public:
+    explicit HQWrapper(PSGType& delegate)
+      : Delegate(delegate)
+    {
+    }
+
+    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    {
+      Filter.SetParameters(clockFreq, soundFreq / 4);
+    }
+
+    void Tick(uint_t ticksPassed)
+    {
+      while (ticksPassed--)
+      {
+        Filter.Feed(Delegate.GetLevels());
+        Delegate.Tick(1);
+      }
+    }
+
+    Sound::Sample GetLevels() const
+    {
+      return Filter.Get();
+    }
+  private:
+    PSGType& Delegate;
+    Sound::LPFilter Filter;
+  };   
+
+  template<class StampType, class PSGType>
+  class LQRenderer : public BaseRenderer<StampType, LQWrapper<PSGType> >
+  {
+    typedef BaseRenderer<StampType, LQWrapper<PSGType> > Parent;
+  public:
+    LQRenderer(ClockSource<StampType>& clock, PSGType& psg)
+      : Parent(clock, psg)
+    {
+    }
+  };
+
+  template<class StampType, class PSGType>
+  class MQRenderer : public BaseRenderer<StampType, MQWrapper<PSGType> >
+  {
+    typedef BaseRenderer<StampType, MQWrapper<PSGType> > Parent;
+  public:
+    MQRenderer(ClockSource<StampType>& clock, PSGType& psg)
+      : Parent(clock, psg)
+    {
+    }
+  private:
+  };
+
+  template<class StampType, class PSGType>
+  class HQRenderer : public BaseRenderer<StampType, HQWrapper<PSGType> >
+  {
+    typedef BaseRenderer<StampType, HQWrapper<PSGType> > Parent;
   public:
     HQRenderer(ClockSource<StampType>& clock, PSGType& psg)
       : Parent(clock, psg)
@@ -217,27 +261,8 @@ namespace Details
 
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
     {
-      Filter.SetParameters(clockFreq, soundFreq / 4);
+      Parent::PSG.SetFrequency(clockFreq, soundFreq);
     }
-  private:
-    friend Parent;
-
-    void SkipTicks(uint_t ticksPassed)
-    {
-      while (ticksPassed--)
-      {
-        const Sound::Sample curLevel = Parent::PSG.GetLevels();
-        Filter.Feed(curLevel);
-        Parent::PSG.Tick(1);
-      }
-    }
-
-    void RenderSample(Sound::ChunkBuilder& target)
-    {
-      target.Add(Filter.Get());
-    }
-  private:
-    Sound::LPFilter Filter;
   };
 }
 }

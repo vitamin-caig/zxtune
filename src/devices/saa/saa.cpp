@@ -125,12 +125,13 @@ namespace SAA
   typedef Details::LQRenderer<Stamp, SAARenderer> LQRenderer;
   typedef Details::MQRenderer<Stamp, SAARenderer> MQRenderer;
 
-  class HQRenderer : public Details::BaseRenderer<Stamp, SAARenderer, HQRenderer>
+  class HQWrapper
   {
-    typedef Details::BaseRenderer<Stamp, SAARenderer, HQRenderer> Parent;
+    //minimal period is 512
+    static const uint_t FREQ_DIVIDER = 8;
   public:
-    HQRenderer(ClockSource& clock, SAARenderer& psg)
-      : Parent(clock, psg)
+    explicit HQWrapper(SAARenderer& delegate)
+      : Delegate(delegate)
     {
     }
 
@@ -139,33 +140,42 @@ namespace SAA
       Filter.SetParameters(clockFreq / FREQ_DIVIDER, soundFreq / 4);
     }
 
-  private:
-    //minimal period is 512
-    static const uint_t FREQ_DIVIDER = 8;
-
-    friend Parent;
-
-    void SkipTicks(uint_t ticksPassed)
+    void Tick(uint_t ticksPassed)
     {
       while (ticksPassed >= FREQ_DIVIDER)
       {
-        const Sound::Sample curLevel = PSG.GetLevels();
-        Filter.Feed(curLevel);
-        PSG.Tick(FREQ_DIVIDER);
+        Filter.Feed(Delegate.GetLevels());
+        Delegate.Tick(FREQ_DIVIDER);
         ticksPassed -= FREQ_DIVIDER;
       }
       if (ticksPassed)
       {
-        PSG.Tick(ticksPassed);
+        Delegate.Tick(ticksPassed);
       }
     }
 
-    void RenderSample(Sound::ChunkBuilder& target)
+    Sound::Sample GetLevels() const
     {
-      target.Add(Filter.Get());
+      return Filter.Get();
     }
   private:
+    SAARenderer& Delegate;
     Sound::LPFilter Filter;
+  };   
+
+  class HQRenderer : public Details::BaseRenderer<Stamp, HQWrapper>
+  {
+    typedef Details::BaseRenderer<Stamp, HQWrapper> Parent;
+  public:
+    HQRenderer(ClockSource& clock, SAARenderer& psg)
+      : Parent(clock, psg)
+    {
+    }
+
+    void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
+    {
+      Parent::PSG.SetFrequency(clockFreq, soundFreq);
+    }
   };
 
   class RenderersSet
