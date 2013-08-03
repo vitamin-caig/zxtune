@@ -16,7 +16,6 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 import app.zxtune.R;
 import app.zxtune.playback.Callback;
-import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
 
 public class StatusNotification implements Callback {
@@ -34,10 +33,6 @@ public class StatusNotification implements Callback {
     builder.setContentIntent(PendingIntent.getActivity(service, 0, intent, 0));
   }
   
-  @Override
-  public void onControlChanged(Control control) {
-  }
-
   @Override
   public void onItemChanged(Item item) {
     String title = item.getTitle();

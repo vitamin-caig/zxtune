@@ -55,8 +55,7 @@ public class PlaybackControlsView {
     //updateStatus();TODO
   }
   
-  public void updateStatus() {
-    final boolean playing = control.isPlaying();
+  public void updateStatus(boolean playing) {
     playPause.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
   }
 }

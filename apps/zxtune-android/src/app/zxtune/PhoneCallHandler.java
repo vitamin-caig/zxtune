@@ -11,16 +11,16 @@ import android.content.Context;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import app.zxtune.playback.Control;
+import app.zxtune.playback.PlaybackControl;
 
 public class PhoneCallHandler extends PhoneStateListener {
     
   private static final String TAG = PhoneCallHandler.class.getName();
   private final TelephonyManager manager;
-  private final Control control;
+  private final PlaybackControl control;
   private boolean playedOnCall;
   
-  public PhoneCallHandler(Context context, Control control) {
+  public PhoneCallHandler(Context context, PlaybackControl control) {
     this.manager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
     this.control = control;
   }

@@ -13,8 +13,6 @@ package app.zxtune.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,7 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.PopupWindow;
-import app.zxtune.PlaybackService;
+import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 
@@ -88,7 +86,7 @@ public class BrowserFragment extends Fragment
   @Override
   public void onFileClick(Uri uri) {
     final Context context = getActivity();
-    final Intent intent = new Intent(Intent.ACTION_VIEW, uri, context, PlaybackService.class);
+    final Intent intent = new Intent(Intent.ACTION_VIEW, uri, context, MainService.class);
     context.startService(intent);
   }
 
@@ -101,7 +99,7 @@ public class BrowserFragment extends Fragment
   public boolean onFileLongClick(Uri uri) {
     //TODO
     final Context context = getActivity();
-    final Intent intent = new Intent(Intent.ACTION_INSERT, uri, context, PlaybackService.class);
+    final Intent intent = new Intent(Intent.ACTION_INSERT, uri, context, MainService.class);
     context.startService(intent);
     return true;
   }

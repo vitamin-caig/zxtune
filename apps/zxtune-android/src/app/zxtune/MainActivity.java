@@ -8,6 +8,7 @@
 package app.zxtune;
 
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -21,13 +22,16 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.PlaylistFragment;
 
-public class MainActivity extends FragmentActivity {
+public class MainActivity extends FragmentActivity implements PlaybackServiceConnection.Callback {
   
   private static final int QUIT_ID = Menu.FIRST;
+  
+  private PlaybackService service;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -57,6 +61,16 @@ public class MainActivity extends FragmentActivity {
     return true;
   }
   
+  @Override
+  public void onServiceConnected(PlaybackService service) {
+    this.service = service;
+    for (Fragment f : getSupportFragmentManager().getFragments()) {
+      if (f instanceof PlaybackServiceConnection.Callback) {
+        ((PlaybackServiceConnection.Callback) f).onServiceConnected(service);
+      }
+    }
+  }
+  
   private void fillPages() { 
     final FragmentManager manager = getSupportFragmentManager();
     final FragmentTransaction transaction = manager.beginTransaction();
@@ -69,7 +83,7 @@ public class MainActivity extends FragmentActivity {
     if (null == manager.findFragmentById(R.id.playlist_view)) {
       transaction.replace(R.id.playlist_view, PlaylistFragment.createInstance());
     }
-    RetainedCallbackSubscriptionFragment.register(manager, transaction);
+    PlaybackServiceConnection.register(manager, transaction);
     transaction.commit();
     final ViewPager pager = (ViewPager) findViewById(R.id.view_pager);
     if (null != pager) {
@@ -80,24 +94,11 @@ public class MainActivity extends FragmentActivity {
   }
   
   private void quit() {
-    final CallbackSubscription subscription = RetainedCallbackSubscriptionFragment.find(getSupportFragmentManager());
-    subscription.subscribe(new Callback() {
-      @Override
-      public void onControlChanged(Control control) {
-        if (control != null) {
-          control.stop();
-          finish();
-        }
-      }
-      
-      @Override
-      public void onStatusChanged(boolean nowPlaying) {
-      }
-
-      @Override
-      public void onItemChanged(Item item) {
-      }
-    }).release();
+    if (service != null) {
+      //TODO: service.shutdown();
+      service.getPlaybackControl().stop();
+      finish();
+    }
   }
   
   private static class Adapter extends PagerAdapter {

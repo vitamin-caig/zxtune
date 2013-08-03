@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
         <service 
-              android:name=".PlaybackService"
+              android:name=".MainService"
               android:process=":service">
         </service>
         <provider

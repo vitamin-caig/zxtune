@@ -21,7 +21,7 @@ public class VisualizerView extends View {
   
   private Visualizer source;
   private Handler timer;
-  private Runnable updateTask;
+  private UpdateViewTask updateTask;
 
   private Rect visibleRect;
   
@@ -42,13 +42,18 @@ public class VisualizerView extends View {
     init();
   }
   
-  public void setSource(Visualizer source) {
-    if (source == null) {
-      this.source = VisualizerStub.instance();
-      timer.removeCallbacks(updateTask);
+  public final void setSource(Visualizer source) {
+    this.source = source;
+  }
+  
+  @Override
+  public void setEnabled(boolean enabled) {
+    super.setEnabled(enabled);
+    if (enabled) {
+      updateTask.run();
     } else {
-      this.source = source;
-      timer.post(updateTask);
+      //TODO: implement stop after all bars falling
+      updateTask.stop();
     }
   }
   
@@ -58,7 +63,7 @@ public class VisualizerView extends View {
   }
   
   @Override
-  protected void onDraw(Canvas canvas) {
+  protected synchronized void onDraw(Canvas canvas) {
     super.onDraw(canvas);
     visualizer.draw(canvas);
   }
@@ -72,7 +77,7 @@ public class VisualizerView extends View {
     setWillNotDraw(false);
   }
   
-  private void fillVisibleRect(int w, int h) {
+  private synchronized void fillVisibleRect(int w, int h) {
     visibleRect.left = getPaddingLeft();
     visibleRect.right = w - visibleRect.left - getPaddingRight();
     visibleRect.top = getPaddingTop();
@@ -102,6 +107,8 @@ public class VisualizerView extends View {
       this.paint.setColor(getResources().getColor(android.R.color.primary_text_dark));
       this.bands = new int[16];
       this.levels = new int[this.bands.length];
+      this.values = new int[1];
+      this.changes = new boolean[1];
     }
     
     public void sizeChanged() {
@@ -167,6 +174,10 @@ public class VisualizerView extends View {
     public void run() {
       visualizer.update();
       timer.postDelayed(this, 100);
+    }
+
+    final public void stop() {
+      timer.removeCallbacks(this);
     }
   }
 }

@@ -23,7 +23,7 @@ public class SeekControlView {
   private final TextView totalTime;
   private final SeekBar currentPosition;
   private final Handler timer;
-  private final Runnable updateTask;
+  private final UpdateViewTask updateTask;
   private SeekControl control;
 
   SeekControlView(View layout) {
@@ -50,19 +50,20 @@ public class SeekControlView {
     });
   }
 
-  public void setControl(SeekControl control) {
-    if (control == null) {
-      timer.removeCallbacks(updateTask);
-      this.control = SeekControlStub.instance();
-      currentPosition.setEnabled(false);
-    } else {
-      this.control = control;
+  public final void setControl(SeekControl control) {
+    this.control = control;
+  }
+  
+  public final void setEnabled(boolean enabled) {
+    currentPosition.setEnabled(enabled);
+    if (enabled) {
       final TimeStamp duration = control.getDuration();
       totalTime.setText(duration.toString());
       currentPosition.setProgress(0);
       currentPosition.setMax((int) duration.convertTo(TimeUnit.SECONDS));
-      currentPosition.setEnabled(true);
       updateTask.run();
+    } else {
+      updateTask.stop();
     }
   }
   
@@ -74,6 +75,10 @@ public class SeekControlView {
       currentTime.setText(pos.toString());
       
       timer.postDelayed(this, 1000);
+    }
+    
+    public final void stop() {
+      timer.removeCallbacks(this);
     }
   }
 }

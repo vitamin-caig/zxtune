@@ -8,7 +8,6 @@ package app.zxtune.sound;
 
 import android.os.Process;
 import android.util.Log;
-import app.zxtune.TimeStamp;
 
 /**
  * Asynchronous player state machine

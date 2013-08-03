@@ -9,11 +9,6 @@ package app.zxtune.playback;
 public interface Callback {
 
   /**
-   * Called on control interface changing (connect/disconnect etc)
-   */
-  public void onControlChanged(Control control);
-  
-  /**
    * Called on status change (all changes before connection are lost)
    */
   public void onStatusChanged(boolean isPlaying);

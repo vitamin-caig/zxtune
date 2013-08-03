@@ -20,21 +20,20 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
-import app.zxtune.RetainedCallbackSubscriptionFragment;
 import app.zxtune.playback.Callback;
-import app.zxtune.playback.CallbackSubscription;
-import app.zxtune.playback.Control;
 import app.zxtune.playback.Item;
+import app.zxtune.playback.PlaybackService;
 import app.zxtune.playlist.Query;
 
-public class PlaylistFragment extends Fragment {
+public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private static final String TAG = PlaylistFragment.class.getName();
+  private PlaybackService service;
   private Releaseable connection;
   private PlaylistState state;
-  private Control control;
   private PlaylistView listing;
   private Uri nowPlaying = Uri.EMPTY;
   private boolean isPlaying = false;
@@ -43,17 +42,6 @@ public class PlaylistFragment extends Fragment {
     return new PlaylistFragment();
   }
   
-  @Override
-  public void onActivityCreated(Bundle savedInstanceState) {
-    super.onActivityCreated(savedInstanceState);
-    
-    assert connection == null;
-
-    Log.d(TAG, "Subscribe for service events");
-    final CallbackSubscription subscription = RetainedCallbackSubscriptionFragment.find(getFragmentManager());
-    connection = subscription.subscribe(new PlaybackCallback());
-  }
-
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
@@ -66,7 +54,7 @@ public class PlaylistFragment extends Fragment {
   }
   
   @Override
-  public void onViewCreated(View view, Bundle savedInstanceState) {
+  public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     final Activity activity = getActivity();
     final Cursor cursor = activity.getContentResolver().query(Query.unparse(null), null, null, null, null);
@@ -80,6 +68,8 @@ public class PlaylistFragment extends Fragment {
       }
     });
     listing.setData(cursor);
+    
+    bindViewToConnectedService();
   }
 
   @Override
@@ -95,9 +85,28 @@ public class PlaylistFragment extends Fragment {
   }
   
   @Override
-  public void onDestroy() {
+  public synchronized void onDestroy() {
     super.onDestroy();
 
+    unbindFromService();
+  }
+  
+  @Override
+  public void onServiceConnected(PlaybackService service) {
+    this.service = service;
+    
+    bindViewToConnectedService();
+  }
+  
+  private void bindViewToConnectedService() {
+    final boolean serviceConnected = service != null;
+    final boolean viewCreated = listing != null;
+    if (serviceConnected && viewCreated) {
+      connection = service.subscribeForEvents(new PlaybackCallback());
+    }
+  }
+  
+  private void unbindFromService() {
     try {
       if (connection != null) {
         Log.d(TAG, "Unsubscribe from service events");
@@ -106,13 +115,14 @@ public class PlaylistFragment extends Fragment {
     } finally {
       connection = null;
     }
+    service = null;
   }
   
   private class ItemClickListener implements PlaylistView.OnPlayitemClickListener {
     
     @Override
     public void onPlayitemClick(Uri playlistUri) {
-      control.play(playlistUri);
+      service.setNowPlaying(playlistUri);
     }
   
     @Override
@@ -121,22 +131,9 @@ public class PlaylistFragment extends Fragment {
       return true;
     }
   }
-
+  
   private class PlaybackCallback implements Callback {
     
-    @Override
-    public void onControlChanged(Control control) {
-      PlaylistFragment.this.control = control;
-      final boolean connected = control != null;
-      listing.setEnabled(connected);
-      if (connected) {
-        onStatusChanged(control.isPlaying());
-        onItemChanged(control.getItem());
-      } else {
-        onStatusChanged(false);
-      }
-    }
-  
     @Override
     public void onStatusChanged(boolean nowPlaying) {
       listing.invalidateViews();
