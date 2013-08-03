@@ -541,6 +541,7 @@ namespace DAC
 
     virtual void UpdateState(const DataChunk& src)
     {
+      SynchronizeParameters();
       if (Clock.GetCurrentTime() < src.TimeStamp)
       {
         DropChunksTill(src.TimeStamp);

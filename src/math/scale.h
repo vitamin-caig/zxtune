@@ -13,6 +13,8 @@
 
 //library includes
 #include <math/bitops.h>
+//std includes
+#include <cassert>
 
 namespace Math
 {
@@ -35,6 +37,7 @@ namespace Math
   template<class T1, class T2>
   inline std::pair<T1, T2> OptimizeRatio(T1 first, T2 second)
   {
+    assert(second != 0);
     while (0 == ((first | second) & 1))
     {
       first /= T1(2);
