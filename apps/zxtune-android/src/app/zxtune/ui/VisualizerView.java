@@ -43,18 +43,9 @@ public class VisualizerView extends View {
   }
   
   public final void setSource(Visualizer source) {
+    updateTask.stop();
     this.source = source;
-  }
-  
-  @Override
-  public void setEnabled(boolean enabled) {
-    super.setEnabled(enabled);
-    if (enabled) {
-      updateTask.run();
-    } else {
-      //TODO: implement stop after all bars falling
-      updateTask.stop();
-    }
+    updateTask.run();
   }
   
   @Override
@@ -120,19 +111,24 @@ public class VisualizerView extends View {
       upperChange = bars - 1;
     }
 
-    public void update() {
+    public boolean update() {
       final int channels = source.getSpectrum(bands, levels);
       updateValues(channels);
-      final int updateLeft = visibleRect.left + BAR_WIDTH * lowerChange;
-      final int updateRight = visibleRect.left + BAR_WIDTH * (upperChange + 1);
-      postInvalidate(updateLeft, visibleRect.top, updateRight, visibleRect.bottom);
+      if (lowerChange != upperChange) {
+        final int updateLeft = visibleRect.left + BAR_WIDTH * lowerChange;
+        final int updateRight = visibleRect.left + BAR_WIDTH * upperChange;
+        invalidate(updateLeft, visibleRect.top, updateRight, visibleRect.bottom);
+        return true;
+      } else {
+        return false;
+      }
     }
 
     public void draw(Canvas canvas) {
       barRect.left = visibleRect.left + BAR_WIDTH * lowerChange;
       barRect.right = barRect.left + BAR_WIDTH - BAR_PADDING;
       final int height = visibleRect.height();
-      for (int band = lowerChange; band <= upperChange; ++band) {
+      for (int band = lowerChange; band < upperChange; ++band) {
         if (changes[band]) {
           barRect.top = visibleRect.top + height - values[band];
           canvas.drawRect(barRect, paint);
@@ -157,7 +153,7 @@ public class VisualizerView extends View {
         }
       }
       for (lowerChange = 0; lowerChange != changes.length && !changes[lowerChange]; ++lowerChange);
-      for (upperChange = changes.length - 1; upperChange > lowerChange && !changes[upperChange]; --upperChange);
+      for (upperChange = changes.length; upperChange > lowerChange && !changes[upperChange - 1]; --upperChange);
     }
 
     private void fallBars() {
@@ -175,8 +171,9 @@ public class VisualizerView extends View {
     
     @Override
     public void run() {
-      visualizer.update();
-      timer.postDelayed(this, 100);
+      if (visualizer.update() || isEnabled()) {
+        timer.postDelayed(this, 100);
+      }
     }
 
     final public void stop() {

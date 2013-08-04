@@ -56,14 +56,13 @@ public class SeekControlView {
   
   public final void setEnabled(boolean enabled) {
     currentPosition.setEnabled(enabled);
+    updateTask.stop();
     if (enabled) {
       final TimeStamp duration = control.getDuration();
       totalTime.setText(duration.toString());
       currentPosition.setProgress(0);
       currentPosition.setMax((int) duration.convertTo(TimeUnit.SECONDS));
       updateTask.run();
-    } else {
-      updateTask.stop();
     }
   }
   

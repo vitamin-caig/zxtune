@@ -20,6 +20,7 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.VisualizerStub;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
@@ -68,7 +69,6 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     final boolean viewsCreated = visualizer != null;
     if (serviceConnected && viewsCreated) {
       Log.d(TAG, "Subscribe to service events");
-      visualizer.setSource(service.getVisualizer());
       seek.setControl(service.getSeekControl());
       ctrls.setControls(service.getPlaybackControl());
       callback = new PlaybackEvents();
@@ -93,7 +93,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
 
     @Override
     public void onStatusChanged(boolean isPlaying) {
-      visualizer.setEnabled(isPlaying);
+      visualizer.setSource(isPlaying ? service.getVisualizer() : VisualizerStub.instance());
       seek.setEnabled(isPlaying);
       ctrls.updateStatus(isPlaying);
     }
