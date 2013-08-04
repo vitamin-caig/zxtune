@@ -8,6 +8,7 @@
 package app.zxtune.rpc;
 
 import app.zxtune.rpc.ParcelablePlaybackItem;
+import app.zxtune.rpc.IRemoteCallback;
 
 interface IRemotePlaybackService {
 
@@ -29,4 +30,8 @@ interface IRemotePlaybackService {
    
   //Visualizer
   int[] getSpectrum();
+  
+  //subscription
+  void subscribe(IRemoteCallback callback);
+  void unsubscribe(IRemoteCallback callback);
 }

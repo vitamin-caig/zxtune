@@ -9,12 +9,8 @@ package app.zxtune.playback;
 import java.util.LinkedList;
 import java.util.List;
 
-import android.util.Log;
-import app.zxtune.Releaseable;
-
-public final class CompositeCallback implements Callback, CallbackSubscription {
+public final class CompositeCallback implements Callback {
   
-  private static final String TAG = CompositeCallback.class.getName();
   private final List<Callback> delegates;
   private boolean lastStatus;
   private Item lastItem;
@@ -43,43 +39,21 @@ public final class CompositeCallback implements Callback, CallbackSubscription {
     }
   }
 
-  public CompositeCallback add(Callback callback) {
+  public int add(Callback callback) {
     synchronized (delegates) {
       delegates.add(callback);
       if (lastItem != null) {
         callback.onItemChanged(lastItem);
       }
       callback.onStatusChanged(lastStatus);
+      return delegates.size();
     }
-    Log.d(TAG, "Added " + callback.toString());
-    return this;
   }
 
-  private void remove(Callback callback) {
+  public int remove(Callback callback) {
     synchronized (delegates) {
       delegates.remove(callback);
-    }
-    Log.d(TAG, "Removed " + callback.toString());
-  }
-
-  @Override
-  public Releaseable subscribe(Callback delegate) {
-    return new Connection(delegate);
-  }
-
-  private class Connection implements Releaseable {
-
-    private Callback delegate;
-
-    public Connection(Callback delegate) {
-      this.delegate = delegate;
-      add(delegate);
-    }
-
-    @Override
-    public void release() {
-      remove(delegate);
-      delegate = null;
+      return delegates.size();
     }
   }
 }

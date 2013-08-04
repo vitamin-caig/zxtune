@@ -7,10 +7,15 @@
 
 package app.zxtune.rpc;
 
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import android.net.Uri;
+import android.os.RemoteException;
+import android.util.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.SeekControl;
@@ -22,12 +27,14 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   private final PlaybackControl control;
   private final SeekControl seek;
   private final Visualizer visualizer;
+  private final HashMap<IRemoteCallback, Callback> callbacks;
 
   public PlaybackServiceServer(PlaybackService delegate) {
     this.delegate = delegate;
     this.control = delegate.getPlaybackControl();
     this.seek = delegate.getSeekControl();
     this.visualizer = delegate.getVisualizer();
+    this.callbacks = new HashMap<IRemoteCallback, Callback>();
   }
 
   @Override
@@ -90,5 +97,49 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
       res[idx] = (levels[idx] << 8) | bands[idx];
     }
     return res;
+  }
+  
+  @Override
+  public void subscribe(IRemoteCallback callback) {
+    final Callback client = new CallbackClient(callback);
+    callbacks.put(callback, client);
+    delegate.subscribe(client);
+  }
+  
+  @Override
+  public void unsubscribe(IRemoteCallback callback) {
+    final Callback client = callbacks.get(callback);
+    if (client != null) {
+      delegate.unsubscribe(client);
+      callbacks.remove(callback);
+    }
+  }
+  
+  private final class CallbackClient implements Callback {
+    
+    private final String TAG = CallbackClient.class.getName();
+    private final IRemoteCallback delegate;
+    
+    public CallbackClient(IRemoteCallback delegate) {
+      this.delegate = delegate;
+    }
+    
+    @Override
+    public void onStatusChanged(boolean isPlaying) {
+      try {
+        delegate.onStatusChanged(isPlaying);
+      } catch (RemoteException e) {
+        Log.e(TAG, "onStatusChanged()", e);
+      }
+    }
+    
+    @Override
+    public void onItemChanged(Item item) {
+      try {
+        delegate.onItemChanged(ParcelablePlaybackItem.create(item));
+      } catch (RemoteException e) {
+        Log.e(TAG, "onItemChanged()", e);
+      }
+    }
   }
 }

@@ -71,13 +71,24 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   @Override
-  public synchronized Releaseable subscribeForEvents(Callback callback) {
-    return callbacks.subscribe(callback);
+  public void subscribe(Callback callback) {
+    callbacks.add(callback);
+  }
+  
+  @Override
+  public void unsubscribe(Callback callback) {
+    callbacks.remove(callback);
   }
 
   @Override
   public void release() {
-    setNewHolder(null);
+    synchronized (this) {
+      try {
+        holder.release();
+      } finally {
+        holder = null;
+      }
+    }
   }
   
   private void setNewHolder(Holder holder) {

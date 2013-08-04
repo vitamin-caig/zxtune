@@ -12,10 +12,8 @@ import java.util.concurrent.TimeUnit;
 import android.net.Uri;
 import android.os.RemoteException;
 import android.util.Log;
-import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
-import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.CompositeCallback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.ItemStub;
@@ -32,14 +30,16 @@ public final class PlaybackServiceClient implements PlaybackService {
   private final PlaybackControl playback;
   private final SeekControl seek;
   private final Visualizer visualizer;
-  private final CallbackSubscription subscribers;
+  private final CompositeCallback callbacks;
+  private final IRemoteCallback callbackDelegate;
 
-  public PlaybackServiceClient(IRemotePlaybackService delegate, CompositeCallback callbacks) {
+  public PlaybackServiceClient(IRemotePlaybackService delegate) {
     this.delegate = delegate;
     this.playback = new PlaybackControlClient();
     this.seek = new SeekControlClient();
     this.visualizer = new VisualizerClient();
-    this.subscribers = callbacks;
+    this.callbacks = new CompositeCallback();
+    this.callbackDelegate = new CallbackServer(callbacks);
   }
   
   @Override
@@ -71,12 +71,33 @@ public final class PlaybackServiceClient implements PlaybackService {
     return seek;
   }
 
+  @Override
   public Visualizer getVisualizer() {
     return visualizer;
   }
 
-  public Releaseable subscribeForEvents(Callback callback) {
-    return subscribers.subscribe(callback);
+  @Override
+  public void subscribe(Callback callback) {
+    if (1 == callbacks.add(callback)) {
+      try {
+        delegate.subscribe(callbackDelegate);
+      } catch (RemoteException e) {
+        Log.e(TAG, "subscribe()", e);
+        callbacks.remove(callback);
+      }
+    }
+  }
+  
+  @Override
+  public void unsubscribe(Callback callback) {
+    if (0 == callbacks.remove(callback)) {
+      try {
+        delegate.unsubscribe(callbackDelegate);
+      } catch (RemoteException e) {
+        Log.e(TAG, "unsubscribe()", e);
+        callbacks.add(callback);
+      }
+    }
   }
   
   private class PlaybackControlClient implements PlaybackControl  {
@@ -175,6 +196,25 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.e(TAG, "getSpectrum()", e);
         return 0;
       }
+    }
+  }
+  
+  private static class CallbackServer extends IRemoteCallback.Stub {
+    
+    private final Callback delegate;
+    
+    public CallbackServer(Callback delegate) {
+      this.delegate = delegate;
+    }
+    
+    @Override
+    public void onStatusChanged(boolean isPlaying) {
+      delegate.onStatusChanged(isPlaying);
+    }
+    
+    @Override
+    public void onItemChanged(ParcelablePlaybackItem item) {
+      delegate.onItemChanged(item);
     }
   }
 }

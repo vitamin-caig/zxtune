@@ -24,6 +24,7 @@ import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
 import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playlist.Query;
@@ -35,8 +36,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   private Releaseable connection;
   private PlaylistState state;
   private PlaylistView listing;
-  private Uri nowPlaying = Uri.EMPTY;
-  private boolean isPlaying = false;
+  private volatile Uri nowPlaying = Uri.EMPTY;
+  private volatile boolean isPlaying = false;
 
   public static Fragment createInstance() {
     return new PlaylistFragment();
@@ -102,7 +103,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     final boolean serviceConnected = service != null;
     final boolean viewCreated = listing != null;
     if (serviceConnected && viewCreated) {
-      connection = service.subscribeForEvents(new PlaybackCallback());
+      Log.d(TAG, "Subscribe to service events");
+      connection = new CallbackSubscription(service, new PlaybackCallback());
     }
   }
   
@@ -134,15 +136,32 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   
   private class PlaybackCallback implements Callback {
     
+    private final Runnable updateTask;
+    
+    public PlaybackCallback() {
+      this.updateTask = new Runnable() {
+        @Override
+        public void run() {
+          listing.invalidateViews();
+        }
+      };
+    }
+    
     @Override
     public void onStatusChanged(boolean nowPlaying) {
-      listing.invalidateViews();
       isPlaying = nowPlaying;
+      updateView();
     }
     
     @Override
     public void onItemChanged(Item item) {
       nowPlaying = item != null ? item.getId() : Uri.EMPTY;
+      updateView();
+    }
+    
+    private void updateView() {
+      listing.removeCallbacks(updateTask);
+      listing.postDelayed(updateTask, 100);
     }
   }
 }

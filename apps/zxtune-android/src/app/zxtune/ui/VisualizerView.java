@@ -113,8 +113,11 @@ public class VisualizerView extends View {
     
     public void sizeChanged() {
       barRect.bottom = visibleRect.bottom;
-      values = new int[visibleRect.width() / BAR_WIDTH];
-      changes = new boolean[values.length];
+      final int bars = visibleRect.width() / BAR_WIDTH;
+      values = new int[bars];
+      changes = new boolean[bars];
+      lowerChange = 0;
+      upperChange = bars - 1;
     }
 
     public void update() {

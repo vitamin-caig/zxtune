@@ -17,9 +17,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import app.zxtune.playback.CompositeCallback;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.rpc.BroadcastPlaybackCallback;
 import app.zxtune.rpc.IRemotePlaybackService;
 import app.zxtune.rpc.PlaybackServiceClient;
 
@@ -113,25 +111,17 @@ public class PlaybackServiceConnection extends Fragment {
   
   private class ServiceConnectionCallback implements ServiceConnection {
 
-    private Releaseable callbackConnection;
-    
     @Override
     public void onServiceConnected(ComponentName component, IBinder binder) {
       Log.d(TAG, "Connected!");
       final IRemotePlaybackService iface = IRemotePlaybackService.Stub.asInterface(binder);
-      final CompositeCallback callbacks = new CompositeCallback();
-      final PlaybackService service = new PlaybackServiceClient(iface, callbacks);
-      callbacks.onItemChanged(service.getNowPlaying());
-      callbacks.onStatusChanged(service.getPlaybackControl().isPlaying());
-      callbackConnection = BroadcastPlaybackCallback.createClientStub(getContext(), callbacks);
+      final PlaybackService service = new PlaybackServiceClient(iface);
       setService(service);
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
       Log.d(TAG, "Disconnected!");
-      callbackConnection.release();
-      callbackConnection = null;
       setService(null);//TODO: stub?
     }
   }

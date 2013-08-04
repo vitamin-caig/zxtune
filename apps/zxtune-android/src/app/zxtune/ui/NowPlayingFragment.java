@@ -17,15 +17,16 @@ import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
 import app.zxtune.playback.Callback;
+import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
-import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private final static String TAG = NowPlayingFragment.class.getName();
   private PlaybackService service;
-  private Releaseable connection;
+  private Callback callback;
+  private Releaseable callbackConnection;
   private SeekControlView seek;
   private VisualizerView visualizer;
   private InformationView info;
@@ -66,21 +67,24 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     final boolean serviceConnected = service != null;
     final boolean viewsCreated = visualizer != null;
     if (serviceConnected && viewsCreated) {
+      Log.d(TAG, "Subscribe to service events");
       visualizer.setSource(service.getVisualizer());
       seek.setControl(service.getSeekControl());
       ctrls.setControls(service.getPlaybackControl());
-      connection = service.subscribeForEvents(new PlaybackEvents());
+      callback = new PlaybackEvents();
+      callbackConnection = new CallbackSubscription(service, new UiThreadCallbackAdapter(getActivity(), callback));
     }
   }
   
   private void unbindFromService() {
     try {
-      if (connection != null) {
+      if (callbackConnection != null) {
         Log.d(TAG, "Unsubscribe from service events");
-        connection.release();
+        callbackConnection.release();
       }
     } finally {
-      connection = null;
+      callbackConnection = null;
+      callback.onStatusChanged(false);
     }
     service = null;
   }

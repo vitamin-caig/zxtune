@@ -7,7 +7,6 @@
 package app.zxtune.playback;
 
 import android.net.Uri;
-import app.zxtune.Releaseable;
 
 public interface PlaybackService {
 
@@ -21,5 +20,6 @@ public interface PlaybackService {
   
   public Visualizer getVisualizer();
   
-  public Releaseable subscribeForEvents(Callback callback);
+  public void subscribe(Callback cb);
+  public void unsubscribe(Callback cb);
 }

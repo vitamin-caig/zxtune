@@ -17,7 +17,6 @@ import android.util.Log;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlaybackServiceLocal;
 import app.zxtune.playlist.Query;
-import app.zxtune.rpc.BroadcastPlaybackCallback;
 import app.zxtune.rpc.PlaybackServiceServer;
 import app.zxtune.ui.StatusNotification;
 
@@ -36,8 +35,7 @@ public class MainService extends Service {
     service = new PlaybackServiceLocal(getApplicationContext());
     final Intent intent = new Intent(this, MainActivity.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    service.subscribeForEvents(new StatusNotification(this, intent));
-    service.subscribeForEvents(BroadcastPlaybackCallback.createServerStub(getApplicationContext()));
+    service.subscribe(new StatusNotification(this, intent));
     binder = new PlaybackServiceServer(service);
     callHandler = new PhoneCallHandler(this, service.getPlaybackControl());
     callHandler.register();
