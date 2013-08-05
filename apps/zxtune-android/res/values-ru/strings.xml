@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="menu_quit">Выход</string>
+    <string name="information_title">Название</string>
+    <string name="information_author">Автор</string>
+    <string name="information_program">Программа</string>
+    <string name="information_comment">Комментарий</string>
+    <string name="information_location">Местонахождение</string>
+</resources>
