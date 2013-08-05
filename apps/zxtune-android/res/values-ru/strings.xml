@@ -5,5 +5,7 @@
     <string name="information_author">Автор</string>
     <string name="information_program">Программа</string>
     <string name="information_comment">Комментарий</string>
-    <string name="information_location">Местонахождение</string>
+    <string name="information_location">Путь</string>
+    <string name="playlist_empty">Список пуст</string>
+    <string name="browser_empty">Нет файлов</string>
 </resources>

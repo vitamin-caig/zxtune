@@ -27,4 +27,12 @@
         android:paddingLeft="@dimen/spacing_full"
         android:paddingRight="@dimen/spacing_full"
     />
+    <TextView
+        android:id="@+id/browser_stub"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:paddingLeft="@dimen/spacing_full"
+        android:paddingRight="@dimen/spacing_full" 
+        android:gravity="center"
+        android:text="@string/browser_empty" />
 </LinearLayout>

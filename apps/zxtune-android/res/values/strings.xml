@@ -6,4 +6,6 @@
     <string name="information_program">Program</string>
     <string name="information_comment">Comment</string>
     <string name="information_location">Location</string>
+    <string name="playlist_empty">Playlist is empty</string>
+    <string name="browser_empty">No files</string>
 </resources>

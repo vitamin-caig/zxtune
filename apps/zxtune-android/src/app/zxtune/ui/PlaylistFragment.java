@@ -69,6 +69,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       }
     });
     listing.setData(cursor);
+    listing.setEmptyView(view.findViewById(R.id.playlist_stub));
     
     bindViewToConnectedService();
   }

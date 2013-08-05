@@ -63,6 +63,7 @@ public class BrowserFragment extends Fragment
     position.setOnUriSelectionListener(this);
     listing = (DirView) view.findViewById(R.id.browser_content);
     listing.setOnEntryClickListener(this);
+    listing.setEmptyView(view.findViewById(R.id.browser_stub));
   }
 
   @Override
