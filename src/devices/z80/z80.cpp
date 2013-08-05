@@ -380,6 +380,7 @@ namespace
 
     virtual void SetTime(const Stamp& time)
     {
+      SynchronizeParameters();
       Clock.Seek(time);
     }
   private:
