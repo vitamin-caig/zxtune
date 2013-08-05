@@ -2,7 +2,7 @@
 <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
   android:id="@+id/information_frame"
   android:layout_width="match_parent"
-  android:layout_height="wrap_content"
+  android:layout_height="@dimen/item_height_doubled"
   android:paddingLeft="@dimen/spacing_full"
   android:paddingRight="@dimen/spacing_full"
   >

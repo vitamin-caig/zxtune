@@ -5,12 +5,14 @@
   android:paddingLeft="@dimen/spacing_full"
   android:paddingRight="@dimen/spacing_full"
   >
+  <!-- x2 text size (14sp) -->
   <TextView
+    style="android:style/TextAppearance.Small"
     android:id="@+id/position_time"
-    android:layout_width="wrap_content"
+    android:layout_width="28sp"
     android:layout_height="wrap_content"
     android:layout_weight="0"
-    android:layout_gravity="left|center_vertical"
+    android:layout_gravity="center_vertical"
     android:text="@string/stub_time"
     />
   <SeekBar
@@ -23,11 +25,12 @@
     android:layout_marginRight="@dimen/spacing_full"
     />
   <TextView
+    style="android:style/TextAppearance.Small"
     android:id="@+id/position_duration"
-    android:layout_width="wrap_content"
+    android:layout_width="28sp"
     android:layout_height="wrap_content"
     android:layout_weight="0"
-    android:layout_gravity="right|center_vertical"
+    android:layout_gravity="center_vertical"
     android:text="@string/stub_time"
     />
 </LinearLayout>
