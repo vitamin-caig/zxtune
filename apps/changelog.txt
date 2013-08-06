@@ -7,7 +7,24 @@ Annotation:
 
 --- $Rev$ from $Date$
 
-TODO
+[*] Fixed LZH2 decoding
+[*] Fixes in YM files size detection
+[*] Speedup AYM rendering up to 20%
+[*] Speedup TurboSound rendering up to 50%
+[*] Speedup TFM rendering up to 20%
+[*] Speedup SAA rendering up to 10%
+[*] Fixed AYM dumpers
+[*] Improved memory usage while TFD/TFC playback
+[*] Fixed seeking for all types of modules (especially FM and DAC-based)
+[+] zxtune-qt: support playlists storing with embedded data
+[+] zxtune-qt: support playlists storing with relative paths
+[+] zxtune-android: scrollable currently playing module information pane
+[+] zxtune-android: russian translation
+[*] zxtune-android: fixed crash while navigating on empty state
+[*] zxtune-android: updated seek control
+[*] zxtune-android: use Holo dark theme
+[*] zxtune-android: speedup and simplifying of playlist
+[*] zxtune-android: optimized package size
 
 --- Rev2496 from 21.06.2013
 
