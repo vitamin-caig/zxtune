@@ -1,5 +1,6 @@
 library_name := unrar
 path_step := ../..
+include $(path_step)/make/default.mak
 
 #SILENT - disables all output
 #RAR_NOCRYPT - disables encryption support

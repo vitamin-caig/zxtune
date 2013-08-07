@@ -1,5 +1,7 @@
 #apply default values
-toolchains.root ?= /opt
+ifndef toolchains.root
+$(error No toolchains.root defined)
+endif
 prebuilt.dir ?= $(path_step)/../Build
 
 #android

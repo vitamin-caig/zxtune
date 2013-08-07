@@ -27,11 +27,7 @@ namespace
 // Used information from http://sourceforge.net/p/predef/wiki/Home/
 
 // version definition-related
-#ifndef BUILD_VERSION
-  const std::string VERSION("develop");
-#else
   const std::string VERSION(STR(BUILD_VERSION));
-#endif
 
 //detect platform
 #if defined(_WIN32)

@@ -23,10 +23,10 @@ if (!scalar(@PackageNames))
 
 for my $folder (glob("Builds/Revision${Revision}_*"))
 {
-  die "Invalid folder format (${folder})" unless ${folder} =~ /Revision${Revision}_([^_]+)/;
+  die "Invalid folder format (${folder})" unless ${folder} =~ /Revision${Revision}_([^_]+)(_(.*))?/;
   die 'Not a folder' unless -d ${folder};
   my $platform = $1;
-  my $arch = $2;
+  my $arch = $3;
   for my $package (@PackageNames)
   {
     for my $file (glob("${folder}/${package}*"))
