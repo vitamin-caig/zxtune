@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>338</width>
-    <height>209</height>
+    <height>229</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -95,6 +95,49 @@
         <property name="text">
          <string>Store full modules' attributes in saved playlists</string>
         </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="updatesGroupBox">
+     <property name="title">
+      <string>Check updates</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_2">
+      <property name="horizontalSpacing">
+       <number>4</number>
+      </property>
+      <property name="verticalSpacing">
+       <number>4</number>
+      </property>
+      <property name="leftMargin">
+       <number>4</number>
+      </property>
+      <property name="rightMargin">
+       <number>4</number>
+      </property>
+      <property name="bottomMargin">
+       <number>4</number>
+      </property>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="updateCheckPeriod">
+        <item>
+         <property name="text">
+          <string>Never</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Once a day</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Once a week</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>

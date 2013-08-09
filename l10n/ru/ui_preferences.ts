@@ -224,6 +224,26 @@
         <source>Store full modules&apos; attributes in saved playlists</source>
         <translation>Сохранять все атрибуты модулей при сохранении списков</translation>
     </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="106"/>
+        <source>Check updates</source>
+        <translation>Проверять обновления</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="128"/>
+        <source>Never</source>
+        <translation>Никогда</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="133"/>
+        <source>Once a day</source>
+        <translation>Раз в день</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="138"/>
+        <source>Once a week</source>
+        <translation>Раз в неделю</translation>
+    </message>
 </context>
 <context>
     <name>UI::MixerWidget</name>

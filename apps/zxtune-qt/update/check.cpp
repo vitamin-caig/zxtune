@@ -14,9 +14,11 @@ Author:
 //local includes
 #include "check.h"
 #include "downloads.h"
+#include "parameters.h"
 #include "product.h"
 #include "apps/version/fields.h"
 #include "apps/zxtune-qt/text/text.h"
+#include "apps/zxtune-qt/supp/options.h"
 #include "apps/zxtune-qt/ui/utils.h"
 //common includes
 #include <error.h>
@@ -31,6 +33,7 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 //qt includes
+#include <QtCore/QTimer>
 #include <QtGui/QApplication>
 #include <QtGui/QFileDialog>
 #include <QtGui/QMessageBox>
@@ -105,12 +108,15 @@ namespace
 
   class Canceled {};
 
-  class DownloadCallback : public Log::ProgressCallback
+  class DialogProgressCallback : public Log::ProgressCallback
   {
   public:
-    explicit DownloadCallback(QProgressDialog& dlg)
-      : Progress(dlg)
+    explicit DialogProgressCallback(QWidget& parent, const QString& text)
+      : Progress(&parent, Qt::Dialog)
     {
+      Progress.setMinimumDuration(1);
+      Progress.setLabelText(text);
+      Progress.setWindowModality(Qt::WindowModal);
       Progress.setValue(0);
     }
 
@@ -129,7 +135,7 @@ namespace
       OnProgress(current);
     }
   private:
-    QProgressDialog& Progress;
+    QProgressDialog Progress;
   };
 
   String GetUserAgent()
@@ -334,22 +340,53 @@ namespace
     Binary::OutputStream::Ptr Object;
   };
 
+  const unsigned CHECK_UPDATE_DELAY = 60;
+
+  class UpdateParameters
+  {
+  public:
+    explicit UpdateParameters(Parameters::Container::Ptr params)
+      : Params(params)
+    {
+    }
+
+    unsigned GetCheckPeriod() const
+    {
+      Parameters::IntType period = Parameters::ZXTuneQT::Update::CHECK_PERIOD_DEFAULT;
+      Params->FindValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD, period);
+      return static_cast<unsigned>(period);
+    }
+
+    std::time_t GetLastCheckTime() const
+    {
+      Parameters::IntType lastCheck = 0;
+      Params->FindValue(Parameters::ZXTuneQT::Update::LAST_CHECK, lastCheck);
+      return static_cast<std::time_t>(lastCheck);
+    }
+
+    void SetLastCheckTime(std::time_t time)
+    {
+      Params->SetValue(Parameters::ZXTuneQT::Update::LAST_CHECK, time);
+    }
+  private:
+    const Parameters::Container::Ptr Params;
+  };
+
   class UpdateCheckOperation : public Update::CheckOperation
   {
   public:
     explicit UpdateCheckOperation(QWidget& parent)
       : Parent(parent)
-      , LastLandingPageVisit()
+      , Params(GlobalOptions::Instance().Get())
     {
       setParent(&parent);
+      QTimer::singleShot(CHECK_UPDATE_DELAY * 1000, this, SLOT(ExecuteBackground()));
     }
 
     virtual void Execute()
     {
-      const int_t LANDING_PERIOD = 86400;
       try
       {
-        VisitLandingPage(LANDING_PERIOD);
         if (const Product::Update::Ptr update = GetAvailableUpdate())
         {
           if (QMessageBox::Save == ShowUpdateDialog(*update))
@@ -370,36 +407,58 @@ namespace
         emit ErrorOccurred(e);
       }
     }
-  private:
-    void VisitLandingPage(int_t period) const
-    {
-      const std::time_t nowTime = std::time(0);
-      if (LastLandingPageVisit + period > nowTime)
-      {
-        return;
-      }
-      const QUrl landingUrl(Text::HOMEPAGE_URL);
-      DownloadWithProgress(landingUrl, Update::CheckOperation::tr("Checking connection..."));
-      LastLandingPageVisit = nowTime;
-    }
 
+    virtual void ExecuteBackground()
+    {
+      try
+      {
+        //If check was performed before
+        if (!CheckPeriodExpired())
+        {
+          return;
+        }
+        if (const Product::Update::Ptr update = GetAvailableUpdateSilent())
+        {
+          if (QMessageBox::Save == ShowUpdateDialog(*update))
+          {
+            ApplyUpdate(*update);
+          }
+        }
+      }
+      catch (const Canceled&)
+      {
+      }
+      catch (const Error& e)
+      {
+        //Do not bother with implicit check errors
+      }
+    }
+  private:
     Product::Update::Ptr GetAvailableUpdate() const
     {
+      DialogProgressCallback cb(Parent, Update::CheckOperation::tr("Getting list of available updates"));
+      return GetAvailableUpdate(cb);
+    }
+
+    Product::Update::Ptr GetAvailableUpdateSilent() const
+    {
+      return GetAvailableUpdate(Log::ProgressCallback::Stub());
+    }
+
+    Product::Update::Ptr GetAvailableUpdate(Log::ProgressCallback& cb) const
+    {
       const QUrl feedUrl(Text::DOWNLOADS_FEED_URL);
-      const Binary::Data::Ptr feedData = DownloadWithProgress(feedUrl, Update::CheckOperation::tr("Getting list of available updates"));
+      const Binary::Data::Ptr feedData = Download(feedUrl, cb);
       UpdateState state;
       const std::auto_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
       RSS::Parse(QByteArray(static_cast<const char*>(feedData->Start()), feedData->Size()), *rss);
+      StoreLastCheckTime();
       return state.GetUpdate();
     }
 
     Binary::Data::Ptr DownloadWithProgress(const QUrl& url, const QString& text) const
     {
-      QProgressDialog dialog(&Parent, Qt::Dialog);
-      dialog.setMinimumDuration(1);
-      dialog.setLabelText(text);
-      dialog.setWindowModality(Qt::WindowModal);
-      DownloadCallback cb(dialog);
+      DialogProgressCallback cb(Parent, text);
       return Download(url, cb);
     }
 
@@ -412,7 +471,7 @@ namespace
       {
         msg.append(Update::CheckOperation::tr("%1 (%n day(s) ago)", 0, ageInDays).arg(update.Date().toString(Qt::DefaultLocaleLongDate)));
       }
-      msg.append(Update::CheckOperation::tr("<a href=\"%1\">Download manually</a>").arg(update.Description().toString()));
+      msg.append(QString("<a href=\"%1\">%2</a>").arg(update.Description().toString()).arg(Update::CheckOperation::tr("Download manually")));
       return QMessageBox::question(&Parent, title, msg.join("<br/>"), QMessageBox::Save | QMessageBox::Cancel);
     }
 
@@ -438,9 +497,28 @@ namespace
       target->Flush();
       transaction.Commit();
     }
+
+    void StoreLastCheckTime() const
+    {
+      Params.SetLastCheckTime(std::time(0));
+    }
+
+    bool CheckPeriodExpired() const
+    {
+      if (const unsigned period = Params.GetCheckPeriod())
+      {
+        const std::time_t lastCheck = Params.GetLastCheckTime();
+        const std::time_t now = std::time(0);
+        return now > lastCheck + period;
+      }
+      else
+      {
+        return false;
+      }
+    }
   private:
     QWidget& Parent;
-    mutable std::time_t LastLandingPageVisit;
+    mutable UpdateParameters Params;
   };
 }
 

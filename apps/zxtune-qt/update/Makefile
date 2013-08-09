@@ -6,4 +6,6 @@ moc_files := check
 
 ts_files := update_check
 
+include_dirs = ..
+
 include $(path_step)/makefile.mak
