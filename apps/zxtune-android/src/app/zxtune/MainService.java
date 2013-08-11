@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
 import app.zxtune.playback.FileIterator;
+import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackServiceLocal;
 import app.zxtune.playlist.Query;
 import app.zxtune.rpc.PlaybackServiceServer;
@@ -26,7 +27,9 @@ public class MainService extends Service {
 
   private PlaybackServiceLocal service;
   private IBinder binder;
-  private PhoneCallHandler callHandler;
+  private Releaseable phoneCallHandler;
+  private Releaseable mediaButtonsHandler;
+  private Releaseable headphonesPlugHandler;
   
   @Override
   public void onCreate() {
@@ -37,15 +40,21 @@ public class MainService extends Service {
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
     service.subscribe(new StatusNotification(this, intent));
     binder = new PlaybackServiceServer(service);
-    callHandler = new PhoneCallHandler(this, service.getPlaybackControl());
-    callHandler.register();
+    final PlaybackControl control = service.getPlaybackControl();
+    phoneCallHandler = PhoneCallHandler.subscribe(this, control);
+    mediaButtonsHandler = MediaButtonsHandler.subscribe(this, control);
+    headphonesPlugHandler = HeadphonesPlugHandler.subscribe(this, control);
   }
 
   @Override
   public void onDestroy() {
     Log.d(TAG, "Destroying");
-    callHandler.unregister();
-    callHandler = null;
+    headphonesPlugHandler.release();
+    headphonesPlugHandler = null;
+    mediaButtonsHandler.release();
+    mediaButtonsHandler = null;
+    phoneCallHandler.release();
+    phoneCallHandler = null;
     binder = null;
     service.release();
     service = null;

@@ -6,7 +6,6 @@
  */
 package app.zxtune.sound;
 
-import app.zxtune.TimeStamp;
 
 public class StubPlayer implements Player {
   

@@ -6,7 +6,6 @@
  */
 package app.zxtune.sound;
 
-import app.zxtune.TimeStamp;
 
 /**
  * Abstract sound samples source
