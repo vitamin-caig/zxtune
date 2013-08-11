@@ -43,7 +43,7 @@ class VfsCursor extends AbstractCursor {
 
   @Override
   public int getCount() {
-    return resolvedEntries != null ? resolvedEntries.length : entries.length;
+    return entries != null ? entries.length : resolvedEntriesCount;
   }
 
   @Override

@@ -122,7 +122,7 @@ public class BrowserFragment extends Fragment
     Log.d(LOG, "Set current path to " + uri);
     state.setCurrentPath(uri);
     position.setUri(uri);
-    listing.setUri(uri);
+    listing.setUri(getLoaderManager(), uri);
     listing.setSelection(state.getCurrentViewPosition());
   }
 

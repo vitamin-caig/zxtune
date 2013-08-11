@@ -7,10 +7,13 @@
 
 package app.zxtune.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -25,7 +28,8 @@ import app.zxtune.fs.VfsQuery;
 public class DirView extends ListView
     implements
       AdapterView.OnItemClickListener,
-      AdapterView.OnItemLongClickListener {
+      AdapterView.OnItemLongClickListener,
+      LoaderManager.LoaderCallbacks<Cursor> {
 
   public interface OnEntryClickListener {
 
@@ -56,7 +60,11 @@ public class DirView extends ListView
       return false;
     }
   }
+  
+  private static final int LOADER_ID = DirView.class.hashCode();
+  private static final String LOADER_PARAM_PATH = "path";
 
+  private CursorAdapter adapter;
   private OnEntryClickListener listener;
 
   public DirView(Context context) {
@@ -79,6 +87,8 @@ public class DirView extends ListView
     super.setLongClickable(true);
     super.setOnItemClickListener(this);
     super.setOnItemLongClickListener(this);
+    adapter = new DirViewCursorAdapter(getContext(), null, 0);
+    setAdapter(adapter);
   }
 
   @Override
@@ -113,16 +123,40 @@ public class DirView extends ListView
     }
   }
 
-  public void setOnEntryClickListener(OnEntryClickListener listener) {
+  public final void setOnEntryClickListener(OnEntryClickListener listener) {
     this.listener = null != listener ? listener : new StubOnEntryClickListener();
   }
+  
+  public final void setUri(Uri path) {
+    //TODO: temporal method for popup window
+    final Cursor cursor = getContext().getContentResolver().query(VfsQuery.unparse(path), null, null, null, null);
+    adapter.changeCursor(cursor);
+  }
 
-  public void setUri(Uri path) {
-    final Context context = getContext();
-    final Cursor cursor = context.getContentResolver().query(VfsQuery.unparse(path), null, null, null, null);
-    ((Activity) getContext()).startManagingCursor(cursor);
-    final CursorAdapter adapter = new DirViewCursorAdapter(getContext(), cursor, false);
-    setAdapter(adapter);
+  public final void setUri(LoaderManager manager, Uri path) {
+    final Bundle params = new Bundle();
+    params.putParcelable(LOADER_PARAM_PATH, path);
+    manager.restartLoader(LOADER_ID, params, this);
+  }
+
+  @Override
+  public Loader<Cursor> onCreateLoader(int id, Bundle params) {
+    if (id == LOADER_ID) {
+      final Uri path = (Uri)params.getParcelable(LOADER_PARAM_PATH);
+      return new CursorLoader(getContext(), VfsQuery.unparse(path), null, null, null, null);
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    adapter.changeCursor(cursor);
+  }
+
+  @Override
+  public void onLoaderReset(Loader<Cursor> loader) {
+    adapter.changeCursor(null);
   }
 
   private static class DirViewCursorAdapter extends CursorAdapter {
@@ -165,7 +199,7 @@ public class DirView extends ListView
       res.setTag(holder);
       return res;
     }
-
+    
     private static class ViewHolder {
       public TextView name;
       public TextView size;
