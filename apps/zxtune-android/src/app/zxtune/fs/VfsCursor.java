@@ -11,23 +11,8 @@ import java.util.Comparator;
 
 import android.database.AbstractCursor;
 
-public class VfsCursor extends AbstractCursor {
+class VfsCursor extends AbstractCursor {
   
-  public static final class Columns {
-    public static final int ID = 0;
-    public static final int TYPE = 1;
-    public static final int NAME = 2;
-    public static final int URI = 3;
-    public static final int SIZE = 4;
-    
-    public static final int TOTAL = 5;
-  }
-  
-  public static final class Types {
-    public static final int FILE = 0;
-    public static final int DIR = 1;
-  }
-
   private Vfs.Entry[] entries;
   private Object[][] resolvedEntries;
   private int resolvedEntriesCount;
@@ -115,16 +100,16 @@ public class VfsCursor extends AbstractCursor {
   }
   
   private Object[] createEntry(int id, Vfs.Entry entry) {
-    final Object[] res = new Object[Columns.TOTAL];
-    res[Columns.ID] = Long.valueOf(id);
-    res[Columns.NAME] = entry.name();
-    res[Columns.URI] = entry.uri().toString();
+    final Object[] res = new Object[VfsQuery.Columns.TOTAL];
+    res[VfsQuery.Columns.ID] = Long.valueOf(id);
+    res[VfsQuery.Columns.NAME] = entry.name();
+    res[VfsQuery.Columns.URI] = entry.uri().toString();
     if (entry instanceof Vfs.Dir) {
-      res[Columns.TYPE] = Integer.valueOf(Types.DIR);
+      res[VfsQuery.Columns.TYPE] = Integer.valueOf(VfsQuery.Types.DIR);
     } else {
-      res[Columns.TYPE] = Integer.valueOf(Types.FILE);
+      res[VfsQuery.Columns.TYPE] = Integer.valueOf(VfsQuery.Types.FILE);
       final Vfs.File asFile = (Vfs.File) entry; 
-      res[Columns.SIZE] = Long.valueOf(asFile.size());
+      res[VfsQuery.Columns.SIZE] = Long.valueOf(asFile.size());
     }
     return res;
   }

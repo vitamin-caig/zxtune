@@ -20,8 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.R;
-import app.zxtune.fs.Vfs;
-import app.zxtune.fs.VfsCursor;
+import app.zxtune.fs.VfsQuery;
 
 public class DirView extends ListView
     implements
@@ -95,8 +94,8 @@ public class DirView extends ListView
   @Override
   public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
     final Cursor cursor = (Cursor) parent.getAdapter().getItem(position);
-    final Uri uri = Uri.parse(cursor.getString(VfsCursor.Columns.URI));
-    if (VfsCursor.Types.FILE == cursor.getInt(VfsCursor.Columns.TYPE)) {
+    final Uri uri = Uri.parse(cursor.getString(VfsQuery.Columns.URI));
+    if (VfsQuery.Types.FILE == cursor.getInt(VfsQuery.Columns.TYPE)) {
       listener.onFileClick(uri);
     } else {
       listener.onDirClick(uri);
@@ -106,8 +105,8 @@ public class DirView extends ListView
   @Override
   public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
     final Cursor cursor = (Cursor) parent.getAdapter().getItem(position);
-    final Uri uri = Uri.parse(cursor.getString(VfsCursor.Columns.URI));
-    if (VfsCursor.Types.FILE == cursor.getInt(VfsCursor.Columns.TYPE)) {
+    final Uri uri = Uri.parse(cursor.getString(VfsQuery.Columns.URI));
+    if (VfsQuery.Types.FILE == cursor.getInt(VfsQuery.Columns.TYPE)) {
       return listener.onFileLongClick(uri);
     } else {
       return listener.onDirLongClick(uri);
@@ -119,11 +118,8 @@ public class DirView extends ListView
   }
 
   public void setUri(Uri path) {
-    setDir((Vfs.Dir) Vfs.getRoot().resolve(path));
-  }
-
-  public void setDir(Vfs.Dir dir) {
-    final Cursor cursor = new VfsCursor(dir);
+    final Context context = getContext();
+    final Cursor cursor = context.getContentResolver().query(VfsQuery.unparse(path), null, null, null, null);
     ((Activity) getContext()).startManagingCursor(cursor);
     final CursorAdapter adapter = new DirViewCursorAdapter(getContext(), cursor, false);
     setAdapter(adapter);
@@ -146,16 +142,16 @@ public class DirView extends ListView
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
       final ViewHolder holder = (ViewHolder) view.getTag();
-      holder.name.setText(cursor.getString(VfsCursor.Columns.NAME));
-      switch (cursor.getInt(VfsCursor.Columns.TYPE)) {
-        case VfsCursor.Types.DIR:
+      holder.name.setText(cursor.getString(VfsQuery.Columns.NAME));
+      switch (cursor.getInt(VfsQuery.Columns.TYPE)) {
+        case VfsQuery.Types.DIR:
           holder.name.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_browser_folder, 0, 0, 0);
           holder.size.setVisibility(GONE);
           break;
-        case VfsCursor.Types.FILE:
+        case VfsQuery.Types.FILE:
           holder.name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
           holder.size.setVisibility(VISIBLE);
-          holder.size.setText(Long.toString(cursor.getLong(VfsCursor.Columns.SIZE)));
+          holder.size.setText(Long.toString(cursor.getLong(VfsQuery.Columns.SIZE)));
           break;
       }
     }

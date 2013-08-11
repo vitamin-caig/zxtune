@@ -32,5 +32,12 @@
               android:multiprocess="true"
               android:process=":service">
         </provider>
+        <provider
+              android:name="app.zxtune.fs.VfsContentProvider"
+              android:authorities="app.zxtune.vfs"
+              android:exported="false"
+              android:multiprocess="true"
+              android:process=":sevice">
+        </provider>
     </application>
 </manifest>

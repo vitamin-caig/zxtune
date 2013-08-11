@@ -26,7 +26,6 @@ import android.view.WindowManager;
 import android.widget.PopupWindow;
 import app.zxtune.MainService;
 import app.zxtune.R;
-import app.zxtune.fs.Vfs;
 
 public class BrowserFragment extends Fragment
     implements
@@ -140,7 +139,7 @@ public class BrowserFragment extends Fragment
       final View root = View.inflate(context, R.layout.popup, null);
       final ViewGroup rootLayout = (ViewGroup) root.findViewById(R.id.popup_layout);
       rootLayout.addView(view);
-      view.setDir(Vfs.getRoot());
+      view.setUri(Uri.EMPTY);
       view.setOnEntryClickListener(this);
 
       popup =

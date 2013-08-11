@@ -1,10 +1,7 @@
 /*
  * @file
- * 
  * @brief LocalVfs implementation
- * 
  * @version $Id:$
- * 
  * @author (C) Vitamin/CAIG
  */
 
@@ -20,7 +17,7 @@ public final class LocalVfs {
 
   private final static String TAG = "app.zxtune.fs.LocalVfs";
   private final static String SCHEME = "file";
-  
+
   static void register() {
     Log.d(TAG, "Registering LocalVfs entries:");
     for (File root : File.listRoots()) {
@@ -28,15 +25,16 @@ public final class LocalVfs {
     }
     {
       final String state = Environment.getExternalStorageState();
-      if (state.equals(Environment.MEDIA_MOUNTED) || state.equals(Environment.MEDIA_MOUNTED_READ_ONLY)) {
+      if (state.equals(Environment.MEDIA_MOUNTED)
+          || state.equals(Environment.MEDIA_MOUNTED_READ_ONLY)) {
         final File dir = Environment.getExternalStorageDirectory();
-        Provider.registerVfs(new LocalDir(dir)); 
+        Provider.registerVfs(new LocalDir(dir));
       } else {
         Log.d(TAG, " external storage in unsupported state " + state);
       }
     }
   }
-  
+
   static Vfs.Entry[] buildList(File[] entries) {
 
     final Vfs.Entry[] res = new Vfs.Entry[entries.length];
@@ -69,7 +67,7 @@ public final class LocalVfs {
     public LocalDir(File dir) {
       this(dir, dir.getName());
     }
-    
+
     public LocalDir(File dir, String name) {
       this.dir = dir;
       this.name = name;
