@@ -15,12 +15,12 @@ import app.zxtune.ZXTune;
 
 class PlaylistIterator extends Iterator {
   
-  private final app.zxtune.playlist.Iterator delegate;
+  private app.zxtune.playlist.Iterator delegate;
   private PlayableItem item;
 
   public PlaylistIterator(Context context, Uri id) {
     this.delegate = new app.zxtune.playlist.Iterator(context, id);
-    this.item = loadItem(); 
+    this.item = loadItem(delegate); 
   }
 
   @Override
@@ -30,20 +30,19 @@ class PlaylistIterator extends Iterator {
 
   @Override
   public boolean next() {
-    delegate.next();
-    return updateItem();
+    return updateItem(delegate.getNext());
   }
 
   @Override
   public boolean prev() {
-    delegate.prev();
-    return updateItem();
+    return updateItem(delegate.getPrev());
   }
   
-  private boolean updateItem() {
-    if (delegate.isValid()) {
-      final PlayableItem newItem = loadItem();
+  private boolean updateItem(app.zxtune.playlist.Iterator iter) {
+    if (iter.isValid()) {
+      final PlayableItem newItem = loadItem(iter);
       if (newItem != null) {
+        delegate = iter;
         item = newItem;
         return true;
       }
@@ -51,9 +50,9 @@ class PlaylistIterator extends Iterator {
     return false;
   }
 
-  private PlayableItem loadItem() {
+  private PlayableItem loadItem(app.zxtune.playlist.Iterator iter) {
     try {
-      final app.zxtune.playlist.Item meta = delegate.getCurrentItem();
+      final app.zxtune.playlist.Item meta = iter.getItem();
       final PlayableItem file = FileIterator.loadItem(meta.getLocation());
       return new PlaylistItem(meta, file);
     } catch (IOException e) {

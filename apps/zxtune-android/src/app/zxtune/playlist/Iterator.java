@@ -17,19 +17,19 @@ import android.net.Uri;
 public class Iterator {
   
   private final ContentResolver resolver;
-  private Item item;
+  private final Item item;
 
-  public Iterator(Context context) {
-    this.resolver = context.getContentResolver();
-    this.item = null;
-  }
-  
   public Iterator(Context context, Uri current) {
     this.resolver = context.getContentResolver();
     this.item = loadItem(current);
   }
+  
+  private Iterator(ContentResolver resolver, Item current) {
+    this.resolver = resolver;
+    this.item = current;
+  }
 
-  public Item getCurrentItem() {
+  public Item getItem() {
     return item;
   }
   
@@ -37,24 +37,50 @@ public class Iterator {
     return item != null;
   }
   
-  public void next() {
+  public Iterator getNext() {
+    Item next = null;
     if (isValid()) {
       final Long curId = new Query(item.getUri()).getId();
       final String selection = Database.Tables.Playlist.Fields._id + " > ?";
-      item = advance(curId, selection, Database.Tables.Playlist.Fields._id + " ASC LIMIT 1");
+      next = advance(curId, selection, Database.Tables.Playlist.Fields._id + " ASC LIMIT 1");
     }
+    return new Iterator(resolver, next);
   }
   
-  public void prev() {
+  public Iterator getPrev() {
+    Item prev = null;
     if (isValid()) {
       final Long curId = new Query(item.getUri()).getId();
       final String selection = Database.Tables.Playlist.Fields._id + " < ?";
-      item = advance(curId, selection, Database.Tables.Playlist.Fields._id + " DESC LIMIT 1");
+      prev = advance(curId, selection, Database.Tables.Playlist.Fields._id + " DESC LIMIT 1");
     }
+    return new Iterator(resolver, prev);
+  }
+  
+  public Iterator getFirst() {
+    Item first = null;
+    if (isValid()) {
+      first = select(Database.Tables.Playlist.Fields._id + " ASC LIMIT 1");
+    }
+    return new Iterator(resolver, first);
+  }
+  
+  public Iterator getLast() {
+    Item last = null;
+    if (isValid()) {
+      last = select(Database.Tables.Playlist.Fields._id + " DESC LIMIT 1");
+    }
+    return new Iterator(resolver, last);
   }
 
   private Item advance(Long curId, String selection, String order) {
     final Cursor cursor = resolver.query(Query.unparse(null), null, selection, new String[] {curId.toString()}, order);
+    return loadItem(cursor);
+  }
+  
+  private Item select(String order) {
+    final String selection = "*";
+    final Cursor cursor = resolver.query(Query.unparse(null), null, selection, null, order);
     return loadItem(cursor);
   }
   
