@@ -236,7 +236,8 @@ namespace Formats
         {
           return Container::Ptr();
         }
-        MegaLZ::DataDecoder decoder(static_cast<const uint8_t*>(rawData.Start()), rawData.Size());
+        const std::size_t size = std::min(MegaLZ::MAX_DECODED_SIZE, rawData.Size());
+        MegaLZ::DataDecoder decoder(static_cast<const uint8_t*>(rawData.Start()), size);
         return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
       }
     private:

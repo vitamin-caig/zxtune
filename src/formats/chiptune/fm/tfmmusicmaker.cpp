@@ -708,6 +708,7 @@ namespace Chiptune
         uint_t ret = 0;
         for (uint_t shift = 0;; shift += 7)
         {
+          Require(shift <= 21);
           const uint_t sym = GetByte();
           ret |= (sym & 0x7f) << shift;
           if (0 != (sym & 0x80))
