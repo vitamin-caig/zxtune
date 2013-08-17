@@ -62,10 +62,12 @@ public class DirView extends ListView
   }
   
   private static final int LOADER_ID = DirView.class.hashCode();
-  private static final String LOADER_PARAM_PATH = "path";
+  private static final String LOADER_PARAM_QUERY = "query";
+  private static final String LOADER_PARAM_POS = "pos";
 
-  private CursorAdapter adapter;
   private OnEntryClickListener listener;
+  private View loadingView;
+  private View emptyView;
 
   public DirView(Context context) {
     super(context);
@@ -87,8 +89,7 @@ public class DirView extends ListView
     super.setLongClickable(true);
     super.setOnItemClickListener(this);
     super.setOnItemLongClickListener(this);
-    adapter = new DirViewCursorAdapter(getContext(), null, 0);
-    setAdapter(adapter);
+    setAdapter(new DirViewCursorAdapter(getContext(), null, 0));
   }
 
   @Override
@@ -127,23 +128,55 @@ public class DirView extends ListView
     this.listener = null != listener ? listener : new StubOnEntryClickListener();
   }
   
+  public final void setStubViews(View loading, View empty) {
+    loadingView = loading;
+    emptyView = empty;
+  }
+  
   public final void setUri(Uri path) {
     //TODO: temporal method for popup window
     final Cursor cursor = getContext().getContentResolver().query(VfsQuery.unparse(path), null, null, null, null);
-    adapter.changeCursor(cursor);
+    getCursorAdapter().changeCursor(cursor);
   }
 
-  public final void setUri(LoaderManager manager, Uri path) {
+  /*
+   * Required to pass position separately to avoid reset on configuration change
+   * TODO: use tags to store onSaveInstanceState/onRestoreInstanceState
+   */
+  public final void setUri(LoaderManager manager, Uri path, int pos) {
+    final Uri query = VfsQuery.unparse(path);
+    final DirViewCursorLoader curLoader = getCurrentLoader(manager);
+    final Bundle params = createLoaderParams(query, pos);
+    if (curLoader == null) {
+      manager.initLoader(LOADER_ID, params, this);
+    } else if (curLoader.getUri().equals(query)) {
+      curLoader.setPosition(pos);
+      manager.initLoader(LOADER_ID, params, this);
+    } else {
+      manager.restartLoader(LOADER_ID, params, this);
+    }
+  }
+  
+  private DirViewCursorLoader getCurrentLoader(LoaderManager manager) {
+    final Loader<Cursor> existing = manager.getLoader(LOADER_ID);
+    return (DirViewCursorLoader) existing;
+  }
+  
+  private Bundle createLoaderParams(Uri query, int pos) {
     final Bundle params = new Bundle();
-    params.putParcelable(LOADER_PARAM_PATH, path);
-    manager.restartLoader(LOADER_ID, params, this);
+    params.putParcelable(LOADER_PARAM_QUERY, query);
+    params.putInt(LOADER_PARAM_POS, pos);
+    return params;
   }
 
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle params) {
     if (id == LOADER_ID) {
-      final Uri path = (Uri)params.getParcelable(LOADER_PARAM_PATH);
-      return new CursorLoader(getContext(), VfsQuery.unparse(path), null, null, null, null);
+      showProgress();
+      getCursorAdapter().changeCursor(null);
+      final Uri query = (Uri)params.getParcelable(LOADER_PARAM_QUERY);
+      final int pos = params.getInt(LOADER_PARAM_POS);
+      return new DirViewCursorLoader(getContext(), query, pos);
     } else {
       return null;
     }
@@ -151,12 +184,31 @@ public class DirView extends ListView
 
   @Override
   public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-    adapter.changeCursor(cursor);
+    hideProgress();
+    getCursorAdapter().changeCursor(cursor);
+    final int pos = ((DirViewCursorLoader)loader).getPosition();
+    setSelection(pos);
   }
 
   @Override
   public void onLoaderReset(Loader<Cursor> loader) {
-    adapter.changeCursor(null);
+    hideProgress();
+    getCursorAdapter().changeCursor(null);
+  }
+  
+  private CursorAdapter getCursorAdapter() {
+    return (CursorAdapter)getAdapter();
+  }
+  
+  //TODO: use ViewFlipper?
+  private void showProgress() {
+    emptyView.setVisibility(GONE);
+    setEmptyView(loadingView);
+  }
+  
+  private void hideProgress() {
+    loadingView.setVisibility(GONE);
+    setEmptyView(emptyView);
   }
 
   private static class DirViewCursorAdapter extends CursorAdapter {
@@ -203,6 +255,24 @@ public class DirView extends ListView
     private static class ViewHolder {
       public TextView name;
       public TextView size;
+    }
+  }
+  
+  private static class DirViewCursorLoader extends CursorLoader {
+    
+    private int position;
+    
+    public DirViewCursorLoader(Context context, Uri uri, int pos) {
+      super(context, uri, null, null, null, null);
+      this.position = pos;
+    }
+    
+    public final int getPosition() {
+      return position; 
+    }
+    
+    public final void setPosition(int position) {
+      this.position = position;
     }
   }
 }

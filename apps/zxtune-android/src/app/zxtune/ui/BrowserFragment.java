@@ -62,7 +62,7 @@ public class BrowserFragment extends Fragment
     position.setOnUriSelectionListener(this);
     listing = (DirView) view.findViewById(R.id.browser_content);
     listing.setOnEntryClickListener(this);
-    listing.setEmptyView(view.findViewById(R.id.browser_stub));
+    listing.setStubViews(view.findViewById(R.id.browser_progress), view.findViewById(R.id.browser_stub));
   }
 
   @Override
@@ -77,7 +77,7 @@ public class BrowserFragment extends Fragment
     super.onStop();
     storeCurrentState();
   }
-
+  
   @Override
   public void onUriSelection(Uri uri) {
     setCurrentPath(uri);
@@ -122,8 +122,7 @@ public class BrowserFragment extends Fragment
     Log.d(LOG, "Set current path to " + uri);
     state.setCurrentPath(uri);
     position.setUri(uri);
-    listing.setUri(getLoaderManager(), uri);
-    listing.setSelection(state.getCurrentViewPosition());
+    listing.setUri(getLoaderManager(), uri, state.getCurrentViewPosition());
   }
 
   private class SourcesClickListener extends DirView.StubOnEntryClickListener

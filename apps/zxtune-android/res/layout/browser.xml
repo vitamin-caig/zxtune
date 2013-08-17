@@ -27,6 +27,14 @@
         android:paddingLeft="@dimen/spacing_full"
         android:paddingRight="@dimen/spacing_full"
     />
+    <ProgressBar
+        android:id="@+id/browser_progress"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:paddingLeft="@dimen/spacing_full"
+        android:paddingRight="@dimen/spacing_full" 
+        android:gravity="center"
+        android:indeterminate="true" />
     <TextView
         android:id="@+id/browser_stub"
         android:layout_width="fill_parent"
