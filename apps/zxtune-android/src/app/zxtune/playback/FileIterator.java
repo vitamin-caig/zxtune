@@ -23,7 +23,13 @@ public class FileIterator extends Iterator {
 
   public FileIterator(Context context, Uri path) {
     this.iterator = new VfsIterator(context, path);
-    this.item = loadItem(iterator.getFile());
+    try {
+      this.item = loadItem(iterator.getFile());
+    } catch (Error e) {
+      if (!next()) {
+        throw e;
+      }
+    }
   }
   
   @Override
@@ -33,36 +39,40 @@ public class FileIterator extends Iterator {
 
   @Override
   public boolean next() {
-    iterator.next();
-    if (loadNewItem()) {
-      return true;
-    }
-    iterator.prev();
-    return false;
-  }
-
-  @Override
-  public boolean prev() {
-    iterator.prev();
-    if (loadNewItem()) {
-      return true;
-    }
-    iterator.next();
-    return false;
+    return advance(1);
   }
   
-  private boolean loadNewItem() {
-    if (iterator.isValid()) {
-      try {
-        item = loadItem(iterator.getFile());
-        return true;
-      } catch (Error e) {
+  @Override
+  public boolean prev() {
+    return advance(-1);
+  }
+  
+  private boolean advance(int delta) {
+    //skip invalid items at all
+    final int initialPos = iterator.getPos();
+    for (int curPos = initialPos + delta; ; curPos += delta) {
+      iterator.setPos(curPos);
+      if (!iterator.isValid()) {
+        break;
       }
+      if (loadNewItem()) {
+        return true;
+      }
+    }
+    iterator.setPos(initialPos);
+    return false;
+  }
+
+  private boolean loadNewItem() {
+    try {
+      item = loadItem(iterator.getFile());
+      return true;
+    } catch (Error e) {
     }
     return false;
   }
 
-  public static PlayableItem loadItem(VfsFile file) {
+  static PlayableItem loadItem(VfsFile file) {
     final ZXTune.Module module = loadModule(file);
     return new FileItem(file.getUri(), module);
   }
@@ -128,8 +138,8 @@ public class FileIterator extends Iterator {
     }
 
     @Override
-    public ZXTune.Player createPlayer() {
-      return module.createPlayer();
+    public ZXTune.Module getModule() {
+      return module;
     }
 
     @Override

@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
 import app.zxtune.playback.FileIterator;
+import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackServiceLocal;
 import app.zxtune.playlist.Query;
@@ -83,16 +84,21 @@ public class MainService extends Service {
   }
 
   private void addModuleToPlaylist(Uri uri) {
-    /*
     try {
-      final ZXTune.Module module = FileIterator.loadModule(uri);
-      final app.zxtune.playlist.Item item = new app.zxtune.playlist.Item(uri, module);
-      module.release();
-      getContentResolver().insert(Query.unparse(null), item.toContentValues());
-    } catch (IOException e) {
-      Log.d(TAG, e.toString());
+      final FileIterator iter = new FileIterator(getApplicationContext(), uri);
+      do {
+        final PlayableItem item = iter.getItem();
+        try {
+          final app.zxtune.playlist.Item listItem = new app.zxtune.playlist.Item(uri, item.getModule());
+          getContentResolver().insert(Query.unparse(null), listItem.toContentValues());
+        } finally {
+          item.release();
+        }
+      }
+      while (iter.next());
+    } catch (Error e) {
+      Log.w(TAG, "addModuleToPlaylist()", e);
     }
-    */
   }
 
   @Override

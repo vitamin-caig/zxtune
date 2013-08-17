@@ -12,7 +12,7 @@ import app.zxtune.ZXTune;
 public interface PlayableItem extends Item, Releaseable {
 
   /**
-   * @return Newly created low-level player
+   * @return Associated module
    */
-  public ZXTune.Player createPlayer();
+  public ZXTune.Module getModule();
 }

@@ -106,8 +106,8 @@ class PlaylistIterator extends Iterator {
     }
     
     @Override
-    public ZXTune.Player createPlayer() {
-      return content.createPlayer();
+    public ZXTune.Module getModule() {
+      return content.getModule();
     }
     
     @Override

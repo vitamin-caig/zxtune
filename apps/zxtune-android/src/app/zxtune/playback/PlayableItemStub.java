@@ -14,7 +14,7 @@ public class PlayableItemStub extends ItemStub implements PlayableItem {
   }
   
   @Override
-  public ZXTune.Player createPlayer() {
+  public ZXTune.Module getModule() {
     throw new IllegalStateException("Should not be called");
   }
 

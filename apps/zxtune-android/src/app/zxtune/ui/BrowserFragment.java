@@ -106,7 +106,8 @@ public class BrowserFragment extends Fragment
 
   @Override
   public boolean onDirLongClick(Uri uri) {
-    return false;
+    onFileClick(uri);
+    return true;
   }
 
   private final void setCurrentPath(Uri uri) {

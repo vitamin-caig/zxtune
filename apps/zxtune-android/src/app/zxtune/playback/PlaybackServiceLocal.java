@@ -6,7 +6,6 @@
  */
 package app.zxtune.playback;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
@@ -124,7 +123,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     Holder(Iterator iterator, PlayerEventsListener events) {
       this.iterator = iterator;
       this.item = iterator.getItem();
-      final ZXTune.Player lowPlayer = item.createPlayer();
+      final ZXTune.Player lowPlayer = item.getModule().createPlayer();
       final SeekableSamplesSource source = new SeekableSamplesSource(lowPlayer, item.getDuration());
       this.player = AsyncPlayer.create(source, events);
       this.seek = source;

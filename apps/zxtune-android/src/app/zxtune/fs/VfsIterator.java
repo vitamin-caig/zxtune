@@ -38,6 +38,15 @@ public final class VfsIterator {
     return 0 <= index && index < visitedFiles.size();
   }
   
+  public final int getPos() {
+    return index;
+  }
+  
+  public final void setPos(int pos) {
+    index = pos;
+    loadNextDir();
+  }
+  
   public final void next() {
     ++index;
     loadNextDir();
@@ -52,7 +61,7 @@ public final class VfsIterator {
   }
   
   private void loadNextDir() {
-    if (index == visitedFiles.size() && !unvisitedDirs.isEmpty()) {
+    while (index >= visitedFiles.size() && !unvisitedDirs.isEmpty()) {
       unvisitedDirs.pop().enumerate(new VfsDir.Visitor() {
         @Override
         public Status onDir(VfsDir dir) {
