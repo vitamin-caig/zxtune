@@ -6,8 +6,6 @@
  */
 package app.zxtune.playback;
 
-import java.io.IOException;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
@@ -32,11 +30,11 @@ public abstract class Iterator {
    */
   public abstract boolean prev();
   
-  public static Iterator create(Context context, Uri uri) throws IOException {
+  public static Iterator create(Context context, Uri uri) {
     if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
       return new PlaylistIterator(context, uri); 
     } else {
-      return new FileIterator(uri);
+      return new FileIterator(context, uri);
     }
   }
 }

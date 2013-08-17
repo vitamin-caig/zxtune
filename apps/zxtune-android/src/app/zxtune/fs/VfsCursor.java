@@ -6,30 +6,53 @@
  */
 package app.zxtune.fs;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 
 import android.database.AbstractCursor;
+import android.net.Uri;
 
 class VfsCursor extends AbstractCursor {
   
-  private Vfs.Entry[] entries;
+  private ArrayList<VfsDir> dirs;
+  private ArrayList<VfsFile> files;
   private Object[][] resolvedEntries;
-  private int resolvedEntriesCount;
+  private int resolvedDirsCount;
+  private int resolvedFilesCount;
 
-  public VfsCursor(Vfs.Dir dir) {
-    final Vfs.Entry[] entries = dir.list();
-    if (entries != null) {
-      Arrays.sort(entries, new CompareEntries());
-      this.entries = entries;
-    } else {
-      this.entries = new Vfs.Entry[0];
-    }
+  public VfsCursor(VfsDir dir) {
+    dirs = new ArrayList<VfsDir>();
+    files = new ArrayList<VfsFile>();
+    dir.enumerate(new VfsDir.Visitor() {
+
+      @Override
+      public Status onFile(VfsFile file) {
+        files.add(file);
+        return Status.CONTINUE;
+      }
+      
+      @Override
+      public Status onDir(VfsDir dir) {
+        dirs.add(dir);
+        return Status.CONTINUE;
+      }
+    });
+    final Comparator<VfsObject> comparator = new Comparator<VfsObject>() {
+      @Override
+      public int compare(VfsObject lh, VfsObject rh) {
+        return lh.getName().compareToIgnoreCase(rh.getName());
+      }
+    };
+
+    Collections.sort(dirs, comparator);
+    Collections.sort(files, comparator);
   }
   
   @Override
   public void close() {
-    entries = null;
+    dirs = null;
+    files = null;
     resolvedEntries = null;
     super.close();
   }
@@ -43,7 +66,8 @@ class VfsCursor extends AbstractCursor {
 
   @Override
   public int getCount() {
-    return entries != null ? entries.length : resolvedEntriesCount;
+    return (dirs != null ? dirs.size() : resolvedDirsCount)
+        + (files != null ? files.size() : resolvedFilesCount);
   }
 
   @Override
@@ -87,49 +111,48 @@ class VfsCursor extends AbstractCursor {
 
   private Object[] getEntry() {
     if (resolvedEntries == null) {
-      resolvedEntries = new Object[entries.length][];
+      resolvedEntries = new Object[dirs.size() + files.size()][];
     }
     if (null == resolvedEntries[mPos]) {
-      resolvedEntries[mPos] = createEntry(mPos, entries[mPos]);
-      entries[mPos] = null;
-      if (entries.length == ++resolvedEntriesCount) {
-        entries = null;
+      final int dirsCount = dirs != null ? dirs.size() : resolvedDirsCount;
+      if (mPos < dirsCount) {
+        resolvedEntries[mPos] = createDirEntry(mPos, dirs.get(mPos));
+        if (dirsCount == ++resolvedDirsCount) {
+          dirs = null;
+        } else {
+          dirs.set(mPos, null);
+        }
+      } else {
+        final int fileIndex = mPos - dirsCount;
+        resolvedEntries[mPos] = createFileEntry(mPos, files.get(fileIndex));
+        if (files.size() == ++resolvedFilesCount) {
+          files = null;
+        } else {
+          files.set(fileIndex, null);
+        }
       }
     }
     return resolvedEntries[mPos];
   }
+
+  private static Object[] createDirEntry(int id, VfsDir dir) {
+    final Object[] res = createObjectEntry(id, dir); 
+    res[VfsQuery.Columns.TYPE] = Integer.valueOf(VfsQuery.Types.DIR);
+    return res;
+  }
   
-  private Object[] createEntry(int id, Vfs.Entry entry) {
-    final Object[] res = new Object[VfsQuery.Columns.TOTAL];
-    res[VfsQuery.Columns.ID] = Long.valueOf(id);
-    res[VfsQuery.Columns.NAME] = entry.name();
-    res[VfsQuery.Columns.URI] = entry.uri().toString();
-    if (entry instanceof Vfs.Dir) {
-      res[VfsQuery.Columns.TYPE] = Integer.valueOf(VfsQuery.Types.DIR);
-    } else {
-      res[VfsQuery.Columns.TYPE] = Integer.valueOf(VfsQuery.Types.FILE);
-      final Vfs.File asFile = (Vfs.File) entry; 
-      res[VfsQuery.Columns.SIZE] = Long.valueOf(asFile.size());
-    }
+  private static Object[] createFileEntry(int id, VfsFile file) {
+    final Object[] res = createObjectEntry(id, file);
+    res[VfsQuery.Columns.TYPE] = Integer.valueOf(VfsQuery.Types.FILE);
+    res[VfsQuery.Columns.SIZE] = Long.valueOf(file.getSize());
     return res;
   }
 
-  private static class CompareEntries implements Comparator<Vfs.Entry> {
-
-    @Override
-    public int compare(Vfs.Entry lh, Vfs.Entry rh) {
-      final int byType = compareByType(lh, rh);
-      return byType != 0 ? byType : compareByName(lh, rh);
-    }
-    
-    private static int compareByType(Vfs.Entry lh, Vfs.Entry rh) {
-      final int lhDir = lh instanceof Vfs.Dir ? 1 : 0;
-      final int rhDir = rh instanceof Vfs.Dir ? 1 : 0;
-      return rhDir - lhDir;
-    }
-    
-    private static int compareByName(Vfs.Entry lh, Vfs.Entry rh) {
-      return lh.name().compareToIgnoreCase(rh.name());
-    }
+  private static Object[] createObjectEntry(int id, VfsObject obj) {
+    final Object[] res = new Object[VfsQuery.Columns.TOTAL];
+    res[VfsQuery.Columns.ID] = Long.valueOf(id);
+    res[VfsQuery.Columns.NAME] = obj.getName();
+    res[VfsQuery.Columns.URI] = Uri.decode(obj.getUri().toString());
+    return res;
   }
 }

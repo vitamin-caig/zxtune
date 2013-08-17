@@ -6,21 +6,24 @@
  */
 package app.zxtune.playback;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import android.content.Context;
 import android.net.Uri;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
+import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsIterator;
 
 public class FileIterator extends Iterator {
   
-  private final PlayableItem item;
+  private final VfsIterator iterator;
+  private PlayableItem item;
 
-  public FileIterator(Uri path) throws IOException {
-    this.item = loadItem(path);
+  public FileIterator(Context context, Uri path) {
+    this.iterator = new VfsIterator(context, path);
+    this.item = loadItem(iterator.getFile());
   }
   
   @Override
@@ -30,41 +33,51 @@ public class FileIterator extends Iterator {
 
   @Override
   public boolean next() {
+    iterator.next();
+    if (loadNewItem()) {
+      return true;
+    }
+    iterator.prev();
     return false;
   }
 
   @Override
   public boolean prev() {
+    iterator.prev();
+    if (loadNewItem()) {
+      return true;
+    }
+    iterator.next();
+    return false;
+  }
+  
+  private boolean loadNewItem() {
+    if (iterator.isValid()) {
+      try {
+        item = loadItem(iterator.getFile());
+        return true;
+      } catch (Error e) {
+      }
+    }
     return false;
   }
 
-  static PlayableItem loadItem(Uri path) throws IOException {
-    final ZXTune.Module module = loadModule(path);
-    return new FileItem(path, module);
+  public static PlayableItem loadItem(VfsFile file) {
+    final ZXTune.Module module = loadModule(file);
+    return new FileItem(file.getUri(), module);
   }
     
-  public static ZXTune.Module loadModule(Uri path) throws IOException {
+  static ZXTune.Module loadModule(VfsFile file) {
     try {
-      final byte[] content = loadFile(path.getPath());
+      final byte[] content = file.getContent();
       return ZXTune.loadModule(content);
+    } catch (IOException e) {
+      throw new Error(e.getCause());
     } catch (RuntimeException e) {
-      throw new IOException(e.toString());
+      throw new Error(e.getCause());
     }
   }
 
-  private static byte[] loadFile(String path) throws IOException {
-    final File file = new File(path);
-    final FileInputStream stream = new FileInputStream(file);
-    try {
-      final int size = (int) file.length();
-      byte[] result = new byte[size];
-      stream.read(result, 0, size);
-      return result;
-    } finally {
-      stream.close();
-    }
-  }
-  
   private static class FileItem implements PlayableItem {
 
     private final static String EMPTY_STRING = "";

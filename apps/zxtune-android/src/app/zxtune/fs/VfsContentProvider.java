@@ -15,7 +15,9 @@ import android.util.Log;
 public class VfsContentProvider extends ContentProvider {
   
   private final static String TAG = VfsContentProvider.class.getName();
-
+  
+  private VfsRoot root;
+  
   @Override
   public boolean onCreate() {
     return true;
@@ -26,7 +28,7 @@ public class VfsContentProvider extends ContentProvider {
     final VfsQuery query = new VfsQuery(uri);
     final Uri path = query.getPath();
     Log.d(TAG, String.format("query(%s) = %s", uri.toString(), path.toString()));
-    final Vfs.Dir dir = (Vfs.Dir) Vfs.getRoot().resolve(path);
+    final VfsDir dir = (VfsDir) getRoot().resolve(path);
     final Cursor result = new VfsCursor(dir);
     result.setNotificationUri(getContext().getContentResolver(), uri);
     return result;
@@ -55,5 +57,12 @@ public class VfsContentProvider extends ContentProvider {
   @Override
   public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
     return 0;
+  }
+  
+  private VfsRoot getRoot() {
+    if (root == null) {
+      root = Vfs.createRoot(getContext());
+    }
+    return root;
   }
 }

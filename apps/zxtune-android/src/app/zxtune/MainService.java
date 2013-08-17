@@ -83,6 +83,7 @@ public class MainService extends Service {
   }
 
   private void addModuleToPlaylist(Uri uri) {
+    /*
     try {
       final ZXTune.Module module = FileIterator.loadModule(uri);
       final app.zxtune.playlist.Item item = new app.zxtune.playlist.Item(uri, module);
@@ -91,6 +92,7 @@ public class MainService extends Service {
     } catch (IOException e) {
       Log.d(TAG, e.toString());
     }
+    */
   }
 
   @Override

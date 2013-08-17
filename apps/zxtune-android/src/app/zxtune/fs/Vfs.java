@@ -10,30 +10,13 @@
 
 package app.zxtune.fs;
 
-import android.net.Uri;
+import android.content.Context;
 
 public final class Vfs {
-
-  public interface Entry {
-
-    public String name();
-
-    public Uri uri();
-  }
-
-  public interface File extends Entry {
-
-    public long size();
-  }
-
-  public interface Dir extends Entry {
-
-    public Entry[] list();
-    
-    public Entry resolve(Uri uri);
-  }
   
-  public static Dir getRoot() {
-    return Provider.enumerate();
+  public static VfsRoot createRoot(Context context) {
+    final VfsRootComposite composite = new VfsRootComposite();
+    composite.addSubroot(new VfsRootLocal(context));
+    return composite;
   }
 }

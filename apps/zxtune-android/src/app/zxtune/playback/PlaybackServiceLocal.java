@@ -45,7 +45,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     try {
       final Iterator iter = Iterator.create(context, uri);
       play(iter);
-    } catch (IOException e) {
+    } catch (Error e) {
       Log.w(TAG, "setNowPlaying()", e);
     }
   }

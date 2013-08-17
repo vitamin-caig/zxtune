@@ -6,19 +6,22 @@
  */
 package app.zxtune.playback;
 
-import java.io.IOException;
-
 import android.content.Context;
 import android.net.Uri;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
+import app.zxtune.fs.Vfs;
+import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsRoot;
 
 class PlaylistIterator extends Iterator {
   
+  private final VfsRoot root;
   private app.zxtune.playlist.Iterator delegate;
   private PlayableItem item;
 
   public PlaylistIterator(Context context, Uri id) {
+    this.root = Vfs.createRoot(context);
     this.delegate = new app.zxtune.playlist.Iterator(context, id);
     this.item = loadItem(delegate); 
   }
@@ -40,24 +43,21 @@ class PlaylistIterator extends Iterator {
   
   private boolean updateItem(app.zxtune.playlist.Iterator iter) {
     if (iter.isValid()) {
-      final PlayableItem newItem = loadItem(iter);
-      if (newItem != null) {
+      try {
+        item = loadItem(iter);
         delegate = iter;
-        item = newItem;
         return true;
+      } catch (Error e) {
       }
     }
     return false;
   }
-
+  
   private PlayableItem loadItem(app.zxtune.playlist.Iterator iter) {
-    try {
-      final app.zxtune.playlist.Item meta = iter.getItem();
-      final PlayableItem file = FileIterator.loadItem(meta.getLocation());
-      return new PlaylistItem(meta, file);
-    } catch (IOException e) {
-      return null;
-    }
+    final app.zxtune.playlist.Item meta = iter.getItem();
+    final VfsFile file = (VfsFile) root.resolve(meta.getLocation());
+    final PlayableItem item = FileIterator.loadItem(file);
+    return new PlaylistItem(meta, item);
   }
   
   private static class PlaylistItem implements PlayableItem {
