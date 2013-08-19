@@ -13,7 +13,6 @@ package app.zxtune.ui;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -22,8 +21,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
-import android.widget.PopupWindow;
 import app.zxtune.MainService;
 import app.zxtune.R;
 
@@ -57,7 +54,12 @@ public class BrowserFragment extends Fragment
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     sources = view.findViewById(R.id.browser_sources);
-    sources.setOnClickListener(new SourcesClickListener());
+    sources.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        setCurrentPath(Uri.EMPTY);
+      }
+    });
     position = (BreadCrumbsUriView) view.findViewById(R.id.browser_breadcrumb);
     position.setOnUriSelectionListener(this);
     listing = (DirView) view.findViewById(R.id.browser_content);
@@ -124,36 +126,5 @@ public class BrowserFragment extends Fragment
     state.setCurrentPath(uri);
     position.setUri(uri);
     listing.setUri(getLoaderManager(), uri, state.getCurrentViewPosition());
-  }
-
-  private class SourcesClickListener extends DirView.StubOnEntryClickListener
-      implements
-        View.OnClickListener {
-
-    PopupWindow popup;
-
-    @Override
-    public void onClick(View v) {
-      final Context context = v.getContext();
-      final DirView view = new DirView(context);
-      final View root = View.inflate(context, R.layout.popup, null);
-      final ViewGroup rootLayout = (ViewGroup) root.findViewById(R.id.popup_layout);
-      rootLayout.addView(view);
-      view.setUri(Uri.EMPTY);
-      view.setOnEntryClickListener(this);
-
-      popup =
-          new PopupWindow(root, WindowManager.LayoutParams.WRAP_CONTENT,
-              WindowManager.LayoutParams.WRAP_CONTENT, true);
-      popup.setBackgroundDrawable(new BitmapDrawable());
-      popup.setTouchable(true);
-      popup.setOutsideTouchable(true);
-      popup.showAsDropDown(v);
-    }
-
-    public void onDirClick(Uri uri) {
-      popup.dismiss();
-      BrowserFragment.this.onDirClick(uri);
-    }
   }
 }

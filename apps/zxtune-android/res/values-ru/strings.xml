@@ -8,4 +8,7 @@
     <string name="information_location">Путь</string>
     <string name="playlist_empty">Список пуст</string>
     <string name="browser_empty">Нет файлов</string>
+    <!-- VFS -->
+    <string name="vfs_root_local_name">Локальная файловая система</string>
+    <string name="vfs_root_local_description">Содержимое внутренних и внешних накопителей</string>
 </resources>

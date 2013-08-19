@@ -6,14 +6,14 @@
 
     <app.zxtune.ui.PlaylistView
         android:id="@+id/playlist_content"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:paddingLeft="@dimen/spacing_full"
         android:paddingRight="@dimen/spacing_full" />
     <TextView
         android:id="@+id/playlist_stub"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:paddingLeft="@dimen/spacing_full"
         android:paddingRight="@dimen/spacing_full" 
         android:gravity="center"
