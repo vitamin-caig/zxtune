@@ -7,6 +7,17 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Fixes in MegaLZ and TF0/TFM decoding
+[+] zxtune-qt: automatic update check
+[+] zxtune-android: support control from media buttons
+[+] zxtune-android: pause playback on headset plug off
+[+] zxtune-android: play folder content via long click
+[*] zxtune-android: fixed navigation on playlist bounds
+[*] zxtune-android: asynchronous file browser with progress
+[*] zxtune-android: simplified file browser
+
+--- Rev2566 from 06.08.2013
+
 [*] Fixed LZH2 decoding
 [*] Fixes in YM files size detection
 [*] Speedup AYM rendering up to 20%
