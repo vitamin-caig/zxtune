@@ -61,7 +61,7 @@ final class VfsRootLocal implements VfsRoot {
   }
   
   private static Uri buildUri(String path) {
-    return Uri.fromParts(SCHEME, path, "");
+    return new Uri.Builder().scheme(SCHEME).path(path).build(); 
   }
   
   private static VfsObject buildObject(File obj) {

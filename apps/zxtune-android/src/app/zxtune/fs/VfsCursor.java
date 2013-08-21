@@ -152,7 +152,7 @@ class VfsCursor extends AbstractCursor {
     final Object[] res = new Object[VfsQuery.Columns.TOTAL];
     res[VfsQuery.Columns.ID] = Long.valueOf(id);
     res[VfsQuery.Columns.NAME] = obj.getName();
-    res[VfsQuery.Columns.URI] = Uri.decode(obj.getUri().toString());
+    res[VfsQuery.Columns.URI] = obj.getUri().toString();
     return res;
   }
 }
