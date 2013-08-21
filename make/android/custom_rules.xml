@@ -78,31 +78,10 @@
     <makelib-helper arch="armeabi-v7a" />
   </target>
   
-  <target name="extralibs">
-    <if>
-      <condition><isset property="libs.support.version"/></condition>
-      <then>
-        <instsupp-helper version="${libs.support.version}" />
-      </then>
-    </if>
-  </target>
-
-  <!-- workardound for http://code.google.com/p/android/issues/detail?id=33194 -->
-  <target name="-pre-compile">
-    <path id="project.all.jars.path">
-        <path path="${toString:project.all.jars.path}"/>
-        <fileset dir="${jar.libs.dir}">
-            <include name="*.jar"/>
-        </fileset>
-    </path>
-  </target>  
- 
   <target name="-post-compile" depends="nativelibs" />
 
-  <target name="-pre-build" depends="injectrevision, extralibs" />
-  
   <!-- Single public build target -->
-  <target name="public-build" depends="svnupdate, svnrevision, release">
+  <target name="public-build" depends="svnupdate, injectrevision, release">
     <property name="build.result" value="${builds.dir}/Revision${svn.revision}_android/${ant.project.name}_r${svn.revision}.apk" />
     <delete file="${build.result}" />
     <copy file="${out.final.file}" toFile="${build.result}" />

@@ -9,11 +9,11 @@ package app.zxtune;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,9 +23,7 @@ import app.zxtune.ui.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.PlaylistFragment;
 
-public class MainActivity extends FragmentActivity implements PlaybackServiceConnection.Callback {
-  
-  private static final int QUIT_ID = Menu.FIRST;
+public class MainActivity extends ActionBarActivity implements PlaybackServiceConnection.Callback {
   
   private PlaybackService service;
 
@@ -40,17 +38,16 @@ public class MainActivity extends FragmentActivity implements PlaybackServiceCon
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
-    
-    menu.add(0, QUIT_ID, Menu.NONE, R.string.menu_quit);
+    getMenuInflater().inflate(R.menu.main, menu);
     return true;
   }
   
   @Override
-  public boolean onMenuItemSelected(int featureId, MenuItem item) {
-    super.onMenuItemSelected(featureId, item);
+  public boolean onOptionsItemSelected(MenuItem item) {
+    super.onOptionsItemSelected(item);
     
     switch (item.getItemId()) {
-      case QUIT_ID:
+      case R.id.action_quit:
         quit();
         break;
     }
