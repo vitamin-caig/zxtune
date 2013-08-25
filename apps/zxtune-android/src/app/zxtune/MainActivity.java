@@ -88,10 +88,10 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   
   private void quit() {
     if (service != null) {
-      //TODO: service.shutdown();
       service.getPlaybackControl().stop();
-      finish();
+      PlaybackServiceConnection.shutdown(getSupportFragmentManager());
     }
+    finish();
   }
   
   private static class Adapter extends PagerAdapter {

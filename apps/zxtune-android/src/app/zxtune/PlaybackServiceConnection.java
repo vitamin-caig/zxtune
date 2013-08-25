@@ -41,6 +41,18 @@ public class PlaybackServiceConnection extends Fragment {
     }
   }
   
+  public static void shutdown(FragmentManager manager) {
+    final PlaybackServiceConnection self = (PlaybackServiceConnection) manager.findFragmentByTag(TAG);
+    self.shutdownService();
+  }
+  
+  private synchronized void shutdownService() {
+    disconnect();
+    final Context context = getContext();
+    final Intent intent = new Intent(context, MainService.class);
+    context.stopService(intent);
+  }
+  
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
