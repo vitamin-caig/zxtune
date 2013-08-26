@@ -65,21 +65,28 @@ public final class ZXTune {
        */
       void setProperty(String name, String value);
     }
+    
+    /**
+     * Prefix for all properties
+     */
+    public final static String PREFIX = "zxtune.";
 
     /**
      * Sound properties 'namespace'
      */
     public static final class Sound {
+      
+      public final static String PREFIX = Properties.PREFIX + "sound.";
 
       /**
        * Sound frequency in Hz
        */
-      public final static String FREQUENCY = "zxtune.sound.frequency";
+      public final static String FREQUENCY = PREFIX + "frequency";
 
       /**
        * Frame duration in microseconds
        */
-      public final static String FRAMEDURATION = "zxtune.sound.frameduration";
+      public final static String FRAMEDURATION = PREFIX + "frameduration";
       public final static long FRAMEDURATION_DEFAULT = 20000;
     }
 
@@ -87,16 +94,20 @@ public final class ZXTune {
      * Core properties 'namespace'
      */
     public static final class Core {
+      
+      public final static String PREFIX = Properties.PREFIX + "core.";
 
       /**
        * AY/YM properties 'namespace'
        */
       public static final class Aym {
+        
+        public final static String PREFIX = Core.PREFIX + "aym.";
 
         /**
          * Interpolation type (2/1/0)
          */
-        public final static String INTERPOLATION = "zxtune.core.aym.interpolation";
+        public final static String INTERPOLATION = PREFIX + "interpolation";
         public final static long INTERPOLATION_NONE = 0;
         public final static long INTERPOLATION_LQ = 1;
         public final static long INTERPOLATION_HQ = 2;

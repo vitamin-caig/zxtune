@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="menu_prefs">Preferences</string>
     <string name="menu_quit">Quit</string>
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>

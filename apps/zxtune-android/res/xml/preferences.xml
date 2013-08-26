@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <PreferenceCategory
+    android:title="@string/pref_control_headset_title"
+    android:summary="@string/pref_control_headset_summary"
+    >
+    <CheckBoxPreference
+      android:key="@string/pref_control_headset_mediabuttons"
+      android:defaultValue="@bool/pref_control_headset_mediabuttons_default"
+      android:title="@string/pref_control_headset_mediabuttons_title"
+      />
+    <CheckBoxPreference
+      android:key="@string/pref_control_headset_unplugging"
+      android:defaultValue="@bool/pref_control_headset_unplugging_default"
+      android:title="@string/pref_control_headset_unplugging_title"
+      />
+  </PreferenceCategory>
+</PreferenceScreen>

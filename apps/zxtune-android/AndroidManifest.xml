@@ -21,6 +21,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+              android:name=".PreferencesActivity"
+              android:label="@string/menu_prefs">
+            <intent-filter>
+                <action android:name="app.zxtune.PreferencesActivity" />
+                <category android:name="android.intent.category.PREFERENCE" />
+            </intent-filter>
+        </activity>
         <service 
               android:name=".MainService"
               android:process=":service">

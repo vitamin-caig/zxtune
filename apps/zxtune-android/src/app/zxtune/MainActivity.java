@@ -7,6 +7,7 @@
 
 package app.zxtune;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -47,6 +48,9 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
     super.onOptionsItemSelected(item);
     
     switch (item.getItemId()) {
+      case R.id.action_prefs:
+        showPreferences();
+        break;
       case R.id.action_quit:
         quit();
         break;
@@ -84,6 +88,11 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
       pager.setOffscreenPageLimit(childs);
       pager.setAdapter(new Adapter(childs));
     }
+  }
+  
+  private void showPreferences() {
+    final Intent intent = new Intent(this, PreferencesActivity.class);
+    startActivity(intent);
   }
   
   private void quit() {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pref_control_headset_title">Headset control</string>
+    <string name="pref_control_headset_summary">Available not for all devices</string>
+    <!-- control.headset.mediabuttons -->
+    <string name="pref_control_headset_mediabuttons">control.headset.mediabuttons</string>
+    <bool name="pref_control_headset_mediabuttons_default">false</bool>
+    <string name="pref_control_headset_mediabuttons_title">Use media buttons</string>
+    <!-- control.headset.unplugging -->
+    <string name="pref_control_headset_unplugging">control.headset.unplugging</string>
+    <bool name="pref_control_headset_unplugging_default">false</bool>
+    <string name="pref_control_headset_unplugging_title">Pause if unplugged</string>
+</resources>
