@@ -85,7 +85,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       try {
         holder.release();
       } finally {
-        holder = null;
+        holder = new Holder();
       }
     }
   }

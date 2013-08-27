@@ -55,6 +55,9 @@ class MediaButtonsHandler extends BroadcastReceiver {
       case KeyEvent.KEYCODE_MEDIA_NEXT:
         control.next();
         break;
+      default:
+        return;
     }
+    abortBroadcast();
   }
 }
