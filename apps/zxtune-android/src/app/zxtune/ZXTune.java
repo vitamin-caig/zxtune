@@ -193,6 +193,40 @@ public final class ZXTune {
      */
     public void setPosition(int pos);
   }
+  
+  public static class GlobalOptions implements Properties.Accessor, Properties.Modifier {
+    
+    private GlobalOptions() {
+    }
+
+    @Override
+    public void setProperty(String name, long value) {
+      GlobalOptions_SetProperty(name, value);
+    }
+
+    @Override
+    public void setProperty(String name, String value) {
+      GlobalOptions_SetProperty(name, value);
+    }
+
+    @Override
+    public long getProperty(String name, long defVal) {
+      return GlobalOptions_GetProperty(name, defVal);
+    }
+
+    @Override
+    public String getProperty(String name, String defVal) {
+      return GlobalOptions_GetProperty(name, defVal);
+    }
+    
+    public static GlobalOptions instance() {
+      return Holder.INSTANCE;
+    }
+    
+    private static class Holder {
+      public final static GlobalOptions INSTANCE = new GlobalOptions(); 
+    }
+  }
 
   /**
    * Simple data factory
@@ -301,35 +335,30 @@ public final class ZXTune {
   static {
     System.loadLibrary("zxtune");
   }
+  
+  // working with global options
+  private static native long GlobalOptions_GetProperty(String name, long defVal);
+  private static native String GlobalOptions_GetProperty(String name, String defVal);
+  private static native void GlobalOptions_SetProperty(String name, long value);
+  private static native void GlobalOptions_SetProperty(String name, String value);
 
   // working with handles
   private static native void Handle_Close(int handle);
 
   // working with module
   private static native int Module_Create(byte[] data);
-
   private static native int Module_GetDuration(int module);
-
   private static native long Module_GetProperty(int module, String name, long defVal);
-
   private static native String Module_GetProperty(int module, String name, String defVal);
-
   private static native int Module_CreatePlayer(int module);
 
   // working with player
   private static native boolean Player_Render(int player, short[] result);
-  
   private static native int Player_Analyze(int player, int bands[], int levels[]);
-
   private static native int Player_GetPosition(int player);
-  
   private static native void Player_SetPosition(int player, int pos);
-
   private static native long Player_GetProperty(int player, String name, long defVal);
-
   private static native String Player_GetProperty(int player, String name, String defVal);
-
   private static native void Player_SetProperty(int player, String name, long val);
-
   private static native void Player_SetProperty(int player, String name, String val);
 }
