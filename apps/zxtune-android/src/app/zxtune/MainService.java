@@ -7,7 +7,7 @@
 
 package app.zxtune;
 
-import java.io.IOException;
+import java.util.Map;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -17,7 +17,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -68,6 +67,12 @@ public class MainService extends Service {
     final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
     connectHeadphonesPlugging(prefs.getBoolean(PREF_UNPLUGGING, PREF_UNPLUGGING_DEFAULT));
+    for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+      final String key = entry.getKey();
+      if (key.startsWith(ZXTune.Properties.PREFIX)) {
+        setProperty(key, entry.getValue(), ZXTune.GlobalOptions.instance());
+      }
+    }
     settingsChangedHandler =
         new BroadcastReceiverConnection(this, new ChangedSettingsReceiver(), new IntentFilter(
             PreferencesActivity.ACTION_PREFERENCE_CHANGED));
@@ -174,7 +179,32 @@ public class MainService extends Service {
             intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
                 PREF_UNPLUGGING_DEFAULT);
         connectHeadphonesPlugging(use);
+      } else if (key.startsWith(ZXTune.Properties.PREFIX)) {
+        final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
+        setProperty(key, value, ZXTune.GlobalOptions.instance());
       }
     }
+  }
+  
+  private static void setProperty(String name, Object value, ZXTune.Properties.Modifier target) {
+    if (value instanceof String) {
+      setProperty(name, (String) value, target);
+    } else if (value instanceof Long) {
+      setProperty(name, (Long) value, target);
+    } else if (value instanceof Boolean) {
+      setProperty(name, (Boolean) value ? 1 : 0, target);
+    }
+  }
+  
+  private static void setProperty(String name, String value, ZXTune.Properties.Modifier target) {
+    try {
+      target.setProperty(name, Long.parseLong(value));
+    } catch (NumberFormatException e) {
+      target.setProperty(name,  value);
+    }
+  }
+  
+  private static void setProperty(String name, long value, ZXTune.Properties.Modifier target) {
+    target.setProperty(name, value);
   }
 }

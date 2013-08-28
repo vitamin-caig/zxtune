@@ -104,13 +104,7 @@ public final class ZXTune {
         
         public final static String PREFIX = Core.PREFIX + "aym.";
 
-        /**
-         * Interpolation type (2/1/0)
-         */
         public final static String INTERPOLATION = PREFIX + "interpolation";
-        public final static long INTERPOLATION_NONE = 0;
-        public final static long INTERPOLATION_LQ = 1;
-        public final static long INTERPOLATION_HQ = 2;
       }
     }
   }

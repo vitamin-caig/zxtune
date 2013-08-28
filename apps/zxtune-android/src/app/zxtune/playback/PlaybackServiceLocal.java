@@ -261,7 +261,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.totalDuration = totalDuration;
       final long frameDurationUs = player.getProperty(ZXTune.Properties.Sound.FRAMEDURATION, ZXTune.Properties.Sound.FRAMEDURATION_DEFAULT); 
       this.frameDuration = TimeStamp.createFrom(frameDurationUs, TimeUnit.MICROSECONDS);
-      player.setProperty(ZXTune.Properties.Core.Aym.INTERPOLATION, ZXTune.Properties.Core.Aym.INTERPOLATION_LQ);
       player.setPosition(0);
     }
     
