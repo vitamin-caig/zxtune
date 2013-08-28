@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pref_zxtune_aym_title">AY/YM</string>
-    <string name="pref_zxtune_aym_summary">Настройки эмуляции чипа</string>
+    <string name="pref_zxtune_aym_summary">Настройки эмуляции чипа AY-3-8910/YM2149F</string>
     <!-- zxtune.core.aym.clockrate -->
     <string name="pref_zxtune_aym_clockrate_title">Тактовая частота</string>
     <string-array name="pref_zxtune_aym_clockrate_entries">
@@ -12,13 +11,6 @@
     </string-array>
     <!-- zxtune.core.aym.type -->
     <string name="pref_zxtune_aym_type_title">Тип</string>
-    <!-- zxtune.core.aym.interpolation -->
-    <string name="pref_zxtune_aym_interpolation_title">Интерполяция</string>
-    <string-array name="pref_zxtune_aym_interpolation_entries">
-      <item>Нет</item>
-      <item>Быстро</item>
-      <item>Качественно</item>
-    </string-array>
     <!-- zxtun.core.aym.layout -->
     <string name="pref_zxtune_aym_layout_title">Раскладка каналов</string>
     <string-array name="pref_zxtune_aym_layout_entries">

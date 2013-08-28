@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="pref_interpolation">Интерполяция</string>
+  <string-array name="pref_interpolation_entries">
+    <item>Нет</item>
+    <item>Быстро</item>
+    <item>Качественно</item>
+  </string-array>
+</resources>

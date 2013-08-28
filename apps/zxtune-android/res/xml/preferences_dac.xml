@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <PreferenceScreen
+    android:title="@string/pref_zxtune_dac_title"
+    android:summary="@string/pref_zxtune_dac_summary"
+    >
+    <CheckBoxPreference
+      android:key="@string/pref_zxtune_dac_interpolation"
+      android:title="@string/pref_zxtune_dac_interpolation_title"
+      android:defaultValue="@integer/pref_zxtune_dac_interpolation_default"
+      />
+  </PreferenceScreen>
+</PreferenceScreen>

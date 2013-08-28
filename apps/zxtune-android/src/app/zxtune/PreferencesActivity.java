@@ -10,7 +10,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.preference.ListPreference;
+import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceManager;
+import android.preference.PreferenceScreen;
 
 public class PreferencesActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
@@ -18,26 +23,35 @@ public class PreferencesActivity extends PreferenceActivity implements OnSharedP
   public final static String EXTRA_PREFERENCE_NAME = "name";
   public final static String EXTRA_PREFERENCE_VALUE = "value";
     
+  @SuppressWarnings("deprecation")
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    addPreferencesFromResource(R.xml.preferences);
+    addPreferencesFromResource(R.xml.preferences_control);
+    addPreferencesFromResource(R.xml.preferences_aym);
+    addPreferencesFromResource(R.xml.preferences_dac);
+    addPreferencesFromResource(R.xml.preferences_saa);
+    initPreferenceSummary(getPreferenceScreen());
   }
   
+  @SuppressWarnings("deprecation")
   @Override
   protected void onResume() {
     super.onResume();
     getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
   }
   
+  @SuppressWarnings("deprecation")
   @Override
   protected void onPause() {
     super.onPause();
     getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+    updatePreferenceSummary(findPreference(key));
     final Intent intent = new Intent(ACTION_PREFERENCE_CHANGED);
     intent.putExtra(EXTRA_PREFERENCE_NAME, key);
     final Object val = getPreferenceScreen().getSharedPreferences().getAll().get(key);
@@ -51,5 +65,27 @@ public class PreferencesActivity extends PreferenceActivity implements OnSharedP
       intent.putExtra(EXTRA_PREFERENCE_VALUE, (Boolean) val);
     }
     sendBroadcast(intent);
+  }
+
+  private static void initPreferenceSummary(PreferenceGroup group) {
+    for (int idx = group.getPreferenceCount(); idx > 0; --idx)
+    {
+      initPreferenceSummary(group.getPreference(idx - 1));
+    }
+  }
+  
+  private static void initPreferenceSummary(Preference pref) {
+    if (pref instanceof PreferenceGroup) {
+      initPreferenceSummary((PreferenceGroup) pref);
+    } else {
+      updatePreferenceSummary(pref);
+    }
+  }
+  
+  private static void updatePreferenceSummary(Preference pref) {
+    if (pref instanceof ListPreference) {
+      final ListPreference list = (ListPreference) pref;
+      list.setSummary(list.getEntry());
+    }
   }
 }
