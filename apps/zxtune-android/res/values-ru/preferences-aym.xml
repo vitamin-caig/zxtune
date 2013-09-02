@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="pref_zxtune_aym_summary">Настройки эмуляции чипа AY-3-8910/YM2149F</string>
     <!-- zxtune.core.aym.clockrate -->
     <string name="pref_zxtune_aym_clockrate_title">Тактовая частота</string>
     <string-array name="pref_zxtune_aym_clockrate_entries">

@@ -14,8 +14,6 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
-import android.preference.PreferenceManager;
-import android.preference.PreferenceScreen;
 
 public class PreferencesActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
@@ -31,6 +29,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnSharedP
     addPreferencesFromResource(R.xml.preferences_aym);
     addPreferencesFromResource(R.xml.preferences_dac);
     addPreferencesFromResource(R.xml.preferences_saa);
+    addPreferencesFromResource(R.xml.preferences_mixer);
     initPreferenceSummary(getPreferenceScreen());
   }
   

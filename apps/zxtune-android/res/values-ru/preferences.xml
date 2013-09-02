@@ -4,6 +4,6 @@
   <string-array name="pref_interpolation_entries">
     <item>Нет</item>
     <item>Быстро</item>
-    <item>Качественно</item>
+    <item>Качественно <b>(высокая нагрузка на процессор)</b></item>
   </string-array>
 </resources>

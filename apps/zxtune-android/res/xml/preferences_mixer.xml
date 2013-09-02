@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+  <!-- 3-channel -->
+  <PreferenceScreen
+    android:title="@string/pref_zxtune_sound_mixer_3_x_x_title"
+    >
+    <!-- A -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_0_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_0_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_0_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_0_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_0_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+    <!-- B -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_1_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_1_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_1_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_1_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_1_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+    <!-- C -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_2_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_2_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_2_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_3_2_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_3_2_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+  </PreferenceScreen>
+  <!-- 4-channel -->
+  <PreferenceScreen
+    android:title="@string/pref_zxtune_sound_mixer_4_x_x_title"
+    >
+    <!-- A -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_0_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_4_0_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_4_0_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_4_0_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_4_0_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+    <!-- B -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_1_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_4_1_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_4_1_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_4_1_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_4_1_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+    <!-- C -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_2_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_4_2_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_4_2_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_4_2_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_4_2_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+    <!-- D -->
+    <PreferenceCategory
+      android:title="@string/pref_zxtune_sound_mixer_x_3_x_title"
+      >
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_4_3_0"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_4_3_0_default"
+        android:max="100"
+      />
+      <app.zxtune.ui.SeekBarPreference
+        android:key="@string/pref_zxtune_sound_mixer_4_3_1"
+        android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+        android:defaultValue="@integer/pref_zxtune_sound_mixer_4_3_1_default"
+        android:max="100"
+      />
+    </PreferenceCategory>
+  </PreferenceScreen>
+</PreferenceScreen>

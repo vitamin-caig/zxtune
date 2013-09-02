@@ -191,8 +191,12 @@ public class MainService extends Service {
       setProperty(name, (String) value, target);
     } else if (value instanceof Long) {
       setProperty(name, (Long) value, target);
+    } else if (value instanceof Integer) {
+      setProperty(name, ((Integer) value).longValue(), target);
     } else if (value instanceof Boolean) {
       setProperty(name, (Boolean) value ? 1 : 0, target);
+    } else {
+      throw new RuntimeException("Unknown type of property: " + value.getClass().getName());
     }
   }
   

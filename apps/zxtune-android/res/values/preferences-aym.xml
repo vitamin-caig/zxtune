@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="pref_zxtune_aym_title">AY/YM</string>
-  <string name="pref_zxtune_aym_summary">AY-3-8910/YM2149F chip emulation properties</string>
+  <string name="pref_zxtune_aym_title">AY-3-8910/YM2149F</string>
   <!-- zxtune.core.aym.clockrate -->
   <string name="pref_zxtune_aym_clockrate">zxtune.core.aym.clockrate</string>
   <string name="pref_zxtune_aym_clockrate_title">Clockrate</string>

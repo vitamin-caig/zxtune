@@ -2,7 +2,6 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
   <PreferenceScreen
     android:title="@string/pref_zxtune_aym_title"
-    android:summary="@string/pref_zxtune_aym_summary"
     >
     <ListPreference
       android:key="@string/pref_zxtune_aym_clockrate"
