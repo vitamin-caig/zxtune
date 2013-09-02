@@ -7,6 +7,7 @@
 package app.zxtune.ui;
 
 import android.content.res.Resources;
+import android.net.Uri;
 import android.text.Html;
 import android.text.TextUtils;
 import android.view.View;
@@ -45,7 +46,7 @@ class InformationView {
     final StringBuilder builder = new StringBuilder();
     addNonEmptyField(builder, titleField, item.getTitle());
     addNonEmptyField(builder, authorField, item.getAuthor());
-    addFallbackField(builder, locationField, item.getDataId().toString());
+    addFallbackField(builder, locationField, Uri.decode(item.getDataId().toString()));
     addNonEmptyField(builder, programField, item.getProgram());
     addNonEmptyField(builder, commentField, item.getComment());
     final CharSequence styledVal = Html.fromHtml(builder.toString());
