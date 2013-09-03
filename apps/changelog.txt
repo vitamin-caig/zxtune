@@ -7,6 +7,14 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] zxtune-android: using ActionBar for all platform versions
+[+] zxtune-android: preferences for AY/YM,SAA,DAC, mixer and headset control
+[*] zxtune-android: fixed processing and displaying paths with escaped characters
+[*] zxtune-android: shutdown all components on quit
+[*] zxtune-android: exclusive control from headset buttons if enabled
+
+--- Rev2585 from 19.08.2013
+
 [*] Fixes in MegaLZ and TF0/TFM decoding
 [+] zxtune-qt: automatic update check
 [+] zxtune-android: support control from media buttons
