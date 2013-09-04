@@ -10,6 +10,11 @@ package app.zxtune.ui;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -22,7 +27,7 @@ import app.zxtune.R;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.Query;
 
-public class PlaylistView extends ListView {
+public class PlaylistView extends ListView implements LoaderManager.LoaderCallbacks<Cursor> {
 
   public interface OnPlayitemClickListener {
 
@@ -55,6 +60,9 @@ public class PlaylistView extends ListView {
     }
   }
 
+  private static final int LOADER_ID = PlaylistView.class.hashCode();
+  private static final String LOADER_PARAM_POS = "pos";
+  
   private PlayitemStateSource state;
   private OnPlayitemClickListener listener;
 
@@ -78,19 +86,49 @@ public class PlaylistView extends ListView {
     super.setLongClickable(true);
     super.setOnItemClickListener(new OnPlaylistItemClickListener());
     super.setOnItemLongClickListener(new OnPlaylistItemLongClickListener());
+    setAdapter(new PlaylistCursorAdapter(getContext(), null, 0));
   }
 
-  public void setOnPlayitemClickListener(OnPlayitemClickListener listener) {
+  public final void setOnPlayitemClickListener(OnPlayitemClickListener listener) {
     this.listener = null != listener ? listener : new StubOnPlayitemClickListener();
   }
 
-  public void setPlayitemStateSource(PlayitemStateSource source) {
+  public final void setPlayitemStateSource(PlayitemStateSource source) {
     this.state = null != source ? source : new StubPlayitemStateSource();
   }
+  
+  public final void load(LoaderManager manager) {
+    manager.initLoader(LOADER_ID, null, this);
+  }
 
-  public void setData(Cursor cursor) {
-    final CursorAdapter adapter = new PlaylistCursorAdapter(getContext(), cursor, true);
-    this.setAdapter(adapter);
+  @Override
+  public Loader<Cursor> onCreateLoader(int id, Bundle params) {
+    assert id == LOADER_ID;
+    getCursorAdapter().changeCursor(null);
+    return new CursorLoader(getContext(), Query.unparse(null), null, null, null, null);
+  }
+
+  @Override
+  public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+    getCursorAdapter().changeCursor(cursor);
+    final Object tag = getTag();
+    if (tag != null) {
+      if (tag instanceof Integer) {
+        setSelection((Integer) tag);
+      } else {
+        onRestoreInstanceState((Parcelable) tag);
+      }
+      setTag(null);
+    }
+  }
+
+  @Override
+  public void onLoaderReset(Loader<Cursor> loader) {
+    getCursorAdapter().changeCursor(null);
+  }
+  
+  private CursorAdapter getCursorAdapter() {
+    return (CursorAdapter)getAdapter();
   }
 
   private class OnPlaylistItemClickListener implements AdapterView.OnItemClickListener {

@@ -11,9 +11,9 @@
 package app.zxtune.ui;
 
 import android.app.Activity;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -27,8 +27,6 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.PlaylistControl;
-import app.zxtune.playlist.Query;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
@@ -47,6 +45,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   @Override
   public void onAttach(Activity activity) {
     super.onAttach(activity);
+    
     state = new PlaylistState(PreferenceManager.getDefaultSharedPreferences(activity));
   }
   
@@ -58,9 +57,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   @Override
   public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
-    final Activity activity = getActivity();
-    final Cursor cursor = activity.getContentResolver().query(Query.unparse(null), null, null, null, null);
-    activity.startManagingCursor(cursor);
+
     listing = (PlaylistView) view.findViewById(R.id.playlist_content);
     listing.setOnPlayitemClickListener(new ItemClickListener());
     listing.setPlayitemStateSource(new PlaylistView.PlayitemStateSource() {
@@ -69,28 +66,40 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         return isPlaying && 0 == playlistUri.compareTo(nowPlaying);
       }
     });
-    listing.setData(cursor);
     listing.setEmptyView(view.findViewById(R.id.playlist_stub));
-    
     bindViewToConnectedService();
   }
+  
+  @Override
+  public void onViewStateRestored (Bundle savedInstanceState) {
+    super.onViewStateRestored(savedInstanceState);
+
+    if (savedInstanceState != null) {
+      Log.d(TAG, "Loading operational state");
+      final Parcelable state = savedInstanceState.getParcelable(listing.getClass().getName());
+      listing.setTag(state);
+    } else {
+      Log.d(TAG, "Loading persistent state");
+      listing.setTag(Integer.valueOf(state.getCurrentViewPosition()));
+    }
+    listing.load(getLoaderManager());
+  }
 
   @Override
-  public void onStart() {
-    super.onStart();
-    listing.setSelection(state.getCurrentViewPosition());
+  public void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+
+    Log.d(TAG, "Saving operational state");
+    final Parcelable state = listing.onSaveInstanceState();
+    outState.putParcelable(listing.getClass().getName(), state);
   }
   
   @Override
-  public void onStop() {
-    super.onStop();
+  public synchronized void onDestroyView() {
+    super.onDestroyView();
+
+    Log.d(TAG, "Saving persistent state");
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
-  }
-  
-  @Override
-  public synchronized void onDestroy() {
-    super.onDestroy();
-
     unbindFromService();
   }
   
