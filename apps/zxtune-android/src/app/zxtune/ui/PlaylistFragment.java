@@ -27,6 +27,7 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playlist.Query;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -130,7 +131,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   
     @Override
     public boolean onPlayitemLongClick(Uri playlistUri) {
-      getActivity().getContentResolver().delete(playlistUri, null, null);
+      service.getPlaylistControl().delete(playlistUri);
       return true;
     }
   }

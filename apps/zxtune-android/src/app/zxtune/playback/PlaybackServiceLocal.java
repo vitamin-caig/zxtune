@@ -26,11 +26,19 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   private final Context context;
   private final CompositeCallback callbacks;
+  private final PlaylistControl playlist;
+  private final PlaybackControl playback;
+  private final SeekControl seek;
+  private final Visualizer visualizer;
   private Holder holder;
 
   public PlaybackServiceLocal(Context context) {
     this.context = context;
     this.callbacks = new CompositeCallback();
+    this.playlist = new DispatchedPlaylistControl();
+    this.playback = new DispatchedPlaybackControl();
+    this.seek = new DispatchedSeekControl();
+    this.visualizer = new DispatchedVisualizer();
     this.holder = new Holder();
   }
 
@@ -53,20 +61,25 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     final PlayerEventsListener events = new PlaybackEvents(callbacks, new DispatchedPlaybackControl());
     setNewHolder(new Holder(iter, events));
   }
+  
+  @Override
+  public PlaylistControl getPlaylistControl() {
+    return playlist;
+  }
 
   @Override
   public PlaybackControl getPlaybackControl() {
-    return new DispatchedPlaybackControl();
+    return playback;
   }
 
   @Override
   public SeekControl getSeekControl() {
-    return new DispatchedSeekControl();
+    return seek;
   }
 
   @Override
   public Visualizer getVisualizer() {
-    return new DispatchedVisualizer();
+    return visualizer;
   }
 
   @Override
@@ -134,6 +147,33 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     public void release() {
       player.release();
       item.release();
+    }
+  }
+  
+  private final class DispatchedPlaylistControl implements PlaylistControl {
+
+    @Override
+    public void add(Uri uri) {
+      try {
+        final FileIterator iter = new FileIterator(context, uri);
+        do {
+          final PlayableItem item = iter.getItem();
+          try {
+            final app.zxtune.playlist.Item listItem =
+                new app.zxtune.playlist.Item(uri, item.getModule());
+            context.getContentResolver().insert(app.zxtune.playlist.Query.unparse(null), listItem.toContentValues());
+          } finally {
+            item.release();
+          }
+        } while (iter.next());
+      } catch (Error e) {
+        Log.w(TAG, "addToPlaylist()", e);
+      }
+    }
+
+    @Override
+    public void delete(Uri uri) {
+      context.getContentResolver().delete(uri, null, null);
     }
   }
   

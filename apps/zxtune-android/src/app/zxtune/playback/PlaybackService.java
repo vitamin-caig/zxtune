@@ -14,6 +14,8 @@ public interface PlaybackService {
   
   public void setNowPlaying(Uri uri);
   
+  public PlaylistControl getPlaylistControl();
+  
   public PlaybackControl getPlaybackControl();
   
   public SeekControl getSeekControl();

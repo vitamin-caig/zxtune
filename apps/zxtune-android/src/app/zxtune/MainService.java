@@ -20,11 +20,9 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import app.zxtune.playback.FileIterator;
-import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackServiceLocal;
-import app.zxtune.playlist.Query;
+import app.zxtune.playback.PlaylistControl;
 import app.zxtune.rpc.PlaybackServiceServer;
 import app.zxtune.ui.StatusNotification;
 
@@ -107,30 +105,13 @@ public class MainService extends Service {
   }
 
   private final void startAction(String action, Uri uri) {
+    final PlaylistControl playlist = service.getPlaylistControl();
     if (action.equals(Intent.ACTION_VIEW)) {
       Log.d(TAG, "Playing module " + uri);
       service.setNowPlaying(uri);
     } else if (action.equals(Intent.ACTION_INSERT)) {
       Log.d(TAG, "Adding to playlist all modules from " + uri);
-      addModuleToPlaylist(uri);
-    }
-  }
-
-  private void addModuleToPlaylist(Uri uri) {
-    try {
-      final FileIterator iter = new FileIterator(getApplicationContext(), uri);
-      do {
-        final PlayableItem item = iter.getItem();
-        try {
-          final app.zxtune.playlist.Item listItem =
-              new app.zxtune.playlist.Item(uri, item.getModule());
-          getContentResolver().insert(Query.unparse(null), listItem.toContentValues());
-        } finally {
-          item.release();
-        }
-      } while (iter.next());
-    } catch (Error e) {
-      Log.w(TAG, "addModuleToPlaylist()", e);
+      playlist.add(uri);
     }
   }
 

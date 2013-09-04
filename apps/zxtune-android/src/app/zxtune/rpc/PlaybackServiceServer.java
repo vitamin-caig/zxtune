@@ -18,20 +18,23 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
 
 public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
 
   private final PlaybackService delegate;
-  private final PlaybackControl control;
+  private final PlaylistControl playlist;
+  private final PlaybackControl playback;
   private final SeekControl seek;
   private final Visualizer visualizer;
   private final HashMap<IRemoteCallback, Callback> callbacks;
 
   public PlaybackServiceServer(PlaybackService delegate) {
     this.delegate = delegate;
-    this.control = delegate.getPlaybackControl();
+    this.playlist = delegate.getPlaylistControl();
+    this.playback = delegate.getPlaybackControl();
     this.seek = delegate.getSeekControl();
     this.visualizer = delegate.getVisualizer();
     this.callbacks = new HashMap<IRemoteCallback, Callback>();
@@ -46,30 +49,40 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   public void setNowPlaying(Uri uri) {
     delegate.setNowPlaying(uri);
   }
+  
+  @Override
+  public void add(Uri uri) {
+    playlist.add(uri);
+  }
+  
+  @Override
+  public void delete(Uri uri) {
+    playlist.delete(uri);
+  }
 
   @Override
   public void play() {
-    control.play();
+    playback.play();
   }
   
   @Override
   public void stop() {
-    control.stop();
+    playback.stop();
   }
   
   @Override
   public boolean isPlaying() {
-    return control.isPlaying();
+    return playback.isPlaying();
   }
     
   @Override
   public void next() {
-    control.next();
+    playback.next();
   }
   
   @Override
   public void prev() {
-    control.prev();
+    playback.prev();
   }
   
   @Override

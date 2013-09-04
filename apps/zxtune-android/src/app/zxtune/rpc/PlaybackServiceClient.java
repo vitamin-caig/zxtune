@@ -19,6 +19,7 @@ import app.zxtune.playback.Item;
 import app.zxtune.playback.ItemStub;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.Visualizer;
 
@@ -27,6 +28,7 @@ public final class PlaybackServiceClient implements PlaybackService {
   private static final String TAG = PlaybackServiceClient.class.getName();
   
   private final IRemotePlaybackService delegate;
+  private final PlaylistControl playlist;
   private final PlaybackControl playback;
   private final SeekControl seek;
   private final Visualizer visualizer;
@@ -35,6 +37,7 @@ public final class PlaybackServiceClient implements PlaybackService {
 
   public PlaybackServiceClient(IRemotePlaybackService delegate) {
     this.delegate = delegate;
+    this.playlist = new PlaylistControlClient();
     this.playback = new PlaybackControlClient();
     this.seek = new SeekControlClient();
     this.visualizer = new VisualizerClient();
@@ -59,6 +62,11 @@ public final class PlaybackServiceClient implements PlaybackService {
     } catch (RemoteException e) {
       Log.e(TAG, "setNowPlaying()", e);
     }
+  }
+  
+  @Override
+  public PlaylistControl getPlaylistControl() {
+    return playlist;
   }
   
   @Override
@@ -96,6 +104,27 @@ public final class PlaybackServiceClient implements PlaybackService {
       } catch (RemoteException e) {
         Log.e(TAG, "unsubscribe()", e);
         callbacks.add(callback);
+      }
+    }
+  }
+  
+  private class PlaylistControlClient implements PlaylistControl {
+
+    @Override
+    public void add(Uri uri) {
+      try {
+        delegate.add(uri);
+      } catch (RemoteException e) {
+        Log.e(TAG, "add()", e);
+      }
+    }
+
+    @Override
+    public void delete(Uri uri) {
+      try {
+        delegate.delete(uri);
+      } catch (RemoteException e) {
+        Log.e(TAG, "add()", e);
       }
     }
   }
