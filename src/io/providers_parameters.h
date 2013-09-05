@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __IO_PROVIDERS_PARAMETERS_H_DEFINED__
-#define __IO_PROVIDERS_PARAMETERS_H_DEFINED__
+#ifndef IO_PROVIDERS_PARAMETERS_H_DEFINED
+#define IO_PROVIDERS_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -90,4 +90,4 @@ namespace Parameters
     }
   }
 }
-#endif //__IO_PROVIDERS_PARAMETERS_H_DEFINED__
+#endif //IO_PROVIDERS_PARAMETERS_H_DEFINED

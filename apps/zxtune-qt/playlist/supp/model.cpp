@@ -15,13 +15,12 @@ Author:
 #include "model.h"
 #include "storage.h"
 #include "ui/utils.h"
-//common includes
-#include <template_parameters.h>
 //library includes
 #include <async/activity.h>
 #include <core/module_attrs.h>
 #include <debug/log.h>
 #include <math/bitops.h>
+#include <parameters/template.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>

@@ -30,13 +30,13 @@ Author:
 #include <core/plugin_attrs.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
+#include <parameters/merged_accessor.h>
 #include <strings/array.h>
 //std includes
 #include <iomanip>
 #include <iostream>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/unordered_set.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>

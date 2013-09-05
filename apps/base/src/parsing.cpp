@@ -13,6 +13,9 @@ Author:
 #include <apps/base/parsing.h>
 //common includes
 #include <error_tools.h>
+//library includes
+#include <parameters/serialize.h>
+#include <strings/map.h>
 //std includes
 #include <cctype>
 #include <fstream>
@@ -217,6 +220,6 @@ Error ParseParametersString(const Parameters::NameType& pfx, const String& str, 
   {
     return err;
   }
-  Parameters::ParseStringMap(strMap, result);
+  Parameters::Convert(strMap, result);
   return Error();
 }

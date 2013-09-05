@@ -15,8 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_UI_MIXER_H_DEFINED
 #define ZXTUNE_QT_UI_MIXER_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/container.h>
 //qt includes
 #include <QtGui/QWidget>
 

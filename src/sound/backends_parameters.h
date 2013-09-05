@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __SOUND_BACKENDS_PARAMETERS_H_DEFINED__
-#define __SOUND_BACKENDS_PARAMETERS_H_DEFINED__
+#ifndef SOUND_BACKENDS_PARAMETERS_H_DEFINED
+#define SOUND_BACKENDS_PARAMETERS_H_DEFINED_
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -235,4 +235,4 @@ namespace Parameters
     }
   }
 }
-#endif //__SOUND_BACKENDS_PARAMETERS_H_DEFINED__
+#endif //SOUND_BACKENDS_PARAMETERS_H_DEFINED

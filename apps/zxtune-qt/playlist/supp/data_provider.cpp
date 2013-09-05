@@ -20,7 +20,6 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <template_parameters.h>
 //library includes
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
@@ -29,6 +28,9 @@ Author:
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <io/api.h>
+#include <parameters/merged_accessor.h>
+#include <parameters/template.h>
+#include <parameters/tracking.h>
 #include <sound/sound_parameters.h>
 #include <strings/format.h>
 #include <strings/template.h>

@@ -10,6 +10,7 @@ Author:
 */
 
 //library includes
+#include <parameters/accessor.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
 //boost includes

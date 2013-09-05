@@ -20,6 +20,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <debug/log.h>
+#include <parameters/convert.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>

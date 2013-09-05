@@ -17,6 +17,8 @@ Author:
 //common includes
 #include <contract.h>
 #include <tools.h>
+//library includes
+#include <parameters/convert.h>
 //std includes
 #include <set>
 //boost includes
@@ -30,7 +32,7 @@ namespace
 {
   using namespace Parameters;
 
- const QLatin1Char PATH_SEPARATOR('/');
+  const QLatin1Char PATH_SEPARATOR('/');
 
   class SettingsContainer : public Container
   {

@@ -21,6 +21,8 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 #include <debug/log.h>
+#include <parameters/convert.h>
+#include <parameters/serialize.h>
 //std includes
 #include <cctype>
 #include <set>
@@ -306,7 +308,7 @@ namespace
         Dbg("  parsing extended property %1%='%2%'",
           propNameStr, propValStr);
       }
-      Parameters::ParseStringMap(strings, props);
+      Parameters::Convert(strings, props);
     }
 
     bool CheckForZXTuneExtension()

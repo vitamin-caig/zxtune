@@ -14,7 +14,8 @@ Author:
 #define PROPERTIES_H_DEFINED
 
 //common includes
-#include <parameters.h>
+#include <parameters/accessor.h>
+#include <parameters/modifier.h>
 //platform includes
 #include <jni.h>
 

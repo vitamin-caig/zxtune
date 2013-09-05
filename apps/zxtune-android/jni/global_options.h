@@ -13,8 +13,8 @@ Author:
 #ifndef GLOBAL_OPTIONS_H_DEFINED
 #define GLOBAL_OPTIONS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/container.h>
 
 namespace Parameters
 {

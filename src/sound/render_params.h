@@ -11,9 +11,8 @@
 #ifndef RENDER_PARAMS_H_DEFINED
 #define RENDER_PARAMS_H_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
+#include <parameters/accessor.h>
 #include <time/stamp.h>
 
 namespace Sound

@@ -20,6 +20,7 @@ Author:
 #include <error.h>
 #include <tools.h>
 //library includes
+#include <parameters/merged_accessor.h>
 #include <sound/backend.h>
 //boost inlcudes
 #include <boost/bind.hpp>

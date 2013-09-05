@@ -18,8 +18,11 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 #include <devices/details/parameters_helper.h>
+#include <parameters/merged_accessor.h>
+#include <parameters/visitor.h>
 #include <sound/mixer_factory.h>
 //std includes
+#include <map>
 #include <set>
 //boost includes
 #include <boost/make_shared.hpp>

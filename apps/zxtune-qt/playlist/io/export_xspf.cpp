@@ -22,7 +22,7 @@ Author:
 #include <core/module_attrs.h>
 #include <debug/log.h>
 #include <sound/sound_parameters.h>
-#include <io/text/io.h>
+#include <parameters/convert.h>
 #include <core/plugins/containers/zdata_supp.h>
 //std includes
 #include <set>

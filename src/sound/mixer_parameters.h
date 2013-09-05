@@ -12,7 +12,7 @@
 #define MIXER_PARAMETERS_H_DEFINED
 
 //common includes
-#include <parameters.h>
+#include <parameters/types.h>
 
 namespace Parameters
 {

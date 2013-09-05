@@ -16,12 +16,12 @@ Author:
 #include "storage.h"
 //common includes
 #include <error_tools.h>
-#include <template_parameters.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <core/convert_parameters.h>
 #include <io/api.h>
 #include <io/template.h>
+#include <parameters/template.h>
 //std includes
 #include <numeric>
 //boost includes

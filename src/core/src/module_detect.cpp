@@ -19,6 +19,8 @@ Author:
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
+#include <parameters/merged_accessor.h>
+#include <parameters/container.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes

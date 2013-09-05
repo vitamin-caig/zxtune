@@ -15,9 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_UI_FACTORY_H_DEFINED
 #define ZXTUNE_QT_UI_FACTORY_H_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
+#include <parameters/container.h>
 #include <strings/array.h>
 //qt includes
 #include <QtCore/QPointer>

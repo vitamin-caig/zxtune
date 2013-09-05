@@ -17,7 +17,7 @@ Author:
 
 //common includes
 #include <types.h>
-#include <parameters.h>
+#include <parameters/container.h>
 //qt includes
 #include <QtGui/QWidget>
 

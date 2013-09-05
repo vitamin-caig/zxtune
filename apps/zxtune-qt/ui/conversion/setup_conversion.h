@@ -15,8 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_UI_SETUP_CONVERSION_H_DEFINED
 #define ZXTUNE_QT_UI_SETUP_CONVERSION_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/accessor.h>
 //qt includes
 #include <QtGui/QDialog>
 

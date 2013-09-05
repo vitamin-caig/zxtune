@@ -21,6 +21,7 @@ Author:
 #include <contract.h>
 //library includes
 #include <core/core_parameters.h>
+#include <parameters/merged_accessor.h>
 #include <sound/sound_parameters.h>
 
 namespace

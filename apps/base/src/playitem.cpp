@@ -14,6 +14,7 @@ Author:
 //library includes
 #include <core/module_attrs.h>
 #include <io/api.h>
+#include <parameters/visitor.h>
 //common includes
 #include <error_tools.h>
 //boost includes

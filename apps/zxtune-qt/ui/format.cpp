@@ -11,11 +11,10 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
-//common includes
-#include <template_parameters.h>
 //library includes
 #include <core/module_attrs.h>
 #include <core/module_types.h>
+#include <parameters/template.h>
 #include <strings/template.h>
 
 String GetModuleTitle(const String& format, const Parameters::Accessor& props)

@@ -18,8 +18,8 @@ Author:
 //local includes
 #include "playlist/supp/controller.h"
 #include "playlist/supp/data.h"
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/container.h>
 //qt includes
 #include <QtGui/QWidget>
 

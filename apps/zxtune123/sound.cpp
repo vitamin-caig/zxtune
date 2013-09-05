@@ -22,6 +22,8 @@ Author:
 #include <core/core_parameters.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <parameters/merged_accessor.h>
+#include <parameters/serialize.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -84,7 +86,7 @@ namespace
         boost::bind(&String::empty, boost::bind(&Strings::Map::value_type::second, _1)));
       if (!optimized.empty())
       {
-        Parameters::ParseStringMap(optimized, *Params);
+        Parameters::Convert(optimized, *Params);
       }
     }
 

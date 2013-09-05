@@ -18,8 +18,8 @@ Author:
 //local includes
 #include "container.h"
 #include "playlist/supp/data_provider.h"
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/accessor.h>
 
 namespace Playlist
 {

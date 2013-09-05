@@ -11,12 +11,11 @@
 #ifndef CORE_MODULE_DETECT_H_DEFINED
 #define CORE_MODULE_DETECT_H_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
 #include <binary/container.h>
 #include <core/data_location.h>
 #include <core/module_holder.h>//for Module::Holder::Ptr
+#include <parameters/accessor.h>
 
 //forward declarations
 namespace Log

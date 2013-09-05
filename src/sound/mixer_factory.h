@@ -11,9 +11,8 @@
 #ifndef SOUND_MIXER_FACTORY_H_DEFINED
 #define SOUND_MIXER_FACTORY_H_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
+#include <parameters/accessor.h>
 #include <sound/matrix_mixer.h>
 
 namespace Sound

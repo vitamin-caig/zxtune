@@ -13,10 +13,9 @@ Author:
 #ifndef CORE_PLUGINS_PLAYERS_SAA_PARAMETERS_DEFINED
 #define CORE_PLUGINS_PLAYERS_SAA_PARAMETERS_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
 #include <devices/saa.h>
+#include <parameters/accessor.h>
 
 namespace Module
 {

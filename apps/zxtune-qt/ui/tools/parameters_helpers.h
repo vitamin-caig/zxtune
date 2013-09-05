@@ -15,8 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_PARAMETERS_HELPERS_H_DEFINED
 #define ZXTUNE_QT_PARAMETERS_HELPERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/container.h>
 //qt includes
 #include <QtCore/QObject>
 

@@ -12,7 +12,6 @@ Author:
 //local includes
 #include <apps/version/api.h>
 //common includes
-#include <parameters.h>
 #include <progress_callback.h>
 //library includes
 #include <analysis/path.h>
@@ -24,6 +23,7 @@ Author:
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <io/impl/boost_filesystem_path.h>
+#include <parameters/container.h>
 #include <strings/array.h>
 #include <strings/fields.h>
 #include <strings/format.h>

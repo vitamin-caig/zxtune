@@ -23,7 +23,6 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <template_parameters.h>
 //library includes
 #include <async/data_receiver.h>
 #include <async/src/event.h>
@@ -35,6 +34,8 @@ Author:
 #include <core/conversion/api.h>
 #include <io/api.h>
 #include <io/template.h>
+#include <parameters/merged_accessor.h>
+#include <parameters/template.h>
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
 //std includes

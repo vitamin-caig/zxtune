@@ -1,6 +1,6 @@
 /**
 *
-* @file     template_parameters.h
+* @file     parameterstemplate/.h
 * @brief    Strings::Template adapter for Parameters interface
 * @version  $Id$
 * @author   (C) Vitamin/CAIG/2001
@@ -8,12 +8,12 @@
 **/
 
 #pragma once
-#ifndef __TEMPLATE_PARAMETERS_ADAPTER_H_DEFINED__
-#define __TEMPLATE_PARAMETERS_ADAPTER_H_DEFINED__
+#ifndef PARAMETERS_TEMPLATE_H_DEFINED
+#define PARAMETERS_TEMPLATE_H_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
+#include <parameters/accessor.h>
+#include <parameters/convert.h>
 #include <strings/fields.h>
 
 namespace Parameters
@@ -47,4 +47,4 @@ namespace Parameters
   };
 }
 
-#endif //__TEMPLATE_PARAMETERS_ADAPTER_H_DEFINED__
+#endif //PARAMETERS_TEMPLATE_H_DEFINED

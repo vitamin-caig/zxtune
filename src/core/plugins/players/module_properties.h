@@ -15,11 +15,10 @@ Author:
 
 //local includes
 #include "core/src/location.h"
-//common includes
-#include <parameters.h>
 //library includes
 #include <formats/chiptune.h>
 #include <formats/chiptune/builder_meta.h>
+#include <parameters/container.h>
 
 namespace Module
 {

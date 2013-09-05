@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __CORE_PARAMETERS_H_DEFINED__
-#define __CORE_PARAMETERS_H_DEFINED__
+#ifndef CORE_PARAMETERS_H_DEFINED
+#define CORE_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -150,4 +150,4 @@ namespace Parameters
   }
 }
 
-#endif //__CORE_PARAMETERS_H_DEFINED__
+#endif //CORE_PARAMETERS_H_DEFINED

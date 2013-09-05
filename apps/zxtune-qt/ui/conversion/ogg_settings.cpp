@@ -20,6 +20,7 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
+#include <parameters/tools.h>
 #include <sound/backends_parameters.h>
 
 namespace

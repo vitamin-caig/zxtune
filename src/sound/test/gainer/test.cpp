@@ -1,7 +1,8 @@
 #include <tools.h>
 #include <error_tools.h>
 #include <math/numeric.h>
-#include <src/sound/gainer.h>
+#include <sound/gainer.h>
+#include <sound/chunk_builder.h>
 
 #include <iostream>
 #include <iomanip>
@@ -12,19 +13,19 @@ namespace Sound
 {
   const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;//0.5%
   
-  const double GAINS[] = {
-    0.0f,
-    1.0f,
-    0.5f,
-    0.1f,
-    0.9f
+  const Gain::Type GAINS[] = {
+    Gain::Type(0),
+    Gain::Type(1),
+    Gain::Type(1, 2),
+    Gain::Type(1, 10),
+    Gain::Type(9, 10)
   };
   
   const String GAIN_NAMES[] = {
     "empty", "full", "middle", "-10dB", "-0.45dB"
   };
   
-  const double INVALID_GAIN = 2.0f;
+  const Gain::Type INVALID_GAIN(2, 1);
 
   const Sample::Type INPUTS[] = {
     Sample::MIN,
@@ -75,9 +76,9 @@ namespace Sound
     {
     }
     
-    virtual void ApplyData(const Sample& data)
+    virtual void ApplyData(const Chunk::Ptr& data)
     {
-      if (Check(data.Left(), ToCompare.Left()) && Check(data.Right(), ToCompare.Right()))
+      if (Check(data->front().Left(), ToCompare.Left()) && Check(data->front().Right(), ToCompare.Right()))
       {
         std::cout << "passed\n";
       }
@@ -85,7 +86,7 @@ namespace Sound
       {
         std::cout << "failed\n";
         throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
-          data.Left(), data.Right(), ToCompare.Left(), ToCompare.Right());
+          data->front().Left(), data->front().Right(), ToCompare.Left(), ToCompare.Right());
       }
     }
     
@@ -143,8 +144,10 @@ int main()
       {
         std::cout << "Checking for " << INPUT_NAMES[input] << " input: ";
         tgt->SetData(*result);
-        const Sample in(INPUTS[input], INPUTS[input]);
-        gainer->ApplyData(in);
+        ChunkBuilder builder;
+        builder.Reserve(1);
+        builder.Add(Sample(INPUTS[input], INPUTS[input]));
+        gainer->ApplyData(builder.GetResult());
       }
     }
     std::cout << " Succeed!" << std::endl;

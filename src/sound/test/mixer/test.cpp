@@ -101,51 +101,32 @@ namespace Sound
     return e;
   }
 
-  class Target : public Receiver
+  bool Check(Sample::Type data, Sample::Type ref)
   {
-  public:
-    virtual void ApplyData(const Sample& data)
+    return Math::Absolute(int_t(data) - ref) <= THRESHOLD;
+  }
+
+  void Check(const Sample& data, const Sample& ref)
+  {
+    if (Check(data.Left(), ref.Left()) && Check(data.Right(), ref.Right()))
     {
-      if (Check(data.Left(), ToCompare.Left()) && Check(data.Right(), ToCompare.Right()))
-      {
-        std::cout << " passed\n";
-      }
-      else
-      {
-        std::cout << " failed\n";
-        throw MakeFormattedError(THIS_LINE, "Value=<%1%,%2%> while expected=<%3%,%4%>",
-          data.Left(), data.Right(), ToCompare.Left(), ToCompare.Right());
-      }
+      std::cout << " passed\n";
     }
-    
-    virtual void Flush()
+    else
     {
+      std::cout << " failed\n";
+      throw MakeFormattedError(THIS_LINE, "Value=<%1%,%2%> while expected=<%3%,%4%>",
+        data.Left(), data.Right(), ref.Left(), ref.Right());
     }
-    
-    void SetData(const Sample& tc)
-    {
-      ToCompare = tc;
-    }
-  private:
-    static bool Check(Sample::Type data, Sample::Type ref)
-    {
-      return Math::Absolute(int_t(data) - ref) <= THRESHOLD;
-    }
-  private:
-    Sample ToCompare;
-  };
+  }
 
   template<unsigned Channels>
   void TestMixer()
   {
     std::cout << "**** Testing for " << Channels << " channels ****\n";
-    Target* tgt = 0;
-    Receiver::Ptr receiver(tgt = new Target);
-  
+ 
     const typename FixedChannelsMatrixMixer<Channels>::Ptr mixer = FixedChannelsMatrixMixer<Channels>::Create();
     
-    mixer->SetTarget(receiver);
-  
     std::cout << "--- Test for invalid matrix---\n";
     try
     {
@@ -173,9 +154,8 @@ namespace Sound
       mixer->SetMatrix(MakeMatrix<Channels>(GAINS[matrix]));
       for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
       {
-        tgt->SetData(*result);
         std::cout << "Checking for " << INPUT_NAMES[input] << " input: ";
-        mixer->ApplyData(MakeSample<MultichannelSample<Channels> >(INPUTS[input]));
+        Check(mixer->ApplyData(MakeSample<MultichannelSample<Channels> >(INPUTS[input])), *result);
       }
     }
     std::cout << "Parameters:" << std::endl;

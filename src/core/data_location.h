@@ -13,11 +13,10 @@ Author:
 #ifndef CORE_DATA_LOCATION_H_DEFINED
 #define CORE_DATA_LOCATION_H_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
 #include <analysis/path.h>
 #include <binary/container.h>
+#include <parameters/accessor.h>
 
 namespace ZXTune
 {

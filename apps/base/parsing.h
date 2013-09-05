@@ -15,7 +15,8 @@ Author:
 
 //common includes
 #include <error.h>
-#include <parameters.h>
+//library includes
+#include <parameters/modifier.h>
 
 Error ParseConfigFile(const String& filename, Parameters::Modifier& result);
 //result will be overwritten

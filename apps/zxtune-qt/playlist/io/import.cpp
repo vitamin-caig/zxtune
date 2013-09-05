@@ -15,8 +15,6 @@ Author:
 #include "import.h"
 #include "container_impl.h"
 #include "ui/utils.h"
-//common includes
-#include <parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //qt includes

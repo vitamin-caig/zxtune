@@ -22,6 +22,7 @@ Author:
 #include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
+#include <parameters/accessor.h>
 //std includes
 #include <cstring>
 //boost includes
@@ -363,7 +364,7 @@ namespace IO
       }
     }
 
-    virtual Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback&) const
+    virtual Binary::OutputStream::Ptr Create(const String& /*path*/, const Parameters::Accessor& /*params*/, Log::ProgressCallback& /*cb*/) const
     {
       throw Error(THIS_LINE, translate("Not supported."));
     }

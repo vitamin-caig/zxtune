@@ -24,6 +24,7 @@ Author:
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
 //library includes
+#include <parameters/tools.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/bind.hpp>

@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __CORE_MODULE_TYPES_H_DEFINED__
-#define __CORE_MODULE_TYPES_H_DEFINED__
+#ifndef CORE_MODULE_TYPES_H_DEFINED
+#define CORE_MODULE_TYPES_H_DEFINED_
 
 //common includes
-#include <parameters.h>
+#include <types.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -95,4 +95,4 @@ namespace Module
   };
 }
 
-#endif //__CORE_MODULE_TYPES_H_DEFINED__
+#endif //CORE_MODULE_TYPES_H_DEFINED

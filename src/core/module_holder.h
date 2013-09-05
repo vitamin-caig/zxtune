@@ -14,6 +14,7 @@
 //library includes
 #include "plugins/players/renderer.h"
 #include <binary/data.h>
+#include <parameters/accessor.h>
 #include <sound/receiver.h>
 
 namespace Module

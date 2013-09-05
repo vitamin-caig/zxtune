@@ -17,8 +17,8 @@ Author:
 
 //local includes
 #include "controller.h"
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/accessor.h>
 //qt includes
 #include <QtCore/QObject>
 

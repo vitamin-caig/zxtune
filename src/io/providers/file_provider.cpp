@@ -22,6 +22,7 @@ Author:
 #include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
+#include <parameters/accessor.h>
 //std includes
 #include <cctype>
 //boost includes

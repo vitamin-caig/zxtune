@@ -34,9 +34,9 @@ Author:
 //local includes
 #include <contract.h>
 #include <error.h>
-#include <template_parameters.h>
 //library includes
 #include <debug/log.h>
+#include <parameters/template.h>
 #include <strings/template.h>
 //boost includes
 #include <boost/bind.hpp>

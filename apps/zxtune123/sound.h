@@ -15,9 +15,8 @@ Author:
 #ifndef ZXTUNE123_SOUND_H_DEFINED
 #define ZXTUNE123_SOUND_H_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
+#include <parameters/container.h>
 #include <sound/backend.h>
 #include <time/stamp.h>
 //std includes

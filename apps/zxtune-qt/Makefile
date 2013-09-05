@@ -26,7 +26,7 @@ libraries.common = analysis async binary \
                   devices_aym devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_chiptune formats_packed \
                   io \
-                  platform \
+                  parameters platform \
                   resource \
                   sound sound_backends strings \
                   tools

@@ -25,6 +25,7 @@ Author:
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
+#include <parameters/merged_accessor.h>
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>

@@ -31,6 +31,7 @@ Author:
 #include <error.h>
 //library includes
 #include <core/module_attrs.h>
+#include <parameters/merged_accessor.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>

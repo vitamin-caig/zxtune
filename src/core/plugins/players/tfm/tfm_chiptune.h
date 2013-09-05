@@ -17,6 +17,7 @@ Author:
 #include "core/plugins/players/tracking.h"
 //library includes
 #include <devices/tfm.h>
+#include <parameters/accessor.h>
 
 namespace Module
 {

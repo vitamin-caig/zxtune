@@ -13,7 +13,6 @@ Author:
 #include "file_backend.h"
 //common includes
 #include <progress_callback.h>
-#include <template_parameters.h>
 //library includes
 #include <async/data_receiver.h>
 #include <core/module_attrs.h>
@@ -22,6 +21,8 @@ Author:
 #include <io/providers_parameters.h>
 #include <io/template.h>
 #include <l10n/api.h>
+#include <parameters/convert.h>
+#include <parameters/template.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>

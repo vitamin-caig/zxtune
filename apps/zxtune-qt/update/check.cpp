@@ -22,7 +22,6 @@ Author:
 #include "apps/zxtune-qt/ui/utils.h"
 //common includes
 #include <error.h>
-#include <parameters.h>
 #include <progress_callback.h>
 //library includes
 #include <debug/log.h>

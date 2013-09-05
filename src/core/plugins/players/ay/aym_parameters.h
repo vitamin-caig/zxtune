@@ -13,12 +13,11 @@ Author:
 #ifndef __AYM_PARAMETERS_HELPER_H_DEFINED__
 #define __AYM_PARAMETERS_HELPER_H_DEFINED__
 
-//common includes
-#include <parameters.h>
 //library includes
 #include <core/freq_tables.h>
 #include <core/module_types.h>
 #include <devices/aym/chip.h>
+#include <parameters/accessor.h>
 
 namespace Module
 {

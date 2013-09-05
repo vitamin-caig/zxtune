@@ -16,8 +16,6 @@ Author:
 #include "status_control.ui.h"
 #include "supp/playback_supp.h"
 #include "ui/utils.h"
-//common includes
-#include <parameters.h>
 //library includes
 #include <core/module_attrs.h>
 //qt includes

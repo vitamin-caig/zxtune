@@ -20,7 +20,7 @@ libraries.common = analysis async binary \
                   formats_archived formats_chiptune formats_packed \
                   io \
                   l10n_stub \
-                  platform \
+                  parameters platform \
                   sound sound_backends strings \
                   tools
 libraries.3rdparty = lhasa unrar z80ex zlib

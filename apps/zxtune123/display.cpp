@@ -17,8 +17,8 @@ Author:
 #include <apps/base/app.h>
 //common includes
 #include <error.h>
-#include <template_parameters.h>
 //library includes
+#include <parameters/template.h>
 #include <strings/format.h>
 #include <strings/template.h>
 #include <time/duration.h>

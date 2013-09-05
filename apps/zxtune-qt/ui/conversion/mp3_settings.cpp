@@ -22,6 +22,7 @@ Author:
 #include <tools.h>
 //library includes
 #include <math/numeric.h>
+#include <parameters/tools.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>

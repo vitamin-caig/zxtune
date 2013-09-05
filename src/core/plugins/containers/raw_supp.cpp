@@ -28,6 +28,7 @@ Author:
 #include <time/duration.h>
 //std includes
 #include <list>
+#include <map>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>

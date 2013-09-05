@@ -35,6 +35,13 @@ namespace Sound
   {
     typedef FixedChannelsMatrixMixer<Channels> Base;
   public:
+    Mixer()
+    {
+      const Gain::Type INVALID_GAIN_VALUE(Gain::Type::PRECISION, 1);
+      const Gain INVALID_GAIN(INVALID_GAIN_VALUE, INVALID_GAIN_VALUE);
+      std::fill(LastMatrix.begin(), LastMatrix.end(), INVALID_GAIN);
+    }
+
     virtual Sample ApplyData(const typename Base::InDataType& in) const
     {
       return Core.Mix(in);
