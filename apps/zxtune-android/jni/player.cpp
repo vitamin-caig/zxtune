@@ -17,6 +17,7 @@ Author:
 #include "properties.h"
 #include "zxtune.h"
 //library includes
+#include <parameters/merged_accessor.h>
 #include <sound/mixer_factory.h>
 //std includes
 #include <deque>

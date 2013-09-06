@@ -15,13 +15,12 @@ Author:
 #ifndef ZXTUNE_QT_MAINWINDOW_EMBEDDED_H_DEFINED
 #define ZXTUNE_QT_MAINWINDOW_EMBEDDED_H_DEFINED
 
+//library includes
+#include <parameters/container.h>
+#include <strings/array.h>
 //qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
-//common includes
-#include <parameters.h>
-//library includes
-#include <strings/array.h>
 
 class EmbeddedMainWindow : public QMainWindow
 {

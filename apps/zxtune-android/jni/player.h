@@ -17,6 +17,7 @@ Author:
 #include "storage.h"
 //library includes
 #include <core/module_holder.h>
+#include <parameters/container.h>
 
 namespace Player
 {
