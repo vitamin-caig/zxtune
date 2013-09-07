@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.Comparator;
 
 import android.database.AbstractCursor;
-import android.net.Uri;
 
 class VfsCursor extends AbstractCursor {
   

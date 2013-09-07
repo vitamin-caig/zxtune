@@ -33,19 +33,20 @@
               android:name=".MainService"
               android:process=":service">
         </service>
+        <!--
+          Providers are usually used only in UI.
+          ICS does not support running provider in separate thread:
+          https://groups.google.com/d/msg/android-developers/OGdHjmINxTA/qtYDlWq9TiUJ
+        -->
         <provider
               android:name="app.zxtune.playlist.Provider"
               android:authorities="app.zxtune.playlist"
-              android:exported="false"
-              android:multiprocess="true"
-              android:process=":service">
+              android:exported="false">
         </provider>
         <provider
               android:name="app.zxtune.fs.VfsContentProvider"
               android:authorities="app.zxtune.vfs"
-              android:exported="false"
-              android:multiprocess="true"
-              android:process=":sevice">
+              android:exported="false">
         </provider>
     </application>
 </manifest>

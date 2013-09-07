@@ -61,7 +61,6 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
   }
 
   private static final int LOADER_ID = PlaylistView.class.hashCode();
-  private static final String LOADER_PARAM_POS = "pos";
   
   private PlayitemStateSource state;
   private OnPlayitemClickListener listener;
