@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "backend_impl.h"
-#include "enumerator.h"
+#include "storage.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
@@ -51,10 +51,12 @@ namespace Sound
 {
 namespace Oss
 {
+  const String ID = Text::OSS_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("OSS sound system backend");
+  const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
+
   const uint_t MAX_OSS_VOLUME = 100;
 
-  const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
-  
   class AutoDescriptor : public boost::noncopyable
   {
   public:
@@ -376,45 +378,12 @@ namespace Oss
     const VolumeControl::Ptr VolumeController;
   };
 
-  const String ID = Text::OSS_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("OSS sound system backend");
-
-  class BackendCreator : public Sound::BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAPABILITIES;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new BackendWorker(allParams));
-        return Sound::CreateBackend(params, worker);
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
+      return boost::make_shared<BackendWorker>(params);
     }
   };
 }//Oss
@@ -422,9 +391,9 @@ namespace Oss
 
 namespace Sound
 {
-  void RegisterOssBackend(BackendsEnumerator& enumerator)
+  void RegisterOssBackend(BackendsEnumerator& storage)
   {
-    const BackendCreator::Ptr creator(new Oss::BackendCreator());
-    enumerator.RegisterCreator(creator);
+    const BackendWorkerFactory::Ptr factory = boost::make_shared<Oss::BackendWorkerFactory>(api);
+    storage.Register(Oss::ID, Oss::DESCRIPTION, Oss::CAPABILITIES, factory);
   }
 }

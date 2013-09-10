@@ -1,6 +1,6 @@
 library_name := sound_backends
 path_step := ../../..
-source_files = backend_impl enumerator file_backend scope volume_control
+source_files = backend_impl file_backend service volume_control
 
 text_files := text/backends
 po_files := sound_backends

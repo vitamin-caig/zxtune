@@ -20,7 +20,6 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
-#include <parameters/tools.h>
 #include <sound/backends_parameters.h>
 
 namespace
@@ -46,14 +45,6 @@ namespace
       using namespace Parameters;
       IntegerValue::Bind(*compressionValue, *Options, ZXTune::Sound::Backends::Flac::COMPRESSION,
         ZXTune::Sound::Backends::Flac::COMPRESSION_DEFAULT);
-    }
-
-    virtual Parameters::Container::Ptr GetSettings() const
-    {
-      using namespace Parameters;
-      const Container::Ptr result = Container::Create();
-      CopyExistingValue<IntType>(*Options, *result, ZXTune::Sound::Backends::Flac::COMPRESSION);
-      return result;
     }
 
     virtual String GetBackendId() const

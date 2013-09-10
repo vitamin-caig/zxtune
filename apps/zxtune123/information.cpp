@@ -13,6 +13,7 @@ Author:
 
 //local includes
 #include "information.h"
+#include "sound.h"
 #include <apps/base/app.h>
 //common includes
 #include <tools.h>
@@ -30,6 +31,7 @@ Author:
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/mixer_parameters.h>
+#include <sound/service.h>
 #include <sound/sound_parameters.h>
 #include <strings/format.h>
 //std includes
@@ -132,10 +134,9 @@ namespace
       info.Id(), info.Description(), BackendCaps(info.Capabilities()), status ? status.GetText() : Text::INFO_STATUS_OK);
   }
   
-  inline void ShowBackends()
+  inline void ShowBackends(Sound::BackendInformation::Iterator::Ptr backends)
   {
-    for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends();
-      backends->IsValid(); backends->Next())
+    for (; backends->IsValid(); backends->Next())
     {
       ShowBackend(*backends->Get());
     }
@@ -443,7 +444,7 @@ namespace
       return OptionsDescription;
     }
     
-    virtual bool Process() const
+    virtual bool Process(SoundComponent& sound) const
     {
       if (EnumPlugins)
       {
@@ -451,7 +452,7 @@ namespace
       }
       if (EnumBackends)
       {
-        ShowBackends();
+        ShowBackends(sound.EnumerateBackends());
       }
       if (EnumProviders)
       {

@@ -10,7 +10,7 @@ Author:
 */
 
 //local includes
-#include "enumerator.h"
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
@@ -19,8 +19,8 @@ Author:
 
 namespace Sound
 {
-  void RegisterSdlBackend(BackendsEnumerator& enumerator)
+  void RegisterSdlBackend(BackendsStorage& storage)
   {
-    enumerator.RegisterCreator(CreateDisabledBackendStub(Text::SDL_BACKEND_ID, L10n::translate("SDL support backend"), CAP_TYPE_SYSTEM)); 
+    storage.Register(Text::SDL_BACKEND_ID, L10n::translate("SDL support backend"), CAP_TYPE_SYSTEM); 
   }
 }

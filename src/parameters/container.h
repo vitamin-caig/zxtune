@@ -27,6 +27,7 @@ namespace Parameters
     typedef boost::shared_ptr<Container> Ptr;
 
     static Ptr Create();
+    static Ptr CreateAdapter(Accessor::Ptr accessor, Modifier::Ptr modifier);
   };
 }
 

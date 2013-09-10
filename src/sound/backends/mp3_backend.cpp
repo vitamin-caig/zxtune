@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "mp3_api.h"
-#include "enumerator.h"
+#include "storage.h"
 #include "file_backend.h"
 //common includes
 #include <error_tools.h>
@@ -44,6 +44,9 @@ namespace Sound
 {
 namespace Mp3
 {
+  const String ID = Text::MP3_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("MP3 support backend");
+
   const uint_t BITRATE_MIN = 32;
   const uint_t BITRATE_MAX = 320;
   const uint_t QUALITY_MIN = 0;
@@ -253,9 +256,6 @@ namespace Mp3
     const Parameters::Accessor::Ptr Params;
   };
 
-  const String ID = Text::MP3_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("MP3 support backend");
-
   class FileStreamFactory : public Sound::FileStreamFactory
   {
   public:
@@ -345,69 +345,39 @@ namespace Mp3
     const Parameters::Accessor::Ptr Params;
   };
 
-  class BackendCreator : public Sound::BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    explicit BackendCreator(Api::Ptr api)
-      : LameApi(api)
+    explicit BackendWorkerFactory(Api::Ptr api)
+      : FlacApi(api)
     {
     }
 
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_TYPE_FILE;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(LameApi, allParams);
-        const BackendWorker::Ptr worker = CreateFileBackendWorker(allParams, factory);
-        return Sound::CreateBackend(params, worker);
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
+      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(FlacApi, params);
+      return CreateFileBackendWorker(params, factory);
     }
   private:
-    const Api::Ptr LameApi;
+    const Api::Ptr FlacApi;
   };
 }//Mp3
 }//Sound
 
 namespace Sound
 {
-  void RegisterMp3Backend(BackendsEnumerator& enumerator)
+  void RegisterMp3Backend(BackendsStorage& storage)
   {
     try
     {
       const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
       Dbg("Detected LAME library %1%", api->get_lame_version());
-      const BackendCreator::Ptr creator = boost::make_shared<Mp3::BackendCreator>(api);
-      enumerator.RegisterCreator(creator);
+      const BackendWorkerFactory::Ptr factory = boost::make_shared<Mp3::BackendWorkerFactory>(api);
+      storage.Register(Mp3::ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)
     {
-      enumerator.RegisterCreator(CreateUnavailableBackendStub(Mp3::ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, e));
+      storage.Register(Mp3::ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }

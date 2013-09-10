@@ -15,12 +15,13 @@ Author:
 #include "componentsdialog.h"
 #include "componentsdialog.ui.h"
 #include "ui/utils.h"
+#include "supp/options.h"
 //library includes
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/provider.h>
-#include <sound/backend.h>
 #include <sound/backend_attrs.h>
+#include <sound/service.h>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QDialog>
@@ -360,8 +361,8 @@ namespace
     void FillBackendsTree()
     {
       BackendsTreeHelper tree(*backendsTree);
-
-      for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends(); backends->IsValid(); backends->Next())
+      const Sound::Service::Ptr svc = Sound::CreateGlobalService(GlobalOptions::Instance().Get());
+      for (Sound::BackendInformation::Iterator::Ptr backends = svc->EnumerateBackends(); backends->IsValid(); backends->Next())
       {
         const Sound::BackendInformation::Ptr backend = backends->Get();
         tree.AddBackend(*backend);

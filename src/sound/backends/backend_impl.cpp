@@ -284,17 +284,16 @@ namespace Sound
     }
   };
 
-  BackendCallback::Ptr CreateCallback(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
+  BackendCallback::Ptr CreateCallback(BackendCallback::Ptr callback, BackendWorker::Ptr worker)
   {
-    const BackendCallback::Ptr user = params->GetCallback();
     const BackendCallback::Ptr work = boost::dynamic_pointer_cast<BackendCallback>(worker);
-    if (user && work)
+    if (callback && work)
     {
-      return boost::make_shared<CompositeBackendCallback>(user, work);
+      return boost::make_shared<CompositeBackendCallback>(callback, work);
     }
-    else if (user)
+    else if (callback)
     {
-      return user;
+      return callback;
     }
     else if (work)
     {
@@ -399,13 +398,12 @@ namespace Sound
 
 namespace Sound
 {
-  Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker)
+  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
     worker->Test();
-    const Module::Holder::Ptr holder = params->GetModule();
     const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*worker));
-    const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params->GetParameters(), target);
-    const BackendCallback::Ptr callback = CreateCallback(params, worker);
+    const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params, target);
+    const BackendCallback::Ptr callback = CreateCallback(origCallback, worker);
     const Module::Renderer::Ptr renderer = boost::make_shared<RendererWrapper>(holder, origRenderer, callback);
     const Async::Worker::Ptr asyncWorker = boost::make_shared<AsyncWrapper>(worker, callback, renderer);
     const Async::Job::Ptr job = Async::CreateJob(asyncWorker);

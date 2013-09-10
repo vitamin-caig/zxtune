@@ -21,8 +21,7 @@ Author:
 //common includes
 #include <tools.h>
 //library includes
-#include <sound/backend.h>
-#include <sound/backend_attrs.h>
+#include <sound/service.h>
 //std includes
 #include <functional>
 #include <set>
@@ -36,15 +35,13 @@ namespace
   class FileBackendsSet
   {
   public:
-    FileBackendsSet()
+    explicit FileBackendsSet(Parameters::Accessor::Ptr options)
     {
-      for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends(); backends->IsValid(); backends->Next())
+      const Sound::Service::Ptr service = Sound::CreateFileService(options);
+      for (Sound::BackendInformation::Iterator::Ptr backends = service->EnumerateBackends(); backends->IsValid(); backends->Next())
       {
-        const Sound::BackendCreator::Ptr creator = backends->Get();
-        if (0 != (creator->Capabilities() & Sound::CAP_TYPE_FILE))
-        {
-          Ids.insert(std::make_pair(creator->Id(), creator->Status()));
-        }
+        const Sound::BackendInformation::Ptr info = backends->Get();
+        Ids.insert(std::make_pair(info->Id(), info->Status()));
       }
     }
 
@@ -71,6 +68,7 @@ namespace
     explicit SupportedFormats(QWidget& parent)
       : UI::SupportedFormatsWidget(parent)
       , Options(GlobalOptions::Instance().Get())
+      , Backends(Options)
     {
       //setup self
       setupUi(this);

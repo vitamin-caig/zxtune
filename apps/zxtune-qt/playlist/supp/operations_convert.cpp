@@ -12,7 +12,7 @@ Author:
 */
 
 //local includes
-#include "operations.h"
+#include "operations_convert.h"
 #include "storage.h"
 #include <apps/zxtune-qt/supp/playback_supp.h>
 //common includes
@@ -91,15 +91,16 @@ namespace
     Async::Event<uint_t> Event;
   };
 
+  //TODO: simplify
   class ConvertVisitor : public Playlist::Item::Visitor
   {
   public:
-    ConvertVisitor(uint_t totalItems, Sound::BackendCreator::Ptr creator, Parameters::Accessor::Ptr params, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
+    ConvertVisitor(uint_t totalItems, const String& type, Sound::Service::Ptr service, Log::ProgressCallback& cb, Playlist::Item::ConversionResultNotification::Ptr result)
       : TotalItems(totalItems)
       , DoneItems(0)
       , Callback(cb)
-      , Creator(creator)
-      , BackendParameters(params)
+      , Type(type)
+      , Service(service)
       , Result(result)
     {
     }
@@ -126,9 +127,7 @@ namespace
         const Module::Information::Ptr info = item->GetModuleInformation();
         const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
         ConvertCallback cb(*framesProgress);
-        const Sound::CreateBackendParameters::Ptr params = MakeBackendParameters(BackendParameters, item,
-          Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
-        const Sound::Backend::Ptr backend = Creator->CreateBackend(params);
+        const Sound::Backend::Ptr backend = Service->CreateBackend(Type, item, Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
         const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
         control->Play();
         cb.WaitForFinish();
@@ -145,42 +144,27 @@ namespace
     const uint_t TotalItems;
     uint_t DoneItems;
     Log::ProgressCallback& Callback;
-    const Sound::BackendCreator::Ptr Creator;
-    const Parameters::Accessor::Ptr BackendParameters;
+    const String Type;
+    const Sound::Service::Ptr Service;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
-
-  Sound::BackendCreator::Ptr FindBackendCreator(const String& id)
-  {
-    for (Sound::BackendCreator::Iterator::Ptr backends = Sound::EnumerateBackends(); backends->IsValid(); backends->Next())
-    {
-      const Sound::BackendCreator::Ptr creator = backends->Get();
-      if (creator->Id() == id)
-      {
-        return creator;
-      }
-    }
-    return Sound::BackendCreator::Ptr();
-  }
-
 
   class ConvertOperation : public Playlist::Item::TextResultOperation
   {
   public:
     ConvertOperation(Playlist::Model::IndexSetPtr items,
-      const String& type, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
+      const String& type, Sound::Service::Ptr service, Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems(items)
-      , Creator(FindBackendCreator(type))
-      , Params(params)
+      , Type(type)
+      , Service(service)
       , Result(result)
     {
-      Require(Creator);
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
-      ConvertVisitor visitor(totalItems, Creator, Params, cb, Result);
+      ConvertVisitor visitor(totalItems, Type, Service, cb, Result);
       if (SelectedItems)
       {
         stor.ForSpecifiedItems(*SelectedItems, visitor);
@@ -193,8 +177,8 @@ namespace
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
-    const Sound::BackendCreator::Ptr Creator;
-    const Parameters::Accessor::Ptr Params;
+    const String Type;
+    const Sound::Service::Ptr Service;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 }
@@ -204,9 +188,9 @@ namespace Playlist
   namespace Item
   {
     TextResultOperation::Ptr CreateConvertOperation(Playlist::Model::IndexSetPtr items,
-      const String& type, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
+      const String& type, Sound::Service::Ptr service, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ConvertOperation>(items, type, params, result);
+      return boost::make_shared<ConvertOperation>(items, type, service, result);
     }
   }
 }

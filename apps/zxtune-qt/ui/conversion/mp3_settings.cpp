@@ -22,7 +22,6 @@ Author:
 #include <tools.h>
 //library includes
 #include <math/numeric.h>
-#include <parameters/tools.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -112,16 +111,6 @@ namespace
       {
         selectCBR->setChecked(true);
       }
-    }
-
-    virtual Parameters::Container::Ptr GetSettings() const
-    {
-      using namespace Parameters;
-      const Container::Ptr result = Container::Create();
-      CopyExistingValue<StringType>(*Options, *result, ZXTune::Sound::Backends::Mp3::MODE);
-      CopyExistingValue<IntType>(*Options, *result, ZXTune::Sound::Backends::Mp3::BITRATE);
-      CopyExistingValue<IntType>(*Options, *result, ZXTune::Sound::Backends::Mp3::QUALITY);
-      return result;
     }
 
     virtual String GetBackendId() const

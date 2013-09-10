@@ -27,9 +27,9 @@ Author:
 #include <tools.h>
 //library includes
 #include <math/numeric.h>
-#include <sound/backend.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
+#include <sound/service.h>
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
 //boost includes
@@ -52,14 +52,7 @@ namespace
 
   Strings::Array GetSystemBackends(Parameters::Accessor::Ptr params)
   {
-    Strings::Array result;
-    const Sound::BackendsScope::Ptr scope = Sound::BackendsScope::CreateSystemScope(params);
-    for (Sound::BackendCreator::Iterator::Ptr it = scope->Enumerate(); it->IsValid(); it->Next())
-    {
-      const Sound::BackendCreator::Ptr creator = it->Get();
-      result.push_back(creator->Id());
-    }
-    return result;
+    return Sound::CreateSystemService(params)->GetAvailableBackends();
   }
 
   class SoundOptionsWidget : public UI::SoundSettingsWidget

@@ -13,7 +13,7 @@ Author:
 #include "win32.h"
 #include "win32_api.h"
 #include "backend_impl.h"
-#include "enumerator.h"
+#include "storage.h"
 #include "volume_control.h"
 //common includes
 #include <contract.h>
@@ -49,6 +49,8 @@ namespace Sound
 {
 namespace Win32
 {
+  const String ID = Text::WIN32_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("Win32 sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const uint_t MAX_WIN32_VOLUME = 0xffff;
@@ -502,50 +504,17 @@ namespace Win32
     WaveOutObjects Objects;
   };
 
-  const String ID = Text::WIN32_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("Win32 sound system backend");
-
-  class BackendCreator : public Sound::BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    explicit BackendCreator(Api::Ptr api)
+    explicit BackendWorkerFactory(Api::Ptr api)
       : WinApi(api)
     {
     }
 
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAPABILITIES;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new BackendWorker(WinApi, allParams));
-        return Sound::CreateBackend(params, worker);
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
+      return boost::make_shared<BackendWorker>(WinApi, params);
     }
   private:
     const Api::Ptr WinApi;
@@ -628,15 +597,15 @@ namespace Win32
 
 namespace Sound
 {
-  void RegisterWin32Backend(BackendsEnumerator& enumerator)
+  void RegisterWin32Backend(BackendsStorage& storage)
   {
     try
     {
       const Win32::Api::Ptr api = Win32::LoadDynamicApi();
       if (Win32::DevicesIterator(api).IsValid())
       {
-        const BackendCreator::Ptr creator(new Win32::BackendCreator(api));
-        enumerator.RegisterCreator(creator);
+        const BackendWorkerFactory::Ptr factory = boost::make_shared<Win32::BackendWorkerFactory>(api);
+        storage.Register(Win32::ID, Win32::DESCRIPTION, Win32::CAPABILITIES, factory);
       }
       else
       {
@@ -645,7 +614,7 @@ namespace Sound
     }
     catch (const Error& e)
     {
-      enumerator.RegisterCreator(CreateUnavailableBackendStub(Win32::ID, Win32::DESCRIPTION, Win32::CAPABILITIES, e));
+      storage.Register(Win32::ID, Win32::DESCRIPTION, Win32::CAPABILITIES, e);
     }
   }
 

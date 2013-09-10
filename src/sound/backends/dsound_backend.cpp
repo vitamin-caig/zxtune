@@ -13,7 +13,7 @@ Author:
 #include "dsound.h"
 #include "dsound_api.h"
 #include "backend_impl.h"
-#include "enumerator.h"
+#include "storage.h"
 #include "volume_control.h"
 //common includes
 #include <error_tools.h>
@@ -44,6 +44,8 @@ namespace Sound
 {
 namespace DirectSound
 {
+  const String ID = Text::DSOUND_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("DirectSound support backend.");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const uint_t LATENCY_MIN = 20;
@@ -488,50 +490,17 @@ namespace DirectSound
     DSObjects Objects; 
   };
 
-  const String ID = Text::DSOUND_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("DirectSound support backend.");
-
-  class BackendCreator : public Sound::BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    explicit BackendCreator(Api::Ptr api)
+    explicit BackendWorkerFactory(Api::Ptr api)
       : DsApi(api)
     {
     }
 
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAPABILITIES;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new BackendWorker(DsApi, allParams));
-        return Sound::CreateBackend(params, worker);
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
+      return boost::make_shared<BackendWorker>(DsApi, params);
     }
   private:
     const Api::Ptr DsApi;
@@ -618,15 +587,15 @@ namespace DirectSound
 
 namespace Sound
 {
-  void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
+  void RegisterDirectSoundBackend(BackendsStorage& storage)
   {
     try
     {
       const DirectSound::Api::Ptr api = DirectSound::LoadDynamicApi();
       if (DirectSound::DevicesIterator(api).IsValid())
       {
-        const BackendCreator::Ptr creator(new DirectSound::BackendCreator(api));
-        enumerator.RegisterCreator(creator);
+        const BackendWorkerFactory::Ptr factory = boost::make_shared<DirectSound::BackendWorkerFactory>(api);
+        storage.Register(DirectSound::ID, DirectSound::DESCRIPTION, DirectSound::CAPABILITIES, factory);
       }
       else
       {
@@ -635,7 +604,7 @@ namespace Sound
     }
     catch (const Error& e)
     {
-      enumerator.RegisterCreator(CreateUnavailableBackendStub(DirectSound::ID, DirectSound::DESCRIPTION, DirectSound::CAPABILITIES, e));
+      storage.Register(DirectSound::ID, DirectSound::DESCRIPTION, DirectSound::CAPABILITIES, e);
     }
   }
 

@@ -106,117 +106,117 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Доступ к файлам</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="97"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="98"/>
         <source>Player plugins</source>
         <translation>Поддержка модулей</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="98"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="99"/>
         <source>Container plugins</source>
         <translation>Поддержка контейнеров</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="103"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="104"/>
         <source>Multitrack</source>
         <translation>Многофайловые</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="104"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="105"/>
         <source>Archive</source>
         <translation>Архивные</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="158"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="159"/>
         <source>Conversion targets</source>
         <translation>Поддерживаемые конверсии</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="165"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="166"/>
         <source>Raw ripping</source>
         <translation>Экспорт</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="166"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="167"/>
         <source>Streamed .out format</source>
         <translation>Конверсия в .out</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="167"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="168"/>
         <source>Streamed .psg format</source>
         <translation>Конверсия в .psg</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="168"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="169"/>
         <source>Streamed .ym format</source>
         <translation>Конверсия в .ym</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="169"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="170"/>
         <source>Streamed .zx50 format</source>
         <translation>Конверсия в .zx50</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="170"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="171"/>
         <source>Vortex .txt format</source>
         <translation>Конверсия в Vortex .txt</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="171"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="172"/>
         <source>Raw aydump format</source>
         <translation>Сырой дамп регистров</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="172"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="173"/>
         <source>Compressed .fym format</source>
         <translation>Конверсия в сжатый .fym</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="202"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="203"/>
         <source>Capabilities</source>
         <translation>Возможности</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="209"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="210"/>
         <source>Data scanner</source>
         <translation>Анализатор данных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="210"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="211"/>
         <source>Plain data structure format</source>
         <translation>Простая структура данных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="211"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="212"/>
         <source>Directories support</source>
         <translation>Поддержка директорий</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="264"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="265"/>
         <source>Playback backends</source>
         <translation>Воспроизведение</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="265"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="266"/>
         <source>File backends</source>
         <translation>Файловые</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="266"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="267"/>
         <source>Hardware backends</source>
         <translation>Аппаратные</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="267"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="268"/>
         <source>Other backends</source>
         <translation>Прочее</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="301"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="302"/>
         <source>Features</source>
         <translation>Свойства</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="308"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="309"/>
         <source>Hardware volume control</source>
         <translation>Аппаратный контроль громкости</translation>
     </message>

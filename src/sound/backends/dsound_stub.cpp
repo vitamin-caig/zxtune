@@ -10,7 +10,7 @@ Author:
 */
 
 #include "dsound.h"
-#include "enumerator.h"
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
@@ -19,9 +19,9 @@ Author:
 
 namespace Sound
 {
-  void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
+  void RegisterDirectSoundBackend(BackendsStorage& storage)
   {
-    enumerator.RegisterCreator(CreateDisabledBackendStub(Text::DSOUND_BACKEND_ID, L10n::translate("DirectSound support backend."), CAP_TYPE_SYSTEM));
+    storage.Register(Text::DSOUND_BACKEND_ID, L10n::translate("DirectSound support backend."), CAP_TYPE_SYSTEM);
   }
 
   namespace DirectSound

@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "flac_api.h"
-#include "enumerator.h"
+#include "storage.h"
 #include "file_backend.h"
 //common includes
 #include <error_tools.h>
@@ -43,6 +43,9 @@ namespace Sound
 {
 namespace Flac
 {
+  const String ID = Text::FLAC_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
+
   typedef boost::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
 
   void CheckFlacCall(FLAC__bool res, Error::LocationRef loc)
@@ -229,9 +232,6 @@ namespace Flac
     const Parameters::Accessor::Ptr Params;
   };
 
-  const String ID = Text::FLAC_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
-
   class FileStreamFactory : public Sound::FileStreamFactory
   {
   public:
@@ -279,48 +279,18 @@ namespace Flac
     const Parameters::Accessor::Ptr Params;
   };
 
-  class BackendCreator : public Sound::BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    explicit BackendCreator(Api::Ptr api)
+    explicit BackendWorkerFactory(Api::Ptr api)
       : FlacApi(api)
     {
     }
 
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_TYPE_FILE;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(FlacApi, allParams);
-        const BackendWorker::Ptr worker = CreateFileBackendWorker(allParams, factory);
-        return Sound::CreateBackend(params, worker);
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
+      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(FlacApi, params);
+      return CreateFileBackendWorker(params, factory);
     }
   private:
     const Api::Ptr FlacApi;
@@ -330,18 +300,18 @@ namespace Flac
 
 namespace Sound
 {
-  void RegisterFlacBackend(BackendsEnumerator& enumerator)
+  void RegisterFlacBackend(BackendsStorage& storage)
   {
     try
     {
       const Flac::Api::Ptr api = Flac::LoadDynamicApi();
       Dbg("Detected Flac library");
-      const BackendCreator::Ptr creator = boost::make_shared<Flac::BackendCreator>(api);
-      enumerator.RegisterCreator(creator);
+      const BackendWorkerFactory::Ptr factory = boost::make_shared<Flac::BackendWorkerFactory>(api);
+      storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)
     {
-      enumerator.RegisterCreator(CreateUnavailableBackendStub(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, e));
+      storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }

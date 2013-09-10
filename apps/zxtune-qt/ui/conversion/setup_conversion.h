@@ -17,6 +17,8 @@ Author:
 
 //library includes
 #include <parameters/accessor.h>
+//library includes
+#include <sound/service.h>
 //qt includes
 #include <QtGui/QDialog>
 
@@ -32,12 +34,12 @@ namespace UI
 
     static Ptr Create(QWidget& parent);
 
-    virtual Parameters::Accessor::Ptr Execute(String& type) = 0;
+    virtual Sound::Service::Ptr Execute(String& type) = 0;
   private slots:
     virtual void UpdateDescriptions() = 0;
   };
 
-  Parameters::Accessor::Ptr GetConversionParameters(QWidget& parent, String& type);
+  Sound::Service::Ptr GetConversionService(QWidget& parent, String& type);
 }
 
 #endif //ZXTUNE_QT_UI_SETUP_CONVERSION_H_DEFINED

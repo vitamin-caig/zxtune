@@ -47,6 +47,4 @@ signals:
   void ErrorOccurred(const Error&);
 };
 
-Sound::CreateBackendParameters::Ptr MakeBackendParameters(Parameters::Accessor::Ptr params, Module::Holder::Ptr module, Sound::BackendCallback::Ptr callback);
-
 #endif //ZXTUNE_PLAYBACK_SUPP_H_DEFINED

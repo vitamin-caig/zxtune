@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "alsa.h"
-#include "enumerator.h"
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
@@ -20,9 +20,9 @@ Author:
 
 namespace Sound
 {
-  void RegisterAlsaBackend(BackendsEnumerator& enumerator)
+  void RegisterAlsaBackend(BackendsStorage& storage)
   {
-    enumerator.RegisterCreator(CreateDisabledBackendStub(Text::ALSA_BACKEND_ID, L10n::translate("ALSA sound system backend"), CAP_TYPE_SYSTEM));
+    storage.Register(Text::ALSA_BACKEND_ID, L10n::translate("ALSA sound system backend"), CAP_TYPE_SYSTEM);
   }
 
   namespace Alsa
@@ -33,4 +33,3 @@ namespace Sound
     }
   }
 }
-

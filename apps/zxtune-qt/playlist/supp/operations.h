@@ -85,9 +85,6 @@ namespace Playlist
       Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
     TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSetPtr items,
       const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
-    //convert
-    TextResultOperation::Ptr CreateConvertOperation(Playlist::Model::IndexSetPtr items,
-      const String& type, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
   }
 }
 

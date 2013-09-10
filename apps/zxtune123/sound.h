@@ -45,6 +45,8 @@ public:
   //parameters
   virtual Time::Microseconds GetFrameDuration() const = 0;
 
+  virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
+
   static std::auto_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
 };
 

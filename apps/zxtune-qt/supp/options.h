@@ -24,6 +24,7 @@ public:
   virtual ~GlobalOptions() {}
 
   virtual Parameters::Container::Ptr Get() const = 0;
+  virtual Parameters::Accessor::Ptr GetSnapshot() const = 0;
 
   static GlobalOptions& Instance();
 };

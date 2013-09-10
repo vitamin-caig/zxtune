@@ -11,7 +11,7 @@ Author:
 
 //local includes
 #include "file_backend.h"
-#include "enumerator.h"
+#include "storage.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -33,9 +33,17 @@ Author:
 
 #define FILE_TAG EF5CB4C6
 
-namespace Sound
+namespace
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+}
+
+namespace Sound
+{
+namespace Wav
+{
+  const String ID = Text::WAV_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("WAV support backend");
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -157,10 +165,10 @@ namespace Sound
     }
   };
 
-  class WavStream : public FileStream
+  class FileStream : public Sound::FileStream
   {
   public:
-    WavStream(uint_t soundFreq, Binary::SeekableOutputStream::Ptr stream)
+    FileStream(uint_t soundFreq, Binary::SeekableOutputStream::Ptr stream)
       : Stream(stream)
       , DoneBytes(0)
     {
@@ -240,13 +248,10 @@ namespace Sound
     ListMetadata Meta;
   };
 
-  const String ID = Text::WAV_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("WAV support backend");
-
-  class WavFileFactory : public FileStreamFactory
+  class FileStreamFactory : public Sound::FileStreamFactory
   {
   public:
-    explicit WavFileFactory(Parameters::Accessor::Ptr params)
+    explicit FileStreamFactory(Parameters::Accessor::Ptr params)
       : RenderingParameters(RenderParameters::Create(params))
     {
     }
@@ -260,7 +265,7 @@ namespace Sound
     {
       if (const Binary::SeekableOutputStream::Ptr seekable = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
       {
-        return boost::make_shared<WavStream>(RenderingParameters->SoundFreq(), seekable);
+        return boost::make_shared<FileStream>(RenderingParameters->SoundFreq(), seekable);
       }
       throw Error(THIS_LINE, translate("WAV conversion is not supported on non-seekable streams."));
     }
@@ -268,52 +273,23 @@ namespace Sound
     const RenderParameters::Ptr RenderingParameters;
   };
 
-  class WavBackendCreator : public BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_TYPE_FILE;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const FileStreamFactory::Ptr factory = boost::make_shared<WavFileFactory>(allParams);
-        const BackendWorker::Ptr worker = CreateFileBackendWorker(allParams, factory);
-        return Sound::CreateBackend(params, worker);
-      }
-      catch (const Error& e)
-      {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
+      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(params);
+      return CreateFileBackendWorker(params, factory);
     }
   };
-}
+}//Wav
+}//Sound
 
 namespace Sound
 {
-  void RegisterWavBackend(BackendsEnumerator& enumerator)
+  void RegisterWavBackend(BackendsStorage& storage)
   {
-    const BackendCreator::Ptr creator(new WavBackendCreator());
-    enumerator.RegisterCreator(creator);
+    const BackendWorkerFactory::Ptr factory = boost::make_shared<Wav::BackendWorkerFactory>();
+    storage.Register(Wav::ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
   }
 }

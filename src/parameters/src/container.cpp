@@ -29,10 +29,10 @@ namespace
       : false;
   }
 
-  class ContainerImpl : public Container
+  class StorageContainer : public Container
   {
   public:
-    ContainerImpl()
+    StorageContainer()
       : VersionValue(0)
     {
     }
@@ -136,12 +136,78 @@ namespace
     StringMap Strings;
     DataMap Datas;
   };
+
+  class CompositeContainer : public Container
+  {
+  public:
+    CompositeContainer(Accessor::Ptr accessor, Modifier::Ptr modifier)
+      : AccessDelegate(accessor)
+      , ModifyDelegate(modifier)
+    {
+    }
+
+    //accessor virtuals
+    virtual uint_t Version() const
+    {
+      return AccessDelegate->Version();
+    }
+
+    virtual bool FindValue(const NameType& name, IntType& val) const
+    {
+      return AccessDelegate->FindValue(name, val);
+    }
+
+    virtual bool FindValue(const NameType& name, StringType& val) const
+    {
+      return AccessDelegate->FindValue(name, val);
+    }
+
+    virtual bool FindValue(const NameType& name, DataType& val) const
+    {
+      return AccessDelegate->FindValue(name, val);
+    }
+
+    virtual void Process(Visitor& visitor) const
+    {
+      return AccessDelegate->Process(visitor);
+    }
+
+    //visitor virtuals
+    virtual void SetValue(const NameType& name, IntType val)
+    {
+      return ModifyDelegate->SetValue(name, val);
+    }
+
+    virtual void SetValue(const NameType& name, const StringType& val)
+    {
+      return ModifyDelegate->SetValue(name, val);
+    }
+
+    virtual void SetValue(const NameType& name, const DataType& val)
+    {
+      return ModifyDelegate->SetValue(name, val);
+    }
+
+    //modifier virtuals
+    virtual void RemoveValue(const NameType& name)
+    {
+      return ModifyDelegate->RemoveValue(name);
+    }
+  private:
+    const Accessor::Ptr AccessDelegate;
+    const Modifier::Ptr ModifyDelegate;
+  };
 }
 
 namespace Parameters
 {
   Container::Ptr Container::Create()
   {
-    return boost::make_shared<ContainerImpl>();
+    return boost::make_shared<StorageContainer>();
+  }
+
+  Container::Ptr Container::CreateAdapter(Accessor::Ptr accessor, Modifier::Ptr modifier)
+  {
+    return boost::make_shared<CompositeContainer>(accessor, modifier);
   }
 }

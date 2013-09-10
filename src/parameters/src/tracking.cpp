@@ -9,82 +9,71 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
+//common includes
+#include <tools.h>
 //library includes
 #include <parameters/tracking.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 
 namespace
 {
   using namespace Parameters;
 
-  class PropertyTrackedContainer : public Container
+  class CompositeModifier : public Modifier
   {
   public:
-    PropertyTrackedContainer(Container::Ptr delegate, const PropertyChangedCallback& callback)
-      : Delegate(delegate)
-      , Callback(callback)
+    CompositeModifier(Modifier::Ptr first, Modifier::Ptr second)
+      : First(first)
+      , Second(second)
     {
-    }
-
-    virtual uint_t Version() const
-    {
-      return Delegate->Version();
-    }
-
-    virtual bool FindValue(const NameType& name, IntType& val) const
-    {
-      return Delegate->FindValue(name, val);
-    }
-
-    virtual bool FindValue(const NameType& name, StringType& val) const
-    {
-      return Delegate->FindValue(name, val);
-    }
-
-    virtual bool FindValue(const NameType& name, DataType& val) const
-    {
-      return Delegate->FindValue(name, val);
-    }
-
-    virtual void Process(Visitor& visitor) const
-    {
-      Delegate->Process(visitor);
     }
 
     virtual void SetValue(const NameType& name, IntType val)
     {
-      Delegate->SetValue(name, val);
-      Callback.OnPropertyChanged(name);
+      First->SetValue(name, val);
+      Second->SetValue(name, val);
     }
 
     virtual void SetValue(const NameType& name, const StringType& val)
     {
-      Delegate->SetValue(name, val);
-      Callback.OnPropertyChanged(name);
+      First->SetValue(name, val);
+      Second->SetValue(name, val);
     }
 
     virtual void SetValue(const NameType& name, const DataType& val)
     {
-      Delegate->SetValue(name, val);
-      Callback.OnPropertyChanged(name);
+      First->SetValue(name, val);
+      Second->SetValue(name, val);
     }
 
     virtual void RemoveValue(const NameType& name)
     {
-      Delegate->RemoveValue(name);
-      Callback.OnPropertyChanged(name);
+      First->RemoveValue(name);
+      Second->RemoveValue(name);
     }
   private:
-    const Container::Ptr Delegate;
-    const PropertyChangedCallback& Callback;
+    const Modifier::Ptr First;
+    const Modifier::Ptr Second;
   };
 }
 
 namespace Parameters
 {
-  Container::Ptr CreatePropertyTrackedContainer(Container::Ptr delegate, const PropertyChangedCallback& callback)
+  Container::Ptr CreatePreChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
   {
-    return boost::make_shared<PropertyTrackedContainer>(delegate, callback);
+    //TODO: get rid of fake pointers
+    const Modifier::Ptr asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
+    const Modifier::Ptr modifier = boost::make_shared<CompositeModifier>(asPtr, delegate);
+    return Container::CreateAdapter(delegate, modifier);
+  }
+
+  Container::Ptr CreatePostChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
+  {
+    //TODO: get rid of fake pointers
+    const Modifier::Ptr asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
+    const Modifier::Ptr modifier = boost::make_shared<CompositeModifier>(delegate, asPtr);
+    return Container::CreateAdapter(delegate, modifier);
   }
 }

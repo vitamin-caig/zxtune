@@ -34,8 +34,17 @@ namespace Sound
     virtual VolumeControl::Ptr GetVolumeControl() const = 0;
   };
 
-  //worker can implement BackendCallback interface
-  Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker);
+  class BackendWorkerFactory
+  {
+  public:
+    typedef boost::shared_ptr<const BackendWorkerFactory> Ptr;
+    virtual ~BackendWorkerFactory() {}
+
+    //worker can implement BackendCallback interface
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const = 0;
+  };
+
+  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr callback, BackendWorker::Ptr worker);
 }
 
 #endif //SOUND_BACKEND_IMPL_H_DEFINED

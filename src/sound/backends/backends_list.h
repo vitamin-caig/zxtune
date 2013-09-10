@@ -15,35 +15,45 @@ Author:
 
 namespace Sound
 {
-  class BackendsEnumerator;
+  class BackendsStorage;
 
   //forward declaration of supported backends
-  void RegisterNullBackend(BackendsEnumerator& enumerator);
-  void RegisterWavBackend(BackendsEnumerator& enumerator);
-  void RegisterMp3Backend(BackendsEnumerator& enumerator);
-  void RegisterOggBackend(BackendsEnumerator& enumerator);
-  void RegisterFlacBackend(BackendsEnumerator& enumerator);
-  void RegisterDirectSoundBackend(BackendsEnumerator& enumerator);
-  void RegisterWin32Backend(BackendsEnumerator& enumerator);
-  void RegisterOssBackend(BackendsEnumerator& enumerator);
-  void RegisterAlsaBackend(BackendsEnumerator& enumerator);
-  void RegisterSdlBackend(BackendsEnumerator& enumerator);
+  void RegisterNullBackend(BackendsStorage& storage);
+  void RegisterWavBackend(BackendsStorage& storage);
+  void RegisterMp3Backend(BackendsStorage& storage);
+  void RegisterOggBackend(BackendsStorage& storage);
+  void RegisterFlacBackend(BackendsStorage& storage);
+  void RegisterDirectSoundBackend(BackendsStorage& storage);
+  void RegisterWin32Backend(BackendsStorage& storage);
+  void RegisterOssBackend(BackendsStorage& storage);
+  void RegisterAlsaBackend(BackendsStorage& storage);
+  void RegisterSdlBackend(BackendsStorage& storage);
 
-  inline void RegisterBackends(BackendsEnumerator& enumerator)
+  inline void RegisterSystemBackends(BackendsStorage& storage)
+  {
+    RegisterOssBackend(storage);
+    RegisterAlsaBackend(storage);
+    RegisterDirectSoundBackend(storage);
+    RegisterWin32Backend(storage);
+    RegisterSdlBackend(storage);
+  }
+
+  inline void RegisterFileBackends(BackendsStorage& storage)
+  {
+    RegisterWavBackend(storage);
+    RegisterMp3Backend(storage);
+    RegisterOggBackend(storage);
+    RegisterFlacBackend(storage);
+  }
+
+  inline void RegisterAllBackends(BackendsStorage& storage)
   {
     //potentially unsafe backends
-    RegisterOssBackend(enumerator);
-    RegisterAlsaBackend(enumerator);
-    RegisterDirectSoundBackend(enumerator);
-    RegisterWin32Backend(enumerator);
-    RegisterSdlBackend(enumerator);
+    RegisterSystemBackends(storage);
     //stub
-    RegisterNullBackend(enumerator);
+    RegisterNullBackend(storage);
     //never default backends
-    RegisterWavBackend(enumerator);
-    RegisterMp3Backend(enumerator);
-    RegisterOggBackend(enumerator);
-    RegisterFlacBackend(enumerator);
+    RegisterFileBackends(storage);
   }
 }
 

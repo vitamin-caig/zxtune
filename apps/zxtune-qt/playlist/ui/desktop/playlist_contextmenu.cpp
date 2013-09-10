@@ -22,6 +22,7 @@ Author:
 #include "single_item_contextmenu.ui.h"
 #include "multiple_items_contextmenu.ui.h"
 #include "playlist/supp/operations.h"
+#include "playlist/supp/operations_convert.h"
 #include "playlist/supp/storage.h"
 #include "playlist/ui/contextmenu.h"
 #include "playlist/ui/table_view.h"
@@ -389,12 +390,10 @@ namespace
     virtual void ConvertSelected() const
     {
       String type;
-      if (Parameters::Accessor::Ptr params = UI::GetConversionParameters(View, type))
+      if (Sound::Service::Ptr service = UI::GetConversionService(View, type))
       {
-        //TODO: copy parameters
-        const Parameters::Accessor::Ptr allParams = Parameters::CreateMergedAccessor(params, GlobalOptions::Instance().Get());
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, type, allParams, result);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, type, service, result);
         ExecuteNotificationOperation(op);
       }
     }

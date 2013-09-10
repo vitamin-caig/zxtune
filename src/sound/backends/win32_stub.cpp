@@ -10,7 +10,7 @@ Author:
 */
 
 #include "win32.h"
-#include "enumerator.h"
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
@@ -19,9 +19,9 @@ Author:
 
 namespace Sound
 {
-  void RegisterWin32Backend(BackendsEnumerator& enumerator)
+  void RegisterWin32Backend(BackendsStorage& storage)
   {
-    enumerator.RegisterCreator(CreateDisabledBackendStub(Text::WIN32_BACKEND_ID, L10n::translate("Win32 sound system backend"), CAP_TYPE_SYSTEM));
+    storage.Register(Text::WIN32_BACKEND_ID, L10n::translate("Win32 sound system backend"), CAP_TYPE_SYSTEM);
   }
 
   namespace Win32

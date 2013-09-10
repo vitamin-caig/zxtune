@@ -18,9 +18,6 @@
 #include <core/module_holder.h> // for Module::Holder::Ptr, Converter::Ptr and other
 #include <sound/gain.h>
 
-//forward declarations
-class Error;
-
 namespace Sound
 {
   //! @brief Describes supported backend
@@ -29,6 +26,8 @@ namespace Sound
   public:
     //! Pointer type
     typedef boost::shared_ptr<const BackendInformation> Ptr;
+    //! Iterator type
+    typedef ObjectIterator<Ptr> Iterator;
 
     virtual ~BackendInformation() {}
 
@@ -112,7 +111,7 @@ namespace Sound
   {
   public:
     //! @brief Pointer type
-    typedef boost::shared_ptr<Backend> Ptr;
+    typedef boost::shared_ptr<const Backend> Ptr;
 
     virtual ~Backend() {}
 
@@ -142,53 +141,6 @@ namespace Sound
     virtual void OnPause() = 0;
     virtual void OnResume() = 0;
     virtual void OnFinish() = 0;
-  };
-
-  class CreateBackendParameters
-  {
-  public:
-    //! Pointer type
-    typedef boost::shared_ptr<const CreateBackendParameters> Ptr;
-
-    virtual ~CreateBackendParameters() {}
-
-    virtual Parameters::Accessor::Ptr GetParameters() const = 0;
-    virtual Module::Holder::Ptr GetModule() const = 0;
-    virtual BackendCallback::Ptr GetCallback() const = 0;
-  };
-
-  //! @brief Backend creator interface
-  class BackendCreator : public BackendInformation
-  {
-  public:
-    //! Pointer type
-    typedef boost::shared_ptr<const BackendCreator> Ptr;
-    //! Iterator type
-    typedef ObjectIterator<BackendCreator::Ptr> Iterator;
-
-    //! @brief Create backend using specified parameters
-    //! @param params %Backend-related parameters
-    //! @return Result backend
-    //! @throw Error in case of error
-    virtual Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params) const = 0;
-  };
-
-  //! @brief Enumerating supported sound backends
-  BackendCreator::Iterator::Ptr EnumerateBackends();
-
-  //! @breif System playback-able backends set
-  class BackendsScope
-  {
-  public:
-    //! Pointer type
-    typedef boost::shared_ptr<const BackendsScope> Ptr;
-
-    virtual ~BackendsScope() {}
-
-    //! @brief Enumerate scope
-    virtual BackendCreator::Iterator::Ptr Enumerate() const = 0;
-
-    static Ptr CreateSystemScope(Parameters::Accessor::Ptr params);
   };
 }
 

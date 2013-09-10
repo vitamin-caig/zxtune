@@ -110,7 +110,7 @@
 <context>
     <name>Playlist::UI::ItemsContextMenu</name>
     <message numerus="yes">
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="89"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="90"/>
         <source>%n item(s)</source>
         <translation>
             <numerusform>%n модуль</numerusform>
@@ -119,17 +119,17 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="134"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="135"/>
         <source>Statistic</source>
         <translation>Статистика</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="142"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="143"/>
         <source>Total duration: %1</source>
         <translation>Общее время: %1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="143"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="144"/>
         <source>Total size: %n byte(s)</source>
         <translation>
             <numerusform>Общий размер: %n байт</numerusform>
@@ -138,7 +138,7 @@
         </translation>
     </message>
     <message numerus="yes">
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="144"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="145"/>
         <source>%n diferent modules&apos; type(s)</source>
         <translation>
             <numerusform>%n тип модулей</numerusform>
@@ -147,32 +147,32 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="140"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="141"/>
         <source>Total: %1</source>
         <translation>Всего: %1</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="141"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="142"/>
         <source>Invalid: %1</source>
         <translation>Недоступно: %1</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="194"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="195"/>
         <source>Export</source>
         <translation>Экспорт</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="199"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="200"/>
         <source>Converted: %1&lt;br/&gt;Failed: %2</source>
         <translation>Сконвертировано: %1&lt;br/&gt;Неудачно: %2</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="215"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="216"/>
         <source>Failed to open &apos;%1&apos; for conversion</source>
         <translation>Ошибка доступа к &apos;%1&apos; при конверсии</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="220"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="221"/>
         <source>Failed to convert &apos;%1&apos;: %2</source>
         <translation>Ошибка конверсии &apos;%1&apos;: %2</translation>
     </message>

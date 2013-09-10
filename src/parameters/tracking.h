@@ -14,18 +14,10 @@
 //library includes
 #include <parameters/container.h>
 
-//! @brief Namespace is used to keep parameters-working related types and functions
 namespace Parameters
 {
-  class PropertyChangedCallback
-  {
-  public:
-    virtual ~PropertyChangedCallback() {}
-
-    virtual void OnPropertyChanged(const NameType& name) const = 0;
-  };
-
-  Container::Ptr CreatePropertyTrackedContainer(Container::Ptr delegate, const PropertyChangedCallback& callback);
+  Container::Ptr CreatePreChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback);
+  Container::Ptr CreatePostChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback);
 }
 
 #endif //PARAMETERS_TRACKING_H_DEFINED

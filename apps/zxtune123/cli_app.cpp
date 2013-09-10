@@ -293,7 +293,7 @@ namespace
       try
       {
         if (ProcessOptions(argc, argv) ||
-            Informer->Process())
+            Informer->Process(*Sounder))
         {
           return 0;
         }
