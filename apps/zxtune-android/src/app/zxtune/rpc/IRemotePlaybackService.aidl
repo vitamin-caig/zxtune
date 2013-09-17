@@ -17,7 +17,7 @@ interface IRemotePlaybackService {
 
   //PlaylistService
   void add(in Uri uri);
-  void delete(in Uri uri);
+  void delete(in long[] ids);
 
   //PlaybackControl
   void play();

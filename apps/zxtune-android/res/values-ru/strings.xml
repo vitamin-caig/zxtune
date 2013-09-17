@@ -2,12 +2,22 @@
 <resources>
     <string name="menu_prefs">Настройки</string>
     <string name="menu_quit">Выход</string>
+    <string name="menu_selection">Выделить</string>
+    <string name="menu_select_all">Все</string>
+    <string name="menu_select_none">Ничего</string>
+    <string name="menu_select_invert">Наоборот</string>
+    <string name="menu_delete">Удалить</string>
     <string name="information_title">Название</string>
     <string name="information_author">Автор</string>
     <string name="information_program">Программа</string>
     <string name="information_comment">Комментарий</string>
     <string name="information_location">Путь</string>
     <string name="playlist_empty">Список пуст</string>
+    <plurals name="playlist_selecteditems">
+      <item quantity="one">%d элемент</item>
+      <item quantity="few">%d элемента</item>
+      <item quantity="other">%d элементов</item>
+    </plurals>
     <string name="browser_empty">Нет файлов</string>
     <!-- VFS -->
     <string name="vfs_root_local_name">Локальная файловая система</string>

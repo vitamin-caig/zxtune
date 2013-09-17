@@ -56,8 +56,8 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   }
   
   @Override
-  public void delete(Uri uri) {
-    playlist.delete(uri);
+  public void delete(long[] ids) {
+    playlist.delete(ids);
   }
 
   @Override

@@ -10,6 +10,7 @@ package app.zxtune.ui;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
@@ -17,10 +18,10 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.util.AttributeSet;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.R;
@@ -29,27 +30,9 @@ import app.zxtune.playlist.Query;
 
 public class PlaylistView extends ListView implements LoaderManager.LoaderCallbacks<Cursor> {
 
-  public interface OnPlayitemClickListener {
-
-    public void onPlayitemClick(Uri playlistUri);
-
-    public boolean onPlayitemLongClick(Uri playlistUri);
-  }
-
   public interface PlayitemStateSource {
 
     public boolean isPlaying(Uri playlistUri);
-  }
-
-  private static class StubOnPlayitemClickListener implements OnPlayitemClickListener {
-
-    @Override
-    public void onPlayitemClick(Uri playlistUri) {}
-
-    @Override
-    public boolean onPlayitemLongClick(Uri playlistUri) {
-      return false;
-    }
   }
 
   private static class StubPlayitemStateSource implements PlayitemStateSource {
@@ -63,7 +46,6 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
   private static final int LOADER_ID = PlaylistView.class.hashCode();
   
   private PlayitemStateSource state;
-  private OnPlayitemClickListener listener;
 
   public PlaylistView(Context context) {
     super(context);
@@ -81,17 +63,10 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
   }
 
   private void setupView() {
-    listener = new StubOnPlayitemClickListener();
     super.setLongClickable(true);
-    super.setOnItemClickListener(new OnPlaylistItemClickListener());
-    super.setOnItemLongClickListener(new OnPlaylistItemLongClickListener());
     setAdapter(new PlaylistCursorAdapter(getContext(), null, 0));
   }
-
-  public final void setOnPlayitemClickListener(OnPlayitemClickListener listener) {
-    this.listener = null != listener ? listener : new StubOnPlayitemClickListener();
-  }
-
+  
   public final void setPlayitemStateSource(PlayitemStateSource source) {
     this.state = null != source ? source : new StubPlayitemStateSource();
   }
@@ -99,7 +74,42 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
   public final void load(LoaderManager manager) {
     manager.initLoader(LOADER_ID, null, this);
   }
+  
+  public final void selectAll() {
+    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
+      setItemChecked(i, true);
+    }
+  }
 
+  public final void selectNone() {
+    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
+      setItemChecked(i, false);
+    }
+  }
+  
+  public final void invertSelection() {
+    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
+      setItemChecked(i, !isItemChecked(i));
+    }
+  }
+  
+  @Override
+  public int getCheckedItemCount() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+      //since API11
+      return super.getCheckedItemCount();
+    } else {
+      final SparseBooleanArray checked = getCheckedItemPositions();
+      int count = 0;
+      for (int i = 0, lim = checked.size(); i != lim; ++i) {
+        if (checked.get(i)) {
+          ++count;
+        }
+      }
+      return count;
+    }
+  }
+  
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle params) {
     assert id == LOADER_ID;
@@ -130,20 +140,6 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
     return (CursorAdapter)getAdapter();
   }
 
-  private class OnPlaylistItemClickListener implements AdapterView.OnItemClickListener {
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      listener.onPlayitemClick(Query.unparse(id));
-    }
-  }
-
-  private class OnPlaylistItemLongClickListener implements AdapterView.OnItemLongClickListener {
-    @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-      return listener.onPlayitemLongClick(Query.unparse(id));
-    }
-  }
-
   private class PlaylistCursorAdapter extends CursorAdapter {
 
     private final LayoutInflater inflater;
@@ -162,6 +158,7 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
     public void bindView(View view, Context context, Cursor cursor) {
       final ViewHolder holder = (ViewHolder) view.getTag();
       final Item item = new Item(cursor);
+      final Uri uri = item.getUri();
       if (0 == item.getTitle().length()) {
         holder.title.setText(item.getLocation().getLastPathSegment());
       } else {
@@ -169,7 +166,7 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
       }
       holder.author.setText(item.getAuthor());
       holder.duration.setText(item.getDuration().toString());
-      final int icon = state.isPlaying(item.getUri()) ? R.drawable.ic_stat_notify_play : 0;
+      final int icon = state.isPlaying(uri) ? R.drawable.ic_stat_notify_play : 0;
       holder.duration.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0);
     }
 

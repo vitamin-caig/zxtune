@@ -120,9 +120,9 @@ public final class PlaybackServiceClient implements PlaybackService {
     }
 
     @Override
-    public void delete(Uri uri) {
+    public void delete(long[] ids) {
       try {
-        delegate.delete(uri);
+        delegate.delete(ids);
       } catch (RemoteException e) {
         Log.e(TAG, "add()", e);
       }

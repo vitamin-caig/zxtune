@@ -6,14 +6,18 @@
  */
 package app.zxtune.playback;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
+import app.zxtune.playlist.Database;
+import app.zxtune.playlist.Query;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
@@ -172,8 +176,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void delete(Uri uri) {
-      context.getContentResolver().delete(uri, null, null);
+    public void delete(long[] ids) {
+      //ids => '[a, b, c]'
+      final String rawArgs = Arrays.toString(ids);
+      final String args = rawArgs.substring(1, rawArgs.length() - 1);
+      final Uri uri = Query.unparse(null);
+      //placeholders doesn't work and has limitations
+      final String where = Database.Tables.Playlist.Fields._id + " IN (" + args + ")"; 
+      context.getContentResolver().delete(uri, where, null);
     }
   }
   

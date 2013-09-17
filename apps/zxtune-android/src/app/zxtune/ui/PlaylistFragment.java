@@ -10,16 +10,24 @@
 
 package app.zxtune.ui;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -27,6 +35,7 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playlist.Query;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
@@ -37,6 +46,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   private PlaylistView listing;
   private volatile Uri nowPlaying = Uri.EMPTY;
   private volatile boolean isPlaying = false;
+  private android.view.ActionMode actionMode;
+  private android.support.v7.view.ActionMode actionModeCompat;
 
   public static Fragment createInstance() {
     return new PlaylistFragment();
@@ -55,11 +66,13 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
   
   @Override
+  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
     listing = (PlaylistView) view.findViewById(R.id.playlist_content);
-    listing.setOnPlayitemClickListener(new ItemClickListener());
+    listing.setOnItemClickListener(new OnItemClickListener());
+    listing.setOnItemLongClickListener(new OnItemLongClickListener());
     listing.setPlayitemStateSource(new PlaylistView.PlayitemStateSource() {
       @Override
       public boolean isPlaying(Uri playlistUri) {
@@ -68,6 +81,10 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     });
     listing.setEmptyView(view.findViewById(R.id.playlist_stub));
     bindViewToConnectedService();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+      listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
+      listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
+    }
   }
   
   @Override
@@ -131,18 +148,153 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     service = null;
   }
   
-  private class ItemClickListener implements PlaylistView.OnPlayitemClickListener {
+  private class OnItemClickListener implements PlaylistView.OnItemClickListener {
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
+      if (inActionMode()) {
+        updateActionModeTitle();
+      } else {
+        final Uri uri = Query.unparse(id);
+        service.setNowPlaying(uri);
+      }
+    }
+  }
+  
+  private boolean onActionItemClicked(MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.action_select_all:
+        listing.selectAll();
+        break;
+      case R.id.action_select_none:
+        listing.selectNone();
+        break;
+      case R.id.action_select_invert:
+        listing.invertSelection();
+        break;
+      default:
+        return false;
+    }
+    updateActionModeTitle();
+    return true;
+  }
+  
+  private void updateActionModeTitle() {
+    final int count = listing.getCheckedItemCount();
+    final String title = getResources().getQuantityString(R.plurals.playlist_selecteditems, count, count);
+    if (actionMode != null) {
+      actionMode.setTitle(title);
+    } else if (actionModeCompat != null) {
+      actionModeCompat.setTitle(title);
+    }
+  }
+  
+  private boolean inActionMode() {
+    return actionMode != null || actionModeCompat != null;
+  }
+
+  private class OnItemLongClickListener implements PlaylistView.OnItemLongClickListener {
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
+      if (inActionMode()) {
+        //TODO: dragging
+        return false;
+      } else {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
+          final ActionBarActivity activity = (ActionBarActivity) getActivity();
+          actionModeCompat = activity.startSupportActionMode(new ActionModeCallback());
+          listing.performItemClick(view, pos, id);
+        }
+        return true;
+      }
+    }
+  }
+  
+  private class ActionModeCallback implements android.support.v7.view.ActionMode.Callback {
     
     @Override
-    public void onPlayitemClick(Uri playlistUri) {
-      service.setNowPlaying(playlistUri);
-    }
-  
-    @Override
-    public boolean onPlayitemLongClick(Uri playlistUri) {
-      service.getPlaylistControl().delete(playlistUri);
+    public boolean onCreateActionMode(android.support.v7.view.ActionMode mode, Menu menu) {
+      final MenuInflater inflater = mode.getMenuInflater();
+      inflater.inflate(R.menu.playlist, menu);
+      listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
       return true;
     }
+
+    @Override
+    public boolean onPrepareActionMode(android.support.v7.view.ActionMode mode, Menu menu) {
+      return false;
+    }
+
+    @Override
+    public boolean onActionItemClicked(android.support.v7.view.ActionMode mode, MenuItem item) {
+      if (PlaylistFragment.this.onActionItemClicked(item)) {
+        return true;
+      } else if (item.getItemId() == R.id.action_delete) {
+        service.getPlaylistControl().delete(listing.getCheckedItemIds());
+        mode.finish();
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public void onDestroyActionMode(android.support.v7.view.ActionMode mode) {
+      if (mode == actionModeCompat) {
+        actionModeCompat = null;
+        listing.selectNone();
+        listing.postDelayed(new Runnable() {
+          @Override
+          public void run() {
+            listing.setChoiceMode(AbsListView.CHOICE_MODE_NONE);
+          }
+        }, 200);
+      }
+    }
+  }
+  
+  private class MultiChoiceModeListener implements AbsListView.MultiChoiceModeListener {
+
+    @Override
+    public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
+      final MenuInflater inflater = mode.getMenuInflater();
+      inflater.inflate(R.menu.playlist, menu);
+      actionMode = mode;
+      return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(android.view.ActionMode mode, Menu menu) {
+      return false;
+    }
+
+    @Override
+    public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
+      if (PlaylistFragment.this.onActionItemClicked(item)) {
+        return true;
+      } else if (item.getItemId() == R.id.action_delete) {
+        service.getPlaylistControl().delete(listing.getCheckedItemIds());
+        mode.finish();
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public void onDestroyActionMode(android.view.ActionMode mode) {
+      if (mode == actionMode) {
+        actionMode = null;
+      }
+    }
+
+    @Override
+    public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id,
+        boolean checked) {
+      updateActionModeTitle();
+    }
+    
   }
   
   private class PlaybackCallback implements Callback {

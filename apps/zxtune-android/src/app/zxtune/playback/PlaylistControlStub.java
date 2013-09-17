@@ -19,7 +19,7 @@ public class PlaylistControlStub implements PlaylistControl {
   }
   
   @Override
-  public void delete(Uri uri) {
+  public void delete(long[] ids) {
   }
 
   public static PlaylistControl instance() {

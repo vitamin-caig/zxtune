@@ -22,6 +22,7 @@ import android.widget.LinearLayout;
  */
 public class CheckableLinearLayout extends LinearLayout implements Checkable {
 
+  private static final int[] CHECKED_STATE_SET = {android.R.attr.state_checked}; 
   private boolean isChecked;
   private LinkedList<Checkable> delegates;
   private StateListDrawable background;
@@ -95,10 +96,17 @@ public class CheckableLinearLayout extends LinearLayout implements Checkable {
       updateSelf();
     }
   }
+  
+  @Override
+  protected int[] onCreateDrawableState(int extraSpace) {
+    final int[] state = super.onCreateDrawableState(extraSpace + 1);
+    if (isChecked) {
+      mergeDrawableStates(state, CHECKED_STATE_SET);
+    }
+    return state;
+  }
 
   private void updateSelf() {
-    final int[] checkedState = {android.R.attr.state_checked};
-    final int[] uncheckedState = this.getDrawableState();
-    background.setState(isChecked ? checkedState : uncheckedState);
+    background.setState(isChecked ? CHECKED_STATE_SET : EMPTY_STATE_SET);
   }
 }
