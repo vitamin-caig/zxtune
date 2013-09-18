@@ -135,7 +135,7 @@ namespace Sound
     typedef boost::shared_ptr<BackendCallback> Ptr;
     virtual ~BackendCallback() {}
 
-    virtual void OnStart(Module::Holder::Ptr module) = 0;
+    virtual void OnStart() = 0;
     virtual void OnFrame(const Module::TrackState& state) = 0;
     virtual void OnStop() = 0;
     virtual void OnPause() = 0;

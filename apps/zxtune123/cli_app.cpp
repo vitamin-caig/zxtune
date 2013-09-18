@@ -200,7 +200,7 @@ namespace
   class FinishPlaybackCallback : public Sound::BackendCallback
   {
   public:
-    virtual void OnStart(Module::Holder::Ptr /*module*/)
+    virtual void OnStart()
     {
       Event.Reset();
     }

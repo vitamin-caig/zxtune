@@ -249,7 +249,11 @@ namespace Sdl
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void BufferReady(Chunk::Ptr buffer)
+    virtual void FrameStart(const Module::TrackState& /*state*/)
+    {
+    }
+
+    virtual void FrameFinish(Chunk::Ptr buffer)
     {
       Queue.AddData(*buffer);
     }

@@ -160,7 +160,7 @@ namespace
     }
 
     //BackendCallback
-    virtual void OnStart(Module::Holder::Ptr /*module*/)
+    virtual void OnStart()
     {
       emit OnStartModule(Backend, Item);
     }

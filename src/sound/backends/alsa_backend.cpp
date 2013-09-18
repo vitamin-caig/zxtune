@@ -759,7 +759,11 @@ namespace Alsa
       Objects.Dev->Resume();
     }
 
-    virtual void BufferReady(Chunk::Ptr buffer)
+    virtual void FrameStart(const Module::TrackState& /*state*/)
+    {
+    }
+
+    virtual void FrameFinish(Chunk::Ptr buffer)
     {
       Objects.Dev->Write(*buffer);
     }

@@ -458,7 +458,11 @@ namespace Win32
       Objects.Device->Resume();
     }
 
-    virtual void BufferReady(Chunk::Ptr buffer)
+    virtual void FrameStart(const Module::TrackState& /*state*/)
+    {
+    }
+
+    virtual void FrameFinish(Chunk::Ptr buffer)
     {
       Objects.Target->Write(*buffer);
     }

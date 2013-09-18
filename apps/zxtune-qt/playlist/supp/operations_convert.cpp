@@ -45,7 +45,7 @@ namespace
     {
     }
 
-    virtual void OnStart(Module::Holder::Ptr /*module*/)
+    virtual void OnStart()
     {
       Event.Reset();
     }

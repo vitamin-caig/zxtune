@@ -57,7 +57,11 @@ namespace Null
     {
     }
 
-    virtual void BufferReady(Chunk::Ptr /*buffer*/)
+    virtual void FrameStart(const Module::TrackState& /*state*/)
+    {
+    }
+
+    virtual void FrameFinish(Chunk::Ptr /*buffer*/)
     {
     }
 

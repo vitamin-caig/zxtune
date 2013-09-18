@@ -30,7 +30,8 @@ namespace Sound
     virtual void Shutdown() = 0;
     virtual void Pause() = 0;
     virtual void Resume() = 0;
-    virtual void BufferReady(Chunk::Ptr buffer) = 0;
+    virtual void FrameStart(const Module::TrackState& state) = 0;
+    virtual void FrameFinish(Chunk::Ptr buffer) = 0;
     virtual VolumeControl::Ptr GetVolumeControl() const = 0;
   };
 
@@ -40,7 +41,6 @@ namespace Sound
     typedef boost::shared_ptr<const BackendWorkerFactory> Ptr;
     virtual ~BackendWorkerFactory() {}
 
-    //worker can implement BackendCallback interface
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const = 0;
   };
 

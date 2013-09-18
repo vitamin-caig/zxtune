@@ -47,31 +47,31 @@ msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: alsa_backend.cpp:1075 dsound_backend.cpp:602 win32_backend.cpp:612
+#: alsa_backend.cpp:1079 dsound_backend.cpp:606 win32_backend.cpp:616
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
-#: backend_impl.cpp:135
+#: backend_impl.cpp:180
 msgid "Failed to initialize playback."
 msgstr "Ошибка инициализации воспроизведения."
 
-#: backend_impl.cpp:151
+#: backend_impl.cpp:195
 msgid "Failed to finalize playback."
 msgstr "Ошибка завершения воспроизведения."
 
-#: backend_impl.cpp:166
+#: backend_impl.cpp:209
 msgid "Failed to pause playback."
 msgstr "Ошибка приостановки воспроизведения."
 
-#: backend_impl.cpp:181
+#: backend_impl.cpp:223
 msgid "Failed to resume playback."
 msgstr "Ошибка возобновления воспроизведения."
 
-#: backend_impl.cpp:336
+#: backend_impl.cpp:314
 msgid "Failed to stop playback."
 msgstr "Ошибка останова воспроизведения."
 
-#: backend_impl.cpp:348
+#: backend_impl.cpp:326
 msgid "Failed to set playback position."
 msgstr "Ошибка позиционирования воспроизведения."
 
@@ -182,7 +182,7 @@ msgstr "Поддержка подсистемы OSS"
 msgid "Error in OSS backend while working with device '%1%': %2%."
 msgstr "Ошибка при работе с OSS устройством '%1%': %2%."
 
-#: oss_backend.cpp:354
+#: oss_backend.cpp:358
 msgid "No suitable formats supported by OSS."
 msgstr ""
 "Ни один подходящий формат вывода звука не поддерживается подсистемой OSS."
@@ -198,12 +198,12 @@ msgstr ""
 "Ошибка в подсистеме SDL: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: sdl_backend.cpp:269
+#: sdl_backend.cpp:273
 #, boost-format
 msgid "Error in SDL backend: %1%."
 msgstr "Ошибка в подсистеме SDL: %1%."
 
-#: sdl_backend.cpp:271
+#: sdl_backend.cpp:275
 msgid "Unknown error in SDL backend."
 msgstr "Неизвестная ошибка в подсистеме SDL."
 
