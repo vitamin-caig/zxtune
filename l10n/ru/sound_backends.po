@@ -47,31 +47,31 @@ msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: alsa_backend.cpp:1071 dsound_backend.cpp:601 win32_backend.cpp:610
+#: alsa_backend.cpp:1071 dsound_backend.cpp:612 win32_backend.cpp:610
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
-#: backend_impl.cpp:180
+#: backend_impl.cpp:176 backend_impl.cpp:188
 msgid "Failed to initialize playback."
 msgstr "Ошибка инициализации воспроизведения."
 
-#: backend_impl.cpp:195
+#: backend_impl.cpp:203
 msgid "Failed to finalize playback."
 msgstr "Ошибка завершения воспроизведения."
 
-#: backend_impl.cpp:209
+#: backend_impl.cpp:217
 msgid "Failed to pause playback."
 msgstr "Ошибка приостановки воспроизведения."
 
-#: backend_impl.cpp:223
+#: backend_impl.cpp:231
 msgid "Failed to resume playback."
 msgstr "Ошибка возобновления воспроизведения."
 
-#: backend_impl.cpp:314
+#: backend_impl.cpp:323
 msgid "Failed to stop playback."
 msgstr "Ошибка останова воспроизведения."
 
-#: backend_impl.cpp:326
+#: backend_impl.cpp:335
 msgid "Failed to set playback position."
 msgstr "Ошибка позиционирования воспроизведения."
 

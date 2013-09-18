@@ -416,10 +416,7 @@ namespace DirectSound
     virtual void Shutdown()
     {
       Dbg("Stopping");
-      Objects.Stream->Stop();
-      Objects.Volume.reset();
-      Objects.Stream.reset();
-      Objects.Device.reset();
+      Objects = DSObjects();
       Dbg("Stopped");
     }
 
@@ -466,6 +463,20 @@ namespace DirectSound
       DirectSoundPtr Device;
       StreamBuffer::Ptr Stream;
       VolumeControl::Ptr Volume;
+
+      void operator = (const DSObjects& rh)
+      {
+        if (Stream)
+        {
+          Stream->Stop();
+        }
+        Volume.reset();
+        Stream.reset();
+        Device.reset();
+        Device = rh.Device;
+        Stream = rh.Stream;
+        Volume = rh.Volume;
+      }
     };
 
     DSObjects OpenDevices()

@@ -170,13 +170,21 @@ namespace Sound
         Dbg("Initializing");
         Render->Reset();
         Callback->OnStart();
-        Playing = true;
+      }
+      catch (const Error& e)
+      {
+        throw Error(THIS_LINE, translate("Failed to initialize playback.")).AddSuberror(e);
+      }
+      try
+      {
         //initial frame rendering
         RenderFrame();
         Dbg("Initialized");
       }
       catch (const Error& e)
       {
+        Dbg("Deinitialize backend worker due to error while rendering initial frame");
+        Callback->OnStop();
         throw Error(THIS_LINE, translate("Failed to initialize playback.")).AddSuberror(e);
       }
     }
@@ -246,6 +254,7 @@ namespace Sound
     const BackendWorker::Ptr Delegate;
     const BackendCallback::Ptr Callback;
     const Module::Renderer::Ptr Render;
+    //TODO: atomic variable
     volatile bool Playing;
   };
 
