@@ -269,11 +269,6 @@ namespace File
     }
 
     //BackendWorker
-    virtual void Test()
-    {
-      //TODO: check for write permissions
-    }
-
     virtual void Startup()
     {
       Source.reset(new StreamSource(Params, Factory));

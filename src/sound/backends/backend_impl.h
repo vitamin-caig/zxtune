@@ -25,7 +25,6 @@ namespace Sound
     typedef boost::shared_ptr<BackendWorker> Ptr;
     virtual ~BackendWorker() {}
 
-    virtual void Test() = 0;
     virtual void Startup() = 0;
     virtual void Shutdown() = 0;
     virtual void Pause() = 0;

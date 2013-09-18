@@ -185,11 +185,6 @@ namespace Sdl
       }
     }
 
-    virtual void Test()
-    {
-      //TODO: implement
-    }
-
     virtual void Startup()
     {
       Dbg("Starting playback");

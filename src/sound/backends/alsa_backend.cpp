@@ -725,14 +725,6 @@ namespace Alsa
       assert(!Objects.Dev || !"AlsaBackend was destroyed without stopping");
     }
 
-    virtual void Test()
-    {
-      const AlsaObjects obj = OpenDevices();
-      obj.Dev->Close();
-      obj.Mix->Close();
-      Dbg("Checked!");
-    }
-
     virtual void Startup()
     {
       Dbg("Starting");

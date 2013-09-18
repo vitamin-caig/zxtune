@@ -426,12 +426,6 @@ namespace Win32
       assert(!Objects.Device || !"Win32Backend::Stop should be called before exit");
     }
 
-    virtual void Test()
-    {
-      const WaveOutObjects obj = OpenDevices();
-      obj.Device->Close();
-    }
-
     virtual void Startup()
     {
       Dbg("Starting");

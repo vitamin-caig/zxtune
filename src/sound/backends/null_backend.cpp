@@ -37,10 +37,6 @@ namespace Null
   class BackendWorker : public Sound::BackendWorker
   {
   public:
-    virtual void Test()
-    {
-    }
-
     virtual void Startup()
     {
     }

@@ -378,7 +378,6 @@ namespace Sound
 {
   Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
-    worker->Test();
     const Receiver::Ptr target = boost::make_shared<BufferRenderer>(boost::ref(*worker));
     const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params, target);
     const BackendCallback::Ptr callback = CreateCallback(origCallback, worker);

@@ -406,11 +406,6 @@ namespace DirectSound
     {
     }
 
-    virtual void Test()
-    {
-      OpenDevices();
-    }
-
     virtual void Startup()
     {
       Dbg("Starting");

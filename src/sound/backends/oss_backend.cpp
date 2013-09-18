@@ -275,15 +275,6 @@ namespace Oss
       assert(!DevHandle.Valid() || !"OssBackend should be stopped before destruction.");
     }
 
-    virtual void Test()
-    {
-      AutoDescriptor tmpMixer;
-      AutoDescriptor tmpDevice;
-      int tmpFormat = -1;
-      SetupDevices(tmpDevice, tmpMixer, tmpFormat);
-      Dbg("Tested!");
-    }
-
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
       return VolumeController;
