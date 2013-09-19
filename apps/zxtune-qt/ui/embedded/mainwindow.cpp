@@ -21,6 +21,7 @@ Author:
 #include "supp/playback_supp.h"
 //common includes
 #include <contract.h>
+#include <tools.h>
 //std includes
 #include <fstream>
 //qt includes

@@ -181,7 +181,7 @@ public:
 };
 
 template<class T>
-typename ObjectIterator<T>::Ptr ObjectIterator<T>::CreateStub()
+inline typename ObjectIterator<T>::Ptr ObjectIterator<T>::CreateStub()
 {
   class Stub : public ObjectIterator<T>
   {

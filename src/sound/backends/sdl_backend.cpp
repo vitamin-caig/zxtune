@@ -28,6 +28,7 @@ Author:
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
+#include <boost/make_shared.hpp>
 #include <boost/thread/condition_variable.hpp>
 //text includes
 #include "text/backends.h"
@@ -293,7 +294,7 @@ namespace Sdl
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return boost::make_shared<BackendWorker>(WinApi, params);
+      return boost::make_shared<BackendWorker>(SdlApi, params);
     }
   private:
     const Api::Ptr SdlApi;

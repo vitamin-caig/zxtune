@@ -23,16 +23,6 @@ inline std::size_t ArraySize(const T (&)[D])
 
 //! @fn template<class T, std::size_t D>inline const T* ArrayEnd(const T (&c)[D])
 //! @brief Calculating end iterator of fixed-size array
-
-//workaround for ArrayEnd (need for packed structures)
-#undef ArrayEnd
-#if defined(__GNUC__)
-# if __GNUC__ * 100 + __GNUC_MINOR__ > 303
-#  define ArrayEnd(a) ((a) + ArraySize(a))
-# endif
-#endif
-
-#ifndef ArrayEnd
 template<class T, std::size_t D>
 inline const T* ArrayEnd(const T (&c)[D])
 {
@@ -44,6 +34,5 @@ inline T* ArrayEnd(T (&c)[D])
 {
   return c + D;
 }
-#endif
 
 #endif //TOOLS_H_DEFINED

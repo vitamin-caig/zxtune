@@ -801,7 +801,7 @@ namespace Alsa
     
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return boost::make_shared<BackendWorker>(WinApi, params);
+      return boost::make_shared<BackendWorker>(AlsaApi, params);
     }
   private:
     const Api::Ptr AlsaApi;

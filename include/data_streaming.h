@@ -34,7 +34,7 @@ public:
 };
 
 template<class T>
-typename DataReceiver<T>::Ptr DataReceiver<T>::CreateStub()
+inline typename DataReceiver<T>::Ptr DataReceiver<T>::CreateStub()
 {
   class Stub : public DataReceiver
   {
