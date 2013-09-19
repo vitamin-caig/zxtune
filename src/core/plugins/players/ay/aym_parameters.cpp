@@ -14,7 +14,6 @@ Author:
 #include "freq_tables_internal.h"
 //common includes
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <core/core_parameters.h>
 #include <devices/aym/chip.h>
@@ -28,6 +27,8 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/size.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -55,8 +56,8 @@ namespace AYM
       Devices::AYM::CHANNEL_MASK_E
     };
     BOOST_STATIC_ASSERT(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS));
-    const std::size_t pos = std::find(LETTERS, ArrayEnd(LETTERS), letter) - LETTERS;
-    if (pos == ArraySize(LETTERS))
+    const std::size_t pos = std::find(LETTERS, boost::end(LETTERS), letter) - LETTERS;
+    if (pos == boost::size(LETTERS))
     {
       throw MakeFormattedError(THIS_LINE,
         translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));

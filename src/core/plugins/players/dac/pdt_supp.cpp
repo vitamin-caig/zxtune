@@ -16,8 +16,6 @@ Author:
 #include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/simple_ornament.h"
 #include "core/plugins/players/tracking.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <devices/dac/sample_factories.h>

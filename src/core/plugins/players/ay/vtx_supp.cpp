@@ -14,8 +14,6 @@ Author:
 #include "aym_base_stream.h"
 #include "aym_plugin.h"
 #include "core/plugins/registrator.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>

@@ -16,7 +16,6 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
 #include <debug/log.h>

@@ -14,8 +14,6 @@ Author:
 #include "tfm_plugin.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/streaming.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfd.h>

@@ -12,11 +12,11 @@ Author:
 //local includes
 #include "container_supp_common.h"
 #include "plugins_list.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/archived/decoders.h>
+//boost includes
+#include <boost/range/end.hpp>
 
 namespace
 {
@@ -56,7 +56,7 @@ namespace ZXTune
     //process raw container first
     RegisterRawContainer(registrator);
 
-    for (const ContainerPluginDescription* it = PLUGINS; it != ArrayEnd(PLUGINS); ++it)
+    for (const ContainerPluginDescription* it = PLUGINS; it != boost::end(PLUGINS); ++it)
     {
       const ContainerPluginDescription& desc = *it;
       const Formats::Archived::Decoder::Ptr decoder = desc.Create();

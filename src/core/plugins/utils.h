@@ -15,8 +15,6 @@ Author:
 
 //local includes
 #include "core/src/callback.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <parameters/convert.h>
 //std includes

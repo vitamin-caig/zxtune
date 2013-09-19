@@ -13,8 +13,6 @@ Author:
 
 //local includes
 #include "device.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <devices/details/analysis_map.h>
 #include <devices/details/renderers.h>

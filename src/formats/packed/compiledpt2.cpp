@@ -16,7 +16,6 @@ Author:
 #include "formats/chiptune/aym/protracker2.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
 #include <debug/log.h>

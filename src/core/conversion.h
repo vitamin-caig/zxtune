@@ -12,7 +12,8 @@
 #define __CORE_CONVERSION_H_DEFINED__
 
 //common includes
-#include <tools.h>
+#include <pointers.h>
+#include <types.h>
 
 namespace Module
 {

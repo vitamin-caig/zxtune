@@ -18,7 +18,6 @@ Author:
 #include <cycle_buffer.h>
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <tools.h>
 //library includes
 #include <binary/container.h>
 #include <binary/container_factories.h>

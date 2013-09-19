@@ -1,4 +1,3 @@
-#include <tools.h>
 #include <error_tools.h>
 #include <math/numeric.h>
 #include <sound/gainer.h>
@@ -6,6 +5,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <boost/range/size.hpp>
 
 #define FILE_TAG B5BAF4C1
 
@@ -136,11 +136,11 @@ int main()
     }
 
     const Sample::Type* result(OUTS);
-    for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
+    for (unsigned matrix = 0; matrix != boost::size(GAINS); ++matrix)
     {
       std::cout << "--- Test for " << GAIN_NAMES[matrix] << " gain ---\n";
       gainer->SetGain(GAINS[matrix]);
-      for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
+      for (unsigned input = 0; input != boost::size(INPUTS); ++input, ++result)
       {
         std::cout << "Checking for " << INPUT_NAMES[input] << " input: ";
         tgt->SetData(*result);

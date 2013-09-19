@@ -24,6 +24,7 @@ Author:
 //boost includes
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -164,7 +165,7 @@ namespace Chiptune
         "S.W.COMPILE V2.0  ",
         "STU SONG COMPILER ",
       };
-      return ArrayEnd(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, ArrayEnd(STANDARD_PROGRAMS), ToStdString(name));
+      return boost::end(STANDARD_PROGRAMS) != std::find(STANDARD_PROGRAMS, boost::end(STANDARD_PROGRAMS), ToStdString(name));
     }
 
     class Format

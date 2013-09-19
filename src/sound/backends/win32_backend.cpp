@@ -18,7 +18,6 @@ Author:
 //common includes
 #include <contract.h>
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>

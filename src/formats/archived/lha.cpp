@@ -11,7 +11,6 @@ Author:
 
 //common includes
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <binary/input_stream.h>
 #include <debug/log.h>

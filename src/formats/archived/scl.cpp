@@ -88,7 +88,7 @@ namespace SCL
     {
       return false;
     }
-    const Header* const header = safe_ptr_cast<const Header*>(data.Start());
+    const Header* const header = static_cast<const Header*>(data.Start());
     if (0 != std::memcmp(header->ID, SIGNATURE, sizeof(SIGNATURE)) ||
         0 == header->BlocksCount)
     {
@@ -125,7 +125,7 @@ namespace SCL
     {
       return Archived::Container::Ptr();
     }
-    const Header* const header = safe_ptr_cast<const Header*>(data.Start());
+    const Header* const header = static_cast<const Header*>(data.Start());
 
     const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();
     std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -

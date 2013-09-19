@@ -18,7 +18,6 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <sound/backends_parameters.h>
 //qt includes

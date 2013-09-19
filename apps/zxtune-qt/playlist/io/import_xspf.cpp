@@ -18,7 +18,6 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <error.h>
-#include <tools.h>
 //library includes
 #include <core/module_attrs.h>
 #include <debug/log.h>
@@ -29,6 +28,7 @@ Author:
 #include <set>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -165,7 +165,7 @@ namespace
         if (tagName == XSPF::EXTENSION_TAG)
         {
           Dbg(" Parsing playlist extension");
-          PropertiesFilter filter(*Properties, PLAYLIST_ENABLED_PROPERTIES, ArrayEnd(PLAYLIST_ENABLED_PROPERTIES), true);
+          PropertiesFilter filter(*Properties, PLAYLIST_ENABLED_PROPERTIES, boost::end(PLAYLIST_ENABLED_PROPERTIES), true);
           ParseExtension(filter);
           Properties->FindValue(Playlist::ATTRIBUTE_VERSION, Version);
         }
@@ -272,7 +272,7 @@ namespace
       else if (attr == XSPF::EXTENSION_TAG)
       {
         Dbg("  parsing extension");
-        PropertiesFilter filter(props, ITEM_DISABLED_PROPERTIES, ArrayEnd(ITEM_DISABLED_PROPERTIES), false);
+        PropertiesFilter filter(props, ITEM_DISABLED_PROPERTIES, boost::end(ITEM_DISABLED_PROPERTIES), false);
         ParseExtension(filter);
       }
       else

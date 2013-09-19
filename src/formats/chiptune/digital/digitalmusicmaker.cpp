@@ -264,7 +264,7 @@ namespace Chiptune
     public:
       explicit Format(const Binary::Container& rawData)
         : RawData(rawData)
-        , Source(*safe_ptr_cast<const Header*>(RawData.Start()))
+        , Source(*static_cast<const Header*>(RawData.Start()))
         , Ranges(RangeChecker::Create(RawData.Size()))
         , FixedRanges(RangeChecker::Create(RawData.Size()))
       {
@@ -541,7 +541,7 @@ namespace Chiptune
       {
         return false;
       }
-      const Header& header = *safe_ptr_cast<const Header*>(rawData.Start());
+      const Header& header = *static_cast<const Header*>(rawData.Start());
       if (!(header.PatternSize == 64 || header.PatternSize == 48 || header.PatternSize == 32 || header.PatternSize == 24))
       {
         return false;

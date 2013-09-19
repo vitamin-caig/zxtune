@@ -19,7 +19,7 @@
         <translation>Максимум</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/flac_settings.cpp" line="58"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/flac_settings.cpp" line="56"/>
         <source>Compression %1</source>
         <translation>Сжатие %1</translation>
     </message>
@@ -82,17 +82,17 @@
         <translation>Моно</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="139"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="140"/>
         <source>%1 kbps</source>
         <translation>%1 кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="140"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="141"/>
         <source>~ %1 kbps</source>
         <translation>В среднем %1 кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="144"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/mp3_settings.cpp" line="145"/>
         <source>Quality %1</source>
         <translation>Качество %1</translation>
     </message>
@@ -125,12 +125,12 @@
         <translation>Средний битрейт, кбит/с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="74"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="72"/>
         <source>Quality %1</source>
         <translation>Качество %1</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="78"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/ogg_settings.cpp" line="76"/>
         <source>Average bitrate %1 kbps</source>
         <translation>Средний битрейт %1 кбит/с</translation>
     </message>

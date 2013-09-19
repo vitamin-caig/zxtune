@@ -13,7 +13,6 @@ Author:
 #include "expression.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <binary/format.h>

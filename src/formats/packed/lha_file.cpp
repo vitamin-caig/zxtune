@@ -13,8 +13,6 @@ Author:
 #include "container.h"
 #include "lha_supp.h"
 #include "pack_utils.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <binary/input_stream.h>
 #include <debug/log.h>

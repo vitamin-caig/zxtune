@@ -199,7 +199,7 @@ namespace Chiptune
     public:
       explicit Format(const Binary::Container& rawData)
         : RawData(rawData)
-        , Source(*safe_ptr_cast<const Header*>(RawData.Start()))
+        , Source(*static_cast<const Header*>(RawData.Start()))
         , IsCompiled(Source.Zeroes != ZeroesArray())
         , Ranges(RangeChecker::Create(GetSize()))
       {

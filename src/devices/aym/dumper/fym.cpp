@@ -14,7 +14,6 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <binary/compress.h>
 #include <binary/data_builder.h>

@@ -1,6 +1,5 @@
 #include <strings/format.h>
 #include <debug/log.h>
-#include <tools.h>
 #include <types.h>
 #include <binary/format.h>
 #include <binary/data_adapter.h>

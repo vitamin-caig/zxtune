@@ -17,7 +17,6 @@ Author:
 #include <core/plugins/utils.h>
 //common includes
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <binary/container.h>
 #include <core/module_detect.h>

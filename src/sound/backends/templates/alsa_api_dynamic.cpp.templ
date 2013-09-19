@@ -10,13 +10,12 @@ Last changed:
 
 //local includes
 #include "alsa_api.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 
 namespace
 {
@@ -37,7 +36,7 @@ namespace
         "libasound.so.2.0.0",//deb-based
         "libasound.so.2",    //rpm-based
       };
-      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+      return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
     }
     
     virtual std::vector<std::string> WindowsAlternatives() const

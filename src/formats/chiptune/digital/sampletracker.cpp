@@ -126,7 +126,7 @@ namespace Chiptune
     public:
       explicit Format(const Binary::Container& rawData)
         : RawData(rawData)
-        , Source(*safe_ptr_cast<const Header*>(RawData.Start()))
+        , Source(*static_cast<const Header*>(RawData.Start()))
         , Ranges(RangeChecker::Create(rawData.Size()))
         , FixedRanges(RangeChecker::Create(rawData.Size()))
       {
@@ -312,7 +312,7 @@ namespace Chiptune
       {
         return false;
       }
-      const Header& header = *safe_ptr_cast<const Header*>(rawData.Start());
+      const Header& header = *static_cast<const Header*>(rawData.Start());
       return header.LastPositionDoubled >= 2
           && header.LastPositionDoubled <= 128
           && 0 == (header.LastPositionDoubled & 1)

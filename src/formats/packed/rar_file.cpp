@@ -14,8 +14,6 @@ Author:
 #include "container.h"
 #include "rar_supp.h"
 #include "pack_utils.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
 #include <debug/log.h>

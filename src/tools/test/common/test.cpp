@@ -1,7 +1,6 @@
 #include <byteorder.h>
 #include <iterator.h>
 #include <range_checker.h>
-#include <tools.h>
 
 #include <iostream>
 #include <boost/bind.hpp>
@@ -149,7 +148,7 @@ int main()
   std::cout << "---- Test for iterators ----" << std::endl;
   {
     const uint8_t DATA[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-    CycledIterator<const uint8_t*> it(DATA, ArrayEnd(DATA));
+    CycledIterator<const uint8_t*> it(DATA, DATA + 10);
     Test<uint_t>("Cycled iterator init", *it, 0);
     Test<uint_t>("Cycled iterator forward", *++it, 1);
     Test<uint_t>("Cycled iterator backward", *--it, 0);

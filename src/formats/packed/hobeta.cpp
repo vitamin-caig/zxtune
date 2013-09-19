@@ -14,12 +14,13 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <pointers.h>
-#include <tools.h>
 //library includes
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
 #include <numeric>
+//boost includes
+#include <boost/array.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -30,7 +31,7 @@ namespace Hobeta
 #endif
   PACK_PRE struct Header
   {
-    uint8_t Filename[9];
+    boost::array<uint8_t, 9> Filename;
     uint16_t Start;
     uint16_t Length;
     uint16_t FullLength;
@@ -58,7 +59,7 @@ namespace Hobeta
         dataSize + sizeof(*header) > limit ||
         fullSize != Math::Align<std::size_t>(dataSize, 256) ||
         //check for valid name
-        ArrayEnd(header->Filename) != std::find_if(header->Filename, ArrayEnd(header->Filename),
+        header->Filename.end() != std::find_if(header->Filename.begin(), header->Filename.end(),
           std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
         )
     {

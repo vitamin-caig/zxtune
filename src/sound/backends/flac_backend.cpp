@@ -15,7 +15,6 @@ Author:
 #include "file_backend.h"
 //common includes
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <debug/log.h>
@@ -92,8 +91,9 @@ namespace Flac
 
     void Encode(FLAC__StreamEncoder& encoder)
     {
-      FLAC__StreamMetadata* meta[1] = {Tags.get()};
-      CheckFlacCall(FlacApi->FLAC__stream_encoder_set_metadata(&encoder, meta, ArraySize(meta)), THIS_LINE);
+      const std::size_t METADATAS_COUNT = 1;
+      FLAC__StreamMetadata* meta[METADATAS_COUNT] = {Tags.get()};
+      CheckFlacCall(FlacApi->FLAC__stream_encoder_set_metadata(&encoder, meta, METADATAS_COUNT), THIS_LINE);
     }
   private:
     const Api::Ptr FlacApi;

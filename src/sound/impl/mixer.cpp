@@ -12,7 +12,6 @@ Author:
 //local includes
 #include "mixer_core.h"
 //common includes
-#include <tools.h>
 #include <error_tools.h>
 //library includes
 #include <l10n/api.h>

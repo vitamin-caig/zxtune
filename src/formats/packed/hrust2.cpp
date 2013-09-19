@@ -16,7 +16,6 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
 #include <formats/packed.h>
@@ -27,6 +26,8 @@ Author:
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/size.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -109,7 +110,7 @@ namespace Hrust2
       bool Check() const
       {
         static const uint8_t SIGNATURE[] = {'H', 'r', 's', 't', '2'};
-        return 0 == std::memcmp(ID, SIGNATURE, ArraySize(ID));
+        return 0 == std::memcmp(ID, SIGNATURE, boost::size(ID));
       }
 
       std::size_t GetSize() const
@@ -281,7 +282,7 @@ namespace Hrust2
           }
         }
       }
-      std::copy(Header.LastBytes, ArrayEnd(Header.LastBytes), std::back_inserter(Decoded));
+      std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
       return true;
     }
   private:
@@ -361,7 +362,7 @@ namespace Hrust2
         BOOST_STATIC_ASSERT(sizeof(HRUST2_1_PADDING) == 255);
         const uint8_t* const paddingStart = Data + usefulSize;
         const uint8_t* const paddingEnd = Data + resultSize;
-        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, ArrayEnd(HRUST2_1_PADDING)))
+        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, boost::end(HRUST2_1_PADDING)))
         {
           if (pad >= MIN_SIGNATURE_MATCH)
           {

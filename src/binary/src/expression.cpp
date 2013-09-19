@@ -15,7 +15,6 @@ Author:
 #include "format_syntax.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 #include <math/numeric.h>
 //std includes
 #include <cctype>

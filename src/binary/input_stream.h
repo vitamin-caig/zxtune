@@ -16,7 +16,6 @@
 //common includes
 #include <contract.h>
 #include <pointers.h>
-#include <tools.h>
 #include <types.h>
 //std includes
 #include <cstring>
@@ -59,10 +58,10 @@ namespace Binary
       const uint8_t CR = 0x0d;
       const uint8_t LF = 0x0a;
       const uint8_t EOT = 0x00;
-      static const uint8_t EOLCODES[] = {CR, LF, EOT};
+      static const uint8_t EOLCODES[3] = {CR, LF, EOT};
 
       Require(Cursor != Finish);
-      const uint8_t* const eolPos = std::find_first_of(Cursor, Finish, EOLCODES, ArrayEnd(EOLCODES));
+      const uint8_t* const eolPos = std::find_first_of(Cursor, Finish, EOLCODES, EOLCODES + 3);
       const uint8_t* nextLine = eolPos;
       if (nextLine != Finish && CR == *nextLine++)
       {

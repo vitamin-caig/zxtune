@@ -1,4 +1,3 @@
-#include <tools.h>
 #include <error_tools.h>
 #include <math/numeric.h>
 #include <sound/matrix_mixer.h>
@@ -6,6 +5,8 @@
 
 #include <iostream>
 #include <iomanip>
+
+#include <boost/range/size.hpp>
 
 #define FILE_TAG 25E829A2
 
@@ -143,16 +144,16 @@ namespace Sound
       throw Error(THIS_LINE, str);
     }
     
-    assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
-    assert(ArraySize(GAINS) == ArraySize(GAIN_NAMES));
-    assert(ArraySize(INPUTS) == ArraySize(INPUT_NAMES));
+    assert(boost::size(OUTS) == boost::size(GAINS) * boost::size(INPUTS));
+    assert(boost::size(GAINS) == boost::size(GAIN_NAMES));
+    assert(boost::size(INPUTS) == boost::size(INPUT_NAMES));
     
     const Sample* result(OUTS);
-    for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
+    for (unsigned matrix = 0; matrix != boost::size(GAINS); ++matrix)
     {
       std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
       mixer->SetMatrix(MakeMatrix<Channels>(GAINS[matrix]));
-      for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
+      for (unsigned input = 0; input != boost::size(INPUTS); ++input, ++result)
       {
         std::cout << "Checking for " << INPUT_NAMES[input] << " input: ";
         Check(mixer->ApplyData(MakeSample<MultichannelSample<Channels> >(INPUTS[input])), *result);

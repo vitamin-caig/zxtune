@@ -10,13 +10,12 @@ Last changed:
 
 //local includes
 #include "sdl_api.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 
 namespace
 {
@@ -36,7 +35,7 @@ namespace
       {
         "libSDL-1.2.so.0",
       };
-      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+      return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
     }
     
     virtual std::vector<std::string> WindowsAlternatives() const

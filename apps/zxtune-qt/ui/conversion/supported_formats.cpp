@@ -18,8 +18,6 @@ Author:
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <sound/service.h>
 //std includes

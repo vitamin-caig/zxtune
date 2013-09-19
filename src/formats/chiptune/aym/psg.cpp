@@ -12,8 +12,6 @@ Author:
 //local includes
 #include "psg.h"
 #include "formats/chiptune/container.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
 //std includes
@@ -70,7 +68,7 @@ namespace Chiptune
       {
         return false;
       }
-      const Header* const header = safe_ptr_cast<const Header*>(rawData.Start());
+      const Header* const header = static_cast<const Header*>(rawData.Start());
       return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) &&
          MARKER == header->Marker;
     }

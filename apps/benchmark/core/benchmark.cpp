@@ -16,7 +16,6 @@ Author:
 #include "mixer.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 //boost includes
 #include <boost/format.hpp>
 #include <boost/make_shared.hpp>

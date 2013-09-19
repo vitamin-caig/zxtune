@@ -16,7 +16,6 @@ Author:
 //common includes
 #include <contract.h>
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <binary/container_factories.h>
 #include <debug/log.h>
@@ -33,6 +32,7 @@ Author:
 #include <boost/make_shared.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -53,7 +53,7 @@ namespace
     };
     const String::size_type dotPos = in.find('.');
     const String filename = in.substr(0, dotPos);
-    if (ArrayEnd(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, ArrayEnd(DEPRECATED_NAMES), ToStdString(filename)))
+    if (boost::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, boost::end(DEPRECATED_NAMES), ToStdString(filename)))
     {
       const String restPart = dotPos != String::npos ? in.substr(dotPos) : String();
       return filename + '~' + restPart;
@@ -460,13 +460,14 @@ namespace IO
       {
         SCHEME_FILE
       };
-      return Strings::Set(SCHEMES, ArrayEnd(SCHEMES));
+      return Strings::Set(SCHEMES, boost::end(SCHEMES));
     }
 
     virtual Identifier::Ptr Resolve(const String& uri) const
     {
-      const String::size_type schemePos = uri.find(SCHEME_SIGN);
-      const String::size_type hierPos = String::npos == schemePos ? 0 : schemePos + ArraySize(SCHEME_SIGN) - 1;
+      const String schemeSign(SCHEME_SIGN);
+      const String::size_type schemePos = uri.find(schemeSign);
+      const String::size_type hierPos = String::npos == schemePos ? 0 : schemePos + schemeSign.size();
       const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
 
       const String scheme = String::npos == schemePos ? String(SCHEME_FILE) : uri.substr(0, schemePos);

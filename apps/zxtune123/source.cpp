@@ -20,7 +20,6 @@ Author:
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <tools.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>

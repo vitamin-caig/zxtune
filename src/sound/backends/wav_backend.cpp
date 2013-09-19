@@ -16,7 +16,6 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <l10n/api.h>

@@ -17,7 +17,6 @@ Author:
 #include "volume_control.h"
 //common includes
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <debug/log.h>
 #include <l10n/api.h>
@@ -29,6 +28,7 @@ Author:
 #include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
+#include <boost/range/size.hpp>
 //text includes
 #include "text/backends.h"
 
@@ -78,12 +78,19 @@ namespace DirectSound
 
   String Guid2String(LPGUID guid)
   {
-    OLECHAR strGuid[39] = {0};
-    if (!guid || 0 == ::StringFromGUID2(*guid, strGuid, ArraySize(strGuid)))
+    if (!guid)
     {
       return String();
     }
-    return String(strGuid, ArrayEnd(strGuid) - 1);
+    OLECHAR strGuid[39] = {0};
+    if (const int chars = ::StringFromGUID2(*guid, strGuid, boost::size(strGuid)))
+    {
+      return String(strGuid, strGuid + chars - 1);
+    }
+    else
+    {
+      return String();
+    }
   }
 
   std::auto_ptr<GUID> String2Guid(const String& str)
@@ -582,7 +589,7 @@ namespace DirectSound
       const String& id = Guid2String(guid);
       const String& name = FromStdString(descr);
       Dbg("Detected device '%1%' (uuid=%2% module='%3%')", name, id, module);
-      DevicesArray& devices = *safe_ptr_cast<DevicesArray*>(param);
+      DevicesArray& devices = *static_cast<DevicesArray*>(param);
       devices.push_back(IdAndName(id, name));
       return TRUE;
     }

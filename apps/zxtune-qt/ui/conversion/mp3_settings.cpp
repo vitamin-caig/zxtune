@@ -19,12 +19,13 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/size.hpp>
 
 namespace
 {
@@ -54,15 +55,15 @@ namespace
       using namespace Parameters;
       Parameters::StringType val = ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT;
       Ctr->FindValue(ZXTune::Sound::Backends::Mp3::CHANNELS, val);
-      const Parameters::StringType* const arrPos = std::find(CHANNEL_MODES, ArrayEnd(CHANNEL_MODES), val);
-      return arrPos != ArrayEnd(CHANNEL_MODES)
+      const Parameters::StringType* const arrPos = std::find(CHANNEL_MODES, boost::end(CHANNEL_MODES), val);
+      return arrPos != boost::end(CHANNEL_MODES)
         ? arrPos - CHANNEL_MODES
         : -1;
     }
 
     virtual void Set(int val)
     {
-      if (Math::InRange<int>(val, 0, ArraySize(CHANNEL_MODES) - 1))
+      if (Math::InRange<int>(val, 0, boost::size(CHANNEL_MODES) - 1))
       {
         Ctr->SetValue(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS, CHANNEL_MODES[val]);
       }

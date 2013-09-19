@@ -15,8 +15,6 @@ Author:
 #include "core/plugins/utils.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>

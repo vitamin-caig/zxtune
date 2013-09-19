@@ -9,8 +9,6 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//common includes
-#include <tools.h>
 //library includes
 #include <debug/log.h>
 #include <platform/tools.h>

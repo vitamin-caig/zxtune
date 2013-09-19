@@ -61,12 +61,12 @@ msgstr "Файл существует."
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 
-#: providers/file_provider.cpp:504
+#: providers/file_provider.cpp:505
 #, boost-format
 msgid "Failed to open file '%1%'."
 msgstr "Ошибка открытия файла '%1%'."
 
-#: providers/file_provider.cpp:516
+#: providers/file_provider.cpp:517
 #, boost-format
 msgid "Failed to create file '%1%'."
 msgstr "Ошибка создания файла '%1%'."
@@ -85,11 +85,11 @@ msgstr "Ошибка HTTP: %1%."
 msgid "Network files access via different schemes support"
 msgstr "Поддержка доступа к сетевым файлам"
 
-#: providers/network_provider.cpp:363
+#: providers/network_provider.cpp:364
 #, boost-format
 msgid "Failed to open network resource '%1%'."
 msgstr "Ошибка открытия сетевого ресурса '%1%'."
 
-#: providers/network_provider.cpp:369
+#: providers/network_provider.cpp:370
 msgid "Not supported."
 msgstr "Не поддерживается."

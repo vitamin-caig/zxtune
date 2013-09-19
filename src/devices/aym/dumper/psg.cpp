@@ -11,13 +11,12 @@ Author:
 
 //local includes
 #include "dump_builder.h"
-//common includes
-#include <tools.h>
-//boost includes
-#include <boost/make_shared.hpp>
 //std includes
 #include <algorithm>
 #include <iterator>
+//boost includes
+#include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 
 namespace
 {
@@ -45,7 +44,7 @@ namespace
         END_MUS
       };
       BOOST_STATIC_ASSERT(sizeof(HEADER) == 16 + 1);
-      Data.assign(HEADER, ArrayEnd(HEADER));
+      Data.assign(HEADER, boost::end(HEADER));
     }
 
     virtual void GetResult(Dump& data) const

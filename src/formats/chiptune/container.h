@@ -11,8 +11,6 @@ Author:
 
 //common includes
 #include <crc.h>
-#include <pointers.h>
-#include <tools.h>
 //library includes
 #include <formats/chiptune.h>
 //boost includes
@@ -48,7 +46,7 @@ namespace Formats
 
       virtual uint_t Checksum() const
       {
-        return Crc32(safe_ptr_cast<const uint8_t*>(Delegate->Start()), Delegate->Size());
+        return Crc32(static_cast<const uint8_t*>(Delegate->Start()), Delegate->Size());
       }
     protected:
       const Binary::Container::Ptr Delegate;
@@ -83,7 +81,7 @@ namespace Formats
 
       virtual uint_t FixedChecksum() const
       {
-        return Crc32(safe_ptr_cast<const uint8_t*>(Delegate->Start()) + FixedOffset, FixedSize);
+        return Crc32(static_cast<const uint8_t*>(Delegate->Start()) + FixedOffset, FixedSize);
       }
     private:
       const std::size_t FixedOffset;

@@ -16,7 +16,6 @@ Author:
 #include <contract.h>
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <tools.h>
 //library includes
 #include <binary/container_factories.h>
 #include <debug/log.h>
@@ -27,6 +26,7 @@ Author:
 #include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -299,7 +299,7 @@ namespace IO
   public:
     explicit NetworkDataProvider(Curl::Api::Ptr api)
       : Api(api)
-      , SupportedSchemes(ALL_SCHEMES, ArrayEnd(ALL_SCHEMES))
+      , SupportedSchemes(ALL_SCHEMES, boost::end(ALL_SCHEMES))
     {
     }
 
@@ -325,13 +325,14 @@ namespace IO
 
     virtual Identifier::Ptr Resolve(const String& uri) const
     {
-      const String::size_type schemePos = uri.find(SCHEME_SIGN);
+      const String schemeSign(SCHEME_SIGN);
+      const String::size_type schemePos = uri.find(schemeSign);
       if (String::npos == schemePos)
       {
         //scheme is required
         return Identifier::Ptr();
       }
-      const String::size_type hierPos = schemePos + ArraySize(SCHEME_SIGN) - 1;
+      const String::size_type hierPos = schemePos + schemeSign.size();
       const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
 
       const String scheme = uri.substr(0, schemePos);

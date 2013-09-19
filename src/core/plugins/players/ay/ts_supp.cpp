@@ -19,8 +19,7 @@ Author:
 #include "core/src/callback.h"
 //common includes
 #include <byteorder.h>
-#include <error_tools.h>
-#include <tools.h>
+#include <error.h>
 //library includes
 #include <core/module_open.h>
 #include <core/plugin_attrs.h>
@@ -222,7 +221,7 @@ namespace TS
         const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties.GetResult(), tune1, tune2);
         return TurboSound::CreateHolder(chiptune);
       }
-      catch (const Error& e)
+      catch (const Error&)
       {
         return Module::Holder::Ptr();
       }

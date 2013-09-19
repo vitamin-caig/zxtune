@@ -13,7 +13,6 @@ Author:
 #include "container.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
 //library includes
 #include <binary/input_stream.h>
 #include <formats/packed.h>
@@ -21,6 +20,7 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/array.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -360,7 +360,7 @@ namespace Z80
       };
 
       Pages = 3;
-      Numbers.assign(VER48_PAGES, ArrayEnd(VER48_PAGES));
+      Numbers.assign(VER48_PAGES, boost::end(VER48_PAGES));
     }
 
     void FillSamRamTraits()
@@ -379,7 +379,7 @@ namespace Z80
       };
 
       Pages = 5;
-      Numbers.assign(SAMRAM_PAGES, ArrayEnd(SAMRAM_PAGES));
+      Numbers.assign(SAMRAM_PAGES, boost::end(SAMRAM_PAGES));
     }
 
     void Fill128kTraits()
@@ -399,7 +399,7 @@ namespace Z80
         7,  //p10(7) to 1c000
       };
       Pages = 8;
-      Numbers.assign(VER128_PAGES, ArrayEnd(VER128_PAGES));
+      Numbers.assign(VER128_PAGES, boost::end(VER128_PAGES));
     }
 
     void Fill256kTraits()
@@ -427,7 +427,7 @@ namespace Z80
         15,
       };
       Pages = 16;
-      Numbers.assign(VER256_PAGES, ArrayEnd(VER256_PAGES));
+      Numbers.assign(VER256_PAGES, boost::end(VER256_PAGES));
     }
 
     void FillVer2Traits(uint_t hwMode)

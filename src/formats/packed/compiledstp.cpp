@@ -14,7 +14,6 @@ Author:
 #include "formats/chiptune/aym/soundtrackerpro.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -54,7 +53,7 @@ namespace CompiledSTP
       uint16_t PlayAddr;
       uint8_t Padding4[8];
       //+17
-      uint8_t Information[53];
+      boost::array<uint8_t, 53> Information;
       uint8_t Padding5[8];
       //+78
       uint8_t Initialization;
@@ -68,7 +67,7 @@ namespace CompiledSTP
 
       Dump GetInfo() const
       {
-        return Dump(&Information[0], ArrayEnd(Information));
+        return Dump(Information.begin(), Information.end());
       }
     } PACK_POST;
   };

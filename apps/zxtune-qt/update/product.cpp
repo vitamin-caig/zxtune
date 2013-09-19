@@ -15,8 +15,8 @@ Author:
 #include "product.h"
 #include "apps/version/api.h"
 #include "apps/zxtune-qt/ui/utils.h"
-//common includes
-#include <tools.h>
+//boost includes
+#include <boost/range/end.hpp>
 //qt includes
 #include <QtCore/QFileInfo>
 
@@ -113,7 +113,7 @@ namespace
   Update::PackagingTag GetLinuxPackaging()
   {
     static const QLatin1String RELEASE_DIR("/etc/");
-    for (const PackagingTraits* it = PACKAGING_TYPES, *lim = ArrayEnd(PACKAGING_TYPES); it != lim; ++it)
+    for (const PackagingTraits* it = PACKAGING_TYPES, *lim = boost::end(PACKAGING_TYPES); it != lim; ++it)
     {
       if (QFileInfo(RELEASE_DIR + it->ReleaseFile).exists())
       {
@@ -161,7 +161,7 @@ namespace Product
 
   Update::TypeTag GetUpdateType(Release::PlatformTag platform, Release::ArchitectureTag architecture, Update::PackagingTag packaging)
   {
-    for (const ReleaseTypeTraits* it = RELEASE_TYPES, *lim = ArrayEnd(RELEASE_TYPES); it != lim; ++it)
+    for (const ReleaseTypeTraits* it = RELEASE_TYPES, *lim = boost::end(RELEASE_TYPES); it != lim; ++it)
     {
       if (it->Platform == platform &&
           it->Architecture == architecture &&

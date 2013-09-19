@@ -17,7 +17,6 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <pointers.h>
-#include <tools.h>
 //library includes
 #include <formats/packed.h>
 //std includes
@@ -25,6 +24,7 @@ Author:
 #include <iterator>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -389,7 +389,7 @@ namespace PowerfullCodeDecreaser6
       {
         return false;
       }
-      std::copy(Header.LastBytes, ArrayEnd(Header.LastBytes), std::back_inserter(Decoded));
+      std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
       return true;
     }
   private:

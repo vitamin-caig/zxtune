@@ -11,8 +11,6 @@ Author:
 
 //local includes
 #include "vortex_base.h"
-//common includes
-#include <tools.h>
 //library includes
 #include <math/numeric.h>
 //boost includes

@@ -17,7 +17,6 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <pointers.h>
-#include <tools.h>
 //library includes
 #include <formats/packed.h>
 #include <math/numeric.h>
@@ -25,6 +24,7 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -168,7 +168,7 @@ namespace Hrum
       BOOST_STATIC_ASSERT(sizeof(HRUM3_5_PADDING) == 255);
       const uint8_t* const paddingStart = Data + usefulSize;
       const uint8_t* const paddingEnd = Data + resultSize;
-      if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, ArrayEnd(HRUM3_5_PADDING)))
+      if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, boost::end(HRUM3_5_PADDING)))
       {
         if (pad >= MIN_SIGNATURE_MATCH)
         {
@@ -273,7 +273,7 @@ namespace Hrum
         }
       }
       //put remaining bytes
-      std::copy(Header.LastBytes, ArrayEnd(Header.LastBytes), std::back_inserter(Decoded));
+      std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
       return true;
     }
   private:

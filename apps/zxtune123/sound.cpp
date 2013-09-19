@@ -17,7 +17,6 @@ Author:
 #include <apps/base/parsing.h>
 //common includes
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <core/core_parameters.h>
 #include <debug/log.h>

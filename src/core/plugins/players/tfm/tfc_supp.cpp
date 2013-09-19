@@ -17,13 +17,13 @@ Author:
 //common includes
 #include <contract.h>
 #include <iterator.h>
-#include <tools.h>
 //library includes
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfc.h>
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/algorithm/max_element.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -97,7 +97,7 @@ namespace TFC
       const ChiptuneData& data = *Data;
       const std::size_t sizes[6] = {data[0].GetSize(), data[1].GetSize(), data[2].GetSize(),
         data[3].GetSize(), data[4].GetSize(), data[5].GetSize()};
-      return static_cast<uint_t>(*std::max_element(sizes, ArrayEnd(sizes)));
+      return static_cast<uint_t>(*boost::max_element(sizes));
     }
 
     virtual uint_t Loop() const

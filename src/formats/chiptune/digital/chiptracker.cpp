@@ -267,7 +267,7 @@ namespace Chiptune
     public:
       explicit Format(const Binary::Container& rawData)
         : RawData(rawData)
-        , Source(*safe_ptr_cast<const Header*>(RawData.Start()))
+        , Source(*static_cast<const Header*>(RawData.Start()))
         , Ranges(RangeChecker::Create(RawData.Size()))
         , FixedRanges(RangeChecker::Create(RawData.Size()))
       {
@@ -445,7 +445,7 @@ namespace Chiptune
       {
         return false;
       }
-      const Header* const header(safe_ptr_cast<const Header*>(rawData.Start()));
+      const Header* const header(static_cast<const Header*>(rawData.Start()));
       if (0 != std::memcmp(header->Signature, SIGNATURE, sizeof(SIGNATURE)))
       {
         return false;

@@ -284,12 +284,12 @@
         <translation>Микшер</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="68"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="67"/>
         <source>Select device</source>
         <translation>Выберите устройство</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="77"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="76"/>
         <source>Select mixer</source>
         <translation>Выберите микшер</translation>
     </message>

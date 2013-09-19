@@ -17,7 +17,6 @@ Author:
 #include "file_backend.h"
 //common includes
 #include <error_tools.h>
-#include <tools.h>
 //library includes
 #include <binary/data_adapter.h>
 #include <debug/log.h>

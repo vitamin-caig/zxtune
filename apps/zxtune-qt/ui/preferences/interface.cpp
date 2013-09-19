@@ -23,11 +23,12 @@ Author:
 #include "update/parameters.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <math/numeric.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/size.hpp>
 //qt includes
 #include <QtGui/QRadioButton>
 
@@ -56,15 +57,15 @@ namespace
       using namespace Parameters;
       Parameters::IntType val = ZXTuneQT::Update::CHECK_PERIOD_DEFAULT;
       Ctr->FindValue(ZXTuneQT::Update::CHECK_PERIOD, val);
-      const Parameters::IntType* const arrPos = std::find(UPDATE_CHECK_PERIODS, ArrayEnd(UPDATE_CHECK_PERIODS), val);
-      return arrPos != ArrayEnd(UPDATE_CHECK_PERIODS)
+      const Parameters::IntType* const arrPos = std::find(UPDATE_CHECK_PERIODS, boost::end(UPDATE_CHECK_PERIODS), val);
+      return arrPos != boost::end(UPDATE_CHECK_PERIODS)
         ? arrPos - UPDATE_CHECK_PERIODS
         : -1;
     }
 
     virtual void Set(int val)
     {
-      if (Math::InRange<int>(val, 0, ArraySize(UPDATE_CHECK_PERIODS) - 1))
+      if (Math::InRange<int>(val, 0, boost::size(UPDATE_CHECK_PERIODS) - 1))
       {
         Ctr->SetValue(Parameters::ZXTuneQT::Update::CHECK_PERIOD, UPDATE_CHECK_PERIODS[val]);
       }

@@ -15,7 +15,6 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <formats/packed.h>
 //std includes

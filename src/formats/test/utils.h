@@ -2,7 +2,6 @@
 #define FORMATS_TEST_UTILS_H
 
 #include <pointers.h>
-#include <tools.h>
 #include <types.h>
 #include <binary/container_factories.h>
 #include <formats/archived/decoders.h>
