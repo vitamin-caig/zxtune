@@ -38,7 +38,7 @@ namespace L10n
       return FromStdString(std::string(text));
     }
 
-    String operator() (const char* context, const char* single, const char* plural, int count) const
+    String operator() (const char* /*context*/, const char* single, const char* plural, int count) const
     {
       return FromStdString(std::string(count == 1 ? single : plural));
     }

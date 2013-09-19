@@ -12,13 +12,11 @@
 #define __ITERATOR_H_DEFINED__
 
 //common includes
-#include <tools.h>
+#include <pointers.h>
 //std includes
 #include <cassert>
 #include <iterator>
 #include <memory>
-//boost includes
-#include <boost/shared_ptr.hpp>
 
 //! @brief Cycled iterator implementation
 //! @code
@@ -165,7 +163,27 @@ private:
 template<class T>
 class ObjectIterator
 {
-  class Stub : public ObjectIterator
+public:
+  typedef typename boost::shared_ptr<ObjectIterator<T> > Ptr;
+
+  //! Virtual destructor
+  virtual ~ObjectIterator() {}
+
+  //! Check if accessor is valid
+  virtual bool IsValid() const = 0;
+  //! Getting stored value
+  //! @invariant Should be called only on valid accessors)
+  virtual T Get() const = 0;
+  //! Moving to next stored value
+  virtual void Next() = 0;
+
+  static Ptr CreateStub();
+};
+
+template<class T>
+typename ObjectIterator<T>::Ptr ObjectIterator<T>::CreateStub()
+{
+  class Stub : public ObjectIterator<T>
   {
   public:
     virtual bool IsValid() const
@@ -183,27 +201,9 @@ class ObjectIterator
       assert(!"Should not be called");
     }
   };
-
-public:
-  typedef typename boost::shared_ptr<ObjectIterator<T> > Ptr;
-
-  //! Virtual destructor
-  virtual ~ObjectIterator() {}
-
-  //! Check if accessor is valid
-  virtual bool IsValid() const = 0;
-  //! Getting stored value
-  //! @invariant Should be called only on valid accessors)
-  virtual T Get() const = 0;
-  //! Moving to next stored value
-  virtual void Next() = 0;
-
-  static Ptr CreateStub()
-  {
-    static Stub STUB_INSTANCE;
-    return Ptr(&STUB_INSTANCE, NullDeleter<Stub>());
-  }
-};
+  static Stub instance;
+  return MakeSingletonPointer<ObjectIterator<T> >(instance);
+}
 
 template<class I, class V = typename std::iterator_traits<I>::value_type>
 class RangedObjectIteratorAdapter : public ObjectIterator<V>

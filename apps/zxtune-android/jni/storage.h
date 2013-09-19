@@ -14,7 +14,7 @@ Author:
 #define OBJECTS_STORAGE_H_DEFINED
 
 //common includes
-#include <tools.h>
+#include <pointers.h>
 //std includes
 #include <set>
 

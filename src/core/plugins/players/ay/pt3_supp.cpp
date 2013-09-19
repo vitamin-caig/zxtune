@@ -17,7 +17,7 @@ Author:
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <core/conversion/aym.h>
@@ -215,7 +215,7 @@ namespace ProTracker3
     static Ptr Create()
     {
       static StubLine instance;
-      return Ptr(&instance, NullDeleter<Line>());
+      return MakeSingletonPointer(instance);
     }
   };
 

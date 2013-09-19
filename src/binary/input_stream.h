@@ -15,6 +15,7 @@
 #include <binary/container.h>
 //common includes
 #include <contract.h>
+#include <pointers.h>
 #include <tools.h>
 #include <types.h>
 //std includes

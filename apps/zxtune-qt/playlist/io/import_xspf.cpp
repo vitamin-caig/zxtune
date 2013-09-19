@@ -18,6 +18,7 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <error.h>
+#include <tools.h>
 //library includes
 #include <core/module_attrs.h>
 #include <debug/log.h>

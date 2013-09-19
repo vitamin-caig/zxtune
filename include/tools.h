@@ -8,15 +8,11 @@
 **/
 
 #pragma once
-#ifndef __TOOLS_H_DEFINED__
-#define __TOOLS_H_DEFINED__
+#ifndef TOOLS_H_DEFINED
+#define TOOLS_H_DEFINED
 
-//boost includes
-#include <boost/static_assert.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/type_traits/is_const.hpp>
-#include <boost/type_traits/is_pointer.hpp>
-#include <boost/type_traits/remove_pointer.hpp>
+//std includes
+#include <cstddef>
 
 //! @brief Calculating size of fixed-size array
 template<class T, std::size_t D>
@@ -50,23 +46,4 @@ inline T* ArrayEnd(T (&c)[D])
 }
 #endif
 
-//! @brief Performing safe pointer casting
-template<class T, class F>
-inline T safe_ptr_cast(F from)
-{
-  using namespace boost;
-  BOOST_STATIC_ASSERT(is_pointer<F>::value);
-  BOOST_STATIC_ASSERT(is_pointer<T>::value);
-  typedef typename mpl::if_c<is_const<typename remove_pointer<T>::type>::value, const void*, void*>::type MidType;
-  return static_cast<T>(static_cast<MidType>(from));
-}
-
-//! @brief Stub deleter for shared pointers
-template<class T>
-class NullDeleter
-{
-public:
-  void operator()(T*) {}
-};
-
-#endif //__TOOLS_H_DEFINED__
+#endif //TOOLS_H_DEFINED

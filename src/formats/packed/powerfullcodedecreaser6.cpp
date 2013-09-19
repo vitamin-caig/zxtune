@@ -16,6 +16,7 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
+#include <pointers.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>

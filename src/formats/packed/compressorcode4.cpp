@@ -16,7 +16,7 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <formats/packed.h>
 //std includes
@@ -66,7 +66,9 @@ namespace CompressorCode
       {
         return false;
       }
-      return *(header.Padding1 + depackerSize - 1) == 0xc9;
+      const uint8_t RET_CODE = 0xc9;
+      const uint8_t* const depacker = safe_ptr_cast<const uint8_t*>(&header);
+      return depacker[depackerSize - 1] == RET_CODE;
     }
 
     BOOST_STATIC_ASSERT(sizeof(RawHeader) == 0x1c);

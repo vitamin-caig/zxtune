@@ -18,7 +18,7 @@ Author:
 #include "core/src/callback.h"
 //common includes
 #include <error_tools.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <binary/container_factories.h>
 #include <core/convert_parameters.h>
@@ -173,7 +173,7 @@ namespace ZXTune
   ArchivePluginsEnumerator::Ptr ArchivePluginsEnumerator::Create()
   {
     static ArchivePluginsContainer instance;
-    return ArchivePluginsEnumerator::Ptr(&instance, NullDeleter<ArchivePluginsEnumerator>());
+    return MakeSingletonPointer(instance);
   }
 
   template<>

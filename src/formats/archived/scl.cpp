@@ -14,7 +14,7 @@ Author:
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <debug/log.h>
 //std includes

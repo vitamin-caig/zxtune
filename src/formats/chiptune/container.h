@@ -11,6 +11,7 @@ Author:
 
 //common includes
 #include <crc.h>
+#include <pointers.h>
 #include <tools.h>
 //library includes
 #include <formats/chiptune.h>

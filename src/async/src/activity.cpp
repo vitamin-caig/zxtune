@@ -11,6 +11,8 @@ Author:
 
 //local includes
 #include "event.h"
+//common includes
+#include <pointers.h>
 //library includes
 #include <async/activity.h>
 //boost includes
@@ -117,6 +119,7 @@ namespace Async
 
   Activity::Ptr Activity::CreateStub()
   {
-    return boost::make_shared<StubActivity>();
+    static StubActivity stub;
+    return MakeSingletonPointer(stub);
   }
 }

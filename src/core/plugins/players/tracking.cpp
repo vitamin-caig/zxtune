@@ -11,6 +11,8 @@ Author:
 
 //local includes
 #include "tracking.h"
+//common includes
+#include <pointers.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -37,7 +39,7 @@ namespace Module
     static Ptr Create()
     {
       static StubPattern instance;
-      return Ptr(&instance, NullDeleter<Pattern>());
+      return MakeSingletonPointer(instance);
     }
   };
 

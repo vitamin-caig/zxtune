@@ -16,7 +16,7 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <parameters/convert.h>
 #include <parameters/merged_accessor.h>

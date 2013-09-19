@@ -13,6 +13,7 @@ Author:
 #include "container.h"
 //common includes
 #include <byteorder.h>
+#include <pointers.h>
 #include <tools.h>
 //library includes
 #include <formats/packed.h>

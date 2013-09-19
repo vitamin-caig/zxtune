@@ -12,6 +12,8 @@ Author:
 //local includes
 #include "archive_supp_common.h"
 #include "plugins_list.h"
+//common includes
+#include <tools.h>
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed/decoders.h>

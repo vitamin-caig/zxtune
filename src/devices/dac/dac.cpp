@@ -14,7 +14,7 @@ Author:
 #include <devices/details/freq_table.h>
 #include <devices/details/parameters_helper.h>
 //common includes
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <math/numeric.h>
 #include <sound/chunk_builder.h>
@@ -244,7 +244,7 @@ namespace DAC
       {
         return val;
       }
-      return FastSample::Ptr(&STUB, NullDeleter<FastSample>());
+      return MakeSingletonPointer(STUB);
     }
 
     uint_t GetMaxRms() const

@@ -17,7 +17,7 @@ Author:
 #include "core/plugins/players/simple_orderlist.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/fm/tfmmusicmaker.h>
@@ -1071,7 +1071,7 @@ namespace TFMMusicMaker
     static Ptr Create()
     {
       static StubPattern instance;
-      return Ptr(&instance, NullDeleter<Pattern>());
+      return MakeSingletonPointer(instance);
     }
   };
   

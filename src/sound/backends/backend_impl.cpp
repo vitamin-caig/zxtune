@@ -12,8 +12,8 @@ Author:
 //local includes
 #include "backend_impl.h"
 //common includes
-#include <tools.h>
 #include <error_tools.h>
+#include <pointers.h>
 //library includes
 #include <async/worker.h>
 #include <debug/log.h>
@@ -289,7 +289,7 @@ namespace Sound
   BackendCallback::Ptr CreateCallback(BackendCallback::Ptr callback, BackendWorker::Ptr worker)
   {
     static StubBackendCallback STUB;
-    const BackendCallback::Ptr cb = callback ? callback : BackendCallback::Ptr(&STUB, NullDeleter<BackendCallback>());
+    const BackendCallback::Ptr cb = callback ? callback : MakeSingletonPointer(STUB);
     return boost::make_shared<CallbackOverWorker>(cb, worker);
   }
 

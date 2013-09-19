@@ -1,6 +1,6 @@
 #include <l10n/api.h>
 #include <strings/format.h>
-#include <tools.h>
+#include <pointers.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>

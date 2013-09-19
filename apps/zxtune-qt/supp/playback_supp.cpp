@@ -18,7 +18,7 @@ Author:
 //common includes
 #include <contract.h>
 #include <error.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <parameters/merged_accessor.h>
 #include <sound/service.h>
@@ -57,7 +57,7 @@ namespace
     static Ptr Instance()
     {
       static StubControl instance;
-      return Ptr(&instance, NullDeleter<Sound::PlaybackControl>());
+      return MakeSingletonPointer(instance);
     }
   };
 

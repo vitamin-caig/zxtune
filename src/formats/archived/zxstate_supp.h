@@ -14,7 +14,7 @@ Author:
 
 //common includes
 #include <byteorder.h>
-#include <tools.h>
+#include <pointers.h>
 #include <types.h>
 
 namespace Formats

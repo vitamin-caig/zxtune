@@ -14,6 +14,7 @@ Author:
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
+#include <pointers.h>
 #include <range_checker.h>
 #include <tools.h>
 //library includes
@@ -220,12 +221,6 @@ namespace TRD
     }
     return std::distance(begin, limit) * BYTES_PER_SECTOR;
   }
-
-  class StubVisitor : public Visitor
-  {
-  public:
-    virtual void OnFile(const String& /*filename*/, std::size_t /*offset*/, std::size_t /*size*/) {}
-  };
 
   class BuildVisitorAdapter : public Visitor
   {

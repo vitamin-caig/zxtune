@@ -15,7 +15,7 @@
 #include <binary/data.h>
 //common includes
 #include <types.h>
-#include <tools.h>
+#include <pointers.h>
 
 namespace Binary
 {
