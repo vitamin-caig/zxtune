@@ -31,17 +31,8 @@ namespace
 // implementation of error's core used to keep data
 struct Error::Meta
 {
-  Meta() : Location(), Text()
-  {
-  }
-  
   Meta(LocationRef loc, const String& txt)
     : Location(loc), Text(txt)
-  {
-  }
-
-  explicit Meta(LocationRef loc)
-    : Location(loc)
   {
   }
 
@@ -53,7 +44,7 @@ struct Error::Meta
   MetaPtr Suberror;
 };
 
-Error::Error() : ErrorMeta()
+Error::Error()
 {
 }
 

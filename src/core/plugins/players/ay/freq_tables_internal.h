@@ -13,15 +13,14 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_FREQ_TABLES_INTERNAL_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_FREQ_TABLES_INTERNAL_DEFINED__
 
-//common includes
-#include <error.h>
 //library includes
 #include <core/freq_tables.h>
 
 namespace Module
 {
   // getting frequency table data by name
-  Error GetFreqTable(const String& id, FrequencyTable& result);
+  // throw Error in case of problem
+  void GetFreqTable(const String& id, FrequencyTable& result);
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_FREQ_TABLES_INTERNAL_DEFINED__

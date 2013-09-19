@@ -223,7 +223,7 @@ namespace AYM
       Parameters::StringType newName;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newName))
       {
-        ThrowIfError(GetFreqTable(newName, table));
+        GetFreqTable(newName, table);
       }
       else
       {

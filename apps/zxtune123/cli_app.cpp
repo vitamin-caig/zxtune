@@ -303,7 +303,7 @@ namespace
         if (!ConvertParams.empty())
         {
           const Parameters::Container::Ptr cnvParams = Parameters::Container::Create();
-          ThrowIfError(ParseParametersString(Parameters::NameType(), ConvertParams, *cnvParams));
+          ParseParametersString(Parameters::NameType(), ConvertParams, *cnvParams);
           const Parameters::Accessor::Ptr mergedParams = Parameters::CreateMergedAccessor(cnvParams, ConfigParams);
           Convertor cnv(*mergedParams, *Display);
           Sourcer->ProcessItems(boost::bind(&Convertor::ProcessItem, &cnv, _1));
@@ -376,7 +376,7 @@ namespace
           StdOut << Text::ABOUT_SECTION << std::endl;
           return true;
         }
-        ThrowIfError(ParseConfigFile(configFile, *ConfigParams));
+        ParseConfigFile(configFile, *ConfigParams);
         Sourcer->ParseParameters();
         Sounder->ParseParameters();
         return false;

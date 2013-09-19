@@ -169,8 +169,8 @@ namespace
       if (!ProvidersOptions.empty())
       {
         const Parameters::Container::Ptr ioParams = Parameters::Container::Create();
-        ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX,
-          ProvidersOptions, *ioParams));
+        ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX,
+          ProvidersOptions, *ioParams);
         ioParams->Process(*Params);
       }
 
@@ -179,8 +179,8 @@ namespace
         const Parameters::Container::Ptr coreParams = Parameters::Container::Create();
         if (!CoreOptions.empty())
         {
-          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX,
-            CoreOptions, *coreParams));
+          ParseParametersString(Parameters::ZXTune::Core::PREFIX,
+            CoreOptions, *coreParams);
         }
         if (YM)
         {

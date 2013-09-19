@@ -240,7 +240,7 @@ namespace Module
     }
   };
 
-  Error GetFreqTable(const String& id, FrequencyTable& result)
+  void GetFreqTable(const String& id, FrequencyTable& result)
   {
     //check if required to revert table
     const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
@@ -250,7 +250,7 @@ namespace Module
       boost::bind(&FreqTableEntry::Name, _1) == idNormal);
     if (entry == boost::end(TABLES))
     {
-      return MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);
+      throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);
     }
     //copy result forward (normal) or backward (reverted)
     if (doRevert)
@@ -261,6 +261,5 @@ namespace Module
     {
       std::copy(entry->Table.begin(), entry->Table.end(), result.begin());
     }
-    return Error();
   }
 }

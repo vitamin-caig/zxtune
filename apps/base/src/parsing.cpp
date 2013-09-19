@@ -57,7 +57,7 @@ namespace
 #endif
   }
 
-  Error ParseParametersString(const Parameters::NameType& prefix, const String& str, Strings::Map& result)
+  void ParseParametersString(const Parameters::NameType& prefix, const String& str, Strings::Map& result)
   {
     Strings::Map res;
   
@@ -99,7 +99,7 @@ namespace
         }
         else
         {
-          return MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
+          throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
         }
         break;
       case IN_VALUE:
@@ -144,13 +144,12 @@ namespace
     }
     else if (IN_NOWHERE != mode)
     {
-      return MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
+      throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
     }
     result.swap(res);
-    return Error();
   }
 
-  Error ParseConfigFile(const String& filename, String& params)
+  void ParseConfigFile(const String& filename, String& params)
   {
     const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
 
@@ -160,14 +159,14 @@ namespace
     {
       if (!filename.empty())
       {
-        return Error(THIS_LINE, Text::ERROR_CONFIG_FILE);
+        throw Error(THIS_LINE, Text::ERROR_CONFIG_FILE);
       }
       configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
     }
     if (!*configFile)
     {
       params.clear();
-      return Error();
+      return;
     }
 
     String lines;
@@ -195,31 +194,22 @@ namespace
       }
     }
     params = lines;
-    return Error();
   }
 }
 
-Error ParseConfigFile(const String& filename, Parameters::Modifier& result)
+void ParseConfigFile(const String& filename, Parameters::Modifier& result)
 {
   String strVal;
-  if (const Error& err = ParseConfigFile(filename, strVal))
+  ParseConfigFile(filename, strVal);
+  if (!strVal.empty())
   {
-    return err;
+    ParseParametersString(String(), strVal, result);
   }
-  if (strVal.empty())
-  {
-    return Error();
-  }
-  return ParseParametersString(String(), strVal, result);
 }
 
-Error ParseParametersString(const Parameters::NameType& pfx, const String& str, Parameters::Modifier& result)
+void ParseParametersString(const Parameters::NameType& pfx, const String& str, Parameters::Modifier& result)
 {
   Strings::Map strMap;
-  if (const Error& err = ParseParametersString(pfx, str, strMap))
-  {
-    return err;
-  }
+  ParseParametersString(pfx, str, strMap);
   Parameters::Convert(strMap, result);
-  return Error();
 }
