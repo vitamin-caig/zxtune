@@ -21,7 +21,7 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="whatToFindGroup">
      <property name="title">
       <string>What to find</string>
      </property>
@@ -46,7 +46,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="whereToFindGroup">
      <property name="title">
       <string>Where to find</string>
      </property>
@@ -91,7 +91,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox">
+    <widget class="QGroupBox" name="howToFindGroup">
      <property name="title">
       <string>How to find</string>
      </property>

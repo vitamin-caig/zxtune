@@ -382,7 +382,7 @@ namespace Chiptune
             continue;
           }
           const uint_t bank = info.Bank & 0x07;
-          Require(regions[bank].first);
+          Require(0 != regions[bank].first);
           const std::size_t sampleBase = rawAddr < SAMPLES_ADDR ? BIG_SAMPLE_ADDR : SAMPLES_ADDR;
           const std::pair<std::size_t, std::size_t>& offsetSize = regions[bank];
           const std::size_t size = std::min(SAMPLES_LIMIT - rawAddr, offsetSize.second);

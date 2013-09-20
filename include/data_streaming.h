@@ -33,18 +33,20 @@ public:
   static Ptr CreateStub();
 };
 
+// MSVC requires class not to be locally defined in method
+template<class T>
+class StubDataReceiver : public DataReceiver<T>
+{
+public:
+  virtual void ApplyData(const T&) {}
+  virtual void Flush() {}
+};
+
 template<class T>
 inline typename DataReceiver<T>::Ptr DataReceiver<T>::CreateStub()
 {
-  class Stub : public DataReceiver
-  {
-  public:
-    virtual void ApplyData(const T&) {}
-    virtual void Flush() {}
-  };
-  
-  static Stub instance;
-  return MakeSingletonPointer<DataReceiver<T> >(instance);
+  static StubDataReceiver<T> instance;
+  return MakeSingletonPointer(instance);
 }
 
 //! @brief Template data transmitter type

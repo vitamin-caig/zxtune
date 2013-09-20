@@ -199,14 +199,14 @@ namespace Math
     template<class N, class D>
     void Set(N nominator, D denominator)
     {
-      if (denominator != static_cast<D>(PRECISION))
+      if (denominator != PRECISION)
       {
         const std::pair<N, D> opt = OptimizeRatio(nominator, denominator);
-        Value = opt.first * PRECISION / opt.second;
+        Value = static_cast<T>(opt.first * PRECISION / opt.second);
       }
       else
       {
-        Value = nominator;
+        Value = static_cast<T>(nominator);
       }
     }
   private:

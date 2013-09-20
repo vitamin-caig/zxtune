@@ -40,7 +40,7 @@ namespace Devices
         for (uint_t halftone = 0; halftone != Details::FreqTable::SIZE; ++halftone)
         {
           const Details::Frequency freq = Details::FreqTable::GetHalftoneFrequency(halftone);
-          const uint_t period = clock * freq.PRECISION / freq.Raw();
+          const uint_t period = static_cast<uint_t>(clock * freq.PRECISION / freq.Raw());
           Lookup[Details::FreqTable::SIZE - halftone - 1] = period;
         }
       }

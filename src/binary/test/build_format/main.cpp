@@ -1,8 +1,9 @@
-#include <strings/format.h>
-#include <debug/log.h>
+#include <pointers.h>
 #include <types.h>
 #include <binary/format.h>
 #include <binary/data_adapter.h>
+#include <debug/log.h>
+#include <strings/format.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>

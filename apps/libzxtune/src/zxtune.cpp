@@ -22,9 +22,10 @@ Author:
 #include <binary/container.h>
 #include <binary/container_factories.h>
 #include <core/core_parameters.h>
-#include <core/module_detect.h>
+#include <core/module_open.h>
 #include <core/module_holder.h>
 #include <core/module_player.h>
+#include <parameters/container.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <map>
@@ -32,6 +33,7 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/static_assert.hpp>
+#include <boost/range/end.hpp>
 #include <boost/type_traits/is_signed.hpp>
 
 namespace Text
@@ -85,7 +87,7 @@ namespace
   };
 
   typedef HandlesCache<Binary::Container::Ptr> ContainersCache;
-  typedef HandlesCache<ZXTune::Module::Holder::Ptr> ModulesCache;
+  typedef HandlesCache<Module::Holder::Ptr> ModulesCache;
 
   BOOST_STATIC_ASSERT(Sound::Sample::CHANNELS == 2);
   BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
@@ -102,9 +104,9 @@ namespace
     {
     }
 
-    virtual void ApplyData(const Sound::Sample& data)
+    virtual void ApplyData(const Sound::Chunk::Ptr& data)
     {
-      Buffer.Put(&data, 1);
+      Buffer.Put(data->begin(), data->size());
     }
 
     virtual void Flush()
@@ -158,7 +160,7 @@ namespace
   public:
     typedef boost::shared_ptr<PlayerWrapper> Ptr;
 
-    PlayerWrapper(Parameters::Container::Ptr params, ZXTune::Module::Renderer::Ptr renderer, BufferRender::Ptr buffer)
+    PlayerWrapper(Parameters::Container::Ptr params, Module::Renderer::Ptr renderer, BufferRender::Ptr buffer)
       : Params(params)
       , Renderer(renderer)
       , Buffer(buffer)
@@ -214,18 +216,18 @@ namespace
       return Params;
     }
 
-    static Ptr Create(ZXTune::Module::Holder::Ptr holder)
+    static Ptr Create(Module::Holder::Ptr holder)
     {
       const Parameters::Container::Ptr params = Parameters::Container::Create();
       //copy initial properties
       holder->GetModuleProperties()->Process(*params);
       const BufferRender::Ptr buffer = boost::make_shared<BufferRender>();
-      const ZXTune::Module::Renderer::Ptr renderer = holder->CreateRenderer(params, buffer);
+      const Module::Renderer::Ptr renderer = holder->CreateRenderer(params, buffer);
       return boost::make_shared<PlayerWrapper>(params, renderer, buffer);
     }
   private:
     const Parameters::Container::Ptr Params;
-    const ZXTune::Module::Renderer::Ptr Renderer;
+    const Module::Renderer::Ptr Renderer;
     const BufferRender::Ptr Buffer;
   };
 
@@ -240,8 +242,8 @@ namespace
       Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
       Name2Val(Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
     };
-    const Name2Val* const defVal = std::find_if(DEFAULTS, ArrayEnd(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);
-    if (ArrayEnd(DEFAULTS) == defVal)
+    const Name2Val* const defVal = std::find_if(DEFAULTS, boost::end(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);
+    if (boost::end(DEFAULTS) == defVal)
     {
       return false;
     }
@@ -279,8 +281,7 @@ ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data)
   try
   {
     const Binary::Container::Ptr src = ContainersCache::Instance().Get(data);
-    const Parameters::Accessor::Ptr params = Parameters::Container::Create();
-    const ZXTune::Module::Holder::Ptr result = ZXTune::OpenModule(params, src, String());
+    const Module::Holder::Ptr result = Module::Open(*src);
     return ModulesCache::Instance().Add(result);
   }
   catch (const Error&)
@@ -303,8 +304,8 @@ bool ZXTune_GetModuleInfo(ZXTuneHandle module, ZXTuneModuleInfo* info)
   try
   {
     Require(info != 0);
-    const ZXTune::Module::Holder::Ptr holder = ModulesCache::Instance().Get(module);
-    const ZXTune::Module::Information::Ptr modinfo = holder->GetModuleInformation();
+    const Module::Holder::Ptr holder = ModulesCache::Instance().Get(module);
+    const Module::Information::Ptr modinfo = holder->GetModuleInformation();
     info->Positions = modinfo->PositionsCount();
     info->LoopPosition = modinfo->LoopPosition();
     info->Patterns = modinfo->PatternsCount();
@@ -329,7 +330,7 @@ ZXTuneHandle ZXTune_CreatePlayer(ZXTuneHandle module)
 {
   try
   {
-    const ZXTune::Module::Holder::Ptr holder = ModulesCache::Instance().Get(module);
+    const Module::Holder::Ptr holder = ModulesCache::Instance().Get(module);
     const PlayerWrapper::Ptr result = PlayerWrapper::Create(holder);
     return PlayersCache::Instance().Add(result);
   }

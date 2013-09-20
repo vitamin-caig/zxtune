@@ -1,10 +1,11 @@
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <template_parameters.h>
 #include <binary/container_factories.h>
 #include <core/module_open.h>
 #include <io/api.h>
 #include <iostream>
+#include <parameters/container.h>
+#include <parameters/template.h>
 
 namespace
 {

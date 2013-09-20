@@ -102,10 +102,8 @@ namespace
     {
       const Playlist::IO::Container::Ptr container = boost::make_shared<ContainerImpl>(Name, storage);
       CallbackWrapper callback(cb);
-      if (const Error& err = Playlist::IO::SaveXSPF(container, Filename, callback, Flags))
-      {
-        //TODO: handle error
-      }
+      //TODO: handle error
+      Playlist::IO::SaveXSPF(container, Filename, callback, Flags);
     }
   private:
     const String Name;

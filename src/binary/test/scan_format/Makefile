@@ -2,7 +2,7 @@ binary_name := scan_format
 path_step := ../../../..
 source_files := main
 
-libraries.common = binary debug io l10n_stub platform tools 
+libraries.common = binary debug io l10n_stub parameters platform tools 
 
 libraries.boost = filesystem system
 

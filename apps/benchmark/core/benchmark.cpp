@@ -47,13 +47,14 @@ namespace Benchmark
         switch (Interpolate)
         {
         case Devices::AYM::INTERPOLATION_NONE:
-          return "Without interpolation";
+          return "No interpolation";
         case Devices::AYM::INTERPOLATION_LQ:
           return "LQ interpolation";
         case Devices::AYM::INTERPOLATION_HQ:
           return "HQ interpolation";
         default:
           Require(false);
+          return "Invalid interpolation";
         }
       }
 

@@ -9,7 +9,7 @@ libraries.common = analysis \
                    formats_chiptune formats_packed_lha \
                    io \
                    l10n_stub \
-                   platform \
+                   parameters platform \
                    sound strings \
                    tools
 

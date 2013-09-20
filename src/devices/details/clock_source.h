@@ -55,7 +55,7 @@ namespace Devices
         const FastStamp till(stamp.Get());
         assert(till > NextSampleTime);
         const FastStamp curSampleStart = NextSampleTime - SamplePeriod;
-        return ((till - curSampleStart) * SampleFreq).Round();
+        return static_cast<uint_t>(((till - curSampleStart) * SampleFreq).Round());
       }
 
       bool HasSamplesBefore(StampType stamp) const

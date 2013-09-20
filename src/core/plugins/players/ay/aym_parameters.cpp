@@ -56,7 +56,7 @@ namespace AYM
       Devices::AYM::CHANNEL_MASK_E
     };
     BOOST_STATIC_ASSERT(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS));
-    const std::size_t pos = std::find(LETTERS, boost::end(LETTERS), letter) - LETTERS;
+    const std::ptrdiff_t pos = std::find(LETTERS, boost::end(LETTERS), letter) - LETTERS;
     if (pos == boost::size(LETTERS))
     {
       throw MakeFormattedError(THIS_LINE,

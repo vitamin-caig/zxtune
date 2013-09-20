@@ -52,7 +52,7 @@ namespace Win32
   const char* const DESCRIPTION = L10n::translate("Win32 sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
-  const uint_t MAX_WIN32_VOLUME = 0xffff;
+  const int_t MAX_WIN32_VOLUME = 0xffff;
   const uint_t BUFFERS_MIN = 3;
   const uint_t BUFFERS_MAX = 10;
 
@@ -357,8 +357,8 @@ namespace Win32
       boost::array<uint16_t, Sample::CHANNELS> buffer;
       BOOST_STATIC_ASSERT(sizeof(buffer) == sizeof(DWORD));
       Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
-      const Gain::Type l(uint_t(buffer[0]), MAX_WIN32_VOLUME);
-      const Gain::Type r(uint_t(buffer[1]), MAX_WIN32_VOLUME);
+      const Gain::Type l(int_t(buffer[0]), MAX_WIN32_VOLUME);
+      const Gain::Type r(int_t(buffer[1]), MAX_WIN32_VOLUME);
       return Gain(l, r);
     }
 

@@ -27,7 +27,7 @@ namespace
     uint_t res = 0;
     for (RangeIterator<std::string::const_iterator> it(num.begin(), num.end()); it; ++it)
     {
-      Require(std::isdigit(*it));
+      Require(0 != std::isdigit(*it));
       res = res * 10 + (*it - '0');
     }
     return res;
