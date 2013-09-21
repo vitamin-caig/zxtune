@@ -39,6 +39,7 @@ namespace Chiptune
 {
   namespace SQTracker
   {
+    const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x3600;
     const std::size_t MAX_POSITIONS_COUNT = 120;
     const std::size_t MIN_PATTERN_SIZE = 11;
@@ -951,7 +952,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_MODULE_SIZE))
       {
       }
 
@@ -1003,6 +1004,7 @@ namespace Chiptune
         const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 
+        Require(format.GetSize() >= MIN_MODULE_SIZE);
         const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
         const RangeChecker::Range fixedRange = format.GetFixedArea();
         return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);

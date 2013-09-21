@@ -504,6 +504,7 @@ namespace Chiptune
         SamplesSet samples;
         format.ParseSamples(usedSamples, samples);
 
+        Require(format.GetSize() >= MIN_SIZE);
         const uint_t cycleTicks = samples.Is4Bit() ? AY_TICKS_PER_CYCLE : SD_TICKS_PER_CYCLE;
         target.SetSamplesFrequency(Z80_FREQ * C_1_STEP / cycleTicks / 256);
 

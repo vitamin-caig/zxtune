@@ -549,6 +549,7 @@ namespace Chiptune
         const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, target);
 
+        Require(format.GetSize() >= MIN_SIZE);
         const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
         const RangeChecker::Range fixedRange = format.GetFixedArea();
         return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);

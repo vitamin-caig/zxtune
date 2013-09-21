@@ -1086,6 +1086,7 @@ namespace Chiptune
         const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 
+        Require(format.GetSize() >= MIN_SIZE);
         const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
         const RangeChecker::Range fixedRange = format.GetFixedArea();
         return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);

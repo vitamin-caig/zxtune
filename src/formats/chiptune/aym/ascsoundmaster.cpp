@@ -74,7 +74,7 @@ namespace Chiptune
 #endif
     struct Version0
     {
-      static const std::size_t MIN_SIZE = 500;
+      static const std::size_t MIN_SIZE = 255;
       static const std::size_t MAX_SIZE;
       static const String DESCRIPTION;
       static const std::string FORMAT;
@@ -1278,6 +1278,7 @@ namespace Chiptune
           const Indices& usedOrnaments = statistic.GetUsedOrnaments();
           format.ParseOrnaments(usedOrnaments, target);
 
+          Require(format.GetSize() >= Version::MIN_SIZE);
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
           const RangeChecker::Range fixedRange = format.GetFixedArea();
           return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);

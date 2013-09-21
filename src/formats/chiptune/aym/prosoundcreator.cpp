@@ -47,6 +47,7 @@ namespace Chiptune
 {
   namespace ProSoundCreator
   {
+    const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x4200;
     const std::size_t MAX_SAMPLES_COUNT = 32;
     const std::size_t MAX_SAMPLE_SIZE = 32;
@@ -1169,7 +1170,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_MODULE_SIZE))
       {
       }
 
@@ -1219,6 +1220,7 @@ namespace Chiptune
         const Indices usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 
+        Require(format.GetSize() >= MIN_MODULE_SIZE);
         const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
         const RangeChecker::Range fixedRange = format.GetFixedArea();
         return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
