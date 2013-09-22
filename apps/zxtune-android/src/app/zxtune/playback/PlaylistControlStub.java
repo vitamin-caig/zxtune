@@ -15,7 +15,7 @@ public class PlaylistControlStub implements PlaylistControl {
   }
 
   @Override
-  public void add(Uri uri) {
+  public void add(Uri[] uris) {
   }
   
   @Override

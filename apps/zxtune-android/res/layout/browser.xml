@@ -23,24 +23,33 @@
     <app.zxtune.ui.DirView
         android:id="@+id/browser_content"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:paddingLeft="@dimen/spacing_full"
         android:paddingRight="@dimen/spacing_full"
     />
-    <ProgressBar
-        android:id="@+id/browser_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="@dimen/spacing_full"
-        android:layout_marginRight="@dimen/spacing_full" 
-        android:layout_gravity="center"
-        android:indeterminate="true" />
-    <TextView
+    <FrameLayout
         android:id="@+id/browser_stub"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginLeft="@dimen/spacing_full"
-        android:layout_marginRight="@dimen/spacing_full" 
+        android:paddingLeft="@dimen/spacing_full"
+        android:paddingRight="@dimen/spacing_full" 
         android:gravity="center"
-        android:text="@string/browser_empty" />
+        >
+      <ProgressBar
+          android:id="@+id/browser_loading"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_marginLeft="@dimen/spacing_full"
+          android:layout_marginRight="@dimen/spacing_full" 
+          android:layout_gravity="center"
+          android:indeterminate="true" />
+      <TextView
+          android:id="@+id/browser_loaded"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:layout_marginLeft="@dimen/spacing_full"
+          android:layout_marginRight="@dimen/spacing_full" 
+          android:gravity="center"
+          android:text="@string/browser_empty" />
+    </FrameLayout>
 </LinearLayout>

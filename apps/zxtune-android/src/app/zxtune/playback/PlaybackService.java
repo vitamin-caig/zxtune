@@ -12,7 +12,7 @@ public interface PlaybackService {
 
   public Item getNowPlaying();
   
-  public void setNowPlaying(Uri uri);
+  public void setNowPlaying(Uri[] uris);
   
   public PlaylistControl getPlaylistControl();
   

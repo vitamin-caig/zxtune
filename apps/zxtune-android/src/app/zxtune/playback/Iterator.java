@@ -34,7 +34,16 @@ public abstract class Iterator {
     if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
       return new PlaylistIterator(context, uri); 
     } else {
-      return new FileIterator(context, uri);
+      final Uri[] uris = {uri};
+      return new FileIterator(context, uris);
+    }
+  }
+  
+  public static Iterator create(Context context, Uri[] uris) {
+    if (uris.length == 1) {
+      return create(context, uris[0]);
+    } else {
+      return new FileIterator(context, uris);
     }
   }
 }

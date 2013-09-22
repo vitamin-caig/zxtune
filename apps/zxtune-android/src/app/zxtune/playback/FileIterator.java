@@ -21,8 +21,8 @@ public class FileIterator extends Iterator {
   private final VfsIterator iterator;
   private PlayableItem item;
 
-  public FileIterator(Context context, Uri path) {
-    this.iterator = new VfsIterator(context, path);
+  public FileIterator(Context context, Uri[] paths) {
+    this.iterator = new VfsIterator(context, paths);
     try {
       this.item = loadItem(iterator.getFile());
     } catch (Error e) {

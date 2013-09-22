@@ -6,16 +6,12 @@
  */
 package app.zxtune;
 
-import app.zxtune.playback.Item;
-import app.zxtune.playback.ItemStub;
-
 /**
  * 
  */
 public final class ReleaseableStub implements Releaseable {
 
   private ReleaseableStub() {
-    // TODO Auto-generated constructor stub
   }
 
   @Override

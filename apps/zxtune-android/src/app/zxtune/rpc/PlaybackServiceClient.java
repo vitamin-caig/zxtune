@@ -56,9 +56,9 @@ public final class PlaybackServiceClient implements PlaybackService {
   }
   
   @Override
-  public void setNowPlaying(Uri uri) {
+  public void setNowPlaying(Uri[] uris) {
     try {
-      delegate.setNowPlaying(uri);
+      delegate.setNowPlaying(uris);
     } catch (RemoteException e) {
       Log.e(TAG, "setNowPlaying()", e);
     }
@@ -111,9 +111,9 @@ public final class PlaybackServiceClient implements PlaybackService {
   private class PlaylistControlClient implements PlaylistControl {
 
     @Override
-    public void add(Uri uri) {
+    public void add(Uri[] uris) {
       try {
-        delegate.add(uri);
+        delegate.add(uris);
       } catch (RemoteException e) {
         Log.e(TAG, "add()", e);
       }

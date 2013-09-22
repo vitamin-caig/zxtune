@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<app.zxtune.ui.CheckableLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     style="@style/block"
-    android:background="@drawable/checkable_background"
     android:orientation="horizontal" >
 
     <LinearLayout
@@ -36,4 +35,4 @@
         android:layout_gravity="center_vertical"
         android:drawablePadding="@dimen/spacing_half" />
 
-</app.zxtune.ui.CheckableLinearLayout>
+</LinearLayout>

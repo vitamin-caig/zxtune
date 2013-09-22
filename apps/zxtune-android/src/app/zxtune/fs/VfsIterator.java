@@ -18,18 +18,20 @@ public final class VfsIterator {
   private final LinkedList<VfsDir> unvisitedDirs;
   private int index;
 
-  public VfsIterator(Context context, Uri path) {
+  public VfsIterator(Context context, Uri[] paths) {
     this.visitedFiles = new ArrayList<VfsFile>();
     this.unvisitedDirs = new LinkedList<VfsDir>();
     final VfsRoot root = Vfs.createRoot(context);
-    final VfsObject obj = root.resolve(path);
-    if (obj == null) {
-      return;
-    }
-    if (obj instanceof VfsFile) {
-      visitedFiles.add((VfsFile) obj);
-    } else if (obj instanceof VfsDir) {
-      unvisitedDirs.add((VfsDir) obj);
+    for (Uri path : paths) {
+      final VfsObject obj = root.resolve(path);
+      if (obj == null) {
+        continue;
+      }
+      if (obj instanceof VfsFile) {
+        visitedFiles.add((VfsFile) obj);
+      } else if (obj instanceof VfsDir) {
+        unvisitedDirs.add((VfsDir) obj);
+      }
     }
     loadNextDir();
   }

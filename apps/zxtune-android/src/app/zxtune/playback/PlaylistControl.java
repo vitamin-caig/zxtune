@@ -13,7 +13,7 @@ import android.net.Uri;
  */
 public interface PlaylistControl {
 
-  public void add(Uri uri);
+  public void add(Uri[] uris);
   
   public void delete(long[] ids);
 }

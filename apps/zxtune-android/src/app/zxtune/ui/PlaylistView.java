@@ -10,15 +10,12 @@ package app.zxtune.ui;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.util.AttributeSet;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -75,41 +72,6 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
     manager.initLoader(LOADER_ID, null, this);
   }
   
-  public final void selectAll() {
-    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
-      setItemChecked(i, true);
-    }
-  }
-
-  public final void selectNone() {
-    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
-      setItemChecked(i, false);
-    }
-  }
-  
-  public final void invertSelection() {
-    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
-      setItemChecked(i, !isItemChecked(i));
-    }
-  }
-  
-  @Override
-  public int getCheckedItemCount() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-      //since API11
-      return super.getCheckedItemCount();
-    } else {
-      final SparseBooleanArray checked = getCheckedItemPositions();
-      int count = 0;
-      for (int i = 0, lim = checked.size(); i != lim; ++i) {
-        if (checked.get(i)) {
-          ++count;
-        }
-      }
-      return count;
-    }
-  }
-  
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle params) {
     assert id == LOADER_ID;
@@ -120,13 +82,9 @@ public class PlaylistView extends ListView implements LoaderManager.LoaderCallba
   @Override
   public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
     getCursorAdapter().changeCursor(cursor);
-    final Object tag = getTag();
-    if (tag != null) {
-      if (tag instanceof Integer) {
-        setSelection((Integer) tag);
-      } else {
-        onRestoreInstanceState((Parcelable) tag);
-      }
+    final Integer pos = (Integer) getTag();
+    if (pos != null) {
+      setSelection(pos);
       setTag(null);
     }
   }

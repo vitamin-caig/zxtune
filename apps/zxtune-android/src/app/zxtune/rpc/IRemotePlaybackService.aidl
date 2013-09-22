@@ -13,10 +13,10 @@ import app.zxtune.rpc.IRemoteCallback;
 interface IRemotePlaybackService {
 
   ParcelablePlaybackItem getNowPlaying();
-  void setNowPlaying(in Uri uri);
+  void setNowPlaying(in Uri[] uris);
 
   //PlaylistService
-  void add(in Uri uri);
+  void add(in Uri[] uris);
   void delete(in long[] ids);
 
   //PlaybackControl

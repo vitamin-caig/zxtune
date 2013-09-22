@@ -1,0 +1,31 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:sabd="http://schemas.android.com/apk/res-auto" >
+  <item
+    android:id="@+id/action_selection"
+    android:title="@string/menu_selection"
+    sabd:showAsAction="ifRoom"
+    >
+    <menu>
+      <item
+        android:id="@+id/action_select_all"
+        android:title="@string/menu_select_all"
+        sabd:showAsAction="never" />
+      <item
+        android:id="@+id/action_select_none"
+        android:title="@string/menu_select_none"
+        sabd:showAsAction="never" />
+      <item
+        android:id="@+id/action_select_invert"
+        android:title="@string/menu_select_invert"
+        sabd:showAsAction="never" />
+    </menu>
+  </item>
+  <item
+    android:id="@+id/action_play"
+    android:title="@string/menu_play"
+    sabd:showAsAction="ifRoom" />
+  <item
+    android:id="@+id/action_add"
+    android:title="@string/menu_add"
+    sabd:showAsAction="ifRoom" />
+</menu>

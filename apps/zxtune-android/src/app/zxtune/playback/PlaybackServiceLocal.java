@@ -52,9 +52,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
   
   @Override
-  public void setNowPlaying(Uri uri) {
+  public void setNowPlaying(Uri[] uris) {
     try {
-      final Iterator iter = Iterator.create(context, uri);
+      final Iterator iter = Iterator.create(context, uris);
       play(iter);
     } catch (Error e) {
       Log.w(TAG, "setNowPlaying()", e);
@@ -157,22 +157,28 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final class DispatchedPlaylistControl implements PlaylistControl {
 
     @Override
-    public void add(Uri uri) {
+    public void add(Uri[] uris) {
       try {
-        final FileIterator iter = new FileIterator(context, uri);
-        do {
-          final PlayableItem item = iter.getItem();
-          try {
-            final app.zxtune.playlist.Item listItem =
-                new app.zxtune.playlist.Item(uri, item.getModule());
-            context.getContentResolver().insert(app.zxtune.playlist.Query.unparse(null), listItem.toContentValues());
-          } finally {
-            item.release();
-          }
-        } while (iter.next());
+        for (Uri uri : uris) {
+          add(uri);
+        }
       } catch (Error e) {
         Log.w(TAG, "addToPlaylist()", e);
       }
+    }
+    
+    private void add(Uri uri) {
+      final FileIterator iter = new FileIterator(context, uri);
+      do {
+        final PlayableItem item = iter.getItem();
+        try {
+          final app.zxtune.playlist.Item listItem =
+              new app.zxtune.playlist.Item(uri, item.getModule());
+          context.getContentResolver().insert(app.zxtune.playlist.Query.unparse(null), listItem.toContentValues());
+        } finally {
+          item.release();
+        }
+      } while (iter.next());
     }
 
     @Override

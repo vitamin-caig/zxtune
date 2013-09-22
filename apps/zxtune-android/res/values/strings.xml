@@ -2,21 +2,25 @@
 <resources>
     <string name="menu_prefs">Preferences</string>
     <string name="menu_quit">Quit</string>
+    <!-- selection-related -->
     <string name="menu_selection">Select</string>
     <string name="menu_select_all">All</string>
     <string name="menu_select_none">None</string>
     <string name="menu_select_invert">Invert</string>
-    <string name="menu_delete">Delete</string>
+    <plurals name="selected_items">
+      <item quantity="one">%d element</item>
+      <item quantity="other">%d elements</item>
+    </plurals>
+    <!-- action-related -->
+    <string name="menu_play">Play</string>
+    <string name="menu_add">Add</string>
+    <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>
     <string name="information_program">Program</string>
     <string name="information_comment">Comment</string>
     <string name="information_location">Location</string>
     <string name="playlist_empty">Playlist is empty</string>
-    <plurals name="playlist_selecteditems">
-      <item quantity="one">%d element</item>
-      <item quantity="other">%d elements</item>
-    </plurals>
     <string name="browser_empty">No files</string>
     <!-- VFS -->
     <string name="vfs_root_local_name">Local filesystem</string>

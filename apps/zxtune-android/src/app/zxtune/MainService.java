@@ -96,23 +96,7 @@ public class MainService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     Log.d(TAG, "StartCommand called");
-    final String action = intent != null ? intent.getAction() : null;
-    final Uri uri = intent != null ? intent.getData() : Uri.EMPTY;
-    if (action != null && uri != Uri.EMPTY) {
-      startAction(action, uri);
-    }
     return START_NOT_STICKY;
-  }
-
-  private final void startAction(String action, Uri uri) {
-    final PlaylistControl playlist = service.getPlaylistControl();
-    if (action.equals(Intent.ACTION_VIEW)) {
-      Log.d(TAG, "Playing module " + uri);
-      service.setNowPlaying(uri);
-    } else if (action.equals(Intent.ACTION_INSERT)) {
-      Log.d(TAG, "Adding to playlist all modules from " + uri);
-      playlist.add(uri);
-    }
   }
 
   @Override
