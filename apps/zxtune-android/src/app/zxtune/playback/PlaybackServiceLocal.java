@@ -159,28 +159,22 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void add(Uri[] uris) {
       try {
-        for (Uri uri : uris) {
-          add(uri);
-        }
+        final FileIterator iter = new FileIterator(context, uris);
+        do {
+          final PlayableItem item = iter.getItem();
+          try {
+            final app.zxtune.playlist.Item listItem =
+                new app.zxtune.playlist.Item(item.getDataId(), item.getModule());
+            context.getContentResolver().insert(app.zxtune.playlist.Query.unparse(null), listItem.toContentValues());
+          } finally {
+            item.release();
+          }
+        } while (iter.next());
       } catch (Error e) {
         Log.w(TAG, "addToPlaylist()", e);
       }
     }
     
-    private void add(Uri uri) {
-      final FileIterator iter = new FileIterator(context, uri);
-      do {
-        final PlayableItem item = iter.getItem();
-        try {
-          final app.zxtune.playlist.Item listItem =
-              new app.zxtune.playlist.Item(uri, item.getModule());
-          context.getContentResolver().insert(app.zxtune.playlist.Query.unparse(null), listItem.toContentValues());
-        } finally {
-          item.release();
-        }
-      } while (iter.next());
-    }
-
     @Override
     public void delete(long[] ids) {
       //ids => '[a, b, c]'
