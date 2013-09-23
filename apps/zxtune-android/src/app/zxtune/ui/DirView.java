@@ -27,7 +27,7 @@ import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.VfsQuery;
 
-public class DirView extends ListView implements LoaderManager.LoaderCallbacks<Cursor> {
+public class DirView extends CheckableListView implements LoaderManager.LoaderCallbacks<Cursor> {
 
   private static final int LOADER_ID = DirView.class.hashCode();
 
@@ -69,47 +69,7 @@ public class DirView extends ListView implements LoaderManager.LoaderCallbacks<C
       manager.initLoader(LOADER_ID, null, this);
     }
   }
-
-  public final void selectAll() {
-    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
-      setItemChecked(i, true);
-    }
-  }
-
-  public final void selectNone() {
-    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
-      setItemChecked(i, false);
-    }
-  }
-
-  public final void invertSelection() {
-    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
-      setItemChecked(i, !isItemChecked(i));
-    }
-  }
-
-  @Override
-  public int getCheckedItemCount() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-      //since API11
-      return super.getCheckedItemCount();
-    } else {
-      final SparseBooleanArray checked = getCheckedItemPositions();
-      int count = 0;
-      for (int i = 0, lim = checked.size(); i != lim; ++i) {
-        if (checked.valueAt(i)) {
-          ++count;
-        }
-      }
-      return count;
-    }
-  }
   
-  @Override
-  public void onRestoreInstanceState(Parcelable state) {
-    super.onRestoreInstanceState(state);
-  }
-
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle params) {
     assert id == LOADER_ID;

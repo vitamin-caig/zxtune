@@ -60,7 +60,6 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
 
   @Override
-  @TargetApi(Build.VERSION_CODES.HONEYCOMB)
   public synchronized void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     
@@ -81,10 +80,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     listing = (DirView) view.findViewById(R.id.browser_content);
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-      listing.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE_MODAL);
-      listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
-    }
+    listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
     if (savedInstanceState == null) {
       Log.d(TAG, "Loading persistent state");
       listing.setTag(state);
@@ -112,23 +108,6 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     return getResources().getQuantityString(R.plurals.selected_items, count, count);
   }
 
-  private boolean onActionItemClicked(MenuItem item) {
-    switch (item.getItemId()) {
-      case R.id.action_select_all:
-        listing.selectAll();
-        break;
-      case R.id.action_select_none:
-        listing.selectNone();
-        break;
-      case R.id.action_select_invert:
-        listing.invertSelection();
-        break;
-      default:
-        return false;
-    }
-    return true;
-  }
-
   class OnItemClickListener implements AdapterView.OnItemClickListener {
 
     @Override
@@ -152,10 +131,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
   }
 
-  private class MultiChoiceModeListener implements AbsListView.MultiChoiceModeListener {
+  private class MultiChoiceModeListener implements CheckableListView.MultiChoiceModeListener {
 
     @Override
-    public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
+    public boolean onCreateActionMode(CheckableListView.ActionMode mode, Menu menu) {
       final MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.browser, menu);
       mode.setTitle(getActionModeTitle());
@@ -163,13 +142,13 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
 
     @Override
-    public boolean onPrepareActionMode(android.view.ActionMode mode, Menu menu) {
+    public boolean onPrepareActionMode(CheckableListView.ActionMode mode, Menu menu) {
       return false;
     }
 
     @Override
-    public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
-      if (BrowserFragment.this.onActionItemClicked(item)) {
+    public boolean onActionItemClicked(CheckableListView.ActionMode mode, MenuItem item) {
+      if (listing.processActionItemClick(item.getItemId())) {
         return true;
       } else {
         switch (item.getItemId()) {
@@ -188,10 +167,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
 
     @Override
-    public void onDestroyActionMode(android.view.ActionMode mode) {}
+    public void onDestroyActionMode(CheckableListView.ActionMode mode) {}
 
     @Override
-    public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id,
+    public void onItemCheckedStateChanged(CheckableListView.ActionMode mode, int position, long id,
         boolean checked) {
       mode.setTitle(getActionModeTitle());
     }

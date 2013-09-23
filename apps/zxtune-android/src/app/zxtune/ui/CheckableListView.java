@@ -1,0 +1,318 @@
+/**
+ * @file
+ * @brief
+ * @version $Id:$
+ * @author
+ */
+package app.zxtune.ui;
+
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.os.Build;
+import android.support.v7.app.ActionBarActivity;
+import android.util.AttributeSet;
+import android.util.SparseBooleanArray;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import app.zxtune.R;
+
+public class CheckableListView extends ListView {
+
+  public interface ActionMode {
+
+    MenuInflater getMenuInflater();
+
+    void setTitle(String title);
+
+    void finish();
+  }
+
+  public interface MultiChoiceModeListener {
+
+    boolean onCreateActionMode(ActionMode mode, Menu menu);
+
+    boolean onPrepareActionMode(ActionMode mode, Menu menu);
+
+    boolean onActionItemClicked(ActionMode mode, MenuItem item);
+
+    void onDestroyActionMode(ActionMode mode);
+
+    void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean checked);
+  }
+
+  private static final boolean hasNativeModalSelection =
+      Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
+
+  private android.support.v7.view.ActionMode actionModeCompat;
+
+  /**
+   * @param context
+   */
+  public CheckableListView(Context context) {
+    super(context);
+  }
+
+  /**
+   * @param context
+   * @param attrs
+   */
+  public CheckableListView(Context context, AttributeSet attrs) {
+    super(context, attrs);
+  }
+
+  /**
+   * @param context
+   * @param attrs
+   * @param defStyle
+   */
+  public CheckableListView(Context context, AttributeSet attrs, int defStyle) {
+    super(context, attrs, defStyle);
+  }
+
+  public final boolean processActionItemClick(int itemId) {
+    switch (itemId) {
+      case R.id.action_select_all:
+        selectAll();
+        break;
+      case R.id.action_select_none:
+        selectNone();
+        break;
+      case R.id.action_select_invert:
+        invertSelection();
+        break;
+      default:
+        return false;
+    }
+    return true;
+  }
+
+  private void selectAll() {
+    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
+      setItemChecked(i, true);
+    }
+  }
+
+  private void selectNone() {
+    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
+      setItemChecked(i, false);
+    }
+  }
+
+  private void invertSelection() {
+    for (int i = 0, lim = getAdapter().getCount(); i != lim; ++i) {
+      setItemChecked(i, !isItemChecked(i));
+    }
+  }
+
+  @Override
+  public int getCheckedItemCount() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+      //since API11
+      return super.getCheckedItemCount();
+    } else {
+      final SparseBooleanArray checked = getCheckedItemPositions();
+      int count = 0;
+      for (int i = 0, lim = checked.size(); i != lim; ++i) {
+        if (checked.valueAt(i)) {
+          ++count;
+        }
+      }
+      return count;
+    }
+  }
+
+  @Override
+  public void setOnItemClickListener(OnItemClickListener listener) {
+    final ClickListener prev = (ClickListener) super.getOnItemClickListener();
+    if (prev != null) {
+      prev.setDelegate(listener);
+    } else {
+      super.setOnItemClickListener(listener);
+    }
+  }
+
+  public final void setMultiChoiceModeListener(MultiChoiceModeListener listener) {
+    if (hasNativeModalSelection) {
+      super.setChoiceMode(CHOICE_MODE_MULTIPLE_MODAL);
+      super.setMultiChoiceModeListener(new NativeMultiChoiceModeListener(listener));
+    } else {
+      super.setChoiceMode(CHOICE_MODE_NONE);
+      final ClickListener cur = new ClickListener(listener);
+      cur.setDelegate(super.getOnItemClickListener());
+      super.setOnItemClickListener(cur);
+      super.setOnItemLongClickListener(new LongClickListener(listener));
+    }
+  }
+
+  private static class NativeMultiChoiceModeListener implements AbsListView.MultiChoiceModeListener {
+
+    private final MultiChoiceModeListener delegate;
+
+    public NativeMultiChoiceModeListener(MultiChoiceModeListener listener) {
+      this.delegate = listener;
+    }
+
+    @Override
+    public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
+      return delegate.onActionItemClicked(new ActionModeHC(mode), item);
+    }
+
+    @Override
+    public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
+      return delegate.onCreateActionMode(new ActionModeHC(mode), menu);
+    }
+
+    @Override
+    public void onDestroyActionMode(android.view.ActionMode mode) {
+      delegate.onDestroyActionMode(new ActionModeHC(mode));
+    }
+
+    @Override
+    public boolean onPrepareActionMode(android.view.ActionMode mode, Menu menu) {
+      return delegate.onPrepareActionMode(new ActionModeHC(mode), menu);
+    }
+
+    @Override
+    public void onItemCheckedStateChanged(android.view.ActionMode mode, int position, long id,
+        boolean checked) {
+      delegate.onItemCheckedStateChanged(new ActionModeHC(mode), position, id, checked);
+    }
+  }
+
+  private static class ActionModeHC implements ActionMode {
+
+    private final android.view.ActionMode mode;
+
+    ActionModeHC(android.view.ActionMode mode) {
+      this.mode = mode;
+    }
+
+    @Override
+    public MenuInflater getMenuInflater() {
+      return mode.getMenuInflater();
+    }
+
+    @Override
+    public void setTitle(String title) {
+      mode.setTitle(title);
+    }
+
+    @Override
+    public void finish() {
+      mode.finish();
+    }
+  }
+
+  private class ClickListener implements OnItemClickListener {
+
+    private final MultiChoiceModeListener listener;
+    private OnItemClickListener delegate;
+
+    ClickListener(MultiChoiceModeListener listener) {
+      this.listener = listener;
+    }
+
+    final void setDelegate(OnItemClickListener delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+      if (actionModeCompat != null) {
+        listener.onItemCheckedStateChanged(new ActionModeSupp(actionModeCompat), position, id,
+            isItemChecked(position));
+      } else {
+        delegate.onItemClick(parent, view, position, id);
+      }
+    }
+  }
+
+  private class LongClickListener implements OnItemLongClickListener {
+
+    private final MultiChoiceModeListener listener;
+
+    LongClickListener(MultiChoiceModeListener listener) {
+      this.listener = listener;
+    }
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+      if (actionModeCompat != null) {
+        return false;
+      }
+      final android.support.v7.app.ActionBarActivity activity =
+          (android.support.v7.app.ActionBarActivity) getContext();
+      actionModeCompat = activity.startSupportActionMode(new ActionModeCallback(listener));
+      parent.performItemClick(view, position, id);
+      return true;
+    }
+  }
+
+  private class ActionModeCallback implements android.support.v7.view.ActionMode.Callback {
+
+    private final MultiChoiceModeListener listener;
+    
+    ActionModeCallback(MultiChoiceModeListener listener) {
+      this.listener = listener;
+    }
+    
+    @Override
+    public boolean onCreateActionMode(android.support.v7.view.ActionMode mode, Menu menu) {
+      CheckableListView.this.setChoiceMode(CHOICE_MODE_MULTIPLE);
+      return listener.onCreateActionMode(new ActionModeSupp(mode), menu);
+    }
+
+    @Override
+    public void onDestroyActionMode(android.support.v7.view.ActionMode mode) {
+      listener.onDestroyActionMode(new ActionModeSupp(mode));
+      actionModeCompat = null;
+      CheckableListView.this.selectNone();
+      CheckableListView.this.post(new Runnable() {
+        @Override
+        public void run() {
+          CheckableListView.this.setChoiceMode(CHOICE_MODE_NONE);
+        }
+      });
+    }
+
+    @Override
+    public boolean onPrepareActionMode(android.support.v7.view.ActionMode mode, Menu menu) {
+      return listener.onPrepareActionMode(new ActionModeSupp(mode), menu);
+    }
+
+    @Override
+    public boolean onActionItemClicked(android.support.v7.view.ActionMode mode, MenuItem item) {
+      return listener.onActionItemClicked(new ActionModeSupp(mode), item);
+    }
+  }
+  
+  private static class ActionModeSupp implements ActionMode {
+
+    private final android.support.v7.view.ActionMode mode;
+
+    ActionModeSupp(android.support.v7.view.ActionMode mode) {
+      this.mode = mode;
+    }
+
+    @Override
+    public MenuInflater getMenuInflater() {
+      return mode.getMenuInflater();
+    }
+
+    @Override
+    public void setTitle(String title) {
+      mode.setTitle(title);
+    }
+
+    @Override
+    public void finish() {
+      mode.finish();
+    }
+  }
+}
