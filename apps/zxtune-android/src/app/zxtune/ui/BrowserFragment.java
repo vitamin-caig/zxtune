@@ -40,6 +40,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   private PlaybackService service;
   private BrowserState state;
   private View sources;
+  private View roots;
   private BreadCrumbsUriView position;
   private DirView listing;
 
@@ -64,7 +65,8 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     super.onViewCreated(view, savedInstanceState);
     
     sources = view.findViewById(R.id.browser_sources);
-    sources.setOnClickListener(new View.OnClickListener() {
+    roots = view.findViewById(R.id.browser_roots);
+    roots.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
         setCurrentPath(Uri.EMPTY);
@@ -135,6 +137,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
 
     @Override
     public boolean onCreateActionMode(CheckableListView.ActionMode mode, Menu menu) {
+      setEnabledRecursive(sources, false);
       final MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.browser, menu);
       mode.setTitle(getActionModeTitle());
@@ -167,7 +170,9 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
 
     @Override
-    public void onDestroyActionMode(CheckableListView.ActionMode mode) {}
+    public void onDestroyActionMode(CheckableListView.ActionMode mode) {
+      setEnabledRecursive(sources, true);
+    }
 
     @Override
     public void onItemCheckedStateChanged(CheckableListView.ActionMode mode, int position, long id,
@@ -187,6 +192,17 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
         }
       }
       return result;
+    }
+  }
+  
+  private static void setEnabledRecursive(View view, boolean enabled) {
+    if (view instanceof ViewGroup) {
+      final ViewGroup group = (ViewGroup) view;
+      for (int idx = 0, lim = group.getChildCount(); idx != lim; ++idx) {
+        setEnabledRecursive(group.getChildAt(idx), enabled);
+      }
+    } else {
+      view.setEnabled(enabled);
     }
   }
 

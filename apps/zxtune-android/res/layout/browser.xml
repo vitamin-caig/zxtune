@@ -5,11 +5,12 @@
     android:layout_height="match_parent"
     >
     <LinearLayout
+      android:id="@+id/browser_sources"
       android:orientation="horizontal"
       style="@style/block_buttons"
       >
       <ImageButton
-        android:id="@+id/browser_sources"
+        android:id="@+id/browser_roots"
         android:layout_width="wrap_content"
         android:src="@drawable/ic_browser_folder"
         style="@style/button"
