@@ -31,9 +31,9 @@ namespace Binary
     }
 
     template<class T>
-    T* Add()
+    T& Add()
     {
-      return static_cast<T*>(Allocate(sizeof(T)));
+      return *static_cast<T*>(Allocate(sizeof(T)));
     }
 
     template<class T>
@@ -46,7 +46,7 @@ namespace Binary
     {
       const std::size_t curSize = Content->size();
       Content->resize(curSize + size);
-      return GetAddress(curSize);
+      return Get(curSize);
     }
 
     void AddCString(const std::string& str)
@@ -60,6 +60,17 @@ namespace Binary
     std::size_t Size() const
     {
       return Content->size();
+    }
+
+    void* Get(std::size_t offset) const
+    {
+      return &Content->front() + offset;
+    }
+
+    template<class T>
+    T& Get(std::size_t offset) const
+    {
+      return *static_cast<T*>(Get(offset));
     }
 
     void Resize(std::size_t size)
@@ -76,11 +87,6 @@ namespace Binary
     Container::Ptr CaptureResult()
     {
       return CreateContainer(Content);
-    }
-  private:
-    void* GetAddress(std::size_t addr) const
-    {
-      return &Content->front() + addr;
     }
   private:
     std::auto_ptr<Dump> Content;

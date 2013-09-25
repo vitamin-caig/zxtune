@@ -250,11 +250,11 @@ namespace ZXTune
 {
   DataLocation::Ptr BuildZdataContainer(const Binary::Data& input)
   {
-    Binary::DataBuilder builder(input.Size() * 2);//TODO
-    RawHeader* const raw = builder.Add<RawHeader>();
+    Binary::DataBuilder builder(input.Size());
+    builder.Add<RawHeader>();
     const Header hdr = Compress(input, builder);
-    hdr.ToRaw(*raw);
-    const Binary::Container::Ptr data = Convert(raw, sizeof(*raw) + hdr.Packed);
+    hdr.ToRaw(builder.Get<RawHeader>(0));
+    const Binary::Container::Ptr data = Convert(builder.Get(0), builder.Size());
     return CreateLocation(data, ID, ZdataPath.Build(hdr.Crc));
   }
 }
