@@ -191,39 +191,42 @@ namespace Rar
     {
       if (block.IsChained() && block.HasParent())
       {
-        return DecodeChainedBlock(block);
+        return AdvanceIterator(block.Offset, &ChainDecoder::ProcessBlock)
+          ? DecodeSingleBlock(block)
+          : Binary::Container::Ptr();
       }
       else
       {
-        return DecodeSingleBlock(block);
+        return AdvanceIterator(block.Offset, &ChainDecoder::SkipBlock)
+          ? DecodeSingleBlock(block)
+          : Binary::Container::Ptr();
       }
     }
   private:
-    Binary::Container::Ptr DecodeChainedBlock(const FileBlock& block) const
+    bool AdvanceIterator(std::size_t offset, void (ChainDecoder::*BlockOp)(const FileBlock&) const) const
     {
-      if (ChainIterator->GetOffset() > block.Offset)
+      if (ChainIterator->GetOffset() > offset)
       {
         Dbg(" Reset caching iterator to beginning");
         ChainIterator.reset(new BlocksIterator(*Data));
       }
-      Dbg(" Decoding parent blocks for %1%", block.Offset);
-      while (ChainIterator->GetOffset() <= block.Offset && !ChainIterator->IsEof())
+      while (ChainIterator->GetOffset() <= offset && !ChainIterator->IsEof())
       {
         const FileBlock& curBlock = FileBlock(ChainIterator->GetFileHeader(), ChainIterator->GetOffset(), ChainIterator->GetBlockSize());
         ChainIterator->Next();
         if (curBlock.Header)
         {
-          if (curBlock.Offset == block.Offset)
+          if (curBlock.Offset == offset)
           {
-            return DecodeSingleBlock(curBlock);
+            return true;
           }
           else if (curBlock.IsChained())
           {
-            DecodeSingleBlock(curBlock);
+            (this->*BlockOp)(curBlock);
           }
         }
       }
-      return Binary::Container::Ptr();
+      return false;
     }
 
     Binary::Container::Ptr DecodeSingleBlock(const FileBlock& block) const
@@ -231,6 +234,18 @@ namespace Rar
       Dbg(" Decoding block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(), block.HasParent());
       const Binary::Container::Ptr blockContent = Data->GetSubcontainer(block.Offset, block.Size);
       return StatefulDecoder->Decode(*blockContent);
+    }
+
+    void ProcessBlock(const FileBlock& block) const
+    {
+      Dbg(" Decoding parent block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(), block.HasParent());
+      const Binary::Container::Ptr blockContent = Data->GetSubcontainer(block.Offset, block.Size);
+      StatefulDecoder->Decode(*blockContent);
+    }
+
+    void SkipBlock(const FileBlock& block) const
+    {
+      Dbg(" Skip block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(), block.HasParent());
     }
   private:
     const Binary::Container::Ptr Data;
@@ -260,7 +275,7 @@ namespace Rar
 
     virtual Binary::Container::Ptr GetData() const
     {
-      Dbg("Decompressing '%1%'", Name);
+      Dbg("Decompressing '%1%' started at %2%", Name, Block.Offset);
       return Decoder->DecodeBlock(Block);
     }
   private:
