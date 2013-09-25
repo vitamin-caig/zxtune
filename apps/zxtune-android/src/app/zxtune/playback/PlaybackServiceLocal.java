@@ -10,10 +10,13 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import app.zxtune.Releaseable;
+import app.zxtune.ScanService;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.playlist.Database;
@@ -158,21 +161,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void add(Uri[] uris) {
-      try {
-        final FileIterator iter = new FileIterator(context, uris);
-        do {
-          final PlayableItem item = iter.getItem();
-          try {
-            final app.zxtune.playlist.Item listItem =
-                new app.zxtune.playlist.Item(item.getDataId(), item.getModule());
-            context.getContentResolver().insert(app.zxtune.playlist.Query.unparse(null), listItem.toContentValues());
-          } finally {
-            item.release();
-          }
-        } while (iter.next());
-      } catch (Error e) {
-        Log.w(TAG, "addToPlaylist()", e);
-      }
+      final Intent intent = new Intent(context, ScanService.class);
+      intent.setAction(ScanService.ACTION_START);
+      intent.putExtra(ScanService.EXTRA_PATHS, uris);
+      context.startService(intent);
     }
     
     @Override

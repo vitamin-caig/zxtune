@@ -69,7 +69,6 @@ public class Database {
 
   //! @return new item id
   public long insertPlaylistItem(ContentValues values) {
-    Log.d(TAG, "insertPlaylistItem() called");
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.insert(Tables.Playlist.NAME, null, values);
   }

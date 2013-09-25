@@ -43,9 +43,8 @@ public class Provider extends ContentProvider {
       throw new IllegalArgumentException("Wrong URI: " + uri); 
     }
     final long id = db.insertPlaylistItem(values);
-    final Uri result = Query.unparse(id);
-    getContext().getContentResolver().notifyChange(result, null);
-    return result;
+    //do not notify about change
+    return Query.unparse(id);
   }
   
   @Override

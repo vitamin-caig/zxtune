@@ -7,6 +7,7 @@
 package app.zxtune.playback;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
@@ -18,17 +19,18 @@ import app.zxtune.fs.VfsIterator;
 
 public class FileIterator extends Iterator {
   
+  private static final int MAX_VISITED = 10;
+  
   private final VfsIterator iterator;
+  private ArrayList<VfsFile> visited;
+  private int index;
   private PlayableItem item;
 
   public FileIterator(Context context, Uri[] paths) {
     this.iterator = new VfsIterator(context, paths);
-    try {
-      this.item = loadItem(iterator.getFile());
-    } catch (Error e) {
-      if (!next()) {
-        throw e;
-      }
+    this.visited = new ArrayList<VfsFile>();
+    if (!next()) {
+      throw new Error("No items to play");
     }
   }
   
@@ -39,37 +41,52 @@ public class FileIterator extends Iterator {
 
   @Override
   public boolean next() {
-    return advance(1);
+    if (index < visited.size() - 1) {
+      item = loadItem(visited.get(++index));
+      return true;
+    } else {
+      while (iterator.isValid()) {
+        if (loadNextItem()) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
   
   @Override
   public boolean prev() {
-    return advance(-1);
+    if (index == 0) {
+      return false;
+    }
+    item = loadItem(visited.get(--index));
+    return true;
   }
   
-  private boolean advance(int delta) {
-    //skip invalid items at all
-    final int initialPos = iterator.getPos();
-    for (int curPos = initialPos + delta; ; curPos += delta) {
-      iterator.setPos(curPos);
-      if (!iterator.isValid()) {
-        break;
-      }
-      if (loadNewItem()) {
-        return true;
-      }
-    }
-    iterator.setPos(initialPos);
-    return false;
-  }
-
-  private boolean loadNewItem() {
+  private boolean loadNextItem() {
     try {
-      item = loadItem(iterator.getFile());
+      final VfsFile file = iterator.getFile();
+      iterator.next();
+      item = loadItem(file);
+      addVisited(file);
       return true;
     } catch (Error e) {
     }
     return false;
+  }
+  
+  private void addVisited(VfsFile file) {
+    final int busy = visited.size();
+    if (busy >= MAX_VISITED) {
+      for (int idx = 1; idx != busy; ++idx) {
+        visited.set(idx - 1, visited.get(idx));
+      }
+      visited.set(busy - 1, file);
+      index = busy - 1; 
+    } else {
+      visited.add(file);
+      index = busy;
+    }
   }
 
   static PlayableItem loadItem(VfsFile file) {

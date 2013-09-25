@@ -29,8 +29,12 @@
                 <category android:name="android.intent.category.PREFERENCE" />
             </intent-filter>
         </activity>
-        <service 
+        <service
               android:name=".MainService"
+              android:process=":service">
+        </service>
+        <service
+              android:name=".ScanService"
               android:process=":service">
         </service>
         <!--
