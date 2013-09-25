@@ -2,6 +2,15 @@ Index: crc.cpp
 ===================================================================
 --- crc.cpp
 +++ crc.cpp
+@@ -30,7 +30,7 @@
+     CRCTab[I]=crc_tables[0][I]=C;
+   }
+ 
+-	for (uint I=0;I<=256;I++) // Build additional lookup tables.
++	for (uint I=0;I<256;I++) // Build additional lookup tables.
+   {
+ 		uint C=crc_tables[0][I];
+ 		for (uint J=1;J<8;J++)
 @@ -49,7 +49,7 @@
    byte *Data=(byte *)Addr;
  

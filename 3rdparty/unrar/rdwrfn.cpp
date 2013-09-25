@@ -49,10 +49,10 @@ int ComprDataIO::UnpRead(byte *Addr,size_t Count)
     size_t ReadSize=((int64)Count>UnpPackedSize) ? (size_t)UnpPackedSize:Count;
     if (UnpackFromMemory)
     {
-      memcpy(Addr,UnpackFromMemoryAddr,ReadSize);
-      RetCode=(int)ReadSize;
-      UnpackFromMemorySize-=ReadSize;
-      UnpackFromMemoryAddr+=ReadSize;
+      RetCode=(int)(ReadSize>UnpackFromMemorySize ? UnpackFromMemorySize:ReadSize);
+      memcpy(Addr,UnpackFromMemoryAddr,RetCode);
+      UnpackFromMemorySize-=RetCode;
+      UnpackFromMemoryAddr+=RetCode;
     }
     else
     {

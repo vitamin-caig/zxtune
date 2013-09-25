@@ -17,10 +17,10 @@ Index: rdwrfn.cpp
 -      memcpy(Addr,UnpackFromMemoryAddr,UnpackFromMemorySize);
 -      RetCode=(int)UnpackFromMemorySize;
 -      UnpackFromMemorySize=0;
-+      memcpy(Addr,UnpackFromMemoryAddr,ReadSize);
-+      RetCode=(int)ReadSize;
-+      UnpackFromMemorySize-=ReadSize;
-+      UnpackFromMemoryAddr+=ReadSize;
++      RetCode=(int)(ReadSize>UnpackFromMemorySize ? UnpackFromMemorySize:ReadSize);
++      memcpy(Addr,UnpackFromMemoryAddr,RetCode);
++      UnpackFromMemorySize-=RetCode;
++      UnpackFromMemoryAddr+=RetCode;
      }
      else
      {

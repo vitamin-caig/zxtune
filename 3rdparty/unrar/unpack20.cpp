@@ -167,7 +167,7 @@ void Unpack::Unpack20(bool Solid)
 bool Unpack::ReadTables20()
 {
   byte BitLength[BC20];
-  unsigned char Table[MC20*4];
+  unsigned char Table[MC20*4] = {0};
   int TableSize,N,I;
   if (InAddr>ReadTop-25)
     if (!UnpReadBuf())
