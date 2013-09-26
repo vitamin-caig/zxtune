@@ -19,7 +19,7 @@
 
 namespace Sound
 {
-  template<uint_t ChannelsCount>
+  template<int_t ChannelsCount>
   class MixerCore
   {
   public:
@@ -66,7 +66,7 @@ namespace Sound
       }
     }
   private:
-    static const uint_t PRECISION = 256;
+    static const int_t PRECISION = 256;
     typedef Math::FixedPoint<int_t, PRECISION> Coeff;
     typedef boost::array<Coeff, Sample::CHANNELS> CoeffRow;
     typedef boost::array<CoeffRow, ChannelsCount> CoeffMatrix;

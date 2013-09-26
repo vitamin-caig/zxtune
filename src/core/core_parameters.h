@@ -76,7 +76,7 @@ namespace Parameters
         //! @details Integer value
         extern const NameType INTERPOLATION;
 
-        const IntType SAMPLES_FREQUENCY_MIN = 1000;
+        const IntType SAMPLES_FREQUENCY_MIN = 800;
         const IntType SAMPLES_FREQUENCY_MAX = 16000;
         //! @brief Base samples frequency for C-1 (32.7Hz)
         extern const NameType SAMPLES_FREQUENCY;
