@@ -868,8 +868,13 @@ namespace Chiptune
       std::vector<std::size_t> offsets;
       std::transform(begin, end, std::back_inserter(offsets), &fromLE<uint16_t>);
       std::sort(offsets.begin(), offsets.end());
-      return offsets.size() < 2 || offsets[1] < start
-        ? 0 : offsets[1] - start;
+      std::vector<std::size_t>::const_iterator it = offsets.begin();
+      if (it != offsets.end() && *it == 0)
+      {
+        ++it;
+      }
+      return it != offsets.end() && *it >= start
+        ? *it - start : 0;
     }
 
     struct Areas : public AreaController
