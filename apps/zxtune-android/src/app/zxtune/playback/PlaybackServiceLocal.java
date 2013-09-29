@@ -177,6 +177,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       final String where = Database.Tables.Playlist.Fields._id + " IN (" + args + ")"; 
       context.getContentResolver().delete(uri, where, null);
     }
+    
+    @Override
+    public void deleteAll() {
+      final Uri uri = Query.unparse(null);
+      context.getContentResolver().delete(uri, null, null);
+    }
   }
   
   private final class DispatchedPlaybackControl implements PlaybackControl {

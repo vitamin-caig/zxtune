@@ -16,4 +16,6 @@ public interface PlaylistControl {
   public void add(Uri[] uris);
   
   public void delete(long[] ids);
+  
+  public void deleteAll();
 }

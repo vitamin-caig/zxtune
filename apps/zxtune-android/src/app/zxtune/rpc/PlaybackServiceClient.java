@@ -124,7 +124,16 @@ public final class PlaybackServiceClient implements PlaybackService {
       try {
         delegate.delete(ids);
       } catch (RemoteException e) {
-        Log.e(TAG, "add()", e);
+        Log.e(TAG, "delete()", e);
+      }
+    }
+    
+    @Override
+    public void deleteAll() {
+      try {
+        delegate.deleteAll();
+      } catch (RemoteException e) {
+        Log.e(TAG, "deleteAll()", e);
       }
     }
   }

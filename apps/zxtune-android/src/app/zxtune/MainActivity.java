@@ -45,8 +45,6 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    super.onOptionsItemSelected(item);
-    
     switch (item.getItemId()) {
       case R.id.action_prefs:
         showPreferences();
@@ -54,6 +52,8 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
       case R.id.action_quit:
         quit();
         break;
+      default:
+        return super.onOptionsItemSelected(item);
     }
     return true;
   }

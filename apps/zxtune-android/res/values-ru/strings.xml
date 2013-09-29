@@ -12,6 +12,9 @@
       <item quantity="few">%d элемента</item>
       <item quantity="other">%d элементов</item>
     </plurals>
+    <!-- playlist-related -->
+    <string name="menu_playlist">Список</string>
+    <string name="menu_playlist_clear">Очистить</string>
     <!-- action-related -->
     <string name="menu_play">Слушать</string>
     <string name="menu_add">Добавить</string>

@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:sabd="http://schemas.android.com/apk/res-auto" >
+  <item
+    android:id="@+id/action_playlist"
+    android:title="@string/menu_playlist"
+    sabd:showAsAction="ifRoom"
+    >
+    <menu>
+      <item
+        android:id="@+id/action_playlist_clear"
+        android:title="@string/menu_playlist_clear"
+        sabd:showAsAction="never" />
+    </menu>
+  </item>
+</menu>

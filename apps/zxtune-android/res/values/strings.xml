@@ -14,6 +14,9 @@
     <!-- action-related -->
     <string name="menu_play">Play</string>
     <string name="menu_add">Add</string>
+    <!-- playlist-related -->
+    <string name="menu_playlist">Playlist</string>
+    <string name="menu_playlist_clear">Clear</string>
     <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>
