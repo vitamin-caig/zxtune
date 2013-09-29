@@ -18,6 +18,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.PlaybackServiceStub;
 import app.zxtune.rpc.IRemotePlaybackService;
 import app.zxtune.rpc.PlaybackServiceClient;
 
@@ -134,7 +135,7 @@ public class PlaybackServiceConnection extends Fragment {
     @Override
     public void onServiceDisconnected(ComponentName name) {
       Log.d(TAG, "Disconnected!");
-      setService(null);//TODO: stub?
+      setService(PlaybackServiceStub.instance());
     }
   }
 }

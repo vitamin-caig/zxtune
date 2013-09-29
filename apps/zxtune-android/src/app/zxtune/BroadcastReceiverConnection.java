@@ -13,7 +13,7 @@ import android.util.Log;
 
 public class BroadcastReceiverConnection implements Releaseable {
   
-  private final Context context;
+  protected final Context context;
   private final BroadcastReceiver receiver;
   
   public BroadcastReceiverConnection(Context context, BroadcastReceiver receiver, IntentFilter filter) {
