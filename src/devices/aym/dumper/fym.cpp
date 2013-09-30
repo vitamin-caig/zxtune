@@ -70,14 +70,12 @@ namespace
       const std::size_t contentSize = framesCount * storedRegisters;
 
       Binary::DataBuilder builder(headerSize + contentSize);
-      if (FYMHeader* header = builder.Add<FYMHeader>())
-      {
-        header->HeaderSize = fromLE(headerSize);
-        header->FramesCount = fromLE(framesCount);
-        header->LoopFrame = fromLE(static_cast<uint32_t>(Params->LoopFrame()));
-        header->PSGFreq = fromLE(static_cast<uint32_t>(Params->ClockFreq()));
-        header->IntFreq = fromLE(static_cast<uint32_t>(Time::GetFrequencyForPeriod(Params->FrameDuration())));
-      }
+      FYMHeader& header = builder.Add<FYMHeader>();
+      header.HeaderSize = fromLE(headerSize);
+      header.FramesCount = fromLE(framesCount);
+      header.LoopFrame = fromLE(static_cast<uint32_t>(Params->LoopFrame()));
+      header.PSGFreq = fromLE(static_cast<uint32_t>(Params->ClockFreq()));
+      header.IntFreq = fromLE(static_cast<uint32_t>(Time::GetFrequencyForPeriod(Params->FrameDuration())));
       builder.AddCString(title);
       builder.AddCString(author);
 

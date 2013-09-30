@@ -932,7 +932,7 @@ namespace ProTracker3
       {
         const int_t period = Period.AsInt();
         const int_t param = Param.AsInt();
-        switch (const int_t cmd = Command.AsInt())
+        switch (Command.AsInt())
         {
         case 0:
           break;//no cmd

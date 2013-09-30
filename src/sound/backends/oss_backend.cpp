@@ -55,7 +55,7 @@ namespace Oss
   const char* const DESCRIPTION = L10n::translate("OSS sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
-  const uint_t MAX_OSS_VOLUME = 100;
+  const int_t MAX_OSS_VOLUME = 100;
 
   class AutoDescriptor : public boost::noncopyable
   {
