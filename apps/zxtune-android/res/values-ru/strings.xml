@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="menu_prefs">Настройки</string>
+    <string name="menu_about">О программе</string>
     <string name="menu_quit">Выход</string>
     <!-- selection-related -->
     <string name="menu_selection">Выделить</string>
@@ -28,6 +29,8 @@
     <string name="browser_empty">Нет файлов</string>
     <string name="scanning_title">Сканирование</string>
     <string name="scanning_text">Клик для отмены</string>
+    <!-- about-related -->
+    <string name="about_author">Идея, код, дизайн: <b>Vitamin/CAIG</b>\n\nПосвящается <b>Lizzi</b></string>
     <!-- VFS -->
     <string name="vfs_root_local_name">Локальная файловая система</string>
     <string name="vfs_root_local_description">Содержимое внутренних и внешних накопителей</string>

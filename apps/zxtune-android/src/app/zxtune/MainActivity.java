@@ -9,6 +9,7 @@ package app.zxtune;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -20,6 +21,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.PlaylistFragment;
@@ -48,6 +50,9 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
     switch (item.getItemId()) {
       case R.id.action_prefs:
         showPreferences();
+        break;
+      case R.id.action_about:
+        showAbout();
         break;
       case R.id.action_quit:
         quit();
@@ -93,6 +98,11 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   private void showPreferences() {
     final Intent intent = new Intent(this, PreferencesActivity.class);
     startActivity(intent);
+  }
+  
+  private void showAbout() {
+    final DialogFragment fragment = AboutFragment.createInstance();
+    fragment.show(getSupportFragmentManager(), "about");
   }
   
   private void quit() {
