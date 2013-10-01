@@ -31,7 +31,7 @@ public final class VfsIterator {
         dirs.add((VfsDir) obj);
       }
     }
-    files.add(null);//stub
+    files.add(0, null);//stub head
     next();
   }
 
