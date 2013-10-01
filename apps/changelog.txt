@@ -7,6 +7,24 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Reduced delay on tracks switch
+[*] Improved error processing in DirectSound backend
+[*] Improved detection of small-sized chiptunes
+[*] Memory corruption fixes in unrar library
+[*] Speedup solid RAR files processing
+[*] Fixed GTR size detection
+[*] Fixed lower bound of DAC samples frequency (applicable for DST)
+[*] zxtune-qt: fixed crash for small files embedding to playlist
+[+] zxtune-android: selection mode in browser
+[+] zxtune-android: folders scanning service with status notification
+[+] zxtune-android: clear playlist action
+[+] zxtune-android: added About dialog
+[*] zxtune-android: precise playlist/browser state saving on rotate
+[*] zxtune-android: separate playlist page for medium and smaller sizes
+[*] zxtune-android: improved headset buttons control
+
+--- Rev2600 from 02.09.2013
+
 [+] zxtune-android: using ActionBar for all platform versions
 [+] zxtune-android: preferences for AY/YM,SAA,DAC, mixer and headset control
 [*] zxtune-android: fixed processing and displaying paths with escaped characters
