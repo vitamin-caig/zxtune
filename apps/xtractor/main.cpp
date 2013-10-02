@@ -16,6 +16,7 @@ Author:
 //library includes
 #include <analysis/path.h>
 #include <analysis/result.h>
+#include <analysis/scanner.h>
 #include <async/data_receiver.h>
 #include <debug/log.h>
 #include <formats/archived/decoders.h>
@@ -47,25 +48,6 @@ namespace
   const Debug::Stream Dbg("XTractor");
 }
 
-template<class ObjType>
-class ObjectsStorage
-{
-public:
-  typedef boost::shared_ptr<const ObjectsStorage<ObjType> > Ptr;
-  virtual ~ObjectsStorage() {}
-
-  class Visitor
-  {
-  public:
-    virtual ~Visitor() {}
-
-    //return true if stop on current
-    virtual bool Accept(ObjType object) = 0;
-  };
-
-  virtual bool ForEach(Visitor& visitor) const = 0;
-};
-
 namespace Analysis
 {
   class Node
@@ -78,15 +60,13 @@ namespace Analysis
     virtual String Name() const = 0;
     //! Data associated with. Cannot be empty
     virtual Binary::Container::Ptr Data() const = 0;
-    //! Provider identifier in any form. Can be empty
-    virtual String Provider() const = 0;
     //! Parent node. Ptr() if root node
     virtual Ptr Parent() const = 0;
   };
 
   Node::Ptr CreateRootNode(Binary::Container::Ptr data, const String& name);
-  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, const String& provider);
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name);
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset);
 }
 
 namespace
@@ -110,11 +90,6 @@ namespace
       return DataVal;
     }
 
-    virtual String Provider() const
-    {
-      return String();
-    }
-
     virtual Analysis::Node::Ptr Parent() const
     {
       return Analysis::Node::Ptr();
@@ -127,11 +102,10 @@ namespace
   class SubNode : public Analysis::Node
   {
   public:
-    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, const String& name, const String& provider)
+    SubNode(Analysis::Node::Ptr parent, Binary::Container::Ptr data, const String& name)
       : ParentVal(parent)
       , DataVal(data)
       , NameVal(name)
-      , ProviderVal(provider)
     {
     }
 
@@ -145,11 +119,6 @@ namespace
       return DataVal;
     }
 
-    virtual String Provider() const
-    {
-      return ProviderVal;
-    }
-
     virtual Analysis::Node::Ptr Parent() const
     {
       return ParentVal;
@@ -158,7 +127,6 @@ namespace
     const Analysis::Node::Ptr ParentVal;
     const Binary::Container::Ptr DataVal;
     const String NameVal;
-    const String ProviderVal;
   };
 }
 
@@ -170,14 +138,20 @@ namespace Analysis
     return boost::make_shared<RootNode>(data, name);
   }
 
-  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, const String& provider)
-  {
-    return boost::make_shared<SubNode>(parent, data, name, provider);
-  }
-
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name)
   {
-    return CreateSubnode(parent, data, name, parent->Provider());
+    return boost::make_shared<SubNode>(parent, data, name);
+  }
+
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset)
+  {
+    return boost::make_shared<SubNode>(parent, data, Strings::Format("+%1%", offset));
+  }
+
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, std::size_t offset)
+  {
+    const Node::Ptr intermediate = CreateSubnode(parent, data, offset);
+    return CreateSubnode(intermediate, data, name);
   }
 }
 
@@ -188,135 +162,63 @@ namespace Analysis
   typedef DataTransceiver<Node::Ptr> NodeTransceiver;
 }
 
-namespace Analysis
-{
-  class Service
-  {
-  public:
-    typedef boost::shared_ptr<const Service> Ptr;
-    virtual ~Service() {}
-
-    virtual Result::Ptr Analyse(Node::Ptr node) const = 0;
-  };
-}
-
 namespace Formats
 {
   namespace Packed
   {
-    typedef ObjectsStorage<Decoder::Ptr> DecodersStorage;
-
-    DecodersStorage::Ptr GetAvailableDecoders();
-  }
-}
-
-namespace Formats
-{
-  namespace Archived
-  {
-    typedef ObjectsStorage<Decoder::Ptr> DecodersStorage;
-
-    DecodersStorage::Ptr GetAvailableDecoders();
-  }
-}
-
-namespace
-{
-  class PackedDecodersStorage : public Formats::Packed::DecodersStorage
-  {
-  public:
-    PackedDecodersStorage()
+    void FillScanner(Analysis::Scanner& scanner)
     {
       using namespace Formats::Packed;
-      Decoders.push_back(CreateCodeCruncher3Decoder());
-      Decoders.push_back(CreateCompressorCode4Decoder());
-      Decoders.push_back(CreateCompressorCode4PlusDecoder());
-      Decoders.push_back(CreateDataSquieezerDecoder());
-      Decoders.push_back(CreateESVCruncherDecoder());
-      Decoders.push_back(CreateHrumDecoder());
-      Decoders.push_back(CreateHrust1Decoder());
-      Decoders.push_back(CreateHrust21Decoder());
-      Decoders.push_back(CreateHrust23Decoder());
-      Decoders.push_back(CreateLZSDecoder());
-      Decoders.push_back(CreateMSPackDecoder());
-      Decoders.push_back(CreatePowerfullCodeDecreaser61Decoder());
-      Decoders.push_back(CreatePowerfullCodeDecreaser62Decoder());
-      Decoders.push_back(CreateTRUSHDecoder());
-      Decoders.push_back(CreateGamePackerDecoder());
-      Decoders.push_back(CreateGamePackerPlusDecoder());
-      Decoders.push_back(CreateTurboLZDecoder());
-      Decoders.push_back(CreateTurboLZProtectedDecoder());
-      Decoders.push_back(CreateCharPresDecoder());
-      Decoders.push_back(CreatePack2Decoder());
-      Decoders.push_back(CreateLZH1Decoder());
-      Decoders.push_back(CreateLZH2Decoder());
-      Decoders.push_back(CreateFullDiskImageDecoder());
-      Decoders.push_back(CreateHobetaDecoder());
-      Decoders.push_back(CreateSna128Decoder());
-      Decoders.push_back(CreateTeleDiskImageDecoder());
-      Decoders.push_back(CreateZ80V145Decoder());
-      Decoders.push_back(CreateZ80V20Decoder());
-      Decoders.push_back(CreateZ80V30Decoder());
-      Decoders.push_back(CreateMegaLZDecoder());
-    }
-
-    virtual bool ForEach(Formats::Packed::DecodersStorage::Visitor& visitor) const
-    {
-      return Decoders.end() != std::find_if(Decoders.begin(), Decoders.end(),
-        boost::bind(&Formats::Packed::DecodersStorage::Visitor::Accept, &visitor, _1));
-    }
-  private:
-    std::vector<Formats::Packed::Decoder::Ptr> Decoders;
-  };
-}
-
-namespace Formats
-{
-  namespace Packed
-  {
-    DecodersStorage::Ptr GetAvailableDecoders()
-    {
-      return boost::make_shared<PackedDecodersStorage>();
+      scanner.AddDecoder(CreateCodeCruncher3Decoder());
+      scanner.AddDecoder(CreateCompressorCode4Decoder());
+      scanner.AddDecoder(CreateCompressorCode4PlusDecoder());
+      scanner.AddDecoder(CreateDataSquieezerDecoder());
+      scanner.AddDecoder(CreateESVCruncherDecoder());
+      scanner.AddDecoder(CreateHrumDecoder());
+      scanner.AddDecoder(CreateHrust1Decoder());
+      scanner.AddDecoder(CreateHrust21Decoder());
+      scanner.AddDecoder(CreateHrust23Decoder());
+      scanner.AddDecoder(CreateLZSDecoder());
+      scanner.AddDecoder(CreateMSPackDecoder());
+      scanner.AddDecoder(CreatePowerfullCodeDecreaser61Decoder());
+      scanner.AddDecoder(CreatePowerfullCodeDecreaser62Decoder());
+      scanner.AddDecoder(CreateTRUSHDecoder());
+      scanner.AddDecoder(CreateGamePackerDecoder());
+      scanner.AddDecoder(CreateGamePackerPlusDecoder());
+      scanner.AddDecoder(CreateTurboLZDecoder());
+      scanner.AddDecoder(CreateTurboLZProtectedDecoder());
+      scanner.AddDecoder(CreateCharPresDecoder());
+      scanner.AddDecoder(CreatePack2Decoder());
+      scanner.AddDecoder(CreateLZH1Decoder());
+      scanner.AddDecoder(CreateLZH2Decoder());
+      scanner.AddDecoder(CreateFullDiskImageDecoder());
+      scanner.AddDecoder(CreateHobetaDecoder());
+      scanner.AddDecoder(CreateSna128Decoder());
+      scanner.AddDecoder(CreateTeleDiskImageDecoder());
+      scanner.AddDecoder(CreateZ80V145Decoder());
+      scanner.AddDecoder(CreateZ80V20Decoder());
+      scanner.AddDecoder(CreateZ80V30Decoder());
+      scanner.AddDecoder(CreateMegaLZDecoder());
     }
   }
-}
-
-namespace
-{
-  class ArchivedDecodersStorage : public Formats::Archived::DecodersStorage
-  {
-  public:
-    ArchivedDecodersStorage()
-    {
-      using namespace Formats::Archived;
-      Decoders.push_back(CreateZipDecoder());
-      Decoders.push_back(CreateRarDecoder());
-      Decoders.push_back(CreateZXZipDecoder());
-      Decoders.push_back(CreateSCLDecoder());
-      Decoders.push_back(CreateTRDDecoder());
-      Decoders.push_back(CreateHripDecoder());
-      //Decoders.push_back(CreateAYDecoder());
-      //Decoders.push_back(CreateLhaDecoder());
-      Decoders.push_back(CreateZXStateDecoder());
-    }
-
-    virtual bool ForEach(Formats::Archived::DecodersStorage::Visitor& visitor) const
-    {
-      return Decoders.end() != std::find_if(Decoders.begin(), Decoders.end(),
-        boost::bind(&Formats::Archived::DecodersStorage::Visitor::Accept, &visitor, _1));
-    }
-  private:
-    std::vector<Formats::Archived::Decoder::Ptr> Decoders;
-  };
 }
 
 namespace Formats
 {
   namespace Archived
-  {
-    DecodersStorage::Ptr GetAvailableDecoders()
+  { 
+    void FillScanner(Analysis::Scanner& scanner)
     {
-      return boost::make_shared<ArchivedDecodersStorage>();
+      using namespace Formats::Archived;
+      scanner.AddDecoder(CreateZipDecoder());
+      scanner.AddDecoder(CreateRarDecoder());
+      scanner.AddDecoder(CreateZXZipDecoder());
+      scanner.AddDecoder(CreateSCLDecoder());
+      scanner.AddDecoder(CreateTRDDecoder());
+      scanner.AddDecoder(CreateHripDecoder());
+      //scanner.AddDecoder(CreateAYDecoder());
+      //scanner.AddDecoder(CreateLhaDecoder());
+      scanner.AddDecoder(CreateZXStateDecoder());
     }
   }
 }
@@ -551,400 +453,107 @@ namespace Analysis
 
 namespace
 {
-  typedef ObjectsStorage<Analysis::Service::Ptr> AnalyseServicesStorage;
-
-  class AnalysedDataDispatcher : public AnalyseServicesStorage
-                               , public Analysis::NodeTransmitter
+  class NestedScannerTarget : public Analysis::Scanner::Target
   {
   public:
-    typedef boost::shared_ptr<AnalysedDataDispatcher> Ptr;
-  };
-
-  class PackedDataAnalyseService : public Analysis::Service
-  {
-  public:
-    PackedDataAnalyseService(Formats::Packed::Decoder::Ptr decoder, Analysis::NodeReceiver::Ptr unpacked)
-      : Decoder(decoder)
-      , Unpacked(unpacked)
+    NestedScannerTarget(Analysis::Node::Ptr root, Analysis::NodeReceiver& recognized, Analysis::NodeReceiver& unrecognized)
+      : Root(root)
+      , Recognized(recognized)
+      , Unrecognized(unrecognized)
     {
     }
 
-    virtual Analysis::Result::Ptr Analyse(Analysis::Node::Ptr node) const
+    virtual void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset, Formats::Archived::Container::Ptr data)
     {
-      const Binary::Container::Ptr rawData = node->Data();
-      const String descr = Decoder->GetDescription();
-      Dbg("Trying '%1%'", descr);
-      if (Formats::Packed::Container::Ptr depacked = Decoder->Decode(*rawData))
-      {
-        const std::size_t matched = depacked->PackedSize();
-        Dbg("Found in %1% bytes", matched);
-        const String name = descr;//TODO
-        const Analysis::Node::Ptr subNode = Analysis::CreateSubnode(node, depacked, name, descr);
-        Unpacked->ApplyData(subNode);
-        return Analysis::CreateMatchedResult(matched);
-      }
-      else
-      {
-        Dbg("Not found");
-        return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
-      }
+      const String name = decoder.GetDescription();
+      Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
+      const Analysis::Node::Ptr archNode = Analysis::CreateSubnode(Root, data, name, offset);
+      const ScanFiles walker(Recognized, archNode);
+      data->ExploreFiles(walker);
+    }
+
+    virtual void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset, Formats::Packed::Container::Ptr data)
+    {
+      const String name = decoder.GetDescription();
+      Dbg("Found %1% in %2% bytes at %3%", name, data->PackedSize(), offset);
+      const Analysis::Node::Ptr packNode = Analysis::CreateSubnode(Root, data, name, offset);
+      Recognized.ApplyData(packNode);
+    }
+
+    virtual void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data)
+    {
+    }
+
+    virtual void Apply(std::size_t offset, Binary::Container::Ptr data)
+    {
+      Dbg("Unresolved %1% bytes at %2%", data->Size(), offset);
+      const Analysis::Node::Ptr rawNode = Analysis::CreateSubnode(Root, data, offset);
+      Unrecognized.ApplyData(rawNode);
     }
   private:
-    const Formats::Packed::Decoder::Ptr Decoder;
-    const Analysis::NodeReceiver::Ptr Unpacked;
-  };
-
-  class PackedDataAdapter : public Formats::Packed::DecodersStorage::Visitor
-  {
-  public:
-    PackedDataAdapter(AnalyseServicesStorage::Visitor& delegate, Analysis::NodeReceiver::Ptr unpacked)
-      : Delegate(delegate)
-      , Unpacked(unpacked)
-    {
-    }
-
-    virtual bool Accept(Formats::Packed::Decoder::Ptr decoder)
-    {
-      const Analysis::Service::Ptr service = boost::make_shared<PackedDataAnalyseService>(decoder, Unpacked);
-      return Delegate.Accept(service);
-    }
-  private:
-    AnalyseServicesStorage::Visitor& Delegate;
-    const Analysis::NodeReceiver::Ptr Unpacked;
-  };
-
-  class PackedDataAnalysersStorage : public AnalysedDataDispatcher
-  {
-  public:
-    PackedDataAnalysersStorage()
-      : Decoders(Formats::Packed::GetAvailableDecoders())
-      , Unpacked(Analysis::NodeReceiver::CreateStub())
-    {
-    }
-
-    virtual bool ForEach(AnalyseServicesStorage::Visitor& visitor) const
-    {
-      PackedDataAdapter adapter(visitor, Unpacked);
-      return Decoders->ForEach(adapter);
-    }
-    
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr unpacked)
-    {
-      assert(unpacked);
-      Unpacked = unpacked;
-    }
-  private:
-    const Formats::Packed::DecodersStorage::Ptr Decoders;
-    Analysis::NodeReceiver::Ptr Unpacked;
-  };
-
-  class ArchivedDataAnalyseService : public Analysis::Service
-  {
-  public:
-    ArchivedDataAnalyseService(Formats::Archived::Decoder::Ptr decoder, Analysis::NodeReceiver::Ptr unarchived)
-      : Decoder(decoder)
-      , Unarchived(unarchived)
-    {
-    }
-
-    virtual Analysis::Result::Ptr Analyse(Analysis::Node::Ptr node) const
-    {
-      const Binary::Container::Ptr rawData = node->Data();
-      const String descr = Decoder->GetDescription();
-      Dbg("Trying '%1%'", descr);
-      if (Formats::Archived::Container::Ptr depacked = Decoder->Decode(*rawData))
-      {
-        const std::size_t matched = depacked->Size();
-        Dbg("Found in %1% bytes", matched);
-        const String name = descr;//TODO
-        const Analysis::Node::Ptr subNode = Analysis::CreateSubnode(node, depacked, name, descr);
-        const DepackFiles walker(subNode, Unarchived);
-        depacked->ExploreFiles(walker);
-        return Analysis::CreateMatchedResult(matched);
-      }
-      else
-      {
-        Dbg("Not found");
-        return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
-      }
-    }
-  private:
-    class DepackFiles : public Formats::Archived::Container::Walker
+    class ScanFiles : public Formats::Archived::Container::Walker
     {
     public:
-      DepackFiles(Analysis::Node::Ptr node, Analysis::NodeReceiver::Ptr unarchived)
-        : ArchiveNode(node)
-        , Unarchived(unarchived)
+      ScanFiles(Analysis::NodeReceiver& recognized, Analysis::Node::Ptr node)
+        : Recognized(recognized)
+        , ArchiveNode(node)
       {
       }
 
       virtual void OnFile(const Formats::Archived::File& file) const
       {
-        if (Binary::Container::Ptr data = file.GetData())
+        if (const Binary::Container::Ptr data = file.GetData())
         {
           const String name = file.GetName();
-          const Analysis::Node::Ptr subNode = Analysis::CreateSubnode(ArchiveNode, data, name);
-          Unarchived->ApplyData(subNode);
+          Dbg("Processing %1%", name);
+          const Analysis::Node::Ptr fileNode = Analysis::CreateSubnode(ArchiveNode, data, name);
+          Recognized.ApplyData(fileNode);
         }
       }
     private:
+      Analysis::NodeReceiver& Recognized;
       const Analysis::Node::Ptr ArchiveNode;
-      const Analysis::NodeReceiver::Ptr Unarchived;
     };
   private:
-    const Formats::Archived::Decoder::Ptr Decoder;
-    const Analysis::NodeReceiver::Ptr Unarchived;
+    const Analysis::Node::Ptr Root;
+    Analysis::NodeReceiver& Recognized;
+    Analysis::NodeReceiver& Unrecognized;
   };
 
-  class ArchivedDataAdapter : public Formats::Archived::DecodersStorage::Visitor
+  class AnalysisTarget : public Analysis::NodeTransceiver
   {
   public:
-    ArchivedDataAdapter(AnalyseServicesStorage::Visitor& delegate, Analysis::NodeReceiver::Ptr unarchived)
-      : Delegate(delegate)
-      , Unarchived(unarchived)
+    AnalysisTarget()
+      : Scanner(Analysis::CreateScanner())
     {
-    }
-
-    virtual bool Accept(Formats::Archived::Decoder::Ptr decoder)
-    {
-      const Analysis::Service::Ptr service = boost::make_shared<ArchivedDataAnalyseService>(decoder, Unarchived);
-      return Delegate.Accept(service);
-    }
-  private:
-    AnalyseServicesStorage::Visitor& Delegate;
-    const Analysis::NodeReceiver::Ptr Unarchived;
-  };
-
-  class ArchivedDataAnalysersStorage : public AnalysedDataDispatcher
-  {
-  public:
-    ArchivedDataAnalysersStorage()
-      : Decoders(Formats::Archived::GetAvailableDecoders())
-      , Unarchived(Analysis::NodeReceiver::CreateStub())
-    {
-    }
-
-    virtual bool ForEach(AnalyseServicesStorage::Visitor& visitor) const
-    {
-      ArchivedDataAdapter adapter(visitor, Unarchived);
-      return Decoders->ForEach(adapter);
-    }
-
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr unarchived)
-    {
-      assert(unarchived);
-      Unarchived = unarchived;
-    }
-  private:
-    const Formats::Archived::DecodersStorage::Ptr Decoders;
-    Analysis::NodeReceiver::Ptr Unarchived;
-  };
-
-  class CompositeAnalyseServicesStorage : public AnalyseServicesStorage
-  {
-  public:
-    CompositeAnalyseServicesStorage(AnalyseServicesStorage::Ptr first, AnalyseServicesStorage::Ptr second)
-      : First(first)
-      , Second(second)
-    {
-    }
-
-    virtual bool ForEach(AnalyseServicesStorage::Visitor &visitor) const
-    {
-      return First->ForEach(visitor) || Second->ForEach(visitor);
-    }
-  private:
-    const AnalyseServicesStorage::Ptr First;
-    const AnalyseServicesStorage::Ptr Second;
-  };
-
-  typedef boost::shared_ptr<const std::size_t> OffsetPtr;
-  typedef boost::shared_ptr<std::size_t> OffsetRWPtr;
-
-  class ScanningNode : public Analysis::Node
-  {
-  public:
-    ScanningNode(Analysis::Node::Ptr parent, OffsetPtr offset, OffsetPtr limit)
-      : ParentVal(parent)
-      , DataVal(parent->Data())
-      , Offset(offset)
-      , Limit(limit)
-    {
-    }
-
-    virtual String Name() const
-    {
-      //TODO
-      return Strings::Format("+%1%", *Offset);
-    }
-
-    virtual Binary::Container::Ptr Data() const
-    {
-      const std::size_t offset = *Offset;
-      const std::size_t available = *Limit;
-      Require(available > offset);
-      return DataVal->GetSubcontainer(offset, available - offset);
-    }
-
-    virtual String Provider() const
-    {
-      //TODO
-      return String();
-    }
-
-    virtual Analysis::Node::Ptr Parent() const
-    {
-      return ParentVal;
-    }
-  private:
-    const Analysis::Node::Ptr ParentVal;
-    const Binary::Container::Ptr DataVal;
-    const OffsetPtr Offset;
-    const OffsetPtr Limit;
-  };
-
-  class ScanningDataAnalyser : private AnalyseServicesStorage::Visitor
-  {
-  public:
-    ScanningDataAnalyser(Analysis::Node::Ptr source, AnalyseServicesStorage::Ptr services, Analysis::NodeReceiver::Ptr unresolved)
-      : Source(source)
-      , Services(services)
-      , Unresolved(unresolved)
-      , Limit(source->Data()->Size())
-    {
-    }
-
-    void Analyse()
-    {
-      UnresolvedOffset = boost::make_shared<std::size_t>(0);
-      ResetScaner(0);
-      Services->ForEach(*this);
-      while (*ScanOffset < *ScanLimit)
-      {
-        const std::size_t minOffset = Analysers.empty() ? Limit : Analysers.begin()->first;
-        if (minOffset > *ScanOffset)
-        {
-          *ScanOffset = minOffset;
-          continue;
-        }
-        for (AnalysersCache::iterator it = Analysers.begin(); it != Analysers.end(); )
-        {
-          const AnalysersCache::iterator toProcess = it;
-          ++it;
-          if (toProcess->first <= *ScanOffset)
-          {
-            const Analysis::Service::Ptr service = toProcess->second;
-            Analysers.erase(toProcess);
-            if (Accept(service))
-            {
-              break;
-            }
-          }
-        }
-      }
-      ProcessUnresolved();
-    }
-  private:
-    virtual bool Accept(Analysis::Service::Ptr service)
-    {
-      const Analysis::Result::Ptr result = service->Analyse(ScanNode);
-      if (const std::size_t matched = result->GetMatchedDataSize())
-      {
-        const std::size_t nextOffset = *ScanOffset + matched;
-        Dbg("Matched at %1%..%2%", *ScanOffset, nextOffset);
-        //limit result for captured ScanNode
-        *ScanLimit = nextOffset;
-
-        ProcessUnresolved();
-        ResetScaner(nextOffset);
-        if (nextOffset == Limit)
-        {
-          Dbg("No more data to analyze. Stop.");
-          return true;
-        }
-        Analysers.insert(std::make_pair(nextOffset, service));
-      }
-      else
-      {
-        const std::size_t lookahead = result->GetLookaheadOffset();
-        const std::size_t nextSearch = *ScanOffset + std::max(lookahead, std::size_t(1));
-        if (nextSearch < Limit)
-        {
-          Dbg("Skip for nearest %1% bytes", lookahead);
-          Analysers.insert(std::make_pair(nextSearch, service));
-        }
-        else
-        {
-          Dbg("Disable for further checking");
-        }
-      }
-      return false;
-    }
-
-    void ProcessUnresolved()
-    {
-      if (*UnresolvedOffset < *ScanOffset)
-      {
-        Dbg("Unresolved %1%..%2%", *UnresolvedOffset, *ScanOffset);
-        const Analysis::Node::Ptr unresolvedNode = boost::make_shared<ScanningNode>(Source, UnresolvedOffset, ScanOffset);
-        Unresolved->ApplyData(unresolvedNode);
-        //recreate
-        UnresolvedOffset = boost::make_shared<std::size_t>(*ScanOffset);
-      }
-    }
-
-    void ResetScaner(std::size_t offset)
-    {
-      //recreate
-      ScanOffset = boost::make_shared<std::size_t>(offset);
-      ScanLimit = boost::make_shared<std::size_t>(Limit);
-      ScanNode = boost::make_shared<ScanningNode>(Source, ScanOffset, ScanLimit);
-      *UnresolvedOffset = offset;
-    }
-  private:
-    const Analysis::Node::Ptr Source;
-    const AnalyseServicesStorage::Ptr Services;
-    const Analysis::NodeReceiver::Ptr Unresolved;
-    const std::size_t Limit;
-    OffsetRWPtr UnresolvedOffset;
-    OffsetRWPtr ScanOffset;
-    OffsetRWPtr ScanLimit;
-    Analysis::Node::Ptr ScanNode;
-
-    typedef std::multimap<std::size_t, Analysis::Service::Ptr> AnalysersCache;
-    AnalysersCache Analysers;
-  };
-
-  class UnresolvedData : public Analysis::NodeTransceiver
-  {
-  public:
-    explicit UnresolvedData(AnalyseServicesStorage::Ptr services)
-      : Services(services)
-      , Unresolved(Analysis::NodeReceiver::CreateStub())
-    {
+      Formats::Archived::FillScanner(*Scanner);
+      Formats::Packed::FillScanner(*Scanner);
     }
 
     virtual void ApplyData(const Analysis::Node::Ptr& node)
     {
-      ScanningDataAnalyser analyser(node, Services, Unresolved);
-      analyser.Analyse();
+      Dbg("Analyze %1%", node->Name());
+      NestedScannerTarget target(node, *this, *Target);
+      Scanner->Scan(node->Data(), target);
     }
 
     virtual void Flush()
     {
-      Unresolved->Flush();
+      Target->Flush();
     }
 
-    virtual void SetTarget(Analysis::NodeReceiver::Ptr unresolved)
+    virtual void SetTarget(Analysis::NodeReceiver::Ptr target)
     {
-      assert(unresolved);
-      Unresolved = unresolved;
+      Target = target;
     }
   private:
-    const AnalyseServicesStorage::Ptr Services;
-    Analysis::NodeReceiver::Ptr Unresolved;
+    const Analysis::Scanner::RWPtr Scanner;
+    Analysis::NodeReceiver::Ptr Target;
   };
+}
 
+namespace
+{
   typedef DataReceiver<String> StringsReceiver;
 
   typedef DataTransceiver<String, Analysis::Node::Ptr> OpenPoint;
@@ -1277,18 +886,9 @@ namespace
 
   Analysis::NodeTransceiver::Ptr CreateAnalyser(const AnalysisOptions& opts)
   {
-    //form analysers
-    const AnalysedDataDispatcher::Ptr unarchive = boost::make_shared<ArchivedDataAnalysersStorage>();
-    const AnalysedDataDispatcher::Ptr depack = boost::make_shared<PackedDataAnalysersStorage>();
-    const AnalyseServicesStorage::Ptr anyConversion = boost::make_shared<CompositeAnalyseServicesStorage>(unarchive, depack);
-    const Analysis::NodeTransceiver::Ptr filterUnresolved = boost::make_shared<UnresolvedData>(anyConversion);
-
-    const Analysis::NodeTransceiver::Ptr unknownData = boost::make_shared<Valve>();
-    unknownData->SetTarget(filterUnresolved);
-    unarchive->SetTarget(unknownData);
-    depack->SetTarget(unknownData);
-    const Analysis::NodeReceiver::Ptr input = AsyncWrap<Analysis::Node::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), unknownData);
-    return boost::make_shared<TransceivePipe<Analysis::Node::Ptr> >(input, filterUnresolved);
+    const Analysis::NodeTransceiver::Ptr analyser = boost::make_shared<AnalysisTarget>();
+    const Analysis::NodeReceiver::Ptr input = AsyncWrap<Analysis::Node::Ptr>(opts.AnalysisThreads(), opts.AnalysisDataQueueSize(), analyser);
+    return boost::make_shared<TransceivePipe<Analysis::Node::Ptr> >(input, analyser);
   }
 
   OpenPoint::Ptr CreateSource()
