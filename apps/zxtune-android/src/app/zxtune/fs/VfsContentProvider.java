@@ -29,9 +29,13 @@ public class VfsContentProvider extends ContentProvider {
     final Uri path = query.getPath();
     Log.d(TAG, String.format("query(%s) = %s", uri.toString(), path.toString()));
     final VfsDir dir = (VfsDir) getRoot().resolve(path);
-    final Cursor result = new VfsCursor(dir);
-    result.setNotificationUri(getContext().getContentResolver(), uri);
-    return result;
+    if (dir != null) {
+      final Cursor result = new VfsCursor(dir);
+      result.setNotificationUri(getContext().getContentResolver(), uri);
+      return result;
+    } else {
+      return null;
+    }
   }
 
   @Override

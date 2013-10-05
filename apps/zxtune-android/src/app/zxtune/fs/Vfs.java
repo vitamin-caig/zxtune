@@ -14,6 +14,7 @@ public final class Vfs {
   public static VfsRoot createRoot(Context context) {
     final VfsRootComposite composite = new VfsRootComposite();
     composite.addSubroot(new VfsRootLocal(context));
+    composite.addSubroot(new VfsRootZxtunes(context));
     return composite;
   }
 }

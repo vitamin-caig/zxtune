@@ -38,12 +38,12 @@ final class VfsRootLocal implements VfsRoot {
 
   @Override
   public String getName() {
-    return context.getString(R.string.vfs_root_local_name);
+    return context.getString(R.string.vfs_local_root_name);
   }
 
   @Override
   public String getDescription() {
-    return context.getString(R.string.vfs_root_local_description);
+    return context.getString(R.string.vfs_local_root_description);
   }
 
   @Override
@@ -53,7 +53,7 @@ final class VfsRootLocal implements VfsRoot {
       if (TextUtils.isEmpty(path)) {
         return this;
       } else {
-        return resolvePath(uri.getPath());
+        return resolvePath(path);
       }
     } else {
       return null;
