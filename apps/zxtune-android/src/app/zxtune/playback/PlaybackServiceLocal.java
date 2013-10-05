@@ -7,13 +7,13 @@
 package app.zxtune.playback;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import app.zxtune.Releaseable;
 import app.zxtune.ScanService;
@@ -32,6 +32,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private static final String TAG = PlaybackServiceLocal.class.getName();
   
   private final Context context;
+  private final ExecutorService executor;
   private final CompositeCallback callbacks;
   private final PlaylistControl playlist;
   private final PlaybackControl playback;
@@ -41,6 +42,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   public PlaybackServiceLocal(Context context) {
     this.context = context;
+    this.executor = Executors.newSingleThreadExecutor();
     this.callbacks = new CompositeCallback();
     this.playlist = new DispatchedPlaylistControl();
     this.playback = new DispatchedPlaybackControl();
@@ -56,11 +58,25 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   @Override
   public void setNowPlaying(Uri[] uris) {
-    try {
-      final Iterator iter = Iterator.create(context, uris);
-      play(iter);
-    } catch (Error e) {
-      Log.w(TAG, "setNowPlaying()", e);
+    executeCommand(new SetNowPlayingCommand(uris));
+  }
+  
+  private class SetNowPlayingCommand implements Runnable {
+    
+    private Uri[] uris;
+    
+    SetNowPlayingCommand(Uri[] uris) {
+      this.uris = uris;
+    }
+
+    @Override
+    public void run() {
+      try {
+        final Iterator iter = Iterator.create(context, uris);
+        play(iter);
+      } catch (Error e) {
+        Log.w(TAG, "setNowPlaying()", e);
+      }
     }
   }
   
@@ -108,6 +124,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         holder = new Holder();
       }
     }
+  }
+  
+  private void executeCommand(Runnable cmd) {
+    executor.execute(cmd);
   }
   
   private void setNewHolder(Holder holder) {
@@ -211,18 +231,46 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public synchronized void next() {
       synchronized (PlaybackServiceLocal.this) {
-        if (holder.iterator.next()) {
-          PlaybackServiceLocal.this.play(holder.iterator);
-        }
+        executeCommand(new PlayNextCommand(holder.iterator));
       }
     }
 
     @Override
     public synchronized void prev() {
       synchronized (PlaybackServiceLocal.this) {
-        if (holder.iterator.prev()) {
-          PlaybackServiceLocal.this.play(holder.iterator);
-        }
+        executeCommand(new PlayPrevCommand(holder.iterator));
+      }
+    }
+  }
+  
+  private class PlayNextCommand implements Runnable {
+    
+    private Iterator iter;
+    
+    PlayNextCommand(Iterator iter) {
+      this.iter = iter;
+    }
+
+    @Override
+    public void run() {
+      if (iter.next()) {
+        play(iter);
+      }
+    }
+  }
+
+  private class PlayPrevCommand implements Runnable {
+    
+    private Iterator iter;
+    
+    PlayPrevCommand(Iterator iter) {
+      this.iter = iter;
+    }
+
+    @Override
+    public void run() {
+      if (iter.prev()) {
+        play(iter);
       }
     }
   }
@@ -278,12 +326,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void onFinish() {
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
-          ctrl.next();
-        }
-      }).start();
+      ctrl.next();
     }
 
     @Override

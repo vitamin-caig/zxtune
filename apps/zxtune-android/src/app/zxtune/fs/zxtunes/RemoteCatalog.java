@@ -15,6 +15,7 @@ import java.net.URL;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
+import android.content.Context;
 import android.os.Build;
 import android.sax.Element;
 import android.sax.EndElementListener;
@@ -23,6 +24,7 @@ import android.sax.RootElement;
 import android.sax.StartElementListener;
 import android.util.Log;
 import android.util.Xml;
+import app.zxtune.R;
 
 /**
  * Remote catalog implementation
@@ -40,14 +42,18 @@ final class RemoteCatalog extends Catalog {
   private static final String AUTHOR_TRACKS_QUERY = ALL_TRACKS_QUERY + "&author_id=%d";
   private static final String TRACK_QUERY = ALL_TRACKS_QUERY + "&id=%d";
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
+  
+  private String userAgent;
 
-  public RemoteCatalog() {
+  public RemoteCatalog(Context context) {
+    this.userAgent = String.format("%s/%s", context.getString(R.string.app_name), context.getString(R.string.versionName));
+    Log.d(TAG, "Set useragent to " + userAgent);
     // HTTP connection reuse which was buggy pre-froyo
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
         System.setProperty("http.keepAlive", "false");
     }
   }
-
+  
   @Override
   public void queryAuthors(AuthorsVisitor visitor, Integer id) {
     try {
@@ -93,7 +99,6 @@ final class RemoteCatalog extends Catalog {
   
   private static void performQuery(HttpURLConnection connection, RootElement root) throws IOException {
     try {
-      Log.d(TAG, "performQuery() bytes " + connection.getContentLength());
       final InputStream stream = new BufferedInputStream(connection.getInputStream());
       Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
     } catch (SAXException e) {
@@ -269,7 +274,6 @@ final class RemoteCatalog extends Catalog {
   private static byte[] getContent(HttpURLConnection connection) throws IOException {
     try {
       final int len = connection.getContentLength();
-      Log.d(TAG, "getContent() bytes " + len);
       final byte[] result = new byte[len];
       final InputStream stream = connection.getInputStream();
       int received = 0;
@@ -290,9 +294,16 @@ final class RemoteCatalog extends Catalog {
     }
   }
   
-  private static HttpURLConnection connect(String uri) throws IOException {
-    Log.d(TAG, "Fetch " + uri);
-    final URL url = new URL(uri);
-    return (HttpURLConnection) url.openConnection();
+  private HttpURLConnection connect(String uri) throws IOException {
+    try {
+      final URL url = new URL(uri);
+      final HttpURLConnection result = (HttpURLConnection) url.openConnection();
+      result.setRequestProperty("User-Agent", userAgent);
+      Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
+      return result;
+    } catch (IOException e) {
+      Log.d(TAG, "Fetch " + uri, e);
+      throw e;
+    }
   }
 }

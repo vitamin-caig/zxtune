@@ -46,7 +46,7 @@ public abstract class Catalog {
   
   public static Catalog create(Context context) {
     final Database db = new Database(context);
-    final Catalog remote = new RemoteCatalog();
+    final Catalog remote = new RemoteCatalog(context);
     return remote;//new CachingCatalog(context, remote, db);
   }
 }
