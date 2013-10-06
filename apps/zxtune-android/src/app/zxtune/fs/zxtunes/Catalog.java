@@ -36,17 +36,16 @@ public abstract class Catalog {
    * Query tracks objects
    * @param visitor result receiver
    * @param author author's identifier
-   * @param id filter by id. If not null, other filters are ignored
-   * @param author filter by author. If null date filter is ignored
-   * @param date additionally filter by author's date 
+   * @param id filter by id. If not null, author filter is ignored
+   * @param author filter by author
    */
-  public abstract void queryTracks(TracksVisitor visitor, Integer id, Integer author, Integer date);
+  public abstract void queryTracks(TracksVisitor visitor, Integer id, Integer author);
   
   public abstract byte[] getTrackContent(int id) throws IOException;
   
   public static Catalog create(Context context) {
     final Database db = new Database(context);
     final Catalog remote = new RemoteCatalog(context);
-    return remote;//new CachingCatalog(context, remote, db);
+    return new CachingCatalog(context, remote, db);
   }
 }

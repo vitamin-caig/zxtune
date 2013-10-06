@@ -117,9 +117,9 @@ final class VfsRootZxtunes implements VfsRoot {
         .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.id));
   }
 
-  private Uri.Builder authorDateUri(Author author, int date) {
+  private Uri.Builder authorDateUri(Author author, Integer date) {
     return authorUri(author)
-        .appendPath(Integer.toString(date));
+        .appendPath(date.toString());
   }
 
   private Uri.Builder trackUri(Author author, Track track) {
@@ -128,7 +128,7 @@ final class VfsRootZxtunes implements VfsRoot {
         .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
   }
 
-  private Uri.Builder trackDateUri(Author author, int date, Track track) {
+  private Uri.Builder trackDateUri(Author author, Integer date, Track track) {
     return authorDateUri(author, date)
         .appendPath(track.filename)
         .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
@@ -269,7 +269,7 @@ final class VfsRootZxtunes implements VfsRoot {
       //callers doesn't know that author and date is useless now
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryTracks(visitor, id, null, null);
+      catalog.queryTracks(visitor, id, null/*authorId*/);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",
@@ -356,7 +356,7 @@ final class VfsRootZxtunes implements VfsRoot {
             dates.add(obj.date);
           }
         }
-      }, null/*id*/, author.id, null/* date */);
+      }, null/*id*/, author.id);
       for (Integer date : dates) {
         visitor.onDir(new AuthorDateDir(author, date));
       }
@@ -375,7 +375,7 @@ final class VfsRootZxtunes implements VfsRoot {
   private class AuthorDateDir implements VfsDir {
 
     private final Author author;
-    private final int date;
+    private final Integer date;
 
     AuthorDateDir(Author author, int date) {
       this.author = author;
@@ -402,13 +402,11 @@ final class VfsRootZxtunes implements VfsRoot {
       catalog.queryTracks(new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {
-          if (obj.date == date) {
+          if (date.equals(obj.date)) {
             visitor.onFile(new TrackFile(trackDateUri(author, date, obj).build(), obj));
-          } else {
-            Log.d(TAG, "invalid module date " + obj.date + " while expected " + date);
           }
         }
-      }, null/*id*/, author.id, date);
+      }, null/*id*/, author.id);
     }
 
     @Override

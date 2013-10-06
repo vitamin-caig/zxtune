@@ -67,18 +67,18 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryTracks(TracksVisitor visitor, Integer id, Integer author, Integer date) {
+  public void queryTracks(TracksVisitor visitor, Integer id, Integer author) {
     if (id != null) {
-      queryTracks(visitor, String.format(TRACK_QUERY, id), null);
+      queryTracks(visitor, String.format(TRACK_QUERY, id));
     } else {
-      queryTracks(visitor, String.format(AUTHOR_TRACKS_QUERY, author), date);
+      queryTracks(visitor, String.format(AUTHOR_TRACKS_QUERY, author));
     }
   }
   
-  private void queryTracks(TracksVisitor visitor, String query, Integer date) {
+  private void queryTracks(TracksVisitor visitor, String query) {
     try {
       final HttpURLConnection connection = connect(query);
-      final RootElement root = createModulesParserRoot(visitor, date);
+      final RootElement root = createModulesParserRoot(visitor);
       performQuery(connection, root);
     } catch (IOException e) {
       Log.d(TAG, "queryModules(" + query + ")", e);
@@ -182,7 +182,7 @@ final class RemoteCatalog extends Catalog {
     }
   }
   
-  private static RootElement createModulesParserRoot(final TracksVisitor visitor, final Integer date) {
+  private static RootElement createModulesParserRoot(final TracksVisitor visitor) {
     final ModuleBuilder builder = new ModuleBuilder();
     final RootElement result = createRootElement(); 
     final Element list = result.getChild("tracks");
@@ -196,11 +196,7 @@ final class RemoteCatalog extends Catalog {
     item.setEndElementListener(new EndElementListener() {
       @Override
       public void end() {
-        // xml api does not support date filtering, so perform it manually
-        final Track res = builder.captureResult();
-        if (date == null || date.equals(res.date)) {
-          visitor.accept(res);
-        }
+        visitor.accept(builder.captureResult());
       }
     });
     item.getChild("filename").setEndTextElementListener(new EndTextElementListener() {
