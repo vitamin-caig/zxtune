@@ -6,6 +6,7 @@
  */
 package app.zxtune.fs;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import android.net.Uri;
@@ -23,7 +24,7 @@ final class VfsRootComposite implements VfsRoot {
   }
 
   @Override
-  public VfsObject resolve(Uri uri) {
+  public VfsObject resolve(Uri uri) throws IOException {
     if (uri.equals(Uri.EMPTY)) {
       return this;
     }

@@ -9,10 +9,11 @@ package app.zxtune.fs;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import android.content.Context;
@@ -84,7 +85,7 @@ final class VfsRootLocal implements VfsRoot {
   
   private static VfsObject resolvePath(String path) {
     final File obj = new File(path);
-    return obj != null ? buildObject(obj) : null;
+    return buildObject(obj);
   }
 
   @Override
@@ -103,42 +104,48 @@ final class VfsRootLocal implements VfsRoot {
   }
   
   //Based on code from http://renzhi.ca/2012/02/03/how-to-list-all-sd-cards-on-android/
-  private static String[] getExternalStorageDirectories() {
-    ArrayList<String> list = new ArrayList<String>();
-    BufferedReader bufReader = null;
+  private static List<String> getExternalStorageDirectories() {
     try {
-      bufReader = new BufferedReader(new FileReader("/proc/mounts"));
-      String line;
-      while ((line = bufReader.readLine()) != null) {
-        if (line.contains("vfat") || line.contains("/mnt")) {
-          StringTokenizer tokens = new StringTokenizer(line, " ");
-          String s = tokens.nextToken();
-          s = tokens.nextToken(); // Take the second token, i.e. mount point
+      return readMountPoints("/proc/mounts");
+    }
+    catch (IOException e) {
+    }
+    return Collections.emptyList();
+  }
+  
+  private static List<String> readMountPoints(String filename) throws IOException {
+    final BufferedReader bufReader = new BufferedReader(new FileReader(filename));
+    try {
+      return readMountPoints(bufReader);
+    } finally {
+      bufReader.close();
+    }
+  }
+  
+  private static List<String> readMountPoints(BufferedReader reader) throws IOException {
+    final ArrayList<String> list = new ArrayList<String>();
+    for (;;) {
+      final String line = reader.readLine();
+      if (line == null) {
+        break;
+      }
+      if (line.contains("vfat") || line.contains("/mnt")) {
+        StringTokenizer tokens = new StringTokenizer(line, " ");
+        String s = tokens.nextToken();
+        s = tokens.nextToken(); // Take the second token, i.e. mount point
 
-          if (s.equals(Environment.getExternalStorageDirectory().getPath())) {
-            list.add(s);
-          }
-          else if (line.contains("/dev/block/vold")
-            && !(line.contains("/mnt/secure") || line.contains("/mnt/asec") || 
-                 line.contains("/mnt/obb") || line.contains("/dev/mapper") || 
-                 line.contains("tmpfs"))) {
-            list.add(s);
-          }
+        if (s.equals(Environment.getExternalStorageDirectory().getPath())) {
+          list.add(s);
+        }
+        else if (line.contains("/dev/block/vold")
+          && !(line.contains("/mnt/secure") || line.contains("/mnt/asec") || 
+               line.contains("/mnt/obb") || line.contains("/dev/mapper") || 
+               line.contains("tmpfs"))) {
+          list.add(s);
         }
       }
     }
-    catch (FileNotFoundException e) {}
-    catch (IOException e) {}
-    finally {
-      if (bufReader != null) {
-        try {
-          bufReader.close();
-        }
-        catch (IOException e) {}
-      }
-    }
-
-    return list.toArray(new String[list.size()]);
+    return list;
   }
 
   private static class LocalDir implements VfsDir {
@@ -172,10 +179,10 @@ final class VfsRootLocal implements VfsRoot {
     }
 
     @Override
-    public void enumerate(Visitor visitor) {
+    public void enumerate(Visitor visitor) throws IOException {
       final File[] files = dir.listFiles();
       if (files == null) {
-        return;
+        throw new IOException("Failed to enumerate files in directory");
       }
       for (File file : files) {
         if (file.isDirectory()) {

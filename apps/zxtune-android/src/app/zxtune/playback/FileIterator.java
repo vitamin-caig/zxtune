@@ -26,7 +26,7 @@ public class FileIterator extends Iterator {
   private int index;
   private PlayableItem item;
 
-  public FileIterator(Context context, Uri[] paths) {
+  public FileIterator(Context context, Uri[] paths) throws IOException {
     this.iterator = new VfsIterator(context, paths);
     this.visited = new ArrayList<VfsFile>();
     if (!next()) {
@@ -71,6 +71,9 @@ public class FileIterator extends Iterator {
       addVisited(file);
       return true;
     } catch (Error e) {
+      //TODO
+    } catch (IOException e) {
+      //TODO
     }
     return false;
   }

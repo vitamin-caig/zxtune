@@ -55,19 +55,15 @@ final class RemoteCatalog extends Catalog {
   }
   
   @Override
-  public void queryAuthors(AuthorsVisitor visitor, Integer id) {
-    try {
-      final String query = id == null ? ALL_AUTHORS_QUERY : String.format(AUTHOR_QUERY, id);
-      final HttpURLConnection connection = connect(query);
-      final RootElement root = createAuthorsParserRoot(visitor);
-      performQuery(connection, root);
-    } catch (IOException e) {
-      Log.d(TAG, "queryAuthors(" + id + ")", e);
-    }
+  public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
+    final String query = id == null ? ALL_AUTHORS_QUERY : String.format(AUTHOR_QUERY, id);
+    final HttpURLConnection connection = connect(query);
+    final RootElement root = createAuthorsParserRoot(visitor);
+    performQuery(connection, root);
   }
 
   @Override
-  public void queryTracks(TracksVisitor visitor, Integer id, Integer author) {
+  public void queryTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(TRACK_QUERY, id));
     } else {
@@ -75,14 +71,10 @@ final class RemoteCatalog extends Catalog {
     }
   }
   
-  private void queryTracks(TracksVisitor visitor, String query) {
-    try {
-      final HttpURLConnection connection = connect(query);
-      final RootElement root = createModulesParserRoot(visitor);
-      performQuery(connection, root);
-    } catch (IOException e) {
-      Log.d(TAG, "queryModules(" + query + ")", e);
-    }
+  private void queryTracks(TracksVisitor visitor, String query) throws IOException {
+    final HttpURLConnection connection = connect(query);
+    final RootElement root = createModulesParserRoot(visitor);
+    performQuery(connection, root);
   }
   
   @Override

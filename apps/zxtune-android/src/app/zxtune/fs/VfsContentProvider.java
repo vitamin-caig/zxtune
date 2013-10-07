@@ -6,6 +6,8 @@
  */
 package app.zxtune.fs;
 
+import java.io.IOException;
+
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -16,6 +18,7 @@ public class VfsContentProvider extends ContentProvider {
   
   private final static String TAG = VfsContentProvider.class.getName();
   
+  //Use delayed root loading due to context absense while ctor is called 
   private VfsRoot root;
   
   @Override
@@ -28,14 +31,18 @@ public class VfsContentProvider extends ContentProvider {
     final VfsQuery query = new VfsQuery(uri);
     final Uri path = query.getPath();
     Log.d(TAG, String.format("query(%s) = %s", uri.toString(), path.toString()));
-    final VfsDir dir = (VfsDir) getRoot().resolve(path);
-    if (dir != null) {
-      final Cursor result = new VfsCursor(dir);
-      result.setNotificationUri(getContext().getContentResolver(), uri);
-      return result;
-    } else {
-      return null;
+    try {
+      final VfsDir dir = (VfsDir) getRoot().resolve(path);
+      if (dir != null) {
+        final Cursor result = new VfsCursor(dir);
+        result.setNotificationUri(getContext().getContentResolver(), uri);
+        return result;
+      }
+    } catch (IOException e) {
+      Log.d(TAG, "query() failed:", e);
+      throw new IllegalStateException(e);
     }
+    return null;
   }
 
   @Override

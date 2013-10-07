@@ -27,9 +27,6 @@ final class CachingCatalog extends Catalog {
   private final Catalog remote;
   private final Database db;
   
-  /**
-   * 
-   */
   public CachingCatalog(Context context, Catalog remote, Database db) {
     this.cacheDir = context.getCacheDir().getAbsolutePath() + File.separator + CACHE_DIR_NAME + File.separator;
     this.remote = remote;
@@ -45,7 +42,7 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(AuthorsVisitor visitor, Integer id) {
+  public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
     final CountingAuthorsVisitor count = new CountingAuthorsVisitor(visitor);
     db.queryAuthors(count, id);
     if (0 == count.get()) {
@@ -62,7 +59,7 @@ final class CachingCatalog extends Catalog {
   }
   
   @Override
-  public void queryTracks(TracksVisitor visitor, Integer id, Integer author) {
+  public void queryTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException {
     //TODO: make another way to check if cache is filled
     final CountingTracksVisitor count = new CountingTracksVisitor(visitor);
     db.queryTracks(count, id, author);

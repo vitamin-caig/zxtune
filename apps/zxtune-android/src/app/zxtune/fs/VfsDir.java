@@ -6,6 +6,8 @@
  */
 package app.zxtune.fs;
 
+import java.io.IOException;
+
 public interface VfsDir extends VfsObject {
 
   /**
@@ -33,7 +35,7 @@ public interface VfsDir extends VfsObject {
    * Enumerate directory content
    * @param visitor Callback
    */
-  public void enumerate(Visitor visitor);
+  public void enumerate(Visitor visitor) throws IOException;
 
   /**
    * Search for objects matching criteria

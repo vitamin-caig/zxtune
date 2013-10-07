@@ -6,6 +6,7 @@
  */
 package app.zxtune.fs;
 
+import java.io.IOException;
 import java.util.LinkedList;
 
 import android.content.Context;
@@ -16,7 +17,7 @@ public final class VfsIterator {
   private final LinkedList<VfsFile> files;
   private final LinkedList<VfsDir> dirs;
 
-  public VfsIterator(Context context, Uri[] paths) {
+  public VfsIterator(Context context, Uri[] paths) throws IOException {
     this.files = new LinkedList<VfsFile>();
     this.dirs = new LinkedList<VfsDir>();
     final VfsRoot root = Vfs.createRoot(context);
@@ -39,7 +40,7 @@ public final class VfsIterator {
     return !files.isEmpty();
   }
   
-  public final void next() {
+  public final void next() throws IOException {
     files.remove();
     while (files.isEmpty() && !dirs.isEmpty()) {
       dirs.remove().enumerate(new VfsDir.Visitor() {

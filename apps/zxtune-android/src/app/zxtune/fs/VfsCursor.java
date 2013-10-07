@@ -6,6 +6,7 @@
  */
 package app.zxtune.fs;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -20,7 +21,7 @@ class VfsCursor extends AbstractCursor {
   private int resolvedDirsCount;
   private int resolvedFilesCount;
 
-  public VfsCursor(VfsDir dir) {
+  public VfsCursor(VfsDir dir) throws IOException {
     dirs = new ArrayList<VfsDir>();
     files = new ArrayList<VfsFile>();
     dir.enumerate(new VfsDir.Visitor() {

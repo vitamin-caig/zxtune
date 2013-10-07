@@ -7,22 +7,19 @@
 
 package app.zxtune.ui;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.CursorAdapter;
 import android.util.AttributeSet;
-import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.VfsQuery;
@@ -32,7 +29,7 @@ public class DirView extends CheckableListView implements LoaderManager.LoaderCa
   private static final int LOADER_ID = DirView.class.hashCode();
 
   private View loadingView;
-  private View emptyView;
+  private TextView emptyView;
 
   public DirView(Context context) {
     super(context);
@@ -58,7 +55,7 @@ public class DirView extends CheckableListView implements LoaderManager.LoaderCa
   public void setEmptyView(View stub) {
     super.setEmptyView(stub);
     loadingView = stub.findViewById(R.id.browser_loading);
-    emptyView = stub.findViewById(R.id.browser_loaded);
+    emptyView = (TextView) stub.findViewById(R.id.browser_loaded);
   }
 
   public final void load(LoaderManager manager) {
@@ -77,7 +74,7 @@ public class DirView extends CheckableListView implements LoaderManager.LoaderCa
     getCursorAdapter().changeCursor(null);
     final Uri path = ((BrowserState) getTag()).getCurrentPath();
     final Uri query = VfsQuery.unparse(path);
-    return new CursorLoader(getContext(), query, null, null, null, null);
+    return new DirViewCursorLoader(getContext(), query, emptyView);
   }
 
   @Override
@@ -110,6 +107,32 @@ public class DirView extends CheckableListView implements LoaderManager.LoaderCa
   private void hideProgress() {
     loadingView.setVisibility(INVISIBLE);
     emptyView.setVisibility(VISIBLE);
+  }
+  
+  static class DirViewCursorLoader extends CursorLoader {
+    
+    private final TextView status; 
+
+    public DirViewCursorLoader(Context context, Uri uri, TextView status) {
+      super(context, uri, null, null, null, null);
+      this.status = status;
+      status.setText(R.string.playlist_empty);
+    }
+
+    @Override
+    public Cursor loadInBackground() {
+      try {
+        return super.loadInBackground();
+      } catch (final Exception e) {
+        status.post(new Runnable() {
+          @Override
+          public void run() {
+            status.setText(e.getCause().getMessage());
+          }
+        });
+      }
+      return null;
+    }
   }
 
   private static class DirViewCursorAdapter extends CursorAdapter {

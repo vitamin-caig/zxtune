@@ -306,7 +306,7 @@ final class VfsRootZxtunes implements VfsRoot {
     }
 
     @Override
-    public void enumerate(final Visitor visitor) {
+    public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(new AuthorsVisitor() {
         @Override
         public void accept(Author obj) {
@@ -345,7 +345,7 @@ final class VfsRootZxtunes implements VfsRoot {
     }
 
     @Override
-    public void enumerate(final Visitor visitor) {
+    public void enumerate(final Visitor visitor) throws IOException {
       final HashSet<Integer> dates = new HashSet<Integer>();
       catalog.queryTracks(new Catalog.TracksVisitor() {
         @Override
@@ -398,7 +398,7 @@ final class VfsRootZxtunes implements VfsRoot {
     }
 
     @Override
-    public void enumerate(final Visitor visitor) {
+    public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryTracks(new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {

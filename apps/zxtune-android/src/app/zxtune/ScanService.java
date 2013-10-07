@@ -6,6 +6,7 @@
  */
 package app.zxtune;
 
+import java.io.IOException;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -95,17 +96,22 @@ public class ScanService extends IntentService {
     for (Uri uri : uris) {
       Log.d(TAG, "scan on " + uri);
     }
-    final FileIterator iter = new FileIterator(this, uris);
-    do {
-      final PlayableItem item = iter.getItem();
-      try {
-        insertThread.enqueue(item);
-      } catch (InterruptedException e) {
-        Log.d(TAG, "scan interrupted");
-        item.release();
-        break;
-      }
-    } while (insertThread.isActive() && iter.next());
+    try {
+      final FileIterator iter = new FileIterator(this, uris);
+      do {
+        final PlayableItem item = iter.getItem();
+        try {
+          insertThread.enqueue(item);
+        } catch (InterruptedException e) {
+          Log.d(TAG, "scan interrupted");
+          item.release();
+          break;
+        }
+      } while (insertThread.isActive() && iter.next());
+    } catch (IOException e) {
+      Log.d(TAG, "Scan canceled", e);
+      insertThread.cancel();
+    }
   }
 
   private class InsertItemsThread extends Thread {

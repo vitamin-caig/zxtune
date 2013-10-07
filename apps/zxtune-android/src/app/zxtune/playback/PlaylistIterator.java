@@ -6,6 +6,8 @@
  */
 package app.zxtune.playback;
 
+import java.io.IOException;
+
 import android.content.Context;
 import android.net.Uri;
 import app.zxtune.TimeStamp;
@@ -20,7 +22,7 @@ class PlaylistIterator extends Iterator {
   private app.zxtune.playlist.Iterator delegate;
   private PlayableItem item;
 
-  public PlaylistIterator(Context context, Uri id) {
+  public PlaylistIterator(Context context, Uri id) throws IOException {
     this.root = Vfs.createRoot(context);
     this.delegate = new app.zxtune.playlist.Iterator(context, id);
     this.item = loadItem(delegate); 
@@ -47,13 +49,14 @@ class PlaylistIterator extends Iterator {
         item = loadItem(iter);
         delegate = iter;
         return true;
-      } catch (Error e) {
+      } catch (IOException e) {
+        //TODO
       }
     }
     return false;
   }
   
-  private PlayableItem loadItem(app.zxtune.playlist.Iterator iter) {
+  private PlayableItem loadItem(app.zxtune.playlist.Iterator iter) throws IOException {
     final app.zxtune.playlist.Item meta = iter.getItem();
     final VfsFile file = (VfsFile) root.resolve(meta.getLocation());
     final PlayableItem item = FileIterator.loadItem(file);

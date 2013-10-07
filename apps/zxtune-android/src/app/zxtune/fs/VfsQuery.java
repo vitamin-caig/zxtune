@@ -34,11 +34,11 @@ public class VfsQuery {
   private static final class QueryType {
 
     public final String mimeType;
-    public final int uriType;
+    //public final int uriType;
     
     QueryType(String mime) {
       this.mimeType = mime;
-      this.uriType = Math.abs(mimeType.hashCode());
+      //this.uriType = Math.abs(mimeType.hashCode());
     }
   }
   
