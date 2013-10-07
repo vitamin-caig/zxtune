@@ -162,7 +162,7 @@ public class DirView extends CheckableListView implements LoaderManager.LoaderCa
         case VfsQuery.Types.FILE:
           holder.name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
           holder.size.setVisibility(VISIBLE);
-          holder.size.setText(Long.toString(cursor.getLong(VfsQuery.Columns.SIZE)));
+          holder.size.setText(cursor.getString(VfsQuery.Columns.SIZE));
           break;
       }
     }

@@ -11,9 +11,9 @@ import java.io.IOException;
 public interface VfsFile extends VfsObject {
 
   /**
-   * @return File size in bytes
+   * @return File size in implementation-specific units
    */
-  public long getSize();
+  public String getSize();
   
   /**
    * @return Raw file content

@@ -9,11 +9,13 @@ package app.zxtune.fs;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 import app.zxtune.R;
+import app.zxtune.TimeStamp;
 import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Catalog.AuthorsVisitor;
@@ -415,6 +417,8 @@ final class VfsRootZxtunes implements VfsRoot {
     }
   }
 
+  private final static TimeStamp FRAME_DURATION = TimeStamp.createFrom(20, TimeUnit.MILLISECONDS);
+  
   private class TrackFile implements VfsFile {
 
     private final Uri uri;
@@ -441,8 +445,8 @@ final class VfsRootZxtunes implements VfsRoot {
     }
 
     @Override
-    public long getSize() {
-      return module.duration;
+    public String getSize() {
+      return FRAME_DURATION.multiplies(module.duration).toString();
     }
 
     @Override

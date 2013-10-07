@@ -144,7 +144,7 @@ class VfsCursor extends AbstractCursor {
   private static Object[] createFileEntry(int id, VfsFile file) {
     final Object[] res = createObjectEntry(id, file);
     res[VfsQuery.Columns.TYPE] = Integer.valueOf(VfsQuery.Types.FILE);
-    res[VfsQuery.Columns.SIZE] = Long.valueOf(file.getSize());
+    res[VfsQuery.Columns.SIZE] = file.getSize();
     return res;
   }
 

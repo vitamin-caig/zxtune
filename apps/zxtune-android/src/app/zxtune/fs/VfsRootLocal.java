@@ -20,6 +20,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.text.format.Formatter;
 import app.zxtune.R;
 
 final class VfsRootLocal implements VfsRoot {
@@ -65,7 +66,7 @@ final class VfsRootLocal implements VfsRoot {
     return new Uri.Builder().scheme(SCHEME).path(path).build(); 
   }
   
-  private static VfsObject buildObject(File obj) {
+  private VfsObject buildObject(File obj) {
     if (obj.isDirectory()) {
       return buildDir(obj);
     } else if (obj.isFile()) {
@@ -75,15 +76,15 @@ final class VfsRootLocal implements VfsRoot {
     }
   }
   
-  private static VfsDir buildDir(File obj) {
+  private VfsDir buildDir(File obj) {
     return new LocalDir(obj);
   }
   
-  private static VfsFile buildFile(File obj) {
+  private VfsFile buildFile(File obj) {
     return new LocalFile(obj);
   }
   
-  private static VfsObject resolvePath(String path) {
+  private VfsObject resolvePath(String path) {
     final File obj = new File(path);
     return buildObject(obj);
   }
@@ -148,7 +149,7 @@ final class VfsRootLocal implements VfsRoot {
     return list;
   }
 
-  private static class LocalDir implements VfsDir {
+  private class LocalDir implements VfsDir {
 
     private final File dir;
     private final String name;
@@ -199,7 +200,7 @@ final class VfsRootLocal implements VfsRoot {
     }
   }
 
-  private static class LocalFile implements VfsFile {
+  private class LocalFile implements VfsFile {
 
     private final File file;
 
@@ -224,8 +225,8 @@ final class VfsRootLocal implements VfsRoot {
     }
 
     @Override
-    public long getSize() {
-      return file.length();
+    public String getSize() {
+      return Formatter.formatShortFileSize(context, file.length());
     }
 
     @Override
