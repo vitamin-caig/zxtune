@@ -49,10 +49,5 @@
               android:authorities="app.zxtune.playlist"
               android:exported="false">
         </provider>
-        <provider
-              android:name="app.zxtune.fs.VfsContentProvider"
-              android:authorities="app.zxtune.vfs"
-              android:exported="false">
-        </provider>
     </application>
 </manifest>

@@ -7,13 +7,8 @@
 
 package app.zxtune.ui;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -25,24 +20,26 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListAdapter;
-import app.zxtune.MainService;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
-import app.zxtune.fs.VfsQuery;
+import app.zxtune.fs.Vfs;
+import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
+import app.zxtune.fs.VfsRoot;
 import app.zxtune.playback.PlaybackService;
 
 public class BrowserFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private static final String TAG = BrowserFragment.class.getName();
   private PlaybackService service;
+  private VfsRoot root;
   private BrowserState state;
   private View sources;
   private View roots;
-  private BreadCrumbsUriView position;
-  private DirView listing;
+  private BreadCrumbsView position;
+  private BrowserView listing;
 
   public static Fragment createInstance() {
     return new BrowserFragment();
@@ -52,6 +49,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   public void onAttach(Activity activity) {
     super.onAttach(activity);
     
+    root = Vfs.createRoot(getActivity());
     state = new BrowserState(PreferenceManager.getDefaultSharedPreferences(activity));
   }
 
@@ -72,14 +70,14 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
         setCurrentPath(Uri.EMPTY);
       }
     });
-    position = (BreadCrumbsUriView) view.findViewById(R.id.browser_breadcrumb);
-    position.setOnUriSelectionListener(new BreadCrumbsUriView.OnUriSelectionListener() {
+    position = (BreadCrumbsView) view.findViewById(R.id.browser_breadcrumb);
+    position.setOnUriSelectionListener(new BreadCrumbsView.OnUriSelectionListener() {
       @Override
       public void onUriSelection(Uri uri) {
         setCurrentPath(uri);
       }
     });
-    listing = (DirView) view.findViewById(R.id.browser_content);
+    listing = (BrowserView) view.findViewById(R.id.browser_content);
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
@@ -88,6 +86,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       listing.setTag(state);
     }
     position.setUri(state.getCurrentPath());
+    listing.setVfsRoot(root);
     listing.load(getLoaderManager());
   }
 
@@ -114,9 +113,9 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      final Cursor cursor = (Cursor) parent.getAdapter().getItem(position);
-      final Uri uri = Uri.parse(cursor.getString(VfsQuery.Columns.URI));
-      if (VfsQuery.Types.FILE == cursor.getInt(VfsQuery.Columns.TYPE)) {
+      final VfsObject obj = (VfsObject) parent.getItemAtPosition(position);
+      final Uri uri = obj.getUri();
+      if (obj instanceof VfsFile) {
         onFileClick(uri);
       } else {
         onDirClick(uri);
@@ -187,8 +186,8 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       int pos = 0;
       for (int i = 0, lim = selected.size(); i != lim; ++i) {
         if (selected.valueAt(i)) {
-          final Cursor cursor = (Cursor) adapter.getItem(selected.keyAt(i));
-          result[pos++] = Uri.parse(cursor.getString(VfsQuery.Columns.URI));
+          final VfsObject obj = (VfsObject) adapter.getItem(selected.keyAt(i));
+          result[pos++] = obj.getUri();
         }
       }
       return result;

@@ -6,6 +6,8 @@
  */
 package app.zxtune.ui;
 
+import java.util.List;
+
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
@@ -25,20 +27,20 @@ class BrowserState {
   }
   
   public Uri getCurrentPath() {
-    return Uri.parse(current.getPath());
+    return current.getPath();
   }
   
   public void setCurrentPath(Uri uri) {
-    final String curPath = current.getPath();
-    final String newPath = uri.toString();
-    if (curPath.equals(newPath)) {
+    final Uri curPath = current.getPath();
+
+    if (curPath.equals(uri)) {
       return;
-    } else if (isNested(curPath, newPath)) {
-      setInnerPath(newPath);
-    } else if (isNested(newPath, curPath)) {
-      setOuterPath(newPath);
+    } else if (isNested(curPath, uri)) {
+      setInnerPath(uri);
+    } else if (isNested(uri, curPath)) {
+      setOuterPath(uri);
     } else {
-      setPath(newPath);
+      setPath(uri);
     }
     current.store();
   }
@@ -51,19 +53,19 @@ class BrowserState {
     current.setViewPosition(pos);
   }
   
-  private void setInnerPath(String newPath) {
+  private void setInnerPath(Uri newPath) {
     current = new PathAndPosition(current.getIndex() + 1, newPath);
   }
   
-  private void setOuterPath(String newPath) {
+  private void setOuterPath(Uri newPath) {
     current = findByPath(newPath);
   }
   
-  private void setPath(String newPath) {
+  private void setPath(Uri newPath) {
     current = new PathAndPosition(0, newPath);
   }
   
-  private PathAndPosition findByPath(String newPath) {
+  private PathAndPosition findByPath(Uri newPath) {
     for (int idx = current.getIndex() - 1; idx >= 0; --idx) {
       final PathAndPosition pos = new PathAndPosition(idx);
       if (newPath.equals(pos.getPath())) {
@@ -74,14 +76,16 @@ class BrowserState {
   }
   
   // checks if rh is nested path relative to lh
-  private static final boolean isNested(String lh, String rh) {
-    return rh.startsWith(lh);
+  private static final boolean isNested(Uri lh, Uri rh) {
+    final String cleanLh = lh.buildUpon().clearQuery().build().toString();
+    final String cleanRh = rh.buildUpon().clearQuery().build().toString();
+    return cleanRh.startsWith(cleanLh);
   }
   
   private class PathAndPosition {
     
     private final int index;
-    private String path;
+    private Uri path;
     private int position;
     
     public PathAndPosition() {
@@ -90,11 +94,11 @@ class BrowserState {
     
     public PathAndPosition(int idx) {
       this.index = idx;
-      this.path = prefs.getString(getPathKey(), "");
+      this.path = Uri.parse(prefs.getString(getPathKey(), ""));
       this.position = prefs.getInt(getPosKey(), 0);
     }
     
-    public PathAndPosition(int idx, String path) {
+    public PathAndPosition(int idx, Uri path) {
       this.index = idx;
       this.path = path;
       this.position = 0;
@@ -104,7 +108,7 @@ class BrowserState {
       return index;
     }
     
-    public String getPath() {
+    public Uri getPath() {
       return path;
     }
     
@@ -121,7 +125,7 @@ class BrowserState {
     
     private void store() {
       final Editor editor = prefs.edit();
-      editor.putString(getPathKey(), this.path);
+      editor.putString(getPathKey(), this.path.toString());
       editor.putInt(getPosKey(), this.position);
       editor.putInt(PREF_BROWSER_CURRENT, index);
       editor.commit();

@@ -23,7 +23,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import app.zxtune.R;
 
-public class BreadCrumbsUriView extends HorizontalScrollView {
+public class BreadCrumbsView extends HorizontalScrollView {
 
   public interface OnUriSelectionListener {
 
@@ -39,17 +39,17 @@ public class BreadCrumbsUriView extends HorizontalScrollView {
   private ViewGroup container;
   private OnUriSelectionListener listener;
 
-  public BreadCrumbsUriView(Context context) {
+  public BreadCrumbsView(Context context) {
     super(context);
     setupView();
   }
 
-  public BreadCrumbsUriView(Context context, AttributeSet attr) {
+  public BreadCrumbsView(Context context, AttributeSet attr) {
     super(context, attr);
     setupView();
   }
 
-  public BreadCrumbsUriView(Context context, AttributeSet attr, int defaultStyles) {
+  public BreadCrumbsView(Context context, AttributeSet attr, int defaultStyles) {
     super(context, attr, defaultStyles);
     setupView();
   }

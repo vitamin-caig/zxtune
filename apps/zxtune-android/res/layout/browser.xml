@@ -15,13 +15,13 @@
         android:src="@drawable/ic_browser_folder"
         style="@style/button"
       />
-      <app.zxtune.ui.BreadCrumbsUriView
+      <app.zxtune.ui.BreadCrumbsView
         android:id="@+id/browser_breadcrumb"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
       />
     </LinearLayout>
-    <app.zxtune.ui.DirView
+    <app.zxtune.ui.BrowserView
         android:id="@+id/browser_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

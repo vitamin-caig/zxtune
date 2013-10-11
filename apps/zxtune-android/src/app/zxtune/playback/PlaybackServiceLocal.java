@@ -6,6 +6,7 @@
  */
 package app.zxtune.playback;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -74,7 +75,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       try {
         final Iterator iter = Iterator.create(context, uris);
         play(iter);
-      } catch (Error e) {
+      } catch (IOException e) {
         Log.w(TAG, "setNowPlaying()", e);
       }
     }
