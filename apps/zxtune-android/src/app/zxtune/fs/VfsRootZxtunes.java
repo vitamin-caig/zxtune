@@ -45,6 +45,8 @@ import app.zxtune.fs.zxtunes.Track;
  * author=${author_id} parameter is not analyzed for cases 1 and 2,
  * track=${track_id} parameter is not analyzed for cases 1, 2, 3 and 4
  */
+
+@VfsDir.Icon(R.drawable.ic_browser_vfs_zxtunes)
 final class VfsRootZxtunes implements VfsRoot {
 
   private final static String TAG = VfsRootZxtunes.class.getName();

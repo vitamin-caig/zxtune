@@ -6,8 +6,6 @@
  */
 package app.zxtune.ui;
 
-import java.util.List;
-
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
@@ -21,16 +19,16 @@ class BrowserState {
   private final SharedPreferences prefs;
   private PathAndPosition current;
   
-  public BrowserState(SharedPreferences prefs) {
+  BrowserState(SharedPreferences prefs) {
     this.prefs = prefs;
     this.current = new PathAndPosition();
   }
   
-  public Uri getCurrentPath() {
+  Uri getCurrentPath() {
     return current.getPath();
   }
   
-  public void setCurrentPath(Uri uri) {
+  void setCurrentPath(Uri uri) {
     final Uri curPath = current.getPath();
 
     if (curPath.equals(uri)) {
@@ -45,11 +43,11 @@ class BrowserState {
     current.store();
   }
   
-  public int getCurrentViewPosition() {
+  int getCurrentViewPosition() {
     return current.getViewPosition();
   }
   
-  public void setCurrentViewPosition(int pos) {
+  void setCurrentViewPosition(int pos) {
     current.setViewPosition(pos);
   }
   
@@ -88,35 +86,35 @@ class BrowserState {
     private Uri path;
     private int position;
     
-    public PathAndPosition() {
+    PathAndPosition() {
       this(prefs.getInt(PREF_BROWSER_CURRENT, 0));
     }
     
-    public PathAndPosition(int idx) {
+    PathAndPosition(int idx) {
       this.index = idx;
       this.path = Uri.parse(prefs.getString(getPathKey(), ""));
       this.position = prefs.getInt(getPosKey(), 0);
     }
     
-    public PathAndPosition(int idx, Uri path) {
+    PathAndPosition(int idx, Uri path) {
       this.index = idx;
       this.path = path;
       this.position = 0;
     }
     
-    public int getIndex() {
+    int getIndex() {
       return index;
     }
     
-    public Uri getPath() {
+    Uri getPath() {
       return path;
     }
     
-    public int getViewPosition() {
+    int getViewPosition() {
       return position;
     }
     
-    public void setViewPosition(int newPos) {
+    void setViewPosition(int newPos) {
       if (newPos != position) {
         position = newPos;
         store();

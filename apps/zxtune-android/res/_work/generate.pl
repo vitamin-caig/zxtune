@@ -4,11 +4,11 @@ use strict;
 use Data::Dumper;
 
 my $traits = {
-              launcher => {'-ldpi' => '36x36', '' => '48x48', '-hdpi' => '72x72', '-xhdpi' => '96x96'},
-              status => {'-ldpi' => '18x18', '' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48'},
+              launcher => {'' => '48x48', '-hdpi' => '72x72', '-xhdpi' => '96x96'},
+              status => {'' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48'},
               status_v8 => {'' => '25x25'},
-              status_v9 => {'-ldpi' => '12x19', '' => '16x25', '-hdpi' => '24x38'},
-              icon => {'-ldpi' => '24x24', '' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'},
+              status_v9 => {'' => '16x25', '-hdpi' => '24x38'},
+              icon => {'' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'},
              };
 
 sub convert
@@ -22,8 +22,8 @@ sub convert
   my $qual = $icon->{qualifiers};
   for my $dpi ('', '-ldpi', '-mdpi', '-hdpi', '-xhdpi')
   {
-    my $fld = "../drawable${dpi}${qual}";
     next unless ${traits}->{${ctg}}->{${dpi}} =~ /(\d+)x(\d+)/;
+    my $fld = "../drawable${dpi}${qual}";
     my $w = $1;
     my $h = $2;
     mkdir ${fld} unless -d ${fld};
@@ -47,3 +47,5 @@ convert({source => 'play.svg', target => 'ic_play.png', category => 'icon'});
 convert({source => 'next.svg', target => 'ic_next.png', category => 'icon'});
 convert({source => 'prev.svg', target => 'ic_prev.png', category => 'icon'});
 convert({source => 'pause.svg', target => 'ic_pause.png', category => 'icon'});
+convert({source => 'vfs_local.svg', target => 'ic_browser_vfs_local.png', category => 'icon'});
+convert({source => 'vfs_zxtunes.svg', target => 'ic_browser_vfs_zxtunes.png', category => 'icon'});

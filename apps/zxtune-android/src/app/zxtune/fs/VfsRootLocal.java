@@ -23,6 +23,7 @@ import android.text.TextUtils;
 import android.text.format.Formatter;
 import app.zxtune.R;
 
+@VfsDir.Icon(R.drawable.ic_browser_vfs_local)
 final class VfsRootLocal implements VfsRoot {
   
   private final static String SCHEME = "file";

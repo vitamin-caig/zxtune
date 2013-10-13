@@ -7,6 +7,8 @@
 package app.zxtune.fs;
 
 import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 public interface VfsDir extends VfsObject {
 
@@ -29,6 +31,15 @@ public interface VfsDir extends VfsObject {
      * Called on visited file
      */
     public Status onFile(VfsFile file);
+  }
+  
+  /**
+   * Annotation for specific VfsDir instances having custom icon
+   * TODO: use explicit mixin interface and return drawable
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  public @interface Icon {
+    int value();
   }
   
   /**

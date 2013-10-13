@@ -7,6 +7,8 @@
 
 package app.zxtune.ui;
 
+import java.io.IOException;
+
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
@@ -25,6 +27,7 @@ import android.widget.ListAdapter;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
+import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsRoot;
@@ -81,13 +84,14 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     listing.setOnItemClickListener(new OnItemClickListener());
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
-    if (savedInstanceState == null) {
-      Log.d(TAG, "Loading persistent state");
-      listing.setTag(state);
-    }
+
     position.setUri(state.getCurrentPath());
-    listing.setVfsRoot(root);
-    listing.load(getLoaderManager());
+    if (savedInstanceState == null) {
+      Log.d(TAG, "Load persistent state");
+      loadBrowser(state.getCurrentViewPosition());
+    } else {
+      loadBrowser(null);
+    }
   }
 
   @Override
@@ -205,20 +209,29 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
   }
 
-  private final void setCurrentPath(Uri uri) {
+  private void setCurrentPath(Uri uri) {
     storeCurrentViewPosition();
     setNewState(uri);
   }
 
-  private final void storeCurrentViewPosition() {
+  private void storeCurrentViewPosition() {
     state.setCurrentViewPosition(listing.getFirstVisiblePosition());
   }
 
-  private final void setNewState(Uri uri) {
+  private void setNewState(Uri uri) {
     Log.d(TAG, "Set current path to " + uri);
     state.setCurrentPath(uri);
     position.setUri(uri);
-    listing.setTag(state);
-    listing.load(getLoaderManager());
+    loadBrowser(state.getCurrentViewPosition());
+  }
+  
+  private void loadBrowser(Integer pos) {
+    try {
+      final Uri path = state.getCurrentPath();
+      final VfsDir dir = (VfsDir) root.resolve(path);
+      listing.load(getLoaderManager(), dir, pos);
+    } catch (IOException e) {
+      listing.showError(e);
+    }
   }
 }
