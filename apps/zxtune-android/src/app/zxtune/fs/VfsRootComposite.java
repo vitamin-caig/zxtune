@@ -19,8 +19,13 @@ final class VfsRootComposite implements VfsRoot {
     subRoots = new ArrayList<VfsRoot>();
   }
 
-  public void addSubroot(VfsRoot root) {
+  final void addSubroot(VfsRoot root) {
     subRoots.add(root);
+  }
+  
+  @Override
+  public VfsDir getParent() {
+    return null;
   }
 
   @Override

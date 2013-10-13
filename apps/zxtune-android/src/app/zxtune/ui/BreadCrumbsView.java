@@ -10,7 +10,8 @@
 
 package app.zxtune.ui;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import android.content.Context;
 import android.net.Uri;
@@ -20,24 +21,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import app.zxtune.R;
+import app.zxtune.fs.VfsDir;
 
 public class BreadCrumbsView extends HorizontalScrollView {
 
-  public interface OnUriSelectionListener {
+  public interface DirSelectionListener {
 
-    public void onUriSelection(Uri uri);
+    public void onDirSelection(VfsDir dir);
   }
 
-  public static class StubUriSelectionListener implements OnUriSelectionListener {
+  public static class StubDirSelectionListener implements DirSelectionListener {
     @Override
-    public void onUriSelection(Uri uri) {}
+    public void onDirSelection(VfsDir dir) {}
   }
   
-  private final static String ROOT = "/";
   private ViewGroup container;
-  private OnUriSelectionListener listener;
+  private DirSelectionListener listener;
 
   public BreadCrumbsView(Context context) {
     super(context);
@@ -54,78 +56,101 @@ public class BreadCrumbsView extends HorizontalScrollView {
     setupView();
   }
 
-  private final void setupView() {
+  private void setupView() {
     container = new LinearLayout(getContext());
     addView(container);
-    listener = new StubUriSelectionListener();
+    listener = new StubDirSelectionListener();
   }
 
-  public void setUri(Uri uri) {
-    if (uri.equals(Uri.EMPTY)) {
-      setButtonsCount(0);
+  final void setDir(VfsDir dir) {
+    if (dir == null) {
+      hideButtons(0, container.getChildCount());
     } else {
-      final Uri.Builder subUri = uri.buildUpon().path(ROOT);
-      final String root = getRoot(uri);
-      final List<String> elements = uri.getPathSegments();
-      fillButtons(subUri, root, elements);
+      final ArrayList<VfsDir> elems = new ArrayList<VfsDir>();
+      while (dir != null) {
+        elems.add(dir);
+        dir = dir.getParent();
+      }
+      Collections.reverse(elems);
+      fillButtons(elems);
       scrollToEnd();
     }
   }
 
-  public void setOnUriSelectionListener(OnUriSelectionListener listener) {
-    this.listener = listener != null ? listener : new StubUriSelectionListener();
+  final void setDirSelectionListener(DirSelectionListener listener) {
+    this.listener = listener != null ? listener : new StubDirSelectionListener();
   }
 
-  private final void fillButtons(Uri.Builder uri, String root, List<String> texts) {
-    setButtonsCount(texts.size() + 1);
-    enableButton(0, root, uri.build());
-    for (int idx = 0; idx != texts.size(); ++idx) {
-      final String text = texts.get(idx);
-      final Uri point = uri.appendPath(text).build();
-      enableButton(idx + 1, text, point);
+  private void fillButtons(ArrayList<VfsDir> dirs) {
+    int idx = 0;
+    for (int lim = dirs.size(); idx != lim; ++idx) {
+      showButton(idx, dirs.get(idx));
+    }
+    hideButtons(idx, container.getChildCount());
+  }
+
+  private final void showButton(int idx, VfsDir dir) {
+    final View but = getButton(idx, dir);
+    but.setVisibility(VISIBLE);
+    but.setTag(dir);
+  }
+  
+  private View getButton(int idx, VfsDir dir) {
+    final View but = container.getChildAt(idx);
+    return but == null
+      ? createButton(idx, dir)
+      : updateButton(idx, but, dir);
+  }
+  
+  private View createButton(int idx, VfsDir dir) {
+    final View res = createButton(dir);
+    res.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        listener.onDirSelection((VfsDir) v.getTag());
+      }
+    });
+    container.addView(res, idx);
+    return res;
+  }
+  
+  private View createButton(VfsDir dir) {
+    final LayoutInflater inflater = LayoutInflater.from(getContext());
+    if (dir instanceof IconSource) {
+      return updateButton((ImageButton) inflater.inflate(R.layout.image_button, container, false), dir);
+    } else {
+      return updateButton((Button) inflater.inflate(R.layout.button, container, false), dir);
     }
   }
-
-  private final void enableButton(int idx, String text, Uri point) {
-    final Button button = (Button) container.getChildAt(idx);
-    button.setVisibility(VISIBLE);
-    button.setText(text);
-    button.setTag(point);
-  }
-
-  private final void setButtonsCount(int count) {
-    final int current = container.getChildCount();
-    if (current < count) {
-      createNewButtons(current, count);
-    } else if (current > count) {
-      hideButtons(count, current);
+  
+  private View updateButton(int idx, View but, VfsDir dir) {
+    if (dir instanceof IconSource &&
+        but instanceof ImageButton) {
+      return updateButton((ImageButton) but, dir);
+    } else if (but instanceof Button) {
+      return updateButton((Button) but, dir);
+    } else {
+      container.removeViewAt(idx);
+      return createButton(idx, dir);
     }
   }
-
-  private final void createNewButtons(int startId, int endId) {
-    final LayoutInflater inflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    for (int idx = startId; idx != endId; ++idx) {
-      final Button button = (Button)inflater.inflate(R.layout.button, container, false);
-      button.setOnClickListener(new OnClickListener() {
-        @Override
-        public void onClick(View v) {
-          final Uri uri = (Uri) v.getTag();
-          listener.onUriSelection(uri);
-        }
-      });
-      container.addView(button, idx);
-    }
+  
+  private View updateButton(ImageButton but, VfsDir dir) {
+    but.setImageResource(((IconSource) dir).getResourceId());
+    return but;
   }
-
+  
+  private View updateButton(Button but, VfsDir dir) {
+    but.setText(dir.getName());
+    return but;
+  }
+  
   private final void hideButtons(int startId, int endId) {
-    for (int idx = startId; idx != endId; ++idx) {
-      container.getChildAt(idx).setVisibility(GONE);
+    for (int idx = startId; idx < endId; ++idx) {
+      final View view = container.getChildAt(idx);
+      view.setVisibility(GONE);
+      view.setTag(null);
     }
-  }
-
-  private final String getRoot(Uri uri) {
-    final String root = uri.getHost();
-    return root != null ? root : ROOT;
   }
 
   private final void scrollToEnd() {

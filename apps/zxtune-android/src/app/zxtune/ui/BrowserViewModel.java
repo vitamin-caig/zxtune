@@ -161,9 +161,8 @@ class RealBrowserViewModel extends BrowserViewModel {
     }
     
     private static int getIcon(VfsDir dir) {
-      final VfsDir.Icon ic = dir.getClass().getAnnotation(VfsDir.Icon.class);
-      return ic != null
-        ? ic.value()
+      return dir instanceof IconSource
+        ? ((IconSource) dir).getResourceId()
         : R.drawable.ic_browser_folder;
     }
   }

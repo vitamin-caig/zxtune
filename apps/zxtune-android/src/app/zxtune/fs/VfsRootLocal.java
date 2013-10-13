@@ -22,9 +22,9 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 import app.zxtune.R;
+import app.zxtune.ui.IconSource;
 
-@VfsDir.Icon(R.drawable.ic_browser_vfs_local)
-final class VfsRootLocal implements VfsRoot {
+final class VfsRootLocal implements VfsRoot, IconSource {
   
   private final static String SCHEME = "file";
   
@@ -50,6 +50,26 @@ final class VfsRootLocal implements VfsRoot {
   }
 
   @Override
+  public VfsDir getParent() {
+    return null;
+  }
+  
+  @Override
+  public void enumerate(Visitor visitor) {
+    for (File root : File.listRoots()) {
+      visitor.onDir(new LocalDir(root));
+    }
+    for (String storage : getExternalStorageDirectories()) {
+      visitor.onDir(buildDir(new File(storage)));
+    }
+  }
+
+  @Override
+  public void find(String mask, Visitor visitor) {
+    //TODO
+  }
+  
+  @Override
   public VfsObject resolve(Uri uri) {
     if (SCHEME.equals(uri.getScheme())) {
       final String path = uri.getPath();
@@ -63,6 +83,11 @@ final class VfsRootLocal implements VfsRoot {
     }
   }
   
+  @Override
+  public int getResourceId() {
+    return R.drawable.ic_browser_vfs_local;
+  }
+
   private static Uri buildUri(String path) {
     return new Uri.Builder().scheme(SCHEME).path(path).build(); 
   }
@@ -90,20 +115,6 @@ final class VfsRootLocal implements VfsRoot {
     return buildObject(obj);
   }
 
-  @Override
-  public void enumerate(Visitor visitor) {
-    for (File root : File.listRoots()) {
-      visitor.onDir(new LocalDir(root, root.getAbsolutePath()));
-    }
-    for (String storage : getExternalStorageDirectories()) {
-      visitor.onDir(buildDir(new File(storage)));
-    }
-  }
-
-  @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
   
   //Based on code from http://renzhi.ca/2012/02/03/how-to-list-all-sd-cards-on-android/
   private static List<String> getExternalStorageDirectories() {
@@ -156,13 +167,10 @@ final class VfsRootLocal implements VfsRoot {
     private final String name;
 
     public LocalDir(File dir) {
-      this(dir, dir.getName());
-    }
-
-    public LocalDir(File dir, String name) {
       assert dir.isDirectory();
       this.dir = dir;
-      this.name = name;
+      final String name = dir.getName();
+      this.name = 0 != name.length() ? name : dir.getAbsolutePath(); 
     }
 
     @Override
@@ -180,6 +188,14 @@ final class VfsRootLocal implements VfsRoot {
       return "".intern();
     }
 
+    @Override
+    public VfsDir getParent() {
+      final File parent = dir.getParentFile();
+      return parent != null
+        ? new LocalDir(parent)
+        : VfsRootLocal.this;
+    }
+    
     @Override
     public void enumerate(Visitor visitor) throws IOException {
       final File[] files = dir.listFiles();

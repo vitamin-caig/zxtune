@@ -70,14 +70,14 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     roots.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
-        setCurrentPath(Uri.EMPTY);
+        setCurrentDir(root);
       }
     });
     position = (BreadCrumbsView) view.findViewById(R.id.browser_breadcrumb);
-    position.setOnUriSelectionListener(new BreadCrumbsView.OnUriSelectionListener() {
+    position.setDirSelectionListener(new BreadCrumbsView.DirSelectionListener() {
       @Override
-      public void onUriSelection(Uri uri) {
-        setCurrentPath(uri);
+      public void onDirSelection(VfsDir dir) {
+        setCurrentDir(dir);
       }
     });
     listing = (BrowserView) view.findViewById(R.id.browser_content);
@@ -85,12 +85,11 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
 
-    position.setUri(state.getCurrentPath());
     if (savedInstanceState == null) {
       Log.d(TAG, "Load persistent state");
-      loadBrowser(state.getCurrentViewPosition());
+      loadListing(state.getCurrentPath());
     } else {
-      loadBrowser(null);
+      loadListing();
     }
   }
 
@@ -118,21 +117,20 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
       final VfsObject obj = (VfsObject) parent.getItemAtPosition(position);
-      final Uri uri = obj.getUri();
       if (obj instanceof VfsFile) {
-        onFileClick(uri);
-      } else {
-        onDirClick(uri);
+        onClick((VfsFile) obj);
+      } else if (obj instanceof VfsDir) {
+        onClick((VfsDir) obj);
       }
     }
 
-    private void onFileClick(Uri uri) {
-      final Uri[] toPlay = {uri};
+    private void onClick(VfsFile file) {
+      final Uri[] toPlay = {file.getUri()};
       service.setNowPlaying(toPlay);
     }
 
-    private void onDirClick(Uri uri) {
-      setCurrentPath(uri);
+    private void onClick(VfsDir dir) {
+      setCurrentDir(dir);
     }
   }
 
@@ -209,9 +207,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
   }
 
-  private void setCurrentPath(Uri uri) {
+  private void setCurrentDir(VfsDir dir) {
     storeCurrentViewPosition();
-    setNewState(uri);
+    setNewState(dir.getUri());
+    loadListing(dir);
   }
 
   private void storeCurrentViewPosition() {
@@ -221,17 +220,27 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   private void setNewState(Uri uri) {
     Log.d(TAG, "Set current path to " + uri);
     state.setCurrentPath(uri);
-    position.setUri(uri);
-    loadBrowser(state.getCurrentViewPosition());
   }
   
-  private void loadBrowser(Integer pos) {
+  private void loadListing() {
+    listing.load(getLoaderManager());
+  }
+  
+  private void loadListing(Uri path) {
     try {
-      final Uri path = state.getCurrentPath();
       final VfsDir dir = (VfsDir) root.resolve(path);
-      listing.load(getLoaderManager(), dir, pos);
+      loadListing(dir);
     } catch (IOException e) {
       listing.showError(e);
     }
+  }
+  
+  private void loadListing(VfsDir dir) {
+    if (dir == root) {
+      position.setDir(null);
+    } else {
+      position.setDir(dir);
+    }
+    listing.load(getLoaderManager(), dir, state.getCurrentViewPosition());
   }
 }

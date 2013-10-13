@@ -56,14 +56,16 @@ public class BrowserView extends CheckableListView {
   
   //Required to call forceLoad due to bug in support library.
   //Some methods on callback does not called... 
-  final void load(LoaderManager manager, VfsDir dir, Integer pos) {
+  final void load(LoaderManager manager, VfsDir dir, int pos) {
     final ModelLoaderCallback cb = new ModelLoaderCallback(dir, pos);
-    if (pos != null) {
-      manager.restartLoader(LOADER_ID, null, cb).forceLoad();
-    } else {
-      assert manager.getLoader(LOADER_ID) != null;
-      manager.initLoader(LOADER_ID, null, cb);
-    }
+    manager.restartLoader(LOADER_ID, null, cb).forceLoad();
+  }
+
+  //load existing
+  final void load(LoaderManager manager) {
+    assert manager.getLoader(LOADER_ID) != null;
+    final ModelLoaderCallback cb = new ModelLoaderCallback();
+    manager.initLoader(LOADER_ID, null, cb);
   }
   
   final void showError(Exception e) {
@@ -147,6 +149,11 @@ public class BrowserView extends CheckableListView {
     private final VfsDir dir;
     private final Integer pos;
     
+    ModelLoaderCallback() {
+      this.dir = null;
+      this.pos = null;
+    }
+    
     ModelLoaderCallback(VfsDir dir, Integer pos) {
       this.dir = dir;
       this.pos = pos;
@@ -155,6 +162,7 @@ public class BrowserView extends CheckableListView {
     @Override
     public Loader<BrowserViewModel> onCreateLoader(int id, Bundle params) {
       assert id == LOADER_ID;
+      assert dir != null;
       showProgress();
       setModel(null);
       return new ModelLoader(getContext(), dir, BrowserView.this);

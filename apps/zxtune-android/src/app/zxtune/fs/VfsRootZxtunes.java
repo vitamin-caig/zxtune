@@ -20,6 +20,7 @@ import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Catalog.AuthorsVisitor;
 import app.zxtune.fs.zxtunes.Track;
+import app.zxtune.ui.IconSource;
 
 /**
  * 
@@ -46,8 +47,7 @@ import app.zxtune.fs.zxtunes.Track;
  * track=${track_id} parameter is not analyzed for cases 1, 2, 3 and 4
  */
 
-@VfsDir.Icon(R.drawable.ic_browser_vfs_zxtunes)
-final class VfsRootZxtunes implements VfsRoot {
+final class VfsRootZxtunes implements VfsRoot, IconSource {
 
   private final static String TAG = VfsRootZxtunes.class.getName();
 
@@ -74,21 +74,6 @@ final class VfsRootZxtunes implements VfsRoot {
   }
 
   @Override
-  public void enumerate(Visitor visitor) {
-    visitor.onDir(allAuthors);
-  }
-
-  @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
-
-  @Override
-  public Uri getUri() {
-    return rootUri().build();
-  }
-
-  @Override
   public String getName() {
     return context.getString(R.string.vfs_zxtunes_root_name);
   }
@@ -99,6 +84,26 @@ final class VfsRootZxtunes implements VfsRoot {
   }
 
   @Override
+  public Uri getUri() {
+    return rootUri().build();
+  }
+  
+  @Override
+  public VfsDir getParent() {
+    return null;
+  }
+
+  @Override
+  public void enumerate(Visitor visitor) {
+    visitor.onDir(allAuthors);
+  }
+
+  @Override
+  public void find(String mask, Visitor visitor) {
+    //TODO
+  }
+  
+  @Override
   public VfsObject resolve(Uri uri) {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -107,6 +112,11 @@ final class VfsRootZxtunes implements VfsRoot {
     }
   }
 
+  @Override
+  public int getResourceId() {
+    return R.drawable.ic_browser_vfs_zxtunes;
+  }
+  
   private Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }
@@ -310,6 +320,11 @@ final class VfsRootZxtunes implements VfsRoot {
     }
 
     @Override
+    public VfsDir getParent() {
+      return VfsRootZxtunes.this;
+    }
+    
+    @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(new AuthorsVisitor() {
         @Override
@@ -348,6 +363,11 @@ final class VfsRootZxtunes implements VfsRoot {
       return author.name;
     }
 
+    @Override
+    public VfsDir getParent() {
+      return VfsRootZxtunes.this.allAuthors;
+    }
+    
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       final HashSet<Integer> dates = new HashSet<Integer>();
@@ -400,6 +420,11 @@ final class VfsRootZxtunes implements VfsRoot {
     public String getDescription() {
       return "".intern();
     }
+    
+    @Override
+    public VfsDir getParent() {
+      return new AuthorDir(author);
+    }    
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
