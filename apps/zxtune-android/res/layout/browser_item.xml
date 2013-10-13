@@ -4,7 +4,7 @@
     android:background="@drawable/checkable_background"
     android:orientation="horizontal" >
     <TextView
-      android:id="@+id/dirview_item_name"
+      android:id="@+id/browser_item_name"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_gravity="center_vertical"
@@ -13,7 +13,7 @@
       style="@style/text_main"
     />
     <TextView
-      android:id="@+id/dirview_item_size"
+      android:id="@+id/browser_item_size"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_gravity="center_vertical"

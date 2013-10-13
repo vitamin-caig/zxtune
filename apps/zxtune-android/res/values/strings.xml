@@ -18,6 +18,10 @@
     <!-- playlist-related -->
     <string name="menu_playlist">Playlist</string>
     <string name="menu_playlist_clear">Clear</string>
+    <plurals name="tracks">
+      <item quantity="one">%d track</item>
+      <item quantity="other">%d elements</item>
+    </plurals>
     <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<app.zxtune.ui.CheckableLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/block"
+    android:background="@drawable/checkable_background"
+    android:orientation="horizontal" >
+    
+    <ImageView
+      android:id="@+id/browser_item_icon"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="@dimen/spacing_half"
+      android:layout_gravity="center_vertical"
+    />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_marginLeft="@dimen/spacing_half"
+        android:layout_marginRight="@dimen/spacing_half"
+        android:layout_weight="1"
+        android:orientation="vertical" >
+    >
+      <TextView
+        android:id="@+id/browser_item_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/text_main"
+      />
+      <TextView
+        android:id="@+id/browser_item_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@style/text_aux"
+      />
+    </LinearLayout>
+    <TextView
+      android:id="@+id/browser_item_size"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="center_vertical"
+      android:layout_weight="0"
+      android:layout_marginLeft="@dimen/spacing_half"
+      android:layout_marginRight="@dimen/spacing_half"
+      style="@style/text_main"
+    />
+</app.zxtune.ui.CheckableLinearLayout>

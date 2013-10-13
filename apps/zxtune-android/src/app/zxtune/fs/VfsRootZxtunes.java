@@ -7,13 +7,13 @@
 package app.zxtune.fs;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import android.util.SparseIntArray;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.zxtunes.Author;
@@ -370,19 +370,19 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      final HashSet<Integer> dates = new HashSet<Integer>();
+      final SparseIntArray dates = new SparseIntArray();
       catalog.queryTracks(new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {
           if (isEmptyDate(obj.date)) {
             visitor.onFile(new TrackFile(trackUri(author, obj).build(), obj));
           } else {
-            dates.add(obj.date);
+            dates.put(obj.date, 1 + dates.get(obj.date));
           }
         }
       }, null/*id*/, author.id);
-      for (Integer date : dates) {
-        visitor.onDir(new AuthorDateDir(author, date));
+      for (int i = 0, lim = dates.size(); i != lim; ++i) {
+        visitor.onDir(new AuthorDateDir(author, dates.keyAt(i), dates.valueAt(i)));
       }
     }
 
@@ -400,12 +400,18 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
     private final Author author;
     private final Integer date;
+    private final int count;
 
-    AuthorDateDir(Author author, int date) {
+    AuthorDateDir(Author author, Integer date, int count) {
       this.author = author;
       this.date = date;
+      this.count = count;
     }
 
+    AuthorDateDir(Author author, Integer date) {
+      this(author, date, 0);
+    }
+    
     @Override
     public Uri getUri() {
       return authorDateUri(author, date).build();
@@ -418,7 +424,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
     @Override
     public String getDescription() {
-      return "".intern();
+      return context.getResources().getQuantityString(R.plurals.tracks, count, count);
     }
     
     @Override

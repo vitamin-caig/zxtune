@@ -14,6 +14,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
@@ -114,7 +115,7 @@ class RealBrowserViewModel extends BrowserViewModel {
     View result;
     ViewHolder holder = null;
     if (convertView == null) {
-      result = inflater.inflate(R.layout.dirview_item, parent, false);
+      result = inflater.inflate(R.layout.browser_item_detailed, parent, false);
       holder = new ViewHolder(result);
       result.setTag(holder);
     } else {
@@ -134,30 +135,46 @@ class RealBrowserViewModel extends BrowserViewModel {
 
   private static class ViewHolder {
 
+    private final ImageView icon;
     private final TextView name;
+    private final TextView description;
     private final TextView size;
     
     ViewHolder(View view) {
-      this.name = (TextView) view.findViewById(R.id.dirview_item_name);
-      this.size = (TextView) view.findViewById(R.id.dirview_item_size);
+      this.icon = (ImageView) view.findViewById(R.id.browser_item_icon);
+      this.name = (TextView) view.findViewById(R.id.browser_item_name);
+      this.description = (TextView) view.findViewById(R.id.browser_item_description);
+      this.size = (TextView) view.findViewById(R.id.browser_item_size);
     }
     
     void makeView(VfsDir dir) {
       makeBaseView(dir);
-      final int icon = getIcon(dir);
-      name.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0);
+      final int iconId = getIcon(dir);
+      if (icon != null) {
+        icon.setVisibility(View.VISIBLE);
+        icon.setImageResource(iconId);
+      } else {
+        name.setCompoundDrawablesWithIntrinsicBounds(iconId, 0, 0, 0);
+      }
       size.setVisibility(View.GONE);
     }
     
     void makeView(VfsFile file) {
       makeBaseView(file);
-      name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+      if (icon != null) {
+        icon.setVisibility(View.GONE);
+      } else {
+        name.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+      }
       size.setVisibility(View.VISIBLE);
       size.setText(file.getSize());
     }
     
     private void makeBaseView(VfsObject obj) {
       name.setText(obj.getName());
+      if (description != null) {
+        description.setText(obj.getDescription());
+      }
     }
     
     private static int getIcon(VfsDir dir) {

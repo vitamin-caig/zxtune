@@ -16,6 +16,11 @@
     <!-- playlist-related -->
     <string name="menu_playlist">Список</string>
     <string name="menu_playlist_clear">Очистить</string>
+    <plurals name="tracks">
+      <item quantity="one">%d трек</item>
+      <item quantity="few">%d трека</item>
+      <item quantity="other">%d треков</item>
+    </plurals>
     <!-- action-related -->
     <string name="menu_play">Слушать</string>
     <string name="menu_add">Добавить</string>

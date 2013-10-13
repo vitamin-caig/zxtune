@@ -169,7 +169,8 @@ final class RemoteCatalog extends Catalog {
         ? new Author(id, nickname, name)
         : null;
       id = tracks = null;
-      name = nickname = null;
+      nickname = null;
+      name = "".intern();//ok for null
       return res;
     }
   }
@@ -248,8 +249,10 @@ final class RemoteCatalog extends Catalog {
     
     final Track captureResult() {
       final Track res = new Track(id, filename, title, duration, date);
-      id = duration = date = null;
-      filename = title = null;
+      id = date = null;
+      duration = Integer.valueOf(0);//stub for null
+      filename = null;
+      title = "".intern();//stub for null
       return res;
     }
   }
