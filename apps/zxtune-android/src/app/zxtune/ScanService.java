@@ -20,6 +20,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import app.zxtune.playback.FileIterator;
@@ -214,14 +216,17 @@ public class ScanService extends IntentService {
     private final static int NOTIFICATION_DELAY = 100;
     private final static int NOTIFICATION_PERIOD = 2000;
 
+    private WakeLock wakeLock;
     private StatusNotification notification;
-
+    
     public final void start() {
       notification = new StatusNotification();
       timer.postDelayed(this, NOTIFICATION_DELAY);
+      getWakelock().acquire();
     }
 
     public final void stop() {
+      getWakelock().release();
       timer.removeCallbacks(this);
       notifyResolver();
       notification.hide();
@@ -235,6 +240,14 @@ public class ScanService extends IntentService {
       notifyResolver();
       notification.show();
     }
+    
+    WakeLock getWakelock() {
+      if (wakeLock == null) {
+        final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ScanService");
+      }
+      return wakeLock;
+    }
 
     private void notifyResolver() {
       getContentResolver().notifyChange(INSERTION_URI, null);
@@ -242,14 +255,16 @@ public class ScanService extends IntentService {
 
     private class StatusNotification {
 
+      private final static int notificationId = R.drawable.ic_launcher;//TODO
       private final NotificationManager manager;
       private final NotificationCompat.Builder builder;
-      private final static int notificationId = R.drawable.ic_launcher;//TODO
+      private final CharSequence titlePrefix;
 
       public StatusNotification() {
         this.manager =
             (NotificationManager) ScanService.this.getSystemService(Context.NOTIFICATION_SERVICE);
         this.builder = new NotificationCompat.Builder(ScanService.this);
+        this.titlePrefix = getResources().getText(R.string.scanning_title);
         final Intent cancelIntent = new Intent(ScanService.this, ScanService.class);
         cancelIntent.setAction(ACTION_CANCEL);
         builder
@@ -257,12 +272,17 @@ public class ScanService extends IntentService {
                 PendingIntent.getService(ScanService.this, 0, cancelIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT)).setOngoing(true).setProgress(0, 0, true)
             .setSmallIcon(R.drawable.ic_launcher)
-            .setContentTitle(getResources().getText(R.string.scanning_title))
+            .setContentTitle(titlePrefix)
             .setContentText(getResources().getText(R.string.scanning_text));
       }
 
       public final void show() {
-        builder.setNumber(addedItems.get());
+        final StringBuilder str = new StringBuilder();
+        str.append(titlePrefix);
+        str.append(" ");
+        final int items = addedItems.get();
+        str.append(getResources().getQuantityString(R.plurals.tracks, items, items));
+        builder.setContentTitle(str.toString());
         final Notification notification = builder.build();
         manager.notify(notificationId, notification);
       }

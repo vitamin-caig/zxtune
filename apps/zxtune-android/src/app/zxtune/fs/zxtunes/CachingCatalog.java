@@ -22,6 +22,7 @@ final class CachingCatalog extends Catalog {
   private final static String TAG = CachingCatalog.class.getName();
   
   private final static String CACHE_DIR_NAME = "www.zxtunes.com";
+  private final int MIN_CACHED_FILE_SIZE = 256;
 
   private final String cacheDir;
   private final Catalog remote;
@@ -88,8 +89,12 @@ final class CachingCatalog extends Catalog {
       Log.d(TAG, "Failed to read from cache", e);
     }
     final byte[] content = remote.getTrackContent(id);
-    Log.d(TAG, "Write content of track " + id + " to cache");
-    writeTo(cache, content);
+    if (content.length >= MIN_CACHED_FILE_SIZE) {
+      Log.d(TAG, "Write content of track " + id + " to cache");
+      writeTo(cache, content);
+    } else {
+      Log.d(TAG, "Do not cache suspicious file");
+    }
     return content;
   }
   

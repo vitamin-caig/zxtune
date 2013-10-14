@@ -32,7 +32,7 @@
     <string name="information_location">Путь</string>
     <string name="playlist_empty">Список пуст</string>
     <string name="browser_empty">Нет файлов</string>
-    <string name="scanning_title">Сканирование</string>
+    <string name="scanning_title">Сканирование.</string>
     <string name="scanning_text">Клик для отмены</string>
     <!-- about-related -->
     <string name="about_author">Идея, код, дизайн: <b>Vitamin/CAIG</b>\n\nПосвящается <b>Lizzi</b></string>
