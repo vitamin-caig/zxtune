@@ -7,6 +7,18 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Fixed TRUSH packed blocks processing with non-standard depacker
+[+] xtractor: new experimental scanner
+[+] xtractor: full archives and chiptunes set support (except TurboSound containers)
+[+] zxtune-android: http://zxtunes.com catalog support
+[+] zxtune-android: CPU lock while scanning service work
+[*] zxtune-android: improved scanning service runtime statistic
+[*] zxtune-android: reduced UI hangs on playback operations
+[*] zxtune-android: improved errors processing in file browser
+[*] zxtune-android: human-readable objects sizes in file browser
+
+--- $Rev: 2635 from 01.10.2013
+
 [*] Reduced delay on tracks switch
 [*] Improved error processing in DirectSound backend
 [*] Improved detection of small-sized chiptunes
