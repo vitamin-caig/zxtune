@@ -882,6 +882,12 @@ namespace
       FormatResult(false, 32)
     },
     {
+      "matched max footer offset",
+      "0001", "1e1f",
+      4, 30,
+      FormatResult(true, 32)
+    },
+    {
       "not matched minsize",
       "0001", "1e1f",
       33, 33,
@@ -899,7 +905,19 @@ namespace
       4, 16,
       FormatResult(false, 0x12)
     },
-};
+    {
+      "matched with no skip at begin",
+      "00010203", "040506",
+      4, 32,
+      FormatResult(true, 32)
+    },
+    {
+      "matched with no skip at middle",
+      "02030405", "06070809",
+      4, 7,
+      FormatResult(false, 2)
+    },
+  };
 
   void ExecuteCompositeTest(const CompositeFormatTest& tst)
   {
