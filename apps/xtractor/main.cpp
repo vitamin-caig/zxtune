@@ -20,6 +20,7 @@ Author:
 #include <async/data_receiver.h>
 #include <debug/log.h>
 #include <formats/archived/decoders.h>
+#include <formats/chiptune/decoders.h>
 #include <formats/packed/decoders.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
@@ -168,7 +169,6 @@ namespace Formats
   {
     void FillScanner(Analysis::Scanner& scanner)
     {
-      using namespace Formats::Packed;
       scanner.AddDecoder(CreateCodeCruncher3Decoder());
       scanner.AddDecoder(CreateCompressorCode4Decoder());
       scanner.AddDecoder(CreateCompressorCode4PlusDecoder());
@@ -199,26 +199,67 @@ namespace Formats
       scanner.AddDecoder(CreateZ80V20Decoder());
       scanner.AddDecoder(CreateZ80V30Decoder());
       scanner.AddDecoder(CreateMegaLZDecoder());
+      //players
+      scanner.AddDecoder(CreateCompiledASC0Decoder());
+      scanner.AddDecoder(CreateCompiledASC1Decoder());
+      scanner.AddDecoder(CreateCompiledASC2Decoder());
+      scanner.AddDecoder(CreateCompiledST3Decoder());
+      scanner.AddDecoder(CreateCompiledSTP1Decoder());
+      scanner.AddDecoder(CreateCompiledSTP2Decoder());
+      scanner.AddDecoder(CreateCompiledPT24Decoder());
+      scanner.AddDecoder(CreateCompiledPTU13Decoder());
     }
   }
-}
 
-namespace Formats
-{
   namespace Archived
   { 
     void FillScanner(Analysis::Scanner& scanner)
     {
-      using namespace Formats::Archived;
       scanner.AddDecoder(CreateZipDecoder());
       scanner.AddDecoder(CreateRarDecoder());
       scanner.AddDecoder(CreateZXZipDecoder());
       scanner.AddDecoder(CreateSCLDecoder());
       scanner.AddDecoder(CreateTRDDecoder());
       scanner.AddDecoder(CreateHripDecoder());
-      //scanner.AddDecoder(CreateAYDecoder());
-      //scanner.AddDecoder(CreateLhaDecoder());
+      scanner.AddDecoder(CreateAYDecoder());
+      scanner.AddDecoder(CreateLhaDecoder());
       scanner.AddDecoder(CreateZXStateDecoder());
+    }
+  }
+
+  namespace Chiptune
+  {
+    void FillScanner(Analysis::Scanner& scanner)
+    {
+      scanner.AddDecoder(CreatePSGDecoder());
+      scanner.AddDecoder(CreateDigitalStudioDecoder());
+      scanner.AddDecoder(CreateSoundTrackerDecoder());
+      scanner.AddDecoder(CreateSoundTrackerCompiledDecoder());
+      scanner.AddDecoder(CreateSoundTracker3Decoder());
+      scanner.AddDecoder(CreateSoundTrackerProCompiledDecoder());
+      scanner.AddDecoder(CreateASCSoundMaster0xDecoder());
+      scanner.AddDecoder(CreateASCSoundMaster1xDecoder());
+      scanner.AddDecoder(CreateProTracker2Decoder());
+      scanner.AddDecoder(CreateProTracker3Decoder());
+      scanner.AddDecoder(CreateProSoundMakerCompiledDecoder());
+      scanner.AddDecoder(CreateGlobalTrackerDecoder());
+      scanner.AddDecoder(CreateProTracker1Decoder());
+      scanner.AddDecoder(CreateVTXDecoder());
+      scanner.AddDecoder(CreateYMDecoder());
+      scanner.AddDecoder(CreateTFDDecoder());
+      scanner.AddDecoder(CreateTFCDecoder());
+      scanner.AddDecoder(CreateVortexTracker2Decoder());
+      scanner.AddDecoder(CreateChipTrackerDecoder());
+      scanner.AddDecoder(CreateSampleTrackerDecoder());
+      scanner.AddDecoder(CreateProDigiTrackerDecoder());
+      scanner.AddDecoder(CreateSQTrackerDecoder());
+      scanner.AddDecoder(CreateProSoundCreatorDecoder());
+      scanner.AddDecoder(CreateFastTrackerDecoder());
+      scanner.AddDecoder(CreateETrackerDecoder());
+      scanner.AddDecoder(CreateSQDigitalTrackerDecoder());
+      scanner.AddDecoder(CreateTFMMusicMaker05Decoder());
+      scanner.AddDecoder(CreateTFMMusicMaker13Decoder());
+      scanner.AddDecoder(CreateDigitalMusicMakerDecoder());
     }
   }
 }
@@ -456,10 +497,10 @@ namespace
   class NestedScannerTarget : public Analysis::Scanner::Target
   {
   public:
-    NestedScannerTarget(Analysis::Node::Ptr root, Analysis::NodeReceiver& recognized, Analysis::NodeReceiver& unrecognized)
+    NestedScannerTarget(Analysis::Node::Ptr root, Analysis::NodeReceiver& toScan, Analysis::NodeReceiver& toStore)
       : Root(root)
-      , Recognized(recognized)
-      , Unrecognized(unrecognized)
+      , ToScan(toScan)
+      , ToStore(toStore)
     {
     }
 
@@ -468,7 +509,7 @@ namespace
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
       const Analysis::Node::Ptr archNode = Analysis::CreateSubnode(Root, data, name, offset);
-      const ScanFiles walker(Recognized, archNode);
+      const ScanFiles walker(ToScan, archNode);
       data->ExploreFiles(walker);
     }
 
@@ -477,25 +518,29 @@ namespace
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->PackedSize(), offset);
       const Analysis::Node::Ptr packNode = Analysis::CreateSubnode(Root, data, name, offset);
-      Recognized.ApplyData(packNode);
+      ToScan.ApplyData(packNode);
     }
 
     virtual void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data)
     {
+      const String name = decoder.GetDescription();
+      Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
+      const Analysis::Node::Ptr chiptuneNode = Analysis::CreateSubnode(Root, data, Strings::Format("+%1%.chiptune", offset));
+      ToStore.ApplyData(chiptuneNode);
     }
 
     virtual void Apply(std::size_t offset, Binary::Container::Ptr data)
     {
       Dbg("Unresolved %1% bytes at %2%", data->Size(), offset);
       const Analysis::Node::Ptr rawNode = Analysis::CreateSubnode(Root, data, offset);
-      Unrecognized.ApplyData(rawNode);
+      ToStore.ApplyData(rawNode);
     }
   private:
     class ScanFiles : public Formats::Archived::Container::Walker
     {
     public:
-      ScanFiles(Analysis::NodeReceiver& recognized, Analysis::Node::Ptr node)
-        : Recognized(recognized)
+      ScanFiles(Analysis::NodeReceiver& toScan, Analysis::Node::Ptr node)
+        : ToScan(toScan)
         , ArchiveNode(node)
       {
       }
@@ -507,17 +552,17 @@ namespace
           const String name = file.GetName();
           Dbg("Processing %1%", name);
           const Analysis::Node::Ptr fileNode = Analysis::CreateSubnode(ArchiveNode, data, name);
-          Recognized.ApplyData(fileNode);
+          ToScan.ApplyData(fileNode);
         }
       }
     private:
-      Analysis::NodeReceiver& Recognized;
+      Analysis::NodeReceiver& ToScan;
       const Analysis::Node::Ptr ArchiveNode;
     };
   private:
     const Analysis::Node::Ptr Root;
-    Analysis::NodeReceiver& Recognized;
-    Analysis::NodeReceiver& Unrecognized;
+    Analysis::NodeReceiver& ToScan;
+    Analysis::NodeReceiver& ToStore;
   };
 
   class AnalysisTarget : public Analysis::NodeTransceiver
@@ -527,6 +572,7 @@ namespace
       : Scanner(Analysis::CreateScanner())
     {
       Formats::Archived::FillScanner(*Scanner);
+      Formats::Chiptune::FillScanner(*Scanner);
       Formats::Packed::FillScanner(*Scanner);
     }
 

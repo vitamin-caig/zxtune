@@ -409,6 +409,10 @@ namespace Chiptune
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
+        if (!Format->Match(rawData))
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
         Builder& stub = GetStubBuilder();
         return ParseYM(rawData, stub);
       }

@@ -55,6 +55,8 @@ namespace Chiptune
 
     BOOST_STATIC_ASSERT(sizeof(Header) == 16);
 
+    const std::size_t MIN_SIZE = sizeof(Header);
+
     class StubBuilder : public Builder
     {
     public:
@@ -82,7 +84,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
       {
       }
 

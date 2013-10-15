@@ -353,6 +353,10 @@ namespace Chiptune
 
       virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
       {
+        if (!Format->Match(rawData))
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
         Builder& stub = Digital::GetStubBuilder();
         return Parse(rawData, stub);
       }
