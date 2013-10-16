@@ -77,9 +77,13 @@ class BrowserState {
   
   // checks if rh is nested path relative to lh
   private static boolean isNested(Uri lh, Uri rh) {
-    return lh.getScheme().equals(rh.getScheme())
-        && rh.getPath().startsWith(lh.getPath())
-        ;
+    final String lhScheme = lh.getScheme();
+    if (lhScheme != null && lhScheme.equals(rh.getScheme())) {
+      final String rhPath = rh.getPath();
+      final String lhPath = lh.getPath();
+      return rhPath != null && (lhPath == null || rhPath.startsWith(lhPath));
+    }
+    return false;
   }
   
   private class PathAndPosition {
