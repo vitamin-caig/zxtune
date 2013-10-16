@@ -108,7 +108,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
   
   private String getActionModeTitle() {
-    final int count = listing.getCheckedItemCount();
+    final int count = listing.getCheckedItemsCount();
     return getResources().getQuantityString(R.plurals.selected_items, count, count);
   }
 
@@ -182,7 +182,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
     
     private Uri[] getSelectedItemsUris() {
-      final Uri[] result = new Uri[listing.getCheckedItemCount()];
+      final Uri[] result = new Uri[listing.getCheckedItemsCount()];
       final SparseBooleanArray selected = listing.getCheckedItemPositions();
       final ListAdapter adapter = listing.getAdapter();
       int pos = 0;

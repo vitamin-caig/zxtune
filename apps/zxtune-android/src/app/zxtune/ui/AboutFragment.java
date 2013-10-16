@@ -6,14 +6,16 @@
  */
 package app.zxtune.ui;
 
+import java.util.Locale;
+
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +41,7 @@ public class AboutFragment extends DialogFragment {
       final Context context = getActivity();
       final PackageInfo info =
           context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-      return String.format("%s b%d (%s)", context.getString(info.applicationInfo.labelRes),
+      return String.format(Locale.US, "%s b%d (%s)", context.getString(info.applicationInfo.labelRes),
           info.versionCode, info.versionName);
     } catch (NameNotFoundException e) {
       return e.getLocalizedMessage();
@@ -70,9 +72,11 @@ public class AboutFragment extends DialogFragment {
 
     public void buildConfigurationInfo() {
       final Configuration config = context.getResources().getConfiguration();
+      final DisplayMetrics metrics = context.getResources().getDisplayMetrics();
       addWord(getLayoutSize(config.screenLayout));
       addWord(getLayoutRatio(config.screenLayout));
       addWord(getOrientation(config.orientation));
+      addWord(getDensity(metrics.densityDpi));
     }
 
     private void addString(String s) {
@@ -122,6 +126,23 @@ public class AboutFragment extends DialogFragment {
           return "square";
         default:
           return "orientation-undef";
+      }
+    }
+    
+    private static String getDensity(int density) {
+      switch (density) {
+        case DisplayMetrics.DENSITY_LOW:
+          return "ldpi";
+        case DisplayMetrics.DENSITY_MEDIUM:
+          return "mdpi";
+        case DisplayMetrics.DENSITY_HIGH:
+          return "hdpi";
+        case 320/*DisplayMetrics.DENSITY_XHIGH*/:
+          return "xhdpi";
+        case 480/*DisplayMetrics.DENSITY_XXHIGH*/:
+          return "xxhdpi";
+        default:
+          return String.format(Locale.US, "%ddpi", density);
       }
     }
 

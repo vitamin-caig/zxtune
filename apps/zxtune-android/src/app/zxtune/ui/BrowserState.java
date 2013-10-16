@@ -6,6 +6,8 @@
  */
 package app.zxtune.ui;
 
+import java.util.Locale;
+
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
@@ -74,10 +76,10 @@ class BrowserState {
   }
   
   // checks if rh is nested path relative to lh
-  private static final boolean isNested(Uri lh, Uri rh) {
-    final String cleanLh = lh.buildUpon().clearQuery().build().toString();
-    final String cleanRh = rh.buildUpon().clearQuery().build().toString();
-    return cleanRh.startsWith(cleanLh);
+  private static boolean isNested(Uri lh, Uri rh) {
+    return lh.getScheme().equals(rh.getScheme())
+        && rh.getPath().startsWith(lh.getPath())
+        ;
   }
   
   private class PathAndPosition {
@@ -130,11 +132,11 @@ class BrowserState {
     }
     
     private String getPathKey() {
-      return String.format(PREF_BROWSER_PATH_TEMPLATE, index);
+      return String.format(Locale.US, PREF_BROWSER_PATH_TEMPLATE, index);
     }
     
     private String getPosKey() {
-      return String.format(PREF_BROWSER_VIEWPOS_TEMPLATE, index);
+      return String.format(Locale.US, PREF_BROWSER_VIEWPOS_TEMPLATE, index);
     }
   }
 }
