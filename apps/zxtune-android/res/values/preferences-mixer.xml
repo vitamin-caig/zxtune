@@ -9,33 +9,33 @@
   <string name="pref_zxtune_sound_mixer_3_x_x_title">3-channel mixer</string>
   <string name="pref_zxtune_sound_mixer_4_x_x_title">4-channel mixer</string>
   <!-- 3-channel -->
-  <string  name="pref_zxtune_sound_mixer_3_0_0">zxtune.sound.mixer.3.0_0</string>
+  <string  name="pref_zxtune_sound_mixer_3_0_0" translatable="false">zxtune.sound.mixer.3.0_0</string>
   <integer name="pref_zxtune_sound_mixer_3_0_0_default">100</integer>
-  <string  name="pref_zxtune_sound_mixer_3_0_1">zxtune.sound.mixer.3.0_1</string>
+  <string  name="pref_zxtune_sound_mixer_3_0_1" translatable="false">zxtune.sound.mixer.3.0_1</string>
   <integer name="pref_zxtune_sound_mixer_3_0_1_default">0</integer>
-  <string  name="pref_zxtune_sound_mixer_3_1_0">zxtune.sound.mixer.3.1_0</string>
+  <string  name="pref_zxtune_sound_mixer_3_1_0" translatable="false">zxtune.sound.mixer.3.1_0</string>
   <integer name="pref_zxtune_sound_mixer_3_1_0_default">60</integer>
-  <string  name="pref_zxtune_sound_mixer_3_1_1">zxtune.sound.mixer.3.1_1</string>
+  <string  name="pref_zxtune_sound_mixer_3_1_1" translatable="false">zxtune.sound.mixer.3.1_1</string>
   <integer name="pref_zxtune_sound_mixer_3_1_1_default">60</integer>
-  <string  name="pref_zxtune_sound_mixer_3_2_0">zxtune.sound.mixer.3.2_0</string>
+  <string  name="pref_zxtune_sound_mixer_3_2_0" translatable="false">zxtune.sound.mixer.3.2_0</string>
   <integer name="pref_zxtune_sound_mixer_3_2_0_default">0</integer>
-  <string  name="pref_zxtune_sound_mixer_3_2_1">zxtune.sound.mixer.3.2_1</string>
+  <string  name="pref_zxtune_sound_mixer_3_2_1" translatable="false">zxtune.sound.mixer.3.2_1</string>
   <integer name="pref_zxtune_sound_mixer_3_2_1_default">100</integer>
   <!-- 4-channel -->
-  <string  name="pref_zxtune_sound_mixer_4_0_0">zxtune.sound.mixer.4.0_0</string>
+  <string  name="pref_zxtune_sound_mixer_4_0_0" translatable="false">zxtune.sound.mixer.4.0_0</string>
   <integer name="pref_zxtune_sound_mixer_4_0_0_default">100</integer>
-  <string  name="pref_zxtune_sound_mixer_4_0_1">zxtune.sound.mixer.4.0_1</string>
+  <string  name="pref_zxtune_sound_mixer_4_0_1" translatable="false">zxtune.sound.mixer.4.0_1</string>
   <integer name="pref_zxtune_sound_mixer_4_0_1_default">0</integer>
-  <string  name="pref_zxtune_sound_mixer_4_1_0">zxtune.sound.mixer.4.1_0</string>
+  <string  name="pref_zxtune_sound_mixer_4_1_0" translatable="false">zxtune.sound.mixer.4.1_0</string>
   <integer name="pref_zxtune_sound_mixer_4_1_0_default">100</integer>
-  <string  name="pref_zxtune_sound_mixer_4_1_1">zxtune.sound.mixer.4.1_1</string>
+  <string  name="pref_zxtune_sound_mixer_4_1_1" translatable="false">zxtune.sound.mixer.4.1_1</string>
   <integer name="pref_zxtune_sound_mixer_4_1_1_default">0</integer>
-  <string  name="pref_zxtune_sound_mixer_4_2_0">zxtune.sound.mixer.4.2_0</string>
+  <string  name="pref_zxtune_sound_mixer_4_2_0" translatable="false">zxtune.sound.mixer.4.2_0</string>
   <integer name="pref_zxtune_sound_mixer_4_2_0_default">0</integer>
-  <string  name="pref_zxtune_sound_mixer_4_2_1">zxtune.sound.mixer.4.2_1</string>
+  <string  name="pref_zxtune_sound_mixer_4_2_1" translatable="false">zxtune.sound.mixer.4.2_1</string>
   <integer name="pref_zxtune_sound_mixer_4_2_1_default">100</integer>
-  <string  name="pref_zxtune_sound_mixer_4_3_0">zxtune.sound.mixer.4.3_0</string>
+  <string  name="pref_zxtune_sound_mixer_4_3_0" translatable="false">zxtune.sound.mixer.4.3_0</string>
   <integer name="pref_zxtune_sound_mixer_4_3_0_default">0</integer>
-  <string  name="pref_zxtune_sound_mixer_4_3_1">zxtune.sound.mixer.4.3_1</string>
+  <string  name="pref_zxtune_sound_mixer_4_3_1" translatable="false">zxtune.sound.mixer.4.3_1</string>
   <integer name="pref_zxtune_sound_mixer_4_3_1_default">100</integer>
 </resources>

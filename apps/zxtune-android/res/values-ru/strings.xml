@@ -11,6 +11,8 @@
     <plurals name="selected_items">
       <item quantity="one">%d элемент</item>
       <item quantity="few">%d элемента</item>
+      <item quantity="many">%d элементов</item>
+      <!-- for pre-HC -->
       <item quantity="other">%d элементов</item>
     </plurals>
     <!-- playlist-related -->
@@ -19,6 +21,8 @@
     <plurals name="tracks">
       <item quantity="one">%d трек</item>
       <item quantity="few">%d трека</item>
+      <item quantity="many">%d треков</item>
+      <!-- for pre-HC -->
       <item quantity="other">%d треков</item>
     </plurals>
     <!-- action-related -->

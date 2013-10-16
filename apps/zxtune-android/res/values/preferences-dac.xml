@@ -2,7 +2,7 @@
 <resources>
     <string name="pref_zxtune_dac_title">Digital samples</string>
     <!-- zxtune.core.dac.interpolation -->
-    <string name="pref_zxtune_dac_interpolation_title">@string/pref_interpolation</string>
-    <string name="pref_zxtune_dac_interpolation">zxtune.core.dac.interpolation</string>
+    <string name="pref_zxtune_dac_interpolation_title" translatable="false">@string/pref_interpolation</string>
+    <string name="pref_zxtune_dac_interpolation" translatable="false">zxtune.core.dac.interpolation</string>
     <integer name="pref_zxtune_dac_interpolation_default">0</integer>
 </resources>
