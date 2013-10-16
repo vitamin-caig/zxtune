@@ -17,6 +17,7 @@ import app.zxtune.ZXTune;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsIterator;
 
+
 public class FileIterator extends Iterator {
   
   private static final int MAX_VISITED = 10;
@@ -30,7 +31,7 @@ public class FileIterator extends Iterator {
     this.iterator = new VfsIterator(context, paths);
     this.visited = new ArrayList<VfsFile>();
     if (!next()) {
-      throw new Error("No items to play");
+      throw new IOException("No items to play");
     }
   }
   
