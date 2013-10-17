@@ -4,11 +4,11 @@ use strict;
 use Data::Dumper;
 
 my $traits = {
-              launcher => {'' => '48x48', '-hdpi' => '72x72', '-xhdpi' => '96x96'},
-              status => {'' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48'},
-              status_v8 => {'' => '25x25'},
-              status_v9 => {'' => '16x25', '-hdpi' => '24x38'},
-              icon => {'' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'},
+              launcher => {'-mdpi' => '48x48', '-hdpi' => '72x72', '-xhdpi' => '96x96'},
+              status => {'-mdpi' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48'},
+              status_v8 => {'-mdpi' => '25x25'},
+              status_v9 => {'-mdpi' => '16x25', '-hdpi' => '24x38'},
+              icon => {'-mdpi' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'},
              };
 
 sub convert
@@ -38,7 +38,7 @@ sub convert
   }
 }
 
-convert({source => 'logo.svg', target => 'ic_launcher.png', category => 'launcher'});
+#convert({source => 'logo.svg', target => 'ic_launcher.png', category => 'launcher'});
 convert({source => 'status.svg:v11', target => 'ic_stat_notify_play.png', category => 'status', qualifiers => '-v11'});
 convert({source => 'status.svg:v9', target => 'ic_stat_notify_play.png', category => 'status_v9', qualifiers => '-v9'});
 convert({source => 'status.svg:v8', target => 'ic_stat_notify_play.png', category => 'status_v8', qualifiers => '-v8'});
