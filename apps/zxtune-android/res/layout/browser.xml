@@ -27,7 +27,8 @@
         android:layout_height="match_parent"
         android:paddingLeft="@dimen/spacing_full"
         android:paddingRight="@dimen/spacing_full"
-    />
+        android:fastScrollEnabled="true"
+     />
     <FrameLayout
         android:id="@+id/browser_stub"
         android:layout_width="match_parent"

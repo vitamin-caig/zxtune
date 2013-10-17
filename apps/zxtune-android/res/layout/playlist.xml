@@ -9,7 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingLeft="@dimen/spacing_full"
-        android:paddingRight="@dimen/spacing_full" />
+        android:paddingRight="@dimen/spacing_full" 
+        android:fastScrollEnabled="true" />
     <TextView
         android:id="@+id/playlist_stub"
         android:layout_width="match_parent"
