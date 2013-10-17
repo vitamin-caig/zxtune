@@ -39,13 +39,13 @@ sub convert
 }
 
 #convert({source => 'logo.svg', target => 'ic_launcher.png', category => 'launcher'});
-convert({source => 'status.svg:v11', target => 'ic_stat_notify_play.png', category => 'status', qualifiers => '-v11'});
-#convert({source => 'status.svg:v9', target => 'ic_stat_notify_play.png', category => 'status_v9', qualifiers => '-v9'});
+convert({source => 'status.svg:v11', target => 'ic_stat_notify_play.png', category => 'status'});
+convert({source => 'status.svg:v9', target => 'ic_stat_notify_play.png', category => 'status_v9', qualifiers => '-v9'});
 #convert({source => 'status.svg:v8', target => 'ic_stat_notify_play.png', category => 'status_v8', qualifiers => '-v8'});
-convert({source => 'folder.svg', target => 'ic_browser_folder.png', category => 'icon'});
-convert({source => 'play.svg', target => 'ic_play.png', category => 'icon'});
-convert({source => 'next.svg', target => 'ic_next.png', category => 'icon'});
-convert({source => 'prev.svg', target => 'ic_prev.png', category => 'icon'});
-convert({source => 'pause.svg', target => 'ic_pause.png', category => 'icon'});
-convert({source => 'vfs_local.svg', target => 'ic_browser_vfs_local.png', category => 'icon'});
-convert({source => 'vfs_zxtunes.svg', target => 'ic_browser_vfs_zxtunes.png', category => 'icon'});
+#convert({source => 'folder.svg', target => 'ic_browser_folder.png', category => 'icon'});
+#convert({source => 'play.svg', target => 'ic_play.png', category => 'icon'});
+#convert({source => 'next.svg', target => 'ic_next.png', category => 'icon'});
+#convert({source => 'prev.svg', target => 'ic_prev.png', category => 'icon'});
+#convert({source => 'pause.svg', target => 'ic_pause.png', category => 'icon'});
+#convert({source => 'vfs_local.svg', target => 'ic_browser_vfs_local.png', category => 'icon'});
+#convert({source => 'vfs_zxtunes.svg', target => 'ic_browser_vfs_zxtunes.png', category => 'icon'});
