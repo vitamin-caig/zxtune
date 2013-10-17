@@ -169,15 +169,22 @@ public class ScanService extends IntentService {
         Log.d(getName(), "started");
         if (transferSingleItem()) {
           //start tracking only after first arrive
-          tracking.start();
-          transferItems();
+          performTransfer();
         }
       } catch (InterruptedException e) {
         Log.d(getName(), "interrupted");
       } finally {
         Log.d(getName(), "stopping");
-        tracking.stop();
         cleanup();
+      }
+    }
+    
+    private void performTransfer() throws InterruptedException {
+      tracking.start();
+      try {
+        transferItems();
+      } finally {
+        tracking.stop();
       }
     }
 
