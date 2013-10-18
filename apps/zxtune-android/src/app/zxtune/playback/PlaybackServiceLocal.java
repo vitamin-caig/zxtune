@@ -7,21 +7,16 @@
 package app.zxtune.playback;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
-import android.content.Intent;
 import android.net.Uri;
 import android.util.Log;
 import app.zxtune.Releaseable;
-import app.zxtune.ScanService;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
-import app.zxtune.playlist.Database;
-import app.zxtune.playlist.Query;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
@@ -45,7 +40,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.context = context;
     this.executor = Executors.newSingleThreadExecutor();
     this.callbacks = new CompositeCallback();
-    this.playlist = new DispatchedPlaylistControl();
+    this.playlist = new PlaylistControlLocal(context);
     this.playback = new DispatchedPlaybackControl();
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
@@ -175,34 +170,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     public void release() {
       player.release();
       item.release();
-    }
-  }
-  
-  private final class DispatchedPlaylistControl implements PlaylistControl {
-
-    @Override
-    public void add(Uri[] uris) {
-      final Intent intent = new Intent(context, ScanService.class);
-      intent.setAction(ScanService.ACTION_START);
-      intent.putExtra(ScanService.EXTRA_PATHS, uris);
-      context.startService(intent);
-    }
-    
-    @Override
-    public void delete(long[] ids) {
-      //ids => '[a, b, c]'
-      final String rawArgs = Arrays.toString(ids);
-      final String args = rawArgs.substring(1, rawArgs.length() - 1);
-      final Uri uri = Query.unparse(null);
-      //placeholders doesn't work and has limitations
-      final String where = Database.Tables.Playlist.Fields._id + " IN (" + args + ")"; 
-      context.getContentResolver().delete(uri, where, null);
-    }
-    
-    @Override
-    public void deleteAll() {
-      final Uri uri = Query.unparse(null);
-      context.getContentResolver().delete(uri, null, null);
     }
   }
   
