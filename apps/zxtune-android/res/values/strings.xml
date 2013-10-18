@@ -15,6 +15,7 @@
     <!-- action-related -->
     <string name="menu_play">Play</string>
     <string name="menu_add">Add</string>
+    <string name="menu_delete">Delete</string>
     <!-- playlist-related -->
     <string name="menu_playlist">Playlist</string>
     <string name="menu_playlist_clear">Clear</string>

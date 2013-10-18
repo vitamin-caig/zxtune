@@ -140,6 +140,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     public boolean onCreateActionMode(CheckableListView.ActionMode mode, Menu menu) {
       setEnabledRecursive(sources, false);
       final MenuInflater inflater = mode.getMenuInflater();
+      inflater.inflate(R.menu.selection, menu);
       inflater.inflate(R.menu.browser, menu);
       mode.setTitle(getActionModeTitle());
       return true;

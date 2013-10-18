@@ -94,9 +94,9 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
 
     listing = (PlaylistView) view.findViewById(R.id.playlist_content);
     listing.setOnItemClickListener(new OnItemClickListener());
-    listing.setOnItemLongClickListener(new OnItemLongClickListener());
     listing.setPlayitemStateSource(playingState);
     listing.setEmptyView(view.findViewById(R.id.playlist_stub));
+    listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
     bindViewToConnectedService();
     if (savedInstanceState == null) {
       Log.d(TAG, "Loading persistent state");
@@ -151,16 +151,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
   }
   
-  private class OnItemLongClickListener implements PlaylistView.OnItemLongClickListener {
-
-    @Override
-    public boolean onItemLongClick(AdapterView<?> parent, View view, int pos, long id) {
-      final long[] toDelete = {id};
-      service.getPlaylistControl().delete(toDelete);
-      return true;
-    }
-  }
-  
   private class NowPlayingState implements Callback, PlaylistView.PlayitemStateSource {
     
     private final Runnable updateTask;
@@ -197,6 +187,55 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     private void updateView() {
       listing.removeCallbacks(updateTask);
       listing.postDelayed(updateTask, 100);
+    }
+  }
+  
+  private String getActionModeTitle() {
+    final int count = listing.getCheckedItemsCount();
+    return getResources().getQuantityString(R.plurals.tracks, count, count);
+  }
+  
+  private class MultiChoiceModeListener implements CheckableListView.MultiChoiceModeListener {
+
+    @Override
+    public boolean onCreateActionMode(CheckableListView.ActionMode mode, Menu menu) {
+      final MenuInflater inflater = mode.getMenuInflater();
+      inflater.inflate(R.menu.selection, menu);
+      inflater.inflate(R.menu.playlist_items, menu);
+      mode.setTitle(getActionModeTitle());
+      return true;
+    }
+
+    @Override
+    public boolean onPrepareActionMode(CheckableListView.ActionMode mode, Menu menu) {
+      return false;
+    }
+
+    @Override
+    public boolean onActionItemClicked(CheckableListView.ActionMode mode, MenuItem item) {
+      if (listing.processActionItemClick(item.getItemId())) {
+        return true;
+      } else {
+        switch (item.getItemId()) {
+          case R.id.action_delete:
+            service.getPlaylistControl().delete(listing.getCheckedItemIds());
+            break;
+          default:
+            return false;
+        }
+        mode.finish();
+        return true;
+      }
+    }
+
+    @Override
+    public void onDestroyActionMode(CheckableListView.ActionMode mode) {
+    }
+
+    @Override
+    public void onItemCheckedStateChanged(CheckableListView.ActionMode mode, int position, long id,
+        boolean checked) {
+      mode.setTitle(getActionModeTitle());
     }
   }
 }

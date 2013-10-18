@@ -28,6 +28,7 @@
     <!-- action-related -->
     <string name="menu_play">Слушать</string>
     <string name="menu_add">Добавить</string>
+    <string name="menu_delete">Удалить</string>
     <!-- information-related -->
     <string name="information_title">Название</string>
     <string name="information_author">Автор</string>
