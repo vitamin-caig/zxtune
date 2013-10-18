@@ -419,10 +419,11 @@ namespace IO
       break;
     case RENAME_NEW:
       {
-        const std::string oldFilename = IO::Details::ToString(path.filename());
+        const std::string oldStem = IO::Details::ToString(path.stem());
+        const std::string extension = IO::Details::ToString(path.extension());
         for (uint_t idx = 1; IsExists(path); ++idx)
         {
-          const std::string newFilename = (boost::format("%1% (%2%)") % oldFilename % idx).str();
+          const std::string newFilename = (boost::format("%1% (%2%)%3%") % oldStem % idx % extension).str();
           path.remove_filename();
           path /= newFilename;
         }
