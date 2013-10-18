@@ -20,14 +20,14 @@
       </exec>
     </sequential>
   </macrodef>
-  
+
   <macrodef name="installib-helper">
     <attribute name="arch" />
     <sequential>
       <copy file="${top.dir}/bin/android_@{arch}/release/lib${native.libs}.so" todir="${native.libs.absolute.dir}/@{arch}" />
     </sequential>
   </macrodef>
-  
+
   <macrodef name="makelib-helper">
     <attribute name="arch" />
     <sequential>
@@ -37,37 +37,39 @@
     </sequential>
   </macrodef>
   
-  <macrodef name="instsupp-helper">
-    <attribute name="version" />
+  <target name="updatesources">
+    <exec executable="make" failonerror="true">
+      <arg value="--quiet"/>
+      <arg value="-C"/>
+      <arg value="${top.dir}/apps/version"/>
+      <arg value="update_sources"/>
+    </exec>
+  </target>
+  
+  <target name="getversion" depends="updatesources">
     <sequential>
-      <echo level="info">Add support library version @{version}</echo>
-      <copy file="${sdk.dir}/extras/android/support/v@{version}/android-support-v@{version}.jar" todir="${jar.libs.absolute.dir}" />
+      <exec executable="make" outputproperty="version.index" failonerror="true">
+        <arg value="--quiet"/>
+        <arg value="-C"/>
+        <arg value="${top.dir}/apps/version"/>
+        <arg value="version_index"/>
+      </exec>
+      <!-- version.name does not work... -->
+      <exec executable="make" outputproperty="version" failonerror="true">
+        <arg value="--quiet"/>
+        <arg value="-C"/>
+        <arg value="${top.dir}/apps/version"/>
+        <arg value="version_name"/>
+      </exec>
+      <echo level="info">Current version is ${version} (${version.index})</echo>
     </sequential>
-  </macrodef>
-
-  <target name="svnupdate">
-    <exec executable="svn">
-      <arg value="up" />
-      <arg value="${top.dir}" />
-    </exec>
   </target>
   
-  <target name="svnrevision">
-    <exec executable="svnversion" outputproperty="svn.revision">
-      <arg value="${top.dir}"/>
-    </exec>
-    <script language="javascript">
-      var rev = project.getProperty("svn.revision");
-      project.setProperty("svn.revision.base", parseInt(rev));
-    </script>
-    <echo level="info">Current svn revision is ${svn.revision} (${svn.revision.base})</echo>
-  </target>
-  
-  <target name="injectrevision" depends="svnrevision">
+  <target name="injectversion" depends="getversion">
     <copy file="${top.dir}/make/android/version.tmpl" tofile="res/values/version.xml" overwrite="yes" >
       <filterset>
-        <filter token="svn.revision.base" value="${svn.revision.base}" />
-        <filter token="svn.revision" value="${svn.revision}" />
+        <filter token="version" value="r${version}" />
+        <filter token="version.index" value="${version.index}" />
       </filterset>
     </copy>
   </target>
@@ -81,8 +83,8 @@
   <target name="-post-compile" depends="nativelibs" />
 
   <!-- Single public build target -->
-  <target name="public-build" depends="svnupdate, injectrevision, release">
-    <property name="build.result" value="${builds.dir}/Revision${svn.revision}_android/${ant.project.name}_r${svn.revision}.apk" />
+  <target name="public-build" depends="injectversion, release">
+    <property name="build.result" value="${builds.dir}/Revision${version}_android/${ant.project.name}_r${version}.apk" />
     <delete file="${build.result}" />
     <copy file="${out.final.file}" toFile="${build.result}" />
   </target>

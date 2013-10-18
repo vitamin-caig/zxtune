@@ -13,7 +13,7 @@ include $(path_step)/make/version.mak
 .PHONY: version_name version_index
 
 version_name:
-		$(info $(root.version))
+	$(info $(root.version))
 
 version_index:
-		$(info $(root.version.index))
+	$(info $(root.version.index))
