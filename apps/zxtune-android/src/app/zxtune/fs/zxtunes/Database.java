@@ -30,7 +30,7 @@ final class Database {
   final static String TAG = Database.class.getName();
 
   final static String NAME = "www.zxtunes.com";
-  final int VERSION = 1;
+  final static int VERSION = 1;
 
   final static class Tables {
 
@@ -78,7 +78,7 @@ final class Database {
   private final Helper helper;
 
   Database(Context context) {
-    this.helper = new Helper(context);
+    this.helper = Helper.create(context);
   }
 
   class Transaction {
@@ -201,9 +201,18 @@ final class Database {
     return res;
   }
 
-  private class Helper extends SQLiteOpenHelper {
+  private static class Helper extends SQLiteOpenHelper {
+    
+    private static Helper singleton;
+    
+    static synchronized Helper create(Context context) {
+      if (singleton == null) {
+        singleton = new Helper(context.getApplicationContext());
+      }
+      return singleton;
+    }
 
-    public Helper(Context context) {
+    private Helper(Context context) {
       super(context, NAME, null, VERSION);
     }
 
