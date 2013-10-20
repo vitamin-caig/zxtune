@@ -109,7 +109,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   
   private String getActionModeTitle() {
     final int count = listing.getCheckedItemsCount();
-    return getResources().getQuantityString(R.plurals.selected_items, count, count);
+    return getResources().getQuantityString(R.plurals.items, count, count);
   }
 
   class OnItemClickListener implements AdapterView.OnItemClickListener {

@@ -7,6 +7,11 @@
     >
     <menu>
       <item
+        android:id="@+id/action_playlist_add_current"
+        android:title="@string/menu_playlist_add_current"
+        sabd:showAsAction="never"
+      />
+      <item
         android:id="@+id/action_playlist_clear"
         android:title="@string/menu_playlist_clear"
         sabd:showAsAction="never" />

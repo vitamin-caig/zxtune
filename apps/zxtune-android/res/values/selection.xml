@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="menu_selection">Select</string>
+    <string name="menu_select_all">All</string>
+    <string name="menu_select_none">None</string>
+    <string name="menu_select_invert">Invert</string>
+</resources>

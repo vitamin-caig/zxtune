@@ -39,6 +39,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   private Releaseable connection;
   private PlaylistState state;
   private PlaylistView listing;
+  private MenuItem addNowPlaying;
   private final NowPlayingState playingState;
 
   public static Fragment createInstance() {
@@ -69,6 +70,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
+    addNowPlaying = menu.findItem(R.id.action_playlist_add_current);
   }
   
   @Override
@@ -77,6 +79,10 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       case R.id.action_playlist_clear:
         service.getPlaylistControl().deleteAll();
         break;
+      case R.id.action_playlist_add_current:
+        service.getPlaylistControl().add(new Uri[] {service.getNowPlaying().getDataId()});
+        //disable further addings
+        addNowPlaying.setVisible(false);
       default:
         return super.onOptionsItemSelected(item);
     }
@@ -155,16 +161,18 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     
     private final Runnable updateTask;
     private boolean isPlaying;
-    private Uri nowPlaying;
+    private Uri nowPlayingPlaylist;
     
     public NowPlayingState() {
       this.updateTask = new Runnable() {
         @Override
         public void run() {
           listing.invalidateViews();
+          addNowPlaying.setVisible(isPlaying && nowPlayingPlaylist == Uri.EMPTY);
         }
       };
-      nowPlaying = Uri.EMPTY;
+      isPlaying = false;
+      nowPlayingPlaylist = Uri.EMPTY;
     }
     
     @Override
@@ -175,13 +183,15 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     
     @Override
     public void onItemChanged(Item item) {
-      nowPlaying = item != null ? item.getId() : Uri.EMPTY;
+      final Uri id = item.getId();
+      final Uri contentId = item.getDataId();
+      nowPlayingPlaylist = id.equals(contentId) ? Uri.EMPTY : id;
       updateView();
     }
 
     @Override
     public boolean isPlaying(Uri playlistUri) {
-      return isPlaying && 0 == playlistUri.compareTo(nowPlaying);
+      return isPlaying && 0 == playlistUri.compareTo(nowPlayingPlaylist);
     }
     
     private void updateView() {
