@@ -1,0 +1,21 @@
+< __HEADER__
+> "Generated from '$Id: plugins.txt 1346 2011-09-26 13:15:55Z vitamin.caig $'"
+
+< __RAWHEADER__
+__cpp> "#ifndef __TEXT_IMAGE_H_DEFINED__\n"
+__cpp> "#define __TEXT_IMAGE_H_DEFINED__\n"
+__cpp> "#include <char_type.h>\n\n"
+__cpp> "namespace Text\n"
+__cpp> "{\n"
+
+< __RAWFOOTER__
+__cpp> "}//namespace Text\n"
+__cpp> "#endif //__TEXT_IMAGE_H_DEFINED__\n"
+
+#LC52
+< LASERCOMPACT52_DECODER_DESCRIPTION
+> "LaserCompact 5.2"
+
+#ZXSCREEN
+< ZXSCREEN_DECODER_DESCRIPTION
+> "ZX-Spectrum screen"
