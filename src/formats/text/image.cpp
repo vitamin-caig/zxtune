@@ -5,6 +5,9 @@
 
 namespace Text
 {
+extern const Char ASCSCREENCRUSHER_DECODER_DESCRIPTION[] = {
+  'A','S','C',' ','S','c','r','e','e','n','C','r','a','s','h','e','r',0
+};
 extern const Char LASERCOMPACT52_DECODER_DESCRIPTION[] = {
   'L','a','s','e','r','C','o','m','p','a','c','t',' ','5','.','2',0
 };

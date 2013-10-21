@@ -12,6 +12,10 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__TEXT_IMAGE_H_DEFINED__\n"
 
+#ASCSCREENCRUSHEr
+< ASCSCREENCRUSHER_DECODER_DESCRIPTION
+> "ASC ScreenCrasher"
+
 #LC52
 < LASERCOMPACT52_DECODER_DESCRIPTION
 > "LaserCompact 5.2"

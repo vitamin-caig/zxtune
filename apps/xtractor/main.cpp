@@ -233,6 +233,7 @@ namespace Formats
     void FillScanner(Analysis::Scanner& scanner)
     {
       scanner.AddDecoder(CreateLaserCompact52Decoder());
+      scanner.AddDecoder(CreateASCScreenCrusherDecoder());
     }
   }
 

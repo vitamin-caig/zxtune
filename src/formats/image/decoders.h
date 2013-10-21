@@ -19,6 +19,7 @@ namespace Formats
   namespace Image
   {
     Decoder::Ptr CreateLaserCompact52Decoder();
+    Decoder::Ptr CreateASCScreenCrusherDecoder();
   }
 }
 
