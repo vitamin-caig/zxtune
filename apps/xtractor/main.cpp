@@ -21,6 +21,7 @@ Author:
 #include <debug/log.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/decoders.h>
+#include <formats/image/decoders.h>
 #include <formats/packed/decoders.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
@@ -165,6 +166,22 @@ namespace Analysis
 
 namespace Formats
 {
+  namespace Archived
+  { 
+    void FillScanner(Analysis::Scanner& scanner)
+    {
+      scanner.AddDecoder(CreateZipDecoder());
+      scanner.AddDecoder(CreateRarDecoder());
+      scanner.AddDecoder(CreateZXZipDecoder());
+      scanner.AddDecoder(CreateSCLDecoder());
+      scanner.AddDecoder(CreateTRDDecoder());
+      scanner.AddDecoder(CreateHripDecoder());
+      scanner.AddDecoder(CreateAYDecoder());
+      scanner.AddDecoder(CreateLhaDecoder());
+      scanner.AddDecoder(CreateZXStateDecoder());
+    }
+  }
+
   namespace Packed
   {
     void FillScanner(Analysis::Scanner& scanner)
@@ -211,19 +228,11 @@ namespace Formats
     }
   }
 
-  namespace Archived
+  namespace Image
   { 
     void FillScanner(Analysis::Scanner& scanner)
     {
-      scanner.AddDecoder(CreateZipDecoder());
-      scanner.AddDecoder(CreateRarDecoder());
-      scanner.AddDecoder(CreateZXZipDecoder());
-      scanner.AddDecoder(CreateSCLDecoder());
-      scanner.AddDecoder(CreateTRDDecoder());
-      scanner.AddDecoder(CreateHripDecoder());
-      scanner.AddDecoder(CreateAYDecoder());
-      scanner.AddDecoder(CreateLhaDecoder());
-      scanner.AddDecoder(CreateZXStateDecoder());
+      scanner.AddDecoder(CreateLaserCompact52Decoder());
     }
   }
 
@@ -521,6 +530,14 @@ namespace
       ToScan.ApplyData(packNode);
     }
 
+    virtual void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data)
+    {
+      const String name = decoder.GetDescription();
+      Dbg("Found %1% in %2% bytes at %3%", name, data->OriginalSize(), offset);
+      const Analysis::Node::Ptr imageNode = Analysis::CreateSubnode(Root, data, Strings::Format("+%1%.image", offset));
+      ToStore.ApplyData(imageNode);
+    }
+
     virtual void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data)
     {
       const String name = decoder.GetDescription();
@@ -572,8 +589,9 @@ namespace
       : Scanner(Analysis::CreateScanner())
     {
       Formats::Archived::FillScanner(*Scanner);
-      Formats::Chiptune::FillScanner(*Scanner);
       Formats::Packed::FillScanner(*Scanner);
+      Formats::Image::FillScanner(*Scanner);
+      Formats::Chiptune::FillScanner(*Scanner);
     }
 
     virtual void ApplyData(const Analysis::Node::Ptr& node)
