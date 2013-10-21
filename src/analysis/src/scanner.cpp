@@ -272,6 +272,18 @@ namespace Analysis
     }
   };
 
+  struct ImageDataTraits
+  {
+    typedef Image::Decoder Decoder;
+    typedef Image::Container Container;
+    typedef std::deque<Decoder::Ptr> DecodersList;
+
+    static std::size_t GetUsedSize(const Container& container)
+    {
+      return container.OriginalSize();
+    }
+  };
+
   struct ChiptuneDataTraits
   {
     typedef Chiptune::Decoder Decoder;
@@ -288,6 +300,7 @@ namespace Analysis
   {
     ArchivedDataTraits::DecodersList Archived;
     PackedDataTraits::DecodersList Packed;
+    ImageDataTraits::DecodersList Image;
     ChiptuneDataTraits::DecodersList Chiptune;
   };
 
@@ -308,6 +321,11 @@ namespace Analysis
     }
 
     virtual void Apply(const Packed::Decoder& decoder, std::size_t offset, Packed::Container::Ptr data)
+    {
+      Recognized.Apply(decoder, offset, data);
+    }
+
+    virtual void Apply(const Image::Decoder& decoder, std::size_t offset, Image::Container::Ptr data)
     {
       Recognized.Apply(decoder, offset, data);
     }
@@ -348,6 +366,11 @@ namespace Analysis
       Decoders.Packed.push_back(decoder);
     }
 
+    virtual void AddDecoder(Image::Decoder::Ptr decoder)
+    {
+      Decoders.Image.push_back(decoder);
+    }
+
     virtual void AddDecoder(Chiptune::Decoder::Ptr decoder)
     {
       Decoders.Chiptune.push_back(decoder);
@@ -355,9 +378,10 @@ namespace Analysis
 
     virtual void Scan(Binary::Container::Ptr data, Target& target) const
     {
-      //order: Archive -> Packed -> Chiptune -> unrecognized with possible skipping
+      //order: Archive -> Packed -> Image -> Chiptune -> unrecognized with possible skipping
       DecodeUnrecognizedTarget<ChiptuneDataTraits> chiptune(Decoders.Chiptune, target, target);
-      DecodeUnrecognizedTarget<PackedDataTraits> packed(Decoders.Packed, target, chiptune.GetUnrecognizedTarget());
+      DecodeUnrecognizedTarget<ImageDataTraits> image(Decoders.Image, target, chiptune.GetUnrecognizedTarget());
+      DecodeUnrecognizedTarget<PackedDataTraits> packed(Decoders.Packed, target, image.GetUnrecognizedTarget());
       DecodeUnrecognizedTarget<ArchivedDataTraits> archived(Decoders.Archived, target, packed.GetUnrecognizedTarget());
 
       archived.Apply(0, data);

@@ -15,6 +15,7 @@
 #include <binary/container.h>
 #include <formats/archived.h>
 #include <formats/chiptune.h>
+#include <formats/image.h>
 #include <formats/packed.h>
 
 namespace Analysis
@@ -29,6 +30,7 @@ namespace Analysis
 
     virtual void AddDecoder(Formats::Archived::Decoder::Ptr decoder) = 0;
     virtual void AddDecoder(Formats::Packed::Decoder::Ptr decoder) = 0;
+    virtual void AddDecoder(Formats::Image::Decoder::Ptr decoder) = 0;
     virtual void AddDecoder(Formats::Chiptune::Decoder::Ptr decoder) = 0;
 
     class Target
@@ -38,6 +40,7 @@ namespace Analysis
 
       virtual void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset, Formats::Archived::Container::Ptr data) = 0;
       virtual void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset, Formats::Packed::Container::Ptr data) = 0;
+      virtual void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data) = 0;
       virtual void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data) = 0;
       virtual void Apply(std::size_t offset, Binary::Container::Ptr data) = 0;
     };
