@@ -234,6 +234,7 @@ namespace Formats
     {
       scanner.AddDecoder(CreateLaserCompact52Decoder());
       scanner.AddDecoder(CreateASCScreenCrusherDecoder());
+      scanner.AddDecoder(CreateLaserCompact40Decoder());
     }
   }
 

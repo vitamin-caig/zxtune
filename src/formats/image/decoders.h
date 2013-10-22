@@ -20,6 +20,7 @@ namespace Formats
   {
     Decoder::Ptr CreateLaserCompact52Decoder();
     Decoder::Ptr CreateASCScreenCrusherDecoder();
+    Decoder::Ptr CreateLaserCompact40Decoder();
   }
 }
 
