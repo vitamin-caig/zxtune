@@ -83,6 +83,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         service.getPlaylistControl().add(new Uri[] {service.getNowPlaying().getDataId()});
         //disable further addings
         addNowPlaying.setVisible(false);
+        break;
       default:
         return super.onOptionsItemSelected(item);
     }

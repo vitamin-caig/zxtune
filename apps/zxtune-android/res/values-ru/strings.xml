@@ -3,17 +3,6 @@
     <string name="menu_prefs">Настройки</string>
     <string name="menu_about">О программе</string>
     <string name="menu_quit">Выход</string>
-    <!-- playlist-related -->
-    <string name="menu_playlist">Список</string>
-    <string name="menu_playlist_clear">Очистить</string>
-    <string name="menu_playlist_add_current">Добавить текущий</string>
-    <plurals name="tracks">
-      <item quantity="one">%d трек</item>
-      <item quantity="few">%d трека</item>
-      <item quantity="many">%d треков</item>
-      <!-- for pre-HC -->
-      <item quantity="other">%d треков</item>
-    </plurals>
     <!-- action-related -->
     <string name="menu_play">Слушать</string>
     <string name="menu_add">Добавить</string>
@@ -37,5 +26,12 @@
       <item quantity="many">%d элементов</item>
       <!-- for pre-HC -->
       <item quantity="other">%d элементов</item>
+    </plurals>
+    <plurals name="tracks">
+      <item quantity="one">%d трек</item>
+      <item quantity="few">%d трека</item>
+      <item quantity="many">%d треков</item>
+      <!-- for pre-HC -->
+      <item quantity="other">%d треков</item>
     </plurals>
 </resources>

@@ -14,63 +14,63 @@ import android.net.Uri;
 /**
  * 
  */
-public class Iterator {
+public class DatabaseIterator {
   
   private final ContentResolver resolver;
   private final Item item;
 
-  public Iterator(Context context, Uri current) {
+  public DatabaseIterator(Context context, Uri current) {
     this.resolver = context.getContentResolver();
     this.item = loadItem(current);
   }
   
-  private Iterator(ContentResolver resolver, Item current) {
+  private DatabaseIterator(ContentResolver resolver, Item current) {
     this.resolver = resolver;
     this.item = current;
   }
 
-  public Item getItem() {
+  public final Item getItem() {
     return item;
   }
   
-  public boolean isValid() {
+  public final boolean isValid() {
     return item != null;
   }
   
-  public Iterator getNext() {
+  public final DatabaseIterator getNext() {
     Item next = null;
     if (isValid()) {
       final Long curId = new Query(item.getUri()).getId();
       final String selection = Database.Tables.Playlist.Fields._id + " > ?";
       next = advance(curId, selection, Database.Tables.Playlist.Fields._id + " ASC LIMIT 1");
     }
-    return new Iterator(resolver, next);
+    return new DatabaseIterator(resolver, next);
   }
   
-  public Iterator getPrev() {
+  public final DatabaseIterator getPrev() {
     Item prev = null;
     if (isValid()) {
       final Long curId = new Query(item.getUri()).getId();
       final String selection = Database.Tables.Playlist.Fields._id + " < ?";
       prev = advance(curId, selection, Database.Tables.Playlist.Fields._id + " DESC LIMIT 1");
     }
-    return new Iterator(resolver, prev);
+    return new DatabaseIterator(resolver, prev);
   }
   
-  public Iterator getFirst() {
+  public final DatabaseIterator getFirst() {
     Item first = null;
     if (isValid()) {
       first = select(Database.Tables.Playlist.Fields._id + " ASC LIMIT 1");
     }
-    return new Iterator(resolver, first);
+    return new DatabaseIterator(resolver, first);
   }
   
-  public Iterator getLast() {
+  public final DatabaseIterator getLast() {
     Item last = null;
     if (isValid()) {
       last = select(Database.Tables.Playlist.Fields._id + " DESC LIMIT 1");
     }
-    return new Iterator(resolver, last);
+    return new DatabaseIterator(resolver, last);
   }
 
   private Item advance(Long curId, String selection, String order) {

@@ -7,14 +7,6 @@
     <string name="menu_play">Play</string>
     <string name="menu_add">Add</string>
     <string name="menu_delete">Delete</string>
-    <!-- playlist-related -->
-    <string name="menu_playlist">Playlist</string>
-    <string name="menu_playlist_clear">Clear</string>
-    <string name="menu_playlist_add_current">Add current</string>
-    <plurals name="tracks">
-      <item quantity="one">%d track</item>
-      <item quantity="other">%d elements</item>
-    </plurals>
     <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>
@@ -31,5 +23,9 @@
     <plurals name="items">
       <item quantity="one">%d item</item>
       <item quantity="other">%d items</item>
+    </plurals>
+    <plurals name="tracks">
+      <item quantity="one">%d track</item>
+      <item quantity="other">%d tracks</item>
     </plurals>
 </resources>

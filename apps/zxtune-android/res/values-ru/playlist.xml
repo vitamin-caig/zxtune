@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="menu_playlist">Список</string>
+  <string name="menu_playlist_clear">Очистить</string>
+  <string name="menu_playlist_add_current">Добавить текущий</string>
+</resources>

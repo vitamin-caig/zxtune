@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="menu_playlist">Playlist</string>
+  <string name="menu_playlist_clear">Clear</string>
+  <string name="menu_playlist_add_current">Add current</string>
+</resources>
