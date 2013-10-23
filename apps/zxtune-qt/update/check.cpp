@@ -446,7 +446,7 @@ namespace
 
     Product::Update::Ptr GetAvailableUpdate(Log::ProgressCallback& cb) const
     {
-      const QUrl feedUrl(Text::DOWNLOADS_FEED_URL);
+      const QUrl feedUrl(Text::DOWNLOADS_XML_URL);
       const Binary::Data::Ptr feedData = Download(feedUrl, cb);
       UpdateState state;
       const std::auto_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
@@ -527,7 +527,7 @@ namespace Update
   {
     try
     {
-      if (IO::ResolveUri(Text::DOWNLOADS_FEED_URL))
+      if (IO::ResolveUri(Text::DOWNLOADS_XML_URL))
       {
         std::auto_ptr<CheckOperation> res(new UpdateCheckOperation(parent));
         res->setParent(&parent);

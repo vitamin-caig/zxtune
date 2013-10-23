@@ -69,7 +69,7 @@ namespace
         : XML(xml)
       {
         XML.writeStartElement(QLatin1String(XSPF::EXTENSION_TAG));
-        XML.writeAttribute(QLatin1String(XSPF::APPLICATION_ATTR), QLatin1String(Text::PROGRAM_SITE));
+        XML.writeAttribute(QLatin1String(XSPF::APPLICATION_ATTR), QLatin1String(Text::PLAYLIST_APPLICATION_ID));
       }
 
       ~StringPropertySaver()

@@ -5,12 +5,12 @@
 
 namespace Text
 {
-extern const Char DOWNLOADS_FEED_URL[] = {
-  'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','f','e','e','d',
-  's','/','p','/','z','x','t','u','n','e','/','d','o','w','n','l','o','a','d','s','/','b','a','s','i','c',0
-};
 extern const Char DOWNLOADS_PROJECT_NAME[] = {
   'z','x','t','u','n','e',0
+};
+extern const Char DOWNLOADS_XML_URL[] = {
+  'h','t','t','p',':','/','/','z','x','t','u','n','e','.','g','o','o','g','l','e','c','o','d','e','.','c','o',
+  'm','/','s','v','n','/','d','o','w','n','l','o','a','d','s','.','x','m','l',0
 };
 extern const Char FAQ_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
@@ -22,10 +22,6 @@ extern const Char FEEDBACK_EMAIL[] = {
 extern const Char HELP_URL[] = {
   'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
   't','u','n','e','/','w','i','k','i','/','Z','X','T','u','n','e','Q','T','M','a','n','u','a','l',0
-};
-extern const Char HOMEPAGE_URL[] = {
-  'h','t','t','p',':','/','/','c','o','d','e','.','g','o','o','g','l','e','.','c','o','m','/','p','/','z','x',
-  't','u','n','e','/',0
 };
 extern const Char HTTP_USERAGENT[] = {
   '[','P','r','o','g','r','a','m',']','/','[','V','e','r','s','i','o','n',']',' ','(','[','P','l','a','t','f',
@@ -39,6 +35,10 @@ extern const Char MODULE_TITLE_FORMAT[] = {
 };
 extern const Char PLAYLISTS_DIR[] = {
   'Z','X','T','u','n','e','/','P','l','a','y','l','i','s','t','s',0
+};
+extern const Char PLAYLIST_APPLICATION_ID[] = {
+  'h','t','t','p',':','/','/','z','x','t','u','n','e','.','g','o','o','g','l','e','c','o','d','e','.','c','o',
+  'm',0
 };
 extern const Char PLAYLIST_LOADING_HEADER[] = {
   '.','.','.',0

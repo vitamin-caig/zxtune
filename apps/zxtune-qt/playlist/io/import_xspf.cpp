@@ -315,7 +315,7 @@ namespace
     bool CheckForZXTuneExtension()
     {
       const QXmlStreamAttributes attributes = XML.attributes();
-      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Text::PROGRAM_SITE;
+      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Text::PLAYLIST_APPLICATION_ID;
     }
 
     String ConvertString(const QString& input) const

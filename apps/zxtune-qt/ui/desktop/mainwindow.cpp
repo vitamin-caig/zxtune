@@ -188,7 +188,7 @@ namespace
 
     virtual void VisitSite()
     {
-      const QLatin1String siteUrl(Text::HOMEPAGE_URL);
+      const QLatin1String siteUrl(Text::PROGRAM_SITE);
       QDesktopServices::openUrl(QUrl(siteUrl));
     }
 
