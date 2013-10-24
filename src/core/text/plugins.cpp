@@ -20,9 +20,6 @@ extern const Char RAW_PLUGIN_PREFIX[] = {
 extern const Char TFC_COMPILER_VERSION[] = {
   'T','u','r','b','o','F','M',' ','C','o','m','p','i','l','e','r',' ','v',0
 };
-extern const Char TS_PLUGIN_INFO[] = {
-  'T','u','r','b','o','S','o','u','n','d',0
-};
 extern const Char ZDATA_PLUGIN_INFO[] = {
   'Z','d','a','t','a',0
 };

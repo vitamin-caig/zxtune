@@ -18,18 +18,15 @@ Author:
 #include "core/plugins/players/tracking.h"
 #include "core/src/callback.h"
 //common includes
-#include <byteorder.h>
 #include <error.h>
 //library includes
 #include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/chiptune/container.h>
-#include <sound/mixer_factory.h>
+#include <formats/chiptune/decoders.h>
+#include <formats/chiptune/aym/turbosound.h>
 //boost includes
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/plugins.h>
 
 namespace
 {
@@ -40,191 +37,92 @@ namespace Module
 {
 namespace TS
 {
-  const std::size_t TS_MIN_SIZE = 256;
-  const std::size_t MAX_MODULE_SIZE = 16384;
-  const std::size_t TS_MAX_SIZE = MAX_MODULE_SIZE * 2;
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct Footer
-  {
-    uint8_t ID1[4];//'PT3!' or other type
-    uint16_t Size1;
-    uint8_t ID2[4];//same
-    uint16_t Size2;
-    uint8_t ID3[4];//'02TS'
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
-
-  BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
-
-  const std::string TS_FOOTER_FORMAT(
-    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
-    "?%00xxxxxx"                     // uint16_t Size1;
-    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
-    "?%00xxxxxx"                     // uint16_t Size2;
-    "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
-  );
-
-  class ModuleTraits
+  class DataBuilder : public Formats::Chiptune::TurboSound::Builder
   {
   public:
-    ModuleTraits(const Binary::Data& data, std::size_t footerOffset)
-      : FooterOffset(footerOffset)
-      , Foot(footerOffset != data.Size() ? safe_ptr_cast<const Footer*>(static_cast<const uint8_t*>(data.Start()) + footerOffset) : 0)
-      , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
-      , SecondSize(Foot ? fromLE(Foot->Size2) : 0)
+    explicit DataBuilder(const Binary::Container& data)
+      : Data(data)
     {
     }
 
-    bool Matched() const
+    virtual void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size)
     {
-      return Foot != 0 && FooterOffset == FirstSize + SecondSize;
-    }
-
-    std::size_t NextOffset() const
-    {
-      if (Foot == 0)
+      if (!(First = LoadChiptune(offset, size)))
       {
-        return FooterOffset;
+        Dbg("Failed to create first module");
       }
-      const std::size_t totalSize = FirstSize + SecondSize;
-      if (totalSize < FooterOffset)
+    }
+
+    virtual void SetSecondSubmoduleLocation(std::size_t offset, std::size_t size)
+    {
+      if (!(Second = LoadChiptune(offset, size)))
       {
-        return FooterOffset - totalSize;
+        Dbg("Failed to create second module");
+      }
+    }
+
+    bool HasResult() const
+    {
+      return First && Second;
+    }
+
+    AYM::Chiptune::Ptr GetFirst() const
+    {
+      return First;
+    }
+
+    AYM::Chiptune::Ptr GetSecond() const
+    {
+      return Second;
+    }
+  private:
+    AYM::Chiptune::Ptr LoadChiptune(std::size_t offset, std::size_t size) const
+    {
+      const Binary::Container::Ptr content = Data.GetSubcontainer(offset, size);
+      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Module::Open(*content)))
+      {
+        return holder->GetChiptune();
       }
       else
       {
-        return FooterOffset + sizeof(*Foot);
+        return AYM::Chiptune::Ptr();
       }
-    }
 
-    Binary::Container::Ptr GetFirstContent(const Binary::Container& data) const
-    {
-      return data.GetSubcontainer(0, FirstSize);
-    }
-
-    Binary::Container::Ptr GetSecondContent(const Binary::Container& data) const
-    {
-      return data.GetSubcontainer(FirstSize, SecondSize);
-    }
-
-    Binary::Container::Ptr GetTotalContent(const Binary::Container& data) const
-    {
-      return data.GetSubcontainer(0, FooterOffset + sizeof(*Foot));
     }
   private:
-    const std::size_t FooterOffset;
-    const Footer* const Foot;
-    const std::size_t FirstSize;
-    const std::size_t SecondSize;
-  };
-
-  class FooterFormat : public Binary::Format
-  {
-  public:
-    typedef boost::shared_ptr<const FooterFormat> Ptr;
-
-    FooterFormat()
-      : Delegate(Binary::Format::Create(TS_FOOTER_FORMAT))
-    {
-    }
-
-    virtual bool Match(const Binary::Data& data) const
-    {
-      const ModuleTraits traits = GetTraits(data);
-      return traits.Matched();
-    }
-
-    virtual std::size_t NextMatchOffset(const Binary::Data& data) const
-    {
-      const ModuleTraits traits = GetTraits(data);
-      return traits.NextOffset();
-    }
-
-    ModuleTraits GetTraits(const Binary::Data& data) const
-    {
-      return ModuleTraits(data, Delegate->NextMatchOffset(data));
-    }
-  private:
-    const Binary::Format::Ptr Delegate;
-  };
-
-  class Decoder : public Formats::Chiptune::Decoder
-  {
-  public:
-    explicit Decoder(Binary::Format::Ptr format)
-      : Format(format)
-    {
-    }
-
-    virtual String GetDescription() const
-    {
-      return Text::TS_PLUGIN_INFO;
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Format;
-    }
-
-    virtual bool Check(const Binary::Container& rawData) const
-    {
-      return Format->Match(rawData);
-    }
-
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const
-    {
-      //TODO?
-      return Formats::Chiptune::Container::Ptr();
-    }
-  private:
-    const Binary::Format::Ptr Format;
+    const Binary::Container& Data;
+    AYM::Chiptune::Ptr First;
+    AYM::Chiptune::Ptr Second;
   };
 
   class Factory : public Module::Factory
   {
   public:
-    explicit Factory(FooterFormat::Ptr format)
-      : Format(format)
+    explicit Factory(Formats::Chiptune::TurboSound::Decoder::Ptr decoder)
+      : Decoder(decoder)
     {
     }
 
     virtual Module::Holder::Ptr CreateModule(Module::PropertiesBuilder& properties, const Binary::Container& data) const
     {
-      const ModuleTraits traits = Format->GetTraits(data);
-      if (!traits.Matched())
-      {
-        return Module::Holder::Ptr();
-      }
       try
       {
-        const AYM::Chiptune::Ptr tune1 = OpenAYMModule(traits.GetFirstContent(data));
-        if (!tune1)
+        DataBuilder dataBuilder(data);
+        if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(data, dataBuilder))
         {
-          Dbg("Invalid first module holder");
-          return Module::Holder::Ptr();
+          if (dataBuilder.HasResult())
+          {
+            properties.SetSource(*container);
+            const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties.GetResult(),
+              dataBuilder.GetFirst(), dataBuilder.GetSecond());
+            return TurboSound::CreateHolder(chiptune);
+          }
         }
-        const AYM::Chiptune::Ptr tune2 = OpenAYMModule(traits.GetSecondContent(data));
-        if (!tune2)
-        {
-          Dbg("Failed to create second module holder");
-          return Module::Holder::Ptr();
-        }
-        const Binary::Container::Ptr total = traits.GetTotalContent(data);
-        properties.SetSource(Formats::Chiptune::CalculatingCrcContainer(total, 0, total->Size()));
-        const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties.GetResult(), tune1, tune2);
-        return TurboSound::CreateHolder(chiptune);
       }
       catch (const Error&)
       {
-        return Module::Holder::Ptr();
       }
+      return Module::Holder::Ptr();
     }
   private:
     static AYM::Chiptune::Ptr OpenAYMModule(Binary::Container::Ptr data)
@@ -239,7 +137,7 @@ namespace TS
       }
     }
   private:
-    const FooterFormat::Ptr Format;
+    const Formats::Chiptune::TurboSound::Decoder::Ptr Decoder;
   };
 }
 }
@@ -252,9 +150,8 @@ namespace ZXTune
     const Char ID[] = {'T', 'S', 0};
     const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
 
-    const Module::TS::FooterFormat::Ptr format = boost::make_shared<Module::TS::FooterFormat>();
-    const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::TS::Decoder>(format);
-    const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>(format);
+    const Formats::Chiptune::TurboSound::Decoder::Ptr decoder = Formats::Chiptune::TurboSound::CreateDecoder();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>(decoder);
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }

@@ -32,10 +32,6 @@ __cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 < TFC_COMPILER_VERSION
 > "TurboFM Compiler v"
 
-#TS
-< TS_PLUGIN_INFO
-> "TurboSound"
-
 #ZDATA
 < ZDATA_PLUGIN_INFO
 > "Zdata"
