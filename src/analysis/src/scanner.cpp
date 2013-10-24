@@ -10,6 +10,7 @@ Author:
 */
 
 //common includes
+#include <contract.h>
 #include <iterator.h>
 //library includes
 #include <analysis/scanner.h>
@@ -104,7 +105,8 @@ namespace Analysis
 
     void SetOffset(std::size_t newOffset)
     {
-      Offset = std::max(Offset, newOffset);
+      Require(newOffset >= Offset);
+      Offset = newOffset;
     }
 
     void Advance(std::size_t delta)
@@ -161,7 +163,9 @@ namespace Analysis
       Scheduled.Reset();
       Window.SetOffset(0);
       Unrecognized.SetOffset(0);
+
       ScanFromStart(target);
+      RescheduleUnprocessed();
       while (!IsFinished())
       {
         ScanFromLookaheads(target);
@@ -178,7 +182,21 @@ namespace Analysis
     {
       while (!IsFinished() && Unprocessed)
       {
-        ProcessDecoder(*Unprocessed, target);
+        const typename Traits::Decoder::Ptr decoder = *Unprocessed;
+        ++Unprocessed;
+        if (ProcessDecoder(decoder, target))
+        {
+          break;
+        }
+      }
+    }
+
+    void RescheduleUnprocessed()
+    {
+      while (Unprocessed)
+      {
+        const typename Traits::Decoder::Ptr decoder = *Unprocessed;
+        Reschedule(decoder);
         ++Unprocessed;
       }
     }
@@ -192,27 +210,29 @@ namespace Analysis
           Window.SetEmpty();
           break;
         }
+        RescheduleLookaheads();
         Window.SetOffset(Scheduled.GetPosition());
         ProcessDecoder(Scheduled.FetchDecoder(), target);
       }
     }
 
-    void ProcessDecoder(typename Traits::Decoder::Ptr decoder, Scanner::Target& target)
+    bool ProcessDecoder(typename Traits::Decoder::Ptr decoder, Scanner::Target& target)
     {
-      Dbg("Trying %1% at %2%+%3%", decoder->GetDescription(), Base, Window.GetOffset());
       if (const typename Traits::Container::Ptr result = decoder->Decode(Window))
       {
         const std::size_t used = Traits::GetUsedSize(*result);
-        Dbg(" found %1% bytes", used);
+        Dbg("Found %1% at %2%+%3% in %4% bytes", decoder->GetDescription(), Base, Window.GetOffset(), used);
         FlushUnrecognized(target);
         target.Apply(*decoder, Base + Window.GetOffset(), result);
         Schedule(decoder, used);
         Window.Advance(used);
         Unrecognized.SetOffset(Window.GetOffset());
+        return true;
       }
       else
       {
         Schedule(decoder, decoder->GetFormat()->NextMatchOffset(Window));
+        return false;
       }
     }
 
@@ -229,16 +249,31 @@ namespace Analysis
 
     void Schedule(typename Traits::Decoder::Ptr decoder, std::size_t delta)
     {
+      const String id = decoder->GetDescription();
       if (delta != Window.Size())
       {
         const std::size_t nextPos = Window.GetOffset() + delta;
-        Dbg(" skip %1% bytes (check at %2%)", delta, nextPos);
+        Dbg("Skip %1% for %2% bytes (check at %3%+%4%)", id, delta, Base, nextPos);
         Scheduled.Add(nextPos, decoder);
       }
       else
       {
-        Dbg(" disable for future scans");
+        Dbg("Disable %1% for future scans", id);
       }
+    }
+
+    void RescheduleLookaheads()
+    {
+      while (Scheduled.GetPosition() < Window.GetOffset())
+      {
+        Reschedule(Scheduled.FetchDecoder());
+      }
+    }
+
+    void Reschedule(typename Traits::Decoder::Ptr decoder)
+    {
+      Dbg("Schedule to check %1% at %2%", decoder->GetDescription(), Window.GetOffset());
+      Scheduled.Add(Window.GetOffset(), decoder);
     }
   private:
     RangeIterator<typename Traits::DecodersList::const_iterator> Unprocessed;
