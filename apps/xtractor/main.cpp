@@ -242,6 +242,8 @@ namespace Formats
   {
     void FillScanner(Analysis::Scanner& scanner)
     {
+      //try TurboSound first
+      scanner.AddDecoder(CreateTurboSoundDecoder());
       scanner.AddDecoder(CreatePSGDecoder());
       scanner.AddDecoder(CreateDigitalStudioDecoder());
       scanner.AddDecoder(CreateSoundTrackerDecoder());
