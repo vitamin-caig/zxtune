@@ -17,6 +17,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.sax.Element;
 import android.sax.EndElementListener;
@@ -45,9 +47,11 @@ final class RemoteCatalog extends Catalog {
   private static final String TRACK_QUERY = ALL_TRACKS_QUERY + "&id=%d";
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
 
+  private final Context context;
   private String userAgent;
 
   public RemoteCatalog(Context context) {
+    this.context = context;
     this.userAgent =
         String.format("%s/%s", context.getString(R.string.app_name),
             context.getString(R.string.versionName));
@@ -90,18 +94,24 @@ final class RemoteCatalog extends Catalog {
       return getContent(connection);
     } catch (IOException e) {
       Log.d(TAG, "getModuleContent(" + id + ")", e);
-      throw e;
+      throw hasConnection()
+        ? e
+        : new IOException(context.getString(R.string.network_inaccessible));
     }
   }
 
-  private static void performQuery(HttpURLConnection connection, RootElement root)
+  private void performQuery(HttpURLConnection connection, RootElement root)
       throws IOException {
     try {
       final InputStream stream = new BufferedInputStream(connection.getInputStream());
       Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
     } catch (SAXException e) {
       throw new IOException(e);
-    } finally {
+    } catch (IOException e) {
+      throw hasConnection()
+        ? e
+        : new IOException(context.getString(R.string.network_inaccessible));
+      } finally {
       connection.disconnect();
     }
   }
@@ -269,8 +279,8 @@ final class RemoteCatalog extends Catalog {
   private static byte[] getContent(HttpURLConnection connection) throws IOException {
     try {
       final int len = connection.getContentLength();
-      final byte[] result = new byte[len];
       final InputStream stream = connection.getInputStream();
+      final byte[] result = new byte[len];
       int received = 0;
       for (;;) {
         final int chunk = stream.read(result, received, len - received);
@@ -300,5 +310,11 @@ final class RemoteCatalog extends Catalog {
       Log.d(TAG, "Fetch " + uri, e);
       throw e;
     }
+  }
+  
+  private boolean hasConnection() {
+    final ConnectivityManager mgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+    final NetworkInfo info = mgr.getActiveNetworkInfo();
+    return info != null && info.isConnected();
   }
 }

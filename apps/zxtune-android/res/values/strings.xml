@@ -28,4 +28,6 @@
       <item quantity="one">%d track</item>
       <item quantity="other">%d tracks</item>
     </plurals>
+    <!-- errors -->
+    <string name="network_inaccessible">Network is not accessible</string>
 </resources>

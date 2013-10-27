@@ -195,7 +195,7 @@ public class BrowserView extends CheckableListView {
       super(context);
       this.dir = dir;
       this.view = view;
-      view.emptyView.setText(R.string.playlist_empty);
+      view.emptyView.setText(R.string.browser_empty);
     }
     
     @Override

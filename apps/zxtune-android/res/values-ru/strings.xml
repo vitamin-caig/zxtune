@@ -34,4 +34,6 @@
       <!-- for pre-HC -->
       <item quantity="other">%d треков</item>
     </plurals>
+    <!-- errors -->
+    <string name="network_inaccessible">Сеть недоступна</string>
 </resources>
