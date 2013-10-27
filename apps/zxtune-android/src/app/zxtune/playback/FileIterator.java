@@ -7,6 +7,7 @@
 package app.zxtune.playback;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -100,7 +101,7 @@ public class FileIterator extends Iterator {
     
   static ZXTune.Module loadModule(VfsFile file) {
     try {
-      final byte[] content = file.getContent();
+      final ByteBuffer content = file.getContent();
       return ZXTune.loadModule(content);
     } catch (IOException e) {
       throw new Error(e.getCause());

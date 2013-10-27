@@ -7,6 +7,7 @@
 package app.zxtune.fs;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -483,7 +484,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     }
 
     @Override
-    public byte[] getContent() throws IOException {
+    public ByteBuffer getContent() throws IOException {
       return catalog.getTrackContent(module.id);
     }
   }

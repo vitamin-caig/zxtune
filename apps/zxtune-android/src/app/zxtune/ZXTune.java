@@ -8,6 +8,7 @@
 package app.zxtune;
 
 import java.lang.RuntimeException;
+import java.nio.ByteBuffer;
 
 public final class ZXTune {
 
@@ -232,7 +233,7 @@ public final class ZXTune {
    * @param Content raw content
    * @return New object
    */
-  public static Module loadModule(byte[] content) {
+  public static Module loadModule(ByteBuffer content) {
     return new NativeModule(Module_Create(content));
   }
 
@@ -345,7 +346,7 @@ public final class ZXTune {
   private static native void Handle_Close(int handle);
 
   // working with module
-  private static native int Module_Create(byte[] data);
+  private static native int Module_Create(ByteBuffer data);
   private static native int Module_GetDuration(int module);
   private static native long Module_GetProperty(int module, String name, long defVal);
   private static native String Module_GetProperty(int module, String name, String defVal);

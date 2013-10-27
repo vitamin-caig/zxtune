@@ -7,6 +7,7 @@
 package app.zxtune.fs.zxtunes;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import android.content.Context;
 
@@ -41,7 +42,7 @@ public abstract class Catalog {
    */
   public abstract void queryTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException;
   
-  public abstract byte[] getTrackContent(int id) throws IOException;
+  public abstract ByteBuffer getTrackContent(int id) throws IOException;
   
   public static Catalog create(Context context) {
     final Database db = new Database(context);

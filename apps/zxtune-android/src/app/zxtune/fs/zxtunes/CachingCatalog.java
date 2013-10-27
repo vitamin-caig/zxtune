@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 import android.content.Context;
 import android.util.Log;
@@ -78,7 +80,7 @@ final class CachingCatalog extends Catalog {
   }
   
   @Override
-  public byte[] getTrackContent(int id) throws IOException {
+  public ByteBuffer getTrackContent(int id) throws IOException {
     final File cache = new File(cacheDir + Integer.toString(id));
     try {
       if (cache.exists()) {
@@ -88,8 +90,8 @@ final class CachingCatalog extends Catalog {
     } catch (IOException e) {
       Log.d(TAG, "Failed to read from cache", e);
     }
-    final byte[] content = remote.getTrackContent(id);
-    if (content.length >= MIN_CACHED_FILE_SIZE) {
+    final ByteBuffer content = remote.getTrackContent(id);
+    if (content.capacity() >= MIN_CACHED_FILE_SIZE) {
       Log.d(TAG, "Write content of track " + id + " to cache");
       writeTo(cache, content);
     } else {
@@ -97,24 +99,32 @@ final class CachingCatalog extends Catalog {
     }
     return content;
   }
-  
-  private byte[] readFrom(File file) throws IOException {
+
+  //TODO: remove C&P
+  private ByteBuffer readFrom(File file) throws IOException {
     final FileInputStream stream = new FileInputStream(file);
     try {
-      final int len = (int) file.length();
-      final byte[] content = new byte[len];
-      stream.read(content, 0, len);
-      return content;
+      final FileChannel channel = stream.getChannel();
+      try {
+        return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+      } finally {
+        channel.close();
+      }
     } finally {
       stream.close();
     }
   }
   
-  private void writeTo(File file, byte[] data) {
+  private void writeTo(File file, ByteBuffer data) {
     try {
       final FileOutputStream stream = new FileOutputStream(file);
       try {
-        stream.write(data);
+        final FileChannel chan = stream.getChannel();
+        try {
+          chan.write(data);
+        } finally {
+          chan.close();
+        }
       } finally {
         stream.close();
       }

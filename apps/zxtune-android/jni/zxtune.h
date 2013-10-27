@@ -50,10 +50,10 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Handle_1Close
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Module_Create
- * Signature: ([B)I
+ * Signature: (Ljava/nio/ByteBuffer;)I
  */
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
-  (JNIEnv *, jclass, jbyteArray);
+  (JNIEnv *, jclass, jobject);
 
 /*
  * Class:     app_zxtune_ZXTune
@@ -219,12 +219,6 @@ extern "C" {
 #ifdef __cplusplus
 extern "C" {
 #endif
-#undef app_zxtune_ZXTune_Properties_Core_Aym_INTERPOLATION_NONE
-#define app_zxtune_ZXTune_Properties_Core_Aym_INTERPOLATION_NONE 0LL
-#undef app_zxtune_ZXTune_Properties_Core_Aym_INTERPOLATION_LQ
-#define app_zxtune_ZXTune_Properties_Core_Aym_INTERPOLATION_LQ 1LL
-#undef app_zxtune_ZXTune_Properties_Core_Aym_INTERPOLATION_HQ
-#define app_zxtune_ZXTune_Properties_Core_Aym_INTERPOLATION_HQ 2LL
 #ifdef __cplusplus
 }
 #endif

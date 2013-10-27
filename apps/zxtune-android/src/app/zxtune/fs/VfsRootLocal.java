@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -247,13 +249,15 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     }
 
     @Override
-    public byte[] getContent() throws IOException {
+    public ByteBuffer getContent() throws IOException {
       final FileInputStream stream = new FileInputStream(file);
       try {
-        final int size = (int) file.length();
-        byte[] result = new byte[size];
-        stream.read(result, 0, size);
-        return result;
+        final FileChannel channel = stream.getChannel();
+        try {
+          return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+        } finally {
+          channel.close();
+        }
       } finally {
         stream.close();
       }

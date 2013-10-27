@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.Locale;
 
 import org.xml.sax.Attributes;
@@ -87,7 +88,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public byte[] getTrackContent(int id) throws IOException {
+  public ByteBuffer getTrackContent(int id) throws IOException {
     try {
       final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
       final HttpURLConnection connection = connect(query);
@@ -276,14 +277,14 @@ final class RemoteCatalog extends Catalog {
     return new RootElement("zxtunes");
   }
 
-  private static byte[] getContent(HttpURLConnection connection) throws IOException {
+  private static ByteBuffer getContent(HttpURLConnection connection) throws IOException {
     try {
       final int len = connection.getContentLength();
       final InputStream stream = connection.getInputStream();
-      final byte[] result = new byte[len];
+      final ByteBuffer result = ByteBuffer.allocateDirect(len);
       int received = 0;
       for (;;) {
-        final int chunk = stream.read(result, received, len - received);
+        final int chunk = stream.read(result.array(), received, len - received);
         if (chunk <= 0) {
           break;
         }

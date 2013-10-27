@@ -7,6 +7,7 @@
 package app.zxtune.fs;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public interface VfsFile extends VfsObject {
 
@@ -18,5 +19,5 @@ public interface VfsFile extends VfsObject {
   /**
    * @return Raw file content
    */
-  public byte[] getContent() throws IOException;
+  public ByteBuffer getContent() throws IOException;
 }
