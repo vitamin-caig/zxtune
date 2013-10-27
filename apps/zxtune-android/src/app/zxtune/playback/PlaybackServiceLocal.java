@@ -12,7 +12,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
@@ -139,6 +141,11 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       oldHolder.release();
     }
   }
+  
+  private void saveProperty(String name, boolean value) {
+    final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    prefs.edit().putBoolean(name, value).commit();
+  }
 
   private static class Holder implements Releaseable {
 
@@ -208,6 +215,17 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       synchronized (PlaybackServiceLocal.this) {
         executeCommand(new PlayPrevCommand(holder.iterator));
       }
+    }
+
+    @Override
+    public boolean isLooped() {
+      final long val = ZXTune.GlobalOptions.instance().getProperty(ZXTune.Properties.Sound.LOOPED, 0);
+      return val != 0;
+    }
+    
+    public void setLooped(boolean looped) {
+      ZXTune.GlobalOptions.instance().setProperty(ZXTune.Properties.Sound.LOOPED, looped ? 1 : 0);
+      saveProperty(ZXTune.Properties.Sound.LOOPED, looped);
     }
   }
   

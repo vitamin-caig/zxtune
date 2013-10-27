@@ -88,6 +88,11 @@ public final class ZXTune {
        */
       public final static String FRAMEDURATION = PREFIX + "frameduration";
       public final static long FRAMEDURATION_DEFAULT = 20000;
+      
+      /**
+       * Loop mode
+       */
+      public final static String LOOPED = PREFIX + "looped";
     }
 
     /**

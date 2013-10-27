@@ -21,4 +21,10 @@
     style="@style/button"
     android:layout_weight="1"
     />
+  <ImageButton
+    android:id="@+id/controls_loop"
+    android:src="@drawable/ic_sequence"
+    style="@style/button"
+    android:layout_weight="1"
+    />
 </LinearLayout>

@@ -185,6 +185,25 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.e(TAG, "prev()", e);
       }
     }
+    
+    @Override
+    public boolean isLooped() {
+      try {
+        return delegate.isLooped();
+      } catch (RemoteException e) {
+        Log.e(TAG, "isLooped()", e);
+        return false;
+      }
+    }
+    
+    @Override
+    public void setLooped(boolean looped) {
+      try {
+        delegate.setLooped(looped);
+      } catch (RemoteException e) {
+        Log.e(TAG, "setLooped()", e);
+      }
+    }
   }
   
   private class SeekControlClient implements SeekControl {

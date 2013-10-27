@@ -91,6 +91,16 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   }
   
   @Override
+  public boolean isLooped() {
+    return playback.isLooped();
+  }
+  
+  @Override
+  public void setLooped(boolean looped) {
+    playback.setLooped(looped);
+  }
+  
+  @Override
   public long getDuration() {
     return seek.getDuration().convertTo(TimeUnit.MILLISECONDS);
   }

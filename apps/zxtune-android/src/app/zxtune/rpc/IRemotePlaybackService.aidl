@@ -26,6 +26,8 @@ interface IRemotePlaybackService {
   boolean isPlaying();
   void next();
   void prev();
+  boolean isLooped();
+  void setLooped(boolean val);
   
   //SeekControl
   long getDuration();

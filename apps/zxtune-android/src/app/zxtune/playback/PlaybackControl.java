@@ -32,4 +32,14 @@ public interface PlaybackControl {
    * Play previous item in sequence
    */
   public void prev();
+  
+  /*
+   * @return true if playback is looped
+   */
+  public boolean isLooped();
+  
+  /*
+   * Set loop mode
+   */
+  public void setLooped(boolean looped);
 }
