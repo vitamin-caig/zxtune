@@ -16,10 +16,12 @@ Author:
 #define ZXTUNE_QT_PLAYLIST_SUPP_DATA_H_DEFINED
 
 //common includes
-#include <parameters.h>
-#include <time_duration.h>
+#include <error.h>
+#include <iterator.h>
 //library includes
 #include <core/module_holder.h>
+#include <parameters/container.h>
+#include <time/duration.h>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -35,10 +37,10 @@ namespace Playlist
       virtual ~Data() {}
 
       //common
-      virtual ZXTune::Module::Holder::Ptr GetModule() const = 0;
+      virtual Module::Holder::Ptr GetModule() const = 0;
       virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
       //playlist-related
-      virtual bool IsValid() const = 0;
+      virtual Error GetState() const = 0;
       virtual String GetFullPath() const = 0;
       virtual String GetType() const = 0;
       virtual String GetDisplayName() const = 0;
@@ -50,13 +52,7 @@ namespace Playlist
       virtual std::size_t GetSize() const = 0;
     };
 
-    class Callback
-    {
-    public:
-      virtual ~Callback() {}
-
-      virtual void OnItem(Item::Data::Ptr data) = 0;
-    };
+    typedef ObjectIterator<Data::Ptr> Collection;
   }
 }
 

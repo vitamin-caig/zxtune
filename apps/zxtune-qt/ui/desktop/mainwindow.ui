@@ -76,6 +76,8 @@
     <addaction name="actionAbout"/>
     <addaction name="actionAboutQt"/>
     <addaction name="separator"/>
+    <addaction name="actionCheckUpdates"/>
+    <addaction name="separator"/>
     <addaction name="actionOnlineHelp"/>
     <addaction name="actionWebSite"/>
     <addaction name="actionOnlineFAQ"/>
@@ -174,6 +176,16 @@
    </property>
    <property name="text">
     <string>Report bug online</string>
+   </property>
+  </action>
+  <action name="actionCheckUpdates">
+   <property name="icon">
+    <iconset>
+     <normalon>:/application/checkupdates.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Check updates</string>
    </property>
   </action>
   <action name="actionComponents">

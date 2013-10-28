@@ -15,7 +15,7 @@ Author:
 //common includes
 #include <byteorder.h>
 //library includes
-#include <formats/packed_decoders.h>
+#include <formats/packed/decoders.h>
 //std includes
 #include <cstring>
 //boost includes
@@ -149,7 +149,7 @@ namespace Hrip
     const std::size_t availSize = data.Size();
     uint_t files = 0;
     std::size_t archiveSize = 0;
-    if (!FastCheck(data.Data(), availSize, files, archiveSize))
+    if (!FastCheck(data.Start(), availSize, files, archiveSize))
     {
       return Archived::Container::Ptr();
     }
@@ -161,7 +161,7 @@ namespace Hrip
       const Binary::Container::Ptr source = data.GetSubcontainer(rawOffset, sourceSize);
       if (const Formats::Packed::Container::Ptr target = decoder->Decode(*source))
       {
-        const String fileName = ExtractFileName(source->Data());
+        const String fileName = ExtractFileName(source->Start());
         const std::size_t fileSize = target->Size();
         const std::size_t usedSize = target->PackedSize();
         const TRDos::File::Ptr file = TRDos::File::Create(target, fileName, flatOffset, fileSize);

@@ -14,8 +14,6 @@
 //common includes
 #include <iterator.h>
 #include <types.h>
-//std includes
-#include <memory>
 //boost includes
 #include <boost/shared_ptr.hpp>
 
@@ -42,6 +40,7 @@ namespace ZXTune
   };
 
   Plugin::Iterator::Ptr EnumeratePlugins();
+  Plugin::Ptr FindPlugin(const String& id);
 }
 
 #endif //__CORE_PLUGIN_H_DEFINED__

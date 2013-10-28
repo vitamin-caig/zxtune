@@ -13,35 +13,30 @@ Author:
 #ifndef __AYM_PARAMETERS_HELPER_H_DEFINED__
 #define __AYM_PARAMETERS_HELPER_H_DEFINED__
 
-//common includes
-#include <parameters.h>
 //library includes
 #include <core/freq_tables.h>
 #include <core/module_types.h>
-#include <devices/aym.h>
+#include <devices/aym/chip.h>
+#include <parameters/accessor.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace AYM
   {
-    namespace AYM
+    Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+
+    class TrackParameters
     {
-      Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+    public:
+      typedef boost::shared_ptr<const TrackParameters> Ptr;
 
-      class TrackParameters
-      {
-      public:
-        typedef boost::shared_ptr<const TrackParameters> Ptr;
+      virtual ~TrackParameters() {}
 
-        virtual ~TrackParameters() {}
+      virtual uint_t Version() const = 0;
+      virtual void FreqTable(FrequencyTable& table) const = 0;
 
-        virtual uint_t FrameDurationMicrosec() const = 0;
-        virtual bool Looped() const = 0;
-        virtual const Module::FrequencyTable& FreqTable() const = 0;
-
-        static Ptr Create(Parameters::Accessor::Ptr params);
-      };
-    }
+      static Ptr Create(Parameters::Accessor::Ptr params);
+    };
   }
 }
 

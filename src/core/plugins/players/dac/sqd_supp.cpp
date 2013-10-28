@@ -10,176 +10,27 @@ Author:
 */
 
 //local includes
-#include "dac_base.h"
+#include "dac_plugin.h"
+#include "digital.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/utils.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/simple_orderlist.h"
 #include "core/plugins/players/tracking.h"
-#include "core/plugins/players/ay/ay_conversion.h"
-//common includes
-#include <byteorder.h>
-#include <debug_log.h>
-#include <error_tools.h>
-#include <tools.h>
 //library includes
-#include <core/convert_parameters.h>
-#include <core/core_parameters.h>
-#include <core/error_codes.h>
-#include <core/module_attrs.h>
-#include <core/plugin_attrs.h>
-//std includes
-#include <set>
-#include <utility>
-//boost includes
-#include <boost/bind.hpp>
-//text includes
-#include <formats/text/chiptune.h>
+#include <devices/dac/sample_factories.h>
+#include <formats/chiptune/decoders.h>
+#include <formats/chiptune/digital/sqdigitaltracker.h>
 
-#define FILE_TAG 44AA4DF8
-
-namespace
+namespace Module
 {
-  const Debug::Stream Dbg("Core::SQDSupp");
-}
-
-namespace SQD
+namespace SQDigitalTracker
 {
-  const std::size_t MAX_MODULE_SIZE = 0x4400 + 8 * 0x4000;
-  const std::size_t MAX_POSITIONS_COUNT = 100;
-  const std::size_t MAX_PATTERN_SIZE = 64;
-  const std::size_t PATTERNS_COUNT = 32;
   const std::size_t CHANNELS_COUNT = 4;
-  const std::size_t SAMPLES_COUNT = 16;
 
-  //all samples has base freq at 4kHz (C-1)
-  const uint_t BASE_FREQ = 4000;
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct Pattern
-  {
-    PACK_PRE struct Line
-    {
-      PACK_PRE struct Channel
-      {
-        uint8_t NoteCmd;
-        uint8_t SampleEffect;
-
-        bool IsEmpty() const
-        {
-          return 0 == NoteCmd;
-        }
-
-        bool IsRest() const
-        {
-          return 61 == NoteCmd;
-        }
-
-        const uint8_t* GetNewTempo() const
-        {
-          return 62 == NoteCmd
-            ? &SampleEffect : 0;
-        }
-
-        bool IsEndOfPattern() const
-        {
-          return 63 == NoteCmd;
-        }
-
-        const uint8_t* GetVolumeSlidePeriod() const
-        {
-          return 64 == NoteCmd
-            ? &SampleEffect : 0;
-        }
-
-        uint_t GetVolumeSlideDirection() const
-        {
-          return NoteCmd >> 6;
-        }
-
-        uint_t GetNote() const
-        {
-          return (NoteCmd & 63) - 1;
-        }
-
-        uint_t GetSample() const
-        {
-          return SampleEffect & 15;
-        }
-
-        uint_t GetSampleVolume() const
-        {
-          return SampleEffect >> 4;
-        }
-      } PACK_POST;
-
-      Channel Channels[CHANNELS_COUNT];
-    } PACK_POST;
-
-    Line Lines[MAX_PATTERN_SIZE];
-  } PACK_POST;
-
-  PACK_PRE struct SampleInfo
-  {
-    uint16_t Start;
-    uint16_t Loop;
-    uint8_t IsLooped;
-    uint8_t Bank;
-    uint8_t Padding[2];
-  } PACK_POST;
-
-  PACK_PRE struct LayoutInfo
-  {
-    uint16_t Address;
-    uint8_t Bank;
-    uint8_t Sectors;
-  } PACK_POST;
-
-  PACK_PRE struct Header
-  {
-    //+0
-    uint8_t SamplesData[0x80];
-    //+0x80
-    uint8_t Banks[0x40];
-    //+0xc0
-    boost::array<LayoutInfo, 8> Layouts;
-    //+0xe0
-    uint8_t Padding1[0x20];
-    //+0x100
-    boost::array<char, 0x20> Title;
-    //+0x120
-    SampleInfo Samples[SAMPLES_COUNT];
-    //+0x1a0
-    boost::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
-    //+0x204
-    uint8_t PositionsLimit;
-    //+0x205
-    uint8_t Padding2[0xb];
-    //+0x210
-    uint8_t Tempo;
-    //+0x211
-    uint8_t Loop;
-    //+0x212
-    uint8_t Length;
-    //+0x213
-    uint8_t Padding3[0xed];
-    //+0x300
-    boost::array<uint8_t, 8> SampleNames[SAMPLES_COUNT];
-    //+0x380
-    uint8_t Padding4[0x80];
-    //+0x400
-    boost::array<Pattern, PATTERNS_COUNT> Patterns;
-    //+0x4400
-  } PACK_POST;
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  BOOST_STATIC_ASSERT(sizeof(Header) == 0x4400);
-
+  const uint64_t Z80_FREQ = 3500000;
+  const uint_t TICKS_PER_CYCLE = 346;
+  const uint_t C_1_STEP = 44;
+  const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
+  
   //supported tracking commands
   enum CmdType
   {
@@ -191,547 +42,300 @@ namespace SQD
     VOLUME_SLIDE,
   };
 
-  const std::size_t BIG_SAMPLE_ADDR = 0x8000;
-  const std::size_t SAMPLES_ADDR = 0xc000;
-  const std::size_t SAMPLES_LIMIT = 0x10000;
+  typedef DAC::ModuleData ModuleData;
 
-  struct Sample
+  class DataBuilder : public Formats::Chiptune::SQDigitalTracker::Builder
   {
-    Dump Data;
-    std::size_t Loop;
-
-    Sample()
-      : Loop()
-    {
-    }
-  };
-}
-
-namespace
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //stub for ornament
-  struct VoidType {};
-
-  typedef TrackingSupport<SQD::CHANNELS_COUNT, SQD::CmdType, SQD::Sample, VoidType> SQDTrack;
-
-  // perform module 'playback' right after creating (debug purposes)
-  #ifndef NDEBUG
-  #define SELF_TEST
-  #endif
-
-  Renderer::Ptr CreateSQDRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device);
-
-  class SQDHolder : public Holder
-  {
-    static void ParsePattern(const SQD::Pattern& src, SQDTrack::Pattern& res)
-    {
-      SQDTrack::Pattern result;
-      bool end = false;
-      for (uint_t lineNum = 0; !end && lineNum != SQD::MAX_PATTERN_SIZE; ++lineNum)
-      {
-        const SQD::Pattern::Line& srcLine = src.Lines[lineNum];
-        SQDTrack::Line& dstLine = result.AddLine();
-        for (uint_t chanNum = 0; chanNum != SQD::CHANNELS_COUNT; ++chanNum)
-        {
-          const SQD::Pattern::Line::Channel& srcChan = srcLine.Channels[chanNum];
-          if (srcChan.IsEmpty())
-          {
-            continue;
-          }
-          else if (srcChan.IsEndOfPattern())
-          {
-            end = true;
-            break;
-          }
-          else if (const uint8_t* newTempo = srcChan.GetNewTempo())
-          {
-            dstLine.SetTempo(*newTempo);
-            continue;
-          }
-
-          SQDTrack::Line::Chan& dstChan = dstLine.Channels[chanNum];
-          if (srcChan.IsRest())
-          {
-            dstChan.SetEnabled(false);
-          }
-          else
-          {
-            dstChan.SetEnabled(true);
-            dstChan.SetNote(srcChan.GetNote());
-            dstChan.SetSample(srcChan.GetSample());
-            dstChan.SetVolume(srcChan.GetSampleVolume());
-            if (const uint8_t* newPeriod = srcChan.GetVolumeSlidePeriod())
-            {
-              dstChan.Commands.push_back(SQDTrack::Command(SQD::VOLUME_SLIDE_PERIOD, *newPeriod));
-            }
-            if (const uint_t slideDirection = srcChan.GetVolumeSlideDirection())
-            {
-              dstChan.Commands.push_back(SQDTrack::Command(SQD::VOLUME_SLIDE, 1 == slideDirection ? -1 : 1));
-            }
-          }
-        }
-      }
-      result.Swap(res);
-    }
-
   public:
-    SQDHolder(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize)
-      : Data(SQDTrack::ModuleData::Create())
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, SQD::CHANNELS_COUNT))
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
+      , Properties(props)
+      , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
     {
-      //assume data is correct
-      const IO::FastDump& data(*rawData);
-      const SQD::Header* const header(safe_ptr_cast<const SQD::Header*>(data.Data()));
-
-      //fill order
-      const uint_t positionsCount = header->Length;
-      Data->Positions.resize(positionsCount);
-      std::copy(header->Positions.begin(), header->Positions.begin() + positionsCount, Data->Positions.begin());
-
-      //fill patterns
-      const std::size_t patternsCount = 1 + *std::max_element(Data->Positions.begin(), Data->Positions.end());
-      Data->Patterns.resize(patternsCount);
-      for (std::size_t patIdx = 0; patIdx < std::min(patternsCount, SQD::PATTERNS_COUNT); ++patIdx)
-      {
-        ParsePattern(header->Patterns[patIdx], Data->Patterns[patIdx]);
-      }
-
-      std::size_t lastData = sizeof(*header);
-      //bank => <offset, size>
-      typedef std::map<std::size_t, std::pair<std::size_t, std::size_t> > Bank2OffsetAndSize;
-      Bank2OffsetAndSize regions;
-      for (std::size_t layIdx = 0; layIdx != header->Layouts.size(); ++layIdx)
-      {
-        const SQD::LayoutInfo& layout = header->Layouts[layIdx];
-        const std::size_t addr = fromLE(layout.Address);
-        const std::size_t size = 256 * layout.Sectors;
-        if (addr >= SQD::BIG_SAMPLE_ADDR && addr + size <= SQD::SAMPLES_LIMIT)
-        {
-          regions[layout.Bank] = std::make_pair(lastData, size);
-        }
-        lastData += size;
-      }
-
-      //fill samples
-      Data->Samples.resize(SQD::SAMPLES_COUNT);
-      for (uint_t samIdx = 0; samIdx != SQD::SAMPLES_COUNT; ++samIdx)
-      {
-        const SQD::SampleInfo& srcSample = header->Samples[samIdx];
-        const std::size_t addr = fromLE(srcSample.Start);
-        if (addr < SQD::BIG_SAMPLE_ADDR)
-        {
-          continue;
-        }
-        const std::size_t sampleBase = addr < SQD::SAMPLES_ADDR
-          ? SQD::BIG_SAMPLE_ADDR
-          : SQD::SAMPLES_ADDR;
-        const std::size_t loop = fromLE(srcSample.Loop);
-        if (loop < addr)
-        {
-          continue;
-        }
-        const Bank2OffsetAndSize::const_iterator it = regions.find(srcSample.Bank);
-        if (it == regions.end())
-        {
-          continue;
-        }
-        const std::size_t size = std::min(SQD::SAMPLES_LIMIT - addr, it->second.second);//TODO: get from samples layout
-        const std::size_t sampleOffset = it->second.first + addr - sampleBase;
-        const uint8_t* const sampleStart = &data[sampleOffset];
-        const uint8_t* const sampleEnd = sampleStart + size;
-        SQD::Sample& dstSample = Data->Samples[samIdx];
-        dstSample.Data.assign(sampleStart, std::find(sampleStart, sampleEnd, 0));
-        dstSample.Loop = srcSample.IsLooped ? loop - sampleBase : dstSample.Data.size();
-      }
-      Data->LoopPosition = header->Loop;
-      Data->InitialTempo = header->Tempo;
-
-      usedSize = lastData;
-
-      //meta properties
-      {
-        const ModuleRegion fixedRegion(offsetof(SQD::Header, Patterns), sizeof(header->Patterns));
-        Properties->SetSource(usedSize, fixedRegion);
-      }
-      const String title = *header->Title.begin() == '|' && *header->Title.rbegin() == '|'
-        ? String(header->Title.begin() + 1, header->Title.end() - 1)
-        : String(header->Title.begin(), header->Title.end());
-      Properties->SetTitle(OptimizeString(title));
-      Properties->SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
+      Data->Patterns = Patterns.GetResult();
+      Properties.SetSamplesFreq(SAMPLES_FREQ);
     }
 
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
       return Properties;
     }
 
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
+    virtual void SetInitialTempo(uint_t tempo)
     {
-      const uint_t totalSamples = static_cast<uint_t>(Data->Samples.size());
-
-      const Devices::DAC::Receiver::Ptr receiver = DAC::CreateReceiver(target, SQD::CHANNELS_COUNT);
-      const Devices::DAC::ChipParameters::Ptr chipParams = DAC::CreateChipParameters(params);
-      const Devices::DAC::Chip::Ptr chip(Devices::DAC::CreateChip(SQD::CHANNELS_COUNT, totalSamples, SQD::BASE_FREQ, chipParams, receiver));
-      for (uint_t idx = 0; idx != totalSamples; ++idx)
-      {
-        const SQD::Sample& smp(Data->Samples[idx]);
-        if (const std::size_t size = smp.Data.size())
-        {
-          chip->SetSample(idx, smp.Data, smp.Loop);
-        }
-      }
-      return CreateSQDRenderer(params, Info, Data, chip);
+      Data->InitialTempo = tempo;
     }
 
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
+    virtual void SetSample(uint_t index, std::size_t loop, Binary::Data::Ptr sample)
     {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
-      {
-        Properties->GetData(dst);
-      }
-      else
-      {
-        return CreateUnsupportedConversionError(THIS_LINE, spec);
-      }
-      return Error();
+      Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
+    }
+
+    virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
+    {
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
+    }
+
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
+    {
+      Patterns.SetPattern(index);
+      return Patterns;
+    }
+
+    virtual void StartChannel(uint_t index)
+    {
+      Patterns.SetChannel(index);
+    }
+
+    virtual void SetRest()
+    {
+      Patterns.GetChannel().SetEnabled(false);
+    }
+
+    virtual void SetNote(uint_t note)
+    {
+      Patterns.GetChannel().SetEnabled(true);
+      Patterns.GetChannel().SetNote(note);
+    }
+
+    virtual void SetSample(uint_t sample)
+    {
+      Patterns.GetChannel().SetSample(sample);
+    }
+
+    virtual void SetVolume(uint_t volume)
+    {
+      Patterns.GetChannel().SetVolume(volume);
+    }
+
+    virtual void SetVolumeSlidePeriod(uint_t period)
+    {
+      Patterns.GetChannel().AddCommand(VOLUME_SLIDE_PERIOD, period);
+    }
+
+    virtual void SetVolumeSlideDirection(int_t direction)
+    {
+      Patterns.GetChannel().AddCommand(VOLUME_SLIDE, direction);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    const SQDTrack::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    const Information::Ptr Info;
+    const boost::shared_ptr<ModuleData> Data;
+    PropertiesBuilder& Properties;
+    PatternsBuilder Patterns;
   };
 
-  class SQDRenderer : public Renderer
+  struct VolumeState
   {
-    struct VolumeState
+    VolumeState()
+      : Value(16)
+      , SlideDirection(0)
+      , SlideCounter(0)
+      , SlidePeriod(0)
     {
-      VolumeState()
-        : Value(16)
-        , SlideDirection(0)
-        , SlideCounter(0)
-        , SlidePeriod(0)
-      {
-      }
+    }
 
-      int_t Value;
-      int_t SlideDirection;
-      uint_t SlideCounter;
-      uint_t SlidePeriod;
-    };
+    int_t Value;
+    int_t SlideDirection;
+    uint_t SlideCounter;
+    uint_t SlidePeriod;
+
+    bool Update()
+    {
+      if (SlideDirection && !--SlideCounter)
+      {
+        Value += SlideDirection;
+        SlideCounter = SlidePeriod;
+        if (-1 == SlideDirection && -1 == Value)
+        {
+          Value = 0;
+        }
+        else if (Value == 17)
+        {
+          Value = 16;
+        }
+        return true;
+      }
+      return false;
+    }
+
+    void Reset()
+    {
+      SlideDirection = 0;
+      SlideCounter = 0;
+    }
+  };
+
+  class DataRenderer : public DAC::DataRenderer
+  {
   public:
-    SQDRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
+    explicit DataRenderer(ModuleData::Ptr data)
       : Data(data)
-      , Params(DAC::TrackParameters::Create(params))
-      , Device(device)
-      , Iterator(CreateTrackStateIterator(info, Data))
-      , LastRenderTime(0)
     {
-#ifdef SELF_TEST
-//perform self-test
-      Devices::DAC::DataChunk chunk;
-      while (Iterator->IsValid())
-      {
-        RenderData(chunk);
-        Iterator->NextFrame(false);
-      }
       Reset();
-#endif
-    }
-
-    virtual TrackState::Ptr GetTrackState() const
-    {
-      return Iterator->GetStateObserver();
-    }
-
-    virtual Analyzer::Ptr GetAnalyzer() const
-    {
-      return DAC::CreateAnalyzer(Device);
-    }
-
-    virtual bool RenderFrame()
-    {
-      if (Iterator->IsValid())
-      {
-        LastRenderTime += Params->FrameDurationMicrosec();
-        Devices::DAC::DataChunk chunk;
-        RenderData(chunk);
-        chunk.TimeInUs = LastRenderTime;
-        Device->RenderData(chunk);
-        Iterator->NextFrame(Params->Looped());
-      }
-      return Iterator->IsValid();
     }
 
     virtual void Reset()
     {
-      Device->Reset();
-      Iterator->Reset();
-      LastRenderTime = 0;
+      std::fill(Volumes.begin(), Volumes.end(), VolumeState());
     }
 
-    virtual void SetPosition(uint_t frame)
+    virtual void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track)
     {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      if (frame < state->Frame())
+      SynthesizeChannelsData(track);
+      if (0 == state.Quirk())
       {
-        //reset to beginning in case of moving back
-        Iterator->Reset();
-      }
-      //fast forward
-      Devices::DAC::DataChunk chunk;
-      while (state->Frame() < frame && Iterator->IsValid())
-      {
-        //do not update tick for proper rendering
-        RenderData(chunk);
-        Iterator->NextFrame(false);
+        GetNewLineState(state, track);
       }
     }
-
   private:
-    void RenderData(Devices::DAC::DataChunk& chunk)
+    void SynthesizeChannelsData(DAC::TrackBuilder& track)
     {
-      std::vector<Devices::DAC::DataChunk::ChannelData> res;
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      const SQDTrack::Line* const line = Data->Patterns[state->Pattern()].GetLine(state->Line());
-      for (uint_t chan = 0; chan != SQD::CHANNELS_COUNT; ++chan)
+      for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         VolumeState& vol = Volumes[chan];
-        Devices::DAC::DataChunk::ChannelData dst;
-        dst.Channel = chan;
-        if (vol.SlideDirection && !--vol.SlideCounter)
+        if (vol.Update())
         {
-          vol.Value += vol.SlideDirection;
-          vol.SlideCounter = vol.SlidePeriod;
-          if (-1 == vol.SlideDirection && -1 == vol.Value)
-          {
-            vol.Value = 0;
-          }
-          else if (vol.Value == 17)
-          {
-            vol.Value = 16;
-          }
-          dst.LevelInPercents = 100 * vol.Value / 16;
+          DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+          builder.SetLevelInPercents(100 * vol.Value / 16);
         }
-        //begin note
-        if (line && 0 == state->Quirk())
-        {
-          vol.SlideDirection = 0;
-          vol.SlideCounter = 0;
+      }
+    }
 
-          const SQDTrack::Line::Chan& src = line->Channels[chan];
-          Devices::DAC::DataChunk::ChannelData dst;
-          dst.Channel = chan;
-          if (src.Enabled)
+    void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
+    {
+      std::for_each(Volumes.begin(), Volumes.end(), std::mem_fun_ref(&VolumeState::Reset));
+      if (const Line::Ptr line = state.LineObject())
+      {
+        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+        {
+          if (const Cell::Ptr src = line->GetChannel(chan))
           {
-            if (!(dst.Enabled = *src.Enabled))
-            {
-              dst.PosInSample = 0;
-            }
-          }
-          if (src.Note)
-          {
-            dst.Note = *src.Note;
-            dst.PosInSample = 0;
-          }
-          if (src.SampleNum)
-          {
-            dst.SampleNum = *src.SampleNum;
-            dst.PosInSample = 0;
-          }
-          if (src.Volume)
-          {
-            vol.Value = *src.Volume;
-            dst.LevelInPercents = 100 * vol.Value / 16;
-          }
-          for (SQDTrack::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
-          {
-            switch (it->Type)
-            {
-            case SQD::VOLUME_SLIDE_PERIOD:
-              vol.SlideCounter = vol.SlidePeriod = it->Param1;
-              break;
-            case SQD::VOLUME_SLIDE:
-              vol.SlideDirection = it->Param1;
-              break;
-            default:
-              assert(!"Invalid command");
-            }
-          }
-          //store if smth new
-          if (dst.Enabled || dst.Note || dst.SampleNum || dst.PosInSample || dst.LevelInPercents)
-          {
-            res.push_back(dst);
+            DAC::ChannelDataBuilder builder = track.GetChannel(chan);
+            GetNewChannelState(*src, Volumes[chan], builder);
           }
         }
       }
-      chunk.Channels.swap(res);
+    }
+
+    void GetNewChannelState(const Cell& src, VolumeState& vol, DAC::ChannelDataBuilder& builder)
+    {
+      if (const bool* enabled = src.GetEnabled())
+      {
+        builder.SetEnabled(*enabled);
+        if (!*enabled)
+        {
+          builder.SetPosInSample(0);
+        }
+      }
+      if (const uint_t* note = src.GetNote())
+      {
+        builder.SetNote(*note);
+        builder.SetPosInSample(0);
+      }
+      if (const uint_t* sample = src.GetSample())
+      {
+        builder.SetSampleNum(*sample);
+        builder.SetPosInSample(0);
+      }
+      if (const uint_t* volume = src.GetVolume())
+      {
+        vol.Value = *volume;
+        builder.SetLevelInPercents(100 * vol.Value / 16);
+      }
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
+      {
+        switch (it->Type)
+        {
+        case VOLUME_SLIDE_PERIOD:
+          vol.SlideCounter = vol.SlidePeriod = it->Param1;
+          break;
+        case VOLUME_SLIDE:
+          vol.SlideDirection = it->Param1;
+          break;
+        default:
+          assert(!"Invalid command");
+        }
+      }
     }
   private:
-    const SQDTrack::ModuleData::Ptr Data;
-    const DAC::TrackParameters::Ptr Params;
-    const Devices::DAC::Chip::Ptr Device;
-    const StateIterator::Ptr Iterator;
-    boost::array<VolumeState, SQD::CHANNELS_COUNT> Volumes;
-    uint64_t LastRenderTime;
+    const ModuleData::Ptr Data;
+    boost::array<VolumeState, CHANNELS_COUNT> Volumes;
   };
 
-  Renderer::Ptr CreateSQDRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, SQDTrack::ModuleData::Ptr data, Devices::DAC::Chip::Ptr device)
-  {
-    return Renderer::Ptr(new SQDRenderer(params, info, data, device));
-  }
-
-  bool CheckSQD(const Binary::Container& data)
-  {
-    //check for header
-    const std::size_t size(data.Size());
-    if (sizeof(SQD::Header) > size)
-    {
-      return false;
-    }
-    const SQD::Header* const header(safe_ptr_cast<const SQD::Header*>(data.Data()));
-    //check layout
-    std::size_t lastData = sizeof(*header);
-    std::set<uint_t> banks, bigBanks;
-    for (std::size_t layIdx = 0; layIdx != header->Layouts.size(); ++layIdx)
-    {
-      const SQD::LayoutInfo& layout = header->Layouts[layIdx];
-      const std::size_t addr = fromLE(layout.Address);
-      const std::size_t size = 256 * layout.Sectors;
-      if (addr + size > SQD::SAMPLES_LIMIT)
-      {
-        continue;
-      }
-      if (addr >= SQD::SAMPLES_ADDR)
-      {
-        banks.insert(layout.Bank);
-      }
-      else if (addr >= SQD::BIG_SAMPLE_ADDR)
-      {
-        bigBanks.insert(layout.Bank);
-      }
-      lastData += size;
-    }
-    if (lastData > size)
-    {
-      return false;
-    }
-    if (bigBanks.size() > 1)
-    {
-      return false;
-    }
-
-    //check samples
-    for (uint_t samIdx = 0; samIdx != SQD::SAMPLES_COUNT; ++samIdx)
-    {
-      const SQD::SampleInfo& srcSample = header->Samples[samIdx];
-      const std::size_t addr = fromLE(srcSample.Start);
-      if (addr < SQD::BIG_SAMPLE_ADDR)
-      {
-        continue;
-      }
-      const std::size_t loop = fromLE(srcSample.Loop);
-      if (loop < addr)
-      {
-        return false;
-      }
-      const bool bigSample = addr < SQD::SAMPLES_ADDR;
-      if (!(bigSample ? bigBanks : banks).count(srcSample.Bank))
-      {
-        return false;
-      }
-    }
-    return true;
-  }
-}
-
-namespace
-{
-  using namespace ZXTune;
-
-  //plugin attributes
-  const Char ID[] = {'S', 'Q', 'D', 0};
-  const Char* const INFO = Text::SQDIGITALTRACKER_DECODER_DESCRIPTION;
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_4DAC | CAP_CONV_RAW;
-
-
-  const std::string SQD_FORMAT(
-    "?{192}"
-    //layouts
-    "(0080-c0 58-5f 01-80){8}"
-    "?{32}"
-    //title
-    "20-7f{32}"
-    "?{128}"
-    //positions
-    "00-1f{100}"
-    "ff"
-    "?{11}"
-    //tempo???
-    "02-10"
-    //loop
-    "00-63"
-    //length
-    "01-64"
-  );
-
-  class SQDModulesFactory : public ModulesFactory
+  class Chiptune : public DAC::Chiptune
   {
   public:
-    SQDModulesFactory()
-      : Format(Binary::Format::Create(SQD_FORMAT))
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
+    virtual Information::Ptr GetInformation() const
     {
-      return Format->Match(inputData.Data(), inputData.Size()) && CheckSQD(inputData);
+      return Info;
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
-      return Format;
+      return Properties;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr data, std::size_t& usedSize) const
+    virtual DAC::DataIterator::Ptr CreateDataIterator() const
     {
-      try
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const DAC::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
+      return DAC::CreateDataIterator(iterator, renderer);
+    }
+
+    virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const
+    {
+      for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
-        assert(Check(*data));
-        const Holder::Ptr holder(new SQDHolder(properties, data, usedSize));
-        return holder;
+        chip->SetSample(idx, Data->Samples.Get(idx));
       }
-      catch (const Error&/*e*/)
-      {
-        Dbg("Failed to create holder");
-      }
-      return Holder::Ptr();
     }
   private:
-    const Binary::Format::Ptr Format;
+    const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
+    const Information::Ptr Info;
   };
+
+  class Factory : public DAC::Factory
+  {
+  public:
+    virtual DAC::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    {
+      DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SQDigitalTracker::Parse(rawData, dataBuilder))
+      {
+        propBuilder.SetSource(*container);
+        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
+      }
+      else
+      {
+        return DAC::Chiptune::Ptr();
+      }
+    }
+  };
+}
 }
 
 namespace ZXTune
 {
-  void RegisterSQDSupport(PluginsRegistrator& registrator)
+  void RegisterSQDSupport(PlayerPluginsRegistrator& registrator)
   {
-    const ModulesFactory::Ptr factory = boost::make_shared<SQDModulesFactory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, INFO, CAPS, factory);
+    //plugin attributes
+    const Char ID[] = {'S', 'Q', 'D', 0};
+
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQDigitalTrackerDecoder();
+    const Module::DAC::Factory::Ptr factory = boost::make_shared<Module::SQDigitalTracker::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

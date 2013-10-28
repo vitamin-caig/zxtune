@@ -13,18 +13,23 @@ Author:
 #include "location.h"
 #include "core/plugins/enumerator.h"
 //common includes
-#include <debug_log.h>
-#include <tools.h>
+#include <error_tools.h>
+//library includes
+#include <debug/log.h>
+#include <l10n/api.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
 #include <src/core/text/core.h>
+
+#define FILE_TAG BCCC5654
 
 namespace
 {
   using namespace ZXTune;
 
   const Debug::Stream Dbg("Core");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
 
   Analysis::Path::Ptr CreateEmptyPath()
   {
@@ -64,9 +69,39 @@ namespace
     const Binary::Container::Ptr Data;
   };
 
-  DataLocation::Ptr TryToOpenLocation(const PluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const Analysis::Path& subPath)
+  class GeneratedLocation : public DataLocation
   {
-    for (ArchivePlugin::Iterator::Ptr iter = plugins.EnumerateArchives(); iter->IsValid(); iter->Next())
+  public:
+    GeneratedLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
+      : Data(data)
+      , Path(Analysis::ParsePath(path, Text::MODULE_SUBPATH_DELIMITER[0]))
+      , Plugins(Analysis::ParsePath(plugin, Text::MODULE_CONTAINERS_DELIMITER[0]))
+    {
+    }
+
+    virtual Binary::Container::Ptr GetData() const
+    {
+      return Data;
+    }
+
+    virtual Analysis::Path::Ptr GetPath() const
+    {
+      return Path;
+    }
+
+    virtual Analysis::Path::Ptr GetPluginsChain() const
+    {
+      return Plugins;
+    }
+  private:
+    const Binary::Container::Ptr Data;
+    const Analysis::Path::Ptr Path;
+    const Analysis::Path::Ptr Plugins;
+  };
+
+  DataLocation::Ptr TryToOpenLocation(const ArchivePluginsEnumerator& plugins, const Parameters::Accessor& coreParams, DataLocation::Ptr location, const Analysis::Path& subPath)
+  {
+    for (ArchivePlugin::Iterator::Ptr iter = plugins.Enumerate(); iter->IsValid(); iter->Next())
     {
       const ArchivePlugin::Ptr plugin = iter->Get();
       if (DataLocation::Ptr result = plugin->Open(coreParams, location, subPath))
@@ -80,14 +115,14 @@ namespace
 
 namespace ZXTune
 {
-  DataLocation::Ptr CreateLocation(Parameters::Accessor::Ptr /*coreParams*/, Binary::Container::Ptr data)
+  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data)
   {
     return boost::make_shared<UnresolvedLocation>(data);
   }
 
   DataLocation::Ptr OpenLocation(Parameters::Accessor::Ptr coreParams, Binary::Container::Ptr data, const String& subpath)
   {
-    const PluginsEnumerator::Ptr usedPlugins = PluginsEnumerator::Create();
+    const ArchivePluginsEnumerator::Ptr usedPlugins = ArchivePluginsEnumerator::Create();
     DataLocation::Ptr resolvedLocation = boost::make_shared<UnresolvedLocation>(data);
     const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath, Text::MODULE_SUBPATH_DELIMITER[0]);
     for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty(); unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
@@ -96,11 +131,15 @@ namespace ZXTune
       Dbg("Resolving '%1%'", toResolve);
       if (!(resolvedLocation = TryToOpenLocation(*usedPlugins, *coreParams, resolvedLocation, *unresolved)))
       {
-        Dbg("Failed to resolve subpath '%1%'", toResolve);
-        return DataLocation::Ptr();
+        throw MakeFormattedError(THIS_LINE, translate("Failed to resolve subpath '%1%'."), subpath);
       }
     }
     Dbg("Resolved '%1%'", subpath);
     return resolvedLocation;
+  }
+
+  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
+  {
+    return boost::make_shared<GeneratedLocation>(data, plugin, path);
   }
 }

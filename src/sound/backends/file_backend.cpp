@@ -12,40 +12,36 @@ Author:
 //local includes
 #include "file_backend.h"
 //common includes
-#include <debug_log.h>
-#include <template_parameters.h>
-#include <template_tools.h>
+#include <progress_callback.h>
 //library includes
 #include <async/data_receiver.h>
 #include <core/module_attrs.h>
-#include <io/fs_tools.h>
+#include <debug/log.h>
+#include <io/api.h>
+#include <io/providers_parameters.h>
+#include <io/template.h>
 #include <l10n/api.h>
+#include <parameters/convert.h>
+#include <parameters/template.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG B4CB6B0C
 
 namespace
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 }
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune;
-  using namespace Sound;
-
-  const Char FILENAME_PARAM[] = {'f', 'i', 'l', 'e', 'n', 'a', 'm', 'e', '\0'};
-  const Char OVERWRITE_PARAM[] = {'o', 'v', 'e', 'r', 'w', 'r', 'i', 't', 'e', '\0'};
-
-  const Char COMMON_FILE_BACKEND_ID[] = {'f', 'i', 'l', 'e', '\0'};
-
-  class StateFieldsSource : public SkipFieldsSource
+namespace File
+{
+  class StateFieldsSource : public Strings::SkipFieldsSource
   {
   public:
     explicit StateFieldsSource(const Module::TrackState& state)
@@ -67,7 +63,7 @@ namespace
       {
         return Parameters::ConvertToString(State.Line());
       }
-      return SkipFieldsSource::GetFieldValue(fieldName);
+      return Strings::SkipFieldsSource::GetFieldValue(fieldName);
     }
   private:
     const Module::TrackState& State;
@@ -77,11 +73,11 @@ namespace
   {
   public:
     explicit TrackStateTemplate(const String& templ)
-      : Template(StringTemplate::Create(templ))
+      : Template(Strings::Template::Create(templ))
       , CurPosition(HasField(templ, Module::ATTR_CURRENT_POSITION))
       , CurPattern(HasField(templ, Module::ATTR_CURRENT_PATTERN))
       , CurLine(HasField(templ, Module::ATTR_CURRENT_LINE))
-      , Result(Template->Instantiate(SkipFieldsSource()))
+      , Result(Template->Instantiate(Strings::SkipFieldsSource()))
     {
     }
 
@@ -126,7 +122,7 @@ namespace
       int_t Value;
     };
   private:
-    const StringTemplate::Ptr Template;
+    const Strings::Template::Ptr Template;
     mutable TrackableValue CurPosition;
     mutable TrackableValue CurPattern;
     mutable TrackableValue CurLine;
@@ -148,7 +144,7 @@ namespace
       if (nameTemplate.empty())
       {
         // Filename parameter is required
-        throw Error(THIS_LINE, BACKEND_INVALID_PARAMETER, translate("Output filename template is not specified."));
+        throw Error(THIS_LINE, translate("Output filename template is not specified."));
       }
       // check if required to add extension
       const String extension = Char('.') + Id;
@@ -158,12 +154,6 @@ namespace
         nameTemplate += extension;
       }
       return nameTemplate;
-    }
-
-    bool CheckIfRewrite() const
-    {
-      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::OVERWRITE.Name());
-      return intParam != 0;
     }
 
     uint_t GetBuffersCount() const
@@ -197,27 +187,12 @@ namespace
     const String Id;
   };
 
-  //keep only fields that not covered by modules' properties
-  class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<KeepFieldsSource<'[', ']'> >
-  {
-  public:
-    typedef Parameters::FieldsSourceAdapter<KeepFieldsSource<'[', ']'> > Parent;
-    explicit ModuleFieldsSource(const Parameters::Accessor& params)
-      : Parent(params)
-    {
-    }
-
-    String GetFieldValue(const String& fieldName) const
-    {
-      return IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
-    }
-  };
-
   String InstantiateModuleFields(const String& nameTemplate, const Parameters::Accessor& props)
   {
     Dbg("Original filename template: '%1%'", nameTemplate);
-    const ModuleFieldsSource moduleFields(props);
-    const String nameTemplateWithRuntimeFields = InstantiateTemplate(nameTemplate, moduleFields);
+    const Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource> moduleFields(props);
+    const Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
+    const String nameTemplateWithRuntimeFields = templ->Instantiate(moduleFields);
     Dbg("Fixed filename template: '%1%'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;
   }
@@ -225,46 +200,47 @@ namespace
   class StreamSource
   {
   public:
-    StreamSource(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory, Parameters::Accessor::Ptr properties)
-      : Params(params, factory->GetId())
+    StreamSource(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
+      : Params(params)
+      , FileParams(params, factory->GetId())
       , Factory(factory)
-      , Properties(properties)
-      , FilenameTemplate(InstantiateModuleFields(Params.GetFilenameTemplate(), *properties))
+      , FilenameTemplate(InstantiateModuleFields(FileParams.GetFilenameTemplate(), *Params))
     {
     }
 
-    ChunkStream::Ptr GetStream(const Module::TrackState& state) const
+    Receiver::Ptr GetStream(const Module::TrackState& state) const
     {
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
       {
+        const Binary::OutputStream::Ptr stream = IO::CreateStream(newFilename, *Params, Log::ProgressCallback::Stub());
         Filename = newFilename;
-        const FileStream::Ptr result = Factory->OpenStream(Filename, Params.CheckIfRewrite());
+        const FileStream::Ptr result = Factory->CreateStream(stream);
         SetProperties(*result);
-        if (const uint_t buffers = Params.GetBuffersCount())
+        if (const uint_t buffers = FileParams.GetBuffersCount())
         {
-          return Async::DataReceiver<ChunkPtr>::Create(1, buffers, result);
+          return Async::DataReceiver<Chunk::Ptr>::Create(1, buffers, result);
         }
         else
         {
           return result;
         }
       }
-      return ChunkStream::Ptr();
+      return Receiver::Ptr();
     }
   private:
     void SetProperties(FileStream& stream) const
     {
       Parameters::StringType str;
-      if (Properties->FindValue(Module::ATTR_TITLE, str) && !str.empty())
+      if (Params->FindValue(Module::ATTR_TITLE, str) && !str.empty())
       {
         stream.SetTitle(str);
       }
-      if (Properties->FindValue(Module::ATTR_AUTHOR, str) && !str.empty())
+      if (Params->FindValue(Module::ATTR_AUTHOR, str) && !str.empty())
       {
         stream.SetAuthor(str);
       }
-      if (Properties->FindValue(Module::ATTR_COMMENT, str) && !str.empty())
+      if (Params->FindValue(Module::ATTR_COMMENT, str) && !str.empty())
       {
         stream.SetComment(str);
       }
@@ -275,71 +251,64 @@ namespace
       stream.FlushMetadata();
     }
   private:
-    const FileParameters Params;
+    const Parameters::Accessor::Ptr Params;
+    const FileParameters FileParams;
     const FileStreamFactory::Ptr Factory;
-    const Parameters::Accessor::Ptr Properties;
     const TrackStateTemplate FilenameTemplate;
     mutable String Filename;
   };
 
-  class FileBackendWorker : public BackendWorker
+  class BackendWorker : public Sound::BackendWorker
   {
   public:
-    FileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
+    BackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
       : Params(params)
       , Factory(factory)
-      , Stream(ChunkStream::CreateStub())
+      , Stream(Receiver::CreateStub())
     {
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
+    //BackendWorker
+    virtual void Startup()
     {
-      // Does not support volume control
-      return VolumeControl::Ptr();
+      Source.reset(new StreamSource(Params, Factory));
     }
 
-    virtual void Test()
+    virtual void Shutdown()
     {
-      //TODO: check for write permissions
-    }
-
-    virtual void OnStartup(const Module::Holder& module)
-    {
-      const Parameters::Accessor::Ptr props = module.GetModuleProperties();
-      Source.reset(new StreamSource(Params, Factory, props));
-    }
-
-    virtual void OnShutdown()
-    {
-      SetStream(ChunkStream::CreateStub());
+      SetStream(Receiver::CreateStub());
       Source.reset();
     }
 
-    virtual void OnPause()
+    virtual void Pause()
     {
     }
 
-    virtual void OnResume()
+    virtual void Resume()
     {
     }
 
-    virtual void OnFrame(const Module::TrackState& state)
+    virtual void FrameStart(const Module::TrackState& state)
     {
-      if (ChunkStream::Ptr newStream = Source->GetStream(state))
+      if (const Receiver::Ptr newStream = Source->GetStream(state))
       {
         SetStream(newStream);
       }
     }
 
-    virtual void OnBufferReady(Chunk& buffer)
+    virtual void FrameFinish(Chunk::Ptr buffer)
     {
       assert(Stream);
-      const ChunkPtr chunk = boost::make_shared<Chunk>();
-      chunk->swap(buffer);
-      Stream->ApplyData(chunk);
+      Stream->ApplyData(buffer);
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
+    {
+      // Does not support volume control
+      return VolumeControl::Ptr();
     }
   private:
-    void SetStream(ChunkStream::Ptr str)
+    void SetStream(Receiver::Ptr str)
     {
       Stream->Flush();
       Stream = str;
@@ -348,17 +317,16 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const FileStreamFactory::Ptr Factory;
     std::auto_ptr<StreamSource> Source;
-    ChunkStream::Ptr Stream;
+    Receiver::Ptr Stream;
   };
-}
+}//File
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
   {
-    BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
-    {
-      return boost::make_shared<FileBackendWorker>(params, factory);
-    }
+    return boost::make_shared<File::BackendWorker>(params, factory);
   }
 }
+

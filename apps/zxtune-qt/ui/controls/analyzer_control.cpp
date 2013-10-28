@@ -14,6 +14,8 @@ Author:
 //local includes
 #include "analyzer_control.h"
 #include "supp/playback_supp.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <core/module_types.h>
 //std includes
@@ -24,6 +26,7 @@ Author:
 #include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QEvent>
+#include <QtCore/QTimer>
 #include <QtGui/QPaintEngine>
 
 namespace
@@ -58,11 +61,11 @@ namespace
 
   typedef boost::array<BandLevel, MAX_BANDS> Analyzed;
 
-  inline void StoreValue(const ZXTune::Module::Analyzer::BandAndLevel& chan, Analyzed& result)
+  inline void StoreValue(const Module::Analyzer::ChannelState& chan, Analyzed& result)
   {
-    if (chan.first < MAX_BANDS)
+    if (chan.Band < MAX_BANDS)
     {
-      result[chan.first].Set(chan.second);
+      result[chan.Band].Set(chan.Level);
     }
   }
   
@@ -79,16 +82,20 @@ namespace
       setObjectName(QLatin1String("AnalyzerControl"));
       SetTitle();
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
-      this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
-      this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
+      const unsigned UPDATE_FPS = 10;
+      Timer.setInterval(1000 / UPDATE_FPS);
+
+      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr))));
+      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
+      Require(connect(&Timer, SIGNAL(timeout()), SLOT(UpdateState())));
     }
 
-    virtual void InitState(ZXTune::Sound::Backend::Ptr player)
+    virtual void InitState(Sound::Backend::Ptr player)
     {
       Analyzer = player->GetAnalyzer();
       CloseState();
+      Timer.start();
     }
 
     virtual void UpdateState()
@@ -96,7 +103,7 @@ namespace
       if (isVisible())
       {
         std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Fall), LEVELS_FALLBACK));
-        Analyzer->BandLevels(State);
+        Analyzer->GetState(State);
         std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
         repaint();
       }
@@ -106,6 +113,7 @@ namespace
     {
       std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Set), 0));
       DoRepaint();
+      Timer.stop();
     }
 
     //QWidget
@@ -161,9 +169,10 @@ namespace
       }
     }
   private:
+    QTimer Timer;
     const QPalette Palette;
-    ZXTune::Module::Analyzer::Ptr Analyzer;
-    std::vector<ZXTune::Module::Analyzer::BandAndLevel> State;
+    Module::Analyzer::Ptr Analyzer;
+    std::vector<Module::Analyzer::ChannelState> State;
     Analyzed Levels;
   };
 }

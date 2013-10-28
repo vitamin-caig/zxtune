@@ -31,13 +31,14 @@ Author:
 #include "ui/tools/errordialog.h"
 #include "playlist/ui/container_view.h"
 #include "supp/playback_supp.h"
+#include "update/check.h"
 #include <apps/version/api.h>
 //common includes
 #include <contract.h>
-#include <debug_log.h>
-#include <format.h>
 //library includes
 #include <core/module_attrs.h>
+#include <debug/log.h>
+#include <strings/format.h>
 //boost includes
 #include <boost/bind.hpp>
 //qt includes
@@ -67,7 +68,7 @@ namespace
                        , public Ui::MainWindow
   {
   public:
-    MainWindowImpl(Parameters::Container::Ptr options, const StringArray& cmdline)
+    MainWindowImpl(Parameters::Container::Ptr options, const Strings::Array& cmdline)
       : Options(options)
       , Language(CreateLanguage(*options))
       , Playback(PlaybackSupport::Create(*this, Options))
@@ -109,17 +110,26 @@ namespace
       this->connect(actionReportBug, SIGNAL(triggered()), SLOT(ReportIssue()));
       this->connect(actionAboutQt, SIGNAL(triggered()), SLOT(ShowAboutQt()));
       this->connect(actionPreferences, SIGNAL(triggered()), SLOT(ShowPreferences()));
+      if (Update::CheckOperation* op = Update::CheckOperation::Create(*this))
+      {
+        Require(op->connect(actionCheckUpdates, SIGNAL(triggered()), SLOT(Execute())));
+        Require(this->connect(op, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
+      }
+      else
+      {
+        actionCheckUpdates->setEnabled(false);
+      }
 
       MultiPlaylist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev()));
       MultiPlaylist->connect(Controls, SIGNAL(OnNext()), SLOT(Next()));
-      MultiPlaylist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play()));
+      MultiPlaylist->connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play()));
       MultiPlaylist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play()));
       MultiPlaylist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause()));
       MultiPlaylist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop()));
       MultiPlaylist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish()));
       Require(Playback->connect(MultiPlaylist, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(SetItem(Playlist::Item::Data::Ptr))));
-      this->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
+      this->connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(StartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)));
       this->connect(Playback, SIGNAL(OnStopModule()), SLOT(StopModule()));
       Require(connect(Playback, SIGNAL(ErrorOccurred(const Error&)), SLOT(ShowError(const Error&))));
       this->connect(actionAddFiles, SIGNAL(triggered()), MultiPlaylist, SLOT(AddFiles()));
@@ -136,7 +146,7 @@ namespace
       }
     }
 
-    virtual void StartModule(ZXTune::Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
+    virtual void StartModule(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
       setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
         GetProgramTitle(),
@@ -178,7 +188,7 @@ namespace
 
     virtual void VisitSite()
     {
-      const QLatin1String siteUrl(Text::HOMEPAGE_URL);
+      const QLatin1String siteUrl(Text::PROGRAM_SITE);
       QDesktopServices::openUrl(QUrl(siteUrl));
     }
 
@@ -284,7 +294,7 @@ namespace
   };
 }
 
-QPointer<MainWindow> MainWindow::Create(Parameters::Container::Ptr options, const StringArray& cmdline)
+QPointer<MainWindow> MainWindow::Create(Parameters::Container::Ptr options, const Strings::Array& cmdline)
 {
   QPointer<MainWindow> res(new MainWindowImpl(options, cmdline));
   res->show();

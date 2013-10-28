@@ -20,14 +20,26 @@ extern const Char AY_EMUL_DECODER_DESCRIPTION[] = {
 extern const Char CHIPTRACKER_DECODER_DESCRIPTION[] = {
   'C','h','i','p',' ','T','r','a','c','k','e','r',0
 };
+extern const Char CHIPTRACKER_EDITOR[] = {
+  'C','h','i','p',' ','T','r','a','c','k','e','r',' ','v','%','1','%',0
+};
 extern const Char DIGITALMUSICMAKER_DECODER_DESCRIPTION[] = {
   'D','i','g','i','t','a','l',' ','M','u','s','i','c',' ','M','a','k','e','r',' ','v','1','.','x',0
 };
 extern const Char DIGITALSTUDIO_DECODER_DESCRIPTION[] = {
   'D','i','g','i','t','a','l',' ','S','t','u','d','i','o',0
 };
+extern const Char DIGITALSTUDIO_VERSION_AY[] = {
+  ' ','(','A','Y',')',0
+};
+extern const Char DIGITALSTUDIO_VERSION_DAC[] = {
+  ' ','(','C','o','v','o','x','/','S','D',')',0
+};
+extern const Char ETRACKER_DECODER_DESCRIPTION[] = {
+  'E','-','T','r','a','c','k','e','r',' ','v','1','.','x',0
+};
 extern const Char FASTTRACKER_DECODER_DESCRIPTION[] = {
-  'F','a','s','t',' ','T','r','a','c','k','e','r',0
+  'F','a','s','t',' ','T','r','a','c','k','e','r',' ','v','1','.','x',0
 };
 extern const Char GLOBALTRACKER1_EDITOR[] = {
   'G','l','o','b','a','l',' ','T','r','a','c','k','e','r',' ','v','1','.','%','1','%',0
@@ -37,6 +49,20 @@ extern const Char GLOBALTRACKER_DECODER_DESCRIPTION[] = {
 };
 extern const Char PRODIGITRACKER_DECODER_DESCRIPTION[] = {
   'P','r','o','D','i','g','i',' ','T','r','a','c','k','e','r',' ','v','0','.','0','x',0
+};
+extern const Char PROSOUNDCREATOR_DECODER_DESCRIPTION[] = {
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','x','x',0
+};
+extern const Char PROSOUNDCREATOR_EDITOR[] = {
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','%','1','%',0
+};
+extern const Char PROSOUNDCREATOR_EDITOR_NEW[] = {
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','0','4','-','1','.','0',
+  '7',0
+};
+extern const Char PROSOUNDCREATOR_EDITOR_OLD[] = {
+  'P','r','o',' ','S','o','u','n','d',' ','C','r','e','a','t','o','r',' ','v','1','.','0','0','-','1','.','0',
+  '3',0
 };
 extern const Char PROSOUNDMAKER_DECODER_DESCRIPTION[] = {
   'P','r','o',' ','S','o','u','n','d',' ','M','a','k','e','r',0
@@ -58,8 +84,8 @@ extern const Char PROTRACKERUTILITY13_DECODER_DESCRIPTION[] = {
   'P','r','o',' ','T','r','a','c','k','e','r',' ','U','t','i','l','i','t','y',' ','v','1','.','3',0
 };
 extern const Char PSG_DECODER_DESCRIPTION[] = {
-  'P','S','G',' ','(','P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n',
-  'e','r','a','t','o','r',')',0
+  'P','r','o','g','r','a','m','m','a','b','l','e',' ','S','o','u','n','d',' ','G','e','n','e','r','a','t','o',
+  'r',0
 };
 extern const Char SAMPLETRACKER_DECODER_DESCRIPTION[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
@@ -85,11 +111,30 @@ extern const Char SOUNDTRACKER_DECODER_DESCRIPTION[] = {
 extern const Char SQDIGITALTRACKER_DECODER_DESCRIPTION[] = {
   'S','Q',' ','D','i','g','i','t','a','l',' ','T','r','a','c','k','e','r',0
 };
+extern const Char SQTRACKER_DECODER_DESCRIPTION[] = {
+  'S','Q','-','T','r','a','c','k','e','r',' ','C','o','m','p','i','l','e','d',0
+};
 extern const Char TFC_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','F','M',' ','C','o','m','p','i','l','e','d',' ','D','u','m','p',0
 };
 extern const Char TFD_DECODER_DESCRIPTION[] = {
   'T','u','r','b','o','F','M',' ','D','u','m','p',0
+};
+extern const Char TFMMUSICMAKER05_DECODER_DESCRIPTION[] = {
+  'T','F','M',' ','M','u','s','i','c',' ','M','a','k','e','r',' ','v','0','.','1','-','1','.','2',0
+};
+extern const Char TFMMUSICMAKER13_DECODER_DESCRIPTION[] = {
+  'T','F','M',' ','M','u','s','i','c',' ','M','a','k','e','r',' ','v','1','.','3','+',0
+};
+extern const Char TURBOSOUND_DECODER_DESCRIPTION[] = {
+  'T','u','r','b','o','S','o','u','n','d',0
+};
+extern const Char VORTEXTRACKER2_DECODER_DESCRIPTION[] = {
+  'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','I','I',0
+};
+extern const Char VORTEX_EDITOR[] = {
+  'V','o','r','t','e','x','T','r','a','c','k','e','r',' ','(','P','r','o',' ','T','r','a','c','k','e','r',' ',
+  'v','%','1','%','.','%','2','%',')',0
 };
 extern const Char VTX_DECODER_DESCRIPTION[] = {
   'V','T','X',' ','(','V','o','r','t','e','x',' ','P','r','o','j','e','c','t',')',0

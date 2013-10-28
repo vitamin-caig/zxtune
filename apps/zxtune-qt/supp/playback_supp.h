@@ -23,7 +23,7 @@ Author:
 //qt includes
 #include <QtCore/QThread>
 
-class PlaybackSupport : public QThread
+class PlaybackSupport : public QObject
 {
   Q_OBJECT
 protected:
@@ -38,8 +38,7 @@ public slots:
   virtual void Pause() = 0;
   virtual void Seek(int frame) = 0;
 signals:
-  void OnSetBackend(ZXTune::Sound::Backend::Ptr);
-  void OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr);
+  void OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr);
   void OnUpdateState();
   void OnPauseModule();
   void OnResumeModule();
@@ -47,8 +46,5 @@ signals:
   void OnFinishModule();
   void ErrorOccurred(const Error&);
 };
-
-ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module);
-ZXTune::Sound::CreateBackendParameters::Ptr CreateBackendParameters(PlaybackSupport& supp, Parameters::Accessor::Ptr params, ZXTune::Module::Holder::Ptr module);
 
 #endif //ZXTUNE_PLAYBACK_SUPP_H_DEFINED

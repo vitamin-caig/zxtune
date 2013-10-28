@@ -16,17 +16,16 @@ Author:
 #include "storage.h"
 //common includes
 #include <error_tools.h>
-#include <format.h>
-#include <messages_collector.h>
-#include <template_parameters.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <core/convert_parameters.h>
-#include <io/fs_tools.h>
+#include <io/api.h>
+#include <io/template.h>
+#include <parameters/template.h>
 //std includes
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/ref.hpp>
 #include <boost/make_shared.hpp>
 
 namespace
@@ -66,7 +65,7 @@ namespace
 
     virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
     {
-      if (!data->IsValid())
+      if (data->GetState())
       {
         return;
       }
@@ -294,11 +293,6 @@ namespace
   class SelectAllDupsOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectAllDupsOperation(QObject& parent)
-      : Playlist::Item::SelectionOperation(parent)
-    {
-    }
-
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
       DuplicatesCollector<uint32_t> dups;
@@ -313,9 +307,8 @@ namespace
   class SelectDupsOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    SelectDupsOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
-      : Playlist::Item::SelectionOperation(parent)
-      , SelectedItems(items)
+    explicit SelectDupsOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+      : SelectedItems(items)
     {
     }
 
@@ -338,9 +331,8 @@ namespace
   class SelectDupsInSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    SelectDupsInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
-      : Playlist::Item::SelectionOperation(parent)
-      , SelectedItems(items)
+    explicit SelectDupsInSelectedOperation(Playlist::Model::IndexSetPtr items)
+      : SelectedItems(items)
     {
     }
 
@@ -361,11 +353,6 @@ namespace
   class SelectAllRipOffsOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    explicit SelectAllRipOffsOperation(QObject& parent)
-      : Playlist::Item::SelectionOperation(parent)
-    {
-    }
-
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
       ItemsWithDuplicatesCollector<uint32_t> rips;
@@ -380,9 +367,8 @@ namespace
   class SelectRipOffsOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    SelectRipOffsOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
-      : Playlist::Item::SelectionOperation(parent)
-      , SelectedItems(items)
+    explicit SelectRipOffsOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+      : SelectedItems(items)
     {
     }
 
@@ -402,9 +388,8 @@ namespace
   class SelectRipOffsInSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    SelectRipOffsInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
-      : Playlist::Item::SelectionOperation(parent)
-      , SelectedItems(items)
+    explicit SelectRipOffsInSelectedOperation(Playlist::Model::IndexSetPtr items)
+      : SelectedItems(items)
     {
     }
 
@@ -425,9 +410,8 @@ namespace
   class SelectTypesOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    SelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
-      : Playlist::Item::SelectionOperation(parent)
-      , SelectedItems(items)
+    explicit SelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+      : SelectedItems(items)
     {
     }
 
@@ -442,13 +426,6 @@ namespace
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
-  };
-
-  class CollectingVisitor : public Playlist::Item::Visitor
-                          , public Playlist::TextNotification
-  {
-  public:
-    typedef boost::shared_ptr<CollectingVisitor> Ptr;
   };
 
   class ProgressModelVisitor : public Playlist::Item::Visitor
@@ -487,21 +464,74 @@ namespace
     }
   }
 
+  class InvalidModulesCollection : public Playlist::Item::Visitor
+  {
+  public:
+    InvalidModulesCollection()
+      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+    {
+    }
+
+    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    {
+      //check for the data first to define is data valid or not
+      const String type = data->GetType();
+      if (data->GetState())
+      {
+        Result->insert(index);
+      }
+    }
+
+    Playlist::Model::IndexSetPtr GetResult() const
+    {
+      return Result;
+    }
+  private:
+    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
+  };
+
+  class SelectUnavailableOperation : public Playlist::Item::SelectionOperation
+  {
+  public:
+    SelectUnavailableOperation()
+    {
+    }
+
+    explicit SelectUnavailableOperation(Playlist::Model::IndexSetPtr items)
+      : SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      InvalidModulesCollection invalids;
+      ExecuteOperation(stor, SelectedItems, invalids, cb);
+      emit ResultAcquired(invalids.GetResult());
+    }
+  private:
+    const Playlist::Model::IndexSetPtr SelectedItems;
+  };
+
+  class CollectingVisitor : public Playlist::Item::Visitor
+                          , public Playlist::TextNotification
+  {
+  public:
+    typedef boost::shared_ptr<CollectingVisitor> Ptr;
+  };
+
   // Statistic
   class CollectStatisticOperation : public Playlist::Item::TextResultOperation
                                   , private Playlist::Item::Visitor
   {
   public:
-    CollectStatisticOperation(QObject& parent, Playlist::Item::StatisticTextNotification::Ptr result)
-      : Playlist::Item::TextResultOperation(parent)
-      , SelectedItems()
+    explicit CollectStatisticOperation(Playlist::Item::StatisticTextNotification::Ptr result)
+      : SelectedItems()
       , Result(result)
     {
     }
 
-    CollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items, Playlist::Item::StatisticTextNotification::Ptr result)
-      : Playlist::Item::TextResultOperation(parent)
-      , SelectedItems(items)
+    CollectStatisticOperation(Playlist::Model::IndexSetPtr items, Playlist::Item::StatisticTextNotification::Ptr result)
+      : SelectedItems(items)
       , Result(result)
     {
     }
@@ -516,7 +546,7 @@ namespace
     {
       //check for the data first to define is data valid or not
       const String type = data->GetType();
-      if (!data->IsValid())
+      if (data->GetState())
       {
         Result->AddInvalid();
       }
@@ -536,18 +566,18 @@ namespace
                         , private Playlist::Item::Visitor
   {
   public:
-    ExportOperation(QObject& parent, const String& nameTemplate, Playlist::Item::ConversionResultNotification::Ptr result)
-      : Playlist::Item::TextResultOperation(parent)
-      , SelectedItems()
-      , NameTemplate(StringTemplate::Create(nameTemplate))
+    ExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
+      : SelectedItems()
+      , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
+      , Params(params)
       , Result(result)
     {
     }
 
-    ExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, Playlist::Item::ConversionResultNotification::Ptr result)
-      : Playlist::Item::TextResultOperation(parent)
-      , SelectedItems(items)
-      , NameTemplate(StringTemplate::Create(nameTemplate))
+    ExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
+      : SelectedItems(items)
+      , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
+      , Params(params)
       , Result(result)
     {
     }
@@ -561,7 +591,7 @@ namespace
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
     {
       const String path = data->GetFullPath();
-      if (ZXTune::Module::Holder::Ptr holder = data->GetModule())
+      if (Module::Holder::Ptr holder = data->GetModule())
       {
         ExportItem(path, *holder);
       }
@@ -571,16 +601,14 @@ namespace
       }
     }
 
-    void ExportItem(const String& path, const ZXTune::Module::Holder& item)
+    void ExportItem(const String& path, const Module::Holder& item)
     {
-      static const ZXTune::Module::Conversion::RawConvertParam RAW_CONVERSION;
       try
       {
+        const Binary::Data::Ptr result = Module::GetRawData(item);
         const Parameters::Accessor::Ptr props = item.GetModuleProperties();
-        Dump result;
-        ThrowIfError(item.Convert(RAW_CONVERSION, props, result));
-        const String filename = NameTemplate->Instantiate(ModuleFieldsSource(*props));
-        Save(result, filename);
+        const String filename = NameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
+        Save(*result, filename);
         Result->AddSucceed();
       }
       catch (const Error& err)
@@ -589,30 +617,15 @@ namespace
       }
     }
 
-    void Save(const Dump& data, const String& filename) const
+    void Save(const Binary::Data& data, const String& filename) const
     {
-      const std::auto_ptr<std::ofstream> stream = ZXTune::IO::CreateFile(filename, true/*TODO*/);
-      stream->write(safe_ptr_cast<const char*>(&data[0]), static_cast<std::streamsize>(data.size() * sizeof(data.front())));
-      //TODO: handle possible errors
+      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, *Params, Log::ProgressCallback::Stub());
+      stream->ApplyData(data);
     }
   private:
-    class ModuleFieldsSource : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
-    {
-    public:
-      typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
-      explicit ModuleFieldsSource(const Parameters::Accessor& params)
-        : Parent(params)
-      {
-      }
-
-      String GetFieldValue(const String& fieldName) const
-      {
-        return ZXTune::IO::MakePathFromString(Parent::GetFieldValue(fieldName), '_');
-      }
-    };
-  private:
     const Playlist::Model::IndexSetPtr SelectedItems;
-    const StringTemplate::Ptr NameTemplate;
+    const Strings::Template::Ptr NameTemplate;
+    const Parameters::Accessor::Ptr Params;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 }
@@ -621,75 +634,69 @@ namespace Playlist
 {
   namespace Item
   {
-    SelectionOperation::SelectionOperation(QObject &parent)
-      : QObject(&parent)
+    SelectionOperation::Ptr CreateSelectAllRipOffsOperation()
     {
+      return boost::make_shared<SelectAllRipOffsOperation>();
     }
 
-    TextResultOperation::TextResultOperation(QObject &parent)
-      : QObject(&parent)
+    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSetPtr items)
     {
-    }
-  }
-}
-
-namespace Playlist
-{
-  namespace Item
-  {
-    SelectionOperation::Ptr CreateSelectAllRipOffsOperation(QObject& parent)
-    {
-      return boost::make_shared<SelectAllRipOffsOperation>(boost::ref(parent));
+      return boost::make_shared<SelectRipOffsOfSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<SelectRipOffsOfSelectedOperation>(boost::ref(parent), items);
+      return boost::make_shared<SelectRipOffsInSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectAllDuplicatesOperation()
     {
-      return boost::make_shared<SelectRipOffsInSelectedOperation>(boost::ref(parent), items);
+      return boost::make_shared<SelectAllDupsOperation>();
     }
 
-    SelectionOperation::Ptr CreateSelectAllDuplicatesOperation(QObject& parent)
+    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<SelectAllDupsOperation>(boost::ref(parent));
+      return boost::make_shared<SelectDupsOfSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<SelectDupsOfSelectedOperation>(boost::ref(parent), items);
+      return boost::make_shared<SelectDupsInSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<SelectDupsInSelectedOperation>(boost::ref(parent), items);
+      return boost::make_shared<SelectTypesOfSelectedOperation>(items);
     }
 
-    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(QObject& parent, Playlist::Model::IndexSetPtr items)
+    SelectionOperation::Ptr CreateSelectAllUnavailableOperation()
     {
-      return boost::make_shared<SelectTypesOfSelectedOperation>(boost::ref(parent), items);
+      return boost::make_shared<SelectUnavailableOperation>();
     }
 
-    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, StatisticTextNotification::Ptr result)
+    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items)
     {
-      return boost::make_shared<CollectStatisticOperation>(boost::ref(parent), result);
+      return boost::make_shared<SelectUnavailableOperation>(items);
     }
 
-    TextResultOperation::Ptr CreateCollectStatisticOperation(QObject& parent, Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result)
+    TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result)
     {
-      return boost::make_shared<CollectStatisticOperation>(boost::ref(parent), items, result);
+      return boost::make_shared<CollectStatisticOperation>(result);
     }
 
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, const String& nameTemplate, ConversionResultNotification::Ptr result)
+    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result)
     {
-      return boost::make_shared<ExportOperation>(boost::ref(parent), nameTemplate, result);
+      return boost::make_shared<CollectStatisticOperation>(items, result);
     }
 
-    TextResultOperation::Ptr CreateExportOperation(QObject& parent, Playlist::Model::IndexSetPtr items, const String& nameTemplate, ConversionResultNotification::Ptr result)
+    TextResultOperation::Ptr CreateExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ExportOperation>(boost::ref(parent), items, nameTemplate, result);
+      return boost::make_shared<ExportOperation>(nameTemplate, params, result);
+    }
+
+    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
+    {
+      return boost::make_shared<ExportOperation>(items, nameTemplate, params, result);
     }
   }
 }

@@ -9,24 +9,24 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//include first due to strange problems with curl includes
-#include <io/error_codes.h>
-
 //local includes
 #include "curl_api.h"
 #include "enumerator.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <tools.h>
 //library includes
-#include <io/fs_tools.h>
+#include <binary/container_factories.h>
+#include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <l10n/api.h>
+#include <parameters/accessor.h>
+//std includes
+#include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <io/text/io.h>
 
@@ -34,12 +34,12 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::IO;
-
   const Debug::Stream Dbg("IO::Provider::Network");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
+}
 
+namespace IO
+{
   class NetworkProviderParameters
   {
   public:
@@ -100,7 +100,7 @@ namespace
     {
       if (code != CURLE_OK)
       {
-        throw MakeFormattedError(loc, ERROR_IO_ERROR, translate("Network error happends: %1%"), Api->curl_easy_strerror(code));
+        throw MakeFormattedError(loc, translate("Network error happends: %1%"), Api->curl_easy_strerror(code));
       }
     }
   private:
@@ -126,7 +126,7 @@ namespace
 
     void SetSource(const String& url)
     {
-      Object.SetOption(CURLOPT_URL, ZXTune::IO::ConvertToFilename(url).c_str(), THIS_LINE);
+      Object.SetOption(CURLOPT_URL, url.c_str(), THIS_LINE);
     }
 
     void SetOptions(const NetworkProviderParameters& params)
@@ -134,7 +134,7 @@ namespace
       const String useragent = params.GetHttpUseragent();
       if (!useragent.empty())
       {
-        Object.SetOption(CURLOPT_USERAGENT, ZXTune::IO::ConvertToFilename(useragent).c_str(), THIS_LINE);
+        Object.SetOption(CURLOPT_USERAGENT, useragent.c_str(), THIS_LINE);
       }
       Object.SetOption(CURLOPT_FOLLOWLOCATION, 1, THIS_LINE);
     }
@@ -157,24 +157,31 @@ namespace
       Object.GetInfo(CURLINFO_RESPONSE_CODE, &retCode, THIS_LINE);
       if (IsHttpErrorCode(retCode))
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_IO_ERROR, translate("Http error happends: %1%."), retCode);
+        throw MakeFormattedError(THIS_LINE, translate("Http error happends: %1%."), retCode);
       }
       return Binary::CreateContainer(result);
     }
   private:
     static int DebugCallback(CURL* obj, curl_infotype type, char* data, size_t size, void* /*param*/)
     {
-      //size includes CR code
+      static const char SPACES[] = "\n\r\t ";
+      std::string str(data, data + size);
+      const std::string::size_type lastSym = str.find_last_not_of(SPACES);
+      if (lastSym == str.npos)
+      {
+        return 0;
+      }
+      str.resize(lastSym + 1);
       switch (type)
       {
       case CURLINFO_TEXT:
-        Dbg("Curl(%1%): %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): %2%", obj, str);
         break;
       case CURLINFO_HEADER_IN:
-        Dbg("Curl(%1%): -> %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): -> %2%", obj, str);
         break;
       case CURLINFO_HEADER_OUT:
-        Dbg("Curl(%1%): <- %2%", obj, std::string(data, data + size - 1));
+        Dbg("Curl(%1%): <- %2%", obj, str);
         break;
       default:
         break;
@@ -292,7 +299,7 @@ namespace
   public:
     explicit NetworkDataProvider(Curl::Api::Ptr api)
       : Api(api)
-      , SupportedSchemes(ALL_SCHEMES, ArrayEnd(ALL_SCHEMES))
+      , SupportedSchemes(ALL_SCHEMES, boost::end(ALL_SCHEMES))
     {
     }
 
@@ -311,20 +318,21 @@ namespace
       return Error();
     }
 
-    virtual StringSet Schemes() const
+    virtual Strings::Set Schemes() const
     {
       return SupportedSchemes;
     }
 
     virtual Identifier::Ptr Resolve(const String& uri) const
     {
-      const String::size_type schemePos = uri.find(SCHEME_SIGN);
+      const String schemeSign(SCHEME_SIGN);
+      const String::size_type schemePos = uri.find(schemeSign);
       if (String::npos == schemePos)
       {
         //scheme is required
         return Identifier::Ptr();
       }
-      const String::size_type hierPos = schemePos + ArraySize(SCHEME_SIGN) - 1;
+      const String::size_type hierPos = schemePos + schemeSign.size();
       const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
 
       const String scheme = uri.substr(0, schemePos);
@@ -353,36 +361,38 @@ namespace
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE, ERROR_NOT_OPENED, translate("Failed to open network resource '%1%'."), path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to open network resource '%1%'."), path).AddSuberror(e);
       }
+    }
+
+    virtual Binary::OutputStream::Ptr Create(const String& /*path*/, const Parameters::Accessor& /*params*/, Log::ProgressCallback& /*cb*/) const
+    {
+      throw Error(THIS_LINE, translate("Not supported."));
     }
   private:
     const Curl::Api::Ptr Api;
-    const StringSet SupportedSchemes;
+    const Strings::Set SupportedSchemes;
   };
 }
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
   {
-    DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
-    {
-      return boost::make_shared<NetworkDataProvider>(api);
-    }
+    return boost::make_shared<NetworkDataProvider>(api);
+  }
 
-    void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
+  void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
+  {
+    try
     {
-      try
-      {
-        const Curl::Api::Ptr api = Curl::LoadDynamicApi();
-        Dbg("Detected CURL library %1%", api->curl_version());
-        enumerator.RegisterProvider(CreateNetworkDataProvider(api));
-      }
-      catch (const Error& e)
-      {
-        enumerator.RegisterProvider(CreateUnavailableProviderStub(ID, DESCRIPTION, e));
-      }
+      const Curl::Api::Ptr api = Curl::LoadDynamicApi();
+      Dbg("Detected CURL library %1%", api->curl_version());
+      enumerator.RegisterProvider(CreateNetworkDataProvider(api));
+    }
+    catch (const Error& e)
+    {
+      enumerator.RegisterProvider(CreateUnavailableProviderStub(ID, DESCRIPTION, e));
     }
   }
 }

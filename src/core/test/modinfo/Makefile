@@ -2,12 +2,21 @@ binary_name := module_info
 path_step := ../../../..
 source_files := main
 
-libraries := analysis binary core devices formats io sound tools
-depends := src/analysis src/binary src/core src/devices src/formats src/io src/sound src/tools
+libraries.common = analysis \
+                   binary \
+                   core core_plugins_archives_stub core_plugins_containers_stub core_plugins_players \
+                   debug devices_aym devices_dac devices_fm devices_saa devices_z80 \
+                   formats_chiptune formats_packed_lha \
+                   io \
+                   l10n_stub \
+                   parameters platform \
+                   sound strings \
+                   tools
 
 #3rdparty
-libraries += lhasa z z80ex
-depends += 3rdparty/lhasa/lib 3rdparty/zlib 3rdparty/z80ex
+libraries.3rdparty = lhasa z80ex
+
+libraries.boost += filesystem system
 
 windows_libraries := advapi32
 

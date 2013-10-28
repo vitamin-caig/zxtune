@@ -7,6 +7,197 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Fixed TRUSH packed blocks processing with non-standard depacker
+[+] xtractor: new experimental scanner
+[+] xtractor: full archives and chiptunes set support (except TurboSound containers)
+[+] zxtune-android: http://zxtunes.com catalog support
+[+] zxtune-android: CPU lock while scanning service work
+[*] zxtune-android: improved scanning service runtime statistic
+[*] zxtune-android: reduced UI hangs on playback operations
+[*] zxtune-android: improved errors processing in file browser
+[*] zxtune-android: human-readable objects sizes in file browser
+
+--- $Rev: 2635 from 01.10.2013
+
+[*] Reduced delay on tracks switch
+[*] Improved error processing in DirectSound backend
+[*] Improved detection of small-sized chiptunes
+[*] Memory corruption fixes in unrar library
+[*] Speedup solid RAR files processing
+[*] Fixed GTR size detection
+[*] Fixed lower bound of DAC samples frequency (applicable for DST)
+[*] zxtune-qt: fixed crash for small files embedding to playlist
+[+] zxtune-android: selection mode in browser
+[+] zxtune-android: folders scanning service with status notification
+[+] zxtune-android: clear playlist action
+[+] zxtune-android: added About dialog
+[*] zxtune-android: precise playlist/browser state saving on rotate
+[*] zxtune-android: separate playlist page for medium and smaller sizes
+[*] zxtune-android: improved headset buttons control
+
+--- Rev2600 from 02.09.2013
+
+[+] zxtune-android: using ActionBar for all platform versions
+[+] zxtune-android: preferences for AY/YM,SAA,DAC, mixer and headset control
+[*] zxtune-android: fixed processing and displaying paths with escaped characters
+[*] zxtune-android: shutdown all components on quit
+[*] zxtune-android: exclusive control from headset buttons if enabled
+
+--- Rev2585 from 19.08.2013
+
+[*] Fixes in MegaLZ and TF0/TFM decoding
+[+] zxtune-qt: automatic update check
+[+] zxtune-android: support control from media buttons
+[+] zxtune-android: pause playback on headset plug off
+[+] zxtune-android: play folder content via long click
+[*] zxtune-android: fixed navigation on playlist bounds
+[*] zxtune-android: asynchronous file browser with progress
+[*] zxtune-android: simplified file browser
+
+--- Rev2566 from 06.08.2013
+
+[*] Fixed LZH2 decoding
+[*] Fixes in YM files size detection
+[*] Speedup AYM rendering up to 20%
+[*] Speedup TurboSound rendering up to 50%
+[*] Speedup TFM rendering up to 20%
+[*] Speedup SAA rendering up to 10%
+[*] Fixed AYM dumpers
+[*] Improved memory usage while TFD/TFC playback
+[*] Fixed seeking for all types of modules (especially FM and DAC-based)
+[+] zxtune-qt: support playlists storing with embedded data
+[+] zxtune-qt: support playlists storing with relative paths
+[+] zxtune-android: scrollable currently playing module information pane
+[+] zxtune-android: russian translation
+[*] zxtune-android: fixed crash while navigating on empty state
+[*] zxtune-android: updated seek control
+[*] zxtune-android: use Holo dark theme
+[*] zxtune-android: speedup and simplifying of playlist
+[*] zxtune-android: optimized package size
+
+--- Rev2496 from 21.06.2013
+
+[+] zxtune-android: handle outgoing calls
+[*] zxtune-android: fixed crash of file browser history navigation
+[*] zxtune-android: speedup file browser
+[*] zxtune-android: fixed crash on empty/big files open/adding
+[*] Slightly relaxed AS0/ASC detection
+
+--- Rev2484 from 17.06.2013
+
+[+] zxtune-android: initial release
+
+--- Rev2466 from 13.06.2013
+
+[+] HQ interpolation for SAA chiptunes
+[+] Precise sample frequency setup for DAC chiptunes
+[*] Fixed TF0/TFE playback
+[*] Speedup sound pipeline
+[*] Speedup AYM renderer
+[*] Speedup DAC renderer
+[*] Fixed DST playback
+[*] Speedup parameters polling
+
+--- Rev2416 from 29.05.2013
+
+[+] TFM Music Maker modules support v0.1-v1.2 (TF0) and v1.3+ (TFE)
+[*] Fixed SQD playback
+[*] Fixed PT3 playback
+
+--- Rev2395 from 13.05.2013
+
+[+] SAA1099 emulation support
+[+] Sam Coupe ETracker modules support (COP)
+[+] HQ interpolation for AY chip
+
+--- Rev2363 from 23.04.2013
+
+[+] Support mono layout in VTX modules
+[+] Support YM6 subtype of YM files
+[*] Fixed crash in Hrust2.3/Hrip archives decoding
+[*] Speedup RAR archives processing
+[*] Fixed win32 backend playback
+[*] zxtune-qt: disable fast channel layout options for modules with internal information (e.g. VTX)
+
+--- Rev2344 from 14.03.2013
+
+[+] Full support of RAR format (from 1.5 to 3.6)
+[*] Fixed solid RAR archives processing
+
+--- Rev2327 from 09.03.2013
+
+[+] FastTracker modules support (FTC)
+[*] Skip old RAR archives (prior to 2.0)
+
+--- Rev2309 from 29.03.2013
+
+[+] Pro Sound Creator compiled modules support (PSC)
+[*] Improved Sample Tracker detection and coverage
+[*] Reduced size of armhf builds
+
+--- Rev2296 from 20.03.2013
+
+[+] SQ-Tracker compiled modules support (SQT)
+[*] Fixed crash on zero-sized files in LHA archives
+[*] zxtune-qt: fixed export conversion if destinated folder is like 'X:/'
+[+] zxtune-qt: load all playlists near binary if no saved sessions found
+[*] Scan speedup for ~5%
+
+--- Rev2239 from 20.02.2013
+
+[*] Fixed crash while scanning
+[*] Fixed hangup while scanning
+[*] Speedup AY/YM rendering
+[*] Fixed TFM analyzer
+[+] ARMHF platform support (ARM with hardware floating point)
+[*] Reworked SampleTracker and ChipTracker parsing
+[*] zxtune-qt: fixed crash on moving down last sound backend in list
+[*] zxtune-qt: fixed UI updating while playback
+
+--- Rev2171 from 28.01.2013
+
+[*] Sound rendering pipeline speedup
+[*] Non-blocking mode in OSS backend
+[*] Fixed first 44 bytes missing while converting to .wav
+[+] Store metadata while convert to .wav
+[*] Support fadeout for .ay files
+[*] Reduced AYM dynamic range to avoid clicks at start/finish of tracks
+[+] zxtune123: benchmark mode
+[-] zxtune123: removed --mixer option
+[*] zxtune-qt: speedup of copy/paste operations
+
+--- Rev2101 from 14.11.2012
+
+[+] zxtune-qt: check updates functionality
+[+] zxtune-qt: playlist cache parameters setup
+[*] zxtune-qt: fixed startup of $PATH-located binary by name
+
+--- Rev2086 from 29.10.2012
+
+[+] Possibility to autorename files while save/convert in case of existing
+[*] Speedup for Z80, STC, ST3 and PSM formats detection
+[*] Reworked VortexTracker II (TXT) files parsing. Fixed crash
+[*] Using AY volume table to play 4-bit digital samples in DST and DMM modules
+[*] Fixed loop processing for some samples in DigitalStudio modules
+[-] Temporary removed conversion to VortexTracker II (TXT) format
+[*] zxtune-qt: fixed redundand property saving to playlist
+[*] zxtune-qt: fixed broken search while called via hotkey
+
+--- Rev2035 from 27.09.2012
+
+[+] Stereo mode setup for mp3 encoding
+[*] Slight speedup for ay/ym rendering (~15%) and interpolated rendering (~60%)
+[*] Fix for OSS that doesn't support unsigned samples (Dingux)
+[*] Reduce size of gcc-based builds
+[+] zxtune-qt: scan pausing support
+[+] zxtune-qt: support for creating all intermediate directories while convert/export
+[+] zxtune-qt: 'remove all unavailable' operation in context menu
+[-] zxtune-qt: removed 'deep scanning' option: always enabled by default
+[*] zxtune-qt: do not resolve all the directories before scanning
+[*] zxtune-qt: fix and speedup inserting of previously copied playlist items
+
+--- Rev2000 from 11.09.2012
+
 [+] Localization and internationalization support
 [+] Russian translation for zxtune-qt and core libraries
 [+] ARM platform support
@@ -511,4 +702,130 @@ Annotation:
 
 [+] DataSqueezer support (DSQ)
 [+] 64-bit windows builds
-[+] MinGW builds
+
+--- Rev546 from 22.06.2010
+
+[+] zxtune-qt: dingux mipsel platform support
+[+] ztune-qt: volume control
+
+--- Rev539 from 09.06.2010
+
+[*] Speedup TS modules searching
+[+] zxtune-qt: track status view
+
+--- Rev525 from 24.05.2010
+
+[*] Natural frequency table support for VortexTracker modules
+[*] Fixes in TRD processing
+[*] Fixes in TS detection
+
+--- Rev506 from 16.05.2010
+
+[*] HRiP processing fixes
+[+] Support cuesheets generating in WAV backend
+
+--- Rev493 from 10.05.2010
+
+[+] zxtune-qt: spectrum analyzer
+[*] Detection fixes
+
+--- Rev473 from 05.05.2010
+
+[+] zxtune-qt: initial release
+[*] Fixes in PT2 playback
+
+--- Rev461 from 26.04.2010
+
+[*] Detection speedup
+[*] Fixes in PSG playback
+
+--- Rev435 from 08.04.2010
+
+[+] Support big-endian platforms
+[*] Detection speedup
+
+--- Rev424 from 31.03.2010
+
+[+] Support dingux mipsel platform
+[+] SDL backend support
+
+--- Rev413 from 25.03.2010
+
+[+] Fixes in STP detecton
+
+--- Rev406 from 22.03.2010
+
+[+] TurboSound (TS) support
+
+--- Rev394 from 10.03.2010
+
+[*] Fixes in ASC detection
+
+--- Rev384 from 02.03.2010
+
+[+] Conversion support to ZX50
+
+--- Rev369 from 26.02.2010
+
+[*] Fixes in PT3 detection
+
+--- Rev351 from 08.02.2010
+
+[*] Fixes in PT3 detection/playback
+
+--- Rev334 from 01.02.2010
+
+[+] Support windows x86_64 platform
+[+] Support mingw x86 platform
+[+] Support linux x86/amd64 platforms
+
+--- Rev325 from 29.01.2010
+
+[*] zxtune123 fixes
+
+--- Rev324 from 28.01.2010
+
+[+] zxtune123: initial release (former cmdline_test)
+[+] Raw scanner support
+[+] Conversion support to PSG
+[+] Duty cycle support for AY/YM chip emulation
+
+--- Rev108 from 28.08.2009
+
+[+] ProDigiTracker (PDT) support
+[+] SoundTrackerPro (STP) support
+[+] FDI container support
+
+--- Rev100 from 30.06.2009
+
+[+] SCL container support
+[+] Conversion support to TXT
+
+--- Rev77 from 23.06.2009
+
+[+] Hrust1.x/2.x container support
+[+] HRiP container support
+
+--- Rev69 from 19.06.2009
+
+[+] Bandpass filter support
+
+--- Rev56 from 10.06.2009
+
+[+] Hobeta container support
+[*] Fixes in PT3 playback
+
+--- Rev50 from 07.06.2009
+
+[+] Initial release as cmdline_test
+[+] PSG format support
+[+] ASC Sound Master v1.xx (ASC) support
+[+] ProTracker v2.xx (PT2) support
+[+] ProTracker v3.xx (PT3) support
+[+] SoundTracker Compiled (STC) support
+[+] ChipTracker (CHI) support
+[+] TRD container support
+[+] WAV output support
+[+] WIN32 sound backend support
+[+] OSS backend support
+[+] ALSA backend support

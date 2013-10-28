@@ -8,67 +8,41 @@
 **/
 
 #pragma once
-#ifndef __CORE_MODULE_DETECT_H_DEFINED__
-#define __CORE_MODULE_DETECT_H_DEFINED__
+#ifndef CORE_MODULE_DETECT_H_DEFINED
+#define CORE_MODULE_DETECT_H_DEFINED
 
 //library includes
 #include <binary/container.h>
+#include <core/data_location.h>
 #include <core/module_holder.h>//for Module::Holder::Ptr
+#include <parameters/accessor.h>
 
 //forward declarations
-class Error;
-
-namespace Parameters
-{
-  class Accessor;
-}
-
 namespace Log
 {
   class ProgressCallback;
 }
 
 //! @brief Global library namespace
-namespace ZXTune
+namespace Module
 {
-  //forward declarations
-  class Plugin;
-
-  //! @brief Paremeters for modules' detection
-  class DetectParameters
+  class DetectCallback
   {
   public:
-    virtual ~DetectParameters() {}
+    virtual ~DetectCallback() {}
 
-    //! @brief Called on each detected module.
-    //! @param subpath Subpath for processed module
-    //! @param holder Found module
-    virtual void ProcessModule(const String& subpath, Module::Holder::Ptr holder) const = 0;
-
-    //! @brief Request for progress callback
-    //! @return 0 if client doesn't want to receive progress notifications
-    virtual Log::ProgressCallback* GetProgressCallback() const = 0;
+    //! @brief Returns plugins parameters
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const = 0;
+    //! @brief Process module
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const = 0;
+    //! @brief Logging callback
+    virtual Log::ProgressCallback* GetProgress() const = 0;
   };
 
-  //! @brief Perform module detection
-  //! @param pluginsParams Detection parameters
-  //! @param detectParams %Parameters set
-  //! @param data Input data container
-  //! @param startSubpath Path in input data to start detecting
-  //! @return Error() in case of success
-  //! @return ERROR_DETECT_CANCELED with suberror, throwed from DetectParameters#Callback
-  Error DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
-    Binary::Container::Ptr data, const String& startSubpath);
-
-  //! @brief Perform single module opening
-  //! @param pluginsParams Opening parameters
-  //! @param data Input data container
-  //! @param subpath Path in input data to open
-  //! @param result Reference to result module
-  //! @return Error() in case of success and module is found
-  //! @return ERROR_FIND_SUBMODULE in case if module is not found
-  Error OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath,
-    Module::Holder::Ptr& result);
+  //! @param location Start data location
+  //! @param params Detect callback
+  //! @return Size in bytes of source data processed
+  std::size_t Detect(ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
 }
 
-#endif //__CORE_MODULE_DETECT_H_DEFINED__
+#endif //CORE_MODULE_DETECT_H_DEFINED

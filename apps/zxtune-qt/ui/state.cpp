@@ -17,8 +17,10 @@ Author:
 #include "supp/options.h"
 #include "ui/utils.h"
 //common includes
-#include <debug_log.h>
-#include <tools.h>
+#include <pointers.h>
+//library includes
+#include <debug/log.h>
+#include <parameters/convert.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/mem_fn.hpp>
@@ -55,6 +57,11 @@ namespace
       : Delegate(delegate)
       , Prefix(prefix)
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Delegate->Version();
     }
 
     virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val)

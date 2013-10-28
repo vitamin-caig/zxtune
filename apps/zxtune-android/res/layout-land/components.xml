@@ -1,0 +1,26 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+  <LinearLayout
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    >
+    <FrameLayout
+      android:id="@+id/now_playing"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_weight="1"
+    />
+    <FrameLayout
+      android:id="@+id/playlist_view"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_weight="1"
+    />
+  </LinearLayout>
+  <FrameLayout
+    android:id="@+id/browser_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+  />
+</merge>

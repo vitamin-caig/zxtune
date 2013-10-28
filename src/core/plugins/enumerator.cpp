@@ -10,22 +10,26 @@ Author:
 */
 
 //local includes
+#include "enumerator.h"
 #include "registrator.h"
 #include "archives/plugins_list.h"
 #include "containers/plugins_list.h"
 #include "players/plugins_list.h"
 #include "core/src/callback.h"
-#include "core/src/core.h"
 //common includes
 #include <error_tools.h>
-#include <debug_log.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
-#include <core/error_codes.h>
+#include <binary/container_factories.h>
+#include <core/convert_parameters.h>
+#include <core/module_attrs.h>
 #include <core/module_detect.h>
+#include <core/module_open.h>
+#include <debug/log.h>
 #include <l10n/api.h>
 //std includes
 #include <list>
+#include <map>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -35,96 +39,59 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-
   const Debug::Stream Dbg("Core::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+}
 
-  typedef std::vector<Plugin::Ptr> PluginsArray;
-  typedef std::vector<PlayerPlugin::Ptr> PlayerPluginsArray;
-  typedef std::vector<ArchivePlugin::Ptr> ArchivePluginsArray;
- 
-  void RegisterAllPlugins(PluginsRegistrator& registrator)
-  {
-    RegisterContainerPlugins(registrator);
-    RegisterArchivePlugins(registrator);
-    RegisterPlayerPlugins(registrator);
-  }
-
-  class PluginsContainer : public PluginsRegistrator
-                         , public PluginsEnumerator
+namespace ZXTune
+{
+  template<class PluginType>
+  class PluginsContainer : public PluginsRegistrator<PluginType>
+                         , public PluginsEnumerator<PluginType>
   {
   public:
-    PluginsContainer()
-    {
-      RegisterAllPlugins(*this);
-    }
-
-    virtual void RegisterPlugin(PlayerPlugin::Ptr plugin)
+    virtual void RegisterPlugin(typename PluginType::Ptr plugin)
     {
       const Plugin::Ptr description = plugin->GetDescription();
-      AllPlugins.push_back(description);
-      PlayerPlugins.push_back(plugin);
-      Dbg("Registered player %1%", description->Id());
+      Plugins.push_back(plugin);
+      Dbg("Registered %1%", description->Id());
+      TypeToPlugin[description->Id()] = plugin;
     }
 
-    virtual void RegisterPlugin(ArchivePlugin::Ptr plugin)
+    virtual typename PluginType::Iterator::Ptr Enumerate() const
     {
-      const Plugin::Ptr description = plugin->GetDescription();
-      AllPlugins.push_back(description);
-      ArchivePlugins.push_back(plugin);
-      Dbg("Registered archive container %1%", description->Id());
+      return CreateRangedObjectIteratorAdapter(Plugins.begin(), Plugins.end());
     }
 
-    //public interface
-    virtual Plugin::Iterator::Ptr Enumerate() const
+    virtual typename PluginType::Ptr Find(const String& id) const
     {
-      return CreateRangedObjectIteratorAdapter(AllPlugins.begin(), AllPlugins.end());
-    }
-
-    //private interface
-    virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const
-    {
-      return CreateRangedObjectIteratorAdapter(PlayerPlugins.begin(), PlayerPlugins.end());
-    }
-
-    virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const
-    {
-      return CreateRangedObjectIteratorAdapter(ArchivePlugins.begin(), ArchivePlugins.end());
+      const typename std::map<String, typename PluginType::Ptr>::const_iterator it = TypeToPlugin.find(id);
+      return it != TypeToPlugin.end()
+        ? it->second
+        : typename PluginType::Ptr();
     }
   private:
-    PluginsArray AllPlugins;
-    ArchivePluginsArray ArchivePlugins;
-    PlayerPluginsArray PlayerPlugins;
+    std::vector<typename PluginType::Ptr> Plugins;
+    std::map<String, typename PluginType::Ptr> TypeToPlugin;
   };
 
-  class DetectCallbackAdapter : public Module::DetectCallback
+  class ArchivePluginsContainer : public PluginsContainer<ArchivePlugin>
   {
   public:
-    DetectCallbackAdapter(const DetectParameters& detectParams, Parameters::Accessor::Ptr coreParams)
-      : DetectParams(detectParams)
-      , CoreParams(coreParams)
+    ArchivePluginsContainer()
     {
+      RegisterContainerPlugins(*this);
+      RegisterArchivePlugins(*this);
     }
+  };
 
-    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
+  class PlayerPluginsContainer : public PluginsContainer<PlayerPlugin>
+  {
+  public:
+    PlayerPluginsContainer()
     {
-      return CoreParams;
+      RegisterPlayerPlugins(*this);
     }
-
-    virtual void ProcessModule(DataLocation::Ptr location, Module::Holder::Ptr holder) const
-    {
-      const Analysis::Path::Ptr subPath = location->GetPath();
-      return DetectParams.ProcessModule(subPath->AsString(), holder);
-    }
-
-    virtual Log::ProgressCallback* GetProgress() const
-    {
-      return DetectParams.GetProgressCallback();
-    }
-  private:
-    const DetectParameters& DetectParams;
-    const Parameters::Accessor::Ptr CoreParams;
   };
 
   class SimplePluginDescription : public Plugin
@@ -156,78 +123,104 @@ namespace
     const String Info;
     const uint_t Caps;
   };
-}
 
-namespace ZXTune
-{
-  PluginsEnumerator::Ptr PluginsEnumerator::Create()
+  class CompositePluginsIterator : public Plugin::Iterator
   {
-    static PluginsContainer instance;
-    return PluginsEnumerator::Ptr(&instance, NullDeleter<PluginsEnumerator>());
+  public:
+    CompositePluginsIterator(ArchivePlugin::Iterator::Ptr archives, PlayerPlugin::Iterator::Ptr players)
+      : Archives(archives)
+      , Players(players)
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Archives || Players;
+    }
+
+    virtual Plugin::Ptr Get() const
+    {
+      return (Archives ? Archives->Get()->GetDescription() : Players->Get()->GetDescription());
+    }
+
+    virtual void Next()
+    {
+      if (Archives)
+      {
+        Next(Archives);
+      }
+      else
+      {
+        Next(Players);
+      }
+    }
+  private:
+    template<class T>
+    void Next(T& iter)
+    {
+      iter->Next();
+      if (!iter->IsValid())
+      {
+        iter = T();
+      }
+    }
+  private:
+    ArchivePlugin::Iterator::Ptr Archives;
+    PlayerPlugin::Iterator::Ptr Players;
+  };
+
+  template<>
+  ArchivePluginsEnumerator::Ptr ArchivePluginsEnumerator::Create()
+  {
+    static ArchivePluginsContainer instance;
+    return MakeSingletonPointer(instance);
+  }
+
+  template<>
+  PlayerPluginsEnumerator::Ptr PlayerPluginsEnumerator::Create()
+  {
+    static PlayerPluginsContainer instance;
+    return PlayerPluginsEnumerator::Ptr(&instance, NullDeleter<PlayerPluginsEnumerator>());
   }
 
   Plugin::Iterator::Ptr EnumeratePlugins()
   {
-    //TODO: remove
-    return PluginsEnumerator::Create()->Enumerate();
+    const ArchivePlugin::Iterator::Ptr archives = ArchivePluginsEnumerator::Create()->Enumerate();
+    const PlayerPlugin::Iterator::Ptr players = PlayerPluginsEnumerator::Create()->Enumerate();
+    return boost::make_shared<CompositePluginsIterator>(archives, players);
+  }
+
+  Plugin::Ptr FindPlugin(const String& id)
+  {
+    if (const PlayerPlugin::Ptr player = PlayerPluginsEnumerator::Create()->Find(id))
+    {
+      return player->GetDescription();
+    }
+    else if (const ArchivePlugin::Ptr archive = ArchivePluginsEnumerator::Create()->Find(id))
+    {
+      return archive->GetDescription();
+    }
+    else
+    {
+      return Plugin::Ptr();
+    }
   }
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)
   {
     return boost::make_shared<SimplePluginDescription>(id, info, capabilities);
   }
+}
 
-  Error DetectModules(Parameters::Accessor::Ptr pluginsParams, const DetectParameters& detectParams,
-    Binary::Container::Ptr data, const String& startSubpath)
+namespace Module
+{
+  Binary::Data::Ptr GetRawData(const Holder& holder)
   {
-    if (!data.get())
+    std::auto_ptr<Parameters::DataType> data(new Parameters::DataType());
+    if (holder.GetModuleProperties()->FindValue(ATTR_CONTENT, *data))
     {
-      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, translate("Invalid parameters specified."));
+      return Binary::CreateContainer(data);
     }
-    try
-    {
-      if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, startSubpath))
-      {
-        const DetectCallbackAdapter callback(detectParams, pluginsParams);
-        Module::Detect(location, callback);
-        return Error();
-      }
-      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE,
-        translate("Failed to find specified submodule starting from path '%1%'."), startSubpath);
-    }
-    catch (const Error& e)
-    {
-      return e;
-    }
-    catch (const std::bad_alloc&)
-    {
-      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, translate("Failed to allocate memory while processing modules."));
-    }
-  }
-
-  Error OpenModule(Parameters::Accessor::Ptr pluginsParams, Binary::Container::Ptr data, const String& subpath,
-      Module::Holder::Ptr& result)
-  {
-    if (!data.get())
-    {
-      return Error(THIS_LINE, Module::ERROR_INVALID_PARAMETERS, translate("Invalid parameters specified."));
-    }
-    try
-    {
-      if (const DataLocation::Ptr location = OpenLocation(pluginsParams, data, subpath))
-      {
-        if (Module::Holder::Ptr holder = Module::Open(location))
-        {
-          result = holder;
-          return Error();
-        }
-      }
-      return MakeFormattedError(THIS_LINE, Module::ERROR_FIND_SUBMODULE,
-        translate("Failed to find specified submodule starting from path '%1%'."), subpath);
-    }
-    catch (const std::bad_alloc&)
-    {
-      return Error(THIS_LINE, Module::ERROR_NO_MEMORY, translate("Failed to allocate memory while processing modules."));
-    }
+    throw Error(THIS_LINE, translate("Invalid parameters specified."));
   }
 }

@@ -11,18 +11,16 @@ Author:
 
 //local includes
 #include "flac_api.h"
-#include "enumerator.h"
+#include "storage.h"
 #include "file_backend.h"
 //common includes
-#include <debug_log.h>
 #include <error_tools.h>
-#include <tools.h>
 //library includes
-#include <io/fs_tools.h>
+#include <binary/data_adapter.h>
+#include <debug/log.h>
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
@@ -30,25 +28,30 @@ Author:
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG 6575CD3F
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
-
   const Debug::Stream Dbg("Sound::Backend::Flac");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+}
 
-  typedef boost::shared_ptr<FLAC__StreamEncoder> FlacEncoderPtr;
+namespace Sound
+{
+namespace Flac
+{
+  const String ID = Text::FLAC_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
+
+  typedef boost::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
 
   void CheckFlacCall(FLAC__bool res, Error::LocationRef loc)
   {
     if (!res)
     {
-      throw Error(loc, BACKEND_PLATFORM_ERROR, translate("Error in FLAC backend."));
+      throw Error(loc, translate("Error in FLAC backend."));
     }
   }
 
@@ -60,48 +63,48 @@ namespace
    FLAC__stream_encoder_set_bits_per_sample().  For example, if the resolution
    is 16 bits per sample, the samples should all be in the range [-32768,32767].
   */
-  const bool SamplesShouldBeConverted = !SAMPLE_SIGNED;
+  typedef std::pair<FLAC__int32, FLAC__int32> FlacSample;
 
-  inline FLAC__int32 ConvertSample(Sample in)
+  inline FlacSample ConvertSample(Sample in)
   {
-    return SamplesShouldBeConverted
-      ? FLAC__int32(in) - SAMPLE_MID
-      : in;
+    BOOST_STATIC_ASSERT(Sample::MID == 0);
+    return FlacSample(in.Left(), in.Right());
   }
 
-  class FlacMetadata
+  class MetaData
   {
   public:
-    explicit FlacMetadata(Flac::Api::Ptr api)
-      : Api(api)
-      , Tags(Api->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT), boost::bind(&Flac::Api::FLAC__metadata_object_delete, Api, _1))
+    explicit MetaData(Api::Ptr api)
+      : FlacApi(api)
+      , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT), boost::bind(&Api::FLAC__metadata_object_delete, FlacApi, _1))
     {
     }
 
     void AddTag(const String& name, const String& value)
     {
-      const std::string nameC = IO::ConvertToFilename(name);
-      const std::string valueC = IO::ConvertToFilename(value);
+      const std::string& nameC = name;//TODO
+      const std::string& valueC = value;//TODO
       FLAC__StreamMetadata_VorbisComment_Entry entry;
-      CheckFlacCall(Api->FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, nameC.c_str(), valueC.c_str()), THIS_LINE);
-      CheckFlacCall(Api->FLAC__metadata_object_vorbiscomment_append_comment(Tags.get(), entry, false), THIS_LINE);
+      CheckFlacCall(FlacApi->FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, nameC.c_str(), valueC.c_str()), THIS_LINE);
+      CheckFlacCall(FlacApi->FLAC__metadata_object_vorbiscomment_append_comment(Tags.get(), entry, false), THIS_LINE);
     }
 
     void Encode(FLAC__StreamEncoder& encoder)
     {
-      FLAC__StreamMetadata* meta[1] = {Tags.get()};
-      CheckFlacCall(Api->FLAC__stream_encoder_set_metadata(&encoder, meta, ArraySize(meta)), THIS_LINE);
+      const std::size_t METADATAS_COUNT = 1;
+      FLAC__StreamMetadata* meta[METADATAS_COUNT] = {Tags.get()};
+      CheckFlacCall(FlacApi->FLAC__stream_encoder_set_metadata(&encoder, meta, METADATAS_COUNT), THIS_LINE);
     }
   private:
-    const Flac::Api::Ptr Api;
+    const Api::Ptr FlacApi;
     const boost::shared_ptr<FLAC__StreamMetadata> Tags;
   };
 
-  class FlacStream : public FileStream
+  class FileStream : public Sound::FileStream
   {
   public:
-    FlacStream(Flac::Api::Ptr api, FlacEncoderPtr encoder, std::auto_ptr<std::ofstream> stream)
-      : Api(api)
+    FileStream(Api::Ptr api, EncoderPtr encoder, Binary::OutputStream::Ptr stream)
+      : FlacApi(api)
       , Encoder(encoder)
       , Meta(api)
       , Stream(stream)
@@ -127,48 +130,58 @@ namespace
     {
       Meta.Encode(*Encoder);
       //real stream initializing should be performed after all set functions
-      CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
-        Api->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, Stream.get()), THIS_LINE);
+      if (const Binary::SeekableOutputStream::Ptr seekableStream = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
+      {
+        Dbg("Using seekable stream for FLAC output");
+        CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
+          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, &SeekCallback, &TellCallback, 0, seekableStream.get()), THIS_LINE);
+      }
+      else
+      {
+        Dbg("Using non-seekable stream for FLAC output");
+        CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK ==
+          FlacApi->FLAC__stream_encoder_init_stream(Encoder.get(), &WriteCallback, 0, 0, 0, Stream.get()), THIS_LINE);
+      }
       Dbg("Stream initialized");
     }
 
-    virtual void ApplyData(const ChunkPtr& data)
+    virtual void ApplyData(const Chunk::Ptr& data)
     {
       if (const std::size_t samples = data->size())
       {
-        Buffer.resize(samples * data->front().size());
-        std::transform(data->front().begin(), data->back().end(), &Buffer.front(), &ConvertSample);
-        CheckFlacCall(Api->FLAC__stream_encoder_process_interleaved(Encoder.get(), &Buffer[0], samples), THIS_LINE);
+        Buffer.resize(samples);
+        std::transform(data->begin(), data->end(), &Buffer.front(), &ConvertSample);
+        CheckFlacCall(FlacApi->FLAC__stream_encoder_process_interleaved(Encoder.get(), &Buffer[0].first, samples), THIS_LINE);
       }
     }
 
     virtual void Flush()
     {
-      CheckFlacCall(Api->FLAC__stream_encoder_finish(Encoder.get()), THIS_LINE);
+      CheckFlacCall(FlacApi->FLAC__stream_encoder_finish(Encoder.get()), THIS_LINE);
       Dbg("Stream flushed");
     }
   private:
     static FLAC__StreamEncoderWriteStatus WriteCallback(const FLAC__StreamEncoder* /*encoder*/, const FLAC__byte buffer[],
       size_t bytes, unsigned /*samples*/, unsigned /*current_frame*/, void* client_data)
     {
-      std::ofstream* const stream = static_cast<std::ofstream*>(client_data);
-      stream->write(safe_ptr_cast<const char*>(buffer), bytes);
+      Binary::OutputStream* const stream = static_cast<Binary::OutputStream*>(client_data);
+      stream->ApplyData(Binary::DataAdapter(buffer, bytes));
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
 
     static FLAC__StreamEncoderSeekStatus SeekCallback(const FLAC__StreamEncoder* /*encoder*/,
       FLAC__uint64 absolute_byte_offset, void *client_data)
     {
-      std::ofstream* const stream = static_cast<std::ofstream*>(client_data);
-      stream->seekp(absolute_byte_offset, std::ios_base::beg);
+      Binary::SeekableOutputStream* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
+      stream->Seek(absolute_byte_offset);
       return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
     }
 
     static FLAC__StreamEncoderTellStatus TellCallback(const FLAC__StreamEncoder* /*encoder*/, FLAC__uint64* absolute_byte_offset,
       void *client_data)
     {
-      std::ofstream* const stream = static_cast<std::ofstream*>(client_data);
-      *absolute_byte_offset = stream->tellp();
+      Binary::SeekableOutputStream* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
+      *absolute_byte_offset = stream->Position();
       return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
     }
 
@@ -176,22 +189,22 @@ namespace
     {
       if (!res)
       {
-        const FLAC__StreamEncoderState state = Api->FLAC__stream_encoder_get_state(Encoder.get());
-        throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR, translate("Error in FLAC backend (code %1%)."), state);
+        const FLAC__StreamEncoderState state = FlacApi->FLAC__stream_encoder_get_state(Encoder.get());
+        throw MakeFormattedError(loc, translate("Error in FLAC backend (code %1%)."), state);
       }
     }
   private:
-    const Flac::Api::Ptr Api;
-    const FlacEncoderPtr Encoder;
-    FlacMetadata Meta;
-    const std::auto_ptr<std::ofstream> Stream;
-    std::vector<FLAC__int32> Buffer;
+    const Api::Ptr FlacApi;
+    const EncoderPtr Encoder;
+    MetaData Meta;
+    const Binary::OutputStream::Ptr Stream;
+    std::vector<FlacSample> Buffer;
   };
 
-  class FlacParameters
+  class StreamParameters
   {
   public:
-    explicit FlacParameters(Parameters::Accessor::Ptr params)
+    explicit StreamParameters(Parameters::Accessor::Ptr params)
       : Params(params)
     {
     }
@@ -219,16 +232,12 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  const String ID = Text::FLAC_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
-
-  class FlacFileFactory : public FileStreamFactory
+  class FileStreamFactory : public Sound::FileStreamFactory
   {
   public:
-    FlacFileFactory(Flac::Api::Ptr api, Parameters::Accessor::Ptr params)
-      : Api(api)
+    FileStreamFactory(Api::Ptr api, Parameters::Accessor::Ptr params)
+      : FlacApi(api)
       , Params(params)
-      , RenderingParameters(RenderParameters::Create(params))
     {
     }
 
@@ -237,109 +246,72 @@ namespace
       return ID;
     }
 
-    virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
+    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
     {
-      std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
-      const FlacEncoderPtr encoder(Api->FLAC__stream_encoder_new(), boost::bind(&Flac::Api::FLAC__stream_encoder_delete, Api, _1));
+      const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(), boost::bind(&Api::FLAC__stream_encoder_delete, FlacApi, _1));
       SetupEncoder(*encoder);
-      return FileStream::Ptr(new FlacStream(Api, encoder, rawFile));
+      return boost::make_shared<FileStream>(FlacApi, encoder, stream);
     }
   private:
     void SetupEncoder(FLAC__StreamEncoder& encoder) const
     {
-      CheckFlacCall(Api->FLAC__stream_encoder_set_verify(&encoder, true), THIS_LINE);
-      CheckFlacCall(Api->FLAC__stream_encoder_set_channels(&encoder, OUTPUT_CHANNELS), THIS_LINE);
-      CheckFlacCall(Api->FLAC__stream_encoder_set_bits_per_sample(&encoder, 8 * sizeof(Sample)), THIS_LINE);
-      const uint_t samplerate = RenderingParameters->SoundFreq();
+      const StreamParameters stream(Params);
+      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
+      CheckFlacCall(FlacApi->FLAC__stream_encoder_set_verify(&encoder, true), THIS_LINE);
+      CheckFlacCall(FlacApi->FLAC__stream_encoder_set_channels(&encoder, Sample::CHANNELS), THIS_LINE);
+      CheckFlacCall(FlacApi->FLAC__stream_encoder_set_bits_per_sample(&encoder, Sample::BITS), THIS_LINE);
+      const uint_t samplerate = sound->SoundFreq();
       Dbg("Setting samplerate to %1%Hz", samplerate);
-      CheckFlacCall(Api->FLAC__stream_encoder_set_sample_rate(&encoder, samplerate), THIS_LINE);
-      if (const boost::optional<uint_t> compression = Params.GetCompressionLevel())
+      CheckFlacCall(FlacApi->FLAC__stream_encoder_set_sample_rate(&encoder, samplerate), THIS_LINE);
+      if (const boost::optional<uint_t> compression = stream.GetCompressionLevel())
       {
         Dbg("Setting compression level to %1%", *compression);
-        CheckFlacCall(Api->FLAC__stream_encoder_set_compression_level(&encoder, *compression), THIS_LINE);
+        CheckFlacCall(FlacApi->FLAC__stream_encoder_set_compression_level(&encoder, *compression), THIS_LINE);
       }
-      if (const boost::optional<uint_t> blocksize = Params.GetBlockSize())
+      if (const boost::optional<uint_t> blocksize = stream.GetBlockSize())
       {
         Dbg("Setting block size to %1%", *blocksize);
-        CheckFlacCall(Api->FLAC__stream_encoder_set_blocksize(&encoder, *blocksize), THIS_LINE);
+        CheckFlacCall(FlacApi->FLAC__stream_encoder_set_blocksize(&encoder, *blocksize), THIS_LINE);
       }
     }
   private:
-    const Flac::Api::Ptr Api;
-    const FlacParameters Params;
-    const RenderParameters::Ptr RenderingParameters;
+    const Api::Ptr FlacApi;
+    const Parameters::Accessor::Ptr Params;
   };
 
-  class FlacBackendCreator : public BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    explicit FlacBackendCreator(Flac::Api::Ptr api)
-      : Api(api)
+    explicit BackendWorkerFactory(Api::Ptr api)
+      : FlacApi(api)
     {
     }
 
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_TYPE_FILE;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const FileStreamFactory::Ptr factory = boost::make_shared<FlacFileFactory>(Api, allParams);
-        const BackendWorker::Ptr worker = CreateFileBackendWorker(allParams, factory);
-        result = Sound::CreateBackend(params, worker);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
-      catch (const std::bad_alloc&)
-      {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
-      }
+      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(FlacApi, params);
+      return CreateFileBackendWorker(params, factory);
     }
   private:
-    const Flac::Api::Ptr Api;
+    const Api::Ptr FlacApi;
   };
-}
+}//Flac
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterFlacBackend(BackendsStorage& storage)
   {
-    void RegisterFlacBackend(BackendsEnumerator& enumerator)
+    try
     {
-      try
-      {
-        const Flac::Api::Ptr api = Flac::LoadDynamicApi();
-        Dbg("Detected Flac library");
-        const BackendCreator::Ptr creator(new FlacBackendCreator(api));
-        enumerator.RegisterCreator(creator);
-      }
-      catch (const Error& e)
-      {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAP_TYPE_FILE, e));
-      }
+      const Flac::Api::Ptr api = Flac::LoadDynamicApi();
+      Dbg("Detected Flac library");
+      const BackendWorkerFactory::Ptr factory = boost::make_shared<Flac::BackendWorkerFactory>(api);
+      storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, factory);
+    }
+    catch (const Error& e)
+    {
+      storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }

@@ -1,11 +1,33 @@
 #include <types.h>
-#include <tools.h>
 #include <error_tools.h>
-#include <logging.h>
-#include <parameters.h>
+#include <progress_callback.h>
 #include <binary/format.h>
-#include <io/provider.h>
+#include <io/api.h>
+#include <parameters/container.h>
 #include <iostream>
+
+namespace
+{
+  class ScanSpeed
+  {
+  public:
+    explicit ScanSpeed(std::size_t total)
+      : Start(std::clock())
+      , Total(total)
+    {
+    }
+
+    void Report(std::size_t pos) const
+    {
+      const std::clock_t elapsed = std::clock() - Start;
+      const std::size_t speed = pos * CLOCKS_PER_SEC / elapsed;
+      std::cout << (pos != Total ? "Matched at " : "Finished scanning ") << pos << ". Speed " << double(speed) / 1048576 << "Mb/s" << std::endl;
+    }
+  private:
+    const std::clock_t Start;
+    const std::size_t Total;
+  };
+}
 
 int main(int argc, char* argv[])
 {
@@ -19,23 +41,29 @@ int main(int argc, char* argv[])
     const Binary::Format::Ptr format = Binary::Format::Create(argv[2]);
     const std::string filename = argv[1];
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
-    Binary::Container::Ptr data;
-    ThrowIfError(ZXTune::IO::OpenData(filename, *params, Log::ProgressCallback::Stub(), data));
+    const Binary::Container::Ptr data = IO::OpenData(filename, *params, Log::ProgressCallback::Stub());
 
-    if (format->Match(data->Data(), data->Size()))
+    if (format->Match(*data))
     {
       std::cout << "Matched" << std::endl;
     }
     else
     {
-      const std::size_t offset = format->Search(data->Data(), data->Size());
-      if (offset != data->Size())
+      const ScanSpeed speed(data->Size());
+      std::size_t cursor = 0;
+      while (const Binary::Data::Ptr subdata = data->GetSubcontainer(cursor, data->Size() - cursor))
       {
-        std::cout << "Matched at offset " << offset << std::endl;
-      }
-      else
-      {
-        std::cout << "Not found" << std::endl;
+        const std::size_t offset = format->NextMatchOffset(*subdata);
+        if (offset != subdata->Size())
+        {
+          cursor += offset;
+          speed.Report(cursor);
+        }
+        else
+        {
+          speed.Report(cursor + offset);
+          break;
+        }
       }
     }
   }
@@ -45,6 +73,6 @@ int main(int argc, char* argv[])
   }
   catch (const Error& e)
   {
-    std::cout << Error::ToString(e) << std::endl;
+    std::cout << e.ToString() << std::endl;
   }
 }

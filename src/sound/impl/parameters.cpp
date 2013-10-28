@@ -13,6 +13,50 @@ Author:
 #include <zxtune.h>
 #include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
+#include <sound/gain.h>
+
+namespace
+{
+  BOOST_STATIC_ASSERT(Sound::Gain::CHANNELS == 2);
+
+  struct MixerValue
+  {
+    const char* const Name;
+    const Parameters::IntType DefVal;
+  };
+
+  const MixerValue MIXERS[4][4][2] =
+  {
+    //1-channel
+    {
+      { {"1.0_0", 100}, {"1.0_1", 100} },
+      { {0,         0}, {0,         0} },
+      { {0,         0}, {0,         0} },
+      { {0,         0}, {0,         0} },
+    },
+    //2-channel
+    {
+      { {"2.0_0", 100}, {"2.0_1",   0} },
+      { {"2.1_0",   0}, {"2.1_1", 100} },
+      { {0,         0}, {0,         0} },
+      { {0,         0}, {0,         0} },
+    },
+    //3-channel
+    {
+      { {"3.0_0", 100}, {"3.0_1",   0} },
+      { {"3.1_0",  60}, {"3.1_1",  60} },
+      { {"3.2_0",   0}, {"3.2_1", 100} },
+      { {0,         0}, {0,         0} },
+    },
+    //4-channel
+    {
+      { {"4.0_0", 100}, {"4.0_1",   0} },
+      { {"4.1_0", 100}, {"4.1_1",   0} },
+      { {"4.2_0",   0}, {"4.2_1", 100} },
+      { {"4.3_0",   0}, {"4.3_1", 100} },
+    },
+  };
+}
 
 namespace Parameters
 {
@@ -25,6 +69,24 @@ namespace Parameters
       extern const NameType FREQUENCY = PREFIX + "frequency";
       extern const NameType FRAMEDURATION = PREFIX + "frameduration";
       extern const NameType LOOPED = PREFIX + "looped";
+      extern const NameType FADEIN = PREFIX + "fadein";
+      extern const NameType FADEOUT = PREFIX + "fadeout";
+
+      namespace Mixer
+      {
+        extern const NameType PREFIX = Sound::PREFIX + "mixer";
+
+        NameType LEVEL(uint_t totalChannels, uint_t inChannel, uint_t outChannel)
+        {
+          return PREFIX + std::string(MIXERS[totalChannels - 1][inChannel][outChannel].Name);
+        }
+
+        //! @brief Function to get defaul percent-based level
+        IntType LEVEL_DEFAULT(uint_t totalChannels, uint_t inChannel, uint_t outChannel)
+        {
+          return MIXERS[totalChannels - 1][inChannel][outChannel].DefVal;
+        }
+      }
 
       namespace Backends
       {
@@ -37,7 +99,6 @@ namespace Parameters
           extern const NameType PREFIX = Backends::PREFIX + "file";
 
           extern const NameType FILENAME = PREFIX + "filename";
-          extern const NameType OVERWRITE = PREFIX + "overwrite";
 					extern const NameType BUFFERS = PREFIX + "buffers";
         }
 
@@ -88,6 +149,7 @@ namespace Parameters
           extern const NameType MODE = PREFIX + "mode";
           extern const NameType BITRATE = PREFIX + "bitrate";
           extern const NameType QUALITY = PREFIX + "quality";
+          extern const NameType CHANNELS = PREFIX + "channels";
         }
 
         namespace Ogg

@@ -17,9 +17,10 @@ Author:
 #include <byteorder.h>
 #include <contract.h>
 #include <crc.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //boost includes
 #include <boost/array.hpp>
 //std includes
@@ -89,7 +90,7 @@ namespace ZXZip
     const uint_t calcSize = header.Type == 'B' || header.Type == 'b'
       ? 4 + fromLE(header.StartOrSize)
       : fromLE(header.SourceSize);
-    const std::size_t calcSectors = align(calcSize, uint_t(256)) / 256;
+    const std::size_t calcSectors = Math::Align(calcSize, uint_t(256)) / 256;
     return calcSectors == header.SourceSectors
       ? calcSize
       : 256 * header.SourceSectors;
@@ -663,10 +664,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const ZXZip::Container container(data, availSize);
-        if (!container.FastCheck() || !Depacker->Match(data, availSize))
+        if (!Depacker->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const ZXZip::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }

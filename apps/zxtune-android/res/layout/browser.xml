@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    >
+    <LinearLayout
+      android:id="@+id/browser_sources"
+      android:orientation="horizontal"
+      style="@style/block_buttons"
+      >
+      <ImageButton
+        android:id="@+id/browser_roots"
+        android:layout_width="wrap_content"
+        android:src="@drawable/ic_browser_folder"
+        style="@style/button"
+      />
+      <app.zxtune.ui.BreadCrumbsView
+        android:id="@+id/browser_breadcrumb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+      />
+    </LinearLayout>
+    <app.zxtune.ui.BrowserView
+        android:id="@+id/browser_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/spacing_full"
+        android:paddingRight="@dimen/spacing_full"
+        android:fastScrollEnabled="true"
+     />
+    <FrameLayout
+        android:id="@+id/browser_stub"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/spacing_full"
+        android:paddingRight="@dimen/spacing_full" 
+        android:gravity="center"
+        >
+      <ProgressBar
+          android:id="@+id/browser_loading"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:layout_marginLeft="@dimen/spacing_full"
+          android:layout_marginRight="@dimen/spacing_full" 
+          android:layout_gravity="center"
+          android:indeterminate="true" />
+      <TextView
+          android:id="@+id/browser_loaded"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          android:layout_marginLeft="@dimen/spacing_full"
+          android:layout_marginRight="@dimen/spacing_full" 
+          android:gravity="center"
+          android:text="@string/browser_empty" />
+    </FrameLayout>
+</LinearLayout>

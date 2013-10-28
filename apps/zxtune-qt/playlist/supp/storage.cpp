@@ -13,8 +13,9 @@ Author:
 
 //local includes
 #include "storage.h"
-//common includes
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
+#include <math/numeric.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -203,6 +204,34 @@ namespace
 
   using namespace Playlist;
 
+  class ItemsCollection : public Item::Collection
+  {
+  public:
+    ItemsCollection(ItemsContainer::const_iterator begin, ItemsContainer::const_iterator end)
+      : Current(begin)
+      , Limit(end)
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current != Limit;
+    }
+
+    virtual Item::Data::Ptr Get() const
+    {
+      return Current->first;
+    }
+
+    virtual void Next()
+    {
+      ++Current;
+    }
+  private:
+    ItemsContainer::const_iterator Current;
+    const ItemsContainer::const_iterator Limit;
+  };
+
   const std::size_t CACHE_THRESHOLD = 200;
 
   class LinearStorage : public Item::Storage
@@ -211,12 +240,19 @@ namespace
     LinearStorage()
       : Version(0)
     {
+      Dbg("Created at %1%", this);
     }
 
     LinearStorage(const LinearStorage& rh)
       : Version(0)
       , Items(rh.Items)
     {
+      Dbg("Created at %1% (cloned from %2% with %3% items)", this, &rh, Items.size());
+    }
+
+    virtual ~LinearStorage()
+    {
+      Dbg("Destroyed at %1% with %2% items", this, Items.size());
     }
 
     virtual Item::Storage::Ptr Clone() const
@@ -246,6 +282,16 @@ namespace
       Modify();
     }
 
+    virtual void AddItems(Item::Collection::Ptr items)
+    {
+      for (Model::IndexType idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
+      {
+        const IndexedItem idxItem(items->Get(), idx);
+        Items.push_back(idxItem);
+      }
+      Modify();
+    }
+
     virtual std::size_t CountItems() const
     {
       return Items.size();
@@ -261,7 +307,12 @@ namespace
       return it->first;
     }
 
-    virtual void ForAllItems(Playlist::Item::Visitor& visitor) const
+    virtual Item::Collection::Ptr GetItems() const
+    {
+      return boost::make_shared<ItemsCollection>(Items.begin(), Items.end());
+    }
+
+    virtual void ForAllItems(Item::Visitor& visitor) const
     {
       for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
@@ -351,7 +402,7 @@ namespace
       if (const std::ptrdiff_t delta = std::ptrdiff_t(idx) - entry.first)
       {
         std::advance(entry.second, delta);
-        if (absolute(delta) > std::ptrdiff_t(CACHE_THRESHOLD))
+        if (Math::Absolute(delta) > std::ptrdiff_t(CACHE_THRESHOLD))
         {
           Dbg("Cached iterator for idx=%1%. Nearest idx=%2%, delta=%3%", idx, entry.first, delta);
           entry.first += delta;
@@ -364,13 +415,13 @@ namespace
     IndexToIterator::value_type GetNearestIterator(Model::IndexType idx) const
     {
       const IndexToIterator::value_type predefinedEntry = GetNearestPredefinedIterator(idx);
-      const std::size_t predefinedDelta = absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - predefinedEntry.first);
+      const std::size_t predefinedDelta = Math::Absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - predefinedEntry.first);
       if (predefinedDelta <= CACHE_THRESHOLD || IteratorsCache.empty())
       {
         return predefinedEntry;
       }
       const IndexToIterator::value_type cachedEntry = GetNearestCachedIterator(idx);
-      const std::size_t cachedDelta = absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - cachedEntry.first);
+      const std::size_t cachedDelta = Math::Absolute<std::ptrdiff_t>(std::ptrdiff_t(idx) - cachedEntry.first);
       if (cachedDelta <= CACHE_THRESHOLD)
       {
         return cachedEntry;

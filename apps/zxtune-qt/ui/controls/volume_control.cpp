@@ -31,19 +31,19 @@ namespace
   public:
     VolumeControlImpl(QWidget& parent, PlaybackSupport& supp)
       : ::VolumeControl(parent)
-      , LastUpdateTime(0)
     {
       //setup self
       setupUi(this);
       setEnabled(false);
       Require(connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int))));
 
+      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(StartPlayback(Sound::Backend::Ptr))));
       Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
-      Require(connect(&supp, SIGNAL(OnSetBackend(ZXTune::Sound::Backend::Ptr)), SLOT(SetBackend(ZXTune::Sound::Backend::Ptr))));
+      Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(StopPlayback())));
       volumeLevel->setStyle(new UI::ClickNGoSliderStyle(*volumeLevel));
     }
 
-    virtual void SetBackend(ZXTune::Sound::Backend::Ptr backend)
+    virtual void StartPlayback(Sound::Backend::Ptr backend)
     {
       Controller = backend->GetVolumeControl();
       setEnabled(Controller != 0);
@@ -51,32 +51,24 @@ namespace
 
     virtual void UpdateState()
     {
-      //slight optimization
-      const std::time_t thisTime = std::time(0);
-      if (thisTime == LastUpdateTime)
+      if (isVisible() && Controller && !volumeLevel->isSliderDown())
       {
-        return;
+        UpdateVolumeSlider();
       }
-      LastUpdateTime = thisTime;
-      if (Controller && !volumeLevel->isSliderDown())
-      {
-        ZXTune::Sound::MultiGain vol;
-        //TODO: check result
-        Controller->GetVolume(vol);
-        const ZXTune::Sound::Gain gain = *std::max_element(vol.begin(), vol.end());
-        volumeLevel->setValue(static_cast<int>(gain * volumeLevel->maximum() + 0.5));
-      }
+    }
+
+    virtual void StopPlayback()
+    {
+      Controller = Sound::VolumeControl::Ptr();
+      setEnabled(false);
     }
 
     virtual void SetLevel(int level)
     {
       if (Controller)
       {
-        const ZXTune::Sound::Gain gain = ZXTune::Sound::Gain(level) / volumeLevel->maximum();
-        ZXTune::Sound::MultiGain vol;
-        vol.assign(gain);
-        //TODO: check result
-        Controller->SetVolume(vol);
+        const Sound::Gain::Type vol = Sound::Gain::Type(level, volumeLevel->maximum());
+        Controller->SetVolume(Sound::Gain(vol, vol));
       }
     }
 
@@ -90,8 +82,20 @@ namespace
       ::VolumeControl::changeEvent(event);
     }
   private:
-    ZXTune::Sound::VolumeControl::Ptr Controller;
-    std::time_t LastUpdateTime;
+    void UpdateVolumeSlider()
+    {
+      try
+      {
+        const Sound::Gain vol = Controller->GetVolume();
+        const Sound::Gain::Type gain = std::max(vol.Left(), vol.Right());
+        volumeLevel->setValue(static_cast<int>((gain * volumeLevel->maximum()).Round()));
+      }
+      catch (const Error&)
+      {
+      }
+    }
+  private:
+    Sound::VolumeControl::Ptr Controller;
   };
 }
 

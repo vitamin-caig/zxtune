@@ -17,15 +17,17 @@ Author:
 #include "ui/utils.h"
 #include "tags/ayl.h"
 //common includes
-#include <debug_log.h>
 #include <error.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
-#include <devices/aym.h>
-#include <io/provider.h>
-#include <sound/sound_parameters.h>
 #include <core/plugins/utils.h>
+#include <debug/log.h>
+#include <devices/aym/chip.h>
+#include <io/api.h>
+#include <parameters/serialize.h>
+#include <sound/sound_parameters.h>
+#include <strings/array.h>
 //std includes
 #include <cctype>
 //boost includes
@@ -104,12 +106,12 @@ namespace
     struct AYLEntry
     {
       String Path;
-      StringMap Parameters;
+      Strings::Map Parameters;
     };
     typedef std::vector<AYLEntry> AYLEntries;
-    typedef RangeIterator<StringArray::const_iterator> LinesIterator;
+    typedef RangeIterator<Strings::Array::const_iterator> LinesIterator;
   public:
-    explicit AYLContainer(const StringArray& lines)
+    explicit AYLContainer(const Strings::Array& lines)
       : Container(boost::make_shared<AYLEntries>())
       , Parameters()
     {
@@ -146,7 +148,7 @@ namespace
         return Delegate->Path;
       }
 
-      const StringMap& GetParameters() const
+      const Strings::Map& GetParameters() const
       {
         return Delegate->Parameters;
       }
@@ -165,12 +167,12 @@ namespace
       return Iterator(Container);
     }
 
-    const StringMap& GetParameters() const
+    const Strings::Map& GetParameters() const
     {
       return Parameters;
     }
   private:
-    static bool ParseParameters(LinesIterator& iter, StringMap& parameters)
+    static bool ParseParameters(LinesIterator& iter, Strings::Map& parameters)
     {
       if (!iter || !CheckForParametersBegin(*iter))
       {
@@ -201,19 +203,19 @@ namespace
       return line == PARAMETERS_END;
     }
 
-    static void SplitParametersString(const String& line, StringMap& parameters)
+    static void SplitParametersString(const String& line, Strings::Map& parameters)
     {
       const String::size_type delim = line.find_first_of('=');
       if (delim != String::npos)
       {
         const String& name = line.substr(0, delim);
         const String& value = line.substr(delim + 1);
-        parameters.insert(StringMap::value_type(name, value));
+        parameters.insert(Strings::Map::value_type(name, value));
       }
     }
   private:
     const boost::shared_ptr<AYLEntries> Container;
-    StringMap Parameters;
+    Strings::Map Parameters;
   };
 
   class ParametersFilter : public Parameters::Visitor
@@ -277,28 +279,28 @@ namespace
       //ignore "Length", "Address", "Loop", "Time", "Original"
       else if (nameStr == AYL::NAME)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_TITLE, val);
+        Delegate.SetValue(Module::ATTR_TITLE, val);
       }
       else if (nameStr == AYL::AUTHOR)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_AUTHOR, val);
+        Delegate.SetValue(Module::ATTR_AUTHOR, val);
       }
       else if (nameStr == AYL::PROGRAM || nameStr == AYL::TRACKER)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_PROGRAM, val);
+        Delegate.SetValue(Module::ATTR_PROGRAM, val);
       }
       else if (nameStr == AYL::COMPUTER)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_COMPUTER, val);
+        Delegate.SetValue(Module::ATTR_COMPUTER, val);
       }
       else if (nameStr == AYL::DATE)
       {
-        Delegate.SetValue(ZXTune::Module::ATTR_DATE, val);
+        Delegate.SetValue(Module::ATTR_DATE, val);
       }
       else if (nameStr == AYL::COMMENT)
       {
         //TODO: process escape sequence
-        Delegate.SetValue(ZXTune::Module::ATTR_COMMENT, val);
+        Delegate.SetValue(Module::ATTR_COMMENT, val);
       }
       //ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }
@@ -357,8 +359,8 @@ namespace
   {
     const Parameters::Container::Ptr properties = Parameters::Container::Create();
     ParametersFilter filter(version, *properties);
-    const StringMap& listParams = aylItems.GetParameters();
-    Parameters::ParseStringMap(listParams, filter);
+    const Strings::Map& listParams = aylItems.GetParameters();
+    Parameters::Convert(listParams, filter);
     return properties;
   }
 
@@ -366,7 +368,7 @@ namespace
   {
     try
     {
-      const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
+      const IO::Identifier::Ptr id = IO::ResolveUri(path);
       return id->WithSubpath(subpath)->Full();
     }
     catch (const Error&)
@@ -408,8 +410,8 @@ namespace
       Playlist::IO::ContainerItem item;
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
       ParametersFilter filter(version, *adjustedParams);
-      const StringMap& itemParams = iter.GetParameters();
-      Parameters::ParseStringMap(itemParams, filter);
+      const Strings::Map& itemParams = iter.GetParameters();
+      Parameters::Convert(itemParams, filter);
       item.AdjustedParameters = adjustedParams;
       const QString absItemPath = baseDir.absoluteFilePath(ToQString(itemPath));
       item.Path = FromQString(baseDir.cleanPath(absItemPath));
@@ -460,7 +462,7 @@ namespace Playlist
       }
       Dbg("Processing AYL version %1%", vers);
       const VersionLayer version(vers);
-      StringArray lines;
+      Strings::Array lines;
       while (!stream.atEnd())
       {
         const QString line = stream.readLine(0).trimmed();

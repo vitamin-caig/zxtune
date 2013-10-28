@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __SOUND_BACKENDS_PARAMETERS_H_DEFINED__
-#define __SOUND_BACKENDS_PARAMETERS_H_DEFINED__
+#ifndef SOUND_BACKENDS_PARAMETERS_H_DEFINED
+#define SOUND_BACKENDS_PARAMETERS_H_DEFINED_
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -41,10 +41,6 @@ namespace Parameters
           //! @brief Output filename template
           //! @see core/module_attrs.h for possibly supported field names
           extern const NameType FILENAME;
-
-          //! @brief Rewrite output files if exist
-          //! @note Not zero if rewrite
-          extern const NameType OVERWRITE;
 
           //! @brief Buffers count to asynchronous saving
           //! @note Not zero if use asynchronous saving
@@ -179,6 +175,13 @@ namespace Parameters
           const IntType QUALITY_DEFAULT = 5;
           //! VBR quality 9..0
           extern const NameType QUALITY;
+
+          const Char CHANNELS_DEFAULT[] = {'d','e','f','a','u','l','t',0};
+          const Char CHANNELS_STEREO[] = {'s','t','e','r','e','o',0};
+          const Char CHANNELS_JOINTSTEREO[] = {'j','o','i','n','t','s','t','e','r','e','o',0};
+          const Char CHANNELS_MONO[] = {'m','o','n','o',0};
+          //! Channels encoding mode
+          extern const NameType CHANNELS;
           //@}
         }
 
@@ -232,4 +235,4 @@ namespace Parameters
     }
   }
 }
-#endif //__SOUND_BACKENDS_PARAMETERS_H_DEFINED__
+#endif //SOUND_BACKENDS_PARAMETERS_H_DEFINED

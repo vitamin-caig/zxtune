@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __ZXTUNE_H_DEFINED__
-#define __ZXTUNE_H_DEFINED__
+#ifndef ZXTUNE_H_DEFINED
+#define ZXTUNE_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -23,4 +23,4 @@ namespace Parameters
   }
 }
 
-#endif //__ZXTUNE_H_DEFINED__
+#endif //ZXTUNE_H_DEFINED

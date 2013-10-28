@@ -19,6 +19,9 @@
 = CMD_CONVERT_KEY
 > "convert"
 
+= CMD_BENCHMARK_KEY
+> "benchmark"
+
 = CMD_INFO_LIST_PLUGINS_KEY
 > "list-plugins"
 
@@ -54,12 +57,6 @@
 
 = CMD_LOOP_KEY
 > "loop"
-
-= CMD_MIXER_KEY
-> "mixer"
-
-= CMD_FILTER_KEY
-> "filter"
 
 = CMD_INPUT_FILE_KEY
 > "file"

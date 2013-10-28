@@ -11,28 +11,25 @@ Author:
 
 //local includes
 #include "alsa.h"
-#include "enumerator.h"
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterAlsaBackend(BackendsStorage& storage)
   {
-    void RegisterAlsaBackend(BackendsEnumerator& enumerator)
-    {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::ALSA_BACKEND_ID, L10n::translate("ALSA sound system backend"), CAP_TYPE_SYSTEM));
-    }
+    storage.Register(Text::ALSA_BACKEND_ID, L10n::translate("ALSA sound system backend"), CAP_TYPE_SYSTEM);
+  }
 
-    namespace Alsa
+  namespace Alsa
+  {
+    Device::Iterator::Ptr EnumerateDevices()
     {
-      Device::Iterator::Ptr EnumerateDevices()
-      {
-        return Device::Iterator::CreateStub();
-      }
+      return Device::Iterator::CreateStub();
     }
   }
 }

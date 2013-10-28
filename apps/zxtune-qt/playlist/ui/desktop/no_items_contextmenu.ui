@@ -3,6 +3,7 @@
  <class>NoItemsContextMenu</class>
  <widget class="QMenu" name="NoItemsContextMenu">
   <addaction name="DelDupsAction"/>
+  <addaction name="DelUnavailableAction"/>
   <addaction name="separator"/>
   <addaction name="SelectionSubmenu"/>
   <addaction name="separator"/>
@@ -16,6 +17,16 @@
    </property>
    <property name="text">
     <string>Remove all duplicates</string>
+   </property>
+  </action>
+  <action name="DelUnavailableAction">
+   <property name="icon">
+    <iconset>
+     <normalon>:/playlist/delete.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>Delete all unavailable</string>
    </property>
   </action>
   <widget class="QMenu" name="SelectionSubmenu">

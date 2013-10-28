@@ -30,6 +30,9 @@ namespace Parameters
         {
           extern const NameType PREFIX = Providers::PREFIX + "file";
           extern const NameType MMAP_THRESHOLD = PREFIX + "mmap_threshold";
+          extern const NameType CREATE_DIRECTORIES = PREFIX + "create_directories";
+          extern const NameType OVERWRITE_EXISTING = PREFIX + "overwrite";
+          extern const NameType SANITIZE_NAMES = PREFIX + "sanitize";
         }
 
         namespace Network

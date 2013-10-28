@@ -10,23 +10,16 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
-#include "ay_conversion.h"
-#include "ts_base.h"
 #include "vortex_base.h"
-//common includes
-#include <error_tools.h>
-#include <tools.h>
+//library includes
+#include <math/numeric.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
-#define FILE_TAG 023C2245
-
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
+namespace Vortex
+{
   const uint_t LIMITER = ~uint_t(0);
 
   typedef boost::array<uint8_t, 256> VolumeTable;
@@ -150,29 +143,30 @@ namespace
     uint_t NoiseBase;
   };
 
-  struct VortexState
+  struct State
   {
-    boost::array<ChannelState, Devices::AYM::CHANNELS> ChanState;
+    boost::array<ChannelState, AYM::TRACK_CHANNELS> ChanState;
     CommonState CommState;
   };
 
   //simple player type
-  class VortexDataRenderer : public AYM::DataRenderer
+  class DataRenderer : public AYM::DataRenderer
   {
   public:
-    VortexDataRenderer(Vortex::Track::ModuleData::Ptr data, uint_t version)
+    DataRenderer(ModuleData::Ptr data, uint_t trackChannelStart)
       : Data(data)
-      , Version(version)
-      , VolTable(version <= 4 ? Vol33_34 : Vol35)
+      , Version(Data->Version)
+      , VolTable(Version <= 4 ? Vol33_34 : Vol35)
+      , TrackChannelStart(trackChannelStart)
     {
     }
 
     virtual void Reset()
     {
-      PlayerState = VortexState();
+      PlayerState = State();
     }
 
-    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
@@ -181,60 +175,59 @@ namespace
       SynthesizeChannelsData(track);
     }
   private:
-    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Line())
       {
         PlayerState.CommState.NoiseBase = 0;
       }
 
-      if (const Vortex::Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
+        for (uint_t chan = 0; chan != PlayerState.ChanState.size(); ++chan)
         {
-          const Vortex::Track::Line::Chan& src = line->Channels[chan];
-          if (src.Empty())
+          if (const Cell::Ptr src = line->GetChannel(TrackChannelStart + chan))
           {
-            continue;
+            GetNewChannelState(*src, PlayerState.ChanState[chan], track);
           }
-          GetNewChannelState(src, PlayerState.ChanState[chan], track);
         }
       }
     }
 
-    void GetNewChannelState(const Vortex::Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
-      if (src.Enabled)
+      const int_t prevSlide = dst.ToneSlider.Value;
+      if (const bool* enabled = src.GetEnabled())
       {
         dst.PosInSample = dst.PosInOrnament = 0;
         dst.VolSlide = dst.EnvSliding = dst.NoiseSliding = 0;
         dst.ToneSlider.Reset();
         dst.ToneAccumulator = 0;
         dst.VibrateCounter = 0;
-        dst.Enabled = *src.Enabled;
+        dst.Enabled = *enabled;
       }
-      if (src.Note)
+      if (const uint_t* note = src.GetNote())
       {
-        dst.Note = *src.Note;
+        dst.Note = *note;
       }
-      if (src.SampleNum)
+      if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleNum = *src.SampleNum;
+        dst.SampleNum = *sample;
       }
-      if (src.OrnamentNum)
+      if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentNum = *src.OrnamentNum;
+        dst.OrnamentNum = *ornament;
         dst.PosInOrnament = 0;
       }
-      if (src.Volume)
+      if (const uint_t* volume = src.GetVolume())
       {
-        dst.Volume = *src.Volume;
+        dst.Volume = *volume;
       }
-      for (Vortex::Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
         switch (it->Type)
         {
-        case Vortex::GLISS:
+        case GLISS:
           dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
           dst.ToneSlider.Delta = it->Param2;
           dst.SlidingTargetNote = LIMITER;
@@ -244,52 +237,51 @@ namespace
             ++dst.ToneSlider.Counter;
           }
           break;
-        case Vortex::GLISS_NOTE:
+        case GLISS_NOTE:
           dst.ToneSlider.Period = dst.ToneSlider.Counter = it->Param1;
           dst.ToneSlider.Delta = it->Param2;
           dst.SlidingTargetNote = it->Param3;
           dst.VibrateCounter = 0;
+          if (Version >= 6)
+          {
+            dst.ToneSlider.Value = prevSlide;
+          }
           //tone up                                     freq up
           if (bool(dst.Note < dst.SlidingTargetNote) != bool(dst.ToneSlider.Delta < 0))
           {
             dst.ToneSlider.Delta = -dst.ToneSlider.Delta;
           }
           break;
-        case Vortex::SAMPLEOFFSET:
+        case SAMPLEOFFSET:
           dst.PosInSample = it->Param1;
           break;
-        case Vortex::ORNAMENTOFFSET:
+        case ORNAMENTOFFSET:
           dst.PosInOrnament = it->Param1;
           break;
-        case Vortex::VIBRATE:
+        case VIBRATE:
           dst.VibrateCounter = dst.VibrateOn = it->Param1;
           dst.VibrateOff = it->Param2;
           dst.ToneSlider.Value = 0;
           dst.ToneSlider.Counter = 0;
           break;
-        case Vortex::SLIDEENV:
+        case SLIDEENV:
           PlayerState.CommState.EnvSlider.Period = PlayerState.CommState.EnvSlider.Counter = it->Param1;
           PlayerState.CommState.EnvSlider.Delta = it->Param2;
           break;
-        case Vortex::ENVELOPE:
+        case ENVELOPE:
           track.SetEnvelopeType(it->Param1);
           PlayerState.CommState.EnvBase = it->Param2;
           dst.Envelope = true;
           PlayerState.CommState.EnvSlider.Reset();
           dst.PosInOrnament = 0;
           break;
-        case Vortex::NOENVELOPE:
+        case NOENVELOPE:
           dst.Envelope = false;
           dst.PosInOrnament = 0;
           break;
-        case Vortex::NOISEBASE:
+        case NOISEBASE:
           PlayerState.CommState.NoiseBase = it->Param1;
           break;
-        case Vortex::TEMPO:
-          //ignore
-          break;
-        default:
-          assert(!"Invalid command");
         }
       }
     }
@@ -322,9 +314,9 @@ namespace
         return;
       }
 
-      const Vortex::Track::Sample& curSample = Data->Samples[dst.SampleNum];
-      const Vortex::Track::Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const Vortex::Track::Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+      const Sample& curSample = Data->Samples.Get(dst.SampleNum);
+      const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
+      const Ornament& curOrnament = Data->Ornaments.Get(dst.OrnamentNum);
 
       //calculate tone
       const int_t toneAddon = curSampleLine.ToneOffset + dst.ToneAccumulator;
@@ -342,8 +334,8 @@ namespace
         channel.DisableTone();
       }
       //apply level
-      dst.VolSlide = clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
-      channel.SetLevel(GetVolume(dst.Volume, clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15)));
+      dst.VolSlide = Math::Clamp<int_t>(dst.VolSlide + curSampleLine.VolumeSlideAddon, -15, 15);
+      channel.SetLevel(GetVolume(dst.Volume, Math::Clamp<int_t>(dst.VolSlide + curSampleLine.Level, 0, 15)));
       //apply envelope
       if (dst.Envelope && !curSampleLine.EnvMask)
       {
@@ -373,7 +365,7 @@ namespace
       if (dst.ToneSlider.Update() &&
           LIMITER != dst.SlidingTargetNote)
       {
-        const int_t absoluteSlidingRange = track.GetSlidingDifference(halfTones, dst.SlidingTargetNote);
+        const int_t absoluteSlidingRange = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
         const int_t realSlidingRange = absoluteSlidingRange - toneOffset;
 
         if ((dst.ToneSlider.Delta > 0 && realSlidingRange < dst.ToneSlider.Delta) ||
@@ -402,148 +394,36 @@ namespace
       return VolTable[volume * 16 + level];
     }
   private:
-    const Vortex::Track::ModuleData::Ptr Data;
+    const ModuleData::Ptr Data;
     const uint_t Version;
     const VolumeTable& VolTable;
-    VortexState PlayerState;
+    const uint_t TrackChannelStart;
+    State PlayerState;
   };
 
-  class VortexChiptune : public AYM::Chiptune
+  String GetFreqTable(NoteTable table, uint_t version)
   {
-  public:
-    VortexChiptune(Vortex::Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)
-      : Data(data)
-      , Properties(properties)
-      , Info(CreateTrackInfo(Data, channels))
+    switch (table)
     {
-    }
-
-    virtual Information::Ptr GetInformation() const
-    {
-      return Info;
-    }
-
-    virtual ModuleProperties::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
-    {
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
-      const uint_t version = Vortex::ExtractVersion(*Properties);
-      const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(Data, version);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
-    }
-  private:
-    const Vortex::Track::ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
-    const Information::Ptr Info;
-  };
-
-  class VortexHolder : public Holder
-  {
-  public:
-    VortexHolder(Vortex::Track::ModuleData::Ptr data, Holder::Ptr delegate)
-      : Data(data)
-      , Delegate(delegate)
-    {
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Delegate->GetPlugin();
-    } 
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Delegate->GetModuleInformation();
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return Delegate->GetModuleProperties();
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
-    {
-      return Delegate->CreateRenderer(params, target);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
-    {
-      Error result;
-      if (ConvertVortexFormat(*Data, *GetModuleInformation(), *Parameters::CreateMergedAccessor(params, Delegate->GetModuleProperties()), spec, dst, result))
-      {
-        return result;
-      }
-      else
-      {
-        return Delegate->Convert(spec, params, dst);
-      }
-    }
-  protected:
-    const Vortex::Track::ModuleData::Ptr Data;
-    const Holder::Ptr Delegate;
-  };
-}
-
-namespace ZXTune
-{
-  namespace Module
-  {
-    namespace Vortex
-    {
-      String GetFreqTable(NoteTable table, uint_t version)
-      {
-        switch (table)
-        {
-        case Vortex::PROTRACKER:
-          return version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
-        case Vortex::SOUNDTRACKER:
-          return TABLE_PROTRACKER3_ST;
-        case Vortex::ASM:
-          return version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
-        case Vortex::REAL:
-          return version <= 3 ? TABLE_PROTRACKER3_3_REAL : TABLE_PROTRACKER3_4_REAL;
-        case Vortex::NATURAL:
-          return TABLE_NATURAL_SCALED;
-        default:
-          //assert(!"Unknown frequency table for Vortex-based modules");
-          return TABLE_PROTRACKER3_3;
-        }
-      }
-
-      uint_t ExtractVersion(const Parameters::Accessor& props)
-      {
-        Parameters::IntType version = 6;
-        if (props.FindValue(ATTR_VERSION, version))
-        {
-          version %= 10;
-        }
-        assert(version);
-        return static_cast<uint_t>(version);
-      }
-
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
-         uint_t version, Devices::AYM::Chip::Ptr device)
-      {
-        const AYM::DataRenderer::Ptr renderer = boost::make_shared<VortexDataRenderer>(data, version);
-        const StateIterator::Ptr iterator = CreateTrackStateIterator(info, data);
-        const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-        const AYM::DataIterator::Ptr dataIter = AYM::CreateDataIterator(trackParams, iterator, renderer);
-        return AYM::CreateRenderer(trackParams, dataIter, device);
-      }
-
-      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels)
-      {
-        return boost::make_shared<VortexChiptune>(data, properties, channels);
-      }
-
-      Holder::Ptr CreateHolder(Track::ModuleData::Ptr data, Holder::Ptr delegate)
-      {
-        return boost::make_shared<VortexHolder>(data, delegate);
-      }
+    case PROTRACKER:
+      return version <= 3 ? TABLE_PROTRACKER3_3 : TABLE_PROTRACKER3_4;
+    case SOUNDTRACKER:
+      return TABLE_PROTRACKER3_ST;
+    case ASM:
+      return version <= 3 ? TABLE_PROTRACKER3_3_ASM : TABLE_PROTRACKER3_4_ASM;
+    case REAL:
+      return version <= 3 ? TABLE_PROTRACKER3_3_REAL : TABLE_PROTRACKER3_4_REAL;
+    case NATURAL:
+      return TABLE_NATURAL_SCALED;
+    default:
+      //assert(!"Unknown frequency table for Vortex-based modules");
+      return TABLE_PROTRACKER3_3;
     }
   }
+
+  AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart)
+  {
+    return boost::make_shared<DataRenderer>(data, trackChannelStart);
+  }
+}
 }

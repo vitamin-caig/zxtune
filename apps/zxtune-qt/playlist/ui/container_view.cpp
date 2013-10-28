@@ -26,11 +26,14 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
 #include <error.h>
+//library includes
+#include <debug/log.h>
 //std includes
 #include <cassert>
 //qt includes
+#include <QtCore/QCoreApplication>
+#include <QtCore/QDir>
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QMenu>
 
@@ -82,6 +85,16 @@ namespace
     Playlist::Controller::Ptr Current;
   };
 
+  void LoadDefaultPlaylists(Playlist::Container& container)
+  {
+    const QDir appDir(QCoreApplication::applicationDirPath());
+    const QFileInfoList files = appDir.entryInfoList(QStringList("*.xspf"), QDir::Files | QDir::Readable, QDir::Name);
+    for (QFileInfoList::const_iterator it = files.begin(), lim = files.end(); it != lim; ++it)
+    {
+      container.OpenPlaylist(it->absoluteFilePath());
+    }
+  }
+
   class ContainerViewImpl : public Playlist::UI::ContainerView
                           , public Playlist::UI::Ui_ContainerView
   {
@@ -89,7 +102,7 @@ namespace
     ContainerViewImpl(QWidget& parent, Parameters::Container::Ptr parameters)
       : Playlist::UI::ContainerView(parent)
       , Options(parameters)
-      , Container(Playlist::Container::Create(*this, parameters))
+      , Container(Playlist::Container::Create(parameters))
       , Session(Playlist::Session::Create())
       , ActionsMenu(new QMenu(this))
       , ActivePlaylistView(0)
@@ -111,7 +124,6 @@ namespace
 
       Require(connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int))));
 
-      Parameters::BooleanValue::Bind(*actionDeepScan, *Options, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT);
       Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED, Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
       Parameters::BooleanValue::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED, Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
 
@@ -127,16 +139,23 @@ namespace
     {
       if (items.empty())
       {
-        Session->Load(Container);
-        if (widgetsContainer->count() == 0)
+        if (Session->Empty())
         {
-          CreateAnonymousPlaylist();
+          LoadDefaultPlaylists(*Container);
+        }
+        else
+        {
+          Session->Load(Container);
         }
       }
       else
       {
         Playlist::UI::View& pl = CreateAnonymousPlaylist();
         pl.AddItems(items);
+      }
+      if (widgetsContainer->count() == 0)
+      {
+        CreateAnonymousPlaylist();
       }
     }
 
@@ -321,7 +340,6 @@ namespace
       ActionsMenu->addSeparator();
       ActionsMenu->addAction(actionLoop);
       ActionsMenu->addAction(actionRandom);
-      ActionsMenu->addAction(actionDeepScan);
     }
 
     void SetMenuTitle()

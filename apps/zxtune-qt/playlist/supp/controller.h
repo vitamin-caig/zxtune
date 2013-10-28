@@ -93,13 +93,11 @@ namespace Playlist
   class Controller : public QObject
   {
     Q_OBJECT
-  protected:
-    explicit Controller(QObject& parent);
   public:
     typedef boost::shared_ptr<Controller> Ptr;
     typedef ObjectIterator<Ptr> Iterator;
 
-    static Ptr Create(QObject& parent, const QString& name, Item::DataProvider::Ptr provider);
+    static Ptr Create(const QString& name, Item::DataProvider::Ptr provider);
 
     virtual QString GetName() const = 0;
     virtual void SetName(const QString& name) = 0;

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="menu_prefs">Настройки</string>
+    <string name="menu_about">О программе</string>
+    <string name="menu_quit">Выход</string>
+    <!-- action-related -->
+    <string name="menu_play">Слушать</string>
+    <string name="menu_add">Добавить</string>
+    <string name="menu_delete">Удалить</string>
+    <!-- information-related -->
+    <string name="information_title">Название</string>
+    <string name="information_author">Автор</string>
+    <string name="information_program">Программа</string>
+    <string name="information_comment">Комментарий</string>
+    <string name="information_location">Путь</string>
+    <string name="playlist_empty">Список пуст</string>
+    <string name="browser_empty">Нет файлов</string>
+    <string name="scanning_title">Сканирование.</string>
+    <string name="scanning_text">Клик для отмены</string>
+    <!-- about-related -->
+    <string name="about_author">Идея, код, дизайн: <b>Vitamin/CAIG</b>\n\nПосвящается <b>Lizzi</b></string>
+    <!-- other -->
+    <plurals name="items">
+      <item quantity="one">%d элемент</item>
+      <item quantity="few">%d элемента</item>
+      <item quantity="many">%d элементов</item>
+      <!-- for pre-HC -->
+      <item quantity="other">%d элементов</item>
+    </plurals>
+    <plurals name="tracks">
+      <item quantity="one">%d трек</item>
+      <item quantity="few">%d трека</item>
+      <item quantity="many">%d треков</item>
+      <!-- for pre-HC -->
+      <item quantity="other">%d треков</item>
+    </plurals>
+    <!-- errors -->
+    <string name="network_inaccessible">Сеть недоступна</string>
+</resources>

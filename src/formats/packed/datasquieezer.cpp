@@ -16,9 +16,10 @@ Author:
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <algorithm>
 #include <iterator>
@@ -267,7 +268,7 @@ namespace DataSquieezer
         return false;
       }
       const RawHeader& header = GetHeader();
-      if (!in_range<uint_t>(header.LongOffsetBits, 0x00, 0x10))
+      if (!Math::InRange<uint_t>(header.LongOffsetBits, 0x00, 0x10))
       {
         return false;
       }
@@ -455,13 +456,11 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        if (!Depacker->Match(data, availSize))
+        if (!Depacker->Match(rawData))
         {
           return Container::Ptr();
         }
-        const DataSquieezer::Container container(data, availSize);
+        const DataSquieezer::Container container(rawData.Start(), rawData.Size());
         if (!container.FastCheck())
         {
           return Container::Ptr();

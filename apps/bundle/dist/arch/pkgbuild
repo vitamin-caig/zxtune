@@ -3,7 +3,7 @@ pkgname=zxtune
 pkgdesc="Crossplatform ZX Spectrum music player and ripper"
 url="http://zxtune.googlecode.com"
 license=('GPL3')
-depends=('boost-libs' 'gcc-libs' 'qt')
+depends=('boost-libs' 'gcc-libs' 'qt4')
 conflicts=('xtractor' 'zxtune123' 'zxtune-qt')
 optdepends=(
  'alsa-lib: for ALSA output support'

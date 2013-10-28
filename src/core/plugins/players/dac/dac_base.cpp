@@ -11,145 +11,211 @@ Author:
 
 //local includes
 #include "dac_base.h"
+#include "core/plugins/players/analyzer.h"
 //library includes
-#include <core/core_parameters.h>
-#include <sound/render_params.h>
-#include <sound/sample_convert.h>
+#include <devices/details/parameters_helper.h>
+#include <sound/multichannel_sample.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/mem_fn.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  class TrackParametersImpl : public DAC::TrackParameters
+  class DACDataIterator : public DAC::DataIterator
   {
   public:
-    explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
-      : Delegate(Sound::RenderParameters::Create(params))
+    DACDataIterator(TrackStateIterator::Ptr delegate, DAC::DataRenderer::Ptr renderer)
+      : Delegate(delegate)
+      , State(Delegate->GetStateObserver())
+      , Render(renderer)
     {
+      FillCurrentData();
     }
 
-    virtual bool Looped() const
+    virtual void Reset()
     {
-      return Delegate->Looped();
+      Delegate->Reset();
+      Render->Reset();
+      FillCurrentData();
     }
 
-    virtual uint_t FrameDurationMicrosec() const
+    virtual bool IsValid() const
     {
-      return Delegate->FrameDurationMicrosec();
+      return Delegate->IsValid();
+    }
+
+    virtual void NextFrame(bool looped)
+    {
+      Delegate->NextFrame(looped);
+      FillCurrentData();
+    }
+
+    virtual TrackState::Ptr GetStateObserver() const
+    {
+      return State;
+    }
+
+    virtual void GetData(Devices::DAC::Channels& res) const
+    {
+      res.assign(CurrentData.begin(), CurrentData.end());
     }
   private:
-    const Sound::RenderParameters::Ptr Delegate;
-  };
-
-  class DACReceiver : public Devices::DAC::Receiver
-  {
-  public:
-    DACReceiver(Sound::MultichannelReceiver::Ptr target, uint_t channels)
-      : Target(target)
-      , Data(channels)
+    void FillCurrentData()
     {
-    }
-
-    virtual void ApplyData(const Devices::DAC::MultiSample& data)
-    {
-      std::transform(data.begin(), data.end(), Data.begin(), &Sound::ToSample<Devices::DAC::Sample>);
-      Target->ApplyData(Data);
-    }
-
-    virtual void Flush()
-    {
-      Target->Flush();
+      if (Delegate->IsValid())
+      {
+        DAC::TrackBuilder builder;
+        Render->SynthesizeData(*State, builder);
+        builder.GetResult(CurrentData);
+      }
+      else
+      {
+        CurrentData.clear();
+      }
     }
   private:
-    const Sound::MultichannelReceiver::Ptr Target;
-    std::vector<Sound::Sample> Data;
+    const TrackStateIterator::Ptr Delegate;
+    const TrackModelState::Ptr State;
+    const DAC::DataRenderer::Ptr Render;
+    Devices::DAC::Channels CurrentData;
   };
 
-  class DACAnalyzer : public Analyzer
+  class DACRenderer : public Renderer
   {
   public:
-    explicit DACAnalyzer(Devices::DAC::Chip::Ptr device)
-      : Device(device)
-    {
-    }
-
-    //analyzer virtuals
-    virtual uint_t ActiveChannels() const
-    {
-      Devices::DAC::ChannelsState state;
-      Device->GetState(state);
-      return static_cast<uint_t>(std::count_if(state.begin(), state.end(),
-        boost::mem_fn(&Devices::DAC::ChanState::Enabled)));
-    }
-
-    virtual void BandLevels(std::vector<std::pair<uint_t, uint_t> >& bandLevels) const
-    {
-      Devices::DAC::ChannelsState state;
-      Device->GetState(state);
-      bandLevels.resize(state.size());
-      std::transform(state.begin(), state.end(), bandLevels.begin(),
-        boost::bind(&std::make_pair<uint_t, uint_t>, boost::bind(&Devices::DAC::ChanState::Band, _1), boost::bind(&Devices::DAC::ChanState::LevelInPercents, _1)));
-    }
-  private:
-    const Devices::DAC::Chip::Ptr Device;
-  };
-
-  class ChipParametersImpl : public Devices::DAC::ChipParameters
-  {
-  public:
-    explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
+    DACRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
       : Params(params)
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , Iterator(iterator)
+      , Device(device)
+      , FrameDuration()
+      , Looped()
     {
+#ifndef NDEBUG
+//perform self-test
+      for (; Iterator->IsValid(); Iterator->NextFrame(false));
+      Iterator->Reset();
+#endif
     }
 
-    virtual uint_t SoundFreq() const
+    virtual TrackState::Ptr GetTrackState() const
     {
-      return SoundParams->SoundFreq();
+      return Iterator->GetStateObserver();
     }
 
-    virtual bool Interpolate() const
+    virtual Analyzer::Ptr GetAnalyzer() const
     {
-      Parameters::IntType intVal = 0;
-      Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal);
-      return intVal != 0;
+      return CreateAnalyzer(Device);
+    }
+
+    virtual bool RenderFrame()
+    {
+      if (Iterator->IsValid())
+      {
+        SynchronizeParameters();
+        if (LastChunk.TimeStamp == Devices::DAC::Stamp())
+        {
+          //first chunk
+          TransferChunk();
+        }
+        Iterator->NextFrame(Looped);
+        LastChunk.TimeStamp += FrameDuration;
+        TransferChunk();
+      }
+      return Iterator->IsValid();
+    }
+
+    virtual void Reset()
+    {
+      Params.Reset();
+      Iterator->Reset();
+      Device->Reset();
+      LastChunk.TimeStamp = Devices::DAC::Stamp();
+      FrameDuration = Devices::DAC::Stamp();
+      Looped = false;
+    }
+
+    virtual void SetPosition(uint_t frameNum)
+    {
+      const TrackState::Ptr state = Iterator->GetStateObserver();
+      if (state->Frame() > frameNum)
+      {
+        Iterator->Reset();
+        Device->Reset();
+        LastChunk.TimeStamp = Devices::DAC::Stamp();
+      }
+      if (LastChunk.TimeStamp == Devices::DAC::Stamp())
+      {
+        Iterator->GetData(LastChunk.Data);
+        Device->UpdateState(LastChunk);
+      }
+      while (state->Frame() < frameNum && Iterator->IsValid())
+      {
+        Iterator->NextFrame(false);
+        LastChunk.TimeStamp += FrameDuration;
+        Iterator->GetData(LastChunk.Data);
+        Device->UpdateState(LastChunk);
+      }
     }
   private:
-    const Parameters::Accessor::Ptr Params;
-    const Sound::RenderParameters::Ptr SoundParams;
+    void SynchronizeParameters()
+    {
+      if (Params.IsChanged())
+      {
+        FrameDuration = Params->FrameDuration();
+        Looped = Params->Looped();
+      }
+    }
+
+    void TransferChunk()
+    {
+      Iterator->GetData(LastChunk.Data);
+      Device->RenderData(LastChunk);
+    }
+  private:
+    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    const DAC::DataIterator::Ptr Iterator;
+    const Devices::DAC::Chip::Ptr Device;
+    Devices::DAC::DataChunk LastChunk;
+    Devices::DAC::Stamp FrameDuration;
+    bool Looped;
   };
 }
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace DAC
   {
-    namespace DAC
+    ChannelDataBuilder TrackBuilder::GetChannel(uint_t chan)
     {
-      TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
+      using namespace Devices::DAC;
+      const std::vector<ChannelData>::iterator existing = std::find_if(Data.begin(), Data.end(),
+        boost::bind(&ChannelData::Channel, _1) == chan);
+      if (existing != Data.end())
       {
-        return boost::make_shared<TrackParametersImpl>(params);
+        return ChannelDataBuilder(*existing);
       }
+      Data.push_back(ChannelData());
+      ChannelData& newOne = Data.back();
+      newOne.Channel = chan;
+      return ChannelDataBuilder(newOne);
+    }
 
-      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target, uint_t channels)
-      {
-        return boost::make_shared<DACReceiver>(target, channels);
-      }
+    void TrackBuilder::GetResult(Devices::DAC::Channels& result)
+    {
+      using namespace Devices::DAC;
+      const std::vector<ChannelData>::iterator last = std::remove_if(Data.begin(), Data.end(),
+        boost::bind(&ChannelData::Mask, _1) == 0u);
+      result.assign(Data.begin(), last);
+    }
 
-      Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device)
-      {
-        return boost::make_shared<DACAnalyzer>(device);
-      }
+    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+    {
+      return boost::make_shared<DACDataIterator>(iterator, renderer);
+    }
 
-      Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
-      {
-        return boost::make_shared<ChipParametersImpl>(params);
-      }
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    {
+      return boost::make_shared<DACRenderer>(params, iterator, device);
     }
   }
 }

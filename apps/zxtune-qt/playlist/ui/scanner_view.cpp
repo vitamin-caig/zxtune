@@ -17,7 +17,8 @@ Author:
 #include "playlist/supp/scanner.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
 
 namespace
 {
@@ -35,13 +36,12 @@ namespace
       setupUi(this);
       hide();
       //make connections with scanner
-      Require(connect(Scanner, SIGNAL(OnScanStart()), this, SLOT(ScanStart())));
-      Require(connect(Scanner, SIGNAL(OnScanStop()), this, SLOT(ScanStop())));
-      Require(connect(Scanner, SIGNAL(OnProgressStatus(unsigned, unsigned, unsigned)), SLOT(ShowProgress(unsigned, unsigned, unsigned))));
-      Require(connect(Scanner, SIGNAL(OnProgressMessage(const QString&, const QString&)), SLOT(ShowProgressMessage(const QString&))));
-      Require(connect(Scanner, SIGNAL(OnResolvingStart()), this, SLOT(ShowResolving())));
-      Require(connect(Scanner, SIGNAL(OnResolvingStop()), this, SLOT(HideResolving())));
-      Require(connect(scanCancel, SIGNAL(clicked()), SLOT(ScanCancel())));
+      Require(connect(Scanner, SIGNAL(ScanStarted(Playlist::ScanStatus::Ptr)), this, SLOT(ScanStart(Playlist::ScanStatus::Ptr))));
+      Require(connect(Scanner, SIGNAL(ScanStopped()), this, SLOT(ScanStop())));
+      Require(connect(Scanner, SIGNAL(ScanProgressChanged(unsigned)), SLOT(ShowProgress(unsigned))));
+      Require(connect(Scanner, SIGNAL(ScanMessageChanged(const QString&)), SLOT(ShowProgressMessage(const QString&))));
+      Require(Scanner->connect(scanCancel, SIGNAL(clicked()), SLOT(Stop())));
+      Require(Scanner->connect(scanPause, SIGNAL(toggled(bool)), SLOT(Pause(bool))));
 
       Dbg("Created at %1%", this);
     }
@@ -51,27 +51,25 @@ namespace
       Dbg("Destroyed at %1%", this);
     }
 
-    virtual void ScanStart()
+    virtual void ScanStart(Playlist::ScanStatus::Ptr status)
     {
+      Dbg("Scan started for %1%", this);
+      Status = status;
       show();
-    }
-
-    virtual void ScanCancel()
-    {
-      scanCancel->setEnabled(false);
-      Scanner->Cancel();
     }
 
     virtual void ScanStop()
     {
+      Dbg("Scan stopped for %1%", this);
       hide();
-      scanCancel->setEnabled(true);
+      scanPause->setChecked(false);
     }
 
-    virtual void ShowProgress(unsigned progress, unsigned itemsDone, unsigned totalItems)
+    virtual void ShowProgress(unsigned progress)
     {
-      const QString itemsProgressText = QString::fromAscii("%1/%2").arg(itemsDone).arg(totalItems);
+      const QString itemsProgressText = QString::fromAscii("%1/%2%3").arg(Status->DoneFiles()).arg(Status->FoundFiles()).arg(Status->SearchFinished() ? ' ' : '+');
       itemsProgress->setText(itemsProgressText);
+      itemsProgress->setToolTip(Status->CurrentFile());
       scanProgress->setValue(progress);
       CheckedShow();
     }
@@ -79,17 +77,6 @@ namespace
     virtual void ShowProgressMessage(const QString& message)
     {
       scanProgress->setToolTip(message);
-    }
-
-    virtual void ShowResolving()
-    {
-      itemsProgress->setText(Playlist::UI::ScannerView::tr("Searching..."));
-      CheckedShow();
-    }
-
-    virtual void HideResolving()
-    {
-      itemsProgress->setText(QString());
     }
   private:
     void CheckedShow()
@@ -101,6 +88,7 @@ namespace
     }
   private:
     const Playlist::Scanner::Ptr Scanner;
+    Playlist::ScanStatus::Ptr Status;
   };
 }
 

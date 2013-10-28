@@ -15,21 +15,27 @@ Author:
 #include "data_provider.h"
 #include "ui/format.h"
 #include "ui/utils.h"
+#include "playlist/parameters.h"
 #include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
-#include <format.h>
 #include <progress_callback.h>
-#include <template_parameters.h>
 //library includes
-#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
+#include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <io/fs_tools.h>
-#include <io/provider.h>
+#include <debug/log.h>
+#include <io/api.h>
+#include <parameters/merged_accessor.h>
+#include <parameters/template.h>
+#include <parameters/tracking.h>
 #include <sound/sound_parameters.h>
+#include <strings/format.h>
+#include <strings/template.h>
+//std includes
+#include <deque>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -38,6 +44,11 @@ Author:
 #include "text/text.h"
 
 #define FILE_TAG 0C9BBC6E
+
+namespace
+{
+  const Debug::Stream Dbg("Playlist::DataProvider");
+}
 
 namespace
 {
@@ -61,7 +72,7 @@ namespace
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
-      return ZXTune::IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
+      return IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
     }
   private:
     const Parameters::Accessor::Ptr Params;
@@ -110,7 +121,7 @@ namespace
       }
     };
 
-    typedef std::list<Item> ItemsList;
+    typedef std::deque<Item> ItemsList;
   public:
     ObjectsCache()
       : TotalWeight()
@@ -149,6 +160,7 @@ namespace
         boost::bind(&Item::Id, _1) == id);
       if (it != Items.end())
       {
+        TotalWeight -= ObjectTraits<T>::Weight(it->Value);
         Items.erase(it);
       }
     }
@@ -162,6 +174,22 @@ namespace
         Items.pop_back();
         TotalWeight -= entry.Weight;
       }
+    }
+
+    void Clear()
+    {
+      ItemsList().swap(Items);
+      TotalWeight = 0;
+    }
+
+    std::size_t GetItemsCount() const
+    {
+      return Items.size();
+    }
+
+    W GetItemsWeight() const
+    {
+      return TotalWeight;
     }
   private:
     Item* FindItem(const String& id)
@@ -183,39 +211,88 @@ namespace
     W TotalWeight;
   };
 
+  class CacheParameters
+  {
+  public:
+    explicit CacheParameters(Parameters::Accessor::Ptr params)
+      : Params(params)
+    {
+    }
+
+    std::size_t MemoryLimit() const
+    {
+      Parameters::IntType res = Parameters::ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT;
+      Params->FindValue(Parameters::ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB, res);
+      return static_cast<std::size_t>(res * 1048576);
+    }
+
+    std::size_t FilesLimit() const
+    {
+      Parameters::IntType res = Parameters::ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT;
+      Params->FindValue(Parameters::ZXTuneQT::Playlist::Cache::FILES_LIMIT, res);
+      return static_cast<std::size_t>(res);
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+  };
+
   //cached data provider
   class CachedDataProvider : public DataProvider
   {
-    //TODO: parametrize
-    static const uint64_t MAX_CACHE_SIZE = 1048576 * 10;//10Mb
-    static const uint_t MAX_CACHE_ITEMS = 1000;
   public:
     typedef boost::shared_ptr<CachedDataProvider> Ptr;
 
     explicit CachedDataProvider(Parameters::Accessor::Ptr ioParams)
-      : Delegate(CreateSimpleDataProvider(ioParams))
+      : Params(ioParams)
+      , Delegate(CreateSimpleDataProvider(ioParams))
     {
     }
 
     virtual Binary::Container::Ptr GetData(const String& dataPath) const
     {
       const boost::mutex::scoped_lock lock(Mutex);
+      const std::size_t filesLimit = Params.FilesLimit();
+      const std::size_t memLimit = Params.MemoryLimit();
+      if (filesLimit != 0 && memLimit != 0)
+      {
+        return GetCachedData(dataPath, filesLimit, memLimit);
+      }
+      else
+      {
+        Cache.Clear();
+        return Delegate->GetData(dataPath);
+      }
+    }
+
+    void FlushCachedData(const String& dataPath)
+    {
+      const boost::mutex::scoped_lock lock(Mutex);
+      if (Cache.GetItemsCount())
+      {
+        Cache.Del(dataPath);
+        ReportCache();
+      }
+    }
+  private:
+    Binary::Container::Ptr GetCachedData(const String& dataPath, std::size_t filesLimit, std::size_t memLimit) const
+    {
       if (const Binary::Container::Ptr cached = Cache.Find(dataPath))
       {
         return cached;
       }
       const Binary::Container::Ptr data = Delegate->GetData(dataPath);
       Cache.Add(dataPath, data);
-      Cache.Fit(MAX_CACHE_ITEMS, MAX_CACHE_SIZE);
+      Cache.Fit(filesLimit, memLimit);
+      ReportCache();
       return data;
     }
-
-    void FlushCachedData(const String& dataPath)
+    
+    void ReportCache() const
     {
-      const boost::mutex::scoped_lock lock(Mutex);
-      Cache.Del(dataPath);
+      Dbg("Cache(%1%): %2% files, %3% bytes", this, Cache.GetItemsCount(), Cache.GetItemsWeight());
     }
   private:
+    const CacheParameters Params;
     const DataProvider::Ptr Delegate;
     mutable boost::mutex Mutex;
     mutable ObjectsCache<Binary::Container::Ptr> Cache;
@@ -226,7 +303,7 @@ namespace
   public:
     typedef boost::shared_ptr<const DataSource> Ptr;
 
-    DataSource(CachedDataProvider::Ptr provider, ZXTune::IO::Identifier::Ptr id)
+    DataSource(CachedDataProvider::Ptr provider, IO::Identifier::Ptr id)
       : Provider(provider)
       , DataId(id)
     {
@@ -242,37 +319,40 @@ namespace
       return Provider->GetData(DataId->Path());
     }
 
-    ZXTune::IO::Identifier::Ptr GetDataIdentifier() const
+    IO::Identifier::Ptr GetDataIdentifier() const
     {
       return DataId;
     }
   private:
     const CachedDataProvider::Ptr Provider;
-    const ZXTune::IO::Identifier::Ptr DataId;
+    const IO::Identifier::Ptr DataId;
   };
 
   class ModuleSource
   {
   public:
-    ModuleSource(Parameters::Accessor::Ptr coreParams, DataSource::Ptr source, ZXTune::IO::Identifier::Ptr moduleId)
+    ModuleSource(Parameters::Accessor::Ptr coreParams, DataSource::Ptr source, IO::Identifier::Ptr moduleId)
       : CoreParams(coreParams)
       , Source(source)
       , ModuleId(moduleId)
     {
     }
 
-    ZXTune::Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
+    Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
-      const Binary::Container::Ptr data = Source->GetData();
-      ZXTune::Module::Holder::Ptr module;
-      ZXTune::OpenModule(CoreParams, data, ModuleId->Subpath(), module);
-      if (module)
+      try
       {
+        const Binary::Container::Ptr data = Source->GetData();
+        const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ModuleId->Subpath());
+        const Module::Holder::Ptr module = Module::Open(location);
         const Parameters::Accessor::Ptr pathParams = CreatePathProperties(ModuleId);
         const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams);
-        return ZXTune::Module::CreateMixedPropertiesHolder(module, moduleParams);
+        return Module::CreateMixedPropertiesHolder(module, moduleParams);
       }
-      return module;
+      catch (const Error&)
+      {
+        return Module::Holder::Ptr();
+      }
     }
 
     String GetFullPath() const
@@ -282,7 +362,7 @@ namespace
   private:
     const Parameters::Accessor::Ptr CoreParams;
     const DataSource::Ptr Source;
-    const ZXTune::IO::Identifier::Ptr ModuleId;
+    const IO::Identifier::Ptr ModuleId;
   };
 
   String GetStringProperty(const Parameters::Accessor& props, const Parameters::NameType& propName)
@@ -308,18 +388,18 @@ namespace
     typedef boost::shared_ptr<const DynamicAttributesProvider> Ptr;
 
     DynamicAttributesProvider()
-      : DisplayNameTemplate(StringTemplate::Create(Text::MODULE_PLAYLIST_FORMAT))
-      , DummyDisplayName(DisplayNameTemplate->Instantiate(SkipFieldsSource()))
+      : DisplayNameTemplate(Strings::Template::Create(Text::MODULE_PLAYLIST_FORMAT))
+      , DummyDisplayName(DisplayNameTemplate->Instantiate(Strings::SkipFieldsSource()))
     {
     }
 
     String GetDisplayName(const Parameters::Accessor& properties) const
     {
-      const Parameters::FieldsSourceAdapter<SkipFieldsSource> adapter(properties);
+      const Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> adapter(properties);
       String result = DisplayNameTemplate->Instantiate(adapter);
       if (result == DummyDisplayName)
       {
-        if (!properties.FindValue(ZXTune::Module::ATTR_FULLPATH, result))
+        if (!properties.FindValue(Module::ATTR_FULLPATH, result))
         {
           result.clear();
         }
@@ -327,12 +407,12 @@ namespace
       return result;
     }
   private:
-    const StringTemplate::Ptr DisplayNameTemplate;
+    const Strings::Template::Ptr DisplayNameTemplate;
     const String DummyDisplayName;
   };
 
   class DataImpl : public Playlist::Item::Data
-                 , private Parameters::PropertyChangedCallback
+                 , private Parameters::Modifier
   {
   public:
     DataImpl(DynamicAttributesProvider::Ptr attributes,
@@ -342,33 +422,39 @@ namespace
       : Attributes(attributes)
       , Source(source)
       , AdjustedParams(adjustedParams)
-      , Type(GetStringProperty(moduleProps, ZXTune::Module::ATTR_TYPE))
-      , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_CRC)))
-      , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_FIXEDCRC)))
-      , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, ZXTune::Module::ATTR_SIZE)))
-      , Valid(true)
+      , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
+      , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
+      , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
+      , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, Module::ATTR_SIZE)))
     {
       Duration.SetCount(frames);
       LoadProperties(moduleProps);
     }
 
-    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    virtual Module::Holder::Ptr GetModule() const
     {
-      const ZXTune::Module::Holder::Ptr res = Source.GetModule(AdjustedParams);
-      Valid = res;
-      return res;
+      try
+      {
+        State = Error();
+        return Source.GetModule(AdjustedParams);
+      }
+      catch (const Error& e)
+      {
+        State = e;
+      }
+      return Module::Holder::Ptr();
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
-      const Parameters::PropertyChangedCallback& cb = *this;
-      return Parameters::CreatePropertyTrackedContainer(AdjustedParams, cb);
+      const Parameters::Modifier& cb = *this;
+      return Parameters::CreatePostChangePropertyTrackedContainer(AdjustedParams, const_cast<Parameters::Modifier&>(cb));
     }
 
     //playlist-related properties
-    virtual bool IsValid() const
+    virtual Error GetState() const
     {
-      return Valid;
+      return State;
     }
 
     virtual String GetFullPath() const
@@ -418,14 +504,34 @@ namespace
   private:
     Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      if (const ZXTune::Module::Holder::Ptr holder = GetModule())
+      if (const Module::Holder::Ptr holder = GetModule())
       {
         return holder->GetModuleProperties();
       }
       return Parameters::Accessor::Ptr();
     }
   private:
-    virtual void OnPropertyChanged(const Parameters::NameType& /*name*/) const
+    virtual void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
+    {
+      OnPropertyChanged();
+    }
+
+    virtual void SetValue(const Parameters::NameType& /*name*/, const Parameters::StringType& /*val*/)
+    {
+      OnPropertyChanged();
+    }
+
+    virtual void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/)
+    {
+      OnPropertyChanged();
+    }
+
+    virtual void RemoveValue(const Parameters::NameType& /*name*/)
+    {
+      OnPropertyChanged();
+    }
+
+    void OnPropertyChanged()
     {
       if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
       {
@@ -440,11 +546,11 @@ namespace
       }
     }
 
-    void LoadProperties(const Parameters::Accessor& props) const
+    void LoadProperties(const Parameters::Accessor& props)
     {
       DisplayName = Attributes->GetDisplayName(props);
-      Author = GetStringProperty(props, ZXTune::Module::ATTR_AUTHOR);
-      Title = GetStringProperty(props, ZXTune::Module::ATTR_TITLE);
+      Author = GetStringProperty(props, Module::ATTR_AUTHOR);
+      Title = GetStringProperty(props, Module::ATTR_TITLE);
       const Time::Microseconds period(GetIntProperty(props, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT));
       Duration.SetPeriod(period);
     }
@@ -456,11 +562,11 @@ namespace
     const uint32_t Checksum;
     const uint32_t CoreChecksum;
     const std::size_t Size;
-    mutable String DisplayName;
-    mutable String Author;
-    mutable String Title;
-    mutable Time::MillisecondsDuration Duration;
-    mutable bool Valid;
+    String DisplayName;
+    String Author;
+    String Title;
+    Time::MillisecondsDuration Duration;
+    mutable Error State;
   };
 
   class ProgressCallbackAdapter : public Log::ProgressCallback
@@ -486,12 +592,12 @@ namespace
   };
  
 
-  class DetectParametersAdapter : public ZXTune::DetectParameters
+  class DetectCallback : public Module::DetectCallback
   {
   public:
-    DetectParametersAdapter(Playlist::Item::DetectParameters& delegate,
+    DetectCallback(Playlist::Item::DetectParameters& delegate,
                             DynamicAttributesProvider::Ptr attributes,
-                            CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, ZXTune::IO::Identifier::Ptr dataId)
+                            CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, IO::Identifier::Ptr dataId)
       : Delegate(delegate)
       , ProgressCallback(Delegate)
       , Attributes(attributes)
@@ -501,12 +607,18 @@ namespace
     {
     }
 
-    virtual void ProcessModule(const String& subPath, ZXTune::Module::Holder::Ptr holder) const
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
+      return CoreParams;
+    }
+
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
+    {
+      const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
-      const ZXTune::Module::Information::Ptr info = holder->GetModuleInformation();
+      const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
-      const ZXTune::IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
+      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
       const Parameters::Accessor::Ptr pathProps = CreatePathProperties(moduleId);
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
@@ -515,7 +627,7 @@ namespace
       Delegate.ProcessItem(playitem);
     }
 
-    virtual Log::ProgressCallback* GetProgressCallback() const
+    virtual Log::ProgressCallback* GetProgress() const
     {
       return &ProgressCallback;
     }
@@ -524,7 +636,7 @@ namespace
     mutable ProgressCallbackAdapter ProgressCallback;
     const DynamicAttributesProvider::Ptr Attributes;
     const Parameters::Accessor::Ptr CoreParams;
-    const ZXTune::IO::Identifier::Ptr DataId;
+    const IO::Identifier::Ptr DataId;
     const DataSource::Ptr Source;
   };
 
@@ -538,46 +650,34 @@ namespace
     {
     }
 
-    virtual Error DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const
+    virtual void DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const
     {
-      try
+      const IO::Identifier::Ptr id = IO::ResolveUri(path);
+
+      const String subPath = id->Subpath();
+      if (subPath.empty())
       {
-        const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
-
-        const String dataPath = id->Path();
-        const Binary::Container::Ptr data = Provider->GetData(dataPath);
-        const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
-
-        const String subPath = id->Subpath();
-        ThrowIfError(ZXTune::DetectModules(CoreParams, params, data, subPath));
-        return Error();
+        const Binary::Container::Ptr data = Provider->GetData(id->Path());
+        const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
+        const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
+        Module::Detect(location, detectCallback);
       }
-      catch (const Error& e)
+      else
       {
-        return e;
+        OpenModule(path, detectParams);
       }
     }
 
-    virtual Error OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const
+    virtual void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const
     {
-      try
-      {
-        const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
+      const IO::Identifier::Ptr id = IO::ResolveUri(path);
 
-        const String dataPath = id->Path();
-        const Binary::Container::Ptr data = Provider->GetData(dataPath);
-        const DetectParametersAdapter params(detectParams, Attributes, Provider, CoreParams, id);
+      const Binary::Container::Ptr data = Provider->GetData(id->Path());
+      const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
 
-        ZXTune::Module::Holder::Ptr result;
-        const String subPath = id->Subpath();
-        ThrowIfError(ZXTune::OpenModule(CoreParams, data, subPath, result));
-        params.ProcessModule(subPath, result);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, id->Subpath());
+      const Module::Holder::Ptr module = Module::Open(location);
+      detectCallback.ProcessModule(location, module);
     }
   private:
     const CachedDataProvider::Ptr Provider;

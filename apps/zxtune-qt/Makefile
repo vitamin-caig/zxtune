@@ -11,38 +11,50 @@ source_files = qt_app supp/options
 #ui-related
 #gui_theme ?= default
 gui_theme ?= restorer
+have_gui = 1
 
 #other
-moc_files += supp/playback_supp supp/mixer
+moc_files += supp/playback_supp
 
 include_dirs = .
 
 text_files := text/text
 
-libraries = zxtune_app_base zxtune_app_version analysis async binary core devices formats io platform sound tools \
-            playlist_ui playlist_supp playlist_io ui_common
+#base
+libraries.common = analysis async binary \
+                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
+                  devices_aym devices_dac devices_fm devices_saa devices_z80 \
+                  formats_archived formats_chiptune formats_packed \
+                  io \
+                  parameters platform \
+                  resource \
+                  sound sound_backends strings \
+                  tools
+libraries.3rdparty = lhasa unrar z80ex zlib
 
-depends = apps/base apps/version src/analysis src/async src/binary src/core src/devices src/formats src/io src/platform src/sound src/tools \
-          apps/zxtune-qt/playlist/supp apps/zxtune-qt/playlist/ui apps/zxtune-qt/playlist/io \
-          apps/zxtune-qt/ui
+#apps
+libraries += zxtune_app_base zxtune_app_version
+depends += $(addprefix apps/,base version)
 
-#3rdparty
-libraries += lhasa z z80ex
-depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
+#ui
+libraries += playlist_ui playlist_supp playlist_io ui_common
+depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
 
-boost_libraries = thread system
+libraries.boost = thread system filesystem
 
-qt_libraries = Gui Core
+libraries.qt = Gui Core
 
 ifdef embedded
-libraries += l10n_stub ui_embedded playlist_ui_embedded
-depends += src/l10n/stub apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
-qt_libraries += Network
+libraries += ui_embedded playlist_ui_embedded
+depends += apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
+libraries.qt += Network
 else
-libraries += l10n ui_desktop playlist_ui_desktop ui_conversion ui_preferences
-depends += src/l10n apps/zxtune-qt/ui/desktop apps/zxtune-qt/playlist/ui/desktop apps/zxtune-qt/ui/conversion apps/zxtune-qt/ui/preferences
-boost_libraries += locale
+libraries.common += l10n debug
+libraries += ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update
+depends += $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
+libraries.boost += locale
 mingw_libraries += iconv
+embedded_files = $(qm_translation_data) $(mo_translation_data)
 endif
 
 theme_resources = res/theme_$(gui_theme)
@@ -53,7 +65,6 @@ qrc_files := res/icons $(theme_resources)/theme
 #platform-specific resources
 windows_resources := res/zxtune-qt
 mingw_resources := res/zxtune-qt
-embedded_files = $(qm_translation_data) $(mo_translation_data)
 
 $(platform)_definitions += GUI_THEME=$(gui_theme)
 

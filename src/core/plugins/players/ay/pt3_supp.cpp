@@ -10,90 +10,52 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
-#include "ay_conversion.h"
+#include "aym_base.h"
 #include "ts_base.h"
-#include "core/plugins/utils.h"
+#include "vortex_base.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/archives/archive_supp_common.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/plugin.h"
+#include "core/plugins/players/simple_orderlist.h"
 //common includes
-#include <byteorder.h>
-#include <error_tools.h>
-#include <range_checker.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
-#include <core/convert_parameters.h>
-#include <core/core_parameters.h>
-#include <core/error_codes.h>
-#include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
-#include <formats/chiptune_decoders.h>
-#include <formats/packed_decoders.h>
-#include <formats/chiptune/protracker3.h>
+#include <core/conversion/aym.h>
 //text includes
 #include <core/text/plugins.h>
 
-#define FILE_TAG 3CBC0BBC
-
+namespace Module
+{
 namespace ProTracker3
 {
-  typedef ZXTune::Module::Vortex::Track Track;
-
-  std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset);
-}
-
-namespace ProTracker3
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  void ConvertSample(const Formats::Chiptune::ProTracker3::Sample& src, Track::Sample& dst)
-  {
-    dst = Track::Sample(src.Loop, src.Lines.begin(), src.Lines.end());
-  }
-
-  void ConvertOrnament(const Formats::Chiptune::ProTracker3::Ornament& src, Track::Ornament& dst)
-  {
-    dst = Track::Ornament(src.Loop, src.Lines.begin(), src.Lines.end());
-  }
+  typedef Vortex::ModuleData ModuleData;
 
   class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
   {
   public:
-    DataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , PatOffset(patOffset)
-      , Context(*Data)
+      , PatOffset(Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
+      Data->Patterns = Patterns.GetResult();
     }
 
-    virtual void SetProgram(const String& program)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      Properties->SetProgram(OptimizeString(program));
-    }
-
-    virtual void SetTitle(const String& title)
-    {
-      Properties->SetTitle(OptimizeString(title));
-    }
-
-    virtual void SetAuthor(const String& author)
-    {
-      Properties->SetAuthor(OptimizeString(author));
+      return Properties;
     }
 
     virtual void SetVersion(uint_t version)
     {
-      Properties->SetVersion(3, version);
+      Properties.SetVersion(3, Data->Version = version);
     }
 
     virtual void SetNoteTable(Formats::Chiptune::ProTracker3::NoteTable table)
     {
-      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Vortex::ExtractVersion(*Properties));
-      Properties->SetFreqtable(freqTable);
+      const String freqTable = Vortex::GetFreqTable(static_cast<Vortex::NoteTable>(table), Data->Version);
+      Properties.SetFreqtable(freqTable);
     }
 
     virtual void SetMode(uint_t mode)
@@ -109,392 +71,382 @@ namespace ProTracker3
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker3::Sample& sample)
     {
       //TODO: use common types
-      Data->Samples.resize(index + 1);
-      ConvertSample(sample, Data->Samples[index]);
+      Data->Samples.Add(index, Vortex::Sample(sample.Loop, sample.Lines.begin(), sample.Lines.end()));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker3::Ornament& ornament)
     {
-      Data->Ornaments.resize(index + 1);
-      ConvertOrnament(ornament, Data->Ornaments[index]);
+      Data->Ornaments.Add(index, Vortex::Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Positions.assign(positions.begin(), positions.end());
-      Data->LoopPosition = loop;
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual void StartPattern(uint_t index)
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Context.SetPattern(index);
-    }
-
-    virtual void FinishPattern(uint_t size)
-    {
-      Context.FinishPattern(size);
-    }
-
-    virtual void StartLine(uint_t index)
-    {
-      Context.SetLine(index);
-    }
-
-    virtual void SetTempo(uint_t tempo)
-    {
-      Context.CurLine->SetTempo(tempo);
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Context.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Context.CurChannel->SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      channel->SetEnabled(true);
-      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), Vortex::GLISS_NOTE);
-      if (cmd != channel->Commands.end())
+      MutableCell& channel = Patterns.GetChannel();
+      channel.SetEnabled(true);
+      if (Command* cmd = channel.FindCommand(Vortex::GLISS_NOTE))
       {
         cmd->Param3 = int_t(note);
       }
       else
       {
-        channel->SetNote(note);
+        channel.SetNote(note);
       }
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Context.CurChannel->SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Context.CurChannel->SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Context.CurChannel->SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetGlissade(uint_t period, int_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::GLISS, period, val));
+      Patterns.GetChannel().AddCommand(Vortex::GLISS, period, val);
     }
 
     virtual void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/)
     {
       //ignore limit
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::GLISS_NOTE, period, val));
+      Patterns.GetChannel().AddCommand(Vortex::GLISS_NOTE, period, val);
     }
 
     virtual void SetSampleOffset(uint_t offset)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::SAMPLEOFFSET, offset));
+      Patterns.GetChannel().AddCommand(Vortex::SAMPLEOFFSET, offset);
     }
 
     virtual void SetOrnamentOffset(uint_t offset)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::ORNAMENTOFFSET, offset));
+      Patterns.GetChannel().AddCommand(Vortex::ORNAMENTOFFSET, offset);
     }
 
     virtual void SetVibrate(uint_t ontime, uint_t offtime)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::VIBRATE, ontime, offtime));
+      Patterns.GetChannel().AddCommand(Vortex::VIBRATE, ontime, offtime);
     }
 
     virtual void SetEnvelopeSlide(uint_t period, int_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::SLIDEENV, period, val));
+      Patterns.GetChannel().AddCommand(Vortex::SLIDEENV, period, val);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::ENVELOPE, type, value));
+      Patterns.GetChannel().AddCommand(Vortex::ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::NOENVELOPE));
+      Patterns.GetChannel().AddCommand(Vortex::NOENVELOPE);
     }
 
     virtual void SetNoiseBase(uint_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(Vortex::NOISEBASE, val));
+      Patterns.GetChannel().AddCommand(Vortex::NOISEBASE, val);
+    }
+
+    uint_t GetPatOffset() const
+    {
+      return PatOffset;
+    }
+
+    ModuleData::RWPtr GetResult() const
+    {
+      return Data;
     }
   private:
-    struct BuildContext
-    {
-      Track::ModuleData& Data;
-      Track::Pattern* CurPattern;
-      Track::Line* CurLine;
-      Track::Line::Chan* CurChannel;
-
-      explicit BuildContext(Track::ModuleData& data)
-        : Data(data)
-        , CurPattern()
-        , CurLine()
-        , CurChannel()
-      {
-      }
-
-      void SetPattern(uint_t idx)
-      {
-        Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
-        CurPattern = &Data.Patterns[idx];
-        CurLine = 0;
-        CurChannel = 0;
-      }
-
-      void SetLine(uint_t idx)
-      {
-        if (const std::size_t skipped = idx - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = &CurPattern->AddLine();
-        CurChannel = 0;
-      }
-
-      void SetChannel(uint_t idx)
-      {
-        CurChannel = &CurLine->Channels[idx];
-      }
-
-      void FinishPattern(uint_t size)
-      {
-        if (const std::size_t skipped = size - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = 0;
-        CurPattern = 0;
-      }
-    };
-  private:
-    const Track::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-    uint_t& PatOffset;
-
-    BuildContext Context;
+    const ModuleData::RWPtr Data;
+    PropertiesBuilder& Properties;
+    uint_t PatOffset;
+    PatternsBuilder Patterns;
   };
-}
 
-namespace ProTracker3
-{
-  std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props, uint_t& patOffset)
+  class StubLine : public Line
   {
-    return std::auto_ptr<Formats::Chiptune::ProTracker3::Builder>(new DataBuilder(data, props, patOffset));
-  }
-}
-
-namespace PT3
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  class TSModuleData : public Vortex::Track::ModuleData
-  {
+    StubLine()
+    {
+    }
   public:
-    TSModuleData(uint_t base, Vortex::Track::ModuleData::Ptr delegate)
-      : Vortex::Track::ModuleData(*delegate)
-      , Base(base)
+    virtual Cell::Ptr GetChannel(uint_t /*idx*/) const
     {
+      return Cell::Ptr();
     }
 
-    virtual uint_t GetPatternSize(uint_t position) const
+    virtual uint_t CountActiveChannels() const
     {
-      const uint_t size1 = Vortex::Track::ModuleData::GetPatternSize(position);
-      const uint_t size2 = GetSecondPatternByPosition(position).GetSize();
-      return std::min(size1, size2);
-    }
-
-    virtual uint_t GetNewTempo(uint_t position, uint_t line) const
-    {
-      if (uint_t originalTempo = Vortex::Track::ModuleData::GetNewTempo(position, line))
-      {
-        return originalTempo;
-      }
-      if (const Vortex::Track::Line* lineObj = GetSecondPatternByPosition(position).GetLine(line))
-      {
-        if (const boost::optional<uint_t>& tempo = lineObj->Tempo)
-        {
-          return *tempo;
-        }
-      }
       return 0;
     }
-  private:
-    const Vortex::Track::Pattern& GetSecondPatternByPosition(uint_t position) const
+
+    virtual uint_t GetTempo() const
     {
-      const uint_t originalPattern = Vortex::Track::ModuleData::GetPatternIndex(position);
-      return Patterns[Base - 1 - originalPattern];
+      return 0;
     }
-  private:
-    const uint_t Base;
+
+    static Ptr Create()
+    {
+      static StubLine instance;
+      return MakeSingletonPointer(instance);
+    }
   };
 
-  class MirroredModuleData : public Vortex::Track::ModuleData
+  class TSLine : public Line
   {
   public:
-    MirroredModuleData(uint_t base, const Vortex::Track::ModuleData& data)
-      : Vortex::Track::ModuleData(data)
-      , Base(base)
+    TSLine(Line::Ptr first, Line::Ptr second)
+      : First(first ? first : StubLine::Create())
+      , Second(second ? second : StubLine::Create())
     {
     }
 
-    virtual uint_t GetPatternIndex(uint_t position) const
+    virtual Cell::Ptr GetChannel(uint_t idx) const
     {
-      return Base - 1 - Vortex::Track::ModuleData::GetPatternIndex(position);
-    }
-  private:
-    const uint_t Base;
-  };
-
-  class TSHolder : public Holder
-  {
-  public:
-    TSHolder(Vortex::Track::ModuleData::Ptr data, Holder::Ptr delegate, uint_t patOffset)
-      : Data(data)
-      , Delegate(delegate)
-      , PatOffset(patOffset)
-    {
+      return idx < AYM::TRACK_CHANNELS
+        ? First->GetChannel(idx)
+        : Second->GetChannel(idx - AYM::TRACK_CHANNELS);
     }
 
-    virtual Plugin::Ptr GetPlugin() const
+    virtual uint_t CountActiveChannels() const
     {
-      return Delegate->GetPlugin();
-    } 
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Delegate->GetModuleInformation();
+      return First->CountActiveChannels() + Second->CountActiveChannels();
     }
 
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
+    virtual uint_t GetTempo() const
     {
-      return Delegate->GetModuleProperties();
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
-    {
-      const Devices::AYM::Receiver::Ptr receiver = AYM::CreateReceiver(target);
-      const AYMTSMixer::Ptr mixer = CreateTSMixer(receiver);
-      const Devices::AYM::ChipParameters::Ptr chipParams = AYM::CreateChipParameters(params);
-      const Devices::AYM::Chip::Ptr chip1 = Devices::AYM::CreateChip(chipParams, mixer);
-      const Devices::AYM::Chip::Ptr chip2 = Devices::AYM::CreateChip(chipParams, mixer);
-
-      const Information::Ptr info = GetModuleInformation();
-      const uint_t version = Vortex::ExtractVersion(*Delegate->GetModuleProperties());
-      const Renderer::Ptr renderer1 = Vortex::CreateRenderer(params, info, Data, version, chip1);
-      const Renderer::Ptr renderer2 = Vortex::CreateRenderer(params, info, boost::make_shared<MirroredModuleData>(PatOffset, *Data), version, chip2);
-      return CreateTSRenderer(renderer1, renderer2, mixer);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr params, Dump& dst) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
+      if (const uint_t tempo = Second->GetTempo())
       {
-        return Delegate->Convert(spec, params, dst);
+        return tempo;
       }
-      return CreateUnsupportedConversionError(THIS_LINE, spec);
+      return First->GetTempo();
+    }
+
+    static Line::Ptr Create(Line::Ptr first, Line::Ptr second)
+    {
+      if (first || second)
+      {
+        return boost::make_shared<TSLine>(first, second);
+      }
+      else
+      {
+        return Line::Ptr();
+      }
     }
   private:
-    const Vortex::Track::ModuleData::Ptr Data;
-    const Holder::Ptr Delegate;
-    const uint_t PatOffset;
+    const Line::Ptr First;
+    const Line::Ptr Second;
   };
-}
 
-namespace PT3
-{
-  using namespace ZXTune;
-
-  //plugin attributes
-  const Char ID[] = {'P', 'T', '3', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors() | GetSupportedVortexFormatConvertors();
-
-  class Factory : public ModulesFactory
+  class TSPattern : public Pattern
   {
   public:
-    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
+    TSPattern(Pattern::Ptr first, Pattern::Ptr second)
+      : First(first)
+      , Second(second)
+    {
+    }
+
+    virtual Line::Ptr GetLine(uint_t row) const
+    {
+      const Line::Ptr first = First->GetLine(row);
+      const Line::Ptr second = Second->GetLine(row);
+      return TSLine::Create(first, second);
+    }
+
+    virtual uint_t GetSize() const
+    {
+      return std::min(First->GetSize(), Second->GetSize());
+    }
+  private:
+    const Pattern::Ptr First;
+    const Pattern::Ptr Second;
+  };
+
+  class TSPatternsSet : public PatternsSet
+  {
+  public:
+    TSPatternsSet(uint_t base, PatternsSet::Ptr delegate)
+      : Base(base)
+      , Delegate(delegate)
+    {
+    }
+
+    virtual Pattern::Ptr Get(uint_t idx) const
+    {
+      const Pattern::Ptr first = Delegate->Get(idx);
+      const Pattern::Ptr second = Delegate->Get(Base - 1 - idx);
+      return boost::make_shared<TSPattern>(first, second);
+    }
+
+    virtual uint_t GetSize() const
+    {
+      return Delegate->GetSize();
+    }
+  private:
+    const uint_t Base;
+    const PatternsSet::Ptr Delegate;
+  };
+
+  PatternsSet::Ptr CreateTSPatterns(uint_t patOffset, PatternsSet::Ptr pats)
+  {
+    return boost::make_shared<TSPatternsSet>(patOffset, pats);
+  }
+
+  class PT3Chiptune : public AYM::Chiptune
+  {
+  public:
+    PT3Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    {
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const AYM::DataRenderer::Ptr renderer = CreateDataRenderer(Data, 0);
+      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+    }
+  private:
+    const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
+    const Information::Ptr Info;
+  };
+
+
+  class TSChiptune : public TurboSound::Chiptune
+  {
+  public:
+    TSChiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+      : Data(data)
+      , Properties(properties)
+      , Info(CreateTrackInfo(data, TurboSound::TRACK_CHANNELS))
+    {
+    }
+
+    virtual Information::Ptr GetInformation() const
+    {
+      return Info;
+    }
+
+    virtual Parameters::Accessor::Ptr GetProperties() const
+    {
+      return Properties;
+    }
+
+    virtual TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    {
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
+      const AYM::DataRenderer::Ptr first = Vortex::CreateDataRenderer(Data, 0);
+      const AYM::DataRenderer::Ptr second = Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS);
+      return TurboSound::CreateDataIterator(trackParams, iterator, first, second);
+    }
+  private:
+    const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
+    const Information::Ptr Info;
+  };
+
+  class Factory : public Module::Factory
+  {
+  public:
+    explicit Factory(Formats::Chiptune::ProTracker3::Decoder::Ptr decoder)
       : Decoder(decoder)
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
+    virtual Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-      return Decoder->Check(inputData);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
-    {
-      const ::ProTracker3::Track::ModuleData::RWPtr modData = ::ProTracker3::Track::ModuleData::Create();
-      uint_t patOffset = 0;
-      const std::auto_ptr<Formats::Chiptune::ProTracker3::Builder> dataBuilder = ::ProTracker3::CreateDataBuilder(modData, properties, patOffset);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker3::ParseCompiled(*rawData, *dataBuilder))
+      DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(rawData, dataBuilder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
+        propBuilder.SetSource(*container);
+        const uint_t patOffset = dataBuilder.GetPatOffset();
+        const ModuleData::RWPtr modData = dataBuilder.GetResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           //TurboSound modules
-          properties->SetComment(Text::PT3_TURBOSOUND_MODULE);
-          const Vortex::Track::ModuleData::Ptr fixedModData = boost::make_shared<TSModuleData>(patOffset, modData);
-          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(fixedModData, properties,  2 * Devices::AYM::CHANNELS);
-          const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
-          return boost::make_shared<TSHolder>(fixedModData, nativeHolder, patOffset);
+          propBuilder.SetComment(Text::PT3_TURBOSOUND_MODULE);
+          modData->Patterns = CreateTSPatterns(patOffset, modData->Patterns);
+          const TurboSound::Chiptune::Ptr chiptune = boost::make_shared<TSChiptune>(modData, propBuilder.GetResult());
+          return TurboSound::CreateHolder(chiptune);
         }
         else
         {
-          const AYM::Chiptune::Ptr chiptune = Vortex::CreateChiptune(modData, properties,  Devices::AYM::CHANNELS);
-          const Holder::Ptr nativeHolder = AYM::CreateHolder(chiptune);
-          return Vortex::CreateHolder(modData, nativeHolder);
+          const AYM::Chiptune::Ptr chiptune = boost::make_shared<PT3Chiptune>(modData, propBuilder.GetResult());
+          return AYM::CreateHolder(chiptune);
         }
       }
       return Holder::Ptr();
     }
   private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
+    const Formats::Chiptune::ProTracker3::Decoder::Ptr Decoder;
   };
 }
-
-namespace PT3
-{
-  const Char IDC_PTU13[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'P', 'T', 'U', '1', '3', 0};
-  const uint_t CCAPS = CAP_STOR_CONTAINER;
 }
 
 namespace ZXTune
 {
-  void RegisterPT3Support(PluginsRegistrator& registrator)
+  void RegisterPT3Support(PlayerPluginsRegistrator& registrator)
   {
-    //modules with players
-    {
-      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledPTU13Decoder();
-      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(PT3::IDC_PTU13, PT3::CCAPS, decoder);
-      registrator.RegisterPlugin(plugin);
-    }
-    //direct modules
-    {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker3Decoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<PT3::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT3::ID, decoder->GetDescription(), PT3::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
+    //plugin attributes
+    const Char ID[] = {'P', 'T', '3', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors | Module::Vortex::SupportedFormatConvertors;
+
+    const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::CreateDecoder();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker3::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    registrator.RegisterPlugin(plugin);
+  }
+
+  void RegisterTXTSupport(PlayerPluginsRegistrator& registrator)
+  {
+    //plugin attributes
+    const Char ID[] = {'T', 'X', 'T', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors | Module::Vortex::SupportedFormatConvertors;
+
+    const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateDecoder();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::ProTracker3::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }

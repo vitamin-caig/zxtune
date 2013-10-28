@@ -16,13 +16,15 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -134,7 +136,7 @@ namespace Hrum
     std::size_t GetUsedSizeWithPadding() const
     {
       const std::size_t usefulSize = GetUsedSize();
-      const std::size_t sizeOnDisk = align<std::size_t>(usefulSize, 256);
+      const std::size_t sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
       const std::size_t resultSize = std::min(sizeOnDisk, Size);
       const std::size_t paddingSize = resultSize - usefulSize;
       const std::size_t MIN_SIGNATURE_MATCH = 9;
@@ -166,7 +168,7 @@ namespace Hrum
       BOOST_STATIC_ASSERT(sizeof(HRUM3_5_PADDING) == 255);
       const uint8_t* const paddingStart = Data + usefulSize;
       const uint8_t* const paddingEnd = Data + resultSize;
-      if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, ArrayEnd(HRUM3_5_PADDING)))
+      if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUM3_5_PADDING, boost::end(HRUM3_5_PADDING)))
       {
         if (pad >= MIN_SIGNATURE_MATCH)
         {
@@ -271,7 +273,7 @@ namespace Hrum
         }
       }
       //put remaining bytes
-      std::copy(Header.LastBytes, ArrayEnd(Header.LastBytes), std::back_inserter(Decoded));
+      std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
       return true;
     }
   private:
@@ -323,13 +325,11 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        if (!Depacker->Match(data, availSize))
+        if (!Depacker->Match(rawData))
         {
           return Container::Ptr();
         }
-        const Hrum::Container container(data, availSize);
+        const Hrum::Container container(rawData.Start(), rawData.Size());
         if (!container.FastCheck())
         {
           return Container::Ptr();

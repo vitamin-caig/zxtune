@@ -27,7 +27,7 @@ namespace
     uint_t res = 0;
     for (RangeIterator<std::string::const_iterator> it(num.begin(), num.end()); it; ++it)
     {
-      Require(std::isdigit(*it));
+      Require(0 != std::isdigit(*it));
       res = res * 10 + (*it - '0');
     }
     return res;
@@ -210,7 +210,7 @@ namespace
       Require(CurState != State::Error());
     }
 
-    virtual void MultipleTokensMatched(const std::string& /*lexeme*/, const std::set<LexicalAnalysis::TokenType>& /*types*/)
+    virtual void MultipleTokensMatched(const std::string& /*lexeme*/, const LexicalAnalysis::TokenTypesSet& /*types*/)
     {
       Require(false);
     }

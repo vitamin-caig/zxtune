@@ -94,8 +94,8 @@ namespace Formats
           FLAG_DIRECTORY = 0xe0,
           FLAG_BIG_FILE = 0x100,
 
-          MIN_VERSION = 13,
-          MAX_VERSION = 20
+          MIN_VERSION = 15,
+          MAX_VERSION = 36
         };
 
         bool IsBigFile() const
@@ -106,6 +106,11 @@ namespace Formats
         bool IsSolid() const
         {
           return 0 != (fromLE(Flags) & FLAG_SOLID);
+        }
+
+        bool IsStored() const
+        {
+          return Method == 0x30;
         }
 
         bool IsValid() const;

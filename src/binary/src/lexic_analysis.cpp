@@ -26,7 +26,7 @@ namespace
     typedef boost::shared_ptr<const TokensSet> Ptr;
 
     std::string Lexeme;
-    std::set<LexicalAnalysis::TokenType> Types;
+    LexicalAnalysis::TokenTypesSet Types;
 
     void Add(const std::string& lexeme, LexicalAnalysis::TokenType type)
     {
@@ -38,20 +38,20 @@ namespace
       {
         Require(Lexeme == lexeme);
       }
-      Types.insert(type);
+      Types.Add(type);
     }
 
     bool Empty() const
     {
-      return Types.empty();
+      return Types.Empty();
     }
 
     void Report(LexicalAnalysis::Grammar::Callback& cb) const
     {
       Require(!Empty());
-      if (Types.size() == 1)
+      if (Types.Size() == 1)
       {
-        cb.TokenMatched(Lexeme, *Types.begin());
+        cb.TokenMatched(Lexeme, Types.GetFirst());
       }
       else
       {

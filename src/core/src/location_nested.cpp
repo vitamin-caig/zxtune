@@ -18,34 +18,6 @@ namespace
 {
   using namespace ZXTune;
 
-  class NestedDataLocation : public DataLocation
-  {
-  public:
-    NestedDataLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData)
-      : Parent(parent)
-      , SubData(subData)
-    {
-    }
-
-    virtual Binary::Container::Ptr GetData() const
-    {
-      return SubData;
-    }
-
-    virtual Analysis::Path::Ptr GetPath() const
-    {
-      return Parent->GetPath();
-    }
-
-    virtual Analysis::Path::Ptr GetPluginsChain() const
-    {
-      return Parent->GetPluginsChain();
-    }
-  private:
-    const DataLocation::Ptr Parent;
-    const Binary::Container::Ptr SubData;
-  };
-
   class NestedLocation : public DataLocation
   {
   public:
@@ -81,12 +53,6 @@ namespace
 
 namespace ZXTune
 {
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData)
-  {
-    assert(subData);
-    return boost::make_shared<NestedDataLocation>(parent, subData);
-  }
-
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, const String& subPlugin, const String& subPath)
   {
     assert(subData);

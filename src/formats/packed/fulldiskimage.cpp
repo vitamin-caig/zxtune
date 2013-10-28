@@ -13,9 +13,10 @@ Author:
 #include "container.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <cstring>
 #include <numeric>
@@ -117,12 +118,12 @@ namespace FullDiskImage
         return false;
       }
       const uint_t cylinders = fromLE(header.Cylinders);
-      if (!in_range(cylinders, MIN_CYLINDERS_COUNT, MAX_CYLINDERS_COUNT))
+      if (!Math::InRange(cylinders, MIN_CYLINDERS_COUNT, MAX_CYLINDERS_COUNT))
       {
         return false;
       }
       const uint_t sides = fromLE(header.Sides);
-      if (!in_range(sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT))
+      if (!Math::InRange(sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT))
       {
         return false;
       }
@@ -271,7 +272,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
+        const void* const data = rawData.Start();
         const std::size_t availSize = rawData.Size();
         const FullDiskImage::Container container(data, availSize);
         if (!container.FastCheck())

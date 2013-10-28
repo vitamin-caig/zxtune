@@ -17,7 +17,7 @@
 //library includes
 #include <async/activity.h>
 #include <async/progress.h>
-#include <async/queue.h>
+#include <async/sized_queue.h>
 //std includes
 #include <list>
 
@@ -79,11 +79,15 @@ namespace Async
       while (!Activities.empty())
       {
         const Activity::Ptr act = Activities.front();
-        Activities.pop_front();
-        if (const Error& err = act->Wait())
+        try
+        {
+          act->Wait();
+        }
+        catch (const Error& err)
         {
           result.push_back(err);
         }
+        Activities.pop_front();
       }
       return result;
     }
@@ -109,26 +113,17 @@ namespace Async
       {
       }
 
-      virtual Error Prepare()
+      virtual void Prepare()
       {
-        return Error();
       }
 
-      virtual Error Execute()
+      virtual void Execute()
       {
-        try
+        T val;
+        while (QueueObject->Get(val))
         {
-          T val;
-          while (QueueObject->Get(val))
-          {
-            Target->ApplyData(val);
-            Statistic->Consume(1);
-          }
-          return Error();
-        }
-        catch (const Error& err)
-        {
-          return err;
+          Target->ApplyData(val);
+          Statistic->Consume(1);
         }
       }
     private:

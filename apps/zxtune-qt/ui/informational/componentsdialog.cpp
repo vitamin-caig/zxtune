@@ -15,12 +15,13 @@ Author:
 #include "componentsdialog.h"
 #include "componentsdialog.ui.h"
 #include "ui/utils.h"
+#include "supp/options.h"
 //library includes
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/provider.h>
-#include <sound/backend.h>
 #include <sound/backend_attrs.h>
+#include <sound/service.h>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QDialog>
@@ -50,6 +51,12 @@ namespace
   {
     assert(IsPlayerPlugin(plugin));
     return ZXTune::CAP_DEV_FM == (plugin.Capabilities() & ZXTune::CAP_DEV_FM);
+  }
+
+  bool IsSAAPlugin(const ZXTune::Plugin& plugin)
+  {
+    assert(IsPlayerPlugin(plugin));
+    return ZXTune::CAP_DEV_SAA == (plugin.Capabilities() & ZXTune::CAP_DEV_SAA);
   }
 
   bool IsMultitrackPlugin(const ZXTune::Plugin& plugin)
@@ -93,6 +100,7 @@ namespace
       , Ayms(CreateTreeWidgetItem(Players, "AY/YM"))
       , Dacs(CreateTreeWidgetItem(Players, "DAC"))
       , Fms(CreateTreeWidgetItem(Players, "FM"))
+      , Saas(CreateTreeWidgetItem(Players, "SAA"))
       , Multitracks(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack")))
       , Archives(CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Archive")))
     {
@@ -123,6 +131,10 @@ namespace
       else if (IsFMPlugin(plugin))
       {
         AddPlayerPluginItem(plugin, *Fms);
+      }
+      else if (IsSAAPlugin(plugin))
+      {
+        AddPlayerPluginItem(plugin, *Saas);
       }
       else
       {
@@ -208,23 +220,24 @@ namespace
     QTreeWidgetItem* const Ayms;
     QTreeWidgetItem* const Dacs;
     QTreeWidgetItem* const Fms;
+    QTreeWidgetItem* const Saas;
     QTreeWidgetItem* const Multitracks;
     QTreeWidgetItem* const Archives;
   };
 
-  bool IsPlaybackBackend(const ZXTune::Sound::BackendInformation& backend)
+  bool IsPlaybackBackend(const Sound::BackendInformation& backend)
   {
-    return ZXTune::Sound::CAP_TYPE_SYSTEM == (backend.Capabilities() & ZXTune::Sound::CAP_TYPE_MASK);
+    return Sound::CAP_TYPE_SYSTEM == (backend.Capabilities() & Sound::CAP_TYPE_MASK);
   }
 
-  bool IsFilesaveBackend(const ZXTune::Sound::BackendInformation& backend)
+  bool IsFilesaveBackend(const Sound::BackendInformation& backend)
   {
-    return ZXTune::Sound::CAP_TYPE_FILE == (backend.Capabilities() & ZXTune::Sound::CAP_TYPE_MASK);
+    return Sound::CAP_TYPE_FILE == (backend.Capabilities() & Sound::CAP_TYPE_MASK);
   }
 
-  bool IsHardwareBackend(const ZXTune::Sound::BackendInformation& backend)
+  bool IsHardwareBackend(const Sound::BackendInformation& backend)
   {
-    return ZXTune::Sound::CAP_TYPE_HARDWARE == (backend.Capabilities() & ZXTune::Sound::CAP_TYPE_MASK);
+    return Sound::CAP_TYPE_HARDWARE == (backend.Capabilities() & Sound::CAP_TYPE_MASK);
   }
 
   template<class T>
@@ -235,7 +248,7 @@ namespace
     if (status)
     {
       item->setCheckState(0, Qt::Unchecked);
-      item->setToolTip(0, ToQString(Error::ToString(status)));
+      item->setToolTip(0, ToQString(status.ToString()));
     }
     else
     {
@@ -256,7 +269,7 @@ namespace
     {
     }
 
-    void AddBackend(const ZXTune::Sound::BackendInformation& backend)
+    void AddBackend(const Sound::BackendInformation& backend)
     {
       if (IsPlaybackBackend(backend))
       {
@@ -279,12 +292,12 @@ namespace
       }
     }
   private:
-    void AddBackend(QTreeWidgetItem& root, const ZXTune::Sound::BackendInformation& backend)
+    void AddBackend(QTreeWidgetItem& root, const Sound::BackendInformation& backend)
     {
       //root
       QTreeWidgetItem* const backendItem = CreateRootItem(root, backend.Description(), backend.Status());
       //features
-      if (uint_t features = backend.Capabilities() & ZXTune::Sound::CAP_FEAT_MASK)
+      if (uint_t features = backend.Capabilities() & Sound::CAP_FEAT_MASK)
       {
         QTreeWidgetItem* const featuresItem = CreateTreeWidgetItem(backendItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Features"));
         FillBackendFeatures(features, *featuresItem);
@@ -293,7 +306,7 @@ namespace
 
     void FillBackendFeatures(uint_t feats, QTreeWidgetItem& root)
     {
-      AddCapability(feats, ZXTune::Sound::CAP_FEAT_HWVOLUME, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware volume control"));
+      AddCapability(feats, Sound::CAP_FEAT_HWVOLUME, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware volume control"));
     }
   private:
     QTreeWidget& Widget;
@@ -312,7 +325,7 @@ namespace
     {
     }
 
-    void AddProvider(const ZXTune::IO::Provider& provider)
+    void AddProvider(const IO::Provider& provider)
     {
       //root
       CreateRootItem(Widget, provider.Description(), provider.Status());
@@ -348,10 +361,10 @@ namespace
     void FillBackendsTree()
     {
       BackendsTreeHelper tree(*backendsTree);
-
-      for (ZXTune::Sound::BackendCreator::Iterator::Ptr backends = ZXTune::Sound::EnumerateBackends(); backends->IsValid(); backends->Next())
+      const Sound::Service::Ptr svc = Sound::CreateGlobalService(GlobalOptions::Instance().Get());
+      for (Sound::BackendInformation::Iterator::Ptr backends = svc->EnumerateBackends(); backends->IsValid(); backends->Next())
       {
-        const ZXTune::Sound::BackendInformation::Ptr backend = backends->Get();
+        const Sound::BackendInformation::Ptr backend = backends->Get();
         tree.AddBackend(*backend);
       }
     }
@@ -360,9 +373,9 @@ namespace
     {
       ProvidersTreeHelper tree(*providersTree);
 
-      for (ZXTune::IO::Provider::Iterator::Ptr providers = ZXTune::IO::EnumerateProviders(); providers->IsValid(); providers->Next())
+      for (IO::Provider::Iterator::Ptr providers = IO::EnumerateProviders(); providers->IsValid(); providers->Next())
       {
-        const ZXTune::IO::Provider::Ptr provider = providers->Get();
+        const IO::Provider::Ptr provider = providers->Get();
         tree.AddProvider(*provider);
       }
     }

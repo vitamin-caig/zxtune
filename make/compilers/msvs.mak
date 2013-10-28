@@ -5,7 +5,7 @@ AR := lib.exe
 #set options according to mode
 ifdef release
 CXX_MODE_FLAGS = /Ox /DNDEBUG /MD
-LD_MODE_FLAGS = /SUBSYSTEM:$(if $(qt_libraries),WINDOWS,CONSOLE)
+LD_MODE_FLAGS = /SUBSYSTEM:$(if $(have_gui),WINDOWS,CONSOLE)
 else
 CXX_MODE_FLAGS = /Od /MDd
 LD_MODE_FLAGS = /SUBSYSTEM:CONSOLE
@@ -17,12 +17,12 @@ LD_MODE_FLAGS += /DLL
 endif
 
 #specific
-DEFINITIONS = $(defines) $($(platform)_definitions) __STDC_CONSTANT_MACROS _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
+DEFINITIONS = $(defines) $($(platform)_definitions) _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
 INCLUDES = $(include_dirs) $($(platform)_include_dirs)
 windows_libraries += kernel32 $(addsuffix $(if $(release),,d), msvcrt msvcprt)
 
 #setup flags
-CXXFLAGS = /nologo /c $(CXX_PLATFORM_FLAGS) $(CXX_MODE_FLAGS) $(cxx_flags) \
+CXXFLAGS = /nologo /c $(CXX_MODE_FLAGS) $(cxx_flags) \
 	/W3 \
 	$(addprefix /D, $(DEFINITIONS)) \
 	/J /Zc:wchar_t,forScope /Z7 /Zl /EHsc \
@@ -44,7 +44,8 @@ build_lib_cmd = $(AR) $(ARFLAGS) /OUT:$2 $1
 link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \
 	$(if $(libraries),/LIBPATH:$(libs_dir) $(addsuffix .lib,$(libraries)),)\
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
+	$(addprefix /LIBPATH:,$($(platform)_libraries_dirs))\
 	$(addsuffix .lib,$(sort $($(platform)_libraries)))\
-	/PDB:$@.pdb
+	/PDB:$@.pdb /PDBPATH:none
 
 postlink_cmd = mt.exe -manifest $@.manifest -outputresource:$@ || ECHO No manifest

@@ -17,8 +17,10 @@ Author:
 
 //library includes
 #include <core/module_holder.h>
+#include <parameters/container.h>
 //std includes
 #include <memory>
+#include <stdexcept>
 //boost includes
 #include <boost/function.hpp>
 
@@ -31,7 +33,9 @@ namespace boost
   }
 }
 
-typedef boost::function<void(ZXTune::Module::Holder::Ptr)> OnItemCallback;
+class CancelError : public std::exception {};
+
+typedef boost::function<void(Module::Holder::Ptr)> OnItemCallback;
 
 class SourceComponent
 {

@@ -15,402 +15,370 @@ Author:
 
 //local includes
 #include "iterator.h"
-#include <core/plugins/enumerator.h>
-//common includes
-#include <messages_collector.h>
+#include "track_model.h"
 //library includes
-#include <core/module_attrs.h>
 #include <core/module_types.h>
-//std includes
-#include <vector>
+#include <formats/chiptune/builder_pattern.h>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/optional.hpp>
-#include <boost/shared_ptr.hpp>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  class MutableCell : public Cell
   {
-    // Ornament is just a set of tone offsets
-    class SimpleOrnament
+  public:
+    void SetEnabled(bool val)
     {
-    public:
-      SimpleOrnament() : Loop(), Lines()
-      {
-      }
+      Mask |= ENABLED;
+      Enabled = val;
+    }
 
-      template<class It>
-      SimpleOrnament(uint_t loop, It from, It to) : Loop(loop), Lines(from, to)
-      {
-      }
-
-      uint_t GetLoop() const
-      {
-        return Loop;
-      }
-
-      uint_t GetSize() const
-      {
-        return static_cast<uint_t>(Lines.size());
-      }
-
-      int_t GetLine(uint_t pos) const
-      {
-        return Lines.size() > pos ? Lines[pos] : 0;
-      }
-
-    private:
-      uint_t Loop;
-      std::vector<int_t> Lines;
-    };
-
-    class TrackModuleData
+    void SetNote(uint_t val)
     {
-    public:
-      typedef boost::shared_ptr<const TrackModuleData> Ptr;
+      Mask |= NOTE;
+      Note = val;
+    }
 
-      virtual ~TrackModuleData() {}
-
-      //static
-      virtual uint_t GetChannelsCount() const = 0;
-      virtual uint_t GetLoopPosition() const = 0;
-      virtual uint_t GetInitialTempo() const = 0;
-      virtual uint_t GetPositionsCount() const = 0;
-      virtual uint_t GetPatternsCount() const = 0;
-      //dynamic
-      virtual uint_t GetPatternIndex(uint_t position) const = 0;
-      virtual uint_t GetPatternSize(uint_t position) const = 0;
-      virtual uint_t GetNewTempo(uint_t position, uint_t line) const = 0;
-      virtual uint_t GetActiveChannels(uint_t position, uint_t line) const = 0;
-    };
-
-    Information::Ptr CreateTrackInfo(TrackModuleData::Ptr data, uint_t logicalChannels);
-
-    StateIterator::Ptr CreateTrackStateIterator(Information::Ptr info, TrackModuleData::Ptr data);
-
-    // Basic template class for tracking support (used as simple parametrized namespace)
-    template<uint_t ChannelsCount, class CommandType, class SampleType, class OrnamentType = SimpleOrnament>
-    class TrackingSupport
+    void SetSample(uint_t val)
     {
-    public:
-      // Define common types
-      typedef SampleType Sample;
-      typedef OrnamentType Ornament;
+      Mask |= SAMPLENUM;
+      SampleNum = val;
+    }
 
-      struct Command
-      {
-        Command() : Type(), Param1(), Param2(), Param3()
-        {
-        }
-        Command(CommandType type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
-          : Type(type), Param1(p1), Param2(p2), Param3(p3)
-        {
-        }
-
-        bool operator == (CommandType type) const
-        {
-          return Type == type;
-        }
-
-        CommandType Type;
-        int_t Param1;
-        int_t Param2;
-        int_t Param3;
-      };
-
-      typedef std::vector<Command> CommandsArray;
-
-      struct Line
-      {
-        Line() : Tempo(), Channels()
-        {
-        }
-
-        void SetTempo(uint_t val)
-        {
-          Tempo = val;
-        }
-
-        //track attrs
-        boost::optional<uint_t> Tempo;
-
-        struct Chan
-        {
-          Chan() : Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
-          {
-          }
-
-          bool Empty() const
-          {
-            return !Enabled && !Note && !SampleNum && !OrnamentNum && !Volume && Commands.empty();
-          }
-
-          bool FindCommand(CommandType type) const
-          {
-            return Commands.end() != std::find(Commands.begin(), Commands.end(), type);
-          }
-
-          typedef bool(CommandsArray::*BoolType)() const;
-
-          operator BoolType () const
-          {
-            return Empty() ? 0 : &CommandsArray::empty;
-          }
-
-          //modifiers
-          void SetEnabled(bool val)
-          {
-            Enabled = val;
-          }
-
-          void SetNote(uint_t val)
-          {
-            Note = val;
-          }
-
-          void SetSample(uint_t val)
-          {
-            SampleNum = val;
-          }
-
-          void SetOrnament(uint_t val)
-          {
-            OrnamentNum = val;
-          }
-
-          void SetVolume(uint_t val)
-          {
-            Volume = val;
-          }
-
-          boost::optional<bool> Enabled;
-          boost::optional<uint_t> Note;
-          boost::optional<uint_t> SampleNum;
-          boost::optional<uint_t> OrnamentNum;
-          boost::optional<uint_t> Volume;
-          CommandsArray Commands;
-        };
-
-        typedef boost::array<Chan, ChannelsCount> ChannelsArray;
-        ChannelsArray Channels;
-      };
-
-      class Pattern
-      {
-      public:
-        Pattern()
-          : Size(0)
-        {
-        }
-
-        Line& AddLine()
-        {
-          Lines.push_back(LineWithNumber(Size++));
-          return Lines.back();
-        }
-
-        void AddLines(uint_t newLines)
-        {
-          Size += newLines;
-        }
-
-        const Line* GetLine(uint_t row) const
-        {
-          if (row >= Size)
-          {
-            return 0;
-          }
-          const typename LinesList::const_iterator it = std::lower_bound(Lines.begin(), Lines.end(), LineWithNumber(row));
-          return it == Lines.end() || it->Number != row
-            ? 0
-            : &*it;
-        }
-
-        uint_t GetSize() const
-        {
-          return Size;
-        }
-
-        bool IsEmpty() const
-        {
-          return 0 == Size;
-        }
-
-        void Swap(Pattern& rh)
-        {
-          Lines.swap(rh.Lines);
-          std::swap(Size, rh.Size);
-        }
-      private:
-        struct LineWithNumber : public Line
-        {
-          LineWithNumber()
-            : Number()
-          {
-          }
-
-          explicit LineWithNumber(uint_t num)
-            : Number(num)
-          {
-          }
-
-          uint_t Number;
-
-          bool operator < (const LineWithNumber& rh) const
-          {
-            return Number < rh.Number;
-          }
-        };
-        typedef typename std::vector<LineWithNumber> LinesList;
-        LinesList Lines;
-        uint_t Size;
-      };
-
-      // Holder-related types
-      class ModuleData : public TrackModuleData
-      {
-      public:
-        typedef boost::shared_ptr<const ModuleData> Ptr;
-        typedef boost::shared_ptr<ModuleData> RWPtr;
-
-        static RWPtr Create()
-        {
-          return boost::make_shared<ModuleData>();
-        }
-
-        ModuleData()
-          : LoopPosition(), InitialTempo()
-          , Positions(), Patterns(), Samples(), Ornaments()
-        {
-        }
-
-        virtual uint_t GetChannelsCount() const
-        {
-          return ChannelsCount;
-        }
-
-        virtual uint_t GetLoopPosition() const
-        {
-          return LoopPosition;
-        }
-
-        virtual uint_t GetInitialTempo() const
-        {
-          return InitialTempo;
-        }
-
-        virtual uint_t GetPositionsCount() const
-        {
-          return static_cast<uint_t>(Positions.size());
-        }
-
-        virtual uint_t GetPatternsCount() const
-        {
-          return static_cast<uint_t>(std::count_if(Patterns.begin(), Patterns.end(),
-            !boost::bind(&Pattern::IsEmpty, _1)));
-        }
-
-        virtual uint_t GetPatternIndex(uint_t position) const
-        {
-          return Positions[position];
-        }
-
-        virtual uint_t GetPatternSize(uint_t position) const
-        {
-          return Patterns[GetPatternIndex(position)].GetSize();
-        }
-
-        virtual uint_t GetNewTempo(uint_t position, uint_t line) const
-        {
-          if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
-          {
-            if (const boost::optional<uint_t>& tempo = lineObj->Tempo)
-            {
-              return *tempo;
-            }
-          }
-          return 0;
-        }
-
-        virtual uint_t GetActiveChannels(uint_t position, uint_t line) const
-        {
-          if (const Line* lineObj = Patterns[GetPatternIndex(position)].GetLine(line))
-          {
-            return static_cast<uint_t>(std::count_if(lineObj->Channels.begin(), lineObj->Channels.end(), !boost::bind(&Line::Chan::Empty, _1)));
-          }
-          return 0;
-        }
-
-        uint_t LoopPosition;
-        uint_t InitialTempo;
-        std::vector<uint_t> Positions;
-        std::vector<Pattern> Patterns;
-        std::vector<SampleType> Samples;
-        std::vector<OrnamentType> Ornaments;
-      };
-    };
-
-    //helper class to easy parse patterns
-    struct PatternCursor
+    void SetOrnament(uint_t val)
     {
-      /*explicit*/PatternCursor(uint_t offset = 0)
-        : Offset(offset), Period(), Counter()
+      Mask |= ORNAMENTNUM;
+      OrnamentNum = val;
+    }
+
+    void SetVolume(uint_t val)
+    {
+      Mask |= VOLUME;
+      Volume = val;
+    }
+
+    void AddCommand(uint_t type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
+    {
+      Commands.push_back(Command(type, p1, p2, p3));
+    }
+
+    Command* FindCommand(uint_t type)
+    {
+      const CommandsArray::iterator it = std::find(Commands.begin(), Commands.end(), type);
+      return it != Commands.end()
+        ? &*it
+        : 0;
+    }
+  };
+
+  class MutableLine : public Line
+  {
+  public:
+    virtual void SetTempo(uint_t val) = 0;
+    virtual MutableCell& AddChannel(uint_t idx) = 0;
+  };
+
+  class MutablePattern : public Pattern
+  {
+  public:
+    virtual MutableLine& AddLine(uint_t row) = 0;
+    virtual void SetSize(uint_t size) = 0;
+  };
+
+  class MutablePatternsSet : public PatternsSet
+  {
+  public:
+    virtual MutablePattern& AddPattern(uint_t idx) = 0;
+  };
+
+  template<uint_t ChannelsCount>
+  class MultichannelMutableLine : public MutableLine
+  {
+  public:
+    MultichannelMutableLine()
+      : Tempo()
+    {
+    }
+
+    virtual Cell::Ptr GetChannel(uint_t idx) const
+    {
+      return Channels[idx].HasData() ? &Channels[idx] : 0;
+    }
+
+    virtual uint_t CountActiveChannels() const
+    {
+      return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(), boost::bind(&Cell::HasData, _1)));
+    }
+
+    virtual uint_t GetTempo() const
+    {
+      return Tempo;
+    }
+
+    virtual void SetTempo(uint_t val)
+    {
+      Tempo = val;
+    }
+
+    virtual MutableCell& AddChannel(uint_t idx)
+    {
+      return Channels[idx];
+    }
+  private:
+    uint_t Tempo;
+    typedef boost::array<MutableCell, ChannelsCount> ChannelsArray;
+    ChannelsArray Channels;
+  };
+
+  //TODO: replace with boost::unordered_set
+  template<class T>
+  class SparsedObjectsStorage
+  {
+  public:
+    SparsedObjectsStorage()
+      : Count()
+    {
+    }
+
+    T Get(uint_t idx) const
+    {
+      if (const T* res = Find(idx))
+      {
+        return *res;
+      }
+      else
+      {
+        return T();
+      }
+    }
+
+    const T* Find(uint_t idx) const
+    {
+      if (idx >= Count)
+      {
+        return 0;
+      }
+      const typename ObjectsList::const_iterator it = std::lower_bound(Objects.begin(), Objects.end(), ObjectWithIndex(idx, T()));
+      return it == Objects.end() || it->Index != idx
+        ? 0
+        : &it->Object;
+    }
+
+    uint_t Size() const
+    {
+      return Count;
+    }
+
+    void Resize(uint_t newSize)
+    {
+      assert(newSize >= Count);
+      Count = newSize;
+    }
+
+    void Add(uint_t idx, T obj)
+    {
+      assert(Objects.end() == std::find(Objects.begin(), Objects.end(), idx));
+      Objects.push_back(ObjectWithIndex(idx, obj));
+      if (idx < Count)
+      {
+        std::sort(Objects.begin(), Objects.end());
+      }
+      else
+      {
+        Count = idx + 1;
+      }
+    }
+  private:
+    struct ObjectWithIndex
+    {
+      ObjectWithIndex()
+        : Index()
+        , Object()
       {
       }
-      uint_t Offset;
-      uint_t Period;
-      uint_t Counter;
 
-      void SkipLines(uint_t lines)
+      ObjectWithIndex(uint_t idx, T obj)
+        : Index(idx)
+        , Object(obj)
       {
-        Counter -= lines;
       }
 
-      static bool CompareByOffset(const PatternCursor& lh, const PatternCursor& rh)
+      uint_t Index;
+      T Object;
+
+      bool operator < (const ObjectWithIndex& rh) const
       {
-        return lh.Offset < rh.Offset;
+        return Index < rh.Index;
       }
 
-      static bool CompareByCounter(const PatternCursor& lh, const PatternCursor& rh)
+      bool operator == (uint_t idx) const
       {
-        return lh.Counter < rh.Counter;
+        return Index == idx;
       }
     };
+  private:
+    uint_t Count;
+    typedef std::vector<ObjectWithIndex> ObjectsList;
+    ObjectsList Objects;
+  };
 
-    template<uint_t Channels>
-    class PatternCursorSet : public boost::array<PatternCursor, Channels>
+  template<class MutableLineType>
+  class SparsedMutablePattern : public MutablePattern
+  {
+  public:
+    virtual Line::Ptr GetLine(uint_t row) const
     {
-      typedef boost::array<PatternCursor, Channels> Parent;
-    public:
-      uint_t GetMinCounter() const
-      {
-        return std::min_element(Parent::begin(), Parent::end(),
-          Parent::value_type::CompareByCounter)->Counter;
-      }
+      return Storage.Get(row);
+    }
 
-      uint_t GetMaxCounter() const
-      {
-        return std::max_element(Parent::begin(), Parent::end(),
-          Parent::value_type::CompareByCounter)->Counter;
-      }
+    virtual uint_t GetSize() const
+    {
+      return Storage.Size();
+    }
 
-      uint_t GetMaxOffset() const
-      {
-        return std::max_element(Parent::begin(), Parent::end(),
-          Parent::value_type::CompareByOffset)->Offset;
-      }
+    virtual MutableLine& AddLine(uint_t row)
+    {
+      const BuilderPtr res = boost::make_shared<MutableLineType>();
+      Storage.Add(row, res);
+      return *res;
+    }
 
-      void SkipLines(uint_t linesToSkip)
-      {
-        std::for_each(Parent::begin(), Parent::end(),
-          std::bind2nd(std::mem_fun_ref(&Parent::value_type::SkipLines), linesToSkip));
-      }
-    };
+    virtual void SetSize(uint_t newSize)
+    {
+      Storage.Resize(newSize);
+    }
+  private:
+    typedef boost::shared_ptr<MutableLineType> BuilderPtr;
+    SparsedObjectsStorage<BuilderPtr> Storage;
+  };
 
-  }
+  template<class MutablePatternType>
+  class SparsedMutablePatternsSet : public MutablePatternsSet
+  {
+  public:
+    virtual Pattern::Ptr Get(uint_t idx) const
+    {
+      return Storage.Get(idx);
+    }
+
+    virtual uint_t GetSize() const
+    {
+      uint_t res = 0;
+      for (uint_t idx = 0; idx != Storage.Size(); ++idx)
+      {
+        if (const Pattern::Ptr pat = Storage.Get(idx))
+        {
+          res += pat->GetSize() != 0;
+        }
+      }
+      return res;
+    }
+
+    virtual MutablePattern& AddPattern(uint_t idx)
+    {
+      const BuilderPtr res = boost::make_shared<MutablePatternType>();
+      Storage.Add(idx, res);
+      return *res;
+    }
+  private:
+    typedef boost::shared_ptr<MutablePattern> BuilderPtr;
+    SparsedObjectsStorage<BuilderPtr> Storage;
+  };
+
+  Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
+
+  class TrackStateIterator : public Iterator
+  {
+  public:
+    typedef boost::shared_ptr<TrackStateIterator> Ptr;
+
+    virtual TrackModelState::Ptr GetStateObserver() const = 0;
+  };
+
+  TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model);
+
+  class PatternsBuilder : public Formats::Chiptune::PatternBuilder
+  {
+  public:
+    explicit PatternsBuilder(boost::shared_ptr<MutablePatternsSet> patterns)
+      : Patterns(patterns)
+      , CurPattern()
+      , CurLine()
+      , CurChannel()
+    {
+    }
+
+    virtual void Finish(uint_t size)
+    {
+      FinishPattern(size);
+    }
+
+    virtual void StartLine(uint_t index)
+    {
+      SetLine(index);
+    }
+
+    virtual void SetTempo(uint_t tempo)
+    {
+      GetLine().SetTempo(tempo);
+    }
+
+    void SetPattern(uint_t idx)
+    {
+      CurPattern = &Patterns->AddPattern(idx);
+      CurLine = 0;
+      CurChannel = 0;
+    }
+
+    void SetLine(uint_t idx)
+    {
+      CurLine = &CurPattern->AddLine(idx);
+      CurChannel = 0;
+    }
+
+    void SetChannel(uint_t idx)
+    {
+      CurChannel = &CurLine->AddChannel(idx);
+    }
+
+    void FinishPattern(uint_t size)
+    {
+      CurPattern->SetSize(size);
+      CurLine = 0;
+      CurPattern = 0;
+    }
+
+    MutableLine& GetLine() const
+    {
+      return *CurLine;
+    }
+
+    MutableCell& GetChannel() const
+    {
+      return *CurChannel;
+    }
+
+    PatternsSet::Ptr GetResult() const
+    {
+      return Patterns;
+    }
+
+    template<uint_t ChannelsCount>
+    static PatternsBuilder Create()
+    {
+      typedef MultichannelMutableLine<ChannelsCount> LineType;
+      typedef SparsedMutablePattern<LineType> PatternType;
+      typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
+      return PatternsBuilder(boost::make_shared<PatternsSetType>());
+    }
+  private:  
+    const boost::shared_ptr<MutablePatternsSet> Patterns;
+    MutablePattern* CurPattern;
+    MutableLine* CurLine;
+    MutableCell* CurChannel;
+  };
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_TRACKING_H_DEFINED__

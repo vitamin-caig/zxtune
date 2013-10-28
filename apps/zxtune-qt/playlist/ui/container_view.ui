@@ -128,17 +128,6 @@
     <string>Random</string>
    </property>
   </action>
-  <action name="actionDeepScan">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Deep scanning</string>
-   </property>
-  </action>
  </widget>
  <resources>
   <include location="../../res/icons.qrc"/>

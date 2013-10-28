@@ -18,10 +18,16 @@
     <location>Samples/ducktale.chi</location>
   </track>
   <track>
+    <location>Samples/axel.cop</location>
+  </track>
+  <track>
     <location>Samples/popcorn.dmm</location>
   </track>
   <track>
     <location>Samples/EchoDreams.dst</location>
+  </track>
+  <track>
+    <location>Samples/PA-PA-PA.ftc</location>
   </track>
   <track>
     <location>Samples/L.Boy.gtr</location>
@@ -30,19 +36,28 @@
     <location>Samples/TechCent.M</location>
   </track>
   <track>
+    <location>Samples/FL_SH_EI.psc</location>
+  </track>
+  <track>
+    <location>Samples/Illusion.psg</location>
+  </track>
+  <track>
     <location>Samples/Calamba.psm</location>
   </track>
   <track>
     <location>Samples/twins.pt1</location>
   </track>
   <track>
-    <location>Samples/Illusion.pt2</location>
+    <location>Samples/4jour#2.pt2</location>
   </track>
   <track>
     <location>Samples/Speccy2.pt3</location>
   </track>
   <track>
     <location>Samples/Maskarad.sqd</location>
+  </track>
+  <track>
+    <location>Samples/taiobyte.sqt</location>
   </track>
   <track>
     <location>Samples/SHOCK4.S</location>
@@ -60,10 +75,16 @@
     <location>Samples/COMETDAY.str</location>
   </track>
   <track>
+    <location>Samples/tmk.tf0</location>
+  </track>
+  <track>
     <location>Samples/unbeliev.tfc</location>
   </track>
   <track>
     <location>Samples/mass_production.tfd</location>
+  </track>
+  <track>
+    <location>Samples/disco.tfe</location>
   </track>
   <track>
     <location>Samples/long_day.pt3</location>

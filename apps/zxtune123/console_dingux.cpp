@@ -18,7 +18,8 @@ Author:
 //local includes
 #include "console.h"
 #include <apps/base/app.h>
-#include <apps/base/error_codes.h>
+//common includes
+#include <error.h>
 //platform-dependent includes
 #include <errno.h>
 #include <fcntl.h>
@@ -38,7 +39,7 @@ namespace
   {
     if (res)
     {
-      throw Error(loc, UNKNOWN_ERROR, ::strerror(errno));
+      throw Error(loc, ::strerror(errno));
     }
   }
   

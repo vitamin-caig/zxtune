@@ -13,7 +13,7 @@ Author:
 #include "container.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <formats/packed.h>
 //std includes
@@ -162,13 +162,17 @@ namespace Formats
         return Format;
       }
 
-      virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
+      virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(rawData.Data());
-        const std::size_t availSize = rawData.Size();
-        if (!Format->Match(data, availSize) || !Sna128::Check(data, availSize))
+        if (!Format->Match(rawData))
         {
-          return Formats::Packed::Container::Ptr();
+          return Container::Ptr();
+        }
+        const uint8_t* const data = static_cast<const uint8_t*>(rawData.Start());
+        const std::size_t availSize = rawData.Size();
+        if (!Sna128::Check(data, availSize))
+        {
+          return Container::Ptr();
         }
         return Sna128::Decode(data);
       }

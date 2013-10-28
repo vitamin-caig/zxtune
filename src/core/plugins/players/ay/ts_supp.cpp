@@ -10,386 +10,149 @@ Author:
 */
 
 //local includes
+#include "aym_base.h"
 #include "ts_base.h"
-#include "ay_conversion.h"
-#include "core/src/core.h"
+#include "core/plugins/enumerator.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/tracking.h"
 #include "core/src/callback.h"
 //common includes
-#include <byteorder.h>
-#include <debug_log.h>
-#include <error_tools.h>
-#include <messages_collector.h>
-#include <tools.h>
+#include <error.h>
 //library includes
-#include <core/convert_parameters.h>
-#include <core/core_parameters.h>
-#include <core/error_codes.h>
-#include <core/module_attrs.h>
-#include <core/module_detect.h>
+#include <core/module_open.h>
 #include <core/plugin_attrs.h>
-#include <devices/aym.h>
-#include <io/container.h>
-//std includes
-#include <set>
+#include <debug/log.h>
+#include <formats/chiptune/decoders.h>
+#include <formats/chiptune/aym/turbosound.h>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-//text includes
-#include <core/text/plugins.h>
-
-#define FILE_TAG 83089B6F
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const Debug::Stream Dbg("Core::TSSupp");
+}
 
-  //plugin attributes
-  const Char TS_PLUGIN_ID[] = {'T', 'S', 0};
-
-  const std::size_t TS_MIN_SIZE = 256;
-  const std::size_t MAX_MODULE_SIZE = 16384;
-  const std::size_t TS_MAX_SIZE = MAX_MODULE_SIZE * 2;
-
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-  PACK_PRE struct Footer
+namespace Module
+{
+namespace TS
+{
+  class DataBuilder : public Formats::Chiptune::TurboSound::Builder
   {
-    uint8_t ID1[4];//'PT3!' or other type
-    uint16_t Size1;
-    uint8_t ID2[4];//same
-    uint16_t Size2;
-    uint8_t ID3[4];//'02TS'
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-  const uint8_t TS_ID[] = {'0', '2', 'T', 'S'};
-
-  BOOST_STATIC_ASSERT(sizeof(Footer) == 16);
-
-  using namespace Parameters;
-  class MergedModuleProperties : public Accessor
-  {
-    static bool IsSingleProperty(const NameType& propName)
-    {
-      return propName == Parameters::ZXTune::Core::AYM::TABLE;
-    }
-
-    static void MergeStringProperty(const NameType& propName, String& lh, const String& rh)
-    {
-      if (!IsSingleProperty(propName) && lh != rh)
-      {
-        lh += '/';
-        lh += rh;
-      }
-    }
-
-    class MergedStringsVisitor : public Visitor
-    {
-    public:
-      explicit MergedStringsVisitor(Visitor& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual void SetValue(const NameType& name, IntType val)
-      {
-        if (DoneIntegers.insert(name).second)
-        {
-          return Delegate.SetValue(name, val);
-        }
-      }
-
-      virtual void SetValue(const NameType& name, const StringType& val)
-      {
-        const StringsValuesMap::iterator it = Strings.find(name);
-        if (it == Strings.end())
-        {
-          Strings.insert(StringsValuesMap::value_type(name, val));
-        }
-        else
-        {
-          MergeStringProperty(name, it->second, val);
-        }
-      }
-
-      virtual void SetValue(const NameType& name, const DataType& val)
-      {
-        if (DoneDatas.insert(name).second)
-        {
-          return Delegate.SetValue(name, val);
-        }
-      }
-
-      void ProcessRestStrings() const
-      {
-        for (StringsValuesMap::const_iterator it = Strings.begin(), lim = Strings.end(); it != lim; ++it)
-        {
-          Delegate.SetValue(it->first, it->second);
-        }
-      }
-    private:
-      Visitor& Delegate;
-      typedef std::map<NameType, StringType> StringsValuesMap;
-      StringsValuesMap Strings;
-      std::set<NameType> DoneIntegers;
-      std::set<NameType> DoneDatas;
-    };
   public:
-    MergedModuleProperties(Accessor::Ptr first, Accessor::Ptr second)
-      : First(first)
-      , Second(second)
+    explicit DataBuilder(const Binary::Container& data)
+      : Data(data)
     {
     }
 
-    virtual bool FindValue(const NameType& name, IntType& val) const
+    virtual void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size)
     {
-      return First->FindValue(name, val) || Second->FindValue(name, val);
-    }
-
-    virtual bool FindValue(const NameType& name, StringType& val) const
-    {
-      String val1, val2;
-      const bool res1 = First->FindValue(name, val1);
-      const bool res2 = Second->FindValue(name, val2);
-      if (res1 && res2)
+      if (!(First = LoadChiptune(offset, size)))
       {
-        MergeStringProperty(name, val1, val2);
-        val = val1;
+        Dbg("Failed to create first module");
       }
-      else if (res1 != res2)
+    }
+
+    virtual void SetSecondSubmoduleLocation(std::size_t offset, std::size_t size)
+    {
+      if (!(Second = LoadChiptune(offset, size)))
       {
-        val = res1 ? val1 : val2;
+        Dbg("Failed to create second module");
       }
-      return res1 || res2;
     }
 
-    virtual bool FindValue(const NameType& name, DataType& val) const
+    bool HasResult() const
     {
-      return First->FindValue(name, val) || Second->FindValue(name, val);
+      return First && Second;
     }
 
-    virtual void Process(Visitor& visitor) const
+    AYM::Chiptune::Ptr GetFirst() const
     {
-      MergedStringsVisitor mergedVisitor(visitor);
-      First->Process(mergedVisitor);
-      Second->Process(mergedVisitor);
-      mergedVisitor.ProcessRestStrings();
+      return First;
+    }
+
+    AYM::Chiptune::Ptr GetSecond() const
+    {
+      return Second;
     }
   private:
-    const Accessor::Ptr First;
-    const Accessor::Ptr Second;
-  };
-
-  class MergedModuleInfo : public Information
-  {
-  public:
-    MergedModuleInfo(Information::Ptr lh, Information::Ptr rh)
-      : First(lh)
-      , Second(rh)
+    AYM::Chiptune::Ptr LoadChiptune(std::size_t offset, std::size_t size) const
     {
-    }
-    virtual uint_t PositionsCount() const
-    {
-      return First->PositionsCount();
-    }
-    virtual uint_t LoopPosition() const
-    {
-      return First->LoopPosition();
-    }
-    virtual uint_t PatternsCount() const
-    {
-      return First->PatternsCount() + Second->PatternsCount();
-    }
-    virtual uint_t FramesCount() const
-    {
-      return First->FramesCount();
-    }
-    virtual uint_t LoopFrame() const
-    {
-      return First->LoopFrame();
-    }
-    virtual uint_t LogicalChannels() const
-    {
-      return First->LogicalChannels() + Second->LogicalChannels();
-    }
-    virtual uint_t PhysicalChannels() const
-    {
-      return std::max(First->PhysicalChannels(), Second->PhysicalChannels());
-    }
-    virtual uint_t Tempo() const
-    {
-      return std::min(First->Tempo(), Second->Tempo());
-    }
-  private:
-    const Information::Ptr First;
-    const Information::Ptr Second;
-  };
-
-  //////////////////////////////////////////////////////////////////////////
-
-  class TSHolder : public Holder
-  {
-  public:
-    TSHolder(ModuleProperties::Ptr props, const Holder::Ptr& holder1, const Holder::Ptr& holder2)
-      : Properties(props)
-      , Holder1(holder1), Holder2(holder2)
-      , Info(new MergedModuleInfo(Holder1->GetModuleInformation(), Holder2->GetModuleInformation()))
-    {
-    }
-
-    virtual Plugin::Ptr GetPlugin() const
-    {
-      return Properties->GetPlugin();
-    }
-
-    virtual Information::Ptr GetModuleInformation() const
-    {
-      return Info;
-    }
-
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      const Parameters::Accessor::Ptr mixProps = boost::make_shared<MergedModuleProperties>(Holder1->GetModuleProperties(), Holder2->GetModuleProperties());
-      return Parameters::CreateMergedAccessor(Properties, mixProps);
-    }
-
-    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::MultichannelReceiver::Ptr target) const
-    {
-      return CreateTSRenderer(params, Holder1, Holder2, target);
-    }
-
-    virtual Error Convert(const Conversion::Parameter& spec, Parameters::Accessor::Ptr /*params*/, Dump& dst) const
-    {
-      using namespace Conversion;
-      if (parameter_cast<RawConvertParam>(&spec))
+      const Binary::Container::Ptr content = Data.GetSubcontainer(offset, size);
+      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Module::Open(*content)))
       {
-        Properties->GetData(dst);
-        return Error();
+        return holder->GetChiptune();
       }
       else
       {
-        return CreateUnsupportedConversionError(THIS_LINE, spec);
+        return AYM::Chiptune::Ptr();
       }
+
     }
   private:
-    const ModuleProperties::Ptr Properties;
-    const Holder::Ptr Holder1;
-    const Holder::Ptr Holder2;
-    const Information::Ptr Info;
+    const Binary::Container& Data;
+    AYM::Chiptune::Ptr First;
+    AYM::Chiptune::Ptr Second;
   };
 
-  inline bool InvalidHolder(Module::Holder::Ptr holder)
-  {
-    if (!holder)
-    {
-      return true;
-    }
-    const uint_t caps = holder->GetPlugin()->Capabilities();
-    return 0 != (caps & (CAP_STORAGE_MASK ^ CAP_STOR_MODULE)) ||
-           0 != (caps & (CAP_DEVICE_MASK ^ CAP_DEV_AYM));
-  }
-}
-
-namespace
-{
-  using namespace ::ZXTune;
-
-  //plugin attributes
-  const Char* const ID = TS_PLUGIN_ID;
-  const Char* const INFO = Text::TS_PLUGIN_INFO;
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
-
-
-  const std::string TS_FOOTER_FORMAT(
-    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
-    "?%00xxxxxx"                     // uint16_t Size1;
-    "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
-    "?%00xxxxxx"                     // uint16_t Size2;
-    "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
-  );
-
-  /////////////////////////////////////////////////////////////////////////////
-  class TSPlugin : public PlayerPlugin
+  class Factory : public Module::Factory
   {
   public:
-    typedef boost::shared_ptr<const TSPlugin> Ptr;
-
-    TSPlugin()
-      : Description(CreatePluginDescription(ID, INFO, CAPS))
-      , FooterFormat(Binary::Format::Create(TS_FOOTER_FORMAT))
+    explicit Factory(Formats::Chiptune::TurboSound::Decoder::Ptr decoder)
+      : Decoder(decoder)
     {
     }
 
-    virtual Plugin::Ptr GetDescription() const
+    virtual Module::Holder::Ptr CreateModule(Module::PropertiesBuilder& properties, const Binary::Container& data) const
     {
-      return Description;
-    }
-
-    virtual Analysis::Result::Ptr Detect(DataLocation::Ptr inputData, const Module::DetectCallback& callback) const
-    {
-      const Binary::Container::Ptr data = inputData->GetData();
-      const uint8_t* const rawData = static_cast<const uint8_t*>(data->Data());
-      const std::size_t size = data->Size();
-      const std::size_t footerOffset = FooterFormat->Search(rawData, size);
-      //no footer in nearest data
-      if (footerOffset == size)
+      try
       {
-        return Analysis::CreateUnmatchedResult(size);
+        DataBuilder dataBuilder(data);
+        if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(data, dataBuilder))
+        {
+          if (dataBuilder.HasResult())
+          {
+            properties.SetSource(*container);
+            const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties.GetResult(),
+              dataBuilder.GetFirst(), dataBuilder.GetSecond());
+            return TurboSound::CreateHolder(chiptune);
+          }
+        }
       }
-      const Footer& footer = *safe_ptr_cast<const Footer*>(rawData + footerOffset);
-      const std::size_t firstModuleSize = fromLE(footer.Size1);
-      const std::size_t secondModuleSize = fromLE(footer.Size2);
-      const std::size_t totalModulesSize = firstModuleSize + secondModuleSize;
-      const std::size_t dataSize = footerOffset + sizeof(footer);
-      if (!totalModulesSize || totalModulesSize != footerOffset)
+      catch (const Error&)
       {
-        const std::size_t lookahead = !totalModulesSize || totalModulesSize > footerOffset
-          ? dataSize
-          : footerOffset - totalModulesSize;
-        return Analysis::CreateUnmatchedResult(lookahead);
       }
-
-      const DataLocation::Ptr firstSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(0, firstModuleSize));
-      const Module::Holder::Ptr holder1 = Module::Open(firstSubLocation);
-      if (InvalidHolder(holder1))
-      {
-        Dbg("Invalid first module holder");
-        return Analysis::CreateUnmatchedResult(dataSize);
-      }
-      const DataLocation::Ptr secondSubLocation = CreateNestedLocation(inputData, data->GetSubcontainer(firstModuleSize, footerOffset - firstModuleSize));
-      const Module::Holder::Ptr holder2 = Module::Open(secondSubLocation);
-      if (InvalidHolder(holder2))
-      {
-        Dbg("Failed to create second module holder");
-        return Analysis::CreateUnmatchedResult(dataSize);
-      }
-      const ModuleProperties::RWPtr properties = ModuleProperties::Create(Description, inputData);
-      properties->SetSource(dataSize, ModuleRegion(0, dataSize));
-      const Module::Holder::Ptr holder(new TSHolder(properties, holder1, holder2));
-      callback.ProcessModule(inputData, holder);
-      return Analysis::CreateMatchedResult(dataSize);
+      return Module::Holder::Ptr();
     }
   private:
-    const Plugin::Ptr Description;
-    const Binary::Format::Ptr FooterFormat;
+    static AYM::Chiptune::Ptr OpenAYMModule(Binary::Container::Ptr data)
+    {
+      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Open(*data)))
+      {
+        return holder->GetChiptune();
+      }
+      else
+      {
+        return AYM::Chiptune::Ptr();
+      }
+    }
+  private:
+    const Formats::Chiptune::TurboSound::Decoder::Ptr Decoder;
   };
+}
 }
 
 namespace ZXTune
 {
-  void RegisterTSSupport(PluginsRegistrator& registrator)
+  void RegisterTSSupport(PlayerPluginsRegistrator& registrator)
   {
-    const PlayerPlugin::Ptr plugin(new TSPlugin());
+    //plugin attributes
+    const Char ID[] = {'T', 'S', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
+
+    const Formats::Chiptune::TurboSound::Decoder::Ptr decoder = Formats::Chiptune::TurboSound::CreateDecoder();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>(decoder);
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
 }

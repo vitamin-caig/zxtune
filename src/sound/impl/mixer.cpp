@@ -10,179 +10,84 @@ Author:
 */
 
 //local includes
-#include "internal_types.h"
+#include "mixer_core.h"
 //common includes
-#include <tools.h>
 #include <error_tools.h>
 //library includes
 #include <l10n/api.h>
-#include <sound/error_codes.h>
-#include <sound/mixer.h>
+#include <math/numeric.h>
+#include <sound/matrix_mixer.h>
 //std includes
 #include <algorithm>
 #include <numeric>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/noncopyable.hpp>
-#include <boost/integer/static_log2.hpp>
-#include <boost/mpl/if.hpp>
-#include <boost/type_traits/is_signed.hpp>
 
 #define FILE_TAG 278565B1
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune::Sound;
-
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
-  //using unsigned as a native type gives better performance (very strange...), at least at gcc
-  typedef int NativeType;
-  typedef int64_t MaxBigType;
-
-  template<class T>
-  struct SignificantBits
+  template<unsigned Channels>
+  class Mixer : public FixedChannelsMatrixMixer<Channels>
   {
-    static const uint_t Value = boost::is_signed<T>::value ? 8 * sizeof(T) - 1 : 8 * sizeof(T);
-  };
-
-  const MaxBigType MAX_MIXER_CHANNELS = MaxBigType(1) << (SignificantBits<MaxBigType>::Value - SignificantBits<Sample>::Value -
-    boost::static_log2<FIXED_POINT_PRECISION>::value);
-  
-  inline bool FindOverloadedGain(const MultiGain& mg)
-  {
-    return mg.end() != std::find_if(mg.begin(), mg.end(), !boost::bind(in_range<Gain>, _1, 0.0f, 1.0f));
-  }
-   
-  template<uint_t InChannels>
-  class FastMixer : public MatrixMixer, private boost::noncopyable
-  {
-    //determine type for intermediate value
-    static const uint_t INTERMEDIATE_BITS_MIN =
-      SignificantBits<Sample>::Value +                   //input sample
-      boost::static_log2<FIXED_POINT_PRECISION>::value + //mixer
-      boost::static_log2<InChannels>::value;             //channels count
-
-    // calculate most suitable type for intermediate value storage
-    typedef typename boost::mpl::if_c<
-      INTERMEDIATE_BITS_MIN <= SignificantBits<NativeType>::Value,
-      NativeType,
-      MaxBigType
-    >::type BigSample;
-    typedef boost::array<BigSample, OUTPUT_CHANNELS> MultiBigSample;
-    
-    typedef boost::array<NativeType, OUTPUT_CHANNELS> MultiFixed;
-
-    //to prevent zero divider
-    static inline BigSample FixDivider(BigSample divider)
-    {
-      return divider ? divider : 1;
-    }
-    
-    //divider+matrix
-    static inline BigSample AddDivider(BigSample divider, NativeType matrix)
-    {
-      return divider + (matrix ? FIXED_POINT_PRECISION : 0);
-    }
-    
-    //divider+matrix
-    static inline MultiBigSample AddBigsamples(const MultiBigSample& lh, const MultiFixed& rh)
-    {
-      MultiBigSample res;
-      std::transform(lh.begin(), lh.end(), rh.begin(), res.begin(), AddDivider);
-      return res;
-    }
-
-    static inline Sample NormalizeSum(BigSample in, BigSample divider)
-    {
-      return static_cast<Sample>(in / divider + SAMPLE_MID);
-    }
+    typedef FixedChannelsMatrixMixer<Channels> Base;
   public:
-    FastMixer()
-      : Endpoint(Receiver::CreateStub())
+    Mixer()
     {
-      std::fill(Matrix.front().begin(), Matrix.front().end(), static_cast<NativeType>(FIXED_POINT_PRECISION));
-      std::fill(Matrix.begin(), Matrix.end(), Matrix.front());
-      std::fill(Dividers.begin(), Dividers.end(), BigSample(FIXED_POINT_PRECISION * InChannels));
+      const Gain::Type INVALID_GAIN_VALUE(Gain::Type::PRECISION, 1);
+      const Gain INVALID_GAIN(INVALID_GAIN_VALUE, INVALID_GAIN_VALUE);
+      std::fill(LastMatrix.begin(), LastMatrix.end(), INVALID_GAIN);
     }
 
-    virtual void ApplyData(const std::vector<Sample>& inData)
+    virtual Sample ApplyData(const typename Base::InDataType& in) const
     {
-      assert(inData.size() == InChannels || !"Mixer::ApplyData channels mismatch");
-      // pass along input channels due to input data structure
-      MultiBigSample res = { {0} };
-      for (uint_t inChan = 0; inChan != InChannels; ++inChan)
-      {
-        const NativeType in = NativeType(inData[inChan]) - SAMPLE_MID;
-        const MultiFixed& inChanMix = Matrix[inChan];
-        for (uint_t outChan = 0; outChan != OUTPUT_CHANNELS; ++outChan)
-        {
-          res[outChan] += inChanMix[outChan] * in;
-        }
-      }
-      MultiSample result;
-      std::transform(res.begin(), res.end(), Dividers.begin(), result.begin(), &NormalizeSum);
-      return Endpoint->ApplyData(result);
+      return Core.Mix(in);
     }
-    
-    virtual void Flush()
+
+    virtual void SetMatrix(const typename Base::Matrix& data)
     {
-      Endpoint->Flush();
-    }
-    
-    virtual void SetTarget(Receiver::Ptr rcv)
-    {
-      Endpoint = rcv ? rcv : Receiver::CreateStub();
-    }
-    
-    virtual void SetMatrix(const std::vector<MultiGain>& data)
-    {
-      if (data.size() != InChannels)
-      {
-        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, translate("Failed to set mixer matrix: invalid channels count specified."));
-      }
-      const std::vector<MultiGain>::const_iterator it = std::find_if(data.begin(), data.end(),
-        FindOverloadedGain);
+      const typename Base::Matrix::const_iterator it = std::find_if(data.begin(), data.end(), std::not1(std::mem_fun_ref(&Gain::IsNormalized)));
       if (it != data.end())
       {
-        throw Error(THIS_LINE, MIXER_INVALID_PARAMETER, translate("Failed to set mixer matrix: gain is out of range."));
+        throw Error(THIS_LINE, translate("Failed to set mixer matrix: gain is out of range."));
       }
-      boost::array<MultiFixed, InChannels> tmpMatrix;
-      std::transform(data.begin(), data.end(), tmpMatrix.begin(), MultiGain2MultiFixed<NativeType>);
-      MultiBigSample tmpDividers = std::accumulate(tmpMatrix.begin(), tmpMatrix.end(), MultiBigSample(), AddBigsamples);
-      // prevent empty dividers
-      std::transform(tmpDividers.begin(), tmpDividers.end(), tmpDividers.begin(), FixDivider);
-      Matrix.swap(tmpMatrix);
-      Dividers.swap(tmpDividers);
+      if (LastMatrix != data)
+      {
+        Core.SetMatrix(data);
+        LastMatrix = data;
+      }
     }
   private:
-    Receiver::Ptr Endpoint;
-    boost::array<MultiFixed, InChannels> Matrix;
-    MultiBigSample Dividers;
+    MixerCore<Channels> Core;
+    typename Base::Matrix LastMatrix;
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  template<>
+  OneChannelMatrixMixer::Ptr OneChannelMatrixMixer::Create()
   {
-    MatrixMixer::Ptr CreateMatrixMixer(uint_t channels)
-    {
-      switch (channels)
-      {
-      case 1:
-        return boost::make_shared<FastMixer<1> >();
-      case 2:
-        return boost::make_shared<FastMixer<2> >();
-      case 3:
-        return boost::make_shared<FastMixer<3> >();
-      case 4:
-        return boost::make_shared<FastMixer<4> >();
-      default:
-        assert(!"Mixer: invalid channels count specified");
-        throw MakeFormattedError(THIS_LINE, MIXER_UNSUPPORTED, translate("Failed to create unsupported mixer with %1% channels."), channels);
-      }
-    }
+    return boost::make_shared<Mixer<1> >();
+  }
+
+  template<>
+  TwoChannelsMatrixMixer::Ptr TwoChannelsMatrixMixer::Create()
+  {
+    return boost::make_shared<Mixer<2> >();
+  }
+
+  template<>
+  ThreeChannelsMatrixMixer::Ptr ThreeChannelsMatrixMixer::Create()
+  {
+    return boost::make_shared<Mixer<3> >();
+  }
+
+  template<>
+  FourChannelsMatrixMixer::Ptr FourChannelsMatrixMixer::Create()
+  {
+    return boost::make_shared<Mixer<4> >();
   }
 }

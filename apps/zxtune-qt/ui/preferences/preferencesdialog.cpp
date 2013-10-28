@@ -15,18 +15,18 @@ Author:
 #include "preferencesdialog.h"
 #include "preferencesdialog.ui.h"
 #include "aym.h"
+#include "saa.h"
 #include "z80.h"
 #include "sound.h"
 #include "mixing.h"
 #include "plugins.h"
 #include "interface.h"
 #include "ui/state.h"
-//common includes
-#include <tools.h>
 //std includes
 #include <algorithm>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/range/end.hpp>
 //qt includes
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDialogButtonBox>
@@ -45,20 +45,22 @@ namespace
       setupUi(this);
       State = UI::State::Create(*this);
       //fill
+      QWidget* const soundSettingsPage = UI::SoundSettingsWidget::Create(*Categories);
       QWidget* const pages[] =
       {
         UI::AYMSettingsWidget::Create(*Categories),
+        UI::SAASettingsWidget::Create(*Categories),
         UI::Z80SettingsWidget::Create(*Categories),
-        UI::SoundSettingsWidget::Create(*Categories),
+        soundSettingsPage,
         UI::MixingSettingsWidget::Create(*Categories, 3),
         UI::MixingSettingsWidget::Create(*Categories, 4),
         UI::PluginsSettingsWidget::Create(*Categories),
         UI::InterfaceSettingsWidget::Create(*Categories)
       };
-      std::for_each(pages, ArrayEnd(pages),
+      std::for_each(pages, boost::end(pages),
         boost::bind(&QTabWidget::addTab, Categories, _1, boost::bind(&QWidget::windowTitle, _1)));
 
-      Categories->setTabEnabled(2, !playing);
+      Categories->setTabEnabled(std::find(pages, boost::end(pages), soundSettingsPage) - pages, !playing);
       State->AddWidget(*Categories);
       State->Load();
     }

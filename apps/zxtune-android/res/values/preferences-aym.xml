@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="pref_zxtune_aym_title" translatable="false">AY&#8211;3&#8211;8910/YM2149F</string>
+  <!-- zxtune.core.aym.clockrate -->
+  <string name="pref_zxtune_aym_clockrate" translatable="false">zxtune.core.aym.clockrate</string>
+  <string name="pref_zxtune_aym_clockrate_title">Clockrate</string>
+  <string-array name="pref_zxtune_aym_clockrate_entries">
+    <item>ZX Spectrum (1.7734 MHz)</item>
+    <item>Pentagon (1.75 MHz)</item>
+    <item>Atari ST (2 MHz)</item>
+    <item>Amstrad CPC (1 MHz)</item>
+  </string-array>
+  <string-array name="pref_zxtune_aym_clockrate_values" translatable="false">
+    <item>1773400</item>
+    <item>1750000</item>
+    <item>2000000</item>
+    <item>1000000</item>
+  </string-array>
+  <integer name="pref_zxtune_aym_clockrate_default">1750000</integer>
+  <!-- zxtune.core.aym.type -->
+  <string name="pref_zxtune_aym_type" translatable="false">zxtune.core.aym.type</string>
+  <string name="pref_zxtune_aym_type_title">Type</string>
+  <string-array name="pref_zxtune_aym_type_entries" translatable="false">
+    <item>AY&#8211;3&#8211;8910</item>
+    <item>YM2149F</item>
+  </string-array>
+  <string-array name="pref_zxtune_aym_type_values" translatable="false">
+    <item>0</item>
+    <item>1</item>
+  </string-array>
+  <integer name="pref_zxtune_aym_type_default">0</integer>
+  <!-- zxtune.core.aym.interpolation -->
+  <string name="pref_zxtune_aym_interpolation" translatable="false">zxtune.core.aym.interpolation</string>
+  <integer name="pref_zxtune_aym_interpolation_default">0</integer>
+  <!-- zxtun.core.aym.layout -->
+  <string name="pref_zxtune_aym_layout" translatable="false">zxtune.core.aym.layout</string>
+  <string name="pref_zxtune_aym_layout_title">Channels layout</string>
+  <string-array name="pref_zxtune_aym_layout_entries">
+    <item>ABC</item>
+    <item>ACB</item>
+    <item>BAC</item>
+    <item>BCA</item>
+    <item>CBA</item>
+    <item>CAB</item>
+    <item>Mono</item>
+  </string-array>
+  <string-array name="pref_zxtune_aym_layout_values" translatable="false">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+    <item>4</item>
+    <item>5</item>
+    <item>6</item>
+  </string-array>
+  <integer name="pref_zxtune_aym_layout_default">0</integer>
+</resources>

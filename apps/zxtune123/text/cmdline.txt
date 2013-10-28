@@ -59,6 +59,12 @@
 > " " CONVERSION_PARAM_FILENAME " - filename template with any module's attributes\n"
 > "."
 
+< BENCHMARK_KEY
+> CMD_BENCHMARK_KEY
+
+< BENCHMARK_DESC
+> "Switch on benchmark mode with specified iterations count.\n"
+
 < INFORMATIONAL_SECTION
 > "Information keys"
 
@@ -151,18 +157,6 @@
 
 < LOOP_DESC
 > "loop playback"
-
-< MIXER_KEY
-> CMD_MIXER_KEY
-
-< MIXER_DESC
-> "specify mixer by layout or matrix"
-
-< FILTER_KEY
-> CMD_FILTER_KEY
-
-< FILTER_DESC
-> "specify bandpass filter ([order,]low-high)"
 
 < INPUT_SECTION
 > "Input options"

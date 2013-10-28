@@ -13,12 +13,11 @@ Author:
 #include "freq_tables_internal.h"
 //common includes
 #include <error_tools.h>
-#include <tools.h>
 //library includes
-#include <core/error_codes.h>
 #include <l10n/api.h>
 //boost includes
 #include <boost/bind.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -26,8 +25,11 @@ Author:
 
 namespace
 {
-  using namespace ZXTune::Module;
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+}
 
+namespace Module
+{
   // prefix for reverted frequency tables
   const Char REVERT_TABLE_MARK = '~';
 
@@ -221,38 +223,43 @@ namespace
         0x035, 0x032, 0x02F, 0x02D, 0x02A, 0x028, 0x025, 0x023, 0x021, 0x01F, 0x01E, 0x01C,
         0x01A, 0x019, 0x018, 0x016, 0x015, 0x014, 0x013, 0x012, 0x011, 0x010, 0x00F, 0x00E
       } }
+    },
+    //SQTracker
+    {
+      TABLE_SQTRACKER,
+      { {
+        0xd5d, 0xc9c, 0xbe7, 0xb3c, 0xa9b, 0xa02, 0x973, 0x8eb, 0x86b, 0x7f2, 0x780, 0x714,
+        0x6ae, 0x64e, 0x5f4, 0x59e, 0x54f, 0x501, 0x4b9, 0x475, 0x435, 0x3f9, 0x3c0, 0x38a,
+        0x357, 0x327, 0x2fa, 0x2cf, 0x2a7, 0x281, 0x25d, 0x23b, 0x21b, 0x1fc, 0x1e0, 0x1c5,
+        0x1ac, 0x194, 0x17d, 0x168, 0x153, 0x140, 0x12e, 0x11d, 0x10d, 0x0fe, 0x0f0, 0x0e2,
+        0x0d6, 0x0ca, 0x0be, 0x0b4, 0x0aa, 0x0a0, 0x097, 0x08f, 0x087, 0x07f, 0x078, 0x071,
+        0x06b, 0x065, 0x05f, 0x05a, 0x055, 0x050, 0x04c, 0x047, 0x043, 0x040, 0x03c, 0x039,
+        0x035, 0x032, 0x030, 0x02d, 0x02a, 0x028, 0x026, 0x024, 0x022, 0x020, 0x01e, 0x01c,
+        0x01b, 0x019, 0x018, 0x016, 0x015, 0x014, 0x013, 0x012, 0x011, 0x010, 0x00f, 0x00e
+      } }
     }
   };
 
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-}
-
-namespace ZXTune
-{
-  namespace Module
+  void GetFreqTable(const String& id, FrequencyTable& result)
   {
-    Error GetFreqTable(const String& id, FrequencyTable& result)
+    //check if required to revert table
+    const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
+    const String idNormal = doRevert ? id.substr(1) : id;
+    //find if table is supported
+    const FreqTableEntry* const entry = std::find_if(TABLES, boost::end(TABLES),
+      boost::bind(&FreqTableEntry::Name, _1) == idNormal);
+    if (entry == boost::end(TABLES))
     {
-      //check if required to revert table
-      const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
-      const String idNormal = doRevert ? id.substr(1) : id;
-      //find if table is supported
-      const FreqTableEntry* const entry = std::find_if(TABLES, ArrayEnd(TABLES),
-        boost::bind(&FreqTableEntry::Name, _1) == idNormal);
-      if (entry == ArrayEnd(TABLES))
-      {
-        return MakeFormattedError(THIS_LINE, ERROR_INVALID_PARAMETERS, translate("Invalid frequency table '%1%'."), id);
-      }
-      //copy result forward (normal) or backward (reverted)
-      if (doRevert)
-      {
-        std::copy(entry->Table.rbegin(), entry->Table.rend(), result.begin());
-      }
-      else
-      {
-        std::copy(entry->Table.begin(), entry->Table.end(), result.begin());
-      }
-      return Error();
+      throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);
+    }
+    //copy result forward (normal) or backward (reverted)
+    if (doRevert)
+    {
+      std::copy(entry->Table.rbegin(), entry->Table.rend(), result.begin());
+    }
+    else
+    {
+      std::copy(entry->Table.begin(), entry->Table.end(), result.begin());
     }
   }
 }

@@ -14,7 +14,7 @@ Author:
 
 //common includes
 #include <byteorder.h>
-#include <tools.h>
+#include <pointers.h>
 #include <types.h>
 
 namespace Formats
@@ -542,12 +542,7 @@ namespace Formats
         static const uint32_t SIGNATURE = Sequence<'S', 'N', 'E', 'T'>::Value;
         static const uint16_t COMPRESSED = 128;
         static const uint16_t COMPRESSED_RAM = 256;
-        static const std::size_t PAGESIZE = 0x20000;
-
-        static std::size_t GetUncompressedSize()
-        {
-          return PAGESIZE;
-        }
+        static const std::size_t DUMPSIZE = 0x20000;
 
         uint16_t Flags;
         uint8_t PageA;

@@ -1,181 +1,191 @@
-#include <tools.h>
-#include <format.h>
-#include <src/sound/mixer.h>
-#include <src/sound/error_codes.h>
+#include <error_tools.h>
+#include <math/numeric.h>
+#include <sound/matrix_mixer.h>
+#include <sound/mixer_parameters.h>
 
 #include <iostream>
 #include <iomanip>
 
+#include <boost/range/size.hpp>
+
 #define FILE_TAG 25E829A2
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune::Sound;
+  //BOOST_STATIC_ASSERT(SAMPLE_MIN == 0 && SAMPLE_MID == 32768 && SAMPLE_MAX == 65535);
 
-  BOOST_STATIC_ASSERT(SAMPLE_MIN == 0 && SAMPLE_MID == 32768 && SAMPLE_MAX == 65535);
+  const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;//0.5%
+
+  Gain CreateGain(double l, double r)
+  {
+    return Gain(Gain::Type(l), Gain::Type(r));
+  }
   
-  const MultiGain GAINS[] = {
-    { {0.0f, 0.0f} },
-    { {1.0f, 1.0f} },
-    { {1.0f, 0.0f} },
-    { {0.0f, 1.0f} },
-    { {0.5f, 0.5f} },
-    { {0.1f, 0.9f} }
+  const Gain GAINS[] = {
+    CreateGain(0.0, 0.0),
+    CreateGain(1.0, 1.0),
+    CreateGain(1.0, 0.0),
+    CreateGain(0.0, 1.0),
+    CreateGain(0.5, 0.5),
+    CreateGain(0.1, 0.9)
   };
   
   const String GAIN_NAMES[] = {
     "empty", "full", "left", "right", "middle", "-10dB,-0.45dB"
   };
   
-  const MultiGain INVALID_GAIN = { {2.0f, 3.0f} };
+  const Gain INVALID_GAIN = CreateGain(2.0, 3.0);
 
-  const Sample INPUTS[] = {
-    SAMPLE_MIN,
-    SAMPLE_MID,
-    SAMPLE_MAX
+  const Sample::Type INPUTS[] = {
+    Sample::MIN,
+    Sample::MID,
+    Sample::MAX
   };
   
   const String INPUT_NAMES[] = {
-    "zero", "half", "maximum"
+    "min", "mid", "max"
   };
+
   
-  const MultiSample OUTS[] = {
+  const Sample OUTS[] = {
   //zero matrix
-     { {SAMPLE_MID,SAMPLE_MID} },
-     { {SAMPLE_MID,SAMPLE_MID} },
-     { {SAMPLE_MID,SAMPLE_MID} },
+     Sample(Sample::MID, Sample::MID),
+     Sample(Sample::MID, Sample::MID),
+     Sample(Sample::MID, Sample::MID),
   //full matrix
-     { {SAMPLE_MIN,SAMPLE_MIN} },
-     { {SAMPLE_MID,SAMPLE_MID} },
-     { {SAMPLE_MAX,SAMPLE_MAX} },
+     Sample(Sample::MIN, Sample::MIN),
+     Sample(Sample::MID, Sample::MID),
+     Sample(Sample::MAX, Sample::MAX),
   //left matrix
-     { {SAMPLE_MIN,SAMPLE_MID} },
-     { {SAMPLE_MID,SAMPLE_MID} },
-     { {SAMPLE_MAX,SAMPLE_MID} },
+     Sample(Sample::MIN, Sample::MID),
+     Sample(Sample::MID, Sample::MID),
+     Sample(Sample::MAX, Sample::MID),
   //right matrix
-     { {SAMPLE_MID,SAMPLE_MIN} },
-     { {SAMPLE_MID,SAMPLE_MID} },
-     { {SAMPLE_MID, SAMPLE_MAX} },
+     Sample(Sample::MID, Sample::MIN),
+     Sample(Sample::MID, Sample::MID),
+     Sample(Sample::MID, Sample::MAX),
   //mid matrix
-     { {SAMPLE_MID/2,SAMPLE_MID/2} },
-     { {SAMPLE_MID,SAMPLE_MID} },
-     { {(SAMPLE_MAX+SAMPLE_MID)/2, (SAMPLE_MAX+SAMPLE_MID)/2} },
+     Sample((Sample::MID+Sample::MIN)/2, (Sample::MID+Sample::MIN)/2),
+     Sample(Sample::MID, Sample::MID),
+     Sample((Sample::MID+Sample::MAX)/2, (Sample::MID+Sample::MAX)/2),
   //balanced
      //left=25 right=230
      //(25*32768)/256, (230*32768)/256
      //(25*65535)/256, (230*65535)/256
-     { {SAMPLE_MID+25*(SAMPLE_MIN-SAMPLE_MID)/256,SAMPLE_MID+230*(SAMPLE_MIN-SAMPLE_MID)/256} },
-     { {SAMPLE_MID,SAMPLE_MID} },
-     { {SAMPLE_MID+25*(SAMPLE_MAX-SAMPLE_MID)/256,SAMPLE_MID+230*(SAMPLE_MAX-SAMPLE_MID)/256} }
+     Sample(Sample::MID+(int_t(Sample::MIN)-Sample::MID)/10, Sample::MID+9*(int_t(Sample::MIN)-Sample::MID)/10),
+     Sample(Sample::MID, Sample::MID),
+     Sample(Sample::MID+(int_t(Sample::MAX)-Sample::MID)/10, Sample::MID+9*(int_t(Sample::MAX)-Sample::MID)/10),
   };
 
-  template<class T>
-  std::vector<T> MakeMatrix(unsigned chans, const T& mg)
+  template<class Res>
+  typename Res::Type MakeSample(Sample::Type in)
   {
-    return std::vector<T>(chans, mg);
+    typename Res::Type res;
+    res.assign(in);
+    return res;
   }
 
-  void ErrOuter(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
+  template<unsigned Channels>
+  typename FixedChannelsMatrixMixer<Channels>::Matrix MakeMatrix(const Gain& mg)
   {
-    std::cerr << Error::AttributesToString(loc, code, text) << std::endl;
+    typename FixedChannelsMatrixMixer<Channels>::Matrix res;
+    res.assign(mg);
+    return res;
   }
-  
+
   bool ShowIfError(const Error& e)
   {
     if (e)
     {
-      e.WalkSuberrors(ErrOuter);
+      std::cerr << e.ToString();
     }
     return e;
   }
 
-  class Target : public Receiver
+  bool Check(Sample::Type data, Sample::Type ref)
   {
-  public:
-    Target()
+    return Math::Absolute(int_t(data) - ref) <= THRESHOLD;
+  }
+
+  void Check(const Sample& data, const Sample& ref)
+  {
+    if (Check(data.Left(), ref.Left()) && Check(data.Right(), ref.Right()))
     {
+      std::cout << " passed\n";
+    }
+    else
+    {
+      std::cout << " failed\n";
+      throw MakeFormattedError(THIS_LINE, "Value=<%1%,%2%> while expected=<%3%,%4%>",
+        data.Left(), data.Right(), ref.Left(), ref.Right());
+    }
+  }
+
+  template<unsigned Channels>
+  void TestMixer()
+  {
+    std::cout << "**** Testing for " << Channels << " channels ****\n";
+ 
+    const typename FixedChannelsMatrixMixer<Channels>::Ptr mixer = FixedChannelsMatrixMixer<Channels>::Create();
+    
+    std::cout << "--- Test for invalid matrix---\n";
+    try
+    {
+      mixer->SetMatrix(MakeMatrix<Channels>(INVALID_GAIN));
+      throw "Failed";
+    }
+    catch (const Error& e)
+    {
+      std::cout << " Passed\n";
+      std::cerr << e.ToString();
+    }
+    catch (const std::string& str)
+    {
+      throw Error(THIS_LINE, str);
     }
     
-    virtual void ApplyData(const MultiSample& data)
+    assert(boost::size(OUTS) == boost::size(GAINS) * boost::size(INPUTS));
+    assert(boost::size(GAINS) == boost::size(GAIN_NAMES));
+    assert(boost::size(INPUTS) == boost::size(INPUT_NAMES));
+    
+    const Sample* result(OUTS);
+    for (unsigned matrix = 0; matrix != boost::size(GAINS); ++matrix)
     {
-      if (const bool passed = data == ToCompare)
+      std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
+      mixer->SetMatrix(MakeMatrix<Channels>(GAINS[matrix]));
+      for (unsigned input = 0; input != boost::size(INPUTS); ++input, ++result)
       {
-        std::cout << "Passed";
+        std::cout << "Checking for " << INPUT_NAMES[input] << " input: ";
+        Check(mixer->ApplyData(MakeSample<MultichannelSample<Channels> >(INPUTS[input])), *result);
       }
-      else
+    }
+    std::cout << "Parameters:" << std::endl;
+    for (uint_t inChan = 0; inChan != Channels; ++inChan)
+    {
+      for (uint_t outChan = 0; outChan != Sample::CHANNELS; ++outChan)
       {
-        const String txt = Strings::Format("Failed. Value=<%1%,%2%> while expected=<%3%,%4%>",
-          data[0], data[1], ToCompare[0], ToCompare[1]);
-        throw Error(THIS_LINE, 1, txt);
+        const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(Channels, inChan, outChan);
+        const Parameters::IntType val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(Channels, inChan, outChan);
+        std::cout << name.FullPath() << ": " << val << std::endl;
       }
     }
-    
-    virtual void Flush()
-    {
-    }
-    
-    void SetData(const MultiSample& tc)
-    {
-      ToCompare = tc;
-    }
-  private:
-    MultiSample ToCompare;
-  };
+  }
 }
 
 int main()
 {
-  using namespace ZXTune::Sound;
-  
+  using namespace Sound;
   try
   {
-    for (unsigned chans = 1; chans <= 4; ++chans)
-    {
-      std::cout << "**** Testing for " << chans << " channels ****\n";
-      Target* tgt = 0;
-      Receiver::Ptr receiver(tgt = new Target);
-    
-      const MatrixMixer::Ptr mixer = CreateMatrixMixer(chans);
-      
-      mixer->SetTarget(receiver);
-    
-      std::cout << "--- Test for invalid matrix---\n";
-      try
-      {
-        mixer->SetMatrix(MakeMatrix(chans, INVALID_GAIN));
-        throw "Failed";
-      }
-      catch (const Error& e)
-      {
-        std::cout << " Passed\n";
-        e.WalkSuberrors(ErrOuter);
-      }
-      catch (const std::string& str)
-      {
-        throw Error(THIS_LINE, 1, str);
-      }
-      
-      assert(ArraySize(OUTS) == ArraySize(GAINS) * ArraySize(INPUTS));
-      assert(ArraySize(GAINS) == ArraySize(GAIN_NAMES));
-      assert(ArraySize(INPUTS) == ArraySize(INPUT_NAMES));
-      
-      const MultiSample* result(OUTS);
-      for (unsigned matrix = 0; matrix != ArraySize(GAINS); ++matrix)
-      {
-        std::cout << "--- Test for " << GAIN_NAMES[matrix] << " matrix ---\n";
-        mixer->SetMatrix(MakeMatrix(chans, GAINS[matrix]));
-        for (unsigned input = 0; input != ArraySize(INPUTS); ++input, ++result)
-        {
-          tgt->SetData(*result);
-          mixer->ApplyData(MakeMatrix(chans, INPUTS[input]));
-          std::cout << " checking for " << INPUT_NAMES[input] << " input\n";
-        }
-      }
-    }
+    TestMixer<1>();
+    TestMixer<2>();
+    TestMixer<3>();
+    TestMixer<4>();
     std::cout << " Succeed!" << std::endl;
   }
   catch (const Error& e)
   {
-    e.WalkSuberrors(ErrOuter);
+    std::cerr << e.ToString();
+    return 1;
   }
 }

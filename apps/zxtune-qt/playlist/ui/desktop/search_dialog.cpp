@@ -100,25 +100,22 @@ namespace Playlist
       return boost::make_shared<SearchDialogImpl>(boost::ref(parent));
     }
 
-    void ExecuteSearchDialog(TableView& view, Controller& controller)
+    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent)
     {
-      return ExecuteSearchDialog(view, Model::IndexSetPtr(), controller);
+      return ExecuteSearchDialog(parent, Model::IndexSetPtr());
     }
 
-    void ExecuteSearchDialog(TableView& view, Model::IndexSetPtr scope, Controller& controller)
+    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Model::IndexSetPtr scope)
     {
-      const SearchDialog::Ptr dialog = SearchDialog::Create(view);
+      const SearchDialog::Ptr dialog = SearchDialog::Create(parent);
       Playlist::Item::Search::Data data;
       if (!dialog->Execute(data))
       {
-        return;
+        return Playlist::Item::SelectionOperation::Ptr();
       }
-      const Playlist::Model::Ptr model = controller.GetModel();
-      const Playlist::Item::SelectionOperation::Ptr op = scope
-        ? Playlist::Item::CreateSearchOperation(*model, scope, data)
-        : Playlist::Item::CreateSearchOperation(*model, data);
-      Require(view.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
-      model->PerformOperation(op);
+      return scope
+        ? Playlist::Item::CreateSearchOperation(scope, data)
+        : Playlist::Item::CreateSearchOperation(data);
     }
   }
 }

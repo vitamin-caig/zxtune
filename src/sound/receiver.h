@@ -8,29 +8,30 @@
 **/
 
 #pragma once
-#ifndef __SOUND_RECEIVER_H_DEFINED__
-#define __SOUND_RECEIVER_H_DEFINED__
+#ifndef SOUND_RECEIVER_H_DEFINED
+#define SOUND_RECEIVER_H_DEFINED
 
 //common includes
 #include <data_streaming.h>
 //library includes
-#include <sound/sound_types.h>
-//std includes
-#include <vector>
+#include <sound/chunk.h>
+#include <sound/multichannel_sample.h>
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
-  {
-    //! @brief Simple sound stream endpoint receiver
-    typedef DataReceiver<MultiSample> Receiver;
-    //! @brief Simple sound stream source
-    typedef DataTransmitter<MultiSample> Transmitter;
-    //! @brief Simle sound stream converter
-    typedef DataTransceiver<MultiSample> Converter;
-    //! @brief Multichannel stream receiver
-    typedef DataReceiver<std::vector<Sample> > MultichannelReceiver;
-  }
+  //! @brief Simple sound stream endpoint receiver
+  typedef DataReceiver<Chunk::Ptr> Receiver;
+  typedef DataTransceiver<Chunk::Ptr, Chunk::Ptr> Converter;
+  //! @brief Channel count-specific receivers
+  template<unsigned Channels>
+  class FixedChannelsReceiver : public DataReceiver<typename MultichannelSample<Channels>::Type> {};
+
+  typedef FixedChannelsReceiver<1> OneChannelReceiver;
+  typedef FixedChannelsReceiver<2> TwoChannelsReceiver;
+  typedef FixedChannelsReceiver<3> ThreeChannelsReceiver;
+  typedef FixedChannelsReceiver<4> FourChannelsReceiver;
+
+  std::pair<Receiver::Ptr, Receiver::Ptr> CreateReceiversPair(Sound::Receiver::Ptr target);
 }
 
 #endif //__SOUND_RECEIVER_H_DEFINED__

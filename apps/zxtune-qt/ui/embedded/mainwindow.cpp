@@ -23,6 +23,8 @@ Author:
 #include <contract.h>
 //std includes
 #include <fstream>
+//boost includes
+#include <boost/range/end.hpp>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QKeyEvent>
@@ -73,7 +75,7 @@ namespace
                                , private Ui::MainWindowEmbedded
   {
   public:
-    EmbeddedMainWindowImpl(Parameters::Container::Ptr options, const StringArray& /*cmdline*/)
+    EmbeddedMainWindowImpl(Parameters::Container::Ptr options, const Strings::Array& /*cmdline*/)
       : Options(options)
       , Playback(PlaybackSupport::Create(*this, Options))
       , Controls(PlaybackControls::Create(*this, *Playback))
@@ -98,13 +100,13 @@ namespace
         //playlist is mandatory and cannot be hidden
         AddWidgetOnLayout(Playlist);
         State->Load();
-        std::for_each(ALL_WIDGETS, ArrayEnd(ALL_WIDGETS), std::bind1st(std::mem_fun(&EmbeddedMainWindowImpl::AddWidgetLayoutControl), this));
+        std::for_each(ALL_WIDGETS, boost::end(ALL_WIDGETS), std::bind1st(std::mem_fun(&EmbeddedMainWindowImpl::AddWidgetLayoutControl), this));
       }
 
       //connect root actions
       Require(Playlist->connect(Controls, SIGNAL(OnPrevious()), SLOT(Prev())));
       Require(Playlist->connect(Controls, SIGNAL(OnNext()), SLOT(Next())));
-      Require(Playlist->connect(Playback, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play())));
+      Require(Playlist->connect(Playback, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(Play())));
       Require(Playlist->connect(Playback, SIGNAL(OnResumeModule()), SLOT(Play())));
       Require(Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause())));
       Require(Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop())));
@@ -170,7 +172,7 @@ namespace
   };
 }
 
-QPointer<EmbeddedMainWindow> EmbeddedMainWindow::Create(Parameters::Container::Ptr options, const StringArray& cmdline)
+QPointer<EmbeddedMainWindow> EmbeddedMainWindow::Create(Parameters::Container::Ptr options, const Strings::Array& cmdline)
 {
   //TODO: create proper window
   QPointer<EmbeddedMainWindow> res(new EmbeddedMainWindowImpl(options, cmdline));

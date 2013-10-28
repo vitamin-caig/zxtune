@@ -21,11 +21,8 @@ support_oss = 1
 else ifneq ($(findstring $(platform),macos),)
 support_sdl = 1
 support_curl = 1
+else ifeq ($(platform),android)
+#no features
 else
 $(warning Unknown platform)
-endif
-
-ifdef support_directsound
-windows_libraries += user32 ole32
-mingw_libraries += ole32
 endif

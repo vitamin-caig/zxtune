@@ -18,10 +18,11 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
+#include <error.h>
+//library includes
+#include <debug/log.h>
 //boost includes
 #include <boost/make_shared.hpp>
-#include <boost/ref.hpp>
 //qt includes
 #include <QtGui/QMessageBox>
 
@@ -121,14 +122,14 @@ namespace
         Dbg("Iterator: selected %1%", idx);
         Item = item;
         Index = idx;
-        if (Item->IsValid())
+        if (Item->GetState())
         {
-          State = Playlist::Item::STOPPED;
-          emit ItemActivated(Index, item);
+          State = Playlist::Item::ERROR;
         }
         else
         {
-          State = Playlist::Item::ERROR;
+          State = Playlist::Item::STOPPED;
+          emit ItemActivated(Index, item);
         }
         return true;
       }
@@ -170,16 +171,16 @@ namespace
   class ControllerImpl : public Playlist::Controller
   {
   public:
-    ControllerImpl(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
-      : Playlist::Controller(parent)
-      , Name(name)
+    ControllerImpl(const QString& name, Playlist::Item::DataProvider::Ptr provider)
+      : Name(name)
       , Scanner(Playlist::Scanner::Create(*this, provider))
       , Model(Playlist::Model::Create(*this))
       , Iterator(new ItemIteratorImpl(*this, Model))
     {
       //setup connections
       //use direct connection due to possible model locking
-      Require(Model->connect(Scanner, SIGNAL(OnGetItem(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
+      Require(Model->connect(Scanner, SIGNAL(ItemFound(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
+      Require(Model->connect(Scanner, SIGNAL(ItemsFound(Playlist::Item::Collection::Ptr)), SLOT(AddItems(Playlist::Item::Collection::Ptr)), Qt::DirectConnection));
       Require(Iterator->connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
         SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
 
@@ -190,8 +191,7 @@ namespace
     {
       Dbg("Destroyed at %1%", this);
 
-      Scanner->Cancel();
-      Scanner->wait();
+      Scanner->Stop();
     }
 
     virtual QString GetName() const
@@ -249,13 +249,9 @@ namespace Playlist
     }
   }
 
-  Controller::Controller(QObject& parent) : QObject(&parent)
-  {
-  }
-
-  Controller::Ptr Controller::Create(QObject& parent, const QString& name, Playlist::Item::DataProvider::Ptr provider)
+  Controller::Ptr Controller::Create(const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::TextNotification::Ptr);
-    return boost::make_shared<ControllerImpl>(boost::ref(parent), name, provider);
+    return boost::make_shared<ControllerImpl>(name, provider);
   }
 }

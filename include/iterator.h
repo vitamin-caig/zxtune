@@ -8,9 +8,12 @@
 **/
 
 #pragma once
-#ifndef __ITERATOR_H_DEFINED__
-#define __ITERATOR_H_DEFINED__
+#ifndef ITERATOR_H_DEFINED
+#define ITERATOR_H_DEFINED
 
+//common includes
+#include <pointers.h>
+//std includes
 #include <cassert>
 #include <iterator>
 #include <memory>
@@ -160,27 +163,8 @@ private:
 template<class T>
 class ObjectIterator
 {
-  class Stub : public ObjectIterator
-  {
-  public:
-    virtual bool IsValid() const
-    {
-      return false;
-    }
-
-    virtual T Get() const
-    {
-      return T();
-    }
-
-    virtual void Next()
-    {
-      assert(!"Should not be called");
-    }
-  };
-
 public:
-  typedef typename std::auto_ptr<ObjectIterator<T> > Ptr;
+  typedef typename boost::shared_ptr<ObjectIterator<T> > Ptr;
 
   //! Virtual destructor
   virtual ~ObjectIterator() {}
@@ -193,11 +177,36 @@ public:
   //! Moving to next stored value
   virtual void Next() = 0;
 
-  static Ptr CreateStub()
+  static Ptr CreateStub();
+};
+
+template<class T>
+class ObjectIteratorStub : public ObjectIterator<T>
+{
+public:
+  virtual bool IsValid() const
   {
-    return Ptr(new Stub());
+    return false;
+  }
+
+  virtual T Get() const
+  {
+    assert(!"Should not be called");
+    return T();
+  }
+
+  virtual void Next()
+  {
+    assert(!"Should not be called");
   }
 };
+
+template<class T>
+inline typename ObjectIterator<T>::Ptr ObjectIterator<T>::CreateStub()
+{
+  static ObjectIteratorStub<T> instance;
+  return MakeSingletonPointer(instance);
+}
 
 template<class I, class V = typename std::iterator_traits<I>::value_type>
 class RangedObjectIteratorAdapter : public ObjectIterator<V>

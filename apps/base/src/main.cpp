@@ -13,9 +13,6 @@ Author:
 #include <apps/base/app.h>
 //common includes
 #include <error.h>
-//library includes
-#include <l10n/api.h>
-#include <l10n/control.h>
 //std includes
 #include <locale>
 //text includes
@@ -37,7 +34,7 @@ int main(int argc, char* argv[])
   }
   catch (const Error& e)
   {
-    StdOut << Error::ToString(e) << std::endl;
+    StdOut << e.ToString();
     return 1;
   }
 }

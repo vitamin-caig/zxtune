@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __SOUND_PARAMETERS_H_DEFINED__
-#define __SOUND_PARAMETERS_H_DEFINED__
+#ifndef SOUND_PARAMETERS_H_DEFINED
+#define SOUND_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -42,12 +42,31 @@ namespace Parameters
       const IntType FRAMEDURATION_MAX = 1000000;
       //! Parameter name
       extern const NameType FRAMEDURATION;
+      //@}
 
       //@{
       //! @name Looped playback
 
       //! Parameter name
       extern const NameType LOOPED;
+      //@}
+
+      //@{
+      //! @name Fadein in microseconds
+
+      //! Default value- no fading
+      const IntType FADEIN_DEFAULT = 0;
+      //! Parameter name
+      extern const NameType FADEIN;
+      //@}
+
+      //@{
+      //! @name Fadeout in microseconds
+
+      //! Default value- no fading
+      const IntType FADEOUT_DEFAULT = 0;
+      //! Parameter name
+      extern const NameType FADEOUT;
       //@}
     }
   }

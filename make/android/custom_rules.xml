@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="build_rules">
+  <!-- default properties -->
+  <property name="cpu.cores" value="1" />
+  <property name="native.libs.source.dir" value="jni" />
+  
+  <property file="${top.dir}/make/android/build.properties" />
+
+  <macrodef name="buildlib-helper">
+    <attribute name="arch" />
+    <sequential>
+      <exec executable="make" failonerror="true">
+        <arg value="release=1" />
+        <arg value="platform=android" />
+        <arg value="arch=@{arch}" />
+        <arg value="-C" />
+        <arg value="${native.libs.source.dir}" />
+        <arg value="-j" />
+        <arg value="${cpu.cores}" />
+      </exec>
+    </sequential>
+  </macrodef>
+
+  <macrodef name="installib-helper">
+    <attribute name="arch" />
+    <sequential>
+      <copy file="${top.dir}/bin/android_@{arch}/release/lib${native.libs}.so" todir="${native.libs.absolute.dir}/@{arch}" />
+    </sequential>
+  </macrodef>
+
+  <macrodef name="makelib-helper">
+    <attribute name="arch" />
+    <sequential>
+      <echo level="info">Make native library for arch @{arch}</echo>
+      <buildlib-helper arch="@{arch}" />
+      <installib-helper arch="@{arch}" />
+    </sequential>
+  </macrodef>
+  
+  <target name="updatesources">
+    <exec executable="make" failonerror="true">
+      <arg value="--quiet"/>
+      <arg value="-C"/>
+      <arg value="${top.dir}/apps/version"/>
+      <arg value="update_sources"/>
+    </exec>
+  </target>
+  
+  <target name="getversion" depends="updatesources">
+    <sequential>
+      <exec executable="make" outputproperty="version.index" failonerror="true">
+        <arg value="--quiet"/>
+        <arg value="-C"/>
+        <arg value="${top.dir}/apps/version"/>
+        <arg value="version_index"/>
+      </exec>
+      <!-- version.name does not work... -->
+      <exec executable="make" outputproperty="version" failonerror="true">
+        <arg value="--quiet"/>
+        <arg value="-C"/>
+        <arg value="${top.dir}/apps/version"/>
+        <arg value="version_name"/>
+      </exec>
+      <echo level="info">Current version is ${version} (${version.index})</echo>
+    </sequential>
+  </target>
+  
+  <target name="injectversion" depends="getversion">
+    <copy file="${top.dir}/make/android/version.tmpl" tofile="res/values/version.xml" overwrite="yes" >
+      <filterset>
+        <filter token="version" value="r${version}" />
+        <filter token="version.index" value="${version.index}" />
+      </filterset>
+    </copy>
+  </target>
+  
+  <target name="nativelibs">
+    <makelib-helper arch="x86" />
+    <makelib-helper arch="armeabi" />
+    <makelib-helper arch="armeabi-v7a" />
+  </target>
+  
+  <target name="-post-compile" depends="nativelibs" />
+
+  <!-- Single public build target -->
+  <target name="public-build" depends="injectversion, release">
+    <property name="build.result" value="${builds.dir}/Revision${version}_android/${ant.project.name}_r${version}.apk" />
+    <delete file="${build.result}" />
+    <copy file="${out.final.file}" toFile="${build.result}" />
+  </target>
+</project>

@@ -17,15 +17,18 @@ Author:
 #include "tags/xspf.h"
 #include "ui/utils.h"
 //common includes
-#include <debug_log.h>
 #include <error.h>
 //library includes
 #include <core/module_attrs.h>
+#include <debug/log.h>
+#include <parameters/convert.h>
+#include <parameters/serialize.h>
 //std includes
 #include <cctype>
 #include <set>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -55,14 +58,14 @@ namespace
 
   std::string ITEM_DISABLED_PROPERTIES[] =
   {
-    ZXTune::Module::ATTR_CRC,
-    ZXTune::Module::ATTR_FIXEDCRC,
-    ZXTune::Module::ATTR_SIZE,
-    ZXTune::Module::ATTR_CONTAINER,
-    ZXTune::Module::ATTR_TYPE,
-    ZXTune::Module::ATTR_VERSION,
-    ZXTune::Module::ATTR_PROGRAM,
-    ZXTune::Module::ATTR_DATE
+    Module::ATTR_CRC,
+    Module::ATTR_FIXEDCRC,
+    Module::ATTR_SIZE,
+    Module::ATTR_CONTAINER,
+    Module::ATTR_TYPE,
+    Module::ATTR_VERSION,
+    Module::ATTR_PROGRAM,
+    Module::ATTR_DATE
   };
 
   class PropertiesFilter : public Parameters::Visitor
@@ -113,14 +116,15 @@ namespace
   class XSPFReader
   {
   public:
-    XSPFReader(const QString& basePath, const QString& autoName, QIODevice& device)
-      : BaseDir(basePath)
+    XSPFReader(const QFileInfo& file, QIODevice& device)
+      : File(file)
+      , BaseDir(File.absoluteDir())
       , XML(&device)
       , Version(LAST_VERSION)
       , Properties(Parameters::Container::Create())
       , Items(boost::make_shared<Playlist::IO::ContainerItems>())
     {
-      Properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(autoName));
+      Properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(File.baseName()));
     }
 
     bool Parse()
@@ -161,7 +165,7 @@ namespace
         if (tagName == XSPF::EXTENSION_TAG)
         {
           Dbg(" Parsing playlist extension");
-          PropertiesFilter filter(*Properties, PLAYLIST_ENABLED_PROPERTIES, ArrayEnd(PLAYLIST_ENABLED_PROPERTIES), true);
+          PropertiesFilter filter(*Properties, PLAYLIST_ENABLED_PROPERTIES, boost::end(PLAYLIST_ENABLED_PROPERTIES), true);
           ParseExtension(filter);
           Properties->FindValue(Playlist::ATTRIBUTE_VERSION, Version);
         }
@@ -235,7 +239,8 @@ namespace
     String ParseTrackitemLocation()
     {
       assert(XML.isStartElement() && XML.name() == XSPF::ITEM_LOCATION_TAG);
-      const QString location = XML.readElementText();;
+      const QString inLocation = XML.readElementText();
+      const QString location = inLocation.startsWith(XSPF::EMBEDDED_PREFIX) ? File.absoluteFilePath() + inLocation : inLocation;
       const QUrl url(QUrl::fromPercentEncoding(location.toUtf8()));
       const QString& itemLocation = url.isRelative()
         ? BaseDir.absoluteFilePath(url.toString())
@@ -249,25 +254,25 @@ namespace
       if (attr == XSPF::ITEM_CREATOR_TAG)
       {
         const String author = ConvertString(XML.readElementText());
-        props.SetValue(ZXTune::Module::ATTR_AUTHOR, author);
+        props.SetValue(Module::ATTR_AUTHOR, author);
         Dbg("  parsed author %1%", author);
      }
       else if (attr == XSPF::ITEM_TITLE_TAG)
       {
         const String title = ConvertString(XML.readElementText());
-        props.SetValue(ZXTune::Module::ATTR_TITLE, title);
+        props.SetValue(Module::ATTR_TITLE, title);
         Dbg("  parsed title %1%", title);
       }
       else if (attr == XSPF::ITEM_ANNOTATION_TAG)
       {
         const String annotation = ConvertString(XML.readElementText());
-        props.SetValue(ZXTune::Module::ATTR_COMMENT, annotation);
+        props.SetValue(Module::ATTR_COMMENT, annotation);
         Dbg("  parsed comment %1%", annotation);
       }
       else if (attr == XSPF::EXTENSION_TAG)
       {
         Dbg("  parsing extension");
-        PropertiesFilter filter(props, ITEM_DISABLED_PROPERTIES, ArrayEnd(ITEM_DISABLED_PROPERTIES), false);
+        PropertiesFilter filter(props, ITEM_DISABLED_PROPERTIES, boost::end(ITEM_DISABLED_PROPERTIES), false);
         ParseExtension(filter);
       }
       else
@@ -287,7 +292,7 @@ namespace
       {
         return;
       }
-      StringMap strings;
+      Strings::Map strings;
       while (XML.readNextStartElement())
       {
         const QStringRef& tagName = XML.name();
@@ -304,13 +309,13 @@ namespace
         Dbg("  parsing extended property %1%='%2%'",
           propNameStr, propValStr);
       }
-      Parameters::ParseStringMap(strings, props);
+      Parameters::Convert(strings, props);
     }
 
     bool CheckForZXTuneExtension()
     {
       const QXmlStreamAttributes attributes = XML.attributes();
-      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Text::PROGRAM_SITE;
+      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Text::PLAYLIST_APPLICATION_ID;
     }
 
     String ConvertString(const QString& input) const
@@ -325,6 +330,7 @@ namespace
         : res;
     }
   private:
+    const QFileInfo File;
     const QDir BaseDir;
     QXmlStreamReader XML;
     //context
@@ -342,9 +348,7 @@ namespace
       assert(!"Failed to open playlist");
       return Playlist::IO::Container::Ptr();
     }
-    const QString basePath = fileInfo.absolutePath();
-    const QString autoName = fileInfo.baseName();
-    XSPFReader reader(basePath, autoName, device);
+    XSPFReader reader(fileInfo, device);
     if (!reader.Parse())
     {
       Dbg("Failed to parse");

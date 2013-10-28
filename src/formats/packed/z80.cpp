@@ -13,7 +13,6 @@ Author:
 #include "container.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
 //library includes
 #include <binary/input_stream.h>
 #include <formats/packed.h>
@@ -21,6 +20,7 @@ Author:
 #include <numeric>
 //boost includes
 #include <boost/array.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -70,8 +70,10 @@ namespace Z80
     } PACK_POST;
 
     static const String DESCRIPTION;
-    static const std::string FORMAT;
+    static const std::string HEADER;
+    static const std::string FOOTER;
     static const std::size_t MIN_SIZE;
+    static const std::size_t MAX_SIZE;
 
     static Formats::Packed::Container::Ptr Decode(Binary::InputStream& stream);
   };
@@ -170,7 +172,7 @@ namespace Z80
 #endif
 
   const String Version1_45::DESCRIPTION = Text::Z80V145_DECODER_DESCRIPTION;
-  const std::string Version1_45::FORMAT(
+  const std::string Version1_45::HEADER(
     "(\?\?){6}"    //skip registers
     "%001xxxxx"  //take into account only compressed data
     "(\?\?){7}"    //skip registers
@@ -178,9 +180,11 @@ namespace Z80
     "00|01|ff"      //iff2
     "%xxxxxx00|%xxxxxx01|%xxxxxx10" //im3 cannot be
   );
+  const std::string Version1_45::FOOTER("00eded00");
 
   //even if all 48kb are compressed, minimal compressed size is 4 bytes for each 255 sequenced bytes + final marker
   const std::size_t Version1_45::MIN_SIZE = sizeof(Version1_45::Header) + 4 * (49152 / 255) + 4;
+  const std::size_t Version1_45::MAX_SIZE = sizeof(Version1_45::Header) + 49152 + 4;
 
   const String Version2_0::DESCRIPTION = Text::Z80V20_DECODER_DESCRIPTION;
   const std::string Version2_0::FORMAT(
@@ -284,7 +288,6 @@ namespace Z80
     const std::size_t restSize = stream.GetRestSize();
     const std::size_t TARGET_SIZE = 49152;
     const uint32_t FOOTER = 0x00eded00;
-    const std::size_t FOOTER_SIZE = 4;
     if (0 == (hdr.Flag1 & hdr.COMPRESSED))
     {
       Require(restSize >= TARGET_SIZE);
@@ -357,7 +360,7 @@ namespace Z80
       };
 
       Pages = 3;
-      Numbers.assign(VER48_PAGES, ArrayEnd(VER48_PAGES));
+      Numbers.assign(VER48_PAGES, boost::end(VER48_PAGES));
     }
 
     void FillSamRamTraits()
@@ -376,7 +379,7 @@ namespace Z80
       };
 
       Pages = 5;
-      Numbers.assign(SAMRAM_PAGES, ArrayEnd(SAMRAM_PAGES));
+      Numbers.assign(SAMRAM_PAGES, boost::end(SAMRAM_PAGES));
     }
 
     void Fill128kTraits()
@@ -396,7 +399,7 @@ namespace Z80
         7,  //p10(7) to 1c000
       };
       Pages = 8;
-      Numbers.assign(VER128_PAGES, ArrayEnd(VER128_PAGES));
+      Numbers.assign(VER128_PAGES, boost::end(VER128_PAGES));
     }
 
     void Fill256kTraits()
@@ -424,7 +427,7 @@ namespace Z80
         15,
       };
       Pages = 16;
-      Numbers.assign(VER256_PAGES, ArrayEnd(VER256_PAGES));
+      Numbers.assign(VER256_PAGES, boost::end(VER256_PAGES));
     }
 
     void FillVer2Traits(uint_t hwMode)
@@ -483,15 +486,15 @@ namespace Z80
 
   Formats::Packed::Container::Ptr DecodeNew(Binary::InputStream& stream)
   {
-    const std::size_t PAGE_SIZE = 16384;
+    const std::size_t ZX_PAGE_SIZE = 16384;
     const Version2_0::Header hdr = stream.ReadField<Version2_0::Header>();
     const std::size_t additionalSize = fromLE(hdr.AdditionalSize);
     const std::size_t readAdditionalSize = sizeof(hdr) - sizeof(Version1_45::Header) - sizeof(hdr.AdditionalSize);
     Require(additionalSize >= readAdditionalSize);
     stream.ReadData(additionalSize - readAdditionalSize);
     const PlatformTraits traits(additionalSize, hdr.HardwareMode, hdr.Port7ffd);
-    std::auto_ptr<Dump> res(new Dump(PAGE_SIZE * traits.PagesCount()));
-    Dump curPage(PAGE_SIZE);
+    std::auto_ptr<Dump> res(new Dump(ZX_PAGE_SIZE * traits.PagesCount()));
+    Dump curPage(ZX_PAGE_SIZE);
     for (uint_t idx = 0; idx != traits.PagesCount(); ++idx)
     {
       const bool isPageRequired = idx < traits.MinimalPagesCount();
@@ -511,7 +514,7 @@ namespace Z80
       const uint8_t* pageSource = 0;
       if (pageSize == page.UNCOMPRESSED)
       {
-        pageSource = stream.ReadData(PAGE_SIZE);
+        pageSource = stream.ReadData(ZX_PAGE_SIZE);
       }
       else
       {
@@ -519,7 +522,7 @@ namespace Z80
         DecodeBlock(stream, pageSize, curPage);
         pageSource = &curPage.front();
       }
-      std::memcpy(&res->front() + pageNumber * PAGE_SIZE, pageSource, PAGE_SIZE);
+      std::memcpy(&res->front() + pageNumber * ZX_PAGE_SIZE, pageSource, ZX_PAGE_SIZE);
     }
     return CreatePackedContainer(res, stream.GetPosition());
   }
@@ -548,6 +551,11 @@ namespace Formats
       {
       }
 
+      explicit Z80Decoder(Binary::Format::Ptr format)
+        : Format(format)
+      {
+      }
+
       virtual String GetDescription() const
       {
         return Version::DESCRIPTION;
@@ -560,9 +568,7 @@ namespace Formats
 
       virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const uint8_t* const data = static_cast<const uint8_t*>(rawData.Data());
-        const std::size_t availSize = rawData.Size();
-        if (!Format->Match(data, availSize))
+        if (!Format->Match(rawData))
         {
           return Container::Ptr();
         }
@@ -582,7 +588,10 @@ namespace Formats
 
     Decoder::Ptr CreateZ80V145Decoder()
     {
-      return boost::make_shared<Z80Decoder<Z80::Version1_45> >();
+      const Binary::Format::Ptr header = Binary::Format::Create(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
+      const Binary::Format::Ptr footer = Binary::Format::Create(Z80::Version1_45::FOOTER);
+      const Binary::Format::Ptr format = Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MIN_SIZE - 4, Z80::Version1_45::MAX_SIZE - 4);
+      return boost::make_shared<Z80Decoder<Z80::Version1_45> >(format);
     }
 
     Decoder::Ptr CreateZ80V20Decoder()

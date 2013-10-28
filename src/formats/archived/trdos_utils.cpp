@@ -13,9 +13,9 @@ Author:
 #include "trdos_utils.h"
 //common includes
 #include <locale_helpers.h>
-#include <tools.h>
 //boost includes
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/range/end.hpp>
 
 namespace
 {
@@ -42,7 +42,7 @@ namespace TRDos
       return fname;
     }
     fname += '.';
-    const char* const invalidSym = std::find_if(type, ArrayEnd(type), std::not1(std::ptr_fun(&IsAlNum)));
+    const char* const invalidSym = std::find_if(type, boost::end(type), std::not1(std::ptr_fun(&IsAlNum)));
     fname += String(type, invalidSym);
     return fname;
   }

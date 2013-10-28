@@ -15,12 +15,12 @@ Author:
 #include "model.h"
 #include "storage.h"
 #include "ui/utils.h"
-//common includes
-#include <debug_log.h>
-#include <template_parameters.h>
 //library includes
 #include <async/activity.h>
 #include <core/module_attrs.h>
+#include <debug/log.h>
+#include <math/bitops.h>
+#include <parameters/template.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -222,7 +222,7 @@ namespace
     {
       const uint_t totalItems = storage.CountItems();
       //according to STL spec: The number of comparisons is approximately N log N, where N is the list's size. Assume that log is binary.
-      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems * Log2(totalItems), cb);
+      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems * Math::Log2(totalItems), cb);
       const ComparisonsCounter countingComparer(*Comparer, *progress);
       storage.Sort(countingComparer);
     }
@@ -251,15 +251,13 @@ namespace
     {
     }
 
-    virtual Error Prepare()
+    virtual void Prepare()
     {
-      return Error();
     }
 
-    virtual Error Execute()
+    virtual void Execute()
     {
       Delegate.ExecuteOperation(Op);
-      return Error();
     }
   private:
     const typename OpType::Ptr Op;
@@ -271,7 +269,7 @@ namespace
   public:
     virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
     {
-      if (data->IsValid())
+      if (!data->GetState())
       {
         Paths.push_back(ToQString(data->GetFullPath()));
       }
@@ -408,6 +406,18 @@ namespace
       Container->AddItem(item);
     }
 
+    virtual void AddItems(Playlist::Item::Collection::Ptr items)
+    {
+      Playlist::Model::OldToNewIndexMap::Ptr remapping;
+      {
+        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        Container->AddItems(items);
+        remapping = GetIndicesChanges();
+      }
+      NotifyAboutIndexChanged(remapping);
+    }
+
     virtual void CancelLongOperation()
     {
       Canceled = true;
@@ -433,7 +443,7 @@ namespace
       }
       //TODO: do not access item
       const Playlist::Item::Data::Ptr item = GetItem(index.row());
-      return item && item->IsValid()
+      return item && !item->GetState()
         ? validFlags
         : invalidFlags;
     }

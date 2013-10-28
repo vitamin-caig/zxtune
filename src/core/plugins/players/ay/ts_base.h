@@ -13,36 +13,48 @@ Author:
 #ifndef __CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__
 #define __CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__
 
+//local includes
+#include "aym_base_track.h"
 //library includes
 #include <core/module_holder.h>
-#include <core/module_types.h>
-#include <devices/aym.h>
-#include <devices/fm.h>
+#include <devices/turbosound.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace TurboSound
   {
-    template<class Type>
-    class DoubleReceiver : public DataReceiver<Type>
+    const uint_t TRACK_CHANNELS = AYM::TRACK_CHANNELS * Devices::TurboSound::CHIPS;
+
+    class DataIterator : public StateIterator
     {
     public:
-      typedef boost::shared_ptr<DoubleReceiver<Type> > Ptr;
+      typedef boost::shared_ptr<DataIterator> Ptr;
 
-      virtual void SetStream(uint_t idx) = 0;
+      virtual Devices::TurboSound::Registers GetData() const = 0;
     };
 
-    typedef DoubleReceiver<Devices::AYM::MultiSample> AYMTSMixer;
-    typedef DoubleReceiver<Devices::FM::Sample> TFMMixer;
-    typedef DoubleReceiver<std::vector<Sound::Sample> > TSMixer;
+    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
+      AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second);
 
-    TrackState::Ptr CreateTSTrackState(TrackState::Ptr first, TrackState::Ptr second);
-    Analyzer::Ptr CreateTSAnalyzer(Analyzer::Ptr first, Analyzer::Ptr second);
-    TSMixer::Ptr CreateTSMixer(Sound::MultichannelReceiver::Ptr delegate);
-    AYMTSMixer::Ptr CreateTSMixer(Devices::AYM::Receiver::Ptr delegate);
-    TFMMixer::Ptr CreateTFMMixer(Devices::FM::Receiver::Ptr delegate);
-    Renderer::Ptr CreateTSRenderer(Parameters::Accessor::Ptr params, Holder::Ptr first, Holder::Ptr second, Sound::MultichannelReceiver::Ptr target);
-    Renderer::Ptr CreateTSRenderer(Renderer::Ptr first, Renderer::Ptr second, AYMTSMixer::Ptr mixer);
+    class Chiptune
+    {
+    public:
+      typedef boost::shared_ptr<const Chiptune> Ptr;
+
+      virtual Information::Ptr GetInformation() const = 0;
+      virtual Parameters::Accessor::Ptr GetProperties() const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const = 0;
+    };
+
+    Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device);
+
+    Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
+
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device);
+    Renderer::Ptr CreateRenderer(const Chiptune& chiptune, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
+
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }
+
 #endif //__CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__

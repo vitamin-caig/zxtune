@@ -13,14 +13,15 @@ Author:
 #include "enumerator.h"
 #include "providers_list.h"
 //common includes
-#include <debug_log.h>
 #include <error_tools.h>
 //library includes
-#include <io/error_codes.h>
+#include <debug/log.h>
+#include <io/api.h>
 #include <l10n/api.h>
 //std includes
 #include <algorithm>
 #include <list>
+#include <map>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -29,11 +30,12 @@ Author:
 
 namespace
 {
-  using namespace ZXTune::IO;
-
   const Debug::Stream Dbg("IO::Enumerator");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
+}
 
+namespace IO
+{
   typedef std::vector<DataProvider::Ptr> ProvidersList;
 
   //implementation of IO providers enumerator
@@ -49,7 +51,7 @@ namespace
     {
       Providers.push_back(provider);
       Dbg("Registered provider '%1%'", provider->Id());
-      const StringSet& schemes = provider->Schemes();
+      const Strings::Set& schemes = provider->Schemes();
       std::transform(schemes.begin(), schemes.end(), std::inserter(Schemes, Schemes.end()),
         boost::bind(&std::make_pair<String, DataProvider::Ptr>, _1, provider));
     }
@@ -62,7 +64,7 @@ namespace
         return id;
       }
       Dbg(" No suitable provider found");
-      throw MakeFormattedError(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Failed to resolve uri '%1%'."), uri);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to resolve uri '%1%'."), uri);
     }
 
     virtual Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
@@ -77,7 +79,23 @@ namespace
         }
       }
       Dbg(" No suitable provider found");
-      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Specified uri scheme is not supported."));
+      throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
+    }
+
+    virtual Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const
+    {
+      Dbg("Creating stream '%1%'", path);
+      if (Identifier::Ptr id = Resolve(path))
+      {
+        if (const DataProvider* provider = FindProvider(id->Scheme()))
+        {
+          Dbg(" Used provider '%1%'", provider->Id());
+          //pass nonchanged parameter to lower level
+          return provider->Create(path, params, cb);
+        }
+      }
+      Dbg(" No suitable provider found");
+      throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
     virtual Provider::Iterator::Ptr Enumerate() const
@@ -142,12 +160,17 @@ namespace
 
     virtual Binary::Container::Ptr Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const
     {
-      throw Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Specified uri scheme is not supported."));
+      throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    virtual StringSet Schemes() const
+    virtual Binary::OutputStream::Ptr Create(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const
     {
-      return StringSet();
+      throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
+    }
+
+    virtual Strings::Set Schemes() const
+    {
+      return Strings::Set();
     }
 
     virtual Identifier::Ptr Resolve(const String& /*uri*/) const
@@ -161,46 +184,41 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  ProvidersEnumerator& ProvidersEnumerator::Instance()
   {
-    ProvidersEnumerator& ProvidersEnumerator::Instance()
-    {
-      static ProvidersEnumeratorImpl instance;
-      return instance;
-    }
+    static ProvidersEnumeratorImpl instance;
+    return instance;
+  }
 
-    Identifier::Ptr ResolveUri(const String& uri)
-    {
-      return ProvidersEnumerator::Instance().ResolveUri(uri);
-    }
+  Identifier::Ptr ResolveUri(const String& uri)
+  {
+    return ProvidersEnumerator::Instance().ResolveUri(uri);
+  }
 
-    Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
-    {
-      try
-      {
-        return ProvidersEnumerator::Instance().OpenData(path, params, cb);
-      }
-      catch (const std::bad_alloc&)
-      {
-        throw Error(THIS_LINE, ERROR_NO_MEMORY, translate("Failed to allocate memory to open data."));
-      }
-    }
+  Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
+  {
+    return ProvidersEnumerator::Instance().OpenData(path, params, cb);
+  }
 
-    Provider::Iterator::Ptr EnumerateProviders()
-    {
-      return ProvidersEnumerator::Instance().Enumerate();
-    }
+  Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
+  {
+    return ProvidersEnumerator::Instance().CreateStream(path, params, cb);
+  }
 
-    DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description)
-    {
-      return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, ERROR_NOT_SUPPORTED, translate("Not supported in current configuration")));
-    }
+  Provider::Iterator::Ptr EnumerateProviders()
+  {
+    return ProvidersEnumerator::Instance().Enumerate();
+  }
 
-    DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)
-    {
-      return boost::make_shared<UnavailableProvider>(id, description, status);
-    }
+  DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description)
+  {
+    return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, translate("Not supported in current configuration")));
+  }
+
+  DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)
+  {
+    return boost::make_shared<UnavailableProvider>(id, description, status);
   }
 }

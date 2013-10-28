@@ -1,0 +1,32 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2012-09-05 19:48+0400\n"
+"Last-Translator: <EMAIL@ADDRESS>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#: aym.cpp:126
+msgid "Failed to convert to PSG format."
+msgstr "Ошибка конверсии в PSG."
+
+#: aym.cpp:133
+msgid "Failed to convert to ZX50 format."
+msgstr "Ошибка конверсии в ZX50."
+
+#: aym.cpp:140
+msgid "Failed to convert to debug ay format."
+msgstr "Ошибка конверсии в отладочный формат."
+
+#: aym.cpp:147
+msgid "Failed to convert to raw ay dump."
+msgstr "Ошибка конверсии в сырой дамп регистров."
+
+#: aym.cpp:154
+msgid "Failed to convert to FYM format."
+msgstr "Ошибка конверсии в FYM."

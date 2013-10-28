@@ -14,12 +14,9 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  const uint_t STREAM_LOGICAL_CHANNELS = 1;
+  const uint_t STREAM_CHANNELS = 1;
 
   class StreamStateCursor : public TrackState
   {
@@ -71,7 +68,7 @@ namespace
 
     virtual uint_t Channels() const
     {
-      return STREAM_LOGICAL_CHANNELS;
+      return STREAM_CHANNELS;
     }
 
     //navigation
@@ -105,10 +102,9 @@ namespace
   class StreamInfo : public Information
   {
   public:
-    StreamInfo(uint_t frames, uint_t loopFrame, uint_t physChannels)
+    StreamInfo(uint_t frames, uint_t loopFrame)
       : TotalFrames(frames)
       , Loop(loopFrame)
-      , PhysChans(physChannels)
     {
     }
     virtual uint_t PositionsCount() const
@@ -131,13 +127,9 @@ namespace
     {
       return Loop;
     }
-    virtual uint_t LogicalChannels() const
+    virtual uint_t ChannelsCount() const
     {
-      return STREAM_LOGICAL_CHANNELS;
-    }
-    virtual uint_t PhysicalChannels() const
-    {
-      return PhysChans;
+      return STREAM_CHANNELS;
     }
     virtual uint_t Tempo() const
     {
@@ -146,7 +138,6 @@ namespace
   private:
     const uint_t TotalFrames;
     const uint_t Loop;
-    const uint_t PhysChans;
   };
 
   class StreamStateIterator : public StateIterator
@@ -184,20 +175,14 @@ namespace
   private:
     const StreamStateCursor::Ptr Cursor;
   };
-}
 
-namespace ZXTune
-{
-  namespace Module
+  Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame)
   {
-    Information::Ptr CreateStreamInfo(uint_t frames, uint_t physChannels, uint_t loopFrame)
-    {
-      return boost::make_shared<StreamInfo>(frames, loopFrame, physChannels);
-    }
+    return boost::make_shared<StreamInfo>(frames, loopFrame);
+  }
 
-    StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)
-    {
-      return boost::make_shared<StreamStateIterator>(info);
-    }
+  StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)
+  {
+    return boost::make_shared<StreamStateIterator>(info);
   }
 }

@@ -9,15 +9,14 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//library includes
+//local includes
 #include "container.h"
-#include <formats/chiptune/soundtracker.h>
+#include "formats/chiptune/aym/soundtracker.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 //boost includes
 #include <boost/array.hpp>
 //text includes
@@ -110,7 +109,7 @@ namespace Formats
     {
     public:
       CompiledST3Decoder()
-        : Player(Binary::Format::Create(CompiledST3::FORMAT))
+        : Player(Binary::Format::Create(CompiledST3::FORMAT, sizeof(CompiledST3::Player)))
       {
       }
 
@@ -126,13 +125,13 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const uint8_t* const data = safe_ptr_cast<const uint8_t*>(rawData.Data());
-        const std::size_t availSize = rawData.Size();
-        if (!Player->Match(data, availSize) || availSize < sizeof(CompiledST3::Player))
+        if (!Player->Match(rawData))
         {
           return Container::Ptr();
         }
-        const CompiledST3::Player& rawPlayer = *safe_ptr_cast<const CompiledST3::Player*>(data);
+        const Binary::TypedContainer typedData(rawData);
+        const std::size_t availSize = rawData.Size();
+        const CompiledST3::Player& rawPlayer = *typedData.GetField<CompiledST3::Player>(0);
         const std::size_t playerSize = rawPlayer.GetSize();
         if (playerSize >= std::min(availSize, CompiledST3::MAX_PLAYER_SIZE))
         {
@@ -141,22 +140,22 @@ namespace Formats
         }
         const uint_t compileAddr = rawPlayer.GetCompileAddr();
         Dbg("Detected player compiled at %1% (#%1$04x) in first %2% bytes", compileAddr, playerSize);
-        const std::size_t modDataSize = std::max(availSize - playerSize, CompiledST3::MAX_MODULE_SIZE);
+        const std::size_t modDataSize = std::min(availSize - playerSize, CompiledST3::MAX_MODULE_SIZE);
         const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
         const Dump& metainfo = rawPlayer.GetInfo();
         Formats::Chiptune::SoundTracker::Builder& stub = Formats::Chiptune::SoundTracker::GetStubBuilder();
         if (CompiledST3::IsInfoEmpty(metainfo))
         {
           Dbg("Player has empty metainfo");
-          if (const Binary::Container::Ptr originalModule = Formats::Chiptune::SoundTracker::ParseVersion3(*modData, stub))
+          if (const Binary::Container::Ptr originalModule = Formats::Chiptune::SoundTracker::Ver3::Parse(*modData, stub))
           {
             const std::size_t originalSize = originalModule->Size();
             return CreatePackedContainer(originalModule, playerSize + originalSize);
           }
         }
-        else if (const Binary::Container::Ptr fixedModule = Formats::Chiptune::SoundTracker::InsertVersion3Metainformation(*modData, metainfo))
+        else if (const Binary::Container::Ptr fixedModule = Formats::Chiptune::SoundTracker::Ver3::InsertMetainformation(*modData, metainfo))
         {
-          if (Formats::Chiptune::SoundTracker::ParseVersion3(*fixedModule, stub))
+          if (Formats::Chiptune::SoundTracker::Ver3::Parse(*fixedModule, stub))
           {
             const std::size_t originalSize = fixedModule->Size() - metainfo.size();
             return CreatePackedContainer(fixedModule, playerSize + originalSize);

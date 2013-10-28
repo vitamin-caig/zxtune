@@ -14,8 +14,9 @@ Author:
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
-#include <tools.h>
+#include <pointers.h>
+//library includes
+#include <debug/log.h>
 //std includes
 #include <cstring>
 #include <numeric>
@@ -87,7 +88,7 @@ namespace SCL
     {
       return false;
     }
-    const Header* const header = safe_ptr_cast<const Header*>(data.Data());
+    const Header* const header = static_cast<const Header*>(data.Start());
     if (0 != std::memcmp(header->ID, SIGNATURE, sizeof(SIGNATURE)) ||
         0 == header->BlocksCount)
     {
@@ -106,7 +107,7 @@ namespace SCL
       return false;
     }
     const std::size_t checksumOffset = descriptionsSize + dataSize;
-    const uint8_t* const dump = static_cast<const uint8_t*>(data.Data());
+    const uint8_t* const dump = static_cast<const uint8_t*>(data.Start());
     const uint32_t storedChecksum = fromLE(*safe_ptr_cast<const uint32_t*>(dump + checksumOffset));
     const uint32_t checksum = std::accumulate(dump, dump + checksumOffset, uint32_t(0));
     if (storedChecksum != checksum)
@@ -124,7 +125,7 @@ namespace SCL
     {
       return Archived::Container::Ptr();
     }
-    const Header* const header = safe_ptr_cast<const Header*>(data.Data());
+    const Header* const header = static_cast<const Header*>(data.Start());
 
     const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();
     std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<app.zxtune.ui.CheckableLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/block"
+    android:orientation="horizontal"
+    android:background="@drawable/checkable_background"
+    >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="fill_parent"
+        android:layout_marginLeft="@dimen/spacing_half"
+        android:layout_marginRight="@dimen/spacing_half"
+        android:layout_weight="1"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/playlist_item_title"
+            style="@style/text_main"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/playlist_item_author"
+            style="@style/text_aux"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/playlist_item_duration"
+        style="@style/text_main"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/spacing_half"
+        android:layout_marginRight="@dimen/spacing_half"
+        android:layout_weight="0"
+        android:layout_gravity="center_vertical"
+        android:drawablePadding="@dimen/spacing_half" />
+
+</app.zxtune.ui.CheckableLinearLayout>

@@ -15,10 +15,14 @@ Author:
 #include "container_impl.h"
 #include <apps/base/playitem.h>
 //common includes
-#include <debug_log.h>
+#include <contract.h>
 #include <error.h>
+//library includes
+#include <debug/log.h>
+#include <parameters/merged_accessor.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 
 namespace
 {
@@ -65,17 +69,18 @@ namespace
   class StubData : public Playlist::Item::Data
   {
   public:
-    StubData(const String& path, const Parameters::Accessor& params)
+    StubData(const String& path, const Parameters::Accessor& params, const Error state)
       : Path(path)
       , Params(Parameters::Container::Create())
+      , State(state)
     {
       params.Process(*Params);
     }
 
     //common
-    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    virtual Module::Holder::Ptr GetModule() const
     {
-      return ZXTune::Module::Holder::Ptr();
+      return Module::Holder::Ptr();
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
@@ -84,9 +89,9 @@ namespace
     }
 
     //playlist-related
-    virtual bool IsValid() const
+    virtual Error GetState() const
     {
-      return false;
+      return State;
     }
 
     virtual String GetFullPath() const
@@ -136,6 +141,7 @@ namespace
   private:
     const String Path;
     const Parameters::Container::Ptr Params;
+    const Error State;
   };
 
   class DelayLoadItemProvider
@@ -152,14 +158,16 @@ namespace
 
     Playlist::Item::Data::Ptr OpenItem() const
     {
-      CollectorStub collector(*Params);
-      Provider->OpenModule(Path, collector);
-      return collector.GetItem();
-    }
-
-    Playlist::Item::Data::Ptr OpenStub() const
-    {
-      return boost::make_shared<StubData>(Path, *Params);
+      try
+      {
+        CollectorStub collector(*Params);
+        Provider->OpenModule(Path, collector);
+        return collector.GetItem();
+      }
+      catch (const Error& e)
+      {
+        return boost::make_shared<StubData>(Path, *Params, e);
+      }
     }
 
     String GetPath() const
@@ -184,17 +192,14 @@ namespace
   public:
     explicit DelayLoadItemData(DelayLoadItemProvider::Ptr provider)
       : Provider(provider)
-      , Valid(true)
     {
     }
 
     //common
-    virtual ZXTune::Module::Holder::Ptr GetModule() const
+    virtual Module::Holder::Ptr GetModule() const
     {
       AcquireDelegate();
-      const ZXTune::Module::Holder::Ptr res = Delegate->GetModule();
-      Valid = res;
-      return res;
+      return Delegate->GetModule();
     }
 
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
@@ -203,9 +208,10 @@ namespace
     }
 
     //playlist-related
-    virtual bool IsValid() const
+    virtual Error GetState() const
     {
-      return Valid;
+      AcquireDelegate();
+      return Delegate->GetState();
     }
 
     virtual String GetFullPath() const
@@ -265,26 +271,49 @@ namespace
     {
       if (!Delegate)
       {
-        const String& path = Provider->GetPath();
-        if (const Playlist::Item::Data::Ptr realItem = Provider->OpenItem())
-        {
-          Dbg("Opened '%1%'", path);
-          Delegate = realItem;
-        }
-        else
-        {
-          Dbg("Failed to open '%1%'", path);
-          Delegate = Provider->OpenStub();
-          Valid = false;
-        }
-        //release unneed
+        Delegate = Provider->OpenItem();
         Provider.reset();
       }
     }
   private:
     mutable DelayLoadItemProvider::Ptr Provider;
-    mutable bool Valid;
     mutable Playlist::Item::Data::Ptr Delegate;
+  };
+
+  class DelayLoadItemsIterator : public Playlist::Item::Collection
+  {
+  public:
+    DelayLoadItemsIterator(Playlist::Item::DataProvider::Ptr provider,
+      Parameters::Accessor::Ptr properties, Playlist::IO::ContainerItemsPtr items)
+      : Provider(provider)
+      , Properties(properties)
+      , Items(items)
+      , Current(Items->begin())
+    {
+    }
+
+    virtual bool IsValid() const
+    {
+      return Current != Items->end();
+    }
+
+    virtual Playlist::Item::Data::Ptr Get() const
+    {
+      Require(Current != Items->end());
+      DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *Current));
+      return boost::make_shared<DelayLoadItemData>(boost::ref(provider));
+    }
+
+    virtual void Next()
+    {
+      Require(Current != Items->end());
+      ++Current;
+    }
+  private:
+    const Playlist::Item::DataProvider::Ptr Provider;
+    const Parameters::Accessor::Ptr Properties;
+    const Playlist::IO::ContainerItemsPtr Items;
+    Playlist::IO::ContainerItems::const_iterator Current;
   };
 
   class ContainerImpl : public Playlist::IO::Container
@@ -309,14 +338,9 @@ namespace
       return static_cast<unsigned>(Items->size());
     }
 
-    virtual void ForAllItems(Playlist::Item::Callback& callback) const
+    virtual Playlist::Item::Collection::Ptr GetItems() const
     {
-      for (Playlist::IO::ContainerItems::const_iterator it = Items->begin(), lim = Items->end(); it != lim; ++it)
-      {
-        DelayLoadItemProvider::Ptr provider(new DelayLoadItemProvider(Provider, Properties, *it));
-        const Playlist::Item::Data::Ptr item = boost::make_shared<DelayLoadItemData>(boost::ref(provider));
-        callback.OnItem(item);
-      }
+      return boost::make_shared<DelayLoadItemsIterator>(Provider, Properties, Items);
     }
   private:
     const Playlist::Item::DataProvider::Ptr Provider;

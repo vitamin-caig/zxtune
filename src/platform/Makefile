@@ -12,6 +12,7 @@ else
 source_dirs += src/$(platform)
 endif
 
+po_source_dirs = src src/windows src/linux
 po_files := platform
 
 include $(path_step)/makefile.mak

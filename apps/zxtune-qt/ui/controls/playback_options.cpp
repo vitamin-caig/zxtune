@@ -21,6 +21,7 @@ Author:
 #include <contract.h>
 //library includes
 #include <core/core_parameters.h>
+#include <parameters/merged_accessor.h>
 #include <sound/sound_parameters.h>
 
 namespace
@@ -41,35 +42,41 @@ namespace
       //common
       Parameters::BooleanValue::Bind(*isLooped, *Params, Parameters::ZXTune::Sound::LOOPED, false);
       //AYM
-      Parameters::BooleanValue::Bind(*isAYMInterpolated, *Params, Parameters::ZXTune::Core::AYM::INTERPOLATION, false);
       Parameters::BooleanValue::Bind(*isYM, *Params, Parameters::ZXTune::Core::AYM::TYPE, false);
       Parameters::IntegerValue::Bind(*aymLayout, *Params, Parameters::ZXTune::Core::AYM::LAYOUT, 0);
       //DAC
       Parameters::BooleanValue::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
 
-      Require(connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
+      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));
       Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
     }
 
-    virtual void InitState(ZXTune::Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
+    virtual void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
       const Playlist::Item::Capabilities caps(item);
       AYMOptions->setVisible(caps.IsAYM());
       DACOptions->setVisible(caps.IsDAC());
       SetEnabled(true);
 
-      AdjustedParameters = item->GetAdjustedParameters();
+      const Parameters::Accessor::Ptr properties = item->GetModule()->GetModuleProperties();
+      if (const Parameters::Accessor::Ptr adjusted = item->GetAdjustedParameters())
+      {
+        AdjustedParameters = CreateMergedAccessor(adjusted, properties);
+      }
+      else
+      {
+        AdjustedParameters = properties;
+      }
     }
 
     virtual void UpdateState()
     {
-      if (AdjustedParameters)
+      if (isVisible() && AdjustedParameters)
       {
         //TODO: use walker?
         Parameters::IntType val;
-        isAYMInterpolated->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, val));
         isYM->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::TYPE, val));
         aymLayout->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, val));
         isDACInterpolated->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val));

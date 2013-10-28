@@ -58,27 +58,10 @@ namespace
       return Storage.CountItems();
     }
 
-    virtual void ForAllItems(Playlist::Item::Callback& callback) const
+    virtual Playlist::Item::Collection::Ptr GetItems() const
     {
-      ItemCallbackAdapter adapter(callback);
-      Storage.ForAllItems(adapter);
+      return Storage.GetItems();
     }
-  private:
-    class ItemCallbackAdapter : public Playlist::Item::Visitor
-    {
-    public:
-      explicit ItemCallbackAdapter(Playlist::Item::Callback& delegate)
-        : Delegate(delegate)
-      {
-      }
-
-      virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
-      {
-        return Delegate.OnItem(data);
-      }
-    private:
-      Playlist::Item::Callback& Delegate;
-    };
   private:
     const Parameters::Container::Ptr Properties;
     const Playlist::Item::Storage& Storage;
@@ -119,10 +102,8 @@ namespace
     {
       const Playlist::IO::Container::Ptr container = boost::make_shared<ContainerImpl>(Name, storage);
       CallbackWrapper callback(cb);
-      if (const Error& err = Playlist::IO::SaveXSPF(container, Filename, callback, Flags))
-      {
-        //TODO: handle error
-      }
+      //TODO: handle error
+      Playlist::IO::SaveXSPF(container, Filename, callback, Flags);
     }
   private:
     const String Name;
@@ -148,30 +129,13 @@ namespace
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString name = GetPlaylistName(*plParams);
         Controller.SetName(name);
-        CallbackWrapper callback(storage);
-        container->ForAllItems(callback);
+        storage.AddItems(container->GetItems());
       }
       else
       {
         //TODO: handle error
       }
     }
-  private:
-    class CallbackWrapper : public Playlist::Item::Callback
-    {
-    public:
-      explicit CallbackWrapper(Playlist::Item::Storage& stor)
-        : Storage(stor)
-      {
-      }
-
-      virtual void OnItem(Playlist::Item::Data::Ptr data)
-      {
-        Storage.AddItem(data);
-      }
-    private:
-      Playlist::Item::Storage& Storage;
-    };
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
     const QString Filename;
@@ -181,23 +145,22 @@ namespace
   class PlaylistContainer : public Playlist::Container
   {
   public:
-    PlaylistContainer(QObject& parent, Parameters::Accessor::Ptr parameters)
-      : Playlist::Container(parent)
-      , Params(parameters)
+    explicit PlaylistContainer(Parameters::Accessor::Ptr parameters)
+      : Params(parameters)
     {
     }
 
-    virtual Playlist::Controller::Ptr CreatePlaylist(const QString& name)
+    virtual Playlist::Controller::Ptr CreatePlaylist(const QString& name) const
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
-      const Playlist::Controller::Ptr ctrl = Playlist::Controller::Create(*this, name, provider);
+      const Playlist::Controller::Ptr ctrl = Playlist::Controller::Create(name, provider);
       return ctrl;
     }
 
     virtual void OpenPlaylist(const QString& filename)
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
-      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(*this, QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
+      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
       const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<LoadPlaylistOperation>(provider, filename, boost::ref(*playlist));
       playlist->GetModel()->PerformOperation(op);
       emit PlaylistCreated(playlist);
@@ -209,13 +172,9 @@ namespace
 
 namespace Playlist
 {
-  Container::Container(QObject& parent) : QObject(&parent)
+  Container::Ptr Container::Create(Parameters::Accessor::Ptr parameters)
   {
-  }
-
-  Container::Ptr Container::Create(QObject& parent, Parameters::Accessor::Ptr parameters)
-  {
-    return boost::make_shared<PlaylistContainer>(boost::ref(parent), parameters);
+    return boost::make_shared<PlaylistContainer>(parameters);
   }
 
   void Save(Controller::Ptr ctrl, const QString& filename, uint_t flags)

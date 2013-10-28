@@ -25,6 +25,7 @@ Author:
 #include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
 #include "playlist/supp/storage.h"
+#include "supp/options.h"
 #include "ui/state.h"
 #include "ui/utils.h"
 #include "ui/controls/overlay_progress.h"
@@ -32,9 +33,11 @@ Author:
 #include "ui/tools/filedialog.h"
 //local includes
 #include <contract.h>
-#include <debug_log.h>
 #include <error.h>
-#include <template_parameters.h>
+//library includes
+#include <debug/log.h>
+#include <parameters/template.h>
+#include <strings/template.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
@@ -76,7 +79,7 @@ namespace
         }
         //TODO: do not access item
         const Playlist::Item::Data::Ptr item = Model.GetItem(row);
-        if (item && item->IsValid())
+        if (item && !item->GetState())
         {
           return Playlist::Item::STOPPED;
         }
@@ -96,13 +99,6 @@ namespace
     {
     }
 
-    bool IsDeepScanning() const
-    {
-      Parameters::IntType val = Parameters::ZXTuneQT::Playlist::DEEP_SCANNING_DEFAULT;
-      Params->FindValue(Parameters::ZXTuneQT::Playlist::DEEP_SCANNING, val);
-      return val != 0;
-    }
-
     unsigned GetPlayorderMode() const
     {
       Parameters::IntType isLooped = Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT;
@@ -118,9 +114,9 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
-  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<SkipFieldsSource>
+  class HTMLEscapedFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
   {
-    typedef Parameters::FieldsSourceAdapter<SkipFieldsSource> Parent;
+    typedef Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> Parent;
   public:
     explicit HTMLEscapedFieldsSourceAdapter(const Parameters::Accessor& props)
       : Parent(props)
@@ -149,7 +145,7 @@ namespace
       return GetTemplate().Instantiate(adapter);
     }
   private:
-    const StringTemplate& GetTemplate() const
+    const Strings::Template& GetTemplate() const
     {
       const QString view = Playlist::UI::View::tr(
         "<html>"
@@ -164,18 +160,18 @@ namespace
       return GetTemplate(view);
     }
 
-    const StringTemplate& GetTemplate(const QString& view) const
+    const Strings::Template& GetTemplate(const QString& view) const
     {
       if (view != TemplateView)
       {
-        TemplateData = StringTemplate::Create(FromQString(view));
+        TemplateData = Strings::Template::Create(FromQString(view));
         TemplateView = view;
       }
       return *TemplateData;
     }
   private:
     mutable QString TemplateView;
-    mutable StringTemplate::Ptr TemplateData;
+    mutable Strings::Template::Ptr TemplateData;
   };
 
   class RetranslateModel : public QProxyModel
@@ -237,15 +233,16 @@ namespace
 
     QVariant GetTooltip(const Playlist::Item::Data& item) const
     {
-      if (item.IsValid())
+      if (const Error& err = item.GetState())
       {
-        if (const ZXTune::Module::Holder::Ptr holder = item.GetModule())
-        {
-          const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
-          return ToQString(Tooltip.Get(*properties));
-        }
+        return ToQString(err.ToString());
       }
-      return ToQString(item.GetFullPath());
+      else
+      {
+        const Module::Holder::Ptr holder = item.GetModule();
+        const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
+        return ToQString(Tooltip.Get(*properties));
+      }
     }
 
     QVariant GetHeaderText(unsigned column) const
@@ -280,6 +277,18 @@ namespace
   };
 
   const QLatin1String ITEMS_MIMETYPE("application/playlist.items");
+
+  struct SaveCases
+  {
+    enum
+    {
+      RELPATHS,
+      ABSPATHS,
+      CONTENT,
+
+      TOTAL
+    };
+  };
 
   class ViewImpl : public Playlist::UI::View
   {
@@ -317,7 +326,6 @@ namespace
       Require(connect(Controller.get(), SIGNAL(Renamed(const QString&)), SIGNAL(Renamed(const QString&))));
       Require(connect(iter, SIGNAL(ItemActivated(unsigned, Playlist::Item::Data::Ptr)),
         SLOT(ActivateItem(unsigned, Playlist::Item::Data::Ptr))));
-      Require(View->connect(Controller->GetScanner(), SIGNAL(OnScanStop()), SLOT(updateGeometries())));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
       Require(connect(model, SIGNAL(OperationStarted()), SLOT(LongOperationStart())));
@@ -343,8 +351,7 @@ namespace
     virtual void AddItems(const QStringList& items)
     {
       const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
-      const bool deepScan = Options.IsDeepScanning();
-      scanner->AddItems(items, deepScan);
+      scanner->AddItems(items);
     }
 
     virtual void Play()
@@ -442,19 +449,16 @@ namespace
     virtual void Save()
     {
       QStringList filters;
-      filters << Playlist::UI::View::tr("Simple playlist (*.xspf)");
-      filters << Playlist::UI::View::tr("Playlist with module's attributes (*.xspf)");
+      filters.insert(SaveCases::RELPATHS, Playlist::UI::View::tr("Playlist with relative paths (*.xspf)"));
+      filters.insert(SaveCases::ABSPATHS, Playlist::UI::View::tr("Playlist with absolute paths (*.xspf)"));
+      filters.insert(SaveCases::CONTENT, Playlist::UI::View::tr("Playlist with embedded modules' data (*.xspf)"));
 
       QString filename = Controller->GetName();
-      int usedFilter = 0;
+      int saveCase = 0;
       if (UI::SaveFileDialog(Playlist::UI::View::tr("Save playlist"),
-        QLatin1String("xspf"), filters, filename, &usedFilter))
+        QLatin1String("xspf"), filters, filename, &saveCase))
       {
-        Playlist::IO::ExportFlags flags = 0;
-        if (1 == usedFilter)
-        {
-          flags |= Playlist::IO::SAVE_ATTRIBUTES;
-        }
+        const Playlist::IO::ExportFlags flags = GetSavePlaylistFlags(saveCase);
         Playlist::Save(Controller, filename, flags);
       }
     }
@@ -638,8 +642,9 @@ namespace
           QDataStream stream(encodedData);
           stream >> items;
         }
+        //pasting is done immediately, so update UI right here
         const Playlist::Scanner::Ptr scanner = Controller->GetScanner();
-        scanner->AddItems(items, false);
+        scanner->PasteItems(items);
       }
       else if (data.hasText())
       {
@@ -654,7 +659,36 @@ namespace
 
     void SearchItems()
     {
-      Playlist::UI::ExecuteSearchDialog(*View, *Controller);
+      if (const Playlist::Item::SelectionOperation::Ptr op = Playlist::UI::ExecuteSearchDialog(*View))
+      {
+        //TODO: extract
+        const Playlist::Model::Ptr model = Controller->GetModel();
+        op->setParent(model);
+        Require(View->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSetPtr)), SLOT(SelectItems(Playlist::Model::IndexSetPtr))));
+        model->PerformOperation(op);
+      }
+    }
+
+    Playlist::IO::ExportFlags GetSavePlaylistFlags(int saveCase) const
+    {
+      const Parameters::Accessor::Ptr options = GlobalOptions::Instance().Get();
+      Parameters::IntType val = Parameters::ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT;
+      options->FindValue(Parameters::ZXTuneQT::Playlist::Store::PROPERTIES, val);
+      Playlist::IO::ExportFlags res = 0;
+      if (val)
+      {
+        res |= Playlist::IO::SAVE_ATTRIBUTES;
+      }
+      switch (saveCase)
+      {
+      case SaveCases::RELPATHS:
+        res |= Playlist::IO::RELATIVE_PATHS;
+        break;
+      case SaveCases::CONTENT:
+        res |= Playlist::IO::SAVE_CONTENT;
+        break;
+      }
+      return res;
     }
   private:
     const UI::State::Ptr LayoutState;

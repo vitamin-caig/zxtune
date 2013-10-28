@@ -10,20 +10,17 @@ Author:
 */
 
 //local includes
-#include "enumerator.h"
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
-#include <sound/text/backends.h> 
+#include "text/backends.h"
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterMp3Backend(BackendsStorage& storage)
   {
-    void RegisterMp3Backend(BackendsEnumerator& enumerator)
-    {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::MP3_BACKEND_ID, L10n::translate("MP3 support backend"), CAP_TYPE_FILE)); 
-    }
+    storage.Register(Text::MP3_BACKEND_ID, L10n::translate("MP3 support backend"), CAP_TYPE_FILE); 
   }
 }

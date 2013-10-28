@@ -18,36 +18,22 @@ Author:
 
 namespace ZXTune
 {
+  template<class PluginType>
   class PluginsEnumerator
   {
   public:
     typedef boost::shared_ptr<const PluginsEnumerator> Ptr;
     virtual ~PluginsEnumerator() {}
 
-    virtual Plugin::Iterator::Ptr Enumerate() const = 0;
-    virtual PlayerPlugin::Iterator::Ptr EnumeratePlayers() const = 0;
-    virtual ArchivePlugin::Iterator::Ptr EnumerateArchives() const = 0;
+    virtual typename PluginType::Iterator::Ptr Enumerate() const = 0;
+    virtual typename PluginType::Ptr Find(const String& id) const = 0;
 
     //! Enumerate all supported plugins
     static Ptr Create();
   };
 
-  //TODO: remove
-  struct ModuleRegion
-  {
-    ModuleRegion() : Offset(), Size()
-    {
-    }
-    ModuleRegion(std::size_t off, std::size_t sz)
-      : Offset(off), Size(sz)
-    {
-    }
-    std::size_t Offset;
-    std::size_t Size;
-
-    uint_t Checksum(const Binary::Container& container) const;
-    Binary::Container::Ptr Extract(const Binary::Container& container) const;
-  };
+  typedef PluginsEnumerator<ArchivePlugin> ArchivePluginsEnumerator;
+  typedef PluginsEnumerator<PlayerPlugin> PlayerPluginsEnumerator;
 }
 
 #endif //__CORE_PLUGINS_ENUMERATOR_H_DEFINED__

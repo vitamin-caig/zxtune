@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:sabd="http://schemas.android.com/apk/res-auto" >
+  <item
+    android:id="@+id/action_play"
+    android:title="@string/menu_play"
+    sabd:showAsAction="ifRoom" />
+  <item
+    android:id="@+id/action_add"
+    android:title="@string/menu_add"
+    sabd:showAsAction="ifRoom" />
+</menu>

@@ -16,12 +16,9 @@ Author:
 //library includes
 #include <sound/backend.h>
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
-  {
-    VolumeControl::Ptr CreateVolumeControlDelegate(const VolumeControl::Ptr& delegate);
-  }
+  VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate);
 }
 
 #endif //SOUND_BACKENDS_VOLUME_CONTROL_H_DEFINED

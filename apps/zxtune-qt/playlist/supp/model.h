@@ -17,6 +17,7 @@ Author:
 
 //local includes
 #include "data.h"
+#include "playlist/io/container.h"
 //common includes
 #include <progress_callback.h>
 //std includes
@@ -105,6 +106,7 @@ namespace Playlist
     virtual void MoveItems(const IndexSet& items, IndexType target) = 0;
   public slots:
     virtual void AddItem(Playlist::Item::Data::Ptr item) = 0;
+    virtual void AddItems(Playlist::Item::Collection::Ptr items) = 0;
     virtual void RemoveItems(Playlist::Model::IndexSetPtr items) = 0;
     virtual void CancelLongOperation() = 0;
   signals:

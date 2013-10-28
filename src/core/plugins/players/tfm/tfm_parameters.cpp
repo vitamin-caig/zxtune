@@ -17,39 +17,22 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Module
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  class TrackParametersImpl : public TFM::TrackParameters
+namespace TFM
+{
+  class ChipParameters : public Devices::TFM::ChipParameters
   {
   public:
-    explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
-      : Delegate(Sound::RenderParameters::Create(params))
-    {
-    }
-
-    virtual bool Looped() const
-    {
-      return Delegate->Looped();
-    }
-
-    virtual uint_t FrameDurationMicrosec() const
-    {
-      return Delegate->FrameDurationMicrosec();
-    }
-  private:
-    const Sound::RenderParameters::Ptr Delegate;
-  };
-
-  class ChipParametersImpl : public Devices::TFM::ChipParameters
-  {
-  public:
-    explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
+    explicit ChipParameters(Parameters::Accessor::Ptr params)
       : Params(params)
       , SoundParams(Sound::RenderParameters::Create(params))
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Params->Version();
     }
 
     virtual uint64_t ClockFreq() const
@@ -67,23 +50,10 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const Sound::RenderParameters::Ptr SoundParams;
   };
-}
 
-namespace ZXTune
-{
-  namespace Module
+  Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
   {
-    namespace TFM
-    {
-      Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
-      {
-        return boost::make_shared<ChipParametersImpl>(params);
-      }
-
-      TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
-      {
-        return boost::make_shared<TrackParametersImpl>(params);
-      }
-    }
+    return boost::make_shared<ChipParameters>(params);
   }
+}
 }

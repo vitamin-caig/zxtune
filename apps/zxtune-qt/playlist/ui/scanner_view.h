@@ -33,13 +33,10 @@ namespace Playlist
       static ScannerView* Create(QWidget& parent, Playlist::Scanner::Ptr scanner);
 
     private slots:
-      virtual void ScanStart() = 0;
-      virtual void ScanCancel() = 0;
+      virtual void ScanStart(Playlist::ScanStatus::Ptr) = 0;
       virtual void ScanStop() = 0;
-      virtual void ShowProgress(unsigned, unsigned, unsigned) = 0;
+      virtual void ShowProgress(unsigned) = 0;
       virtual void ShowProgressMessage(const QString&) = 0;
-      virtual void ShowResolving() = 0;
-      virtual void HideResolving() = 0;
     };
   }
 }

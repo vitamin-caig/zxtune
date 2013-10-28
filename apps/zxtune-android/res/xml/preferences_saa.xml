@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <PreferenceScreen
+    android:title="@string/pref_zxtune_saa_title"
+    >
+    <ListPreference
+      android:key="@string/pref_zxtune_saa_interpolation"
+      android:title="@string/pref_interpolation"
+      android:entries="@array/pref_interpolation_entries"
+      android:entryValues="@array/pref_interpolation_values"
+      android:defaultValue="@integer/pref_zxtune_saa_interpolation_default"
+      />
+  </PreferenceScreen>
+</PreferenceScreen>

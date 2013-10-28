@@ -11,8 +11,9 @@ Author:
 
 //local includes
 #include "trdos_catalogue.h"
-//common includes
-#include <format.h>
+//library includes
+#include <binary/container_factories.h>
+#include <strings/format.h>
 //std includes
 #include <cstring>
 #include <numeric>
@@ -150,14 +151,14 @@ namespace
     }
 
     //Binary::Container
+    virtual const void* Start() const
+    {
+      return Delegate->Start();
+    }
+
     virtual std::size_t Size() const
     {
       return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
     }
 
     virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -344,7 +345,7 @@ namespace
         }
         const std::size_t size = data->Size();
         assert(size == file->GetSize());
-        std::memcpy(dst, data->Data(), size);
+        std::memcpy(dst, data->Start(), size);
         dst += size;
       }
       return Binary::CreateContainer(res);

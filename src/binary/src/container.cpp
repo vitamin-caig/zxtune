@@ -10,7 +10,7 @@ Author:
 */
 
 //library includes
-#include <binary/container.h>
+#include <binary/container_factories.h>
 //std includes
 #include <cstring>
 //boost includes
@@ -20,18 +20,32 @@ Author:
 
 namespace
 {
-  using namespace Binary;
+  inline const void* GetPointer(const Dump& val, std::size_t offset)
+  {
+    return &val[offset];
+  }
 
-  typedef boost::shared_ptr<const Dump> DumpPtr;
+  inline const void* GetPointer(const Binary::Data& val, std::size_t offset)
+  {
+    return static_cast<const uint8_t*>(val.Start()) + offset;
+  }
 
-  //implementation of DataContainer based on shared array data
-  class SharedDumpContainer : public Container
+  template<class Value>
+  class SharedContainer : public Binary::Container
   {
   public:
-    SharedDumpContainer(const DumpPtr& arr, std::size_t offset, std::size_t size)
-      : Buffer(arr), Offset(offset), Length(size)
+    SharedContainer(Value arr, std::size_t offset, std::size_t size)
+      : Buffer(arr)
+      , Address(GetPointer(*arr, offset))
+      , Offset(offset)
+      , Length(size)
     {
       assert(Length);
+    }
+
+    virtual const void* Start() const
+    {
+      return Address;
     }
 
     virtual std::size_t Size() const
@@ -39,19 +53,22 @@ namespace
       return Length;
     }
 
-    virtual const void* Data() const
-    {
-      return &(*Buffer)[Offset];
-    }
-
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
     {
       assert(offset + size <= Length);
-      size = std::min(size, Length - offset);
-      return CreateContainer(Buffer, Offset + offset, size);
+      if (size && offset < Length)
+      {
+        size = std::min(size, Length - offset);
+        return boost::make_shared<SharedContainer<Value> >(Buffer, Offset + offset, size);
+      }
+      else
+      {
+        return Ptr();
+      }
     }
   private:
-    const DumpPtr Buffer;
+    const Value Buffer;
+    const void* const Address;
     const std::size_t Offset;
     const std::size_t Length;
   };
@@ -64,7 +81,7 @@ namespace Binary
   //construct container from data dump. Use memcpy since shared_array is less usable in common code
   Container::Ptr CreateContainer(const void* data, std::size_t size)
   {
-    if (const uint8_t* byteData = static_cast<const uint8_t*>(data))
+    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
     {
       const boost::shared_ptr<Dump> buffer = boost::make_shared<Dump>(byteData, byteData + size);
       return CreateContainer(buffer, 0, size);
@@ -77,16 +94,33 @@ namespace Binary
 
   Container::Ptr CreateContainer(std::auto_ptr<Dump> data)
   {
-    const DumpPtr buffer(data);
+    const boost::shared_ptr<const Dump> buffer(data);
     const std::size_t size = buffer ? buffer->size() : 0;
     return CreateContainer(buffer, 0, size);
+  }
+
+  Container::Ptr CreateContainer(Data::Ptr data)
+  {
+    //cover downcasting
+    if (const Container::Ptr asContainer = boost::dynamic_pointer_cast<const Container>(data))
+    {
+      return asContainer;
+    }
+    else if (data && data->Size())
+    {
+      return boost::make_shared<SharedContainer<Data::Ptr> >(data, 0, data->Size());
+    }
+    else
+    {
+      return Container::Ptr();
+    }
   }
 
   Container::Ptr CreateContainer(boost::shared_ptr<const Dump> data, std::size_t offset, std::size_t size)
   {
     if (size && data && data->size() >= offset + size)
     {
-      return boost::make_shared<SharedDumpContainer>(data, offset, size);
+      return boost::make_shared<SharedContainer<boost::shared_ptr<const Dump> > >(data, offset, size);
     }
     else
     {

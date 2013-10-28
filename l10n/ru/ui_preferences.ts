@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0">
+<TS version="2.0" language="ru">
 <context>
     <name>AYMOptions</name>
     <message>
@@ -37,6 +37,26 @@
         <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="89"/>
         <source>Duty cycle, %</source>
         <translation>Скважность, %</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="136"/>
+        <source>Interpolation</source>
+        <translation>Интерполяция</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="149"/>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="154"/>
+        <source>Performance</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="159"/>
+        <source>Quality</source>
+        <translation>Качество</translation>
     </message>
 </context>
 <context>
@@ -117,6 +137,34 @@
     </message>
 </context>
 <context>
+    <name>SAAOptions</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="26"/>
+        <source>Clock frequency, Hz</source>
+        <translation>Тактовая частота, Гц</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="48"/>
+        <source>Interpolation</source>
+        <translation>Интерполяция</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="61"/>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="66"/>
+        <source>Performance</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="71"/>
+        <source>Quality</source>
+        <translation>Качество</translation>
+    </message>
+</context>
+<context>
     <name>SdlOptions</name>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound_sdl.ui" line="20"/>
@@ -141,6 +189,61 @@
         <source>Language</source>
         <translation>Язык</translation>
     </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="38"/>
+        <source>Playlist</source>
+        <translation>Список</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="59"/>
+        <source>Specifies how many opened files can be cached per playlist</source>
+        <translation>Сколько файлов может быть максимально закэшировано для каждого списка</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="62"/>
+        <source>Cache size, files</source>
+        <translation>Размер кэша, файлов</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="76"/>
+        <source>Specifies per playlist cache memory usage limit</source>
+        <translation>Сколько памяти может максимально занимать кэш файлов для каждого списка</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="79"/>
+        <source>Cache size, MiB</source>
+        <translation>Размер кэша, Мб</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="93"/>
+        <source>Store all module attributes and properties instead of only custom</source>
+        <translation>Сохранять все свойства и атрибуты модулей, а не только измененные или минимально необходимые</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="96"/>
+        <source>Store full modules&apos; attributes in saved playlists</source>
+        <translation>Сохранять все атрибуты модулей при сохранении списков</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="106"/>
+        <source>Check updates</source>
+        <translation>Проверять обновления</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="128"/>
+        <source>Never</source>
+        <translation>Никогда</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="133"/>
+        <source>Once a day</source>
+        <translation>Раз в день</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="138"/>
+        <source>Once a week</source>
+        <translation>Раз в неделю</translation>
+    </message>
 </context>
 <context>
     <name>UI::MixerWidget</name>
@@ -158,7 +261,7 @@
 <context>
     <name>UI::MixingSettingsWidget</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="76"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="75"/>
         <source>%1-channels mixer</source>
         <translation>%1-канальный микшер</translation>
     </message>
@@ -181,12 +284,12 @@
         <translation>Микшер</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="68"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="67"/>
         <source>Select device</source>
         <translation>Выберите устройство</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="77"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="76"/>
         <source>Select mixer</source>
         <translation>Выберите микшер</translation>
     </message>

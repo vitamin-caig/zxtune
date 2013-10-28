@@ -1,14 +1,14 @@
 :: checking for textator
-textator --version > NUL || GOTO Error
-zip -v > NUL || GOTO Error
 
 ECHO Updating
 svn up > NUL || GOTO Error
 
-ECHO Cleaning
-make clean release=1 -C apps > NUL || GOTO Error
+SET TARGET=apps/bundle
 
-make -j -l %NUMBER_OF_PROCESSORS% package release=1 -C apps/bundle && GOTO Exit
+ECHO Cleaning
+make clean release=1 -C %TARGET% > NUL || GOTO Error
+
+make package release=1 -C %TARGET% && GOTO Exit
 :Error
 ECHO Failed
 SET

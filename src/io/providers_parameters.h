@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __IO_PROVIDERS_PARAMETERS_H_DEFINED__
-#define __IO_PROVIDERS_PARAMETERS_H_DEFINED__
+#ifndef IO_PROVIDERS_PARAMETERS_H_DEFINED
+#define IO_PROVIDERS_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -39,6 +39,32 @@ namespace Parameters
           //! Parameter full path
           extern const NameType MMAP_THRESHOLD;
           //@}
+
+          //@{
+          //! @name Create intermediate directories
+
+          //! Default value
+          const IntType CREATE_DIRECTORIES_DEFAULT = 1;
+          //! @Parameter full path
+          extern const NameType CREATE_DIRECTORIES;
+          //@}
+
+          //@{
+          //! @name Overwrite files
+
+          //! Default value
+          const IntType OVERWRITE_EXISTING_DEFAULT = 0;
+          //! @Parameter full path
+          extern const NameType OVERWRITE_EXISTING;
+          //@}
+
+          //@{
+          //! @name Sanitize name's components
+
+          //! Default value
+          const IntType SANITIZE_NAMES_DEFAULT = 1;
+          //! @Parameter full path
+          extern const NameType SANITIZE_NAMES;
         }
 
         //! @brief %Network provider parameters namespace
@@ -64,4 +90,4 @@ namespace Parameters
     }
   }
 }
-#endif //__IO_PROVIDERS_PARAMETERS_H_DEFINED__
+#endif //IO_PROVIDERS_PARAMETERS_H_DEFINED

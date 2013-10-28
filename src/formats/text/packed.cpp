@@ -77,7 +77,7 @@ extern const Char PLAYER_SUFFIX[] = {
   ' ','p','l','a','y','e','r',0
 };
 extern const Char RAR_DECODER_DESCRIPTION[] = {
-  'R','A','R',' ','v','2','.','x',0
+  'R','A','R',0
 };
 extern const Char SNA128_DECODER_DESCRIPTION[] = {
   'S','N','A',' ','1','2','8','k',0

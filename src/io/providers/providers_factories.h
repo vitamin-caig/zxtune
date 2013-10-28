@@ -17,13 +17,10 @@ Author:
 #include "curl_api.h"
 #include "enumerator.h"
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
-  {
-    DataProvider::Ptr CreateFileDataProvider();
-    DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api);
-  }
+  DataProvider::Ptr CreateFileDataProvider();
+  DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api);
 }
 
 #endif //IO_PROVIDERS_FACTORIES_H_DEFINED

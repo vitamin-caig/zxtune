@@ -15,14 +15,19 @@ Author:
 //boost includes
 #include <boost/make_shared.hpp>
 
-namespace
+namespace Sound
 {
-  class RenderParametersImpl : public ZXTune::Sound::RenderParameters
+  class RenderParametersImpl : public RenderParameters
   {
   public:
     explicit RenderParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Params->Version();
     }
 
     virtual uint_t SoundFreq() const
@@ -31,10 +36,10 @@ namespace
       return static_cast<uint_t>(FoundProperty(FREQUENCY, FREQUENCY_DEFAULT));
     }
 
-    virtual uint_t FrameDurationMicrosec() const
+    virtual Time::Microseconds FrameDuration() const
     {
       using namespace Parameters::ZXTune::Sound;
-      return static_cast<uint_t>(FoundProperty(FRAMEDURATION, FRAMEDURATION_DEFAULT));
+      return Time::Microseconds(FoundProperty(FRAMEDURATION, FRAMEDURATION_DEFAULT));
     }
 
     virtual bool Looped() const
@@ -45,9 +50,9 @@ namespace
 
     virtual uint_t SamplesPerFrame() const
     {
-      const uint_t sound = SoundFreq();
-      const uint_t frameDuration = FrameDurationMicrosec();
-      return static_cast<uint_t>(sound * frameDuration / 1000000);
+      const uint_t freq = SoundFreq();
+      const Time::Microseconds frameDuration = FrameDuration();
+      return static_cast<uint_t>(frameDuration.Get() * freq / frameDuration.PER_SECOND);
     }
   private:
     Parameters::IntType FoundProperty(const Parameters::NameType& name, Parameters::IntType defVal) const
@@ -61,13 +66,10 @@ namespace
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  RenderParameters::Ptr RenderParameters::Create(Parameters::Accessor::Ptr soundParameters)
   {
-    RenderParameters::Ptr RenderParameters::Create(Parameters::Accessor::Ptr soundParameters)
-    {
-      return boost::make_shared<RenderParametersImpl>(soundParameters);
-    }
+    return boost::make_shared<RenderParametersImpl>(soundParameters);
   }
 }

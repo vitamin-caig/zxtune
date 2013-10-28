@@ -42,7 +42,7 @@ namespace
       QApplication qapp(argc, argv);
       InitResources();
       //main ui
-      StringArray cmdline(argc - 1);
+      Strings::Array cmdline(argc - 1);
       std::transform(argv + 1, argv + argc, cmdline.begin(), &FromStdString);
       const QPointer<QMainWindow> win = WidgetsFactory::Instance().CreateMainWindow(GlobalOptions::Instance().Get(), cmdline);
       qapp.setOrganizationName(QLatin1String(Text::PROJECT_NAME));

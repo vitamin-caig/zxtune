@@ -16,7 +16,7 @@
 
 namespace Platform
 {
-  String GetCurrentImageFilename();
+  std::string GetCurrentImageFilename();
 }
 
 #endif //PLATFORM_TOOLS_H_DEFINED

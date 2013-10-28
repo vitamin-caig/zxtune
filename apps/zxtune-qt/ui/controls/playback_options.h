@@ -33,7 +33,7 @@ public:
   //creator
   static PlaybackOptions* Create(QWidget& parent, PlaybackSupport& supp, Parameters::Container::Ptr params);
 public slots:
-  virtual void InitState(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
+  virtual void InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
   virtual void UpdateState() = 0;
   virtual void CloseState() = 0;
 };

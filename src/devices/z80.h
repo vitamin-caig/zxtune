@@ -15,7 +15,8 @@ Author:
 
 //common includes
 #include <types.h>
-#include <time_oscillator.h>
+//library includes
+#include <time/oscillator.h>
 //boost includes
 #include <boost/array.hpp>
 #include <boost/shared_ptr.hpp>
@@ -24,6 +25,10 @@ namespace Devices
 {
   namespace Z80
   {
+    // Use optimized stamp and oscillator types- 7% accuracy
+    typedef Time::Stamp<uint64_t, 1 << 30> Stamp;
+    typedef Time::Oscillator<Stamp> Oscillator;
+
     class ChipIO
     {
     public:
@@ -31,7 +36,7 @@ namespace Devices
       virtual ~ChipIO() {}
 
       virtual uint8_t Read(uint16_t addr) = 0;
-      virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t addr, uint8_t data) = 0;
+      virtual void Write(const Oscillator& timeStamp, uint16_t addr, uint8_t data) = 0;
     };
 
     struct Registers
@@ -68,12 +73,12 @@ namespace Devices
 
       virtual void Reset() = 0;
       virtual void Interrupt() = 0;
-      virtual void Execute(const Time::Nanoseconds& till) = 0;
+      virtual void Execute(const Stamp& till) = 0;
       virtual void SetRegisters(const Registers& regs) = 0;
       virtual void GetRegisters(Registers::Dump& regs) const = 0;
-      virtual Time::Nanoseconds GetTime() const = 0;
+      virtual Stamp GetTime() const = 0;
       virtual uint64_t GetTick() const = 0;
-      virtual void SetTime(const Time::Nanoseconds& time) = 0;
+      virtual void SetTime(const Stamp& time) = 0;
     };
 
     class ChipParameters
@@ -82,6 +87,7 @@ namespace Devices
       typedef boost::shared_ptr<const ChipParameters> Ptr;
       virtual ~ChipParameters() {}
 
+      virtual uint_t Version() const = 0;
       virtual uint_t IntTicks() const = 0;
       virtual uint64_t ClockFreq() const = 0;
     };

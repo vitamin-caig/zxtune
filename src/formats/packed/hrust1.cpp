@@ -16,13 +16,15 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
+#include <pointers.h>
 //library includes
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -69,7 +71,7 @@ namespace Hrust1
       }
       const RawHeader& header = GetHeader();
       const std::size_t usedSize = GetUsedSize();
-      return in_range(usedSize, sizeof(header), Size);
+      return Math::InRange(usedSize, sizeof(header), Size);
     }
 
     uint_t GetUsedSize() const
@@ -81,7 +83,7 @@ namespace Hrust1
     std::size_t GetUsedSizeWithPadding() const
     {
       const std::size_t usefulSize = GetUsedSize();
-      const std::size_t sizeOnDisk = align<std::size_t>(usefulSize, 256);
+      const std::size_t sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
       const std::size_t resultSize = std::min(sizeOnDisk, Size);
       const std::size_t paddingSize = resultSize - usefulSize;
       const std::size_t TRDOS_ENTRY_SIZE = 16;
@@ -172,25 +174,25 @@ namespace Hrust1
       const uint8_t* const paddingStart = Data + usefulSize;
       const uint8_t* const paddingEnd = Data + resultSize;
       //special case due to distinct offset
-      const std::size_t padv0 = MatchedSize(paddingStart + TRDOS_SHORT_ENTRY_SIZE, paddingEnd, HRUST1_0_PADDING, ArrayEnd(HRUST1_0_PADDING));
+      const std::size_t padv0 = MatchedSize(paddingStart + TRDOS_SHORT_ENTRY_SIZE, paddingEnd, HRUST1_0_PADDING, boost::end(HRUST1_0_PADDING));
       if (padv0 >= MIN_SIGNATURE_MATCH)
       {
         //version 1.0 match
         return usefulSize + TRDOS_SHORT_ENTRY_SIZE + padv0;
       }
-      const std::size_t padv1 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_1_PADDING, ArrayEnd(HRUST1_1_PADDING));
+      const std::size_t padv1 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_1_PADDING, boost::end(HRUST1_1_PADDING));
       if (padv1 >= EXACT_SIGNATURE_MATCH)
       {
         //version 1.1 match
         return usefulSize + TRDOS_ENTRY_SIZE + padv1;
       }
-      const std::size_t padv2 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_2_PADDING, ArrayEnd(HRUST1_2_PADDING));
+      const std::size_t padv2 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_2_PADDING, boost::end(HRUST1_2_PADDING));
       if (padv2 >= EXACT_SIGNATURE_MATCH)
       {
         //version 1.2 match
         return usefulSize + TRDOS_ENTRY_SIZE + padv2;
       }
-      const std::size_t padv3 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_3_PADDING, ArrayEnd(HRUST1_3_PADDING));
+      const std::size_t padv3 = MatchedSize(paddingStart + TRDOS_ENTRY_SIZE, paddingEnd, HRUST1_3_PADDING, boost::end(HRUST1_3_PADDING));
       if (padv3 >= EXACT_SIGNATURE_MATCH)
       {
         //version 1.3 match
@@ -397,7 +399,7 @@ namespace Hrust1
         }
       }
       //put remaining bytes
-      std::copy(Header.LastBytes, ArrayEnd(Header.LastBytes), std::back_inserter(Decoded));
+      std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
       return true;
     }
 
@@ -453,10 +455,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust1::Container container(data, availSize);
-        if (!Format->Match(data, availSize) || !container.FastCheck())
+        if (!Format->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const Hrust1::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }

@@ -16,8 +16,9 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
-#include <tools.h>
+//library includes
+#include <debug/log.h>
+#include <math/numeric.h>
 //qt includes
 #include <QtGui/QAbstractButton>
 #include <QtGui/QAction>
@@ -198,6 +199,40 @@ namespace
     const int Default;
   };
 
+  template<class Holder>
+  class IntegerValueControl : public IntegerValue
+  {
+  public:
+    IntegerValueControl(Holder& parent, Integer::Ptr val)
+      : IntegerValue(parent)
+      , Parent(parent)
+      , Value(val)
+    {
+      IntegerValueControl<Holder>::Reload();
+      ConnectChanges(Parent, *this);
+    }
+
+    virtual void Set(int value)
+    {
+      Value->Set(value);
+    }
+
+    virtual void Reset()
+    {
+      const AutoBlockSignal block(Parent);
+      Value->Reset();
+      Reload();
+    }
+
+    virtual void Reload()
+    {
+      SetWidgetValue(Parent, Value->Get());
+    }
+  private:
+    Holder& Parent;
+    const Integer::Ptr Value;
+  };
+
   class BigIntegerValueImpl : public BigIntegerValue
   {
   public:
@@ -216,7 +251,7 @@ namespace
     virtual void Set(const QString& value)
     {
       const Parameters::IntType val = value.toLongLong();
-      if (in_range(val, Traits.Min, Traits.Max))
+      if (Math::InRange(val, Traits.Min, Traits.Max))
       {
         Dbg("%1%=%2%", Traits.Name.FullPath(), val);
         Container.SetValue(Traits.Name, val);
@@ -233,7 +268,7 @@ namespace
     virtual void Reload()
     {
       const Parameters::IntType val = GetValue();
-      if (in_range(val, Traits.Min, Traits.Max))
+      if (Math::InRange(val, Traits.Min, Traits.Max))
       {
         Parent.setText(QString::number(val));
       }
@@ -361,6 +396,11 @@ namespace Parameters
   Value* IntegerValue::Bind(QSpinBox& spinbox, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
   {
     return new IntegerValueImpl<QSpinBox>(spinbox, ctr, name, defValue);
+  }
+
+  Value* IntegerValue::Bind(QComboBox& combo, Integer::Ptr val)
+  {
+    return new IntegerValueControl<QComboBox>(combo, val);
   }
 
   Value* BigIntegerValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const IntegerTraits& traits)

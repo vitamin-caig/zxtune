@@ -2,9 +2,9 @@ binary_name := formats_test_lha
 path_step := ../../../..
 source_files := test
 
-libraries := io binary formats tools lhasa
-depends := src/formats src/binary src/io src/tools 3rdparty/lhasa/lib
+libraries.common = binary debug formats_archived formats_packed tools
+libraries.3rdparty = lhasa
 
-windows_libraries := advapi32 oldnames
+windows_libraries = oldnames
 
 include $(path_step)/makefile.mak

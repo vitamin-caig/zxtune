@@ -9,15 +9,14 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//library includes
+//local includes
 #include "container.h"
-#include <formats/chiptune/ascsoundmaster.h>
+#include "formats/chiptune/aym/ascsoundmaster.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 //boost includes
 #include <boost/array.hpp>
 //text includes
@@ -198,7 +197,7 @@ namespace Formats
     {
     public:
       CompiledASCDecoder()
-        : Player(Binary::Format::Create(Version::FORMAT))
+        : Player(Binary::Format::Create(Version::FORMAT, sizeof(typename Version::Player)))
         , Decoder(Version::CreateDecoder())
       {
       }
@@ -215,13 +214,13 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        if (!Player->Match(data, availSize) || availSize < sizeof(typename Version::Player))
+        if (!Player->Match(rawData))
         {
           return Container::Ptr();
         }
-        const typename Version::Player& rawPlayer = *safe_ptr_cast<const typename Version::Player*>(data);
+        const Binary::TypedContainer typedData(rawData);
+        const std::size_t availSize = rawData.Size();
+        const typename Version::Player& rawPlayer = *typedData.GetField<typename Version::Player>(0);
         const std::size_t playerSize = rawPlayer.GetSize();
         if (playerSize >= std::min(availSize, CompiledASC::MAX_PLAYER_SIZE))
         {

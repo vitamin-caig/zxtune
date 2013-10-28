@@ -9,8 +9,6 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//common includes
-#include <tools.h>
 //library includes
 #include <platform/tools.h>
 //platform includes
@@ -21,23 +19,22 @@ namespace
   HMODULE GetCurrentModule()
   {
     HMODULE res = NULL;
-#if _WIN32_WINNT >= 0x0501
-     ::GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+#if _WIN32_WINNT > 0x500
+    ::GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
       reinterpret_cast<LPCTSTR>(&GetCurrentModule), &res);
 #endif
-    //lets return ref to exe in such case
     return res;
   }
 }
 
 namespace Platform
 {
-  String GetCurrentImageFilename()
+  std::string GetCurrentImageFilename()
   {
     const HMODULE mod = GetCurrentModule();
-    Char buff[MAX_PATH + 1];
-    const uint_t size = ::GetModuleFileName(mod, &buff[0], static_cast<DWORD>(ArraySize(buff) - 1));
+    char buff[MAX_PATH + 1];
+    const uint_t size = ::GetModuleFileName(mod, &buff[0], static_cast<DWORD>(MAX_PATH));
     buff[size] = 0;
-    return String(buff);
+    return std::string(buff);
   }
 }

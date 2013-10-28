@@ -13,33 +13,15 @@ Author:
 #ifndef CORE_PLUGINS_PLAYERS_TFM_PARAMETERS_DEFINED
 #define CORE_PLUGINS_PLAYERS_TFM_PARAMETERS_DEFINED
 
-//local includes
-#include "tfm.h"
-#include "core/plugins/players/module_properties.h"
-#include "core/plugins/players/tracking.h"
 //library includes
-#include <core/module_holder.h>
+#include <devices/tfm.h>
+#include <parameters/accessor.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace TFM
   {
-    namespace TFM
-    {
-      Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
-
-      class TrackParameters
-      {
-      public:
-        typedef boost::shared_ptr<const TrackParameters> Ptr;
-        virtual ~TrackParameters() {}
-
-        virtual bool Looped() const = 0;
-        virtual uint_t FrameDurationMicrosec() const = 0;
-
-        static Ptr Create(Parameters::Accessor::Ptr params);
-      };
-    }
+    Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
   }
 }
 

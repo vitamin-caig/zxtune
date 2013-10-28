@@ -11,32 +11,38 @@ Author:
 
 //local includes
 #include "file_backend.h"
-#include "enumerator.h"
+#include "storage.h"
 //common includes
 #include <byteorder.h>
+#include <contract.h>
 #include <error_tools.h>
-#include <tools.h>
 //library includes
-#include <io/fs_tools.h>
+#include <binary/data_adapter.h>
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/backend_attrs.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
+#include <cstring>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG EF5CB4C6
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+}
 
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+namespace Sound
+{
+namespace Wav
+{
+  const String ID = Text::WAV_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("WAV support backend");
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -58,6 +64,20 @@ namespace
     uint8_t DataId[4];      //'data'
     uint32_t DataSize;
   } PACK_POST;
+
+  PACK_PRE struct ListHeader
+  {
+    uint8_t Id[4];   //LIST
+    uint32_t Size;   //next content size
+    uint8_t Type[4]; //INFO
+  } PACK_POST;
+
+  PACK_PRE struct InfoElement
+  {
+    uint8_t Id[4];
+    uint32_t Size; //next content size - 1
+    uint8_t Content[1];
+  } PACK_POST;
 #ifdef USE_PRAGMA_PACK
 #pragma pack(pop)
 #endif
@@ -66,6 +86,12 @@ namespace
   const uint8_t RIFX[] = {'R', 'I', 'F', 'X'};
   const uint8_t WAVEfmt[] = {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
+
+  const uint8_t LIST[] = {'L', 'I', 'S', 'T'};
+  const uint8_t INFO[] = {'I', 'N', 'F', 'O'};
+  const uint8_t INAM[] = {'I', 'N', 'A', 'M'};
+  const uint8_t IART[] = {'I', 'A', 'R', 'T'};
+  const uint8_t ICMT[] = {'I', 'C', 'M', 'T'};
 
   /*
   From https://ccrma.stanford.edu/courses/422/projects/WaveFormat :
@@ -80,12 +106,68 @@ namespace
    - RIFF stands for Resource Interchange File Format. 
   */
  
-  const bool SamplesShouldBeConverted = sizeof(Sample) > 1 && !SAMPLE_SIGNED;
-
-  class WavStream : public FileStream
+  class ListMetadata : public Dump
   {
   public:
-    WavStream(uint_t soundFreq, std::auto_ptr<std::ofstream> stream)
+    ListMetadata()
+    {
+      reserve(1024);
+    }
+
+    void SetTitle(const String& title)
+    {
+      AddElement(INAM, ToStdString(title));
+    }
+
+    void SetAuthor(const String& author)
+    {
+      AddElement(IART, ToStdString(author));
+    }
+
+    void SetComment(const String& comment)
+    {
+      AddElement(ICMT, ToStdString(comment));
+    }
+  private:
+    void AddElement(const uint8_t* id, const std::string& str)
+    {
+      ListHeader* const hdr = GetHeader();
+      const std::size_t strSize = str.size() + 1;
+      InfoElement* const elem = AddElement(strSize);
+      std::memcpy(elem->Id, id, sizeof(elem->Id));
+      elem->Size = fromLE(strSize);
+      std::memcpy(elem->Content, str.c_str(), strSize);
+      elem->Content[strSize] = 0;
+      hdr->Size = fromLE(size() - offsetof(ListHeader, Type));
+    }
+
+    ListHeader* GetHeader()
+    {
+      if (empty())
+      {
+        resize(sizeof(ListHeader));
+        ListHeader* const hdr = safe_ptr_cast<ListHeader*>(&front());
+        std::memcpy(hdr->Id, LIST, sizeof(LIST));
+        std::memcpy(hdr->Type, INFO, sizeof(INFO));
+        hdr->Size = 0;
+        return hdr;
+      }
+      return safe_ptr_cast<ListHeader*>(&front());
+    }
+
+    InfoElement* AddElement(std::size_t contentSize)
+    {
+      const std::size_t oldSize = size();
+      const std::size_t elemSize = Math::Align<std::size_t>(offsetof(InfoElement, Content) + contentSize, 2);
+      resize(oldSize + elemSize);
+      return safe_ptr_cast<InfoElement*>(&at(oldSize));
+    }
+  };
+
+  class FileStream : public Sound::FileStream
+  {
+  public:
+    FileStream(uint_t soundFreq, Binary::SeekableOutputStream::Ptr stream)
       : Stream(stream)
       , DoneBytes(0)
     {
@@ -101,65 +183,74 @@ namespace
       std::memcpy(Format.Type, WAVEfmt, sizeof(WAVEfmt));
       Format.ChunkSize = fromLE<uint32_t>(16);
       Format.Compression = fromLE<uint16_t>(1);//PCM
-      Format.Channels = fromLE<uint16_t>(OUTPUT_CHANNELS);
+      Format.Channels = fromLE<uint16_t>(Sample::CHANNELS);
       std::memcpy(Format.DataId, DATA, sizeof(DATA));
       Format.Samplerate = fromLE(static_cast<uint32_t>(soundFreq));
-      Format.BytesPerSec = fromLE(static_cast<uint32_t>(soundFreq * sizeof(MultiSample)));
-      Format.Align = fromLE<uint16_t>(sizeof(MultiSample));
-      Format.BitsPerSample = fromLE<uint16_t>(8 * sizeof(Sample));
+      Format.BytesPerSec = fromLE(static_cast<uint32_t>(soundFreq * sizeof(Sample)));
+      Format.Align = fromLE<uint16_t>(sizeof(Sample));
+      Format.BitsPerSample = fromLE<uint16_t>(Sample::BITS);
       Flush();
     }
 
-    virtual void SetTitle(const String& /*title*/)
+    virtual void SetTitle(const String& title)
     {
+      Meta.SetTitle(title);
     }
 
-    virtual void SetAuthor(const String& /*author*/)
+    virtual void SetAuthor(const String& author)
     {
+      Meta.SetAuthor(author);
     }
 
-    virtual void SetComment(const String& /*comment*/)
+    virtual void SetComment(const String& comment)
     {
+      Meta.SetComment(comment);
     }
 
     virtual void FlushMetadata()
     {
     }
 
-    virtual void ApplyData(const ChunkPtr& data)
+    virtual void ApplyData(const Chunk::Ptr& data)
     {
-      if (SamplesShouldBeConverted)
+      if (Sample::BITS == 16)
       {
-        std::transform(data->front().begin(), data->back().end(), data->front().begin(), &ToSignedSample);
+        data->ToS16();
+      }
+      else
+      {
+        data->ToU8();
       }
       const std::size_t sizeInBytes = data->size() * sizeof(data->front());
-      Stream->write(safe_ptr_cast<const char*>(&data->front()), static_cast<std::streamsize>(sizeInBytes));
+      Stream->ApplyData(Binary::DataAdapter(&data->front(), sizeInBytes));
       DoneBytes += static_cast<uint32_t>(sizeInBytes);
     }
 
     virtual void Flush()
     {
-      const std::streampos oldPos = Stream->tellp();
+      if (!Meta.empty())
+      {
+        Stream->ApplyData(Binary::DataAdapter(&Meta.front(), Meta.size()));
+      }
+      Stream->Flush();
       // write header
-      Stream->seekp(0);
-      Format.Size = fromLE<uint32_t>(sizeof(Format) - 8 + DoneBytes);
+      Stream->Seek(0);
+      Format.Size = fromLE<uint32_t>(sizeof(Format) - offsetof(WaveFormat, Type) + DoneBytes + Meta.size());
       Format.DataSize = fromLE<uint32_t>(DoneBytes);
-      Stream->write(safe_ptr_cast<const char*>(&Format), sizeof(Format));
-      Stream->seekp(oldPos);
+      Stream->ApplyData(Binary::DataAdapter(&Format, sizeof(Format)));
+      Stream->Seek(DoneBytes + sizeof(Format));
     }
   private:
-    const std::auto_ptr<std::ofstream> Stream;
+    const Binary::SeekableOutputStream::Ptr Stream;
     uint32_t DoneBytes;
     WaveFormat Format;
+    ListMetadata Meta;
   };
 
-  const String ID = Text::WAV_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("WAV support backend");
-
-  class WavFileFactory : public FileStreamFactory
+  class FileStreamFactory : public Sound::FileStreamFactory
   {
   public:
-    explicit WavFileFactory(Parameters::Accessor::Ptr params)
+    explicit FileStreamFactory(Parameters::Accessor::Ptr params)
       : RenderingParameters(RenderParameters::Create(params))
     {
     }
@@ -169,69 +260,35 @@ namespace
       return ID;
     }
 
-    virtual FileStream::Ptr OpenStream(const String& fileName, bool overWrite) const
+    virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const
     {
-      std::auto_ptr<std::ofstream> rawFile = IO::CreateFile(fileName, overWrite);
-      return FileStream::Ptr(new WavStream(RenderingParameters->SoundFreq(), rawFile));
+      if (const Binary::SeekableOutputStream::Ptr seekable = boost::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
+      {
+        return boost::make_shared<FileStream>(RenderingParameters->SoundFreq(), seekable);
+      }
+      throw Error(THIS_LINE, translate("WAV conversion is not supported on non-seekable streams."));
     }
   private:
     const RenderParameters::Ptr RenderingParameters;
   };
 
-  class WavBackendCreator : public BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_TYPE_FILE;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const FileStreamFactory::Ptr factory = boost::make_shared<WavFileFactory>(allParams);
-        const BackendWorker::Ptr worker = CreateFileBackendWorker(allParams, factory);
-        result = Sound::CreateBackend(params, worker);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
-      catch (const std::bad_alloc&)
-      {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
-      }
+      const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(params);
+      return CreateFileBackendWorker(params, factory);
     }
   };
-}
+}//Wav
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterWavBackend(BackendsStorage& storage)
   {
-    void RegisterWavBackend(BackendsEnumerator& enumerator)
-    {
-      const BackendCreator::Ptr creator(new WavBackendCreator());
-      enumerator.RegisterCreator(creator);
-    }
+    const BackendWorkerFactory::Ptr factory = boost::make_shared<Wav::BackendWorkerFactory>();
+    storage.Register(Wav::ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
   }
 }

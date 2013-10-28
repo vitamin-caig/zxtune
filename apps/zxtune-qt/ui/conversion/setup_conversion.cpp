@@ -24,6 +24,7 @@ Author:
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
 //library includes
+#include <parameters/tools.h>
 #include <sound/backends_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -78,28 +79,22 @@ namespace
       useMultithreading->setEnabled(HasMultithreadEnvironment());
       using namespace Parameters;
       BooleanValue::Bind(*useMultithreading, *Options, ZXTune::Sound::Backends::File::BUFFERS, false, MULTITHREAD_BUFFERS_COUNT);
-      BooleanValue::Bind(*overwriteTarget, *Options, ZXTune::Sound::Backends::File::OVERWRITE, false);
 
       UpdateDescriptions();
       State->Load();
     }
 
-    virtual Parameters::Accessor::Ptr Execute(String& type)
+    virtual Sound::Service::Ptr Execute(String& type)
     {
       if (exec())
       {
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, FromQString(TargetTemplate->GetFilenameTemplate()));
         type = TargetFormat->GetSelectedId();
-        using namespace Parameters;
-        const Container::Ptr options = GetBackendSettings(type);
-        const QString filename = TargetTemplate->GetFilenameTemplate();
-        options->SetValue(ZXTune::Sound::Backends::File::FILENAME, FromQString(filename));
-        CopyExistingValue<IntType>(*Options, *options, ZXTune::Sound::Backends::File::BUFFERS);
-        CopyExistingValue<IntType>(*Options, *options, ZXTune::Sound::Backends::File::OVERWRITE);
-        return options;
+        return Sound::CreateFileService(GlobalOptions::Instance().GetSnapshot());
       }
       else
       {
-        return Parameters::Accessor::Ptr();
+        return Sound::Service::Ptr();
       }
     }
 
@@ -124,16 +119,6 @@ namespace
       formatSettingsLayout->addWidget(result);
       connect(result, SIGNAL(SettingsChanged()), SLOT(UpdateDescriptions()));
       BackendSettings[result->GetBackendId()] = result;
-    }
-
-    Parameters::Container::Ptr GetBackendSettings(const String& type) const
-    {
-      const BackendIdToSettings::const_iterator it = BackendSettings.find(type);
-      if (it != BackendSettings.end())
-      {
-        return it->second->GetSettings();
-      }
-      return Parameters::Container::Create();
     }
 
     void UpdateTargetDescription()
@@ -191,7 +176,7 @@ namespace UI
     return SetupConversionDialog::Ptr(new SetupConversionDialogImpl(parent));
   }
 
-  Parameters::Accessor::Ptr GetConversionParameters(QWidget& parent, String& type)
+  Sound::Service::Ptr GetConversionService(QWidget& parent, String& type)
   {
     const SetupConversionDialog::Ptr dialog = SetupConversionDialog::Create(parent);
     return dialog->Execute(type);

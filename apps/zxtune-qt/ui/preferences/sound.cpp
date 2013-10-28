@@ -24,15 +24,17 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 //library includes
-#include <sound/backend.h>
+#include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
+#include <sound/service.h>
 #include <sound/sound_parameters.h>
+#include <strings/array.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/algorithm/string/join.hpp>
+#include <boost/range/end.hpp>
 
 namespace
 {
@@ -48,16 +50,9 @@ namespace
     48000
   };
 
-  StringArray GetSystemBackends(Parameters::Accessor::Ptr params)
+  Strings::Array GetSystemBackends(Parameters::Accessor::Ptr params)
   {
-    StringArray result;
-    const ZXTune::Sound::BackendsScope::Ptr scope = ZXTune::Sound::BackendsScope::CreateSystemScope(params);
-    for (ZXTune::Sound::BackendCreator::Iterator::Ptr it = scope->Enumerate(); it->IsValid(); it->Next())
-    {
-      const ZXTune::Sound::BackendCreator::Ptr creator = it->Get();
-      result.push_back(creator->Id());
-    }
-    return result;
+    return Sound::CreateSystemService(params)->GetAvailableBackends();
   }
 
   class SoundOptionsWidget : public UI::SoundSettingsWidget
@@ -104,7 +99,7 @@ namespace
     
     virtual void MoveBackendUp()
     {
-      if (int row = backendsList->currentRow())
+      if (const int row = backendsList->currentRow())
       {
         SwapItems(row, row - 1);
         backendsList->setCurrentRow(row - 1);
@@ -114,7 +109,7 @@ namespace
     virtual void MoveBackendDown()
     {
       const int row = backendsList->currentRow();
-      if (in_range<int>(row, 0, Backends.size() - 1))
+      if (Math::InRange(row, 0, int(Backends.size() - 2)))
       {
         SwapItems(row, row + 1);
         backendsList->setCurrentRow(row + 1);
@@ -133,7 +128,7 @@ namespace
   private:
     void FillFrequences()
     {
-      std::for_each(FREQUENCES, ArrayEnd(FREQUENCES), boost::bind(&SoundOptionsWidget::AddFrequency, this, _1));
+      std::for_each(FREQUENCES, boost::end(FREQUENCES), boost::bind(&SoundOptionsWidget::AddFrequency, this, _1));
     }
 
     void AddFrequency(uint_t freq)
@@ -170,8 +165,8 @@ namespace
     
     void SetFrequency(uint_t val)
     {
-      const uint_t* const frq = std::find(FREQUENCES, ArrayEnd(FREQUENCES), val);
-      if (frq != ArrayEnd(FREQUENCES))
+      const uint_t* const frq = std::find(FREQUENCES, boost::end(FREQUENCES), val);
+      if (frq != boost::end(FREQUENCES))
       {
         soundFrequencyValue->setCurrentIndex(frq - FREQUENCES);
       }
@@ -204,7 +199,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
-    StringArray Backends;
+    Strings::Array Backends;
     std::map<String, QWidget*> SetupPages;
   };
 }

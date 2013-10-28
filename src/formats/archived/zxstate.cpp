@@ -13,22 +13,23 @@ Author:
 #include "zxstate_supp.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
-#include <format.h>
-#include <string_helpers.h>
-#include <tools.h>
 //library includes
+#include <binary/container_factories.h>
 #include <binary/input_stream.h>
+#include <debug/log.h>
 #include <formats/archived.h>
+#include <strings/format.h>
 //std includes
 #include <cstring>
 #include <list>
 #include <map>
 #include <numeric>
+#include <sstream>
 //3rd-party includes
 #include <3rdparty/zlib/zlib.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/size.hpp>
 //text include
 #include <formats/text/archived.h>
 
@@ -325,7 +326,7 @@ namespace ZXState
       romBlk.Content = ch.Data;
       romBlk.Size = fromLE(ch.FlashSize);
       romBlk.IsCompressed = 0 != (fromLE(ch.Flags) & ch.COMPRESSED);
-      romBlk.UncompressedSize = ch.PAGESIZE;
+      romBlk.UncompressedSize = ch.DUMPSIZE;
       if (!visitor.Visit(ch, ROM_SUFFIX, romBlk))
       {
         return false;
@@ -335,7 +336,7 @@ namespace ZXState
       ramBlk.Content = romDescr + 1;
       ramBlk.Size = *romDescr;
       ramBlk.IsCompressed = 0 != (fromLE(ch.Flags) & ch.COMPRESSED_RAM);
-      ramBlk.UncompressedSize = ch.PAGESIZE;
+      ramBlk.UncompressedSize = ch.DUMPSIZE;
       return visitor.Visit(ch, RAM_SUFFIX, ramBlk);
     }
 
@@ -569,7 +570,7 @@ namespace ZXState
         {
           const Binary::Container::Ptr block = ExtractData(*it);
           Require(block && block->Size() == it->UncompressedSize);
-          std::memcpy(&result->at(target), block->Data(), it->UncompressedSize);
+          std::memcpy(&result->at(target), block->Start(), it->UncompressedSize);
           target += it->UncompressedSize;
         }
         return Binary::CreateContainer(result);    
@@ -609,8 +610,8 @@ namespace ZXState
     }
     else
     {
-      OutStringStream str;
-      str << base << '.' << suffix;
+      std::basic_ostringstream<Char> str;
+      str << base << Char('.') << suffix;
       return str.str();
     }
   }
@@ -674,7 +675,7 @@ namespace ZXState
       std::size_t GetOrderNum(uint_t idx) const
       {
         static const std::size_t RAMPAGES[] = {2, 3, 1, 4, 5, 0};
-        return Rampages && idx < ArraySize(RAMPAGES)
+        return Rampages && idx < boost::size(RAMPAGES)
           ? RAMPAGES[idx]
           : idx;
       }
@@ -694,14 +695,14 @@ namespace ZXState
     }
 
     //Binary::Container
+    virtual const void* Start() const
+    {
+      return Delegate->Start();
+    }
+
     virtual std::size_t Size() const
     {
       return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
     }
 
     virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -773,7 +774,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!Format->Match(data.Data(), data.Size()))
+        if (!Format->Match(data))
         {
           return Container::Ptr();
         }

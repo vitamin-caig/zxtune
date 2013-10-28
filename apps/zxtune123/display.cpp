@@ -17,8 +17,11 @@ Author:
 #include <apps/base/app.h>
 //common includes
 #include <error.h>
-#include <format.h>
-#include <template_parameters.h>
+//library includes
+#include <parameters/template.h>
+#include <strings/format.h>
+#include <strings/template.h>
+#include <time/duration.h>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/program_options.hpp>
@@ -34,12 +37,7 @@ namespace
   const std::size_t TRACKING_HEIGHT = 3;
   const std::size_t PLAYING_HEIGHT = 2;
 
-  inline void OutProp(const StringMap::value_type& prop)
-  {
-    StdOut << prop.first << '=' << prop.second << std::endl;
-  }
-
-  inline void ShowTrackingStatus(const ZXTune::Module::TrackState& state)
+  inline void ShowTrackingStatus(const Module::TrackState& state)
   {
     const String& dump = Strings::Format(Text::TRACKING_STATUS,
       state.Position(), state.Pattern(),
@@ -49,13 +47,13 @@ namespace
     StdOut << dump;
   }
 
-  inline Char StateSymbol(ZXTune::Sound::Backend::State state)
+  inline Char StateSymbol(Sound::PlaybackControl::State state)
   {
     switch (state)
     {
-    case ZXTune::Sound::Backend::STARTED:
+    case Sound::PlaybackControl::STARTED:
       return '>';
-    case ZXTune::Sound::Backend::PAUSED:
+    case Sound::PlaybackControl::PAUSED:
       return '#';
     default:
       return '\?';
@@ -76,10 +74,10 @@ namespace
       , Quiet(false)
       , ShowAnalyze(false)
       , Updatefps(10)
-      , InformationTemplate(StringTemplate::Create(Text::ITEM_INFO))
+      , InformationTemplate(Strings::Template::Create(Text::ITEM_INFO))
       , ScrSize(Console::Self().GetSize())
       , TotalFrames(0)
-      , FrameDuration(0)
+      , FrameDuration()
     {
       using namespace boost::program_options;
       Options.add_options()
@@ -103,10 +101,10 @@ namespace
       }
     }
 
-    virtual void SetModule(ZXTune::Sound::Backend::Ptr player, uint_t frameDuration)
+    virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration)
     {
-      const ZXTune::Module::Information::Ptr info = player->GetModuleInformation();
-      const Parameters::Accessor::Ptr props = player->GetModuleProperties();
+      const Module::Information::Ptr info = module->GetModuleInformation();
+      const Parameters::Accessor::Ptr props = module->GetModuleProperties();
       TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
       TrackState = player->GetTrackState();
@@ -123,18 +121,14 @@ namespace
       {
         return;
       }
-#if 1
       StdOut
         << std::endl
-        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<FillFieldsSource>(*props))
-        << Strings::Format(Text::ITEM_INFO_ADDON, Strings::FormatTime(info->FramesCount(), frameDuration),
-          info->LogicalChannels(), info->PhysicalChannels());
-#else
-      std::for_each(strProps.begin(), strProps.end(), &OutProp);
-#endif
+        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props))
+        << Strings::Format(Text::ITEM_INFO_ADDON,
+          Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount());
     }
 
-    virtual uint_t BeginFrame(ZXTune::Sound::Backend::State state)
+    virtual uint_t BeginFrame(Sound::PlaybackControl::State state)
     {
       const uint_t curFrame = TrackState->Frame();
       if (Silent || Quiet)
@@ -162,9 +156,8 @@ namespace
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
-          std::vector<ZXTune::Module::Analyzer::BandAndLevel> curAnalyze;
-          Analyzer->BandLevels(curAnalyze);
-
+          std::vector<Module::Analyzer::ChannelState> curAnalyze;
+          Analyzer->GetState(curAnalyze);
           AnalyzerData.resize(ScrSize.first);
           UpdateAnalyzer(curAnalyze, 10);
           ShowAnalyzer(spectrumHeight);
@@ -183,10 +176,10 @@ namespace
       }
     }
   private:
-    void ShowPlaybackStatus(uint_t frame, ZXTune::Sound::Backend::State state) const
+    void ShowPlaybackStatus(uint_t frame, Sound::PlaybackControl::State state) const
     {
       const Char MARKER = '\x1';
-      String data = Strings::Format(Text::PLAYBACK_STATUS, Strings::FormatTime(frame, FrameDuration), MARKER);
+      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::MicrosecondsDuration(frame, FrameDuration).ToString(), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
 
@@ -211,15 +204,15 @@ namespace
       StdOut << std::flush;
     }
 
-    void UpdateAnalyzer(const std::vector<ZXTune::Module::Analyzer::BandAndLevel>& inState, int_t fallspeed)
+    void UpdateAnalyzer(const std::vector<Module::Analyzer::ChannelState>& inState, int_t fallspeed)
     {
       std::transform(AnalyzerData.begin(), AnalyzerData.end(), AnalyzerData.begin(),
         std::bind2nd(std::minus<int_t>(), fallspeed));
-      for (std::vector<ZXTune::Module::Analyzer::BandAndLevel>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
+      for (std::vector<Module::Analyzer::ChannelState>::const_iterator it = inState.begin(), lim = inState.end(); it != lim; ++it)
       {
-        if (it->first < AnalyzerData.size())
+        if (it->Band < AnalyzerData.size())
         {
-          AnalyzerData[it->first] = it->second;
+          AnalyzerData[it->Band] = it->Level;
         }
       }
       std::replace_if(AnalyzerData.begin(), AnalyzerData.end(), std::bind2nd(std::less<int_t>(), 0), 0);
@@ -231,13 +224,13 @@ namespace
     bool Quiet;
     bool ShowAnalyze;
     uint_t Updatefps;
-    const StringTemplate::Ptr InformationTemplate;
+    const Strings::Template::Ptr InformationTemplate;
     //context
     Console::SizeType ScrSize;
     uint_t TotalFrames;
-    uint_t FrameDuration;
-    ZXTune::Module::TrackState::Ptr TrackState;
-    ZXTune::Module::Analyzer::Ptr Analyzer;
+    Time::Microseconds FrameDuration;
+    Module::TrackState::Ptr TrackState;
+    Module::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
   };
 }

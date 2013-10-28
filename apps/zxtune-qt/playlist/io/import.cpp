@@ -11,7 +11,25 @@ Author:
   This file is a part of zxtune-qt application based on zxtune library
 */
 
+//local includes
 #include "import.h"
+#include "container_impl.h"
+#include "ui/utils.h"
+//boost includes
+#include <boost/make_shared.hpp>
+//qt includes
+#include <QtCore/QStringList>
+
+namespace
+{
+  Playlist::IO::ContainerItem CreateContainerItem(const QString& str)
+  {
+    Playlist::IO::ContainerItem res;
+    res.Path = FromQString(str);
+    res.AdjustedParameters = Parameters::Container::Create();
+    return res;
+  }
+}
 
 namespace Playlist
 {
@@ -28,6 +46,15 @@ namespace Playlist
         return res;
       }
       return Container::Ptr();
+    }
+
+    Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris)
+    {
+      const boost::shared_ptr<ContainerItems> items = boost::make_shared<ContainerItems>();
+      std::transform(uris.begin(), uris.end(), std::back_inserter(*items), &CreateContainerItem);
+      const Parameters::Container::Ptr props = Parameters::Container::Create();
+      props->SetValue(ATTRIBUTE_ITEMS, items->size());
+      return CreateContainer(provider, props, items);
     }
   }
 }

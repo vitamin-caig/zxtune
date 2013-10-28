@@ -15,8 +15,8 @@ Author:
 
 //local includes
 #include "core/src/callback.h"
-//common includes
-#include <tools.h>
+//library includes
+#include <parameters/convert.h>
 //std includes
 #include <algorithm>
 #include <cctype>
@@ -31,7 +31,7 @@ inline String OptimizeString(const String& str, Char replace = '\?')
   return res;
 }
 
-inline Log::ProgressCallback::Ptr CreateProgressCallback(const ZXTune::Module::DetectCallback& callback, uint_t limit)
+inline Log::ProgressCallback::Ptr CreateProgressCallback(const Module::DetectCallback& callback, uint_t limit)
 {
   if (Log::ProgressCallback* cb = callback.GetProgress())
   {

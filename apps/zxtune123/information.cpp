@@ -13,10 +13,8 @@ Author:
 
 //local includes
 #include "information.h"
+#include "sound.h"
 #include <apps/base/app.h>
-//common includes
-#include <tools.h>
-#include <format.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
@@ -30,7 +28,10 @@ Author:
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
+#include <sound/mixer_parameters.h>
+#include <sound/service.h>
 #include <sound/sound_parameters.h>
+#include <strings/format.h>
 //std includes
 #include <iostream>
 //boost includes
@@ -39,6 +40,7 @@ Author:
 #include <boost/variant/variant.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
+#include <boost/range/end.hpp>
 //text includes
 #include "text/text.h"
 
@@ -71,6 +73,7 @@ namespace
       CapsPair(ZXTune::CAP_DEV_1DAC, Text::INFO_CAP_DAC1),
       CapsPair(ZXTune::CAP_DEV_2DAC, Text::INFO_CAP_DAC2),
       CapsPair(ZXTune::CAP_DEV_4DAC, Text::INFO_CAP_DAC4),
+      CapsPair(ZXTune::CAP_DEV_SAA, Text::INFO_CAP_SAA),
       //storage caps
       CapsPair(ZXTune::CAP_STOR_MODULE, Text::INFO_CAP_MODULE),
       CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),
@@ -96,12 +99,12 @@ namespace
     static const CapsPair BACKENDS_CAPS[] =
     {
       // Type-related capabilities
-      CapsPair(ZXTune::Sound::CAP_TYPE_STUB, Text::INFO_CAP_STUB),
-      CapsPair(ZXTune::Sound::CAP_TYPE_SYSTEM, Text::INFO_CAP_SYSTEM),
-      CapsPair(ZXTune::Sound::CAP_TYPE_FILE, Text::INFO_CAP_FILE),
-      CapsPair(ZXTune::Sound::CAP_TYPE_HARDWARE, Text::INFO_CAP_HARDWARE),
+      CapsPair(Sound::CAP_TYPE_STUB, Text::INFO_CAP_STUB),
+      CapsPair(Sound::CAP_TYPE_SYSTEM, Text::INFO_CAP_SYSTEM),
+      CapsPair(Sound::CAP_TYPE_FILE, Text::INFO_CAP_FILE),
+      CapsPair(Sound::CAP_TYPE_HARDWARE, Text::INFO_CAP_HARDWARE),
       // Features-related capabilities
-      CapsPair(ZXTune::Sound::CAP_FEAT_HWVOLUME, Text::INFO_CAP_HWVOLUME),
+      CapsPair(Sound::CAP_FEAT_HWVOLUME, Text::INFO_CAP_HWVOLUME),
       //limiter
       CapsPair()
     };
@@ -123,24 +126,22 @@ namespace
     }
   }
   
-  inline void ShowBackend(const ZXTune::Sound::BackendInformation& info)
+  inline void ShowBackend(const Sound::BackendInformation& info)
   {
     const Error& status = info.Status();
     StdOut << Strings::Format(Text::INFO_BACKEND_INFO,
       info.Id(), info.Description(), BackendCaps(info.Capabilities()), status ? status.GetText() : Text::INFO_STATUS_OK);
   }
   
-  inline void ShowBackends()
+  inline void ShowBackends(Sound::BackendInformation::Iterator::Ptr backends)
   {
-    using namespace ZXTune::Sound;
-    for (BackendCreator::Iterator::Ptr backends = EnumerateBackends();
-      backends->IsValid(); backends->Next())
+    for (; backends->IsValid(); backends->Next())
     {
       ShowBackend(*backends->Get());
     }
   }
   
-  inline void ShowProvider(const ZXTune::IO::Provider& provider)
+  inline void ShowProvider(const IO::Provider& provider)
   {
     const Error& status = provider.Status();
     StdOut << Strings::Format(Text::INFO_PROVIDER_INFO,
@@ -149,9 +150,8 @@ namespace
   
   inline void ShowProviders()
   {
-    using namespace ZXTune::IO;
     StdOut << Text::INFO_LIST_PROVIDERS_TITLE << std::endl;
-    for (Provider::Iterator::Ptr providers = EnumerateProviders(); 
+    for (IO::Provider::Iterator::Ptr providers = IO::EnumerateProviders(); 
       providers->IsValid(); providers->Next())
     {
       ShowProvider(*providers->Get());
@@ -214,6 +214,12 @@ namespace
       OptionDesc(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD,
                  Text::INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD,
                  Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT),
+      OptionDesc(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
+                 Text::INFO_OPTIONS_IO_PROVIDERS_FILE_CREATE_DIRECTORIES,
+                 Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT),
+      OptionDesc(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
+                 Text::INFO_OPTIONS_IO_PROVIDERS_FILE_OVERWRITE_EXISTING,
+                 Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT),
       //Sound parameters
       OptionDesc(Text::INFO_OPTIONS_SOUND_TITLE, EMPTY, 0),
       OptionDesc(Parameters::ZXTune::Sound::FREQUENCY,
@@ -225,13 +231,15 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::LOOPED,
                  Text::INFO_OPTIONS_SOUND_LOOPED,
                  EMPTY),
+      //Mixer parameters
+      OptionDesc(Text::INFO_OPTIONS_SOUND_MIXER_TITLE, EMPTY, 0),
+      OptionDesc(Parameters::ZXTune::Sound::Mixer::PREFIX + Text::INFO_OPTIONS_SOUND_MIXER_TEMPLATE,
+                 Text::INFO_OPTIONS_SOUND_MIXER,
+                 EMPTY),
       //Sound backend parameters
       OptionDesc(Text::INFO_OPTIONS_SOUND_BACKENDS_TITLE, EMPTY, 0),
       OptionDesc(Parameters::ZXTune::Sound::Backends::File::FILENAME,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_FILE_FILENAME,
-                 EMPTY),
-      OptionDesc(Parameters::ZXTune::Sound::Backends::File::OVERWRITE,
-                 Text::INFO_OPTIONS_SOUND_BACKENDS_FILE_OVERWRITE,
                  EMPTY),
       OptionDesc(Parameters::ZXTune::Sound::Backends::File::BUFFERS,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_FILE_BUFFERS,
@@ -273,6 +281,9 @@ namespace
       OptionDesc(Parameters::ZXTune::Sound::Backends::Mp3::QUALITY,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_QUALITY,
                  Parameters::ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS,
+                 Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_CHANNELS,
+                 Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT),
       //Ogg
       OptionDesc(Parameters::ZXTune::Sound::Backends::Ogg::MODE,
                  Text::INFO_OPTIONS_SOUND_BACKENDS_OGG_MODE,
@@ -324,7 +335,13 @@ namespace
                  Parameters::ZXTune::Core::Z80::CLOCKRATE_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::FM::CLOCKRATE,
                  Text::INFO_OPTIONS_CORE_FM_CLOCKRATE,
-                 Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
+                 Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Core::SAA::CLOCKRATE,
+                 Text::INFO_OPTIONS_CORE_SAA_CLOCKRATE,
+                 Parameters::ZXTune::Core::SAA::CLOCKRATE_DEFAULT),
+      OptionDesc(Parameters::ZXTune::Core::SAA::INTERPOLATION,
+                 Text::INFO_OPTIONS_CORE_SAA_INTERPOLATION,
+                 EMPTY),
       //Core plugins options
       OptionDesc(Text::INFO_OPTIONS_CORE_PLUGINS_TITLE, EMPTY,0),
       OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS,
@@ -344,7 +361,7 @@ namespace
                  Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT),
     };
     StdOut << Text::INFO_LIST_OPTIONS_TITLE << std::endl;
-    std::for_each(OPTIONS, ArrayEnd(OPTIONS), ShowOption);
+    std::for_each(OPTIONS, boost::end(OPTIONS), ShowOption);
   }
   
   typedef std::pair<String, String> AttrType;
@@ -358,51 +375,49 @@ namespace
     static const AttrType ATTRIBUTES[] =
     {
       //external
-      AttrType(ZXTune::Module::ATTR_EXTENSION, Text::INFO_ATTRIBUTES_EXTENSION),
-      AttrType(ZXTune::Module::ATTR_FILENAME, Text::INFO_ATTRIBUTES_FILENAME),
-      AttrType(ZXTune::Module::ATTR_PATH, Text::INFO_ATTRIBUTES_PATH),
-      AttrType(ZXTune::Module::ATTR_FULLPATH, Text::INFO_ATTRIBUTES_FULLPATH),
+      AttrType(Module::ATTR_EXTENSION, Text::INFO_ATTRIBUTES_EXTENSION),
+      AttrType(Module::ATTR_FILENAME, Text::INFO_ATTRIBUTES_FILENAME),
+      AttrType(Module::ATTR_PATH, Text::INFO_ATTRIBUTES_PATH),
+      AttrType(Module::ATTR_FULLPATH, Text::INFO_ATTRIBUTES_FULLPATH),
       //internal
-      AttrType(ZXTune::Module::ATTR_TYPE, Text::INFO_ATTRIBUTES_TYPE),
-      AttrType(ZXTune::Module::ATTR_CONTAINER, Text::INFO_ATTRIBUTES_CONTAINER),
-      AttrType(ZXTune::Module::ATTR_SUBPATH, Text::INFO_ATTRIBUTES_SUBPATH),
-      AttrType(ZXTune::Module::ATTR_AUTHOR, Text::INFO_ATTRIBUTES_AUTHOR),
-      AttrType(ZXTune::Module::ATTR_TITLE, Text::INFO_ATTRIBUTES_TITLE),
-      AttrType(ZXTune::Module::ATTR_PROGRAM, Text::INFO_ATTRIBUTES_PROGRAM),
-      AttrType(ZXTune::Module::ATTR_COMPUTER, Text::INFO_ATTRIBUTES_COMPUTER),
-      AttrType(ZXTune::Module::ATTR_DATE, Text::INFO_ATTRIBUTES_DATE),
-      AttrType(ZXTune::Module::ATTR_COMMENT, Text::INFO_ATTRIBUTES_COMMENT),
-      AttrType(ZXTune::Module::ATTR_WARNINGS, Text::INFO_ATTRIBUTES_WARNINGS),
-      AttrType(ZXTune::Module::ATTR_WARNINGS_COUNT, Text::INFO_ATTRIBUTES_WARNINGS_COUNT),
-      AttrType(ZXTune::Module::ATTR_CRC, Text::INFO_ATTRIBUTES_CRC),
-      AttrType(ZXTune::Module::ATTR_SIZE, Text::INFO_ATTRIBUTES_SIZE),
+      AttrType(Module::ATTR_TYPE, Text::INFO_ATTRIBUTES_TYPE),
+      AttrType(Module::ATTR_CONTAINER, Text::INFO_ATTRIBUTES_CONTAINER),
+      AttrType(Module::ATTR_SUBPATH, Text::INFO_ATTRIBUTES_SUBPATH),
+      AttrType(Module::ATTR_AUTHOR, Text::INFO_ATTRIBUTES_AUTHOR),
+      AttrType(Module::ATTR_TITLE, Text::INFO_ATTRIBUTES_TITLE),
+      AttrType(Module::ATTR_PROGRAM, Text::INFO_ATTRIBUTES_PROGRAM),
+      AttrType(Module::ATTR_COMPUTER, Text::INFO_ATTRIBUTES_COMPUTER),
+      AttrType(Module::ATTR_DATE, Text::INFO_ATTRIBUTES_DATE),
+      AttrType(Module::ATTR_COMMENT, Text::INFO_ATTRIBUTES_COMMENT),
+      AttrType(Module::ATTR_CRC, Text::INFO_ATTRIBUTES_CRC),
+      AttrType(Module::ATTR_SIZE, Text::INFO_ATTRIBUTES_SIZE),
       //runtime
-      AttrType(ZXTune::Module::ATTR_CURRENT_POSITION, Text::INFO_ATTRIBUTES_CURRENT_POSITION),
-      AttrType(ZXTune::Module::ATTR_CURRENT_PATTERN, Text::INFO_ATTRIBUTES_CURRENT_PATTERN),
-      AttrType(ZXTune::Module::ATTR_CURRENT_LINE, Text::INFO_ATTRIBUTES_CURRENT_LINE)
+      AttrType(Module::ATTR_CURRENT_POSITION, Text::INFO_ATTRIBUTES_CURRENT_POSITION),
+      AttrType(Module::ATTR_CURRENT_PATTERN, Text::INFO_ATTRIBUTES_CURRENT_PATTERN),
+      AttrType(Module::ATTR_CURRENT_LINE, Text::INFO_ATTRIBUTES_CURRENT_LINE)
     };
     StdOut << Text::INFO_LIST_ATTRIBUTES_TITLE << std::endl;
-    std::for_each(ATTRIBUTES, ArrayEnd(ATTRIBUTES), ShowAttribute);
+    std::for_each(ATTRIBUTES, boost::end(ATTRIBUTES), ShowAttribute);
   }
   
   void ShowFreqtables()
   {
     static const String FREQTABLES[] =
     {
-      ZXTune::Module::TABLE_SOUNDTRACKER,
-      ZXTune::Module::TABLE_PROTRACKER2,
-      ZXTune::Module::TABLE_PROTRACKER3_3,
-      ZXTune::Module::TABLE_PROTRACKER3_4,
-      ZXTune::Module::TABLE_PROTRACKER3_3_ASM,
-      ZXTune::Module::TABLE_PROTRACKER3_4_ASM,
-      ZXTune::Module::TABLE_PROTRACKER3_3_REAL,
-      ZXTune::Module::TABLE_PROTRACKER3_4_REAL,
-      ZXTune::Module::TABLE_ASM,
-      ZXTune::Module::TABLE_SOUNDTRACKER_PRO,
-      ZXTune::Module::TABLE_NATURAL_SCALED
+      Module::TABLE_SOUNDTRACKER,
+      Module::TABLE_PROTRACKER2,
+      Module::TABLE_PROTRACKER3_3,
+      Module::TABLE_PROTRACKER3_4,
+      Module::TABLE_PROTRACKER3_3_ASM,
+      Module::TABLE_PROTRACKER3_4_ASM,
+      Module::TABLE_PROTRACKER3_3_REAL,
+      Module::TABLE_PROTRACKER3_4_REAL,
+      Module::TABLE_ASM,
+      Module::TABLE_SOUNDTRACKER_PRO,
+      Module::TABLE_NATURAL_SCALED
     };
     StdOut << Text::INFO_LIST_FREQTABLES_TITLE;
-    std::copy(FREQTABLES, ArrayEnd(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
+    std::copy(FREQTABLES, boost::end(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
     StdOut << std::endl;
   }
 
@@ -428,7 +443,7 @@ namespace
       return OptionsDescription;
     }
     
-    virtual bool Process() const
+    virtual bool Process(SoundComponent& sound) const
     {
       if (EnumPlugins)
       {
@@ -436,7 +451,7 @@ namespace
       }
       if (EnumBackends)
       {
-        ShowBackends();
+        ShowBackends(sound.EnumerateBackends());
       }
       if (EnumProviders)
       {

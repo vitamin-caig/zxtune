@@ -14,40 +14,43 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_MODULE_PROPERTIES_H_DEFINED__
 
 //local includes
-#include "core/plugins/enumerator.h"
-//common includes
-#include <messages_collector.h>
-#include <parameters.h>
+#include "core/src/location.h"
 //library includes
 #include <formats/chiptune.h>
+#include <formats/chiptune/builder_meta.h>
+#include <parameters/container.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  class PropertiesBuilder : public Parameters::Visitor, public Formats::Chiptune::MetaBuilder
   {
-    class ModuleProperties : public Parameters::Accessor
+  public:
+    PropertiesBuilder();
+
+    virtual void SetValue(const Parameters::NameType& name, Parameters::IntType val);
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val);
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val);
+
+    virtual void SetProgram(const String& program);
+    virtual void SetTitle(const String& title);
+    virtual void SetAuthor(const String& author);
+
+    void SetType(const String& type);
+    void SetLocation(const ZXTune::DataLocation& location);
+    void SetSource(const Formats::Chiptune::Container& source);
+    void SetComment(const String& comment);
+    void SetFreqtable(const String& table);
+    void SetSamplesFreq(uint_t freq);
+    void SetVersion(uint_t major, uint_t minor);
+    void SetVersion(const String& version);
+
+    Parameters::Accessor::Ptr GetResult() const
     {
-    public:
-      typedef boost::shared_ptr<const ModuleProperties> Ptr;
-      typedef boost::shared_ptr<ModuleProperties> RWPtr;
-
-      virtual void SetTitle(const String& title) = 0;
-      virtual void SetAuthor(const String& author) = 0;
-      virtual void SetComment(const String& comment) = 0;
-      virtual void SetProgram(const String& program) = 0;
-      virtual void SetWarnings(Log::MessagesCollector::Ptr warns) = 0;
-      virtual void SetFreqtable(const String& table) = 0;
-      virtual void SetVersion(uint_t major, uint_t minor) = 0;
-      virtual void SetSource(std::size_t usedSize, const struct ModuleRegion& fixedRegion) = 0;
-      virtual void SetSource(Formats::Chiptune::Container::Ptr source) = 0;
-
-      virtual Parameters::Modifier::Ptr GetInternalContainer() const = 0;
-      virtual Plugin::Ptr GetPlugin() const = 0;
-      virtual void GetData(Dump& dump) const = 0;
-
-      static RWPtr Create(Plugin::Ptr plugin, DataLocation::Ptr location);
-    };
-  }
+      return Container;
+    }
+  private:
+    const Parameters::Container::Ptr Container;
+  };
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_MODULE_PROPERTIES_H_DEFINED__

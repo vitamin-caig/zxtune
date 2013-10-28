@@ -15,23 +15,32 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 < PROJECT_NAME
 > "ZXTune"
 
+= PROJECT_ID
+> "zxtune"
+
 < PROGRAM_NAME
 > "zxtune-qt"
 
 < PROGRAM_SITE
-> "http://zxtune.googlecode.com"
+> "http://" PROJECT_ID ".googlecode.com"
 
-< HOMEPAGE_URL
-> "http://code.google.com/p/zxtune"
+= PROGRAM_SITE_INTERNAL
+> "http://code.google.com/p/" PROJECT_ID
 
 < HELP_URL
-> HOMEPAGE_URL "/wiki/ZXTuneQTManual"
+> PROGRAM_SITE_INTERNAL "/wiki/ZXTuneQTManual"
 
 < FAQ_URL
-> HOMEPAGE_URL "/wiki/FAQ"
+> PROGRAM_SITE_INTERNAL "/wiki/FAQ"
 
 < REPORT_BUG_URL
-> HOMEPAGE_URL "/issues/entry"
+> PROGRAM_SITE_INTERNAL "/issues/entry"
+
+< DOWNLOADS_XML_URL
+> PROGRAM_SITE "/svn/downloads.xml"
+
+< DOWNLOADS_PROJECT_NAME
+> PROJECT_ID
 
 < FEEDBACK_EMAIL
 > "vitamin.caig@gmail.com"
@@ -54,3 +63,10 @@ __cpp> "#endif //__TEXT_TEXT_H_DEFINED__\n"
 
 < PLAYLIST_LOADING_HEADER
 > "..."
+
+#SHOULD NOT BE CHANGED!!!
+< PLAYLIST_APPLICATION_ID
+> "http://zxtune.googlecode.com"
+
+< HTTP_USERAGENT
+> "[Program]/[Version] ([Platform]-[Arch])"

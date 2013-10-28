@@ -13,56 +13,50 @@ Author:
 #include "volume_control.h"
 //library includes
 #include <l10n/api.h>
-#include <sound/error_codes.h>
 //boost includes
-#include <boost/ref.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/weak_ptr.hpp>
 
 #define FILE_TAG B368C82C
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune::Sound;
-
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 
   class VolumeControlDelegate : public VolumeControl
   {
   public:
-    explicit VolumeControlDelegate(const VolumeControl::Ptr& delegate)
+    explicit VolumeControlDelegate(VolumeControl::Ptr delegate)
       : Delegate(delegate)
     {
     }
 
-    virtual Error GetVolume(MultiGain& volume) const
+    virtual Gain GetVolume() const
     {
-      if (VolumeControl::Ptr delegate = VolumeControl::Ptr(Delegate))
+      if (const VolumeControl::Ptr delegate = Delegate.lock())
       {
-        return delegate->GetVolume(volume);
+        return delegate->GetVolume();
       }
-      return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to get volume in invalid state."));
+      throw Error(THIS_LINE, translate("Failed to get volume in invalid state."));
     }
 
-    virtual Error SetVolume(const MultiGain& volume)
+    virtual void SetVolume(const Gain& volume)
     {
-      if (VolumeControl::Ptr delegate = VolumeControl::Ptr(Delegate))
+      if (const VolumeControl::Ptr delegate = Delegate.lock())
       {
         return delegate->SetVolume(volume);
       }
-      return Error(THIS_LINE, BACKEND_CONTROL_ERROR, translate("Failed to set volume in invalid state."));
+      throw Error(THIS_LINE, translate("Failed to set volume in invalid state."));
     }
   private:
-    const VolumeControl::Ptr& Delegate;
+    const boost::weak_ptr<VolumeControl> Delegate;
   };
 }
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate)
   {
-    VolumeControl::Ptr CreateVolumeControlDelegate(const VolumeControl::Ptr& delegate)
-    {
-      return boost::make_shared<VolumeControlDelegate>(boost::cref(delegate));
-    }
+    return boost::make_shared<VolumeControlDelegate>(delegate);
   }
 }

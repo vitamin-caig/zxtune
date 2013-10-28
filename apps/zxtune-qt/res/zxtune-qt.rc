@@ -2,14 +2,8 @@
 #define GUI_THEME default
 #endif
 
-#ifndef ZXTUNE_VERSION
-#define ZXTUNE_VERSION develop
-#endif
-#ifndef BUILD_PLATFORM
-#define BUILD_PLATFORM unknown
-#endif
-#ifndef BUILD_ARCH
-#define BUILD_ARCH unknown
+#ifndef BUILD_VERSION
+#define BUILD_VERSION develop
 #endif
 
 #define TOSTRING(a) #a
@@ -40,7 +34,7 @@ BLOCK "StringFileInfo"
   BLOCK "040904b0"
     BEGIN
       VALUE "ProductName", "ZXTune library\0"
-      VALUE "ProductVersion", STR(ZXTUNE_VERSION) " " STR(BUILD_PLATFORM) "-" STR(BUILD_ARCH) "\0"
+      VALUE "ProductVersion", STR(BUILD_VERSION) "\0"
       VALUE "LegalCopyright", "(C) Vitamin/CAIG\0"
       VALUE "OriginalFilename", "zxtune-qt.exe\0"
       VALUE "FileDescription", "QT-based chiptunes player application\0"

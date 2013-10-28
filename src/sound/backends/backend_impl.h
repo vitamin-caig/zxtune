@@ -10,35 +10,40 @@ Author:
 */
 
 #pragma once
-#ifndef __SOUND_BACKEND_IMPL_H_DEFINED__
-#define __SOUND_BACKEND_IMPL_H_DEFINED__
+#ifndef SOUND_BACKEND_IMPL_H_DEFINED
+#define SOUND_BACKEND_IMPL_H_DEFINED
 
 //library includes
 #include <sound/backend.h>
+#include <sound/chunk.h>
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  class BackendWorker
   {
-    class BackendWorker
-    {
-    public:
-      typedef boost::shared_ptr<BackendWorker> Ptr;
-      virtual ~BackendWorker() {}
+  public:
+    typedef boost::shared_ptr<BackendWorker> Ptr;
+    virtual ~BackendWorker() {}
 
-      virtual void Test() = 0;
-      virtual void OnStartup(const Module::Holder& module) = 0;
-      virtual void OnShutdown() = 0;
-      virtual void OnPause() = 0;
-      virtual void OnResume() = 0;
-      virtual void OnFrame(const Module::TrackState& state) = 0;
-      virtual void OnBufferReady(Chunk& buffer) = 0;
-      virtual VolumeControl::Ptr GetVolumeControl() const = 0;
-    };
+    virtual void Startup() = 0;
+    virtual void Shutdown() = 0;
+    virtual void Pause() = 0;
+    virtual void Resume() = 0;
+    virtual void FrameStart(const Module::TrackState& state) = 0;
+    virtual void FrameFinish(Chunk::Ptr buffer) = 0;
+    virtual VolumeControl::Ptr GetVolumeControl() const = 0;
+  };
 
-    Backend::Ptr CreateBackend(CreateBackendParameters::Ptr params, BackendWorker::Ptr worker);
-  }
+  class BackendWorkerFactory
+  {
+  public:
+    typedef boost::shared_ptr<const BackendWorkerFactory> Ptr;
+    virtual ~BackendWorkerFactory() {}
+
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const = 0;
+  };
+
+  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr callback, BackendWorker::Ptr worker);
 }
 
-
-#endif //__SOUND_BACKEND_IMPL_H_DEFINED__
+#endif //SOUND_BACKEND_IMPL_H_DEFINED

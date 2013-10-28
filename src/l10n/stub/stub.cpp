@@ -10,9 +10,9 @@ Author:
 */
 
 //common includes
-#include <tools.h>
+#include <pointers.h>
 //library includes
-#include <l10n/api.h>
+#include <l10n/src/library.h>
 
 namespace
 {
@@ -54,7 +54,7 @@ namespace
     virtual L10n::Vocabulary::Ptr GetVocabulary(const std::string& /*domain*/) const
     {
       static StubVocabulary voc;
-      return L10n::Vocabulary::Ptr(&voc, NullDeleter<StubVocabulary>());
+      return MakeSingletonPointer(voc);
     }
   };
 }

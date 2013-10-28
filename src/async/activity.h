@@ -22,8 +22,8 @@ namespace Async
     typedef boost::shared_ptr<Operation> Ptr;
     virtual ~Operation() {}
 
-    virtual Error Prepare() = 0;
-    virtual Error Execute() = 0;
+    virtual void Prepare() = 0;
+    virtual void Execute() = 0;
   };
 
   class Activity
@@ -33,7 +33,8 @@ namespace Async
     virtual ~Activity() {}
 
     virtual bool IsExecuted() const = 0;
-    virtual Error Wait() = 0;
+    //! @throw Error if Operation execution failed
+    virtual void Wait() = 0;
 
     static Ptr Create(Operation::Ptr operation);
     static Ptr CreateStub();

@@ -1,10 +1,10 @@
-#include <tools.h>
 #include <io/providers/providers_factories.h>
 #include <iostream>
 #include <iomanip>
 
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
+#include <boost/range/end.hpp>
 
 namespace
 {
@@ -114,6 +114,7 @@ namespace
       "some_subpath",
       "//network-path/share/some_file.ext?Complex/Subpath"
     },
+#ifdef _WIN32
     {
       "Windows file",
       "C:\\folder\\some_file.ext?some_subpath",
@@ -124,6 +125,7 @@ namespace
       "some_subpath",
       "C:\\folder\\some_file.ext?Complex/Subpath"
     },
+#endif
     {
       "Posix file",
       "/folder/some_file.ext?some_subpath",
@@ -144,6 +146,7 @@ namespace
       "some_subpath",
       "folder/some_file.ext?Complex/Subpath"
     },
+#ifdef _WIN32
     {
       "Schemed windows file",
       "file://C:\\folder\\some_file.ext?some_subpath",
@@ -154,6 +157,7 @@ namespace
       "some_subpath",
       "C:\\folder\\some_file.ext?Complex/Subpath"
     },
+#endif
     {
       "Schemed posix file",
       "file:///folder/some_file.ext?some_subpath",
@@ -264,9 +268,9 @@ namespace
     }
   }
 
-  void TestProvider(const ZXTune::IO::DataProvider& provider, const Case& cs)
+  void TestProvider(const IO::DataProvider& provider, const Case& cs)
   {
-    if (const ZXTune::IO::Identifier::Ptr id = provider.Resolve(cs.Uri))
+    if (const IO::Identifier::Ptr id = provider.Resolve(cs.Uri))
     {
       const std::string pid = provider.Id() + ' ';
       Test(pid + cs.Name + " (scheme)", id->Scheme(), cs.Scheme);
@@ -285,15 +289,15 @@ namespace
   void TestFileProvider()
   {
     std::cout << "Test for file provider" << std::endl;
-    const ZXTune::IO::DataProvider::Ptr prov = ZXTune::IO::CreateFileDataProvider();
-    std::for_each(FILE_PROVIDER_CASES, ArrayEnd(FILE_PROVIDER_CASES), boost::bind(&TestProvider, boost::cref(*prov), _1));
+    const IO::DataProvider::Ptr prov = IO::CreateFileDataProvider();
+    std::for_each(FILE_PROVIDER_CASES, boost::end(FILE_PROVIDER_CASES), boost::bind(&TestProvider, boost::cref(*prov), _1));
   }
 
   void TestNetworkProvider()
   {
     std::cout << "Test for network provider" << std::endl;
-    const ZXTune::IO::DataProvider::Ptr prov = ZXTune::IO::CreateNetworkDataProvider(ZXTune::IO::Curl::Api::Ptr());
-    std::for_each(NETWORK_PROVIDER_CASES, ArrayEnd(NETWORK_PROVIDER_CASES), boost::bind(&TestProvider, boost::cref(*prov), _1));
+    const IO::DataProvider::Ptr prov = IO::CreateNetworkDataProvider(IO::Curl::Api::Ptr());
+    std::for_each(NETWORK_PROVIDER_CASES, boost::end(NETWORK_PROVIDER_CASES), boost::bind(&TestProvider, boost::cref(*prov), _1));
   }
 }
 

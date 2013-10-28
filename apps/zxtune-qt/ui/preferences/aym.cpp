@@ -19,10 +19,12 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 //library includes
 #include <core/core_parameters.h>
 #include <sound/sound_parameters.h>
+//boost includes
+#include <boost/range/end.hpp>
+#include <boost/range/size.hpp>
 
 namespace
 {
@@ -54,13 +56,14 @@ namespace
       BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
       BooleanValue::Bind(*dutyCycleGroup, *Options, ZXTune::Core::AYM::DUTY_CYCLE_MASK, false, 0x1f);
       IntegerValue::Bind(*dutyCycleValue, *Options, ZXTune::Core::AYM::DUTY_CYCLE, 50);
+      IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION, 0);
     }
 
     virtual void OnClockRateChanged(const QString& val)
     {
       const qlonglong num = val.toLongLong();
-      const uint64_t* const preset = std::find(PRESETS, ArrayEnd(PRESETS), num);
-      if (preset == ArrayEnd(PRESETS))
+      const uint64_t* const preset = std::find(PRESETS, boost::end(PRESETS), num);
+      if (preset == boost::end(PRESETS))
       {
         clockRatePresets->setCurrentIndex(0);//custom
       }
@@ -74,7 +77,7 @@ namespace
     {
       if (idx != 0)
       {
-        Require(idx <= int(ArraySize(PRESETS)));
+        Require(idx <= int(boost::size(PRESETS)));
         clockRateValue->setText(QString::number(PRESETS[idx - 1]));
       }
     }

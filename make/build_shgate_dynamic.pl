@@ -8,7 +8,9 @@ use HTML::Template;
 #main
 my $templateName = shift or die 'No template name';
 my $listName = shift or die 'No functions filename';
-open FUNCS, "<$listName" or die 'No functions file';
+my $outputName = shift or die 'No output filename';
+open FUNCS, '<'.$listName or die 'No functions file';
+open OUTPUT, '>'.$outputName or die 'Failed to open output file';
 
 my $template = HTML::Template->new(filename => $templateName, die_on_bad_params => 0, global_vars => 1) or die 'Failed to open template';
 my @functions = ();
@@ -41,4 +43,4 @@ while (my $line = <FUNCS>)
 }
 
 $template->param(FUNCTIONS => \@functions);
-print $template->output();
+print OUTPUT $template->output();

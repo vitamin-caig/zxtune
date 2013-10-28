@@ -54,7 +54,7 @@ namespace
       L10n::Library::Instance().SelectTranslation(translation);
     }
 
-    virtual L10n::Vocabulary::Ptr GetVocabulary(const std::string& domain) const
+    virtual L10n::Vocabulary::Ptr GetVocabulary(const std::string& /*domain*/) const
     {
       return L10n::Vocabulary::Ptr();
     }

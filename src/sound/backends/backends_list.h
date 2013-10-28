@@ -10,45 +10,50 @@ Author:
 */
 
 #pragma once
-#ifndef __SOUND_BACKENDS_LIST_H_DEFINED__
-#define __SOUND_BACKENDS_LIST_H_DEFINED__
+#ifndef SOUND_BACKENDS_LIST_H_DEFINED
+#define SOUND_BACKENDS_LIST_H_DEFINED
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  class BackendsStorage;
+
+  //forward declaration of supported backends
+  void RegisterNullBackend(BackendsStorage& storage);
+  void RegisterWavBackend(BackendsStorage& storage);
+  void RegisterMp3Backend(BackendsStorage& storage);
+  void RegisterOggBackend(BackendsStorage& storage);
+  void RegisterFlacBackend(BackendsStorage& storage);
+  void RegisterDirectSoundBackend(BackendsStorage& storage);
+  void RegisterWin32Backend(BackendsStorage& storage);
+  void RegisterOssBackend(BackendsStorage& storage);
+  void RegisterAlsaBackend(BackendsStorage& storage);
+  void RegisterSdlBackend(BackendsStorage& storage);
+
+  inline void RegisterSystemBackends(BackendsStorage& storage)
   {
-    class BackendsEnumerator;
+    RegisterOssBackend(storage);
+    RegisterAlsaBackend(storage);
+    RegisterDirectSoundBackend(storage);
+    RegisterWin32Backend(storage);
+    RegisterSdlBackend(storage);
+  }
 
-    //forward declaration of supported backends
-    void RegisterNullBackend(BackendsEnumerator& enumerator);
-    void RegisterWavBackend(BackendsEnumerator& enumerator);
-    void RegisterMp3Backend(BackendsEnumerator& enumerator);
-    void RegisterOggBackend(BackendsEnumerator& enumerator);
-    void RegisterFlacBackend(BackendsEnumerator& enumerator);
-    void RegisterDirectSoundBackend(BackendsEnumerator& enumerator);
-    void RegisterWin32Backend(BackendsEnumerator& enumerator);
-    void RegisterOssBackend(BackendsEnumerator& enumerator);
-    void RegisterAlsaBackend(BackendsEnumerator& enumerator);
-    //void RegisterAYLPTBackend(BackendsEnumerator& enumerator);
-    void RegisterSdlBackend(BackendsEnumerator& enumerator);
+  inline void RegisterFileBackends(BackendsStorage& storage)
+  {
+    RegisterWavBackend(storage);
+    RegisterMp3Backend(storage);
+    RegisterOggBackend(storage);
+    RegisterFlacBackend(storage);
+  }
 
-    inline void RegisterBackends(BackendsEnumerator& enumerator)
-    {
-      //potentially unsafe backends
-      RegisterOssBackend(enumerator);
-      RegisterAlsaBackend(enumerator);
-      RegisterDirectSoundBackend(enumerator);
-      RegisterWin32Backend(enumerator);
-      RegisterSdlBackend(enumerator);
-      //stub
-      RegisterNullBackend(enumerator);
-      //never default backends
-      RegisterWavBackend(enumerator);
-      RegisterMp3Backend(enumerator);
-      RegisterOggBackend(enumerator);
-      RegisterFlacBackend(enumerator);
-      //RegisterAYLPTBackend(enumerator);
-    }
+  inline void RegisterAllBackends(BackendsStorage& storage)
+  {
+    //potentially unsafe backends
+    RegisterSystemBackends(storage);
+    //stub
+    RegisterNullBackend(storage);
+    //never default backends
+    RegisterFileBackends(storage);
   }
 }
 

@@ -14,6 +14,7 @@ Author:
 #define __FORMATS_PACKED_CONTAINER_H_DEFINED__
 
 //library includes
+#include <binary/container_factories.h>
 #include <formats/packed.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -28,14 +29,14 @@ public:
     assert(origSize && delegate && delegate->Size());
   }
 
+  virtual const void* Start() const
+  {
+    return Delegate->Start();
+  }
+
   virtual std::size_t Size() const
   {
     return Delegate->Size();
-  }
-
-  virtual const void* Data() const
-  {
-    return Delegate->Data();
   }
 
   virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const

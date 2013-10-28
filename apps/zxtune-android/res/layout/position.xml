@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  style="@style/block"
+  android:orientation="horizontal"
+  android:paddingLeft="@dimen/spacing_full"
+  android:paddingRight="@dimen/spacing_full"
+  >
+  <!-- x2 text size (14sp) -->
+  <TextView
+    style="android:style/TextAppearance.Small"
+    android:id="@+id/position_time"
+    android:layout_width="28sp"
+    android:layout_height="wrap_content"
+    android:layout_weight="0"
+    android:layout_gravity="center_vertical"
+    android:text="@string/stub_time"
+    />
+  <SeekBar
+    android:id="@+id/position_seek"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:layout_gravity="center"
+    android:layout_marginLeft="@dimen/spacing_full"
+    android:layout_marginRight="@dimen/spacing_full"
+    />
+  <TextView
+    style="android:style/TextAppearance.Small"
+    android:id="@+id/position_duration"
+    android:layout_width="28sp"
+    android:layout_height="wrap_content"
+    android:layout_weight="0"
+    android:layout_gravity="center_vertical"
+    android:text="@string/stub_time"
+    />
+</LinearLayout>

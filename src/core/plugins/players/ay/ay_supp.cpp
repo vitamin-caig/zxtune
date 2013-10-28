@@ -10,53 +10,43 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
-#include "ay_conversion.h"
+#include "aym_base.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/utils.h"
-#include "core/plugins/containers/container_supp_common.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
+#include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
-#include "core/src/core.h"
-//common includes
-#include <debug_log.h>
-#include <format.h>
-#include <time_oscillator.h>
-#include <tools.h>
 //library includes
-#include <core/convert_parameters.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
-#include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
+#include <core/conversion/aym.h>
+#include <debug/log.h>
 #include <devices/z80.h>
-#include <formats/chiptune/ay.h>
+#include <devices/details/parameters_helper.h>
+#include <formats/chiptune/aym/ay.h>
 #include <sound/sound_parameters.h>
-//std includes
-#include <list>
+#include <time/oscillator.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
-#include <core/text/core.h>
 #include <formats/text/chiptune.h>
-
-#define FILE_TAG 6CDE76E4
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
   const Debug::Stream Dbg("Core::AYSupp");
-                                                     
-  class AYDataChannel
+}
+
+namespace Module
+{
+namespace AY
+{
+  class DataChannel
   {
   public:
-    typedef boost::shared_ptr<AYDataChannel> Ptr;
+    typedef boost::shared_ptr<DataChannel> Ptr;
 
-    explicit AYDataChannel(Devices::AYM::Device::Ptr chip)
+    explicit DataChannel(Devices::AYM::Device::Ptr chip)
       : Chip(chip)
       , Register()
     {
@@ -64,50 +54,47 @@ namespace
 
     static Ptr Create(Devices::AYM::Device::Ptr chip)
     {
-      return boost::make_shared<AYDataChannel>(chip);
+      return boost::make_shared<DataChannel>(chip);
     }
 
     void Reset()
     {
       Chip->Reset();
       Register = 0;
-      FrameStub = Devices::AYM::DataChunk();
+      Chunks.clear();
     }
 
     bool SelectRegister(uint_t reg)
     {
       Register = reg;
-      return Register < Devices::AYM::DataChunk::REG_BEEPER;
+      return Register < Devices::AYM::Registers::TOTAL;
     }
 
-    bool SetValue(const Time::Nanoseconds& timeStamp, uint8_t val)
+    bool SetValue(const Devices::AYM::Stamp& timeStamp, uint8_t val)
     {
-      if (Register < Devices::AYM::DataChunk::REG_BEEPER)
+      if (Register < Devices::AYM::Registers::TOTAL)
       {
-        Devices::AYM::DataChunk data;
-        data.TimeStamp = timeStamp;
-        data.Mask = 1 << Register;
-        data.Data[Register] = val;
-        Chip->RenderData(data);
+        Devices::AYM::DataChunk& chunk = AllocateChunk();
+        chunk.TimeStamp = timeStamp;
+        chunk.Data[static_cast<Devices::AYM::Registers::Index>(Register)] = val;
         return true;
       }
       return false;
     }
 
-    void SetBeeper(const Time::Nanoseconds& timeStamp, uint8_t val)
+    void SetBeeper(const Devices::AYM::Stamp& timeStamp, bool val)
     {
-      Devices::AYM::DataChunk data;
-      data.TimeStamp = timeStamp;
-      data.Mask = 1 << Devices::AYM::DataChunk::REG_BEEPER;
-      data.Data[Devices::AYM::DataChunk::REG_BEEPER] = val;
-      Chip->RenderData(data);
+      Devices::AYM::DataChunk& chunk = AllocateChunk();
+      chunk.TimeStamp = timeStamp;
+      chunk.Data.SetBeeper(val);
     }
 
-    void RenderFrame(const Time::Nanoseconds& till)
+    void RenderFrame(const Devices::AYM::Stamp& till)
     {
-      FrameStub.TimeStamp = till;
-      Chip->RenderData(FrameStub);
-      Chip->Flush();
+      Devices::AYM::DataChunk& stub = AllocateChunk();
+      stub.TimeStamp = till;
+      Chip->RenderData(Chunks);
+      Chunks.clear();
     }
 
     Analyzer::Ptr GetAnalyzer() const
@@ -115,9 +102,15 @@ namespace
       return AYM::CreateAnalyzer(Chip);
     }
   private:
+    Devices::AYM::DataChunk& AllocateChunk()
+    {
+      Chunks.resize(Chunks.size() + 1);          
+      return Chunks.back();
+    }
+  private:
     const Devices::AYM::Device::Ptr Chip;
     uint_t Register;
-    Devices::AYM::DataChunk FrameStub;
+    std::vector<Devices::AYM::DataChunk> Chunks;
   };
 
   class SoundPort
@@ -128,13 +121,13 @@ namespace
     virtual ~SoundPort() {}
 
     virtual void Reset() = 0;
-    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data) = 0;
+    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data) = 0;
   };
 
   class ZXAYPort : public SoundPort
   {
   public:
-    explicit ZXAYPort(AYDataChannel::Ptr ayData)
+    explicit ZXAYPort(DataChannel::Ptr ayData)
       : AyData(ayData)
     {
     }
@@ -144,7 +137,7 @@ namespace
       AyData->SelectRegister(0);
     }
 
-    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
+    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (IsSelRegPort(port))
       {
@@ -156,9 +149,7 @@ namespace
       }
       else if (IsBeeperPort(port))
       {
-        static const uint8_t REG_VALUES[] = {0, 14, 14, 15};
-        const uint8_t value = REG_VALUES[(data & 24) >> 3];
-        AyData->SetBeeper(timeStamp.GetCurrentTime(), value);
+        AyData->SetBeeper(timeStamp.GetCurrentTime(), 0 != (data & 16));
         //beeper means nothing
       }
       return false;
@@ -183,13 +174,13 @@ namespace
       return 0 == (port & 0x0001);
     }
   private:
-    const AYDataChannel::Ptr AyData;
+    const DataChannel::Ptr AyData;
   };
 
   class CPCAYPort : public SoundPort
   {
   public:
-    explicit CPCAYPort(AYDataChannel::Ptr ayData)
+    explicit CPCAYPort(DataChannel::Ptr ayData)
       : AyData(ayData)
       , Data()
       , Selector()
@@ -203,7 +194,7 @@ namespace
       Selector = 0;
     }
 
-    virtual bool Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
+    virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (IsDataPort(port))
       {
@@ -246,7 +237,7 @@ namespace
       return 0xf600 == (port & 0xff00); 
     }
   private:
-    const AYDataChannel::Ptr AyData;
+    const DataChannel::Ptr AyData;
     uint8_t Data;
     uint_t Selector;
   };
@@ -254,7 +245,7 @@ namespace
   class PortsPlexer : public Devices::Z80::ChipIO
   {
   public:
-    explicit PortsPlexer(AYDataChannel::Ptr ayData)
+    explicit PortsPlexer(DataChannel::Ptr ayData)
       : ZX(boost::make_shared<ZXAYPort>(ayData))
       , CPC(boost::make_shared<CPCAYPort>(ayData))
       , Blocked(false)
@@ -262,7 +253,7 @@ namespace
     }
     typedef boost::shared_ptr<PortsPlexer> Ptr;
 
-    static Ptr Create(AYDataChannel::Ptr ayData)
+    static Ptr Create(DataChannel::Ptr ayData)
     {
       return boost::make_shared<PortsPlexer>(ayData);
     }
@@ -283,7 +274,7 @@ namespace
       return 0xff;
     }
 
-    virtual void Write(const Time::NanosecOscillator& timeStamp, uint16_t port, uint8_t data)
+    virtual void Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (Blocked)
       {
@@ -318,6 +309,11 @@ namespace
       : Params(params)
     {
     }
+
+    virtual uint_t Version() const
+    {
+      return 1;
+    }
     
     virtual uint_t IntTicks() const
     {
@@ -338,27 +334,98 @@ namespace
     const Parameters::Accessor::Ptr Params;
   };
 
+  class ModuleData
+  {
+  public:
+    typedef boost::shared_ptr<const ModuleData> Ptr;
+
+    ModuleData()
+      : Frames()
+      , Registers()
+      , StackPointer()
+    {
+    }
+
+    Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
+    {
+      const uint8_t* const rawMemory = static_cast<const uint8_t*>(Memory->Start());
+      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + Memory->Size()), ports);
+      Devices::Z80::Registers regs;
+      regs.Mask = ~0;
+      std::fill(regs.Data.begin(), regs.Data.end(), Registers);
+      regs.Data[Devices::Z80::Registers::REG_SP] = StackPointer;
+      regs.Data[Devices::Z80::Registers::REG_IR] = Registers & 0xff;
+      regs.Data[Devices::Z80::Registers::REG_PC] = 0;
+      result->SetRegisters(regs);
+      return result;
+    }
+
+    uint_t Frames;
+    uint16_t Registers;
+    uint16_t StackPointer;
+    Binary::Data::Ptr Memory;
+  };
+
   class Computer
   {
   public:
     typedef boost::shared_ptr<Computer> Ptr; 
 
-    virtual ~Computer() {}
+    Computer(ModuleData::Ptr data, Devices::Z80::ChipParameters::Ptr params, PortsPlexer::Ptr cpuPorts)
+      : Data(data)
+      , Params(params)
+      , CPUPorts(cpuPorts)
+      , CPU(Data->CreateCPU(Params, CPUPorts))
+    {
+    }
 
-    virtual void Reset() = 0;
-    virtual void NextFrame(const Time::Nanoseconds& til) = 0;
-    virtual void SeekState(const Time::Nanoseconds& til, const Time::Nanoseconds& frameStep) = 0;
+    void Reset()
+    {
+      CPU = Data->CreateCPU(Params, CPUPorts);
+      CPUPorts->Reset();
+    }
+
+    void NextFrame(const Devices::Z80::Stamp& til)
+    {
+      CPU->Interrupt();
+      CPU->Execute(til);
+    }
+
+    void SeekState(const Devices::Z80::Stamp& til, const Devices::Z80::Stamp& frameStep)
+    {
+      const Devices::Z80::Stamp curTime = CPU->GetTime();
+      if (til < curTime)
+      {
+        Reset();
+      }
+      CPUPorts->SetBlocked(true);
+      Devices::Z80::Stamp pos = curTime;
+      while ((pos += frameStep) < til)
+      {
+        CPU->Interrupt();
+        CPU->Execute(pos);
+      }
+      CPUPorts->SetBlocked(false);
+      CPU->SetTime(curTime);
+    }
+  private:
+    const ModuleData::Ptr Data;
+    const Devices::Z80::ChipParameters::Ptr Params;
+    const PortsPlexer::Ptr CPUPorts;
+    Devices::Z80::Chip::Ptr CPU;
   };
 
-  class AYRenderer : public Renderer
+  class Renderer : public Module::Renderer
   {
   public:
-    AYRenderer(AYM::TrackParameters::Ptr params, StateIterator::Ptr iterator, Computer::Ptr comp, AYDataChannel::Ptr device)
+    Renderer(Sound::RenderParameters::Ptr params, StateIterator::Ptr iterator, Computer::Ptr comp, DataChannel::Ptr device)
       : Params(params)
       , Iterator(iterator)
       , Comp(comp)
       , Device(device)
       , State(Iterator->GetStateObserver())
+      , FrameDuration()
+      , Looped()
     {
     }
 
@@ -376,20 +443,23 @@ namespace
     {
       if (Iterator->IsValid())
       {
-        LastTime += Time::Microseconds(Params->FrameDurationMicrosec());
+        SynchronizeParameters();
+        LastTime += FrameDuration;
         Comp->NextFrame(LastTime);
         Device->RenderFrame(LastTime);
-        Iterator->NextFrame(Params->Looped());
+        Iterator->NextFrame(Looped);
       }
       return Iterator->IsValid();
     }
 
     virtual void Reset()
     {
+      Params.Reset();
       Iterator->Reset();
       Comp->Reset();
       Device->Reset();
-      LastTime = Time::Nanoseconds();
+      FrameDuration = LastTime = Devices::Z80::Stamp();
+      Looped = false;
     }
 
     virtual void SetPosition(uint_t frame)
@@ -399,88 +469,76 @@ namespace
         //rewind
         Iterator->Reset();
       }
-      const Time::Nanoseconds period = Time::Microseconds(Params->FrameDurationMicrosec());
-      Time::Nanoseconds newTime = LastTime; 
+      SynchronizeParameters();
+      Devices::Z80::Stamp newTime = LastTime; 
       while (State->Frame() < frame && Iterator->IsValid())
       {
-        newTime += period;
+        newTime += FrameDuration;
         Iterator->NextFrame(false);
       }
-      Comp->SeekState(newTime, period);
+      Comp->SeekState(newTime, FrameDuration);
     }
   private:
-    const AYM::TrackParameters::Ptr Params;
+    void SynchronizeParameters()
+    {
+      if (Params.IsChanged())
+      {
+        FrameDuration = Params->FrameDuration();
+        Looped = Params->Looped();
+      }
+    }
+  private:
+    Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
     const StateIterator::Ptr Iterator;
     const Computer::Ptr Comp;
-    const AYDataChannel::Ptr Device;
+    const DataChannel::Ptr Device;
     const TrackState::Ptr State;
-    Time::Nanoseconds LastTime;
+    Devices::Z80::Stamp LastTime;
+    Devices::Z80::Stamp FrameDuration;
+    bool Looped;
   };
 
-  class AYData : public Formats::Chiptune::AY::Builder
+  class DataBuilder : public Formats::Chiptune::AY::Builder
   {
   public:
-    typedef boost::shared_ptr<const AYData> Ptr;
-
-    AYData(ModuleProperties::RWPtr properties, uint_t defaultDuration)
-      : Properties(properties)
+    explicit DataBuilder(PropertiesBuilder& props, uint_t defaultDuration)
+      : Properties(props)
+      , Data(boost::make_shared<ModuleData>())
       , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
-      , Frames(defaultDuration)
-      , Registers()
-      , StackPointer()
     {
+      Data->Frames = defaultDuration;
     }
 
-    ModuleProperties::Ptr GetProperties() const
-    {
-      return Properties;
-    }
-
-    uint_t GetFramesCount() const
-    {
-      return Frames;
-    }
-
-    Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
-    {
-      const Binary::Container::Ptr memory = Delegate->Result();
-      const uint8_t* const rawMemory = static_cast<const uint8_t*>(memory->Data());
-      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + memory->Size()), ports);
-      Devices::Z80::Registers regs;
-      regs.Mask = ~0;
-      std::fill(regs.Data.begin(), regs.Data.end(), Registers);
-      regs.Data[Devices::Z80::Registers::REG_SP] = StackPointer;
-      regs.Data[Devices::Z80::Registers::REG_IR] = Registers & 0xff;
-      regs.Data[Devices::Z80::Registers::REG_PC] = 0;
-      result->SetRegisters(regs);
-      return result;
-    }
-
-    //AYDataTarget
     virtual void SetTitle(const String& title)
     {
-      Properties->SetTitle(title);
+      Properties.SetTitle(title);
     }
 
     virtual void SetAuthor(const String& author)
     {
-      Properties->SetAuthor(author);
+      Properties.SetAuthor(author);
     }
 
     virtual void SetComment(const String& comment)
     {
-      Properties->SetComment(comment);
+      Properties.SetComment(comment);
     }
 
-    virtual void SetDuration(uint_t duration)
+    virtual void SetDuration(uint_t duration, uint_t fadeout)
     {
-      Frames = duration;
+      Data->Frames = duration;
+      if (fadeout)
+      {
+        Dbg("Using fadeout of %1% frames", fadeout);
+        static const Time::Microseconds FADING_STEP(20000);
+        Properties.SetValue(Parameters::ZXTune::Sound::FADEOUT, FADING_STEP.Get() * fadeout);
+      }
     }
 
     virtual void SetRegisters(uint16_t reg, uint16_t sp)
     {
-      Registers = reg;
-      StackPointer = sp;
+      Data->Registers = reg;
+      Data->StackPointer = sp;
     }
 
     virtual void SetRoutines(uint16_t init, uint16_t play)
@@ -492,131 +550,87 @@ namespace
     {
       Delegate->AddBlock(addr, src, size);
     }
+
+    ModuleData::Ptr GetResult() const
+    {
+      Data->Memory = Delegate->Result();
+      return Data;
+    }
   private:
-    const ModuleProperties::RWPtr Properties;
+    PropertiesBuilder& Properties;
+    const boost::shared_ptr<ModuleData> Data;
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
-    uint_t Frames;
-    uint16_t Registers;
-    uint16_t StackPointer;
   };
 
-  class ComputerImpl : public Computer
+  class Holder : public AYM::Holder
   {
   public:
-    ComputerImpl(AYData::Ptr data, Devices::Z80::ChipParameters::Ptr params, PortsPlexer::Ptr cpuPorts)
+    Holder(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
-      , Params(params)
-      , CPUPorts(cpuPorts)
-      , CPU(Data->CreateCPU(Params, CPUPorts))
+      , Info(CreateStreamInfo(Data->Frames))
+      , Properties(properties)
     {
     }
 
-    void Reset()
-    {
-      CPU = Data->CreateCPU(Params, CPUPorts);
-      CPUPorts->Reset();
-    }
-
-    void NextFrame(const Time::Nanoseconds& til)
-    {
-      CPU->Interrupt();
-      CPU->Execute(til);
-    }
-
-    void SeekState(const Time::Nanoseconds& til, const Time::Nanoseconds& frameStep)
-    {
-      const Time::Nanoseconds curTime = CPU->GetTime();
-      if (til < curTime)
-      {
-        Reset();
-      }
-      CPUPorts->SetBlocked(true);
-      Time::Nanoseconds pos = curTime;
-      while ((pos += frameStep) < til)
-      {
-        CPU->Interrupt();
-        CPU->Execute(pos);
-      }
-      CPUPorts->SetBlocked(false);
-      CPU->SetTime(curTime);
-    }
-  private:
-    const AYData::Ptr Data;
-    const Devices::Z80::ChipParameters::Ptr Params;
-    const PortsPlexer::Ptr CPUPorts;
-    Devices::Z80::Chip::Ptr CPU;
-  };
-
-  class AYChiptune : public AYM::Chiptune
-  {
-  public:
-    explicit AYChiptune(AYData::Ptr data)
-      : Data(data)
-      , Info(CreateStreamInfo(Data->GetFramesCount(), Devices::AYM::CHANNELS))
-    {
-    }
-
-    virtual Information::Ptr GetInformation() const
+    virtual Information::Ptr GetModuleInformation() const
     {
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const
     {
-      return Data->GetProperties();
+      return Properties;
     }
 
-    virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr /*trackParams*/) const
+    virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      assert(!"Should not be called");
-      return AYM::DataIterator::Ptr();
+      return AYM::CreateRenderer(*this, params, target);
     }
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const
     {
       const StateIterator::Ptr iterator = CreateStreamStateIterator(Info);
       const Devices::Z80::ChipParameters::Ptr cpuParams = boost::make_shared<CPUParameters>(params);
-      const AYDataChannel::Ptr ayChannel = AYDataChannel::Create(chip);
+      const DataChannel::Ptr ayChannel = DataChannel::Create(chip);
       const PortsPlexer::Ptr cpuPorts = PortsPlexer::Create(ayChannel);
-      const Computer::Ptr comp = boost::make_shared<ComputerImpl>(Data, cpuParams, cpuPorts);
-      const AYM::TrackParameters::Ptr trackParams = AYM::TrackParameters::Create(params);
-      return boost::make_shared<AYRenderer>(trackParams, iterator, comp, ayChannel);
+      const Computer::Ptr comp = boost::make_shared<Computer>(Data, cpuParams, cpuPorts);
+      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
+      return boost::make_shared<Renderer>(renderParams, iterator, comp, ayChannel);
+    }
+
+    virtual AYM::Chiptune::Ptr GetChiptune() const
+    {
+      return AYM::Chiptune::Ptr();
     }
   private:
-    const AYData::Ptr Data;
+    const ModuleData::Ptr Data;
     const Information::Ptr Info;
+    const Parameters::Accessor::Ptr Properties;
   };
-}
 
-namespace AYPlugin
-{
-  const Char ID[] = {'A', 'Y', 0};
-  const Char* const INFO = Text::AY_EMUL_DECODER_DESCRIPTION;
-}
-
-namespace AYModule
-{
-  using namespace ZXTune;
-
-  //plugin attributes
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-
+  //TODO: extract
   const std::string HEADER_FORMAT(
     "'Z'X'A'Y" // uint8_t Signature[4];
     "'E'M'U'L" // only one type is supported now
+    "??"       // versions
+    "??"       // player offset
+    "??"       // author offset
+    "??"       // misc offset
+    "00"       // first module
+    "00"       // last module
   );
-
-  class Factory : public ModulesFactory
+  
+  class Decoder : public Formats::Chiptune::Decoder
   {
   public:
-    Factory()
+    Decoder()
       : Format(Binary::Format::Create(HEADER_FORMAT))
     {
     }
 
-    virtual bool Check(const Binary::Container& inputData) const
+    virtual String GetDescription() const
     {
-      return Formats::Chiptune::AY::GetModulesCount(inputData) == 1;
+      return Text::AY_EMUL_DECODER_DESCRIPTION;
     }
 
     virtual Binary::Format::Ptr GetFormat() const
@@ -624,57 +638,52 @@ namespace AYModule
       return Format;
     }
 
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
+    virtual bool Check(const Binary::Container& rawData) const
     {
-      try
-      {
-        assert(Formats::Chiptune::AY::GetModulesCount(*rawData) == 1);
+      return Formats::Chiptune::AY::GetModulesCount(rawData) == 1;
+    }
 
-        Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
-        //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
-
-        const boost::shared_ptr<AYData> result = boost::make_shared<AYData>(properties, static_cast<uint_t>(defaultDuration));
-        if (Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(*rawData, 0, *result))
-        {
-          usedSize = container->Size();
-          properties->SetSource(container);
-          const AYM::Chiptune::Ptr chiptune = boost::make_shared<AYChiptune>(result);
-          return AYM::CreateHolder(chiptune);
-        }
-      }
-      catch (const Error&/*e*/)
-      {
-        Dbg("Failed to create holder");
-      }
-      return Holder::Ptr();
+    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+    {
+      return Formats::Chiptune::AY::Parse(rawData, 0, Formats::Chiptune::AY::GetStubBuilder());
     }
   private:
     const Binary::Format::Ptr Format;
   };
+
+  class Factory : public Module::Factory
+  {
+  public:
+    virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
+    {
+      assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
+
+      Parameters::IntType defaultDuration = Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES_DEFAULT;
+      //parameters->FindValue(Parameters::ZXTune::Core::Plugins::AY::DEFAULT_DURATION_FRAMES, defaultDuration);
+
+      DataBuilder builder(propBuilder, static_cast<uint_t>(defaultDuration));
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
+      {
+        propBuilder.SetSource(*container);
+        return boost::make_shared<Holder>(builder.GetResult(), propBuilder.GetResult());
+      }
+      return Holder::Ptr();
+    }
+  };
 }
-
-namespace AYContainer
-{
-  using namespace ZXTune;
-
-  const uint_t CAPS = CAP_STOR_MULTITRACK;
 }
 
 namespace ZXTune
 {
-  void RegisterAYSupport(PluginsRegistrator& registrator)
+  void RegisterAYSupport(PlayerPluginsRegistrator& registrator)
   {
-    //module
-    {
-      const ModulesFactory::Ptr factory = boost::make_shared<AYModule::Factory>();
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(AYPlugin::ID, AYPlugin::INFO, AYModule::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
-    //container
-    {
-      const Formats::Archived::Decoder::Ptr decoder = Formats::Archived::CreateAYDecoder();
-      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(AYPlugin::ID, AYContainer::CAPS, decoder);
-      registrator.RegisterPlugin(plugin);
-    }
+    //plugin attributes
+    const Char ID[] = {'A', 'Y', 0};
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+
+    const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::AY::Decoder>();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::AY::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }

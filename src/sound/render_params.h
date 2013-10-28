@@ -8,36 +8,36 @@
 **/
 
 #pragma once
-#ifndef __RENDER_PARAMS_H_DEFINED__
-#define __RENDER_PARAMS_H_DEFINED__
+#ifndef RENDER_PARAMS_H_DEFINED
+#define RENDER_PARAMS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/accessor.h>
+#include <time/stamp.h>
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  //! @brief Input parameters for rendering
+  class RenderParameters
   {
-    //! @brief Input parameters for rendering
-    class RenderParameters
-    {
-    public:
-      typedef boost::shared_ptr<const RenderParameters> Ptr;
+  public:
+    typedef boost::shared_ptr<const RenderParameters> Ptr;
 
-      virtual ~RenderParameters() {}
+    virtual ~RenderParameters() {}
 
-      //! Rendering sound frequency
-      virtual uint_t SoundFreq() const = 0;
-      //! Frame duration in us
-      virtual uint_t FrameDurationMicrosec() const = 0;
-      //! Loop mode
-      virtual bool Looped() const = 0;
-      //! Sound samples count per one frame
-      virtual uint_t SamplesPerFrame() const = 0;
+    virtual uint_t Version() const = 0;
 
-      static Ptr Create(Parameters::Accessor::Ptr soundParameters);
-    };
-  }
+    //! Rendering sound frequency
+    virtual uint_t SoundFreq() const = 0;
+    //! Frame duration in us
+    virtual Time::Microseconds FrameDuration() const = 0;
+    //! Loop mode
+    virtual bool Looped() const = 0;
+    //! Sound samples count per one frame
+    virtual uint_t SamplesPerFrame() const = 0;
+
+    static Ptr Create(Parameters::Accessor::Ptr soundParameters);
+  };
 }
 
-#endif //__RENDER_PARAMS_H_DEFINED__
+#endif //RENDER_PARAMS_H_DEFINED

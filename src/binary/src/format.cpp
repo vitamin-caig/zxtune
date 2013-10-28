@@ -13,9 +13,10 @@ Author:
 #include "expression.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
 //library includes
+#include <binary/data_adapter.h>
 #include <binary/format.h>
+#include <math/numeric.h>
 //std includes
 #include <limits>
 #include <vector>
@@ -115,12 +116,6 @@ namespace
       }
     }
 
-    template<class T>
-    StaticPattern(T from, T to)
-      : Data(from, to)
-    {
-    }
-
     std::size_t GetSize() const
     {
       return Data.size();
@@ -131,19 +126,14 @@ namespace
       return Data[idx];
     }
 
-    StaticPattern GetSuffix(std::size_t size) const
-    {
-      Require(size <= GetSize());
-      return StaticPattern(Data.end() - size, Data.end());
-    }
-
     //return back offset
-    std::size_t FindSuffix(const StaticPattern& suffix) const
+    std::size_t FindSuffix(std::size_t suffixSize) const
     {
+      const StaticToken* const suffixBegin = End() - suffixSize;
+      const StaticToken* const suffixEnd = End();
       const std::size_t patternSize = GetSize();
-      const std::size_t suffixSize = suffix.GetSize();
       const std::size_t startOffset = 1;
-      const StaticToken* start = End() - suffixSize - startOffset;
+      const StaticToken* start = suffixBegin - startOffset;
       for (std::size_t offset = startOffset; ; ++offset, --start)
       {
         const std::size_t windowSize = suffixSize + offset;
@@ -152,7 +142,7 @@ namespace
           //pattern:  ......sssssss
           //suffix:        xssssss
           //offset=1
-          if (std::equal(suffix.Begin(), suffix.End(), start, &StaticToken::AreIntersected))
+          if (std::equal(suffixBegin, suffixEnd, start, &StaticToken::AreIntersected))
           {
             return offset;
           }
@@ -168,7 +158,46 @@ namespace
           //suffix:  xssssss
           //out of pattern=2
           const std::size_t outOfPattern = windowSize - patternSize;
-          if (std::equal(suffix.Begin() + outOfPattern, suffix.End(), Begin(), &StaticToken::AreIntersected))
+          if (std::equal(suffixBegin + outOfPattern, suffixEnd, Begin(), &StaticToken::AreIntersected))
+          {
+            return offset;
+          }
+        }
+      }
+    }
+
+    std::size_t FindPrefix(std::size_t prefixSize) const
+    {
+      const StaticToken* const prefixBegin = Begin();
+      const StaticToken* const prefixEnd = Begin() + prefixSize;
+      const std::size_t patternSize = GetSize();
+      const std::size_t startOffset = 1;
+      const StaticToken* start = prefixBegin + startOffset;
+      for (std::size_t offset = startOffset; ; ++offset, ++start)
+      {
+        const std::size_t windowSize = prefixSize + offset;
+        if (patternSize >= windowSize)
+        {
+          //pattern: ssssss...
+          //prefix:   sssssx
+          //offset=1
+          if (std::equal(prefixBegin, prefixEnd, start, &StaticToken::AreIntersected))
+          {
+            return offset;
+          }
+        }
+        else
+        {
+          if (patternSize == offset)
+          {
+            //all prefix is out of patter
+            return offset;
+          }
+          //pattern: ....
+          //prefix:    sssx
+          //out of pattern=2
+          const std::size_t outOfPattern = windowSize - patternSize;
+          if (std::equal(prefixBegin, prefixEnd - outOfPattern, start, &StaticToken::AreIntersected))
           {
             return offset;
           }
@@ -195,37 +224,41 @@ namespace
     typedef boost::array<uint8_t, 256> PatternRow;
     typedef std::vector<PatternRow> PatternMatrix;
 
-    FastSearchFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize)
+    FastSearchFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
+      , MinScanStep(minScanStep)
       , Pat(mtx.rbegin(), mtx.rend())
       , PatRBegin(&Pat[0])
       , PatREnd(PatRBegin + Pat.size())
     {
     }
 
-    virtual bool Match(const void* data, std::size_t size) const
+    virtual bool Match(const Data& data) const
     {
-      if (size < MinSize)
+      if (data.Size() < MinSize)
       {
         return false;
       }
       const std::size_t endOfPat = Offset + Pat.size();
-      const uint8_t* typedDataLast = static_cast<const uint8_t*>(data) + endOfPat - 1;
+      const uint8_t* typedDataLast = static_cast<const uint8_t*>(data.Start()) + endOfPat - 1;
       return 0 == SearchBackward(typedDataLast);
     }
 
-    virtual std::size_t Search(const void* data, std::size_t size) const
+    virtual std::size_t NextMatchOffset(const Data& data) const
     {
+      const std::size_t size = data.Size();
       if (size < MinSize)
       {
         return size;
       }
-      const uint8_t* const typedData = static_cast<const uint8_t*>(data);
+      const uint8_t* const typedData = static_cast<const uint8_t*>(data.Start());
       const std::size_t endOfPat = Offset + Pat.size();
       const uint8_t* const scanStart = typedData + endOfPat - 1;
       const uint8_t* const scanStop = typedData + size;
-      for (const uint8_t* scanPos = scanStart; scanPos < scanStop; )
+      const std::size_t firstMatch = SearchBackward(scanStart);
+      const std::size_t initialOffset = firstMatch != 0 ? firstMatch : MinScanStep;
+      for (const uint8_t* scanPos = scanStart + initialOffset; scanPos < scanStop; )
       {
         if (const std::size_t offset = SearchBackward(scanPos))
         {
@@ -237,6 +270,11 @@ namespace
         }
       }
       return size;
+    }
+
+    std::size_t GetSize() const
+    {
+      return MinSize;
     }
 
     static Ptr Create(const Expression& expr, std::size_t minSize)
@@ -255,7 +293,7 @@ namespace
           }
           else
           {
-            Require(in_range<std::size_t>(offset, 0, std::numeric_limits<PatternRow::value_type>::max()));
+            Require(Math::InRange<std::size_t>(offset, 0, std::numeric_limits<PatternRow::value_type>::max()));
             tmp[pos][sym] = static_cast<PatternRow::value_type>(offset);
           }
         }
@@ -273,8 +311,7 @@ namespace
       {
         PatternRow& row = tmp[pos];
         const std::size_t suffixLen = patternSize - pos - 1;
-        const StaticPattern suffix = pattern.GetSuffix(suffixLen);
-        const std::size_t offset = pattern.FindSuffix(suffix);
+        const std::size_t offset = pattern.FindSuffix(suffixLen);
         const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
         for (uint_t sym = 0; sym != 256; ++sym)
         {
@@ -285,7 +322,8 @@ namespace
         }
       }
       //Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means symbol match
-      return boost::make_shared<FastSearchFormat>(tmp, expr.StartOffset(), minSize);
+      const std::size_t minScanStep = pattern.FindPrefix(patternSize);
+      return boost::make_shared<FastSearchFormat>(tmp, expr.StartOffset(), minSize, minScanStep);
     }
   private:
     std::size_t SearchBackward(const uint8_t* data) const
@@ -308,9 +346,106 @@ namespace
   private:
     const std::size_t Offset;
     const std::size_t MinSize;
+    const std::size_t MinScanStep;
     const PatternMatrix Pat;
     const PatternRow* const PatRBegin;
     const PatternRow* const PatREnd;
+  };
+
+  std::size_t GetSize(Format::Ptr format)
+  {
+    if (const boost::shared_ptr<const FastSearchFormat> fast = boost::dynamic_pointer_cast<const FastSearchFormat>(format))
+    {
+      return fast->GetSize();
+    }
+    else
+    {
+      return 0;
+    }
+  }
+}
+
+namespace Binary
+{
+  class CompositeFormat : public Format
+  {
+  public:
+    CompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset)
+      : Header(header)
+      , Footer(footer)
+      , MinFooterOffset(std::max(minFooterOffset, GetSize(header)))
+      , MaxFooterOffset(maxFooterOffset)
+      , FooterSize(GetSize(footer))
+    {
+      Require(MinFooterOffset <= MaxFooterOffset);
+    }
+
+    virtual bool Match(const Data& data) const
+    {
+      const std::size_t size = data.Size();
+      if (size < MinFooterOffset + FooterSize)
+      {
+        return false;
+      }
+      if (!Header->Match(data))
+      {
+        return false;
+      }
+      const std::size_t searchStartPos = MinFooterOffset;
+      const uint8_t* const searchStart = static_cast<const uint8_t*>(data.Start()) + searchStartPos;
+      const std::size_t searchSize = std::min(MaxFooterOffset + FooterSize, size) - searchStartPos;
+      return searchSize != SearchFooter(searchStart, searchSize);
+    }
+
+    virtual std::size_t NextMatchOffset(const Data& data) const
+    {
+      const uint8_t* const start = static_cast<const uint8_t*>(data.Start());
+      const std::size_t limit = data.Size();
+      for (std::size_t headerCursor = 1;;)
+      {
+        const std::size_t restForHeader = limit - headerCursor;
+        const std::size_t headerOffset = SearchHeader(start + headerCursor, restForHeader);
+        if (headerOffset + MinFooterOffset + FooterSize > restForHeader)
+        {
+          //no place for footer
+          break;
+        }
+        const std::size_t absoluteHeaderOffset = headerCursor + headerOffset;
+
+        const std::size_t footerCursor = absoluteHeaderOffset + MinFooterOffset;
+        const std::size_t restForFooter = limit - footerCursor;
+        const std::size_t footerOffset = SearchFooter(start + footerCursor, restForFooter);
+        if (footerOffset == restForFooter)
+        {
+          //footer not found
+          break;
+        }
+        else if (footerOffset + MinFooterOffset <= MaxFooterOffset)
+        {
+          return absoluteHeaderOffset;
+        }
+        const std::size_t absoluteFooterOffset = footerCursor + footerOffset;
+        headerCursor = std::max(absoluteHeaderOffset + 1, absoluteFooterOffset - MaxFooterOffset);
+      }
+      return limit;
+    }
+  private:
+    //returns absolute offset from start covering case when match happends at start
+    std::size_t SearchHeader(const uint8_t* start, std::size_t rest) const
+    {
+      return Header->NextMatchOffset(DataAdapter(start - 1, rest + 1)) - 1;
+    }
+
+    std::size_t SearchFooter(const uint8_t* start, std::size_t rest) const
+    {
+      return Footer->NextMatchOffset(DataAdapter(start - 1, rest + 1)) - 1;
+    }
+  private:
+    const Format::Ptr Header;
+    const Format::Ptr Footer;
+    const std::size_t MinFooterOffset;
+    const std::size_t MaxFooterOffset;
+    const std::size_t FooterSize;
   };
 }
 
@@ -320,5 +455,10 @@ namespace Binary
   {
     const Expression::Ptr expr = Expression::Parse(pattern);
     return FastSearchFormat::Create(*expr, minSize);
+  }
+
+  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset)
+  {
+    return boost::make_shared<CompositeFormat>(header, footer, minFooterOffset, maxFooterOffset);
   }
 }

@@ -1,4 +1,3 @@
-$Revision: 1365 $
 Quick reference for zxtune123
 
 
@@ -115,21 +114,6 @@ with
 
 file (if extension is not specified exactly, it's added automatically).
 Non-existing fields are skipped.
-
-OTHER SOUND OPTIONS
---mixer used to specify mixer. It can be done by two ways- specifying symbolic channels layout or explicit matrix:
-	--mixer ABC
-
-specifies mixer for three channels modules (three letters in set). Every letter can be uppercase to use normal gain, lowercase to use lower gain or '-' to switch off the specified channel. Also letters can be duplicated.
-
-	--mixer 1-0,0.9-0.1,0.6-0.4,0.4-0.6,0.1-0.9,0-1
-
-specifies mixer for four channels modules (for stereo output - eight coefficients). Symbols ';', ',', '-' can be used as a delimiters without any restrictions- difference (as in sample) is just for usability.
-Multiple --mixer can be used to specify mixers for different channels count.
---filter used to specify bandpass filter with specified order and frequency range.
-	--filter 30,20-20000
-
-specifies 30's order bandpass filter for range from 20Hz till 20kHz. Specifying order is not required (10 used by default).
 
 CONVERSION
 To convert chiptune(s) from initial format to another one, use --convert key with mandatory parameters which are used to specify working mode and target. Syntax is:

@@ -11,13 +11,14 @@ Author:
 
 //local includes
 #include <apps/base/parsing.h>
-#include <apps/base/error_codes.h>
 //common includes
 #include <error_tools.h>
 //library includes
-#include <io/fs_tools.h>
+#include <parameters/serialize.h>
+#include <strings/map.h>
 //std includes
 #include <cctype>
+#include <fstream>
 //text includes
 #include "../text/base_text.h"
 
@@ -27,25 +28,38 @@ namespace
 {
   static const Char PARAMETERS_DELIMITER = ',';
 
-  //try to search config in homedir, if defined
-  inline String GetDefaultConfigFile()
+  String GetDefaultConfigFileWindows()
   {
-#ifdef _WIN32
-    const String configPath(Text::CONFIG_PATH_WIN);
     if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_WIN).c_str()))
-#else
-    const String configPath(Text::CONFIG_PATH_NIX);
-    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_NIX).c_str()))
-#endif
     {
-      return ZXTune::IO::AppendPath(FromStdString(homeDir), configPath);
+      return FromStdString(homeDir) + '\\' + Text::CONFIG_PATH_WIN;
     }
     return Text::CONFIG_FILENAME;
   }
 
-  Error ParseParametersString(const Parameters::NameType& prefix, const String& str, StringMap& result)
+  String GetDefaultConfigFileNix()
   {
-    StringMap res;
+    const String configPath(Text::CONFIG_PATH_NIX);
+    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_NIX).c_str()))
+    {
+      return FromStdString(homeDir) + '/' + Text::CONFIG_PATH_NIX;
+    }
+    return Text::CONFIG_FILENAME;
+  }
+
+  //try to search config in homedir, if defined
+  inline String GetDefaultConfigFile()
+  {
+#ifdef _WIN32
+    return GetDefaultConfigFileWindows();
+#else
+    return GetDefaultConfigFileNix();
+#endif
+  }
+
+  void ParseParametersString(const Parameters::NameType& prefix, const String& str, Strings::Map& result)
+  {
+    Strings::Map res;
   
     enum
     {
@@ -85,8 +99,7 @@ namespace
         }
         else
         {
-          return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-            Text::ERROR_INVALID_FORMAT, str);
+          throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
         }
         break;
       case IN_VALUE:
@@ -120,25 +133,23 @@ namespace
 
       if (doApply)
       {
-        res.insert(StringMap::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
+        res.insert(Strings::Map::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
         paramName.clear();
         paramValue.clear();
       }
     }
     if (IN_VALUE == mode)
     {
-      res.insert(StringMap::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
+      res.insert(Strings::Map::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
     }
     else if (IN_NOWHERE != mode)
     {
-      return MakeFormattedError(THIS_LINE, INVALID_PARAMETER,
-        Text::ERROR_INVALID_FORMAT, str);
+      throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
     }
     result.swap(res);
-    return Error();
   }
 
-  Error ParseConfigFile(const String& filename, String& params)
+  void ParseConfigFile(const String& filename, String& params)
   {
     const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
 
@@ -148,14 +159,14 @@ namespace
     {
       if (!filename.empty())
       {
-        return Error(THIS_LINE, CONFIG_FILE, Text::ERROR_CONFIG_FILE);
+        throw Error(THIS_LINE, Text::ERROR_CONFIG_FILE);
       }
       configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
     }
     if (!*configFile)
     {
       params.clear();
-      return Error();
+      return;
     }
 
     String lines;
@@ -183,31 +194,22 @@ namespace
       }
     }
     params = lines;
-    return Error();
   }
 }
 
-Error ParseConfigFile(const String& filename, Parameters::Modifier& result)
+void ParseConfigFile(const String& filename, Parameters::Modifier& result)
 {
   String strVal;
-  if (const Error& err = ParseConfigFile(filename, strVal))
+  ParseConfigFile(filename, strVal);
+  if (!strVal.empty())
   {
-    return err;
+    ParseParametersString(String(), strVal, result);
   }
-  if (strVal.empty())
-  {
-    return Error();
-  }
-  return ParseParametersString(String(), strVal, result);
 }
 
-Error ParseParametersString(const Parameters::NameType& pfx, const String& str, Parameters::Modifier& result)
+void ParseParametersString(const Parameters::NameType& pfx, const String& str, Parameters::Modifier& result)
 {
-  StringMap strMap;
-  if (const Error& err = ParseParametersString(pfx, str, strMap))
-  {
-    return err;
-  }
-  Parameters::ParseStringMap(strMap, result);
-  return Error();
+  Strings::Map strMap;
+  ParseParametersString(pfx, str, strMap);
+  Parameters::Convert(strMap, result);
 }

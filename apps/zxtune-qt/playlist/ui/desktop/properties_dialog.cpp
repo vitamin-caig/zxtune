@@ -17,12 +17,15 @@ Author:
 #include "playlist/supp/capabilities.h"
 #include "playlist/ui/table_view.h"
 #include "ui/utils.h"
+#include "ui/preferences/aym.h"
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
+#include <error.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
+#include <parameters/merged_accessor.h>
 #include <sound/sound_parameters.h>
 //boost includes
 #include <boost/make_shared.hpp>
@@ -43,6 +46,11 @@ namespace
       : Adjusted(adjusted)
       , Merged(Parameters::CreateMergedAccessor(adjusted, native))
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Merged->Version();
     }
 
     virtual bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const
@@ -101,12 +109,12 @@ namespace
       setWindowTitle(ToQString(item->GetFullPath()));
 
       //TODO: query only item
-      const ZXTune::Module::Holder::Ptr module = item->GetModule();
+      const Module::Holder::Ptr module = item->GetModule();
       const Parameters::Accessor::Ptr nativeProps = module->GetModuleProperties();
       const Parameters::Container::Ptr adjustedProps = item->GetAdjustedParameters();
       Properties = boost::make_shared<ItemPropertiesContainer>(adjustedProps, nativeProps);
 
-      const Playlist::Item::Capabilities caps(module);
+      const Playlist::Item::Capabilities caps(item);
       FillProperties(caps);
       itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding), itemsLayout->rowCount(), 0);
 
@@ -126,38 +134,63 @@ namespace
   private:
     void FillProperties(const Playlist::Item::Capabilities& caps)
     {
-      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Title"), ZXTune::Module::ATTR_TITLE);
-      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Author"), ZXTune::Module::ATTR_AUTHOR);
-      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Comment"), ZXTune::Module::ATTR_COMMENT);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Title"), Module::ATTR_TITLE);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Author"), Module::ATTR_AUTHOR);
+      AddStringProperty(Playlist::UI::PropertiesDialog::tr("Comment"), Module::ATTR_COMMENT);
 
       QStringList valuesOffOn;
       valuesOffOn << Playlist::UI::PropertiesDialog::tr("Off") << Playlist::UI::PropertiesDialog::tr("On");
 
       if (caps.IsAYM())
       {
-        QStringList chipTypes;
-        chipTypes << QLatin1String("AY-3-8910/12") << QLatin1String("YM2149");
-        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Chip type"), Parameters::ZXTune::Core::AYM::TYPE, chipTypes);
-        QStringList layouts;
-        layouts
-          << QLatin1String("ABC")
-          << QLatin1String("ACB")
-          << QLatin1String("BAC")
-          << QLatin1String("BCA")
-          << QLatin1String("CAB")
-          << QLatin1String("CBA")
-          << Playlist::UI::PropertiesDialog::tr("Mono");
-        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Layout"), Parameters::ZXTune::Core::AYM::LAYOUT, layouts);
-        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::AYM::INTERPOLATION, valuesOffOn);
-        const Parameters::IntegerTraits clockRate(Parameters::ZXTune::Core::AYM::CLOCKRATE, -1, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX);
+        FillAymChipTypeProperty();
+        FillAymLayoutProperty();
+        FillAymInterpolationProperty();
+        using namespace Parameters::ZXTune::Core::AYM;
+        const Parameters::IntegerTraits clockRate(CLOCKRATE, -1, CLOCKRATE_MIN, CLOCKRATE_MAX);
         AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Clockrate, Hz"), clockRate);
-        const Parameters::IntegerTraits frameDuration(Parameters::ZXTune::Sound::FRAMEDURATION, -1, Parameters::ZXTune::Sound::FRAMEDURATION_MIN, Parameters::ZXTune::Sound::FRAMEDURATION_MAX);
+        using namespace Parameters::ZXTune::Sound;
+        const Parameters::IntegerTraits frameDuration(FRAMEDURATION, -1, FRAMEDURATION_MIN, FRAMEDURATION_MAX);
         AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Frame duration, uS"), frameDuration);
       }
       if (caps.IsDAC())
       {
-        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::DAC::INTERPOLATION, valuesOffOn);
+        using namespace Parameters::ZXTune::Core::DAC;
+        AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), INTERPOLATION, valuesOffOn);
+        const Parameters::IntegerTraits samplesFreq(SAMPLES_FREQUENCY, -1, SAMPLES_FREQUENCY_MIN, SAMPLES_FREQUENCY_MAX);
+        AddIntegerProperty(Playlist::UI::PropertiesDialog::tr("Samples frequency"), samplesFreq);
       }
+    }
+
+    void FillAymChipTypeProperty()
+    {
+      QStringList chipTypes;
+      chipTypes << QLatin1String("AY-3-8910/12") << QLatin1String("YM2149");
+      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Chip type"), Parameters::ZXTune::Core::AYM::TYPE, chipTypes);
+    }
+
+    void FillAymLayoutProperty()
+    {
+      QStringList layouts;
+      layouts
+        << QLatin1String("ABC")
+        << QLatin1String("ACB")
+        << QLatin1String("BAC")
+        << QLatin1String("BCA")
+        << QLatin1String("CAB")
+        << QLatin1String("CBA")
+        << Playlist::UI::PropertiesDialog::tr("Mono");
+      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Layout"), Parameters::ZXTune::Core::AYM::LAYOUT, layouts);
+    }
+
+    void FillAymInterpolationProperty()
+    {
+      QStringList interpolations;
+      interpolations
+        << Playlist::UI::PropertiesDialog::tr("None")
+        << Playlist::UI::PropertiesDialog::tr("Performance")
+        << Playlist::UI::PropertiesDialog::tr("Quality");
+      AddSetProperty(Playlist::UI::PropertiesDialog::tr("Interpolation"), Parameters::ZXTune::Core::AYM::INTERPOLATION, interpolations);
     }
 
     void AddStringProperty(const QString& title, const Parameters::NameType& name)
@@ -212,17 +245,16 @@ namespace Playlist
       return boost::make_shared<PropertiesDialogImpl>(boost::ref(parent), item);
     }
 
-    void ExecutePropertiesDialog(TableView& view, Model::IndexSetPtr scope, Controller& controller)
+    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSetPtr scope)
     {
       if (scope->size() != 1)
       {
         return;
       }
-      const Model::Ptr model = controller.GetModel();
       const Item::Data::Ptr item = model->GetItem(*scope->begin());
-      if (item->IsValid())
+      if (!item->GetState())
       {
-        const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(view, item);
+        const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, item);
         dialog->exec();
       }
     }

@@ -1,10 +1,12 @@
-#include <tools.h>
 #include <types.h>
+#include <binary/data_adapter.h>
 #include <binary/format.h>
 #include <binary/src/format_grammar.h>
 #include <binary/src/format_syntax.h>
 #include <sstream>
 #include <iostream>
+#include <boost/range/size.hpp>
+#include <boost/range/algorithm/for_each.hpp>
 
 namespace
 {
@@ -47,7 +49,7 @@ namespace
       Str << TOKENS[type] << '(' << lexeme << ") ";
     }
 
-    virtual void MultipleTokensMatched(const std::string& lexeme, const std::set<LexicalAnalysis::TokenType>& /*types*/)
+    virtual void MultipleTokensMatched(const std::string& lexeme, const LexicalAnalysis::TokenTypesSet& /*types*/)
     {
       Str << "X(" << lexeme << ") ";
     }
@@ -151,9 +153,19 @@ namespace
 
 namespace
 {
-  typedef std::pair<bool, std::size_t> FormatResult;
+  struct FormatResult
+  {
+    bool Matched;
+    std::size_t NextMatch;
 
-  const FormatResult INVALID_FORMAT(false, 0);
+    FormatResult(bool matched, std::size_t nextMatch)
+      : Matched(matched)
+      , NextMatch(nextMatch)
+    {
+    }
+  };
+
+  const FormatResult INVALID_FORMAT = FormatResult(false, 0);
 
   struct FormatTest
   {
@@ -166,13 +178,31 @@ namespace
     FormatResult Result;
   };
 
+  const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+
   FormatResult CheckFormat(const std::string& notation)
   {
-    static const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
     try
     {
       const Binary::Format::Ptr format = Binary::Format::Create(notation);
-      return FormatResult(format->Match(SAMPLE, ArraySize(SAMPLE)), format->Search(SAMPLE, ArraySize(SAMPLE)));
+      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
+    }
+    catch (const std::exception&)
+    {
+      return INVALID_FORMAT;
+    }
+  }
+
+  FormatResult CheckCompositeFormat(const std::string& header, const std::string footer, std::size_t minSize, std::size_t maxSize)
+  {
+    try
+    {
+      const Binary::Format::Ptr hdr = Binary::Format::Create(header, minSize);
+      const Binary::Format::Ptr foot = Binary::Format::Create(footer);
+      const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, minSize, maxSize);
+      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
     catch (const std::exception&)
     {
@@ -326,7 +356,7 @@ namespace
       "*5 ",
       "*5 ",
       "*5 ",
-      FormatResult(true, 0)
+      FormatResult(true, 5)
     },
     {
       "quantor on empty",
@@ -380,7 +410,7 @@ namespace
       "( 00 ) | 02 ",
       "( 00 ) 02 | ",
       "( 00 ) 02 | ",
-      FormatResult(true, 0)
+      FormatResult(true, 2)
     },
     {
       "multival operation right",
@@ -481,7 +511,7 @@ namespace
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "partial explicit match",
@@ -490,7 +520,7 @@ namespace
       "00 01 02 03 04 05 ",
       "00 01 02 03 04 05 ",
       "00 01 02 03 04 05 ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "whole mask match",
@@ -499,7 +529,7 @@ namespace
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "partial mask match",
@@ -508,7 +538,7 @@ namespace
       "00 \? 02 03 04 05 ",
       "00 \? 02 03 04 05 ",
       "00 \? 02 03 04 05 ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "full oversize unmatch",
@@ -526,7 +556,7 @@ namespace
       "0x 0x ",
       "0x 0x ",
       "0x 0x ",
-      FormatResult(true, 0)
+      FormatResult(true, 1)
     },
     {
       "nibbles unmatched",
@@ -544,7 +574,7 @@ namespace
       "%0x0x0x0x %x0x0x0x1 ",
       "%0x0x0x0x %x0x0x0x1 ",
       "%0x0x0x0x %x0x0x0x1 ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "binary unmatched",
@@ -562,7 +592,7 @@ namespace
       "00 - 02 00 - 02 ",
       "00 02 - 00 02 - ",
       "00 02 - 00 02 - ",
-      FormatResult(true, 0)
+      FormatResult(true, 1)
     },
     {
       "ranged unmatched",
@@ -643,7 +673,7 @@ namespace
       "0x {10} ",
       "0x {10} ",
       "0x {10} ",
-      FormatResult(true, 0)
+      FormatResult(true, 1)
     },
     {
       "quantor unmatched",
@@ -661,7 +691,7 @@ namespace
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
-      FormatResult(true, 0)
+      FormatResult(true, 2)
     },
     {
       "quanted group unmatched",
@@ -688,7 +718,7 @@ namespace
       "( 00 01 02 03 ) 04 - 05 ",
       "( 00 01 02 03 ) 04 05 - ",
       "( 00 01 02 03 ) 04 05 - ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "quanted range matched",
@@ -697,7 +727,7 @@ namespace
       "00 - 1f {32} ",
       "00 1f - {32} ",
       "00 1f - {32} ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "multiplicity matched",
@@ -706,7 +736,7 @@ namespace
       "00 01 02 03 *2 05 *3 ",
       "00 01 02 03 *2 05 *3 ",
       "00 01 02 03 *2 05 *3 ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "multiplicity unmatched",
@@ -724,7 +754,7 @@ namespace
       "00 0x & x1 ",
       "00 0x x1 & ",
       "00 0x x1 & ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "conjunction unmatched",
@@ -742,7 +772,7 @@ namespace
       "00 | 01 00 | 01 ",
       "00 01 | 00 01 | ",
       "00 01 | 00 01 | ",
-      FormatResult(true, 0)
+      FormatResult(true, 32)
     },
     {
       "disjunction unmatched",
@@ -760,7 +790,7 @@ namespace
       "00 - 01 | 1e - 1f ",
       "00 01 - 1e 1f - | ",
       "00 01 - 1e 1f - | ",
-      FormatResult(true, 0)
+      FormatResult(true, 1)
     },
     {
       "trd format expression",
@@ -785,7 +815,7 @@ namespace
     }
   };
 
-  void Execute(const FormatTest& tst)
+  void ExecuteTest(const FormatTest& tst)
   {
     std::cout << "Testing for " << tst.Name << " (#" << &tst - TESTS << ')' << std::endl;
     Test("grammar", GetGrammar(tst.Notation), tst.GrammarReport);
@@ -793,8 +823,108 @@ namespace
     Test("syntax RPN", GetSyntaxRPN(tst.Notation), tst.SyntaxReportRPN);
     Test("syntax RPN checked", GetSyntaxRPNChecked(tst.Notation), tst.SyntaxReportRPNChecked);
     const FormatResult res = CheckFormat(tst.Notation);
-    Test("match", res.first, tst.Result.first);
-    Test("lookahead", res.second, tst.Result.second);
+    Test("match", res.Matched, tst.Result.Matched);
+    Test("next match offset", res.NextMatch, tst.Result.NextMatch);
+  }
+
+  struct CompositeFormatTest
+  {
+    std::string Name;
+    std::string Header;
+    std::string Footer;
+    std::size_t MinSize;
+    std::size_t MaxFooterOffset;
+    FormatResult Result;
+  };
+
+  const CompositeFormatTest COMPOSITE_TESTS[] =
+  {
+    {
+      "whole matching",
+      "0001", "1e1f",
+      4, 32,
+      FormatResult(true, 32)
+    },
+    {
+      "matched from begin",
+      "0001", "1011",
+      4, 32,
+      FormatResult(true, 32)
+    },
+    {
+      "matched at end",
+      "0203", "1e1f",
+      4, 32,
+      FormatResult(false, 2)
+    },
+    {
+      "matched at middle",
+      "0203", "1011",
+      4, 32,
+      FormatResult(false, 2)
+    },
+    {
+      "not matched header",
+      "0002", "1e1f",
+      4, 32,
+      FormatResult(false, 32)
+    },
+    {
+      "not matched footer",
+      "0001", "1e20",
+      4, 32,
+      FormatResult(false, 32)
+    },
+    {
+      "not matched max footer offset",
+      "0001", "1e1f",
+      4, 29,
+      FormatResult(false, 32)
+    },
+    {
+      "matched max footer offset",
+      "0001", "1e1f",
+      4, 30,
+      FormatResult(true, 32)
+    },
+    {
+      "not matched minsize",
+      "0001", "1e1f",
+      33, 33,
+      FormatResult(false, 32)
+    },
+    {
+      "matched with overlap",
+      "0203040506070809", "x8x9",
+      4, 32,
+      FormatResult(false, 2)
+    },
+    {
+      "matched with iterations",
+      "x2x3x4", "1e1f",
+      4, 16,
+      FormatResult(false, 0x12)
+    },
+    {
+      "matched with no skip at begin",
+      "00010203", "040506",
+      4, 32,
+      FormatResult(true, 32)
+    },
+    {
+      "matched with no skip at middle",
+      "02030405", "06070809",
+      4, 7,
+      FormatResult(false, 2)
+    },
+  };
+
+  void ExecuteCompositeTest(const CompositeFormatTest& tst)
+  {
+    std::cout << "Testing for composite format: " << tst.Name << std::endl;
+    const FormatResult res = CheckCompositeFormat(tst.Header, tst.Footer, tst.MinSize, tst.MaxFooterOffset);
+    Test("match", res.Matched, tst.Result.Matched);
+    Test("next match offset", res.NextMatch, tst.Result.NextMatch);
   }
 }
 
@@ -802,7 +932,8 @@ int main()
 {
   try
   {
-    std::for_each(TESTS, ArrayEnd(TESTS), std::ptr_fun(&Execute));
+    boost::for_each(TESTS, std::ptr_fun(&ExecuteTest));
+    boost::for_each(COMPOSITE_TESTS, std::ptr_fun(&ExecuteCompositeTest));
   }
   catch (int code)
   {

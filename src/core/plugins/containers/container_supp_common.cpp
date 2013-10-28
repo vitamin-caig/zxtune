@@ -12,14 +12,12 @@ Author:
 //local includes
 #include "container_supp_common.h"
 #include "core/src/callback.h"
-#include "core/src/core.h"
 #include "core/plugins/utils.h"
-//common includes
-#include <format.h>
-#include <debug_log.h>
 //library includes
 #include <core/plugin_attrs.h>
+#include <debug/log.h>
 #include <l10n/api.h>
+#include <strings/format.h>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -28,11 +26,12 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-
   const Debug::Stream Dbg("Core::ArchivesSupp");
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+}
 
+namespace ZXTune
+{
   class LoggerHelper
   {
   public:
@@ -115,7 +114,7 @@ namespace
         const String subPath = file.GetName();
         const ZXTune::DataLocation::Ptr subLocation = CreateNestedLocation(BaseLocation, subData, SubPlugin, subPath);
         const std::auto_ptr<Module::DetectCallback> nestedProgressCallback = Logger.CreateNestedCallback();
-        ZXTune::Module::Detect(subLocation, *nestedProgressCallback);
+        Module::Detect(subLocation, *nestedProgressCallback);
       }
       Logger.Next();
     }
@@ -139,6 +138,11 @@ namespace
     virtual Plugin::Ptr GetDescription() const
     {
       return Description;
+    }
+
+    virtual Binary::Format::Ptr GetFormat() const
+    {
+      return Decoder->GetFormat();
     }
 
     virtual Analysis::Result::Ptr Detect(DataLocation::Ptr input, const Module::DetectCallback& callback) const

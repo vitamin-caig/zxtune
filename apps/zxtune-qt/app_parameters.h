@@ -15,8 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_APP_PARAMETERS_H_DEFINED
 #define ZXTUNE_QT_APP_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {

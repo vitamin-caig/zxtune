@@ -15,7 +15,7 @@ Author:
 #include "format_syntax.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
+#include <math/numeric.h>
 //std includes
 #include <cctype>
 #include <stack>
@@ -230,7 +230,7 @@ namespace
 
     virtual bool Match(uint_t val) const
     {
-      return in_range(val, From, To);
+      return Math::InRange(val, From, To);
     }
 
     static Ptr Create(Ptr lh, Ptr rh)

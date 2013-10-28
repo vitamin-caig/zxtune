@@ -14,141 +14,127 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__
 
 //local includes
-#include "ay_base.h"
+#include "aym_base_track.h"
+#include "core/plugins/players/simple_ornament.h"
 //library includes
-#include <core/module_holder.h>
-#include <devices/aym.h>
-#include <formats/chiptune/protracker3.h>
+#include <formats/chiptune/aym/protracker3.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  //at least two formats are based on Vortex, so it's useful to extract tracking-related types
+  namespace Vortex
   {
-    //at least two formats are based on Vortex, so it's useful to extract tracking-related types
-    namespace Vortex
+    // Frequency table enumeration, compatible with binary format (PT3.x)
+    enum NoteTable
     {
-      // Frequency table enumeration, compatible with binary format (PT3.x)
-      enum NoteTable
+      PROTRACKER,
+      SOUNDTRACKER,
+      ASM,
+      REAL,
+      NATURAL
+    };
+
+    String GetFreqTable(NoteTable table, uint_t version);
+
+    //sample type
+    struct Sample : public Formats::Chiptune::ProTracker3::Sample
+    {
+      Sample() : Formats::Chiptune::ProTracker3::Sample()
       {
-        PROTRACKER,
-        SOUNDTRACKER,
-        ASM,
-        REAL,
-        NATURAL
-      };
+      }
 
-      String GetFreqTable(NoteTable table, uint_t version);
-
-      //sample type
-      struct Sample : public Formats::Chiptune::ProTracker3::Sample
+      Sample(const Formats::Chiptune::ProTracker3::Sample& rh)
+        : Formats::Chiptune::ProTracker3::Sample(rh)
       {
-        Sample() : Formats::Chiptune::ProTracker3::Sample()
-        {
-        }
+      }
 
-        Sample(const Formats::Chiptune::ProTracker3::Sample& rh)
-          : Formats::Chiptune::ProTracker3::Sample(rh)
-        {
-        }
-
-        template<class Iterator>
-        Sample(uint_t loop, Iterator from, Iterator to)
-        {
-          Loop = loop;
-          Lines.assign(from, to);
-        }
-
-        uint_t GetLoop() const
-        {
-          return Loop;
-        }
-
-        uint_t GetSize() const
-        {
-          return static_cast<uint_t>(Lines.size());
-        }
-
-        const Line& GetLine(const uint_t idx) const
-        {
-          static const Line STUB;
-          return Lines.size() > idx ? Lines[idx] : STUB;
-        }
-      };
-
-      //ornament type
-      struct Ornament : public Formats::Chiptune::ProTracker3::Ornament
+      template<class Iterator>
+      Sample(uint_t loop, Iterator from, Iterator to)
       {
-        Ornament() : Formats::Chiptune::ProTracker3::Ornament()
-        {
-        }
+        Loop = loop;
+        Lines.assign(from, to);
+      }
 
-        Ornament(const Formats::Chiptune::ProTracker3::Ornament& rh)
-          : Formats::Chiptune::ProTracker3::Ornament(rh)
-        {
-        }
-
-        template<class It>
-        Ornament(uint_t loop, It from, It to)
-        {
-          Loop = loop;
-          Lines.assign(from, to);
-        }
-
-        uint_t GetLoop() const
-        {
-          return Loop;
-        }
-
-        uint_t GetSize() const
-        {
-          return static_cast<uint_t>(Lines.size());
-        }
-
-        int_t GetLine(uint_t pos) const
-        {
-          return Lines.size() > pos ? Lines[pos] : 0;
-        }
-      };
-
-      //supported commands set and their parameters
-      enum Commands
+      uint_t GetLoop() const
       {
-        //no parameters
-        EMPTY,
-        //period,delta
-        GLISS,
-        //period,delta,target note
-        GLISS_NOTE,
-        //offset
-        SAMPLEOFFSET,
-        //offset
-        ORNAMENTOFFSET,
-        //ontime,offtime
-        VIBRATE,
-        //period,delta
-        SLIDEENV,
-        //no parameters
-        NOENVELOPE,
-        //r13,period
-        ENVELOPE,
-        //base
-        NOISEBASE,
-        //tempo
-        TEMPO
-      };
+        return Loop;
+      }
 
-      typedef TrackingSupport<Devices::AYM::CHANNELS, Commands, Sample, Ornament> Track;
+      uint_t GetSize() const
+      {
+        return static_cast<uint_t>(Lines.size());
+      }
 
-      uint_t ExtractVersion(const Parameters::Accessor& props);
+      const Line& GetLine(const uint_t idx) const
+      {
+        static const Line STUB;
+        return Lines.size() > idx ? Lines[idx] : STUB;
+      }
+    };
 
-      //creating simple player based on parsed data and parameters
-      Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Information::Ptr info, Track::ModuleData::Ptr data,
-         uint_t version, Devices::AYM::Chip::Ptr device);
+    //supported commands set and their parameters
+    enum Commands
+    {
+      //no parameters
+      EMPTY,
+      //period,delta
+      GLISS,
+      //period,delta,target note
+      GLISS_NOTE,
+      //offset
+      SAMPLEOFFSET,
+      //offset
+      ORNAMENTOFFSET,
+      //ontime,offtime
+      VIBRATE,
+      //period,delta
+      SLIDEENV,
+      //no parameters
+      NOENVELOPE,
+      //r13,period
+      ENVELOPE,
+      //base
+      NOISEBASE,
+    };
 
-      AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties, uint_t channels);
+    typedef SimpleOrnament Ornament;
 
-      Holder::Ptr CreateHolder(Track::ModuleData::Ptr data, Holder::Ptr delegate);
-    }
+    class ModuleData : public TrackModel
+    {
+    public:
+      typedef boost::shared_ptr<ModuleData> RWPtr;
+      typedef boost::shared_ptr<const ModuleData> Ptr;
+
+      ModuleData()
+        : InitialTempo()
+        , Version(6)
+      {
+      }
+
+      virtual uint_t GetInitialTempo() const
+      {
+        return InitialTempo;
+      }
+
+      virtual const OrderList& GetOrder() const
+      {
+        return *Order;
+      }
+
+      virtual const PatternsSet& GetPatterns() const
+      {
+        return *Patterns;
+      }
+
+      uint_t InitialTempo;
+      OrderList::Ptr Order;
+      PatternsSet::Ptr Patterns;
+      SparsedObjectsStorage<Sample> Samples;
+      SparsedObjectsStorage<Ornament> Ornaments;
+      uint_t Version;
+    };
+
+    AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart);
   }
 }
 

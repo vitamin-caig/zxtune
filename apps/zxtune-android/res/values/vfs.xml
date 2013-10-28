@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Local -->
+    <string name="vfs_local_root_name">Local filesystem</string>
+    <string name="vfs_local_root_description">Content of internal and external storages</string>
+    <!-- zxtunes.com -->
+    <string name="vfs_zxtunes_root_name">ZXTUNES music collection</string>
+    <string name="vfs_zxtunes_root_description" translatable="false">http://www.zxtunes.com</string>
+    <string name="vfs_zxtunes_authors_name">Authors</string>
+    <string name="vfs_zxtunes_authors_description">ZX Spectrum musicians catalogue</string>
+</resources>

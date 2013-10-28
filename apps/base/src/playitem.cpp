@@ -13,7 +13,8 @@ Author:
 #include "apps/base/playitem.h"
 //library includes
 #include <core/module_attrs.h>
-#include <io/provider.h>
+#include <io/api.h>
+#include <parameters/visitor.h>
 //common includes
 #include <error_tools.h>
 //boost includes
@@ -21,14 +22,17 @@ Author:
 
 namespace
 {
-  using namespace ZXTune;
-
   class UnresolvedPathPropertiesAccessor : public Parameters::Accessor
   {
   public:
     explicit UnresolvedPathPropertiesAccessor(const String& uri)
       : Uri(uri)
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return 1;
     }
 
     virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
@@ -62,9 +66,14 @@ namespace
   class PathPropertiesAccessor : public Parameters::Accessor
   {
   public:
-    PathPropertiesAccessor(ZXTune::IO::Identifier::Ptr id)
+    explicit PathPropertiesAccessor(IO::Identifier::Ptr id)
       : Id(id)
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return 1;
     }
 
     virtual bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const
@@ -116,30 +125,15 @@ namespace
       visitor.SetValue(Module::ATTR_FULLPATH, Id->Full());
     }
   private:
-    const ZXTune::IO::Identifier::Ptr Id;
+    const IO::Identifier::Ptr Id;
   };
-}
-
-Parameters::Accessor::Ptr CreatePathProperties(const String& path, const String& subpath)
-{
-  try
-  {
-    const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(path);
-    const ZXTune::IO::Identifier::Ptr subId = id->WithSubpath(subpath);
-    return CreatePathProperties(subId);
-  }
-  catch (const Error&)
-  {
-    //formally impossible situation
-    return boost::make_shared<UnresolvedPathPropertiesAccessor>(path);
-  }
 }
 
 Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
 {
   try
   {
-    const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(fullpath);
+    const IO::Identifier::Ptr id = IO::ResolveUri(fullpath);
     return CreatePathProperties(id);
   }
   catch (const Error&)
@@ -148,7 +142,7 @@ Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
   }
 }
 
-Parameters::Accessor::Ptr CreatePathProperties(ZXTune::IO::Identifier::Ptr id)
+Parameters::Accessor::Ptr CreatePathProperties(IO::Identifier::Ptr id)
 {
   return boost::make_shared<PathPropertiesAccessor>(id);
 }

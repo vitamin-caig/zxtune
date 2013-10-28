@@ -14,14 +14,15 @@ Author:
 #include "trdos_utils.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
 #include <range_checker.h>
-#include <tools.h>
+//library includes
+#include <debug/log.h>
 //std includes
 #include <cstring>
 #include <numeric>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 //text include
 #include <formats/text/archived.h>
 
@@ -107,7 +108,7 @@ namespace TRD
 
     bool IsEmpty() const
     {
-      return ArrayEnd(Content) == std::find_if(Content, ArrayEnd(Content), std::bind2nd(std::not_equal_to<uint8_t>(), 0));
+      return boost::end(Content) == std::find_if(Content, boost::end(Content), std::bind2nd(std::not_equal_to<uint8_t>(), 0));
     }
   };
 
@@ -150,7 +151,7 @@ namespace TRD
     {
       return 0;
     }
-    const Catalog* const catalog = safe_ptr_cast<const Catalog*>(data.Data());
+    const Catalog* const catalog = static_cast<const Catalog*>(data.Start());
     if (!(catalog->Empty.IsEmpty() && 
           catalog->Empty1[0].IsEmpty() &&
           catalog->Empty1[1].IsEmpty() &&
@@ -166,7 +167,7 @@ namespace TRD
     std::vector<bool> usedSectors(totalSectors);
     std::fill_n(usedSectors.begin(), SECTORS_IN_TRACK, true);
     uint_t files = 0;
-    for (const CatEntry* catEntry = catalog->Entries; catEntry != ArrayEnd(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
+    for (const CatEntry* catEntry = catalog->Entries; catEntry != boost::end(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
     {
       if (!catEntry->SizeInSectors)
       {
@@ -220,12 +221,6 @@ namespace TRD
     return std::distance(begin, limit) * BYTES_PER_SECTOR;
   }
 
-  class StubVisitor : public Visitor
-  {
-  public:
-    virtual void OnFile(const String& /*filename*/, std::size_t /*offset*/, std::size_t /*size*/) {}
-  };
-
   class BuildVisitorAdapter : public Visitor
   {
   public:
@@ -268,7 +263,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!Format->Match(data.Data(), data.Size()))
+        if (!Format->Match(data))
         {
           return Container::Ptr();
         }

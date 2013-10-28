@@ -15,8 +15,8 @@ Author:
 #ifndef ZXTUNE_QT_OPTIONS_H_DEFINED
 #define ZXTUNE_QT_OPTIONS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/container.h>
 
 class GlobalOptions
 {
@@ -24,6 +24,7 @@ public:
   virtual ~GlobalOptions() {}
 
   virtual Parameters::Container::Ptr Get() const = 0;
+  virtual Parameters::Accessor::Ptr GetSnapshot() const = 0;
 
   static GlobalOptions& Instance();
 };

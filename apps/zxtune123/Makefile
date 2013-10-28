@@ -14,15 +14,25 @@ endif
 text_files := text/text
 other_text_files := text/cmdline text/messages text/conversion text/cmd_keys_local
 
-libraries := analysis async binary core devices formats platform sound tools io l10n_stub zxtune_app_base zxtune_app_version
-depends := src/analysis src/async src/binary src/tools src/core src/devices src/l10n/stub src/platform src/formats src/sound src/io apps/base apps/version
+libraries.common = analysis async binary \
+                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
+                  debug devices_aym devices_dac devices_aym_dumper devices_fm devices_saa devices_z80 \
+                  formats_archived formats_chiptune formats_packed \
+                  io \
+                  l10n_stub \
+                  parameters platform \
+                  sound sound_backends strings \
+                  tools
+libraries.3rdparty = lhasa unrar z80ex zlib
 
-#3rdparty
-libraries += lhasa z z80ex
-depends += 3rdparty/lhasa/lib 3rdparty/z80ex 3rdparty/zlib
+#apps
+libraries += zxtune_app_base zxtune_app_version
+depends += $(addprefix apps/,base version)
 
-windows_libraries = advapi32
-boost_libraries = thread program_options system
+#platform
+windows_libraries = advapi32 ole32 oldnames user32
+mingw_libraries = ole32
+libraries.boost = thread program_options system filesystem
 
 manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)
@@ -36,8 +46,8 @@ include $(path_step)/makefile.mak
 include $(path_step)/make/package.mak
 
 install_linux: install_linux_binary dist/$(manual_file)
-	install -m644 -D ../zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
 	install -m644 -D ../changelog.txt $(DESTDIR)/usr/share/zxtune/changelog.txt
+	install -m644 -D dist/zxtune.conf $(DESTDIR)/usr/share/zxtune/zxtune.conf
 	install -m644 -D dist/$(manual_file) $(DESTDIR)/usr/share/zxtune/$(manual_file)
 
 install_linux_binary:
@@ -46,7 +56,7 @@ install_linux_binary:
 install_windows install_mingw: dist/$(manual_file) install_samples
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 	$(call copyfile_cmd,dist/$(manual_file),$(DESTDIR))
-	$(call copyfile_cmd,../zxtune.conf,$(DESTDIR))
+	$(call copyfile_cmd,dist/zxtune.conf,$(DESTDIR))
 	$(call copyfile_cmd,../changelog.txt,$(DESTDIR))
 	$(call copyfile_cmd,$(path_step)/3rdparty/lame/$(arch)/libmp3lame.dll,$(DESTDIR)/mp3lame.dll)
 	$(call copyfile_cmd,$(path_step)/3rdparty/FLAC/$(arch)/FLAC.dll,$(DESTDIR))
@@ -61,8 +71,8 @@ install_dingux: dist/$(manual_file) install_samples $(pkg_root)/wrapper.sh $(pkg
 	install -m755 -D $(pkg_root)/wrapper.sh $(DESTDIR)/$(dingux_dir)/$(binary_name).sh
 	install -m644 -D $(pkg_root)/dmenu.cfg $(DESTDIR)/$(dingux_dir)/dmenu.cfg
 	install -m644 -D $(pkg_root)/gmenu.cfg $(DESTDIR)/local/gmenu2x/sections/applications/$(binary_name)
-	install -m644 -D ../zxtune.conf $(DESTDIR)/$(dingux_dir)/zxtune.conf
 	install -m644 -D ../changelog.txt $(DESTDIR)/changelog.txt
+	install -m644 -D dist/zxtune.conf $(DESTDIR)/$(dingux_dir)/zxtune.conf
 	install -m644 -D dist/$(manual_file) $(DESTDIR)/$(dingux_dir)/$(manual_file)
 	install -m644 -D dist/dingux/readme.txt $(DESTDIR)/readme.txt
 	install -m644 -D dist/dingux/zxtune.png $(DESTDIR)/$(dingux_dir)/zxtune.png
@@ -99,5 +109,7 @@ $(pkg_root)/gmenu.cfg:
 
 include $(path_step)/samples/samples.mak
 
+ifdef tools.textator
 dist/$(manual_file): dist/$(binary_name).txt
-	$(TEXTATOR) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<
+	$(tools.textator) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<
+endif

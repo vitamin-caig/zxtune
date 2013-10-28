@@ -38,7 +38,7 @@ namespace Playlist
       virtual bool Execute(Playlist::Item::Search::Data& res) = 0;
     };
 
-    void ExecuteSearchDialog(TableView& view, Playlist::Model::IndexSetPtr scope, Controller& controller);
+    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Playlist::Model::IndexSetPtr scope);
   }
 }
 

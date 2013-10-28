@@ -1,5 +1,7 @@
 #package generating
-pkg_revision := $(subst :,_,$(shell svnversion $(path_step)))
+include $(path_step)/make/version.mak
+
+pkg_revision := $(subst :,_,$(firstword $(root.version)))
 pkg_subversion := $(if $(release),,_dbg)
 
 pkg_name ?= $(binary_name)
@@ -27,7 +29,7 @@ $(pkg_debug): | $(pkg_debug_root)
 $(pkg_build_log): | $(pkg_dir)
 	@$(call showtime_cmd)
 	$(info Compile $(pkg_name))
-	$(MAKE) defines="ZXTUNE_VERSION=rev$(pkg_revision)" > $(pkg_build_log) 2>&1
+	$(MAKE) $(if $(cpu.cores),-j $(cpu.cores),) > $(pkg_build_log) 2>&1
 
 ifdef target
 install_debug: $(pkg_build_log)

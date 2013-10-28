@@ -17,7 +17,8 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
+//library includes
+#include <debug/log.h>
 //std includes
 #include <algorithm>
 #include <list>
@@ -79,6 +80,11 @@ namespace
       Require(Directory.cd(dirPath));
       Files = Directory.entryList(QStringList(BuildPlaylistFileName('*')), QDir::Files | QDir::Readable, QDir::Name);
       Dbg("%1% stored playlists", Files.size());
+    }
+
+    virtual bool Empty() const
+    {
+      return Files.empty();
     }
 
     virtual void Load(Playlist::Container::Ptr container)

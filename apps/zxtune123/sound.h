@@ -15,10 +15,10 @@ Author:
 #ifndef ZXTUNE123_SOUND_H_DEFINED
 #define ZXTUNE123_SOUND_H_DEFINED
 
-//common includes
-#include <parameters.h>
 //library includes
+#include <parameters/container.h>
 #include <sound/backend.h>
+#include <time/stamp.h>
 //std includes
 #include <memory>
 
@@ -40,10 +40,12 @@ public:
   virtual void ParseParameters() = 0;
   virtual void Initialize() = 0;
   // functional part
-  virtual ZXTune::Sound::Backend::Ptr CreateBackend(ZXTune::Module::Holder::Ptr module) = 0;
+  virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint = String(), Sound::BackendCallback::Ptr callback = Sound::BackendCallback::Ptr()) = 0;
 
   //parameters
-  virtual uint_t GetFrameDuration() const = 0;
+  virtual Time::Microseconds GetFrameDuration() const = 0;
+
+  virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
 
   static std::auto_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
 };

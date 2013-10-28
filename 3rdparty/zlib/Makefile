@@ -1,4 +1,4 @@
-library_name := z
+library_name := zlib
 path_step := ../..
 
 source_files_cc := adler32 compress crc32 gzio uncompr deflate trees\

@@ -11,5 +11,6 @@ all test:
 	$(MAKE) -C pack2 $(MAKECMDGOALS)
 	$(MAKE) -C rar $(MAKECMDGOALS)
 	$(MAKE) -C tlz $(MAKECMDGOALS)
+	$(MAKE) -C trush $(MAKECMDGOALS)
 	$(MAKE) -C zip $(MAKECMDGOALS)
 	$(MAKE) -C zxzip $(MAKECMDGOALS)

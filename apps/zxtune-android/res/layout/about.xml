@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/spacing_full"
+    >
+    <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/about_author"
+      android:textAppearance="?android:attr/textAppearanceMedium"
+    />
+    <View
+      style="@style/block"
+    />
+    <TextView
+      android:id="@+id/about_system"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+    />
+</LinearLayout>

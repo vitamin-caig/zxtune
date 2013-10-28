@@ -9,11 +9,11 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//common includes
-#include <string_helpers.h>
 //library includes
-#include <formats/archived_decoders.h>
-#include <formats/chiptune/ay.h>
+#include <formats/archived/decoders.h>
+#include <formats/chiptune/aym/ay.h>
+//std includes
+#include <sstream>
 //boost includes
 #include <boost/make_shared.hpp>
 //text includes
@@ -59,7 +59,7 @@ namespace MultiAY
     {
       if (0 == value.compare(0, prefix.size(), prefix))
       {
-        InStringStream str(value.substr(prefix.size()));
+        std::basic_istringstream<Char> str(value.substr(prefix.size()));
         Valid = str >> Index;
       }
     }
@@ -68,7 +68,7 @@ namespace MultiAY
       : Valid(true)
       , Index(index)
     {
-      OutStringStream str;
+      std::basic_ostringstream<Char> str;
       str << prefix << index;
       Str = str.str();
     }
@@ -102,14 +102,14 @@ namespace MultiAY
     }
 
     //Binary::Container
+    virtual const void* Start() const
+    {
+      return Delegate->Start();
+    }
+
     virtual std::size_t Size() const
     {
       return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
     }
 
     virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const

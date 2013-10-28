@@ -40,6 +40,8 @@ namespace Parameters
         extern const NameType PREFIX = Core::PREFIX + "dac";
 
         extern const NameType INTERPOLATION = PREFIX + "interpolation";
+
+        extern const NameType SAMPLES_FREQUENCY = PREFIX + "samples_frequency";
       }
 
       namespace Z80
@@ -55,6 +57,14 @@ namespace Parameters
         extern const NameType PREFIX = Core::PREFIX + "fm";
 
         extern const NameType CLOCKRATE = PREFIX + "clockrate";
+      }
+
+      namespace SAA
+      {
+        extern const NameType PREFIX = Core::PREFIX + "saa";
+
+        extern const NameType CLOCKRATE = PREFIX + "clockrate";
+        extern const NameType INTERPOLATION = PREFIX + "interpolation";
       }
 
       namespace Plugins

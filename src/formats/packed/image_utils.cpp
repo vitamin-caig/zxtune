@@ -11,6 +11,8 @@ Author:
 
 //local includes
 #include "image_utils.h"
+//library includes
+#include <binary/container_factories.h>
 //std includes
 #include <map>
 //boost includes

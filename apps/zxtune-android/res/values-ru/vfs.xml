@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Local -->
+    <string name="vfs_local_root_name">Локальная файловая система</string>
+    <string name="vfs_local_root_description">Содержимое внутренних и внешних накопителей</string>
+    <!-- zxtunes.com -->
+    <string name="vfs_zxtunes_root_name">Коллекция музыки ZXTUNES</string>
+    <!--
+    <string name="vfs_zxtunes_root_description">http://www.zxtunes.com</string>
+    -->
+    <string name="vfs_zxtunes_authors_name">Авторы</string>
+    <string name="vfs_zxtunes_authors_description">Каталог спектрумовских музыкантов</string>
+</resources>

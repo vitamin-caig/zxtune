@@ -13,11 +13,9 @@ Author:
 #include "container.h"
 #include "lha_supp.h"
 #include "pack_utils.h"
-//common includes
-#include <debug_log.h>
-#include <tools.h>
 //library includes
 #include <binary/input_stream.h>
+#include <debug/log.h>
 #include <formats/archived.h>
 //3rdparty includes
 #include <3rdparty/lhasa/lib/lha_decoder.h>

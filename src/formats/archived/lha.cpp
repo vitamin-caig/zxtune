@@ -11,10 +11,9 @@ Author:
 
 //common includes
 #include <contract.h>
-#include <debug_log.h>
-#include <tools.h>
 //library includes
 #include <binary/input_stream.h>
+#include <debug/log.h>
 #include <formats/archived.h>
 #include <formats/packed/lha_supp.h>
 #include <formats/packed/pack_utils.h>
@@ -157,6 +156,12 @@ namespace Lha
       return 0 == std::strcmp(DIR_TYPE, Current->compress_method);
     }
 
+    bool IsEmpty() const
+    {
+      Require(Current != 0);
+      return 0 == Current->compressed_length;
+    }
+
     Archived::File::Ptr GetFile() const
     {
       Require(Current != 0);
@@ -196,14 +201,14 @@ namespace Lha
     }
 
     //Binary::Container
+    virtual const void* Start() const
+    {
+      return Delegate->Start();
+    }
+
     virtual std::size_t Size() const
     {
       return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
     }
 
     virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -263,7 +268,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!Format->Match(data.Data(), data.Size()))
+        if (!Format->Match(data))
         {
           return Container::Ptr();
         }
@@ -271,7 +276,7 @@ namespace Formats
         std::list<Archived::File::Ptr> files;
         for (; iter.IsValid(); iter.Next())
         {
-          if (!iter.IsDir())
+          if (!iter.IsDir() && !iter.IsEmpty())
           {
             const Archived::File::Ptr file = iter.GetFile();
             files.push_back(file);

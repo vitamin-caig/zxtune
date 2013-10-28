@@ -4,12 +4,14 @@
     <file alias="AS0">types/as0.png</file>
     <file alias="ASC">types/asc.png</file>
     <file alias="CHI">types/chi.png</file>
+    <file alias="COP">types/cop.png</file>
     <file alias="DMM">types/dmm.png</file>
     <file alias="DST">types/dst.png</file>
     <file alias="FLS">types/fls.png</file>
     <file alias="FTC">types/ftc.png</file>
     <file alias="FXM">types/fxm.png</file>
     <file alias="GTR">types/gtr.png</file>
+    <file alias="MOD">types/mod.png</file>
     <file alias="PDT">types/pdt.png</file>
     <file alias="PSC">types/psc.png</file>
     <file alias="PSG">types/psg.png</file>
@@ -24,6 +26,7 @@
     <file alias="STC">types/stc.png</file>
     <file alias="STP">types/stp.png</file>
     <file alias="STR">types/str.png</file>
+    <file alias="TF0">types/tf0.png</file>
     <file alias="TFC">types/tfc.png</file>
     <file alias="TFD">types/tfd.png</file>
     <file alias="TFE">types/tfe.png</file>

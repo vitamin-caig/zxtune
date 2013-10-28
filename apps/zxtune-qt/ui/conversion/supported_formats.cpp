@@ -18,12 +18,8 @@ Author:
 #include "supp/options.h"
 #include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
-//common includes
-#include <string_helpers.h>
-#include <tools.h>
 //library includes
-#include <sound/backend.h>
-#include <sound/backend_attrs.h>
+#include <sound/service.h>
 //std includes
 #include <functional>
 #include <set>
@@ -37,16 +33,13 @@ namespace
   class FileBackendsSet
   {
   public:
-    FileBackendsSet()
+    explicit FileBackendsSet(Parameters::Accessor::Ptr options)
     {
-      using namespace ZXTune::Sound;
-      for (BackendCreator::Iterator::Ptr backends = EnumerateBackends(); backends->IsValid(); backends->Next())
+      const Sound::Service::Ptr service = Sound::CreateFileService(options);
+      for (Sound::BackendInformation::Iterator::Ptr backends = service->EnumerateBackends(); backends->IsValid(); backends->Next())
       {
-        const BackendCreator::Ptr creator = backends->Get();
-        if (0 != (creator->Capabilities() & CAP_TYPE_FILE))
-        {
-          Ids.insert(std::make_pair(creator->Id(), creator->Status()));
-        }
+        const Sound::BackendInformation::Ptr info = backends->Get();
+        Ids.insert(std::make_pair(info->Id(), info->Status()));
       }
     }
 
@@ -73,6 +66,7 @@ namespace
     explicit SupportedFormats(QWidget& parent)
       : UI::SupportedFormatsWidget(parent)
       , Options(GlobalOptions::Instance().Get())
+      , Backends(Options)
     {
       //setup self
       setupUi(this);

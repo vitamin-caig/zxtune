@@ -15,29 +15,27 @@ Author:
 #include "console.h"
 #include "source.h"
 #include <apps/base/app.h>
-#include <apps/base/error_codes.h>
 #include <apps/base/parsing.h>
 #include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <tools.h>
 //library includes
 #include <core/core_parameters.h>
-#include <core/error_codes.h>
 #include <core/module_attrs.h>
 #include <core/module_detect.h>
+#include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <io/fs_tools.h>
-#include <io/provider.h>
+#include <io/api.h>
 #include <io/providers_parameters.h>
+#include <parameters/merged_accessor.h>
+#include <strings/array.h>
 //std includes
 #include <iomanip>
 #include <iostream>
 //boost includes
 #include <boost/bind.hpp>
-#include <boost/unordered_set.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
@@ -50,8 +48,6 @@ Author:
 namespace
 {
   const Char DELIMITERS[] = {',', ';', ':', '\0'};
-
-  typedef std::set<String> StringSet;
 
   void OutputString(uint_t width, const String& text)
   {
@@ -80,6 +76,7 @@ namespace
       static const Char EMPTY[] = {0};
       OnProgress(current, EMPTY);
     }
+
     virtual void OnProgress(uint_t current, const String& message)
     {
       CheckForExit();
@@ -96,7 +93,7 @@ namespace
       if (Cons.GetPressedKey() == Console::INPUT_KEY_CANCEL)
       {
         Cons.WaitForKeyRelease();
-        throw Error(THIS_LINE, ZXTune::Module::ERROR_DETECT_CANCELED);
+        throw std::exception();
       }
     }
 
@@ -109,83 +106,37 @@ namespace
     const Console& Cons;
   };
 
-  void Parse(const StringSet& allplugs, const String& str, StringSet& plugs, uint_t& caps)
-  {
-    typedef std::pair<uint32_t, String> CapsPair;
-    static const CapsPair CAPABILITIES[] =
-    {
-      CapsPair(ZXTune::CAP_DEV_AYM, Text::INFO_CAP_AYM),
-      CapsPair(ZXTune::CAP_DEV_TS, Text::INFO_CAP_TS),
-      CapsPair(ZXTune::CAP_DEV_BEEPER, Text::INFO_CAP_BEEPER),
-      CapsPair(ZXTune::CAP_DEV_FM, Text::INFO_CAP_FM),
-      CapsPair(ZXTune::CAP_DEV_1DAC | ZXTune::CAP_DEV_2DAC | ZXTune::CAP_DEV_4DAC, Text::INFO_CAP_DAC),
-
-      //remove module capability- it cannot be enabled or disabled
-      CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),
-      CapsPair(ZXTune::CAP_STOR_MULTITRACK, Text::INFO_CAP_MULTITRACK),
-      CapsPair(ZXTune::CAP_STOR_SCANER, Text::INFO_CAP_SCANER),
-      CapsPair(ZXTune::CAP_STOR_PLAIN, Text::INFO_CAP_PLAIN),
-      CapsPair(ZXTune::CAP_STOR_DIRS, Text::INFO_CAP_DIRS),
-
-      CapsPair(ZXTune::CAP_CONV_RAW, Text::INFO_CONV_RAW),
-      CapsPair(ZXTune::CAP_CONV_PSG, Text::INFO_CONV_PSG)
-    };
-
-    StringSet tmpPlugs;
-    uint32_t tmpCaps = 0;
-
-    if (!str.empty())
-    {
-      StringArray splitted;
-      boost::algorithm::split(splitted, str, boost::algorithm::is_any_of(DELIMITERS));
-      for (StringArray::const_iterator it = splitted.begin(), lim = splitted.end(); it != lim; ++it)
-      {
-        //check if capability
-        const CapsPair* const capIter = std::find_if(CAPABILITIES, ArrayEnd(CAPABILITIES),
-          boost::bind(&CapsPair::second, _1) == *it);
-        if (ArrayEnd(CAPABILITIES) != capIter)
-        {
-          tmpCaps |= capIter->first;
-        }
-        else if (allplugs.count(*it))
-        {
-          tmpPlugs.insert(*it);
-        }
-        else
-        {
-          throw MakeFormattedError(THIS_LINE, INVALID_PARAMETER, Text::ERROR_INVALID_PARAMETER, *it, str);
-        }
-      }
-    }
-    plugs.swap(tmpPlugs);
-    caps = tmpCaps;
-  }
-
-  class DetectParametersImpl : public ZXTune::DetectParameters
+  class DetectCallback : public Module::DetectCallback
   {
   public:
-    DetectParametersImpl(Parameters::Accessor::Ptr params, const String& path, const OnItemCallback& callback, bool showLogs)
+    DetectCallback(Parameters::Accessor::Ptr params, IO::Identifier::Ptr id, const OnItemCallback& callback, bool showLogs)
       : Params(params)
-      , Path(path)
+      , Id(id)
       , Callback(callback)
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : 0)
     {
     }
 
-    virtual void ProcessModule(const String& subpath, ZXTune::Module::Holder::Ptr holder) const
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
-      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(Path, subpath), Params);
-      const ZXTune::Module::Holder::Ptr result = ZXTune::Module::CreateMixedPropertiesHolder(holder, moduleParams);
+      return Params;
+    }
+
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
+    {
+      const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
+      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(subId), Params);
+      const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
       Callback(result);
     }
 
-    virtual Log::ProgressCallback* GetProgressCallback() const
+    virtual Log::ProgressCallback* GetProgress() const
     {
       return ProgressCallback.get();
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    const String Path;
+    const IO::Identifier::Ptr Id;
     const OnItemCallback& Callback;
     const Log::ProgressCallback::Ptr ProgressCallback;
   };
@@ -200,7 +151,7 @@ namespace
       , YM(false)
     {
       OptionsDescription.add_options()
-        (Text::INPUT_FILE_KEY, boost::program_options::value<StringArray>(&Files), Text::INPUT_FILE_DESC)
+        (Text::INPUT_FILE_KEY, boost::program_options::value<Strings::Array>(&Files), Text::INPUT_FILE_DESC)
         (Text::IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&ProvidersOptions), Text::IO_PROVIDERS_OPTS_DESC)
         (Text::INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), Text::INPUT_PROGRESS_DESC)
         (Text::CORE_OPTS_KEY, boost::program_options::value<String>(&CoreOptions), Text::CORE_OPTS_DESC)
@@ -218,8 +169,8 @@ namespace
       if (!ProvidersOptions.empty())
       {
         const Parameters::Container::Ptr ioParams = Parameters::Container::Create();
-        ThrowIfError(ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX,
-          ProvidersOptions, *ioParams));
+        ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX,
+          ProvidersOptions, *ioParams);
         ioParams->Process(*Params);
       }
 
@@ -228,8 +179,8 @@ namespace
         const Parameters::Container::Ptr coreParams = Parameters::Container::Create();
         if (!CoreOptions.empty())
         {
-          ThrowIfError(ParseParametersString(Parameters::ZXTune::Core::PREFIX,
-            CoreOptions, *coreParams));
+          ParseParametersString(Parameters::ZXTune::Core::PREFIX,
+            CoreOptions, *coreParams);
         }
         if (YM)
         {
@@ -244,7 +195,7 @@ namespace
     {
       if (Files.empty())
       {
-        throw Error(THIS_LINE, NO_INPUT_FILES, Text::INPUT_ERROR_NO_FILES);
+        throw Error(THIS_LINE, Text::INPUT_ERROR_NO_FILES);
       }
     }
 
@@ -252,7 +203,7 @@ namespace
     {
       assert(callback);
 
-      for (StringArray::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      for (Strings::Array::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
         ProcessItem(*it, callback);
       }
@@ -262,25 +213,34 @@ namespace
     {
       try
       {
-        const ZXTune::IO::Identifier::Ptr id = ZXTune::IO::ResolveUri(uri);
-        const String path = id->Path();
+        const IO::Identifier::Ptr id = IO::ResolveUri(uri);
 
-        const DetectParametersImpl params(Params, path, callback, ShowProgress);
-        Log::ProgressCallback& progress = ShowProgress ? *params.GetProgressCallback() : Log::ProgressCallback::Stub();
-        const Binary::Container::Ptr data = ZXTune::IO::OpenData(path, *Params, progress);
+        const DetectCallback detectCallback(Params, id, callback, ShowProgress);
+        Log::ProgressCallback& progress = ShowProgress ? *detectCallback.GetProgress() : Log::ProgressCallback::Stub();
+        const Binary::Container::Ptr data = IO::OpenData(id->Path(), *Params, progress);
 
         const String subpath = id->Subpath();
-        ThrowIfError(ZXTune::DetectModules(Params, params, data, subpath));
+        if (subpath.empty())
+        {
+          const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
+          Module::Detect(location, detectCallback);
+        }
+        else
+        {
+          const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(Params, data, subpath);
+          const Module::Holder::Ptr module = Module::Open(location);
+          detectCallback.ProcessModule(location, module);
+        }
       }
       catch (const Error& e)
       {
-        StdOut << Error::ToString(e) << std::endl;
+        StdOut << e.ToString();
       }
     }
   private:
     const Parameters::Container::Ptr Params;
     boost::program_options::options_description OptionsDescription;
-    StringArray Files;
+    Strings::Array Files;
     String ProvidersOptions;
     bool ShowProgress;
     String CoreOptions;

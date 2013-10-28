@@ -11,57 +11,53 @@ Author:
 
 //local includes
 #include "backend_impl.h"
-#include "enumerator.h"
-//common includes
-#include <error_tools.h>
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-#include <sound/error_codes.h>
-#include <sound/render_params.h>
+//boost includes
+#include <boost/make_shared.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG 9A6FD87F
 
 namespace
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
 }
 
-namespace
+namespace Sound
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
+namespace Null
+{
+  const String ID = Text::NULL_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("Null output backend");
 
-  class NullBackendWorker : public BackendWorker
+  class BackendWorker : public Sound::BackendWorker
   {
   public:
-    virtual void Test()
+    virtual void Startup()
     {
     }
 
-    virtual void OnStartup(const Module::Holder& /*module*/)
+    virtual void Shutdown()
     {
     }
 
-    virtual void OnShutdown()
+    virtual void Pause()
     {
     }
 
-    virtual void OnPause()
+    virtual void Resume()
     {
     }
 
-    virtual void OnResume()
+    virtual void FrameStart(const Module::TrackState& /*state*/)
     {
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
-    {
-    }
-
-    virtual void OnBufferReady(Chunk& /*buffer*/)
+    virtual void FrameFinish(Chunk::Ptr /*buffer*/)
     {
     }
 
@@ -71,59 +67,22 @@ namespace
     }
   };
 
-  class NullBackendCreator : public BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr /*params*/) const
     {
-      return Text::NULL_BACKEND_ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate("Null output backend");
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAP_TYPE_STUB;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new NullBackendWorker());
-        result = Sound::CreateBackend(params, worker);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
-      catch (const std::bad_alloc&)
-      {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
-      }
+      return boost::make_shared<BackendWorker>();
     }
   };
-}
+}//Null
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterNullBackend(BackendsStorage& storage)
   {
-    void RegisterNullBackend(BackendsEnumerator& enumerator)
-    {
-      const BackendCreator::Ptr creator(new NullBackendCreator());
-      enumerator.RegisterCreator(creator);
-    }
+    const BackendWorkerFactory::Ptr factory = boost::make_shared<Null::BackendWorkerFactory>();
+    storage.Register(Null::ID, Null::DESCRIPTION, CAP_TYPE_STUB, factory);
   }
 }

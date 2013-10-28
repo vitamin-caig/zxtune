@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __IO_PARAMETERS_H_DEFINED__
-#define __IO_PARAMETERS_H_DEFINED__
+#ifndef IO_PARAMETERS_H_DEFINED
+#define IO_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -28,4 +28,4 @@ namespace Parameters
   }
 }
 
-#endif //__SOUND_PARAMETERS_H_DEFINED__
+#endif //SOUND_PARAMETERS_H_DEFINED

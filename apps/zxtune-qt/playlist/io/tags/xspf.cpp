@@ -8,6 +8,9 @@ namespace XSPF
 extern const Char APPLICATION_ATTR[] = {
   'a','p','p','l','i','c','a','t','i','o','n',0
 };
+extern const Char EMBEDDED_PREFIX[] = {
+  '\?',0
+};
 extern const Char EXTENDED_PROPERTY_NAME_ATTR[] = {
   'n','a','m','e',0
 };

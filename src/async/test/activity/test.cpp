@@ -7,68 +7,57 @@
 
 namespace
 {
-	void ShowError(unsigned /*level*/, Error::LocationRef loc, Error::CodeType code, const String& text)
-	{
-		std::cout << Error::AttributesToString(loc, code, text);
-	}
-}
-
-namespace
-{
 	using namespace Async;
 	
 	Error FailedToPrepareError()
   {
-    return Error(THIS_LINE, 1, "Failed to prepare");
+    return Error(THIS_LINE, "Failed to prepare");
   }
 
 	Error FailedToExecuteError()
   {
-    return Error(THIS_LINE, 2, "Failed to execute");
+    return Error(THIS_LINE, "Failed to execute");
   }
 	
 	class InvalidOperation : public Operation
 	{
 	public:
-		virtual Error Prepare()
+		virtual void Prepare()
 		{
-			return FailedToPrepareError();
+			throw FailedToPrepareError();
 		}
 		
-		virtual Error Execute()
+		virtual void Execute()
 		{
-			throw Error(THIS_LINE, 3, "Should not be called");
+			throw Error(THIS_LINE, "Should not be called");
 		}
 	};
 
 	class ErrorResultOperation : public Operation
 	{
 	public:
-		virtual Error Prepare()
+		virtual void Prepare()
 		{
-			return Error();
 		}
 		
-		virtual Error Execute()
+		virtual void Execute()
 		{
-			return FailedToExecuteError();
+			throw FailedToExecuteError();
 		}
 	};
 
   class LongOperation : public Operation
   {
   public:
-    virtual Error Prepare()
+    virtual void Prepare()
     {
-      return Error();
     }
 
-    virtual Error Execute()
+    virtual void Execute()
     {
       std::cout << "    start long activity" << std::endl;
       boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
       std::cout << "    end long activity" << std::endl;
-      return Error();
     }
   };
 
@@ -83,12 +72,12 @@ namespace
 		{
 			if (err != FailedToPrepareError())
 			{
-				throw Error(THIS_LINE, 4, "Invalid error returned").AddSuberror(err);
+				throw Error(THIS_LINE, "Invalid error returned").AddSuberror(err);
 			}
 			std::cout << "Succeed\n";
 			return;
 		}
-    throw Error(THIS_LINE, 5, "Should not create activity");
+    throw Error(THIS_LINE, "Should not create activity");
 	}
 	
 	void TestActivityErrorResult()
@@ -98,19 +87,20 @@ namespace
     boost::this_thread::sleep(boost::posix_time::milliseconds(100));
     if (result->IsExecuted())
     {
-      throw Error(THIS_LINE, 6, "Activity should be finished");
+      throw Error(THIS_LINE, "Activity should be finished");
     }
-		if (const Error& err = result->Wait())
+    try
+    {
+      result->Wait();
+			throw Error(THIS_LINE, "Activity should not finish successfully");
+		}
+		catch (const Error& err)
 		{
 			if (err != FailedToExecuteError())
 			{
-				throw Error(THIS_LINE, 7, "Invalid error returned").AddSuberror(err);
+				throw Error(THIS_LINE, "Invalid error returned").AddSuberror(err);
 			}
 			std::cout << "Succeed\n";
-		}
-		else
-		{
-			throw Error(THIS_LINE, 8, "Activity should not finish successfully");
 		}
 	}
 
@@ -120,12 +110,12 @@ namespace
     const Activity::Ptr result = Activity::Create(boost::make_shared<LongOperation>());
     if (!result->IsExecuted())
     {
-      throw Error(THIS_LINE, 9, "Activity should be executed now");
+      throw Error(THIS_LINE, "Activity should be executed now");
     }
-    ThrowIfError(result->Wait());
+    result->Wait();
     if (result->IsExecuted())
     {
-      throw Error(THIS_LINE, 10, "Activity is still executed");
+      throw Error(THIS_LINE, "Activity is still executed");
     }
   }
 }
@@ -141,6 +131,6 @@ int main()
   catch (const Error& err)
   {
 		std::cout << "Failed: \n";
-		err.WalkSuberrors(ShowError);
+		std::cerr << err.ToString();
   }
 }

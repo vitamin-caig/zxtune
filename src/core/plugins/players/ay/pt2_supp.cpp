@@ -10,30 +10,18 @@ Author:
 */
 
 //local includes
-#include "ay_base.h"
-#include "ay_conversion.h"
-#include "core/plugins/utils.h"
+#include "aym_base.h"
+#include "aym_base_track.h"
+#include "aym_plugin.h"
 #include "core/plugins/registrator.h"
-#include "core/plugins/archives/archive_supp_common.h"
-#include "core/plugins/players/creation_result.h"
-#include "core/plugins/players/module_properties.h"
-//common includes
-#include <byteorder.h>
-#include <error_tools.h>
-#include <range_checker.h>
-#include <tools.h>
+#include "core/plugins/players/simple_orderlist.h"
+#include "core/plugins/players/simple_ornament.h"
 //library includes
-#include <core/convert_parameters.h>
-#include <core/core_parameters.h>
-#include <core/error_codes.h>
-#include <core/module_attrs.h>
-#include <core/plugin_attrs.h>
-#include <formats/chiptune_decoders.h>
-#include <formats/packed_decoders.h>
-#include <formats/chiptune/protracker2.h>
+#include <formats/chiptune/decoders.h>
+#include <formats/chiptune/aym/protracker2.h>
 
-#define FILE_TAG 077C8579
-
+namespace Module
+{
 namespace ProTracker2
 {
   //supported commands and parameters
@@ -84,64 +72,55 @@ namespace ProTracker2
     }
   };
 
-  struct Ornament : public Formats::Chiptune::ProTracker2::Ornament
+  typedef SimpleOrnament Ornament;
+
+  class ModuleData : public TrackModel
   {
-    Ornament()
-      : Formats::Chiptune::ProTracker2::Ornament()
+  public:
+    typedef boost::shared_ptr<const ModuleData> Ptr;
+
+    ModuleData()
+      : InitialTempo()
     {
     }
 
-    Ornament(const Formats::Chiptune::ProTracker2::Ornament& rh)
-      : Formats::Chiptune::ProTracker2::Ornament(rh)
+    virtual uint_t GetInitialTempo() const
     {
+      return InitialTempo;
     }
 
-    uint_t GetLoop() const
+    virtual const OrderList& GetOrder() const
     {
-      return Loop;
+      return *Order;
     }
 
-    uint_t GetSize() const
+    virtual const PatternsSet& GetPatterns() const
     {
-      return static_cast<uint_t>(Lines.size());
+      return *Patterns;
     }
 
-    int_t GetLine(uint_t idx) const
-    {
-      return Lines.size() > idx ? Lines[idx] : 0;
-    }
+    uint_t InitialTempo;
+    OrderList::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Sample> Samples;
+    SparsedObjectsStorage<Ornament> Ornaments;
   };
-
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
-
-  std::auto_ptr<Formats::Chiptune::ProTracker2::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
-}
-
-namespace ProTracker2
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
 
   class DataBuilder : public Formats::Chiptune::ProTracker2::Builder
   {
   public:
-    DataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props)
-      : Data(data)
+    explicit DataBuilder(PropertiesBuilder& props)
+      : Data(boost::make_shared<ModuleData>())
       , Properties(props)
-      , Context(*Data)
+      , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
     {
+      Data->Patterns = Patterns.GetResult();
+      Properties.SetFreqtable(TABLE_PROTRACKER2);
     }
 
-    virtual void SetProgram(const String& program)
+    virtual Formats::Chiptune::MetaBuilder& GetMetaBuilder()
     {
-      Properties->SetProgram(program);
-      Properties->SetFreqtable(TABLE_PROTRACKER2);
-    }
-
-    virtual void SetTitle(const String& title)
-    {
-      Properties->SetTitle(OptimizeString(title));
+      return Properties;
     }
 
     virtual void SetInitialTempo(uint_t tempo)
@@ -151,165 +130,102 @@ namespace ProTracker2
 
     virtual void SetSample(uint_t index, const Formats::Chiptune::ProTracker2::Sample& sample)
     {
-      Data->Samples.resize(index + 1);
-      Data->Samples[index] = Sample(sample);
+      Data->Samples.Add(index, Sample(sample));
     }
 
     virtual void SetOrnament(uint_t index, const Formats::Chiptune::ProTracker2::Ornament& ornament)
     {
-      Data->Ornaments.resize(index + 1);
-      Data->Ornaments[index] = Ornament(ornament);
+      Data->Ornaments.Add(index, Ornament(ornament.Loop, ornament.Lines.begin(), ornament.Lines.end()));
     }
 
     virtual void SetPositions(const std::vector<uint_t>& positions, uint_t loop)
     {
-      Data->Positions.assign(positions.begin(), positions.end());
-      Data->LoopPosition = loop;
+      Data->Order = boost::make_shared<SimpleOrderList>(loop, positions.begin(), positions.end());
     }
 
-    virtual void StartPattern(uint_t index)
+    virtual Formats::Chiptune::PatternBuilder& StartPattern(uint_t index)
     {
-      Context.SetPattern(index);
-    }
-
-    virtual void FinishPattern(uint_t size)
-    {
-      Context.FinishPattern(size);
-    }
-
-    virtual void StartLine(uint_t index)
-    {
-      Context.SetLine(index);
-    }
-
-    virtual void SetTempo(uint_t tempo)
-    {
-      Context.CurLine->SetTempo(tempo);
+      Patterns.SetPattern(index);
+      return Patterns;
     }
 
     virtual void StartChannel(uint_t index)
     {
-      Context.SetChannel(index);
+      Patterns.SetChannel(index);
     }
 
     virtual void SetRest()
     {
-      Context.CurChannel->SetEnabled(false);
+      Patterns.GetChannel().SetEnabled(false);
     }
 
     virtual void SetNote(uint_t note)
     {
-      Track::Line::Chan* const channel = Context.CurChannel;
-      channel->SetEnabled(true);
-      const Track::CommandsArray::iterator cmd = std::find(channel->Commands.begin(), channel->Commands.end(), GLISS_NOTE);
-      if (cmd != channel->Commands.end())
+      MutableCell& channel = Patterns.GetChannel();
+      channel.SetEnabled(true);
+      if (Command* cmd = channel.FindCommand(GLISS_NOTE))
       {
         cmd->Param2 = int_t(note);
       }
       else
       {
-        channel->SetNote(note);
+        channel.SetNote(note);
       }
     }
 
     virtual void SetSample(uint_t sample)
     {
-      Context.CurChannel->SetSample(sample);
+      Patterns.GetChannel().SetSample(sample);
     }
 
     virtual void SetOrnament(uint_t ornament)
     {
-      Context.CurChannel->SetOrnament(ornament);
+      Patterns.GetChannel().SetOrnament(ornament);
     }
 
     virtual void SetVolume(uint_t vol)
     {
-      Context.CurChannel->SetVolume(vol);
+      Patterns.GetChannel().SetVolume(vol);
     }
 
     virtual void SetGlissade(int_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(GLISS, val));
+      Patterns.GetChannel().AddCommand(GLISS, val);
     }
 
     virtual void SetNoteGliss(int_t val, uint_t limit)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(GLISS_NOTE, val, limit));
+      Patterns.GetChannel().AddCommand(GLISS_NOTE, val, limit);
     }
 
     virtual void SetNoGliss()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(NOGLISS));
+      Patterns.GetChannel().AddCommand(NOGLISS);
     }
 
     virtual void SetEnvelope(uint_t type, uint_t value)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(ENVELOPE, type, value));
+      Patterns.GetChannel().AddCommand(ENVELOPE, type, value);
     }
 
     virtual void SetNoEnvelope()
     {
-      Context.CurChannel->Commands.push_back(Track::Command(NOENVELOPE));
+      Patterns.GetChannel().AddCommand(NOENVELOPE);
     }
 
     virtual void SetNoiseAddon(int_t val)
     {
-      Context.CurChannel->Commands.push_back(Track::Command(NOISE_ADD, val));
+      Patterns.GetChannel().AddCommand(NOISE_ADD, val);
+    }
+
+    ModuleData::Ptr GetResult() const
+    {
+      return Data;
     }
   private:
-    struct BuildContext
-    {
-      Track::ModuleData& Data;
-      Track::Pattern* CurPattern;
-      Track::Line* CurLine;
-      Track::Line::Chan* CurChannel;
-
-      explicit BuildContext(Track::ModuleData& data)
-        : Data(data)
-        , CurPattern()
-        , CurLine()
-        , CurChannel()
-      {
-      }
-
-      void SetPattern(uint_t idx)
-      {
-        Data.Patterns.resize(std::max<std::size_t>(idx + 1, Data.Patterns.size()));
-        CurPattern = &Data.Patterns[idx];
-        CurLine = 0;
-        CurChannel = 0;
-      }
-
-      void SetLine(uint_t idx)
-      {
-        if (const std::size_t skipped = idx - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = &CurPattern->AddLine();
-        CurChannel = 0;
-      }
-
-      void SetChannel(uint_t idx)
-      {
-        CurChannel = &CurLine->Channels[idx];
-      }
-
-      void FinishPattern(uint_t size)
-      {
-        if (const std::size_t skipped = size - CurPattern->GetSize())
-        {
-          CurPattern->AddLines(skipped);
-        }
-        CurLine = 0;
-        CurPattern = 0;
-      }
-    };
-  private:
-    const Track::ModuleData::RWPtr Data;
-    const ModuleProperties::RWPtr Properties;
-
-    BuildContext Context;
+    const boost::shared_ptr<ModuleData> Data;
+    PropertiesBuilder& Properties;
+    PatternsBuilder Patterns;
   };
 
   const uint_t LIMITER = ~uint_t(0);
@@ -346,7 +262,7 @@ namespace ProTracker2
   class DataRenderer : public AYM::DataRenderer
   {
   public:
-    explicit DataRenderer(Track::ModuleData::Ptr data)
+    explicit DataRenderer(ModuleData::Ptr data)
        : Data(data)
     {
     }
@@ -356,7 +272,7 @@ namespace ProTracker2
       std::fill(PlayerState.begin(), PlayerState.end(), ChannelState());
     }
 
-    virtual void SynthesizeData(const TrackState& state, AYM::TrackBuilder& track)
+    virtual void SynthesizeData(const TrackModelState& state, AYM::TrackBuilder& track)
     {
       if (0 == state.Quirk())
       {
@@ -365,55 +281,54 @@ namespace ProTracker2
       SynthesizeChannelsData(track);
     }
   private:
-    void GetNewLineState(const TrackState& state, AYM::TrackBuilder& track)
+    void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const Track::Line* line = Data->Patterns[state.Pattern()].GetLine(state.Line()))
+      if (const Line::Ptr line = state.LineObject())
       {
-        for (uint_t chan = 0; chan != line->Channels.size(); ++chan)
+        for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          const Track::Line::Chan& src = line->Channels[chan];
-          if (src.Empty())
+          if (const Cell::Ptr src = line->GetChannel(chan))
           {
-            continue;
+            GetNewChannelState(*src, PlayerState[chan], track);
           }
-          GetNewChannelState(src, PlayerState[chan], track);
         }
       }
     }
 
-    void GetNewChannelState(const Track::Line::Chan& src, ChannelState& dst, AYM::TrackBuilder& track)
+    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
-      if (src.Enabled)
+      if (const bool* enabled = src.GetEnabled())
       {
-        if (!(dst.Enabled = *src.Enabled))
+        dst.Enabled = *enabled;
+        if (!dst.Enabled)
         {
           dst.Sliding = dst.Glissade = 0;
           dst.SlidingTargetNote = LIMITER;
         }
         dst.PosInSample = dst.PosInOrnament = 0;
       }
-      if (src.Note)
+      if (const uint_t* note = src.GetNote())
       {
-        assert(src.Enabled);
-        dst.Note = *src.Note;
+        assert(src.GetEnabled());
+        dst.Note = *note;
         dst.Sliding = dst.Glissade = 0;
         dst.SlidingTargetNote = LIMITER;
       }
-      if (src.SampleNum)
+      if (const uint_t* sample = src.GetSample())
       {
-        dst.SampleNum = *src.SampleNum;
+        dst.SampleNum = *sample;
         dst.PosInSample = 0;
       }
-      if (src.OrnamentNum)
+      if (const uint_t* ornament = src.GetOrnament())
       {
-        dst.OrnamentNum = *src.OrnamentNum;
+        dst.OrnamentNum = *ornament;
         dst.PosInOrnament = 0;
       }
-      if (src.Volume)
+      if (const uint_t* volume = src.GetVolume())
       {
-        dst.Volume = *src.Volume;
+        dst.Volume = *volume;
       }
-      for (Track::CommandsArray::const_iterator it = src.Commands.begin(), lim = src.Commands.end(); it != lim; ++it)
+      for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
         switch (it->Type)
         {
@@ -463,9 +378,9 @@ namespace ProTracker2
         return;
       }
 
-      const Sample& curSample = Data->Samples[dst.SampleNum];
+      const Sample& curSample = Data->Samples.Get(dst.SampleNum);
       const Sample::Line& curSampleLine = curSample.GetLine(dst.PosInSample);
-      const Ornament& curOrnament = Data->Ornaments[dst.OrnamentNum];
+      const Ornament& curOrnament = Data->Ornaments.Get(dst.OrnamentNum);
 
       //apply tone
       const int_t halftones = int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament);
@@ -517,17 +432,17 @@ namespace ProTracker2
       }
     }
   private:
-    const Track::ModuleData::Ptr Data;
-    boost::array<ChannelState, Devices::AYM::CHANNELS> PlayerState;
+    const ModuleData::Ptr Data;
+    boost::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 
   class Chiptune : public AYM::Chiptune
   {
   public:
-    Chiptune(Track::ModuleData::Ptr data, ModuleProperties::Ptr properties)
+    Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(data)
       , Properties(properties)
-      , Info(CreateTrackInfo(Data, Devices::AYM::CHANNELS))
+      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 
@@ -536,104 +451,53 @@ namespace ProTracker2
       return Info;
     }
 
-    virtual ModuleProperties::Ptr GetProperties() const
+    virtual Parameters::Accessor::Ptr GetProperties() const
     {
       return Properties;
     }
 
     virtual AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
     {
-      const StateIterator::Ptr iterator = CreateTrackStateIterator(Info, Data);
+      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
       const AYM::DataRenderer::Ptr renderer = boost::make_shared<DataRenderer>(Data);
       return AYM::CreateDataIterator(trackParams, iterator, renderer);
     }
   private:
-    const Track::ModuleData::Ptr Data;
-    const ModuleProperties::Ptr Properties;
+    const ModuleData::Ptr Data;
+    const Parameters::Accessor::Ptr Properties;
     const Information::Ptr Info;
   };
-}
 
-namespace ProTracker2
-{
-  std::auto_ptr<Formats::Chiptune::ProTracker2::Builder> CreateDataBuilder(Track::ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props)
-  {
-    return std::auto_ptr<Formats::Chiptune::ProTracker2::Builder>(new DataBuilder(data, props));
-  }
-
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(Track::ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties)
-  {
-    return boost::make_shared<Chiptune>(data, properties);
-  }
-}
-
-namespace PT2
-{
-  using namespace ZXTune;
-  using namespace ZXTune::Module;
-
-  //plugin attributes
-  const Char ID[] = {'P', 'T', '2', 0};
-  const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | GetSupportedAYMFormatConvertors();
-
-  class Factory : public ModulesFactory
+  class Factory : public AYM::Factory
   {
   public:
-    explicit Factory(Formats::Chiptune::Decoder::Ptr decoder)
-      : Decoder(decoder)
+    virtual AYM::Chiptune::Ptr CreateChiptune(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
-    }
-
-    virtual bool Check(const Binary::Container& data) const
-    {
-      return Decoder->Check(data);
-    }
-
-    virtual Binary::Format::Ptr GetFormat() const
-    {
-      return Decoder->GetFormat();
-    }
-
-    virtual Holder::Ptr CreateModule(ModuleProperties::RWPtr properties, Binary::Container::Ptr rawData, std::size_t& usedSize) const
-    {
-      const ::ProTracker2::Track::ModuleData::RWPtr modData = boost::make_shared< ::ProTracker2::Track::ModuleData>();
-      const std::auto_ptr<Formats::Chiptune::ProTracker2::Builder> dataBuilder = ::ProTracker2::CreateDataBuilder(modData, properties);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(*rawData, *dataBuilder))
+      DataBuilder dataBuilder(propBuilder);
+      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
       {
-        usedSize = container->Size();
-        properties->SetSource(container);
-        const Module::AYM::Chiptune::Ptr chiptune = ::ProTracker2::CreateChiptune(modData, properties);
-        return AYM::CreateHolder(chiptune);
+        propBuilder.SetSource(*container);
+        return boost::make_shared<Chiptune>(dataBuilder.GetResult(), propBuilder.GetResult());
       }
-      return Holder::Ptr();
+      else
+      {
+        return AYM::Chiptune::Ptr();
+      }
     }
-  private:
-    const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 }
-
-namespace PT2
-{
-  const Char IDC_24[] = {'C', 'O', 'M', 'P', 'I', 'L', 'E', 'D', 'P', 'T', '2', '4', 0};
-  const uint_t CCAPS = CAP_STOR_CONTAINER;
 }
 
 namespace ZXTune
 {
-  void RegisterPT2Support(PluginsRegistrator& registrator)
+  void RegisterPT2Support(PlayerPluginsRegistrator& registrator)
   {
-    //modules with players
-    {
-      const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateCompiledPT24Decoder();
-      const ArchivePlugin::Ptr plugin = CreateArchivePlugin(PT2::IDC_24, PT2::CCAPS, decoder);
-      registrator.RegisterPlugin(plugin);
-    }
-    //direct modules
-    {
-      const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
-      const ModulesFactory::Ptr factory = boost::make_shared<PT2::Factory>(decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(PT2::ID, decoder->GetDescription(), PT2::CAPS, factory);
-      registrator.RegisterPlugin(plugin);
-    }
+    //plugin attributes
+    const Char ID[] = {'P', 'T', '2', 0};
+
+    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
+    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::ProTracker2::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }

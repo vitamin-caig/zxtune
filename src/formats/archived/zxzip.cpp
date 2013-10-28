@@ -13,7 +13,7 @@ Author:
 #include "trdos_catalogue.h"
 #include "trdos_utils.h"
 //library includes
-#include <formats/packed_decoders.h>
+#include <formats/packed/decoders.h>
 //boost includes
 #include <boost/make_shared.hpp>
 
@@ -54,7 +54,7 @@ namespace ZXZip
       {
         break;
       }
-      const String fileName = ExtractFileName(rawData->Data());
+      const String fileName = ExtractFileName(rawData->Start());
       const std::size_t fileSize = fileData->Size();
       const std::size_t usedSize = fileData->PackedSize();
       const TRDos::File::Ptr file = TRDos::File::Create(fileData, fileName, flatOffset, fileSize);
@@ -62,8 +62,15 @@ namespace ZXZip
       rawOffset += usedSize;
       flatOffset += fileSize;
     }
-    builder->SetRawData(data.GetSubcontainer(0, rawOffset));
-    return builder->GetResult();
+    if (rawOffset)
+    {
+      builder->SetRawData(data.GetSubcontainer(0, rawOffset));
+      return builder->GetResult();
+    }
+    else
+    {
+      return Archived::Container::Ptr();
+    }
   }
 }
 
@@ -91,7 +98,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!FileDecoder->GetFormat()->Match(data.Data(), data.Size()))
+        if (!FileDecoder->GetFormat()->Match(data))
         {
           return Container::Ptr();
         }

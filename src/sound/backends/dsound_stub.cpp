@@ -10,28 +10,26 @@ Author:
 */
 
 #include "dsound.h"
-#include "enumerator.h"
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterDirectSoundBackend(BackendsStorage& storage)
   {
-    void RegisterDirectSoundBackend(BackendsEnumerator& enumerator)
-    {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::DSOUND_BACKEND_ID, L10n::translate("DirectSound support backend."), CAP_TYPE_SYSTEM));
-    }
+    storage.Register(Text::DSOUND_BACKEND_ID, L10n::translate("DirectSound support backend."), CAP_TYPE_SYSTEM);
+  }
 
-    namespace DirectSound
+  namespace DirectSound
+  {
+    Device::Iterator::Ptr EnumerateDevices()
     {
-      Device::Iterator::Ptr EnumerateDevices()
-      {
-        return Device::Iterator::CreateStub();
-      }
+      return Device::Iterator::CreateStub();
     }
   }
 }
+

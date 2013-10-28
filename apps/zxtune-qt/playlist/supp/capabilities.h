@@ -18,6 +18,7 @@ Author:
 //local includes
 #include "data.h"
 //library includes
+#include <core/plugin.h>
 #include <core/plugin_attrs.h>
 
 namespace Playlist
@@ -28,12 +29,7 @@ namespace Playlist
     {
     public:
       explicit Capabilities(Data::Ptr data)
-        : PluginCaps(data->GetModule()->GetPlugin()->Capabilities())
-      {
-      }
-
-      explicit Capabilities(ZXTune::Module::Holder::Ptr holder)
-        : PluginCaps(holder->GetPlugin()->Capabilities())
+        : PluginCaps(ZXTune::FindPlugin(data->GetType())->Capabilities())
       {
       }
 

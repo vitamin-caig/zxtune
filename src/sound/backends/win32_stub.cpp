@@ -10,28 +10,26 @@ Author:
 */
 
 #include "win32.h"
-#include "enumerator.h"
+#include "storage.h"
 //library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterWin32Backend(BackendsStorage& storage)
   {
-    void RegisterWin32Backend(BackendsEnumerator& enumerator)
-    {
-      enumerator.RegisterCreator(CreateDisabledBackendStub(Text::WIN32_BACKEND_ID, L10n::translate("Win32 sound system backend"), CAP_TYPE_SYSTEM));
-    }
+    storage.Register(Text::WIN32_BACKEND_ID, L10n::translate("Win32 sound system backend"), CAP_TYPE_SYSTEM);
+  }
 
-    namespace Win32
+  namespace Win32
+  {
+    Device::Iterator::Ptr EnumerateDevices()
     {
-      Device::Iterator::Ptr EnumerateDevices()
-      {
-        return Device::Iterator::CreateStub();
-      }
+      return Device::Iterator::CreateStub();
     }
   }
 }
+

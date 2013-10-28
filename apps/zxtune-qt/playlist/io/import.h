@@ -20,6 +20,8 @@ Author:
 #include "playlist/supp/data_provider.h"
 
 class QString;
+class QStringList;
+
 namespace Playlist
 {
   namespace IO
@@ -29,6 +31,8 @@ namespace Playlist
     //specific
     Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename);
     Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename);
+
+    Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris);
   }
 }
 

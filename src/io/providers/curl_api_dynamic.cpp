@@ -11,18 +11,18 @@ Author:
 
 //local includes
 #include "curl_api.h"
-//common includes
-#include <debug_log.h>
-#include <shared_library_adapter.h>
-#include <tools.h>
+//library includes
+#include <debug/log.h>
+#include <platform/shared_library_adapter.h>
 //boost includes
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
 
 namespace
 {
-  using namespace ZXTune::IO::Curl;
+  using namespace IO::Curl;
 
-  class CurlName : public SharedLibrary::Name
+  class CurlName : public Platform::SharedLibrary::Name
   {
   public:
     virtual std::string Base() const
@@ -37,7 +37,7 @@ namespace
         "libcurl.so.3",
         "libcurl.so.4",
       };
-      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+      return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
     }
     
     virtual std::vector<std::string> WindowsAlternatives() const
@@ -46,7 +46,7 @@ namespace
       {
         "libcurl.dll",
       };
-      return std::vector<std::string>(ALTERNATIVES, ArrayEnd(ALTERNATIVES));
+      return std::vector<std::string>(ALTERNATIVES, boost::end(ALTERNATIVES));
     }
   };
 
@@ -55,7 +55,7 @@ namespace
   class DynamicApi : public Api
   {
   public:
-    explicit DynamicApi(SharedLibrary::Ptr lib)
+    explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
       : Lib(lib)
     {
       Dbg("Library loaded");
@@ -140,23 +140,20 @@ namespace
     }
     
   private:
-    const SharedLibraryAdapter Lib;
+    const Platform::SharedLibraryAdapter Lib;
   };
 
 }
 
-namespace ZXTune
+namespace IO
 {
-  namespace IO
+  namespace Curl
   {
-    namespace Curl
+    Api::Ptr LoadDynamicApi()
     {
-      Api::Ptr LoadDynamicApi()
-      {
-        static const CurlName NAME;
-        const SharedLibrary::Ptr lib = SharedLibrary::Load(NAME);
-        return boost::make_shared<DynamicApi>(lib);
-      }
+      static const CurlName NAME;
+      const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
+      return boost::make_shared<DynamicApi>(lib);
     }
   }
 }

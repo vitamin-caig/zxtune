@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:sabd="http://schemas.android.com/apk/res-auto" >
+  <item
+    android:id="@+id/action_prefs"
+    android:title="@string/menu_prefs"
+    sabd:showAsAction="never" />
+  <item
+    android:id="@+id/action_about"
+    android:title="@string/menu_about"
+    sabd:showAsAction="never" />
+  <item
+    android:id="@+id/action_quit"
+    android:title="@string/menu_quit"
+    sabd:showAsAction="never" />
+</menu>

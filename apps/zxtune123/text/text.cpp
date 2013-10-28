@@ -30,6 +30,18 @@ extern const Char ANALYZER_DESC[] = {
 extern const Char ANALYZER_KEY[] = {
   'a','n','a','l','y','z','e','r',0
 };
+extern const Char BENCHMARK_DESC[] = {
+  'S','w','i','t','c','h',' ','o','n',' ','b','e','n','c','h','m','a','r','k',' ','m','o','d','e',' ','w','i',
+  't','h',' ','s','p','e','c','i','f','i','e','d',' ','i','t','e','r','a','t','i','o','n','s',' ','c','o','u',
+  'n','t','.','\n',
+  0
+};
+extern const Char BENCHMARK_KEY[] = {
+  'b','e','n','c','h','m','a','r','k',0
+};
+extern const Char BENCHMARK_RESULT[] = {
+  'x','%','|','3','$','.','2','f','|',' ','(','%','2','%',')',' ','%','1','%',0
+};
 extern const Char CLI_SECTION[] = {
   'O','t','h','e','r',' ','o','p','t','i','o','n','s',0
 };
@@ -108,9 +120,9 @@ extern const Char CONVERT_KEY[] = {
   'c','o','n','v','e','r','t',0
 };
 extern const Char CONVERT_SKIPPED[] = {
-  'S','k','i','p','p','i','n','g',' ','\'','%','1','%','\'',' ','(','p','l','u','g','i','n',' ','\'','%','2',
-  '%','\'',')',' ','d','u','e',' ','t','o',' ','c','o','n','v','e','r','t',' ','i','m','p','o','s','s','i','b',
-  'i','l','i','t','y','.',0
+  'S','k','i','p','p','i','n','g',' ','\'','%','1','%','\'',' ','(','t','y','p','e',' ','\'','%','2','%','\'',
+  ')',' ','d','u','e',' ','t','o',' ','c','o','n','v','e','r','t',' ','i','m','p','o','s','s','i','b','i','l',
+  'i','t','y','.',0
 };
 extern const Char CORE_OPTS_DESC[] = {
   'o','p','t','i','o','n','s',' ','f','o','r',' ','c','o','r','e','.',' ','I','m','p','l','i','e','s',' ','\'',
@@ -126,13 +138,6 @@ extern const Char DISPLAY_SECTION[] = {
 extern const Char ERROR_INVALID_PARAMETER[] = {
   'I','n','v','a','l','i','d',' ','p','a','r','a','m','e','t','e','r',' ','\'','%','1','%','\'',' ','i','n',' ',
   'p','a','r','a','m','e','t','e','r',' ','s','t','r','i','n','g',' ','\'','%','2','%','\'','.',0
-};
-extern const Char FILTER_DESC[] = {
-  's','p','e','c','i','f','y',' ','b','a','n','d','p','a','s','s',' ','f','i','l','t','e','r',' ','(','[','o',
-  'r','d','e','r',',',']','l','o','w','-','h','i','g','h',')',0
-};
-extern const Char FILTER_KEY[] = {
-  'f','i','l','t','e','r',0
 };
 extern const Char FRAMEDURATION_DESC[] = {
   's','p','e','c','i','f','y',' ','f','r','a','m','e',' ','d','u','r','a','t','i','o','n',' ','i','n',' ','u',
@@ -227,14 +232,6 @@ extern const Char INFO_ATTRIBUTES_TITLE[] = {
 extern const Char INFO_ATTRIBUTES_TYPE[] = {
   'm','o','d','u','l','e',' ','t','y','p','e',' ','(','p','l','u','g','i','n',' ','i','d',')',0
 };
-extern const Char INFO_ATTRIBUTES_WARNINGS[] = {
-  'w','a','r','n','i','n','g','s',' ','a','b','o','u','t',' ','m','o','d','u','l','e',' ','s','t','r','u','c',
-  't','u','r','e',' ','(','m','u','l','t','i','s','t','r','i','n','g',')',0
-};
-extern const Char INFO_ATTRIBUTES_WARNINGS_COUNT[] = {
-  'm','o','d','u','l','e',' ','s','t','r','u','c','t','u','r','e',' ','w','a','r','n','i','n','g','s',' ','c',
-  'o','u','n','t',0
-};
 extern const Char INFO_ATTRIBUTE_INFO[] = {
   ' ','%','|','1','$','-','2','0','|','-',' ','%','2','%','\n',
   0
@@ -291,6 +288,9 @@ extern const Char INFO_CAP_MULTITRACK[] = {
 };
 extern const Char INFO_CAP_PLAIN[] = {
   's','t','o','r','_','p','l','a','i','n',0
+};
+extern const Char INFO_CAP_SAA[] = {
+  'd','e','v','_','s','a','a',0
 };
 extern const Char INFO_CAP_SCANER[] = {
   's','t','o','r','_','s','c','a','n','e','r',0
@@ -450,6 +450,13 @@ extern const Char INFO_OPTIONS_CORE_PLUGINS_ZIP_MAX_DEPACKED_FILE_SIZE_MB[] = {
   'm','a','x','i','m','a','l',' ','f','i','l','e',' ','s','i','z','e',' ','t','o',' ','b','e',' ','d','e','p',
   'a','c','k','e','d',' ','f','r','o','m',' ','.','z','i','p',' ','a','r','c','h','i','v','e',0
 };
+extern const Char INFO_OPTIONS_CORE_SAA_CLOCKRATE[] = {
+  'c','l','o','c','k',' ','r','a','t','e',' ','f','o','r',' ','S','A','A',' ','i','n',' ','H','z',0
+};
+extern const Char INFO_OPTIONS_CORE_SAA_INTERPOLATION[] = {
+  'u','s','e',' ','i','n','t','e','r','p','o','l','a','t','i','o','n',' ','f','o','r',' ','S','A','A',' ','r',
+  'e','n','d','e','r','i','n','g',0
+};
 extern const Char INFO_OPTIONS_CORE_TITLE[] = {
   ' ','C','o','r','e',' ','o','p','t','i','o','n','s',':',0
 };
@@ -460,9 +467,19 @@ extern const Char INFO_OPTIONS_CORE_Z80_INT_TICKS[] = {
   'Z','8','0',' ','p','r','o','c','e','s','s','o','r',' ','I','N','T',' ','s','i','g','n','a','l',' ','d','u',
   'r','a','t','i','o','n',' ','i','n',' ','t','i','c','k','s',0
 };
+extern const Char INFO_OPTIONS_IO_PROVIDERS_FILE_CREATE_DIRECTORIES[] = {
+  'c','r','e','a','t','e',' ','a','l','l',' ','i','n','t','e','r','m','e','d','i','a','t','e',' ','d','i','r',
+  'e','c','t','o','r','i','e','s',' ','(','a','p','p','l','i','c','a','b','l','e',' ','f','o','r',' ','f','o',
+  'r',' ','f','i','l','e','-','b','a','s','e','d',' ','b','a','c','k','e','n','d','s',')',0
+};
 extern const Char INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD[] = {
   'm','i','n','i','m','a','l',' ','s','i','z','e',' ','f','o','r',' ','u','s','e',' ','m','e','m','o','r','y',
   ' ','m','a','p','p','i','n','g',0
+};
+extern const Char INFO_OPTIONS_IO_PROVIDERS_FILE_OVERWRITE_EXISTING[] = {
+  'o','v','e','r','w','r','i','t','e',' ','t','a','r','g','e','t',' ','f','i','l','e',' ','i','f',' ','a','l',
+  'r','e','a','d','y',' ','e','x','i','s','t','s',' ','(','a','p','p','l','i','c','a','b','l','e',' ','f','o',
+  'r',' ','f','o','r',' ','f','i','l','e','-','b','a','s','e','d',' ','b','a','c','k','e','n','d','s',')',0
 };
 extern const Char INFO_OPTIONS_IO_PROVIDERS_TITLE[] = {
   ' ','I','O',' ','p','r','o','v','i','d','e','r','s',' ','o','p','t','i','o','n','s',':',0
@@ -498,13 +515,6 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_FILE_FILENAME[] = {
   'u','p','l','i','c','a','t','e','d',' ','i','n',' ','b','a','c','k','e','n','d','-','s','p','e','c','i','f',
   'i','c',' ','n','a','m','e','s','p','a','c','e',0
 };
-extern const Char INFO_OPTIONS_SOUND_BACKENDS_FILE_OVERWRITE[] = {
-  'o','v','e','r','w','r','i','t','e',' ','t','a','r','g','e','t',' ','f','i','l','e',' ','i','f',' ','a','l',
-  'r','e','a','d','y',' ','e','x','i','s','t','s',' ','f','o','r',' ','f','i','l','e','-','b','a','s','e','d',
-  ' ','b','a','c','k','e','n','d','s','.',' ','A','l','s','o',' ','d','u','p','l','i','c','a','t','e','d',' ',
-  'i','n',' ','b','a','c','k','e','n','d','-','s','p','e','c','i','f','i','c',' ','n','a','m','e','s','p','a',
-  'c','e',0
-};
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_FLAC_BLOCKSIZE[] = {
   's','p','e','c','y','f','y',' ','b','l','o','c','k','s','i','z','e',' ','i','n',' ','s','a','m','p','l','e',
   's',' ','f','o','r',' ','F','l','a','c',' ','b','a','c','k','e','n','d',0
@@ -518,6 +528,11 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_BITRATE[] = {
   's','p','e','c','i','f','y',' ','b','i','t','r','a','t','e',' ','i','n',' ','k','b','p','s',' ','f','o','r',
   ' ','M','p','3',' ','b','a','c','k','e','n','d',' ','i','n',' ','m','o','d','e','=','c','b','r',' ','o','r',
   ' ','m','o','d','e','=','a','b','r',0
+};
+extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_CHANNELS[] = {
+  's','p','e','c','i','f','y',' ','c','h','a','n','n','e','l','s',' ','e','n','c','o','d','i','n','g',' ','m',
+  'o','d','e',' ','(','d','e','f','a','u','l','t','/','s','t','e','r','e','o','/','j','o','i','n','t','s','t',
+  'e','r','e','o','/','m','o','d','e',')',0
 };
 extern const Char INFO_OPTIONS_SOUND_BACKENDS_MP3_MODE[] = {
   's','p','e','c','i','f','y',' ','m','o','d','e',' ','f','o','r',' ','M','p','3',' ','b','a','c','k','e','n',
@@ -573,6 +588,21 @@ extern const Char INFO_OPTIONS_SOUND_FREQUENCY[] = {
 };
 extern const Char INFO_OPTIONS_SOUND_LOOPED[] = {
   'l','o','o','p',' ','p','l','a','y','b','a','c','k',0
+};
+extern const Char INFO_OPTIONS_SOUND_MIXER[] = {
+  's','p','e','c','i','f','y',' ','l','e','v','e','l',' ','i','n',' ','p','e','r','c','e','n','t',' ','(','A',
+  '-',' ','t','o','t','a','l',' ','c','h','a','n','n','e','l','s',' ','c','o','u','n','t',',',' ','B','-',' ',
+  'i','n','p','u','t',' ','c','h','a','n','n','e','l',',',' ','C','-',' ','o','u','t','p','u','t',' ','c','h',
+  'a','n','n','e','l',')','.',' ','E','.','g','.',' ','w','h','e','n',' ','A','=','3',',',' ','B','=','0',',',
+  ' ','C','=','1',' ','w','i','l','l',' ','s','p','e','c','i','f','y',' ','A',' ','c','h','a','n','n','e','l',
+  ' ','l','e','v','e','l',' ','o','f',' ','A','Y','/','Y','M','-','l','i','k','e',' ','c','h','i','p','t','u',
+  'n','e','s',' ','t','o',' ','r','i','g','h','t',' ','s','t','e','r','e','o','c','h','a','n','n','e','l',0
+};
+extern const Char INFO_OPTIONS_SOUND_MIXER_TEMPLATE[] = {
+  'A','.','B','_','C',0
+};
+extern const Char INFO_OPTIONS_SOUND_MIXER_TITLE[] = {
+  ' ','M','i','x','e','r',' ','o','p','t','i','o','n','s',':',0
 };
 extern const Char INFO_OPTIONS_SOUND_TITLE[] = {
   ' ','S','o','u','n','d',' ','o','p','t','i','o','n','s',':',0
@@ -644,7 +674,7 @@ extern const Char ITEM_INFO[] = {
 };
 extern const Char ITEM_INFO_ADDON[] = {
   'T','i','m','e',':',' ',' ',' ',' ','%','1','%','\t','C','h','a','n','n','e','l','s',':',' ',' ','%','2','%',
-  '\t','R','e','a','l',' ','c','h','a','n','n','e','l','s',':',' ','%','3','%','\n',
+  '\n',
   '\n',
   0
 };
@@ -653,13 +683,6 @@ extern const Char LOOP_DESC[] = {
 };
 extern const Char LOOP_KEY[] = {
   'l','o','o','p',0
-};
-extern const Char MIXER_DESC[] = {
-  's','p','e','c','i','f','y',' ','m','i','x','e','r',' ','b','y',' ','l','a','y','o','u','t',' ','o','r',' ',
-  'm','a','t','r','i','x',0
-};
-extern const Char MIXER_KEY[] = {
-  'm','i','x','e','r',0
 };
 extern const Char PLAYBACK_STATUS[] = {
   '[','%','1','%',']',' ','[','%','2','%',']','\n',
@@ -692,14 +715,6 @@ extern const Char SILENT_KEY[] = {
 };
 extern const Char SOUND_BACKEND_PARAMS[] = {
   'p','a','r','a','m','e','t','e','r','s',0
-};
-extern const Char SOUND_ERROR_INVALID_FILTER[] = {
-  'I','n','v','a','l','i','d',' ','f','i','l','t','e','r',' ','p','a','r','a','m','e','t','e','r',':',' ','\'',
-  '%','1','%','\'','.',0
-};
-extern const Char SOUND_ERROR_INVALID_MIXER[] = {
-  'I','n','v','a','l','i','d',' ','m','i','x','e','r',' ','p','a','r','a','m','e','t','e','r',':',' ','\'','%',
-  '1','%','\'','.',0
 };
 extern const Char SOUND_ERROR_NO_BACKEND[] = {
   'F','a','i','l','e','d',' ','t','o',' ','c','r','e','a','t','e',' ','a','n','y',' ','b','a','c','k','e','n',

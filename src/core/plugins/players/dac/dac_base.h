@@ -10,37 +10,107 @@ Author:
 */
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
+#ifndef CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED
+#define CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED
 
+//local includes
+#include "dac_chiptune.h"
+#include "core/plugins/players/renderer.h"
 //library includes
-#include <core/module_types.h>
-#include <devices/dac.h>
-#include <sound/receiver.h>
+#include <sound/render_params.h>
 
-namespace ZXTune
+namespace Module
 {
-  namespace Module
+  namespace DAC
   {
-    namespace DAC
+    class ChannelDataBuilder
     {
-      class TrackParameters
+    public:
+      explicit ChannelDataBuilder(Devices::DAC::ChannelData& data)
+        : Data(data)
       {
-      public:
-        typedef boost::shared_ptr<const TrackParameters> Ptr;
-        virtual ~TrackParameters() {}
+      }
 
-        virtual bool Looped() const = 0;
-        virtual uint_t FrameDurationMicrosec() const = 0;
+      void SetEnabled(bool enabled)
+      {
+        Data.Enabled = enabled;
+        Data.Mask |= Devices::DAC::ChannelData::ENABLED;
+      }
 
-        static Ptr Create(Parameters::Accessor::Ptr params);
-      };
+      void SetNote(uint_t note)
+      {
+        Data.Note = note;
+        Data.Mask |= Devices::DAC::ChannelData::NOTE;
+      }
 
-      Devices::DAC::Receiver::Ptr CreateReceiver(Sound::MultichannelReceiver::Ptr target, uint_t channels);
-      Analyzer::Ptr CreateAnalyzer(Devices::DAC::Chip::Ptr device);
-      Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
-    }
+      void SetNoteSlide(int_t noteSlide)
+      {
+        Data.NoteSlide = noteSlide;
+        Data.Mask |= Devices::DAC::ChannelData::NOTESLIDE;
+      }
+
+      void SetFreqSlideHz(int_t freqSlideHz)
+      {
+        Data.FreqSlideHz = freqSlideHz;
+        Data.Mask |= Devices::DAC::ChannelData::FREQSLIDEHZ;
+      }
+
+      void SetSampleNum(uint_t sampleNum)
+      {
+        Data.SampleNum = sampleNum;
+        Data.Mask |= Devices::DAC::ChannelData::SAMPLENUM;
+      }
+
+      void SetPosInSample(uint_t posInSample)
+      {
+        Data.PosInSample = posInSample;
+        Data.Mask |= Devices::DAC::ChannelData::POSINSAMPLE;
+      }
+
+      void DropPosInSample()
+      {
+        Data.Mask &= ~Devices::DAC::ChannelData::POSINSAMPLE;
+      }
+
+      void SetLevelInPercents(uint_t levelInPercents)
+      {
+        Data.Level = Devices::LevelType(levelInPercents, Devices::LevelType::PRECISION);
+        Data.Mask |= Devices::DAC::ChannelData::LEVEL;
+      }
+
+      Devices::DAC::ChannelData& GetState() const
+      {
+        return Data;
+      }
+    private:
+      Devices::DAC::ChannelData& Data;
+    };
+
+    class TrackBuilder
+    {
+    public:
+      ChannelDataBuilder GetChannel(uint_t chan);
+
+      void GetResult(Devices::DAC::Channels& result);
+    private:
+      Devices::DAC::Channels Data;
+    };
+
+    class DataRenderer
+    {
+    public:
+      typedef boost::shared_ptr<DataRenderer> Ptr;
+
+      virtual ~DataRenderer() {}
+
+      virtual void SynthesizeData(const TrackModelState& state, TrackBuilder& track) = 0;
+      virtual void Reset() = 0;
+    };
+
+    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+
+    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
   }
 }
 
-#endif //__CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED__
+#endif //CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED

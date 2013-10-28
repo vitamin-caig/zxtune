@@ -14,44 +14,47 @@ Author:
 //local includes
 #include "sdl_api.h"
 #include "backend_impl.h"
-#include "enumerator.h"
+#include "storage.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
 #include <error_tools.h>
-#include <tools.h>
 //library includes
+#include <debug/log.h>
 #include <l10n/api.h>
+#include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/error_codes.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //boost includes
-#include <boost/noncopyable.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/thread/condition_variable.hpp>
 //text includes
-#include <sound/text/backends.h>
+#include "text/backends.h"
 
 #define FILE_TAG 608CF986
 
 namespace
 {
-  using namespace ZXTune;
-  using namespace ZXTune::Sound;
-
   const Debug::Stream Dbg("Sound::Backend::Sdl");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
+}
 
+namespace Sound
+{
+namespace Sdl
+{
+  const String ID = Text::SDL_BACKEND_ID;
+  const char* const DESCRIPTION = L10n::translate("SDL support backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
   const uint_t BUFFERS_MIN = 2;
   const uint_t BUFFERS_MAX = 10;
 
-  class SdlBackendParameters
+  class BackendParameters
   {
   public:
-    explicit SdlBackendParameters(const Parameters::Accessor& accessor)
+    explicit BackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -60,9 +63,9 @@ namespace
     {
       Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT;
       if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, val) &&
-          (!in_range<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
+          (!Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
-        throw MakeFormattedError(THIS_LINE, BACKEND_INVALID_PARAMETER,
+        throw MakeFormattedError(THIS_LINE,
           translate("SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
@@ -147,74 +150,65 @@ namespace
     CycledIterator<Buffer*> FillIter, PlayIter;
   };
 
-  class SdlBackendWorker : public BackendWorker
-                         , private boost::noncopyable
+  class BackendWorker : public Sound::BackendWorker
   {
   public:
-    SdlBackendWorker(Sdl::Api::Ptr api, Parameters::Accessor::Ptr params)
-      : Api(api)
-      , BackendParams(params)
-      , RenderingParameters(RenderParameters::Create(BackendParams))
-      , WasInitialized(Api->SDL_WasInit(SDL_INIT_EVERYTHING))
+    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
+      : SdlApi(api)
+      , Params(params)
+      , WasInitialized(SdlApi->SDL_WasInit(SDL_INIT_EVERYTHING))
       , Queue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT)
     {
       if (0 == WasInitialized)
       {
         Dbg("Initializing");
-        CheckCall(Api->SDL_Init(SDL_INIT_AUDIO) == 0, THIS_LINE);
+        CheckCall(SdlApi->SDL_Init(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
       else if (0 == (WasInitialized & SDL_INIT_AUDIO))
       {
         Dbg("Initializing sound subsystem");
-        CheckCall(Api->SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
+        CheckCall(SdlApi->SDL_InitSubSystem(SDL_INIT_AUDIO) == 0, THIS_LINE);
       }
     }
 
-    virtual ~SdlBackendWorker()
+    virtual ~BackendWorker()
     {
       if (0 == WasInitialized)
       {
         Dbg("Shutting down");
-        Api->SDL_Quit();
+        SdlApi->SDL_Quit();
       }
       else if (0 == (WasInitialized & SDL_INIT_AUDIO))
       {
         Dbg("Shutting down sound subsystem");
-        Api->SDL_QuitSubSystem(SDL_INIT_AUDIO);
+        SdlApi->SDL_QuitSubSystem(SDL_INIT_AUDIO);
       }
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
-    {
-      return VolumeControl::Ptr();
-    }
-
-    virtual void Test()
-    {
-      //TODO: implement
-    }
-
-    virtual void OnStartup(const Module::Holder& /*module*/)
+    virtual void Startup()
     {
       Dbg("Starting playback");
 
       SDL_AudioSpec format;
       format.format = -1;
-      switch (sizeof(Sample))
+      const bool sampleSigned = Sample::MID == 0;
+      switch (Sample::BITS)
       {
-      case 1:
-        format.format = SAMPLE_SIGNED ? AUDIO_S8 : AUDIO_U8;
+      case 8:
+        format.format = sampleSigned ? AUDIO_S8 : AUDIO_U8;
         break;
-      case 2:
-        format.format = SAMPLE_SIGNED ? AUDIO_S16SYS : AUDIO_U16SYS;
+      case 16:
+        format.format = sampleSigned ? AUDIO_S16SYS : AUDIO_U16SYS;
         break;
       default:
         assert(!"Invalid format");
       }
 
-      format.freq = RenderingParameters->SoundFreq();
-      format.channels = static_cast< ::Uint8>(OUTPUT_CHANNELS);
-      format.samples = RenderingParameters->SamplesPerFrame();
+      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
+      const BackendParameters backend(*Params);
+      format.freq = sound->SoundFreq();
+      format.channels = static_cast< ::Uint8>(Sample::CHANNELS);
+      format.samples = sound->SamplesPerFrame();
       //fix if size is not power of 2
       if (0 != (format.samples & (format.samples - 1)))
       {
@@ -227,50 +221,53 @@ namespace
       }
       format.callback = OnBuffer;
       format.userdata = &Queue;
-      const SdlBackendParameters params(*BackendParams);
-      Queue.SetSize(params.GetBuffersCount());
-      CheckCall(Api->SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
-      Api->SDL_PauseAudio(0);
+      Queue.SetSize(backend.GetBuffersCount());
+      CheckCall(SdlApi->SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
+      SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void OnShutdown()
+    virtual void Shutdown()
     {
       Dbg("Shutdown");
-      Api->SDL_CloseAudio();
+      SdlApi->SDL_CloseAudio();
     }
 
-    virtual void OnPause()
+    virtual void Pause()
     {
       Dbg("Pause");
-      Api->SDL_PauseAudio(1);
+      SdlApi->SDL_PauseAudio(1);
     }
 
-    virtual void OnResume()
+    virtual void Resume()
     {
       Dbg("Resume");
-      Api->SDL_PauseAudio(0);
+      SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void OnFrame(const Module::TrackState& /*state*/)
+    virtual void FrameStart(const Module::TrackState& /*state*/)
     {
     }
 
-
-    virtual void OnBufferReady(Chunk& buffer)
+    virtual void FrameFinish(Chunk::Ptr buffer)
     {
-      Queue.AddData(buffer);
+      Queue.AddData(*buffer);
+    }
+
+    virtual VolumeControl::Ptr GetVolumeControl() const
+    {
+      return VolumeControl::Ptr();
     }
   private:
     void CheckCall(bool ok, Error::LocationRef loc) const
     {
       if (!ok)
       {
-        if (const char* txt = Api->SDL_GetError())
+        if (const char* txt = SdlApi->SDL_GetError())
         {
-          throw MakeFormattedError(loc, BACKEND_PLATFORM_ERROR,
+          throw MakeFormattedError(loc,
             translate("Error in SDL backend: %1%."), FromStdString(txt));
         }
-        throw Error(loc, BACKEND_PLATFORM_ERROR, translate("Unknown error in SDL backend."));
+        throw Error(loc, translate("Unknown error in SDL backend."));
       }
     }
 
@@ -280,86 +277,45 @@ namespace
       queue->GetData(stream, len);
     }
   private:
-    const Sdl::Api::Ptr Api;
-    const Parameters::Accessor::Ptr BackendParams;
-    const RenderParameters::Ptr RenderingParameters;
+    const Api::Ptr SdlApi;
+    const Parameters::Accessor::Ptr Params;
     const ::Uint32 WasInitialized;
     BuffersQueue Queue;
   };
 
-  const String ID = Text::SDL_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("SDL support backend");
-
-  class SdlBackendCreator : public BackendCreator
+  class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    explicit SdlBackendCreator(Sdl::Api::Ptr api)
-      : Api(api)
+    explicit BackendWorkerFactory(Api::Ptr api)
+      : SdlApi(api)
     {
     }
 
-    virtual String Id() const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
     {
-      return ID;
-    }
-
-    virtual String Description() const
-    {
-      return translate(DESCRIPTION);
-    }
-
-    virtual uint_t Capabilities() const
-    {
-      return CAPABILITIES;
-    }
-
-    virtual Error Status() const
-    {
-      return Error();
-    }
-
-    virtual Error CreateBackend(CreateBackendParameters::Ptr params, Backend::Ptr& result) const
-    {
-      try
-      {
-        const Parameters::Accessor::Ptr allParams = params->GetParameters();
-        const BackendWorker::Ptr worker(new SdlBackendWorker(Api, allParams));
-        result = Sound::CreateBackend(params, worker);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return MakeFormattedError(THIS_LINE, BACKEND_FAILED_CREATE,
-          translate("Failed to create backend '%1%'."), Id()).AddSuberror(e);
-      }
-      catch (const std::bad_alloc&)
-      {
-        return Error(THIS_LINE, BACKEND_NO_MEMORY, translate("Failed to allocate memory for backend."));
-      }
+      return boost::make_shared<BackendWorker>(SdlApi, params);
     }
   private:
-    const Sdl::Api::Ptr Api;
+    const Api::Ptr SdlApi;
   };
-}
+}//Sdl
+}//Sound
 
-namespace ZXTune
+namespace Sound
 {
-  namespace Sound
+  void RegisterSdlBackend(BackendsStorage& storage)
   {
-    void RegisterSdlBackend(BackendsEnumerator& enumerator)
+    try
     {
-      try
-      {
-        const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
-        const SDL_version* const vers = api->SDL_Linked_Version();
-        Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
-        const BackendCreator::Ptr creator(new SdlBackendCreator(api));
-        enumerator.RegisterCreator(creator);
-      }
-      catch (const Error& e)
-      {
-        enumerator.RegisterCreator(CreateUnavailableBackendStub(ID, DESCRIPTION, CAPABILITIES, e));
-      }
+      const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
+      const SDL_version* const vers = api->SDL_Linked_Version();
+      Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
+      const BackendWorkerFactory::Ptr factory = boost::make_shared<Sdl::BackendWorkerFactory>(api);
+      storage.Register(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, factory);
+    }
+    catch (const Error& e)
+    {
+      storage.Register(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, e);
     }
   }
 }

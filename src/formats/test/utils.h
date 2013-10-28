@@ -1,10 +1,11 @@
 #ifndef FORMATS_TEST_UTILS_H
 #define FORMATS_TEST_UTILS_H
 
-#include <tools.h>
+#include <pointers.h>
 #include <types.h>
-#include <formats/archived_decoders.h>
-#include <formats/packed_decoders.h>
+#include <binary/container_factories.h>
+#include <formats/archived/decoders.h>
+#include <formats/packed/decoders.h>
 #include <list>
 #include <map>
 #include <cstring>
@@ -42,7 +43,7 @@ namespace Test
       const Binary::Container::Ptr testdata = Binary::CreateContainer(&testdataDump[0], testdataDump.size());
       std::cout << " testing " << testname << std::endl;
       const Binary::Format::Ptr format = decoder.GetFormat();
-      if (!format->Match(testdata->Data(), testdata->Size()))
+      if (!format->Match(*testdata))
       {
         throw std::runtime_error("Failed to check for sanity.");
       }
@@ -50,10 +51,10 @@ namespace Test
       if (const Formats::Packed::Container::Ptr unpacked = decoder.Decode(*testdata))
       {
         if (unpacked->Size() != etalon->Size() &&
-            0 != std::memcmp(etalon->Data(), unpacked->Data(), etalon->Size()))
+            0 != std::memcmp(etalon->Start(), unpacked->Start(), etalon->Size()))
         {
           std::ofstream output((testname + "_decoded").c_str(), std::ios::binary);
-          output.write(static_cast<const char*>(unpacked->Data()), unpacked->Size());
+          output.write(static_cast<const char*>(unpacked->Start()), unpacked->Size());
           std::ostringstream str;
           str << "Invalid decode:\n"
             "ref size=" << etalon->Size() << "\n"
@@ -132,10 +133,10 @@ namespace Test
       }
       const Binary::Container::Ptr unpacked = file.GetData();
       if (unpacked->Size() != Etalon.size() ||
-          0 != std::memcmp(&Etalon[0], unpacked->Data(), unpacked->Size()))
+          0 != std::memcmp(&Etalon[0], unpacked->Start(), unpacked->Size()))
       {
         std::ofstream output((Files.front() + "_decoded").c_str(), std::ios::binary);
-        output.write(static_cast<const char*>(unpacked->Data()), unpacked->Size());
+        output.write(static_cast<const char*>(unpacked->Start()), unpacked->Size());
         std::ostringstream str;
         str << "Invalid decode:\n"
           "ref size=" << Etalon.size() << "\n"
@@ -160,7 +161,7 @@ namespace Test
     const Binary::Container::Ptr testData = Binary::CreateContainer(&archive[0], archive.size());
 
     const Binary::Format::Ptr format = decoder.GetFormat();
-    if (!format->Match(testData->Data(), testData->Size()))
+    if (!format->Match(*testData))
     {
       throw std::runtime_error("Failed to check for sanity.");
     }

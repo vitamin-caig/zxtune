@@ -19,6 +19,7 @@ Author:
 #include "playlist/supp/data.h"
 //library includes
 #include <sound/backend.h>
+#include <strings/array.h>
 //qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
@@ -27,10 +28,10 @@ class MainWindow : public QMainWindow
 {
   Q_OBJECT
 public:
-  static QPointer<MainWindow> Create(Parameters::Container::Ptr options, const StringArray& cmdline);
+  static QPointer<MainWindow> Create(Parameters::Container::Ptr options, const Strings::Array& cmdline);
 
 public slots:
-  virtual void StartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
+  virtual void StartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
   virtual void StopModule() = 0;
 
   //File menu

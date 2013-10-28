@@ -16,8 +16,6 @@ Author:
 #include "status_control.ui.h"
 #include "supp/playback_supp.h"
 #include "ui/utils.h"
-//common includes
-#include <parameters.h>
 //library includes
 #include <core/module_attrs.h>
 //qt includes
@@ -38,13 +36,13 @@ namespace
       //setup self
       setupUi(this);
 
-      this->connect(&supp, SIGNAL(OnStartModule(ZXTune::Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(ZXTune::Sound::Backend::Ptr)));
+      this->connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+        SLOT(InitState(Sound::Backend::Ptr)));
       this->connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState()));
       this->connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState()));
     }
 
-    virtual void InitState(ZXTune::Sound::Backend::Ptr player)
+    virtual void InitState(Sound::Backend::Ptr player)
     {
       TrackState = player->GetTrackState();
       CloseState();
@@ -52,12 +50,15 @@ namespace
 
     virtual void UpdateState()
     {
-      textPosition->setText(QString::number(TrackState->Position()));
-      textPattern->setText(QString::number(TrackState->Pattern()));
-      textLine->setText(QString::number(TrackState->Line()));
-      textFrame->setText(QString::number(TrackState->Quirk()));
-      textChannels->setText(QString::number(TrackState->Channels()));
-      textTempo->setText(QString::number(TrackState->Tempo()));
+      if (isVisible())
+      {
+        textPosition->setText(QString::number(TrackState->Position()));
+        textPattern->setText(QString::number(TrackState->Pattern()));
+        textLine->setText(QString::number(TrackState->Line()));
+        textFrame->setText(QString::number(TrackState->Quirk()));
+        textChannels->setText(QString::number(TrackState->Channels()));
+        textTempo->setText(QString::number(TrackState->Tempo()));
+      }
     }
 
     virtual void CloseState()
@@ -80,7 +81,7 @@ namespace
       ::StatusControl::changeEvent(event);
     }
   private:
-    ZXTune::Module::TrackState::Ptr TrackState;
+    Module::TrackState::Ptr TrackState;
   };
 }
 

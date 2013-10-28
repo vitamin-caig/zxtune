@@ -41,7 +41,7 @@ namespace Playlist
       void ResetToDefaults();
     };
 
-    void ExecutePropertiesDialog(class TableView& view, Playlist::Model::IndexSetPtr scope, Controller& controller);
+    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Playlist::Model::IndexSetPtr scope);
   }
 }
 

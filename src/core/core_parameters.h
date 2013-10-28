@@ -8,11 +8,11 @@
 **/
 
 #pragma once
-#ifndef __CORE_PARAMETERS_H_DEFINED__
-#define __CORE_PARAMETERS_H_DEFINED__
+#ifndef CORE_PARAMETERS_H_DEFINED
+#define CORE_PARAMETERS_H_DEFINED
 
-//common includes
-#include <parameters.h>
+//library includes
+#include <parameters/types.h>
 
 namespace Parameters
 {
@@ -36,7 +36,7 @@ namespace Parameters
         //! Default value- 1.75MHz
         const IntType CLOCKRATE_DEFAULT = 1750000;
         const IntType CLOCKRATE_MIN = 1000000;
-        const IntType CLOCKRATE_MAX = 10000000;
+        const IntType CLOCKRATE_MAX = UINT64_C(10000000);
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}
@@ -75,6 +75,11 @@ namespace Parameters
         //! @brief Use interpolation
         //! @details Integer value
         extern const NameType INTERPOLATION;
+
+        const IntType SAMPLES_FREQUENCY_MIN = 800;
+        const IntType SAMPLES_FREQUENCY_MAX = 16000;
+        //! @brief Base samples frequency for C-1 (32.7Hz)
+        extern const NameType SAMPLES_FREQUENCY;
       }
 
       //! @brief Z80-related parameters namespace
@@ -96,9 +101,9 @@ namespace Parameters
         //! @name CPU clockrate in Hz
 
         //! Default value- 3.5MHz
-        const IntType CLOCKRATE_DEFAULT = 3500000;
+        const IntType CLOCKRATE_DEFAULT = UINT64_C(3500000);
         const IntType CLOCKRATE_MIN = 1000000;
-        const IntType CLOCKRATE_MAX = 10000000;
+        const IntType CLOCKRATE_MAX = UINT64_C(10000000);
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}
@@ -114,13 +119,35 @@ namespace Parameters
         //! @name FM clockrate in Hz
 
         //! Default value- 3.5MHz
-        const IntType CLOCKRATE_DEFAULT = 3500000;
+        const IntType CLOCKRATE_DEFAULT = UINT64_C(3500000);
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}
+      }
+
+      //! @brief SAA-related parameters namespace
+      namespace SAA
+      {
+        //! @brief Parameter#ZXTune#Core#SAA namespace prefix
+        extern const NameType PREFIX;
+
+        //@{
+        //! @name SAA clockrate in Hz
+
+        //! Default value- 8MHz
+        const IntType CLOCKRATE_DEFAULT = UINT64_C(8000000);
+        const IntType CLOCKRATE_MIN = UINT64_C(4000000);
+        const IntType CLOCKRATE_MAX = UINT64_C(16000000);
+        //! Parameter name
+        extern const NameType CLOCKRATE;
+        //@}
+
+        //! @brief Use interpolation
+        //! @details integer value
+        extern const NameType INTERPOLATION;
       }
     }
   }
 }
 
-#endif //__CORE_PARAMETERS_H_DEFINED__
+#endif //CORE_PARAMETERS_H_DEFINED

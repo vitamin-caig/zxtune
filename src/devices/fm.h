@@ -16,7 +16,10 @@ Author:
 //common includes
 #include <data_streaming.h>
 #include <types.h>
-#include <time_stamp.h>
+//library includes
+#include <devices/state.h>
+#include <sound/receiver.h>
+#include <time/stamp.h>
 //boost includes
 #include <boost/array.hpp>
 
@@ -24,8 +27,37 @@ namespace Devices
 {
   namespace FM
   {
-    const uint_t CHANNELS = 1;
     const uint_t VOICES = 3;
+
+    typedef Time::Microseconds Stamp;
+
+    class Register
+    {
+    public:
+      Register()
+        : Val()
+      {
+      }
+
+      Register(uint_t idx, uint_t val)
+        : Val((idx << 8) | val)
+      {
+      }
+
+      uint_t Index() const
+      {
+        return (Val >> 8) & 0xff;
+      }
+
+      uint_t Value() const
+      {
+        return Val & 0xff;
+      }
+    protected:
+      uint_t Val;
+    };
+
+    typedef std::vector<Register> Registers;
 
     struct DataChunk
     {
@@ -33,26 +65,7 @@ namespace Devices
       {
       }
 
-      struct Register
-      {
-        uint8_t Index;
-        uint8_t Value;
-
-        Register()
-          : Index()
-          , Value()
-        {
-        }
-
-        Register(uint8_t idx, uint8_t val)
-          : Index(idx)
-          , Value(val)
-        {
-        }
-      };
-      typedef std::vector<Register> Registers;
-
-      Time::Nanoseconds TimeStamp;
+      Stamp TimeStamp;
       Registers Data;
     };
 
@@ -65,50 +78,16 @@ namespace Devices
       /// render single data chunk
       virtual void RenderData(const DataChunk& src) = 0;
 
-      /// flush any collected data
-      virtual void Flush() = 0;
-
       /// reset internal state to initial
       virtual void Reset() = 0;
     };
 
-    //channels state
-    struct ChanState
-    {
-      ChanState()
-        : Name(' '), Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      explicit ChanState(Char name)
-        : Name(name), Enabled(), Band(), LevelInPercents()
-      {
-      }
-
-      //Short channel abbreviation
-      Char Name;
-      //Is channel enabled to output
-      bool Enabled;
-      //Currently played tone band (up to 96)
-      uint_t Band;
-      //Currently played tone level percentage
-      uint_t LevelInPercents;
-    };
-    typedef boost::array<ChanState, VOICES> ChannelsState;
-
     // Describes real device
-    class Chip : public Device
+    class Chip : public Device, public StateSource
     {
     public:
       typedef boost::shared_ptr<Chip> Ptr;
-
-      virtual void GetState(ChannelsState& state) const = 0;
     };
-
-    // Sound is rendered in unsigned 16-bit values
-    typedef uint16_t Sample;
-    // Result sound stream receiver
-    typedef DataReceiver<Sample> Receiver;
 
     class ChipParameters
     {
@@ -117,12 +96,13 @@ namespace Devices
 
       virtual ~ChipParameters() {}
 
+      virtual uint_t Version() const = 0;
       virtual uint64_t ClockFreq() const = 0;
       virtual uint_t SoundFreq() const = 0;
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }
 

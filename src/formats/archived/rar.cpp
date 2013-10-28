@@ -9,21 +9,20 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//common includes
-#include <debug_log.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 #include <formats/archived.h>
-#include <formats/packed_decoders.h>
+#include <formats/packed/decoders.h>
 #include <formats/packed/rar_supp.h>
 //std includes
 #include <cstring>
-#include <list>
+#include <deque>
 #include <numeric>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/scoped_ptr.hpp>
 //text include
 #include <formats/text/packed.h>
 
@@ -41,95 +40,40 @@ namespace Rar
     fromLE<uint16_t>(0x0007)
   };
 
-  class StubFile : public Archived::File
+  struct FileBlock
   {
-  public:
-    virtual String GetName() const
-    {
-      return String();
-    }
+    const Packed::Rar::FileBlockHeader* Header;
+    std::size_t Offset;
+    std::size_t Size;
 
-    virtual Binary::Container::Ptr GetData() const
-    {
-      return Binary::Container::Ptr();
-    }
-
-    virtual std::size_t GetSize() const
-    {
-      return 0;
-    }
-
-    static Ptr Create()
-    {
-      static StubFile stub;
-      return Ptr(&stub, NullDeleter<StubFile>());
-    }
-  };
-
-  class ChainDecoder
-  {
-  public:
-    typedef boost::shared_ptr<const ChainDecoder> Ptr;
-
-    ChainDecoder()
-      : Delegate(Packed::CreateRarDecoder())
+    FileBlock()
+      : Header()
+      , Offset()
+      , Size()
     {
     }
 
-    Binary::Container::Ptr Decode(const Binary::Container& data, const String& name) const
-    {
-      LastDecoded = name;
-      return Delegate->Decode(data);
-    }
-
-    String GetLastDecoded() const
-    {
-      return LastDecoded;
-    }
-  private:
-    const Formats::Packed::Decoder::Ptr Delegate;
-    mutable String LastDecoded;
-  };
-
-  class File : public Archived::File
-  {
-  public:
-    File(ChainDecoder::Ptr decoder, Binary::Container::Ptr data, const String& name, std::size_t size, Archived::File::Ptr parent)
-      : Decoder(decoder)
-      , Data(data)
-      , Name(name)
+    FileBlock(const Packed::Rar::FileBlockHeader* header, std::size_t offset, std::size_t size)
+      : Header(header)
+      , Offset(offset)
       , Size(size)
-      , Parent(parent)
     {
     }
 
-    virtual String GetName() const
+    std::size_t GetUnpackedSize() const
     {
-      return Name;
+      return fromLE(Header->UnpackedSize);
     }
 
-    virtual std::size_t GetSize() const
+    bool HasParent() const
     {
-      return Size;
+      return Header->IsSolid();
     }
 
-    virtual Binary::Container::Ptr GetData() const
+    bool IsChained() const
     {
-      Dbg("Decompressing '%1%'", Name);
-      const String parentName = Parent->GetName();
-      if (!parentName.empty() && Decoder->GetLastDecoded() != parentName)
-      {
-        Dbg(" Decompressing parent '%1%'", parentName);
-        Parent->GetData();
-      }
-      return Decoder->Decode(*Data, Name);
+      return !Header->IsStored();
     }
-  private:
-    const ChainDecoder::Ptr Decoder;
-    const Binary::Container::Ptr Data;
-    const String Name;
-    const std::size_t Size;
-    const Archived::File::Ptr Parent;
   };
 
   class BlocksIterator
@@ -157,7 +101,7 @@ namespace Rar
         ? &block
         : 0;
     }
-
+  
     const Packed::Rar::FileBlockHeader* GetFileHeader() const
     {
       assert(!IsEof());
@@ -231,6 +175,115 @@ namespace Rar
     std::size_t Offset;
   };
 
+  class ChainDecoder
+  {
+  public:
+    typedef boost::shared_ptr<ChainDecoder> Ptr;
+
+    explicit ChainDecoder(Binary::Container::Ptr data)
+      : Data(data)
+      , StatefulDecoder(Packed::CreateRarDecoder())
+      , ChainIterator(new BlocksIterator(*Data))
+    {
+    }
+
+    Binary::Container::Ptr DecodeBlock(const FileBlock& block) const
+    {
+      if (block.IsChained() && block.HasParent())
+      {
+        return AdvanceIterator(block.Offset, &ChainDecoder::ProcessBlock)
+          ? DecodeSingleBlock(block)
+          : Binary::Container::Ptr();
+      }
+      else
+      {
+        return AdvanceIterator(block.Offset, &ChainDecoder::SkipBlock)
+          ? DecodeSingleBlock(block)
+          : Binary::Container::Ptr();
+      }
+    }
+  private:
+    bool AdvanceIterator(std::size_t offset, void (ChainDecoder::*BlockOp)(const FileBlock&) const) const
+    {
+      if (ChainIterator->GetOffset() > offset)
+      {
+        Dbg(" Reset caching iterator to beginning");
+        ChainIterator.reset(new BlocksIterator(*Data));
+      }
+      while (ChainIterator->GetOffset() <= offset && !ChainIterator->IsEof())
+      {
+        const FileBlock& curBlock = FileBlock(ChainIterator->GetFileHeader(), ChainIterator->GetOffset(), ChainIterator->GetBlockSize());
+        ChainIterator->Next();
+        if (curBlock.Header)
+        {
+          if (curBlock.Offset == offset)
+          {
+            return true;
+          }
+          else if (curBlock.IsChained())
+          {
+            (this->*BlockOp)(curBlock);
+          }
+        }
+      }
+      return false;
+    }
+
+    Binary::Container::Ptr DecodeSingleBlock(const FileBlock& block) const
+    {
+      Dbg(" Decoding block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(), block.HasParent());
+      const Binary::Container::Ptr blockContent = Data->GetSubcontainer(block.Offset, block.Size);
+      return StatefulDecoder->Decode(*blockContent);
+    }
+
+    void ProcessBlock(const FileBlock& block) const
+    {
+      Dbg(" Decoding parent block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(), block.HasParent());
+      const Binary::Container::Ptr blockContent = Data->GetSubcontainer(block.Offset, block.Size);
+      StatefulDecoder->Decode(*blockContent);
+    }
+
+    void SkipBlock(const FileBlock& block) const
+    {
+      Dbg(" Skip block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(), block.HasParent());
+    }
+  private:
+    const Binary::Container::Ptr Data;
+    const Formats::Packed::Decoder::Ptr StatefulDecoder;
+    mutable boost::scoped_ptr<BlocksIterator> ChainIterator;
+  };
+
+  class File : public Archived::File
+  {
+  public:
+    File(ChainDecoder::Ptr decoder, const FileBlock& block, const String& name)
+      : Decoder(decoder)
+      , Block(block)
+      , Name(name)
+    {
+    }
+
+    virtual String GetName() const
+    {
+      return Name;
+    }
+
+    virtual std::size_t GetSize() const
+    {
+      return Block.GetUnpackedSize();
+    }
+
+    virtual Binary::Container::Ptr GetData() const
+    {
+      Dbg("Decompressing '%1%' started at %2%", Name, Block.Offset);
+      return Decoder->DecodeBlock(Block);
+    }
+  private:
+    const ChainDecoder::Ptr Decoder;
+    const FileBlock Block;
+    const String Name;
+  };
+
   class FileIterator
   {
   public:
@@ -238,7 +291,6 @@ namespace Rar
       : Decoder(decoder)
       , Data(data)
       , Blocks(data)
-      , Previous(StubFile::Create())
     {
       SkipNonFileBlocks();
     }
@@ -268,11 +320,8 @@ namespace Rar
       const Formats::Packed::Rar::FileBlockHeader& file = *Blocks.GetFileHeader();
       if (file.IsSupported() && !Current)
       {
-        const std::size_t offset = Blocks.GetOffset();
-        const std::size_t size = Blocks.GetBlockSize();
-        const Binary::Container::Ptr fileBlock = Data.GetSubcontainer(offset, size);
-        const Archived::File::Ptr prev = (Previous && file.IsSolid()) ? Previous : StubFile::Create();
-        Current = boost::make_shared<File>(Decoder, fileBlock, GetName(), fromLE(file.UnpackedSize), prev);
+        const FileBlock block(&file, Blocks.GetOffset(), Blocks.GetBlockSize());
+        Current = boost::make_shared<File>(Decoder, block, GetName());
       }
       return Current;
     }
@@ -280,7 +329,6 @@ namespace Rar
     void Next()
     {
       assert(!IsEof());
-      Previous = GetFile();
       Current.reset();
       Blocks.Next();
       SkipNonFileBlocks();
@@ -303,14 +351,13 @@ namespace Rar
     const Binary::Container& Data;
     BlocksIterator Blocks;
     mutable Archived::File::Ptr Current;
-    Archived::File::Ptr Previous;
   };
 
   class Container : public Archived::Container
   {
   public:
     Container(Binary::Container::Ptr data, uint_t filesCount)
-      : Decoder(boost::make_shared<ChainDecoder>())
+      : Decoder(boost::make_shared<ChainDecoder>(data))
       , Delegate(data)
       , FilesCount(filesCount)
     {
@@ -318,14 +365,14 @@ namespace Rar
     }
 
     //Binary::Container
+    virtual const void* Start() const
+    {
+      return Delegate->Start();
+    }
+
     virtual std::size_t Size() const
     {
       return Delegate->Size();
-    }
-
-    virtual const void* Data() const
-    {
-      return Delegate->Data();
     }
 
     virtual Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const
@@ -336,20 +383,27 @@ namespace Rar
     //Archive::Container
     virtual void ExploreFiles(const Archived::Container::Walker& walker) const
     {
-      FillCache();
-      for (FilesList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      for (FileIterator iter(Decoder, *Delegate); !iter.IsEof(); iter.Next())
       {
-        walker.OnFile(**it);
+        if (!iter.IsValid())
+        {
+          continue;
+        }
+        const Archived::File::Ptr fileObject = iter.GetFile();
+        walker.OnFile(*fileObject);
       }
     }
 
     virtual Archived::File::Ptr FindFile(const String& name) const
     {
-      if (Archived::File::Ptr file = FindCachedFile(name))
+      for (FileIterator iter(Decoder, *Delegate); !iter.IsEof(); iter.Next())
       {
-        return file;
+        if (iter.IsValid() && iter.GetName() == name)
+        {
+          return iter.GetFile();
+        }
       }
-      return FindNonCachedFile(name);
+      return Archived::File::Ptr();
     }
 
     virtual uint_t CountFiles() const
@@ -357,63 +411,9 @@ namespace Rar
       return FilesCount;
     }
   private:
-    void FillCache() const
-    {
-      FindNonCachedFile(String());
-    }
-
-    Archived::File::Ptr FindCachedFile(const String& name) const
-    {
-      if (Iter.get())
-      {
-        const FilesList::const_iterator it = std::find_if(Files.begin(), Files.end(),
-          boost::bind(&Archived::File::GetName, _1) == name);
-        if (it != Files.end())
-        {
-          return *it;
-        }
-      }
-      return Archived::File::Ptr();
-    }
-
-    Archived::File::Ptr FindNonCachedFile(const String& name) const
-    {
-      CreateIterator();
-      while (!Iter->IsEof())
-      {
-        const String fileName = Iter->GetName();
-        if (!Iter->IsValid())
-        {
-          Dbg("Invalid file '%1%'", fileName);
-          Iter->Next();
-          continue;
-        }
-        Dbg("Found file '%1%'", fileName);
-        const Archived::File::Ptr fileObject = Iter->GetFile();
-        Files.push_back(fileObject);
-        Iter->Next();
-        if (fileName == name)
-        {
-          return fileObject;
-        }
-      }
-      return Archived::File::Ptr();
-    }
-
-    void CreateIterator() const
-    {
-      if (!Iter.get())
-      {
-        Iter.reset(new FileIterator(Decoder, *Delegate));
-      }
-    }
-  private:
     const ChainDecoder::Ptr Decoder;
     const Binary::Container::Ptr Delegate;
     const uint_t FilesCount;
-    mutable std::auto_ptr<FileIterator> Iter;
-    typedef std::list<Archived::File::Ptr> FilesList;
-    mutable FilesList Files;
   };
 
   const std::string FORMAT(
@@ -454,7 +454,7 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& data) const
       {
-        if (!Format->Match(data.Data(), data.Size()))
+        if (!Format->Match(data))
         {
           return Container::Ptr();
         }

@@ -25,7 +25,7 @@ else
 mode := debug
 endif
 
-ifneq ($(or $(qt_libraries),$(ui_files),$(moc_files),$(qrc_files)),)
+ifneq ($(or $(libraries.qt),$(ui_files),$(moc_files),$(qrc_files)),)
 use_qt := 1
 endif
 
@@ -37,6 +37,9 @@ include_dirs += $(path_step)/include $(path_step)/src $(path_step)
 objs_dir = $(path_step)/obj/$(platform_pathname)/$(mode_pathname)$(suffix)
 libs_dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(suffix)
 bins_dir = $(path_step)/bin/$(platform_pathname)/$(mode_pathname)
+
+#set environment
+include $(path_step)/make/environment.mak
 
 #set platform-specific parameters
 include $(path_step)/make/platforms/$(platform).mak
@@ -71,14 +74,11 @@ all: $(target)
 #set compiler-specific parameters
 include $(path_step)/make/compilers/$(compiler).mak
 
-#set default environment
-$(platform)_definitions += "BUILD_PLATFORM=$(platform)"
-$(platform)_definitions += "BUILD_ARCH=$(arch)"
-
 #calculate input source files
 ifdef source_dirs
 source_files += $(basename $(wildcard $(addsuffix /*$(src_suffix),$(source_dirs))))
 endif
+
 
 #process texts if required
 ifdef text_files
@@ -89,6 +89,9 @@ endif
 ifdef use_qt
 include $(path_step)/make/qt.mak
 endif
+
+#process boost
+include $(path_step)/make/boost.mak
 
 #process l10n files
 include $(path_step)/make/l10n.mak
@@ -123,6 +126,9 @@ $(target): $(OBJECTS) $(RESOURCES) | $(output_dir) $(TRANSLATIONS)
 
 .PHONY: deps
 else
+#libraries helpers
+include $(path_step)/libraries.mak
+
 #binary and dynamic libraries with dependencies
 LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
 

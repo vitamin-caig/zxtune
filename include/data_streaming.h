@@ -8,22 +8,16 @@
 **/
 
 #pragma once
-#ifndef __DATA_STREAMING_H_DEFINED__
-#define __DATA_STREAMING_H_DEFINED__
+#ifndef DATA_STREAMING_H_DEFINED
+#define DATA_STREAMING_H_DEFINED
 
-//boost includes
-#include <boost/shared_ptr.hpp>
+//common includes
+#include <pointers.h>
 
 //! @brief Template data consuming interface. Instantiated with working data class
 template<class T>
 class DataReceiver
 {
-  class StubImpl : public DataReceiver
-  {
-  public:
-    virtual void ApplyData(const T&) {}
-    virtual void Flush() {}
-  };
 public:
   typedef T InDataType;
   //! @brief Pointer type
@@ -36,11 +30,24 @@ public:
   //! @brief Flushing all possible accumulated data
   virtual void Flush() = 0;
 
-  static Ptr CreateStub()
-  {
-    return Ptr(new StubImpl);
-  }
+  static Ptr CreateStub();
 };
+
+// MSVC requires class not to be locally defined in method
+template<class T>
+class StubDataReceiver : public DataReceiver<T>
+{
+public:
+  virtual void ApplyData(const T&) {}
+  virtual void Flush() {}
+};
+
+template<class T>
+inline typename DataReceiver<T>::Ptr DataReceiver<T>::CreateStub()
+{
+  static StubDataReceiver<T> instance;
+  return MakeSingletonPointer(instance);
+}
 
 //! @brief Template data transmitter type
 template<class T>

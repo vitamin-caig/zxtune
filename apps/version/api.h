@@ -17,6 +17,11 @@ Author:
 #include <types.h>
 
 String GetProgramTitle();
+String GetProgramVersion();
+String GetBuildDate();
+String GetBuildPlatform();
+String GetBuildArchitecture();
+String GetBuildArchitectureVersion();
 String GetProgramVersionString();
 
 #endif //VERSION_API_H_DEFINED

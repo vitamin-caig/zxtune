@@ -38,14 +38,11 @@ typedef const void* ZXTuneHandle;
 ZXTUNE_API const char* ZXTune_GetVersion();
 
 // Data operating
-ZXTUNE_API ZXTuneHandle ZXTune_OpenData(const char* filename, const char** subname = 0);
 ZXTUNE_API ZXTuneHandle ZXTune_CreateData(const void* data, size_t size);
-typedef size_t (ZXTuneReadFunc)(void* target, size_t size, void* userData);
-ZXTUNE_API ZXTuneHandle ZXTune_ReadData(ZXTuneReadFunc reader, void* userData);
 ZXTUNE_API void ZXTune_CloseData(ZXTuneHandle data);
 
 // Modules operating
-ZXTUNE_API ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data, const char* subname = 0);
+ZXTUNE_API ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data);
 ZXTUNE_API void ZXTune_CloseModule(ZXTuneHandle module);
 
 typedef struct
@@ -55,8 +52,7 @@ typedef struct
   int Patterns;
   int Frames;
   int LoopFrame;
-  int LogicalChannels;
-  int PhysicalChannels;
+  int Channels;
   int InitialTempo;
 } ZXTuneModuleInfo;
 

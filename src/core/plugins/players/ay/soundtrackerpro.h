@@ -14,10 +14,15 @@ Author:
 #define __CORE_PLUGINS_PLAYERS_SOUNDTRACKERPRO_DEFINED__
 
 //local includes
-#include "ay_base.h"
+#include "aym_factory.h"
+#include "aym_base_track.h"
+#include "core/plugins/players/simple_orderlist.h"
+#include "core/plugins/players/simple_ornament.h"
 //library includes
-#include <formats/chiptune/soundtrackerpro.h>
+#include <formats/chiptune/aym/soundtrackerpro.h>
 
+namespace Module
+{
 namespace SoundTrackerPro
 {
   enum CmdType
@@ -57,48 +62,43 @@ namespace SoundTrackerPro
     }
   };
 
-  struct Ornament : public Formats::Chiptune::SoundTrackerPro::Ornament
-  {
-    Ornament() 
-      : Formats::Chiptune::SoundTrackerPro::Ornament()
-    {
-    }
+  typedef SimpleOrderListWithTransposition<Formats::Chiptune::SoundTrackerPro::PositionEntry> OrderListWithTransposition;
+  typedef SimpleOrnament Ornament;
 
-    Ornament(const Formats::Chiptune::SoundTrackerPro::Ornament& rh)
-      : Formats::Chiptune::SoundTrackerPro::Ornament(rh)
-    {
-    }
-
-    uint_t GetLoop() const
-    {
-      return Loop;
-    }
-
-    uint_t GetSize() const
-    {
-      return static_cast<uint_t>(Lines.size());
-    }
-
-    int_t GetLine(uint_t pos) const
-    {
-      return Lines.size() > pos ? Lines[pos] : 0;
-    }
-  };
-
-  typedef ZXTune::Module::TrackingSupport<Devices::AYM::CHANNELS, CmdType, Sample, Ornament> Track;
-
-  class ModuleData : public Track::ModuleData
+  class ModuleData : public TrackModel
   {
   public:
-    typedef boost::shared_ptr<ModuleData> RWPtr;
     typedef boost::shared_ptr<const ModuleData> Ptr;
 
-    std::vector<int_t> Transpositions;
+    ModuleData()
+      : InitialTempo()
+    {
+    }
+
+    virtual uint_t GetInitialTempo() const
+    {
+      return InitialTempo;
+    }
+
+    virtual const OrderList& GetOrder() const
+    {
+      return *Order;
+    }
+
+    virtual const PatternsSet& GetPatterns() const
+    {
+      return *Patterns;
+    }
+
+    uint_t InitialTempo;
+    OrderListWithTransposition::Ptr Order;
+    PatternsSet::Ptr Patterns;
+    SparsedObjectsStorage<Sample> Samples;
+    SparsedObjectsStorage<Ornament> Ornaments;
   };
 
-  std::auto_ptr<Formats::Chiptune::SoundTrackerPro::Builder> CreateDataBuilder(ModuleData::RWPtr data, ZXTune::Module::ModuleProperties::RWPtr props);
-
-  ZXTune::Module::AYM::Chiptune::Ptr CreateChiptune(ModuleData::Ptr data, ZXTune::Module::ModuleProperties::Ptr properties);
+  AYM::Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder);
+}
 }
 
 #endif //__CORE_PLUGINS_PLAYERS_SOUNDTRACKERPRO_DEFINED__

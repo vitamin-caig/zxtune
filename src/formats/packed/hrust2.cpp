@@ -16,16 +16,18 @@ Author:
 #include "pack_utils.h"
 //common includes
 #include <byteorder.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
 #include <formats/packed.h>
+#include <math/numeric.h>
 //std includes
 #include <numeric>
 #include <cstring>
 //boost includes
 #include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/range/end.hpp>
+#include <boost/range/size.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -104,6 +106,12 @@ namespace Hrust2
         CRYPTED_FILE = 64,
         SUBDIR = 128
       };
+
+      bool Check() const
+      {
+        static const uint8_t SIGNATURE[] = {'H', 'r', 's', 't', '2'};
+        return 0 == std::memcmp(ID, SIGNATURE, boost::size(ID));
+      }
 
       std::size_t GetSize() const
       {
@@ -197,7 +205,7 @@ namespace Hrust2
   public:
     RawDataDecoder(const RawHeader& header, std::size_t rawSize)
       : Header(header)
-      , Stream(Header.BitStream, rawSize)
+      , Stream(Header.BitStream, rawSize - offsetof(RawHeader, BitStream))
       , IsValid(!Stream.Eof())
       , Result(new Dump())
       , Decoded(*Result)
@@ -274,7 +282,7 @@ namespace Hrust2
           }
         }
       }
-      std::copy(Header.LastBytes, ArrayEnd(Header.LastBytes), std::back_inserter(Decoded));
+      std::copy(Header.LastBytes, boost::end(Header.LastBytes), std::back_inserter(Decoded));
       return true;
     }
   private:
@@ -309,7 +317,7 @@ namespace Hrust2
           return false;
         }
         const std::size_t usedSize = GetUsedSize();
-        return in_range(usedSize, sizeof(header), Size);
+        return Math::InRange(usedSize, sizeof(header), Size);
       }
 
       uint_t GetUsedSize() const
@@ -321,7 +329,7 @@ namespace Hrust2
       std::size_t GetUsedSizeWithPadding() const
       {
         const std::size_t usefulSize = GetUsedSize();
-        const std::size_t sizeOnDisk = align<std::size_t>(usefulSize, 256);
+        const std::size_t sizeOnDisk = Math::Align<std::size_t>(usefulSize, 256);
         const std::size_t resultSize = std::min(sizeOnDisk, Size);
         const std::size_t paddingSize = resultSize - usefulSize;
         const std::size_t MIN_SIGNATURE_MATCH = 10;
@@ -354,7 +362,7 @@ namespace Hrust2
         BOOST_STATIC_ASSERT(sizeof(HRUST2_1_PADDING) == 255);
         const uint8_t* const paddingStart = Data + usefulSize;
         const uint8_t* const paddingEnd = Data + resultSize;
-        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, ArrayEnd(HRUST2_1_PADDING)))
+        if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, boost::end(HRUST2_1_PADDING)))
         {
           if (pad >= MIN_SIGNATURE_MATCH)
           {
@@ -437,7 +445,7 @@ namespace Hrust2
         {
           return false;
         }
-        return in_range(header.GetTotalSize(), sizeof(header), Size);
+        return Math::InRange(header.GetTotalSize(), sizeof(header), Size);
       }
    private:
       const FormatHeader& GetHeader() const
@@ -476,7 +484,7 @@ namespace Hrust2
         for (std::vector<Binary::Container::Ptr>::const_iterator it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it)
         {
           const Binary::Container::Ptr block = *it;
-          std::memcpy(&result->at(offset), block->Data(), block->Size());
+          std::memcpy(&result->at(offset), block->Start(), block->Size());
           offset += block->Size();
         }
         return Binary::CreateContainer(result);
@@ -487,9 +495,16 @@ namespace Hrust2
 
     Binary::Container::Ptr DecodeBlock(const Binary::Container& data)
     {
-      const RawHeader& block = *safe_ptr_cast<const RawHeader*>(data.Data());
-      RawDataDecoder decoder(block, data.Size());
-      return Binary::CreateContainer(decoder.GetResult());
+      if (data.Size() >= sizeof(RawHeader))
+      {
+        const RawHeader& block = *safe_ptr_cast<const RawHeader*>(data.Start());
+        RawDataDecoder decoder(block, data.Size());
+        return Binary::CreateContainer(decoder.GetResult());
+      }
+      else
+      {
+        return Binary::Container::Ptr();
+      }
     }
 
     class DataDecoder
@@ -499,7 +514,7 @@ namespace Hrust2
         : Data(data)
         , UsedSize()
       {
-        if (Container(data.Data(), data.Size()).FastCheck())
+        if (Container(data.Start(), data.Size()).FastCheck())
         {
           DecodeData();
         }
@@ -524,16 +539,23 @@ namespace Hrust2
         {
           if (const FormatHeader* hdr = source.GetField<FormatHeader>(offset))
           {
-            const std::size_t blockEnd = offset + hdr->GetTotalSize();
-            if (blockEnd > Data.Size())
+            if (!hdr->Check())
             {
               break;
             }
+            const std::size_t blockEnd = offset + hdr->GetTotalSize();
             const std::size_t packedOffset = offset + hdr->GetSize();
             const std::size_t packedSize = blockEnd - packedOffset;
+            if (blockEnd > Data.Size() || 0 == packedSize)
+            {
+              break;
+            }
             const Binary::Container::Ptr packedData = Data.GetSubcontainer(packedOffset, packedSize);
-            const bool storedBlock = (0 != (hdr->Flag & FormatHeader::STORED_BLOCK));
-            if (const Binary::Container::Ptr unpackedData = storedBlock ? packedData : DecodeBlock(*packedData))
+            if (0 != (hdr->Flag & FormatHeader::STORED_BLOCK))
+            {
+              target.AddBlock(packedData);
+            }
+            else if (const Binary::Container::Ptr unpackedData = DecodeBlock(*packedData))
             {
               target.AddBlock(unpackedData);
             }
@@ -589,10 +611,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust2::Version1::Container container(data, availSize);
-        if (!container.FastCheck() || !Format->Match(data, availSize))
+        if (!Format->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const Hrust2::Version1::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }
@@ -623,10 +647,12 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const void* const data = rawData.Data();
-        const std::size_t availSize = rawData.Size();
-        const Hrust2::Version3::Container container(data, availSize);
-        if (!container.FastCheck() || !Format->Match(data, availSize))
+        if (!Format->Match(rawData))
+        {
+          return Container::Ptr();
+        }
+        const Hrust2::Version3::Container container(rawData.Start(), rawData.Size());
+        if (!container.FastCheck())
         {
           return Container::Ptr();
         }

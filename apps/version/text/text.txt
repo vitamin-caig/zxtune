@@ -9,6 +9,25 @@ __cpp> "{\n"
 __cpp> "}//namespace Text\n"
 __cpp> "#endif //__VERSION_TEXT_H_DEFINED__\n"
 
-# 1- program name, 2- program version, 3- build date 4- platform, 5- architecture
+# 1- program name, 2- program version, 3- build date 4- platform, 5- architecture, 6- architecture version
 < PROGRAM_VERSION_STRING
-> "%1% %2% %3% %4%-%5%"
+> "%1% %2% %3% %4%-%5% %6%"
+
+#fields
+< FIELD_PROGRAM_NAME
+> "Program"
+
+< FIELD_PROGRAM_VERSION
+> "Version"
+
+< FIELD_BUILD_DATE
+> "Date"
+
+< FIELD_BUILD_PLATFORM
+> "Platform"
+
+< FIELD_BUILD_ARCH
+> "Arch"
+
+< FIELD_BUILD_ARCH_VERSION
+> "ArchVersion"

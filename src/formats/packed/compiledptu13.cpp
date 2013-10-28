@@ -9,17 +9,15 @@ Author:
   (C) Vitamin/CAIG/2001
 */
 
-//library includes
+//local includes
 #include "container.h"
-#include <formats/chiptune_decoders.h>
-#include <formats/chiptune/metainfo.h>
-#include <formats/chiptune/protracker3_detail.h>
+#include "formats/chiptune/metainfo.h"
+#include "formats/chiptune/aym/protracker3_detail.h"
 //common includes
 #include <byteorder.h>
-#include <debug_log.h>
-#include <tools.h>
 //library includes
 #include <binary/typed_container.h>
+#include <debug/log.h>
 //boost includes
 #include <boost/array.hpp>
 //text includes
@@ -35,6 +33,8 @@ namespace CompiledPTU13
 {
   const std::size_t MAX_MODULE_SIZE = 0xb900;
   const std::size_t PLAYER_SIZE = 0x900;
+
+  namespace ProTracker3 = Formats::Chiptune::ProTracker3;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -57,8 +57,8 @@ namespace CompiledPTU13
     uint8_t Length;
     uint8_t Loop;
     uint16_t PatternsOffset;
-    boost::array<uint16_t, Formats::Chiptune::ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
-    boost::array<uint16_t, Formats::Chiptune::ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+    boost::array<uint16_t, ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
+    boost::array<uint16_t, ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
     uint8_t Positions[1];//finished by marker
   } PACK_POST;
 
@@ -125,8 +125,7 @@ namespace Formats
     {
     public:
       CompiledPTU13Decoder()
-        : Player(Binary::Format::Create(CompiledPTU13::FORMAT))
-        , Decoder(Formats::Chiptune::CreateProTracker3Decoder())
+        : Player(Binary::Format::Create(CompiledPTU13::FORMAT, CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader)))
       {
       }
 
@@ -142,14 +141,16 @@ namespace Formats
 
       virtual Container::Ptr Decode(const Binary::Container& rawData) const
       {
-        const uint8_t* const data = safe_ptr_cast<const uint8_t*>(rawData.Data());
-        const std::size_t availSize = rawData.Size();
-        const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
-        if (!Player->Match(data, availSize) || availSize < CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader))
+        namespace ProTracker3 = Formats::Chiptune::ProTracker3;
+
+        if (!Player->Match(rawData))
         {
           return Container::Ptr();
         }
-        const CompiledPTU13::Player& rawPlayer = *safe_ptr_cast<const CompiledPTU13::Player*>(data);
+        const Binary::TypedContainer typedData(rawData);
+        const std::size_t availSize = rawData.Size();
+        const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
+        const CompiledPTU13::Player& rawPlayer = *typedData.GetField<CompiledPTU13::Player>(0);
         const uint_t positionsAddr = fromLE(rawPlayer.PositionsAddr);
         if (positionsAddr < playerSize + offsetof(CompiledPTU13::RawHeader, Positions))
         {
@@ -157,7 +158,7 @@ namespace Formats
           return Container::Ptr();
         }
         const uint_t dataAddr = positionsAddr - offsetof(CompiledPTU13::RawHeader, Positions);
-        const CompiledPTU13::RawHeader& rawHeader = *safe_ptr_cast<const CompiledPTU13::RawHeader*>(data + playerSize);
+        const CompiledPTU13::RawHeader& rawHeader = *typedData.GetField<CompiledPTU13::RawHeader>(playerSize);
         const uint_t patternsCount = CompiledPTU13::GetPatternsCount(rawHeader, availSize - playerSize);
         if (!patternsCount)
         {
@@ -180,7 +181,7 @@ namespace Formats
           builder->FixLEWord(idx, -int_t(dataAddr));
         }
         const Binary::Container::Ptr fixedModule = builder->GetResult();
-        if (Formats::Chiptune::Container::Ptr fixedParsed = Decoder->Decode(*fixedModule))
+        if (Formats::Chiptune::Container::Ptr fixedParsed = ProTracker3::Parse(*fixedModule, ProTracker3::GetStubBuilder()))
         {
           return CreatePackedContainer(fixedParsed, playerSize + fixedParsed->Size());
         }
@@ -189,7 +190,6 @@ namespace Formats
       }
     private:
       const Binary::Format::Ptr Player;
-      const Formats::Chiptune::Decoder::Ptr Decoder;
     };
 
     Decoder::Ptr CreateCompiledPTU13Decoder()

@@ -16,11 +16,18 @@ Author:
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
-#include <tools.h>
+#include <pointers.h>
+//library includes
+#include <parameters/convert.h>
+#include <parameters/merged_accessor.h>
+#include <parameters/tools.h>
+#include <parameters/tracking.h>
 //std includes
 #include <set>
 //boost includes
+#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/thread/mutex.hpp>
 //qt includes
 #include <QtCore/QSettings>
 //text includes
@@ -30,11 +37,21 @@ namespace
 {
   using namespace Parameters;
 
- const QLatin1Char PATH_SEPARATOR('/');
+  const QLatin1Char PATH_SEPARATOR('/');
 
   class SettingsContainer : public Container
   {
   public:
+    SettingsContainer()
+      : VersionValue()
+    {
+    }
+
+    virtual uint_t Version() const
+    {
+      return VersionValue;
+    }
+
     virtual bool FindValue(const NameType& name, IntType& val) const
     {
       const Value value(Storage, name);
@@ -88,7 +105,7 @@ namespace
       return false;
     }
 
-    virtual void Process(Visitor& visitor) const
+    virtual void Process(Visitor& /*visitor*/) const
     {
       //TODO: implement later
     }
@@ -97,12 +114,14 @@ namespace
     {
       Value value(Storage, name);
       value.Set(QVariant(qlonglong(val)));
+      ++VersionValue;
     }
 
     virtual void SetValue(const NameType& name, const StringType& val)
     {
       Value value(Storage, name);
       value.Set(QVariant(ToQString(ConvertToString(val))));
+      ++VersionValue;
     }
 
     virtual void SetValue(const NameType& name, const DataType& val)
@@ -110,12 +129,14 @@ namespace
       Value value(Storage, name);
       const QByteArray arr(val.empty() ? QByteArray() : QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size()));
       value.Set(QVariant(arr));
+      ++VersionValue;
     }
 
     virtual void RemoveValue(const NameType& name)
     {
       Value val(Storage, name);
       val.Remove();
+      ++VersionValue;
     }
   private:
     typedef boost::shared_ptr<QSettings> SettingsPtr;
@@ -194,6 +215,7 @@ namespace
       mutable QString ParamName;
     };
   private:
+    uint_t VersionValue;
     mutable SettingsStorage Storage;
   };
 
@@ -204,6 +226,11 @@ namespace
       : Persistent(delegate)
       , Temporary(Container::Create())
     {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Temporary->Version();
     }
 
     virtual bool FindValue(const NameType& name, IntType& val) const
@@ -298,20 +325,168 @@ namespace
     std::set<NameType> Removed;
   };
 
+  /*
+    Simple cached policy may be inconsistent in case of delayed values reading, so implement full COW snapshot.
+  */
+  class CompositeModifier : public Modifier
+  {
+  public:
+    typedef boost::shared_ptr<void> Subscription;
+
+    Subscription Subscribe(Modifier::Ptr delegate)
+    {
+      const boost::mutex::scoped_lock lock(Guard);
+      Delegates.insert(delegate);
+      return Subscription(this, boost::bind(&CompositeModifier::Unsubscribe, _1, delegate));
+    }
+
+    virtual void SetValue(const NameType& name, IntType val)
+    {
+      const boost::mutex::scoped_lock lock(Guard);
+      for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      {
+        (*it)->SetValue(name, val);
+      }
+    }
+
+    virtual void SetValue(const NameType& name, const StringType& val)
+    {
+      const boost::mutex::scoped_lock lock(Guard);
+      for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      {
+        (*it)->SetValue(name, val);
+      }
+    }
+
+    virtual void SetValue(const NameType& name, const DataType& val)
+    {
+      const boost::mutex::scoped_lock lock(Guard);
+      for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      {
+        (*it)->SetValue(name, val);
+      }
+    }
+
+    virtual void RemoveValue(const NameType& name)
+    {
+      const boost::mutex::scoped_lock lock(Guard);
+      for (ModifiersSet::const_iterator it = Delegates.begin(), lim = Delegates.end(); it != lim; ++it)
+      {
+        (*it)->RemoveValue(name);
+      }
+    }
+  private:
+    void Unsubscribe(Modifier::Ptr delegate)
+    {
+      const boost::mutex::scoped_lock lock(Guard);
+      Delegates.erase(delegate);
+    }
+  private:
+    mutable boost::mutex Guard;
+    typedef std::set<Modifier::Ptr> ModifiersSet;
+    mutable ModifiersSet Delegates;
+  };
+
+  class CopyOnWrite : public Modifier
+  {
+  public:
+    CopyOnWrite(Accessor::Ptr stored, Container::Ptr changed)
+      : Stored(stored)
+      , Changed(changed)
+    {
+    }
+
+    virtual void SetValue(const NameType& name, IntType /*val*/)
+    {
+      CopyExistingValue<IntType>(*Stored, *Changed, name);
+    }
+
+    virtual void SetValue(const NameType& name, const StringType& /*val*/)
+    {
+      CopyExistingValue<StringType>(*Stored, *Changed, name);
+    }
+
+    virtual void SetValue(const NameType& name, const DataType& /*val*/)
+    {
+      CopyExistingValue<DataType>(*Stored, *Changed, name);
+    }
+
+    virtual void RemoveValue(const NameType& /*name*/)
+    {
+    }
+  private:
+    const Accessor::Ptr Stored;
+    const Container::Ptr Changed;
+  };
+
+  class SettingsSnapshot : public Accessor
+  {
+  public:
+    SettingsSnapshot(Accessor::Ptr delegate, CompositeModifier::Subscription subscription)
+      : Delegate(delegate)
+      , Subscription(subscription)
+    {
+    }
+
+    virtual uint_t Version() const
+    {
+      return Delegate->Version();
+    }
+
+    virtual bool FindValue(const NameType& name, IntType& val) const
+    {
+      return Delegate->FindValue(name, val);
+    }
+
+    virtual bool FindValue(const NameType& name, StringType& val) const
+    {
+      return Delegate->FindValue(name, val);
+    }
+
+    virtual bool FindValue(const NameType& name, DataType& val) const
+    {
+      return Delegate->FindValue(name, val);
+    }
+
+    virtual void Process(Visitor& visitor) const
+    {
+      return Delegate->Process(visitor);
+    }
+
+    static Accessor::Ptr Create(Accessor::Ptr stored, CompositeModifier& modifiers)
+    {
+      const Container::Ptr changed = Container::Create();
+      const Accessor::Ptr delegate = CreateMergedAccessor(changed, stored);
+      const Modifier::Ptr callback = boost::make_shared<CopyOnWrite>(stored, changed);
+      return boost::make_shared<SettingsSnapshot>(delegate, modifiers.Subscribe(callback));
+    }
+  public:
+    const Accessor::Ptr Delegate;
+    const CompositeModifier::Subscription Subscription;
+  };
+
   class GlobalOptionsStorage : public GlobalOptions
   {
   public:
     virtual Container::Ptr Get() const
     {
-      if (!Options)
+      if (!TrackedOptions)
       {
         const Container::Ptr persistent = boost::make_shared<SettingsContainer>();
         Options = boost::make_shared<CachedSettingsContainer>(persistent);
+        TrackedOptions = CreatePreChangePropertyTrackedContainer(Options, Modifiers);
       }
-      return Options;
+      return TrackedOptions;
+    }
+
+    virtual Accessor::Ptr GetSnapshot() const
+    {
+      return SettingsSnapshot::Create(Options, Modifiers);
     }
   private:
     mutable Container::Ptr Options;
+    mutable Container::Ptr TrackedOptions;
+    mutable CompositeModifier Modifiers;
   };
 }
 

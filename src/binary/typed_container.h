@@ -8,13 +8,14 @@
 **/
 
 #pragma once
-#ifndef __BINARY_TYPED_CONTAINER_H_DEFINED__
-#define __BINARY_TYPED_CONTAINER_H_DEFINED__
+#ifndef BINARY_TYPED_CONTAINER_H_DEFINED
+#define BINARY_TYPED_CONTAINER_H_DEFINED
 
 //library includes
-#include <binary/container.h>
+#include <binary/data.h>
 //common includes
-#include <tools.h>
+#include <types.h>
+#include <pointers.h>
 
 namespace Binary
 {
@@ -22,8 +23,8 @@ namespace Binary
   class TypedContainer
   {
   public:
-    TypedContainer(const Container& delegate, std::size_t size = ~std::size_t(0))
-      : Data(static_cast<const uint8_t*>(delegate.Data()))
+    TypedContainer(const Data& delegate, std::size_t size = ~std::size_t(0))
+      : Start(static_cast<const uint8_t*>(delegate.Start()))
       , Size(std::min(delegate.Size(), size))
     {
     }
@@ -35,7 +36,7 @@ namespace Binary
     const T* GetField(std::size_t offset) const
     {
       return offset + sizeof(T) <= Size
-        ? safe_ptr_cast<const T*>(Data + offset)
+        ? safe_ptr_cast<const T*>(Start + offset)
         : 0;
     }
 
@@ -44,7 +45,7 @@ namespace Binary
       return Size;
     }
   private:
-    const uint8_t* const Data;
+    const uint8_t* const Start;
     const std::size_t Size;
   };
 }

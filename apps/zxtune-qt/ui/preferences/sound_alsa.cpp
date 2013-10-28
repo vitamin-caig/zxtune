@@ -19,10 +19,8 @@ Author:
 #include "ui/tools/parameters_helpers.h"
 //common includes
 #include <contract.h>
-#include <debug_log.h>
-#include <format.h>
-#include <tools.h>
 //library includes
+#include <debug/log.h>
 #include <sound/backends_parameters.h>
 #include <sound/backends/alsa.h>
 //boost includes
@@ -152,7 +150,7 @@ namespace
 
     void FillDevices()
     {
-      using namespace ZXTune::Sound;
+      using namespace Sound;
       for (Alsa::Device::Iterator::Ptr availableDevices = Alsa::EnumerateDevices();
         availableDevices->IsValid(); availableDevices->Next())
       {
@@ -178,7 +176,7 @@ namespace
       {
       }
 
-      Device(const ZXTune::Sound::Alsa::Device& in)
+      Device(const Sound::Alsa::Device& in)
         : Name(QString::fromAscii("%1 (%2)").arg(ToQString(in.Name())).arg(ToQString(in.CardName())))
         , Id(in.Id())
         , MixerNames(ToStringList(in.Mixers()))

@@ -19,6 +19,11 @@ Author:
 #include "ui/state.h"
 #include "ui/utils.h"
 #include "ui/tools/filedialog.h"
+#include "ui/tools/parameters_helpers.h"
+//common includes
+#include <contract.h>
+//library includes
+#include <io/providers_parameters.h>
 //qt includes
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDialogButtonBox>
@@ -46,6 +51,7 @@ namespace
   public:
     explicit FilenameTemplateWidgetImpl(QWidget& parent)
       : UI::FilenameTemplateWidget(parent)
+      , Options(GlobalOptions::Instance().Get())
       , State(UI::State::Create(Parameters::ZXTuneQT::UI::Export::NAMESPACE_NAME))
     {
       //setup self
@@ -53,10 +59,14 @@ namespace
       State->AddWidget(*DirectoryName);
       State->AddWidget(*FileTemplate);
 
-      connect(DirectoryName, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged()));
-      connect(FileTemplate, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged()));
+      Require(connect(DirectoryName, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged())));
+      Require(connect(FileTemplate, SIGNAL(editTextChanged(const QString&)), SIGNAL(SettingsChanged())));
 
       State->Load();
+
+      using namespace Parameters;
+      IntegerValue::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING, ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
+      BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES, ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
     }
 
     virtual ~FilenameTemplateWidgetImpl()
@@ -75,7 +85,10 @@ namespace
       const QString dir = DirectoryName->currentText();
       if (dir.size() != 0)
       {
-        return dir + QLatin1Char('/') + name;
+        static const QLatin1Char SEPARATOR('/');
+        return dir.endsWith(SEPARATOR)
+          ? dir + name
+          : dir + SEPARATOR + name;
       }
       return name;
     }
@@ -102,6 +115,7 @@ namespace
       UpdateRecent(*DirectoryName);
     }
   private:
+    const Parameters::Container::Ptr Options;
     const UI::State::Ptr State;
   };
 
