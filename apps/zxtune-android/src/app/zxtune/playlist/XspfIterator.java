@@ -20,45 +20,15 @@ import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.util.Xml;
 
-public class XspfIterator {
+public final class XspfIterator {
 
-  public static class Entry {
-    public String location;
-  }
-  
-  private final ArrayList<Entry> entries;
-  private int current;
-  
-  public XspfIterator(ByteBuffer buf) throws IOException {
-    this.entries = parse(buf);
-    this.current = 0;
-  }
-  
-  public final Entry getItem() {
-    return entries.get(current);
-  }
-  
-  public final boolean next() {
-    if (current >= entries.size() - 1) {
-      return false;
-    } else {
-      ++current;
-      return true;
-    }
-  }
-  
-  public final boolean prev() {
-    if (0 == current) {
-      return false;
-    } else {
-      --current;
-      return true;
-    }
+  public static ReferencesIterator create(ByteBuffer buf) throws IOException {
+    return new ReferencesArrayIterator(parse(buf));
   }
 
-  private ArrayList<Entry> parse(ByteBuffer buf) throws IOException {
+  private static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
     try {
-      final ArrayList<Entry> result = new ArrayList<Entry>();
+      final ArrayList<ReferencesIterator.Entry> result = new ArrayList<ReferencesIterator.Entry>();
       final RootElement root = createPlaylistParseRoot(result);
       Xml.parse(newInputStream(buf), Xml.Encoding.UTF_8, root.getContentHandler());
       return result;
@@ -67,7 +37,7 @@ public class XspfIterator {
     }
   }
   
-  private RootElement createPlaylistParseRoot(final ArrayList<Entry> entries) {
+  private static RootElement createPlaylistParseRoot(final ArrayList<ReferencesIterator.Entry> entries) {
     final EntriesBuilder builder = new EntriesBuilder();
     final RootElement result = new RootElement(Xspf.XMLNS, Xspf.Tags.PLAYLIST);
     //TODO: check extension
@@ -77,7 +47,7 @@ public class XspfIterator {
     track.setEndElementListener(new EndElementListener() {
       @Override
       public void end() {
-        final Entry res = builder.captureResult();
+        final ReferencesIterator.Entry res = builder.captureResult();
         if (res != null) {
           entries.add(res);
         }
@@ -93,26 +63,26 @@ public class XspfIterator {
     return result;
   }
 
-  private class EntriesBuilder {
+  private static class EntriesBuilder {
     
-    private Entry result;
+    private ReferencesIterator.Entry result;
     
     EntriesBuilder() {
-      this.result = new Entry();
+      this.result = new ReferencesIterator.Entry();
     }
     
     final void setLocation(String location) {
       result.location = Uri.decode(location);
     }
     
-    final Entry captureResult() {
-      final Entry res = result;
-      result = new Entry();
+    final ReferencesIterator.Entry captureResult() {
+      final ReferencesIterator.Entry res = result;
+      result = new ReferencesIterator.Entry();
       return res;
     }
   }
   
-  private static InputStream newInputStream(final ByteBuffer buf) {
+  static InputStream newInputStream(final ByteBuffer buf) {
     return new InputStream() {
       
       @Override
