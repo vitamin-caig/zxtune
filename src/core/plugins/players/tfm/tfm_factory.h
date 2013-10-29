@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Abstract module factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TFM-based modules factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_TFM_FACTORY_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_TFM_FACTORY_H_DEFINED
 
 //local includes
 #include "tfm_chiptune.h"
@@ -33,5 +30,3 @@ namespace Module
     };
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_TFM_FACTORY_H_DEFINED

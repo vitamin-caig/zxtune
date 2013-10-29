@@ -1,15 +1,14 @@
 /**
 *
-* @file      binary/data.h
-* @brief     Simple binary data abstraction
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Simple binary data abstraction
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef BINARY_DATA_H_DEFINED
-#define BINARY_DATA_H_DEFINED
 
 //boost includes
 #include <boost/shared_ptr.hpp>
@@ -34,5 +33,3 @@ namespace Binary
     virtual std::size_t Size() const = 0;
   };
 }
-
-#endif //BINARY_DATA_H_DEFINED

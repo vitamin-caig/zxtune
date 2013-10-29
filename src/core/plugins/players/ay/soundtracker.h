@@ -1,17 +1,14 @@
-/*
-Abstract:
-  SoundTracker support interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SoundTracker-based modules support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_SOUNDTRACKER_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_SOUNDTRACKER_DEFINED__
 
 //local includes
 #include "aym_factory.h"
@@ -103,5 +100,4 @@ namespace SoundTracker
 
   AYM::Factory::Ptr CreateModulesFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder);
 }
-}
-#endif //__CORE_PLUGINS_PLAYERS_SOUNDTRACKER_DEFINED__
+}                                                     

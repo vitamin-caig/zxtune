@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ProDigiTracker format description implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  ProDigiTracker support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "prodigitracker.h"

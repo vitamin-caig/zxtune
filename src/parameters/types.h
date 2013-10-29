@@ -1,15 +1,14 @@
 /**
 *
-* @file     parameters/types.h
-* @brief    Parameters-related types definitions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Parameters-related types definitions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PARAMETERS_TYPES_H_DEFINED
-#define PARAMETERS_TYPES_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -134,5 +133,3 @@ namespace Parameters
     std::string Path;
   };
 }
-
-#endif //PARAMETERS_TYPES_H_DEFINED

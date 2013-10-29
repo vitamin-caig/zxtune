@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     async/progress.h
-* @brief    Asynchronous progress interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Asynchronous progress interface and factory
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ASYNC_PROGRESS_H_DEFINED
-#define ASYNC_PROGRESS_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -31,5 +30,3 @@ namespace Async
     static Ptr Create();
   };
 }
-
-#endif //ASYNC_PROGRESS_H_DEFINED

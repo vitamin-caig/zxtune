@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/module_holder.h
-* @brief    Modules holder interface definition
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Modules holder interface definition
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __CORE_MODULE_HOLDER_H_DEFINED__
-#define __CORE_MODULE_HOLDER_H_DEFINED__
 
 //library includes
 #include "plugins/players/renderer.h"
@@ -44,5 +43,3 @@ namespace Module
 
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props);
 }
-
-#endif //__CORE_MODULE_HOLDER_H_DEFINED__

@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Playlist container internal interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playlist container internal interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYLIST_IO_CONTAINER_IMPL_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_IO_CONTAINER_IMPL_H_DEFINED
 
 //local includes
 #include "container.h"
@@ -39,5 +34,3 @@ namespace Playlist
       ContainerItemsPtr items);
   }
 }
-
-#endif //ZXTUNE_QT_PLAYLIST_IO_CONTAINER_IMPL_H_DEFINED

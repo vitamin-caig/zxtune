@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Packed container helper
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Packed data container helper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __FORMATS_PACKED_CONTAINER_H_DEFINED__
-#define __FORMATS_PACKED_CONTAINER_H_DEFINED__
 
 //library includes
 #include <binary/container_factories.h>
@@ -65,5 +62,3 @@ inline PackedContainer::Ptr CreatePackedContainer(std::auto_ptr<Dump> data, std:
   const Binary::Container::Ptr container = Binary::CreateContainer(data);
   return CreatePackedContainer(container, origSize);
 }
-
-#endif //__FORMATS_PACKED_CONTAINER_H_DEFINED__

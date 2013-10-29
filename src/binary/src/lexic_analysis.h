@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Lexic analysis interface
+/**
+*
+* @file
+*
+* @brief  Lexic analyser interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BINARY_LEXIC_ANALYSIS
-#define BINARY_LEXIC_ANALYSIS
+#pragma once
 
 //common includes
 #include <types.h>
@@ -103,5 +101,3 @@ namespace LexicalAnalysis
 
   Grammar::RWPtr CreateContextIndependentGrammar();
 }
-
-#endif //BINARY_LEXIC_ANALYSIS

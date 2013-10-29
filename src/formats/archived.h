@@ -1,15 +1,14 @@
 /**
 *
-* @file     formats/archived.h
-* @brief    Interface for archived data accessors
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Archived data support interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __FORMATS_ARCHIVED_H_DEFINED__
-#define __FORMATS_ARCHIVED_H_DEFINED__
 
 //common includes
 #include <types.h>
@@ -94,5 +93,3 @@ namespace Formats
     };
   }
 }
-
-#endif //__FORMATS_ARCHIVED_H_DEFINED__

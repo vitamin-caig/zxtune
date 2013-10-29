@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Product interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Product entity interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UPDATE_PRODUCT_H_DEFINED
-#define ZXTUNE_QT_UPDATE_PRODUCT_H_DEFINED
 
 //std includes
 #include <vector>
@@ -101,5 +96,3 @@ namespace Product
   Update::TypeTag GetUpdateType(Release::PlatformTag platform, Release::ArchitectureTag architecture, Update::PackagingTag packaging);
   std::vector<Update::TypeTag> SupportedUpdateTypes();
 }
-
-#endif //ZXTUNE_QT_UPDATE_PRODUCT_H_DEFINED

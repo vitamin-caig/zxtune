@@ -1,15 +1,14 @@
 /**
 *
-* @file     parameters/tools.h
-* @brief    Parameters-related tools
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Parameters-related tools
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PARAMETERS_TOOLS_H_DEFINED
-#define PARAMETERS_TOOLS_H_DEFINED
 
 //library includes
 #include <parameters/accessor.h>
@@ -27,5 +26,3 @@ namespace Parameters
     }
   }
 }
-
-#endif //PARAMETERS_TOOLS_H_DEFINED

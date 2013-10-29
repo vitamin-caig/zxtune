@@ -1,15 +1,14 @@
 /**
 *
 * @file
-* @brief    Simple strings array typedef
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+*
+* @brief  Simple strings array typedef
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef STRINGS_ARRAY_H_DEFINED
-#define STRINGS_ARRAY_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -20,5 +19,3 @@ namespace Strings
 {
   typedef std::vector<String> Array;
 }
-
-#endif //STRINGS_ARRAY_H_DEFINED

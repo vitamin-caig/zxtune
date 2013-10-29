@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Math library test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <math/scale.h>
 #include <iostream>
 

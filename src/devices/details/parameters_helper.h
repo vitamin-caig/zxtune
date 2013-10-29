@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Parameters version tracking helper
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Parameters version tracking helper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_DETAILS_VERSION_HELPER_H_DEFINED
-#define DEVICES_DETAILS_VERSION_HELPER_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -64,5 +61,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_DETAILS_VERSION_HELPER_H_DEFINED

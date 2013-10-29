@@ -1,3 +1,14 @@
+/**
+* 
+* @file
+*
+* @brief Simple test for libzxtune
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
+
 #include "zxtune.h"
 #include <contract.h>
 #include <iostream>

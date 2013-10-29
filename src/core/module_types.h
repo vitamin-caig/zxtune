@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/module_types.h
-* @brief    Modules types definitions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Modules types definitions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef CORE_MODULE_TYPES_H_DEFINED
-#define CORE_MODULE_TYPES_H_DEFINED_
 
 //common includes
 #include <types.h>
@@ -94,5 +93,3 @@ namespace Module
     virtual void GetState(std::vector<ChannelState>& channels) const = 0;
   };
 }
-
-#endif //CORE_MODULE_TYPES_H_DEFINED

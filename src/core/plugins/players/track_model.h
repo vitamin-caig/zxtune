@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Track model interfaces
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Track model definition
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_TRACK_MODEL_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_TRACK_MODEL_H_DEFINED
 
 //common includes
 #include <iterator.h>
@@ -170,5 +167,3 @@ namespace Module
     virtual Line::Ptr LineObject() const = 0;
   };
 }
-
-#endif //CORE_PLUGINS_PLAYERS_TRACK_MODEL_H_DEFINED

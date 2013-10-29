@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Asynchronous job implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Coroutine-based Job implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "event.h"

@@ -1,15 +1,14 @@
 /**
 *
-* @file     formats/chiptune/decoders.h
-* @brief    Chiptune analyzers factories
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Chiptune decoders factories
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_DECODERS_H_DEFINED
-#define FORMATS_CHIPTUNE_DECODERS_H_DEFINED
 
 //library includes
 #include <formats/chiptune.h>
@@ -50,5 +49,3 @@ namespace Formats
     Decoder::Ptr CreateTurboSoundDecoder();
   }
 }
-
-#endif //FORMATS_CHIPTUNE_DECODERS_H_DEFINED

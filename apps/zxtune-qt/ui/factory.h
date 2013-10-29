@@ -1,19 +1,14 @@
-/*
-Abstract:
-  UI widgets factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief UI widgets factory interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UI_FACTORY_H_DEFINED
-#define ZXTUNE_QT_UI_FACTORY_H_DEFINED
 
 //library includes
 #include <parameters/container.h>
@@ -33,5 +28,3 @@ public:
   //singleton
   static WidgetsFactory& Instance();
 };
-
-#endif //ZXTUNE_QT_UI_FACTORY_H_DEFINED

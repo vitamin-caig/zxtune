@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Playlist entity and view
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playlist controller interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYLIST_SUPP_CONTROLLER_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_SUPP_CONTROLLER_H_DEFINED
 
 //local includes
 #include "data_provider.h"
@@ -110,5 +105,3 @@ namespace Playlist
     void Renamed(const QString& name);
   };
 }
-
-#endif //ZXTUNE_QT_PLAYLIST_SUPP_CONTROLLER_H_DEFINED

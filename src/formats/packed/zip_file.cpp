@@ -1,14 +1,12 @@
-/*
-Abstract:
-  Zip support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-  (C) Based on XLook sources by HalfElf
-*/
+/**
+* 
+* @file
+*
+* @brief  ZIP compressor support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "container.h"

@@ -1,14 +1,14 @@
-/*
-Abstract:
-  ESVCruncher support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-  (C) Based on XLook sources by HalfElf
-*/
+/**
+* 
+* @file
+*
+* @brief  ESVCruncher packer support
+*
+* @author vitamin.caig@gmail.com
+*
+* @note   Based on XLook sources by HalfElf
+*
+**/
 
 //local includes
 #include "container.h"

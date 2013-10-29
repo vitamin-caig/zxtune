@@ -1,19 +1,14 @@
-/*
-Abstract:
-  AY/YM chips generators helpers
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  Based on sources of UnrealSpeccy by SMT and Xpeccy sources by SamStyle
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM chip generators implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_AYM_GENERATORS_H_DEFINED
-#define DEVICES_AYM_GENERATORS_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -332,5 +327,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_AYM_GENERATORS_H_DEFINED

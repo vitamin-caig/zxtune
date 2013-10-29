@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Supported providers list
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Supported providers list
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef IO_PROVIDERS_LIST_H_DEFINED
-#define IO_PROVIDERS_LIST_H_DEFINED
 
 namespace IO
 {
@@ -27,5 +24,3 @@ namespace IO
     RegisterNetworkProvider(enumerator);
   }
 }
-
-#endif //IO_PROVIDERS_LIST_H_DEFINED

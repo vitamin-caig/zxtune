@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Win32 waveout backend stub implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Win32 backend stub
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #include "win32.h"
 #include "storage.h"

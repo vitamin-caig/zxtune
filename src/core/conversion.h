@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/conversion.h
-* @brief    Conversion base support types
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Conversion base support types
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __CORE_CONVERSION_H_DEFINED__
-#define __CORE_CONVERSION_H_DEFINED__
 
 //common includes
 #include <pointers.h>
@@ -94,5 +93,3 @@ namespace Module
     }
   }
 }
-
-#endif //__CORE_CONVERSION_H_DEFINED__

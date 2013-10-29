@@ -1,17 +1,14 @@
-/*
-Abstract:
-  DAC sample factories
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  DAC sample factories
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_DAC_SAMPLE_FACTORIES_H_DEFINED
-#define DEVICES_DAC_SAMPLE_FACTORIES_H_DEFINED
 
 //library includes
 #include <binary/data.h>
@@ -26,5 +23,3 @@ namespace Devices
     Sample::Ptr CreateU4PackedSample(Binary::Data::Ptr content, std::size_t loop);
   }
 }
-
-#endif //DEVICES_DAC_SAMPLE_FACTORIES_H_DEFINED

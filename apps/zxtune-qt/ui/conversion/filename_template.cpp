@@ -1,15 +1,12 @@
-/*
-Abstract:
-  Filename template building widget implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Filename template building widget implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "filename_template.h"

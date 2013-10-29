@@ -1,6 +1,6 @@
-// Generated from '$Id:'
-#ifndef ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED
+// This file was automatically generated
+#pragma once
+
 #include <char_type.h>
 
 namespace XSPF
@@ -24,4 +24,3 @@ extern const Char VERSION_VALUE[];
 extern const Char XMLNS_ATTR[];
 extern const Char XMLNS_VALUE[];
 }//namespace XSPF
-#endif //ZXTUNE_QT_PLAYLIST_XSPF_TAGS_H_DEFINED

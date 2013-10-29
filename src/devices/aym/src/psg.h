@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AY/YM chips interface implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM device bus implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_AYM_PSG_H_DEFINED
-#define DEVICES_AYM_PSG_H_DEFINED
 
 //local includes
 #include "device.h"
@@ -218,5 +215,3 @@ namespace AYM
   };
 }
 }
-
-#endif //DEVICES_AYM_PSG_H_DEFINED

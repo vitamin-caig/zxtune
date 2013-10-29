@@ -1,3 +1,13 @@
+/**
+* 
+* @file
+*
+* @brief  ModInfo utility
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <error_tools.h>
 #include <progress_callback.h>
 #include <binary/container_factories.h>

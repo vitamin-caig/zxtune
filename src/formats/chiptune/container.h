@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Chiptune container helper
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Chiptune container helper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <crc.h>

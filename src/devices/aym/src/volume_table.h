@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Volume lookup table
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Volume lookup table
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_AYM_VOLUME_TABLE_H_DEFINED
-#define DEVICES_AYM_VOLUME_TABLE_H_DEFINED
 
 //library includes
 #include <devices/aym/chip.h>
@@ -147,5 +144,3 @@ namespace AYM
   };
 }
 }
-
-#endif //DEVICES_AYM_VOLUME_TABLE_H_DEFINED

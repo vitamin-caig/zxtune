@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Common container plugins support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Container plugin factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_CONTAINER_SUPP_COMMON_H_DEFINED__
-#define __CORE_PLUGINS_CONTAINER_SUPP_COMMON_H_DEFINED__
 
 //local includes
 #include "core/plugins/plugins_types.h"
@@ -25,5 +22,3 @@ namespace ZXTune
   String ProgressMessage(const String& id, const String& path);
   String ProgressMessage(const String& id, const String& path, const String& element);
 }
-
-#endif //__CORE_PLUGINS_CONTAINER_SUPP_COMMON_H_DEFINED__

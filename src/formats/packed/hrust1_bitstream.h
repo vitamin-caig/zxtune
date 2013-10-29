@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Hrust1-compatible bistream helper
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Hrust v1.x- compatible bitstream helper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_ARCHIVES_PACK_HRUST1_BITSTREAM_H_DEFINED__
-#define __CORE_PLUGINS_ARCHIVES_PACK_HRUST1_BITSTREAM_H_DEFINED__
 
 //local includes
 #include "pack_utils.h"
@@ -69,5 +66,3 @@ private:
   uint_t Bits;
   uint_t Mask;
 };
-
-#endif //__CORE_PLUGINS_ARCHIVES_PACK_HRUST1_BITSTREAM_H_DEFINED__

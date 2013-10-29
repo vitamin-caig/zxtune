@@ -1,19 +1,14 @@
-/*
-Abstract:
-  UI state save/load
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief UI state helper interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UI_STATE_H_DEFINED
-#define ZXTUNE_QT_UI_STATE_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -39,5 +34,3 @@ namespace UI
     static Ptr Create(QWidget& root);
   };
 }
-
-#endif //ZXTUNE_QT_UI_STATE_H_DEFINED

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Module operating functions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Module access implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "debug.h"

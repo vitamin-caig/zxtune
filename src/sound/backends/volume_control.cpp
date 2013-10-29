@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Volume control delegate implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Volume control delegate implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "volume_control.h"

@@ -1,15 +1,14 @@
 /**
 *
-* @file      io/providers_parameters.h
-* @brief     Providers parameters names
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Providers parameters names
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef IO_PROVIDERS_PARAMETERS_H_DEFINED
-#define IO_PROVIDERS_PARAMETERS_H_DEFINED
 
 //library includes
 #include <parameters/types.h>
@@ -90,4 +89,3 @@ namespace Parameters
     }
   }
 }
-#endif //IO_PROVIDERS_PARAMETERS_H_DEFINED

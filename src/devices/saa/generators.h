@@ -1,19 +1,16 @@
-/*
-Abstract:
-  SAA chips generators helpers
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  Based on sources of PerfectZX emulator
-*/
+/**
+* 
+* @file
+*
+* @brief  SAA chip generators implementation
+*
+* @author vitamin.caig@gmail.com
+*
+* @note Based on sources of PerfectZX emulator
+*
+**/
 
 #pragma once
-#ifndef DEVICES_SAA_GENERATORS_H_DEFINED
-#define DEVICES_SAA_GENERATORS_H_DEFINED
 
 //library includes
 #include <devices/saa.h>
@@ -485,5 +482,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_SAA_GENERATORS_H_DEFINED

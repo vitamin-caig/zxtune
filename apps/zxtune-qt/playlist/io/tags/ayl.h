@@ -1,6 +1,6 @@
-// Generated from '$Id:'
-#ifndef ZXTUNE_QT_PLAYLIST_AYL_TAGS_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_AYL_TAGS_H_DEFINED
+// This file was automatically generated
+#pragma once
+
 #include <char_type.h>
 
 namespace AYL
@@ -29,4 +29,3 @@ extern const Char SUFFIX[];
 extern const Char TRACKER[];
 extern const Char YM[];
 }//namespace AYL
-#endif //ZXTUNE_QT_PLAYLIST_AYL_TAGS_H_DEFINED

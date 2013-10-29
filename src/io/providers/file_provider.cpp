@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Providers enumerator
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  File provider implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "enumerator.h"

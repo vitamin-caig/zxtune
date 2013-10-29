@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Properties access functions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Properties access helpers
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef PROPERTIES_H_DEFINED
-#define PROPERTIES_H_DEFINED
 
 //common includes
 #include <parameters/accessor.h>
@@ -123,5 +120,3 @@ namespace Jni
     Parameters::Modifier& Params;
   };
 }
-
-#endif //PROPERTIES_H_DEFINED

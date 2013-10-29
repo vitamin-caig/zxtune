@@ -1,19 +1,14 @@
-/*
-Abstract:
-  File dialog declaration
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief File dialog factories
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_FILEDIALOG_DEFINED
-#define ZXTUNE_QT_FILEDIALOG_DEFINED
 
 //qt includes
 #include <QtCore/QStringList>
@@ -25,5 +20,3 @@ namespace UI
   bool OpenFolderDialog(const QString& title, QString& folder);
   bool SaveFileDialog(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter = 0);
 };
-
-#endif //ZXTUNE_QT_FILEDIALOG_DEFINED

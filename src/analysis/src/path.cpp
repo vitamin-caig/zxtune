@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Analyzed data path implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Analyzed data path implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <contract.h>

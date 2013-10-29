@@ -1,3 +1,13 @@
+/**
+* 
+* @file
+*
+* @brief  JNI gate to benchmark library
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 //local includes
 #include "apps/benchmark/core/benchmark.h"
 //std includes

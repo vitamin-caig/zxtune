@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Playlist context menu for desktop version
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playlist context menu interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_CONTEXTMENU_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_CONTEXTMENU_H_DEFINED
 
 //local includes
 #include "playlist/ui/contextmenu.h"
@@ -55,5 +50,3 @@ namespace Playlist
     };
   }
 }
-
-#endif //ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_CONTEXTMENU_H_DEFINED

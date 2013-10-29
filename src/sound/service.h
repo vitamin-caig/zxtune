@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/service.h
-* @brief     Sound service interface and factory
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Sound service interface and factory
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_SERVICE_H_DEFINED
-#define SOUND_SERVICE_H_DEFINED
 
 //library includes
 #include <sound/backend.h>
@@ -41,5 +40,3 @@ namespace Sound
   Service::Ptr CreateFileService(Parameters::Accessor::Ptr options);
   Service::Ptr CreateGlobalService(Parameters::Accessor::Ptr options);
 }
-
-#endif //SOUND_SERVICE_H_DEFINED

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  HRiP containers support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  HRiP archives support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "trdos_catalogue.h"

@@ -1,15 +1,14 @@
 /**
 *
 * @file
-* @brief    Simple strings map typedef
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+*
+* @brief  Simple strings map typedef
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef STRINGS_MAP_H_DEFINED
-#define STRINGS_MAP_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -20,5 +19,3 @@ namespace Strings
 {
   typedef std::map<String, String> Map;
 }
-
-#endif //STRINGS_MAP_H_DEFINED

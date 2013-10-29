@@ -1,15 +1,14 @@
 /**
 *
-* @file     locale.h
-* @brief    std::locale-independent symbol categories check functions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  std::locale-independent symbol categories check functions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef LOCALE_H_DEFINED
-#define LOCALE_H_DEFINED
 
 #include <cctype>
 
@@ -22,5 +21,3 @@ bool IsAlNum(Char c)
 {
   return std::isdigit(c) || IsAlpha(c);
 }
-
-#endif //LOCALE_H_DEFINED

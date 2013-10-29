@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/plugin_attrs.h
-* @brief    Plugins attributes
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Plugins attributes
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __CORE_PLUGIN_ATTRS_H_DEFINED__
-#define __CORE_PLUGIN_ATTRS_H_DEFINED__
 
 namespace ZXTune
 {
@@ -72,5 +71,3 @@ namespace ZXTune
     CAP_CONV_FYM        = 0x00800000,
   };
 }
-
-#endif //__CORE_PLUGINS_ATTRS_H_DEFINED__

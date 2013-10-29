@@ -1,13 +1,12 @@
-/*
-Abstract:
-  AYM-based track players common functionality implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AYM-based track chiptunes support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "aym_base_track.h"

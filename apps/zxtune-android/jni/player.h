@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Player interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Player access interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef PLAYER_H_DEFINED
-#define PLAYER_H_DEFINED
 
 //local includes
 #include "storage.h"
@@ -39,5 +36,3 @@ namespace Player
 
   Storage::HandleType Create(Module::Holder::Ptr module);
 }
-
-#endif //PLAYER_H_DEFINED

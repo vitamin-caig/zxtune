@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/freq_tables.h
-* @brief    Frequency tables for AY-trackers
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Frequency tables for AY-trackers
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __CORE_FREQ_TABLES_H_DEFINED__
-#define __CORE_FREQ_TABLES_H_DEFINED__
 
 //common includes
 #include <types.h>
@@ -50,5 +49,3 @@ namespace Module
   //! SQ-Tracker frequency table
   const Char TABLE_SQTRACKER[] = {'S','Q','T','r','a','c','k','e','r','\0'};
 }
-
-#endif //__CORE_FREQ_TABLES_H_DEFINED__

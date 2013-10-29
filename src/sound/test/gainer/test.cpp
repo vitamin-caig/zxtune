@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Gainer test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <error_tools.h>
 #include <math/numeric.h>
 #include <sound/gainer.h>

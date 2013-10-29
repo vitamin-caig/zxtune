@@ -1,15 +1,14 @@
 /**
 *
 * @file
-* @brief    Localization support API
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+*
+* @brief  Localization support API
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef L10N_API_REAL_H_DEFINED
-#define L10N_API_REAL_H_DEFINED
 
 //local includes
 #include "library.h"
@@ -63,5 +62,3 @@ namespace L10n
     const Vocabulary::Ptr Delegate;
   };
 }
-
-#endif //L10N_API_REAL_H_DEFINED

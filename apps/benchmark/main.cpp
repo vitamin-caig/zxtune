@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ZXTune benchmark application
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  ZXTune benchmark application
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #include "core/benchmark.h"
 #include <iostream>

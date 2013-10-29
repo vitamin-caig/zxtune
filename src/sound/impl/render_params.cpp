@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Render params implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Render params implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <sound/render_params.h>

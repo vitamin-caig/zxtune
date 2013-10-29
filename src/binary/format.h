@@ -1,20 +1,17 @@
 /**
 *
-* @file     binary/format.h
-* @brief    Binary data format interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Binary data format interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __BINARY_FORMAT_H_DEFINED__
-#define __BINARY_FORMAT_H_DEFINED__
 
 //library includes
 #include <binary/data.h>
-//std includes
-#include <string>
 
 namespace Binary
 {
@@ -71,5 +68,3 @@ namespace Binary
 
   Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset);
 }
-
-#endif //__BINARY_FORMAT_H_DEFINED__

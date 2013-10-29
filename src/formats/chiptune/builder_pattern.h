@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Patterns builder interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Pattern builder interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_BUILDER_PATTERN_H_DEFINED
-#define FORMATS_CHIPTUNE_BUILDER_PATTERN_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -34,5 +31,3 @@ namespace Formats
     PatternBuilder& GetStubPatternBuilder();
   }
 }
-
-#endif //FORMATS_CHIPTUNE_BUILDER_PATTERN_H_DEFINED

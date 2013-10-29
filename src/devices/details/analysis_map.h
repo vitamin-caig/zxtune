@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AnalysisMap helper class
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  PSG-based devices analysis helper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_DETAILS_ANALYSIS_MAP_H_DEFINED
-#define DEVICES_DETAILS_ANALYSIS_MAP_H_DEFINED
 
 //local includes
 #include "freq_table.h"
@@ -58,5 +55,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_DETAILS_ANALYSIS_MAP_H_DEFINED

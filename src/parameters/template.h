@@ -1,15 +1,14 @@
 /**
 *
-* @file     parameterstemplate/.h
-* @brief    Strings::Template adapter for Parameters interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Strings::Template adapter for Parameters interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PARAMETERS_TEMPLATE_H_DEFINED
-#define PARAMETERS_TEMPLATE_H_DEFINED
 
 //library includes
 #include <parameters/accessor.h>
@@ -46,5 +45,3 @@ namespace Parameters
     const Accessor& Params;
   };
 }
-
-#endif //PARAMETERS_TEMPLATE_H_DEFINED

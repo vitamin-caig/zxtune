@@ -1,19 +1,14 @@
-/*
-Abstract:
-  SAA chip device class
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  Based on sources of PerfectZX emulator
-*/
+/**
+* 
+* @file
+*
+* @brief  SAA device implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_SAA_DEVICE_H_DEFINED
-#define DEVICES_SAA_DEVICE_H_DEFINED
 
 //local includes
 #include "generators.h"
@@ -259,5 +254,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_SAA_DEVICE_H_DEFINED

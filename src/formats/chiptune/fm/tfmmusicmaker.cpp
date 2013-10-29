@@ -1,13 +1,12 @@
-/*
-Abstract:
-  TFMMusicMaker modules format implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TFMMusicMaker support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "tfmmusicmaker.h"

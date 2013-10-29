@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AY/YM chips interface implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM-based chips base implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_AYM_SOUNDCHIP_H_DEFINED
-#define DEVICES_AYM_SOUNDCHIP_H_DEFINED
 
 //local includes
 #include "renderers.h"
@@ -136,5 +133,3 @@ namespace AYM
   };
 }
 }
-
-#endif

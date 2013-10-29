@@ -1,20 +1,17 @@
 /**
+* 
+* @file
 *
-* @file     async/job.h
-* @brief    Interface of asynchronous job
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Asynchronous job interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ASYNC_JOB_H_DEFINED
-#define ASYNC_JOB_H_DEFINED
 
 //boost includes
 #include <boost/shared_ptr.hpp>
-
-class Error;
 
 namespace Async
 {
@@ -32,5 +29,3 @@ namespace Async
     virtual bool IsPaused() const = 0;
   };
 }
-
-#endif //ASYNC_JOB_H_DEFINED

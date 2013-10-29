@@ -1,15 +1,14 @@
 /**
 *
-* @file     api.h
-* @brief    Localization support API
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Localization support API
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef L10N_API_H_DEFINED
-#define L10N_API_H_DEFINED
 
 #ifdef NO_L10N
 #include "src/api_stub.h"
@@ -24,5 +23,3 @@ namespace L10n
     return txt;
   }
 }
-
-#endif //L10N_API_H_DEFINED

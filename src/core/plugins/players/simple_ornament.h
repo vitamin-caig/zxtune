@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Simple ornament implementations
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Simple ornament implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_SIMPLE_ORNAMENT_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_SIMPLE_ORNAMENT_H_DEFINED
 
 //std includes
 #include <vector>
@@ -61,5 +58,3 @@ namespace Module
     std::vector<int_t> Lines;
   };
 }
-
-#endif //CORE_PLUGINS_PLAYERS_SIMPLE_ORNAMENT_H_DEFINED

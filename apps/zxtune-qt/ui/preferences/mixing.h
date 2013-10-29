@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Mixing settings widget interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Mixing settings pane interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UI_MIXING_H_DEFINED
-#define ZXTUNE_QT_UI_MIXING_H_DEFINED
 
 //qt includes
 #include <QtGui/QWidget>
@@ -29,5 +24,3 @@ namespace UI
     static MixingSettingsWidget* Create(QWidget& parent, unsigned channels);
   };
 }
-
-#endif //ZXTUNE_QT_UI_MIXING_H_DEFINED

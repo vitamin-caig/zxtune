@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AY/YM dumper interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM dumper interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_AYM_DUMPER_H_DEFINED
-#define DEVICES_AYM_DUMPER_H_DEFINED
 
 //library includes
 #include <devices/aym.h>
@@ -65,5 +62,3 @@ namespace Devices
     Dumper::Ptr CreateFYMDumper(FYMDumperParameters::Ptr params);
   }
 }
-
-#endif //DEVICES_AYM_DUMPER_H_DEFINED

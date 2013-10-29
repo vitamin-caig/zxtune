@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Different image-related utils
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Image-related utilities
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_PACKED_IMAGE_UTILS_H_DEFINED
-#define FORMATS_PACKED_IMAGE_UTILS_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -59,5 +56,3 @@ namespace Formats
   //Puts all sectors sequentally skipping not specified
   ImageBuilder::Ptr CreateSparsedImageBuilder();
 }
-
-#endif //FORMATS_PACKED_IMAGE_UTILS_H_DEFINED

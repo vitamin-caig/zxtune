@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Mixer on params implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Parameters for mixer
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <parameters/accessor.h>

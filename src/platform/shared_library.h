@@ -1,15 +1,14 @@
 /**
 *
-* @file     shared_library.h
-* @brief    Shared library interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Shared library interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PLATFORM_SHARED_LIBRARY_H_DEFINED
-#define PLATFORM_SHARED_LIBRARY_H_DEFINED
 
 //std includes
 #include <string>
@@ -45,5 +44,3 @@ namespace Platform
     static Ptr Load(const Name& name);
   };
 }
-
-#endif //PLATFORM_SHARED_LIBRARY_H_DEFINED

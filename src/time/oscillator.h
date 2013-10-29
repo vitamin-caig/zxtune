@@ -1,15 +1,14 @@
 /**
 *
-* @file     oscillator.h
-* @brief    Oscillator interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Oscillator interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef TIME_OSCILLATOR_H_DEFINED
-#define TIME_OSCILLATOR_H_DEFINED
 
 //library includes
 #include <math/fixedpoint.h>
@@ -118,5 +117,3 @@ namespace Time
     FixedPoint TicksPerTimeSlice;
   };
 }
-
-#endif //TIME_OSCILLATOR_H_DEFINED

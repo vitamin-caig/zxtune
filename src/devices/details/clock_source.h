@@ -1,17 +1,14 @@
-/*
-Abstract:
-  ClockSource helper
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Sound devices clock source
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_DETAILS_CLOCK_SOURCE_H_DEFINED
-#define DEVICES_DETAILS_CLOCK_SOURCE_H_DEFINED
 
 //std includes
 #include <time/oscillator.h>
@@ -141,5 +138,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_DETAILS_CLOCK_SOURCE_H_DEFINED

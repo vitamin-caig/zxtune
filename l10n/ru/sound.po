@@ -11,10 +11,10 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: impl/gainer.cpp:59
+#: impl/gainer.cpp:58
 msgid "Failed to set gain value: out of range."
 msgstr "Ошибка установки уровня: превышение допустимого значения."
 
-#: impl/mixer.cpp:54
+#: impl/mixer.cpp:53
 msgid "Failed to set mixer matrix: gain is out of range."
 msgstr "Ошибка установки микширования: превышение допустимого значения уровня."

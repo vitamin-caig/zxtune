@@ -1,13 +1,12 @@
-/*
-Abstract:
-  DAC sample implementations
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  DAC sample implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <devices/dac/sample_factories.h>

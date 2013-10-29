@@ -1,3 +1,13 @@
+/**
+* 
+* @file
+*
+* @brief Job test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <error.h>
 #include <pointers.h>
 #include <async/worker.h>

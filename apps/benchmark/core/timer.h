@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Simple elapsed timer
+/**
+* 
+* @file
+*
+* @brief  Simple elapsed timer
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BENCHMARK_TIMER_H_DEFINED
-#define BENCHMARK_TIMER_H_DEFINED
+#pragma once
 
 //library includes
 #include <time/stamp.h>
@@ -37,5 +35,3 @@ namespace Benchmark
     const std::clock_t Start;
   };
 }
-
-#endif //BENCHMARK_TIMER_H_DEFINED

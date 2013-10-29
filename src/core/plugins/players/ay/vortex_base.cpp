@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Vortex-based modules playback support implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  VortexTracker-based chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "vortex_base.h"

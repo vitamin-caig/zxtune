@@ -1,15 +1,14 @@
 /**
 *
-* @file      io/provider.h
-* @brief     Data provider interface
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Data provider interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef IO_PROVIDER_H_DEFINED
-#define IO_PROVIDER_H_DEFINED
 
 //common includes
 #include <iterator.h>
@@ -43,5 +42,3 @@ namespace IO
   //! @brief Enumerating supported %IO providers
   Provider::Iterator::Ptr EnumerateProviders();
 }
-
-#endif //IO_PROVIDER_H_DEFINED

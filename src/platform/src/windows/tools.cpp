@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Windows implementation of tools
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Windows implementation of tools
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <platform/tools.h>

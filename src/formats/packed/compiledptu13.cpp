@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ProTrackerUtility 1.3 compiled modules support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  ProTrackerUtility v1.3 compiled modules support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "container.h"

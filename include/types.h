@@ -1,15 +1,14 @@
 /**
 *
-* @file     types.h
-* @brief    Basic types definitions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Basic types definitions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __TYPES_H_DEFINED__
-#define __TYPES_H_DEFINED__
 
 //common includes
 #include <char_type.h>
@@ -112,5 +111,3 @@ BOOST_STATIC_ASSERT(sizeof(uint32_t) == 4);
 BOOST_STATIC_ASSERT(sizeof(int32_t) == 4);
 BOOST_STATIC_ASSERT(sizeof(uint64_t) == 8);
 BOOST_STATIC_ASSERT(sizeof(int64_t) == 8);
-
-#endif //__TYPES_H_DEFINED__

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Device's state-related declarations
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Device state source interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_STATE_H_DEFINED
-#define DEVICES_STATE_H_DEFINED
 
 //library includes
 #include <math/fixedpoint.h>
@@ -56,5 +53,3 @@ namespace Devices
     virtual void GetState(MultiChannelState& result) const = 0;
   };
 }
-
-#endif //DEVICES_STATE_H_DEFINED

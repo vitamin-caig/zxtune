@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Z80 tests interface
+/**
+* 
+* @file
+*
+* @brief  Z80 test interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BENCHMARK_Z80_H_DEFINED
-#define BENCHMARK_Z80_H_DEFINED
+#pragma once
 
 //library includes
 #include <devices/z80.h>
@@ -24,5 +22,3 @@ namespace Benchmark
     double Test(Devices::Z80::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration);
   }
 }
-
-#endif //BENCHMARK_Z80_H_DEFINED

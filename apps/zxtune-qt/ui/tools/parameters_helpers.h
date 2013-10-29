@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Parameters helpers interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Parameters helpers interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_PARAMETERS_HELPERS_H_DEFINED
-#define ZXTUNE_QT_PARAMETERS_HELPERS_H_DEFINED
 
 //library includes
 #include <parameters/container.h>
@@ -134,5 +129,3 @@ namespace Parameters
     virtual void Set(const QString& value) = 0;
   };
 }
-
-#endif //ZXTUNE_QT_PARAMETERS_HELPERS_H_DEFINED

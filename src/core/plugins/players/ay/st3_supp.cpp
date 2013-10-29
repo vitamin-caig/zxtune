@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ST3 modules playback support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SoundTracker v3 modules support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "aym_plugin.h"

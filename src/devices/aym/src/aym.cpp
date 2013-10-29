@@ -1,15 +1,12 @@
-/*
-Abstract:
-  AY/YM chips interface implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  Based on sources of UnrealSpeccy by SMT and Xpeccy sources by SamStyle
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM-based chip implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "psg.h"

@@ -1,15 +1,12 @@
-/*
-Abstract:
-  MP3 settings widget
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief MP3 settings widget implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "mp3_settings.h"

@@ -1,6 +1,6 @@
-// Generated from '$Id$'
-#ifndef __TEXT_BACKENDS_H_DEFINED__
-#define __TEXT_BACKENDS_H_DEFINED__
+// This file was automatically generated
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -21,4 +21,3 @@ extern const Char SDL_BACKEND_ID[];
 extern const Char WAV_BACKEND_ID[];
 extern const Char WIN32_BACKEND_ID[];
 }//namespace Text
-#endif //__TEXT_BACKENDS_H_DEFINED__

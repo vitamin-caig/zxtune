@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Containers plugins stub list
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Stub implementation of container plugins support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <core/plugins/registrator.h>

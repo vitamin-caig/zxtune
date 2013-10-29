@@ -1,15 +1,14 @@
 /**
 *
-* @file      binary/container_factories.h
-* @brief     Binary data container factories
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Binary data container factories
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef BINARY_CONTAINER_FACTORIES_H_DEFINED
-#define BINARY_CONTAINER_FACTORIES_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -28,5 +27,3 @@ namespace Binary
   //! @brief Sharing ownership
   Container::Ptr CreateContainer(Data::Ptr data);
 }
-
-#endif //BINARY_CONTAINER_FACTORIES_H_DEFINED

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Version functions interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Version functions interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef VERSION_API_H_DEFINED
-#define VERSION_API_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -23,5 +20,3 @@ String GetBuildPlatform();
 String GetBuildArchitecture();
 String GetBuildArchitectureVersion();
 String GetProgramVersionString();
-
-#endif //VERSION_API_H_DEFINED

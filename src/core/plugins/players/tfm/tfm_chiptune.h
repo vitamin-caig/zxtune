@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TFM-based chiptune interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TFM-based chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_TFM_CHIPTUNE_DEFINED
-#define CORE_PLUGINS_PLAYERS_TFM_CHIPTUNE_DEFINED
 
 //local includes
 #include "core/plugins/players/tracking.h"
@@ -43,5 +40,3 @@ namespace Module
     };
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_TFM_CHIPTUNE_DEFINED

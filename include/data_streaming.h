@@ -1,15 +1,14 @@
 /**
 *
-* @file      data_streaming.h
-* @brief     Defenition of data streaming abstractions
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Defenition of data streaming abstractions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef DATA_STREAMING_H_DEFINED
-#define DATA_STREAMING_H_DEFINED
 
 //common includes
 #include <pointers.h>
@@ -72,5 +71,3 @@ public:
   //! @brief Pointer type.
   typedef typename boost::shared_ptr<DataTransceiver<InType, OutType> > Ptr;
 };
-
-#endif //__DATA_STREAMING_H_DEFINED__

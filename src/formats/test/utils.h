@@ -1,5 +1,14 @@
-#ifndef FORMATS_TEST_UTILS_H
-#define FORMATS_TEST_UTILS_H
+/**
+*
+* @file
+*
+* @brief  Common test code
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
+#pragma once
 
 #include <pointers.h>
 #include <types.h>
@@ -190,6 +199,3 @@ namespace Test
     }
   }
 }
-
-#endif //FORMATS_TEST_UTILS_H
-

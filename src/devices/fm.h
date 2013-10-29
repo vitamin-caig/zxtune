@@ -1,17 +1,14 @@
-/*
-Abstract:
-  FM chips interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  FM support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_FM_H_DEFINED
-#define DEVICES_FM_H_DEFINED
 
 //common includes
 #include <data_streaming.h>
@@ -105,5 +102,3 @@ namespace Devices
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }
-
-#endif //DEVICES_FM_H_DEFINED

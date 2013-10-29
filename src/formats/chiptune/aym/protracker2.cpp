@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ProTracker2.x format implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  ProTracker v2.x support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "protracker2.h"

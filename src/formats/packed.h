@@ -1,15 +1,14 @@
 /**
 *
-* @file     formats/packed.h
-* @brief    Interface for packed data accessors
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Packed data support interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __FORMATS_PACKED_H_DEFINED__
-#define __FORMATS_PACKED_H_DEFINED__
 
 //library includes
 #include <binary/container.h>
@@ -55,5 +54,3 @@ namespace Formats
     };
   }
 }
-
-#endif //__FORMATS_PACKED_H_DEFINED__

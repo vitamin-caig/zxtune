@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Sound service implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Sound service implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "backends_list.h"

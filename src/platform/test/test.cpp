@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Platform test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <contract.h>
 #include <platform/tools.h>
 #include <iostream>

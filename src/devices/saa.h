@@ -1,17 +1,14 @@
-/*
-Abstract:
-  SAA1099 chip interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SAA1099 support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_SAA_H_DEFINED
-#define DEVICES_SAA_H_DEFINED
 
 //common includes
 #include <data_streaming.h>
@@ -130,5 +127,3 @@ namespace Devices
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }
-
-#endif //DEVICES_SAA_H_DEFINED

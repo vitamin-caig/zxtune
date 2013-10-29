@@ -1,15 +1,14 @@
 /**
 *
-* @file      binary/output_stream.h
-* @brief     Output stream interface
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Output stream interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef BINARY_OUTPUT_STREAM_H_DEFINED
-#define BINARY_OUTPUT_STREAM_H_DEFINED
 
 //common includes
 #include <data_streaming.h>
@@ -30,5 +29,3 @@ namespace Binary
     virtual uint64_t Position() const = 0;
   };
 }
-
-#endif //BINARY_OUTPUT_STREAM_H_DEFINED

@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/plugin.h
-* @brief    Plugins related interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Plugins related interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __CORE_PLUGIN_H_DEFINED__
-#define __CORE_PLUGIN_H_DEFINED__
 
 //common includes
 #include <iterator.h>
@@ -42,5 +41,3 @@ namespace ZXTune
   Plugin::Iterator::Ptr EnumeratePlugins();
   Plugin::Ptr FindPlugin(const String& id);
 }
-
-#endif //__CORE_PLUGIN_H_DEFINED__

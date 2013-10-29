@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/mixer.h
-* @brief     Defenition of mixing-related functionality
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Defenition of mixing-related functionality
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_MIXER_H_DEFINED
-#define SOUND_MIXER_H_DEFINED
 
 //library includes
 #include <sound/receiver.h>
@@ -32,5 +31,3 @@ namespace Sound
   typedef FixedChannelsMixer<3> ThreeChannelsMixer;
   typedef FixedChannelsMixer<4> FourChannelsMixer;
 }
-
-#endif //SOUND_MIXER_H_DEFINED

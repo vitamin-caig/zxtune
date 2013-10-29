@@ -1,15 +1,14 @@
 /**
 *
-* @file      binary/data_builder.h
-* @brief     Builder for binary data
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Builder for binary data
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef BINARY_DATA_BUILDER_H_DEFINED
-#define BINARY_DATA_BUILDER_H_DEFINED
 
 //library includes
 #include <binary/container_factories.h>
@@ -92,5 +91,3 @@ namespace Binary
     std::auto_ptr<Dump> Content;
   };
 }
-
-#endif //BINARY_DATA_BUILDER_H_DEFINED

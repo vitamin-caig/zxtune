@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Objects storage template
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Objects storage
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef OBJECTS_STORAGE_H_DEFINED
-#define OBJECTS_STORAGE_H_DEFINED
 
 //common includes
 #include <pointers.h>
@@ -86,5 +83,3 @@ private:
   typedef std::set<PtrType, bool(*)(PtrType, PtrType)> StorageType;
   StorageType Storage;
 };
-
-#endif //OBJECTS_STORAGE_H_DEFINED

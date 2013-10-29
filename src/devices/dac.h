@@ -1,17 +1,14 @@
-/*
-Abstract:
-  DAC interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  DAC-based devices support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __DEVICES_DAC_H_DEFINED__
-#define __DEVICES_DAC_H_DEFINED__
 
 //library includes
 #include <devices/state.h>
@@ -146,5 +143,3 @@ namespace Devices
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
   }
 }
-
-#endif //__DEVICES_DAC_H_DEFINED__

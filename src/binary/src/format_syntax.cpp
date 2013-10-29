@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Format syntax implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Format syntax implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "format_grammar.h"

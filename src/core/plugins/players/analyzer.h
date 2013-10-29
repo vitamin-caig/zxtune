@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Analyzer adapter factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Analyzer factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_ANALYZER_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_ANALYZER_H_DEFINED
 
 //library includes
 #include <core/module_types.h>
@@ -21,5 +18,3 @@ namespace Module
 {
   Analyzer::Ptr CreateAnalyzer(Devices::StateSource::Ptr state);
 }
-
-#endif //CORE_PLUGINS_PLAYERS_ANALYZER_H_DEFINED

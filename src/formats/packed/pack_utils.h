@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Different packing-related utils
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Packed-related utilities
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_ARCHIVES_PACK_UTILS_H_DEFINED__
-#define __CORE_PLUGINS_ARCHIVES_PACK_UTILS_H_DEFINED__
 
 //common includes
 #include <types.h>
@@ -155,5 +152,3 @@ inline std::size_t MatchedSize(const uint8_t* dataBegin, const uint8_t* dataEnd,
     return mismatch.first - dataBegin;
   }
 }
-
-#endif //__CORE_PLUGINS_ARCHIVES_PACK_UTILS_H_DEFINED__

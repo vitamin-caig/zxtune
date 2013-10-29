@@ -1,16 +1,11 @@
-< __HEADER__
-> "Generated from '$Id$'"
-
 < __RAWHEADER__
-__cpp> "#ifndef __TEXT_CORE_H_DEFINED__\n"
-__cpp> "#define __TEXT_CORE_H_DEFINED__\n"
+__cpp> "#pragma once\n\n"
 __cpp> "#include <char_type.h>\n\n"
 __cpp> "namespace Text\n"
 __cpp> "{\n"
 
 < __RAWFOOTER__
 __cpp> "}//namespace Text\n"
-__cpp> "#endif //__TEXT_CORE_H_DEFINED__\n"
 
 < MODULE_SUBPATH_DELIMITER
 > "/"

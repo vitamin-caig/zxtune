@@ -1,15 +1,14 @@
 /**
 *
-* @file     bitops.h
-* @brief    Bits operating and related functions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Bits operating and related functions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef MATH_BITOPS_H_DEFINED
-#define MATH_BITOPS_H_DEFINED
 
 //local includes
 #include <types.h>
@@ -85,5 +84,3 @@ namespace Math
     return ~((T(1) << (8 * sizeof(T) - hiBits)) - 1);
   }
 }
-
-#endif //MATH_BITOPS_H_DEFINED

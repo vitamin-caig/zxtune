@@ -1,13 +1,12 @@
-/*
-Abstract:
-  DirectSound backend stub implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  DirectSound backend stub
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #include "dsound.h"
 #include "storage.h"

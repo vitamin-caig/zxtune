@@ -1,15 +1,14 @@
 /**
 *
 * @file
-* @brief    Fields source and some basic adapters
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+*
+* @brief  Fields source and some basic adapters
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef STRINGS_FIELDS_H_DEFINED
-#define STRINGS_FIELDS_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -62,5 +61,3 @@ namespace Strings
     }
   };
 }
-
-#endif //STRINGS_FIELDS_H_DEFINED

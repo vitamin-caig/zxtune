@@ -1,19 +1,14 @@
-/*
-Abstract:
-  AYM settings widget interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief AYM settings pane interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UI_AYM_H_DEFINED
-#define ZXTUNE_QT_UI_AYM_H_DEFINED
 
 //qt includes
 #include <QtGui/QWidget>
@@ -32,5 +27,3 @@ namespace UI
     virtual void OnClockRatePresetChanged(int idx) = 0;
   };
 }
-
-#endif //ZXTUNE_QT_UI_AYM_H_DEFINED

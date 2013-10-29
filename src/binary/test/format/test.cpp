@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Format test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <types.h>
 #include <binary/data_adapter.h>
 #include <binary/format.h>

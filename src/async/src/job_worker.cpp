@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Asynchronous job implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Worker-based Job factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <error.h>

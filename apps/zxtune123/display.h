@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Display component interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune123 application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Display component interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE123_DISPLAY_H_DEFINED
-#define ZXTUNE123_DISPLAY_H_DEFINED
 
 //library includes
 #include <core/module_player.h>
@@ -50,5 +45,3 @@ public:
 
   static Ptr Create();
 };
-
-#endif //ZXTUNE123_DISPLAY_H_DEFINED

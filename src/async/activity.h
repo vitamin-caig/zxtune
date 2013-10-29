@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     async/activity.h
-* @brief    Interface of asynchronous activity
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Interface of asynchronous activity
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __ASYNC_ACTIVITY_H_DEFINED__
-#define __ASYNC_ACTIVITY_H_DEFINED__
 
 //common includes
 #include <error.h>
@@ -40,5 +39,3 @@ namespace Async
     static Ptr CreateStub();
   };
 }
-
-#endif //__ASYNC_ACTIVITY_H_DEFINED__

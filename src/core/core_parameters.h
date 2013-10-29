@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/core_parameters.h
-* @brief    Core parameters names
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Core parameters names
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef CORE_PARAMETERS_H_DEFINED
-#define CORE_PARAMETERS_H_DEFINED
 
 //library includes
 #include <parameters/types.h>
@@ -149,5 +148,3 @@ namespace Parameters
     }
   }
 }
-
-#endif //CORE_PARAMETERS_H_DEFINED

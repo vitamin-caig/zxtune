@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Filename template building widget
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Filename template building widget interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UI_FILENAME_TEMPLATE_H_DEFINED
-#define ZXTUNE_QT_UI_FILENAME_TEMPLATE_H_DEFINED
 
 //qt includes
 #include <QtGui/QWidget>
@@ -38,5 +33,3 @@ namespace UI
 
   bool GetFilenameTemplate(QWidget& parent, QString& result);
 }
-
-#endif //ZXTUNE_QT_UI_FILENAMTE_TEMPLATE_H_DEFINED

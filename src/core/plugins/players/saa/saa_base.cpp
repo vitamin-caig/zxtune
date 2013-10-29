@@ -1,13 +1,12 @@
-/*
-Abstract:
-  SAA-based players common functionality implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SAA-based chiptunes common functionality implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "saa_base.h"

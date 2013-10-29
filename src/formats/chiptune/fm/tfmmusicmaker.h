@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TFM Music Maker format description
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TFMMusicMaker support interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_TFMMUSICMAKER_H_DEFINED
-#define FORMATS_CHIPTUNE_TFMMUSICMAKER_H_DEFINED
 
 //local includes
 #include "formats/chiptune/builder_meta.h"
@@ -137,5 +134,3 @@ namespace Formats
     }
   }
 }
-
-#endif //FORMATS_CHIPTUNE_TFMMUSICMAKER_H_DEFINED

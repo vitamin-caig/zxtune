@@ -1,13 +1,13 @@
-/*
-Abstract:
-  XTractor tool main file
+/**
+* 
+* @file
+*
+* @brief XTractor tool main file
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
 
 //local includes
 #include <apps/version/api.h>

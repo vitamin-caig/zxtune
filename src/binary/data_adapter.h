@@ -1,15 +1,14 @@
 /**
 *
-* @file      binary/data_adapter.h
-* @brief     Binary::Data lightweight adapter
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Binary::Data lightweight adapter
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef BINARY_DATA_ADAPTER_H_DEFINED
-#define BINARY_DATA_ADAPTER_H_DEFINED
 
 //library includes
 #include <binary/data.h>
@@ -39,5 +38,3 @@ namespace Binary
     const std::size_t SizeValue;
   };
 }
-
-#endif //BINARY_DATA_ADAPTER_H_DEFINED

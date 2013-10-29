@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Module renderer interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Module renderer (former Player) interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_RENDERER_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_RENDERER_H_DEFINED__
 
 //library includes
 #include <core/module_types.h>
@@ -47,5 +44,3 @@ namespace Module
     virtual void SetPosition(uint_t frame) = 0;
   };
 }
-
-#endif //__CORE_PLUGINS_PLAYERS_RENDERER_H_DEFINED__

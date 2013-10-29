@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/render_params.h
-* @brief     Rendering parameters definition. Used as POD-helper
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Rendering parameters definition. Used as POD-helper
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef RENDER_PARAMS_H_DEFINED
-#define RENDER_PARAMS_H_DEFINED
 
 //library includes
 #include <parameters/accessor.h>
@@ -39,5 +38,3 @@ namespace Sound
     static Ptr Create(Parameters::Accessor::Ptr soundParameters);
   };
 }
-
-#endif //RENDER_PARAMS_H_DEFINED

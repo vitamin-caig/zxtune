@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Module properties container implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Module properties builder implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "module_properties.h"

@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Playlist entity and view
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playlist entity interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYLIST_SUPP_DATA_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_SUPP_DATA_H_DEFINED
 
 //common includes
 #include <error.h>
@@ -55,5 +50,3 @@ namespace Playlist
     typedef ObjectIterator<Data::Ptr> Collection;
   }
 }
-
-#endif //ZXTUNE_QT_PLAYLIST_SUPP_DATA_H_DEFINED

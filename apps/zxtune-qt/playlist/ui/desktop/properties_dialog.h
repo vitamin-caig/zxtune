@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Playlist items properties dialog for desktop
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playlist item properties dialog interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_PROPERTIES_DIALOG_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_PROPERTIES_DIALOG_H_DEFINED
 
 //local includes
 #include "playlist/supp/model.h"
@@ -44,5 +39,3 @@ namespace Playlist
     void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Playlist::Model::IndexSetPtr scope);
   }
 }
-
-#endif //ZXTUNE_QT_PLAYLIST_UI_PLAYLIST_DESKTOP_PROPERTIES_DIALOG_H_DEFINED

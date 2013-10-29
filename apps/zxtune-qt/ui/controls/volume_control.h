@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Volume control widget declaration
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Volume control widget interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_VOLUMECONTROL_H_DEFINED
-#define ZXTUNE_QT_VOLUMECONTROL_H_DEFINED
 
 //library includes
 #include <sound/backend.h>
@@ -38,5 +33,3 @@ public slots:
 private slots:
   virtual void SetLevel(int level) = 0;
 };
-
-#endif //ZXTUNE_QT_VOLUMECONTROL_H_DEFINED

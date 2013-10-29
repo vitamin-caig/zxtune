@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/lpfilter.h
-* @brief     Low-pass filter
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Low-pass filter
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_LPFILTER_H_DEFINED
-#define SOUND_LPFILTER_H_DEFINED
 
 //library includes
 #include <math/fixedpoint.h>
@@ -121,5 +120,3 @@ namespace Sound
     Sample Out1, Out2;
   };
 }
-
-#endif //SOUND_LPFILTER_H_DEFINED

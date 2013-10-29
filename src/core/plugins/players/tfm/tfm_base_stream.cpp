@@ -1,13 +1,12 @@
-/*
-Abstract:
-  TFM-based stream players common functionality implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TFM-based stream chiptunes support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "tfm_base_stream.h"

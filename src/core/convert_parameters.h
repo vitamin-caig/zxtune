@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/convert_parameters.h
-* @brief    Conversion support types
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Conversion support types
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __CORE_CONVERT_PARAMETERS_H_DEFINED__
-#define __CORE_CONVERT_PARAMETERS_H_DEFINED__
 
 //library includes
 #include <core/conversion.h>
@@ -99,5 +98,3 @@ namespace Module
     };
   }
 }
-
-#endif //__CORE_CONVERT_PARAMETERS_H_DEFINED__

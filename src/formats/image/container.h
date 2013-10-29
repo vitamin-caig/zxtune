@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Image container helper
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Image container helper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_IMAGE_CONTAINER_H_DEFINED
-#define FORMATS_IMAGE_CONTAINER_H_DEFINED
 
 //library includes
 #include <binary/container_factories.h>
@@ -65,5 +62,3 @@ inline ImageContainer::Ptr CreateImageContainer(std::auto_ptr<Dump> data, std::s
   const Binary::Container::Ptr container = Binary::CreateContainer(data);
   return CreateImageContainer(container, origSize);
 }
-
-#endif //FORMATS_IMAGE_CONTAINER_H_DEFINED

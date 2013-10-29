@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ZXZip convertors support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  ZXZIP archives support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "trdos_catalogue.h"

@@ -1,14 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     zxtune.h
-* @brief    Simple dynamic library interface
-* @version  $Id:
-* @author   (C) Vitamin/CAIG/2001
+* @brief Simple dynamic library interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
-#ifndef DLLS_ZXTUNE_H_DEFINED
-#define DLLS_ZXTUNE_H_DEFINED
+#pragma once
 
 #include <stddef.h>
 
@@ -71,5 +71,3 @@ ZXTUNE_API bool ZXTune_SetPlayerParameterInt(ZXTuneHandle player, const char* pa
 #ifdef __cplusplus
 } //extern
 #endif
-
-#endif //DLLS_ZXTUNE_H_DEFINED

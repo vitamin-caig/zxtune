@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Base64 test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <parameters/convert.h>
 #include <binary/base64.h>
 #include <strings/format.h>

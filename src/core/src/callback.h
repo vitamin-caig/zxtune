@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Module detection callback functions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Detect callback helpers
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_CALLBACK_H_DEFINED__
-#define __CORE_PLUGINS_CALLBACK_H_DEFINED__
 
 //core includes
 #include <core/module_detect.h>
@@ -69,5 +66,3 @@ namespace Module
     const Log::ProgressCallback::Ptr Progress;
   };
 }
-
-#endif //__CORE_PLUGINS_CALLBACK_H_DEFINED__

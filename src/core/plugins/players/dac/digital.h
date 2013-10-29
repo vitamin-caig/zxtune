@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Simple digital tracks playback support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Simple DAC-based tracks support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_DAC_DIGITAL_DEFINED
-#define CORE_PLUGINS_PLAYERS_DAC_DIGITAL_DEFINED
 
 //local includes
 #include "dac_base.h"
@@ -242,5 +239,3 @@ namespace Module
     };
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_DAC_DIGITAL_DEFINED

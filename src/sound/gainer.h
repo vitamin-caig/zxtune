@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/gainer.h
-* @brief     Defenition of gain-related functionality
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Defenition of gain-related functionality
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_GAINER_H_DEFINED
-#define SOUND_GAINER_H_DEFINED
 
 //library includes
 #include <sound/gain.h>
@@ -39,5 +38,3 @@ namespace Sound
   //! @brief Creating gainer insance
   FadeGainer::Ptr CreateFadeGainer();
 }
-
-#endif //SOUND_GAINER_H_DEFINED

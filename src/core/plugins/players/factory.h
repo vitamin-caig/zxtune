@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Abstract module factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Module factory interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_FACTORY_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_FACTORY_H_DEFINED
 
 //local includes
 #include "module_properties.h"
@@ -30,5 +27,3 @@ namespace Module
     virtual Holder::Ptr CreateModule(PropertiesBuilder& properties, const Binary::Container& data) const = 0;
   };
 }
-
-#endif //CORE_PLUGINS_PLAYERS_FACTORY_H_DEFINED

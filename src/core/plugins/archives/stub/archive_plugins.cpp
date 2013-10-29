@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Archive plugins list stub implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Stub implementation for archive plugins support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <core/plugins/registrator.h>

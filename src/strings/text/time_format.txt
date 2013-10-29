@@ -1,16 +1,11 @@
-< __HEADER__
-> "Generated from '$Id: time_format.txt 1977 2012-09-07 11:02:05Z vitamin.caig $'"
-
 < __RAWHEADER__
-__cpp> "#ifndef __TEXT_TIME_FORMAT_H_DEFINED__\n"
-__cpp> "#define __TEXT_TIME_FORMAT_H_DEFINED__\n"
+__cpp> "#pragma once\n\n"
 __cpp> "#include <char_type.h>\n\n"
 __cpp> "namespace Text\n"
 __cpp> "{\n"
 
 < __RAWFOOTER__
 __cpp> "}//namespace Text\n"
-__cpp> "#endif //__TEXT_TIME_FORMAT_H_DEFINED__\n"
 
 < TIME_FORMAT
 > "%1%:%2$02u.%3$02u"

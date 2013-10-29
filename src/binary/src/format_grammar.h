@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Format grammar declaration
+/**
+*
+* @file
+*
+* @brief  Format grammar declaration
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BINARY_FORMAT_GRAMMAR_H
-#define BINARY_FORMAT_GRAMMAR_H
+#pragma once
 
 //local includes
 #include "lexic_analysis.h"
@@ -45,5 +43,3 @@ namespace Binary
 
   LexicalAnalysis::Grammar::Ptr CreateFormatGrammar();
 }
-
-#endif //BINARY_FORMAT_GRAMMAR_H

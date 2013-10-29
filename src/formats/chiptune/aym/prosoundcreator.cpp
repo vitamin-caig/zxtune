@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Pro Sound Creator format implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  ProSoundCreator support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "prosoundcreator.h"

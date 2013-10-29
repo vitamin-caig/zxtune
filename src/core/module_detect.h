@@ -1,20 +1,19 @@
 /**
 *
-* @file     core/module_detect.h
-* @brief    Modules detecting functionality
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Modules detecting functionality
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef CORE_MODULE_DETECT_H_DEFINED
-#define CORE_MODULE_DETECT_H_DEFINED
 
 //library includes
 #include <binary/container.h>
 #include <core/data_location.h>
-#include <core/module_holder.h>//for Module::Holder::Ptr
+#include <core/module_holder.h>
 #include <parameters/accessor.h>
 
 //forward declarations
@@ -44,5 +43,3 @@ namespace Module
   //! @return Size in bytes of source data processed
   std::size_t Detect(ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
 }
-
-#endif //CORE_MODULE_DETECT_H_DEFINED

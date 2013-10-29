@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Parameters test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <parameters/types.h>
 
 #include <iostream>

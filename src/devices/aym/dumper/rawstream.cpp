@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Raw stream dumper imlementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Raw stream dumper implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "dump_builder.h"

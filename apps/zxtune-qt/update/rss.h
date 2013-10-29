@@ -1,19 +1,14 @@
-/*
-Abstract:
-  RSS feed interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief RSS feed parser interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UPDATE_RSS_H_DEFINED
-#define ZXTUNE_QT_UPDATE_RSS_H_DEFINED
 
 //qt includes
 #include <QtCore/QByteArray>
@@ -41,5 +36,3 @@ namespace RSS
 
   bool Parse(const QByteArray& rss, Visitor& visitor);
 }
-
-#endif //ZXTUNE_QT_UPDATE_RSS_H_DEFINED

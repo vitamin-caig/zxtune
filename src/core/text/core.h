@@ -1,6 +1,6 @@
-// Generated from '$Id$'
-#ifndef __TEXT_CORE_H_DEFINED__
-#define __TEXT_CORE_H_DEFINED__
+// This file was automatically generated
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -15,4 +15,3 @@ extern const Char MODULE_LAYOUT_CBA[];
 extern const Char MODULE_LAYOUT_MONO[];
 extern const Char MODULE_SUBPATH_DELIMITER[];
 }//namespace Text
-#endif //__TEXT_CORE_H_DEFINED__

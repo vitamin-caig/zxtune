@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TFM-based stream players common functionality
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TFM-based stream chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_TFM_BASE_STREAM_DEFINED
-#define CORE_PLUGINS_PLAYERS_TFM_BASE_STREAM_DEFINED
 
 //local includes
 #include "tfm_chiptune.h"
@@ -34,5 +31,3 @@ namespace Module
     Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties);
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_TFM_BASE_STREAM_DEFINED

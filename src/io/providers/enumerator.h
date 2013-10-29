@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Providers enumerator
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Providers enumerator
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef IO_ENUMERATOR_H_DEFINED
-#define IO_ENUMERATOR_H_DEFINED
 
 //libary includes
 #include <io/api.h>
@@ -54,5 +51,3 @@ namespace IO
   DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description);
   DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status);
 }
-
-#endif //IO_ENUMERATOR_H_DEFINED

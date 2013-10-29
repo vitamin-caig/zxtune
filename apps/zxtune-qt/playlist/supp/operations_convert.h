@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Convert operation factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Convert operation factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYLIST_SUPP_CONVERT_OPERATION_H_DEFINED
-#define ZXTUNE_QT_PLAYLIST_SUPP_CONVERT_OPERATION_H_DEFINED
 
 //local includes
 #include "operations.h"
@@ -28,5 +23,3 @@ namespace Playlist
       const String& type, Sound::Service::Ptr service, ConversionResultNotification::Ptr result);
   }
 }
-
-#endif //ZXTUNE_QT_PLAYLIST_SUPP_CONVERT_OPERATION_H_DEFINED

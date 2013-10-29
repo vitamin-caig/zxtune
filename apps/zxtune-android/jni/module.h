@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Module access interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Module access interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef MODULE_H_DEFINED
-#define MODULE_H_DEFINED
 
 //local includes
 #include "storage.h"
@@ -25,5 +22,3 @@ namespace Module
 
   Storage::HandleType Create(Binary::Container::Ptr data);
 }
-
-#endif //MODULE_H_DEFINED

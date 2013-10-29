@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/chunk.h
-* @brief     Declaration of sound chunk
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Declaration of sound chunk
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_CHUNK_H_DEFINED
-#define SOUND_CHUNK_H_DEFINED
 
 //library includes
 #include <sound/sample.h>
@@ -76,5 +75,3 @@ namespace Sound
     }
   };
 }
-
-#endif //SOUND_CHUNK_H_DEFINED

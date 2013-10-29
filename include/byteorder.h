@@ -1,15 +1,14 @@
 /**
 *
-* @file     byteorder.h
-* @brief    Helper functions for byteorder working
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Helper functions for byteorder working
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __BYTEORDER_H_DEFINED__
-#define __BYTEORDER_H_DEFINED__
 
 //common includes
 #include <types.h>
@@ -103,5 +102,3 @@ inline T fromBE(T a)
 #else
 #error Invalid byte order
 #endif
-
-#endif //__BYTEORDER_H_DEFINED__

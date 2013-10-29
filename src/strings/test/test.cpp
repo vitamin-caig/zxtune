@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Strings test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <strings/fields.h>
 #include <strings/fields_filter.h>
 #include <strings/map.h>

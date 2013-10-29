@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  SoundTracker tracks dumper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include "../../utils.h"
 #include <formats/chiptune/soundtracker.h>
 

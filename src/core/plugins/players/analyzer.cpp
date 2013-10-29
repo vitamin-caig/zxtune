@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Analyzer adapter implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Analyzer implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "analyzer.h"

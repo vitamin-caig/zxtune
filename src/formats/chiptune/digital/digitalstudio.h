@@ -1,17 +1,14 @@
-/*
-Abstract:
-  DigitalStudio format description
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  DigitalStudio support interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_DIGITALSTUDIO_H_DEFINED
-#define FORMATS_CHIPTUNE_DIGITALSTUDIO_H_DEFINED
 
 //local includes
 #include "digital.h"
@@ -30,5 +27,3 @@ namespace Formats
     }
   }
 }
-
-#endif //FORMATS_CHIPTUNE_DIGITALSTUDIO_H_DEFINED

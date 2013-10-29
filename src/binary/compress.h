@@ -1,15 +1,14 @@
 /**
 *
-* @file     binary/compress.h
-* @brief    Binary data compress/decompress functions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Binary data compress/decompress functions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef BINARY_COMPRESS_H_DEFINED
-#define BINARY_COMPRESS_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -53,5 +52,3 @@ namespace Binary
     }
   }
 }
-
-#endif //BINARY_COMPRESS_H_DEFINED

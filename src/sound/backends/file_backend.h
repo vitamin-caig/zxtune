@@ -1,17 +1,14 @@
-/*
-Abstract:
-  File-based backends support interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  File-based backends interfaces and fatory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef SOUND_FILE_BACKEND_H_DEFINED
-#define SOUND_FILE_BACKEND_H_DEFINED
 
 //local includes
 #include "backend_impl.h"
@@ -43,5 +40,3 @@ namespace Sound
 
   BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory);
 }
-
-#endif //SOUND_FILE_BACKEND_H_DEFINED

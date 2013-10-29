@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TFM chip adapter
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TurboFM support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_TFM_DEFINED
-#define DEVICES_TFM_DEFINED
 
 //library includes
 #include <devices/fm.h>
@@ -83,5 +80,3 @@ namespace Devices
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
   }
 }
-
-#endif //DEVICES_TFM_DEFINED

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Parameters container factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Parameters containers implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <parameters/container.h>
