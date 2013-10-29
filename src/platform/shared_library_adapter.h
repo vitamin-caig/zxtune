@@ -1,15 +1,14 @@
 /**
 *
-* @file     shared_library_adapter.h
-* @brief    Shared library adapter
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Shared library adapter
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PLATFORM_SHARED_LIBRARY_ADAPTER_H_DEFINED
-#define PLATFORM_SHARED_LIBRARY_ADAPTER_H_DEFINED
 
 //library includes
 #include <platform/shared_library.h>
@@ -44,5 +43,3 @@ namespace Platform
     mutable NameToSymbol Symbols;
   };
 }
-
-#endif //PLATFORM_SHARED_LIBRARY_ADAPTER_H_DEFINED

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  SQ-Tracker (Digital) format description implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SQDigitalTracker support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "sqdigitaltracker.h"

@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     debug_log.h
-* @brief    Debug logging functions interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief  Debug logging implementation
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef DEBUG_LOG_REAL_H_DEFINED
-#define DEBUG_LOG_REAL_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -145,5 +144,3 @@ namespace Debug
     const bool Enabled;
   };
 }
-
-#endif //DEBUG_LOG_REAL_H_DEFINED

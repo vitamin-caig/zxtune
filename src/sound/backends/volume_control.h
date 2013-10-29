@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Volume control delegate factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Volume control delegate factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef SOUND_BACKENDS_VOLUME_CONTROL_H_DEFINED
-#define SOUND_BACKENDS_VOLUME_CONTROL_H_DEFINED
 
 //library includes
 #include <sound/backend.h>
@@ -20,5 +17,3 @@ namespace Sound
 {
   VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate);
 }
-
-#endif //SOUND_BACKENDS_VOLUME_CONTROL_H_DEFINED

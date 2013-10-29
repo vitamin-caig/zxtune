@@ -1,18 +1,17 @@
 /**
 *
-* @file     formats/image/decoders.h
-* @brief    Image data accessors factories
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Image decoders factories
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef FORMATS_IMAGE_DECODERS_H_DEFINED
-#define FORMATS_IMAGE_DECODERS_H_DEFINED
 
 //library includes
-#include <formats/packed.h>
+#include <formats/image.h>
 
 namespace Formats
 {
@@ -23,5 +22,3 @@ namespace Formats
     Decoder::Ptr CreateLaserCompact40Decoder();
   }
 }
-
-#endif //FORMATS_IMAGE_DECODERS_H_DEFINED

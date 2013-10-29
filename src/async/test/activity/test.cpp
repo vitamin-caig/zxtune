@@ -1,3 +1,13 @@
+/**
+* 
+* @file
+*
+* @brief Asynchronous activity test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <async/activity.h>
 #include <boost/thread/thread.hpp>
 #include <boost/make_shared.hpp>

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  YM/VTX modules format description
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  YM/VTX support interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_YM_H_DEFINED
-#define FORMATS_CHIPTUNE_YM_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -68,5 +65,3 @@ namespace Formats
     }
   }
 }
-
-#endif //FORMATS_CHIPTUNE_YM_H_DEFINED

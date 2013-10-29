@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  VortexTracker-based tracks dumper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include "../../utils.h"
 #include <formats/chiptune/aym/protracker3.h>
 

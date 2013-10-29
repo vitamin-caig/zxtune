@@ -1,13 +1,12 @@
-/*
-Abstract:
-  L10n stub implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  L10n stub implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <pointers.h>

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TFM player plugin factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TFM-based player plugin factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_TFM_PLUGIN_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_TFM_PLUGIN_H_DEFINED
 
 //local includes
 #include "tfm_factory.h"
@@ -23,5 +20,3 @@ namespace ZXTune
 {
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::TFM::Factory::Ptr factory);
 }
-
-#endif //CORE_PLUGINS_PLAYERS_TFM_PLUGIN_H_DEFINED

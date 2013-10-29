@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Playback support interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playback support interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_PLAYBACK_SUPP_H_DEFINED
-#define ZXTUNE_PLAYBACK_SUPP_H_DEFINED
 
 //local includes
 #include "playlist/supp/data.h"
@@ -46,5 +41,3 @@ signals:
   void OnFinishModule();
   void ErrorOccurred(const Error&);
 };
-
-#endif //ZXTUNE_PLAYBACK_SUPP_H_DEFINED

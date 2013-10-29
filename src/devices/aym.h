@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AY/YM chips interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_AYM_H_DEFINED
-#define DEVICES_AYM_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -210,5 +207,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_AYM_H_DEFINED

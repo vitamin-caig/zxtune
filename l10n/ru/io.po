@@ -11,85 +11,85 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: providers/enumerator.cpp:67
+#: providers/enumerator.cpp:66
 #, boost-format
 msgid "Failed to resolve uri '%1%'."
 msgstr "Ошибка анализа идентификатора '%1%'."
 
-#: providers/enumerator.cpp:82 providers/enumerator.cpp:98
-#: providers/enumerator.cpp:163 providers/enumerator.cpp:168
+#: providers/enumerator.cpp:81 providers/enumerator.cpp:97
+#: providers/enumerator.cpp:162 providers/enumerator.cpp:167
 msgid "Specified uri scheme is not supported."
 msgstr "Данная схема идентификатора не поддерживается."
 
-#: providers/enumerator.cpp:217
+#: providers/enumerator.cpp:216
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
-#: providers/file_provider.cpp:236
+#: providers/file_provider.cpp:235
 #, boost-format
 msgid "Failed to read %1% bytes. Actually got %2% bytes."
 msgstr "Ошибка чтения %1% байт. Прочитано %2%."
 
-#: providers/file_provider.cpp:298
+#: providers/file_provider.cpp:297
 msgid "File is empty."
 msgstr "Файл пуст."
 
-#: providers/file_provider.cpp:322
+#: providers/file_provider.cpp:321
 msgid "Failed to open file."
 msgstr "Ошибка открытия файла."
 
-#: providers/file_provider.cpp:330
+#: providers/file_provider.cpp:329
 #, boost-format
 msgid "Failed to write file '%1%'"
 msgstr "Ошибка записи файла '%1%'."
 
-#: providers/file_provider.cpp:338
+#: providers/file_provider.cpp:337
 #, boost-format
 msgid "Failed to flush file '%1%'"
 msgstr "Ошибка синхронизации файла '%1%'."
 
-#: providers/file_provider.cpp:346
+#: providers/file_provider.cpp:345
 #, boost-format
 msgid "Failed to seek file '%1%'"
 msgstr "Ошибка позиционирования файла '%1%'."
 
-#: providers/file_provider.cpp:417
+#: providers/file_provider.cpp:416
 msgid "File already exists."
 msgstr "Файл существует."
 
-#: providers/file_provider.cpp:450
+#: providers/file_provider.cpp:449
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 
-#: providers/file_provider.cpp:506
+#: providers/file_provider.cpp:505
 #, boost-format
 msgid "Failed to open file '%1%'."
 msgstr "Ошибка открытия файла '%1%'."
 
-#: providers/file_provider.cpp:518
+#: providers/file_provider.cpp:517
 #, boost-format
 msgid "Failed to create file '%1%'."
 msgstr "Ошибка создания файла '%1%'."
 
-#: providers/network_provider.cpp:103
+#: providers/network_provider.cpp:102
 #, boost-format
 msgid "Network error happends: %1%"
 msgstr "Сетевая ошибка: %1%"
 
-#: providers/network_provider.cpp:160
+#: providers/network_provider.cpp:159
 #, boost-format
 msgid "Http error happends: %1%."
 msgstr "Ошибка HTTP: %1%."
 
-#: providers/network_provider.cpp:295 providers/network_stub.cpp:22
+#: providers/network_provider.cpp:294 providers/network_stub.cpp:21
 msgid "Network files access via different schemes support"
 msgstr "Поддержка доступа к сетевым файлам"
 
-#: providers/network_provider.cpp:364
+#: providers/network_provider.cpp:363
 #, boost-format
 msgid "Failed to open network resource '%1%'."
 msgstr "Ошибка открытия сетевого ресурса '%1%'."
 
-#: providers/network_provider.cpp:370
+#: providers/network_provider.cpp:369
 msgid "Not supported."
 msgstr "Не поддерживается."

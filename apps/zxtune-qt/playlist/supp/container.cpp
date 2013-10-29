@@ -1,15 +1,12 @@
-/*
-Abstract:
-  Playlist container implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playlist container implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "controller.h"

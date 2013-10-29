@@ -1,13 +1,12 @@
-/*
-Abstract:
-  LaserCompact 5.2 support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  LaserCompact v5.2 support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "container.h"

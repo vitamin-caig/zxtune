@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Common SharedLibrary logic
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Common SharedLibrary logic implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "shared_library_common.h"

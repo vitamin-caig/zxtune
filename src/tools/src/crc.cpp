@@ -1,13 +1,12 @@
-/*
-Abstract:
-  CRC functions implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  CRC functions implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <crc.h>

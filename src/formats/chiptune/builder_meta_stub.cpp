@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Meta builder stub implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Metadata builder stub implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "builder_meta.h"

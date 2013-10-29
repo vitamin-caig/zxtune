@@ -1,15 +1,14 @@
 /**
 *
-* @file     parameters/modifier.h
-* @brief    Parameters modifier interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Parameters modifier interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PARAMETERS_MODIFIER_H_DEFINED
-#define PARAMETERS_MODIFIER_H_DEFINED
 
 //library includes
 #include <parameters/visitor.h>
@@ -26,5 +25,3 @@ namespace Parameters
     virtual void RemoveValue(const NameType& name) = 0;
   };
 }
-
-#endif //PARAMETERS_MODIFIER_H_DEFINED

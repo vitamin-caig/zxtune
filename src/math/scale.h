@@ -1,15 +1,14 @@
 /**
 *
-* @file     scale.h
-* @brief    Scaling functions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Scaling functions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef MATH_SCALE_H_DEFINED
-#define MATH_SCALE_H_DEFINED
 
 //library includes
 #include <math/bitops.h>
@@ -121,4 +120,3 @@ namespace Math
     uint64_t UnsafeScaleMask;
   };
 }
-#endif //MATH_SCALE_H_DEFINED

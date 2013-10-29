@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Update checking logic interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Update checking interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UPDATE_CHECK_DEFINED
-#define ZXTUNE_QT_UPDATE_CHECK_DEFINED
 
 //qt includes
 #include <QtGui/QWidget>
@@ -35,5 +30,3 @@ namespace Update
     void ErrorOccurred(const Error&);
   };
 };
-
-#endif //ZXTUNE_QT_UPDATE_CHECK_DEFINED

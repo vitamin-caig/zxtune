@@ -1,13 +1,14 @@
-/*
-Abstract:
-  FM chips base implementation
+/**
+* 
+* @file
+*
+* @brief  FM chips base implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+#pragma once
 
 //local includes
 #include "Ym2203_Emu.h"

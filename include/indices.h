@@ -1,15 +1,14 @@
 /**
 * 
-* @file     indices_set.h
-* @brief    Fast analogue of std::set<uint_t>
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Fast analogue of std::set<uint_t>
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef INDICES_SET_H_DEFINED
-#define INDICES_SET_H_DEFINED
 
 //common includes
 #include <contract.h>
@@ -193,5 +192,3 @@ private:
   uint_t MaxValue;
   uint_t Size;
 };
-
-#endif //INDICES_SET_H_DEFINED

@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Playback options widget declaration
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playback options widget interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_PLAYBACK_OPTIONS_H_DEFINED
-#define ZXTUNE_QT_PLAYBACK_OPTIONS_H_DEFINED
 
 //local includes
 #include "playlist/supp/data.h"
@@ -37,5 +32,3 @@ public slots:
   virtual void UpdateState() = 0;
   virtual void CloseState() = 0;
 };
-
-#endif //ZXTUNE_QT_PLAYBACK_OPTIONS_H_DEFINED

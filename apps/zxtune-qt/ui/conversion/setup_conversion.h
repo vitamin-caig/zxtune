@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Conversion setup dialog
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Conversion setup dialog interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UI_SETUP_CONVERSION_H_DEFINED
-#define ZXTUNE_QT_UI_SETUP_CONVERSION_H_DEFINED
 
 //library includes
 #include <parameters/accessor.h>
@@ -41,5 +36,3 @@ namespace UI
 
   Sound::Service::Ptr GetConversionService(QWidget& parent, String& type);
 }
-
-#endif //ZXTUNE_QT_UI_SETUP_CONVERSION_H_DEFINED

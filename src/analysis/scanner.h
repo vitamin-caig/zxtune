@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     analysis/scanner.h
-* @brief    Data analysing service interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Scanner interface and factory
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ANALYSIS_SCANNER_H_DEFINED
-#define ANALYSIS_SCANNER_H_DEFINED
 
 //library includes
 #include <binary/container.h>
@@ -50,5 +49,3 @@ namespace Analysis
 
   Scanner::RWPtr CreateScanner();
 }
-
-#endif //ANALYSIS_SCANNER_H_DEFINED

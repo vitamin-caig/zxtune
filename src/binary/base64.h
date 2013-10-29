@@ -1,15 +1,14 @@
 /**
 *
-* @file     binary/base64.h
-* @brief    Base64 functions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Base64 functions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef BINARY_BASE64_H_DEFINED
-#define BINARY_BASE64_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -41,5 +40,3 @@ namespace Binary
     Dump Decode(const std::string& input);
   }
 }
-
-#endif //BINARY_BASE64_H_DEFINED

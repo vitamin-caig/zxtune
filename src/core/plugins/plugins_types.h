@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Plugins types definitions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Plugins types definitions
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_TYPES_H_DEFINED__
-#define __CORE_PLUGINS_TYPES_H_DEFINED__
 
 //local includes
 #include "core/src/location.h"
@@ -58,5 +55,3 @@ namespace ZXTune
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities);
 }
-
-#endif //__CORE_PLUGINS_TYPES_H_DEFINED__

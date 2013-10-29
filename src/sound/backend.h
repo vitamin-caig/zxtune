@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/backend.h
-* @brief     Sound backend interface definition
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Sound backend interface definition
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_BACKEND_H_DEFINED
-#define SOUND_BACKEND_H_DEFINED
 
 //common includes
 #include <error.h>
@@ -143,5 +142,3 @@ namespace Sound
     virtual void OnFinish() = 0;
   };
 }
-
-#endif //SOUND_BACKEND_H_DEFINED

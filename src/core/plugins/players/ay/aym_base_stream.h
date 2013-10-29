@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AYM-based stream modules support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AYM-based stream chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_AYM_BASE_STREAM_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_AYM_BASE_STREAM_H_DEFINED
 
 //local includes
 #include "aym_chiptune.h"
@@ -34,5 +31,3 @@ namespace Module
     Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties);
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_AYM_BASE_STREAM_H_DEFINED

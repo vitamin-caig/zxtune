@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Filename template implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Filename template implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "boost_filesystem_path.h"

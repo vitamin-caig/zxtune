@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/sample_multichannel.h
-* @brief     Sound-related types and definitions
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Sound-related types and definitions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_SAMPLE_MULTICHANNEL_H_DEFINED
-#define SOUND_SAMPLE_MULTICHANNEL_H_DEFINED
 
 //library includes
 #include <sound/sample.h>
@@ -24,5 +23,3 @@ namespace Sound
     typedef boost::array<Sample::Type, Channels> Type;
   };
 }
-
-#endif //SOUND_SAMPLE_MULTICHANNEL_H_DEFINED

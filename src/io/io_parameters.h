@@ -1,15 +1,14 @@
 /**
 *
-* @file      io/io_parameters.h
-* @brief     IO parameters names
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  IO parameters names
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef IO_PARAMETERS_H_DEFINED
-#define IO_PARAMETERS_H_DEFINED
 
 //library includes
 #include <parameters/types.h>
@@ -27,5 +26,3 @@ namespace Parameters
     }
   }
 }
-
-#endif //SOUND_PARAMETERS_H_DEFINED

@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/backends_parameters.h
-* @brief     Backends parameters names
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Backends parameters names
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_BACKENDS_PARAMETERS_H_DEFINED
-#define SOUND_BACKENDS_PARAMETERS_H_DEFINED_
 
 //library includes
 #include <parameters/types.h>
@@ -235,4 +234,3 @@ namespace Parameters
     }
   }
 }
-#endif //SOUND_BACKENDS_PARAMETERS_H_DEFINED

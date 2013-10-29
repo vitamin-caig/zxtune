@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Analysis scanner implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Scanner implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <contract.h>

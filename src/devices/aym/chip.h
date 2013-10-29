@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AY/YM sound rendering chips interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM sound chip interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_AYM_CHIP_H_DEFINED
-#define DEVICES_AYM_CHIP_H_DEFINED
 
 //library includes
 #include <devices/aym.h>
@@ -91,5 +88,3 @@ namespace Devices
     Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target);
   }
 }
-
-#endif //DEVICES_AYM_CHIP_H_DEFINED

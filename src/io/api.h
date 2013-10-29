@@ -1,15 +1,14 @@
 /**
 *
-* @file      io/api.h
-* @brief     End-client API declaration
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  End-user IO API
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef IO_API_H_DEFINED
-#define IO_API_H_DEFINED
 
 //library includes
 #include <binary/container.h>
@@ -48,5 +47,3 @@ namespace IO
   //! @param cb Callback for long-time operations
   Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb);
 }
-
-#endif //IO_API_H_DEFINED

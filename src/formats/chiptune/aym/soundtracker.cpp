@@ -1,13 +1,12 @@
-/*
-Abstract:
-  SoundTracker format implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SoundTracker uncompiled modules support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "soundtracker_detail.h"

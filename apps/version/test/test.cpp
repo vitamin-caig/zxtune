@@ -1,3 +1,13 @@
+/**
+* 
+* @file
+*
+* @brief Test for version API
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <apps/version/api.h>
 #include <iostream>
 

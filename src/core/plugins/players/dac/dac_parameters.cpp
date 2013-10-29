@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Parameters adapter factory
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  DAC-based parameters helpers implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "dac_parameters.h"

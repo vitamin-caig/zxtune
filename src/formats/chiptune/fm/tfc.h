@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TFC modules format description
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TurboFM Compiled support interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_TFC_H_DEFINED
-#define FORMATS_CHIPTUNE_TFC_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -53,5 +50,3 @@ namespace Formats
     }
   }
 }
-
-#endif //FORMATS_CHIPTUNE_TFC_H_DEFINED

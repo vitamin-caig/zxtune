@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Curl api dynamic gate implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Curl api dynamic gate implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "curl_api.h"

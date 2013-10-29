@@ -1,17 +1,14 @@
-/*
-Abstract:
-  SAA-based players common functionality
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SAA-based chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_SAA_BASE_DEFINED
-#define CORE_PLUGINS_PLAYERS_SAA_BASE_DEFINED
 
 //local includes
 #include "saa_parameters.h"
@@ -116,5 +113,3 @@ namespace Module
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_SAA_BASE_DEFINED

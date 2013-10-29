@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/sound_parameters.h
-* @brief     Render parameters names
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Render parameters names
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_PARAMETERS_H_DEFINED
-#define SOUND_PARAMETERS_H_DEFINED
 
 //library includes
 #include <parameters/types.h>
@@ -71,5 +70,3 @@ namespace Parameters
     }
   }
 }
-
-#endif //__SOUND_PARAMETERS_H_DEFINED__

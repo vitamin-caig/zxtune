@@ -1,17 +1,14 @@
-/*
-Abstract:
-  PSG-based renderers implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  PSG-based renderers implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_DETAILS_RENDERERS_H_DEFINED
-#define DEVICES_DETAILS_RENDERERS_H_DEFINED
 
 //library includes
 #include <devices/details/clock_source.h>
@@ -266,5 +263,3 @@ namespace Details
   };
 }
 }
-
-#endif //DEVICES_DETAILS_RENDERERS_H_DEFINED

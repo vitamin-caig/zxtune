@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Frequency tables for AY-trackers implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Frequency tables for AYM-based plugins
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "freq_tables_internal.h"

@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/mixer_core.h
-* @brief     Declaration of fast mixer
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Declaration of fast mixer
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_MIXER_CORE_H_DEFINED
-#define SOUND_MIXER_CORE_H_DEFINED
 
 //library includes
 #include <sound/gain.h>
@@ -73,5 +72,3 @@ namespace Sound
     CoeffMatrix Matrix;
   };
 }
-
-#endif //SOUND_MIXER_CORE_H_DEFINED

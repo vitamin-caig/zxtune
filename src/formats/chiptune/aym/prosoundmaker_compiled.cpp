@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ProSoundMaker format implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  ProSoundMaker compiled modules support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "prosoundmaker.h"

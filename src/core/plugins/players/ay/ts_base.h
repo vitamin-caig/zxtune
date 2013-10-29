@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TurboSound functionality helpers
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TurboSound-based chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__
 
 //local includes
 #include "aym_base_track.h"
@@ -56,5 +53,3 @@ namespace Module
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }
-
-#endif //__CORE_PLUGINS_PLAYERS_TS_BASE_H_DEFINED__

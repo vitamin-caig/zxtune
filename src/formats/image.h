@@ -1,15 +1,14 @@
 /**
 *
-* @file     formats/image.h
-* @brief    Interface for image data accessors
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Images support interfaces
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef FORMATS_IMAGE_H_DEFINED
-#define FORMATS_IMAGE_H_DEFINED
 
 //library includes
 #include <binary/container.h>
@@ -55,5 +54,3 @@ namespace Formats
     };
   }
 }
-
-#endif //FORMATS_IMAGE_H_DEFINED

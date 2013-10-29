@@ -1,15 +1,14 @@
 /**
 *
 * @file
-* @brief    Fields source filter adapter
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+*
+* @brief  Fields source filter adapter
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef STRINGS_FIELDS_FILTER_H_DEFINED
-#define STRINGS_FIELDS_FILTER_H_DEFINED
 
 //common includes
 #include <contract.h>
@@ -71,5 +70,3 @@ namespace Strings
     std::vector<Char> Table;
   };
 }
-
-#endif //STRINGS_FIELDS_FILTER_H_DEFINED

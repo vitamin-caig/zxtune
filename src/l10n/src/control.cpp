@@ -1,13 +1,12 @@
-/*
-Abstract:
-  L10n loading from resource
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  L10n loading from resources
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <l10n/api.h>

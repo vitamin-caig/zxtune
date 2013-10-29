@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AYM-based modules support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AYM-based chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED
 
 //local includes
 #include "aym_chiptune.h"
@@ -42,5 +39,3 @@ namespace Module
     Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_AYM_BASE_H_DEFINED

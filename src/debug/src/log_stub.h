@@ -1,15 +1,14 @@
 /**
 *
 * @file
-* @brief    Debug logging stub implementation
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+*
+* @brief  Debug logging stub implementation
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef DEBUG_LOG_STUB_H_DEFINED
-#define DEBUG_LOG_STUB_H_DEFINED
 
 //std includes
 #include <string>
@@ -39,5 +38,3 @@ namespace Debug
     void operator ()(const char* /*msg*/, const P1& /*p1*/, const P2& /*p2*/, const P3& /*p3*/, const P4& /*p4*/, const P5& /*p5*/) const {}
   };
 }
-
-#endif //DEBUG_LOG_STUB_H_DEFINED

@@ -1,6 +1,6 @@
-// Generated from '$Id$'
-#ifndef __TEXT_TEXT_H_DEFINED__
-#define __TEXT_TEXT_H_DEFINED__
+// This file was automatically generated
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -23,4 +23,3 @@ extern const Char REPORT_BUG_URL[];
 extern const Char TITLE_FORMAT[];
 extern const Char TYPEICONS_RESOURCE_PREFIX[];
 }//namespace Text
-#endif //__TEXT_TEXT_H_DEFINED__

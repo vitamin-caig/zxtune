@@ -1,13 +1,12 @@
-/*
-Abstract:
-  AY tests implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Z80 test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "z80.h"

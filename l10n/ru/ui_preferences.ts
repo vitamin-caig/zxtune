@@ -248,12 +248,12 @@
 <context>
     <name>UI::MixerWidget</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/mixer.cpp" line="24"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixer.cpp" line="21"/>
         <source>Left</source>
         <translation>Левый</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/mixer.cpp" line="25"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixer.cpp" line="22"/>
         <source>Right</source>
         <translation>Правый</translation>
     </message>
@@ -261,7 +261,7 @@
 <context>
     <name>UI::MixingSettingsWidget</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="75"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/mixing.cpp" line="72"/>
         <source>%1-channels mixer</source>
         <translation>%1-канальный микшер</translation>
     </message>
@@ -284,12 +284,12 @@
         <translation>Микшер</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="67"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="64"/>
         <source>Select device</source>
         <translation>Выберите устройство</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="76"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound_oss.cpp" line="73"/>
         <source>Select mixer</source>
         <translation>Выберите микшер</translation>
     </message>

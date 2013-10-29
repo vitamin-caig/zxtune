@@ -1,15 +1,14 @@
 /**
 *
-* @file     parameters/merged_accessor.h
-* @brief    Factories for accessor-based adapters
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Factories for accessor-based adapters
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PARAMETERS_MERGED_ACCESSOR_H_DEFINED
-#define PARAMETERS_MERGED_ACCESSOR_H_DEFINED
 
 //library includes
 #include <parameters/accessor.h>
@@ -20,5 +19,3 @@ namespace Parameters
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second);
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third);
 }
-
-#endif //PARAMETERS_MERGED_ACCESSOR_H_DEFINED

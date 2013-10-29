@@ -1,15 +1,12 @@
-/*
-Abstract:
-  UI widgets factory implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief WidgetsFactory implementation for embedded systems
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "ui/factory.h"

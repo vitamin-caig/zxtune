@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TrDOS catalogue
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TR-DOS catalogue helpers
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __FORMATS_ARCHIVED_TRDOS_CATALOGUE_H_DEFINED__
-#define __FORMATS_ARCHIVED_TRDOS_CATALOGUE_H_DEFINED__
 
 //common includes
 #include <types.h>
@@ -46,5 +43,3 @@ namespace TRDos
     static Ptr CreateFlat();
   };
 }
-
-#endif //__FORMATS_ARCHIVED_TRDOS_CATALOGUE_H_DEFINED__

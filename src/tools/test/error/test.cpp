@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Error subsystem test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <error.h>
 
 #include <boost/bind.hpp>

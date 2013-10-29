@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/plugins_parameters.h
-* @brief    Plugins parameters names
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Plugins parameters names
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef CORE_PLUGINS_PARAMETERS_H_DEFINED
-#define CORE_PLUGINS_PARAMETERS_H_DEFINED
 
 //library includes
 #include <parameters/types.h>
@@ -95,4 +94,3 @@ namespace Parameters
     }
   }
 }
-#endif //CORE_PLUGINS_PARAMETERS_H_DEFINED

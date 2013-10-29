@@ -1,17 +1,14 @@
-/*
-Abstract:
-  TFM-based track players common functionality
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TFM-based track chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_TFM_BASE_TRACK_DEFINED
-#define CORE_PLUGINS_PLAYERS_TFM_BASE_TRACK_DEFINED
 
 //local includes
 #include "tfm_chiptune.h"
@@ -85,5 +82,3 @@ namespace Module
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_TFM_BASE_TRACK_DEFINED

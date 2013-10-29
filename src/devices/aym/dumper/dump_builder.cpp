@@ -1,13 +1,12 @@
-/*
-Abstract:
-  AY dump builder implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM dump builder implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "dump_builder.h"

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Containers plugins list
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Container plugins factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "container_supp_common.h"

@@ -34,7 +34,9 @@ public abstract class Iterator {
   
   public static Iterator create(Context context, Uri uri) throws IOException {
     if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
-      return new PlaylistIterator(context, uri); 
+      return new PlaylistIterator(context, uri);
+    } else if (uri.getLastPathSegment().endsWith(".xspf")) {
+      return new XspfPlaylistIterator(context, uri);
     } else {
       final Uri[] uris = {uri};
       return new FileIterator(context, uris);

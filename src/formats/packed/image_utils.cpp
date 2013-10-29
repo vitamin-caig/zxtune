@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Different image-related utils implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Image utilities implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "image_utils.h"

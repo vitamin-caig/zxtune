@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/sample.h
-* @brief     Declaration of sound sample
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Declaration of sound sample
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_SAMPLE_H_DEFINED
-#define SOUND_SAMPLE_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -68,5 +67,3 @@ namespace Sound
     StorageType Value;
   };
 }
-
-#endif //SOUND_SAMPLE_H_DEFINED

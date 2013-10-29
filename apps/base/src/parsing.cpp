@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Parsing tools implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Parsing tools implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include <apps/base/parsing.h>

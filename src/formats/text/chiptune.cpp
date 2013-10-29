@@ -1,6 +1,6 @@
 // This file was automatically generated
-#ifndef __TEXT_CHIPTUNE_H_DEFINED__
-#define __TEXT_CHIPTUNE_H_DEFINED__
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -143,4 +143,3 @@ extern const Char YM_DECODER_DESCRIPTION[] = {
   'Y','M',' ','(','S','T','-','S','o','u','n','d',' ','P','r','o','j','e','c','t',')',0
 };
 }//namespace Text
-#endif //__TEXT_CHIPTUNE_H_DEFINED__

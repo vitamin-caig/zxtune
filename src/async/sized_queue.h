@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     async/sized_queue.h
-* @brief    Sized queue implementation
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Limited size implementation of Queue
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ASYNC_SIZED_QUEUE_H_DEFINED
-#define ASYNC_SIZED_QUEUE_H_DEFINED
 
 //common includes
 #include <contract.h>
@@ -100,5 +99,3 @@ namespace Async
     ContainerType Container;
   };
 }
-
-#endif //ASYNC_SIZED_QUEUE_H_DEFINED

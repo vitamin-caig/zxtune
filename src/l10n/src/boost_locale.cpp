@@ -1,13 +1,12 @@
-/*
-Abstract:
-  L10n implementation based on boost::locale
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  L10n implementation based on boost::locale
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <contract.h>

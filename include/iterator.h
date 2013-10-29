@@ -1,15 +1,14 @@
 /**
 *
-* @file     iterator.h
-* @brief    Iterator interfaces
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Iterator interfaces and helper functions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ITERATOR_H_DEFINED
-#define ITERATOR_H_DEFINED
 
 //common includes
 #include <pointers.h>
@@ -242,5 +241,3 @@ typename RangedObjectIteratorAdapter<I>::Ptr CreateRangedObjectIteratorAdapter(I
 {
   return typename RangedObjectIteratorAdapter<I>::Ptr(new RangedObjectIteratorAdapter<I>(from, to));
 }
-
-#endif //__ITERATOR_H_DEFINED__

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AYM-based track modules support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AYM-based track chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_AYM_BASE_TRACK_H_DEFINED
-#define CORE_PLUGINS_PLAYERS_AYM_BASE_TRACK_H_DEFINED
 
 //local includes
 #include "aym_chiptune.h"
@@ -91,5 +88,3 @@ namespace Module
     DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_AYM_BASE_TRACK_H_DEFINED

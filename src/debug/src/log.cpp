@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Debug logging implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Debug logging implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "log_real.h"

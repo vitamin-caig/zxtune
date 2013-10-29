@@ -1,17 +1,14 @@
-/*
-Abstract:
-  AY dump builder interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  AY/YM dump builder interface and factories
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_AYM_DUMP_BUILDER_DEFINED
-#define DEVICES_AYM_DUMP_BUILDER_DEFINED
 
 //library includes
 #include <devices/aym/dumper.h>
@@ -44,5 +41,3 @@ namespace Devices
     FramedDumpBuilder::Ptr CreateRawDumpBuilder();
   }
 }
-
-#endif //DEVICES_AYM_DUMP_BUILDER_DEFINED

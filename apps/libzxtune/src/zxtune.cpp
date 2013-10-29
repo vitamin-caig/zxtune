@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ZXTune simple library implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief LibZXTune implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #define ZXTUNE_API ZXTUNE_API_EXPORT

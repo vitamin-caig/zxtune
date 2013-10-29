@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Format syntax declaration
+/**
+*
+* @file
+*
+* @brief  Format syntax helpers
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BINARY_FORMAT_SYNTAX_H
-#define BINARY_FORMAT_SYNTAX_H
+#pragma once
 
 //common includes
 #include <types.h>
@@ -34,5 +32,3 @@ namespace Binary
   void ParseFormatNotationPostfix(const std::string& notation, FormatTokensVisitor& visitor);
   FormatTokensVisitor::Ptr CreatePostfixSynaxCheckAdapter(FormatTokensVisitor& visitor);
 }
-
-#endif //BINARY_FORMAT_SYNTAX_H

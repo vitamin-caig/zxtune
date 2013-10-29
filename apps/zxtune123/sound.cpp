@@ -1,15 +1,12 @@
-/*
-Abstract:
-  Sound component implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune123 application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Sound component implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "sound.h"

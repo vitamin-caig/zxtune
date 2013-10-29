@@ -1,6 +1,6 @@
-// Generated from '$Id$'
-#ifndef __TEXT_BACKENDS_H_DEFINED__
-#define __TEXT_BACKENDS_H_DEFINED__
+// This file was automatically generated
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -52,4 +52,3 @@ extern const Char WIN32_BACKEND_ID[] = {
   'w','i','n','3','2',0
 };
 }//namespace Text
-#endif //__TEXT_BACKENDS_H_DEFINED__

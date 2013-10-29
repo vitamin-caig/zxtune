@@ -25,6 +25,7 @@ import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import app.zxtune.playback.FileIterator;
+import app.zxtune.playback.Iterator;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.PlayableItemStub;
 import app.zxtune.playlist.Item;
@@ -99,7 +100,7 @@ public class ScanService extends IntentService {
       Log.d(TAG, "scan on " + uri);
     }
     try {
-      final FileIterator iter = new FileIterator(this, uris);
+      final Iterator iter = Iterator.create(this, uris);
       do {
         final PlayableItem item = iter.getItem();
         try {

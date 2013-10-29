@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Module terator interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Iterators interfaces
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_ITERATOR_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_ITERATOR_H_DEFINED__
 
 //library includes
 #include <core/module_types.h>
@@ -40,5 +37,3 @@ namespace Module
 
   void SeekIterator(StateIterator& iter, uint_t frameNum);
 }
-
-#endif //__CORE_PLUGINS_PLAYERS_ITERATOR_H_DEFINED__

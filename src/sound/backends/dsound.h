@@ -1,16 +1,14 @@
-/*
-Abstract:
-  DirectSound subsystem access functions
+/**
+*
+* @file
+*
+* @brief  DirectSound subsystem access functions
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef SOUND_BACKENDS_DSOUND_H_DEFINED
-#define SOUND_BACKENDS_DSOUND_H_DEFINED
+#pragma once
 
 //common includes
 #include <iterator.h>
@@ -36,5 +34,3 @@ namespace Sound
     Device::Iterator::Ptr EnumerateDevices();
   }
 }
-
-#endif //SOUND_BACKENDS_DSOUND_H_DEFINED

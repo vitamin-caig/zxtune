@@ -1,15 +1,14 @@
 /**
 *
-* @file      io/identifier.h
-* @brief     IO-specific data identifier interface
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  IO-specific data identifier interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef IO_IDENTIFIER_H_DEFINED
-#define IO_IDENTIFIER_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -47,5 +46,3 @@ namespace IO
     virtual Ptr WithSubpath(const String& subpath) const = 0;
   };
 }
-
-#endif //IO_IDENTIFIER_H_DEFINED

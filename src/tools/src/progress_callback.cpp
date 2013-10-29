@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Progress callback implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Progress callback helpers implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <progress_callback.h>

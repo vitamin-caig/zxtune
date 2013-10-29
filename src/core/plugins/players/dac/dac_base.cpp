@@ -1,13 +1,12 @@
-/*
-Abstract:
-  DAC-based players common functionality implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  DAC-based modules support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "dac_base.h"

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  TFM chips implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  TurboFM chips implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "chip.h"

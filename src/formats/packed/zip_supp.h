@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Zip structures declaration
+/**
+* 
+* @file
+*
+* @brief  ZIP archives structures
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef __FORMATS_PACKED_ZIP_SUPP_H_DEFINED__
-#define __FORMATS_PACKED_ZIP_SUPP_H_DEFINED__
+#pragma once
 
 //common includes
 #include <byteorder.h>
@@ -204,5 +202,3 @@ namespace Formats
     }
   }
 }
-
-#endif //__FORMATS_PACKED_ZIP_SUPP_H_DEFINED__

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Z80 interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Z80 support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __DEVICES_Z80_H_DEFINED__
-#define __DEVICES_Z80_H_DEFINED__
 
 //common includes
 #include <types.h>
@@ -96,5 +93,3 @@ namespace Devices
     Chip::Ptr CreateChip(ChipParameters::Ptr params, const Dump& memory, ChipIO::Ptr ports);
   }
 }
-
-#endif //__DEVICES_Z80_H_DEFINED__

@@ -1,15 +1,14 @@
 /**
 *
-* @file     formats/packed/decoders.h
-* @brief    Packed data accessors factories
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Packe data decoders factories
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef FORMATS_PACKED_DECODERS_H_DEFINED
-#define FORMATS_PACKED_DECODERS_H_DEFINED
 
 //library includes
 #include <formats/packed.h>
@@ -61,5 +60,3 @@ namespace Formats
     Decoder::Ptr CreateMegaLZDecoder();
   }
 }
-
-#endif //FORMATS_PACKED_DECODERS_H_DEFINED

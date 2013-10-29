@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Parameters serialize functions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Serialization-related implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <parameters/accessor.h>

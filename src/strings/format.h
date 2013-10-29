@@ -1,15 +1,14 @@
 /**
 *
-* @file     format.h
-* @brief    Formatter type definition
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Formatter type definition
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __STRINGS_FORMAT_H_DEFINED__
-#define __STRINGS_FORMAT_H_DEFINED__
 
 //common includes
 #include <types.h>
@@ -62,5 +61,3 @@ namespace Strings
 
   String FormatTime(uint_t hours, uint_t minutes, uint_t seconds, uint_t frames);
 }
-
-#endif //__STRINGS_FORMAT_H_DEFINED__

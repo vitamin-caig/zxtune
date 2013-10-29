@@ -1,15 +1,14 @@
 /**
 *
-* @file     fixedpoint.h
-* @brief    Fixed point arithmetic
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Fixed point arithmetic
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef MATH_FIXEDPOINT_H_DEFINED
-#define MATH_FIXEDPOINT_H_DEFINED
 
 //library includes
 #include <math/scale.h>
@@ -213,5 +212,3 @@ namespace Math
     T Value;
   };
 }
-
-#endif //MATH_FIXEDPOINT_H_DEFINED

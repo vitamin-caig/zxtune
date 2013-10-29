@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Providers factories (for testing purposes)
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Providers factories
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef IO_PROVIDERS_FACTORIES_H_DEFINED
-#define IO_PROVIDERS_FACTORIES_H_DEFINED
 
 //local includes
 #include "curl_api.h"
@@ -22,5 +19,3 @@ namespace IO
   DataProvider::Ptr CreateFileDataProvider();
   DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api);
 }
-
-#endif //IO_PROVIDERS_FACTORIES_H_DEFINED

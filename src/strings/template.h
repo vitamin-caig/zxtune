@@ -1,15 +1,14 @@
 /**
 *
-* @file     template.h
-* @brief    %String template working
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  %String template working
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef STRINGS_TEMPLATE_H_DEFINED
-#define STRINGS_TEMPLATE_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -42,5 +41,3 @@ namespace Strings
     static String Instantiate(const String& templ, const FieldsSource& source);
   };
 }
-
-#endif //STRINGS_TEMPLATE_H_DEFINED

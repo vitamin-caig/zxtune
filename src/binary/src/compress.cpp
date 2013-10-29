@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Binary data compress/decompress functions implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Compress/decompress functions implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <error.h>

@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Lha access functions declaration
+/**
+* 
+* @file
+*
+* @brief  LHA compressor support interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef FORMATS_PACKED_LHA_SUPP_H_DEFINED
-#define FORMATS_PACKED_LHA_SUPP_H_DEFINED
+#pragma once
 
 //library includes
 #include <formats/packed.h>
@@ -26,5 +24,3 @@ namespace Formats
     }
   }
 }
-
-#endif //FORMATS_PACKED_LHA_SUPP_H_DEFINED

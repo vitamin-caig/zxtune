@@ -1,15 +1,14 @@
 /**
 *
-* @file     parameters/container.h
-* @brief    Parameters container interface and factory
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Parameters container interface and factory
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PARAMETERS_CONTAINER_H_DEFINED
-#define PARAMETERS_CONTAINER_H_DEFINED
 
 //library includes
 #include <parameters/accessor.h>
@@ -30,5 +29,3 @@ namespace Parameters
     static Ptr CreateAdapter(Accessor::Ptr accessor, Modifier::Ptr modifier);
   };
 }
-
-#endif //PARAMETERS_CONTAINER_H_DEFINED

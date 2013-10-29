@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Downloads visitor adapter
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Downloads visitor adapter factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UPDATE_DOWNLOADS_H_DEFINED
-#define ZXTUNE_QT_UPDATE_DOWNLOADS_H_DEFINED
 
 //local includes
 #include "product.h"
@@ -33,5 +28,3 @@ namespace Downloads
 
   std::auto_ptr<RSS::Visitor> CreateFeedVisitor(const QString& project, Visitor& delegate);
 }
-
-#endif //ZXTUNE_QT_UPDATE_DOWNLOADS_H_DEFINED

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Mixer test
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Mixer test implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "mixer.h"

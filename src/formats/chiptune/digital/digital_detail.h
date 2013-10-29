@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Base interfaces for simple digital trackers (only samples, without effects)
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Simple digital trackers format details
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_DIGITAL_DETAIL_H_DEFINED
-#define FORMATS_CHIPTUNE_DIGITAL_DETAIL_H_DEFINED
 
 //local includes
 #include "digital.h"
@@ -105,5 +102,3 @@ namespace Formats
     }
   }
 }
-
-#endif //FORMATS_CHIPTUNE_DIGITAL_DETAIL_H_DEFINED

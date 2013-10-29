@@ -1,18 +1,16 @@
-/*
-Abstract:
-  Public interface of benchmark libray.
+/**
+* 
+* @file
+*
+* @brief  Public interface of benchmark libray.
+*
+* @author vitamin.caig@gmail.com
+*
+* @note   This is non-production library and application is used to research, so it looks much more complex than required.
+*
+**/
 
-  This non-production library and application is used to research, so it looks much complex than required.
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BENCHMARK_H_DEFINED
-#define BENCHMARK_H_DEFINED
+#pragma once
 
 //std includes
 #include <string>
@@ -40,5 +38,3 @@ namespace Benchmark
 
   void ForAllTests(TestsVisitor& visitor);
 }
-
-#endif //BENCHMARK_H_DEFINED

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Parameters::ZXTune::Sound and nested
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Parameters::ZXTune::Sound and tested
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <zxtune.h>

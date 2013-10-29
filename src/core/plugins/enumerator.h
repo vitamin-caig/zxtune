@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Plugins enumerator interface and related
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Plugins enumerator interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
-#define __CORE_PLUGINS_ENUMERATOR_H_DEFINED__
 
 //local includes
 #include "plugins_types.h"
@@ -35,5 +32,3 @@ namespace ZXTune
   typedef PluginsEnumerator<ArchivePlugin> ArchivePluginsEnumerator;
   typedef PluginsEnumerator<PlayerPlugin> PlayerPluginsEnumerator;
 }
-
-#endif //__CORE_PLUGINS_ENUMERATOR_H_DEFINED__

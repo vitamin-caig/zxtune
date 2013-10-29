@@ -1,3 +1,13 @@
+/**
+* 
+* @file
+*
+* @brief Test for Analysis::Path
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <analysis/path.h>
 #include <iostream>
 

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  DAC sample interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  DAC sample interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_DAC_SAMPLE_H_DEFINED
-#define DEVICES_DAC_SAMPLE_H_DEFINED
 
 //library includes
 #include <sound/sample.h>
@@ -35,5 +32,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_DAC_SAMPLE_H_DEFINED

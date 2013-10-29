@@ -1,16 +1,16 @@
 /**
 *
-* @file     error_tools.h
-* @brief    %Error subsystem tools
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  %Error subsystem tools
+*
+* @author vitamin.caig@gmail.com
 *
 * @see #Formatter type for format string specification
+*
 **/
 
 #pragma once
-#ifndef __ERROR_TOOLS_H_DEFINED__
-#define __ERROR_TOOLS_H_DEFINED__
 
 //common includes
 #include <error.h>
@@ -52,5 +52,3 @@ inline Error MakeFormattedError(Error::LocationRef loc, const String& fmt,
 {
   return Error(loc, Strings::Format(fmt, p1, p2, p3, p4, p5));
 }
-
-#endif //__ERROR_TOOLS_H_DEFINED__

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ASC ScreenCrusher support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  ASCScreenCrusher support implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "container.h"

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Backend helper interface definition
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Backend internal interfaces and factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef SOUND_BACKEND_IMPL_H_DEFINED
-#define SOUND_BACKEND_IMPL_H_DEFINED
 
 //library includes
 #include <sound/backend.h>
@@ -45,5 +42,3 @@ namespace Sound
 
   Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr callback, BackendWorker::Ptr worker);
 }
-
-#endif //SOUND_BACKEND_IMPL_H_DEFINED

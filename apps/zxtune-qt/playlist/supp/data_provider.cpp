@@ -1,15 +1,12 @@
-/*
-Abstract:
-  Playlist data caching provider implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Playlist data provider implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "data_provider.h"

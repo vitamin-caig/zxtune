@@ -1,6 +1,6 @@
 // This file was automatically generated
-#ifndef __TEXT_CHIPTUNE_H_DEFINED__
-#define __TEXT_CHIPTUNE_H_DEFINED__
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -50,4 +50,3 @@ extern const Char VORTEX_EDITOR[];
 extern const Char VTX_DECODER_DESCRIPTION[];
 extern const Char YM_DECODER_DESCRIPTION[];
 }//namespace Text
-#endif //__TEXT_CHIPTUNE_H_DEFINED__

@@ -1,15 +1,14 @@
 /**
 *
-* @file     core/module_attrs.h
-* @brief    Module attributes names
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Module attributes names
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __CORE_MODULE_ATTRS_H_DEFINED__
-#define __CORE_MODULE_ATTRS_H_DEFINED__
 
 //std includes
 #include <string>
@@ -77,5 +76,3 @@ namespace Module
   //! Current module line
   const std::string ATTR_CURRENT_LINE("CurLine");
 }
-
-#endif //__CORE_MODULE_ATTRS_H_DEFINED__

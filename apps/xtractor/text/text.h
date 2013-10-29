@@ -1,6 +1,6 @@
-// Generated from '$Id
-#ifndef __TEXT_TEXT_H_DEFINED__
-#define __TEXT_TEXT_H_DEFINED__
+// This file was automatically generated
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -40,4 +40,3 @@ extern const Char USAGE_SECTION[];
 extern const Char VERSION_DESC[];
 extern const Char VERSION_KEY[];
 }//namespace Text
-#endif //__TEXT_TEXT_H_DEFINED__

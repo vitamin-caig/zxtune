@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Scanning utility
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <types.h>
 #include <error_tools.h>
 #include <progress_callback.h>

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  ZDATA containers support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Zdata plugin implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "container_supp_common.h"

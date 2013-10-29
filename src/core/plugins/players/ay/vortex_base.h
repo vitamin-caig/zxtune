@@ -1,18 +1,14 @@
-/*
-Abstract:
-  Vortex-based modules playback support interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  VortexTracker-based chiptunes support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef __CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__
-#define __CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__
-
 //local includes
 #include "aym_base_track.h"
 #include "core/plugins/players/simple_ornament.h"
@@ -137,5 +133,3 @@ namespace Module
     AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart);
   }
 }
-
-#endif //__CORE_PLUGINS_PLAYERS_VORTEX_BASE_H_DEFINED__

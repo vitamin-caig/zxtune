@@ -1,15 +1,14 @@
 /**
 *
-* @file     error.h
-* @brief    %Error subsystem definitions
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  %Error subsystem definitions
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ERROR_H_DEFINED
-#define ERROR_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -154,5 +153,3 @@ inline void ThrowIfError(const Error& e)
 #else
   #define THIS_LINE (Error::Location(MAKETAG))
 #endif
-
-#endif //ERROR_H_DEFINED

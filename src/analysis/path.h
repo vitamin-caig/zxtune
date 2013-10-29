@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     analysis/path.h
-* @brief    Interface for analyzed data path
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Analyzed data path interface and factory
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ANALYSIS_PATH_H_DEFINED
-#define ANALYSIS_PATH_H_DEFINED
 
 //common includes
 #include <iterator.h>
@@ -52,5 +51,3 @@ namespace Analysis
 
   Path::Ptr ParsePath(const String& str, Char separator);
 }
-
-#endif //ANALYSIS_PATH_H_DEFINED

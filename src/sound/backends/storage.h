@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Sound backends storage interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Backends storage interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef SOUND_BACKENDS_STORAGE_H_DEFINED
-#define SOUND_BACKENDS_STORAGE_H_DEFINED
 
 //local includes
 #include "backend_impl.h"
@@ -31,5 +28,3 @@ namespace Sound
     virtual void Register(const String& id, const char* description, uint_t caps) = 0;
   };
 }
-
-#endif //SOUND_BACKENDS_STORAGE_H_DEFINED

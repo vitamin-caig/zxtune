@@ -1,15 +1,14 @@
 /**
 *
-* @file     progress_callback.h
-* @brief    Progress callback interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Progress callback interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PROGRESS_CALLBACK_H_DEFINED
-#define PROGRESS_CALLBACK_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -35,5 +34,3 @@ namespace Log
   ProgressCallback::Ptr CreatePercentProgressCallback(uint_t total, ProgressCallback& delegate);
   ProgressCallback::Ptr CreateNestedPercentProgressCallback(uint_t total, uint_t current, ProgressCallback& delegate);
 }
-
-#endif //PROGRESS_CALLBACK_H_DEFINED

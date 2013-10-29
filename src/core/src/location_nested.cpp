@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Nested location implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Nested location implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "location.h"

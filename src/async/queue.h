@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     async/queue.h
-* @brief    Typed thread-safe queue interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Typed thread-safe queue interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ASYNC_QUEUE_H_DEFINED
-#define ASYNC_QUEUE_H_DEFINED
 
 //boost includes
 #include <boost/shared_ptr.hpp>
@@ -36,5 +35,3 @@ namespace Async
     virtual void Flush() = 0;
   };
 }
-
-#endif //ASYNC_QUEUE_H_DEFINED

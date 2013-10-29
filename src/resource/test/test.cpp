@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Resource test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <resource/api.h>
 #include <error.h>
 #include <pointers.h>

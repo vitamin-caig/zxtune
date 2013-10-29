@@ -1,17 +1,14 @@
-/*
-Abstract:
-  ARM architecture detection
-
-Last changed:
-  $Id: api.h 2089 2012-11-02 12:49:49Z vitamin.caig $
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief ARM architecture detection
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ARM_H_DEFINED
-#define ARM_H_DEFINED
 
 #if _M_ARM == 4 || \
   defined(__ARM_ARCH_4__) || \
@@ -52,5 +49,3 @@ Author:
 #else
   const std::string ARCH("arm");
 #endif
-
-#endif //ARM_H_DEFINED

@@ -1,15 +1,14 @@
 /**
 *
-* @file     formats/archived/decoders.h
-* @brief    Archived data accessors factories
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Archived data accessors factories
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef FORMATS_ARCHIVED_DECODERS_H_DEFINED
-#define FORMATS_ARCHIVED_DECODERS_H_DEFINED
 
 //library includes
 #include <formats/archived.h>
@@ -29,5 +28,3 @@ namespace Formats
     Decoder::Ptr CreateZXStateDecoder();
   }
 }
-
-#endif //FORMATS_ARCHIVED_DECODERS_H_DEFINED

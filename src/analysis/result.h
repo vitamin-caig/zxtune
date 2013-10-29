@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     analysis/result.h
-* @brief    Interface for analyzed result
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Analysis result interface and factories
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ANALYSIS_RESULT_H_DEFINED
-#define ANALYSIS_RESULT_H_DEFINED
 
 //library includes
 #include <binary/format.h>
@@ -41,5 +40,3 @@ namespace Analysis
   Result::Ptr CreateUnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data);
   Result::Ptr CreateUnmatchedResult(std::size_t unmatchedSize);
 }
-
-#endif //ANALYSIS_RESULT_H_DEFINED

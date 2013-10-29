@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/backend_attrs.h
-* @brief     Backends attributes
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Backends attributes
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_BACKEND_ATTRS_H_DEFINED
-#define SOUND_BACKEND_ATTRS_H_DEFINED
 
 namespace Sound
 {
@@ -33,5 +32,3 @@ namespace Sound
     CAP_FEAT_HWVOLUME = 0x100
   };
 }
-
-#endif //SOUND_BACKEND_ATTRS_H_DEFINED

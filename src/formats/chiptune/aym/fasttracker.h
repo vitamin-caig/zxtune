@@ -1,17 +1,14 @@
-/*
-Abstract:
-  FastTracker format description
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  FastTracker support interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_FASTTRACKER_H_DEFINED
-#define FORMATS_CHIPTUNE_FASTTRACKER_H_DEFINED
 
 //local includes
 #include "formats/chiptune/builder_meta.h"
@@ -129,5 +126,3 @@ namespace Formats
     }
   }
 }
-
-#endif //FORMATS_CHIPTUNE_FASTTRACKER_H_DEFINED

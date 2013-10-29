@@ -1,15 +1,14 @@
 /**
 *
 * @file
+*
 * @brief    Localization support API
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef L10N_API_LIBRARY_H_DEFINED
-#define L10N_API_LIBRARY_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -67,5 +66,3 @@ namespace L10n
     static Library& Instance();
   };
 }
-
-#endif //L10N_API_LIBRARY_H_DEFINED

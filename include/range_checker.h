@@ -1,15 +1,14 @@
 /**
 *
-* @file     range_checker.h
-* @brief    Range-checking helper interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Range-checking helper interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __RANGE_CHECKER_H_DEFINED__
-#define __RANGE_CHECKER_H_DEFINED__
 
 //std includes
 #include <algorithm>
@@ -116,5 +115,3 @@ public:
 private:
   Area2AddrMap Areas;
 };
-
-#endif //__RANGE_CHECKER_H_DEFINED__

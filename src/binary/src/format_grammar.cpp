@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Lexic analysis interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Format grammar
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "format_grammar.h"

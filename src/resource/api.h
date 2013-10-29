@@ -1,15 +1,14 @@
 /**
 *
-* @file      resource/api.h
-* @brief     Interface for working with embedded resources
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Interface for working with embedded resources
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef RESOURCE_API_H_DEFINED
-#define RESOURCE_API_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -30,5 +29,3 @@ namespace Resource
 
   void Enumerate(Visitor& visitor);
 }
-
-#endif //RESOURCE_API_H_DEFINED

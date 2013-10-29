@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Zip archives support
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  ZIP archives support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <binary/typed_container.h>

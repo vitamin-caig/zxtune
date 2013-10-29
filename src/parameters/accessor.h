@@ -1,15 +1,14 @@
 /**
 *
-* @file     parameters/accessor.h
-* @brief    Parameters accessor interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Parameters accessor interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef PARAMETERS_ACCESSOR_H_DEFINED
-#define PARAMETERS_ACCESSOR_H_DEFINED
 
 //library includes
 #include <parameters/types.h>
@@ -42,5 +41,3 @@ namespace Parameters
     virtual void Process(class Visitor& visitor) const = 0;
   };
 }
-
-#endif //PARAMETERS_ACCESSOR_H_DEFINED

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Frequency table helper class
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Frequency table helper class
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_DETAILS_FREQ_TABLE_H_DEFINED
-#define DEVICES_DETAILS_FREQ_TABLE_H_DEFINED
 
 //library includes
 #include <math/fixedpoint.h>
@@ -61,5 +58,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_DETAILS_FREQ_TABLE_H_DEFINED

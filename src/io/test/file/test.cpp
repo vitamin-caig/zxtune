@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  File operations test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <src/io/api.h>
 #include <src/io/providers_parameters.h>
 #include <src/io/providers/file_provider.h>

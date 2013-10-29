@@ -1,15 +1,14 @@
 /**
 *
-* @file     stamp.h
-* @brief    Time stamp interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Time stamp interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef TIME_STAMP_H_DEFINED
-#define TIME_STAMP_H_DEFINED
 
 //library includes
 #include <math/scale.h>
@@ -108,5 +107,3 @@ namespace Time
     return TimeStamp(TimeStamp::PER_SECOND / freq);
   }
 }
-
-#endif //TIME_STAMP_H_DEFINED

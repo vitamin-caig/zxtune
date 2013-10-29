@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Chunks cache helper class
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Data chunks cache helper
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef DEVICES_DETAILS_CHUNKS_CACHE_H_DEFINED
-#define DEVICES_DETAILS_CHUNKS_CACHE_H_DEFINED
 
 //std includes
 #include <vector>
@@ -53,5 +50,3 @@ namespace Devices
     };
   }
 }
-
-#endif //DEVICES_DETAILS_CHUNKS_CACHE_H_DEFINED

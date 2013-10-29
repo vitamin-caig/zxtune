@@ -1,13 +1,13 @@
-/*
-Abstract:
-  Debug functionality implementation
+/**
+* 
+* @file
+*
+* @brief Debug functionality implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
 
 //local includes
 #include "debug.h"

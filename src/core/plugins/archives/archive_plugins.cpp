@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Archive plugins list implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Archive plugins factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "archive_supp_common.h"

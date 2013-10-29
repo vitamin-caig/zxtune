@@ -1,15 +1,14 @@
 /**
 *
-* @file     numeric.h
-* @brief    Numeric operations
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Numeric operations
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef MATH_NUMERIC_H_DEFINED
-#define MATH_NUMERIC_H_DEFINED
 
 //std includes
 #include <algorithm>
@@ -51,5 +50,3 @@ namespace Math
     return val >= 0 ? val : -val;
   }
 }
-
-#endif //MATH_NUMERIC_H_DEFINED

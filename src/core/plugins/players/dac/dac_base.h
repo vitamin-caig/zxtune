@@ -1,17 +1,14 @@
-/*
-Abstract:
-  DAC-based players common functionality
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  DAC-based modules support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED
-#define CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED
 
 //local includes
 #include "dac_chiptune.h"
@@ -112,5 +109,3 @@ namespace Module
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
   }
 }
-
-#endif //CORE_PLUGINS_PLAYERS_DAC_BASE_DEFINED

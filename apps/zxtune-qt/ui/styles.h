@@ -1,15 +1,14 @@
-/*
-Abstract:
-  Styles delegates
+/**
+* 
+* @file
+*
+* @brief Styles delegates
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+#pragma once
 
 //qt includes
 #include <QtGui/QProxyStyle>

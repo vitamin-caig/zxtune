@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/mixer.h
-* @brief     Defenition of mixing-related functionality
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Defenition of mixing-related functionality
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_MATRIC_MIXER_H_DEFINED
-#define SOUND_MATRIC_MIXER_H_DEFINED
 
 //library includes
 #include <sound/gain.h>
@@ -34,5 +33,3 @@ namespace Sound
   typedef FixedChannelsMatrixMixer<3> ThreeChannelsMatrixMixer;
   typedef FixedChannelsMatrixMixer<4> FourChannelsMatrixMixer;
 }
-
-#endif //SOUND_MATRIC_MIXER_H_DEFINED

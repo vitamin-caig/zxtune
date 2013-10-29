@@ -1,15 +1,11 @@
-# $Id$
-
 < __RAWHEADER__
-__cpp> "#ifndef __TEXT_PLUGINS_H_DEFINED__\n"
-__cpp> "#define __TEXT_PLUGINS_H_DEFINED__\n"
+__cpp> "#pragma once\n\n"
 __cpp> "#include <char_type.h>\n\n"
 __cpp> "namespace Text\n"
 __cpp> "{\n"
 
 < __RAWFOOTER__
 __cpp> "}//namespace Text\n"
-__cpp> "#endif //__TEXT_PLUGINS_H_DEFINED__\n"
 
 < ARCHIVE_PLUGIN_PREFIX
 > "+un"

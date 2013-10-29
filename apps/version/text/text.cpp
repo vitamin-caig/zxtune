@@ -1,12 +1,15 @@
 // This file was automatically generated
-#ifndef __VERSION_TEXT_H_DEFINED__
-#define __VERSION_TEXT_H_DEFINED__
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
 {
 extern const Char FIELD_BUILD_ARCH[] = {
   'A','r','c','h',0
+};
+extern const Char FIELD_BUILD_ARCH_VERSION[] = {
+  'A','r','c','h','V','e','r','s','i','o','n',0
 };
 extern const Char FIELD_BUILD_DATE[] = {
   'D','a','t','e',0
@@ -24,4 +27,3 @@ extern const Char PROGRAM_VERSION_STRING[] = {
   '%','1','%',' ','%','2','%',' ','%','3','%',' ','%','4','%','-','%','5','%',' ','%','6','%',0
 };
 }//namespace Text
-#endif //__VERSION_TEXT_H_DEFINED__

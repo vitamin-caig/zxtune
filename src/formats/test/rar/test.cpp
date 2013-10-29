@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  RAR test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include "../utils.h"
 
 namespace

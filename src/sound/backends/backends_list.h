@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Sound backends list
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Backends factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef SOUND_BACKENDS_LIST_H_DEFINED
-#define SOUND_BACKENDS_LIST_H_DEFINED
 
 namespace Sound
 {
@@ -56,5 +53,3 @@ namespace Sound
     RegisterFileBackends(storage);
   }
 }
-
-#endif //__SOUND_BACKENDS_LIST_H_DEFINED__

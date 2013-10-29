@@ -1,17 +1,14 @@
-/*
-Abstract:
-  File provider functions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  File provider functions
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef IO_FILE_PROVIDER_H_DEFINED
-#define IO_FILE_PROVIDER_H_DEFINED
 
 //library includes
 #include <binary/data.h>
@@ -45,5 +42,3 @@ namespace IO
 
   Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params);
 }
-
-#endif //IO_FILE_PROVIDER_H_DEFINED

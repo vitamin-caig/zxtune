@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Handle operating functions
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief Handle operating functions
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "debug.h"

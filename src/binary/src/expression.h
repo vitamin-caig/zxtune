@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Binary format expression interface
+/**
+*
+* @file
+*
+* @brief  Binary format expression interface and factory
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BINARY_EXPRESSION_H
-#define BINARY_EXPRESSION_H
+#pragma once
 
 //common includes
 #include <iterator.h>
@@ -46,5 +44,3 @@ namespace Binary
     static Ptr Parse(const std::string& notation);
   };
 }
-
-#endif //BINARY_EXPRESSION_H

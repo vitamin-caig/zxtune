@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Different utils
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Different utilities
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UTILS_H_DEFINED
-#define ZXTUNE_QT_UTILS_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -69,5 +64,3 @@ private:
 
 
 #define REGISTER_METATYPE(A) {static AutoMetaTypeRegistrator<A> tmp(#A);}
-
-#endif //ZXTUNE_QT_UTILS_H_DEFINED

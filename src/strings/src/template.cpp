@@ -1,13 +1,12 @@
-/*
-Abstract:
-  String template implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  String template implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <strings/array.h>

@@ -1,13 +1,11 @@
 < __RAWHEADER__
-__cpp> "#ifndef __VERSION_TEXT_H_DEFINED__\n"
-__cpp> "#define __VERSION_TEXT_H_DEFINED__\n"
+__cpp> "#pragma once\n\n"
 __cpp> "#include <char_type.h>\n\n"
 __cpp> "namespace Text\n"
 __cpp> "{\n"
 
 < __RAWFOOTER__
 __cpp> "}//namespace Text\n"
-__cpp> "#endif //__VERSION_TEXT_H_DEFINED__\n"
 
 # 1- program name, 2- program version, 3- build date 4- platform, 5- architecture, 6- architecture version
 < PROGRAM_VERSION_STRING

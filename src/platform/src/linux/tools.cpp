@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Linux implementation of tools
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Linux implementation of tools
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //library includes
 #include <debug/log.h>

@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     async/coroutine.h
-* @brief    Interface of quanted worker used to create asynchronous job
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Interface of coroutine and job factory
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ASYNC_COROUTINE_H_DEFINED
-#define ASYNC_COROUTINE_H_DEFINED
 
 //library includes
 #include <async/job.h>
@@ -41,5 +40,3 @@ namespace Async
 
   Job::Ptr CreateJob(Coroutine::Ptr routine);
 }
-
-#endif //ASYNC_COROUTINE_H_DEFINED

@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Sound component declaration
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune123 application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Sound component interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE123_SOUND_H_DEFINED
-#define ZXTUNE123_SOUND_H_DEFINED
 
 //library includes
 #include <parameters/container.h>
@@ -49,5 +44,3 @@ public:
 
   static std::auto_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
 };
-
-#endif //ZXTUNE123_SOUND_H_DEFINED

@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Module container and related interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Modules opening functions
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef CORE_MODULE_OPEN_H_DEFINED
-#define CORE_MODULE_OPEN_H_DEFINED
 
 //library includes
 #include <core/data_location.h>
@@ -25,5 +22,3 @@ namespace Module
 
   Holder::Ptr Open(const Binary::Container& data);
 }
-
-#endif //CORE_MODULE_OPEN_H_DEFINED

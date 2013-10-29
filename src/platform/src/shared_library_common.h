@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Common shared library internal interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Common SharedLibrary logic interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef PLATFORM_SHARED_LIBRARY_COMMON_H_DEFINED
-#define PLATFORM_SHARED_LIBRARY_COMMON_H_DEFINED
 
 //common includes
 #include <error.h>
@@ -27,5 +24,3 @@ namespace Platform
     Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res);
   }
 }
-
-#endif //PLATFORM_SHARED_LIBRARY_COMMON_H_DEFINED

@@ -1,15 +1,14 @@
 /**
 *
-* @file     formats/chiptune.h
-* @brief    Interface for chiptunes data accessors
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Chiptunes support interfaces
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef __FORMATS_CHIPTUNE_H_DEFINED__
-#define __FORMATS_CHIPTUNE_H_DEFINED__
 
 //library includes
 #include <binary/container.h>
@@ -62,5 +61,3 @@ namespace Formats
     };
   }
 }
-
-#endif //__FORMATS_CHIPTUNE_H_DEFINED__

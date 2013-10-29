@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Event helper class
+/**
+* 
+* @file
+*
+* @brief Event helper class
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef ASYNC_SRC_EVENT_H
-#define ASYNC_SRC_EVENT_H
+#pragma once
 
 //boost includes
 #include <boost/bind.hpp>
@@ -99,5 +97,3 @@ namespace Async
     boost::condition_variable Condition;
   };
 }
-
-#endif //ASYNC_SRC_EVENT_H

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Range-checking helper interface implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Range checking helpers implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <range_checker.h>

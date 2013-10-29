@@ -1,6 +1,5 @@
-// Generated from '$Id$'
-#ifndef __TEXT_TOOLS_H_DEFINED__
-#define __TEXT_TOOLS_H_DEFINED__
+// This file was automatically generated
+#pragma once
 #include <char_type.h>
 
 namespace Text
@@ -18,4 +17,3 @@ extern const Char ERROR_FORMAT_DEBUG[] = {
   0
 };
 }//namespace Text
-#endif //__TEXT_TOOLS_H_DEFINED__

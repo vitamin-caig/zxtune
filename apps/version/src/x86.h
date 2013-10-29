@@ -1,17 +1,15 @@
-/*
-Abstract:
-  x86 architecture detection
+/**
+* 
+* @file
+*
+* @brief x86 architecture detection
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id: api.h 2089 2012-11-02 12:49:49Z vitamin.caig $
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
 
 #pragma once
-#ifndef X86_H_DEFINED
-#define X86_H_DEFINED
 
   const std::string ARCH("x86");
 #if _M_IX86 == 600 || defined(__i686__)
@@ -27,5 +25,3 @@ Author:
 #else
   #error "Not an x86 architecture"
 #endif
-
-#endif //X86_H_DEFINED

@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Network provider stub
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Network provider stub
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #include "enumerator.h"
 //common includes

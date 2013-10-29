@@ -1,15 +1,14 @@
 /**
 *
-* @file     pointers.h
-* @brief    Pointers-related functionality
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Pointers-related functionality
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef POINTERS_H_DEFINED
-#define POINTERS_H_DEFINED
 
 //std includes
 #include <cstddef>
@@ -45,5 +44,3 @@ inline typename T::Ptr MakeSingletonPointer(T& obj)
 {
   return typename T::Ptr(&obj, NullDeleter<T>());
 }
-
-#endif //POINTERS_H_DEFINED

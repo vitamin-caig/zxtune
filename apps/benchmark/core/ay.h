@@ -1,16 +1,14 @@
-/*
-Abstract:
-  AY tests interface
+/**
+* 
+* @file
+*
+* @brief  AY test interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BENCHMARK_AY_H_DEFINED
-#define BENCHMARK_AY_H_DEFINED
+#pragma once
 
 //library includes
 #include <devices/aym/chip.h>
@@ -24,5 +22,3 @@ namespace Benchmark
     double Test(Devices::AYM::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration);
   }
 }
-
-#endif //BENCHMARK_AY_H_DEFINED

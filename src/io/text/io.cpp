@@ -1,6 +1,6 @@
-// Generated from '$Id$'
-#ifndef __TEXT_IO_H_DEFINED__
-#define __TEXT_IO_H_DEFINED__
+// This file was automatically generated
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -12,4 +12,3 @@ extern const Char IO_NETWORK_PROVIDER_ID[] = {
   'n','e','t',0
 };
 }//namespace Text
-#endif //__TEXT_IO_H_DEFINED__

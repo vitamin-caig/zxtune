@@ -1,15 +1,14 @@
 /**
+* 
+* @file
 *
-* @file     async/data_receiver.h
-* @brief    Data receiver asynchronous adapter
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @brief Asynchronous adapter for data streams
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef ASYNC_PIPE_H_DEFINED
-#define ASYNC_PIPE_H_DEFINED
 
 //common includes
 #include <contract.h>
@@ -139,5 +138,3 @@ namespace Async
     ActivitiesList Activities;
   };
 }
-
-#endif //ASYNC_PIPE_H_DEFINED

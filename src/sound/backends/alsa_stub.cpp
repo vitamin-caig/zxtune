@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Alsa backend stub implementation
-
-Last changed:
-  $Id: alsa_backend.cpp 1837 2012-07-01 13:42:01Z vitamin.caig $
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  ALSA backend stub implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "alsa.h"

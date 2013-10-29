@@ -1,3 +1,13 @@
+/**
+*
+* @file
+*
+* @brief  Platform test
+*
+* @author vitamin.caig@gmail.com
+*
+**/
+
 #include <sound/backends/alsa.h>
 #include <sound/backends/dsound.h>
 #include <sound/backends/win32.h>

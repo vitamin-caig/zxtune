@@ -1,15 +1,14 @@
 /**
 *
-* @file      sound/gain.h
-* @brief     Typedef for gain
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Typedef for gain
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef SOUND_GAIN_H_DEFINED
-#define SOUND_GAIN_H_DEFINED
 
 //common includes
 #include <math/fixedpoint.h>
@@ -61,5 +60,3 @@ namespace Sound
     Type RightVal;
   };
 }
-
-#endif //SOUND_GAIN_H_DEFINED

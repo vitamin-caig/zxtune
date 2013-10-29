@@ -1,15 +1,14 @@
 /**
 *
-* @file     duration.h
-* @brief    Time duration interface
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Time duration interface
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef TIME_DURATION_H_DEFINED
-#define TIME_DURATION_H_DEFINED
 
 //library includes
 #include <strings/format.h>
@@ -133,5 +132,3 @@ namespace Time
   typedef Duration<uint_t, Microseconds> MicrosecondsDuration;
   typedef Duration<uint_t, Nanoseconds> NanosecondsDuration;
 }
-
-#endif //TIME_DURATION_H_DEFINED

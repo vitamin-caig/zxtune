@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Formatting functions implementation
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+*
+* @file
+*
+* @brief  Format functions implementation
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //common includes
 #include <strings/format.h>

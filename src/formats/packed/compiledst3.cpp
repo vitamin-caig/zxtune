@@ -1,13 +1,12 @@
-/*
-Abstract:
-  Sound Tracker v3.x compiled modules support (player)
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SoundTracker v3.x compiled modules support
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 //local includes
 #include "container.h"

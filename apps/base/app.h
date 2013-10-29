@@ -1,17 +1,14 @@
-/*
-Abstract:
-  Application interface
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  Application interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef BASE_APP_H_DEFINED
-#define BASE_APP_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -32,5 +29,3 @@ public:
 
   static std::auto_ptr<Application> Create();
 };
-
-#endif //BASE_APP_H_DEFINED

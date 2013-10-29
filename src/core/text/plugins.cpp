@@ -1,6 +1,6 @@
 // This file was automatically generated
-#ifndef __TEXT_PLUGINS_H_DEFINED__
-#define __TEXT_PLUGINS_H_DEFINED__
+#pragma once
+
 #include <char_type.h>
 
 namespace Text
@@ -27,4 +27,3 @@ extern const Char ZDATA_PLUGIN_PREFIX[] = {
   'z','d','a','t','a',':',0
 };
 }//namespace Text
-#endif //__TEXT_PLUGINS_H_DEFINED__

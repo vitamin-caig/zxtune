@@ -1,15 +1,14 @@
 /**
 *
-* @file     cycle_buffer.h
-* @brief    Simple cycle buffer template
-* @version  $Id$
-* @author   (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Simple cycle buffer template
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef CYCLE_BUFFER_H_DEFINED
-#define CYCLE_BUFFER_H_DEFINED
 
 //std includes
 #include <cstring>
@@ -109,5 +108,3 @@ private:
   const T* BusyCursor;
   std::size_t BusyAvailable;
 };
-
-#endif //CYCLE_BUFFER_H_DEFINED

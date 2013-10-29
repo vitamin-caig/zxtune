@@ -1,19 +1,14 @@
-/*
-Abstract:
-  Supported formats widget
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-
-  This file is a part of zxtune-qt application based on zxtune library
-*/
+/**
+* 
+* @file
+*
+* @brief Supported formats pane interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef ZXTUNE_QT_UI_SUPPORTED_FORMATS_H_DEFINED
-#define ZXTUNE_QT_UI_SUPPORTED_FORMATS_H_DEFINED
 
 //common includes
 #include <types.h>
@@ -36,5 +31,3 @@ namespace UI
     void SettingsChanged();
   };
 }
-
-#endif //ZXTUNE_QT_UI_SUPPORTED_FORMATS_H_DEFINED

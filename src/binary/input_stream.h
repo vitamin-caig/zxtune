@@ -1,15 +1,14 @@
 /**
 *
-* @file      binary/input_stream.h
-* @brief     Input binary stream helper
-* @version   $Id$
-* @author    (C) Vitamin/CAIG/2001
+* @file
+*
+* @brief  Input binary stream helper
+*
+* @author vitamin.caig@gmail.com
 *
 **/
 
 #pragma once
-#ifndef BINARY_INPUT_STREAM_H_DEFINED
-#define BINARY_INPUT_STREAM_H_DEFINED
 
 //library includes
 #include <binary/container.h>
@@ -126,5 +125,3 @@ namespace Binary
     const uint8_t* Cursor;
   };
 }
-
-#endif //BINARY_INPUT_STREAM_H_DEFINED

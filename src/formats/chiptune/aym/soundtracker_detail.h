@@ -1,17 +1,14 @@
-/*
-Abstract:
-  SoundTracker format details
-
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
+/**
+* 
+* @file
+*
+* @brief  SoundTracker format details
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
 #pragma once
-#ifndef FORMATS_CHIPTUNE_SOUNDTRACKER_DETAIL_H_DEFINED
-#define FORMATS_CHIPTUNE_SOUNDTRACKER_DETAIL_H_DEFINED
 
 //local includes
 #include "soundtracker.h"
@@ -188,5 +185,3 @@ namespace Formats
     }
   }
 }
-
-#endif //FORMATS_CHIPTUNE_SOUNDTRACKER_DETAIL_H_DEFINED

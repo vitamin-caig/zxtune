@@ -1,16 +1,14 @@
-/*
-Abstract:
-  Mixer tests interface
+/**
+* 
+* @file
+*
+* @brief  Mixer test interface
+*
+* @author vitamin.caig@gmail.com
+*
+**/
 
-Last changed:
-  $Id$
-
-Author:
-  (C) Vitamin/CAIG/2001
-*/
-
-#ifndef BENCHMARK_MIXER_H_DEFINED
-#define BENCHMARK_MIXER_H_DEFINED
+#pragma once
 
 //library includes
 #include <time/stamp.h>
@@ -22,5 +20,3 @@ namespace Benchmark
     double Test(uint_t channels, const Time::Milliseconds& duration, uint_t soundFreq);
   }
 }
-
-#endif //BENCHMARK_MIXER_H_DEFINED
