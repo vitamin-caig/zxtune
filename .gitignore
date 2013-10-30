@@ -1,0 +1,20 @@
+#result directories
+/bin/
+/lib/
+/obj/
+/pkg/
+/Builds/
+
+#intermediate files
+/l10n/*.zip
+
+#git files
+!.gitignore
+
+#temporaries
+*.bak
+*.orig
+*~
+
+#git-generated
+pathes-*

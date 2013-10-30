@@ -1,13 +1,13 @@
 #package generating
 include $(path_step)/make/version.mak
 
-pkg_revision := $(subst :,_,$(firstword $(root.version)))
+pkg_revision := $(root.version)
 pkg_subversion := $(if $(release),,_dbg)
 
 pkg_name ?= $(binary_name)
 packaging ?= any
 pkg_tagged_name := $(pkg_name)_$(packaging)$(if $(distro),_$(distro),)
-pkg_dir := $(path_step)/Builds/Revision$(pkg_revision)_$(platform)$(if $(arch),_$(arch),)
+pkg_dir := $(path_step)/Builds/$(pkg_revision)_$(platform)$(if $(arch),_$(arch),)
 pkg_log := $(pkg_dir)/packaging_$(pkg_tagged_name).log
 pkg_build_log := $(pkg_dir)/$(pkg_tagged_name).log
 pkg_debug := $(pkg_dir)/$(pkg_tagged_name)_debug.$(pkg_suffix)
