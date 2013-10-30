@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Extension of Item intended to be played or etc
- * @version $Id:$
- * @author
+ *
+ * @brief Playback item extension describing also module
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 import app.zxtune.Releaseable;

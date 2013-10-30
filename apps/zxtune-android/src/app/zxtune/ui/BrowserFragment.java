@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief Browser ui class
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Vfs browser fragment component
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.ui;

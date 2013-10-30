@@ -1,9 +1,13 @@
 /**
+ *
  * @file
+ *
  * @brief Information view logic
- * @version $Id:$
- * @author
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.ui;
 
 import android.content.res.Resources;
@@ -30,7 +34,7 @@ class InformationView {
   private final String commentField;
   private final String locationField;
 
-  public InformationView(View layout) {
+  InformationView(View layout) {
     this.frame = (HorizontalScrollView) layout.findViewById(R.id.information_frame);
     this.content = (TextView) layout.findViewById(R.id.information_content);
     final Resources res = layout.getResources();
@@ -42,7 +46,7 @@ class InformationView {
     update(ItemStub.instance());
   }
 
-  public void update(Item item) {
+  final void update(Item item) {
     final StringBuilder builder = new StringBuilder();
     addNonEmptyField(builder, titleField, item.getTitle());
     addNonEmptyField(builder, authorField, item.getAuthor());

@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Stub implementation of Visualizer
- * @version $Id:$
- * @author
+ *
+ * @brief Stub singleton implementation of Visualizer
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 public class VisualizerStub implements Visualizer {

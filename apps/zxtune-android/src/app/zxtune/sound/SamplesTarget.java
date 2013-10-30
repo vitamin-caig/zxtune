@@ -1,14 +1,15 @@
 /**
+ *
  * @file
+ *
  * @brief Samples target interface
- * @version $Id:$
- * @author
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.sound;
 
-/**
- * Abstract samples target interface
- */
 public interface SamplesTarget {
 
   /**

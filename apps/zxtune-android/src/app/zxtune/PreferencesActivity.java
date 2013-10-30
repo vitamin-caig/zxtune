@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Preferences activity
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune;
 
 import android.content.Intent;

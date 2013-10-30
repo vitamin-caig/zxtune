@@ -1,14 +1,15 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Track description POJO
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs.zxtunes;
 
-/**
- *  Track description POJO
- */
 public final class Track {
 
   public final int id;

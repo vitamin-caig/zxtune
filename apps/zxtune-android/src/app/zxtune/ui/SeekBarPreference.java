@@ -1,10 +1,14 @@
-/*
+/**
+ *
  * @file
- * @brief SeekBarPreference class
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief SeekBarPreference component
+ *
+ * @author vitamin.caig@gmail.com
  * @author Originally taken from http://robobunny.com/wp/2013/08/24/android-seekbar-preference-v2/
+ *
  */
+
 package app.zxtune.ui;
 
 import android.content.Context;

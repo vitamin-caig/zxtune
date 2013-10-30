@@ -1,3 +1,13 @@
+/**
+ *
+ * @file
+ *
+ * @brief Ayl file parser
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ */
+
 package app.zxtune.playlist;
 
 import java.io.BufferedReader;

@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Playback implementation of SamplesTarget based on AudioTrack functionality
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.sound;
 
 import android.media.AudioFormat;
@@ -11,9 +15,6 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
 
-/**
- * 
- */
 final class SoundOutputSamplesTarget implements SamplesTarget {
 
   private static final String TAG = SoundOutputSamplesTarget.class.getName();

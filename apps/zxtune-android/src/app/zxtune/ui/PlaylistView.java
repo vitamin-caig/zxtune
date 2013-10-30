@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief PlaylistView class
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Playlist view component
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.ui;
@@ -26,9 +29,9 @@ import app.zxtune.playlist.Query;
 
 public class PlaylistView extends CheckableListView implements LoaderManager.LoaderCallbacks<Cursor> {
 
-  public interface PlayitemStateSource {
+  interface PlayitemStateSource {
 
-    public boolean isPlaying(Uri playlistUri);
+    boolean isPlaying(Uri playlistUri);
   }
 
   private static class StubPlayitemStateSource implements PlayitemStateSource {
@@ -63,11 +66,11 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
     setAdapter(new PlaylistCursorAdapter(getContext(), null, 0));
   }
   
-  public final void setPlayitemStateSource(PlayitemStateSource source) {
+  final void setPlayitemStateSource(PlayitemStateSource source) {
     this.state = null != source ? source : new StubPlayitemStateSource();
   }
   
-  public final void load(LoaderManager manager) {
+  final void load(LoaderManager manager) {
     manager.initLoader(LOADER_ID, null, this);
   }
   
@@ -101,12 +104,12 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
 
     private final LayoutInflater inflater;
 
-    public PlaylistCursorAdapter(Context context, Cursor cursor, boolean autoRequery) {
+    PlaylistCursorAdapter(Context context, Cursor cursor, boolean autoRequery) {
       super(context, cursor, autoRequery);
       this.inflater = LayoutInflater.from(context);
     }
 
-    public PlaylistCursorAdapter(Context context, Cursor cursor, int flags) {
+    PlaylistCursorAdapter(Context context, Cursor cursor, int flags) {
       super(context, cursor, flags);
       this.inflater = LayoutInflater.from(context);
     }
@@ -141,7 +144,7 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
     final TextView author;
     final TextView duration;
 
-    public ViewHolder(View view) {
+    ViewHolder(View view) {
       this.title = (TextView) view.findViewById(R.id.playlist_item_title);
       this.author = (TextView) view.findViewById(R.id.playlist_item_author);
       this.duration = (TextView) view.findViewById(R.id.playlist_item_duration);

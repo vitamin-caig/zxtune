@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Base Vfs object interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs;
 
 import android.net.Uri;

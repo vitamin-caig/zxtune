@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Callback subscription host interface
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Callback subscription handler
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 import app.zxtune.Releaseable;

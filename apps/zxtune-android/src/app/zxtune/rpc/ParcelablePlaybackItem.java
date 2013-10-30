@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
+ *
  * @brief Parcelable implementation of app.zxtune.playback.Item
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.rpc;

@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
+ *
  * @brief Status notification support
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.ui;

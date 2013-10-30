@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief Phone calls handler
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Handling phone call events
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune;

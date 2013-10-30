@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief Remote server stub for Playback.Control
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Remote service stub for PlaybackService
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.rpc;

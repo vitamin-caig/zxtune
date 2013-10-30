@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Base composite callback implementation
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Composite callback helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 import java.util.LinkedList;

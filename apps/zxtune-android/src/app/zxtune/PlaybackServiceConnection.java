@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Fragment for storing CallbackSubscription
- * @version $Id:$
- * @author
+ *
+ * @brief Persistent background service connection holder
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune;
 
 import android.app.Activity;
@@ -26,7 +30,7 @@ public class PlaybackServiceConnection extends Fragment {
 
   public interface Callback {
     
-    public void onServiceConnected(PlaybackService svc);
+    void onServiceConnected(PlaybackService svc);
   }
   
   private static final String TAG = PlaybackServiceConnection.class.getName();
@@ -35,14 +39,14 @@ public class PlaybackServiceConnection extends Fragment {
   private PlaybackService service;
   private Callback subscriber; 
     
-  public static void register(FragmentManager manager, FragmentTransaction transaction) {
+  static void register(FragmentManager manager, FragmentTransaction transaction) {
     if (manager.findFragmentByTag(TAG) == null) {
       final Fragment self = new PlaybackServiceConnection();
       transaction.add(self, TAG);
     }
   }
   
-  public static void shutdown(FragmentManager manager) {
+  static void shutdown(FragmentManager manager) {
     final PlaybackServiceConnection self = (PlaybackServiceConnection) manager.findFragmentByTag(TAG);
     self.shutdownService();
   }

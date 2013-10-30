@@ -1,11 +1,11 @@
-/*
+/**
+ *
  * @file
- * 
- * @brief Uri view in bread crumbs-style
- * 
- * @version $Id:$
- * 
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Breadcrumb-style navigation widget
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.ui;

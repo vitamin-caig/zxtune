@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Xspf file parser
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playlist;
 
 import java.io.IOException;

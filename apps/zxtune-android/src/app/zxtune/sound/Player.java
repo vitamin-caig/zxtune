@@ -1,11 +1,14 @@
 /**
+ *
  * @file
+ *
  * @brief Sound player interface
- * @version $Id:$
- * @author
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
-package app.zxtune.sound;
 
+package app.zxtune.sound;
 
 /**
  * Base interface for low-level sound player

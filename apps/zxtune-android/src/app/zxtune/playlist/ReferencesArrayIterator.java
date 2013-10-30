@@ -7,6 +7,7 @@
  * @author vitamin.caig@gmail.com
  *
  */
+
 package app.zxtune.playlist;
 
 import java.util.ArrayList;

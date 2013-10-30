@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Handling headphones unplug event
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune;
 
 import android.content.BroadcastReceiver;
@@ -24,7 +28,7 @@ class HeadphonesPlugHandler extends BroadcastReceiver {
     this.control = control;
   }
   
-  public static Releaseable subscribe(Context context, PlaybackControl control) {
+  static Releaseable subscribe(Context context, PlaybackControl control) {
     final BroadcastReceiver handler = new HeadphonesPlugHandler(control);
     final IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
     filter.setPriority(Integer.MAX_VALUE);

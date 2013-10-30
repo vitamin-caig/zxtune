@@ -1,17 +1,18 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Stub singleton implementation of Item
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 import android.net.Uri;
 import app.zxtune.TimeStamp;
 
-/**
- * 
- */
 public class ItemStub implements Item {
 
   private static final String EMPTY_STRING = "";

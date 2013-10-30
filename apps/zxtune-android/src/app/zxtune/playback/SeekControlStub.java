@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Stub implementation of SeekControl
- * @version $Id:$
- * @author
+ *
+ * @brief Stub singleton implementation of SeekControl
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 
 package app.zxtune.playback;
 

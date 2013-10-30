@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Helper for browser state storage
- * @version $Id:$
- * @author
+ *
+ * @brief File browser state helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.ui;
 
 import java.util.Locale;
@@ -30,7 +34,7 @@ class BrowserState {
     return current.getPath();
   }
   
-  void setCurrentPath(Uri uri) {
+  final void setCurrentPath(Uri uri) {
     final Uri curPath = current.getPath();
 
     if (curPath.equals(uri)) {
@@ -45,11 +49,11 @@ class BrowserState {
     current.store();
   }
   
-  int getCurrentViewPosition() {
+  final int getCurrentViewPosition() {
     return current.getViewPosition();
   }
   
-  void setCurrentViewPosition(int pos) {
+  final void setCurrentViewPosition(int pos) {
     current.setViewPosition(pos);
   }
   
@@ -108,19 +112,19 @@ class BrowserState {
       this.position = 0;
     }
     
-    int getIndex() {
+    final int getIndex() {
       return index;
     }
     
-    Uri getPath() {
+    final Uri getPath() {
       return path;
     }
     
-    int getViewPosition() {
+    final int getViewPosition() {
       return position;
     }
     
-    void setViewPosition(int newPos) {
+    final void setViewPosition(int newPos) {
       if (newPos != position) {
         position = newPos;
         store();

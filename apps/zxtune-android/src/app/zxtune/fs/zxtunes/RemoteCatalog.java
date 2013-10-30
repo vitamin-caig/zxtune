@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Remote implementation of catalog
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs.zxtunes;
 
 import java.io.BufferedInputStream;
@@ -30,9 +34,6 @@ import android.util.Log;
 import android.util.Xml;
 import app.zxtune.R;
 
-/**
- * Remote catalog implementation
- */
 final class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();

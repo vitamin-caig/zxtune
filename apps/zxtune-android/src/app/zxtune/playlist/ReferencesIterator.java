@@ -7,8 +7,8 @@
  * @author vitamin.caig@gmail.com
  *
  */
-package app.zxtune.playlist;
 
+package app.zxtune.playlist;
 
 public interface ReferencesIterator {
 

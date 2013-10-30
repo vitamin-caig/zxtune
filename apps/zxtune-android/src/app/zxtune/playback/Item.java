@@ -1,17 +1,18 @@
 /**
+ *
  * @file
- * @brief Playback item interface
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Interface for playback item (metadata only)
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 import android.net.Uri;
 import app.zxtune.TimeStamp;
 
-/**
- *  Interface for playback item abstraction
- */
 public interface Item {
 
   /**

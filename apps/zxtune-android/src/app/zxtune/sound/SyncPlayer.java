@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Synchronous player implementation
- * @version $Id:$
- * @author
+ *
+ * @brief Synchronous implementation of Player
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.sound;
 
 import java.util.concurrent.Exchanger;
@@ -11,9 +15,6 @@ import java.util.concurrent.Exchanger;
 import android.os.Process;
 import android.util.Log;
 
-/**
- * 
- */
 final class SyncPlayer implements Player {
 
   private final static String TAG = SyncPlayer.class.getName();

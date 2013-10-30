@@ -1,8 +1,11 @@
 /**
+ *
  * @file
- * @brief Interface for sound player events listener
- * @version $Id:$
- * @author
+ *
+ * @brief Player events listener interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.sound;

@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Scanning service
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune;
 
 import java.io.IOException;
@@ -129,7 +133,7 @@ public class ScanService extends IntentService {
       this.active = new AtomicBoolean();
     }
 
-    public final void enqueue(PlayableItem item) throws InterruptedException {
+    final void enqueue(PlayableItem item) throws InterruptedException {
       if (isActive()) {
         queue.put(item);
       } else {
@@ -143,17 +147,17 @@ public class ScanService extends IntentService {
       super.start();
     }
     
-    public final boolean isActive() {
+    final boolean isActive() {
       return active.get();
     }
     
-    public final void cancel() {
+    final void cancel() {
       Log.d(getName(), "cancel()");
       active.set(false);
       interrupt();
     }
     
-    public final void flush() {
+    final void flush() {
       try {
         Log.d(getName(), "waitForFinish()");
         enqueue(PlayableItemStub.instance());
@@ -227,13 +231,13 @@ public class ScanService extends IntentService {
     private WakeLock wakeLock;
     private StatusNotification notification;
     
-    public final void start() {
+    final void start() {
       notification = new StatusNotification();
       timer.postDelayed(this, NOTIFICATION_DELAY);
       getWakelock().acquire();
     }
 
-    public final void stop() {
+    final void stop() {
       getWakelock().release();
       timer.removeCallbacks(this);
       notifyResolver();
@@ -249,7 +253,7 @@ public class ScanService extends IntentService {
       notification.show();
     }
     
-    WakeLock getWakelock() {
+    private WakeLock getWakelock() {
       if (wakeLock == null) {
         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ScanService");
@@ -268,7 +272,7 @@ public class ScanService extends IntentService {
       private final NotificationCompat.Builder builder;
       private final CharSequence titlePrefix;
 
-      public StatusNotification() {
+      StatusNotification() {
         this.manager =
             (NotificationManager) ScanService.this.getSystemService(Context.NOTIFICATION_SERVICE);
         this.builder = new NotificationCompat.Builder(ScanService.this);
@@ -284,7 +288,7 @@ public class ScanService extends IntentService {
             .setContentText(getResources().getText(R.string.scanning_text));
       }
 
-      public final void show() {
+      final void show() {
         final StringBuilder str = new StringBuilder();
         str.append(titlePrefix);
         str.append(" ");
@@ -295,7 +299,7 @@ public class ScanService extends IntentService {
         manager.notify(notificationId, notification);
       }
 
-      public final void hide() {
+      final void hide() {
         manager.cancel(notificationId);
       }
     }

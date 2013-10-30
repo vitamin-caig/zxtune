@@ -1,9 +1,13 @@
 /**
+ *
  * @file
+ *
  * @brief Notification callback interface
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 public interface Callback {

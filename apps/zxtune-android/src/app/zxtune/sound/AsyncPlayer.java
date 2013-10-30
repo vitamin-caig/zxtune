@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Implementation of Player based on AudioTrack functionality
- * @version $Id:$
- * @author
+ *
+ * @brief Asynchronous implementation of Player
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.sound;
 
 import android.os.Process;

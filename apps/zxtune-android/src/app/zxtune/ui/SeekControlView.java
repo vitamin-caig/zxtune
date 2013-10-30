@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Seek control view logic
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.ui;
 
 import java.util.concurrent.TimeUnit;
@@ -17,7 +21,7 @@ import app.zxtune.TimeStamp;
 import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.SeekControlStub;
 
-public class SeekControlView {
+class SeekControlView {
   
   private final TextView currentTime;
   private final TextView totalTime;
@@ -50,11 +54,11 @@ public class SeekControlView {
     });
   }
 
-  public final void setControl(SeekControl control) {
+  final void setControl(SeekControl control) {
     this.control = control;
   }
   
-  public final void setEnabled(boolean enabled) {
+  final void setEnabled(boolean enabled) {
     currentPosition.setEnabled(enabled);
     updateTask.stop();
     if (enabled) {
@@ -66,7 +70,8 @@ public class SeekControlView {
     }
   }
   
-  private final class UpdateViewTask implements Runnable {
+  private class UpdateViewTask implements Runnable {
+
     @Override
     public void run() {
       final TimeStamp pos = control.getPosition();
@@ -76,7 +81,7 @@ public class SeekControlView {
       timer.postDelayed(this, 1000);
     }
     
-    public final void stop() {
+    final void stop() {
       timer.removeCallbacks(this);
     }
   }

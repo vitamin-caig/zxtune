@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Catalog interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs.zxtunes;
 
 import java.io.IOException;
@@ -11,9 +15,6 @@ import java.nio.ByteBuffer;
 
 import android.content.Context;
 
-/**
- * 
- */
 public abstract class Catalog {
   
   public interface AuthorsVisitor {

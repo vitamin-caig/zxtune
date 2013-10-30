@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Playback iterator interface
- * @version $Id:$
- * @author
+ *
+ * @brief Playback iterator interface and factories
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 import java.io.IOException;

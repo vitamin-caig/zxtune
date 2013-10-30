@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Caching catalog implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs.zxtunes;
 
 import java.io.File;
@@ -16,9 +20,6 @@ import java.nio.channels.FileChannel;
 import android.content.Context;
 import android.util.Log;
 
-/**
- * 
- */
 final class CachingCatalog extends Catalog {
   
   private final static String TAG = CachingCatalog.class.getName();

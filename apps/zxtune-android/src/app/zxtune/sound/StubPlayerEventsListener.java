@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Stub implementation of PlayerEventsListener
- * @version $Id:$
- * @author
+ *
+ * @brief Stub singleton implementation of PlayerEventsListener
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.sound;
 
 public class StubPlayerEventsListener implements PlayerEventsListener {
