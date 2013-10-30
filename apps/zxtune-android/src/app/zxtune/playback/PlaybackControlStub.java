@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Stub implementation of PlaybackControl
- * @version $Id:$
- * @author
+ *
+ * @brief Stub singleton implementation of PlaybackControl
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 /**

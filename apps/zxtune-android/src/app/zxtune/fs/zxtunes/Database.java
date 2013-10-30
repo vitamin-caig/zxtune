@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief DAL helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs.zxtunes;
 
 import android.content.ContentValues;

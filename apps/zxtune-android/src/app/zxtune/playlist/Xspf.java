@@ -1,3 +1,13 @@
+/**
+ *
+ * @file
+ *
+ * @brief Tags and attributes of xspf playlists
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ */
+
 package app.zxtune.playlist;
 
 final class Xspf {

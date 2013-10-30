@@ -1,14 +1,15 @@
 /**
+ *
  * @file
- * @brief Declaration of visualizer interface
- * @version $Id:$
- * @author
+ *
+ * @brief Visual data provider interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
-/**
- * Interface intented to get different visual-related 
- */
 public interface Visualizer {
 
   /**
@@ -18,6 +19,4 @@ public interface Visualizer {
    * @return count of actually stored values in bands/levels (less or equal of min(bands.length, levels.length))
    */
   public int getSpectrum(int[] bands, int[] levels);
-  
-  //public int getWaveform(byte[] waveForm) throws IllegalStateException;
 }

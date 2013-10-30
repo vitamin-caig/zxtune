@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Stub singleton implementation of PlaylistControl
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playback;
 
 import android.net.Uri;
@@ -11,7 +15,6 @@ import android.net.Uri;
 public class PlaylistControlStub implements PlaylistControl {
 
   private PlaylistControlStub() {
-    // TODO Auto-generated constructor stub
   }
 
   @Override

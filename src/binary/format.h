@@ -12,6 +12,8 @@
 
 //library includes
 #include <binary/data.h>
+//std includes
+#include <string>
 
 namespace Binary
 {

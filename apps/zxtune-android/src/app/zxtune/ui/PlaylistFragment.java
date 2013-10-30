@@ -1,11 +1,11 @@
-/*
+/**
+ *
  * @file
- * 
- * @brief Playlist ui class
- * 
- * @version $Id:$
- * 
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Playlist fragment component
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.ui;

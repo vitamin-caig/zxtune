@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief Releaseable interface
- * @version $Id:$
- * @author Vitamin/CAIG
+ *
+ * @brief Releaseable interface declaration
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune;
 
 /**
@@ -12,5 +16,5 @@ package app.zxtune;
  */
 public interface Releaseable {
   
-  public void release();
+  void release();
 }

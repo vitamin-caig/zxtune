@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief Gate to native ZXTune library code
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Gate to native zxtune code and related types
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune;
@@ -11,10 +14,6 @@ import java.lang.RuntimeException;
 import java.nio.ByteBuffer;
 
 public final class ZXTune {
-
-  /*
-   * Public ZXTune interface
-   */
 
   /**
    * Poperties 'namespace'
@@ -48,7 +47,7 @@ public final class ZXTune {
     /**
      * Properties modifier interface
      */
-    public static interface Modifier {
+    public interface Modifier {
 
       /**
        * Setting integer property
@@ -172,26 +171,26 @@ public final class ZXTune {
     /**
      * @return Index of next rendered frame
      */
-    public int getPosition();
+    int getPosition();
 
     /**
      * @param bands Array of bands to store
      * @param levels Array of levels to store
      * @return Count of actually stored entries
      */
-    public int analyze(int bands[], int levels[]);
+    int analyze(int bands[], int levels[]);
     
     /**
      * Render next result.length bytes of sound data
      * @param result Buffer to put data
      * @return Is there more data to render
      */
-    public boolean render(short[] result);
+    boolean render(short[] result);
     
     /**
      * @param pos Index of next rendered frame
      */
-    public void setPosition(int pos);
+    void setPosition(int pos);
   }
   
   public static class GlobalOptions implements Properties.Accessor, Properties.Modifier {

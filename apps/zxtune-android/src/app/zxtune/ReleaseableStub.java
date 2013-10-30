@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Stub singleton implementation of Releaseable
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune;
 
 /**

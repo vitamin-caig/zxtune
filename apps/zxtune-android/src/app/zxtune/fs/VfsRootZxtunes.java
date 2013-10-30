@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Implementation of VfsRoot over http://zxtunes.com catalogue
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs;
 
 import java.io.IOException;

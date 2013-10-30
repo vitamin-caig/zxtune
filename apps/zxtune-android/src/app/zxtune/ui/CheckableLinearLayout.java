@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief LinearLayout implementation with Checkable interface and functionality support
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.ui;
 
 import java.util.LinkedList;
@@ -17,9 +21,6 @@ import android.view.ViewGroup;
 import android.widget.Checkable;
 import android.widget.LinearLayout;
 
-/**
- * 
- */
 public class CheckableLinearLayout extends LinearLayout implements Checkable {
 
   private static final int[] CHECKED_STATE_SET = {android.R.attr.state_checked}; 

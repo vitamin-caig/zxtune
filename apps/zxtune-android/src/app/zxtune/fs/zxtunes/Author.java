@@ -1,14 +1,15 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Author description POJO
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs.zxtunes;
 
-/**
- *  Author descripting POJO 
- */
 public final class Author {
 
   public final int id;

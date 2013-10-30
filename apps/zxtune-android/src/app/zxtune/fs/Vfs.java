@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief Vfs interfaces
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief VFS entry point
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.fs;

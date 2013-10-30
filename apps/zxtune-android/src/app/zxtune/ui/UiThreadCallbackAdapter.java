@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Callback proxy redirecting calls in UI thread
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.ui;
 
 import android.app.Activity;
@@ -34,7 +38,7 @@ public final class UiThreadCallbackAdapter implements Callback {
     
     private final boolean isPlaying;
     
-    public UpdateStatusRunnable(boolean isPlaying) {
+    UpdateStatusRunnable(boolean isPlaying) {
       this.isPlaying = isPlaying;
     }
     
@@ -48,7 +52,7 @@ public final class UiThreadCallbackAdapter implements Callback {
     
     private final Item item;
     
-    public UpdateItemRunnable(Item item) {
+    UpdateItemRunnable(Item item) {
       this.item = item;
     }
     

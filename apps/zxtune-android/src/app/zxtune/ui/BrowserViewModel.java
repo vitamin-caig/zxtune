@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief File browser model
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.ui;
 
 import java.util.ArrayList;
@@ -147,7 +151,7 @@ class RealBrowserViewModel extends BrowserViewModel {
       this.size = (TextView) view.findViewById(R.id.browser_item_size);
     }
     
-    void makeView(VfsDir dir) {
+    final void makeView(VfsDir dir) {
       makeBaseView(dir);
       final int iconId = getIcon(dir);
       if (icon != null) {
@@ -159,7 +163,7 @@ class RealBrowserViewModel extends BrowserViewModel {
       size.setVisibility(View.GONE);
     }
     
-    void makeView(VfsFile file) {
+    final void makeView(VfsFile file) {
       makeBaseView(file);
       if (icon != null) {
         icon.setVisibility(View.GONE);

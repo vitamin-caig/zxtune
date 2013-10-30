@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief BrowserView class
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief File browser view component
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.ui;
@@ -191,7 +194,7 @@ public class BrowserView extends CheckableListView {
     private final VfsDir dir;
     private final BrowserView view;
 
-    public ModelLoader(Context context, VfsDir dir, BrowserView view) {
+    ModelLoader(Context context, VfsDir dir, BrowserView view) {
       super(context);
       this.dir = dir;
       this.view = view;

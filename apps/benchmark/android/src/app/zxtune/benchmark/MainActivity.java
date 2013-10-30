@@ -1,3 +1,13 @@
+/**
+ *
+ * @file
+ *
+ * @brief Main benchmark activity
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ */
+
 package app.zxtune.benchmark;
 
 import android.app.Activity;

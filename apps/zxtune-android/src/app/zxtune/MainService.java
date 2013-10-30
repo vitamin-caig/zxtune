@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief Background service class
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Background playback service
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune;

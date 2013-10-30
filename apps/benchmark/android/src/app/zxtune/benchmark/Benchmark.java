@@ -1,3 +1,13 @@
+/**
+ *
+ * @file
+ *
+ * @brief Gate to jni code
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ */
+
 package app.zxtune.benchmark;
 
 public class Benchmark {

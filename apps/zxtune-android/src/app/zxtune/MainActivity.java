@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief Currently playing activity
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Main application activity
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune;
@@ -117,7 +120,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
 
     private final int count;
 
-    public Adapter(int count) {
+    Adapter(int count) {
       this.count = count;
     }
 

@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief Playlist item
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Database (metadata) item
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.playlist;

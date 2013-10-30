@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief VisualizerView class
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Visualizer view component
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune.ui;
@@ -42,7 +45,7 @@ public class VisualizerView extends View {
     init();
   }
   
-  public final void setSource(Visualizer source) {
+  final void setSource(Visualizer source) {
     updateTask.stop();
     this.source = source;
     updateTask.run();
@@ -102,7 +105,7 @@ public class VisualizerView extends View {
       this.changes = new boolean[1];
     }
     
-    public void sizeChanged() {
+    final void sizeChanged() {
       barRect.bottom = visibleRect.bottom;
       final int bars = visibleRect.width() / BAR_WIDTH;
       values = new int[bars];
@@ -111,7 +114,7 @@ public class VisualizerView extends View {
       upperChange = bars - 1;
     }
 
-    public boolean update() {
+    final boolean update() {
       final int channels = source.getSpectrum(bands, levels);
       updateValues(channels);
       if (lowerChange != upperChange) {
@@ -124,7 +127,7 @@ public class VisualizerView extends View {
       }
     }
 
-    public void draw(Canvas canvas) {
+    final void draw(Canvas canvas) {
       barRect.left = visibleRect.left + BAR_WIDTH * lowerChange;
       barRect.right = barRect.left + BAR_WIDTH - BAR_PADDING;
       final int height = visibleRect.height();
@@ -176,7 +179,7 @@ public class VisualizerView extends View {
       }
     }
 
-    final public void stop() {
+    final void stop() {
       timer.removeCallbacks(this);
     }
   }

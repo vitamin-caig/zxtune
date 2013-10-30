@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Vfs directory object interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.fs;
 
 import java.io.IOException;

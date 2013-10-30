@@ -1,9 +1,13 @@
 /**
+ *
  * @file
- * @brief
- * @version $Id:$
- * @author
+ *
+ * @brief Database iterator helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
+
 package app.zxtune.playlist;
 
 import android.content.ContentResolver;
@@ -11,9 +15,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
-/**
- * 
- */
 public class DatabaseIterator {
   
   private final ContentResolver resolver;

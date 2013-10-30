@@ -1,8 +1,11 @@
-/*
+/**
+ *
  * @file
- * @brief TimeStamp class definition
- * @version $Id:$
- * @author (C) Vitamin/CAIG
+ *
+ * @brief Time stamp value type
+ *
+ * @author vitamin.caig@gmail.com
+ *
  */
 
 package app.zxtune;
@@ -10,9 +13,6 @@ package app.zxtune;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Time stamp interface
- */
 public final class TimeStamp implements Comparable<TimeStamp> {
 
   private static final TimeUnit UNIT = TimeUnit.MILLISECONDS;
@@ -28,7 +28,7 @@ public final class TimeStamp implements Comparable<TimeStamp> {
     return new TimeStamp(val, unit);
   }
 
-  public long convertTo(TimeUnit unit) {
+  public final long convertTo(TimeUnit unit) {
     return unit.convert(value, UNIT);
   }
 
@@ -48,11 +48,11 @@ public final class TimeStamp implements Comparable<TimeStamp> {
     return value == rh.value ? 0 : (value < rh.value ? -1 : +1);
   }
 
-  public long divides(TimeStamp rh) {
+  public final long divides(TimeStamp rh) {
     return value / rh.value;
   }
 
-  public TimeStamp multiplies(long count) {
+  public final TimeStamp multiplies(long count) {
     return new TimeStamp(value * count, UNIT);
   }
 }
