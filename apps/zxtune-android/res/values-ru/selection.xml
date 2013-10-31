@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="menu_selection">Выделить</string>
-    <string name="menu_select_all">Все</string>
-    <string name="menu_select_none">Ничего</string>
-    <string name="menu_select_invert">Наоборот</string>
+    <string name="selection">Выделить</string>
+    <string name="select_all">Все</string>
+    <string name="select_none">Ничего</string>
+    <string name="select_invert">Наоборот</string>
 </resources>

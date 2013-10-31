@@ -92,10 +92,32 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
     transaction.commit();
     final ViewPager pager = (ViewPager) findViewById(R.id.view_pager);
     if (null != pager) {
-      final int childs = pager.getChildCount();
-      pager.setOffscreenPageLimit(childs);
-      pager.setAdapter(new Adapter(childs));
+      setupViewPager(pager);
     }
+  }
+  
+  private void setupViewPager(ViewPager pager) {
+    final int childs = pager.getChildCount() - 1;
+    pager.setOffscreenPageLimit(childs);
+    final String[] titles = new String[childs];
+    for (int i = 0; i != titles.length; ++i) {
+      titles[i] = getTitle(pager.getChildAt(1 + i));
+    }
+    pager.setAdapter(new Adapter(titles));
+  }
+  
+  private String getTitle(View pane) {
+    //only String can be stored in View's tag, so try to decode manually
+    final String ID_PREFIX = "@";
+    final String tag = (String) pane.getTag();
+    return tag.startsWith(ID_PREFIX)
+      ? getStringByName(tag.substring(ID_PREFIX.length()))
+      : tag;
+  }
+  
+  private String getStringByName(String name) {
+    final int id = getResources().getIdentifier(name, null, getPackageName());
+    return getResources().getString(id);
   }
   
   private void showPreferences() {
@@ -118,15 +140,15 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   
   private static class Adapter extends PagerAdapter {
 
-    private final int count;
+    private final String[] titles;
 
-    Adapter(int count) {
-      this.count = count;
+    Adapter(String[] titles) {
+      this.titles = titles;
     }
 
     @Override
     public int getCount() {
-      return count;
+      return titles.length;
     }
 
     @Override
@@ -136,11 +158,16 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-      return container.getChildAt(position);
+      return container.getChildAt(1 + position);
     }
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
+    }
+    
+    @Override
+    public CharSequence getPageTitle(int position) {
+      return titles[position]; 
     }
   }
 }

@@ -8,4 +8,6 @@
     <string name="vfs_zxtunes_root_description" translatable="false">http://www.zxtunes.com</string>
     <string name="vfs_zxtunes_authors_name">Authors</string>
     <string name="vfs_zxtunes_authors_description">ZX Spectrum musicians catalogue</string>
+    <!-- errors -->
+    <string name="network_inaccessible">Network is not accessible</string>
 </resources>

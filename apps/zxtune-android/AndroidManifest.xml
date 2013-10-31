@@ -28,7 +28,7 @@
         </activity>
         <activity
               android:name=".PreferencesActivity"
-              android:label="@string/menu_prefs">
+              android:label="@string/prefs">
             <intent-filter>
                 <action android:name="app.zxtune.PreferencesActivity" />
                 <category android:name="android.intent.category.PREFERENCE" />

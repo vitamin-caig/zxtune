@@ -2,18 +2,18 @@
     xmlns:sabd="http://schemas.android.com/apk/res-auto" >
   <item
     android:id="@+id/action_playlist"
-    android:title="@string/menu_playlist"
+    android:title="@string/playlist"
     sabd:showAsAction="ifRoom"
     >
     <menu>
       <item
         android:id="@+id/action_playlist_add_current"
-        android:title="@string/menu_playlist_add_current"
+        android:title="@string/playlist_add_current"
         sabd:showAsAction="never"
       />
       <item
         android:id="@+id/action_playlist_clear"
-        android:title="@string/menu_playlist_clear"
+        android:title="@string/playlist_clear"
         sabd:showAsAction="never" />
     </menu>
   </item>
