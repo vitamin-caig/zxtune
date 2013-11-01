@@ -36,13 +36,6 @@ fi
 cpus=`grep processor /proc/cpuinfo | wc -l`
 
 makecmd="make release=1 platform=${Platform} arch=${Arch} -C apps/"
-if [ -z "${skip_clearing}" ]; then
-  echo "Clearing"
-  for target in ${Targets}
-  do
-    ${makecmd}${target} clean > /dev/null || exit 1
-  done
-fi
 
 for target in ${Targets}
 do

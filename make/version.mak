@@ -2,8 +2,6 @@
 
 ifndef root.version
 #for git
-update_sources:
-
 root.version = $(shell git describe --dirty=M)
 root.version.index = $(firstword $(subst -, ,$(root.version)))
 ifeq ($(root.version),)
