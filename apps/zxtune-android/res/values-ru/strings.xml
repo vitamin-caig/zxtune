@@ -17,7 +17,7 @@
     <string name="scanning_title">Сканирование.</string>
     <string name="scanning_text">Клик для отмены</string>
     <!-- about-related -->
-    <string name="about_author">Идея, код, дизайн: <b>Vitamin/CAIG</b>\n\nПосвящается <b>Lizzi</b></string>
+    <string name="about_author">Идея, код: <b>Vitamin/CAIG</b>\nДизайн: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\nПосвящается <b>Lizzi</b></string>
     <!-- other -->
     <string name="main">Главная</string>
     <plurals name="items">

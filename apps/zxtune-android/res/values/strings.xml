@@ -17,7 +17,7 @@
     <string name="scanning_title">Scanning.</string>
     <string name="scanning_text">Click to cancel</string>
     <!-- about-related -->
-    <string name="about_author">Idea, code, design: <b>Vitamin/CAIG</b>\n\nDedicated to <b>Lizzi</b></string>
+    <string name="about_author">Idea, code: <b>Vitamin/CAIG</b>\nDesign: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\nDedicated to <b>Lizzi</b></string>
     <!-- other -->
     <string name="main">Main</string>
     <plurals name="items">
