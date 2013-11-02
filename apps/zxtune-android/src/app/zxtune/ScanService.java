@@ -267,7 +267,7 @@ public class ScanService extends IntentService {
 
     private class StatusNotification {
 
-      private final static int notificationId = R.drawable.ic_launcher;//TODO
+      private final static int notificationId = R.drawable.ic_stat_notify_scan;
       private final NotificationManager manager;
       private final NotificationCompat.Builder builder;
       private final CharSequence titlePrefix;
@@ -283,7 +283,7 @@ public class ScanService extends IntentService {
             .setContentIntent(
                 PendingIntent.getService(ScanService.this, 0, cancelIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT)).setOngoing(true).setProgress(0, 0, true)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(notificationId)
             .setContentTitle(titlePrefix)
             .setContentText(getResources().getText(R.string.scanning_text));
       }
