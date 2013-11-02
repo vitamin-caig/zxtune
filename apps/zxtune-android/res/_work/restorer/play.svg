@@ -15,7 +15,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="looped.svg">
+   sodipodi:docname="play.svg">
   <defs
      id="defs4">
     <linearGradient
@@ -55,8 +55,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="-24.007629"
-     inkscape:cy="136.80323"
+     inkscape:cx="71.68942"
+     inkscape:cy="150.54247"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -81,7 +81,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -90,13 +90,13 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-752.36218)"
-     style="opacity:1">
+     style="display:inline">
     <path
        style="fill:url(#linearGradient3844);fill-opacity:1;stroke:#b4b4b4;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter4226)"
-       d="M 100,146 40,96 80,96 c 0,-60 30,-90 90,-90 70,0 100,30 100,100 0,60 -30,90 -100,90 l -140,0 0,-40 140,0 c 50,0 60,-10 60,-50 0,-50 -10,-60 -60,-60 -40,0 -50,10 -50,50 l 40,0 z"
+       d="M 250,106 50,226 50,-14 z"
        id="path2987"
        inkscape:connector-curvature="0"
        transform="translate(0,796.36218)"
-       sodipodi:nodetypes="cccccccccccccc" />
+       sodipodi:nodetypes="cccc" />
   </g>
 </svg>

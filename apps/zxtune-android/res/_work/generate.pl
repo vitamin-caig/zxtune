@@ -4,9 +4,9 @@ use strict;
 use Data::Dumper;
 
 my $traits = {
-              launcher => {'-mdpi' => '48x48', '-hdpi' => '72x72', '-xhdpi' => '96x96'},
-              status => {'-mdpi' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48'},
-              icon => {'-mdpi' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64'},
+              launcher => {'-mdpi' => '48x48', '-hdpi' => '72x72', '-xhdpi' => '96x96', '-xxhdpi' => '144x144'},
+              status => {'-mdpi' => '24x24', '-hdpi' => '36x36', '-xhdpi' => '48x48', '-xxhdpi' => '72x72'},
+              icon => {'-mdpi' => '32x32', '-hdpi' => '48x48', '-xhdpi' => '64x64', '-xxhdpi' => '96x96'},
              };
 
 sub convert
@@ -18,7 +18,7 @@ sub convert
   my $tgt = $icon->{target};
   my $ctg = $icon->{category};
   my $qual = $icon->{qualifiers};
-  for my $dpi ('', '-ldpi', '-mdpi', '-hdpi', '-xhdpi')
+  for my $dpi ('', '-ldpi', '-mdpi', '-hdpi', '-xhdpi', '-xxhdpi')
   {
     next unless ${traits}->{${ctg}}->{${dpi}} =~ /(\d+)x(\d+)/;
     my $fld = "../drawable${dpi}${qual}";
@@ -37,11 +37,12 @@ sub convert
 }
 
 #convert({source => 'logo.svg', target => 'ic_launcher.png', category => 'launcher'});
-#convert({source => 'folder.svg', target => 'ic_browser_folder.png', category => 'icon'});
-#convert({source => 'play.svg', target => 'ic_play.png', category => 'icon'});
-#convert({source => 'next.svg', target => 'ic_next.png', category => 'icon'});
-#convert({source => 'prev.svg', target => 'ic_prev.png', category => 'icon'});
-#convert({source => 'pause.svg', target => 'ic_pause.png', category => 'icon'});
+convert({source => 'restorer/play.svg', target => 'ic_play.png', category => 'icon'});
+convert({source => 'restorer/next.svg', target => 'ic_next.png', category => 'icon'});
+convert({source => 'restorer/prev.svg', target => 'ic_prev.png', category => 'icon'});
+convert({source => 'restorer/pause.svg', target => 'ic_pause.png', category => 'icon'});
+convert({source => 'restorer/folder.svg', target => 'ic_browser_folder.png', category => 'icon'});
+
 convert({source => 'status.svg', target => 'ic_stat_notify_play.png', category => 'status'});
 convert({source => 'scanning.svg', target => 'ic_stat_notify_scan.png', category => 'status'});
 convert({source => 'vfs_local.svg', target => 'ic_browser_vfs_local.png', category => 'icon'});
