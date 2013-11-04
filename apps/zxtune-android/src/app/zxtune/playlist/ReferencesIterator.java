@@ -34,4 +34,19 @@ public interface ReferencesIterator {
    * @return true if moved to previous position
    */
   public boolean prev();
+  
+  /**
+   * @return false if underlying list is empty
+   */
+  public boolean first();
+  
+  /**
+   * @return false if underlying list is empty
+   */
+  public boolean last();
+  
+  /**
+   * @return false if underlying list is empty
+   */
+  public boolean random();
 }

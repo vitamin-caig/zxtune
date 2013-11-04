@@ -25,7 +25,7 @@ import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator;
 import app.zxtune.playlist.XspfIterator;
 
-final class PlaylistFileIterator extends Iterator {
+final class PlaylistFileIterator implements Iterator {
 
   private final VfsRoot root;
   private final ReferencesIterator delegate;

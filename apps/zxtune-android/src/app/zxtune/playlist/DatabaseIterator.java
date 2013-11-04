@@ -73,6 +73,11 @@ public class DatabaseIterator {
     }
     return new DatabaseIterator(resolver, last);
   }
+  
+  public final DatabaseIterator getRandom() {
+    final Item rand = select("RANDOM() LIMIT 1");
+    return new DatabaseIterator(resolver, rand);
+  }
 
   private Item advance(Long curId, String selection, String order) {
     final Cursor cursor = resolver.query(Query.unparse(null), null, selection, new String[] {curId.toString()}, order);

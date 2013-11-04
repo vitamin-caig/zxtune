@@ -21,7 +21,7 @@ import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsRoot;
 import app.zxtune.playlist.DatabaseIterator;
 
-class PlaylistIterator extends Iterator {
+class PlaylistIterator implements Iterator {
   
   private final VfsRoot root;
   private DatabaseIterator delegate;

@@ -74,7 +74,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void run() {
       try {
-        final Iterator iter = Iterator.create(context, uris);
+        final Iterator iter = IteratorFactory.createIterator(context, uris);
         play(iter);
       } catch (IOException e) {
         Log.w(TAG, "setNowPlaying()", e);
