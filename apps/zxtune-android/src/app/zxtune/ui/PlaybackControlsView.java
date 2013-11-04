@@ -13,6 +13,7 @@ package app.zxtune.ui;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import app.zxtune.R;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackControl.TrackMode;
@@ -24,7 +25,7 @@ class PlaybackControlsView {
   private final ImageButton prev;
   private final ImageButton playPause;
   private final ImageButton next;
-  private final ImageButton trackMode;
+  private final ImageView trackMode;
   private final ImageButton sequenceMode;
   private PlaybackControl control;
 
@@ -32,7 +33,7 @@ class PlaybackControlsView {
     this.prev = (ImageButton) view.findViewById(R.id.controls_prev);
     this.playPause = (ImageButton) view.findViewById(R.id.controls_play_pause);
     this.next = (ImageButton) view.findViewById(R.id.controls_next);
-    this.trackMode = (ImageButton) view.findViewById(R.id.controls_track_mode);
+    this.trackMode = (ImageView) view.findViewById(R.id.controls_track_mode);
     this.sequenceMode = (ImageButton) view.findViewById(R.id.controls_sequence_mode);
     
     control = PlaybackControlStub.instance();

@@ -22,15 +22,10 @@
     android:layout_weight="1"
     />
   <ImageButton
-    android:id="@+id/controls_track_mode"
-    android:src="@drawable/track_mode"
-    style="@style/button"
-    android:layout_weight="1"
-    />
-  <ImageButton
     android:id="@+id/controls_sequence_mode"
     android:src="@drawable/sequence_mode"
     style="@style/button"
     android:layout_weight="1"
+    android:layout_marginLeft="@dimen/spacing_full"
     />
 </LinearLayout>
