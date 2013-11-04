@@ -23,6 +23,7 @@ import android.util.Log;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
+import app.zxtune.playback.PlaybackControl.TrackMode;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
@@ -146,9 +147,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void saveProperty(String name, boolean value) {
+  private void saveProperty(String name, int value) {
     final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    prefs.edit().putBoolean(name, value).commit();
+    prefs.edit().putInt(name, value).commit();
   }
 
   private static class Holder implements Releaseable {
@@ -222,14 +223,16 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public boolean isLooped() {
+    public TrackMode getTrackMode() {
       final long val = ZXTune.GlobalOptions.instance().getProperty(ZXTune.Properties.Sound.LOOPED, 0);
-      return val != 0;
+      return val != 0 ? TrackMode.LOOPED : TrackMode.REGULAR;
     }
     
-    public void setLooped(boolean looped) {
-      ZXTune.GlobalOptions.instance().setProperty(ZXTune.Properties.Sound.LOOPED, looped ? 1 : 0);
-      saveProperty(ZXTune.Properties.Sound.LOOPED, looped);
+    @Override
+    public void setTrackMode(TrackMode mode) {
+      final long val = mode == TrackMode.LOOPED ? 1 : 0;
+      ZXTune.GlobalOptions.instance().setProperty(ZXTune.Properties.Sound.LOOPED, val);
+      saveProperty(ZXTune.Properties.Sound.LOOPED, mode.ordinal());
     }
   }
   

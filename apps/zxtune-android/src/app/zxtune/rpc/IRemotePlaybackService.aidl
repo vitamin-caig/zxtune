@@ -26,8 +26,8 @@ interface IRemotePlaybackService {
   boolean isPlaying();
   void next();
   void prev();
-  boolean isLooped();
-  void setLooped(boolean val);
+  int getTrackMode();
+  void setTrackMode(in int val);
   
   //SeekControl
   long getDuration();
@@ -38,6 +38,6 @@ interface IRemotePlaybackService {
   int[] getSpectrum();
   
   //subscription
-  void subscribe(IRemoteCallback callback);
-  void unsubscribe(IRemoteCallback callback);
+  void subscribe(in IRemoteCallback callback);
+  void unsubscribe(in IRemoteCallback callback);
 }

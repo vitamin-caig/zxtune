@@ -10,9 +10,6 @@
 
 package app.zxtune.playback;
 
-/**
- * 
- */
 public class PlaybackControlStub implements PlaybackControl {
 
   private PlaybackControlStub() {
@@ -40,11 +37,12 @@ public class PlaybackControlStub implements PlaybackControl {
   }
 
   @Override
-  public boolean isLooped() {
-    return false;
+  public TrackMode getTrackMode() {
+    return TrackMode.REGULAR;
   }
   
-  public void setLooped(boolean looped) {
+  @Override
+  public void setTrackMode(TrackMode mode) {
   }
   
   public static PlaybackControl instance() {

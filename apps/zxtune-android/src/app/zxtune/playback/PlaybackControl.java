@@ -11,6 +11,16 @@
 package app.zxtune.playback;
 
 public interface PlaybackControl {
+  
+  /**
+   * Track playback mode
+   */
+  public enum TrackMode {
+    /// Play track from start to end
+    REGULAR,
+    /// Loop track according to internal information
+    LOOPED,
+  }
 
   /*
    * Activate currently playing item
@@ -38,12 +48,12 @@ public interface PlaybackControl {
   public void prev();
   
   /*
-   * @return true if playback is looped
+   * @return Track playback mode
    */
-  public boolean isLooped();
+  public TrackMode getTrackMode();
   
   /*
-   * Set loop mode
+   * Set track playback mode
    */
-  public void setLooped(boolean looped);
+  public void setTrackMode(TrackMode mode);
 }

@@ -15,6 +15,7 @@ import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import app.zxtune.R;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.PlaybackControl.TrackMode;
 import app.zxtune.playback.PlaybackControlStub;
 
 class PlaybackControlsView {
@@ -59,7 +60,12 @@ class PlaybackControlsView {
     loop.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
-        control.setLooped(!control.isLooped());
+        final TrackMode[] availModes = TrackMode.values();
+        final TrackMode curMode = control.getTrackMode();
+        TrackMode newMode = curMode == availModes[availModes.length - 1]
+          ? availModes[0]
+          : availModes[curMode.ordinal() + 1];
+        control.setTrackMode(newMode);
         updateLoopStatus();
       }
     });
@@ -71,11 +77,13 @@ class PlaybackControlsView {
   }
   
   final void updateStatus(boolean playing) {
-    playPause.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
+    final int level = playing ? 1 : 0;
+    playPause.getDrawable().setLevel(level);
     updateLoopStatus();
   }
   
   private void updateLoopStatus() {
-    loop.setImageResource(control.isLooped() ? R.drawable.ic_loop : R.drawable.ic_sequence);
+    final int level = control.getTrackMode().ordinal();
+    loop.getDrawable().setLevel(level);
   }
 }

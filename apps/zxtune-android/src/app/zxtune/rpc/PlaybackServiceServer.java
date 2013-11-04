@@ -20,6 +20,7 @@ import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.PlaybackControl.TrackMode;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaylistControl;
 import app.zxtune.playback.SeekControl;
@@ -94,13 +95,13 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   }
   
   @Override
-  public boolean isLooped() {
-    return playback.isLooped();
+  public int getTrackMode() {
+    return playback.getTrackMode().ordinal();
   }
   
   @Override
-  public void setLooped(boolean looped) {
-    playback.setLooped(looped);
+  public void setTrackMode(int mode) {
+    playback.setTrackMode(TrackMode.values()[mode]);
   }
   
   @Override
