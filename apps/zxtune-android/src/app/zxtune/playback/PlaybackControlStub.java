@@ -10,6 +10,8 @@
 
 package app.zxtune.playback;
 
+import app.zxtune.playback.PlaybackControl.SequenceMode;
+
 public class PlaybackControlStub implements PlaybackControl {
 
   private PlaybackControlStub() {
@@ -43,6 +45,13 @@ public class PlaybackControlStub implements PlaybackControl {
   
   @Override
   public void setTrackMode(TrackMode mode) {
+  }
+  
+  public SequenceMode getSequenceMode() {
+    return SequenceMode.ORDERED;
+  }
+  
+  public void setSequenceMode(SequenceMode mode) {
   }
   
   public static PlaybackControl instance() {

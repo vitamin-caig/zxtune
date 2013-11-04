@@ -37,15 +37,20 @@ sub convert
 }
 
 #convert({source => 'logo.svg', target => 'ic_launcher.png', category => 'launcher'});
-convert({source => 'restorer/play.svg', target => 'ic_play.png', category => 'icon'});
-convert({source => 'restorer/next.svg', target => 'ic_next.png', category => 'icon'});
-convert({source => 'restorer/prev.svg', target => 'ic_prev.png', category => 'icon'});
-convert({source => 'restorer/pause.svg', target => 'ic_pause.png', category => 'icon'});
-convert({source => 'restorer/folder.svg', target => 'ic_browser_folder.png', category => 'icon'});
 
-convert({source => 'status.svg', target => 'ic_stat_notify_play.png', category => 'status'});
-convert({source => 'scanning.svg', target => 'ic_stat_notify_scan.png', category => 'status'});
-convert({source => 'vfs_local.svg', target => 'ic_browser_vfs_local.png', category => 'icon'});
-convert({source => 'vfs_zxtunes.svg', target => 'ic_browser_vfs_zxtunes.png', category => 'icon'});
-convert({source => 'sequential.svg', target => 'ic_sequence.png', category => 'icon'});
-convert({source => 'looped.svg', target => 'ic_loop.png', category => 'icon'});
+#convert({source => 'restorer/play.svg', target => 'ic_play.png', category => 'icon'});
+#convert({source => 'restorer/next.svg', target => 'ic_next.png', category => 'icon'});
+#convert({source => 'restorer/prev.svg', target => 'ic_prev.png', category => 'icon'});
+#convert({source => 'restorer/pause.svg', target => 'ic_pause.png', category => 'icon'});
+#convert({source => 'restorer/folder.svg', target => 'ic_browser_folder.png', category => 'icon'});
+
+#convert({source => 'status.svg', target => 'ic_stat_notify_play.png', category => 'status'});
+#convert({source => 'scanning.svg', target => 'ic_stat_notify_scan.png', category => 'status'});
+#convert({source => 'vfs_local.svg', target => 'ic_browser_vfs_local.png', category => 'icon'});
+#convert({source => 'vfs_zxtunes.svg', target => 'ic_browser_vfs_zxtunes.png', category => 'icon'});
+
+#convert({source => 'track_regular.svg', target => 'ic_track_regular.png', category => 'icon'});
+#convert({source => 'track_looped.svg', target => 'ic_track_looped.png', category => 'icon'});
+#convert({source => 'sequence_ordered.svg', target => 'ic_sequence_ordered.png', category => 'icon'});
+convert({source => 'sequence_looped.svg', target => 'ic_sequence_looped.png', category => 'icon'});
+#convert({source => 'sequence_shuffle.svg', target => 'ic_sequence_shuffle.png', category => 'icon'});

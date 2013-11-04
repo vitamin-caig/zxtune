@@ -21,6 +21,18 @@ public interface PlaybackControl {
     /// Loop track according to internal information
     LOOPED,
   }
+  
+  /**
+   * Tracks collection playback mode
+   */
+  public enum SequenceMode {
+    /// Play collection from start to end
+    ORDERED,
+    /// Loop collection (if possible)
+    LOOPED,
+    /// Random position
+    SHUFFLE,
+  }
 
   /*
    * Activate currently playing item
@@ -56,4 +68,14 @@ public interface PlaybackControl {
    * Set track playback mode
    */
   public void setTrackMode(TrackMode mode);
+  
+  /*
+   * @return Sequence playback mode
+   */
+  public SequenceMode getSequenceMode();
+  
+  /*
+   * Set sequence playback mode
+   */
+  public void setSequenceMode(SequenceMode mode);
 }

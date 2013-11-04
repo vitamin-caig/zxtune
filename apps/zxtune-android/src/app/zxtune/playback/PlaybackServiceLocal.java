@@ -147,11 +147,11 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void saveProperty(String name, int value) {
+  private void saveProperty(String name, String value) {
     final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    prefs.edit().putInt(name, value).commit();
+    prefs.edit().putString(name, value).commit();
   }
-
+  
   private static class Holder implements Releaseable {
 
     public final Iterator iterator;
@@ -186,6 +186,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
   
   private final class DispatchedPlaybackControl implements PlaybackControl {
+    
+    private final IteratorFactory.NavigationMode navigation;
+    
+    DispatchedPlaybackControl() {
+      this.navigation = new IteratorFactory.NavigationMode(context);
+    }
     
     @Override
     public void play() {
@@ -232,7 +238,17 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
       ZXTune.GlobalOptions.instance().setProperty(ZXTune.Properties.Sound.LOOPED, val);
-      saveProperty(ZXTune.Properties.Sound.LOOPED, mode.ordinal());
+      saveProperty(ZXTune.Properties.Sound.LOOPED, mode.toString());
+    }
+    
+    @Override
+    public SequenceMode getSequenceMode() {
+      return navigation.get();
+    }
+    
+    @Override
+    public void setSequenceMode(SequenceMode mode) {
+      navigation.set(mode);
     }
   }
   

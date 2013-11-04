@@ -85,8 +85,7 @@ public class DatabaseIterator {
   }
   
   private Item select(String order) {
-    final String selection = "*";
-    final Cursor cursor = resolver.query(Query.unparse(null), null, selection, null, order);
+    final Cursor cursor = resolver.query(Query.unparse(null), null, null, null, order);
     return loadItem(cursor);
   }
   

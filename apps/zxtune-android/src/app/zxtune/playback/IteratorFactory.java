@@ -13,7 +13,10 @@ import java.io.IOException;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
+import android.preference.PreferenceManager;
+import app.zxtune.playback.PlaybackControl.SequenceMode;
 
 public final class IteratorFactory {
 
@@ -49,6 +52,25 @@ public final class IteratorFactory {
       return createIterator(context, uris[0]);
     } else {
       return new FileIterator(context, uris);
+    }
+  }
+  
+  //TODO: implement abstract iterator-typed visitor and preferences notification 
+  static class NavigationMode {
+    
+    private final static String KEY = "playlist.navigation_mode";
+    private final SharedPreferences prefs;
+    
+    NavigationMode(Context context) {
+      this.prefs = PreferenceManager.getDefaultSharedPreferences(context);
+    }
+    
+    final void set(SequenceMode mode) {
+      prefs.edit().putString(KEY, mode.toString()).apply();
+    }
+    
+    final SequenceMode get() {
+      return SequenceMode.valueOf(prefs.getString(KEY, SequenceMode.ORDERED.toString()));
     }
   }
   

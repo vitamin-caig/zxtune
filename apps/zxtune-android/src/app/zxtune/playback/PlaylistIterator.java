@@ -24,11 +24,13 @@ import app.zxtune.playlist.DatabaseIterator;
 class PlaylistIterator implements Iterator {
   
   private final VfsRoot root;
+  private final IteratorFactory.NavigationMode navigation;
   private DatabaseIterator delegate;
   private PlayableItem item;
 
   public PlaylistIterator(Context context, Uri id) throws IOException {
     this.root = Vfs.createRoot(context);
+    this.navigation = new IteratorFactory.NavigationMode(context);
     this.delegate = new DatabaseIterator(context, id);
     this.item = loadItem(delegate); 
   }
@@ -40,12 +42,36 @@ class PlaylistIterator implements Iterator {
 
   @Override
   public boolean next() {
-    return updateItem(delegate.getNext());
+    return updateItem(getNext());
+  }
+  
+  private DatabaseIterator getNext() {
+    switch (navigation.get()) {
+      case LOOPED:
+        final DatabaseIterator next = delegate.getNext();
+        return next.isValid() ? next : delegate.getFirst();
+      case SHUFFLE:
+        return delegate.getRandom();
+      default:
+        return delegate.getNext();
+    }
   }
 
   @Override
   public boolean prev() {
-    return updateItem(delegate.getPrev());
+    return updateItem(getPrev());
+  }
+
+  private DatabaseIterator getPrev() {
+    switch (navigation.get()) {
+      case LOOPED:
+        final DatabaseIterator prev = delegate.getPrev();
+        return prev.isValid() ? prev : delegate.getLast();
+      case SHUFFLE:
+        return delegate.getRandom();
+      default:
+        return delegate.getPrev();
+    }
   }
   
   private boolean updateItem(DatabaseIterator iter) {

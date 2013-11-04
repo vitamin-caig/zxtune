@@ -20,6 +20,7 @@ import app.zxtune.TimeStamp;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.PlaybackControl.SequenceMode;
 import app.zxtune.playback.PlaybackControl.TrackMode;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.PlaylistControl;
@@ -102,6 +103,16 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   @Override
   public void setTrackMode(int mode) {
     playback.setTrackMode(TrackMode.values()[mode]);
+  }
+  
+  @Override
+  public int getSequenceMode() {
+    return playback.getSequenceMode().ordinal();
+  }
+  
+  @Override
+  public void setSequenceMode(int mode) {
+    playback.setSequenceMode(SequenceMode.values()[mode]);
   }
   
   @Override

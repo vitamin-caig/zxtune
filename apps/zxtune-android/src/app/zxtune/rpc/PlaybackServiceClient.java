@@ -207,6 +207,25 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.e(TAG, "setTrackMode()", e);
       }
     }
+
+    @Override
+    public SequenceMode getSequenceMode() {
+      try {
+        return SequenceMode.values()[delegate.getSequenceMode()];
+      } catch (RemoteException e) {
+        Log.e(TAG, "getSequenceMode()", e);
+        return SequenceMode.ORDERED;
+      }
+    }
+    
+    @Override
+    public void setSequenceMode(SequenceMode mode) {
+      try {
+        delegate.setSequenceMode(mode.ordinal());
+      } catch (RemoteException e) {
+        Log.e(TAG, "setSequenceMode()", e);
+      }
+    }
   }
   
   private class SeekControlClient implements SeekControl {

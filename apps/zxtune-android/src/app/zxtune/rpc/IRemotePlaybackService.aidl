@@ -28,6 +28,8 @@ interface IRemotePlaybackService {
   void prev();
   int getTrackMode();
   void setTrackMode(in int val);
+  int getSequenceMode();
+  void setSequenceMode(in int val);
   
   //SeekControl
   long getDuration();
