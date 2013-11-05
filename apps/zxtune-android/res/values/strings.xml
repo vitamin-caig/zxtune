@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="menu_prefs">Preferences</string>
-    <string name="menu_about">About</string>
-    <string name="menu_quit">Quit</string>
+    <!-- menu-related -->
+    <string name="prefs">Preferences</string>
+    <string name="about">About</string>
+    <string name="quit">Quit</string>
     <!-- action-related -->
-    <string name="menu_play">Play</string>
-    <string name="menu_add">Add</string>
-    <string name="menu_delete">Delete</string>
+    <string name="play">Play</string>
+    <string name="add">Add</string>
+    <string name="delete">Delete</string>
     <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>
     <string name="information_program">Program</string>
     <string name="information_comment">Comment</string>
     <string name="information_location">Location</string>
-    <string name="playlist_empty">Playlist is empty</string>
-    <string name="browser_empty">No files</string>
     <string name="scanning_title">Scanning.</string>
     <string name="scanning_text">Click to cancel</string>
     <!-- about-related -->
-    <string name="about_author">Idea, code, design: <b>Vitamin/CAIG</b>\n\nDedicated to <b>Lizzi</b></string>
+    <string name="about_author">Idea, code: <b>Vitamin/CAIG</b>\nDesign: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\nDedicated to <b>Lizzi</b></string>
     <!-- other -->
+    <string name="main">Main</string>
     <plurals name="items">
       <item quantity="one">%d item</item>
       <item quantity="other">%d items</item>
@@ -28,6 +28,4 @@
       <item quantity="one">%d track</item>
       <item quantity="other">%d tracks</item>
     </plurals>
-    <!-- errors -->
-    <string name="network_inaccessible">Network is not accessible</string>
 </resources>

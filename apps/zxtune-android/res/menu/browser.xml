@@ -2,10 +2,10 @@
     xmlns:sabd="http://schemas.android.com/apk/res-auto" >
   <item
     android:id="@+id/action_play"
-    android:title="@string/menu_play"
+    android:title="@string/play"
     sabd:showAsAction="ifRoom" />
   <item
     android:id="@+id/action_add"
-    android:title="@string/menu_add"
+    android:title="@string/add"
     sabd:showAsAction="ifRoom" />
 </menu>

@@ -88,10 +88,12 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     listing.setEmptyView(view.findViewById(R.id.browser_stub));
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
 
+    final Uri currentPath = state.getCurrentPath(); 
     if (savedInstanceState == null) {
       Log.d(TAG, "Load persistent state");
-      loadListing(state.getCurrentPath());
+      loadBrowser(currentPath);
     } else {
+      loadNavigation(currentPath);
       loadListing();
     }
   }
@@ -214,7 +216,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   private void setCurrentDir(VfsDir dir) {
     storeCurrentViewPosition();
     setNewState(dir.getUri());
-    loadListing(dir);
+    loadBrowser(dir);
   }
 
   private void storeCurrentViewPosition() {
@@ -226,25 +228,42 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     state.setCurrentPath(uri);
   }
   
-  private void loadListing() {
-    listing.load(getLoaderManager());
-  }
-  
-  private void loadListing(Uri path) {
+  private void loadBrowser(Uri path) {
     try {
       final VfsDir dir = (VfsDir) root.resolve(path);
-      loadListing(dir);
+      loadBrowser(dir);
     } catch (IOException e) {
       listing.showError(e);
     }
   }
   
-  private void loadListing(VfsDir dir) {
+  private void loadBrowser(VfsDir dir) {
+    loadNavigation(dir);
+    loadListing(dir);
+  }
+  
+  private void loadNavigation(Uri path) {
+    try {
+      final VfsDir dir = (VfsDir) root.resolve(path);
+      loadNavigation(dir);
+    } catch (IOException e) {
+      listing.showError(e);
+    }
+  }
+
+  private void loadListing() {
+    listing.load(getLoaderManager());
+  }
+  
+  private void loadNavigation(VfsDir dir) {
     if (dir == root) {
       position.setDir(null);
     } else {
       position.setDir(dir);
     }
+  }
+
+  private void loadListing(VfsDir dir) {
     listing.load(getLoaderManager(), dir, state.getCurrentViewPosition());
   }
 }

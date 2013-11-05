@@ -28,8 +28,8 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.Iterator;
+import app.zxtune.playback.IteratorFactory;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.PlayableItemStub;
 import app.zxtune.playlist.Item;
@@ -104,7 +104,7 @@ public class ScanService extends IntentService {
       Log.d(TAG, "scan on " + uri);
     }
     try {
-      final Iterator iter = Iterator.create(this, uris);
+      final Iterator iter = IteratorFactory.createIterator(this, uris);
       do {
         final PlayableItem item = iter.getItem();
         try {
@@ -267,7 +267,7 @@ public class ScanService extends IntentService {
 
     private class StatusNotification {
 
-      private final static int notificationId = R.drawable.ic_launcher;//TODO
+      private final static int notificationId = R.drawable.ic_stat_notify_scan;
       private final NotificationManager manager;
       private final NotificationCompat.Builder builder;
       private final CharSequence titlePrefix;
@@ -283,7 +283,7 @@ public class ScanService extends IntentService {
             .setContentIntent(
                 PendingIntent.getService(ScanService.this, 0, cancelIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT)).setOngoing(true).setProgress(0, 0, true)
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(notificationId)
             .setContentTitle(titlePrefix)
             .setContentText(getResources().getText(R.string.scanning_text));
       }

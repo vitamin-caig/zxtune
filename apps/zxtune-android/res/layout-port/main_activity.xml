@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  >
+  <android.support.v4.view.ViewPager
+    android:id="@+id/view_pager"
+    android:layout_width="match_parent"
+    android:layout_height="0px"
+    android:layout_weight="1"
+  >
+  <android.support.v4.view.PagerTabStrip
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="top"
+  />
+  <FrameLayout
+    android:tag="@string/main"
+    android:id="@+id/now_playing"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+  />
+  <FrameLayout
+    android:tag="@string/playlist"
+    android:id="@+id/playlist_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+  />
+  <FrameLayout
+    android:tag="@string/browser"
+    android:id="@+id/browser_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+  />
+  </android.support.v4.view.ViewPager>
+</LinearLayout>

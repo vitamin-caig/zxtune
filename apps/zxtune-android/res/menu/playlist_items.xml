@@ -2,6 +2,6 @@
     xmlns:sabd="http://schemas.android.com/apk/res-auto" >
   <item
     android:id="@+id/action_delete"
-    android:title="@string/menu_delete"
+    android:title="@string/delete"
     sabd:showAsAction="ifRoom" />
 </menu>

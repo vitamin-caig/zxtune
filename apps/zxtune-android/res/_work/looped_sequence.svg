@@ -15,7 +15,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="Новый документ 1">
+   sodipodi:docname="looped.svg">
   <defs
      id="defs4">
     <linearGradient
@@ -34,10 +34,11 @@
        xlink:href="#linearGradient3838"
        id="linearGradient3844"
        x1="220"
-       y1="196"
+       y1="197.42857"
        x2="220"
-       y2="16"
-       gradientUnits="userSpaceOnUse" />
+       y2="17.42857"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(0,72.57143)" />
     <filter
        inkscape:collect="always"
        id="filter4226">
@@ -54,9 +55,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="120.56813"
-     inkscape:cy="150.54247"
+     inkscape:zoom="0.7"
+     inkscape:cx="331.64269"
+     inkscape:cy="46.597491"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -92,11 +93,9 @@
      transform="translate(0,-752.36218)"
      style="opacity:1">
     <path
-       style="fill:url(#linearGradient3844);fill-opacity:1;stroke:#b4b4b4;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;filter:url(#filter4226);stroke-miterlimit:4;stroke-dasharray:none"
-       d="m 270,106 -80,80 0,-60 -160,0 0,-40 160,0 0,-60 z"
-       id="path2987"
-       inkscape:connector-curvature="0"
-       transform="translate(0,796.36218)"
-       sodipodi:nodetypes="cccccccc" />
+       style="fill:url(#linearGradient3844);fill-opacity:1;stroke:#b4b4b4;stroke-width:4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;filter:url(#filter4226)"
+       d="M 270 30 L 130.71875 30.71875 C 60.71875 30.71875 30.71875 60.71875 30.71875 120.71875 L 30.71875 220.71875 L 80.71875 140.71875 L 60.71875 150.71875 L 60.71875 120.71875 C 60.71875 80.71875 80.71875 60.71875 130.71875 60.71875 L 270.71875 60.71875 L 270 30 z M 270 80 L 220 160 L 240 150 L 240 180 C 240 220 220 240 170 240 L 30 240 L 30 270 L 170 270 C 240 270 270 240 270 180 L 270 80 z "
+       transform="translate(0,752.36218)"
+       id="path2987" />
   </g>
 </svg>

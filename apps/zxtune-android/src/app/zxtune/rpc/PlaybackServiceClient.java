@@ -190,21 +190,40 @@ public final class PlaybackServiceClient implements PlaybackService {
     }
     
     @Override
-    public boolean isLooped() {
+    public TrackMode getTrackMode() {
       try {
-        return delegate.isLooped();
+        return TrackMode.values()[delegate.getTrackMode()];
       } catch (RemoteException e) {
-        Log.e(TAG, "isLooped()", e);
-        return false;
+        Log.e(TAG, "getTrackMode()", e);
+        return TrackMode.REGULAR;
       }
     }
     
     @Override
-    public void setLooped(boolean looped) {
+    public void setTrackMode(TrackMode mode) {
       try {
-        delegate.setLooped(looped);
+        delegate.setTrackMode(mode.ordinal());
       } catch (RemoteException e) {
-        Log.e(TAG, "setLooped()", e);
+        Log.e(TAG, "setTrackMode()", e);
+      }
+    }
+
+    @Override
+    public SequenceMode getSequenceMode() {
+      try {
+        return SequenceMode.values()[delegate.getSequenceMode()];
+      } catch (RemoteException e) {
+        Log.e(TAG, "getSequenceMode()", e);
+        return SequenceMode.ORDERED;
+      }
+    }
+    
+    @Override
+    public void setSequenceMode(SequenceMode mode) {
+      try {
+        delegate.setSequenceMode(mode.ordinal());
+      } catch (RemoteException e) {
+        Log.e(TAG, "setSequenceMode()", e);
       }
     }
   }

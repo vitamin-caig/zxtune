@@ -10,7 +10,7 @@
 
 package app.zxtune.playback;
 
-public final class IteratorStub extends Iterator {
+public final class IteratorStub implements Iterator {
 
   private IteratorStub() {
   }
@@ -29,7 +29,6 @@ public final class IteratorStub extends Iterator {
   public boolean prev() {
     return false;
   }
-
 
   public static Iterator instance() {
     return Holder.INSTANCE;

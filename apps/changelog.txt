@@ -7,6 +7,35 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Fixed files auto-renaming while export/convert.
+[*] Fixed AS0/ASC playback
+[*] xtractor: fixes in scanning engine
+[*] xtractor: supported TurboSound containers
+[+] xtractor: supported graphic images exctracting
+[+] xtractor: supported ASC Screen Crusher
+[+] xtractor: supported LaserCompact 4.0
+[+] xtractor: supported LaserCompact 5.2
+[+] zxtune-android: fast scroll for playlist and browser
+[+] zxtune-android: selection mode for playlist
+[+] zxtune-android: action for adding now playing file to playlist
+[+] zxtune-android: xxhdpi resolution support
+[+] zxtune-android: playlist loop and random playback
+[+] zxtune-android: looped modules playback
+[+] zxtune-android: sliding panes navigation bar
+[+] zxtune-android: adding/playback of single .xspf playlist file
+[+] zxtune-android: adding/playback of single .ayl playlist file
+[*] zxtune-android: fixed working on older versions
+[*] zxtune-android: fixed crash on non-playable item play
+[*] zxtune-android: updated launcher icon and other graphics
+[*] zxtune-android: minimal supported version is 2.3.5 (API v10)
+[*] zxtune-android: fixed crash on invalid content scan
+[*] zxtune-android: fixed database connection leak for http://zxtunes.com provider
+[*] zxtune-android: improved network error diagnistics in case of network absence
+[*] zxtune-android: fixed browser breadcrumbs disappearing on orientation change
+
+
+--- Rev2652 from 15.10.2013
+
 [*] Fixed TRUSH packed blocks processing with non-standard depacker
 [+] xtractor: new experimental scanner
 [+] xtractor: full archives and chiptunes set support (except TurboSound containers)
@@ -17,7 +46,7 @@ Annotation:
 [*] zxtune-android: improved errors processing in file browser
 [*] zxtune-android: human-readable objects sizes in file browser
 
---- $Rev: 2635 from 01.10.2013
+--- Rev2635 from 01.10.2013
 
 [*] Reduced delay on tracks switch
 [*] Improved error processing in DirectSound backend

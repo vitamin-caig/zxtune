@@ -23,7 +23,7 @@ import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsIterator;
 
 
-public class FileIterator extends Iterator {
+public class FileIterator implements Iterator {
   
   private static final int MAX_VISITED = 10;
   

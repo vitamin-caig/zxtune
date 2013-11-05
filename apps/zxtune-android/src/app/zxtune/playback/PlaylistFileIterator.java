@@ -21,16 +21,18 @@ import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsRoot;
+import app.zxtune.playback.IteratorFactory.NavigationMode;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator;
 import app.zxtune.playlist.XspfIterator;
 
-final class PlaylistFileIterator extends Iterator {
+final class PlaylistFileIterator implements Iterator {
 
   private final VfsRoot root;
-  private final ReferencesIterator delegate;
   //use java.net uri for correct resoling of relative paths
   private final URI dir;
+  private final ReferencesIterator delegate;
+  private final IteratorFactory.NavigationMode navigation;
   private PlayableItem item;
   
   enum Type {
@@ -47,7 +49,8 @@ final class PlaylistFileIterator extends Iterator {
     final VfsRoot root = Vfs.createRoot(context);
     final VfsFile file = (VfsFile) root.resolve(path);
     final ReferencesIterator delegate = createDelegate(type, file.getContent());
-    return new PlaylistFileIterator(root, delegate, getParentOf(path));
+    final IteratorFactory.NavigationMode navigation = new IteratorFactory.NavigationMode(context);
+    return new PlaylistFileIterator(root, getParentOf(path), delegate, navigation);
   }
   
   private static Type detectType(String filename) {
@@ -71,10 +74,11 @@ final class PlaylistFileIterator extends Iterator {
     }
   }
   
-  private PlaylistFileIterator(VfsRoot root, ReferencesIterator delegate, URI dir) throws IOException {
+  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate, IteratorFactory.NavigationMode navigation) throws IOException {
     this.root = root;
-    this.delegate = delegate;
     this.dir = dir;
+    this.delegate = delegate;
+    this.navigation = navigation;
     if (!next()) {
       throw new IOException("No items to play");
     }
@@ -91,22 +95,44 @@ final class PlaylistFileIterator extends Iterator {
 
   @Override
   public boolean next() {
-    while (delegate.next()) {
+    while (getNext()) {
       if (loadNewItem()) {
         return true;
       }
     }
     return false;
   }
+  
+  private boolean getNext() {
+    switch (navigation.get()) {
+      case LOOPED:
+        return delegate.next() || delegate.first();
+      case SHUFFLE:
+        return delegate.random();
+      default:
+        return delegate.next();
+    }
+  }
 
   @Override
   public boolean prev() {
-    while (delegate.prev()) {
+    while (getPrev()) {
       if (loadNewItem()) {
         return true;
       }
     }
     return false;
+  }
+  
+  private boolean getPrev() {
+    switch (navigation.get()) {
+      case LOOPED:
+        return delegate.prev() || delegate.last();
+      case SHUFFLE:
+        return delegate.random();
+      default:
+        return delegate.prev();
+    }
   }
   
   private boolean loadNewItem() {

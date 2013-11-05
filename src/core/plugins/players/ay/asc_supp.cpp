@@ -412,6 +412,7 @@ namespace ASCSoundMaster
       dst.VolSlideCounter = 0;
       dst.SlidingSteps = 0;
       bool contSample = false, contOrnament = false;
+      bool reloadNote = false;
       for (CommandsIterator it = src.GetCommands(); it; ++it)
       {
         switch (it->Type)
@@ -461,6 +462,7 @@ namespace ASCSoundMaster
           const int_t absoluteSliding = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
           const int_t newSliding = absoluteSliding - (contSample ? dst.Sliding / 16 : 0);
           dst.Glissade = 16 * newSliding / (dst.SlidingSteps ? dst.SlidingSteps : 1);
+          reloadNote = true;
           break;
         }
         case AMPLITUDE_SLIDE:
@@ -486,6 +488,10 @@ namespace ASCSoundMaster
       if (const uint_t* note = src.GetNote())
       {
         dst.Note = *note;
+        reloadNote = true;
+      }
+      if (reloadNote)
+      {
         dst.CurrentNoise = dst.BaseNoise;
         if (dst.SlidingSteps <= 0)
         {

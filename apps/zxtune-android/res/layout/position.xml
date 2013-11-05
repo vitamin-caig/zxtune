@@ -33,4 +33,12 @@
     android:layout_gravity="center_vertical"
     android:text="@string/stub_time"
     />
+  <!-- TODO: merge seek view and controls view -->
+  <ImageView
+    android:id="@+id/controls_track_mode"
+    android:src="@drawable/track_mode"
+    style="@style/button"
+    android:layout_weight="0"
+    android:layout_marginLeft="@dimen/spacing_full"
+    />
 </LinearLayout>

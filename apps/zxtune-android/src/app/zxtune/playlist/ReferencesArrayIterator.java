@@ -11,6 +11,7 @@
 package app.zxtune.playlist;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 class ReferencesArrayIterator implements ReferencesIterator {
   
@@ -38,11 +39,43 @@ class ReferencesArrayIterator implements ReferencesIterator {
   }
   
   @Override
-  public final boolean prev() {
+  public boolean prev() {
     if (0 == current) {
       return false;
     } else {
       --current;
+      return true;
+    }
+  }
+
+  @Override
+  public boolean first() {
+    if (entries.isEmpty()) {
+      return false;
+    } else {
+      current = 0;
+      return true;
+    }
+  }
+  
+  @Override
+  public boolean last() {
+    final int size = entries.size();
+    if (0 == size) {
+      return false;
+    } else {
+      current = size - 1;
+      return true;
+    }
+  }
+  
+  @Override
+  public boolean random() {
+    final int size = entries.size();
+    if (0 == size) {
+      return false;
+    } else {
+      current = new Random().nextInt(size);
       return true;
     }
   }

@@ -11,7 +11,7 @@
     />
   <ImageButton
     android:id="@+id/controls_play_pause"
-    android:src="@drawable/ic_play"
+    android:src="@drawable/play_mode"
     style="@style/button"
     android:layout_weight="1"
     />
@@ -22,9 +22,10 @@
     android:layout_weight="1"
     />
   <ImageButton
-    android:id="@+id/controls_loop"
-    android:src="@drawable/ic_sequence"
+    android:id="@+id/controls_sequence_mode"
+    android:src="@drawable/sequence_mode"
     style="@style/button"
     android:layout_weight="1"
+    android:layout_marginLeft="@dimen/spacing_full"
     />
 </LinearLayout>
