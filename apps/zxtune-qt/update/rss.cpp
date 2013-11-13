@@ -31,6 +31,7 @@ namespace RSS
   const QLatin1String CONTENT("content");
   const QLatin1String HREF("href");
   const QLatin1String REL("rel");
+  const QLatin1String DIRECT("direct");
   const QLatin1String ALTERNATE("alternate");
   const QLatin1String TYPE("type");
   const QLatin1String HTML("html");
@@ -51,9 +52,15 @@ namespace
       else if (tag == RSS::LINK)
       {
         const QXmlStreamAttributes attributes = xml.attributes();
-        if (attributes.value(RSS::REL) == RSS::ALTERNATE)
+        const QStringRef rel = attributes.value(RSS::REL);
+        const QStringRef ref = attributes.value(RSS::HREF);
+        if (rel == RSS::DIRECT)
         {
-          res.AlternateLink = attributes.value(RSS::HREF).toString();
+          res.DirectLink = ref.toString();
+        }
+        else if (rel == RSS::ALTERNATE)
+        {
+          res.AlternateLink = ref.toString();
         }
         xml.readElementText();
       }
