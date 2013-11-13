@@ -14,6 +14,9 @@
     <string name="information_program">Program</string>
     <string name="information_comment">Comment</string>
     <string name="information_location">Location</string>
+    <string name="scanning_started">Started scanning</string>
+    <string name="scanning_stopped">Stopped scanning</string>
+    <string name="scanning_failed">Failed to scan: %s</string>
     <string name="scanning_title">Scanning.</string>
     <string name="scanning_text">Click to cancel</string>
     <!-- about-related -->
@@ -28,4 +31,5 @@
       <item quantity="one">%d track</item>
       <item quantity="other">%d tracks</item>
     </plurals>
+    <string name="no_tracks_found">No tracks found</string>
 </resources>

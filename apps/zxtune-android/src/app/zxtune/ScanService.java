@@ -28,6 +28,7 @@ import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 import app.zxtune.playback.Iterator;
 import app.zxtune.playback.IteratorFactory;
 import app.zxtune.playback.PlayableItem;
@@ -48,6 +49,7 @@ public class ScanService extends IntentService {
   private final NotifyTask tracking;
   private final InsertItemsThread insertThread;
   private final AtomicInteger addedItems;
+  private Exception error;
   
   /**
    * InsertThread is executed for onCreate..onDestroy interval 
@@ -65,6 +67,7 @@ public class ScanService extends IntentService {
   @Override
   public void onCreate() {
     super.onCreate();
+    Toast.makeText(getApplicationContext(), R.string.scanning_started, Toast.LENGTH_SHORT).show();
     insertThread.start();
   }
 
@@ -82,6 +85,13 @@ public class ScanService extends IntentService {
   public void onDestroy() {
     super.onDestroy();
     insertThread.flush();
+    final Context ctx = getApplicationContext();
+    if (error != null) {
+      final String msg = ctx.getString(R.string.scanning_failed, error.getMessage());
+      Toast.makeText(ctx, msg, Toast.LENGTH_LONG).show();
+    } else {
+      Toast.makeText(ctx, R.string.scanning_stopped, Toast.LENGTH_SHORT).show();
+    }
   }
 
   @Override
@@ -104,6 +114,7 @@ public class ScanService extends IntentService {
       Log.d(TAG, "scan on " + uri);
     }
     try {
+      error = null;
       final Iterator iter = IteratorFactory.createIterator(this, uris);
       do {
         final PlayableItem item = iter.getItem();
@@ -116,7 +127,8 @@ public class ScanService extends IntentService {
         }
       } while (insertThread.isActive() && iter.next());
     } catch (IOException e) {
-      Log.d(TAG, "Scan canceled", e);
+      error = e;
+      Log.d(TAG, "Scan failed", e);
       insertThread.cancel();
     }
   }

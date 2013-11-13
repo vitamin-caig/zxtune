@@ -14,6 +14,9 @@
     <string name="information_program">Программа</string>
     <string name="information_comment">Комментарий</string>
     <string name="information_location">Путь</string>
+    <string name="scanning_started">Запущено сканирование</string>
+    <string name="scanning_stopped">Сканирование завершено</string>
+    <string name="scanning_failed">Ошибка сканирования: %s</string>
     <string name="scanning_title">Сканирование.</string>
     <string name="scanning_text">Клик для отмены</string>
     <!-- about-related -->
@@ -34,4 +37,5 @@
       <!-- for pre-HC -->
       <item quantity="other">%d треков</item>
     </plurals>
+    <string name="no_tracks_found">Треки не найдены</string>
 </resources>
