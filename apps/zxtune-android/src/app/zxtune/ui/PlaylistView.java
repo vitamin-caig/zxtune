@@ -1,11 +1,11 @@
 /**
- *
+ * 
  * @file
- *
+ * 
  * @brief Playlist view component
- *
+ * 
  * @author vitamin.caig@gmail.com
- *
+ * 
  */
 
 package app.zxtune.ui;
@@ -25,9 +25,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.playlist.Item;
-import app.zxtune.playlist.Query;
+import app.zxtune.playlist.PlaylistQuery;
 
-public class PlaylistView extends CheckableListView implements LoaderManager.LoaderCallbacks<Cursor> {
+public class PlaylistView extends CheckableListView
+    implements
+      LoaderManager.LoaderCallbacks<Cursor> {
 
   interface PlayitemStateSource {
 
@@ -43,7 +45,7 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
   }
 
   private static final int LOADER_ID = PlaylistView.class.hashCode();
-  
+
   private PlayitemStateSource state;
 
   public PlaylistView(Context context) {
@@ -65,20 +67,20 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
     super.setLongClickable(true);
     setAdapter(new PlaylistCursorAdapter(getContext(), null, 0));
   }
-  
+
   final void setPlayitemStateSource(PlayitemStateSource source) {
     this.state = null != source ? source : new StubPlayitemStateSource();
   }
-  
+
   final void load(LoaderManager manager) {
     manager.initLoader(LOADER_ID, null, this);
   }
-  
+
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle params) {
     assert id == LOADER_ID;
     getCursorAdapter().changeCursor(null);
-    return new CursorLoader(getContext(), Query.unparse(null), null, null, null, null);
+    return new CursorLoader(getContext(), PlaylistQuery.ALL, null, null, null, null);
   }
 
   @Override
@@ -95,9 +97,9 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
   public void onLoaderReset(Loader<Cursor> loader) {
     getCursorAdapter().changeCursor(null);
   }
-  
+
   private CursorAdapter getCursorAdapter() {
-    return (CursorAdapter)getAdapter();
+    return (CursorAdapter) getAdapter();
   }
 
   private class PlaylistCursorAdapter extends CursorAdapter {

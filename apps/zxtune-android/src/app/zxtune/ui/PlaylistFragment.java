@@ -30,7 +30,7 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playlist.Query;
+import app.zxtune.playlist.PlaylistQuery;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
@@ -153,7 +153,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-      final Uri[] toPlay = {Query.unparse(id)};
+      final Uri[] toPlay = {PlaylistQuery.uriFor(id)};
       service.setNowPlaying(toPlay);
     }
   }

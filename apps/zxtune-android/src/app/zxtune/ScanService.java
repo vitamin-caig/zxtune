@@ -34,12 +34,11 @@ import app.zxtune.playback.IteratorFactory;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playback.PlayableItemStub;
 import app.zxtune.playlist.Item;
-import app.zxtune.playlist.Query;
+import app.zxtune.playlist.PlaylistQuery;
 
 public class ScanService extends IntentService {
 
   private static final String TAG = ScanService.class.getName();
-  private static final Uri INSERTION_URI = Query.unparse(null);
 
   public static final String ACTION_START = TAG + ".add";
   public static final String ACTION_CANCEL = TAG + ".cancel";
@@ -221,7 +220,7 @@ public class ScanService extends IntentService {
     private void insertItem(PlayableItem item) {
       try {
         final Item listItem = new Item(item.getDataId(), item.getModule());
-        getContentResolver().insert(INSERTION_URI, listItem.toContentValues());
+        getContentResolver().insert(PlaylistQuery.ALL, listItem.toContentValues());
         addedItems.incrementAndGet();
       } finally {
         item.release();
@@ -274,7 +273,7 @@ public class ScanService extends IntentService {
     }
 
     private void notifyResolver() {
-      getContentResolver().notifyChange(INSERTION_URI, null);
+      getContentResolver().notifyChange(PlaylistQuery.ALL, null);
     }
 
     private class StatusNotification {

@@ -33,15 +33,15 @@ import android.util.Log;
  * 'properties', text - comma separated list of name=value entries
  */
 
-public class Database {
+class Database {
 
   private static final String NAME = "playlist";
   private static final int VERSION = 1;
   private static final String TAG = Database.class.getName();
 
-  public static final class Tables {
-    public static final class Playlist {
-      public static enum Fields {
+  static final class Tables {
+    static final class Playlist {
+      static enum Fields {
         //use lowercased names due to restrictions for _id column name
         _id, location, type, author, title, duration, tags, properties
       }
@@ -57,12 +57,12 @@ public class Database {
 
   private final DBHelper dbHelper;
 
-  public Database(Context context) {
+  Database(Context context) {
     this.dbHelper = new DBHelper(context);
   }
 
   //! @return Cursor with queried values
-  public Cursor queryPlaylistItems(String[] columns, String selection, String[] selectionArgs,
+  final Cursor queryPlaylistItems(String[] columns, String selection, String[] selectionArgs,
       String orderBy) {
     Log.d(TAG, "queryPlaylistItems(" + selection + ") called");
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -71,30 +71,30 @@ public class Database {
   }
 
   //! @return new item id
-  public long insertPlaylistItem(ContentValues values) {
+  final long insertPlaylistItem(ContentValues values) {
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.insert(Tables.Playlist.NAME, null, values);
   }
 
   //! @return count of deleted items
-  public int deletePlaylistItems(String selection, String[] selectionArgs) {
+  final int deletePlaylistItems(String selection, String[] selectionArgs) {
     Log.d(TAG, "deletePlaylistItems(" + selection + ") called");
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.delete(Tables.Playlist.NAME, selection, selectionArgs);
   }
 
   //! @return count of updated items
-  public int updatePlaylistItems(ContentValues values, String selection, String[] selectionArgs) {
+  final int updatePlaylistItems(ContentValues values, String selection, String[] selectionArgs) {
     Log.d(TAG, "updatePlaylistItems(" + selection + ") called");
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.update(Tables.Playlist.NAME, values, selection, selectionArgs);
   }
 
-  public static String defaultPlaylistOrder() {
+  static String defaultPlaylistOrder() {
     return Tables.Playlist.Fields._id + " ASC";
   }
 
-  public static String playlistSelection(String origSelection, Long id) {
+  static String playlistSelection(String origSelection, Long id) {
     if (id != null) {
       final String subselection = Tables.Playlist.Fields._id + " = " + id;
       return TextUtils.isEmpty(origSelection) ? subselection : origSelection + " AND "
@@ -104,7 +104,7 @@ public class Database {
     }
   }
 
-  private class DBHelper extends SQLiteOpenHelper {
+  private static class DBHelper extends SQLiteOpenHelper {
 
     public DBHelper(Context context) {
       super(context, NAME, null, VERSION);

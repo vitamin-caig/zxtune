@@ -41,7 +41,7 @@ public class DatabaseIterator {
   public final DatabaseIterator getNext() {
     Item next = null;
     if (isValid()) {
-      final Long curId = new Query(item.getUri()).getId();
+      final Long curId = PlaylistQuery.idOf(item.getUri());
       final String selection = Database.Tables.Playlist.Fields._id + " > ?";
       next = advance(curId, selection, Database.Tables.Playlist.Fields._id + " ASC LIMIT 1");
     }
@@ -51,7 +51,7 @@ public class DatabaseIterator {
   public final DatabaseIterator getPrev() {
     Item prev = null;
     if (isValid()) {
-      final Long curId = new Query(item.getUri()).getId();
+      final Long curId = PlaylistQuery.idOf(item.getUri());
       final String selection = Database.Tables.Playlist.Fields._id + " < ?";
       prev = advance(curId, selection, Database.Tables.Playlist.Fields._id + " DESC LIMIT 1");
     }
@@ -80,12 +80,12 @@ public class DatabaseIterator {
   }
 
   private Item advance(Long curId, String selection, String order) {
-    final Cursor cursor = resolver.query(Query.unparse(null), null, selection, new String[] {curId.toString()}, order);
+    final Cursor cursor = resolver.query(PlaylistQuery.ALL, null, selection, new String[] {curId.toString()}, order);
     return loadItem(cursor);
   }
   
   private Item select(String order) {
-    final Cursor cursor = resolver.query(Query.unparse(null), null, null, null, order);
+    final Cursor cursor = resolver.query(PlaylistQuery.ALL, null, null, null, order);
     return loadItem(cursor);
   }
   
