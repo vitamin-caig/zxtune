@@ -8,6 +8,7 @@
     <string name="play">Слушать</string>
     <string name="add">Добавить</string>
     <string name="delete">Удалить</string>
+    <string name="clear">Очистить</string>
     <!-- information-related -->
     <string name="information_title">Название</string>
     <string name="information_author">Автор</string>

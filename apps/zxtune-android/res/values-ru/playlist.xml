@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="playlist">Список</string>
-  <string name="playlist_clear">Очистить</string>
-  <string name="playlist_add_current">Добавить текущий</string>
+  <string name="add_current">Добавить текущий</string>
   <string name="playlist_empty">Список пуст</string>
 </resources>

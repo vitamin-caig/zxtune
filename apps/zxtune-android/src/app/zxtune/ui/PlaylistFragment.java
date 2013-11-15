@@ -70,16 +70,16 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
-    addNowPlaying = menu.findItem(R.id.action_playlist_add_current);
+    addNowPlaying = menu.findItem(R.id.action_add_current);
   }
   
   @Override
   public boolean onOptionsItemSelected (MenuItem item) {
     switch (item.getItemId()) {
-      case R.id.action_playlist_clear:
+      case R.id.action_clear:
         service.getPlaylistControl().deleteAll();
         break;
-      case R.id.action_playlist_add_current:
+      case R.id.action_add_current:
         service.getPlaylistControl().add(new Uri[] {service.getNowPlaying().getDataId()});
         //disable further addings
         addNowPlaying.setVisible(false);
