@@ -3,4 +3,6 @@
   <string name="playlist">Playlist</string>
   <string name="add_current">Add current</string>
   <string name="playlist_empty">Playlist is empty</string>
+  <string name="saved">Saved</string>
+  <string name="save_failed">Failed to save: %s</string>
 </resources>

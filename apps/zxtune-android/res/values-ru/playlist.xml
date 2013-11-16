@@ -3,4 +3,6 @@
   <string name="playlist">Список</string>
   <string name="add_current">Добавить текущий</string>
   <string name="playlist_empty">Список пуст</string>
+  <string name="saved">Сохранено</string>
+  <string name="save_failed">Ошибка сохранения: %s</string>
 </resources>
