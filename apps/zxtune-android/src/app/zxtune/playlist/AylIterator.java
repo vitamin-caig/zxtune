@@ -18,6 +18,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import android.net.Uri;
+
 public final class AylIterator {
 
   private final static String SIGNATURE = "ZX Spectrum Sound Chip Emulator Play List File v1.";
@@ -62,7 +64,7 @@ public final class AylIterator {
     while (parseParameters(strings)) {};
     while (!strings.isEmpty()) {
       final ReferencesIterator.Entry entry = new ReferencesIterator.Entry();
-      entry.location = strings.removeFirst().replace('\\', '/');
+      entry.location = Uri.encode(strings.removeFirst().replace('\\', '/'), "/");
       while (parseParameters(strings)) {}
       result.add(entry);
     }

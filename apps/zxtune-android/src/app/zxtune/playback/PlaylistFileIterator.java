@@ -54,8 +54,8 @@ final class PlaylistFileIterator implements Iterator {
     final VfsFile file = (VfsFile) root.resolve(path);
     final ReferencesIterator delegate = createDelegate(type, file.getContent());
     final IteratorFactory.NavigationMode navigation = new IteratorFactory.NavigationMode(context);
-    final Iterator result = new PlaylistFileIterator(root, getParentOf(path), delegate, navigation);
-    if (!result.next()) {
+    final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate, navigation);
+    if (!result.initialize()) {
       throw new IOException(context.getString(R.string.no_tracks_found));
     }
     return result;
@@ -87,6 +87,15 @@ final class PlaylistFileIterator implements Iterator {
     this.dir = dir;
     this.delegate = delegate;
     this.navigation = navigation;
+  }
+  
+  final boolean initialize() {
+    while (delegate.next()) {
+      if (loadNewItem()) {
+        return true;
+      }
+    }
+    return false;
   }
   
   private static URI getParentOf(Uri uri) {
@@ -143,12 +152,10 @@ final class PlaylistFileIterator implements Iterator {
   private boolean loadNewItem() {
     try {
       final String location = delegate.getItem().location;
-      Uri uri = Uri.parse(Uri.encode(location, "/"));
       if (isWindowsPath(location)) {
         return false;//windows paths are not supported
-      } else if (!isAbsolutePath(location)) {
-        uri = Uri.parse(dir.resolve(uri.toString()).toString());
       }
+      final Uri uri = Uri.parse(dir.resolve(location).toString());
       final VfsObject obj = root.resolve(uri);
       if (obj instanceof VfsFile) {
         item = FileIterator.loadItem((VfsFile) obj);
@@ -164,9 +171,5 @@ final class PlaylistFileIterator implements Iterator {
   
   private boolean isWindowsPath(String path) {
     return path.length() > 2 && path.charAt(1) == ':';
-  }
-  
-  private boolean isAbsolutePath(String path) {
-    return !path.isEmpty() && path.startsWith(File.separator);
   }
 }

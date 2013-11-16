@@ -76,7 +76,7 @@ public final class XspfIterator {
     }
     
     final void setLocation(String location) {
-      result.location = Uri.decode(location);
+      result.location = location;
     }
     
     final ReferencesIterator.Entry captureResult() {
