@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import android.content.Context;
-import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -124,11 +123,12 @@ public class BreadCrumbsView extends HorizontalScrollView {
   }
   
   private View updateButton(int idx, View but, VfsDir dir) {
-    if (dir instanceof IconSource &&
-        but instanceof ImageButton) {
-      return updateButton((ImageButton) but, dir);
-    } else if (but instanceof Button) {
-      return updateButton((Button) but, dir);
+    final boolean canShowIcon = but instanceof ImageButton;
+    final boolean hasIcon = dir instanceof IconSource;
+    if (canShowIcon == hasIcon) {
+      return canShowIcon
+          ? updateButton((ImageButton) but, dir)
+              : updateButton((Button) but, dir);
     } else {
       container.removeViewAt(idx);
       return createButton(idx, dir);
