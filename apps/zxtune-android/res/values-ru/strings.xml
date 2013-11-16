@@ -10,6 +10,7 @@
     <string name="delete">Удалить</string>
     <string name="clear">Очистить</string>
     <string name="save">Сохранить</string>
+    <string name="overwrite">Перезаписать</string>
     <!-- information-related -->
     <string name="information_title">Название</string>
     <string name="information_author">Автор</string>

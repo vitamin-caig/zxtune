@@ -9,6 +9,7 @@
  */
 package app.zxtune.ui;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -17,52 +18,140 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import app.zxtune.R;
 import app.zxtune.playlist.PlaylistQuery;
 import app.zxtune.playlist.XspfStorage;
 
-class PlaylistSaveFragment extends DialogFragment {
+public class PlaylistSaveFragment extends DialogFragment {
   
-  public static DialogFragment createInstance() {
-    return new PlaylistSaveFragment();
+  private final static String IDS_KEY = "ids";
+  private final static String NAME_KEY = "name";
+
+  private XspfStorage storage;
+  private EditText name;
+  
+  public static DialogFragment createInstance(long[] ids) {
+    final DialogFragment res = new PlaylistSaveFragment();
+    final Bundle args = new Bundle();
+    args.putLongArray(IDS_KEY, ids);
+    res.setArguments(args);
+    return res;
+  }
+  
+  @Override
+  public void onAttach(Activity act) {
+    super.onAttach(act);
+    storage = new XspfStorage(act.getApplicationContext());
   }
   
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState) {
     final Context ctx = getActivity();
-    final EditText name = new EditText(ctx);
-    return new AlertDialog.Builder(ctx)
+    
+    name = createEditText(ctx);
+    final AlertDialog result = new AlertDialog.Builder(ctx)
       .setTitle(R.string.save)
       .setView(name)
-      .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+      .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
-          new SavePlaylistOperation(ctx).execute(name.getText().toString());
-        }
-      })
-      .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
+          final Bundle args = getArguments();
+          final long[] ids = args != null ? args.getLongArray(IDS_KEY) : null;
+          new SavePlaylistOperation(ctx.getApplicationContext(), storage, ids)
+            .execute(name.getText().toString());
         }
       })
       .create();
+    if (savedInstanceState != null && savedInstanceState.containsKey(NAME_KEY)) {
+      name.onRestoreInstanceState(savedInstanceState.getParcelable(NAME_KEY));
+    }
+    return result;
   }
+  
+  @Override
+  public void onStart() {
+    super.onStart();
+    //buttons are shown now
+    name.setText(name.getText());
+  }
+  
+  private EditText createEditText(Context ctx) {
+    final EditText result = new EditText(ctx);
+    result.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+    result.setSingleLine();
+    
+    result.addTextChangedListener(new TextWatcher() {
+      
+      private Button okButton;
 
+      @Override
+      public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        if (okButton == null) {
+          final AlertDialog dlg = (AlertDialog) getDialog();
+          if (dlg != null) {
+            okButton = dlg.getButton(DialogInterface.BUTTON_POSITIVE);
+          }
+        }
+      }
+
+      @Override
+      public void onTextChanged(CharSequence s, int start, int before, int count) {
+      }
+
+      @Override
+      public void afterTextChanged(Editable s) {
+        if (s == null || s.length() == 0) {
+          textEmpty();
+        } else {
+          textChanged(s.toString());
+        }
+      }
+      
+      private void textEmpty() {
+        if (okButton != null) {
+          okButton.setEnabled(false);
+        }
+      }
+      
+      private void textChanged(String content) {
+        if (okButton != null) {
+          okButton.setEnabled(true);
+          okButton.setText(storage.isPlaylistExists(content) ? R.string.overwrite : R.string.save);
+        }
+      }
+    });
+    return result;
+  }
+  
+  @Override
+  public void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    outState.putParcelable(NAME_KEY, name.onSaveInstanceState());
+  }
+  
   private static class SavePlaylistOperation extends AsyncTask<String, Void, Exception> {
     
     private final Context context;
+    private final XspfStorage storage;
+    private final long[] ids;
     
-    SavePlaylistOperation(Context context) {
+    SavePlaylistOperation(Context context, XspfStorage storage, long[] ids) {
       this.context = context;
+      this.storage = storage;
+      this.ids = ids;
     }
     
     @Override
     protected Exception doInBackground(String... name) {
       try {
-        final Cursor cursor = context.getContentResolver().query(PlaylistQuery.ALL, null, null, null, null);
-        final XspfStorage storage = new XspfStorage(context);
+        final Cursor cursor = context.getContentResolver().query(PlaylistQuery.ALL, null, 
+          PlaylistQuery.selectionFor(ids), null, null);
         try {
           storage.createPlaylist(name[0], cursor);
         } finally {

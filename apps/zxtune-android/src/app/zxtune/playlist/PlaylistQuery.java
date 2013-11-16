@@ -88,10 +88,14 @@ public class PlaylistQuery {
   }
 
   public static String selectionFor(long ids[]) {
-    //ids => '[a, b, c]'
-    final String rawArgs = Arrays.toString(ids);
-    final String args = rawArgs.substring(1, rawArgs.length() - 1);
-    //placeholders doesn't work and has limitations
-    return Database.Tables.Playlist.Fields._id + " IN (" + args + ")";
+    if (ids == null) {
+      return null;
+    } else {
+      //ids => '[a, b, c]'
+      final String rawArgs = Arrays.toString(ids);
+      final String args = rawArgs.substring(1, rawArgs.length() - 1);
+      //placeholders doesn't work and has limitations
+      return Database.Tables.Playlist.Fields._id + " IN (" + args + ")";
+    }
   }
 }

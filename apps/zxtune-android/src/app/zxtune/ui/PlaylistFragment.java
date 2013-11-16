@@ -94,12 +94,16 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         addNowPlaying.setVisible(false);
         break;
       case R.id.action_save:
-        PlaylistSaveFragment.createInstance().show(getFragmentManager(), "save");
+        savePlaylist(null);
         break;
       default:
         return super.onOptionsItemSelected(item);
     }
     return true;
+  }
+  
+  private void savePlaylist(long[] ids) {
+    PlaylistSaveFragment.createInstance(ids).show(getFragmentManager(), "save");
   }
   
   @Override
@@ -242,6 +246,9 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         switch (item.getItemId()) {
           case R.id.action_delete:
             service.getPlaylistControl().delete(listing.getCheckedItemIds());
+            break;
+          case R.id.action_save:
+            savePlaylist(listing.getCheckedItemIds());
             break;
           default:
             return false;
