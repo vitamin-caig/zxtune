@@ -7,6 +7,14 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[+] zxtune-android: toast messages for scan service events
+[+] zxtune-android: save whole playlist and selected items
+[*] zxtune-android: fix network access for old platforms
+[*] zxtune-android: skip invalid directories while recursive scan
+[*] zxtune-android: rework layout
+
+--- Rev2705 from 05.11.2013
+
 [*] Fixed files auto-renaming while export/convert.
 [*] Fixed AS0/ASC playback
 [*] xtractor: fixes in scanning engine
