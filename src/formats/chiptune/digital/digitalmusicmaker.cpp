@@ -308,6 +308,7 @@ namespace Chiptune
       void ParseSamples(Builder& target) const
       {
         const bool is4bitSamples = true;//TODO: detect
+        const std::size_t limit = RawData.Size();
         Binary::Container::Ptr regions[8];
         for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx != Source.EndOfBanks.size(); ++layIdx)
         {
@@ -326,6 +327,7 @@ namespace Chiptune
           if (is4bitSamples)
           {
             const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
+            Require(lastData + realSize <= limit);
             regions[bankNum] = RawData.GetSubcontainer(lastData, realSize);
             Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
             AddRange(lastData, realSize);
@@ -333,6 +335,7 @@ namespace Chiptune
           }
           else
           {
+            Require(lastData + alignedBankSize <= limit);
             regions[bankNum] = RawData.GetSubcontainer(lastData, alignedBankSize);
             Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize, lastData);
             AddRange(lastData, alignedBankSize);
@@ -385,7 +388,9 @@ namespace Chiptune
       {
         const uint_t patternSize = Source.PatternSize;
         const std::size_t patStart = sizeof(Source) + sizeof(Pattern::Line) * idx * patternSize;
-        const uint_t availLines = (RawData.Size() - patStart) / sizeof(Pattern::Line);
+        const std::size_t limit = RawData.Size();
+        Require(patStart < limit);
+        const uint_t availLines = (limit - patStart) / sizeof(Pattern::Line);
         PatternBuilder& patBuilder = target.StartPattern(idx);
         const Pattern& src = *safe_ptr_cast<const Pattern*>(static_cast<const uint8_t*>(RawData.Start()) + patStart);
         uint_t lineNum = 0;
