@@ -8,12 +8,18 @@
     <string name="play">Слушать</string>
     <string name="add">Добавить</string>
     <string name="delete">Удалить</string>
+    <string name="clear">Очистить</string>
+    <string name="save">Сохранить</string>
+    <string name="overwrite">Перезаписать</string>
     <!-- information-related -->
     <string name="information_title">Название</string>
     <string name="information_author">Автор</string>
     <string name="information_program">Программа</string>
     <string name="information_comment">Комментарий</string>
     <string name="information_location">Путь</string>
+    <string name="scanning_started">Запущено сканирование</string>
+    <string name="scanning_stopped">Сканирование завершено</string>
+    <string name="scanning_failed">Ошибка сканирования: %s</string>
     <string name="scanning_title">Сканирование.</string>
     <string name="scanning_text">Клик для отмены</string>
     <!-- about-related -->
@@ -34,4 +40,5 @@
       <!-- for pre-HC -->
       <item quantity="other">%d треков</item>
     </plurals>
+    <string name="no_tracks_found">Треки не найдены</string>
 </resources>

@@ -47,7 +47,7 @@ public class Item {
   }
   
   public Uri getUri() {
-    return Query.unparse(id);
+    return PlaylistQuery.uriFor(id);
   }
   
   public Uri getLocation() {

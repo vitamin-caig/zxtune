@@ -8,12 +8,18 @@
     <string name="play">Play</string>
     <string name="add">Add</string>
     <string name="delete">Delete</string>
+    <string name="clear">Clear</string>
+    <string name="save">Save</string>
+    <string name="overwrite">Overwrite</string>
     <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>
     <string name="information_program">Program</string>
     <string name="information_comment">Comment</string>
     <string name="information_location">Location</string>
+    <string name="scanning_started">Started scanning</string>
+    <string name="scanning_stopped">Stopped scanning</string>
+    <string name="scanning_failed">Failed to scan: %s</string>
     <string name="scanning_title">Scanning.</string>
     <string name="scanning_text">Click to cancel</string>
     <!-- about-related -->
@@ -28,4 +34,5 @@
       <item quantity="one">%d track</item>
       <item quantity="other">%d tracks</item>
     </plurals>
+    <string name="no_tracks_found">No tracks found</string>
 </resources>

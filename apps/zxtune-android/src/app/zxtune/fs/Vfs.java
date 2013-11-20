@@ -18,6 +18,7 @@ public final class Vfs {
     final VfsRootComposite composite = new VfsRootComposite();
     composite.addSubroot(new VfsRootLocal(context));
     composite.addSubroot(new VfsRootZxtunes(context));
+    composite.addSubroot(new VfsRootPlaylists(context));
     return composite;
   }
 }

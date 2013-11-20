@@ -10,7 +10,7 @@
 
 package app.zxtune;
 
-import java.lang.RuntimeException;
+import java.io.InvalidObjectException;
 import java.nio.ByteBuffer;
 
 public final class ZXTune {
@@ -158,9 +158,9 @@ public final class ZXTune {
     /**
      * Creates new player object
      * 
-     * @throws RuntimeException in case of error
+     * @throws InvalidObjectException in case of error
      */
-    Player createPlayer();
+    Player createPlayer() throws InvalidObjectException;
   }
 
   /**
@@ -232,7 +232,7 @@ public final class ZXTune {
    * @param Content raw content
    * @return New object
    */
-  public static Module loadModule(ByteBuffer content) {
+  public static Module loadModule(ByteBuffer content) throws InvalidObjectException {
     return new NativeModule(Module_Create(content));
   }
 
@@ -243,9 +243,9 @@ public final class ZXTune {
 
     protected int handle;
 
-    protected NativeObject(int handle) {
+    protected NativeObject(int handle) throws InvalidObjectException {
       if (0 == handle) {
-        throw new RuntimeException();
+        throw new InvalidObjectException(getClass().getName());
       }
       this.handle = handle;
     }
@@ -259,7 +259,7 @@ public final class ZXTune {
 
   private static final class NativeModule extends NativeObject implements Module {
 
-    NativeModule(int handle) {
+    NativeModule(int handle) throws InvalidObjectException {
       super(handle);
     }
 
@@ -279,14 +279,14 @@ public final class ZXTune {
     }
 
     @Override
-    public Player createPlayer() {
+    public Player createPlayer() throws InvalidObjectException {
       return new NativePlayer(Module_CreatePlayer(handle));
     }
   }
 
   private static final class NativePlayer extends NativeObject implements Player {
 
-    NativePlayer(int handle) {
+    NativePlayer(int handle) throws InvalidObjectException {
       super(handle);
     }
 

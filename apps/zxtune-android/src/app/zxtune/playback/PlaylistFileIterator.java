@@ -12,21 +12,25 @@ package app.zxtune.playback;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
+import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsRoot;
-import app.zxtune.playback.IteratorFactory.NavigationMode;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator;
 import app.zxtune.playlist.XspfIterator;
 
 final class PlaylistFileIterator implements Iterator {
+  
+  private final static String TAG = PlaylistFileIterator.class.getName();
 
   private final VfsRoot root;
   //use java.net uri for correct resoling of relative paths
@@ -50,7 +54,11 @@ final class PlaylistFileIterator implements Iterator {
     final VfsFile file = (VfsFile) root.resolve(path);
     final ReferencesIterator delegate = createDelegate(type, file.getContent());
     final IteratorFactory.NavigationMode navigation = new IteratorFactory.NavigationMode(context);
-    return new PlaylistFileIterator(root, getParentOf(path), delegate, navigation);
+    final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate, navigation);
+    if (!result.initialize()) {
+      throw new IOException(context.getString(R.string.no_tracks_found));
+    }
+    return result;
   }
   
   private static Type detectType(String filename) {
@@ -79,9 +87,15 @@ final class PlaylistFileIterator implements Iterator {
     this.dir = dir;
     this.delegate = delegate;
     this.navigation = navigation;
-    if (!next()) {
-      throw new IOException("No items to play");
+  }
+  
+  final boolean initialize() {
+    while (delegate.next()) {
+      if (loadNewItem()) {
+        return true;
+      }
     }
+    return false;
   }
   
   private static URI getParentOf(Uri uri) {
@@ -138,29 +152,24 @@ final class PlaylistFileIterator implements Iterator {
   private boolean loadNewItem() {
     try {
       final String location = delegate.getItem().location;
-      Uri uri = Uri.parse(Uri.encode(location, "/"));
       if (isWindowsPath(location)) {
         return false;//windows paths are not supported
-      } else if (!isAbsolutePath(location)) {
-        uri = Uri.parse(dir.resolve(uri.toString()).toString());
       }
+      final Uri uri = Uri.parse(dir.resolve(location).toString());
       final VfsObject obj = root.resolve(uri);
       if (obj instanceof VfsFile) {
         item = FileIterator.loadItem((VfsFile) obj);
         return true;
       }
+    } catch (InvalidObjectException e) {
+      Log.d(TAG, "Skip not a module", e);
     } catch (IOException e) {
-    } catch (Error e) {
-      //from loadItem
+      Log.d(TAG, "Skip I/O error", e);
     }
     return false;
   }
   
   private boolean isWindowsPath(String path) {
     return path.length() > 2 && path.charAt(1) == ':';
-  }
-  
-  private boolean isAbsolutePath(String path) {
-    return !path.isEmpty() && path.startsWith(File.separator);
   }
 }

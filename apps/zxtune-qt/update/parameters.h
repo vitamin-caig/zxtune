@@ -24,6 +24,11 @@ namespace Parameters
       const NameType PREFIX = ZXTuneQT::PREFIX + NAMESPACE_NAME;
 
       //@{
+      //! @name Feed URL
+      const NameType FEED = PREFIX + "Feed";
+      //@}
+
+      //@{
       //! @name Check period
 
       //! Parameter name

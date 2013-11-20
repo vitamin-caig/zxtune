@@ -10,14 +10,11 @@
 
 package app.zxtune.playback;
 
-import java.util.Arrays;
-
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import app.zxtune.ScanService;
-import app.zxtune.playlist.Database;
-import app.zxtune.playlist.Query;
+import app.zxtune.playlist.PlaylistQuery;
 
 /**
  * Local implementation of PlaylistControl
@@ -40,18 +37,14 @@ final class PlaylistControlLocal implements PlaylistControl {
   
   @Override
   public void delete(long[] ids) {
-    //ids => '[a, b, c]'
-    final String rawArgs = Arrays.toString(ids);
-    final String args = rawArgs.substring(1, rawArgs.length() - 1);
-    final Uri uri = Query.unparse(null);
-    //placeholders doesn't work and has limitations
-    final String where = Database.Tables.Playlist.Fields._id + " IN (" + args + ")"; 
+    final Uri uri = PlaylistQuery.ALL;
+    final String where = PlaylistQuery.selectionFor(ids); 
     context.getContentResolver().delete(uri, where, null);
   }
   
   @Override
   public void deleteAll() {
-    final Uri uri = Query.unparse(null);
+    final Uri uri = PlaylistQuery.ALL;
     context.getContentResolver().delete(uri, null, null);
   }
 }

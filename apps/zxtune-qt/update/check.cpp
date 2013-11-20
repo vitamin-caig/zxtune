@@ -346,6 +346,13 @@ namespace
     {
     }
 
+    String GetFeedUrl() const
+    {
+      Parameters::StringType url = Text::DOWNLOADS_XML_URL;
+      Params->FindValue(Parameters::ZXTuneQT::Update::FEED, url);
+      return url;
+    }
+
     unsigned GetCheckPeriod() const
     {
       Parameters::IntType period = Parameters::ZXTuneQT::Update::CHECK_PERIOD_DEFAULT;
@@ -371,9 +378,9 @@ namespace
   class UpdateCheckOperation : public Update::CheckOperation
   {
   public:
-    explicit UpdateCheckOperation(QWidget& parent)
+    UpdateCheckOperation(QWidget& parent, const UpdateParameters& params)
       : Parent(parent)
-      , Params(GlobalOptions::Instance().Get())
+      , Params(params)
     {
       setParent(&parent);
       QTimer::singleShot(CHECK_UPDATE_DELAY * 1000, this, SLOT(ExecuteBackground()));
@@ -443,7 +450,7 @@ namespace
 
     Product::Update::Ptr GetAvailableUpdate(Log::ProgressCallback& cb) const
     {
-      const QUrl feedUrl(Text::DOWNLOADS_XML_URL);
+      const QUrl feedUrl(ToQString(Params.GetFeedUrl()));
       const Binary::Data::Ptr feedData = Download(feedUrl, cb);
       UpdateState state;
       const std::auto_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
@@ -524,10 +531,10 @@ namespace Update
   {
     try
     {
-      if (IO::ResolveUri(Text::DOWNLOADS_XML_URL))
+      UpdateParameters params(GlobalOptions::Instance().Get());
+      if (IO::ResolveUri(params.GetFeedUrl()))
       {
-        std::auto_ptr<CheckOperation> res(new UpdateCheckOperation(parent));
-        res->setParent(&parent);
+        std::auto_ptr<CheckOperation> res(new UpdateCheckOperation(parent, params));
         return res.release();
       }
     }

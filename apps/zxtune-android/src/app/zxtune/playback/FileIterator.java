@@ -11,12 +11,15 @@
 package app.zxtune.playback;
 
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
+import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.fs.VfsFile;
@@ -24,6 +27,8 @@ import app.zxtune.fs.VfsIterator;
 
 
 public class FileIterator implements Iterator {
+  
+  private static final String TAG = FileIterator.class.getName();
   
   private static final int MAX_VISITED = 10;
   
@@ -36,7 +41,7 @@ public class FileIterator implements Iterator {
     this.iterator = new VfsIterator(context, paths);
     this.visited = new ArrayList<VfsFile>();
     if (!next()) {
-      throw new IOException("No items to play");
+      throw new IOException(context.getString(R.string.no_tracks_found));
     }
   }
   
@@ -48,8 +53,8 @@ public class FileIterator implements Iterator {
   @Override
   public boolean next() {
     if (index < visited.size() - 1) {
-      item = loadItem(visited.get(++index));
-      return true;
+      ++index;
+      return loadVisitedItem();
     } else {
       while (iterator.isValid()) {
         if (loadNextItem()) {
@@ -64,9 +69,10 @@ public class FileIterator implements Iterator {
   public boolean prev() {
     if (index == 0) {
       return false;
+    } else {
+      --index;
+      return loadVisitedItem();
     }
-    item = loadItem(visited.get(--index));
-    return true;
   }
   
   private boolean loadNextItem() {
@@ -76,12 +82,22 @@ public class FileIterator implements Iterator {
       item = loadItem(file);
       addVisited(file);
       return true;
-    } catch (Error e) {
-      //TODO
+    } catch (InvalidObjectException e) {
+      Log.d(TAG, "Skip not a module", e);
     } catch (IOException e) {
-      //TODO
+      Log.d(TAG, "Skip I/O error", e);
     }
     return false;
+  }
+  
+  private boolean loadVisitedItem() {
+    try {
+      item = loadItem(visited.get(index));
+      return true;
+    } catch (IOException e) {
+      Log.d(TAG, "Invalid old item", e);
+      return false;
+    }
   }
   
   private void addVisited(VfsFile file) {
@@ -98,20 +114,14 @@ public class FileIterator implements Iterator {
     }
   }
 
-  static PlayableItem loadItem(VfsFile file) {
+  static PlayableItem loadItem(VfsFile file) throws IOException, InvalidObjectException {
     final ZXTune.Module module = loadModule(file);
     return new FileItem(file.getUri(), module);
   }
     
-  static ZXTune.Module loadModule(VfsFile file) {
-    try {
-      final ByteBuffer content = file.getContent();
-      return ZXTune.loadModule(content);
-    } catch (IOException e) {
-      throw new Error(e.getCause());
-    } catch (RuntimeException e) {
-      throw new Error(e.getCause());
-    }
+  static ZXTune.Module loadModule(VfsFile file) throws IOException, InvalidObjectException {
+    final ByteBuffer content = file.getContent();
+    return ZXTune.loadModule(content);
   }
 
   private static class FileItem implements PlayableItem {

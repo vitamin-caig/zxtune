@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="playlist">Playlist</string>
-  <string name="playlist_clear">Clear</string>
-  <string name="playlist_add_current">Add current</string>
+  <string name="add_current">Add current</string>
   <string name="playlist_empty">Playlist is empty</string>
+  <string name="saved">Saved</string>
+  <string name="save_failed">Failed to save: %s</string>
 </resources>

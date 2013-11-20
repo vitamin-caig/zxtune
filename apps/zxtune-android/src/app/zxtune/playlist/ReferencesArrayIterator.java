@@ -20,7 +20,7 @@ class ReferencesArrayIterator implements ReferencesIterator {
   
   public ReferencesArrayIterator(ArrayList<Entry> entries) {
     this.entries = entries;
-    this.current = 0;
+    this.current = -1;
   }
   
   @Override

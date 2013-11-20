@@ -283,21 +283,33 @@ final class RemoteCatalog extends Catalog {
       final int len = connection.getContentLength();
       final InputStream stream = connection.getInputStream();
       final ByteBuffer result = ByteBuffer.allocateDirect(len);
-      int received = 0;
-      for (;;) {
-        final int chunk = stream.read(result.array(), received, len - received);
-        if (chunk <= 0) {
-          break;
-        }
-        received += chunk;
-      }
-      if (len != received) {
-        throw new IOException(String.format(
-            "Read content size mismatch (%d received, %d expected)", received, len));
+      if (result.hasArray()) {
+        readContent(stream, result.array());
+      } else {
+        final byte[] buffer = new byte[len];
+        readContent(stream, buffer);
+        result.put(buffer);
+        result.rewind();
       }
       return result;
     } finally {
       connection.disconnect();
+    }
+  }
+
+  private static void readContent(InputStream stream, byte[] buffer) throws IOException {
+    final int len = buffer.length;
+    int received = 0;
+    for (;;) {
+      final int chunk = stream.read(buffer, received, len - received);
+      if (chunk <= 0) {
+        break;
+      }
+      received += chunk;
+    }
+    if (len != received) {
+      throw new IOException(String.format(
+          "Read content size mismatch (%d received, %d expected)", received, len));
     }
   }
 
