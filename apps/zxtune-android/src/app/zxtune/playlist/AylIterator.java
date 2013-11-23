@@ -32,7 +32,7 @@ public final class AylIterator {
 
   private static class Properties {
     
-    private final int version;
+    //private final int version;
     
     Properties(String id) throws IOException {
       if (!id.startsWith(SIGNATURE)) {
@@ -42,18 +42,20 @@ public final class AylIterator {
       if (!Character.isDigit(ver)) {
         throw new IOException("Invalid ayl verison");
       }
-      this.version = ver - '0';  
+      //this.version = ver - '0';  
     }
     
+    /*
     final String getEncoding() {
       return version >= 6 ? "UTF-8" : "windows-1251";
     }
+    */
   }
   
   private static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
     final InputStream stream = XspfIterator.newInputStream(buf);
     final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-    final Properties props = new Properties(reader.readLine());
+    /*final Properties props = */new Properties(reader.readLine());
     //TODO: apply encoding
     return parse(reader);
   }

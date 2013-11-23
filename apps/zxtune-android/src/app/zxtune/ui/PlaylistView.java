@@ -27,7 +27,7 @@ import app.zxtune.R;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.PlaylistQuery;
 
-public class PlaylistView extends CheckableListView
+public class PlaylistView extends ListViewCompat
     implements
       LoaderManager.LoaderCallbacks<Cursor> {
 
