@@ -10,6 +10,9 @@
 
 package app.zxtune.ui;
 
+import com.mobeta.android.dslv.DragSortCursorAdapter;
+import com.mobeta.android.dslv.DragSortListView;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,12 +25,13 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.PlaylistQuery;
 
-public class PlaylistView extends ListViewCompat
+public class PlaylistView extends DragSortListView
     implements
       LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -48,18 +52,8 @@ public class PlaylistView extends ListViewCompat
 
   private PlayitemStateSource state;
 
-  public PlaylistView(Context context) {
-    super(context);
-    setupView();
-  }
-
   public PlaylistView(Context context, AttributeSet attr) {
     super(context, attr);
-    setupView();
-  }
-
-  public PlaylistView(Context context, AttributeSet attr, int defaultStyles) {
-    super(context, attr, defaultStyles);
     setupView();
   }
 
@@ -99,10 +93,10 @@ public class PlaylistView extends ListViewCompat
   }
 
   private CursorAdapter getCursorAdapter() {
-    return (CursorAdapter) getAdapter();
+    return (CursorAdapter) getInputAdapter();
   }
 
-  private class PlaylistCursorAdapter extends CursorAdapter {
+  private class PlaylistCursorAdapter extends DragSortCursorAdapter {
 
     private final LayoutInflater inflater;
 
@@ -128,8 +122,8 @@ public class PlaylistView extends ListViewCompat
       }
       holder.author.setText(item.getAuthor());
       holder.duration.setText(item.getDuration().toString());
-      final int icon = state.isPlaying(uri) ? R.drawable.ic_stat_notify_play : 0;
-      holder.duration.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0);
+      final int icon = state.isPlaying(uri) ? R.drawable.ic_playing : R.drawable.ic_drag_handler;
+      holder.handler.setImageResource(icon);
     }
 
     @Override
@@ -142,11 +136,13 @@ public class PlaylistView extends ListViewCompat
 
   private static class ViewHolder {
 
+    final ImageView handler;
     final TextView title;
     final TextView author;
     final TextView duration;
 
     ViewHolder(View view) {
+      this.handler = (ImageView) view.findViewById(R.id.playlist_item_handler);
       this.title = (TextView) view.findViewById(R.id.playlist_item_title);
       this.author = (TextView) view.findViewById(R.id.playlist_item_author);
       this.duration = (TextView) view.findViewById(R.id.playlist_item_duration);
