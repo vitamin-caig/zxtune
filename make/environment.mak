@@ -1,8 +1,14 @@
 #apply default values
+ifdef arch
+ifndef distro
 ifndef toolchains.root
 $(error No toolchains.root defined)
 endif
-prebuilt.dir ?= $(path_step)/../Build
+ifndef prebuilt.dir
+$(error No prebuilt.dir defined)
+endif
+endif
+endif
 
 #android
 android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector -fomit-frame-pointer -finline-limit=300 -Wa,--noexecstack
