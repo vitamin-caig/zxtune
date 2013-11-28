@@ -17,7 +17,6 @@ import java.util.ArrayList;
 
 import org.xml.sax.SAXException;
 
-import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
@@ -76,7 +75,7 @@ public final class XspfIterator {
     }
     
     final void setLocation(String location) {
-      result.location = Uri.decode(location);
+      result.location = location;
     }
     
     final ReferencesIterator.Entry captureResult() {

@@ -8,6 +8,9 @@
     <string name="vfs_zxtunes_root_description" translatable="false">http://www.zxtunes.com</string>
     <string name="vfs_zxtunes_authors_name">Authors</string>
     <string name="vfs_zxtunes_authors_description">ZX Spectrum musicians catalogue</string>
+    <!-- Playlists -->
+    <string name="vfs_playlists_root_name">Playlists</string>
+    <string name="vfs_playlists_root_description">Saved playlists storage</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
 </resources>

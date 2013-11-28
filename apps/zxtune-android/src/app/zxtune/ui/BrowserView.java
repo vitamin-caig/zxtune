@@ -24,7 +24,7 @@ import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 
-public class BrowserView extends CheckableListView {
+public class BrowserView extends ListViewCompat {
 
   private static final int LOADER_ID = BrowserView.class.hashCode();
 

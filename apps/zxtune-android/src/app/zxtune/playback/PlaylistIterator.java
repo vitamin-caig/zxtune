@@ -11,9 +11,11 @@
 package app.zxtune.playback;
 
 import java.io.IOException;
+import java.io.InvalidObjectException;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.fs.Vfs;
@@ -22,6 +24,8 @@ import app.zxtune.fs.VfsRoot;
 import app.zxtune.playlist.DatabaseIterator;
 
 class PlaylistIterator implements Iterator {
+  
+  private static final String TAG = PlaylistIterator.class.getName();
   
   private final VfsRoot root;
   private final IteratorFactory.NavigationMode navigation;
@@ -80,14 +84,16 @@ class PlaylistIterator implements Iterator {
         item = loadItem(iter);
         delegate = iter;
         return true;
+      } catch (InvalidObjectException e) {
+        Log.d(TAG, "Skip not a module", e);
       } catch (IOException e) {
-        //TODO
+        Log.d(TAG, "Skip I/O error", e);
       }
     }
     return false;
   }
   
-  private PlayableItem loadItem(DatabaseIterator iter) throws IOException {
+  private PlayableItem loadItem(DatabaseIterator iter) throws IOException, InvalidObjectException {
     final app.zxtune.playlist.Item meta = iter.getItem();
     final VfsFile file = (VfsFile) root.resolve(meta.getLocation());
     final PlayableItem item = FileIterator.loadItem(file);

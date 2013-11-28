@@ -15,9 +15,12 @@ import java.util.LinkedList;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 public final class VfsIterator {
 
+  private static final String TAG = VfsIterator.class.getName();
+  
   private final LinkedList<VfsFile> files;
   private final LinkedList<VfsDir> dirs;
 
@@ -44,23 +47,35 @@ public final class VfsIterator {
     return !files.isEmpty();
   }
   
-  public final void next() throws IOException {
+  public final void next() {
     files.remove();
     while (files.isEmpty() && !dirs.isEmpty()) {
-      dirs.remove().enumerate(new VfsDir.Visitor() {
+      scan(dirs.remove());
+    }
+  }
+  
+  private void scan(VfsDir root) {
+    try {
+      final LinkedList<VfsDir> newDirs = new LinkedList<VfsDir>();
+      final LinkedList<VfsFile> newFiles = new LinkedList<VfsFile>();
+      root.enumerate(new VfsDir.Visitor() {
         @Override
         public Status onDir(VfsDir dir) {
-          //move depth
-          dirs.addFirst(dir);
+          newDirs.add(dir);
           return Status.CONTINUE;
         }
-
+  
         @Override
         public Status onFile(VfsFile file) {
-          files.add(file);
+          newFiles.add(file);
           return Status.CONTINUE;
         }
       });
+      //move to depth first
+      dirs.addAll(0, newDirs);
+      files.addAll(newFiles);
+    } catch (IOException e) {
+      Log.d(TAG, "Skip I/O error", e);
     }
   }
 

@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:orientation="vertical"
   android:layout_width="match_parent"
-  android:layout_height="wrap_content"
+  android:layout_height="match_parent"
   >
   <app.zxtune.ui.VisualizerView
     android:id="@+id/visualizer"
@@ -13,6 +13,12 @@
     android:paddingBottom="@dimen/spacing_half"
   />
   <include layout="@layout/information"/>
+  <!-- stub -->
+  <View
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1"
+  />
   <include layout="@layout/position"/>
   <include layout="@layout/controls"/>
 </LinearLayout>

@@ -22,6 +22,7 @@ namespace RSS
   {
     QDate Updated;
     QString Title;
+    QUrl DirectLink;
     QUrl AlternateLink;
     QString HtmlContent;
   };

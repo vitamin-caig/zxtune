@@ -7,24 +7,26 @@
   >
   <LinearLayout
     android:orientation="vertical"
-    android:layout_width="match_parent"
+    android:layout_width="0dp"
     android:layout_height="match_parent"
     android:layout_weight="1"
     >
     <FrameLayout
       android:id="@+id/now_playing"
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
+      android:layout_height="0dp"
+      android:layout_weight="1"
     />
     <FrameLayout
       android:id="@+id/playlist_view"
       android:layout_width="match_parent"
-      android:layout_height="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="2"
     />
   </LinearLayout>
   <FrameLayout
     android:id="@+id/browser_view"
-    android:layout_width="match_parent"
+    android:layout_width="0dp"
     android:layout_height="match_parent"
     android:layout_weight="1"
   />

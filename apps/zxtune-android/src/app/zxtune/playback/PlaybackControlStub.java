@@ -10,8 +10,6 @@
 
 package app.zxtune.playback;
 
-import app.zxtune.playback.PlaybackControl.SequenceMode;
-
 public class PlaybackControlStub implements PlaybackControl {
 
   private PlaybackControlStub() {

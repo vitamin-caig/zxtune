@@ -1,14 +1,17 @@
 /**
- *
+ * 
  * @file
- *
+ * 
  * @brief Playlist view component
- *
+ * 
  * @author vitamin.caig@gmail.com
- *
+ * 
  */
 
 package app.zxtune.ui;
+
+import com.mobeta.android.dslv.DragSortCursorAdapter;
+import com.mobeta.android.dslv.DragSortListView;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -22,12 +25,15 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.playlist.Item;
-import app.zxtune.playlist.Query;
+import app.zxtune.playlist.PlaylistQuery;
 
-public class PlaylistView extends CheckableListView implements LoaderManager.LoaderCallbacks<Cursor> {
+public class PlaylistView extends DragSortListView
+    implements
+      LoaderManager.LoaderCallbacks<Cursor> {
 
   interface PlayitemStateSource {
 
@@ -43,21 +49,11 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
   }
 
   private static final int LOADER_ID = PlaylistView.class.hashCode();
-  
-  private PlayitemStateSource state;
 
-  public PlaylistView(Context context) {
-    super(context);
-    setupView();
-  }
+  private PlayitemStateSource state;
 
   public PlaylistView(Context context, AttributeSet attr) {
     super(context, attr);
-    setupView();
-  }
-
-  public PlaylistView(Context context, AttributeSet attr, int defaultStyles) {
-    super(context, attr, defaultStyles);
     setupView();
   }
 
@@ -65,20 +61,20 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
     super.setLongClickable(true);
     setAdapter(new PlaylistCursorAdapter(getContext(), null, 0));
   }
-  
+
   final void setPlayitemStateSource(PlayitemStateSource source) {
     this.state = null != source ? source : new StubPlayitemStateSource();
   }
-  
+
   final void load(LoaderManager manager) {
     manager.initLoader(LOADER_ID, null, this);
   }
-  
+
   @Override
   public Loader<Cursor> onCreateLoader(int id, Bundle params) {
     assert id == LOADER_ID;
     getCursorAdapter().changeCursor(null);
-    return new CursorLoader(getContext(), Query.unparse(null), null, null, null, null);
+    return new CursorLoader(getContext(), PlaylistQuery.ALL, null, null, null, null);
   }
 
   @Override
@@ -95,12 +91,12 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
   public void onLoaderReset(Loader<Cursor> loader) {
     getCursorAdapter().changeCursor(null);
   }
-  
+
   private CursorAdapter getCursorAdapter() {
-    return (CursorAdapter)getAdapter();
+    return (CursorAdapter) getInputAdapter();
   }
 
-  private class PlaylistCursorAdapter extends CursorAdapter {
+  private class PlaylistCursorAdapter extends DragSortCursorAdapter {
 
     private final LayoutInflater inflater;
 
@@ -126,8 +122,8 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
       }
       holder.author.setText(item.getAuthor());
       holder.duration.setText(item.getDuration().toString());
-      final int icon = state.isPlaying(uri) ? R.drawable.ic_stat_notify_play : 0;
-      holder.duration.setCompoundDrawablesWithIntrinsicBounds(icon, 0, 0, 0);
+      final int icon = state.isPlaying(uri) ? R.drawable.ic_playing : R.drawable.ic_drag_handler;
+      holder.handler.setImageResource(icon);
     }
 
     @Override
@@ -140,11 +136,13 @@ public class PlaylistView extends CheckableListView implements LoaderManager.Loa
 
   private static class ViewHolder {
 
+    final ImageView handler;
     final TextView title;
     final TextView author;
     final TextView duration;
 
     ViewHolder(View view) {
+      this.handler = (ImageView) view.findViewById(R.id.playlist_item_handler);
       this.title = (TextView) view.findViewById(R.id.playlist_item_title);
       this.author = (TextView) view.findViewById(R.id.playlist_item_author);
       this.duration = (TextView) view.findViewById(R.id.playlist_item_duration);

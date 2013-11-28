@@ -23,7 +23,6 @@ import android.util.Log;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
-import app.zxtune.playback.PlaybackControl.TrackMode;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.Player;
 import app.zxtune.sound.PlayerEventsListener;
@@ -83,7 +82,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void play(Iterator iter) {
+  private void play(Iterator iter) throws IOException {
     final PlayerEventsListener events = new PlaybackEvents(callbacks, new DispatchedPlaybackControl());
     setNewHolder(new Holder(iter, events));
   }
@@ -168,7 +167,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.visualizer = VisualizerStub.instance();
     }
     
-    Holder(Iterator iterator, PlayerEventsListener events) {
+    Holder(Iterator iterator, PlayerEventsListener events) throws IOException {
       this.iterator = iterator;
       this.item = iterator.getItem();
       final ZXTune.Player lowPlayer = item.getModule().createPlayer();
@@ -262,8 +261,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void run() {
-      if (iter.next()) {
-        play(iter);
+      try {
+        if (iter.next()) {
+          play(iter);
+        }
+      } catch (IOException e) {
+        Log.d(TAG, "next()", e);
       }
     }
   }
@@ -278,8 +281,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void run() {
-      if (iter.prev()) {
-        play(iter);
+      try {
+        if (iter.prev()) {
+          play(iter);
+        }
+      } catch (IOException e) {
+        Log.d(TAG, "prev()", e);
       }
     }
   }

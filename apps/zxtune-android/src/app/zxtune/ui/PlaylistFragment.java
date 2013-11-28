@@ -15,6 +15,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.view.ActionMode;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,7 +32,7 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playlist.Query;
+import app.zxtune.playlist.PlaylistQuery;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
@@ -70,24 +72,31 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
-    addNowPlaying = menu.findItem(R.id.action_playlist_add_current);
+    addNowPlaying = menu.findItem(R.id.action_add_current);
   }
   
   @Override
   public boolean onOptionsItemSelected (MenuItem item) {
     switch (item.getItemId()) {
-      case R.id.action_playlist_clear:
+      case R.id.action_clear:
         service.getPlaylistControl().deleteAll();
         break;
-      case R.id.action_playlist_add_current:
+      case R.id.action_add_current:
         service.getPlaylistControl().add(new Uri[] {service.getNowPlaying().getDataId()});
         //disable further addings
         addNowPlaying.setVisible(false);
+        break;
+      case R.id.action_save:
+        savePlaylist(null);
         break;
       default:
         return super.onOptionsItemSelected(item);
     }
     return true;
+  }
+  
+  private void savePlaylist(long[] ids) {
+    PlaylistSaveFragment.createInstance(ids).show(getFragmentManager(), "save");
   }
   
   @Override
@@ -153,7 +162,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int pos, long id) {
-      final Uri[] toPlay = {Query.unparse(id)};
+      final Uri[] toPlay = {PlaylistQuery.uriFor(id)};
       service.setNowPlaying(toPlay);
     }
   }
@@ -206,10 +215,10 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     return getResources().getQuantityString(R.plurals.tracks, count, count);
   }
   
-  private class MultiChoiceModeListener implements CheckableListView.MultiChoiceModeListener {
+  private class MultiChoiceModeListener implements ListViewCompat.MultiChoiceModeListener {
 
     @Override
-    public boolean onCreateActionMode(CheckableListView.ActionMode mode, Menu menu) {
+    public boolean onCreateActionMode(ListViewCompat.ActionMode mode, Menu menu) {
       final MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.selection, menu);
       inflater.inflate(R.menu.playlist_items, menu);
@@ -218,18 +227,21 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
 
     @Override
-    public boolean onPrepareActionMode(CheckableListView.ActionMode mode, Menu menu) {
+    public boolean onPrepareActionMode(ListViewCompat.ActionMode mode, Menu menu) {
       return false;
     }
 
     @Override
-    public boolean onActionItemClicked(CheckableListView.ActionMode mode, MenuItem item) {
+    public boolean onActionItemClicked(ListViewCompat.ActionMode mode, MenuItem item) {
       if (listing.processActionItemClick(item.getItemId())) {
         return true;
       } else {
         switch (item.getItemId()) {
           case R.id.action_delete:
             service.getPlaylistControl().delete(listing.getCheckedItemIds());
+            break;
+          case R.id.action_save:
+            savePlaylist(listing.getCheckedItemIds());
             break;
           default:
             return false;
@@ -240,11 +252,11 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
 
     @Override
-    public void onDestroyActionMode(CheckableListView.ActionMode mode) {
+    public void onDestroyActionMode(ListViewCompat.ActionMode mode) {
     }
 
     @Override
-    public void onItemCheckedStateChanged(CheckableListView.ActionMode mode, int position, long id,
+    public void onItemCheckedStateChanged(ListViewCompat.ActionMode mode, int position, long id,
         boolean checked) {
       mode.setTitle(getActionModeTitle());
     }

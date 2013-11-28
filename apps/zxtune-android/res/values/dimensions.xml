@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <dimen name="item_height">48dp</dimen>
-  <dimen name="item_height_doubled">96dp</dimen>
   <dimen name="spacing_half">4dp</dimen>
   <dimen name="spacing_full">8dp</dimen>
 </resources>

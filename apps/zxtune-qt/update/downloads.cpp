@@ -26,10 +26,14 @@ namespace
 namespace
 {
   const QLatin1String CONTENT_FORMAT(
-    "([\\w\\d]+)\\s+revision\\s+(\\d+)"
-    ".*href=\"(http.*)\">"
-  )
-  ;
+    "([\\w\\d]+)\\s+(revision|version)\\s+(\\d+)"
+  );
+
+  enum
+  {
+    CONTENT_PROJECT = 1,
+    CONTENT_REVISION = 3,
+  };
 
   const QLatin1String OPSYS_WINDOWS("OpSys-Windows");
   const QLatin1String OPSYS_LINUX("OpSys-Linux");
@@ -54,10 +58,9 @@ namespace
   class UpdateDownload : public Product::Update
   {
   public:
-    UpdateDownload(const RSS::Entry& entry, const QString& version, const QString& file)
+    UpdateDownload(const RSS::Entry& entry, const QString& version)
       : Entry(entry)
       , VersionValue(version)
-      , File(file)
     {
     }
 
@@ -129,23 +132,24 @@ namespace
 
     virtual Product::Update::PackagingTag Packaging() const
     {
-      if (File.endsWith(TYPE_ZIP))
+      const QString file = Entry.DirectLink.toString();
+      if (file.endsWith(TYPE_ZIP))
       {
         return Product::Update::ZIP;
       }
-      else if (File.endsWith(TYPE_TARGZ))
+      else if (file.endsWith(TYPE_TARGZ))
       {
         return Product::Update::TARGZ;
       }
-      else if (File.endsWith(TYPE_TARXZ))
+      else if (file.endsWith(TYPE_TARXZ))
       {
         return Product::Update::TARXZ;
       }
-      else if (File.endsWith(TYPE_DEB))
+      else if (file.endsWith(TYPE_DEB))
       {
         return Product::Update::DEB;
       }
-      else if (File.endsWith(TYPE_RPM))
+      else if (file.endsWith(TYPE_RPM))
       {
         return Product::Update::RPM;
       }
@@ -167,12 +171,11 @@ namespace
 
     virtual QUrl Package() const
     {
-      return File;
+      return Entry.DirectLink;
     }
   private:
     const RSS::Entry Entry;
     const QString VersionValue;
-    const QString File;
   };
 
   class FeedVisitor : public RSS::Visitor
@@ -183,7 +186,6 @@ namespace
       , Delegate(delegate)
       , ContentMatch(CONTENT_FORMAT)
     {
-      ContentMatch.setMinimal(true);
     }
 
     virtual void OnEntry(const RSS::Entry& e)
@@ -194,15 +196,14 @@ namespace
         Dbg("Failed to parse html content");
         return;
       }
-      const QString project = ContentMatch.cap(1);
+      const QString project = ContentMatch.cap(CONTENT_PROJECT);
       if (project != Project)
       {
         Dbg("Not supported project");
         return;
       }
-      const QString revision = ContentMatch.cap(2);
-      const QString file = ContentMatch.cap(3);
-      const Product::Update::Ptr update = boost::make_shared<UpdateDownload>(e, revision, file);
+      const QString revision = ContentMatch.cap(CONTENT_REVISION);
+      const Product::Update::Ptr update = boost::make_shared<UpdateDownload>(e, revision);
       Delegate.OnDownload(update);
     }
   private:

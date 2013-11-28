@@ -10,6 +10,9 @@
     -->
     <string name="vfs_zxtunes_authors_name">Авторы</string>
     <string name="vfs_zxtunes_authors_description">Каталог спектрумовских музыкантов</string>
+    <!-- Playlists -->
+    <string name="vfs_playlists_root_name">Списки</string>
+    <string name="vfs_playlists_root_description">Сохраненные списки</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
 </resources>

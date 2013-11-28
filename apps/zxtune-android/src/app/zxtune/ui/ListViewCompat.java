@@ -24,7 +24,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import app.zxtune.R;
 
-public class CheckableListView extends ListView {
+public class ListViewCompat extends ListView {
 
   public interface ActionMode {
 
@@ -56,7 +56,7 @@ public class CheckableListView extends ListView {
   /**
    * @param context
    */
-  public CheckableListView(Context context) {
+  public ListViewCompat(Context context) {
     super(context);
   }
 
@@ -64,7 +64,7 @@ public class CheckableListView extends ListView {
    * @param context
    * @param attrs
    */
-  public CheckableListView(Context context, AttributeSet attrs) {
+  public ListViewCompat(Context context, AttributeSet attrs) {
     super(context, attrs);
   }
 
@@ -73,7 +73,7 @@ public class CheckableListView extends ListView {
    * @param attrs
    * @param defStyle
    */
-  public CheckableListView(Context context, AttributeSet attrs, int defStyle) {
+  public ListViewCompat(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
   }
 
@@ -280,7 +280,7 @@ public class CheckableListView extends ListView {
 
     @Override
     public boolean onCreateActionMode(android.support.v7.view.ActionMode mode, Menu menu) {
-      CheckableListView.this.setChoiceMode(CHOICE_MODE_MULTIPLE);
+      ListViewCompat.this.setChoiceMode(CHOICE_MODE_MULTIPLE);
       return listener.onCreateActionMode(new ActionModeSupp(mode), menu);
     }
 
@@ -288,11 +288,11 @@ public class CheckableListView extends ListView {
     public void onDestroyActionMode(android.support.v7.view.ActionMode mode) {
       listener.onDestroyActionMode(new ActionModeSupp(mode));
       actionModeCompat = null;
-      CheckableListView.this.selectNone();
-      CheckableListView.this.post(new Runnable() {
+      ListViewCompat.this.selectNone();
+      ListViewCompat.this.post(new Runnable() {
         @Override
         public void run() {
-          CheckableListView.this.setChoiceMode(CHOICE_MODE_NONE);
+          ListViewCompat.this.setChoiceMode(CHOICE_MODE_NONE);
         }
       });
     }

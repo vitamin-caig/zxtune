@@ -139,10 +139,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
   }
 
-  private class MultiChoiceModeListener implements CheckableListView.MultiChoiceModeListener {
+  private class MultiChoiceModeListener implements ListViewCompat.MultiChoiceModeListener {
 
     @Override
-    public boolean onCreateActionMode(CheckableListView.ActionMode mode, Menu menu) {
+    public boolean onCreateActionMode(ListViewCompat.ActionMode mode, Menu menu) {
       setEnabledRecursive(sources, false);
       final MenuInflater inflater = mode.getMenuInflater();
       inflater.inflate(R.menu.selection, menu);
@@ -152,12 +152,12 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
 
     @Override
-    public boolean onPrepareActionMode(CheckableListView.ActionMode mode, Menu menu) {
+    public boolean onPrepareActionMode(ListViewCompat.ActionMode mode, Menu menu) {
       return false;
     }
 
     @Override
-    public boolean onActionItemClicked(CheckableListView.ActionMode mode, MenuItem item) {
+    public boolean onActionItemClicked(ListViewCompat.ActionMode mode, MenuItem item) {
       if (listing.processActionItemClick(item.getItemId())) {
         return true;
       } else {
@@ -177,12 +177,12 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
 
     @Override
-    public void onDestroyActionMode(CheckableListView.ActionMode mode) {
+    public void onDestroyActionMode(ListViewCompat.ActionMode mode) {
       setEnabledRecursive(sources, true);
     }
 
     @Override
-    public void onItemCheckedStateChanged(CheckableListView.ActionMode mode, int position, long id,
+    public void onItemCheckedStateChanged(ListViewCompat.ActionMode mode, int position, long id,
         boolean checked) {
       mode.setTitle(getActionModeTitle());
     }

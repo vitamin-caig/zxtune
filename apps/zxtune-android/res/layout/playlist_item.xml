@@ -4,7 +4,13 @@
     android:orientation="horizontal"
     android:background="@drawable/checkable_background"
     >
-
+    <ImageView
+      android:id="@+id/playlist_item_handler"
+      android:layout_width="@dimen/item_height"
+      android:layout_height="wrap_content"
+      android:layout_marginLeft="@dimen/spacing_half"
+      android:layout_gravity="center_vertical"
+    />
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
