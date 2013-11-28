@@ -10,7 +10,6 @@
 
 package app.zxtune.playback;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.net.URI;

@@ -17,7 +17,6 @@ import java.util.ArrayList;
 
 import org.xml.sax.SAXException;
 
-import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
