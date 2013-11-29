@@ -87,6 +87,41 @@ namespace
     return Playlist::UI::ItemsContextMenu::tr("%n item(s)", 0, static_cast<int>(count));
   }
 
+  QString QFileSystemModelTranslate(const char* msg)
+  {
+    return QApplication::translate("QFileSystemModel", msg);
+  }
+
+  QString MemorySize(uint64_t size)
+  {
+    //From gui/dialogs/qfilesystemmodel.cpp
+    const uint64_t kb = 1024;
+    const uint64_t mb = 1024 * kb;
+    const uint64_t gb = 1024 * mb;
+    const uint64_t tb = 1024 * gb;
+
+    if (size >= tb)
+    {
+      return QFileSystemModelTranslate("%1 TB").arg(QLocale().toString(qreal(size) / tb, 'f', 3));
+    }
+    else if (size >= gb)
+    {
+      return QFileSystemModelTranslate("%1 GB").arg(QLocale().toString(qreal(size) / gb, 'f', 2));
+    }
+    else if (size >= mb)
+    {
+      return QFileSystemModelTranslate("%1 MB").arg(QLocale().toString(qreal(size) / mb, 'f', 1));
+    }
+    else if (size >= kb)
+    {
+      return QFileSystemModelTranslate("%1 KB").arg(QLocale().toString(qreal(size) / kb));
+    }
+    else
+    {
+      return QFileSystemModelTranslate("%1 bytes").arg(QLocale().toString(size));
+    }
+  }
+
   class MultipleItemsContextMenu : public QMenu
                                  , private Ui::MultipleItemsContextMenu
   {
@@ -138,7 +173,7 @@ namespace
       result.append(Playlist::UI::ItemsContextMenu::tr("Total: %1").arg(ModulesCount(Processed)));
       result.append(Playlist::UI::ItemsContextMenu::tr("Invalid: %1").arg(ModulesCount(Invalids)));
       result.append(Playlist::UI::ItemsContextMenu::tr("Total duration: %1").arg(ToQString(Duration.ToString())));
-      result.append(Playlist::UI::ItemsContextMenu::tr("Total size: %n byte(s)", 0, Size));
+      result.append(Playlist::UI::ItemsContextMenu::tr("Total size: %1").arg(MemorySize(Size)));
       result.append(Playlist::UI::ItemsContextMenu::tr("%n diferent modules' type(s)", 0, Types.size()));
       return result.join(LINE_BREAK);
     }
