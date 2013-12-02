@@ -34,7 +34,7 @@ namespace
   const QLatin1String FONT_FAMILY("Arial");
   const int_t FONT_SIZE = 8;
   const int_t ROW_HEIGTH = 16;
-  const int_t ICON_WIDTH = 24;
+  const int_t TYPE_WIDTH = 24;
   const int_t DISPLAYNAME_WIDTH = 320;
   const int_t DURATION_WIDTH = 60;
   const int_t AUTHOR_WIDTH = 160;
@@ -58,7 +58,7 @@ namespace
       setTextElideMode(Qt::ElideRight);
       setMovable(true);
       setClickable(true);
-      resizeSection(Playlist::Model::COLUMN_TYPE, ICON_WIDTH);
+      resizeSection(Playlist::Model::COLUMN_TYPE, TYPE_WIDTH);
       resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
       resizeSection(Playlist::Model::COLUMN_DURATION, DURATION_WIDTH);
       resizeSection(Playlist::Model::COLUMN_AUTHOR, AUTHOR_WIDTH);

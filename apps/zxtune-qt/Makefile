@@ -60,7 +60,7 @@ endif
 theme_resources = res/theme_$(gui_theme)
 
 #qt-based resources
-qrc_files := res/icons $(theme_resources)/theme
+qrc_files := $(theme_resources)/theme
 
 #platform-specific resources
 windows_resources := res/zxtune-qt
