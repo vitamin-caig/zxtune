@@ -17,24 +17,20 @@ namespace ZXTune
   {
     //! Device-related capabilities
     CAP_DEVICE_MASK    = 0xff,
-    //! Supporting for AY/YM (count of supported devices)
-    CAP_DEV_AYM_MASK   = 0x03,
-    //! Single AYM support
-    CAP_DEV_AYM        = 0x01,
-    //! Double AYM support
-    CAP_DEV_TS         = 0x02,
-    //! Supporting for beeper
+    //! Single AY/YM support
+    CAP_DEV_AY38910    = 0x01,
+    //! Double AY/YM support
+    CAP_DEV_TURBOSOUND = 0x02,
+    //! Beeper support
     CAP_DEV_BEEPER     = 0x04,
-    //! Supporting for FM
-    CAP_DEV_FM         = 0x08,
-    //! Supporting for DAC (count of supported channels)
-    CAP_DEV_DAC_MASK   = 0x70,
-    CAP_DEV_1DAC       = 0x10,
-    CAP_DEV_2DAC       = 0x20,
-    CAP_DEV_3DAC       = 0x30,
-    CAP_DEV_4DAC       = 0x40,
-    //! Supporting for SAA1099
-    CAP_DEV_SAA        = 0x80,
+    //! Single FM chip
+    CAP_DEV_YM2203     = 0x08,
+    //! Double FM chip support
+    CAP_DEV_TURBOFM    = 0x10,
+    //! DAC-based devices support
+    CAP_DEV_DAC        = 0x20,
+    //! SAA1099 support
+    CAP_DEV_SAA1099    = 0x40,
 
     //! Storages-related capabilities
     CAP_STORAGE_MASK    = 0xff00,

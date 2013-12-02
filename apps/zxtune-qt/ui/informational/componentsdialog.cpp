@@ -35,25 +35,25 @@ namespace
   bool IsAYMPlugin(const ZXTune::Plugin& plugin)
   {
     assert(IsPlayerPlugin(plugin));
-    return 0 == ((plugin.Capabilities() & ZXTune::CAP_DEVICE_MASK) & ~ZXTune::CAP_DEV_AYM_MASK);
+    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_AY38910 | ZXTune::CAP_DEV_TURBOSOUND));
   }
 
   bool IsDACPlugin(const ZXTune::Plugin& plugin)
   {
     assert(IsPlayerPlugin(plugin));
-    return 0 == ((plugin.Capabilities() & ZXTune::CAP_DEVICE_MASK) & ~ZXTune::CAP_DEV_DAC_MASK);
+    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_DAC | ZXTune::CAP_DEV_BEEPER));
   }
 
   bool IsFMPlugin(const ZXTune::Plugin& plugin)
   {
     assert(IsPlayerPlugin(plugin));
-    return ZXTune::CAP_DEV_FM == (plugin.Capabilities() & ZXTune::CAP_DEV_FM);
+    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_YM2203 | ZXTune::CAP_DEV_TURBOFM));
   }
 
   bool IsSAAPlugin(const ZXTune::Plugin& plugin)
   {
     assert(IsPlayerPlugin(plugin));
-    return ZXTune::CAP_DEV_SAA == (plugin.Capabilities() & ZXTune::CAP_DEV_SAA);
+    return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_SAA1099);
   }
 
   bool IsMultitrackPlugin(const ZXTune::Plugin& plugin)

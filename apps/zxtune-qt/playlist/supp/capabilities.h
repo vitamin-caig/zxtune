@@ -30,12 +30,12 @@ namespace Playlist
 
       bool IsAYM() const
       {
-        return 0 != (PluginCaps & ZXTune::CAP_DEV_AYM_MASK);
+        return 0 != (PluginCaps & (ZXTune::CAP_DEV_AY38910 | ZXTune::CAP_DEV_TURBOSOUND));
       }
 
       bool IsDAC() const
       {
-        return 0 != (PluginCaps & ZXTune::CAP_DEV_DAC_MASK);
+        return 0 != (PluginCaps & ZXTune::CAP_DEV_DAC);
       }
     private:
       const uint_t PluginCaps;

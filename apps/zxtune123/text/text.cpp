@@ -242,8 +242,8 @@ extern const Char INFO_BACKEND_INFO[] = {
   '\n',
   0
 };
-extern const Char INFO_CAP_AYM[] = {
-  'd','e','v','_','a','y','m',0
+extern const Char INFO_CAP_AY38910[] = {
+  'd','e','v','_','a','y','3','8','9','1','0',0
 };
 extern const Char INFO_CAP_BEEPER[] = {
   'd','e','v','_','b','e','e','p','e','r',0
@@ -254,23 +254,11 @@ extern const Char INFO_CAP_CONTAINER[] = {
 extern const Char INFO_CAP_DAC[] = {
   'd','e','v','_','d','a','c',0
 };
-extern const Char INFO_CAP_DAC1[] = {
-  'd','e','v','_','d','a','c','1',0
-};
-extern const Char INFO_CAP_DAC2[] = {
-  'd','e','v','_','d','a','c','2',0
-};
-extern const Char INFO_CAP_DAC4[] = {
-  'd','e','v','_','d','a','c','4',0
-};
 extern const Char INFO_CAP_DIRS[] = {
   's','t','o','r','_','d','i','r','s',0
 };
 extern const Char INFO_CAP_FILE[] = {
   't','y','p','e','_','f','i','l','e',0
-};
-extern const Char INFO_CAP_FM[] = {
-  'd','e','v','_','f','m',0
 };
 extern const Char INFO_CAP_HARDWARE[] = {
   't','y','p','e','_','h','a','r','d','w','a','r','e',0
@@ -287,8 +275,8 @@ extern const Char INFO_CAP_MULTITRACK[] = {
 extern const Char INFO_CAP_PLAIN[] = {
   's','t','o','r','_','p','l','a','i','n',0
 };
-extern const Char INFO_CAP_SAA[] = {
-  'd','e','v','_','s','a','a',0
+extern const Char INFO_CAP_SAA1099[] = {
+  'd','e','v','_','s','a','a','1','0','9','9',0
 };
 extern const Char INFO_CAP_SCANER[] = {
   's','t','o','r','_','s','c','a','n','e','r',0
@@ -299,8 +287,14 @@ extern const Char INFO_CAP_STUB[] = {
 extern const Char INFO_CAP_SYSTEM[] = {
   't','y','p','e','_','s','y','s','t','e','m',0
 };
-extern const Char INFO_CAP_TS[] = {
-  'd','e','v','_','t','s',0
+extern const Char INFO_CAP_TURBOFM[] = {
+  'd','e','v','_','t','u','r','b','o','f','m',0
+};
+extern const Char INFO_CAP_TURBOSOUND[] = {
+  'd','e','v','_','t','u','r','b','o','s','o','u','n','d',0
+};
+extern const Char INFO_CAP_YM2203[] = {
+  'd','e','v','_','y','m','2','2','0','3',0
 };
 extern const Char INFO_CONV_AYDUMP[] = {
   'c','o','n','v','_','a','y','d','u','m','p',0

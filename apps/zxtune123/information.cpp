@@ -63,14 +63,13 @@ namespace
     static const CapsPair PLUGINS_CAPS[] =
     {
       //device caps
-      CapsPair(ZXTune::CAP_DEV_AYM, Text::INFO_CAP_AYM),
-      CapsPair(ZXTune::CAP_DEV_TS, Text::INFO_CAP_TS),
+      CapsPair(ZXTune::CAP_DEV_AY38910, Text::INFO_CAP_AY38910),
+      CapsPair(ZXTune::CAP_DEV_TURBOSOUND, Text::INFO_CAP_TURBOSOUND),
       CapsPair(ZXTune::CAP_DEV_BEEPER, Text::INFO_CAP_BEEPER),
-      CapsPair(ZXTune::CAP_DEV_FM, Text::INFO_CAP_FM),
-      CapsPair(ZXTune::CAP_DEV_1DAC, Text::INFO_CAP_DAC1),
-      CapsPair(ZXTune::CAP_DEV_2DAC, Text::INFO_CAP_DAC2),
-      CapsPair(ZXTune::CAP_DEV_4DAC, Text::INFO_CAP_DAC4),
-      CapsPair(ZXTune::CAP_DEV_SAA, Text::INFO_CAP_SAA),
+      CapsPair(ZXTune::CAP_DEV_YM2203, Text::INFO_CAP_YM2203),
+      CapsPair(ZXTune::CAP_DEV_TURBOFM, Text::INFO_CAP_TURBOFM),
+      CapsPair(ZXTune::CAP_DEV_DAC, Text::INFO_CAP_DAC),
+      CapsPair(ZXTune::CAP_DEV_SAA1099, Text::INFO_CAP_SAA1099),
       //storage caps
       CapsPair(ZXTune::CAP_STOR_MODULE, Text::INFO_CAP_MODULE),
       CapsPair(ZXTune::CAP_STOR_CONTAINER, Text::INFO_CAP_CONTAINER),

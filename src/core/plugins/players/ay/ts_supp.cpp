@@ -147,7 +147,7 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'T', 'S', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TS | CAP_CONV_RAW;
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_TURBOSOUND | CAP_CONV_RAW;
 
     const Formats::Chiptune::TurboSound::Decoder::Ptr decoder = Formats::Chiptune::TurboSound::CreateDecoder();
     const Module::Factory::Ptr factory = boost::make_shared<Module::TS::Factory>(decoder);
