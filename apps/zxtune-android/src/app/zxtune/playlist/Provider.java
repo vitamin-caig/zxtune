@@ -14,7 +14,6 @@ import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
-import android.text.TextUtils;
 
 public class Provider extends ContentProvider {
 
@@ -29,9 +28,8 @@ public class Provider extends ContentProvider {
   @Override
   public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
     final Long id = PlaylistQuery.idOf(uri);
-    final String select = Database.playlistSelection(selection, id);
-    final String sort = TextUtils.isEmpty(sortOrder) ? Database.defaultPlaylistOrder() : sortOrder;
-    final Cursor result = db.queryPlaylistItems(projection, select, selectionArgs, sort);
+    final String select = id != null ? PlaylistQuery.selectionFor(id) : selection;
+    final Cursor result = db.queryPlaylistItems(projection, select, selectionArgs, sortOrder);
     result.setNotificationUri(getContext().getContentResolver(), PlaylistQuery.ALL);
     return result;
   }
@@ -50,8 +48,9 @@ public class Provider extends ContentProvider {
   @Override
   public int delete(Uri uri, String selection, String[] selectionArgs) {
     final Long id = PlaylistQuery.idOf(uri);
-    final String select = Database.playlistSelection(selection, id);
-    final int count = db.deletePlaylistItems(select, selectionArgs);
+    final int count = id != null 
+      ? db.deletePlaylistItems(PlaylistQuery.selectionFor(id), null)
+      : db.deletePlaylistItems(selection, selectionArgs);
     getContext().getContentResolver().notifyChange(uri, null);
     return count;
   }
@@ -59,8 +58,9 @@ public class Provider extends ContentProvider {
   @Override
   public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
     final Long id = PlaylistQuery.idOf(uri);
-    final String select = Database.playlistSelection(selection, id);
-    final int count = db.updatePlaylistItems(values, select, selectionArgs);
+    final int count = id != null
+      ? db.updatePlaylistItems(values, PlaylistQuery.selectionFor(id), null)
+      : db.updatePlaylistItems(values, selection, selectionArgs);
     getContext().getContentResolver().notifyChange(uri, null);
     return count;
   }

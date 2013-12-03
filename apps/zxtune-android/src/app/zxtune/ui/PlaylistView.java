@@ -10,7 +10,6 @@
 
 package app.zxtune.ui;
 
-import com.mobeta.android.dslv.DragSortCursorAdapter;
 import com.mobeta.android.dslv.DragSortListView;
 
 import android.content.Context;
@@ -96,7 +95,7 @@ public class PlaylistView extends DragSortListView
     return (CursorAdapter) getInputAdapter();
   }
 
-  private class PlaylistCursorAdapter extends DragSortCursorAdapter {
+  private class PlaylistCursorAdapter extends CursorAdapter {
 
     private final LayoutInflater inflater;
 

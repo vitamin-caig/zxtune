@@ -19,6 +19,7 @@ interface IRemotePlaybackService {
   void add(in Uri[] uris);
   void delete(in long[] ids);
   void deleteAll();
+  void move(in long id, in int delta);
 
   //PlaybackControl
   void play();
