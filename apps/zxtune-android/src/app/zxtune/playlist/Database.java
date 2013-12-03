@@ -173,31 +173,23 @@ public class Database {
    * @param ids id => pos list
    */
   public final void updatePlaylistItemsOrder(SparseIntArray positions) {
-    final String[] pair = {Tables.Positions.Fields.track_id.name(), Tables.Positions.Fields.pos.name()};
-    final StringBuilder query = new StringBuilder();
-    query.append("REPLACE INTO ");
-    query.append(Tables.Positions.NAME);
-    query.append(toString(pair));
-    query.append(" VALUES");
-    for (int i = 0, lim = positions.size(); i != lim; ++i) {
-      if (i != 0) {
-        query.append(',');
-      }
-      pair[0] = Integer.toString(positions.keyAt(i));
-      pair[1] = Integer.toString(positions.valueAt(i));
-      query.append(toString(pair));
-    }
-    query.append(';');
-    final String queryString = query.toString();
+    //sqlite prior to 3.7.11 (api v14) does not support multiple values
+    //http://stackoverflow.com/questions/2421189/version-of-sqlite-used-in-android
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
-    db.execSQL(queryString);
+    try {
+      db.beginTransaction();
+      for (int i = 0, lim = positions.size(); i != lim; ++i) {
+        final String queryString = String.format("REPLACE INTO %s(%s, %s) VALUES(%d, %d);",
+            Tables.Positions.NAME, Tables.Positions.Fields.track_id, Tables.Positions.Fields.pos,
+            positions.keyAt(i), positions.valueAt(i));
+        db.execSQL(queryString);
+      }
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
   }
   
-  private static String toString(String[] array) {
-    final String res = Arrays.toString(array);
-    return res.replace('[', '(').replace(']', ')');
-  }
-
   private static class DBHelper extends SQLiteOpenHelper {
 
     public DBHelper(Context context) {
