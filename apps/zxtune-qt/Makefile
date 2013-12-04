@@ -21,7 +21,7 @@ include_dirs = .
 text_files := text/text
 
 #base
-libraries.common = analysis async binary \
+libraries.common = analysis async binary binary_format \
                   core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
                   devices_aym devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_chiptune formats_packed \

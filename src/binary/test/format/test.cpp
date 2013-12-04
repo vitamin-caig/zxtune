@@ -11,8 +11,8 @@
 #include <types.h>
 #include <binary/data_adapter.h>
 #include <binary/format_factories.h>
-#include <binary/src/format_grammar.h>
-#include <binary/src/format_syntax.h>
+#include <binary/format/grammar.h>
+#include <binary/format/syntax.h>
 #include <sstream>
 #include <iostream>
 #include <boost/range/size.hpp>
