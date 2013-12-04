@@ -127,6 +127,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       @Override
       public void drop(int from, int to) {
         if (from != to) {
+          //TODO: perform in separate thread
           final long id = listing.getItemIdAtPosition(from);
           service.getPlaylistControl().move(id, to - from);
         }

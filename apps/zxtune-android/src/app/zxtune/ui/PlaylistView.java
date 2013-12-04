@@ -10,6 +10,7 @@
 
 package app.zxtune.ui;
 
+import com.mobeta.android.dslv.DragSortCursorAdapter;
 import com.mobeta.android.dslv.DragSortListView;
 
 import android.content.Context;
@@ -60,6 +61,16 @@ public class PlaylistView extends DragSortListView
     super.setLongClickable(true);
     setAdapter(new PlaylistCursorAdapter(getContext(), null, 0));
   }
+  
+  @Override
+  public void setDropListener(DropListener listener) {
+    final PlaylistCursorAdapter adapter = (PlaylistCursorAdapter) getInputAdapter();
+    if (adapter != listener && adapter != null) {
+      adapter.setDropListener(listener);
+    } else {
+      super.setDropListener(listener);
+    }
+  }
 
   final void setPlayitemStateSource(PlayitemStateSource source) {
     this.state = null != source ? source : new StubPlayitemStateSource();
@@ -95,9 +106,10 @@ public class PlaylistView extends DragSortListView
     return (CursorAdapter) getInputAdapter();
   }
 
-  private class PlaylistCursorAdapter extends CursorAdapter {
+  private class PlaylistCursorAdapter extends DragSortCursorAdapter {
 
     private final LayoutInflater inflater;
+    private DropListener dropListener;
 
     PlaylistCursorAdapter(Context context, Cursor cursor, boolean autoRequery) {
       super(context, cursor, autoRequery);
@@ -108,7 +120,7 @@ public class PlaylistView extends DragSortListView
       super(context, cursor, flags);
       this.inflater = LayoutInflater.from(context);
     }
-
+    
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
       final ViewHolder holder = (ViewHolder) view.getTag();
@@ -130,6 +142,19 @@ public class PlaylistView extends DragSortListView
       final View view = inflater.inflate(R.layout.playlist_item, parent, false);
       view.setTag(new ViewHolder(view));
       return view;
+    }
+    
+    @Override
+    public void drop(int from, int to) {
+      //call listener first to get non-modified ids
+      if (dropListener != null) {
+        dropListener.drop(from, to);
+      }
+      super.drop(from, to);
+    }
+    
+    final void setDropListener(DropListener listener) {
+      dropListener = listener;
     }
   }
 
