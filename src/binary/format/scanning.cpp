@@ -22,6 +22,7 @@
 //boost includes
 #include <boost/array.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/ref.hpp>
 
 namespace
 {
@@ -33,6 +34,7 @@ namespace
     StaticToken(Token::Ptr tok)
       : Mask()
       , Count()
+      , Last()
     {
       for (uint_t idx = 0; idx != 256; ++idx)
       {
@@ -46,6 +48,7 @@ namespace
     explicit StaticToken(uint_t val)
       : Mask()
       , Count()
+      , Last()
     {
       Set(val);
     }
@@ -58,6 +61,13 @@ namespace
     bool IsAny() const
     {
       return Count == 256;
+    }
+
+    const uint_t* GetSingle() const
+    {
+      return Count == 1
+        ? &Last
+        : 0;
     }
 
     static bool AreIntersected(const StaticToken& lh, const StaticToken& rh)
@@ -87,6 +97,7 @@ namespace
       const ElementType mask = ElementType(1) << bit;
       Mask[offset] |= mask;
       ++Count;
+      Last = idx;
     }
 
     bool Get(uint_t idx) const
@@ -102,6 +113,7 @@ namespace
     static const std::size_t ElementsCount = 256 / BitsPerElement;
     boost::array<ElementType, ElementsCount> Mask;
     uint_t Count;
+    uint_t Last;
   };
 
   class StaticPattern
@@ -217,13 +229,13 @@ namespace
     std::vector<StaticToken> Data;
   };
 
-  class FastSearchFormat : public Format
+  class FuzzyFormat : public FormatDetails
   {
   public:
     typedef boost::array<uint8_t, 256> PatternRow;
     typedef std::vector<PatternRow> PatternMatrix;
 
-    FastSearchFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
+    FuzzyFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
       , MinScanStep(minScanStep)
@@ -276,9 +288,8 @@ namespace
       return MinSize;
     }
 
-    static Ptr Create(const Expression& expr, std::size_t minSize)
+    static Ptr Create(const StaticPattern& pattern, std::size_t startOffset, std::size_t minSize)
     {
-      const StaticPattern pattern(expr.Tokens());
       const std::size_t patternSize = pattern.GetSize();
       PatternMatrix tmp(patternSize);
       for (uint_t sym = 0; sym != 256; ++sym)
@@ -308,7 +319,7 @@ namespace
       */
       for (std::size_t pos = 0; pos != patternSize - 1; ++pos)
       {
-        PatternRow& row = tmp[pos];
+        FuzzyFormat::PatternRow& row = tmp[pos];
         const std::size_t suffixLen = patternSize - pos - 1;
         const std::size_t offset = pattern.FindSuffix(suffixLen);
         const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
@@ -322,7 +333,7 @@ namespace
       }
       //Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means symbol match
       const std::size_t minScanStep = pattern.FindPrefix(patternSize);
-      return boost::make_shared<FastSearchFormat>(tmp, expr.StartOffset(), minSize, minScanStep);
+      return boost::make_shared<FuzzyFormat>(boost::cref(tmp), startOffset, minSize, minScanStep);
     }
   private:
     std::size_t SearchBackward(const uint8_t* data) const
@@ -350,7 +361,92 @@ namespace
     const PatternRow* const PatRBegin;
     const PatternRow* const PatREnd;
   };
+
+  class ExactFormat : public FormatDetails
+  {
+  public:
+    typedef std::vector<uint8_t> PatternMatrix;
+
+    ExactFormat(const PatternMatrix& mtx, std::size_t offset, std::size_t minSize)
+      : Offset(offset)
+      , MinSize(std::max(minSize, mtx.size() + offset))
+      , Pattern(mtx)
+    {
+    }
+
+    virtual bool Match(const Data& data) const
+    {
+      if (data.Size() < MinSize)
+      {
+        return false;
+      }
+      const uint8_t* const patternStart = &Pattern.front();
+      const uint8_t* const patternEnd = patternStart + Pattern.size();
+      const uint8_t* const typedDataStart = static_cast<const uint8_t*>(data.Start()) + Offset;
+      return std::equal(patternStart, patternEnd, typedDataStart);
+    }
+
+    virtual std::size_t NextMatchOffset(const Data& data) const
+    {
+      const std::size_t size = data.Size();
+      if (size < MinSize)
+      {
+        return size;
+      }
+      const uint8_t* const patternStart = &Pattern.front();
+      const uint8_t* const patternEnd = patternStart + Pattern.size();
+      const uint8_t* const typedDataStart = static_cast<const uint8_t*>(data.Start());
+      const uint8_t* const typedDataEnd = typedDataStart + size;
+      const uint8_t* const matched = std::search(typedDataStart + Offset + 1, typedDataEnd, patternStart, patternEnd);
+      return matched != typedDataEnd
+        ? matched - typedDataStart - Offset
+        : size;
+    }
+
+    virtual std::size_t GetMinSize() const
+    {
+      return MinSize;
+    }
+
+    static Ptr TryCreate(const StaticPattern& pattern, std::size_t startOffset, std::size_t minSize)
+    {
+      const std::size_t patternSize = pattern.GetSize();
+      PatternMatrix tmp(patternSize);
+      for (std::size_t idx = 0; idx != patternSize; ++idx)
+      {
+        const StaticToken& tok = pattern.Get(idx);
+        if (const uint_t* single = tok.GetSingle())
+        {
+          tmp[idx] = *single;
+        }
+        else
+        {
+          return Ptr();
+        }
+      }
+      return boost::make_shared<ExactFormat>(boost::cref(tmp), startOffset, minSize);
+    }
+  private:
+    const std::size_t Offset;
+    const std::size_t MinSize;
+    const PatternMatrix Pattern;
+  };
+
+  Format::Ptr CreateFormatFromTokens(const Expression& expr, std::size_t minSize)
+  {
+    const StaticPattern pattern(expr.Tokens());
+    const std::size_t startOffset = expr.StartOffset();
+    if (const Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
+    {
+      return exact;
+    }
+    else
+    {
+      return FuzzyFormat::Create(pattern, startOffset, minSize);
+    }
+  }
 }
+
 namespace Binary
 {
   Format::Ptr CreateFormat(const std::string& pattern)
@@ -361,6 +457,6 @@ namespace Binary
   Format::Ptr CreateFormat(const std::string& pattern, std::size_t minSize)
   {
     const Expression::Ptr expr = Expression::Parse(pattern);
-    return FastSearchFormat::Create(*expr, minSize);
+    return CreateFormatFromTokens(*expr, minSize);
   }
 }
