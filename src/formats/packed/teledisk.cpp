@@ -16,6 +16,7 @@
 #include <byteorder.h>
 #include <contract.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/packed.h>
@@ -404,7 +405,7 @@ namespace Formats
     {
     public:
       TeleDiskImageDecoder()
-        : Format(Binary::Format::Create(TeleDiskImage::FORMAT_PATTERN, TeleDiskImage::MIN_SIZE))
+        : Format(Binary::CreateFormat(TeleDiskImage::FORMAT_PATTERN, TeleDiskImage::MIN_SIZE))
       {
       }
 

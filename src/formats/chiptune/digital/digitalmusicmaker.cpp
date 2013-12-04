@@ -18,6 +18,7 @@
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -574,7 +575,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT, MODULE_SIZE))
+        : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
       {
       }
 

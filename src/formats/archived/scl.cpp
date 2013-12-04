@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <debug/log.h>
 //std includes
 #include <cstring>
@@ -153,7 +154,7 @@ namespace Formats
     {
     public:
       SCLDecoder()
-        : Format(Binary::Format::Create(SCL::FORMAT, SCL::MIN_SIZE))
+        : Format(Binary::CreateFormat(SCL::FORMAT, SCL::MIN_SIZE))
       {
       }
 

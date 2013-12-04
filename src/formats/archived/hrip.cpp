@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed/decoders.h>
 //std includes
 #include <cstring>
@@ -187,7 +188,7 @@ namespace Formats
     {
     public:
       HripDecoder()
-        : Format(Binary::Format::Create(Hrip::FORMAT))
+        : Format(Binary::CreateFormat(Hrip::FORMAT))
       {
       }
 

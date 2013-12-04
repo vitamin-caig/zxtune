@@ -13,6 +13,7 @@
 #include "rar_supp.h"
 #include "pack_utils.h"
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/packed.h>
@@ -273,7 +274,7 @@ namespace Formats
     {
     public:
       RarDecoder()
-        : Format(Binary::Format::Create(RarFile::HEADER_PATTERN))
+        : Format(Binary::CreateFormat(RarFile::HEADER_PATTERN))
         , Decoder(new RarFile::DispatchedCompressedFile())
       {
       }

@@ -18,6 +18,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -439,7 +440,7 @@ namespace Formats
     {
     public:
       Hrust1Decoder()
-        : Format(Binary::Format::Create(Hrust1::FORMAT, Hrust1::MIN_SIZE))
+        : Format(Binary::CreateFormat(Hrust1::FORMAT, Hrust1::MIN_SIZE))
       {
       }
 

@@ -9,6 +9,7 @@
 **/
 
 //library includes
+#include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/aym/ay.h>
 //std includes
@@ -179,7 +180,7 @@ namespace Formats
     {
     public:
       MultiAYDecoder()
-        : Format(Binary::Format::Create(MultiAY::HEADER_FORMAT))
+        : Format(Binary::CreateFormat(MultiAY::HEADER_FORMAT))
       {
       }
 

@@ -14,7 +14,7 @@
 #include <contract.h>
 //library includes
 #include <binary/data_adapter.h>
-#include <binary/format.h>
+#include <binary/format_factories.h>
 #include <math/numeric.h>
 //std includes
 #include <limits>
@@ -450,7 +450,12 @@ namespace Binary
 
 namespace Binary
 {
-  Format::Ptr Format::Create(const std::string& pattern, std::size_t minSize)
+  Format::Ptr CreateFormat(const std::string& pattern)
+  {
+    return CreateFormat(pattern, 0);
+  }
+
+  Format::Ptr CreateFormat(const std::string& pattern, std::size_t minSize)
   {
     const Expression::Ptr expr = Expression::Parse(pattern);
     return FastSearchFormat::Create(*expr, minSize);

@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
 #include <numeric>
@@ -214,7 +215,7 @@ namespace Formats
     {
     public:
       MegaLZDecoder()
-        : Depacker(Binary::Format::Create(MegaLZ::DEPACKER_PATTERN, MegaLZ::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(MegaLZ::DEPACKER_PATTERN, MegaLZ::MIN_SIZE))
       {
       }
 

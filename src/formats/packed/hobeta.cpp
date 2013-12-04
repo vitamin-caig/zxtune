@@ -14,6 +14,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -92,7 +93,7 @@ namespace Formats
     {
     public:
       HobetaDecoder()
-        : Format(Binary::Format::Create(Hobeta::FORMAT, Hobeta::MIN_SIZE))
+        : Format(Binary::CreateFormat(Hobeta::FORMAT, Hobeta::MIN_SIZE))
       {
       }
 

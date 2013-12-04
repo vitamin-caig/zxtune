@@ -15,6 +15,7 @@
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //library includes
+#include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
@@ -623,7 +624,7 @@ namespace AY
   {
   public:
     Decoder()
-      : Format(Binary::Format::Create(HEADER_FORMAT))
+      : Format(Binary::CreateFormat(HEADER_FORMAT))
     {
     }
 

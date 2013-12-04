@@ -15,6 +15,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 //boost includes
@@ -124,7 +125,7 @@ namespace Formats
     {
     public:
       CompiledPTU13Decoder()
-        : Player(Binary::Format::Create(CompiledPTU13::FORMAT, CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader)))
+        : Player(Binary::CreateFormat(CompiledPTU13::FORMAT, CompiledPTU13::PLAYER_SIZE + sizeof(CompiledPTU13::RawHeader)))
       {
       }
 

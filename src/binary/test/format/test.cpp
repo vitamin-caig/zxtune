@@ -10,7 +10,7 @@
 
 #include <types.h>
 #include <binary/data_adapter.h>
-#include <binary/format.h>
+#include <binary/format_factories.h>
 #include <binary/src/format_grammar.h>
 #include <binary/src/format_syntax.h>
 #include <sstream>
@@ -194,7 +194,7 @@ namespace
   {
     try
     {
-      const Binary::Format::Ptr format = Binary::Format::Create(notation);
+      const Binary::Format::Ptr format = Binary::CreateFormat(notation);
       const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
@@ -208,8 +208,8 @@ namespace
   {
     try
     {
-      const Binary::Format::Ptr hdr = Binary::Format::Create(header, minSize);
-      const Binary::Format::Ptr foot = Binary::Format::Create(footer);
+      const Binary::Format::Ptr hdr = Binary::CreateFormat(header, minSize);
+      const Binary::Format::Ptr foot = Binary::CreateFormat(footer);
       const Binary::Format::Ptr format = Binary::CreateCompositeFormat(hdr, foot, minSize, maxSize);
       const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));

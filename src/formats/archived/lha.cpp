@@ -11,6 +11,7 @@
 //common includes
 #include <contract.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
@@ -251,7 +252,7 @@ namespace Formats
     {
     public:
       LhaDecoder()
-        : Format(Binary::Format::Create(::Lha::FORMAT))
+        : Format(Binary::CreateFormat(::Lha::FORMAT))
       {
       }
 

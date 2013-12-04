@@ -13,6 +13,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
 //std includes
@@ -546,7 +547,7 @@ namespace Formats
     {
     public:
       Z80Decoder()
-        : Format(Binary::Format::Create(Version::FORMAT, Version::MIN_SIZE))
+        : Format(Binary::CreateFormat(Version::FORMAT, Version::MIN_SIZE))
       {
       }
 
@@ -587,8 +588,8 @@ namespace Formats
 
     Decoder::Ptr CreateZ80V145Decoder()
     {
-      const Binary::Format::Ptr header = Binary::Format::Create(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
-      const Binary::Format::Ptr footer = Binary::Format::Create(Z80::Version1_45::FOOTER);
+      const Binary::Format::Ptr header = Binary::CreateFormat(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
+      const Binary::Format::Ptr footer = Binary::CreateFormat(Z80::Version1_45::FOOTER);
       const Binary::Format::Ptr format = Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MIN_SIZE - 4, Z80::Version1_45::MAX_SIZE - 4);
       return boost::make_shared<Z80Decoder<Z80::Version1_45> >(format);
     }

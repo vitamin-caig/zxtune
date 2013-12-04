@@ -14,6 +14,7 @@
 //common includes
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <debug/log.h>
 #include <formats/packed.h>
 //std includes
@@ -362,7 +363,7 @@ namespace Formats
     {
     public:
       ZipDecoder()
-        : Depacker(Binary::Format::Create(ZipFile::HEADER_PATTERN, sizeof(Formats::Packed::Zip::LocalFileHeader)))
+        : Depacker(Binary::CreateFormat(ZipFile::HEADER_PATTERN, sizeof(Formats::Packed::Zip::LocalFileHeader)))
       {
       }
 
