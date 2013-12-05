@@ -50,4 +50,6 @@ namespace Binary
   Format::Ptr CreateFormat(const std::string& pattern);
   Format::Ptr CreateFormat(const std::string& pattern, std::size_t minSize);
   Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset);
+  Format::Ptr CreateMatchOnlyFormat(const std::string& pattern);
+  Format::Ptr CreateMatchOnlyFormat(const std::string& pattern, std::size_t minSize);
 }

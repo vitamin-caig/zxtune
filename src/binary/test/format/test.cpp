@@ -186,6 +186,7 @@ namespace
     std::string SyntaxReportRPN;
     std::string SyntaxReportRPNChecked;
     FormatResult Result;
+    FormatResult MatchOnlyResult;
   };
 
   const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
@@ -195,6 +196,20 @@ namespace
     try
     {
       const Binary::Format::Ptr format = Binary::CreateFormat(notation);
+      const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
+      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
+    }
+    catch (const std::exception&)
+    {
+      return INVALID_FORMAT;
+    }
+  }
+
+  FormatResult CheckMatchOnlyFormat(const std::string& notation)
+  {
+    try
+    {
+      const Binary::Format::Ptr format = Binary::CreateMatchOnlyFormat(notation);
       const Binary::DataAdapter sample(SAMPLE, boost::size(SAMPLE));
       return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
     }
@@ -230,6 +245,7 @@ namespace
       "",
       "",
       "",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -239,6 +255,7 @@ namespace
       "ab ",
       "ab ",
       "ab ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -248,6 +265,7 @@ namespace
       "",
       "",
       "",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -257,6 +275,7 @@ namespace
       "",
       "",
       "",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -266,6 +285,7 @@ namespace
       "",
       "",
       "",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -275,6 +295,7 @@ namespace
       "\? ",
       "\? ",
       "\? ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     //invalid format
@@ -285,6 +306,7 @@ namespace
       "",
       "",
       "",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -294,6 +316,7 @@ namespace
       "",
       "",
       "",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -303,7 +326,8 @@ namespace
       "10 ",
       "10 ",
       "10 ",
-      FormatResult(false, 0x10)
+      FormatResult(false, 0x10),
+      FormatResult(false, 32)
     },
     {
       "hexadecimal constant",
@@ -312,6 +336,7 @@ namespace
       "af ",
       "af ",
       "af ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -321,6 +346,7 @@ namespace
       "%01010101 ",
       "%01010101 ",
       "%01010101 ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -330,6 +356,7 @@ namespace
       "'A ",
       "'A ",
       "'A ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -339,6 +366,7 @@ namespace
       "\? ",
       "\? ",
       "\? ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -348,6 +376,7 @@ namespace
       "2x ",
       "2x ",
       "2x ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -357,6 +386,7 @@ namespace
       "%01xx1010 ",
       "%01xx1010 ",
       "%01xx1010 ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -366,7 +396,8 @@ namespace
       "*5 ",
       "*5 ",
       "*5 ",
-      FormatResult(true, 5)
+      FormatResult(true, 5),
+      FormatResult(true, 32)
     },
     {
       "quantor on empty",
@@ -376,6 +407,7 @@ namespace
       "{1} ",
       "",
       INVALID_FORMAT,
+      INVALID_FORMAT
     },
     {
       "zero quantor",
@@ -385,6 +417,7 @@ namespace
       "10 {0} ",
       "10 ",
       INVALID_FORMAT,
+      INVALID_FORMAT
     },
     {
       "invalid bracket",
@@ -393,6 +426,7 @@ namespace
       ") 10 ",
       "",
       "",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -402,6 +436,7 @@ namespace
       "( 10 ",
       "( 10 ",
       "( 10 ",//???
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -411,6 +446,7 @@ namespace
       "( 00 01 ) | 02 ",
       "( 00 01 ) 02 | ",
       "( 00 01 ) 02 ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -420,7 +456,8 @@ namespace
       "( 00 ) | 02 ",
       "( 00 ) 02 | ",
       "( 00 ) 02 | ",
-      FormatResult(true, 2)
+      FormatResult(true, 2),
+      FormatResult(true, 32)
     },
     {
       "multival operation right",
@@ -429,6 +466,7 @@ namespace
       "00 | ( 01 02 ) ",
       "00 | ( 01 02 ) ",
       "00 ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -438,6 +476,7 @@ namespace
       "00 | ( 02 ) ",
       "00 | ( 02 ) ",
       "00 ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -448,6 +487,7 @@ namespace
       "",
       "",
       INVALID_FORMAT,
+      INVALID_FORMAT
     },
     {
       "invalid range",
@@ -456,6 +496,7 @@ namespace
       "0x - x0 ",
       "0x x0 - ",
       "0x x0 - ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -466,6 +507,7 @@ namespace
       "05 05 - ",
       "05 05 - ",
       INVALID_FORMAT,
+      INVALID_FORMAT
     },
     {
       "full range",
@@ -474,6 +516,7 @@ namespace
       "00 - ff ",
       "00 ff - ",
       "00 ff - ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -483,6 +526,7 @@ namespace
       "01 - 02 - 03 ",
       "01 02 - 03 - ",
       "01 02 - 03 - ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -492,6 +536,7 @@ namespace
       "01 & 10 ",
       "01 10 & ",
       "01 10 & ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     {
@@ -501,6 +546,7 @@ namespace
       "00 - 80 | 80 - ff ",
       "00 80 - 80 ff - | ",
       "00 80 - 80 ff - | ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     //brackets are used only for grouping, not for operations reordering
@@ -511,6 +557,7 @@ namespace
       "( 00 | 01 ) & ( 01 | 02 ) ",
       "( 00 01 | ) & ( 01 02 | ) ",
       "( 00 01 | ) ",
+      INVALID_FORMAT,
       INVALID_FORMAT
     },
     //valid tests
@@ -521,6 +568,7 @@ namespace
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -530,6 +578,7 @@ namespace
       "00 01 02 03 04 05 ",
       "00 01 02 03 04 05 ",
       "00 01 02 03 04 05 ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -539,6 +588,7 @@ namespace
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
       "\? 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -548,6 +598,7 @@ namespace
       "00 \? 02 03 04 05 ",
       "00 \? 02 03 04 05 ",
       "00 \? 02 03 04 05 ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -557,6 +608,7 @@ namespace
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 ",
       "00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f 10 11 12 13 14 15 16 17 18 19 1a 1b 1c 1d 1e 1f 20 ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -566,7 +618,8 @@ namespace
       "0x 0x ",
       "0x 0x ",
       "0x 0x ",
-      FormatResult(true, 1)
+      FormatResult(true, 1),
+      FormatResult(true, 32)
     },
     {
       "nibbles unmatched",
@@ -575,7 +628,8 @@ namespace
       "0x 1x ",
       "0x 1x ",
       "0x 1x ",
-      FormatResult(false, 15)
+      FormatResult(false, 15),
+      FormatResult(false, 32)
     },
     {
       "binary matched",
@@ -584,6 +638,7 @@ namespace
       "%0x0x0x0x %x0x0x0x1 ",
       "%0x0x0x0x %x0x0x0x1 ",
       "%0x0x0x0x %x0x0x0x1 ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -593,7 +648,8 @@ namespace
       "%00010xxx %00011xxx ",
       "%00010xxx %00011xxx ",
       "%00010xxx %00011xxx ",
-      FormatResult(false, 0x17)
+      FormatResult(false, 0x17),
+      FormatResult(false, 32)
     },
     {
       "ranged matched",
@@ -602,7 +658,8 @@ namespace
       "00 - 02 00 - 02 ",
       "00 02 - 00 02 - ",
       "00 02 - 00 02 - ",
-      FormatResult(true, 1)
+      FormatResult(true, 1),
+      FormatResult(true, 32)
     },
     {
       "ranged unmatched",
@@ -611,7 +668,8 @@ namespace
       "10 - 12 ",
       "10 12 - ",
       "10 12 - ",
-      FormatResult(false, 0x10)
+      FormatResult(false, 0x10),
+      FormatResult(false, 32),
     },
     {
       "symbol unmatched",
@@ -620,6 +678,7 @@ namespace
       "'a 'b 'c 'd 'e ",
       "'a 'b 'c 'd 'e ",
       "'a 'b 'c 'd 'e ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -629,7 +688,8 @@ namespace
       "\? 02 03 ",
       "\? 02 03 ",
       "\? 02 03 ",
-      FormatResult(false, 1)
+      FormatResult(false, 1),
+      FormatResult(false, 32)
     },
     {
       "unmatched with skip at begin",
@@ -638,6 +698,7 @@ namespace
       "\? 03 02 ",
       "\? 03 02 ",
       "\? 03 02 ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -647,7 +708,8 @@ namespace
       "0d 0e \? \? 11 12 13 \? \? ",
       "0d 0e \? \? 11 12 13 \? \? ",
       "0d 0e \? \? 11 12 13 \? \? ",
-      FormatResult(false, 13)
+      FormatResult(false, 13),
+      FormatResult(false, 32)
     },
     {
       "unmatched with skip at end",
@@ -656,6 +718,7 @@ namespace
       "03 02 \? \? ",
       "03 02 \? \? ",
       "03 02 \? \? ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -665,6 +728,7 @@ namespace
       "1d 1e 1f 20 ",
       "1d 1e 1f 20 ",
       "1d 1e 1f 20 ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -674,6 +738,7 @@ namespace
       "\? 1d 1e 1f 20 21 22 ",
       "\? 1d 1e 1f 20 21 22 ",
       "\? 1d 1e 1f 20 21 22 ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -683,7 +748,8 @@ namespace
       "0x {10} ",
       "0x {10} ",
       "0x {10} ",
-      FormatResult(true, 1)
+      FormatResult(true, 1),
+      FormatResult(true, 32)
     },
     {
       "quantor unmatched",
@@ -692,7 +758,8 @@ namespace
       "1x {15} ",
       "1x {15} ",
       "1x {15} ",
-      FormatResult(false, 16)
+      FormatResult(false, 16),
+      FormatResult(false, 32)
     },
     {
       "quanted group matched",
@@ -701,7 +768,8 @@ namespace
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
       "( %xxxxxxx0 %xxxxxxx1 ) {3} ",
-      FormatResult(true, 2)
+      FormatResult(true, 2),
+      FormatResult(true, 32)
     },
     {
       "quanted group unmatched",
@@ -710,7 +778,8 @@ namespace
       "( %xxxxxxx1 %xxxxxxx0 ) {5} ",
       "( %xxxxxxx1 %xxxxxxx0 ) {5} ",
       "( %xxxxxxx1 %xxxxxxx0 ) {5} ",
-      FormatResult(false, 1)
+      FormatResult(false, 1),
+      FormatResult(false, 32)
     },
     {
       "group after range",
@@ -719,7 +788,8 @@ namespace
       "00 - 01 ( 02 03 04 05 ) ",
       "00 01 - ( 02 03 04 05 ) ",
       "00 01 - ( 02 03 04 05 ) ",
-      FormatResult(false, 1)
+      FormatResult(false, 1),
+      FormatResult(false, 32)
     },
     {
       "group before range",
@@ -728,6 +798,7 @@ namespace
       "( 00 01 02 03 ) 04 - 05 ",
       "( 00 01 02 03 ) 04 05 - ",
       "( 00 01 02 03 ) 04 05 - ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -737,6 +808,7 @@ namespace
       "00 - 1f {32} ",
       "00 1f - {32} ",
       "00 1f - {32} ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -746,6 +818,7 @@ namespace
       "00 01 02 03 *2 05 *3 ",
       "00 01 02 03 *2 05 *3 ",
       "00 01 02 03 *2 05 *3 ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -755,7 +828,8 @@ namespace
       "*2 *3 *4 ",
       "*2 *3 *4 ",
       "*2 *3 *4 ",
-      FormatResult(false, 2)
+      FormatResult(false, 2),
+      FormatResult(false, 32)
     },
     {
       "conjunction matched",
@@ -764,6 +838,7 @@ namespace
       "00 0x & x1 ",
       "00 0x x1 & ",
       "00 0x x1 & ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -773,7 +848,8 @@ namespace
       "( 1x & %xxxx11xx ) {4} ",
       "( 1x %xxxx11xx & ) {4} ",
       "( 1x %xxxx11xx & ) {4} ",
-      FormatResult(false, 0x1c)
+      FormatResult(false, 0x1c),
+      FormatResult(false, 32)
     },
     {
       "disjunction matched",
@@ -782,6 +858,7 @@ namespace
       "00 | 01 00 | 01 ",
       "00 01 | 00 01 | ",
       "00 01 | 00 01 | ",
+      FormatResult(true, 32),
       FormatResult(true, 32)
     },
     {
@@ -791,7 +868,8 @@ namespace
       "( 1x | %xxxx11xx ) {6} ",
       "( 1x %xxxx11xx | ) {6} ",
       "( 1x %xxxx11xx | ) {6} ",
-      FormatResult(false, 12)
+      FormatResult(false, 12),
+      FormatResult(false, 32)
     },
     {
       "complex condition matched",
@@ -800,7 +878,8 @@ namespace
       "00 - 01 | 1e - 1f ",
       "00 01 - 1e 1f - | ",
       "00 01 - 1e 1f - | ",
-      FormatResult(true, 1)
+      FormatResult(true, 1),
+      FormatResult(true, 32)
     },
     {
       "trd format expression",
@@ -811,6 +890,7 @@ namespace
       "( 00 | 01 | 20 - 7f ? ? ? ? ? ? ? ? ? ? ? ? ? 0x 00 - a0 ) {128} 00 ? {224} ? ? 16 01 - 7f ? 00 - 09 10 00 00 ? ? ? ? ? ? ? ? ? 00 ? 20 - 7f {8} 00 00 00 ",
       "( 00 01 | 20 7f - | ? ? ? ? ? ? ? ? ? ? ? ? ? 0x 00 a0 - ) {128} 00 ? {224} ? ? 16 01 7f - ? 00 09 - 10 00 00 ? ? ? ? ? ? ? ? ? 00 ? 20 7f - {8} 00 00 00 ",
       "( 00 01 | 20 7f - | ? ? ? ? ? ? ? ? ? ? ? ? ? 0x 00 a0 - ) {128} 00 ? {224} ? ? 16 01 7f - ? 00 09 - 10 00 00 ? ? ? ? ? ? ? ? ? 00 ? 20 7f - {8} 00 00 00 ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     },
     {
@@ -821,6 +901,7 @@ namespace
       "? {13} ? ? {16} ? {32} ? {4} ? {32} ? ? 01 - ff ? ? ? 00 - 01 ( ? 00 - bf ) {32} ( ? 00 - d9 ) {16} *3 & 00 - fe *3 ",
       "? {13} ? ? {16} ? {32} ? {4} ? {32} ? ? 01 ff - ? ? ? 00 01 - ( ? 00 bf - ) {32} ( ? 00 d9 - ) {16} *3 00 fe - & *3 ",
       "? {13} ? ? {16} ? {32} ? {4} ? {32} ? ? 01 ff - ? ? ? 00 01 - ( ? 00 bf - ) {32} ( ? 00 d9 - ) {16} *3 00 fe - & *3 ",
+      FormatResult(false, 32),
       FormatResult(false, 32)
     }
   };
@@ -835,6 +916,9 @@ namespace
     const FormatResult res = CheckFormat(tst.Notation);
     Test("match", res.Matched, tst.Result.Matched);
     Test("next match offset", res.NextMatch, tst.Result.NextMatch);
+    const FormatResult resMatched = CheckMatchOnlyFormat(tst.Notation);
+    Test("match (only)", resMatched.Matched, tst.MatchOnlyResult.Matched);
+    Test("next match offset (only)", resMatched.NextMatch, tst.MatchOnlyResult.NextMatch);
   }
 
   struct CompositeFormatTest
