@@ -58,7 +58,4 @@ extern const Char REPORT_BUG_URL[] = {
 extern const Char TITLE_FORMAT[] = {
   '%','2','%',' ','[','%','1','%',']',0
 };
-extern const Char TYPEICONS_RESOURCE_PREFIX[] = {
-  ':','/','t','y','p','e','s','/',0
-};
 }//namespace Text

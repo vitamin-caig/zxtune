@@ -22,4 +22,6 @@ public interface PlaylistControl {
   public void delete(long[] ids);
   
   public void deleteAll();
+  
+  public void move(long id, int delta);
 }

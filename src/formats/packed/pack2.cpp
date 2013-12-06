@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
 #include <algorithm>
@@ -267,7 +268,7 @@ namespace Formats
     {
     public:
       Pack2Decoder()
-        : Depacker(Binary::Format::Create(Pack2::DEPACKER_PATTERN, Pack2::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(Pack2::DEPACKER_PATTERN, Pack2::MIN_SIZE))
       {
       }
 

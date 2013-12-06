@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">ZXTune beta</string>
+    <string name="app_name" translatable="false">ZXTune</string>
     <string name="stub_time" translatable="false">--:--</string>
     <string name="playlists_storage_path" translatable="false">ZXTune/Playlists</string>
 </resources>

@@ -23,7 +23,21 @@
     <string name="scanning_title">Сканирование.</string>
     <string name="scanning_text">Клик для отмены</string>
     <!-- about-related -->
-    <string name="about_author">Идея, код: <b>Vitamin/CAIG</b>\nДизайн: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\nПосвящается <b>Lizzi</b></string>
+    <string name="about_author">
+      Идея, код: <b>Vitamin/CAIG</b>\n
+      Дизайн: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
+      Использованы исходные коды:\n
+      \tAYEmul от <b>S.Bulba</b>\n
+      \tAYFly от <b>Ander</b>\n
+      \tPusher от <b>Himik/ZxZ</b>\n
+      Использованы библиотеки:\n
+      \tboost\n
+      \tz80ex от <b>Boo-boo</b>\n
+      \tlhasa от <b>Simon Howard</b>\n
+      \tDragSortListView от <b>Carl A.Bauer</b>\n
+      \n
+      Посвящается <b>Lizzi</b>
+    </string>
     <!-- other -->
     <string name="main">Главная</string>
     <plurals name="items">

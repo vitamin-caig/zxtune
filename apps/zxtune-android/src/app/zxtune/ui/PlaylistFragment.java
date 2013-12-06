@@ -15,8 +15,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.view.ActionMode;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -118,6 +116,23 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
       Log.d(TAG, "Loading persistent state");
       listing.setTag(Integer.valueOf(state.getCurrentViewPosition()));
     }
+    listing.setRemoveListener(new PlaylistView.RemoveListener() {
+      @Override
+      public void remove(int which) {
+        final long[] id = {listing.getItemIdAtPosition(which)};
+        service.getPlaylistControl().delete(id);
+      }
+    });
+    listing.setDropListener(new PlaylistView.DropListener() {
+      @Override
+      public void drop(int from, int to) {
+        if (from != to) {
+          //TODO: perform in separate thread
+          final long id = listing.getItemIdAtPosition(from);
+          service.getPlaylistControl().move(id, to - from);
+        }
+      }
+    });
     listing.load(getLoaderManager());
   }
   

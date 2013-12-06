@@ -17,6 +17,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -422,7 +423,7 @@ namespace Formats
     {
     public:
       ESVCruncherDecoder()
-        : Depacker(Binary::Format::Create(ESVCruncher::DEPACKER_PATTERN, ESVCruncher::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(ESVCruncher::DEPACKER_PATTERN, ESVCruncher::MIN_SIZE))
       {
       }
 

@@ -18,6 +18,7 @@
 #include <contract.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -440,7 +441,7 @@ namespace Formats
     {
     public:
       DataSquieezerDecoder()
-        : Depacker(Binary::Format::Create(DataSquieezer::DEPACKER_PATTERN, DataSquieezer::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(DataSquieezer::DEPACKER_PATTERN, DataSquieezer::MIN_SIZE))
       {
       }
 

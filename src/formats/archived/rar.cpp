@@ -9,6 +9,7 @@
 **/
 
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/archived.h>
@@ -30,14 +31,6 @@ namespace Rar
   const Debug::Stream Dbg("Formats::Archived::Rar");
 
   using namespace Formats;
-
-  const Packed::Rar::BlockHeader MARKER = 
-  {
-    fromLE<uint16_t>(0x6152),
-    0x72,
-    fromLE<uint16_t>(0x1a21),
-    fromLE<uint16_t>(0x0007)
-  };
 
   struct FileBlock
   {
@@ -437,7 +430,7 @@ namespace Formats
     {
     public:
       RarDecoder()
-        : Format(Binary::Format::Create(Rar::FORMAT))
+        : Format(Binary::CreateFormat(Rar::FORMAT))
       {
       }
 

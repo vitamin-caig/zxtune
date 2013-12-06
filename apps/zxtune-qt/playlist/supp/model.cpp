@@ -26,7 +26,7 @@
 //qt includes
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
-#include <QtGui/QIcon>
+#include <QtCore/QStringList>
 //text includes
 #include "text/text.h"
 
@@ -53,25 +53,6 @@ namespace
     }
   };
 
-  class DecorationDataProvider : public RowDataProvider
-  {
-  public:
-    virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const
-    {
-      switch (column)
-      {
-      case Playlist::Model::COLUMN_TYPE:
-        {
-          const QString iconPath = ToQString(
-            Text::TYPEICONS_RESOURCE_PREFIX + item.GetType());
-          return QIcon(iconPath);
-        }
-      default:
-        return QVariant();
-      };
-    }
-  };
-
   class DisplayDataProvider : public RowDataProvider
   {
   public:
@@ -79,6 +60,8 @@ namespace
     {
       switch (column)
       {
+      case Playlist::Model::COLUMN_TYPE:
+        return ToQString(item.GetType());
       case Playlist::Model::COLUMN_DISPLAY_NAME:
         return ToQString(item.GetDisplayName());
       case Playlist::Model::COLUMN_DURATION:
@@ -105,8 +88,7 @@ namespace
   {
   public:
     DataProvidersSet()
-      : Decoration()
-      , Display()
+      : Display()
       , Dummy()
     {
     }
@@ -115,8 +97,6 @@ namespace
     {
       switch (role)
       {
-      case Qt::DecorationRole:
-        return Decoration;
       case Qt::DisplayRole:
         return Display;
       default:
@@ -124,7 +104,6 @@ namespace
       }
     }
   private:
-    const DecorationDataProvider Decoration;
     const DisplayDataProvider Display;
     const DummyDataProvider Dummy;
   };

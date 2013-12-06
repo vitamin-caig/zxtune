@@ -14,13 +14,14 @@
         android:paddingRight="@dimen/spacing_full"
         android:fastScrollEnabled="true"
         dslv:use_default_controller="true"
-        dslv:drag_enabled="true"
-        dslv:drag_start_mode="onMove"
+        dslv:drag_start_mode="onDown"
         dslv:drag_handle_id="@+id/playlist_item_handler"
+        dslv:sort_enabled="true"
+    />
+    <!-- disable removal 
         dslv:remove_enabled="true"
         dslv:fling_handle_id="@+id/playlist_item_handler"
-        dslv:sort_enabled="true"
-        />
+    -->
     <TextView
         android:id="@+id/playlist_stub"
         android:layout_width="match_parent"

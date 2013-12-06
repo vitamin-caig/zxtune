@@ -1,6 +1,6 @@
 #include <pointers.h>
 #include <types.h>
-#include <binary/format.h>
+#include <binary/format_factories.h>
 #include <binary/data_adapter.h>
 #include <debug/log.h>
 #include <strings/format.h>
@@ -355,7 +355,7 @@ int main(int argc, char* argv[])
       const std::string format = result.ToString();
       std::cout << "Result:\n" << format << std::endl;
       std::cout << "Checking..." << std::endl;
-      const Binary::Format::Ptr check = Binary::Format::Create(format);
+      const Binary::Format::Ptr check = Binary::CreateFormat(format);
       for (int idx = 1; idx < argc; ++idx)
       {
         const std::string filename = argv[idx];

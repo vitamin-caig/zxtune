@@ -19,6 +19,7 @@
 #include <io/provider.h>
 #include <sound/backend_attrs.h>
 #include <sound/service.h>
+#include <strings/format.h>
 //qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QDialog>
@@ -35,25 +36,25 @@ namespace
   bool IsAYMPlugin(const ZXTune::Plugin& plugin)
   {
     assert(IsPlayerPlugin(plugin));
-    return 0 == ((plugin.Capabilities() & ZXTune::CAP_DEVICE_MASK) & ~ZXTune::CAP_DEV_AYM_MASK);
+    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_AY38910 | ZXTune::CAP_DEV_TURBOSOUND));
   }
 
   bool IsDACPlugin(const ZXTune::Plugin& plugin)
   {
     assert(IsPlayerPlugin(plugin));
-    return 0 == ((plugin.Capabilities() & ZXTune::CAP_DEVICE_MASK) & ~ZXTune::CAP_DEV_DAC_MASK);
+    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_DAC | ZXTune::CAP_DEV_BEEPER));
   }
 
   bool IsFMPlugin(const ZXTune::Plugin& plugin)
   {
     assert(IsPlayerPlugin(plugin));
-    return ZXTune::CAP_DEV_FM == (plugin.Capabilities() & ZXTune::CAP_DEV_FM);
+    return 0 != (plugin.Capabilities() & (ZXTune::CAP_DEV_YM2203 | ZXTune::CAP_DEV_TURBOFM));
   }
 
   bool IsSAAPlugin(const ZXTune::Plugin& plugin)
   {
     assert(IsPlayerPlugin(plugin));
-    return ZXTune::CAP_DEV_SAA == (plugin.Capabilities() & ZXTune::CAP_DEV_SAA);
+    return 0 != (plugin.Capabilities() & ZXTune::CAP_DEV_SAA1099);
   }
 
   bool IsMultitrackPlugin(const ZXTune::Plugin& plugin)
@@ -142,14 +143,10 @@ namespace
     void AddPlayerPluginItem(const ZXTune::Plugin& plugin, QTreeWidgetItem& root)
     {
       assert(IsPlayerPlugin(plugin));
-      const String& description = plugin.Description();
-      const String& id = plugin.Id();
 
       //root
-      QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
-      String iconPath = Text::TYPEICONS_RESOURCE_PREFIX;
-      iconPath += id;
-      pluginItem->setIcon(0, QIcon(ToQString(iconPath)));
+      const String& title = Strings::Format("[%s] %s", plugin.Id(), plugin.Description());
+      QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(title)));
       //conversion
       if (uint_t convCaps = plugin.Capabilities() & ZXTune::CAP_CONVERSION_MASK)
       {

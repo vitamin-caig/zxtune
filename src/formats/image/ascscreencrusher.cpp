@@ -13,6 +13,7 @@
 //common includes
 #include <contract.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/image.h>
 //text includes
 #include <formats/text/image.h>
@@ -201,7 +202,7 @@ namespace Formats
     {
     public:
       ASCScreenCrusherDecoder()
-        : Depacker(Binary::Format::Create(ASCScreenCrusher::DEPACKER_PATTERN, ASCScreenCrusher::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(ASCScreenCrusher::DEPACKER_PATTERN, ASCScreenCrusher::MIN_SIZE))
       {
       }
 

@@ -32,10 +32,9 @@ final class PlaylistFileIterator implements Iterator {
   private final static String TAG = PlaylistFileIterator.class.getName();
 
   private final VfsRoot root;
-  //use java.net uri for correct resoling of relative paths
+  //use java.net.URI for correct resolving of relative paths
   private final URI dir;
   private final ReferencesIterator delegate;
-  private final IteratorFactory.NavigationMode navigation;
   private PlayableItem item;
   
   enum Type {
@@ -52,8 +51,7 @@ final class PlaylistFileIterator implements Iterator {
     final VfsRoot root = Vfs.createRoot(context);
     final VfsFile file = (VfsFile) root.resolve(path);
     final ReferencesIterator delegate = createDelegate(type, file.getContent());
-    final IteratorFactory.NavigationMode navigation = new IteratorFactory.NavigationMode(context);
-    final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate, navigation);
+    final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate);
     if (!result.initialize()) {
       throw new IOException(context.getString(R.string.no_tracks_found));
     }
@@ -81,11 +79,10 @@ final class PlaylistFileIterator implements Iterator {
     }
   }
   
-  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate, IteratorFactory.NavigationMode navigation) throws IOException {
+  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate) throws IOException {
     this.root = root;
     this.dir = dir;
     this.delegate = delegate;
-    this.navigation = navigation;
   }
   
   final boolean initialize() {
@@ -108,7 +105,7 @@ final class PlaylistFileIterator implements Iterator {
 
   @Override
   public boolean next() {
-    while (getNext()) {
+    while (delegate.next()) {
       if (loadNewItem()) {
         return true;
       }
@@ -116,36 +113,14 @@ final class PlaylistFileIterator implements Iterator {
     return false;
   }
   
-  private boolean getNext() {
-    switch (navigation.get()) {
-      case LOOPED:
-        return delegate.next() || delegate.first();
-      case SHUFFLE:
-        return delegate.random();
-      default:
-        return delegate.next();
-    }
-  }
-
   @Override
   public boolean prev() {
-    while (getPrev()) {
+    while (delegate.prev()) {
       if (loadNewItem()) {
         return true;
       }
     }
     return false;
-  }
-  
-  private boolean getPrev() {
-    switch (navigation.get()) {
-      case LOOPED:
-        return delegate.prev() || delegate.last();
-      case SHUFFLE:
-        return delegate.random();
-      default:
-        return delegate.prev();
-    }
   }
   
   private boolean loadNewItem() {

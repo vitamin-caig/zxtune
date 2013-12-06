@@ -139,6 +139,15 @@ public final class PlaybackServiceClient implements PlaybackService {
         Log.e(TAG, "deleteAll()", e);
       }
     }
+
+    @Override
+    public void move(long id, int delta) {
+      try {
+        delegate.move(id, delta);
+      } catch (RemoteException e) {
+        Log.e(TAG, "move()", e);
+      }
+    }
   }
   
   private class PlaybackControlClient implements PlaybackControl  {

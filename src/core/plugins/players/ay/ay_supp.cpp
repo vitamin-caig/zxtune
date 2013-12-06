@@ -15,6 +15,7 @@
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
 //library includes
+#include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/module_attrs.h>
 #include <core/plugin_attrs.h>
@@ -623,7 +624,7 @@ namespace AY
   {
   public:
     Decoder()
-      : Format(Binary::Format::Create(HEADER_FORMAT))
+      : Format(Binary::CreateFormat(HEADER_FORMAT))
     {
     }
 
@@ -678,7 +679,7 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'A', 'Y', 0};
-    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AYM | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
+    const uint_t CAPS = CAP_STOR_MODULE | CAP_DEV_AY38910 | CAP_DEV_BEEPER | CAP_CONV_RAW | Module::AYM::SupportedFormatConvertors;
 
     const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::AY::Decoder>();
     const Module::Factory::Ptr factory = boost::make_shared<Module::AY::Factory>();

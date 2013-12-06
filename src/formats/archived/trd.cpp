@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <range_checker.h>
 //library includes
+#include <binary/format_factories.h>
 #include <debug/log.h>
 //std includes
 #include <cstring>
@@ -246,7 +247,7 @@ namespace Formats
     {
     public:
       TRDDecoder()
-        : Format(Binary::Format::Create(TRD::FORMAT, TRD::MIN_SIZE))
+        : Format(Binary::CreateFormat(TRD::FORMAT, TRD::MIN_SIZE))
       {
       }
 

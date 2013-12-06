@@ -11,7 +11,7 @@
 #include <types.h>
 #include <error_tools.h>
 #include <progress_callback.h>
-#include <binary/format.h>
+#include <binary/format_factories.h>
 #include <io/api.h>
 #include <parameters/container.h>
 #include <iostream>
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
   }
   try
   {
-    const Binary::Format::Ptr format = Binary::Format::Create(argv[2]);
+    const Binary::Format::Ptr format = Binary::CreateFormat(argv[2]);
     const std::string filename = argv[1];
     const Parameters::Accessor::Ptr params = Parameters::Container::Create();
     const Binary::Container::Ptr data = IO::OpenData(filename, *params, Log::ProgressCallback::Stub());

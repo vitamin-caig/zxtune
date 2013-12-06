@@ -19,6 +19,7 @@
 #include <crc.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //boost includes
@@ -648,7 +649,7 @@ namespace Formats
     {
     public:
       ZXZipDecoder()
-        : Depacker(Binary::Format::Create(ZXZip::HEADER_PATTERN, ZXZip::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(ZXZip::HEADER_PATTERN, ZXZip::MIN_SIZE))
       {
       }
 

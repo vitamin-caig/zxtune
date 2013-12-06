@@ -18,6 +18,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -309,7 +310,7 @@ namespace Formats
     {
     public:
       HrumDecoder()
-        : Depacker(Binary::Format::Create(Hrum::DEPACKER_PATTERN, Hrum::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(Hrum::DEPACKER_PATTERN, Hrum::MIN_SIZE))
       {
       }
 

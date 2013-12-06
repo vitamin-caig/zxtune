@@ -18,6 +18,7 @@
 #include <analysis/result.h>
 #include <analysis/scanner.h>
 #include <async/data_receiver.h>
+#include <binary/format_factories.h>
 #include <debug/log.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/decoders.h>
@@ -462,7 +463,7 @@ namespace
   {
   public:
     MatchedDataFilter(const std::string& format, Analysis::NodeReceiver::Ptr target)
-      : Format(Binary::Format::Create(format))
+      : Format(Binary::CreateFormat(format))
       , Target(target)
     {
     }

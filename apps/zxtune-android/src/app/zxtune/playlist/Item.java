@@ -22,7 +22,6 @@ public class Item {
 
   final private long id;
   final private Uri location;
-  final private String type;
   final private String title;
   final private String author;
   final private TimeStamp duration;
@@ -30,7 +29,6 @@ public class Item {
   public Item(Cursor cursor) {
     id = cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal());
     location = Uri.parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal()));
-    type = cursor.getString(Database.Tables.Playlist.Fields.type.ordinal());
     title = cursor.getString(Database.Tables.Playlist.Fields.title.ordinal());
     author = cursor.getString(Database.Tables.Playlist.Fields.author.ordinal());
     duration = TimeStamp.createFrom(cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal()), TimeUnit.MILLISECONDS);
@@ -39,41 +37,35 @@ public class Item {
   public Item(Uri uri, ZXTune.Module module) {
     id = -1;
     location = uri;
-    type = module.getProperty(ZXTune.Module.Attributes.TYPE, "");
     title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
     author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
     //TODO
     duration = TimeStamp.createFrom(module.getDuration() * 20, TimeUnit.MILLISECONDS);
   }
   
-  public Uri getUri() {
+  final public Uri getUri() {
     return PlaylistQuery.uriFor(id);
   }
   
-  public Uri getLocation() {
+  final public Uri getLocation() {
     return location;
   }
 
-  public String getType() {
-    return type;
-  }
-
-  public String getAuthor() {
+  final public String getAuthor() {
     return author;
   }
 
-  public String getTitle() {
+  final public String getTitle() {
     return title;
   }
 
-  public TimeStamp getDuration() {
+  final public TimeStamp getDuration() {
     return duration;
   }
 
   public ContentValues toContentValues() {
     final ContentValues values = new ContentValues();
     values.put(Database.Tables.Playlist.Fields.location.name(), location.toString());
-    values.put(Database.Tables.Playlist.Fields.type.name(), type);
     values.put(Database.Tables.Playlist.Fields.author.name(), author);
     values.put(Database.Tables.Playlist.Fields.title.name(), title);
     values.put(Database.Tables.Playlist.Fields.duration.name(), duration.convertTo(TimeUnit.MILLISECONDS));

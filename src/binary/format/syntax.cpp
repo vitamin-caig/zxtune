@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "format_grammar.h"
-#include "format_syntax.h"
+#include "grammar.h"
+#include "syntax.h"
 //common includes
 #include <contract.h>
 #include <iterator.h>

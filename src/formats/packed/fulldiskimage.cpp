@@ -14,6 +14,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -255,7 +256,7 @@ namespace Formats
     {
     public:
       FullDiskImageDecoder()
-        : Format(Binary::Format::Create(FullDiskImage::FORMAT_PATTERN))
+        : Format(Binary::CreateFormat(FullDiskImage::FORMAT_PATTERN))
       {
       }
 

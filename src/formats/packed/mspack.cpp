@@ -18,6 +18,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -244,7 +245,7 @@ namespace Formats
     {
     public:
       MSPackDecoder()
-        : Depacker(Binary::Format::Create(MSPack::DEPACKER_PATTERN, MSPack::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(MSPack::DEPACKER_PATTERN, MSPack::MIN_SIZE))
       {
       }
 

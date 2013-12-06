@@ -20,11 +20,6 @@
 //text includes
 #include "text/text.h"
 
-inline void InitResources()
-{
-  Q_INIT_RESOURCE(icons);
-}
-
 namespace
 {
   class QTApplication : public Application
@@ -37,7 +32,6 @@ namespace
     virtual int Run(int argc, char* argv[])
     {
       QApplication qapp(argc, argv);
-      InitResources();
       //main ui
       Strings::Array cmdline(argc - 1);
       std::transform(argv + 1, argv + argc, cmdline.begin(), &FromStdString);

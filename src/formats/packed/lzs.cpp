@@ -17,6 +17,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
 #include <algorithm>
@@ -294,7 +295,7 @@ namespace Formats
     {
     public:
       LZSDecoder()
-        : Depacker(Binary::Format::Create(LZS::DEPACKER_PATTERN, LZS::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(LZS::DEPACKER_PATTERN, LZS::MIN_SIZE))
       {
       }
 

@@ -68,13 +68,21 @@ namespace
     {
     }
 
-    void Add(const Line& line)
+    void Add(const Line& line, std::size_t pos)
     {
       for (uint_t idx = 0; idx != Fields; ++idx)
       {
         Widths[idx] = std::max(Widths[idx], line[idx].size());
       }
-      Lines.push_back(line);
+      if (pos < Lines.size())
+      {
+        Lines[pos] = line;
+      }
+      else
+      {
+        Lines.resize(pos);
+        Lines.push_back(line);
+      }
     }
 
     std::string Get() const
@@ -133,14 +141,15 @@ namespace
       Dbg("Coverage: %1%%%", useful * 100 / TotalData);
       Dbg("Speed: %1% b/s", spent.GetCount() ? (TotalData * RESOLUTION.PER_SECOND / spent.GetCount()) : TotalData);
       StatisticBuilder<7> builder;
-      builder.Add(MakeStatLine());
+      builder.Add(MakeStatLine(), 0);
       StatItem total;
+      total.Name = "Total";
       for (DetectMap::const_iterator it = Detection.begin(), lim = Detection.end(); it != lim; ++it)
       {
-        builder.Add(MakeStatLine(it->first, it->second));
+        builder.Add(MakeStatLine(it->second), 1 + it->second.Index);
         total += it->second;
       }
-      builder.Add(MakeStatLine("Total", total));
+      builder.Add(MakeStatLine(total), 1 + Detection.size());
       Dbg(builder.Get().c_str());
     }
 
@@ -159,25 +168,28 @@ namespace
       ModulesData += size;
     }
 
-    void AddAimed(const String& type, const AutoTimer& scanTimer)
+    template<class PluginType>
+    void AddAimed(const PluginType& plug, const AutoTimer& scanTimer)
     {
-      StatItem& item = Detection[type];
+      StatItem& item = GetStat(plug);
       ++item.Aimed;
       item.AimedTime += scanTimer.Elapsed() + item.ScanTime;
       item.ScanTime = 0;
     }
 
-    void AddMissed(const String& type, const AutoTimer& scanTimer)
+    template<class PluginType>
+    void AddMissed(const PluginType& plug, const AutoTimer& scanTimer)
     {
-      StatItem& item = Detection[type];
+      StatItem& item = GetStat(plug);
       ++item.Missed;
       item.MissedTime += scanTimer.Elapsed() + item.ScanTime;
       item.ScanTime = 0;
     }
 
-    void AddScanned(const String& type, const AutoTimer& scanTimer)
+    template<class PluginType>
+    void AddScanned(const PluginType& plug, const AutoTimer& scanTimer)
     {
-      StatItem& item = Detection[type];
+      StatItem& item = GetStat(plug);
       item.ScanTime += scanTimer.Elapsed();
     }
 
@@ -189,6 +201,8 @@ namespace
   private:
     struct StatItem
     {
+      std::string Name;
+      std::size_t Index;
       std::size_t Aimed;
       std::size_t Missed;
       std::clock_t AimedTime;
@@ -196,7 +210,8 @@ namespace
       std::clock_t ScanTime;
 
       StatItem()
-        : Aimed()
+        : Index()
+        , Aimed()
         , Missed()
         , AimedTime()
         , MissedTime()
@@ -227,10 +242,10 @@ namespace
       return res;
     }
 
-    static boost::array<std::string, 7> MakeStatLine(const String& id, const StatItem& item)
+    static boost::array<std::string, 7> MakeStatLine(const StatItem& item)
     {
       boost::array<std::string, 7> res;
-      res[0] = ToStdString(id);
+      res[0] = item.Name;
       res[1] = boost::lexical_cast<std::string>(item.Missed);
       res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);
       res[3] = boost::lexical_cast<std::string>(Percent(item.Aimed, item.Missed));
@@ -251,12 +266,25 @@ namespace
         return 0;
       }
     }
+
+    template<class PluginType>
+    StatItem& GetStat(const PluginType& plug)
+    {
+      const void* const key = &plug;
+      StatItem& res = Detection[key];
+      if (res.Name.empty())
+      {
+        res.Name = ToStdString(plug.GetDescription()->Description());
+        res.Index = Detection.size() - 1;
+      }
+      return Detection[key];
+    }
   private:
     const AutoTimer Timer;
     uint64_t TotalData;
     uint64_t ArchivedData;
     uint64_t ModulesData;
-    typedef std::map<String, StatItem> DetectMap;
+    typedef std::map<const void*, StatItem> DetectMap;
     DetectMap Detection;
   };
 }
@@ -445,12 +473,10 @@ namespace
     struct PluginEntry
     {
       typename P::Ptr Plugin;
-      String Id;
       std::size_t Offset;
 
       explicit PluginEntry(typename P::Ptr plugin)
         : Plugin(plugin)
-        , Id(Plugin->GetDescription()->Id())
         , Offset()
       {
       }
@@ -531,10 +557,10 @@ namespace
       Offset = offset;
     }
 
-    void SetPluginLookahead(const String& id, std::size_t lookahead)
+    void SetPluginLookahead(const P& plug, const String& id, std::size_t lookahead)
     {
       const typename PluginsList::iterator it = std::find_if(Plugins.begin(), Plugins.end(),
-        boost::bind(&PluginEntry::Id, _1) == id);
+        boost::bind(&P::Ptr::get, boost::bind(&PluginEntry::Plugin, _1)) == &plug);
       if (it != Plugins.end())
       {
         Dbg("Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
@@ -623,12 +649,12 @@ namespace
   class RawDetectionPlugins
   {
   public:
-    RawDetectionPlugins(PlayerPlugin::Iterator::Ptr players, ArchivePlugin::Iterator::Ptr archives, const String& denied)
+    RawDetectionPlugins(PlayerPlugin::Iterator::Ptr players, ArchivePlugin::Iterator::Ptr archives, const ArchivePlugin& denied)
       : Players(players)
       , Archives(archives)
       , Offset()
     {
-      Archives.SetPluginLookahead(denied, ~std::size_t(0));
+      Archives.SetPluginLookahead(denied, denied.GetDescription()->Id(), ~std::size_t(0));
     }
 
     std::size_t Detect(DataLocation::Ptr input, const Module::DetectCallback& callback)
@@ -672,7 +698,7 @@ namespace
         const String id = plugin->GetDescription()->Id();
         if (const std::size_t usedSize = result->GetMatchedDataSize())
         {
-          Statistic::Self().AddAimed(id, timer);
+          Statistic::Self().AddAimed(*plugin, timer);
           Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
@@ -680,18 +706,18 @@ namespace
         {
           if (!firstScan)
           {
-            Statistic::Self().AddMissed(id, timer);
+            Statistic::Self().AddMissed(*plugin, timer);
             timer = AutoTimer();
           }
           const std::size_t lookahead = result->GetLookaheadOffset();
-          container.SetPluginLookahead(id, lookahead);
+          container.SetPluginLookahead(*plugin, id, lookahead);
           if (lookahead == maxSize)
           {
-            Statistic::Self().AddAimed(id, timer);
+            Statistic::Self().AddAimed(*plugin, timer);
           }
           else
           {
-            Statistic::Self().AddScanned(id, timer);
+            Statistic::Self().AddScanned(*plugin, timer);
           }
         }
       }
@@ -751,7 +777,7 @@ namespace
       const ArchivePlugin::Iterator::Ptr usedArchives = scanParams.GetDoubleAnalysis()
         ? ArchivePlugin::Iterator::Ptr(new DoubleAnalysisArchivePlugins(availableArchives))
         : availableArchives;
-      RawDetectionPlugins usedPlugins(PlayerPluginsEnumerator::Create()->Enumerate(), usedArchives, Description->Id());
+      RawDetectionPlugins usedPlugins(PlayerPluginsEnumerator::Create()->Enumerate(), usedArchives, *this);
 
       ScanDataLocation::Ptr subLocation = boost::make_shared<ScanDataLocation>(input, Description->Id(), 0);
 

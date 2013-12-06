@@ -14,6 +14,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
 #include <numeric>
@@ -147,7 +148,7 @@ namespace Formats
     {
     public:
       Sna128Decoder()
-        : Format(Binary::Format::Create(Sna128::FORMAT, Sna128::MIN_SIZE))
+        : Format(Binary::CreateFormat(Sna128::FORMAT, Sna128::MIN_SIZE))
       {
       }
 

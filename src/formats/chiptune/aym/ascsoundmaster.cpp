@@ -19,6 +19,7 @@
 #include <range_checker.h>
 //library includes
 #include <binary/container_factories.h>
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -1231,7 +1232,7 @@ namespace Chiptune
     {
     public:
       VersionedDecoder()
-        : Header(Binary::Format::Create(Version::FORMAT, Version::MIN_SIZE))
+        : Header(Binary::CreateFormat(Version::FORMAT, Version::MIN_SIZE))
       {
       }
 
