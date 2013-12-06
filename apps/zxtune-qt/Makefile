@@ -30,7 +30,7 @@ libraries.common = analysis async binary binary_format \
                   resource \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = lhasa unrar z80ex zlib
+libraries.3rdparty = lhasa unrar xmp z80ex zlib
 
 #apps
 libraries += zxtune_app_base zxtune_app_version
