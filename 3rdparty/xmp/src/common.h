@@ -130,6 +130,7 @@ void __inline CLIB_DECL D_(const char *text, ...) { do {} while (0); }
 #define dup _dup
 #define fileno _fileno
 #define snprintf _snprintf
+#define vsnprintf _vsnprintf
 #define strnicmp _strnicmp
 #define strdup _strdup
 #define fdopen _fdopen
@@ -235,9 +236,6 @@ struct module_data {
 	char *instrument_path;
 
 	void *extra;			/* format-specific extra fields */
-
-	const struct synth_info *synth;
-	void *synth_chip;
 
 	char **scan_cnt;		/* scan counters */
 };

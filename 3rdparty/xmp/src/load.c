@@ -627,7 +627,7 @@ int xmp_load_module(xmp_context opaque, char *path)
 	return -XMP_ERROR_DEPACK;
 }
 
-int xmp_load_module_from_memory(xmp_context opaque, void *mem, long size)
+int xmp_load_typed_module_from_memory(xmp_context opaque, void *mem, long size, const struct format_loader* format)
 {
 	struct context_data *ctx = (struct context_data *)opaque;
 	struct module_data *m = &ctx->m;
@@ -643,7 +643,7 @@ int xmp_load_module_from_memory(xmp_context opaque, void *mem, long size)
 
 	m->filename = NULL;
 	m->basename = NULL;
-	m->size = 0;
+	m->size = size;
 
 	if (ctx->state > XMP_STATE_UNLOADED)
 		xmp_release_module(opaque);
@@ -651,16 +651,11 @@ int xmp_load_module_from_memory(xmp_context opaque, void *mem, long size)
 	load_prologue(ctx);
 
 	D_(D_WARN "load");
-	test_result = load_result = -1;
-	for (i = 0; format_loader[i] != NULL; i++) {
-		hio_seek(h, 0, SEEK_SET);
-		test_result = format_loader[i]->test(h, NULL, 0);
-		if (test_result == 0) {
+	load_result = -1;
+	test_result = format->test(h, NULL, 0);
+	if (test_result == 0) {
 			hio_seek(h, 0, SEEK_SET);
-			D_(D_WARN "load format: %s", format_loader[i]->name);
-			load_result = format_loader[i]->loader(m, h, 0);
-			break;
-		}
+			load_result = format->loader(m, h, 0);
 	}
 
 	set_md5sum(h, m->md5);
@@ -683,94 +678,53 @@ int xmp_load_module_from_memory(xmp_context opaque, void *mem, long size)
 	load_epilogue(ctx);
 
 	ret = prepare_scan(ctx);
-	if (ret < 0)
-		return ret;
-
-	scan_sequences(ctx);
-
-	ctx->state = XMP_STATE_LOADED;
-
-	return 0;
-}
-
-#if 0
-int xmp_create_module(xmp_context opaque, int nch)
-{
-	struct context_data *ctx = (struct context_data *)opaque;
-	struct module_data *m = &ctx->m;
-	struct xmp_module *mod = &m->mod;
-	int i;
-
-	if (nch < 0 || nch > 64)
-		return -XMP_ERROR_INVALID;
-
-	m->filename = NULL;
-	m->basename = NULL;
-	m->size = 0;
-
-	if (ctx->state > XMP_STATE_UNLOADED)
+	if (ret < 0) {
 		xmp_release_module(opaque);
-
-	load_prologue(ctx);
-
-	mod->pat = 1;
-	mod->len = mod->pat;
-	mod->ins = 0;
-	mod->smp = 0;
-	mod->chn = nch;
-	mod->trk = mod->pat * mod->chn;
-	mod->xxo[0] = 0;
-	mod->xxp = calloc(mod->pat, sizeof (struct xmp_pattern *));
-	if (mod->xxp == NULL)
-		goto err;
-	mod->xxt = calloc(mod->trk, sizeof (struct xmp_track *));
-	if (mod->xxt == NULL)
-		goto err1;
-
-	for (i = 0; i < mod->pat; i++) {
-		mod->xxp[i] = calloc(1, sizeof (struct xmp_pattern) +
-					(nch - 1) * sizeof(int));
-		if (mod->xxp[i] == NULL)
-			goto err2;
-		mod->xxp[i]->rows = 64;
-	}
-
-	for (i = 0; i < mod->trk; i++) {
-		mod->xxt[i] = calloc(1, sizeof (struct xmp_track) +
-			(mod->xxp[0]->rows - 1) * sizeof (struct xmp_event));
-		if (mod->xxt[i] == NULL)
-			goto err3;
-        	mod->xxp[i / nch]->index[i % nch] = i;
-        	mod->xxt[i] = calloc (sizeof (struct xmp_track) + sizeof
-			(struct xmp_event) * (mod->xxp[i / nch]->rows - 1), 1);
-		mod->xxt[i]->rows = 64;
-	}
-
-	load_epilogue(ctx);
-
-	ret = prepare_scan(ctx);
-	if (ret < 0)
 		return ret;
+	}
 
 	scan_sequences(ctx);
 
 	ctx->state = XMP_STATE_LOADED;
 
 	return 0;
-
-    err3:
-	for (i = 0; i < mod->trk; i++)
-		free(mod->xxt[i]);
-    err2:
-	for (i = 0; i < mod->pat; i++)
-		free(mod->xxp[i]);
-	free(mod->xxt);
-    err1:
-        free(mod->xxp);
-    err:
-	return XMP_ERROR_INTERNAL;
 }
-#endif
+
+static int composite_test(HIO_HANDLE *f, char *t, const int start)
+{
+  struct format_loader **loader;
+  for (loader = format_loader; *loader; ++loader) {
+    if (0 == (*loader)->test(f, t, start))
+      return 0;
+    hio_seek(f, 0, SEEK_SET);
+  }
+  return -1;
+}
+
+static int composite_load(struct module_data *m, HIO_HANDLE *f, const int start)
+{
+  struct format_loader **loader;
+  for (loader = format_loader; *loader; ++loader) {
+    if (0 == (*loader)->test(f, 0, start)) {
+      hio_seek(f, 0, SEEK_SET);
+    	D_(D_WARN "load format: %s", loader->name);
+      return (*loader)->loader(m, f, start);
+    }
+    hio_seek(f, 0, SEEK_SET);
+  }
+  return -1;
+}
+
+const struct format_loader composite_loader = {
+  NULL,
+  composite_test,
+  composite_load
+};
+
+int xmp_load_module_from_memory(xmp_context opaque, void *mem, long size)
+{
+  return xmp_load_typed_module_from_memory(opaque, mem, size, &composite_loader);
+}
 
 void xmp_release_module(xmp_context opaque)
 {

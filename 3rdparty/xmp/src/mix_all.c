@@ -9,7 +9,6 @@
 #include "common.h"
 #include "virtual.h"
 #include "mixer.h"
-#include "synth.h"
 #include "precomp_lut.h"
 
 

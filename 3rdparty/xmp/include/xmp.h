@@ -5,28 +5,26 @@
 extern "C" {
 #endif
 
-#define XMP_VERSION "4.2.0"
-#define XMP_VERCODE 0x040200
+#define XMP_VERSION "4.2.1"
+#define XMP_VERCODE 0x040201
 #define XMP_VER_MAJOR 4
 #define XMP_VER_MINOR 2
-#define XMP_VER_RELEASE 0
+#define XMP_VER_RELEASE 1
 
-#ifdef BUILDING_STATIC
-# define EXPORT
-#else
-# if defined(_WIN32) && !defined(__CYGWIN__)
-#  ifdef BUILDING_DLL
-#   define EXPORT __declspec(dllexport)
-#  else
-#   define EXPORT __declspec(dllimport)
-#  endif
-# elif __GNUC__ >= 4 || defined(__HP_cc)
-#  define EXPORT __attribute__((visibility ("default")))
-# elif defined(__SUNPRO_C)
-#  define EXPORT __global
+#if defined(_WIN32) && !defined(__CYGWIN__)
+# if defined(BUILDING_STATIC)
+#  define EXPORT
+# elif defined(BUILDING_DLL)
+#  define EXPORT __declspec(dllexport)
 # else
-#  define EXPORT 
+#  define EXPORT __declspec(dllimport)
 # endif
+#elif __GNUC__ >= 4 || defined(__HP_cc)
+# define EXPORT __attribute__((visibility ("default")))
+#elif defined(__SUNPRO_C)
+# define EXPORT __global
+#else
+# define EXPORT 
 #endif
 
 #define XMP_NAME_SIZE		64	/* Size of module name and type */

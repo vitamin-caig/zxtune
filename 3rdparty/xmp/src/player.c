@@ -29,7 +29,6 @@
 #include "period.h"
 #include "effects.h"
 #include "player.h"
-#include "synth.h"
 #include "mixer.h"
 #include "extras.h"
 
@@ -101,8 +100,6 @@ static void reset_channels(struct context_data *ctx)
 	struct xmp_module *mod = &m->mod;
 	struct channel_data *xc;
 	int i;
-
-	m->synth->reset(ctx);
 
 	for (i = 0; i < p->virt.virt_channels; i++) {
 		void *extra;
@@ -935,12 +932,6 @@ int xmp_start_player(xmp_context opaque, int rate, int format)
 			goto err2;
 	}
 
-	if (m->synth->init(ctx, s->freq) < 0) {
-		ret = -XMP_ERROR_INTERNAL;
-		goto err2;
-	}
-
-	m->synth->reset(ctx);
 	reset_channels(ctx);
 
 	ctx->state = XMP_STATE_PLAYING;
@@ -1132,7 +1123,6 @@ void xmp_end_player(xmp_context opaque)
 	}
 
 	virt_off(ctx);
-	m->synth->deinit(ctx);
 
 	free(p->xc_data);
 	free(f->loop);

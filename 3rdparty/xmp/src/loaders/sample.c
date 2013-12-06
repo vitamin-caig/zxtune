@@ -7,7 +7,6 @@
  */
 
 #include "common.h"
-#include "synth.h"
 #include "loader.h"
 
 /*
@@ -200,31 +199,6 @@ static void unroll_loop(struct xmp_sample *xxs)
 int load_sample(struct module_data *m, HIO_HANDLE *f, int flags, struct xmp_sample *xxs, void *buffer)
 {
 	int bytelen, extralen, unroll_extralen, i;
-
-	/* Synth patches
-	 * Default is YM3128 for historical reasons
-	 */
-	if (flags & SAMPLE_FLAG_SYNTH) {
-		int size = 11;	/* Adlib instrument size */
-
-		if (flags & SAMPLE_FLAG_HSC) {
-			convert_hsc_to_sbi(buffer);
-		}
-
-		xxs->data = malloc(size + 4);
-		if (xxs->data == NULL)
-			return -1;
-
-		*(uint32 *)xxs->data = 0;
-		xxs->data += 4;
-
-		memcpy(xxs->data, buffer, size);
-
-		xxs->flg |= XMP_SAMPLE_SYNTH;
-		xxs->len = size;
-
-		return 0;
-	}
 
 	/* Empty samples
 	 */

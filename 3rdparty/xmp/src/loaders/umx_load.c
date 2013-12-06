@@ -17,7 +17,6 @@
 
 extern const struct format_loader xm_loader;
 extern const struct format_loader it_loader;
-extern const struct format_loader s3m_loader;
 extern const struct format_loader mod_loader;
 
 static int umx_test (HIO_HANDLE *, char *, const int);
@@ -90,9 +89,6 @@ static int umx_load(struct module_data *m, HIO_HANDLE *f, const int start)
 
 		if (id == MAGIC_IMPM)
 			return it_loader.loader(m, f, i);
-
-		if (i > 44 && id == MAGIC_SCRM)
-			return s3m_loader.loader(m, f, i - 44);
 
 		if (i > 1080 && id == MAGIC_M_K_)
 			return mod_loader.loader(m, f, i - 1080);

@@ -13,7 +13,6 @@
 #include "common.h"
 #include "virtual.h"
 #include "mixer.h"
-#include "synth.h"
 #include "period.h"
 
 
@@ -21,7 +20,6 @@
 #define FLAG_STEREO	0x02
 #define FLAG_FILTER	0x04
 #define FLAG_ACTIVE	0x10
-#define FLAG_SYNTH	0x20
 #define FIDX_FLAGMASK	(FLAG_16_BITS | FLAG_STEREO | FLAG_FILTER)
 
 #define DOWNMIX_SHIFT	 12
@@ -291,7 +289,6 @@ void mixer_softmixer(struct context_data *ctx)
 	int vol_l, vol_r, step, voc;
 	int prev_l, prev_r;
 	int lps, lpe;
-	int synth = 1;
 	int32 *buf_pos;
 	void (*mix_fn)();
 	mixer_set *mixers;
@@ -317,7 +314,7 @@ void mixer_softmixer(struct context_data *ctx)
 	for (voc = 0; voc < p->virt.maxvoc; voc++) {
 		vi = &p->virt.voice_array[voc];
 
-		if (vi->chn < 0)
+		if (vi->chn < 0 || vi->sptr == NULL)
 			continue;
 
 		if (vi->period < 1) {
@@ -330,16 +327,6 @@ void mixer_softmixer(struct context_data *ctx)
 		buf_pos = s->buf32;
 		vol_r = vi->vol * (0x80 - vi->pan);
 		vol_l = vi->vol * (0x80 + vi->pan);
-
-		if (vi->fidx & FLAG_SYNTH) {
-			if (synth) {
-				m->synth->mixer(ctx, buf_pos, s->ticksize,
-						vol_l >> 7, vol_r >> 7,
-						vi->fidx & FLAG_STEREO);
-				synth = 0;
-			}
-			continue;
-		}
 
 		step = ((int64)s->pbase << 24) / vi->period;
 
@@ -474,10 +461,6 @@ void mixer_voicepos(struct context_data *ctx, int voc, int pos, int frac)
 	else
  		xxs = &ctx->smix.xxs[vi->smp - m->mod.smp];
 
-	if (xxs->flg & XMP_SAMPLE_SYNTH) {
-		return;
-	}
-
 	if (xxs->flg & XMP_SAMPLE_LOOP) {
 		if ((xxs->flg & XMP_SAMPLE_LOOP_FULL) && vi->sample_loop == 0) {
 			vi->end = xxs->len;
@@ -515,10 +498,6 @@ int mixer_getvoicepos(struct context_data *ctx, int voc)
 
 	xxs = get_sample(ctx, vi->smp);
 
-	if (xxs->flg & XMP_SAMPLE_SYNTH) {
-		return 0;
-	}
-
 	if (xxs->flg & XMP_SAMPLE_LOOP_BIDIR) {
 		if (vi->pos >= xxs->lpe) {
 			return xxs->lpe - (vi->pos - xxs->lpe) - 1;
@@ -547,12 +526,6 @@ void mixer_setpatch(struct context_data *ctx, int voc, int smp)
 
 	if (~s->format & XMP_FORMAT_MONO) {
 		vi->fidx |= FLAG_STEREO;
-	}
-
-	if (xxs->flg & XMP_SAMPLE_SYNTH) {
-		vi->fidx |= FLAG_SYNTH;
-		m->synth->setpatch(ctx, voc, xxs->data);
-		return;
 	}
 
 	mixer_setvol(ctx, voc, 0);
@@ -587,10 +560,6 @@ void mixer_setbend(struct context_data *ctx, int voc, int bend)
 	struct mixer_voice *vi = &p->virt.voice_array[voc];
 
 	vi->period = note_to_period_mix(vi->note, bend);
-
-	if (vi->fidx & FLAG_SYNTH) {
-		m->synth->setnote(ctx, voc, vi->note, bend >> 7);
-	}
 }
 
 void mixer_setvol(struct context_data *ctx, int voc, int vol)
@@ -604,10 +573,6 @@ void mixer_setvol(struct context_data *ctx, int voc, int vol)
 		anticlick(ctx, voc, vol, vi->pan, NULL, 0);
 
 	vi->vol = vol;
-
-	if (vi->fidx & FLAG_SYNTH) {
-		m->synth->setvol(ctx, voc, vol >> 4);
-	}
 }
 
 void mixer_seteffect(struct context_data *ctx, int voc, int type, int val)
@@ -632,10 +597,6 @@ void mixer_seteffect(struct context_data *ctx, int voc, int type, int val)
 	case DSP_EFFECT_FILTER_B1:
 		vi->filter.b1 = val;
 		break;
-	}
-
-	if (vi->fidx & FLAG_SYNTH) {
-		m->synth->seteffect(ctx, voc, type, val);
 	}
 }
 

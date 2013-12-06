@@ -33,6 +33,11 @@
 #define S3M_END		0xff
 #define S3M_SKIP	0xfe
 
+inline int get_pattern_rows(struct xmp_module *mod, int idx)
+{
+    struct xmp_pattern *pat = idx < mod->pat ? mod->xxp[idx] : NULL;
+    return pat && pat->rows ? pat->rows : 1;
+}
 
 static int scan_module(struct context_data *ctx, int ep, int chain)
 {
@@ -57,8 +62,7 @@ static int scan_module(struct context_data *ctx, int ep, int chain)
 
     for (i = 0; i < mod->len; i++) {
 	int pat = mod->xxo[i];
-	memset(m->scan_cnt[i], 0, pat >= mod->pat ? 1 :
-			mod->xxp[pat]->rows ? mod->xxp[pat]->rows : 1);
+	memset(m->scan_cnt[i], 0, get_pattern_rows(mod, pat));
     }
 
     memset(loop_stk, 0, sizeof(int) * mod->chn);
@@ -122,7 +126,7 @@ static int scan_module(struct context_data *ctx, int ep, int chain)
 	p->sequence_control[ord] = chain;
 
 	/* All invalid patterns skipped, only S3M_END aborts replay */
-	if (pat >= mod->pat) {
+	if (pat >= mod->pat || !mod->xxp[pat]) {
 	    if (pat == S3M_END) {
 		ord = mod->len;
 	        continue;
