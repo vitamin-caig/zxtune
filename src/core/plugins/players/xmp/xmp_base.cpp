@@ -14,6 +14,7 @@
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/plugin.h"
 //library includes
+#include <binary/format_factories.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
 #include <sound/chunk_builder.h>
@@ -371,6 +372,7 @@ namespace Xmp
   struct PluginDescription
   {
     const char* const Id;
+    const char* const Format;
     const struct format_loader* const Loader;
   };
 
@@ -379,7 +381,7 @@ namespace Xmp
   public:
     explicit Decoder(const PluginDescription& desc)
       : Desc(desc)
-      , Fmt(boost::make_shared<Format>())
+      , Fmt(Desc.Format ? Binary::CreateMatchOnlyFormat(Desc.Format) : boost::make_shared<Format>())
     {
     }
 
@@ -449,60 +451,466 @@ namespace Xmp
 
   const PluginDescription PLUGINS[] =
   {
-    {"669", &ssn_loader},
-    {"AMF", &amf_loader},
+    //Composer 669
+    {
+      "669"
+      ,
+      "('i|'J)"
+      "('f|'N)" //marker
+      /*
+      "?{108}"        //message
+      "0-40"          //samples count
+      "0-80"          //patterns count
+      "0-7f"          //loop
+      */
+      ,
+      &ssn_loader
+    },
+    //DSMI Advanced Module Format
+    {
+      "AMF"
+      ,
+      "'A'M'F"        //signature
+      "0a-0e"         //version
+      ,
+      &amf_loader
+    },
     //{"ARCH", &arch_loader},
-    {"AMF", &asylum_loader},
+    //Asylum Music Format
+    {
+      "AMF"
+      ,
+      "'A'S'Y'L'U'M' 'M'u's'i'c' 'F'o'r'm'a't' 'V'1'.'0"
+      "00{8}"
+      ,
+      &asylum_loader
+    },
     //{"COCO", &coco_loader},
-    {"DBM", &dbm_loader},
-    {"DBM", &digi_loader},
-    {"DMF", &dmf_loader},
-    {"DTM", &dt_loader},
-    {"DTT", &dtt_loader},
-    {"EMOD", &emod_loader},
-    {"FAR", &far_loader},
-    {"MOD", &flt_loader},//may require additional files
-    {"FNK", &fnk_loader},
+    //DigiBooster Pro
+    {
+      "DBM"
+      ,
+      "'D'B'M'0"
+      ,
+      &dbm_loader
+    },
+    //DIGI Booster
+    {
+      "DBM"
+      ,
+      "'D'I'G'I' 'B'o'o's't'e'r' 'm'o'd'u'l'e"
+      "00"
+      ,
+      &digi_loader
+    },
+    //X-Tracker
+    {
+      "DMF"
+      ,
+      "'D'D'M'F"
+      ,
+      &dmf_loader
+    },
+    //Digital Tracker
+    {
+      "DTM"
+      ,
+      "'D'.'T'."
+      ,
+      &dt_loader
+    },
+    //Desktop Tracker
+    {
+      "DTT"
+      ,
+      "'D's'k'T"
+      ,
+      &dtt_loader
+    },
+    //Quadra Composer
+    {
+      "EMOD"
+      ,
+      "'F'O'R'M"
+      "????"
+      "'E'M'O'D"
+      ,
+      &emod_loader
+    },
+    //Farandole Composer
+    {
+      "FAR"
+      ,
+      "'F'A'R"
+      "fe"
+      ,
+      &far_loader
+    },
+    /*
+    //Startrekker   may require additional files
+    {
+      "MOD"
+      ,
+      "?{1080}"
+      "('F|'E)('L|'X)('T|'O)"
+      "('4|'8|'M)"
+      ,
+      &flt_loader
+    },
+    */
+    //Funktracker
+    {
+      "FNK"
+      ,
+      "'F'u'n'k"
+      "?"
+      "14-ff"     //(year-1980)*2
+      "00-79"     //cpu and card (really separate)
+      "?"
+      ,
+      &fnk_loader
+    },
     //{"J2B", &gal4_loader},//requires depacking from MUSE packer
     //{"J2B", &gal5_loader},
-    {"GDM", &gdm_loader},
-    {"GTK", &gtk_loader},
-    {"MOD", &hmn_loader},
-    {"MOD", &ice_loader},
-    {"IMF", &imf_loader},
-    {"IMS", &ims_loader},
-    {"IT", &it_loader},
-    {"LIQ", &liq_loader},
-    {"PSM", &masi_loader},
-    {"MDL", &mdl_loader},
-    {"MED", &med2_loader},
-    {"MED", &med3_loader},
+    //Generic Digital Music
+    {
+      "GDM"
+      ,
+      "'G'D'M"
+      "fe"
+      "?{64}"
+      "'G'M'F'S"
+      ,
+      &gdm_loader
+    },
+    //Graoumf Tracker
+    {
+      "GTK"
+      ,
+      "'G'T'K"
+      "00-03"
+      ,
+      &gtk_loader
+    },
+    //His Master's Noise
+    {
+      "MOD"
+      ,
+      "?{1080}"
+      "('F|'M)"
+      "('E|'&)"
+      "('S|'K)"
+      "('T|'!)"
+      ,
+      &hmn_loader
+    },
+    //Soundtracker 2.6/Ice Tracker
+    {
+      "MTN"
+      ,
+      "?{1464}"
+      "('M|'I)"
+      "'T"
+      "('N|'1)"
+      "(00|'0)"
+      ,
+      &ice_loader
+    },
+    //Imago Orpheus
+    {
+      "IMF"
+      ,
+      "?{60}"
+      "'I'M'1'0"
+      ,
+      &imf_loader
+    },
+    //Images Music System
+    {
+      "IMS"
+      ,
+      "?{20}"
+      "("               //instruments
+       "(08|20-7f){20}" // name
+       "??"             // finetune
+       "00-7f?"         // BE size
+       "?"              // unknown
+       "00-3f"          // volume
+       "00-7f?"         // BE loop start
+       "??"             // BE loop size
+      "){31}"
+      "01-7f"   //len
+      "00-01"   //zero
+      "?{128}"  //orders
+      "???3c"   //magic
+      ,
+      &ims_loader
+    },
+    //Impulse Tracker
+    {
+      "IT"
+      ,
+      "'I'M'P'M"
+      ,
+      &it_loader
+    },
+    //Liquid Tracker
+    {
+      "LIQ"
+      ,
+      "'L'i'q'u'i'd' 'M'o'd'u'l'e':"
+      ,
+      &liq_loader
+    },
+    //Epic MegaGames MASI
+    {
+      "PSM"
+      ,
+      "'P'S'M' "
+      "???00"
+      "'F'I'L'E"
+      ,
+      &masi_loader
+    },
+    //Digitrakker
+    {
+      "MDL"
+      ,
+      "'D'M'D'L"
+      ,
+      &mdl_loader
+    },
+    //MED 1.12 MED2
+    {
+      "MED"
+      ,
+      "'M'E'D"
+      "02"
+      ,
+      &med2_loader
+    },
+    //MED 2.00 MED3
+    {
+      "MED"
+      ,
+      "'M'E'D"
+      "03"
+      ,
+      &med3_loader
+    },
     //{"MED", &med4_loader},fix later
     //{"MFP", &mfp_loader},//requires additional files
     //{"MGT", &mgt_loader},experimental
-    {"MED", &mmd1_loader},
-    {"MED", &mmd3_loader},
-    {"MOD", &mod_loader},
-    {"MTM", &mtm_loader},
-    {"LIQ", &no_loader},
-    {"OKT", &okt_loader},
+    //MED 2.10/OctaMED
+    {
+      "MED"
+      ,
+      "'M'M'D('0|'1)"
+      ,
+      &mmd1_loader
+    },
+    //OctaMED
+    {
+      "MED"
+      ,
+      "'M'M'D('2|'3)"
+      ,
+      &mmd3_loader
+    },
+    //Protracker
+    {
+      "MOD"
+      ,
+      "?{20}"
+      "("        //instruments
+       "?{22}"   // name
+       "00-7f?"  // BE size
+       "0x"      // finetune
+       "00-3f"   // volume
+       "00-7f?"  // BE loop start
+       "00-7f?"  // BE loop size
+      "){31}"   
+      //+20+30*31=+950
+      "?{130}"
+      //+1080
+      "('0-'3|'1-'9|'M      |'N|'C   |'T|'F      |'N)"
+      "('0-'9|'C   |'.|'!|'&|'.|'D   |'D|'A      |'S)"
+      "('C   |'H   |'K      |'T|'6|'8|'Z|'0      |'M)"
+      "('H   |'N   |'.|'!   |'.|'1   |'4|'4|'6|'8|'S)"
+      ,
+      &mod_loader
+    },
+    //Multitracker
+    {
+      "MTM"
+      ,
+      "'M'T'M"
+      "10"
+      ,
+      &mtm_loader
+    },
+    //Liquid Tracker NO
+    {
+      "LIQ"
+      ,
+      "'N'O"
+      "0000"
+      ,
+      &no_loader
+    },
+    //Oktalyzer
+    {
+      "OKT"
+      ,
+      "'O'K'T'A'S'O'N'G"
+      ,
+      &okt_loader
+    },
     //{"MOD", &polly_loader},//rle packed, too weak structure
-    {"PSM", &psm_loader},
-    {"PT36", &pt3_loader},
-    {"PTM", &ptm_loader},
+    //Protracker Studio
+    {
+      "PSM"
+      ,
+      "'P'S'M"
+      "fe"
+      ,
+      &psm_loader
+    },
+    //Protracker 3
+    {
+      "PT36"
+      ,
+      "'F'O'R'M"
+      "????"
+      "'M'O'D'L"
+      "'V'E'R'S"
+      ,
+      &pt3_loader
+    },
+    //Poly Tracker
+    {
+      "PTM"
+      ,
+      "?{44}"
+      "'P'T'M'F"
+      ,
+      &ptm_loader
+    },
     //{"MOD", &pw_loader},//requires depacking
-    {"RTM", &rtm_loader},
-    {"SFX", &sfx_loader},
+    //Real Tracker
+    {
+      "RTM"
+      ,
+      "'R'T'M'M"
+      "20"
+      ,
+      &rtm_loader
+    },
+    //SoundFX
+    {
+      "SFX"
+      ,
+      "?{60}"
+      "'S'O'N'G"
+      "?{60}"
+      "'S'O'N'G"
+      ,
+      &sfx_loader
+    },
     //{"MTP", &mtp_loader},//experimental
-    {"MOD", &st_loader},
-    {"STIM", &stim_loader},
-    {"STM", &stm_loader},
-    {"STX", &stx_loader},
+    //Soundtracker
+    {
+      "MOD"
+      ,
+      "(08|20-7f){20}"  //name
+      "("               //instruments
+       "(08|20-7f){22}" // name
+       "00-7f?"         // BE size
+       "0x"             // finetune
+       "00-3f"          // volume
+       "??"             // BE loop start
+       "00-7f?"         // BE loop size
+      "){15}"
+      "01-7f"           //len
+      "?"               //restart
+      "(00-7f){128}"    //order
+      ,
+      &st_loader
+    },
+    //Slamtilt
+    {
+      "STIM"
+      ,
+      "'S'T'I'M"
+      ,
+      &stim_loader
+    },
+    //Scream Tracker 2
+    {
+      "STM"
+      ,
+      "?{20}"
+      "('!|'B)"
+      "('S|'M)"
+      "('c|'O)"
+      "('r|'D)"
+      "('e|'2)"
+      "('a|'S)"
+      "('m|'T)"
+      "('!|'M)"
+      "?"
+      "02"      //type=module
+      "01-ff"   //no stx
+      ,
+      &stm_loader
+    },
+    //STMIK 0.2
+    {
+      "STX"
+      ,
+      "?{20}"
+      "('!|'B)"
+      "('S|'M)"
+      "('c|'O)"
+      "('r|'D)"
+      "('e|'2)"
+      "('a|'S)"
+      "('m|'T)"
+      "('!|'M)"
+      //+28
+      "?{32}"
+      //+60
+      "'S'C'R'M"
+      ,
+      &stx_loader
+    },
     //{"SYM", &sym_loader},
-    {"MOD", &tcb_loader},
-    {"ULT", &ult_loader},
+    //TCB Tracker
+    {
+      "TCB"
+      ,
+      "'A'N' 'C'O'O'L('.|'!)"
+      ,
+      &tcb_loader
+    },
+    //Ultra Tracker
+    {
+      "ULT"
+      ,
+      "'M'A'S'_'U'T'r'a'c'k'_'V'0'0"
+      "('0-'4)"
+      ,
+      &ult_loader
+    },
     //{"UMX", &umx_loader},//container
-    {"XM", &xm_loader},
+    //Fast Tracker II
+    {
+      "XM"
+      ,
+      "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "
+      ,
+      &xm_loader
+    },
   };
 }
 }
