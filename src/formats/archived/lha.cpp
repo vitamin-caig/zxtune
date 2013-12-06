@@ -159,7 +159,7 @@ namespace Lha
     bool IsEmpty() const
     {
       Require(Current != 0);
-      return 0 == Current->compressed_length;
+      return 0 == Current->compressed_length || Position + Current->compressed_length > Data.Size();
     }
 
     Archived::File::Ptr GetFile() const
