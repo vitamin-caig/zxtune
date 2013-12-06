@@ -627,19 +627,39 @@ int xmp_load_module(xmp_context opaque, char *path)
 	return -XMP_ERROR_DEPACK;
 }
 
+static int module_load(HIO_HANDLE* h, struct context_data *ctx, const struct format_loader* format)
+{
+	struct module_data *m = &ctx->m;
+
+	hio_seek(h, 0, SEEK_SET);
+	if (format->loader(m, h, 0) < 0)
+	  return -XMP_ERROR_LOAD;
+
+	str_adj(m->mod.name);
+	if (!*m->mod.name) {
+	  strncpy(m->mod.name, "<untitled>", XMP_NAME_SIZE);
+	}
+
+	load_epilogue(ctx);
+
+	if (prepare_scan(ctx) < 0)
+	  return -XMP_ERROR_LOAD;
+
+	scan_sequences(ctx);
+	ctx->state = XMP_STATE_LOADED;
+	set_md5sum(h, m->md5);
+	return 0;
+}
+
 int xmp_load_typed_module_from_memory(xmp_context opaque, void *mem, long size, const struct format_loader* format)
 {
 	struct context_data *ctx = (struct context_data *)opaque;
 	struct module_data *m = &ctx->m;
 	HIO_HANDLE *h;
-	struct list_head tmpfiles_list;
-	int test_result, load_result;
-	int i, ret;
+	int ret;
 
 	if ((h = hio_open_mem(mem, size)) == NULL)
 		return -XMP_ERROR_SYSTEM;
-
-	INIT_LIST_HEAD(&tmpfiles_list);
 
 	m->filename = NULL;
 	m->basename = NULL;
@@ -651,43 +671,13 @@ int xmp_load_typed_module_from_memory(xmp_context opaque, void *mem, long size, 
 	load_prologue(ctx);
 
 	D_(D_WARN "load");
-	load_result = -1;
-	test_result = format->test(h, NULL, 0);
-	if (test_result == 0) {
-			hio_seek(h, 0, SEEK_SET);
-			load_result = format->loader(m, h, 0);
+	ret = -XMP_ERROR_FORMAT;
+	if (format->test(h, NULL, 0) == 0) {
+	  if ((ret = module_load(h, ctx, format)))
+	    xmp_release_module(opaque);
 	}
-
-	set_md5sum(h, m->md5);
-
 	hio_close(h);
-
-	if (test_result < 0)
-		return -XMP_ERROR_FORMAT;
-
-	if (load_result < 0) {
-		xmp_release_module(opaque);
-		return -XMP_ERROR_LOAD;
-	}
-
-	str_adj(m->mod.name);
-	if (!*m->mod.name) {
-		strncpy(m->mod.name, "<untitled>", XMP_NAME_SIZE);
-	}
-
-	load_epilogue(ctx);
-
-	ret = prepare_scan(ctx);
-	if (ret < 0) {
-		xmp_release_module(opaque);
-		return ret;
-	}
-
-	scan_sequences(ctx);
-
-	ctx->state = XMP_STATE_LOADED;
-
-	return 0;
+  return ret;
 }
 
 static int composite_test(HIO_HANDLE *f, char *t, const int start)
