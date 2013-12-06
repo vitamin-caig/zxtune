@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 //boost includes
@@ -108,7 +109,7 @@ namespace Formats
     {
     public:
       CompiledST3Decoder()
-        : Player(Binary::Format::Create(CompiledST3::FORMAT, sizeof(CompiledST3::Player)))
+        : Player(Binary::CreateFormat(CompiledST3::FORMAT, sizeof(CompiledST3::Player)))
       {
       }
 

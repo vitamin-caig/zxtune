@@ -12,6 +12,7 @@
 #include "tfd.h"
 #include "formats/chiptune/container.h"
 //common includes
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 //boost includes
 #include <boost/array.hpp>
@@ -74,7 +75,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
+        : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {
       }
 

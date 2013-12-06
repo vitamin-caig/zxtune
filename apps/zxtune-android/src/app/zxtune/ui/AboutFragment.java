@@ -141,7 +141,7 @@ public class AboutFragment extends DialogFragment {
           return "mdpi";
         case DisplayMetrics.DENSITY_HIGH:
           return "hdpi";
-        case 320/*DisplayMetrics.DENSITY_XHIGH*/:
+        case DisplayMetrics.DENSITY_XHIGH:
           return "xhdpi";
         case 480/*DisplayMetrics.DENSITY_XXHIGH*/:
           return "xxhdpi";

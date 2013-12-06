@@ -17,6 +17,7 @@
 #include <iterator.h>
 //library includes
 #include <binary/container_factories.h>
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -1240,7 +1241,7 @@ namespace ProTracker3
     {
     public:
       TextDecoder()
-        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
+        : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {
       }
 

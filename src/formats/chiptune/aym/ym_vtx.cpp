@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
@@ -387,7 +388,7 @@ namespace Chiptune
     {
     public:
       YMDecoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::CreateFormat(FORMAT))
       {
       }
 
@@ -582,7 +583,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT))
+        : Format(Binary::CreateFormat(FORMAT))
       {
       }
 

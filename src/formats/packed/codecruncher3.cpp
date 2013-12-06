@@ -17,6 +17,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
 #include <iterator>
@@ -353,7 +354,7 @@ namespace Formats
     {
     public:
       CodeCruncher3Decoder()
-        : Depacker(Binary::Format::Create(CodeCruncher3::DEPACKER_PATTERN, CodeCruncher3::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(CodeCruncher3::DEPACKER_PATTERN, CodeCruncher3::MIN_SIZE))
       {
       }
 

@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 //std includes
 #include <algorithm>
@@ -249,7 +250,7 @@ namespace Formats
     {
     public:
       CharPresDecoder()
-        : Depacker(Binary::Format::Create(CharPres::DEPACKER_PATTERN, CharPres::MIN_SIZE))
+        : Depacker(Binary::CreateFormat(CharPres::DEPACKER_PATTERN, CharPres::MIN_SIZE))
       {
       }
 

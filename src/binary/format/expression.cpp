@@ -10,10 +10,11 @@
 
 //local includes
 #include "expression.h"
-#include "format_grammar.h"
-#include "format_syntax.h"
+#include "grammar.h"
+#include "syntax.h"
 //common includes
 #include <contract.h>
+//library includes
 #include <math/numeric.h>
 //std includes
 #include <cctype>

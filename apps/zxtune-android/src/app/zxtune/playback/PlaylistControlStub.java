@@ -29,6 +29,10 @@ public class PlaylistControlStub implements PlaylistControl {
   public void deleteAll() {
   }
   
+  @Override
+  public void move(long id, int delta) {
+  }
+  
   public static PlaylistControl instance() {
     return Holder.INSTANCE;
   }

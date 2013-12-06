@@ -42,8 +42,8 @@ public class DatabaseIterator {
     Item next = null;
     if (isValid()) {
       final Long curId = PlaylistQuery.idOf(item.getUri());
-      final String selection = Database.Tables.Playlist.Fields._id + " > ?";
-      next = advance(curId, selection, Database.Tables.Playlist.Fields._id + " ASC LIMIT 1");
+      final String selection = PlaylistQuery.positionSelection(">", curId); 
+      next = selectFirstFrom(selection);
     }
     return new DatabaseIterator(resolver, next);
   }
@@ -52,8 +52,8 @@ public class DatabaseIterator {
     Item prev = null;
     if (isValid()) {
       final Long curId = PlaylistQuery.idOf(item.getUri());
-      final String selection = Database.Tables.Playlist.Fields._id + " < ?";
-      prev = advance(curId, selection, Database.Tables.Playlist.Fields._id + " DESC LIMIT 1");
+      final String selection = PlaylistQuery.positionSelection("<", curId);
+      prev = selectLastFrom(selection);
     }
     return new DatabaseIterator(resolver, prev);
   }
@@ -61,7 +61,7 @@ public class DatabaseIterator {
   public final DatabaseIterator getFirst() {
     Item first = null;
     if (isValid()) {
-      first = select(Database.Tables.Playlist.Fields._id + " ASC LIMIT 1");
+      first = selectFirstFrom(null);
     }
     return new DatabaseIterator(resolver, first);
   }
@@ -69,7 +69,7 @@ public class DatabaseIterator {
   public final DatabaseIterator getLast() {
     Item last = null;
     if (isValid()) {
-      last = select(Database.Tables.Playlist.Fields._id + " DESC LIMIT 1");
+      last = selectLastFrom(null);
     }
     return new DatabaseIterator(resolver, last);
   }
@@ -78,14 +78,21 @@ public class DatabaseIterator {
     final Item rand = select("RANDOM() LIMIT 1");
     return new DatabaseIterator(resolver, rand);
   }
-
-  private Item advance(Long curId, String selection, String order) {
-    final Cursor cursor = resolver.query(PlaylistQuery.ALL, null, selection, new String[] {curId.toString()}, order);
-    return loadItem(cursor);
+  
+  private Item selectFirstFrom(String selection) {
+    return select(selection, PlaylistQuery.limitedOrder(1));
   }
   
+  private Item selectLastFrom(String selection) {
+    return select(selection, PlaylistQuery.limitedOrder(-1));
+  }
+
   private Item select(String order) {
-    final Cursor cursor = resolver.query(PlaylistQuery.ALL, null, null, null, order);
+    return select(null, order);
+  }
+
+  private Item select(String selection, String order) {
+    final Cursor cursor = resolver.query(PlaylistQuery.ALL, null, selection, null, order);
     return loadItem(cursor);
   }
   

@@ -14,6 +14,7 @@
 //common includes
 #include <indices.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -1051,7 +1052,7 @@ namespace Chiptune
     {
     public:
       VersionedDecoder()
-        : Format(Binary::Format::Create(Version::FORMAT, Version::MIN_SIZE))
+        : Format(Binary::CreateFormat(Version::FORMAT, Version::MIN_SIZE))
       {
       }
 

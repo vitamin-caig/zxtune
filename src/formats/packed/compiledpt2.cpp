@@ -16,6 +16,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 //boost includes
@@ -109,7 +110,7 @@ namespace Formats
     {
     public:
       CompiledPT24Decoder()
-        : Player(Binary::Format::Create(CompiledPT24::FORMAT, CompiledPT24::PLAYER_SIZE + sizeof(CompiledPT24::RawHeader)))
+        : Player(Binary::CreateFormat(CompiledPT24::FORMAT, CompiledPT24::PLAYER_SIZE + sizeof(CompiledPT24::RawHeader)))
         , Decoder(Formats::Chiptune::CreateProTracker2Decoder())
       {
       }

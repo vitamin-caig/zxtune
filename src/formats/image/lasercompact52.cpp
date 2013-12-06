@@ -13,6 +13,7 @@
 //common includes
 #include <contract.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <formats/image.h>
 //text includes
@@ -289,7 +290,7 @@ namespace Formats
     {
     public:
       LaserCompact52Decoder()
-        : Format(Binary::Format::Create(LaserCompact52::FORMAT, LaserCompact52::MIN_SIZE))
+        : Format(Binary::CreateFormat(LaserCompact52::FORMAT, LaserCompact52::MIN_SIZE))
       {
       }
 

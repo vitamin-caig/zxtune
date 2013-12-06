@@ -17,6 +17,7 @@
 #include <indices.h>
 #include <range_checker.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -884,7 +885,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
+        : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {
       }
 

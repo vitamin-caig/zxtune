@@ -17,6 +17,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
@@ -595,7 +596,7 @@ namespace Formats
     {
     public:
       Hrust21Decoder()
-        : Format(Binary::Format::Create(Hrust2::Version1::HEADER_FORMAT, Hrust2::Version1::MIN_SIZE))
+        : Format(Binary::CreateFormat(Hrust2::Version1::HEADER_FORMAT, Hrust2::Version1::MIN_SIZE))
       {
       }
 
@@ -631,7 +632,7 @@ namespace Formats
     {
     public:
       Hrust23Decoder()
-        : Format(Binary::Format::Create(Hrust2::Version3::HEADER_FORMAT, Hrust2::Version3::MIN_SIZE))
+        : Format(Binary::CreateFormat(Hrust2::Version3::HEADER_FORMAT, Hrust2::Version3::MIN_SIZE))
       {
       }
 

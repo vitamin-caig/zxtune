@@ -14,6 +14,7 @@
 #include <contract.h>
 //library includes
 #include <binary/container_factories.h>
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
@@ -757,7 +758,7 @@ namespace Formats
     {
     public:
       ZXStateDecoder()
-        : Format(Binary::Format::Create(::ZXState::FORMAT))
+        : Format(Binary::CreateFormat(::ZXState::FORMAT))
       {
       }
 

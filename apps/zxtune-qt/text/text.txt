@@ -49,9 +49,6 @@ __cpp> "}//namespace Text\n"
 < MODULE_PLAYLIST_FORMAT
 > MODULE_TITLE_FORMAT
 
-< TYPEICONS_RESOURCE_PREFIX
-> ":/types/"
-
 < PLAYLISTS_DIR
 > PROJECT_NAME "/Playlists"
 

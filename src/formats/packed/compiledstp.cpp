@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <debug/log.h>
 //std includes
@@ -181,7 +182,7 @@ namespace Formats
     {
     public:
       CompiledSTPDecoder()
-        : Player(Binary::Format::Create(Version::FORMAT, sizeof(typename Version::Player)))
+        : Player(Binary::CreateFormat(Version::FORMAT, sizeof(typename Version::Player)))
         , Decoder(Formats::Chiptune::SoundTrackerPro::CreateCompiledModulesDecoder())
       {
       }

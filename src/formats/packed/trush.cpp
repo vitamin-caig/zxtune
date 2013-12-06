@@ -18,6 +18,7 @@
 #include <byteorder.h>
 #include <pointers.h>
 //library includes
+#include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
@@ -305,9 +306,9 @@ namespace Formats
     {
     public:
       TrushDecoder()
-        : DepackerBody(Binary::Format::Create(Trush::DEPACKER_BODY, Trush::MIN_BODY_SIZE))
+        : DepackerBody(Binary::CreateFormat(Trush::DEPACKER_BODY, Trush::MIN_BODY_SIZE))
         , Depacker(Binary::CreateCompositeFormat(
-          Binary::Format::Create(Trush::DEPACKER_HEAD),
+          Binary::CreateFormat(Trush::DEPACKER_HEAD),
           DepackerBody,
           Trush::HEAD_SIZE,
           Trush::MAX_HEAD_SIZE))

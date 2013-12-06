@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <binary/typed_container.h>
 //boost includes
@@ -92,7 +93,7 @@ namespace Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::Format::Create(FORMAT, MIN_SIZE))
+        : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {
       }
 

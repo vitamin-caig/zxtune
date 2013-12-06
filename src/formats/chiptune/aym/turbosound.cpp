@@ -14,6 +14,7 @@
 //common includes
 #include <byteorder.h>
 //library includes
+#include <binary/format_factories.h>
 #include <binary/typed_container.h>
 #include <math/numeric.h>
 //boost includes
@@ -125,7 +126,7 @@ namespace Chiptune
       typedef boost::shared_ptr<const FooterFormat> Ptr;
 
       FooterFormat()
-        : Delegate(Binary::Format::Create(FOOTER_FORMAT))
+        : Delegate(Binary::CreateFormat(FOOTER_FORMAT))
       {
       }
 
