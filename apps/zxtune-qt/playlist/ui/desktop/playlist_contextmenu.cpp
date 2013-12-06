@@ -118,7 +118,7 @@ namespace
     }
     else
     {
-      return QFileSystemModelTranslate("%1 bytes").arg(QLocale().toString(size));
+      return QFileSystemModelTranslate("%1 bytes").arg(QLocale().toString(qulonglong(size)));
     }
   }
 
