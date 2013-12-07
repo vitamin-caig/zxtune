@@ -56,5 +56,13 @@
               android:authorities="app.zxtune.playlist"
               android:exported="false">
         </provider>
+        <!--
+          Plugins enumerating provider to avoid loading zxtune library in UI part
+        -->
+        <provider
+              android:name="app.zxtune.PluginsProvider"
+              android:authorities="app.zxtune.plugins"
+              android:process=":service">
+        </provider>
     </application>
 </manifest>

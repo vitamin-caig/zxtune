@@ -227,6 +227,28 @@ public final class ZXTune {
     }
   }
 
+  public final static class Plugins {
+    
+    public final static class DeviceType {
+      //ZXTune::CAP_DEVICE_*
+      public final static int AY38910 = 1;
+      public final static int TURBOSOUND = 2;
+      public final static int BEEPER = 4;
+      public final static int YM2203 = 8;
+      public final static int TURBOFM = 16;
+      public final static int DAC = 32;
+      public final static int SAA1099 = 64;
+    }
+    
+    public interface Visitor {
+      void onPlayerPlugin(int devices, String id, String description);
+    }
+    
+    public static void enumerate(Visitor visitor) {
+      Plugins_Enumerate(visitor);
+    }
+  }
+  
   /**
    * Simple data factory
    * @param Content raw content
@@ -360,4 +382,7 @@ public final class ZXTune {
   private static native String Player_GetProperty(int player, String name, String defVal);
   private static native void Player_SetProperty(int player, String name, long val);
   private static native void Player_SetProperty(int player, String name, String val);
+  
+  // working with plugins
+  private static native void Plugins_Enumerate(Plugins.Visitor visitor);
 }

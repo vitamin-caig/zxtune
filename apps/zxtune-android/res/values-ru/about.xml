@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="about">О программе</string>
+  <string name="about_credits">Авторы</string>
+  <string name="about_plugins">Плагины</string>
+  <string name="about_author">
+    Идея, код: <b>Vitamin/CAIG</b>\n
+    Дизайн: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
+    Использованы исходные коды:\n
+    \tAYEmul от <b>S.Bulba</b>\n
+    \tAYFly от <b>Ander</b>\n
+    \tPusher от <b>Himik/ZxZ</b>\n
+    Использованы библиотеки:\n
+    \tboost\n
+    \tz80ex от <b>Boo-boo</b>\n
+    \tlhasa от <b>Simon Howard</b>\n
+    \tDragSortListView от <b>Carl A.Bauer</b>\n
+    \n
+    Посвящается <b>Lizzi</b>
+  </string>
+  <!-- players -->
+  <string name="plugin_player_dac">Цифровые форматы</string>
+</resources>
