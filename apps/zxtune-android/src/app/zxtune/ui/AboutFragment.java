@@ -62,8 +62,7 @@ public class AboutFragment extends DialogFragment {
         final Context ctx = getActivity();
         final ArrayList<ArrayMap<String, String>> groups = new ArrayList<ArrayMap<String, String>>();
         final ArrayList<ArrayList<ArrayMap<String, String>>> childs = new ArrayList<ArrayList<ArrayMap<String, String>>>();
-        cursor.moveToFirst();
-        while (cursor.moveToNext()) {
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
           final int type = cursor.getInt(PluginsProvider.Columns.Type.ordinal());
           final String id = cursor.getString(PluginsProvider.Columns.Id.ordinal());
           final String descr = cursor.getString(PluginsProvider.Columns.Description.ordinal());
