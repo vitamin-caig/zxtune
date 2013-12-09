@@ -95,9 +95,14 @@ class PlaylistIterator implements Iterator {
   
   private PlayableItem loadItem(DatabaseIterator iter) throws IOException, InvalidObjectException {
     final app.zxtune.playlist.Item meta = iter.getItem();
-    final VfsFile file = (VfsFile) root.resolve(meta.getLocation());
-    final PlayableItem item = FileIterator.loadItem(file);
-    return new PlaylistItem(meta, item);
+    final Uri location = meta.getLocation();
+    final VfsFile file = (VfsFile) root.resolve(location);
+    if (file instanceof VfsFile) {
+      final PlayableItem item = FileIterator.loadItem(file);
+      return new PlaylistItem(meta, item);
+    } else {
+      throw new IOException("Failed to resolve " + location.toString());
+    }
   }
   
   private static class PlaylistItem implements PlayableItem {
