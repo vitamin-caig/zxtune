@@ -46,49 +46,58 @@ class PlaylistIterator implements Iterator {
 
   @Override
   public boolean next() {
-    return updateItem(getNext());
+    for (DatabaseIterator it = getNext(delegate); it.isValid(); it = getNext(it)) {
+      if (updateItem(it)) {
+        delegate = it;
+        return true;
+      }
+    }
+    return false;
   }
   
-  private DatabaseIterator getNext() {
+  private DatabaseIterator getNext(DatabaseIterator it) {
     switch (navigation.get()) {
       case LOOPED:
-        final DatabaseIterator next = delegate.getNext();
-        return next.isValid() ? next : delegate.getFirst();
+        final DatabaseIterator next = it.getNext();
+        return next.isValid() ? next : it.getFirst();
       case SHUFFLE:
-        return delegate.getRandom();
+        return it.getRandom();
       default:
-        return delegate.getNext();
+        return it.getNext();
     }
   }
 
   @Override
   public boolean prev() {
-    return updateItem(getPrev());
+    for (DatabaseIterator it = getPrev(delegate); it.isValid(); it = getPrev(it)) {
+      if (updateItem(it)) {
+        delegate = it;
+        return true;
+      }
+    }
+    return false;
   }
 
-  private DatabaseIterator getPrev() {
+  private DatabaseIterator getPrev(DatabaseIterator it) {
     switch (navigation.get()) {
       case LOOPED:
-        final DatabaseIterator prev = delegate.getPrev();
-        return prev.isValid() ? prev : delegate.getLast();
+        final DatabaseIterator prev = it.getPrev();
+        return prev.isValid() ? prev : it.getLast();
       case SHUFFLE:
-        return delegate.getRandom();
+        return it.getRandom();
       default:
         return delegate.getPrev();
     }
   }
   
   private boolean updateItem(DatabaseIterator iter) {
-    if (iter.isValid()) {
-      try {
-        item = loadItem(iter);
-        delegate = iter;
-        return true;
-      } catch (InvalidObjectException e) {
-        Log.d(TAG, "Skip not a module", e);
-      } catch (IOException e) {
-        Log.d(TAG, "Skip I/O error", e);
-      }
+    try {
+      item = loadItem(iter);
+      return true;
+    } catch (InvalidObjectException e) {
+      Log.d(TAG, "Skip not a module", e);
+    } catch (IOException e) {
+      Log.d(TAG, "Skip I/O error", e);
     }
     return false;
   }
