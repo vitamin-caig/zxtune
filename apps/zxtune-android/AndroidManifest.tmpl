@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="app.zxtune"
-      android:versionCode="@integer/versionCode"
-      android:versionName="@string/versionName">
+      android:versionCode="@version.index@"
+      android:versionName="r@version@">
     <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="17" />
     <!-- pause/resume on incoming call start/finish -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
@@ -55,6 +55,14 @@
               android:name="app.zxtune.playlist.Provider"
               android:authorities="app.zxtune.playlist"
               android:exported="false">
+        </provider>
+        <!--
+          Plugins enumerating provider to avoid loading zxtune library in UI part
+        -->
+        <provider
+              android:name="app.zxtune.PluginsProvider"
+              android:authorities="app.zxtune.plugins"
+              android:process=":service">
         </provider>
     </application>
 </manifest>

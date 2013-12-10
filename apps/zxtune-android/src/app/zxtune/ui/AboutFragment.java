@@ -10,20 +10,30 @@
 
 package app.zxtune.ui;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.util.ArrayMap;
+import android.support.v4.view.ViewPager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ExpandableListView;
+import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
+import app.zxtune.PluginsProvider;
 import app.zxtune.R;
 
 public class AboutFragment extends DialogFragment {
@@ -37,6 +47,68 @@ public class AboutFragment extends DialogFragment {
     final View res = inflater.inflate(R.layout.about, container, false);
     getDialog().setTitle(getApplicationInfo());
     ((TextView) res.findViewById(R.id.about_system)).setText(getSystemInfo());
+    final ViewPager pager = (ViewPager) res.findViewById(R.id.about_pager);
+    pager.setAdapter(new ViewPagerAdapter(pager));
+    final ExpandableListView plugins = (ExpandableListView) res.findViewById(R.id.about_plugins);
+    getLoaderManager().initLoader(0, null, new LoaderCallbacks<Cursor>() {
+
+      @Override
+      public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
+        return new CursorLoader(getActivity(), PluginsProvider.getUri(), null, null, null, null);
+      }
+
+      @Override
+      public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        final Context ctx = getActivity();
+        final ArrayList<ArrayMap<String, String>> groups = new ArrayList<ArrayMap<String, String>>();
+        final ArrayList<ArrayList<ArrayMap<String, String>>> childs = new ArrayList<ArrayList<ArrayMap<String, String>>>();
+        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+          final int type = cursor.getInt(PluginsProvider.Columns.Type.ordinal());
+          final String id = cursor.getString(PluginsProvider.Columns.Id.ordinal());
+          final String descr = cursor.getString(PluginsProvider.Columns.Description.ordinal());
+          if (type >= groups.size()) {
+            while (type >= groups.size()) {
+              groups.add(new ArrayMap<String, String>());
+              childs.add(new ArrayList<ArrayMap<String, String>>());
+            }
+            groups.get(type).put(PluginsProvider.Columns.Type.name(), ctx.getString(getTypeStringId(type)));
+          }
+          final ArrayMap<String, String> plugin = new ArrayMap<String, String>(1);
+          final String text = String.format("\t[%s] %s", id, descr);
+          plugin.put(PluginsProvider.Columns.Description.name(), text);
+          childs.get(type).add(plugin);
+        }
+        
+        final String[] groupFrom = {PluginsProvider.Columns.Type.name()};
+        final int[] groupTo = {android.R.id.text1};
+        final String[] childFrom = {PluginsProvider.Columns.Description.name()};
+        final int[] childTo = {android.R.id.text1};
+        final SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(getActivity(), 
+            groups, android.R.layout.simple_expandable_list_item_1, groupFrom, groupTo,
+            childs, android.R.layout.simple_list_item_1, childFrom, childTo);
+        
+        plugins.setAdapter(adapter);
+      }
+
+      @Override
+      public void onLoaderReset(Loader<Cursor> arg0) {
+      }
+      
+      private int getTypeStringId(int type) {
+        switch (type) {
+          case PluginsProvider.Types.PLAYER_AYM_TS:
+            return R.string.plugin_player_aym_ts;
+          case PluginsProvider.Types.PLAYER_DAC:
+            return R.string.plugin_player_dac;
+          case PluginsProvider.Types.PLAYER_FM_TFM:
+            return R.string.plugin_player_fm_tfm;
+          case PluginsProvider.Types.PLAYER_SAA:
+            return R.string.plugin_player_saa;
+          default:
+            return R.string.plugin_unknown;
+        }
+      }
+    });
     return res;
   }
 
@@ -85,12 +157,12 @@ public class AboutFragment extends DialogFragment {
 
     private void addString(String s) {
       strings.append(s);
-      strings.append("\n");
+      strings.append('\n');
     }
 
     private void addWord(String s) {
       strings.append(s);
-      strings.append(" ");
+      strings.append(' ');
     }
 
     private static String getLayoutSize(int layout) {

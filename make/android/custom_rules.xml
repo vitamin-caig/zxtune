@@ -57,9 +57,9 @@
   </target>
   
   <target name="injectversion" depends="getversion">
-    <copy file="${top.dir}/make/android/version.tmpl" tofile="res/values/version.xml" overwrite="yes" >
+    <copy file="AndroidManifest.tmpl" tofile="AndroidManifest.xml" overwrite="yes" >
       <filterset>
-        <filter token="version" value="r${version}" />
+        <filter token="version" value="${version}" />
         <filter token="version.index" value="${version.index}" />
       </filterset>
     </copy>

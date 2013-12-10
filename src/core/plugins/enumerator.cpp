@@ -130,6 +130,8 @@ namespace ZXTune
       : Archives(archives)
       , Players(players)
     {
+      Check(Archives);
+      Check(Players);
     }
 
     virtual bool IsValid() const
@@ -158,6 +160,12 @@ namespace ZXTune
     void Next(T& iter)
     {
       iter->Next();
+      Check(iter);
+    }
+    
+    template<class T>
+    void Check(T& iter)
+    {
       if (!iter->IsValid())
       {
         iter = T();

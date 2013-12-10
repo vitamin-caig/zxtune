@@ -7,6 +7,16 @@ Annotation:
 
 --- $Rev$ from $Date$
 
+[*] Fixed crashes in DMM parsing
+[*] Skip invalid files in LHA archives
+[*] zxtune-qt: human-readable data size in playlist statistic
+[*] zxtune-qt: use text instead of type icons
+[+] zxtune-android: playlist items reordering
+[*] zxtune-android: disable looped and shuffled playback of single playlist files
+[+] zxtune-android: plugins information in About dialog
+
+--- Rev2718 from 19.11.2013
+
 [+] zxtune-android: toast messages for scan service events
 [+] zxtune-android: save whole playlist and selected items
 [*] zxtune-android: fix network access for old platforms
