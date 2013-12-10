@@ -50,14 +50,9 @@ final class RemoteCatalog extends Catalog {
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
 
   private final Context context;
-  private String userAgent;
 
   public RemoteCatalog(Context context) {
     this.context = context;
-    this.userAgent =
-        String.format("%s/%s", context.getString(R.string.app_name),
-            context.getString(R.string.versionName));
-    Log.d(TAG, "Set useragent to " + userAgent);
     // HTTP connection reuse which was buggy pre-froyo
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
       System.setProperty("http.keepAlive", "false");
@@ -317,7 +312,6 @@ final class RemoteCatalog extends Catalog {
     try {
       final URL url = new URL(uri);
       final HttpURLConnection result = (HttpURLConnection) url.openConnection();
-      result.setRequestProperty("User-Agent", userAgent);
       Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
       return result;
     } catch (IOException e) {
