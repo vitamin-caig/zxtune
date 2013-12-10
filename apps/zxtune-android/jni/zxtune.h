@@ -151,6 +151,14 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_S
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Player_1SetProperty__ILjava_lang_String_2Ljava_lang_String_2
   (JNIEnv *, jclass, jint, jstring, jstring);
 
+/*
+ * Class:     app_zxtune_ZXTune
+ * Method:    Plugins_Enumerate
+ * Signature: (Lapp/zxtune/ZXTune/Plugins/Visitor;)V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Plugins_1Enumerate
+  (JNIEnv *, jclass, jobject);
+
 #ifdef __cplusplus
 }
 #endif
@@ -271,6 +279,28 @@ extern "C" {
 
 #ifndef _Included_app_zxtune_ZXTune_GlobalOptions_Holder
 #define _Included_app_zxtune_ZXTune_GlobalOptions_Holder
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Plugins */
+
+#ifndef _Included_app_zxtune_ZXTune_Plugins
+#define _Included_app_zxtune_ZXTune_Plugins
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_Plugins_Visitor */
+
+#ifndef _Included_app_zxtune_ZXTune_Plugins_Visitor
+#define _Included_app_zxtune_ZXTune_Plugins_Visitor
 #ifdef __cplusplus
 extern "C" {
 #endif

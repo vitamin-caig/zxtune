@@ -16,18 +16,16 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.PlaylistFragment;
+import app.zxtune.ui.ViewPagerAdapter;
 
 public class MainActivity extends ActionBarActivity implements PlaybackServiceConnection.Callback {
   
@@ -92,32 +90,8 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
     transaction.commit();
     final ViewPager pager = (ViewPager) findViewById(R.id.view_pager);
     if (null != pager) {
-      setupViewPager(pager);
+      pager.setAdapter(new ViewPagerAdapter(pager));
     }
-  }
-  
-  private void setupViewPager(ViewPager pager) {
-    final int childs = pager.getChildCount() - 1;
-    pager.setOffscreenPageLimit(childs);
-    final String[] titles = new String[childs];
-    for (int i = 0; i != titles.length; ++i) {
-      titles[i] = getTitle(pager.getChildAt(1 + i));
-    }
-    pager.setAdapter(new Adapter(titles));
-  }
-  
-  private String getTitle(View pane) {
-    //only String can be stored in View's tag, so try to decode manually
-    final String ID_PREFIX = "@";
-    final String tag = (String) pane.getTag();
-    return tag.startsWith(ID_PREFIX)
-      ? getStringByName(tag.substring(ID_PREFIX.length()))
-      : tag;
-  }
-  
-  private String getStringByName(String name) {
-    final int id = getResources().getIdentifier(name, null, getPackageName());
-    return getResources().getString(id);
   }
   
   private void showPreferences() {
@@ -136,38 +110,5 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
       PlaybackServiceConnection.shutdown(getSupportFragmentManager());
     }
     finish();
-  }
-  
-  private static class Adapter extends PagerAdapter {
-
-    private final String[] titles;
-
-    Adapter(String[] titles) {
-      this.titles = titles;
-    }
-
-    @Override
-    public int getCount() {
-      return titles.length;
-    }
-
-    @Override
-    public boolean isViewFromObject(View view, Object object) {
-      return view == object;
-    }
-
-    @Override
-    public Object instantiateItem(ViewGroup container, int position) {
-      return container.getChildAt(1 + position);
-    }
-
-    @Override
-    public void destroyItem(ViewGroup container, int position, Object object) {
-    }
-    
-    @Override
-    public CharSequence getPageTitle(int position) {
-      return titles[position]; 
-    }
   }
 }

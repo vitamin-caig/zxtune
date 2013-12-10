@@ -16,12 +16,14 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.VisualizerStub;
 
 public class VisualizerView extends View {
   
+  private static final String TAG = VisualizerView.class.getName();
   private Visualizer source;
   private Handler timer;
   private UpdateViewTask updateTask;
@@ -174,8 +176,12 @@ public class VisualizerView extends View {
     
     @Override
     public void run() {
-      if (visualizer.update() || isEnabled()) {
-        timer.postDelayed(this, 100);
+      try {
+        if (visualizer.update() || isEnabled()) {
+          timer.postDelayed(this, 100);
+        }
+      } catch (IllegalStateException e) {
+        Log.d(TAG, "UpdateViewTask", e);
       }
     }
 

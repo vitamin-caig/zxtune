@@ -127,7 +127,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
   }
 
   private Uri.Builder allAuthorsUri() {
-    return rootUri().appendPath(allAuthors.getName());
+    return rootUri().appendPath(AllAuthorsDir.PATH);
   }
 
   private Uri.Builder authorUri(Author author) {
@@ -159,7 +159,10 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       return this;
     } else {
       final String category = path.get(POS_CATEGORY);
-      if (category.equals(allAuthors.getName())) {
+      if (category.equals(AllAuthorsDir.PATH)) {
+        return resolveAllAuthorsPath(uri, path);
+      } else if (category.equals(allAuthors.getName())) {
+        //compatibility
         return resolveAllAuthorsPath(uri, path);
       } else {
         return null;
@@ -303,6 +306,8 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
   private class AllAuthorsDir implements VfsDir {
 
+    // Static locale-independent path of all authors' dir
+    final static String PATH = "Authors";
     private final String name;
 
     AllAuthorsDir() {

@@ -2,7 +2,6 @@
 <resources>
     <!-- menu-related -->
     <string name="prefs">Preferences</string>
-    <string name="about">About</string>
     <string name="quit">Quit</string>
     <!-- action-related -->
     <string name="play">Play</string>
@@ -22,22 +21,6 @@
     <string name="scanning_failed">Failed to scan: %s</string>
     <string name="scanning_title">Scanning.</string>
     <string name="scanning_text">Click to cancel</string>
-    <!-- about-related -->
-    <string name="about_author">
-      Idea, code: <b>Vitamin/CAIG</b>\n
-      Design: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
-      Used sources:\n
-      \tAYEmul by <b>S.Bulba</b>\n
-      \tAYFly by <b>Ander</b>\n
-      \tPusher by <b>Himik/ZxZ</b>\n
-      Used libraries:\n
-      \tboost\n
-      \tz80ex by <b>Boo-boo</b>\n
-      \tlhasa by <b>Simon Howard</b>\n
-      \tDragSortListView by <b>Carl A.Bauer</b>\n
-      \n
-      Dedicated to <b>Lizzi</b>
-    </string>
     <!-- other -->
     <string name="main">Main</string>
     <plurals name="items">
