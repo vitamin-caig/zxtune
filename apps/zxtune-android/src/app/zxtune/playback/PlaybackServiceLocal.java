@@ -83,7 +83,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
   
   private void play(Iterator iter) throws IOException {
-    final PlayerEventsListener events = new PlaybackEvents(callbacks, new DispatchedPlaybackControl());
+    final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
     setNewHolder(new Holder(iter, events));
   }
   
@@ -329,10 +329,12 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     private final Callback callback;
     private final PlaybackControl ctrl;
+    private final SeekControl seek;
     
-    public PlaybackEvents(Callback callback, PlaybackControl ctrl) {
+    public PlaybackEvents(Callback callback, PlaybackControl ctrl, SeekControl seek) {
       this.callback = callback;
       this.ctrl = ctrl;
+      this.seek = seek;
     }
     
     @Override
@@ -342,6 +344,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void onFinish() {
+      seek.setPosition(TimeStamp.EMPTY);
       ctrl.next();
     }
 
