@@ -181,7 +181,7 @@ namespace Xmp
   class TrackState : public Module::TrackState
   {
   public:
-    explicit TrackState(Information::Ptr info, StatePtr state)
+    TrackState(Information::Ptr info, StatePtr state)
       : PatternSizes(info->GetPatternSizes())
       , FrameDuration(info->GetFrameDuration())
       , State(state)
@@ -236,17 +236,36 @@ namespace Xmp
   class Analyzer : public Module::Analyzer
   {
   public:
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    Analyzer(uint_t channels, StatePtr state)
+      : Channels(channels)
+      , State(state)
     {
-      //TODO
-      channels.clear();
     }
 
-    static Ptr Get()
+    virtual void GetState(std::vector<ChannelState>& channels) const
     {
-      static Analyzer self;
-      return MakeSingletonPointer(self);
+      //difference between libxmp and regular spectrum formats is 2 octaves
+      const int C2OFFSET = 24;
+      std::vector<ChannelState> result;
+      result.reserve(Channels);
+      ChannelState chan;
+      for (uint_t idx = 0; idx != Channels; ++idx)
+      {
+        const xmp_frame_info::xmp_channel_info& info = State->channel_info[idx];
+        if (info.note != -1 && info.volume != 0)
+        {
+          //TODO: use period as precise playback speed
+          chan.Band = std::max<int>(0, info.note - C2OFFSET);
+          //TODO: also take into account sample's RMS
+          chan.Level = info.volume;
+          result.push_back(chan);
+        }
+      }
+      channels.swap(result);
     }
+  private:
+    const uint_t Channels;
+    const StatePtr State;
   };
 
   class Renderer : public Module::Renderer
@@ -258,6 +277,7 @@ namespace Xmp
       , Target(target)
       , Params(params)
       , Track(boost::make_shared<TrackState>(info, State))
+      , Analysis(boost::make_shared<Analyzer>(info->ChannelsCount(), State))
       , FrameDuration(info->GetFrameDuration())
     {
     }
@@ -274,7 +294,7 @@ namespace Xmp
 
     virtual Analyzer::Ptr GetAnalyzer() const
     {
-      return Analyzer::Get();
+      return Analysis;
     }
 
     virtual bool RenderFrame()
@@ -319,6 +339,7 @@ namespace Xmp
     const Sound::Receiver::Ptr Target;
     const Sound::RenderParameters::Ptr Params;
     const TrackState::Ptr Track;
+    const Analyzer::Ptr Analysis;
     const TimeType FrameDuration;
   };
 

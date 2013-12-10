@@ -43,13 +43,27 @@ namespace
     
     void Fall(uint_t delta)
     {
-      Set(Value >= delta ? Value - delta : 0);
+      if (Value)
+      {
+        Value = Value > delta ? Value - delta : 0;
+        Changed = true;
+      }
     }
     
     void Set(uint_t newVal)
     {
-      std::swap(newVal, Value);
-      Changed = newVal != Value;
+      if (newVal > Value)
+      {
+        Value = newVal;
+        Changed = true;
+      }
+    }
+
+    const uint_t* Get()
+    {
+      bool oldc = false;
+      std::swap(Changed, oldc);
+      return oldc ? &Value : 0;
     }
 
     uint_t Value;
@@ -136,16 +150,16 @@ namespace
       const uint_t bandsCount = std::min<uint_t>(curWidth / BAR_WIDTH, MAX_BANDS);
       for (uint_t band = 0; band < bandsCount; ++band)
       {
-        const BandLevel& level = Levels[band];
-        if (!level.Changed)
+        const uint* const level = Levels[band].Get();
+        if (!level)
         {
           continue;
         }
-        const bool prevHigher = band && Levels[band - 1].Value > level.Value;
-        const bool nextLower = band != bandsCount - 1 && Levels[band + 1].Value < level.Value;
+        const bool prevHigher = band && Levels[band - 1].Value > *level;
+        const bool nextLower = band != bandsCount - 1 && Levels[band + 1].Value < *level;
         const int xleft = band * (BAR_WIDTH + 1);
         painter.fillRect(xleft + prevHigher, 0, BAR_WIDTH + nextLower, curHeight, back);
-        if (const int scaledValue = level.Value * (curHeight - 1) / 100)
+        if (const int scaledValue = *level * (curHeight - 1) / 100)
         {
           painter.drawRect(xleft, curHeight - scaledValue - 1, BAR_WIDTH + 1, scaledValue + 1);
         }
