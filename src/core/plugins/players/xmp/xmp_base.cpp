@@ -419,7 +419,7 @@ namespace Xmp
 
     virtual bool Check(const Binary::Container& rawData) const
     {
-      return true;//TODO
+      return Fmt->Match(rawData);
     }
 
     virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
@@ -719,7 +719,14 @@ namespace Xmp
       ,
       &med3_loader
     },
-    //{"MED", &med4_loader},fix later
+    {
+      "MED"
+      ,
+      "'M'E'D"
+      "04"
+      ,
+      &med4_loader
+    },
     //{"MFP", &mfp_loader},//requires additional files
     //{"MGT", &mgt_loader},experimental
     //MED 2.10/OctaMED
