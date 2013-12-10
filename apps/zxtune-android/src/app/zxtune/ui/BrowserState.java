@@ -30,7 +30,7 @@ class BrowserState {
     this.current = new PathAndPosition();
   }
   
-  Uri getCurrentPath() {
+  final Uri getCurrentPath() {
     return current.getPath();
   }
   

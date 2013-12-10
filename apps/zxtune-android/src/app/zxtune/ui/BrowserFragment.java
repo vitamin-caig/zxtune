@@ -47,7 +47,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   private BreadCrumbsView position;
   private BrowserView listing;
 
-  public static Fragment createInstance() {
+  public static BrowserFragment createInstance() {
     return new BrowserFragment();
   }
 
@@ -55,7 +55,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   public void onAttach(Activity activity) {
     super.onAttach(activity);
     
-    root = Vfs.createRoot(getActivity());
+    root = Vfs.createRoot(activity.getApplicationContext());
     state = new BrowserState(PreferenceManager.getDefaultSharedPreferences(activity));
   }
 
@@ -105,6 +105,18 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     Log.d(TAG, "Saving persistent state");
     storeCurrentViewPosition();
     service = null;
+  }
+  
+  public final void moveUp() {
+    try {
+      final VfsDir curDir = (VfsDir) root.resolve(state.getCurrentPath());
+      if (curDir != root) {
+        final VfsDir parent = curDir.getParent();
+        setCurrentDir(parent != null ? parent : root);
+      }
+    } catch (IOException e) {
+      listing.showError(e);
+    }
   }
 
   @Override
