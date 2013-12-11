@@ -99,6 +99,7 @@ namespace Playlist
     virtual Scanner::Ptr GetScanner() const = 0;
     virtual Model::Ptr GetModel() const = 0;
     virtual Item::Iterator::Ptr GetIterator() const = 0;
+    virtual void Shutdown() = 0;
   public slots:
     virtual void ShowNotification(Playlist::TextNotification::Ptr notification) = 0;
   signals:

@@ -28,6 +28,7 @@
 #include <io/providers_parameters.h>
 #include <parameters/merged_accessor.h>
 #include <strings/array.h>
+#include <time/elapsed.h>
 //std includes
 #include <iomanip>
 #include <iostream>
@@ -65,23 +66,27 @@ namespace
   public:
     ProgressCallbackImpl()
       : Cons(Console::Self())
+      , ReportTimeout(Time::Milliseconds(1000))
     {
     }
 
     virtual void OnProgress(uint_t current)
     {
-      static const Char EMPTY[] = {0};
+      static const String EMPTY;
       OnProgress(current, EMPTY);
     }
 
     virtual void OnProgress(uint_t current, const String& message)
     {
-      CheckForExit();
-      if (const uint_t currentWidth = GetCurrentWidth())
+      if (ReportTimeout())
       {
-        String text = message;
-        text += Strings::Format(Text::PROGRESS_FORMAT, current);
-        OutputString(currentWidth, text);
+        CheckForExit();
+        if (const uint_t currentWidth = GetCurrentWidth())
+        {
+          String text = message;
+          text += Strings::Format(Text::PROGRESS_FORMAT, current);
+          OutputString(currentWidth, text);
+        }
       }
     }
   private:
@@ -101,6 +106,7 @@ namespace
     }
   private:
     const Console& Cons;
+    Time::Elapsed ReportTimeout;
   };
 
   class DetectCallback : public Module::DetectCallback

@@ -23,6 +23,7 @@
 //library includes
 #include <parameters/tools.h>
 #include <sound/backends_parameters.h>
+#include <sound/sound_parameters.h>
 //boost includes
 #include <boost/bind.hpp>
 //qt includes
@@ -45,6 +46,36 @@ namespace
   {
     return QThread::idealThreadCount() > 1;
   }
+
+  template<class ValueType>
+  class TemporaryProperty
+  {
+  public:
+    TemporaryProperty(Parameters::Container& param, const Parameters::NameType& name, const ValueType& newValue)
+      : Param(param)
+      , Name(name)
+      , OldValue(newValue)
+      , Changed(Param.FindValue(Name, OldValue) && OldValue != newValue)
+    {
+      if (Changed)
+      {
+        Param.SetValue(Name, newValue);
+      }
+    }
+
+    ~TemporaryProperty()
+    {
+      if (Changed)
+      {
+        Param.SetValue(Name, OldValue);
+      }
+    }
+  private:
+    Parameters::Container& Param;
+    const Parameters::NameType Name;
+    ValueType OldValue;
+    const bool Changed;
+  };
 
   class SetupConversionDialogImpl : public UI::SetupConversionDialog
                                   , private UI::Ui_SetupConversionDialog
@@ -87,6 +118,7 @@ namespace
       {
         Options->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, FromQString(TargetTemplate->GetFilenameTemplate()));
         type = TargetFormat->GetSelectedId();
+        const TemporaryProperty<Parameters::IntType> disableLoop(*Options, Parameters::ZXTune::Sound::LOOPED, 0);
         return Sound::CreateFileService(GlobalOptions::Instance().GetSnapshot());
       }
       else

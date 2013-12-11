@@ -220,6 +220,13 @@ namespace
       return Iterator;
     }
 
+    virtual void Shutdown()
+    {
+      Dbg("Shutdown at %1%", this);
+      Scanner->Stop();
+      Model->CancelLongOperation();
+    }
+
     virtual void ShowNotification(Playlist::TextNotification::Ptr notification)
     {
       QMessageBox msgBox(QMessageBox::Information,

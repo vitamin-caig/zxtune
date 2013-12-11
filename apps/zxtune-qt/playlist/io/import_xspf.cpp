@@ -124,7 +124,7 @@ namespace
       Properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(File.baseName()));
     }
 
-    bool Parse()
+    bool Parse(Log::ProgressCallback& cb)
     {
       if (XML.readNextStartElement())
       {
@@ -138,7 +138,7 @@ namespace
         {
           Dbg("  unknown format version");
         }
-        return ParsePlaylist();
+        return ParsePlaylist(cb);
       }
       return !XML.error();
     }
@@ -153,7 +153,7 @@ namespace
       return Properties;
     }
   private:
-    bool ParsePlaylist()
+    bool ParsePlaylist(Log::ProgressCallback& cb)
     {
       assert(XML.isStartElement() && XML.name() == XSPF::ROOT_TAG);
       while (XML.readNextStartElement())
@@ -168,7 +168,7 @@ namespace
         }
         else if (tagName == XSPF::TRACKLIST_TAG)
         {
-          if (!ParseTracklist())
+          if (!ParseTracklist(cb))
           {
             Dbg("Failed to parse tracklist");
             return false;
@@ -182,10 +182,12 @@ namespace
       return !XML.error();
     }
 
-    bool ParseTracklist()
+    bool ParseTracklist(Log::ProgressCallback& cb)
     {
       assert(XML.isStartElement() && XML.name() == XSPF::TRACKLIST_TAG);
-      while (XML.readNextStartElement())
+      const uint_t REPORT_PERIOD_ITEMS = 1000;
+      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(File.size(), cb);
+      for (uint_t count = 0; XML.readNextStartElement(); ++count)
       {
         const QStringRef& tagName = XML.name();
         if (tagName == XSPF::ITEM_TAG)
@@ -201,6 +203,11 @@ namespace
         {
           Dbg("Unknown item in tracklist");
           XML.skipCurrentElement();
+        }
+        if (++count >= REPORT_PERIOD_ITEMS)
+        {
+          progress->OnProgress(XML.device()->pos());
+          count = 0;
         }
       }
       return !XML.error();
@@ -337,7 +344,7 @@ namespace
   };
 
   Playlist::IO::Container::Ptr CreateXSPFPlaylist(Playlist::Item::DataProvider::Ptr provider,
-    const QFileInfo& fileInfo)
+    const QFileInfo& fileInfo, Log::ProgressCallback& cb)
   {
     QFile device(fileInfo.absoluteFilePath());
     if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -346,7 +353,7 @@ namespace
       return Playlist::IO::Container::Ptr();
     }
     XSPFReader reader(fileInfo, device);
-    if (!reader.Parse())
+    if (!reader.Parse(cb))
     {
       Dbg("Failed to parse");
       return Playlist::IO::Container::Ptr();
@@ -369,7 +376,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename)
+    Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
     {
       const QFileInfo info(filename);
       if (!info.isFile() || !info.isReadable() ||
@@ -377,7 +384,7 @@ namespace Playlist
       {
         return Container::Ptr();
       }
-      return CreateXSPFPlaylist(provider, info);
+      return CreateXSPFPlaylist(provider, info, cb);
     }
   }
 }

@@ -158,6 +158,10 @@ namespace
 
     virtual void Teardown()
     {
+      for (PlaylistsIterator it(*widgetsContainer); it.IsValid(); it.Next())
+      {
+        it.Get()->Shutdown();
+      }
       Playlist::Controller::Iterator::Ptr iter(new PlaylistsIterator(*widgetsContainer));
       Session->Save(iter);
     }
@@ -257,6 +261,7 @@ namespace
     {
       Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
       view->hide();//to save layout
+      view->GetPlaylist()->Shutdown();
       widgetsContainer->removeTab(index);
       Dbg("Closed playlist idx=%1% val=%2%, active=%3%",
         index, view, ActivePlaylistView);
