@@ -25,45 +25,6 @@ namespace
     }
   };
 
-  class FilteredProgressCallback : public Log::ProgressCallback
-  {
-  public:
-    explicit FilteredProgressCallback(Log::ProgressCallback& delegate)
-      : Delegate(delegate)
-      , Last(~uint_t(0))
-    {
-    }
-
-    virtual void OnProgress(uint_t current)
-    {
-      if (UpdateProgress(current))
-      {
-        Delegate.OnProgress(current);
-      }
-    }
-
-    virtual void OnProgress(uint_t current, const String& message)
-    {
-      if (UpdateProgress(current))
-      {
-        Delegate.OnProgress(current, message);
-      }
-    }
-  private:
-    bool UpdateProgress(uint_t newOne)
-    {
-      if (newOne != Last)
-      {
-        Last = newOne;
-        return true;
-      }
-      return false;
-    }
-  private:
-    Log::ProgressCallback& Delegate;
-    uint_t Last;
-  };
-
   inline uint_t ScaleToPercent(uint_t total, uint_t current)
   {
     return static_cast<uint_t>(uint64_t(current) * 100 / total);
@@ -92,7 +53,7 @@ namespace
     }
   private:
     const uint_t Total;
-    FilteredProgressCallback Delegate;
+    Log::ProgressCallback& Delegate;
   };
 
   class NestedPercentProgressCallback : public Log::ProgressCallback
@@ -124,7 +85,7 @@ namespace
   private:
     const uint_t Start;
     const uint_t Range;
-    FilteredProgressCallback Delegate;
+    Log::ProgressCallback& Delegate;
   };
 }
 

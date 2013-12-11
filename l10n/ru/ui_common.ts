@@ -239,7 +239,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 <context>
     <name>OverlayProgress</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/overlay_progress.cpp" line="100"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/overlay_progress.cpp" line="102"/>
         <source>Click to cancel</source>
         <translation>Нажмите для отмены</translation>
     </message>

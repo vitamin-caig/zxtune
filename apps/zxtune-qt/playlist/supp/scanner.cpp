@@ -17,8 +17,7 @@
 //library includes
 #include <async/coroutine.h>
 #include <debug/log.h>
-//std includes
-#include <ctime>
+#include <time/elapsed.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -32,28 +31,6 @@
 namespace
 {
   const Debug::Stream Dbg("Playlist::Scanner");
-
-  class EventFilter
-  {
-  public:
-    EventFilter()
-      : LastTime(0)
-    {
-    }
-
-    bool operator()()
-    {
-      const std::time_t curTime = ::std::time(0);
-      if (curTime == LastTime)
-      {
-        return true;
-      }
-      LastTime = curTime;
-      return false;
-    }
-  private:
-    std::time_t LastTime;
-  };
 
   class FilenamesTarget
   {
@@ -302,6 +279,7 @@ namespace
     DetectParamsAdapter(ScannerCallback& cb, Async::Scheduler& sched)
       : Callback(cb)
       , Scheduler(sched)
+      , ReportTimeout(Time::Milliseconds(100))
     {
     }
 
@@ -317,8 +295,11 @@ namespace
 
     virtual void ShowProgress(unsigned progress)
     {
-      Callback.OnProgress(progress);
-      Scheduler.Yield();
+      if (ReportTimeout())
+      {
+        Callback.OnProgress(progress);
+        Scheduler.Yield();
+      }
     }
 
     virtual void ShowMessage(const String& message)
@@ -329,6 +310,7 @@ namespace
   private:
     ScannerCallback& Callback;
     Async::Scheduler& Scheduler;
+    Time::Elapsed ReportTimeout;
   };
 
   class ScanRoutine : public FilenamesTarget
@@ -428,6 +410,7 @@ namespace
       , Provider(provider)
       , Routine(boost::make_shared<ScanRoutine>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
       , ScanJob(Async::CreateJob(Routine))
+      , ReportTimeout(Time::Milliseconds(1000))
     {
       Dbg("Created at %1%", this);
     }
@@ -488,7 +471,7 @@ namespace
 
     virtual void OnProgress(unsigned progress)
     {
-      if (!NotificationFilter())
+      if (ReportTimeout())
       {
         emit ScanProgressChanged(progress);
       }
@@ -496,7 +479,7 @@ namespace
 
     virtual void OnMessage(const QString& message)
     {
-      if (!NotificationFilter())
+      if (ReportTimeout())
       {
         emit ScanMessageChanged(message);
       }
@@ -515,7 +498,7 @@ namespace
     const Playlist::Item::DataProvider::Ptr Provider;
     const ScanRoutine::Ptr Routine;
     const Async::Job::Ptr ScanJob;
-    EventFilter NotificationFilter;
+    Time::Elapsed ReportTimeout;
   };
 }
 
