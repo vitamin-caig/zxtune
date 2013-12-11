@@ -14,7 +14,6 @@ libraries.common = analysis \
 
 libraries.3rdparty = lhasa z80ex
 
-libraries :=  zxtune_app_version
 depends := apps/version
 
 windows_libraries := oldnames
@@ -23,5 +22,12 @@ have_gui = 1
 
 include $(path_step)/variables.mak
 include_dirs := $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK
+
+$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK/Release
+$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/shared
+$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/foobar2000_component_client/Release
+$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/pfc/Release
+
+$(platform)_libraries = foobar2000_SDK shared pfc foobar2000_component_client user32
 
 include $(path_step)/makefile.mak

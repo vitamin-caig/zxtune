@@ -64,9 +64,9 @@ VALIDATE_COMPONENT_FILENAME("foo_input_zxtune.dll");
 static const char* file_types[] =
 {
 	// chip
-	"as0", "asc", "ay", "chi", "dmm", "dst", "gtr", "pdt", "m", "c", "$c", "s", "logo1", "psg", "psm", "pt1", "pt2", "pt3", "sqd", "st1", "st3", "stc", "stp", "str", "tfc", "tfd", "ts", "txt", "vtx", "ym",
+	"as0", "asc", "ay", "chi", "dmm", "dst", "gtr", "pdt", "$c", "logo1", "psg", "psm", "pt1", "pt2", "pt3", "sqd", "st1", "st3", "stc", "stp", "str", "tfc", "tfd", "ts", "vtx", "ym",
 	// arch
-	"hrp", "rar", "scl", "szx", "trd", "zip", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "$m", "$b", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs", "tar", "iso",
+	"hrp", "scl", "szx", "trd", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "$m", "$b", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs",
 	// end
 	NULL
 };
