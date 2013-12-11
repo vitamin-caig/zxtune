@@ -12,21 +12,14 @@
 
 //local includes
 #include "container.h"
+//common includes
+#include <progress_callback.h>
 
 class QString;
 namespace Playlist
 {
   namespace IO
   {
-    class ExportCallback
-    {
-    public:
-      virtual ~ExportCallback() {}
-
-      virtual void Progress(unsigned percents) = 0;
-      virtual bool IsCanceled() const = 0;
-    };
-
     enum ExportFlagValues
     {
       SAVE_ATTRIBUTES = 1,
@@ -36,6 +29,6 @@ namespace Playlist
 
     typedef uint_t ExportFlags;
 
-    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb, ExportFlags flags);
+    void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags);
   }
 }

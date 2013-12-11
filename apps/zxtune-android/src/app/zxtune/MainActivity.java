@@ -20,6 +20,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.BrowserFragment;
@@ -29,7 +30,11 @@ import app.zxtune.ui.ViewPagerAdapter;
 
 public class MainActivity extends ActionBarActivity implements PlaybackServiceConnection.Callback {
   
+  private static int NO_PAGE = -1;
   private PlaybackService service;
+  private ViewPager pager;
+  private int browserPageIndex;
+  private BrowserFragment browser;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -65,6 +70,22 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   }
   
   @Override
+  public void onBackPressed() {
+    if (pager != null && pager.getCurrentItem() == browserPageIndex) {
+      browser.moveUp();
+    } else {
+      super.onBackPressed();
+    }
+  }
+  
+  @Override
+  public void onDestroy() {
+    browser = null;
+    pager = null;
+    super.onDestroy();
+  }
+  
+  @Override
   public void onServiceConnected(PlaybackService service) {
     this.service = service;
     for (Fragment f : getSupportFragmentManager().getFragments()) {
@@ -80,18 +101,35 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
     if (null == manager.findFragmentById(R.id.now_playing)) {
       transaction.replace(R.id.now_playing, NowPlayingFragment.createInstance());
     }
-    if (null == manager.findFragmentById(R.id.browser_view)) {
-      transaction.replace(R.id.browser_view, BrowserFragment.createInstance());
+    browser = (BrowserFragment) manager.findFragmentById(R.id.browser_view);
+    if (null == browser) {
+      browser = BrowserFragment.createInstance();
+      transaction.replace(R.id.browser_view, browser);
     }
     if (null == manager.findFragmentById(R.id.playlist_view)) {
       transaction.replace(R.id.playlist_view, PlaylistFragment.createInstance());
     }
     PlaybackServiceConnection.register(manager, transaction);
     transaction.commit();
-    final ViewPager pager = (ViewPager) findViewById(R.id.view_pager);
+    setupViewPager();
+  }
+  
+  private void setupViewPager() {
+    pager = (ViewPager) findViewById(R.id.view_pager);
     if (null != pager) {
-      pager.setAdapter(new ViewPagerAdapter(pager));
+      final ViewPagerAdapter adapter = new ViewPagerAdapter(pager); 
+      pager.setAdapter(adapter);
+      browserPageIndex = adapter.getCount() - 1;
+      while (browserPageIndex >= 0 && !hasBrowserView(adapter.instantiateItem(pager, browserPageIndex))) {
+        --browserPageIndex;
+      }
+    } else {
+      browserPageIndex = NO_PAGE;
     }
+  }
+  
+  private static boolean hasBrowserView(Object view) {
+    return ((View) view).findViewById(R.id.browser_view) != null;
   }
   
   private void showPreferences() {

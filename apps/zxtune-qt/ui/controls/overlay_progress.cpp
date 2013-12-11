@@ -10,9 +10,10 @@
 
 //local includes
 #include "overlay_progress.h"
+//library includes
+#include <time/elapsed.h>
 //std includes
 #include <cmath>
-#include <ctime>
 //boost includes
 #include <boost/array.hpp>
 //qt includes
@@ -35,6 +36,7 @@ namespace
       : OverlayProgress(parent)
       , Palette()
       , Value()
+      , RefreshTimeout(Time::Milliseconds(1000))
     {
       setPalette(Qt::transparent);
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
@@ -102,12 +104,10 @@ namespace
 
     void DoRepaint()
     {
-      const std::time_t curTime = std::time(0);
       //update graph if visible
-      if (isVisible() && curTime != LastUpdate)
+      if (isVisible() && RefreshTimeout())
       {
         repaint(rect());
-        LastUpdate = curTime;
       }
     }
 
@@ -138,7 +138,7 @@ namespace
     QPoint Center;
     boost::array<QLineF, STEPS_MAX> Lines;
     int Value;
-    std::time_t LastUpdate;
+    Time::Elapsed RefreshTimeout;
   };
 }
 

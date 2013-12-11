@@ -57,32 +57,71 @@ namespace
     return DataToQString(data);
   }
 
+  class ElementHelper
+  {
+  public:
+    ElementHelper(QXmlStreamWriter& xml, const Char* tagName)
+      : Xml(xml)
+    {
+      Xml.writeStartElement(QLatin1String(tagName));
+    }
+
+    ~ElementHelper()
+    {
+      Xml.writeEndElement();
+    }
+
+    ElementHelper& Attribute(const Char* name, const QString& value)
+    {
+      Xml.writeAttribute(QLatin1String(name), value);
+      return *this;
+    }
+
+    ElementHelper& Text(const QString& str)
+    {
+      Xml.writeCharacters(str);
+      return *this;
+    }
+
+    ElementHelper& Text(const Char* name, const QString& str)
+    {
+      Xml.writeTextElement(QLatin1String(name), str);
+      return *this;
+    }
+
+    ElementHelper& CData(const QString& str)
+    {
+      Xml.writeCDATA(str);
+      return *this;
+    }
+
+    ElementHelper Subtag(const Char* tagName)
+    {
+      return ElementHelper(Xml, tagName);
+    }
+  private:
+    QXmlStreamWriter& Xml;
+  };
+
   class ExtendedPropertiesSaver : public Parameters::Visitor
   {
     class StringPropertySaver
     {
     public:
       explicit StringPropertySaver(QXmlStreamWriter& xml)
-        : XML(xml)
+        : Extension(xml, XSPF::EXTENSION_TAG)
       {
-        XML.writeStartElement(QLatin1String(XSPF::EXTENSION_TAG));
-        XML.writeAttribute(QLatin1String(XSPF::APPLICATION_ATTR), QLatin1String(Text::PLAYLIST_APPLICATION_ID));
-      }
-
-      ~StringPropertySaver()
-      {
-        XML.writeEndElement();
+        Extension.Attribute(XSPF::APPLICATION_ATTR, QLatin1String(Text::PLAYLIST_APPLICATION_ID));
       }
 
       void SaveProperty(const Parameters::NameType& name, const String& strVal)
       {
-        XML.writeStartElement(QLatin1String(XSPF::EXTENDED_PROPERTY_TAG));
-        XML.writeAttribute(QLatin1String(XSPF::EXTENDED_PROPERTY_NAME_ATTR), ToQString(name.FullPath()));
-        XML.writeCharacters(ConvertString(strVal));
-        XML.writeEndElement();
+        Extension.Subtag(XSPF::EXTENDED_PROPERTY_TAG)
+          .Attribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name.FullPath()))
+          .Text(ConvertString(strVal));
       }
     private:
-      QXmlStreamWriter& XML;
+      ElementHelper Extension;
     };
   public:
     ExtendedPropertiesSaver(QXmlStreamWriter& xml, AttributesFilter filter = 0)
@@ -142,13 +181,8 @@ namespace
   public:
     explicit ItemPropertiesSaver(QXmlStreamWriter& xml)
       : XML(xml)
+      , Element(xml, XSPF::ITEM_TAG)
     {
-      XML.writeStartElement(QLatin1String(XSPF::ITEM_TAG));
-    }
-
-    virtual ~ItemPropertiesSaver()
-    {
-      XML.writeEndElement();
     }
 
     void SaveModuleLocation(const String& location)
@@ -200,14 +234,14 @@ namespace
     void SaveData(const Binary::Data& content)
     {
       Dbg(" Save content");
-      XML.writeCharacters(ENDL);
-      XML.writeCDATA(QString::fromAscii(static_cast<const char*>(content.Start()), content.Size()));
-      XML.writeCharacters(ENDL);
+      Element.Text(ENDL);
+      Element.CData(QString::fromAscii(static_cast<const char*>(content.Start()), content.Size()));
+      Element.Text(ENDL);
     }
   private:
     void SaveModuleLocation(const QString& location)
     {
-      XML.writeTextElement(QLatin1String(XSPF::ITEM_LOCATION_TAG), DataToQString(QUrl(location).toEncoded()));
+      Element.Text(XSPF::ITEM_LOCATION_TAG, DataToQString(QUrl(location).toEncoded()));
     }
 
     virtual void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/)
@@ -221,17 +255,17 @@ namespace
       if (name == Module::ATTR_TITLE)
       {
         Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
-        SaveText(XSPF::ITEM_TITLE_TAG, valStr);
+        Element.Text(XSPF::ITEM_TITLE_TAG, valStr);
       }
       else if (name == Module::ATTR_AUTHOR)
       {
         Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
-        SaveText(XSPF::ITEM_CREATOR_TAG, valStr);
+        Element.Text(XSPF::ITEM_CREATOR_TAG, valStr);
       }
       else if (name == Module::ATTR_COMMENT)
       {
         Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
-        SaveText(XSPF::ITEM_ANNOTATION_TAG, valStr);
+        Element.Text(XSPF::ITEM_ANNOTATION_TAG, valStr);
       }
     }
 
@@ -245,12 +279,7 @@ namespace
       props.FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
       const uint64_t msecDuration = info.FramesCount() * frameDuration / 1000;
       Dbg("  saving item attribute Duration=%1%", msecDuration);
-      XML.writeTextElement(QLatin1String(XSPF::ITEM_DURATION_TAG), QString::number(msecDuration));
-    }
-
-    void SaveText(const Char* tag, const QString& value)
-    {
-      XML.writeTextElement(QLatin1String(tag), value);
+      Element.Text(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }
 
     static bool KeepExtendedProperties(const Parameters::NameType& name)
@@ -291,6 +320,7 @@ namespace
     }
   private:
     QXmlStreamWriter& XML;
+    ElementHelper Element;
   };
 
   class ItemWriter
@@ -461,17 +491,18 @@ namespace
       saver.SetValue(Playlist::ATTRIBUTE_ITEMS, items);
     }
 
-    void WriteItems(const Playlist::IO::Container& container, Playlist::IO::ExportCallback& cb)
+    void WriteItems(const Playlist::IO::Container& container, Log::ProgressCallback& cb)
     {
-      XML.writeStartElement(QLatin1String(XSPF::TRACKLIST_TAG));
-      unsigned doneItems = 0;
+      const uint64_t PERCENTS = 100;
+      ElementHelper tracklist(XML, XSPF::TRACKLIST_TAG);
+      const uint_t totalItems = container.GetItemsCount();
+      uint_t doneItems = 0;
       for (Playlist::Item::Collection::Ptr items = container.GetItems(); items->IsValid(); items->Next())
       {
         const Playlist::Item::Data::Ptr item = items->Get();
         WriteItem(item);
-        cb.Progress(++doneItems);
+        cb.OnProgress((PERCENTS * ++doneItems / totalItems));
       }
-      XML.writeEndElement();
     }
 
     ~XSPFWriter()
@@ -489,66 +520,24 @@ namespace
     QXmlStreamWriter XML;
     const ItemWriter& Writer;
   };
-
-  class ProgressCallbackWrapper : public Playlist::IO::ExportCallback
-  {
-  public:
-    ProgressCallbackWrapper(unsigned total, Playlist::IO::ExportCallback& delegate)
-      : Total(total)
-      , Delegate(delegate)
-      , CurProgress(~0)
-      , Canceled()
-    {
-    }
-
-    virtual void Progress(unsigned items)
-    {
-      const unsigned newProgress = items * 100 / Total;
-      if (CurProgress != newProgress)
-      {
-        Delegate.Progress(CurProgress = newProgress);
-        Canceled = Delegate.IsCanceled();
-      }
-    }
-
-    virtual bool IsCanceled() const
-    {
-      return Canceled;
-    }
-  private:
-    const unsigned Total;
-    Playlist::IO::ExportCallback& Delegate;
-    unsigned CurProgress;
-    bool Canceled;
-  };
 }
 
 namespace Playlist
 {
   namespace IO
   {
-    Error SaveXSPF(Container::Ptr container, const QString& filename, ExportCallback& cb, ExportFlags flags)
+    void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags)
     {
       QFile device(filename);
       if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
       {
-        return Error(THIS_LINE, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
+        throw Error(THIS_LINE, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
       }
-      try
-      {
-        const std::auto_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
-        XSPFWriter writer(device, *itemWriter);
-        const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
-        const unsigned itemsCount = container->GetItemsCount();
-        writer.WriteProperties(*playlistProperties, itemsCount);
-        ProgressCallbackWrapper progress(itemsCount, cb);
-        writer.WriteItems(*container, progress);
-        return Error();
-      }
-      catch (const Error& e)
-      {
-        return e;
-      }
+      const std::auto_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
+      XSPFWriter writer(device, *itemWriter);
+      const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
+      writer.WriteProperties(*playlistProperties, container->GetItemsCount());
+      writer.WriteItems(*container, cb);
     }
   }
 }
