@@ -24,7 +24,6 @@
 #include <io/api.h>
 #include <parameters/serialize.h>
 #include <sound/sound_parameters.h>
-#include <strings/array.h>
 //std includes
 #include <cctype>
 //boost includes
