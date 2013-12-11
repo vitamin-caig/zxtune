@@ -273,13 +273,15 @@ namespace
     virtual void OnScanEnd() = 0;
   };
 
+  const Time::Milliseconds UI_NOTIFICATION_PERIOD(500);
+
   class DetectParamsAdapter : public Playlist::Item::DetectParameters
   {
   public:
     DetectParamsAdapter(ScannerCallback& cb, Async::Scheduler& sched)
       : Callback(cb)
       , Scheduler(sched)
-      , ReportTimeout(Time::Milliseconds(100))
+      , ReportTimeout(UI_NOTIFICATION_PERIOD)
     {
     }
 
@@ -306,6 +308,40 @@ namespace
     {
       const QString text = ToQString(message);
       Callback.OnMessage(text);
+    }
+  private:
+    ScannerCallback& Callback;
+    Async::Scheduler& Scheduler;
+    Time::Elapsed ReportTimeout;
+  };
+
+  class ProgressCallbackAdapter : public Log::ProgressCallback
+  {
+  public:
+    ProgressCallbackAdapter(ScannerCallback& cb, Async::Scheduler& sched)
+      : Callback(cb)
+      , Scheduler(sched)
+      , ReportTimeout(UI_NOTIFICATION_PERIOD)
+    {
+    }
+
+    virtual void OnProgress(uint_t current)
+    {
+      if (ReportTimeout())
+      {
+        Callback.OnProgress(current);
+        Scheduler.Yield();
+      }
+    }
+
+    virtual void OnProgress(uint_t current, const String& message)
+    {
+      if (ReportTimeout())
+      {
+        Callback.OnProgress(current);
+        Callback.OnMessage(ToQString(message));
+        Scheduler.Yield();
+      }
     }
   private:
     ScannerCallback& Callback;
@@ -366,20 +402,28 @@ namespace
 
     void ScanFile(const QString& name, Async::Scheduler& sched)
     {
-      if (!ProcessAsPlaylist(name))
+      if (!ProcessAsPlaylist(name, sched))
       {
         DetectSubitems(name, sched);
       }
     }
 
-    bool ProcessAsPlaylist(const QString& path)
+    bool ProcessAsPlaylist(const QString& path, Async::Scheduler& sched)
     {
-      const Playlist::IO::Container::Ptr playlist = Playlist::IO::Open(Provider, path);
-      if (!playlist.get())
+      try
       {
-        return false;
+        ProgressCallbackAdapter cb(Callback, sched);
+        const Playlist::IO::Container::Ptr playlist = Playlist::IO::Open(Provider, path, cb);
+        if (!playlist.get())
+        {
+          return false;
+        }
+        Callback.OnItems(playlist->GetItems());
       }
-      Callback.OnItems(playlist->GetItems());
+      catch (const Error& e)
+      {
+        Callback.OnError(e);
+      }
       return true;
     }
 
@@ -410,7 +454,6 @@ namespace
       , Provider(provider)
       , Routine(boost::make_shared<ScanRoutine>(boost::ref(static_cast<ScannerCallback&>(*this)), provider))
       , ScanJob(Async::CreateJob(Routine))
-      , ReportTimeout(Time::Milliseconds(1000))
     {
       Dbg("Created at %1%", this);
     }
@@ -471,18 +514,12 @@ namespace
 
     virtual void OnProgress(unsigned progress)
     {
-      if (ReportTimeout())
-      {
-        emit ScanProgressChanged(progress);
-      }
+      emit ScanProgressChanged(progress);
     }
 
     virtual void OnMessage(const QString& message)
     {
-      if (ReportTimeout())
-      {
-        emit ScanMessageChanged(message);
-      }
+      emit ScanMessageChanged(message);
     }
 
     virtual void OnError(const Error& err)
@@ -498,7 +535,6 @@ namespace
     const Playlist::Item::DataProvider::Ptr Provider;
     const ScanRoutine::Ptr Routine;
     const Async::Job::Ptr ScanJob;
-    Time::Elapsed ReportTimeout;
   };
 }
 
