@@ -273,15 +273,12 @@ namespace
     virtual void OnScanEnd() = 0;
   };
 
-  const Time::Milliseconds UI_NOTIFICATION_PERIOD(500);
-
   class DetectParamsAdapter : public Playlist::Item::DetectParameters
   {
   public:
-    DetectParamsAdapter(ScannerCallback& cb, Async::Scheduler& sched)
+    DetectParamsAdapter(ScannerCallback& cb, Log::ProgressCallback& progress)
       : Callback(cb)
-      , Scheduler(sched)
-      , ReportTimeout(UI_NOTIFICATION_PERIOD)
+      , Progress(progress)
     {
     }
 
@@ -295,25 +292,16 @@ namespace
       Callback.OnItem(item);
     }
 
-    virtual void ShowProgress(unsigned progress)
+    virtual Log::ProgressCallback* GetProgress() const
     {
-      if (ReportTimeout())
-      {
-        Callback.OnProgress(progress);
-        Scheduler.Yield();
-      }
-    }
-
-    virtual void ShowMessage(const String& message)
-    {
-      const QString text = ToQString(message);
-      Callback.OnMessage(text);
+      return &Progress;
     }
   private:
     ScannerCallback& Callback;
-    Async::Scheduler& Scheduler;
-    Time::Elapsed ReportTimeout;
+    Log::ProgressCallback& Progress;
   };
+
+  const Time::Milliseconds UI_NOTIFICATION_PERIOD(500);
 
   class ProgressCallbackAdapter : public Log::ProgressCallback
   {
@@ -388,10 +376,11 @@ namespace
 
     virtual void Execute(Async::Scheduler& sched)
     {
+      ProgressCallbackAdapter cb(Callback, sched);
       while (!Queue->Empty())
       {
         const QString file = Queue->GetNext();
-        ScanFile(file, sched);
+        ScanFile(file, cb);
       }
     }
   private:
@@ -400,19 +389,18 @@ namespace
       Queue = boost::make_shared<FilesQueue>();
     }
 
-    void ScanFile(const QString& name, Async::Scheduler& sched)
+    void ScanFile(const QString& name, Log::ProgressCallback& cb)
     {
-      if (!ProcessAsPlaylist(name, sched))
+      if (!ProcessAsPlaylist(name, cb))
       {
-        DetectSubitems(name, sched);
+        DetectSubitems(name, cb);
       }
     }
 
-    bool ProcessAsPlaylist(const QString& path, Async::Scheduler& sched)
+    bool ProcessAsPlaylist(const QString& path, Log::ProgressCallback& cb)
     {
       try
       {
-        ProgressCallbackAdapter cb(Callback, sched);
         const Playlist::IO::Container::Ptr playlist = Playlist::IO::Open(Provider, path, cb);
         if (!playlist.get())
         {
@@ -427,11 +415,11 @@ namespace
       return true;
     }
 
-    void DetectSubitems(const QString& itemPath, Async::Scheduler& sched)
+    void DetectSubitems(const QString& itemPath, Log::ProgressCallback& cb)
     {
       try
       {
-        DetectParamsAdapter params(Callback, sched);
+        DetectParamsAdapter params(Callback, cb);
         Provider->DetectModules(FromQString(itemPath), params);
       }
       catch (const Error& e)

@@ -566,29 +566,6 @@ namespace
     mutable Error State;
   };
 
-  class ProgressCallbackAdapter : public Log::ProgressCallback
-  {
-  public:
-    explicit ProgressCallbackAdapter(Playlist::Item::DetectParameters& delegate)
-      : Delegate(delegate)
-    {
-    }
-
-    virtual void OnProgress(uint_t current)
-    {
-      Delegate.ShowProgress(current);
-    }
-
-    virtual void OnProgress(uint_t current, const String& message)
-    {
-      Delegate.ShowProgress(current);
-      Delegate.ShowMessage(message);
-    }
-  private:
-    Playlist::Item::DetectParameters& Delegate;
-  };
- 
-
   class DetectCallback : public Module::DetectCallback
   {
   public:
@@ -596,7 +573,6 @@ namespace
                             DynamicAttributesProvider::Ptr attributes,
                             CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, IO::Identifier::Ptr dataId)
       : Delegate(delegate)
-      , ProgressCallback(Delegate)
       , Attributes(attributes)
       , CoreParams(coreParams)
       , DataId(dataId)
@@ -626,11 +602,10 @@ namespace
 
     virtual Log::ProgressCallback* GetProgress() const
     {
-      return &ProgressCallback;
+      return Delegate.GetProgress();
     }
   private:
     Playlist::Item::DetectParameters& Delegate;
-    mutable ProgressCallbackAdapter ProgressCallback;
     const DynamicAttributesProvider::Ptr Attributes;
     const Parameters::Accessor::Ptr CoreParams;
     const IO::Identifier::Ptr DataId;
