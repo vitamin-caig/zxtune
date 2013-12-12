@@ -1,5 +1,7 @@
 dynamic_name := foo_input_zxtune
 path_step := ../..
+include $(path_step)/make/default.mak
+
 source_dirs := src
 
 libraries.common = analysis \
@@ -14,13 +16,10 @@ libraries.common = analysis \
 
 libraries.3rdparty = lhasa z80ex zlib unrar
 
-depends := apps/version
-
 windows_libraries := oldnames
 
 have_gui = 1
 
-include $(path_step)/variables.mak
 include_dirs := $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK
 
 $(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK/Release
