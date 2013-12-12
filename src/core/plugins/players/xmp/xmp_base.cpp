@@ -450,6 +450,7 @@ namespace Xmp
         ctx->Call(&::xmp_get_frame_info, &frmInfo);
 
         propBuilder.SetTitle(FromStdString(modInfo.mod->name));
+        propBuilder.SetAuthor(FromStdString(modInfo.mod->author));
         propBuilder.SetProgram(FromStdString(modInfo.mod->type));
         if (const char* comment = modInfo.comment)
         {
