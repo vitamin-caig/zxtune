@@ -110,7 +110,7 @@ static int gdm_load(struct module_data *m, HIO_HANDLE *f, const int start)
 
 	hio_read32b(f);		/* skip magic */
 	hio_read(mod->name, 1, 32, f);
-	hio_seek(f, 32, SEEK_CUR);	/* skip author */
+	hio_read(mod->author, 1, 32, f);
 
 	hio_seek(f, 7, SEEK_CUR);
 

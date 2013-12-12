@@ -204,9 +204,9 @@ static int rtm_load(struct module_data *m, HIO_HANDLE *f, const int start)
 		mod->xxo[i] = hio_read16l(f);
 	
 	strncpy(mod->name, oh.name, 20);
+	strncpy(mod->author, composer, XMP_NAME_SIZE);
 	snprintf(mod->type, XMP_NAME_SIZE, "%s RTM %x.%02x",
 				tracker_name, version >> 8, version & 0xff);
-	/* strncpy(m->author, composer, XMP_NAME_SIZE); */
 
 	mod->len = rh.nposition;
 	mod->pat = rh.npattern;

@@ -636,9 +636,7 @@ static int module_load(HIO_HANDLE* h, struct context_data *ctx, const struct for
 	  return -XMP_ERROR_LOAD;
 
 	str_adj(m->mod.name);
-	if (!*m->mod.name) {
-	  strncpy(m->mod.name, "<untitled>", XMP_NAME_SIZE);
-	}
+	str_adj(m->mod.author);
 
 	load_epilogue(ctx);
 

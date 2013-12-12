@@ -211,6 +211,7 @@ struct xmp_sequence {
 
 struct xmp_module {
 	char name[XMP_NAME_SIZE];	/* Module title */
+	char author[XMP_NAME_SIZE];	/* Module author */
 	char type[XMP_NAME_SIZE];	/* Module format */
 	int pat;			/* Number of patterns */
 	int trk;			/* Number of tracks */
