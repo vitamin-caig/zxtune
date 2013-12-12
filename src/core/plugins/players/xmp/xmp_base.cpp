@@ -600,7 +600,7 @@ namespace Xmp
       ,
       "'G'D'M"
       "fe"
-      "?{64}"
+      "?{67}"
       "'G'M'F'S"
       ,
       &gdm_loader
