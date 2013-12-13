@@ -835,6 +835,15 @@ namespace Xmp
       ,
       &rtm_loader
     },
+    //Scream Tracker 3
+    {
+      "S3M"
+      ,
+      "?{44}"
+      "'S'C'R'M"
+      ,
+      &s3m_loader
+    },
     //SoundFX
     {
       "SFX"
