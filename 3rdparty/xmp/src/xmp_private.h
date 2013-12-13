@@ -11,6 +11,7 @@ extern const struct format_loader mod_loader;
 extern const struct format_loader flt_loader;
 extern const struct format_loader st_loader;
 extern const struct format_loader it_loader;
+extern const struct format_loader s3m_loader;
 extern const struct format_loader stm_loader;
 extern const struct format_loader stx_loader;
 extern const struct format_loader mtm_loader;

@@ -20,6 +20,7 @@ const struct format_loader *const format_loader[NUM_FORMATS + 2] = {
 	&flt_loader,
 	&st_loader,
 	&it_loader,
+	&s3m_loader,
 	&stm_loader,
 	&stx_loader,
 	&mtm_loader,

@@ -24,7 +24,7 @@ source_files_cc += $(addprefix src/loaders/,\
  ult_load mdl_load it_load stx_load pt3_load sfx_load \
  flt_load st_load emod_load imf_load digi_load fnk_load \
  ice_load liq_load ims_load masi_load amf_load \
- psm_load stim_load mmd_common mmd1_load mmd3_load \
+ psm_load s3m_load stim_load mmd_common mmd1_load mmd3_load \
  rtm_load dmf_load tcb_load dt_load gtk_load no_load \
  arch_load sym_load dtt_load mgt_load med2_load med3_load \
  med4_load ssmt_load dbm_load umx_load gdm_load \
