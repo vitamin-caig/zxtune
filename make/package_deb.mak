@@ -1,5 +1,5 @@
 #debian-related files
-pkg_debian_root = $(pkg_dir)/$(pkg_name)_$(pkg_revision)
+pkg_debian_root = $(pkg_dir)/pkg_deb
 pkg_debian = $(pkg_debian_root)/debian
 
 ifneq ($(findstring $(arch),i386 i486 i586 i686),)
@@ -12,7 +12,7 @@ else
 $(warning Unknown debian package architecture)
 arch_deb = $(arch)
 endif
-pkg_file = $(pkg_dir)/$(pkg_name)_r$(pkg_revision)$(pkg_subversion)_$(arch_deb)$(distro).deb
+pkg_file = $(pkg_dir)/$(pkg_name)_$(pkg_version)_$(arch_deb)$(distro).deb
 
 package_deb:
 	$(info Creating $(pkg_file))
@@ -21,14 +21,14 @@ package_deb:
 
 $(pkg_file): $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control $(pkg_debian)/docs $(pkg_debian)/rules $(pkg_debian)/copyright
 	@$(call showtime_cmd)
-	(cd $(pkg_debian_root) && dpkg-buildpackage -b) && mv $(pkg_dir)/`basename $(pkg_debian_root)`_$(arch_deb).deb $@
+	(cd $(pkg_debian_root) && dpkg-buildpackage -b) && mv $(pkg_dir)/$(pkg_name)_$(root.version.index)_$(arch_deb).deb $@
 	$(call rmdir_cmd,$(pkg_debian_root))
 
 $(pkg_debian):
 	$(call makedir_cmd,$@)
 
 $(pkg_debian)/changelog: $(path_step)/apps/changelog.txt | $(pkg_debian)
-	$(path_step)/make/build/debian/convlog.pl <$^ $(pkg_name) $(pkg_revision)$(pkg_subversion) > $@
+	$(path_step)/make/build/debian/convlog.pl <$^ $(pkg_name) $(root.version.index) > $@
 
 $(pkg_debian)/compat: | $(pkg_debian)
 	echo 7 > $@

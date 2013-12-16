@@ -70,7 +70,7 @@
         <filter token="version.index" value="${version.index}" />
       </filterset>
     </copy>
-    <property name="build.dir" value="${builds.dir}/${version.index}/android" />
+    <property name="build.dir" value="${builds.dir}/${version}/android" />
   </target>
   
   <target name="nativelibs">

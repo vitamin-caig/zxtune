@@ -1,4 +1,4 @@
-pkg_file = $(pkg_dir)/$(pkg_name)_r$(pkg_revision)$(pkg_subversion)_$(platform)$(if $(arch),_$(arch),).$(pkg_suffix)
+pkg_file = $(pkg_dir)/$(pkg_name)_$(pkg_version)_$(platform)$(if $(arch),_$(arch),).$(pkg_suffix)
 pkg_root = $(pkg_dir)/root
 
 package_any:

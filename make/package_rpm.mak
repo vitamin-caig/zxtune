@@ -1,7 +1,7 @@
 #archlinux-related rules
 pkg_rpm = $(pkg_dir)/rpm
 pkg_root = $(pkg_dir)/root
-pkg_file = $(pkg_dir)/$(pkg_name)-r$(pkg_revision)$(pkg_subversion)-1.$(if $(distro),$(distro).,)$(arch).rpm
+pkg_file = $(pkg_dir)/$(pkg_name)-$(pkg_version)-1.$(if $(distro),$(distro).,)$(arch).rpm
 
 package_rpm:
 	$(info Creating $(pkg_file))
@@ -11,7 +11,7 @@ package_rpm:
 $(pkg_file): $(pkg_rpm)/rpm.spec $(pkg_rpm)/BUILD/files.list
 	@$(call showtime_cmd)
 	(cd $(pkg_rpm) && rpmbuild -bb --target $(arch)-unknown-linux rpm.spec \
-	-D'_topdir $(CURDIR)/$(pkg_rpm)' -D'pkg_revision $(pkg_revision)' ) && \
+	-D'_topdir $(CURDIR)/$(pkg_rpm)' -D'pkg_revision $(root.version.index)' ) && \
 	mv $(pkg_rpm)/RPMS/$(arch)/*.rpm $@
 	$(call rmdir_cmd,$(pkg_rpm))
 
