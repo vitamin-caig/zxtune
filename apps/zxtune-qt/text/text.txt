@@ -16,28 +16,29 @@ __cpp> "}//namespace Text\n"
 > "zxtune-qt"
 
 < PROGRAM_SITE
-> "http://" PROJECT_ID ".googlecode.com"
+> "http://" PROJECT_ID ".bitbucket.org"
 
-= PROGRAM_SITE_INTERNAL
-> "http://code.google.com/p/" PROJECT_ID
+= PROGRAM_REPOSITORY
+#repository author has the same name
+> "http://bitbucket.org/" PROJECT_ID "/" PROJECT_ID
 
 < HELP_URL
-> PROGRAM_SITE_INTERNAL "/wiki/ZXTuneQTManual"
+> PROGRAM_SITE "/manuals/zxtune-qt/"
 
 < FAQ_URL
-> PROGRAM_SITE_INTERNAL "/wiki/FAQ"
+> PROGRAM_SITE "/faq/"
 
 < REPORT_BUG_URL
-> PROGRAM_SITE_INTERNAL "/issues/entry"
+> PROGRAM_REPOSITORY "/issues/new"
 
 < DOWNLOADS_XML_URL
-> PROGRAM_SITE "/svn/downloads.xml"
+> PROGRAM_SITE "/downloads.xml"
 
 < DOWNLOADS_PROJECT_NAME
 > PROJECT_ID
 
 < FEEDBACK_EMAIL
-> "vitamin.caig@gmail.com"
+> "zxtune@gmail.com"
 
 # 1- program name, 2- song name
 < TITLE_FORMAT
