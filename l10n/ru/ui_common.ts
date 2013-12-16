@@ -31,6 +31,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://flac.sourceforge.net&quot;&gt;FLAC&lt;/a&gt; SDK&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://curl.haxx.se/libcurl&quot;&gt;libCURL&lt;/a&gt; by &lt;b&gt;Haxx team&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://rarlab.com&quot;&gt;unrar&lt;/a&gt; sources by &lt;b&gt;Alexander Roshal&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/cmatsuoka/libxmp&quot;&gt;libxmp&lt;/a&gt; library by &lt;b&gt;Claudio Matsuoka&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -56,6 +57,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использован &lt;a href=&quot;http://flac.sourceforge.net&quot;&gt;FLAC&lt;/a&gt; SDK&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;http://curl.haxx.se/libcurl&quot;&gt;libCURL&lt;/a&gt; от &lt;b&gt;Haxx team&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://rarlab.com&quot;&gt;unrar&lt;/a&gt; от &lt;b&gt;Alexander Roshal&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/cmatsuoka/libxmp&quot;&gt;libxmp&lt;/a&gt; от &lt;b&gt;Claudio Matsuoka&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
