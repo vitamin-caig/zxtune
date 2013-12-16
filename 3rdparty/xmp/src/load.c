@@ -695,7 +695,7 @@ static int composite_load(struct module_data *m, HIO_HANDLE *f, const int start)
   for (loader = format_loader; *loader; ++loader) {
     if (0 == (*loader)->test(f, 0, start)) {
       hio_seek(f, 0, SEEK_SET);
-    	D_(D_WARN "load format: %s", loader->name);
+    	D_(D_WARN "load format: %s", (*loader)->name);
       return (*loader)->loader(m, f, start);
     }
     hio_seek(f, 0, SEEK_SET);
