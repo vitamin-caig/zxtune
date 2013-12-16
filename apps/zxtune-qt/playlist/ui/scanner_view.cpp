@@ -64,9 +64,13 @@ namespace
 
     virtual void ShowProgress(unsigned progress)
     {
-      const QString itemsProgressText = QString::fromAscii("%1/%2%3").arg(Status->DoneFiles()).arg(Status->FoundFiles()).arg(Status->SearchFinished() ? ' ' : '+');
-      itemsProgress->setText(itemsProgressText);
-      itemsProgress->setToolTip(Status->CurrentFile());
+      //new file started
+      if (progress == 0)
+      {
+        const QString itemsProgressText = QString::fromAscii("%1/%2%3").arg(Status->DoneFiles()).arg(Status->FoundFiles()).arg(Status->SearchFinished() ? ' ' : '+');
+        itemsProgress->setText(itemsProgressText);
+        itemsProgress->setToolTip(Status->CurrentFile());
+      }
       scanProgress->setValue(progress);
       CheckedShow();
     }

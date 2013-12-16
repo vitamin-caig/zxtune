@@ -12,6 +12,8 @@
 
 //local includes
 #include "data.h"
+//common includes
+#include <progress_callback.h>
 
 namespace Playlist
 {
@@ -24,8 +26,7 @@ namespace Playlist
 
       virtual Parameters::Container::Ptr CreateInitialAdjustedParameters() const = 0;
       virtual void ProcessItem(Data::Ptr item) = 0;
-      virtual void ShowProgress(unsigned progress) = 0;
-      virtual void ShowMessage(const String& message) = 0;
+      virtual Log::ProgressCallback* GetProgress() const = 0;
     };
 
     class DataProvider

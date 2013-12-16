@@ -46,12 +46,9 @@ namespace
       Item = item;
     }
 
-    virtual void ShowProgress(unsigned /*progress*/)
+    virtual Log::ProgressCallback* GetProgress() const
     {
-    }
-
-    virtual void ShowMessage(const String& /*message*/)
-    {
+      return 0;
     }
 
     Playlist::Item::Data::Ptr GetItem() const
