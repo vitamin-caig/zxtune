@@ -15,10 +15,13 @@
 #include "core/plugins/players/plugin.h"
 //library includes
 #include <binary/format_factories.h>
+#include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
+#include <devices/details/parameters_helper.h>
 #include <formats/chiptune/container.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
+#include <sound/sound_parameters.h>
 #include <time/stamp.h>
 //3rdparty includes
 #define BUILDING_STATIC
@@ -271,7 +274,7 @@ namespace Xmp
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Context::Ptr ctx, Sound::Receiver::Ptr target, Sound::RenderParameters::Ptr params, Information::Ptr info)
+    Renderer(Context::Ptr ctx, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params, Information::Ptr info)
       : Ctx(ctx)
       , State(new xmp_frame_info())
       , Target(target)
@@ -279,7 +282,11 @@ namespace Xmp
       , Track(boost::make_shared<TrackState>(info, State))
       , Analysis(boost::make_shared<Analyzer>(info->ChannelsCount(), State))
       , FrameDuration(info->GetFrameDuration())
+      , Looped(false)
     {
+      const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(params);
+      Looped = soundParams->Looped();
+      Ctx->Call(&::xmp_start_player, static_cast<int>(soundParams->SoundFreq()), 0);
     }
 
     virtual ~Renderer()
@@ -306,6 +313,7 @@ namespace Xmp
 
       try
       {
+        ApplyParameters();
         Ctx->Call(&::xmp_play_frame);
         Ctx->Call(&::xmp_get_frame_info, State.get());
         Sound::ChunkBuilder builder;
@@ -316,7 +324,7 @@ namespace Xmp
           std::memcpy(builder.Allocate(samples), State->buffer, bytes);
           Target->ApplyData(builder.GetResult());
         }
-        return Params->Looped() || State->loop_count == 0;
+        return Looped || State->loop_count == 0;
       }
       catch (const std::exception&)
       {
@@ -334,13 +342,28 @@ namespace Xmp
       Ctx->Call(&::xmp_seek_time, static_cast<int>(FrameDuration.Get() * frame));
     }
   private:
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        Parameters::IntType val = 0;
+        Params->FindValue(Parameters::ZXTune::Sound::LOOPED, val);
+        Looped = val != 0;
+        val = 0;
+        Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
+        const int interpolation = val != 0 ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
+        Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
+      }
+    }
+  private:
     const Context::Ptr Ctx;
     const StatePtr State;
     const Sound::Receiver::Ptr Target;
-    const Sound::RenderParameters::Ptr Params;
+    const Devices::Details::ParametersHelper<Parameters::Accessor> Params;
     const TrackState::Ptr Track;
     const Analyzer::Ptr Analysis;
     const TimeType FrameDuration;
+    bool Looped;
   };
 
   class Holder : public Module::Holder
@@ -365,9 +388,7 @@ namespace Xmp
 
     virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const
     {
-      const Sound::RenderParameters::Ptr parameters = Sound::RenderParameters::Create(params);
-      Ctx->Call(&::xmp_start_player, static_cast<int>(parameters->SoundFreq()), 0);
-      return boost::make_shared<Renderer>(Ctx, target, parameters, Info);
+      return boost::make_shared<Renderer>(Ctx, target, params, Info);
     }
   private:
     const Context::Ptr Ctx;
