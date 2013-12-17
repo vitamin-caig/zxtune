@@ -5,95 +5,102 @@
   <property name="zxtune.app.playlist.version">1</property>
 </extension>
 <trackList>
+  <!-- AY-3-8910 -->
   <track>
-    <location>Samples/Samba.as0</location>
+    <location>Samples/AY-3-8910/Samba.as0</location>
   </track>
   <track>
-    <location>Samples/SANDRA.asc</location>
+    <location>Samples/AY-3-8910/SANDRA.asc</location>
   </track>
   <track>
-    <location>Samples/AYMD39.ay</location>
+    <location>Samples/AY-3-8910/AYMD39.ay</location>
   </track>
   <track>
-    <location>Samples/ducktale.chi</location>
+    <location>Samples/AY-3-8910/Nostalgy.ftc</location>
   </track>
   <track>
-    <location>Samples/axel.cop</location>
+    <location>Samples/AY-3-8910/L.Boy.gtr</location>
   </track>
   <track>
-    <location>Samples/popcorn.dmm</location>
+    <location>Samples/AY-3-8910/FL_SH_EI.psc</location>
   </track>
   <track>
-    <location>Samples/EchoDreams.dst</location>
+    <location>Samples/AY-3-8910/Illusion.psg</location>
   </track>
   <track>
-    <location>Samples/PA-PA-PA.ftc</location>
+    <location>Samples/AY-3-8910/Calamba.psm</location>
   </track>
   <track>
-    <location>Samples/L.Boy.gtr</location>
+    <location>Samples/AY-3-8910/GoldenGift.pt1</location>
   </track>
   <track>
-    <location>Samples/TechCent.M</location>
+    <location>Samples/AY-3-8910/PITON.pt2</location>
   </track>
   <track>
-    <location>Samples/FL_SH_EI.psc</location>
+    <location>Samples/AY-3-8910/Speccy2.pt3</location>
   </track>
   <track>
-    <location>Samples/Illusion.psg</location>
+    <location>Samples/AY-3-8910/taiobyte.sqt</location>
   </track>
   <track>
-    <location>Samples/Calamba.psm</location>
+    <location>Samples/AY-3-8910/EPILOG.st1</location>
   </track>
   <track>
-    <location>Samples/twins.pt1</location>
+    <location>Samples/AY-3-8910/Kvs_Joke.st3</location>
   </track>
   <track>
-    <location>Samples/4jour#2.pt2</location>
+    <location>Samples/AY-3-8910/stracker.stc</location>
   </track>
   <track>
-    <location>Samples/Speccy2.pt3</location>
+    <location>Samples/AY-3-8910/iris_setup.stp</location>
   </track>
   <track>
-    <location>Samples/Maskarad.sqd</location>
+    <location>Samples/AY-3-8910/INEEDREST.ts</location>
   </track>
   <track>
-    <location>Samples/taiobyte.sqt</location>
+    <location>Samples/AY-3-8910/C_IMPROV.txt</location>
   </track>
   <track>
-    <location>Samples/SHOCK4.S</location>
+    <location>Samples/AY-3-8910/Enlight3.vtx</location>
   </track>
   <track>
-    <location>Samples/Kvs_Joke.st3</location>
+    <location>Samples/AY-3-8910/Kurztech.ym</location>
+  </track>
+  <!-- DAC/ZX -->
+  <track>
+    <location>Samples/DAC/ZX/ducktale.chi</location>
   </track>
   <track>
-    <location>Samples/stracker.stc</location>
+    <location>Samples/DAC/ZX/popcorn.dmm</location>
   </track>
   <track>
-    <location>Samples/ZXGuide3_07.stp</location>
+    <location>Samples/DAC/ZX/Untitled.dst</location>
   </track>
   <track>
-    <location>Samples/COMETDAY.str</location>
+    <location>Samples/DAC/ZX/TechCent.M</location>
   </track>
   <track>
-    <location>Samples/tmk.tf0</location>
+    <location>Samples/DAC/ZX/Maskarad.sqd</location>
   </track>
   <track>
-    <location>Samples/unbeliev.tfc</location>
+    <location>Samples/DAC/ZX/COMETDAY.str</location>
+  </track>
+  <!-- SAA1099 -->
+  <track>
+    <location>Samples/SAA1099/axel.cop</location>
+  </track>
+  <!-- YM2203 -->
+  <track>
+    <location>Samples/YM2203/ducktales1_moon.tf0</location>
   </track>
   <track>
-    <location>Samples/mass_production.tfd</location>
+    <location>Samples/YM2203/unbeliev.tfc</location>
   </track>
   <track>
-    <location>Samples/disco.tfe</location>
+    <location>Samples/YM2203/mass_production.tfd</location>
   </track>
   <track>
-    <location>Samples/long_day.pt3</location>
-  </track>
-  <track>
-    <location>Samples/Enlight3.vtx</location>
-  </track>
-  <track>
-    <location>Samples/Kurztech.ym</location>
+    <location>Samples/YM2203/disco.tfe</location>
   </track>
 </trackList>
 </playlist>
