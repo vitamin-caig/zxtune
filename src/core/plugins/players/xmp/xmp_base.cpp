@@ -673,14 +673,14 @@ namespace Xmp
       "IMS"
       ,
       "?{20}"
-      "("               //instruments
-       "(08|20-7f){20}" // name
-       "??"             // finetune
-       "00-7f?"         // BE size
-       "?"              // unknown
-       "00-3f"          // volume
-       "00-7f?"         // BE loop start
-       "??"             // BE loop size
+      "("                  //instruments
+       "(00|08|20-7f){20}" // name
+       "??"                // finetune
+       "00-7f?"            // BE size
+       "?"                 // unknown
+       "00-40"             // volume
+       "00-7f?"            // BE loop start
+       "??"                // BE loop size
       "){31}"
       "01-7f"   //len
       "00-01"   //zero
@@ -771,17 +771,20 @@ namespace Xmp
     {
       "MOD"
       ,
+      /*
       "?{20}"
       "("        //instruments
        "?{22}"   // name
        "00-7f?"  // BE size
        "0x"      // finetune
-       "00-3f"   // volume
+       "00-40"   // volume
        "00-7f?"  // BE loop start
        "00-7f?"  // BE loop size
       "){31}"   
       //+20+30*31=+950
       "?{130}"
+      */
+      "?{1080}"
       //+1080
       "('0-'3|'1-'9|'M      |'N|'C   |'T|'F      |'N)"
       "('0-'9|'C   |'.|'!|'&|'.|'D   |'D|'A      |'S)"
@@ -881,14 +884,14 @@ namespace Xmp
     {
       "MOD"
       ,
-      "(08|20-7f){20}"  //name
-      "("               //instruments
-       "(08|20-7f){22}" // name
-       "00-7f?"         // BE size
-       "0x"             // finetune
-       "00-3f"          // volume
-       "??"             // BE loop start
-       "00-7f?"         // BE loop size
+      "(00|08|20-7f){20}"  //name
+      "("                  //instruments
+       "(00|08|20-7f){22}" // name
+       "00-7f?"            // BE size
+       "0x"                // finetune
+       "00-40"             // volume
+       "??"                // BE loop start
+       "00-7f?"            // BE loop size
       "){15}"
       "01-7f"           //len
       "?"               //restart
