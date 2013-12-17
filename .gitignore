@@ -17,4 +17,8 @@
 *~
 
 #git-generated
-pathes-*
+patches-*
+
+#variables
+/variables.mak
+local.properties
