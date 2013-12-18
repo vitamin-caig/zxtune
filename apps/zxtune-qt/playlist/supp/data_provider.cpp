@@ -648,8 +648,7 @@ namespace
       const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
 
       const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, id->Subpath());
-      const Module::Holder::Ptr module = Module::Open(location);
-      detectCallback.ProcessModule(location, module);
+      Module::Open(location, detectCallback);
     }
   private:
     const CachedDataProvider::Ptr Provider;

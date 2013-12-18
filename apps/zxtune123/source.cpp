@@ -231,8 +231,7 @@ namespace
         else
         {
           const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(Params, data, subpath);
-          const Module::Holder::Ptr module = Module::Open(location);
-          detectCallback.ProcessModule(location, module);
+          Module::Open(location, detectCallback);
         }
       }
       catch (const Error& e)

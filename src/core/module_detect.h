@@ -38,8 +38,15 @@ namespace Module
     virtual Log::ProgressCallback* GetProgress() const = 0;
   };
 
+  //! @brief Recursively search all the modules inside location
   //! @param location Start data location
-  //! @param params Detect callback
+  //! @param callback Detect callback
   //! @return Size in bytes of source data processed
   std::size_t Detect(ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
+
+  //! @brief Opens module directly from location
+  //! @param location Start data location
+  //! @param callback Detect callback
+  //! @throw Error if no module found
+  void Open(ZXTune::DataLocation::Ptr location, const DetectCallback& callback);
 }

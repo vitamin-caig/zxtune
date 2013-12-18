@@ -78,6 +78,6 @@ msgstr "Неправильное значение частотной табли�
 msgid "Failed to resolve subpath '%1%'."
 msgstr "Ошибка получения данных по пути '%1%'."
 
-#: src/module_detect.cpp:67 src/module_detect.cpp:179
+#: src/module_detect.cpp:161 src/module_detect.cpp:183
 msgid "Failed to find module at specified location."
 msgstr "Модуль не найден по указанному пути."
