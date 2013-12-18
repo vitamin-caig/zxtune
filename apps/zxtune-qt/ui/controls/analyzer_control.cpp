@@ -150,7 +150,7 @@ namespace
       const uint_t bandsCount = std::min<uint_t>(curWidth / BAR_WIDTH, MAX_BANDS);
       for (uint_t band = 0; band < bandsCount; ++band)
       {
-        const uint* const level = Levels[band].Get();
+        const uint_t* const level = Levels[band].Get();
         if (!level)
         {
           continue;
