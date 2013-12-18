@@ -1,5 +1,7 @@
 #archlinux-related rules
 pkg_archlinux = $(pkg_dir)/archlinux
+#pkgver cannot contain hyphens or etc
+pkg_version_arch = $(firstword $(subst -, ,$(pkg_version)))
 pkg_file = $(pkg_dir)/$(pkg_name)-$(pkg_version)-1-$(arch).pkg.tar.xz
 
 package_archlinux:
@@ -18,7 +20,7 @@ $(pkg_archlinux):
 $(pkg_archlinux)/PKGBUILD: dist/arch/pkgbuild | $(pkg_archlinux)
 	$(call copyfile_cmd,$^,$@)
 	@echo -e "\
-	pkgver=$(pkg_version)\n\
+	pkgver=$(pkg_version_arch)\n\
 	pkgrel=1\n\
 	arch=('$(arch)')\n\
 	options=(!strip !docs !libtool !emptydirs !zipman makeflags)\n\n\
