@@ -50,7 +50,7 @@ namespace Module
       return Parameters::Container::Create();
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
     {
       Result = holder;
     }

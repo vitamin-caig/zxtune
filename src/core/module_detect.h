@@ -14,6 +14,7 @@
 #include <binary/container.h>
 #include <core/data_location.h>
 #include <core/module_holder.h>
+#include <core/plugin.h>
 #include <parameters/accessor.h>
 
 //forward declarations
@@ -33,7 +34,7 @@ namespace Module
     //! @brief Returns plugins parameters
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const = 0;
     //! @brief Process module
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const = 0;
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const = 0;
     //! @brief Logging callback
     virtual Log::ProgressCallback* GetProgress() const = 0;
   };

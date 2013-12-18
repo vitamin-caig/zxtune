@@ -415,8 +415,10 @@ namespace
     DataImpl(DynamicAttributesProvider::Ptr attributes,
         const ModuleSource& source,
         Parameters::Container::Ptr adjustedParams,
-        uint_t frames, const Parameters::Accessor& moduleProps)
-      : Attributes(attributes)
+        uint_t frames, const Parameters::Accessor& moduleProps,
+        uint_t caps)
+      : Caps(caps)
+      , Attributes(attributes)
       , Source(source)
       , AdjustedParams(adjustedParams)
       , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
@@ -446,6 +448,11 @@ namespace
     {
       const Parameters::Modifier& cb = *this;
       return Parameters::CreatePostChangePropertyTrackedContainer(AdjustedParams, const_cast<Parameters::Modifier&>(cb));
+    }
+
+    virtual Playlist::Item::Capabilities GetCapabilities() const
+    {
+      return Caps;
     }
 
     //playlist-related properties
@@ -552,6 +559,7 @@ namespace
       Duration.SetPeriod(period);
     }
   private:
+    const Playlist::Item::Capabilities Caps;
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
@@ -585,7 +593,7 @@ namespace
       return CoreParams;
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const
     {
       const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
@@ -596,7 +604,7 @@ namespace
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
-        info->FramesCount(), *lookupModuleProps);
+        info->FramesCount(), *lookupModuleProps, decoder->Capabilities());
       Delegate.ProcessItem(playitem);
     }
 
