@@ -1,7 +1,7 @@
 # Maintainer: vitamin.caig@gmail.com
 pkgname=zxtune123
 pkgdesc="Commandline version of crossplatform ZX Spectrum music player and ripper"
-url="http://zxtune.googlecode.com"
+url="http://zxtune.bitbucket.org/"
 license=('GPL3')
 depends=('boost-libs' 'gcc-libs')
 optdepends=(
