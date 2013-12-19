@@ -1,12 +1,11 @@
 -include $(path_step)/version.mak
 
 ifndef root.version
-#for svn
-update_sources:
-	svn up $(path_step)
-
-root.version = $(shell svnversion $(path_step))
-root.version.index = $(subst M,,$(lastword $(subst :, ,$(root.version))))
+#for git
+#ensure version will have format r${revision}-...
+root.version = $(subst rr,r,r$(shell git describe --dirty=M))
+#extract revision from r${revision}-${delta}-g${hash}${dirty}
+root.version.index = $(subst M,,$(subst r,,$(firstword $(subst -, ,$(root.version)))))
 ifeq ($(root.version),)
 root.version = develop
 root.version.index = 0

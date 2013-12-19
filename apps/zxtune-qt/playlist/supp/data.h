@@ -10,6 +10,8 @@
 
 #pragma once
 
+//local includes
+#include "capabilities.h"
 //common includes
 #include <error.h>
 #include <iterator.h>
@@ -34,6 +36,7 @@ namespace Playlist
       //common
       virtual Module::Holder::Ptr GetModule() const = 0;
       virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
+      virtual Capabilities GetCapabilities() const = 0;
       //playlist-related
       virtual Error GetState() const = 0;
       virtual String GetFullPath() const = 0;

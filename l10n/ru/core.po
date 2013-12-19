@@ -38,7 +38,7 @@ msgstr ""
 "Неправильный минимальный размер блока для анализа (%1%). Должен быть больше "
 "%2%."
 
-#: plugins/enumerator.cpp:231
+#: plugins/enumerator.cpp:215
 msgid "Invalid parameters specified."
 msgstr "Неправильные параметры."
 
@@ -78,6 +78,6 @@ msgstr "Неправильное значение частотной табли�
 msgid "Failed to resolve subpath '%1%'."
 msgstr "Ошибка получения данных по пути '%1%'."
 
-#: src/module_detect.cpp:67 src/module_detect.cpp:179
+#: src/module_detect.cpp:161 src/module_detect.cpp:183
 msgid "Failed to find module at specified location."
 msgstr "Модуль не найден по указанному пути."

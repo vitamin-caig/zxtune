@@ -5,7 +5,29 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
---- $Rev$ from $Date$
+--- Rev2850 from 19.12.2013
+
+[*] Fixed IMS and MOD formats detection
+
+--- Rev2820 from 16.12.2013
+
+[+] Support of S3M modules without synthesized samples
+[*] zxtune-android: updated about dialog
+
+--- Rev2800 from 11.12.2013
+
+[+] Support more than 40 chiptune formats via libxmp library
+[*] zxtune-android: fix crash on invalid playlist item load
+[*] zxtune-android: skip invalid playlist items
+[*] zxtune-android: use locale-independent vfs paths
+[*] zxtune-android: rewind finished modules
+[*] zxtune-android: back button acts like move up in browser pane
+[*] zxtune-qt: disable loop flag for conversion
+[*] zxtune-qt: improve responsiveness of progress-related operations
+[*] zxtune-qt: progress for playlists loading
+[*] zxtune-qt: fix crash on playlist/program close while asynchronous operation(s) in progress
+
+--- Rev2742 from 09.12.2013
 
 [*] Fixed crashes in DMM parsing
 [*] Skip invalid files in LHA archives

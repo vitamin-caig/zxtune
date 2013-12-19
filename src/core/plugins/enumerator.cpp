@@ -197,22 +197,6 @@ namespace ZXTune
     return boost::make_shared<CompositePluginsIterator>(archives, players);
   }
 
-  Plugin::Ptr FindPlugin(const String& id)
-  {
-    if (const PlayerPlugin::Ptr player = PlayerPluginsEnumerator::Create()->Find(id))
-    {
-      return player->GetDescription();
-    }
-    else if (const ArchivePlugin::Ptr archive = ArchivePluginsEnumerator::Create()->Find(id))
-    {
-      return archive->GetDescription();
-    }
-    else
-    {
-      return Plugin::Ptr();
-    }
-  }
-
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)
   {
     return boost::make_shared<SimplePluginDescription>(id, info, capabilities);

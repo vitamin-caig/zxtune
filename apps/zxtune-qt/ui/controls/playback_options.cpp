@@ -52,7 +52,7 @@ namespace
 
     virtual void InitState(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
-      const Playlist::Item::Capabilities caps(item);
+      const Playlist::Item::Capabilities& caps = item->GetCapabilities();
       AYMOptions->setVisible(caps.IsAYM());
       DACOptions->setVisible(caps.IsDAC());
       SetEnabled(true);

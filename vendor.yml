@@ -1,0 +1,11 @@
+# 3rdparty
+- 3rdparty/
+
+# generated/generators
+- _api(\.h|_dynamic\.cpp)
+
+# texts
+- text/
+
+# samples
+- samples/

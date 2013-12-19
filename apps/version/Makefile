@@ -1,5 +1,6 @@
 library_name := zxtune_app_version
 path_step := ../..
+include $(path_step)/make/default.mak
 
 source_dirs := src
 

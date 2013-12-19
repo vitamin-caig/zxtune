@@ -10,10 +10,9 @@
 
 #pragma once
 
-//local includes
-#include "data.h"
+//common includes
+#include <types.h>
 //library includes
-#include <core/plugin.h>
 #include <core/plugin_attrs.h>
 
 namespace Playlist
@@ -23,8 +22,8 @@ namespace Playlist
     class Capabilities
     {
     public:
-      explicit Capabilities(Data::Ptr data)
-        : PluginCaps(ZXTune::FindPlugin(data->GetType())->Capabilities())
+      explicit Capabilities(uint_t pluginCaps)
+        : PluginCaps(pluginCaps)
       {
       }
 

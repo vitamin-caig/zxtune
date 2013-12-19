@@ -2,18 +2,20 @@
 
 use strict;
 
-my $Revision = shift;
+my $Version = shift;
 my @PackageNames = split /\s/, shift;
 my %Packages = ();
 
-if (${Revision} eq '')
+if (${Version} eq '')
 {
-  print "Detect last revision\n";
-  $Revision = `svnversion` or die 'Failed to determine version';
-  chomp ${Revision};
+  print "Detect version\n";
+  $Version = `make -s version_name -C apps/version` or die 'Failed to determine version';
+  chomp ${Version};
 }
 
-die "Invalid revision ${Revision}" unless ${Revision} =~ /^\d+M?$/;
+die "Invalid version '${Version}'" unless ${Version} =~ /^r(\d+)(-\d+-g[0-9a-f]+)?M?$/;
+
+my $Revision = $1;
 
 if (!scalar(@PackageNames))
 {
@@ -21,12 +23,12 @@ if (!scalar(@PackageNames))
   @PackageNames = qw(xtractor zxtune123 zxtune-qt zxtune);
 }
 
-for my $folder (glob("Builds/Revision${Revision}_*"))
+for my $subfolder (qw(windows/x86 windows/x86_64 mingw/x86 mingw/x86_64 linux/i686 linux/x86_64 linux/arm linux/armhf dingux/mipsel android))
 {
-  die "Invalid folder format (${folder})" unless ${folder} =~ /Revision${Revision}_([^_]+)(_(.*))?/;
-  die 'Not a folder' unless -d ${folder};
-  my $platform = $1;
-  my $arch = $3;
+  my $folder = "Builds/${Version}/${subfolder}";
+  next unless -d ${folder};
+  my ($platform, $arch) = split('/',${subfolder});
+  print "Platform: ${platform} arch: ${arch}\n";
   for my $package (@PackageNames)
   {
     for my $file (glob("${folder}/${package}*"))
@@ -34,7 +36,7 @@ for my $folder (glob("Builds/Revision${Revision}_*"))
       my $opsys = undef;
       my $compiler = 'gcc';
       my $type = 'Archive';
-      if (${file} =~ /${package}_r${Revision}_${platform}_${arch}\./)
+      if (${file} =~ /${package}_${Version}_${platform}_${arch}\./)
       {
         if (${platform} eq 'windows')
         {
@@ -58,22 +60,22 @@ for my $folder (glob("Builds/Revision${Revision}_*"))
           die 'Unknown platform '.${platform};
         }
       }
-      elsif (${file} =~ /${package}-r${Revision}-\d+-${arch}\.pkg\.tar\.xz/)
+      elsif (${file} =~ /${package}-${Version}-\d+-${arch}\.pkg\.tar\.xz/)
       {
         $opsys = 'Archlinux';
         $type = 'Package';
       }
-      elsif (${file} =~ /${package}_r${Revision}_.*?\.deb/)
+      elsif (${file} =~ /${package}_${Version}_.*?\.deb/)
       {
         $opsys = 'Ubuntu';
         $type = 'Package';
       }
-      elsif (${file} =~ /${package}-r${Revision}-\d+(.*)?\.${arch}\.rpm/)
+      elsif (${file} =~ /${package}-${Version}-\d+(.*)?\.${arch}\.rpm/)
       {
         $opsys = 'Redhat';
         $type = 'Package';
       }
-      elsif (${file} =~ /${package}_r${Revision}.apk/)
+      elsif (${file} =~ /${package}_${Version}.apk/)
       {
         $opsys = 'Android';
         $type = 'Package';

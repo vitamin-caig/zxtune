@@ -27,7 +27,7 @@
 
 < ABOUT_SECTION
 > "This program is the part of ZXTune project.\n"
-> "Visit http://zxtune.googlecode.com for support or new versions\n"
+> "Visit http://zxtune.bitbucket.org/ for support or new versions\n"
 > "For additional information contact vitamin.caig@gmail.com\n"
 > "(C) Vitamin/CAIG\n"
 

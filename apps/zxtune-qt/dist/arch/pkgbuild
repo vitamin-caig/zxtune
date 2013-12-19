@@ -1,7 +1,7 @@
 # Maintainer: vitamin.caig@gmail.com
 pkgname=zxtune-qt
 pkgdesc="Qt-based GUI version of crossplatform ZX Spectrum music player and ripper"
-url="http://zxtune.googlecode.com"
+url="http://zxtune.bitbucket.org/"
 license=('GPL3')
 depends=('boost-libs' 'gcc-libs' 'qt4')
 optdepends=(

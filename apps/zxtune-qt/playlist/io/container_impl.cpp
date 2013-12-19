@@ -82,6 +82,11 @@ namespace
       return Params;
     }
 
+    virtual Playlist::Item::Capabilities GetCapabilities() const
+    {
+      return Playlist::Item::Capabilities(0);
+    }
+
     //playlist-related
     virtual Error GetState() const
     {
@@ -199,6 +204,12 @@ namespace
     virtual Parameters::Container::Ptr GetAdjustedParameters() const
     {
       return Provider.get() ? Provider->GetParameters() : Delegate->GetAdjustedParameters();
+    }
+
+    virtual Playlist::Item::Capabilities GetCapabilities() const
+    {
+      AcquireDelegate();
+      return Delegate->GetCapabilities();
     }
 
     //playlist-related
