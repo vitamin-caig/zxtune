@@ -150,8 +150,8 @@ final class VfsRootLocal implements VfsRoot, IconSource {
       }
       if (line.contains("vfat") || line.contains("/mnt")) {
         StringTokenizer tokens = new StringTokenizer(line, " ");
-        String s = tokens.nextToken();
-        s = tokens.nextToken(); // Take the second token, i.e. mount point
+        tokens.nextToken();
+        final String s = tokens.nextToken(); // Take the second token, i.e. mount point
 
         if (s.equals(Environment.getExternalStorageDirectory().getPath())) {
           list.add(s);
