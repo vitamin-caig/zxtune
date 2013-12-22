@@ -11,6 +11,11 @@
     <!-- Playlists -->
     <string name="vfs_playlists_root_name">Playlists</string>
     <string name="vfs_playlists_root_description">Saved playlists storage</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - largest module archive</string>
+    <string name="vfs_modland_root_description">Via http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">Authors</string>
+    <string name="vfs_modland_authors_description">Browse by authors</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
 </resources>
