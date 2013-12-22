@@ -63,7 +63,7 @@ public final class AylIterator {
   private static ArrayList<ReferencesIterator.Entry> parse(BufferedReader reader) throws IOException {
     final LinkedList<String> strings = readStrings(reader);
     final ArrayList<ReferencesIterator.Entry> result = new ArrayList<ReferencesIterator.Entry>(strings.size());
-    while (parseParameters(strings)) {};
+    while (parseParameters(strings)) {}
     while (!strings.isEmpty()) {
       final ReferencesIterator.Entry entry = new ReferencesIterator.Entry();
       entry.location = Uri.encode(strings.removeFirst().replace('\\', '/'), "/");

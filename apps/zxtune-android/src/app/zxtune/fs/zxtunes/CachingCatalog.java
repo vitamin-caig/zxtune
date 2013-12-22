@@ -137,7 +137,7 @@ final class CachingCatalog extends Catalog {
   
   private static class CountingAuthorsVisitor implements AuthorsVisitor {
 
-    private AuthorsVisitor delegate;
+    private final AuthorsVisitor delegate;
     private int count;
     
     CountingAuthorsVisitor(AuthorsVisitor delegate) {
@@ -158,7 +158,7 @@ final class CachingCatalog extends Catalog {
   
   private class CachingAuthorsVisitor implements AuthorsVisitor {
     
-    private AuthorsVisitor delegate;
+    private final AuthorsVisitor delegate;
     
     CachingAuthorsVisitor(AuthorsVisitor delegate) {
       this.delegate = delegate;

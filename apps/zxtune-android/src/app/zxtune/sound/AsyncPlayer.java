@@ -23,7 +23,7 @@ final public class AsyncPlayer implements Player {
   private static final String TAG = AsyncPlayer.class.getName();
 
   private Player sync;
-  private PlayerEventsListener events;
+  private final PlayerEventsListener events;
   private Thread playThread;
   private volatile Player state;
 
@@ -151,5 +151,5 @@ final public class AsyncPlayer implements Player {
       Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
       sync.startPlayback();
     }
-  };
+  }
 }

@@ -101,7 +101,7 @@ public class DatabaseIterator {
     return loadItem(cursor);
   }
   
-  private final Item loadItem(Cursor cursor) {
+  private Item loadItem(Cursor cursor) {
     try {
       return cursor != null && cursor.moveToFirst()
         ? new Item(cursor)

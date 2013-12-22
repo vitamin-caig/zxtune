@@ -65,7 +65,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   private class SetNowPlayingCommand implements Runnable {
     
-    private Uri[] uris;
+    private final Uri[] uris;
     
     SetNowPlayingCommand(Uri[] uris) {
       this.uris = uris;
@@ -253,7 +253,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   
   private class PlayNextCommand implements Runnable {
     
-    private Iterator iter;
+    private final Iterator iter;
     
     PlayNextCommand(Iterator iter) {
       this.iter = iter;
@@ -273,7 +273,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   private class PlayPrevCommand implements Runnable {
     
-    private Iterator iter;
+    private final Iterator iter;
     
     PlayPrevCommand(Iterator iter) {
       this.iter = iter;

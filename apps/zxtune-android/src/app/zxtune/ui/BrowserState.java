@@ -93,7 +93,7 @@ class BrowserState {
   private class PathAndPosition {
     
     private final int index;
-    private Uri path;
+    private final Uri path;
     private int position;
     
     PathAndPosition() {

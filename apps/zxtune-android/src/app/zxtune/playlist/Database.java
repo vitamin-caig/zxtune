@@ -10,8 +10,6 @@
 
 package app.zxtune.playlist;
 
-import java.util.Arrays;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;

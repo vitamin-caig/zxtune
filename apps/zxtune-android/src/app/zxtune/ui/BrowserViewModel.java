@@ -117,7 +117,7 @@ class RealBrowserViewModel extends BrowserViewModel {
   //TODO: use explicit multiple view types
   View getView(int position, View convertView, ViewGroup parent) {
     View result;
-    ViewHolder holder = null;
+    ViewHolder holder;
     if (convertView == null) {
       result = inflater.inflate(R.layout.browser_item_detailed, parent, false);
       holder = new ViewHolder(result);

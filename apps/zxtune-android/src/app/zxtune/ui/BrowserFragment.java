@@ -43,7 +43,6 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   private VfsRoot root;
   private BrowserState state;
   private View sources;
-  private View roots;
   private BreadCrumbsView position;
   private BrowserView listing;
 
@@ -69,7 +68,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     super.onViewCreated(view, savedInstanceState);
     
     sources = view.findViewById(R.id.browser_sources);
-    roots = view.findViewById(R.id.browser_roots);
+    final View roots = view.findViewById(R.id.browser_roots);
     roots.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View v) {
