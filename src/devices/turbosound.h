@@ -26,7 +26,9 @@ namespace Devices
 
     struct DataChunk
     {
-      DataChunk() : TimeStamp()
+      DataChunk()
+        : TimeStamp()
+        , Data()
       {
       }
 
