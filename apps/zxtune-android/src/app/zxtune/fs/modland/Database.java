@@ -18,6 +18,10 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
 
+import java.util.Collections;
+
+import app.zxtune.fs.zxtunes.Author;
+
 /**
  * Version 1
  *
@@ -41,30 +45,42 @@ final class Database {
 
     final static String DROP_QUERY = "DROP TABLE ?;";
 
-    final static class Authors {
+    final static class Groups {
 
       static enum Fields {
-        _id, nickname, tracks
+        _id, name, tracks
       }
 
-      final static String NAME = "authors";
-
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
-              + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.tracks
+      static final String getCreateQuery(String name) {
+        return "CREATE TABLE " + name + " (" + Fields._id
+              + " INTEGER PRIMARY KEY, " + Fields.name + " TEXT NOT NULL, " + Fields.tracks
               + " INTEGER);";
+      }
+
+      static Group createGroup(Cursor cursor) {
+        final int id = cursor.getInt(Fields._id.ordinal());
+        final String title = cursor.getString(Fields.name.ordinal());
+        final int tracks = cursor.getInt(Fields.tracks.ordinal());
+        return new Group(id, title, tracks);
+      }
+
+      static ContentValues createValues(Group obj) {
+        final ContentValues res = new ContentValues();
+        res.put(Fields._id.name(), obj.id);
+        res.put(Fields.name.name(), obj.name);
+        res.put(Fields.tracks.name(), obj.tracks);
+        return res;
+      }
+    }
+
+    final static class Authors {
+
+      static final String NAME = "authors";
     }
 
     final static class Collections {
 
-      static enum Fields {
-        _id, title, tracks
-      }
-
-      final static String NAME = "collections";
-
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
-              + " INTEGER PRIMARY KEY, " + Fields.title + " TEXT NOT NULL, " + Fields.tracks
-              + " INTEGER);";
+      static final String NAME = "collections";
     }
 
     final static class Tracks {
@@ -77,30 +93,46 @@ final class Database {
 
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
               + " INTEGER PRIMARY KEY, " + Fields.path + " TEXT NOT NULL, " + Fields.size + " INTEGER);";
-    }
 
-    final static class AuthorsTracks {
-
-      static enum Fields {
-        hash, author, track
+      static Track createTrack(Cursor cursor) {
+        final int id = cursor.getInt(Fields._id.ordinal());
+        final String path = cursor.getString(Fields.path.ordinal());
+        final int size = cursor.getInt(Fields.size.ordinal());
+        return new Track(id, path, size);
       }
 
-      final static String NAME = "authors_tracks";
-
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields.hash
-              + " INTEGER UNIQUE, " + Fields.author + " INTEGER, " + Fields.track + " INTEGER);";
+      static ContentValues createValues(Track obj) {
+        final ContentValues res = new ContentValues();
+        res.put(Fields._id.name(), obj.id);
+        res.put(Fields.path.name(), obj.path);
+        res.put(Fields.size.name(), obj.size);
+        return res;
+      }
     }
 
-    final static class CollectionsTracks {
+    final static class GroupTracks {
 
       static enum Fields {
-        hash, collection, track
+        hash, group_id, track_id
       }
 
-      final static String NAME = "collections_tracks";
+      final static String getName(String table) {
+        return table + "_tracks";
+      }
 
-      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields.hash
-              + " INTEGER UNIQUE, " + Fields.collection + " INTEGER, " + Fields.track + " INTEGER);";
+      final static String getCreateQuery(String table) {
+        return "CREATE TABLE " + getName(table) + " (" + Fields.hash
+              + " INTEGER UNIQUE, " + Fields.group_id + " INTEGER, " + Fields.track_id + " INTEGER);";
+      }
+
+      static ContentValues createValues(int group, long track) {
+        final long hash = 10000000000l * group + track;
+        final ContentValues res = new ContentValues();
+        res.put(Fields.hash.name(), hash);
+        res.put(Fields.group_id.name(), group);
+        res.put(Fields.track_id.name(), track);
+        return res;
+      }
     }
   }
 
@@ -132,49 +164,49 @@ final class Database {
     return new Transaction(helper.getWritableDatabase());
   }
 
-  final void queryAuthors(String filter, Catalog.AuthorsVisitor visitor) {
-    Log.d(TAG, "queryAuthors(filter=" + filter + ")");
+  final void queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
+    Log.d(TAG, "query" + category + "(filter=" + filter + ")");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = filter.equals("#")
-      ? "SUBSTR(" + Tables.Authors.Fields.nickname + ", 1, 1) NOT BETWEEN 'A' AND 'Z'"
-      : Tables.Authors.Fields.nickname + " LIKE '" + filter + "%'";
-    final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
+      ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z'"
+      : Tables.Groups.Fields.name + " LIKE '" + filter + "%'";
+    final Cursor cursor = db.query(category, null, selection, null, null, null, null);
     try {
       while (cursor.moveToNext()) {
-        visitor.accept(createAuthor(cursor));
+        visitor.accept(Tables.Groups.createGroup(cursor));
       }
     } finally {
       cursor.close();
     }
   }
 
-  final Author queryAuthor(int id) {
-    Log.d(TAG, "queryAuthor(id=" + id + ")");
+  final Group queryGroup(String category, int id) {
+    Log.d(TAG, "query" + category + "(id=" + id + ")");
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = Tables.Authors.Fields._id + " = " + id;
-    final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
+    final String selection = Tables.Groups.Fields._id + " = " + id;
+    final Cursor cursor = db.query(category, null, selection, null, null, null, null);
     try {
       return cursor.moveToNext()
-        ? createAuthor(cursor)
+        ? Tables.Groups.createGroup(cursor)
         : null;
     } finally {
       cursor.close();
     }
   }
 
-  final void addAuthor(Author obj) {
+  final void addGroup(String category, Group obj) {
     final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Authors.NAME, null/* nullColumnHack */, createValues(obj),
-            SQLiteDatabase.CONFLICT_REPLACE);
+    db.insertWithOnConflict(category, null/* nullColumnHack */, Tables.Groups.createValues(obj),
+      SQLiteDatabase.CONFLICT_REPLACE);
   }
 
-  final void queryAuthorTracks(int authorId, Catalog.TracksVisitor visitor) {
+  final void queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = createAuthorTracksSelection(authorId);
+    final String selection = createGroupTracksSelection(category, id);
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
       while (cursor.moveToNext()) {
-        visitor.accept(createTrack(cursor));
+        visitor.accept(Tables.Tracks.createTrack(cursor));
       }
     } finally {
       cursor.close();
@@ -185,62 +217,23 @@ final class Database {
     return Tables.Tracks.Fields._id + " = " + id;
   }
 
-  private static String createAuthorTracksSelection(int author) {
+  private static String createGroupTracksSelection(String category, int id) {
     final String idQuery =
-            SQLiteQueryBuilder.buildQueryString(true, Tables.AuthorsTracks.NAME,
-                    new String[]{Tables.AuthorsTracks.Fields.track.name()}, Tables.AuthorsTracks.Fields.author + " = "
-                    + author, null, null, null, null);
+      SQLiteQueryBuilder.buildQueryString(true, Tables.GroupTracks.getName(category),
+        new String[]{Tables.GroupTracks.Fields.track_id.name()}, Tables.GroupTracks.Fields.group_id + " = "
+        + id, null, null, null, null);
     return Tables.Tracks.Fields._id + " IN (" + idQuery + ")";
   }
 
   final void addTrack(Track obj) {
     final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, createValues(obj),
+    db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, Tables.Tracks.createValues(obj),
             SQLiteDatabase.CONFLICT_REPLACE);
   }
 
-  final void addAuthorsTrack(Track obj, int authorId) {
+  final void addGroupTrack(String category, int id, Track obj) {
     final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insert(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, createAuthorTrackValues(authorId, obj.id));
-  }
-
-  private static Author createAuthor(Cursor cursor) {
-    final int id = cursor.getInt(Tables.Authors.Fields._id.ordinal());
-    final String nickname = cursor.getString(Tables.Authors.Fields.nickname.ordinal());
-    final int tracks = cursor.getInt(Tables.Authors.Fields.tracks.ordinal());
-    return new Author(id, nickname, tracks);
-  }
-
-  private static ContentValues createValues(Author obj) {
-    final ContentValues res = new ContentValues();
-    res.put(Tables.Authors.Fields._id.name(), obj.id);
-    res.put(Tables.Authors.Fields.nickname.name(), obj.nickname);
-    res.put(Tables.Authors.Fields.tracks.name(), obj.tracks);
-    return res;
-  }
-
-  private static Track createTrack(Cursor cursor) {
-    final int id = cursor.getInt(Tables.Tracks.Fields._id.ordinal());
-    final String path = cursor.getString(Tables.Tracks.Fields.path.ordinal());
-    final int size = cursor.getInt(Tables.Tracks.Fields.size.ordinal());
-    return new Track(id, path, size);
-  }
-
-  private static ContentValues createValues(Track obj) {
-    final ContentValues res = new ContentValues();
-    res.put(Tables.Tracks.Fields._id.name(), obj.id);
-    res.put(Tables.Tracks.Fields.path.name(), obj.path);
-    res.put(Tables.Tracks.Fields.size.name(), obj.size);
-    return res;
-  }
-
-  private static ContentValues createAuthorTrackValues(int author, long track) {
-    final long hash = 10000000000l * author + track;
-    final ContentValues res = new ContentValues();
-    res.put(Tables.AuthorsTracks.Fields.hash.name(), hash);
-    res.put(Tables.AuthorsTracks.Fields.author.name(), author);
-    res.put(Tables.AuthorsTracks.Fields.track.name(), track);
-    return res;
+    db.insert(Tables.GroupTracks.getName(category), null/* nullColumnHack */, Tables.GroupTracks.createValues(id, obj.id));
   }
 
   private static class Helper extends SQLiteOpenHelper {
@@ -256,11 +249,11 @@ final class Database {
     @Override
     public void onCreate(SQLiteDatabase db) {
       Log.d(TAG, "Creating database");
-      db.execSQL(Tables.Authors.CREATE_QUERY);
-      db.execSQL(Tables.Collections.CREATE_QUERY);
+      db.execSQL(Tables.Groups.getCreateQuery(Tables.Authors.NAME));
+      db.execSQL(Tables.Groups.getCreateQuery(Tables.Collections.NAME));
       db.execSQL(Tables.Tracks.CREATE_QUERY);
-      db.execSQL(Tables.AuthorsTracks.CREATE_QUERY);
-      db.execSQL(Tables.CollectionsTracks.CREATE_QUERY);
+      db.execSQL(Tables.GroupTracks.getCreateQuery(Tables.Authors.NAME));
+      db.execSQL(Tables.GroupTracks.getCreateQuery(Tables.Collections.NAME));
     }
 
     @Override
@@ -269,8 +262,8 @@ final class Database {
       db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Authors.NAME});
       db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Collections.NAME});
       db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Tracks.NAME});
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.AuthorsTracks.NAME});
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.CollectionsTracks.NAME});
+      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.GroupTracks.getName(Tables.Authors.NAME)});
+      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.GroupTracks.getName(Tables.Collections.NAME)});
       onCreate(db);
     }
   }

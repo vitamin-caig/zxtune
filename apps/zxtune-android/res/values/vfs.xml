@@ -16,6 +16,8 @@
     <string name="vfs_modland_root_description">Via http://www.exotica.org.uk</string>
     <string name="vfs_modland_authors_name">Authors</string>
     <string name="vfs_modland_authors_description">Browse by authors</string>
+    <string name="vfs_modland_collections_name">Collections</string>
+    <string name="vfs_modland_collections_description">Browse by collections</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
 </resources>

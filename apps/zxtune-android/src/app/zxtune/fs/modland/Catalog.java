@@ -15,11 +15,13 @@ import java.nio.ByteBuffer;
 
 import android.content.Context;
 
+import app.zxtune.fs.zxtunes.Author;
+
 public abstract class Catalog {
 
-  public interface AuthorsVisitor {
+  public interface GroupsVisitor {
 
-    void accept(Author obj);
+    void accept(Group obj);
   }
 
   public interface TracksVisitor {
@@ -27,28 +29,43 @@ public abstract class Catalog {
     void accept(Track obj);
   }
 
-  /**
-   * Query authors object
-   * @param filter letter or set of letters
-   * @param visitor result receiver
-   */
-  public abstract void queryAuthors(String filter, AuthorsVisitor visitor) throws IOException;
+  public interface Grouping {
+
+    /**
+     * Query set of group objects by filter
+     * @param filter letter(s) or '#' for non-letter entries
+     * @param visitor result receiver
+     * @throws IOException
+     */
+    public void query(String filter, GroupsVisitor visitor) throws IOException;
+
+    /**
+     * Query single group object
+     * @param id object identifier
+     * @return null if no object found
+     * @throws IOException
+     */
+    public Group query(int id) throws IOException;
+
+    /**
+     * Query group's tracks
+     * @param id object identifier
+     * @param visitor result receiver
+     * @throws IOException
+     */
+    public void queryTracks(int id, TracksVisitor visitor) throws IOException;
+  }
+
+  public abstract Grouping getAuthors();
+  public abstract Grouping getCollections();
 
   /**
-   * Query single author
-   * @param id author's id
-   * @return author object of null if nof found
+   * Get track file content
+   * @param path path to module starting from /pub/..
+   * @return content
+   * @throws IOException
    */
-  public abstract Author queryAuthor(int id) throws IOException;
-
-  /**
-   * Query tracks objects
-   * @param authorId author's identifier
-   * @param visitor result receiver
-   */
-  public abstract void queryAuthorTracks(int authorId, TracksVisitor visitor) throws IOException;
-
-  public abstract ByteBuffer getTrackContent(String id) throws IOException;
+  public abstract ByteBuffer getTrackContent(String path) throws IOException;
 
   public static Catalog create(Context context) {
     final Database db = new Database(context);

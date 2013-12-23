@@ -29,11 +29,15 @@ final class CachingCatalog extends Catalog {
 
   private final String cacheDir;
   private final Catalog remote;
+  private final Grouping authors;
+  private final Grouping collections;
   private final Database db;
 
   public CachingCatalog(Context context, Catalog remote, Database db) {
     this.cacheDir = context.getCacheDir().getAbsolutePath() + File.separator + CACHE_DIR_NAME + File.separator;
     this.remote = remote;
+    this.authors = new CachedGrouping(Database.Tables.Authors.NAME, remote.getAuthors());
+    this.collections = new CachedGrouping(Database.Tables.Collections.NAME, remote.getCollections());
     this.db = db;
     createCacheDir();
   }
@@ -46,50 +50,71 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthors(String filter, AuthorsVisitor visitor) throws IOException {
-    final CountingAuthorsVisitor count = new CountingAuthorsVisitor(visitor);
-    db.queryAuthors(filter, count);
-    if (0 == count.get()) {
-      Log.d(TAG, "Authors cache for filter '" + filter + "' is empty. Query from remote");
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        remote.queryAuthors(filter, new CachingAuthorsVisitor(count));
-        transaction.succeed();
-        Log.d(TAG, "Cached " + count.get() + " authors");
-      } finally {
-        transaction.finish();
-      }
-    }
+  public Grouping getAuthors() {
+    return authors;
   }
 
   @Override
-  public Author queryAuthor(int id) throws IOException {
-    Author res = db.queryAuthor(id);
-    if (res == null) {
-      Log.d(TAG, "No author id=" + id + " in cache. Query from remote");
-      res = remote.queryAuthor(id);
-      if (res != null) {
-        Log.d(TAG, "Cache author id=" + id);
-        db.addAuthor(res);
-      }
-    }
-    return res;
+  public Grouping getCollections() {
+    return collections;
   }
 
-  @Override
-  public void queryAuthorTracks(int authorId, TracksVisitor visitor) throws IOException {
-    //TODO: make another way to check if cache is filled
-    final CountingTracksVisitor count = new CountingTracksVisitor(visitor);
-    db.queryAuthorTracks(authorId, count);
-    if (0 == count.get()) {
-      Log.d(TAG, "Tracks cache is empty for author=" + authorId);
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        remote.queryAuthorTracks(authorId, new CachingTracksVisitor(count, authorId));
-        transaction.succeed();
-        Log.d(TAG, "Cached " + count.get() + " tracks");
-      } finally {
-        transaction.finish();
+  private class CachedGrouping implements Grouping {
+
+    private final String category;
+    private final Grouping remote;
+
+    CachedGrouping(String category, Grouping remote) {
+      this.category = category;
+      this.remote = remote;
+    }
+
+    @Override
+    public void query(String filter, GroupsVisitor visitor) throws IOException {
+      final CountingGroupsVisitor count = new CountingGroupsVisitor(visitor);
+      db.queryGroups(category, filter, count);
+      if (0 == count.get()) {
+        Log.d(TAG, category + " cache for filter '" + filter + "' is empty. Query from remote");
+        final Database.Transaction transaction = db.startTransaction();
+        try {
+          remote.query(filter, new CachingGroupsVisitor(category, count));
+          transaction.succeed();
+          Log.d(TAG, "Cached " + count.get() + " " + category);
+        } finally {
+          transaction.finish();
+        }
+      }
+    }
+
+    @Override
+    public Group query(int id) throws IOException {
+      Group res = db.queryGroup(category, id);
+      if (res == null) {
+        Log.d(TAG, "No " + category + " id=" + id + " in cache. Query from remote");
+        res = remote.query(id);
+        if (res != null) {
+          Log.d(TAG, "Cache " + category + " id=" + id);
+          db.addGroup(category, res);
+        }
+      }
+      return res;
+    }
+
+    @Override
+    public void queryTracks(int id, TracksVisitor visitor) throws IOException {
+      //TODO: make another way to check if cache is filled
+      final CountingTracksVisitor count = new CountingTracksVisitor(visitor);
+      db.queryTracks(category, id, count);
+      if (0 == count.get()) {
+        Log.d(TAG, "Tracks cache is empty for " + category + "=" + id);
+        final Database.Transaction transaction = db.startTransaction();
+        try {
+          remote.queryTracks(id, new CachingTracksVisitor(category, id, count));
+          transaction.succeed();
+          Log.d(TAG, "Cached " + count.get() + " tracks");
+        } finally {
+          transaction.finish();
+        }
       }
     }
   }
@@ -150,18 +175,18 @@ final class CachingCatalog extends Catalog {
     }
   }
 
-  private static class CountingAuthorsVisitor implements AuthorsVisitor {
+  private static class CountingGroupsVisitor implements GroupsVisitor {
 
-    private final AuthorsVisitor delegate;
+    private final GroupsVisitor delegate;
     private int count;
 
-    CountingAuthorsVisitor(AuthorsVisitor delegate) {
+    CountingGroupsVisitor(GroupsVisitor delegate) {
       this.delegate = delegate;
       this.count = 0;
     }
 
     @Override
-    public void accept(Author obj) {
+    public void accept(Group obj) {
       delegate.accept(obj);
       ++count;
     }
@@ -171,19 +196,21 @@ final class CachingCatalog extends Catalog {
     }
   }
 
-  private class CachingAuthorsVisitor implements AuthorsVisitor {
+  private class CachingGroupsVisitor implements GroupsVisitor {
 
-    private final AuthorsVisitor delegate;
+    private final String category;
+    private final GroupsVisitor delegate;
 
-    CachingAuthorsVisitor(AuthorsVisitor delegate) {
+    CachingGroupsVisitor(String category, GroupsVisitor delegate) {
+      this.category = category;
       this.delegate = delegate;
     }
 
     @Override
-    public void accept(Author obj) {
+    public void accept(Group obj) {
       delegate.accept(obj);
       try {
-        db.addAuthor(obj);
+        db.addGroup(category, obj);
       } catch (Exception e) {
         Log.d(TAG, "acceptAuthor()", e);
       }
@@ -213,12 +240,14 @@ final class CachingCatalog extends Catalog {
 
   private class CachingTracksVisitor implements TracksVisitor {
 
+    private final String category;
+    private final int group;
     private final TracksVisitor delegate;
-    private final int author;
 
-    CachingTracksVisitor(TracksVisitor delegate, int author) {
+    CachingTracksVisitor(String category, int group, TracksVisitor delegate) {
+      this.category = category;
+      this.group = group;
       this.delegate = delegate;
-      this.author = author;
     }
 
     @Override
@@ -226,7 +255,7 @@ final class CachingCatalog extends Catalog {
       delegate.accept(obj);
       try {
         db.addTrack(obj);
-        db.addAuthorsTrack(obj, author);
+        db.addGroupTrack(category, group, obj);
       } catch (Exception e) {
         Log.d(TAG, "addTrack()", e);
       }

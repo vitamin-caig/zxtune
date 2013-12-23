@@ -33,8 +33,8 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.R;
-import app.zxtune.fs.modland.Author;
 import app.zxtune.fs.modland.Catalog;
+import app.zxtune.fs.modland.Group;
 import app.zxtune.fs.modland.Track;
 
 final class VfsRootModland implements VfsRoot {
@@ -67,12 +67,18 @@ final class VfsRootModland implements VfsRoot {
 
   private final Context context;
   private final Catalog catalog;
-  private final AuthorsDir authors;
+  private final GroupsDir authors;
+  private final GroupsDir collections;
 
   VfsRootModland(Context context) {
     this.context = context;
     this.catalog = Catalog.create(context);
-    this.authors = new AuthorsDir();
+    this.authors = new GroupsDir("Authors",
+      R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
+      catalog.getAuthors());
+    this.collections = new GroupsDir("Collections",
+      R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
+      catalog.getCollections());
   }
 
   @Override
@@ -98,6 +104,7 @@ final class VfsRootModland implements VfsRoot {
   @Override
   public void enumerate(Visitor visitor) throws IOException {
     visitor.onDir(authors);
+    visitor.onDir(collections);
   }
 
   @Override
@@ -120,20 +127,6 @@ final class VfsRootModland implements VfsRoot {
     return new Uri.Builder().scheme(SCHEME);
   }
 
-  private Uri.Builder authorsUri() {
-    return rootUri().appendPath(AuthorsDir.PATH);
-  }
-
-  private Uri.Builder authorLetterUri(String letter) {
-    return authorsUri().appendPath(letter);
-  }
-
-  private Uri.Builder authorUri(String name, int id) {
-    return authorLetterUri(getLetter(name))
-      .appendPath(name)
-      .appendQueryParameter(PARAM_ID, String.valueOf(id));
-  }
-
   private Uri.Builder trackUri(String path) {
     return Storage.makeUri().encodedPath(path);
   }
@@ -153,32 +146,47 @@ final class VfsRootModland implements VfsRoot {
       return this;
     } else {
       final String category = path.get(POS_CATEGORY);
-      if (category.equals(AuthorsDir.PATH)) {
+      if (category.equals(authors.getPath())) {
         return authors.resolve(uri, path);
+      } else if (category.equals(collections.getPath())) {
+        return collections.resolve(uri, path);
       } else {
         return null;
       }
     }
   }
 
-  private class AuthorsDir implements VfsDir {
+  private class GroupsDir implements VfsDir {
 
-    // Static locale-independent path dir
-    final static String PATH = "Authors";
+    private final String path;
+    private final int nameRes;
+    private final int descRes;
+    private final Catalog.Grouping group;
+
+    GroupsDir(String path, int nameRes, int descRes, Catalog.Grouping group) {
+      this.path = path;
+      this.nameRes = nameRes;
+      this.descRes = descRes;
+      this.group = group;
+    }
+
+    final String getPath() {
+      return path;
+    }
 
     @Override
     public Uri getUri() {
-      return authorsUri().build();
+      return groupUri().build();
     }
 
     @Override
     public String getName() {
-      return context.getString(R.string.vfs_modland_authors_name);
+      return context.getString(nameRes);
     }
 
     @Override
     public String getDescription() {
-      return context.getString(R.string.vfs_modland_authors_description);
+      return context.getString(descRes);
     }
 
     @Override
@@ -188,9 +196,9 @@ final class VfsRootModland implements VfsRoot {
 
     @Override
     public void enumerate(Visitor visitor) throws IOException {
-      visitor.onDir(new AuthorByLetterDir(NOT_LETTER));
+      visitor.onDir(new GroupByLetterDir(NOT_LETTER));
       for (char c = 'A'; c <= 'Z'; ++c) {
-        visitor.onDir(new AuthorByLetterDir(String.valueOf(c)));
+        visitor.onDir(new GroupByLetterDir(String.valueOf(c)));
       }
     }
 
@@ -199,114 +207,57 @@ final class VfsRootModland implements VfsRoot {
       //TODO
     }
 
-    VfsObject resolve(Uri uri, List<String> path) {
+    final VfsObject resolve(Uri uri, List<String> path) {
       if (POS_CATEGORY == path.size() - 1) {
         return this;
       } else {
         final String letter = Uri.decode(path.get(POS_LETTER));
         if (letter.equals(NOT_LETTER) || (letter.length() == 1 && isLetter(letter.charAt(0)))) {
-          return new AuthorByLetterDir(letter).resolve(uri, path);
+          return new GroupByLetterDir(letter).resolve(uri, path);
         } else {
           return null;
         }
       }
     }
-  }
 
-  private class AuthorByLetterDir implements VfsDir {
-
-    private String letter;
-
-    AuthorByLetterDir(String letter) {
-      this.letter = letter;
+    final Uri.Builder groupUri() {
+      return rootUri().appendPath(path);
     }
 
-    @Override
-    public Uri getUri() {
-      return authorLetterUri(letter).build();
-    }
+    private class GroupByLetterDir implements VfsDir {
 
-    @Override
-    public String getName() {
-      return letter;
-    }
+      private String letter;
 
-    @Override
-    public String getDescription() {
-      return "".intern();
-    }
-
-    @Override
-    public VfsDir getParent() {
-      return authors;
-    }
-
-    @Override
-    public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
-        @Override
-        public void accept(Author obj) {
-          visitor.onDir(new AuthorDir(obj));
-        }
-      });
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
-    }
-
-    VfsObject resolve(Uri uri, List<String> path) {
-      if (POS_LETTER == path.size() - 1) {
-        return this;
-      } else {
-        try {
-          final int id = Integer.parseInt(uri.getQueryParameter(PARAM_ID));
-          final Author author = catalog.queryAuthor(id);
-          return author != null
-            ? new AuthorDir(author).resolve(uri, path)
-            : null;
-        } catch (Exception e) {
-          Log.d(TAG, "resolve(" + uri + ")", e);
-          return null;
-        }
-      }
-    }
-
-    private class AuthorDir implements VfsDir {
-
-      private Author author;
-
-      AuthorDir(Author author) {
-        this.author = author;
+      GroupByLetterDir(String letter) {
+        this.letter = letter;
       }
 
       @Override
       public Uri getUri() {
-        return authorUri(author.nickname, author.id).build();
+        return groupLetterUri(letter).build();
       }
 
       @Override
       public String getName() {
-        return author.nickname;
+        return letter;
       }
 
       @Override
       public String getDescription() {
-        return context.getResources().getQuantityString(R.plurals.tracks, author.tracks, author.tracks);
+        return "".intern();
       }
 
       @Override
       public VfsDir getParent() {
-        return AuthorByLetterDir.this;
+        return GroupsDir.this;
       }
 
       @Override
       public void enumerate(final Visitor visitor) throws IOException {
-        catalog.queryAuthorTracks(author.id, new Catalog.TracksVisitor() {
+        group.query(letter, new Catalog.GroupsVisitor() {
           @Override
-          public void accept(Track obj) {
-            visitor.onFile(new TrackFile(obj));
+          public void accept(Group obj) {
+            visitor.onDir(new GroupDir(obj));
           }
         });
       }
@@ -316,11 +267,82 @@ final class VfsRootModland implements VfsRoot {
         //TODO
       }
 
-      VfsObject resolve(Uri uri, List<String> path) {
-        if (POS_NAME == path.size() - 1) {
+      final VfsObject resolve(Uri uri, List<String> path) {
+        if (POS_LETTER == path.size() - 1) {
           return this;
         } else {
-          return null;
+          try {
+            final int id = Integer.parseInt(uri.getQueryParameter(PARAM_ID));
+            final Group obj = group.query(id);
+            return obj != null
+                    ? new GroupDir(obj).resolve(uri, path)
+                    : null;
+          } catch (Exception e) {
+            Log.d(TAG, "resolve(" + uri + ")", e);
+            return null;
+          }
+        }
+      }
+
+      final Uri.Builder groupLetterUri(String letter) {
+        return groupUri().appendPath(letter);
+      }
+
+      private class GroupDir implements VfsDir {
+
+        private Group obj;
+
+        GroupDir(Group obj) {
+          this.obj = obj;
+        }
+
+        @Override
+        public Uri getUri() {
+          return groupUri(obj.name, obj.id).build();
+        }
+
+        @Override
+        public String getName() {
+          return obj.name;
+        }
+
+        @Override
+        public String getDescription() {
+          return context.getResources().getQuantityString(R.plurals.tracks, obj.tracks, obj.tracks);
+        }
+
+        @Override
+        public VfsDir getParent() {
+          return GroupByLetterDir.this;
+        }
+
+        @Override
+        public void enumerate(final Visitor visitor) throws IOException {
+          group.queryTracks(obj.id, new Catalog.TracksVisitor() {
+            @Override
+            public void accept(Track obj) {
+              visitor.onFile(new TrackFile(obj));
+            }
+          });
+        }
+
+        @Override
+        public void find(String mask, Visitor visitor) {
+          //TODO
+        }
+
+        final VfsObject resolve(Uri uri, List<String> path) {
+          if (POS_NAME == path.size() - 1) {
+            return this;
+          } else {
+            return null;
+          }
+        }
+
+        final Uri.Builder groupUri(String name, int id) {
+          return groupLetterUri(getLetter(name))
+            .appendPath(name)
+            .appendQueryParameter(PARAM_ID, String.valueOf(id));
         }
       }
     }
