@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import java.io.IOException;
+import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -46,6 +47,7 @@ class RemoteCatalog extends Catalog {
     Pattern.compile("<td><a href=.+?md=aut&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
   private final Pattern TRACKS =
     Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
+  private final String AUTHOR_TRACKS_HEADER = "Modules from author ";
 
   private final HttpProvider http;
 
@@ -57,9 +59,10 @@ class RemoteCatalog extends Catalog {
   public void queryAuthors(String filter, final AuthorsVisitor visitor) throws IOException {
     loadPages(makeAuthorsQuery(filter), new PagesVisitor() {
       @Override
-      public void onPage(String title, int results, CharSequence content) {
+      public boolean onPage(String title, int results, CharSequence content) {
         //title = 'authors starting with ${filter}'
         parseAuthors(content, visitor);
+        return true;
       }
     });
   }
@@ -75,18 +78,29 @@ class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public Author queryAuthor(int id) throws IOException {
-    //TODO
-    return new Author(id, "", 0);
+  public Author queryAuthor(final int id) throws IOException {
+    final Author[] result = new Author[1];
+    loadPages(makeAuthorTracksQuery(id), new PagesVisitor() {
+      @Override
+      public boolean onPage(String title, int results, CharSequence content) {
+        //title = Modules from author ${nick}
+        if (title.startsWith(AUTHOR_TRACKS_HEADER)) {
+          result[0] = new Author(id, title.substring(AUTHOR_TRACKS_HEADER.length()), results);
+        }
+        return false;
+      }
+    });
+    return result[0];
   }
 
   @Override
   public void queryAuthorTracks(int authorId, final TracksVisitor visitor) throws IOException {
     loadPages(makeAuthorTracksQuery(authorId), new PagesVisitor() {
       @Override
-      public void onPage(String title, int results, CharSequence content) {
+      public boolean onPage(String title, int results, CharSequence content) {
         //title = Modules from author ${nick}
         parseTracks(content, visitor);
+        return true;
       }
     });
   }
@@ -114,7 +128,7 @@ class RemoteCatalog extends Catalog {
   }
 
   interface PagesVisitor {
-    void onPage(String title, int results, CharSequence content);
+    boolean onPage(String title, int results, CharSequence content);
   }
 
   private void loadPages(String query, PagesVisitor visitor) throws IOException {
@@ -132,8 +146,8 @@ class RemoteCatalog extends Catalog {
         if (pg != Integer.valueOf(page)) {
           throw new UnsupportedOperationException("Invalid paginator structure");
         }
-        visitor.onPage(subtitle, Integer.valueOf(results), chars);
-        if (pg < Integer.valueOf(pagesTotal)) {
+        if (visitor.onPage(subtitle, Integer.valueOf(results), chars)
+            && pg < Integer.valueOf(pagesTotal)) {
           continue;
         }
       }

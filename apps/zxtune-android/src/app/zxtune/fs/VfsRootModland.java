@@ -43,9 +43,18 @@ final class VfsRootModland implements VfsRoot {
 
   private final static String SCHEME = "modland";
 
-  private static class Http {
-    private final static String SCHEME = "http";
+  private static class Storage {
+    private final static String SCHEME = "ftp";
     private final static String HOST = "ftp.modland.com";
+
+    static boolean checkUri(Uri uri) {
+      return SCHEME.equals(uri.getScheme()) && HOST.equals(uri.getHost());
+    }
+
+    static Uri.Builder makeUri() {
+      return new Uri.Builder().scheme(SCHEME)
+        .authority(HOST);
+    }
   }
 
   private final static int POS_CATEGORY = 0;
@@ -100,7 +109,7 @@ final class VfsRootModland implements VfsRoot {
   public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
-    } else if (Http.SCHEME.equals(uri.getScheme()) && Http.HOST.equals(uri.getHost())) {
+    } else if (Storage.checkUri(uri)) {
       final Track track = new Track(uri.getEncodedPath(), 0);
       return new TrackFile(track);
     }
@@ -126,9 +135,7 @@ final class VfsRootModland implements VfsRoot {
   }
 
   private Uri.Builder trackUri(String path) {
-    return new Uri.Builder().scheme(Http.SCHEME)
-            .authority(Http.HOST)
-            .encodedPath(path);
+    return Storage.makeUri().encodedPath(path);
   }
 
   private boolean isLetter(char c) {

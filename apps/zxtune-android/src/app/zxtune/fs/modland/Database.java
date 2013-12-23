@@ -168,10 +168,9 @@ final class Database {
             SQLiteDatabase.CONFLICT_REPLACE);
   }
 
-  final void queryAuthorTracks(Catalog.TracksVisitor visitor, Integer id, Integer author) {
+  final void queryAuthorTracks(int authorId, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection =
-            id != null ? createSingleTrackSelection(id) : createAuthorTracksSelection(author);
+    final String selection = createAuthorTracksSelection(authorId);
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
       while (cursor.moveToNext()) {
@@ -194,13 +193,15 @@ final class Database {
     return Tables.Tracks.Fields._id + " IN (" + idQuery + ")";
   }
 
-  final void addAuthorTrack(Track obj, Integer author) {
+  final void addTrack(Track obj) {
     final SQLiteDatabase db = helper.getWritableDatabase();
     db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, createValues(obj),
             SQLiteDatabase.CONFLICT_REPLACE);
-    if (author != null) {
-      db.insert(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, createAuthorTrackValues(author, obj.id));
-    }
+  }
+
+  final void addAuthorsTrack(Track obj, int authorId) {
+    final SQLiteDatabase db = helper.getWritableDatabase();
+    db.insert(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, createAuthorTrackValues(authorId, obj.id));
   }
 
   private static Author createAuthor(Cursor cursor) {

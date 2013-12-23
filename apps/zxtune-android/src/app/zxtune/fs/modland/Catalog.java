@@ -51,9 +51,8 @@ public abstract class Catalog {
   public abstract ByteBuffer getTrackContent(String id) throws IOException;
 
   public static Catalog create(Context context) {
-    //final Database db = new Database(context);
+    final Database db = new Database(context);
     final Catalog remote = new RemoteCatalog(context);
-    //return new CachingCatalog(context, remote, db);
-    return remote;
+    return new CachingCatalog(context, remote, db);
   }
 }
