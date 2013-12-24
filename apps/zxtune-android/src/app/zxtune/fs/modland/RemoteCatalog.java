@@ -12,6 +12,7 @@ package app.zxtune.fs.modland;
 
 import android.content.Context;
 import android.net.Uri;
+import android.text.Html;
 import android.util.Log;
 
 import java.io.IOException;
@@ -67,6 +68,10 @@ class RemoteCatalog extends Catalog {
     return collections;
   }
 
+  static String decodeHtml(String txt) {
+    return Html.fromHtml(txt).toString();
+  }
+  
   private class Authors implements Grouping {
 
     private final String TRACKS_HEADER = "Modules from author ";
@@ -77,19 +82,19 @@ class RemoteCatalog extends Catalog {
     public void query(String filter, final GroupsVisitor visitor) throws IOException {
       loadPages(makeGroupsQuery("b_aut", filter), new PagesVisitor() {
         @Override
-        public boolean onPage(String title, int results, CharSequence content) {
-          //title = 'authors starting with ${filter}'
+        public boolean onPage(String header, int results, CharSequence content) {
+          //header = 'authors starting with ${filter}'
           parseAuthors(content, visitor);
           return true;
         }
       });
     }
-
+    
     private void parseAuthors(CharSequence content, GroupsVisitor visitor) {
       final Matcher matcher = ENTRIES.matcher(content);
       while (matcher.find()) {
         final String id = matcher.group(1);
-        final String nick = matcher.group(2);
+        final String nick = decodeHtml(matcher.group(2));
         final String tracks = matcher.group(3);
         visitor.accept(new Group(Integer.valueOf(id), nick, Integer.valueOf(tracks)));
       }
@@ -100,12 +105,13 @@ class RemoteCatalog extends Catalog {
       final Group[] result = new Group[1];
       loadPages(makeGroupTracksQuery("aut", id), new PagesVisitor() {
         @Override
-        public boolean onPage(String title, int results, CharSequence content) {
-        //title = Modules from author ${nick}
-        if (title.startsWith(TRACKS_HEADER)) {
-          result[0] = new Group(id, title.substring(TRACKS_HEADER.length()), results);
-        }
-        return false;
+        public boolean onPage(String header, int results, CharSequence content) {
+          //header = Modules from author ${nick}
+          if (header.startsWith(TRACKS_HEADER)) {
+            final String nick = header.substring(TRACKS_HEADER.length());
+            result[0] = new Group(id, decodeHtml(nick), results);
+          }
+          return false;
         }
       });
       return result[0];
@@ -115,10 +121,10 @@ class RemoteCatalog extends Catalog {
     public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
       loadPages(makeGroupTracksQuery("aut", id), new PagesVisitor() {
         @Override
-        public boolean onPage(String title, int results, CharSequence content) {
-        //title = Modules from author ${nick}
-        parseTracks(content, visitor);
-        return true;
+        public boolean onPage(String header, int results, CharSequence content) {
+          //header = Modules from author ${nick}
+          parseTracks(content, visitor);
+          return true;
         }
       });
     }
@@ -134,8 +140,8 @@ class RemoteCatalog extends Catalog {
     public void query(String filter, final GroupsVisitor visitor) throws IOException {
       loadPages(makeGroupsQuery("b_col", filter), new PagesVisitor() {
         @Override
-        public boolean onPage(String title, int results, CharSequence content) {
-          //title = 'collections starting with ${filter}'
+        public boolean onPage(String header, int results, CharSequence content) {
+          //header = 'collections starting with ${filter}'
           parseCollections(content, visitor);
           return true;
         }
@@ -146,7 +152,7 @@ class RemoteCatalog extends Catalog {
       final Matcher matcher = ENTRIES.matcher(content);
       while (matcher.find()) {
         final String id = matcher.group(1);
-        final String title = matcher.group(2);
+        final String title = decodeHtml(matcher.group(2));
         final String tracks = matcher.group(3);
         visitor.accept(new Group(Integer.valueOf(id), title, Integer.valueOf(tracks)));
       }
@@ -157,10 +163,11 @@ class RemoteCatalog extends Catalog {
       final Group[] result = new Group[1];
       loadPages(makeGroupTracksQuery("col", id), new PagesVisitor() {
         @Override
-        public boolean onPage(String title, int results, CharSequence content) {
+        public boolean onPage(String header, int results, CharSequence content) {
         //title = Modules from collection ${title}
-        if (title.startsWith(TRACKS_HEADER)) {
-          result[0] = new Group(id, title.substring(TRACKS_HEADER.length()), results);
+        if (header.startsWith(TRACKS_HEADER)) {
+          final String title = header.substring(TRACKS_HEADER.length());
+          result[0] = new Group(id, decodeHtml(title), results);
         }
         return false;
         }
@@ -172,10 +179,10 @@ class RemoteCatalog extends Catalog {
     public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
       loadPages(makeGroupTracksQuery("col", id), new PagesVisitor() {
         @Override
-        public boolean onPage(String title, int results, CharSequence content) {
-        //title = Modules from collection ${title}
-        parseTracks(content, visitor);
-        return true;
+        public boolean onPage(String header, int results, CharSequence content) {
+          //header = Modules from collection ${title}
+          parseTracks(content, visitor);
+          return true;
         }
       });
     }
@@ -215,14 +222,14 @@ class RemoteCatalog extends Catalog {
       final Matcher matcher = PAGINATOR.matcher(chars);
       if (matcher.find()) {
         Log.d(TAG, "Load page: " + matcher.group());
-        final String subtitle = matcher.group(1);
+        final String header = matcher.group(1);
         final String results = matcher.group(2);
         final String page = matcher.group(3);
         final String pagesTotal = matcher.group(4);
         if (pg != Integer.valueOf(page)) {
           throw new UnsupportedOperationException("Invalid paginator structure");
         }
-        if (visitor.onPage(subtitle, Integer.valueOf(results), chars)
+        if (visitor.onPage(header, Integer.valueOf(results), chars)
             && pg < Integer.valueOf(pagesTotal)) {
           continue;
         }
