@@ -36,8 +36,9 @@ import app.zxtune.R;
 import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
 import app.zxtune.fs.modland.Track;
+import app.zxtune.ui.IconSource;
 
-final class VfsRootModland implements VfsRoot {
+final class VfsRootModland implements VfsRoot, IconSource {
 
   private final static String TAG = VfsRootModland.class.getName();
 
@@ -123,6 +124,11 @@ final class VfsRootModland implements VfsRoot {
     return null;
   }
 
+  @Override
+  public int getResourceId() {
+    return R.drawable.ic_browser_vfs_modland;
+  }
+  
   private Uri.Builder rootUri() {
     return new Uri.Builder().scheme(SCHEME);
   }
