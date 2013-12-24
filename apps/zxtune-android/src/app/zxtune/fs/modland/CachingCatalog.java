@@ -31,6 +31,7 @@ final class CachingCatalog extends Catalog {
   private final Catalog remote;
   private final Grouping authors;
   private final Grouping collections;
+  private final Grouping formats;
   private final Database db;
 
   public CachingCatalog(Context context, Catalog remote, Database db) {
@@ -38,6 +39,7 @@ final class CachingCatalog extends Catalog {
     this.remote = remote;
     this.authors = new CachedGrouping(Database.Tables.Authors.NAME, remote.getAuthors());
     this.collections = new CachedGrouping(Database.Tables.Collections.NAME, remote.getCollections());
+    this.formats = new CachedGrouping(Database.Tables.Formats.NAME, remote.getFormats());
     this.db = db;
     createCacheDir();
   }
@@ -57,6 +59,11 @@ final class CachingCatalog extends Catalog {
   @Override
   public Grouping getCollections() {
     return collections;
+  }
+  
+  @Override
+  public Grouping getFormats() {
+    return formats;
   }
 
   private class CachedGrouping implements Grouping {

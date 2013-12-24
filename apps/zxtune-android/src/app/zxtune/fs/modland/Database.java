@@ -21,9 +21,9 @@ import android.util.Log;
 /**
  * Version 1
  *
- * CREATE TABLE {authors,collections} (_id INTEGER PRIMARY KEY, name TEXT NOT NULL, tracks INTEGER)
+ * CREATE TABLE {authors,collections,formats} (_id INTEGER PRIMARY KEY, name TEXT NOT NULL, tracks INTEGER)
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, path TEXT NOT NULL, size INTEGER)
- * CREATE TABLE {authors,collections}_tracks (hash INTEGER UNIQUE, group_id INTEGER, track_id INTEGER)
+ * CREATE TABLE {authors,collections,formats}_tracks (hash INTEGER UNIQUE, group_id INTEGER, track_id INTEGER)
  * CREATE TABLE collections_tracks (hash INTEGER UNIQUE, collection INTEGER, track INTEGER)
  *
  * use hash as 10000000000 * group_id + track_id to support multiple insertions of same pair
@@ -78,7 +78,12 @@ final class Database {
       static final String NAME = "collections";
     }
 
-    final static String LIST[] = {Tables.Authors.NAME, Tables.Collections.NAME};
+    final static class Formats {
+
+      static final String NAME = "formats";
+    }
+    
+    final static String LIST[] = {Authors.NAME, Collections.NAME, Formats.NAME};
     
     final static class Tracks {
 

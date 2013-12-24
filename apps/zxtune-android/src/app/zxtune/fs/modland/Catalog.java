@@ -58,6 +58,7 @@ public abstract class Catalog {
 
   public abstract Grouping getAuthors();
   public abstract Grouping getCollections();
+  public abstract Grouping getFormats();
 
   /**
    * Get track file content

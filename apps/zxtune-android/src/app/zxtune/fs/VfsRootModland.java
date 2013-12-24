@@ -21,6 +21,9 @@ package app.zxtune.fs;
  * 5) modland:/Collections
  * 6) modland:/Collections/${collection_letter}
  * 7) modland:/Collections/${collection_letter}/${collection_name}?id=${id}
+ * 8) modland:/Formats
+ * 9) modland:/Formats/${format_letter}
+ *10) modland:/Formats/${format_letter}/${format_name}?id=${id}
  */
 
 import android.content.Context;
@@ -70,6 +73,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
   private final Catalog catalog;
   private final GroupsDir authors;
   private final GroupsDir collections;
+  private final GroupsDir formats;
 
   VfsRootModland(Context context) {
     this.context = context;
@@ -80,6 +84,9 @@ final class VfsRootModland implements VfsRoot, IconSource {
     this.collections = new GroupsDir("Collections",
       R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
       catalog.getCollections());
+    this.formats = new GroupsDir("Formats",
+        R.string.vfs_modland_formats_name, R.string.vfs_modland_formats_description,
+        catalog.getFormats());
   }
 
   @Override
@@ -106,6 +113,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
   public void enumerate(Visitor visitor) throws IOException {
     visitor.onDir(authors);
     visitor.onDir(collections);
+    visitor.onDir(formats);
   }
 
   @Override
@@ -156,6 +164,8 @@ final class VfsRootModland implements VfsRoot, IconSource {
         return authors.resolve(uri, path);
       } else if (category.equals(collections.getPath())) {
         return collections.resolve(uri, path);
+      } else if (category.equals(formats.getPath())) {
+        return formats.resolve(uri, path);
       } else {
         return null;
       }
