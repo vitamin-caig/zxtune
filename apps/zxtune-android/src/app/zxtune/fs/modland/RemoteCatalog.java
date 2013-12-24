@@ -38,14 +38,14 @@ class RemoteCatalog extends Catalog {
 
   private final static String SITE = "http://www.exotica.org.uk/";
   private final static String API = SITE + "mediawiki/index.php?title=Special:Modland";
-  private final static String GROUPS_QUERY = API + "&md=%s&st=%s";
+  private final static String GROUPS_QUERY = API + "&md=b_%s&st=%s";
   private final static String GROUP_TRACKS_QUERY = API + "&md=%s&id=%d";
 
   private final static String STORAGE_MIRROR = "http://ftp.amigascne.org/mirrors/ftp.modland.com";
 
-  private final Pattern PAGINATOR =
+  private final static Pattern PAGINATOR =
     Pattern.compile("<caption>Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).</caption>");
-  private final Pattern TRACKS =
+  private final static Pattern TRACKS =
     Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
 
   private final HttpProvider http;
@@ -75,22 +75,32 @@ class RemoteCatalog extends Catalog {
     return formats;
   }
 
-  static String decodeHtml(String txt) {
+  private static String decodeHtml(String txt) {
     return Html.fromHtml(txt).toString();
   }
   
-  private class Authors implements Grouping {
+  private static String makeGroupsQuery(String type, String filter) {
+    return String.format(Locale.US, GROUPS_QUERY, type, Uri.encode(filter));
+  }
 
-    private final String TRACKS_HEADER = "Modules from author ";
-    private final Pattern ENTRIES =
-      Pattern.compile("<td><a href=.+?md=aut&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
-
+  private static String makeGroupTracksQuery(String type, int authorId) {
+    return String.format(Locale.US, GROUP_TRACKS_QUERY, type, authorId);
+  }
+  
+  private abstract class BaseGrouping implements Grouping {
+    
+    private final Pattern entries;
+    
+    BaseGrouping() {
+      this.entries = Pattern.compile(
+          "<td><a href=.+?md=" + getCategoryTag() + "&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
+    }
+    
     @Override
     public void query(String filter, final GroupsVisitor visitor) throws IOException {
-      loadPages(makeGroupsQuery("b_aut", filter), new PagesVisitor() {
+      loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
-          //header = 'authors starting with ${filter}'
           parseAuthors(content, visitor);
           return true;
         }
@@ -98,25 +108,25 @@ class RemoteCatalog extends Catalog {
     }
     
     private void parseAuthors(CharSequence content, GroupsVisitor visitor) {
-      final Matcher matcher = ENTRIES.matcher(content);
+      final Matcher matcher = entries.matcher(content);
       while (matcher.find()) {
         final String id = matcher.group(1);
-        final String nick = decodeHtml(matcher.group(2));
+        final String name = decodeHtml(matcher.group(2));
         final String tracks = matcher.group(3);
-        visitor.accept(new Group(Integer.valueOf(id), nick, Integer.valueOf(tracks)));
+        visitor.accept(new Group(Integer.valueOf(id), name, Integer.valueOf(tracks)));
       }
     }
 
     @Override
     public Group query(final int id) throws IOException {
       final Group[] result = new Group[1];
-      loadPages(makeGroupTracksQuery("aut", id), new PagesVisitor() {
+      loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
-          //header = Modules from author ${nick}
-          if (header.startsWith(TRACKS_HEADER)) {
-            final String nick = header.substring(TRACKS_HEADER.length());
-            result[0] = new Group(id, decodeHtml(nick), results);
+          final String tracksHeader = getTracksHeader();
+          if (header.startsWith(tracksHeader)) {
+            final String name = header.substring(tracksHeader.length());
+            result[0] = new Group(id, decodeHtml(name), results);
           }
           return false;
         }
@@ -126,134 +136,59 @@ class RemoteCatalog extends Catalog {
 
     @Override
     public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
-      loadPages(makeGroupTracksQuery("aut", id), new PagesVisitor() {
+      loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
-          //header = Modules from author ${nick}
           parseTracks(content, visitor);
           return true;
         }
       });
+    }
+    
+    abstract String getTracksHeader();
+    abstract String getCategoryTag();
+  }
+  
+  private class Authors extends BaseGrouping {
+
+    @Override
+    String getTracksHeader() {
+      return "Modules from author ";
+    }
+    
+    @Override
+    String getCategoryTag() {
+      return "aut";
     }
   }
 
-  private class Collections implements Grouping {
-
-    private final String TRACKS_HEADER = "Modules from collection ";
-    private final Pattern ENTRIES =
-      Pattern.compile("<td><a href=.+?md=col&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
+  private class Collections extends BaseGrouping {
 
     @Override
-    public void query(String filter, final GroupsVisitor visitor) throws IOException {
-      loadPages(makeGroupsQuery("b_col", filter), new PagesVisitor() {
-        @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          //header = 'collections starting with ${filter}'
-          parseCollections(content, visitor);
-          return true;
-        }
-      });
+    String getTracksHeader() {
+      return "Modules from collection ";
     }
-
-    private void parseCollections(CharSequence content, GroupsVisitor visitor) {
-      final Matcher matcher = ENTRIES.matcher(content);
-      while (matcher.find()) {
-        final String id = matcher.group(1);
-        final String title = decodeHtml(matcher.group(2));
-        final String tracks = matcher.group(3);
-        visitor.accept(new Group(Integer.valueOf(id), title, Integer.valueOf(tracks)));
-      }
-    }
-
+    
     @Override
-    public Group query(final int id) throws IOException {
-      final Group[] result = new Group[1];
-      loadPages(makeGroupTracksQuery("col", id), new PagesVisitor() {
-        @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          //title = Modules from collection ${title}
-          if (header.startsWith(TRACKS_HEADER)) {
-            final String title = header.substring(TRACKS_HEADER.length());
-            result[0] = new Group(id, decodeHtml(title), results);
-          }
-          return false;
-        }
-      });
-      return result[0];
-    }
-
-    @Override
-    public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
-      loadPages(makeGroupTracksQuery("col", id), new PagesVisitor() {
-        @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          //header = Modules from collection ${title}
-          parseTracks(content, visitor);
-          return true;
-        }
-      });
-    }
-  }
-
-  private class Formats implements Grouping {
-
-    private final String TRACKS_HEADER = "Modules in format ";
-    private final Pattern ENTRIES =
-      Pattern.compile("<td><a href=.+?md=for&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
-
-    @Override
-    public void query(String filter, final GroupsVisitor visitor) throws IOException {
-      loadPages(makeGroupsQuery("b_for", filter), new PagesVisitor() {
-        @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          //header = 'formats starting with ${filter}'
-          parseCollections(content, visitor);
-          return true;
-        }
-      });
-    }
-
-    private void parseCollections(CharSequence content, GroupsVisitor visitor) {
-      final Matcher matcher = ENTRIES.matcher(content);
-      while (matcher.find()) {
-        final String id = matcher.group(1);
-        final String title = decodeHtml(matcher.group(2));
-        final String tracks = matcher.group(3);
-        visitor.accept(new Group(Integer.valueOf(id), title, Integer.valueOf(tracks)));
-      }
-    }
-
-    @Override
-    public Group query(final int id) throws IOException {
-      final Group[] result = new Group[1];
-      loadPages(makeGroupTracksQuery("for", id), new PagesVisitor() {
-        @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          //title = Modules in format ${title}
-          if (header.startsWith(TRACKS_HEADER)) {
-            final String title = header.substring(TRACKS_HEADER.length());
-            result[0] = new Group(id, decodeHtml(title), results);
-          }
-          return false;
-        }
-      });
-      return result[0];
-    }
-
-    @Override
-    public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
-      loadPages(makeGroupTracksQuery("for", id), new PagesVisitor() {
-        @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          //header = Modules in format ${title}
-          parseTracks(content, visitor);
-          return true;
-        }
-      });
+    String getCategoryTag() {
+      return "col";
     }
   }
   
-  private void parseTracks(CharSequence content, TracksVisitor visitor) {
+  private class Formats extends BaseGrouping {
+
+    @Override
+    String getTracksHeader() {
+      return "Modules in format ";
+    }
+    
+    @Override
+    String getCategoryTag() {
+      return "for";
+    }
+  }
+  
+  private static void parseTracks(CharSequence content, TracksVisitor visitor) {
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
       final String path = "/" + matcher.group(1);
@@ -265,14 +200,6 @@ class RemoteCatalog extends Catalog {
   @Override
   public ByteBuffer getTrackContent(String id) throws IOException {
     return http.getContent(STORAGE_MIRROR + id);
-  }
-
-  private String makeGroupsQuery(String type, String filter) {
-    return String.format(Locale.US, GROUPS_QUERY, type, Uri.encode(filter));
-  }
-
-  private String makeGroupTracksQuery(String type, int authorId) {
-    return String.format(Locale.US, GROUP_TRACKS_QUERY, type, authorId);
   }
 
   interface PagesVisitor {

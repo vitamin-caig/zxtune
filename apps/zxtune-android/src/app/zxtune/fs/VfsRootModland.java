@@ -71,22 +71,22 @@ final class VfsRootModland implements VfsRoot, IconSource {
 
   private final Context context;
   private final Catalog catalog;
-  private final GroupsDir authors;
-  private final GroupsDir collections;
-  private final GroupsDir formats;
+  private final GroupsDir groups[];
 
   VfsRootModland(Context context) {
     this.context = context;
     this.catalog = Catalog.create(context);
-    this.authors = new GroupsDir("Authors",
-      R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
-      catalog.getAuthors());
-    this.collections = new GroupsDir("Collections",
-      R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
-      catalog.getCollections());
-    this.formats = new GroupsDir("Formats",
+    this.groups = new GroupsDir[] {
+      new GroupsDir("Authors",
+        R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
+        catalog.getAuthors()),
+      new GroupsDir("Collections",
+        R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
+        catalog.getCollections()),
+      new GroupsDir("Formats",
         R.string.vfs_modland_formats_name, R.string.vfs_modland_formats_description,
-        catalog.getFormats());
+        catalog.getFormats())
+    };
   }
 
   @Override
@@ -111,9 +111,9 @@ final class VfsRootModland implements VfsRoot, IconSource {
 
   @Override
   public void enumerate(Visitor visitor) throws IOException {
-    visitor.onDir(authors);
-    visitor.onDir(collections);
-    visitor.onDir(formats);
+    for (GroupsDir group : groups) {
+      visitor.onDir(group);
+    }
   }
 
   @Override
@@ -160,15 +160,12 @@ final class VfsRootModland implements VfsRoot, IconSource {
       return this;
     } else {
       final String category = path.get(POS_CATEGORY);
-      if (category.equals(authors.getPath())) {
-        return authors.resolve(uri, path);
-      } else if (category.equals(collections.getPath())) {
-        return collections.resolve(uri, path);
-      } else if (category.equals(formats.getPath())) {
-        return formats.resolve(uri, path);
-      } else {
-        return null;
+      for (GroupsDir group : groups) {
+        if (category.equals(group.getPath())) {
+          return group.resolve(uri, path);
+        }
       }
+      return null;
     }
   }
 
