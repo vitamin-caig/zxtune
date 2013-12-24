@@ -13,6 +13,15 @@
     <!-- Playlists -->
     <string name="vfs_playlists_root_name">Списки</string>
     <string name="vfs_playlists_root_description">Сохраненные списки</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - самый большой архив модулей</string>
+    <string name="vfs_modland_root_description">Через http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">Авторы</string>
+    <string name="vfs_modland_authors_description">Навигация по автору</string>
+    <string name="vfs_modland_collections_name">Коллекции</string>
+    <string name="vfs_modland_collections_description">Навигация по коллекции</string>
+    <string name="vfs_modland_formats_name">Форматы</string>
+    <string name="vfs_modland_formats_description">Навигация по формату</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
 </resources>
