@@ -18,20 +18,15 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
 
-import java.util.Collections;
-
-import app.zxtune.fs.zxtunes.Author;
-
 /**
  * Version 1
  *
- * CREATE TABLE authors (_id INTEGER PRIMARY KEY, nickname TEXT NOT NULL, tracks INTEGER)
- * CREATE TABLE collections (_id INTEGER PRIMARY KEY, title TEXT NOT NULL, tracks INTEGER)
+ * CREATE TABLE {authors,collections} (_id INTEGER PRIMARY KEY, name TEXT NOT NULL, tracks INTEGER)
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, path TEXT NOT NULL, size INTEGER)
- * CREATE TABLE authors_tracks (hash INTEGER UNIQUE, author INTEGER, track INTEGER)
+ * CREATE TABLE {authors,collections}_tracks (hash INTEGER UNIQUE, group_id INTEGER, track_id INTEGER)
  * CREATE TABLE collections_tracks (hash INTEGER UNIQUE, collection INTEGER, track INTEGER)
  *
- * use hash as 10000000000 * author/collection_id + track to support multiple insertings of same pair
+ * use hash as 10000000000 * group_id + track_id to support multiple insertions of same pair
  */
 
 final class Database {
@@ -43,7 +38,7 @@ final class Database {
 
   final static class Tables {
 
-    final static String DROP_QUERY = "DROP TABLE ?;";
+    final static String DROP_QUERY = "DROP TABLE ? IF EXISTS;";
 
     final static class Groups {
 
@@ -83,6 +78,8 @@ final class Database {
       static final String NAME = "collections";
     }
 
+    final static String LIST[] = {Tables.Authors.NAME, Tables.Collections.NAME};
+    
     final static class Tracks {
 
       static enum Fields {
@@ -168,7 +165,7 @@ final class Database {
     Log.d(TAG, "query" + category + "(filter=" + filter + ")");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = filter.equals("#")
-      ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z'"
+      ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
       : Tables.Groups.Fields.name + " LIKE '" + filter + "%'";
     final Cursor cursor = db.query(category, null, selection, null, null, null, null);
     try {
@@ -213,10 +210,6 @@ final class Database {
     }
   }
 
-  private static String createSingleTrackSelection(int id) {
-    return Tables.Tracks.Fields._id + " = " + id;
-  }
-
   private static String createGroupTracksSelection(String category, int id) {
     final String idQuery =
       SQLiteQueryBuilder.buildQueryString(true, Tables.GroupTracks.getName(category),
@@ -249,21 +242,21 @@ final class Database {
     @Override
     public void onCreate(SQLiteDatabase db) {
       Log.d(TAG, "Creating database");
-      db.execSQL(Tables.Groups.getCreateQuery(Tables.Authors.NAME));
-      db.execSQL(Tables.Groups.getCreateQuery(Tables.Collections.NAME));
+      for (String table : Tables.LIST) {
+        db.execSQL(Tables.Groups.getCreateQuery(table));
+        db.execSQL(Tables.GroupTracks.getCreateQuery(table));
+      }
       db.execSQL(Tables.Tracks.CREATE_QUERY);
-      db.execSQL(Tables.GroupTracks.getCreateQuery(Tables.Authors.NAME));
-      db.execSQL(Tables.GroupTracks.getCreateQuery(Tables.Collections.NAME));
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Authors.NAME});
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Collections.NAME});
+      for (String table : Tables.LIST) {
+        db.execSQL(Tables.DROP_QUERY, new Object[] {table});
+        db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.GroupTracks.getName(table)});
+      }
       db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Tracks.NAME});
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.GroupTracks.getName(Tables.Authors.NAME)});
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.GroupTracks.getName(Tables.Collections.NAME)});
       onCreate(db);
     }
   }
