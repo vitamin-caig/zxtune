@@ -12,10 +12,13 @@ package app.zxtune.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.OperationCanceledException;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -25,6 +28,8 @@ import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 
 public class BrowserView extends ListViewCompat {
+  
+  private static final String TAG = BrowserView.class.getName();
 
   private static final int LOADER_ID = BrowserView.class.hashCode();
 
@@ -60,13 +65,16 @@ public class BrowserView extends ListViewCompat {
   //Required to call forceLoad due to bug in support library.
   //Some methods on callback does not called... 
   final void load(LoaderManager manager, VfsDir dir, int pos) {
+    manager.destroyLoader(LOADER_ID);
     final ModelLoaderCallback cb = new ModelLoaderCallback(dir, pos);
-    manager.restartLoader(LOADER_ID, null, cb).forceLoad();
+    manager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
 
   //load existing
   final void load(LoaderManager manager) {
-    assert manager.getLoader(LOADER_ID) != null;
+    if (manager.getLoader(LOADER_ID).isStarted()) {
+      showProgress();
+    }
     final ModelLoaderCallback cb = new ModelLoaderCallback();
     manager.initLoader(LOADER_ID, null, cb);
   }
@@ -193,33 +201,43 @@ public class BrowserView extends ListViewCompat {
     
     private final VfsDir dir;
     private final BrowserView view;
+    private CancellationSignal signal;
 
     ModelLoader(Context context, VfsDir dir, BrowserView view) {
       super(context);
       this.dir = dir;
       this.view = view;
+      this.signal = new CancellationSignal();
       view.emptyView.setText(R.string.browser_empty);
     }
     
     @Override
+    protected void onReset() {
+      super.onReset();
+      signal.cancel();
+      Log.d(TAG, "Reset loader");
+    }
+    
+    @Override
     public BrowserViewModel loadInBackground() {
+      final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
       try {
-        final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
         dir.enumerate(new VfsDir.Visitor() {
-          
           @Override
-          public Status onFile(VfsFile file) {
+          public void onFile(VfsFile file) {
             model.add(file);
-            return VfsDir.Visitor.Status.CONTINUE;
+            signal.throwIfCanceled();
           }
           
           @Override
-          public Status onDir(VfsDir dir) {
+          public void onDir(VfsDir dir) {
             model.add(dir);
-            return VfsDir.Visitor.Status.CONTINUE;
+            signal.throwIfCanceled();
           }
         });
         model.sort();
+        return model;
+      } catch (OperationCanceledException e) {
         return model;
       } catch (final Exception e) {
         view.post(new Runnable() {
