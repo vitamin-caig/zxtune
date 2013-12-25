@@ -111,7 +111,7 @@ namespace Sound
         if (const BackendWorkerFactory::Ptr factory = FindFactory(backendId))
         {
           const Parameters::Accessor::Ptr params = Parameters::CreateMergedAccessor(module->GetModuleProperties(), Options);
-          return Sound::CreateBackend(params, module, callback, factory->CreateWorker(params));
+          return Sound::CreateBackend(params, module, callback, factory->CreateWorker(params, module));
         }
         throw MakeFormattedError(THIS_LINE, translate("Backend '%1%' not registered."), backendId);
       }

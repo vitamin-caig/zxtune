@@ -51,6 +51,14 @@ msgstr ""
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 
+#: aylpt_backend.cpp:53 aylpt_stub.cpp:23
+msgid "Real AY via LPT backend"
+msgstr "Поддержка реального AY чипа через LPT порт"
+
+#: aylpt_backend.cpp:282
+msgid "Real AY via LPT is not supported for this module."
+msgstr "Реальный AY через LPT порт не поддерживается для данного модуля."
+
 #: backend_impl.cpp:175 backend_impl.cpp:187
 msgid "Failed to initialize playback."
 msgstr "Ошибка инициализации воспроизведения."
@@ -210,7 +218,7 @@ msgstr "Неизвестная ошибка в подсистеме SDL."
 #: service.cpp:116
 #, boost-format
 msgid "Backend '%1%' not registered."
-msgstr ""
+msgstr "Поддержка вывода '%1%' не зарегистрирована."
 
 #: service.cpp:121
 #, boost-format

@@ -274,7 +274,7 @@ namespace Wav
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
       const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(params);
       return CreateFileBackendWorker(params, factory);

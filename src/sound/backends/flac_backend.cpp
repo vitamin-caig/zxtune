@@ -286,7 +286,7 @@ namespace Flac
     {
     }
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params) const
+    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
       const FileStreamFactory::Ptr factory = boost::make_shared<FileStreamFactory>(FlacApi, params);
       return CreateFileBackendWorker(params, factory);

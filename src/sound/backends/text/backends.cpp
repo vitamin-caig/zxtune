@@ -9,6 +9,9 @@ extern const Char ALSA_BACKEND_DEFAULT_DEVICE[] = {
 extern const Char ALSA_BACKEND_ID[] = {
   'a','l','s','a',0
 };
+extern const Char AYLPT_BACKEND_ID[] = {
+  'a','y','l','p','t',0
+};
 extern const Char DSOUND_BACKEND_ID[] = {
   'd','s','o','u','n','d',0
 };

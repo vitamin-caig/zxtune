@@ -1,6 +1,6 @@
 ifneq ($(findstring $(platform),windows mingw),)
 support_waveout = 1
-#support_aylpt_dlportio = 1
+support_aylpt = 1
 support_directsound = 1
 #support_sdl = 1
 support_mp3 = 1
