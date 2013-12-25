@@ -12,8 +12,6 @@ package app.zxtune.ui;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.os.CancellationSignal;
-import android.os.OperationCanceledException;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -192,6 +190,26 @@ public class BrowserView extends ListViewCompat {
     public void onLoaderReset(Loader<BrowserViewModel> loader) {
       hideProgress();
     }
+  }
+  
+  //Use from android.os when api16 will be minimal
+  private static class CancellationSignal {
+    
+    private volatile boolean canceled;
+    
+    final void cancel() {
+      canceled = true;
+    }
+    
+    final void throwIfCanceled() {
+      if (canceled) {
+        throw new OperationCanceledException();
+      }
+    }
+  }
+  
+  private static class OperationCanceledException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
   }
   
   //Typical AsyncTaskLoader workflow from
