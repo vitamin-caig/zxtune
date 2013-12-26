@@ -64,6 +64,7 @@ namespace Devices
 
       Registers()
         : Mask()
+        , Data()
       {
       }
 
@@ -75,7 +76,8 @@ namespace Devices
     {
 
       DataChunk()
-        : TimeStamp(), Data()
+        : TimeStamp()
+        , Data()
       {
       }
 

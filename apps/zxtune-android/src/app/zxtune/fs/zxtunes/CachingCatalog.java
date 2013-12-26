@@ -25,7 +25,7 @@ final class CachingCatalog extends Catalog {
   private final static String TAG = CachingCatalog.class.getName();
   
   private final static String CACHE_DIR_NAME = "www.zxtunes.com";
-  private final int MIN_CACHED_FILE_SIZE = 256;
+  private final static int MIN_CACHED_FILE_SIZE = 256;
 
   private final String cacheDir;
   private final Catalog remote;
@@ -137,7 +137,7 @@ final class CachingCatalog extends Catalog {
   
   private static class CountingAuthorsVisitor implements AuthorsVisitor {
 
-    private AuthorsVisitor delegate;
+    private final AuthorsVisitor delegate;
     private int count;
     
     CountingAuthorsVisitor(AuthorsVisitor delegate) {
@@ -158,7 +158,7 @@ final class CachingCatalog extends Catalog {
   
   private class CachingAuthorsVisitor implements AuthorsVisitor {
     
-    private AuthorsVisitor delegate;
+    private final AuthorsVisitor delegate;
     
     CachingAuthorsVisitor(AuthorsVisitor delegate) {
       this.delegate = delegate;

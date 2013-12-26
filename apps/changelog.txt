@@ -5,6 +5,14 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev2880 from 26.12.2013
+
+[*] Fixed SAA playback for some platforms
+[*] Improved detection of STIM (SlamTilt) tracks
+[+] zxtune-android: support ModLand chiptunes collection via exotica.org.uk catalogue and ftp.amigascne.org mirror
+[*] zxtune-android: fixed crash on unknown size files downloading from network
+[*] zxtune-android: fixed browse progress cancelation on current directory change
+
 --- Rev2850 from 19.12.2013
 
 [*] Fixed IMS and MOD formats detection

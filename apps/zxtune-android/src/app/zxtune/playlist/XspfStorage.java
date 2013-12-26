@@ -79,7 +79,7 @@ public class XspfStorage {
     final XmlSerializer xml = Xml.newSerializer();
     xml.setOutput(stream, Xspf.ENCODING);
     final Builder builder = new Builder(xml);
-    builder.writePlaylistProperties(file.getName(), cursor.getCount());
+    builder.writePlaylistProperties(cursor.getCount());
     builder.writeTracks(cursor);
     builder.flush();
     names.add(name);
@@ -104,7 +104,7 @@ public class XspfStorage {
       xml.flush();
     }
 
-    final void writePlaylistProperties(String filename, int items) throws IOException {
+    final void writePlaylistProperties(int items) throws IOException {
       xml.startTag(null, Xspf.Tags.EXTENSION)
         .attribute(null, Xspf.Attributes.APPLICATION, Xspf.APPLICATION);
       writeProperty(Xspf.Properties.PLAYLIST_VERSION, Xspf.VERSION);

@@ -30,7 +30,7 @@ import app.zxtune.ui.ViewPagerAdapter;
 
 public class MainActivity extends ActionBarActivity implements PlaybackServiceConnection.Callback {
   
-  private static int NO_PAGE = -1;
+  private static final int NO_PAGE = -1;
   private PlaybackService service;
   private ViewPager pager;
   private int browserPageIndex;

@@ -903,7 +903,12 @@ namespace Xmp
     {
       "STIM"
       ,
-      "'S'T'I'M"
+      "'S'T'I'M"         //signature
+      "00???"            //BE samples offsets (assume 16Mb is enough)
+      "?{8}"             //unknown
+      "00?"              //BE number of samples (assume 255 is enough)
+      "0001-80"          //BE count of positions (1-128)
+      "0001-80"          //BE count of saved patterns (1-128)
       ,
       &stim_loader
     },

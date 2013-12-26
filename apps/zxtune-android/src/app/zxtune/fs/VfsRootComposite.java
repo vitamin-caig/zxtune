@@ -49,20 +49,14 @@ final class VfsRootComposite implements VfsRoot {
   @Override
   public void enumerate(Visitor visitor) {
     for (VfsRoot root : subRoots) {
-      if (Visitor.Status.STOP == visitor.onDir(root)) {
-        break;
-      }
+      visitor.onDir(root);
     }
   }
 
   @Override
   public void find(String mask, Visitor visitor) {
-    final VisitorWrapper wrapper = new VisitorWrapper(visitor);
     for (VfsRoot root : subRoots) {
-      root.find(mask, wrapper);
-      if (wrapper.isStopped()) {
-        break;
-      }
+      root.find(mask, visitor);
     }
   }
 
@@ -79,38 +73,5 @@ final class VfsRootComposite implements VfsRoot {
   @Override
   public String getDescription() {
     return getName();
-  }
-
-  
-  private static class VisitorWrapper implements Visitor {
-    
-    private final Visitor delegate;
-    private boolean stopped;
-    
-    VisitorWrapper(Visitor delegate) {
-      this.delegate = delegate;
-      this.stopped = false;
-    } 
-     
-    @Override
-    public Status onDir(VfsDir dir) {
-      return processStatus(delegate.onDir(dir));
-    }
-    
-    @Override
-    public Status onFile(VfsFile file) {
-      return processStatus(delegate.onFile(file));
-    }
-    
-    private Status processStatus(Status in) {
-      if (in == Status.STOP) {
-        stopped = true;
-      }
-      return in;
-    }
-    
-    public boolean isStopped() {
-      return stopped;
-    }
   }
 }

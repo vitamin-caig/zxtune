@@ -52,10 +52,10 @@ final class PlaylistFileIterator implements Iterator {
     final VfsFile file = (VfsFile) root.resolve(path);
     final ReferencesIterator delegate = createDelegate(type, file.getContent());
     final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate);
-    if (!result.initialize()) {
-      throw new IOException(context.getString(R.string.no_tracks_found));
+    if (result.initialize()) {
+      return result;
     }
-    return result;
+    throw new IOException(context.getString(R.string.no_tracks_found));
   }
   
   private static Type detectType(String filename) {
@@ -79,7 +79,7 @@ final class PlaylistFileIterator implements Iterator {
     }
   }
   
-  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate) throws IOException {
+  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate) {
     this.root = root;
     this.dir = dir;
     this.delegate = delegate;

@@ -125,15 +125,15 @@ final class VfsRootLocal implements VfsRoot, IconSource {
   //Based on code from http://renzhi.ca/2012/02/03/how-to-list-all-sd-cards-on-android/
   private static List<String> getExternalStorageDirectories() {
     try {
-      return readMountPoints("/proc/mounts");
+      return readMountPoints();
     }
     catch (IOException e) {
     }
     return Collections.emptyList();
   }
   
-  private static List<String> readMountPoints(String filename) throws IOException {
-    final BufferedReader bufReader = new BufferedReader(new FileReader(filename));
+  private static List<String> readMountPoints() throws IOException {
+    final BufferedReader bufReader = new BufferedReader(new FileReader("/proc/mounts"));
     try {
       return readMountPoints(bufReader);
     } finally {
@@ -150,8 +150,8 @@ final class VfsRootLocal implements VfsRoot, IconSource {
       }
       if (line.contains("vfat") || line.contains("/mnt")) {
         StringTokenizer tokens = new StringTokenizer(line, " ");
-        String s = tokens.nextToken();
-        s = tokens.nextToken(); // Take the second token, i.e. mount point
+        tokens.nextToken();
+        final String s = tokens.nextToken(); // Take the second token, i.e. mount point
 
         if (s.equals(Environment.getExternalStorageDirectory().getPath())) {
           list.add(s);

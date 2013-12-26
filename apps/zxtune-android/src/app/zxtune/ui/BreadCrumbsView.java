@@ -88,7 +88,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     hideButtons(idx, container.getChildCount());
   }
 
-  private final void showButton(int idx, VfsDir dir) {
+  private void showButton(int idx, VfsDir dir) {
     final View but = getButton(idx, dir);
     but.setVisibility(VISIBLE);
     but.setTag(dir);
@@ -145,7 +145,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     return but;
   }
   
-  private final void hideButtons(int startId, int endId) {
+  private void hideButtons(int startId, int endId) {
     for (int idx = startId; idx < endId; ++idx) {
       final View view = container.getChildAt(idx);
       view.setVisibility(GONE);
@@ -153,7 +153,7 @@ public class BreadCrumbsView extends HorizontalScrollView {
     }
   }
 
-  private final void scrollToEnd() {
+  private void scrollToEnd() {
     // workaround for layout timing issues
     post(new Runnable() {
       @Override

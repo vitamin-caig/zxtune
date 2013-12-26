@@ -10,21 +10,7 @@
 
 package app.zxtune.fs.zxtunes;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.util.Locale;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-
 import android.content.Context;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.Build;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
@@ -32,7 +18,18 @@ import android.sax.RootElement;
 import android.sax.StartElementListener;
 import android.util.Log;
 import android.util.Xml;
-import app.zxtune.R;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.nio.ByteBuffer;
+import java.util.Locale;
+
+import app.zxtune.fs.HttpProvider;
 
 final class RemoteCatalog extends Catalog {
 
@@ -49,21 +46,17 @@ final class RemoteCatalog extends Catalog {
   private static final String TRACK_QUERY = ALL_TRACKS_QUERY + "&id=%d";
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
 
-  private final Context context;
+  private final HttpProvider http;
 
   public RemoteCatalog(Context context) {
-    this.context = context;
-    // HTTP connection reuse which was buggy pre-froyo
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
-      System.setProperty("http.keepAlive", "false");
-    }
+    this.http = new HttpProvider(context);
   }
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
     final String query =
         id == null ? ALL_AUTHORS_QUERY : String.format(Locale.US, AUTHOR_QUERY, id);
-    final HttpURLConnection connection = connect(query);
+    final HttpURLConnection connection = http.connect(query);
     final RootElement root = createAuthorsParserRoot(visitor);
     performQuery(connection, root);
   }
@@ -78,7 +71,7 @@ final class RemoteCatalog extends Catalog {
   }
 
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
-    final HttpURLConnection connection = connect(query);
+    final HttpURLConnection connection = http.connect(query);
     final RootElement root = createModulesParserRoot(visitor);
     performQuery(connection, root);
   }
@@ -87,13 +80,10 @@ final class RemoteCatalog extends Catalog {
   public ByteBuffer getTrackContent(int id) throws IOException {
     try {
       final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-      final HttpURLConnection connection = connect(query);
-      return getContent(connection);
+      return http.getContent(query);
     } catch (IOException e) {
       Log.d(TAG, "getModuleContent(" + id + ")", e);
-      throw hasConnection()
-        ? e
-        : new IOException(context.getString(R.string.network_inaccessible));
+      throw e;
     }
   }
 
@@ -105,10 +95,9 @@ final class RemoteCatalog extends Catalog {
     } catch (SAXException e) {
       throw new IOException(e);
     } catch (IOException e) {
-      throw hasConnection()
-        ? e
-        : new IOException(context.getString(R.string.network_inaccessible));
-      } finally {
+      http.checkConnectionError();
+      throw e;
+    } finally {
       connection.disconnect();
     }
   }
@@ -271,58 +260,5 @@ final class RemoteCatalog extends Catalog {
   private static RootElement createRootElement() {
     //TODO: check root tag version
     return new RootElement("zxtunes");
-  }
-
-  private static ByteBuffer getContent(HttpURLConnection connection) throws IOException {
-    try {
-      final int len = connection.getContentLength();
-      final InputStream stream = connection.getInputStream();
-      final ByteBuffer result = ByteBuffer.allocateDirect(len);
-      if (result.hasArray()) {
-        readContent(stream, result.array());
-      } else {
-        final byte[] buffer = new byte[len];
-        readContent(stream, buffer);
-        result.put(buffer);
-        result.rewind();
-      }
-      return result;
-    } finally {
-      connection.disconnect();
-    }
-  }
-
-  private static void readContent(InputStream stream, byte[] buffer) throws IOException {
-    final int len = buffer.length;
-    int received = 0;
-    for (;;) {
-      final int chunk = stream.read(buffer, received, len - received);
-      if (chunk <= 0) {
-        break;
-      }
-      received += chunk;
-    }
-    if (len != received) {
-      throw new IOException(String.format(
-          "Read content size mismatch (%d received, %d expected)", received, len));
-    }
-  }
-
-  private HttpURLConnection connect(String uri) throws IOException {
-    try {
-      final URL url = new URL(uri);
-      final HttpURLConnection result = (HttpURLConnection) url.openConnection();
-      Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
-      return result;
-    } catch (IOException e) {
-      Log.d(TAG, "Fetch " + uri, e);
-      throw e;
-    }
-  }
-  
-  private boolean hasConnection() {
-    final ConnectivityManager mgr = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-    final NetworkInfo info = mgr.getActiveNetworkInfo();
-    return info != null && info.isConnected();
   }
 }

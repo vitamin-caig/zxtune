@@ -207,13 +207,8 @@ final class Database {
 
   private static class Helper extends SQLiteOpenHelper {
     
-    private static Helper singleton;
-    
-    static synchronized Helper create(Context context) {
-      if (singleton == null) {
-        singleton = new Helper(context.getApplicationContext());
-      }
-      return singleton;
+    static Helper create(Context context) {
+      return new Helper(context);
     }
 
     private Helper(Context context) {
