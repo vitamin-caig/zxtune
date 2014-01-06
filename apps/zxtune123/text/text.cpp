@@ -269,6 +269,9 @@ extern const Char INFO_CAP_HWVOLUME[] = {
 extern const Char INFO_CAP_MODULE[] = {
   's','t','o','r','_','m','o','d','u','l','e',0
 };
+extern const Char INFO_CAP_MOS6581[] = {
+  'd','e','v','_','m','o','s','6','5','8','1',0
+};
 extern const Char INFO_CAP_MULTITRACK[] = {
   's','t','o','r','_','m','u','l','t','i','t','r','a','c','k',0
 };
