@@ -25,8 +25,11 @@
 #include <sound/sound_parameters.h>
 #include <time/stamp.h>
 //3rdparty includes
-#include <3rdparty/sidplay/include/sidplay/sidplay2.h>
-#include <3rdparty/sidplay/include/sidplay/resid.h>
+#include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
+#include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
+#include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
+#include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
+#include <3rdparty/sidplayfp/builders/residfp-builder/residfp.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
@@ -39,9 +42,9 @@ namespace Sid
 
   typedef boost::shared_ptr<SidTune> TunePtr;
 
-  void CheckSidplayError(int code)
+  void CheckSidplayError(bool ok)
   {
-    Require(code == 0);//TODO
+    Require(ok);//TODO
   }
 
   class Analyzer : public Module::Analyzer
@@ -64,17 +67,22 @@ namespace Sid
   public:
     Renderer(TunePtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(tune)
-      , Player(new sidplay2())
-      , DeviceBuilder(new ReSIDBuilder("resid"))
+      , Engine(new sidplayfp())
+      , Builder(new ReSIDfpBuilder("resid"))
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
       , Target(target)
       , Params(Sound::RenderParameters::Create(params))
+      , Config(Engine->config())
       , Looped()
       , SamplesPerFrame()
     {
+      LoadRoms(*params);
+      const uint_t chipsCount = Engine->info().maxsids();
+      Builder->create(chipsCount);
+      Config.frequency = 0;
       ApplyParameters();
-      CheckSidplayError(Player->load(tune.get()));
+      CheckSidplayError(Engine->load(tune.get()));
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -89,7 +97,7 @@ namespace Sid
 
     virtual bool RenderFrame()
     {
-      BOOST_STATIC_ASSERT(sizeof(Sound::Sample) == 4);
+      BOOST_STATIC_ASSERT(Sound::Sample::BITS == 16);
 
       try
       {
@@ -97,7 +105,7 @@ namespace Sid
 
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
-        Player->play(builder.Allocate(SamplesPerFrame), SamplesPerFrame * sizeof(Sound::Sample));
+        Engine->play(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
         Target->ApplyData(builder.GetResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
@@ -110,7 +118,7 @@ namespace Sid
 
     virtual void Reset()
     {
-      Player->stop();
+      Engine->stop();
     }
 
     virtual void SetPosition(uint_t frame)
@@ -118,37 +126,48 @@ namespace Sid
       //TODO
     }
   private:
+    void LoadRoms(const Parameters::Accessor& params)
+    {
+      Parameters::DataType kernal, basic, chargen;
+      params.FindValue(Parameters::ZXTune::Core::SID::ROM::KERNAL, kernal);
+      params.FindValue(Parameters::ZXTune::Core::SID::ROM::BASIC, basic);
+      params.FindValue(Parameters::ZXTune::Core::SID::ROM::CHARGEN, chargen);
+      if (!kernal.empty() || !basic.empty() || !chargen.empty())
+      {
+        Engine->setRoms(GetData(kernal), GetData(basic), GetData(chargen));
+      }
+    }
+
+    static const uint8_t* GetData(const Parameters::DataType& dump)
+    {
+      return dump.empty() ? 0 : &dump.front();
+    }
+
     void ApplyParameters()
     {
       if (Params.IsChanged())
       {
-        sid2_config_t cfg = Player->config();
-        cfg.frequency = Params->SoundFreq();
-        cfg.precision = Sound::Sample::BITS;
-        cfg.playback = Sound::Sample::CHANNELS == 1 ? sid2_mono : sid2_stereo;
-        cfg.environment = sid2_envR;
-        cfg.forceDualSids = false;
-        cfg.emulateStereo = false;
-        cfg.optimisation = SID2_DEFAULT_OPTIMISATION;
-        cfg.sidEmulation = DeviceBuilder.get();
-        if (!DeviceBuilder->devices(true))
+        const uint_t newFreq = Params->SoundFreq();
+        if (Config.frequency != newFreq)
         {
-          DeviceBuilder->create(1);
+          Config.frequency = newFreq;
+          Config.playback = Sound::Sample::CHANNELS == 1 ? SidConfig::MONO : SidConfig::STEREO;
+          Config.sidEmulation = Builder.get();
+          CheckSidplayError(Engine->config(Config));
         }
-        DeviceBuilder->sampling(cfg.frequency);
-        CheckSidplayError(Player->config(cfg));
         Looped = Params->Looped();
         SamplesPerFrame = Params->SamplesPerFrame();
       }
     }
   private:
     const TunePtr Tune;
-    const std::auto_ptr<sidplay2> Player;
-    const std::auto_ptr<ReSIDBuilder> DeviceBuilder;
+    const std::auto_ptr<sidplayfp> Engine;
+    const std::auto_ptr<sidbuilder> Builder;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
     const Sound::Receiver::Ptr Target;
     const Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    SidConfig Config;
     bool Looped;
     std::size_t SamplesPerFrame;
   };
@@ -252,32 +271,32 @@ namespace Sid
       {
         const TunePtr tune = boost::make_shared<SidTune>(static_cast<const uint_least8_t*>(rawData.Start()),
           static_cast<uint_least32_t>(rawData.Size()));
-        Require(tune->getStatus());
+        CheckSidplayError(tune->getStatus());
+        tune->selectSong(0);
 
-        SidTuneInfo info;
-        tune->getInfo(info);
+        const SidTuneInfo& info = *tune->getInfo();
 
-        switch (info.numberOfInfoStrings)
+        switch (info.numberOfInfoStrings())
         {
         default:
         case 3:
           //copyright/publisher really
-          propBuilder.SetComment(FromStdString(info.infoString[2]));
+          propBuilder.SetComment(FromStdString(info.infoString(2)));
         case 2:
-          propBuilder.SetAuthor(FromStdString(info.infoString[1]));
+          propBuilder.SetAuthor(FromStdString(info.infoString(1)));
         case 1:
-          propBuilder.SetTitle(FromStdString(info.infoString[0]));
+          propBuilder.SetTitle(FromStdString(info.infoString(0)));
         case 0:
           break;
         }
-        const uint_t fps = info.songSpeed == SIDTUNE_SPEED_CIA_1A || info.clockSpeed == SIDTUNE_CLOCK_NTSC ? 60 : 50;
+        const uint_t fps = info.songSpeed() == SidTuneInfo::SPEED_CIA_1A || info.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
         propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(fps).Get());
 
-        const Binary::Container::Ptr data = rawData.GetSubcontainer(0, info.dataFileLen);
+        const Binary::Container::Ptr data = rawData.GetSubcontainer(0, info.dataFileLen());
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, data->Size());
         propBuilder.SetSource(*source);
 
-        const uint_t frames = 1000;//TODO
+        const uint_t frames = 10000;//TODO
         return boost::make_shared<Holder>(tune, propBuilder.GetResult(), frames);
       }
       catch (const std::exception&)
