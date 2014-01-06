@@ -45,6 +45,7 @@ namespace ZXTune
   void RegisterCOPSupport(PlayerPluginsRegistrator& registrator);
   void RegisterTFESupport(PlayerPluginsRegistrator& registrator);
   void RegisterXMPPlugins(PlayerPluginsRegistrator& registrator);
+  void RegisterSIDPlugins(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -79,5 +80,6 @@ namespace ZXTune
     RegisterCOPSupport(registrator);
     RegisterTFESupport(registrator);
     RegisterXMPPlugins(registrator);
+    RegisterSIDPlugins(registrator);
   }
 }
