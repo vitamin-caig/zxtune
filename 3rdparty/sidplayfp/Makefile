@@ -7,10 +7,6 @@ source_dirs = sidplayfp \
               sidplayfp/c64/CPU \
               sidplayfp/c64/VIC_II \
               sidplayfp/sidtune \
-              builders/residfp-builder \
-              builders/residfp-builder/residfp
-
-source_files = builders/residfp-builder/residfp/resample/SincResampler
 
 source_dirs += utils/MD5
 
