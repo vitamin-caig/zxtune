@@ -29,7 +29,8 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
-#include <3rdparty/sidplayfp/builders/residfp-builder/residfp.h>
+#include <3rdparty/sidplayfp/builders/resid/resid.h>
+#include <3rdparty/sidplayfp/builders/residfp/residfp.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
@@ -67,22 +68,23 @@ namespace Sid
   public:
     Renderer(TunePtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(tune)
-      , Engine(new sidplayfp())
-      , Builder(new ReSIDfpBuilder("resid"))
+      , Builder("resid")
+      , BuilderFp("residfp")
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
       , Target(target)
       , Params(Sound::RenderParameters::Create(params))
-      , Config(Engine->config())
+      , Config(Engine.config())
       , Looped()
       , SamplesPerFrame()
     {
       LoadRoms(*params);
-      const uint_t chipsCount = Engine->info().maxsids();
-      Builder->create(chipsCount);
+      const uint_t chipsCount = Engine.info().maxsids();
+      Builder.create(chipsCount);
+      BuilderFp.create(chipsCount);
       Config.frequency = 0;
       ApplyParameters();
-      CheckSidplayError(Engine->load(tune.get()));
+      CheckSidplayError(Engine.load(tune.get()));
     }
 
     virtual TrackState::Ptr GetTrackState() const
@@ -105,7 +107,7 @@ namespace Sid
 
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
-        Engine->play(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
+        Engine.play(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
         Target->ApplyData(builder.GetResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
@@ -118,7 +120,7 @@ namespace Sid
 
     virtual void Reset()
     {
-      Engine->stop();
+      Engine.stop();
     }
 
     virtual void SetPosition(uint_t frame)
@@ -134,7 +136,7 @@ namespace Sid
       params.FindValue(Parameters::ZXTune::Core::SID::ROM::CHARGEN, chargen);
       if (!kernal.empty() || !basic.empty() || !chargen.empty())
       {
-        Engine->setRoms(GetData(kernal), GetData(basic), GetData(chargen));
+        Engine.setRoms(GetData(kernal), GetData(basic), GetData(chargen));
       }
     }
 
@@ -148,12 +150,18 @@ namespace Sid
       if (Params.IsChanged())
       {
         const uint_t newFreq = Params->SoundFreq();
-        if (Config.frequency != newFreq)
+        sidbuilder& newBuilder = Builder;
+        if (Config.frequency != newFreq || Config.sidEmulation != &newBuilder)
         {
           Config.frequency = newFreq;
           Config.playback = Sound::Sample::CHANNELS == 1 ? SidConfig::MONO : SidConfig::STEREO;
-          Config.sidEmulation = Builder.get();
-          CheckSidplayError(Engine->config(Config));
+
+          Config.fastSampling = true;//only for resid builder
+          Config.samplingMethod = SidConfig::INTERPOLATE;
+          newBuilder.filter(false);
+
+          Config.sidEmulation = &newBuilder;
+          CheckSidplayError(Engine.config(Config));
         }
         Looped = Params->Looped();
         SamplesPerFrame = Params->SamplesPerFrame();
@@ -161,8 +169,9 @@ namespace Sid
     }
   private:
     const TunePtr Tune;
-    const std::auto_ptr<sidplayfp> Engine;
-    const std::auto_ptr<sidbuilder> Builder;
+    sidplayfp Engine;
+    ReSIDBuilder Builder;
+    ReSIDfpBuilder BuilderFp;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
     const Sound::Receiver::Ptr Target;
