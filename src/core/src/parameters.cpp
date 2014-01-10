@@ -70,6 +70,10 @@ namespace Parameters
       {
         extern const NameType PREFIX = Core::PREFIX + "sid";
 
+        extern const NameType FILTER = PREFIX + "filter";
+        extern const NameType RESAMPLE = PREFIX + "resample";
+        extern const NameType ENGINE = PREFIX + "engine";
+
         namespace ROM
         {
           extern const NameType PREFIX = SID::PREFIX + "rom";

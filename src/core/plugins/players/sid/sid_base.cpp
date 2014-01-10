@@ -63,6 +63,61 @@ namespace Sid
     }
   };
 
+  class SidParameters
+  {
+  public:
+    explicit SidParameters(Parameters::Accessor::Ptr params)
+      : Params(params)
+    {
+    }
+
+    bool GetFastSampling() const
+    {
+      return Parameters::ZXTune::Core::SID::ENGINE_RESID_FASTSAMPLING == GetEngine();
+    }
+
+    SidConfig::sampling_method_t GetSamplingMethod() const
+    {
+      return GetBool(Parameters::ZXTune::Core::SID::RESAMPLE)
+          ? SidConfig::RESAMPLE_INTERPOLATE : SidConfig::INTERPOLATE;
+    }
+
+    bool GetUseFilter() const
+    {
+      return GetBool(Parameters::ZXTune::Core::SID::FILTER);
+    }
+
+    bool GetUseFpEngine() const
+    {
+      switch (GetEngine())
+      {
+      case Parameters::ZXTune::Core::SID::ENGINE_RESID:
+      case Parameters::ZXTune::Core::SID::ENGINE_RESID_FASTSAMPLING:
+        return false;
+      case Parameters::ZXTune::Core::SID::ENGINE_RESIDFP:
+        return true;
+      default:
+        throw std::exception();
+      }
+    }
+  private:
+    Parameters::IntType GetEngine() const
+    {
+      Parameters::IntType val = Parameters::ZXTune::Core::SID::ENGINE_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::Core::SID::ENGINE, val);
+      return val;
+    }
+
+    bool GetBool(const Parameters::NameType& name) const
+    {
+      Parameters::IntType val = 0;
+      Params->FindValue(name, val);
+      return val != 0;
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+  };
+
   class Renderer : public Module::Renderer
   {
   public:
@@ -73,8 +128,10 @@ namespace Sid
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
       , Target(target)
-      , Params(Sound::RenderParameters::Create(params))
+      , SoundParams(Sound::RenderParameters::Create(params))
+      , Params(params)
       , Config(Engine.config())
+      , UseFilter()
       , Looped()
       , SamplesPerFrame()
     {
@@ -121,11 +178,13 @@ namespace Sid
     virtual void Reset()
     {
       Engine.stop();
+      Iterator->Reset();
     }
 
     virtual void SetPosition(uint_t frame)
     {
-      //TODO
+      SeekEngine(frame);
+      Module::SeekIterator(*Iterator, frame);
     }
   private:
     void LoadRoms(const Parameters::Accessor& params)
@@ -147,25 +206,71 @@ namespace Sid
 
     void ApplyParameters()
     {
-      if (Params.IsChanged())
+      if (SoundParams.IsChanged())
       {
-        const uint_t newFreq = Params->SoundFreq();
-        sidbuilder& newBuilder = Builder;
-        if (Config.frequency != newFreq || Config.sidEmulation != &newBuilder)
+        const uint_t newFreq = SoundParams->SoundFreq();
+        const bool newFastSampling = Params.GetFastSampling();
+        const SidConfig::sampling_method_t newSamplingMethod = Params.GetSamplingMethod();
+        const bool newFilter = Params.GetUseFilter();
+        sidbuilder& newBuilder = Params.GetUseFpEngine()
+          ? static_cast<sidbuilder&>(BuilderFp) : static_cast<sidbuilder&>(Builder);
+        if (Config.frequency != newFreq
+            || Config.fastSampling != newFastSampling
+            || Config.samplingMethod != newSamplingMethod
+            || UseFilter != newFilter
+            || Config.sidEmulation != &newBuilder)
         {
           Config.frequency = newFreq;
           Config.playback = Sound::Sample::CHANNELS == 1 ? SidConfig::MONO : SidConfig::STEREO;
 
-          Config.fastSampling = true;//only for resid builder
-          Config.samplingMethod = SidConfig::INTERPOLATE;
-          newBuilder.filter(false);
+          Config.fastSampling = newFastSampling;
+          Config.samplingMethod = newSamplingMethod;
+          newBuilder.filter(UseFilter = newFilter);
 
           Config.sidEmulation = &newBuilder;
           CheckSidplayError(Engine.config(Config));
+          //config() causes playback restart
+          Iterator->Reset();
         }
-        Looped = Params->Looped();
-        SamplesPerFrame = Params->SamplesPerFrame();
+        Looped = SoundParams->Looped();
+        SamplesPerFrame = SoundParams->SamplesPerFrame();
       }
+    }
+
+    void SeekEngine(uint_t frame)
+    {
+      uint_t current = State->Frame();
+      if (frame < current)
+      {
+        Engine.stop();
+        current = 0;
+      }
+      if (const uint_t delta = frame - current)
+      {
+        AdvanceEngine(delta);
+      }
+    }
+
+    void AdvanceEngine(uint_t framesToPlay)
+    {
+      std::vector<short> fakeBuf(SamplesPerFrame * Sound::Sample::CHANNELS);
+      uint_t restFrames = framesToPlay;
+      if (restFrames >= 32)
+      {
+        restFrames = AdvanceEngine(restFrames, 32, fakeBuf);
+      }
+      AdvanceEngine(restFrames, 1, fakeBuf);
+    }
+
+    uint_t AdvanceEngine(uint_t frames, uint_t scale, std::vector<short>& buf)
+    {
+      Engine.fastForward(scale * 100);
+      while (frames > scale)
+      {
+        Engine.play(&buf.front(), buf.size());
+        frames -= scale;
+      }
+      return frames;
     }
   private:
     const TunePtr Tune;
@@ -175,8 +280,11 @@ namespace Sid
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
     const Sound::Receiver::Ptr Target;
-    const Devices::Details::ParametersHelper<Sound::RenderParameters> Params;
+    const Devices::Details::ParametersHelper<Sound::RenderParameters> SoundParams;
+    const SidParameters Params;
     SidConfig Config;
+    //cache filter flag
+    bool UseFilter;
     bool Looped;
     std::size_t SamplesPerFrame;
   };

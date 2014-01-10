@@ -152,11 +152,37 @@ namespace Parameters
         //! @brief Parameters#ZXTune#Core#SID namespace prefix
         extern const NameType PREFIX;
 
+        //@{
+        //! @name SID filter emulation
+
+        //! Parameter name
+        extern const NameType FILTER;
+        //@}
+
+        //@{
+        //! @name Resampling
+
+        //! Parameter name
+        extern const NameType RESAMPLE;
+        //@}
+
+        //@{
+        //! @name Engine type
+
+        //! Available types and default value
+        const IntType ENGINE_RESID_FASTSAMPLING = 0;
+        const IntType ENGINE_RESID = 1;
+        const IntType ENGINE_RESIDFP = 2;
+        const IntType ENGINE_DEFAULT = ENGINE_RESID_FASTSAMPLING;
+        //! Parameter name
+        extern const NameType ENGINE;
+
+        //! @brief ROMs section for full C64 environment emulation
         namespace ROM
         {
           //! @brief Parameters#ZXTune#Core#SID#ROM namespace prefix
           extern const NameType PREFIX;
-          //@{
+
           //! @name ROMs content
           //! 8192 bytes
           extern const NameType KERNAL;
