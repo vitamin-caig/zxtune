@@ -13,6 +13,7 @@
 #include "preferencesdialog.ui.h"
 #include "aym.h"
 #include "saa.h"
+#include "sid.h"
 #include "z80.h"
 #include "sound.h"
 #include "mixing.h"
@@ -47,6 +48,7 @@ namespace
       {
         UI::AYMSettingsWidget::Create(*Categories),
         UI::SAASettingsWidget::Create(*Categories),
+        UI::SIDSettingsWidget::Create(*Categories),
         UI::Z80SettingsWidget::Create(*Categories),
         soundSettingsPage,
         UI::MixingSettingsWidget::Create(*Categories, 3),

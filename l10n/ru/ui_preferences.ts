@@ -165,6 +165,39 @@
     </message>
 </context>
 <context>
+    <name>SIDOptions</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="26"/>
+        <source>Engine</source>
+        <translation>Движок</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="39"/>
+        <source>reSID (fast)</source>
+        <translation>reSID (быстро)</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="99"/>
+        <source>Warning! Settings change will cause currently playing&apos; SID module restart.</source>
+        <translation>Внимание! Изменение опций приводит к рестарту текущего воспроизводимого SID модуля.</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="57"/>
+        <source>Resample</source>
+        <translation>Передискретизация</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="67"/>
+        <source>Emulation</source>
+        <translation>Эмуляция</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="73"/>
+        <source>Filter</source>
+        <translation>Фильтр</translation>
+    </message>
+</context>
+<context>
     <name>SdlOptions</name>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound_sdl.ui" line="20"/>
