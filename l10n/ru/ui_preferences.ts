@@ -167,32 +167,37 @@
 <context>
     <name>SIDOptions</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="26"/>
-        <source>Engine</source>
-        <translation>Движок</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="39"/>
-        <source>reSID (fast)</source>
-        <translation>reSID (быстро)</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="99"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="92"/>
         <source>Warning! Settings change will cause currently playing&apos; SID module restart.</source>
         <translation>Внимание! Изменение опций приводит к рестарту текущего воспроизводимого SID модуля.</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="57"/>
-        <source>Resample</source>
-        <translation>Передискретизация</translation>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="26"/>
+        <source>Interpolation</source>
+        <translation>Интерполяция</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="67"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="39"/>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="44"/>
+        <source>Performance</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="49"/>
+        <source>Quality</source>
+        <translation>Качество</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="60"/>
         <source>Emulation</source>
         <translation>Эмуляция</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="73"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="66"/>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>

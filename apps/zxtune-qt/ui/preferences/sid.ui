@@ -21,9 +21,9 @@
     <number>4</number>
    </property>
    <item>
-    <widget class="QGroupBox" name="EngineGroup">
+    <widget class="QGroupBox" name="InterpolationGroup">
      <property name="title">
-      <string>Engine</string>
+      <string>Interpolation</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
@@ -33,29 +33,22 @@
        <number>4</number>
       </property>
       <item>
-       <widget class="QComboBox" name="engineValue">
+       <widget class="QComboBox" name="interpolationValue">
         <item>
          <property name="text">
-          <string>reSID (fast)</string>
+          <string>None</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string notr="true">reSID</string>
+          <string>Performance</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string notr="true">reSIDfp</string>
+          <string>Quality</string>
          </property>
         </item>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="resampleValue">
-        <property name="text">
-         <string>Resample</string>
-        </property>
        </widget>
       </item>
      </layout>

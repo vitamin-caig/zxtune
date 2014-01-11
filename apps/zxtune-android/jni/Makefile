@@ -12,7 +12,7 @@ libraries.common = analysis \
                    sound strings \
                    tools
 
-libraries.3rdparty = lhasa sidplayfp sidplayfp_builders_resid sidplayfp_builders_residfp xmp z80ex zlib
+libraries.3rdparty = lhasa sidplayfp sidplayfp_builders_resid xmp z80ex zlib
 
 include $(path_step)/makefile.mak
 

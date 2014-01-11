@@ -30,7 +30,6 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
 #include <3rdparty/sidplayfp/builders/resid/resid.h>
-#include <3rdparty/sidplayfp/builders/residfp/residfp.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
@@ -63,6 +62,20 @@ namespace Sid
     }
   };
 
+  /*
+   * Interpolation modes
+   * 0 - fast sampling+interpolate
+   * 1 - regular sampling+interpolate
+   * 2 - regular sampling+interpolate+resample
+   */
+
+  enum InterpolationModes
+  {
+    FAST_SAMPLING_INTERPOLATE,
+    INTERPOLATE,
+    RESAMPLE_INTERPOLATE
+  };
+
   class SidParameters
   {
   public:
@@ -73,12 +86,12 @@ namespace Sid
 
     bool GetFastSampling() const
     {
-      return Parameters::ZXTune::Core::SID::ENGINE_RESID_FASTSAMPLING == GetEngine();
+      return FAST_SAMPLING_INTERPOLATE == GetInterpolation();
     }
 
     SidConfig::sampling_method_t GetSamplingMethod() const
     {
-      return GetBool(Parameters::ZXTune::Core::SID::RESAMPLE)
+      return RESAMPLE_INTERPOLATE == GetInterpolation()
           ? SidConfig::RESAMPLE_INTERPOLATE : SidConfig::INTERPOLATE;
     }
 
@@ -86,25 +99,11 @@ namespace Sid
     {
       return GetBool(Parameters::ZXTune::Core::SID::FILTER);
     }
-
-    bool GetUseFpEngine() const
-    {
-      switch (GetEngine())
-      {
-      case Parameters::ZXTune::Core::SID::ENGINE_RESID:
-      case Parameters::ZXTune::Core::SID::ENGINE_RESID_FASTSAMPLING:
-        return false;
-      case Parameters::ZXTune::Core::SID::ENGINE_RESIDFP:
-        return true;
-      default:
-        throw std::exception();
-      }
-    }
   private:
-    Parameters::IntType GetEngine() const
+    Parameters::IntType GetInterpolation() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Core::SID::ENGINE_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Core::SID::ENGINE, val);
+      Parameters::IntType val = 0;
+      Params->FindValue(Parameters::ZXTune::Core::SID::INTERPOLATION, val);
       return val;
     }
 
@@ -124,7 +123,6 @@ namespace Sid
     Renderer(TunePtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(tune)
       , Builder("resid")
-      , BuilderFp("residfp")
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
       , Target(target)
@@ -138,7 +136,6 @@ namespace Sid
       LoadRoms(*params);
       const uint_t chipsCount = Engine.info().maxsids();
       Builder.create(chipsCount);
-      BuilderFp.create(chipsCount);
       Config.frequency = 0;
       ApplyParameters();
       CheckSidplayError(Engine.load(tune.get()));
@@ -212,22 +209,19 @@ namespace Sid
         const bool newFastSampling = Params.GetFastSampling();
         const SidConfig::sampling_method_t newSamplingMethod = Params.GetSamplingMethod();
         const bool newFilter = Params.GetUseFilter();
-        sidbuilder& newBuilder = Params.GetUseFpEngine()
-          ? static_cast<sidbuilder&>(BuilderFp) : static_cast<sidbuilder&>(Builder);
         if (Config.frequency != newFreq
             || Config.fastSampling != newFastSampling
             || Config.samplingMethod != newSamplingMethod
-            || UseFilter != newFilter
-            || Config.sidEmulation != &newBuilder)
+            || UseFilter != newFilter)
         {
           Config.frequency = newFreq;
           Config.playback = Sound::Sample::CHANNELS == 1 ? SidConfig::MONO : SidConfig::STEREO;
 
           Config.fastSampling = newFastSampling;
           Config.samplingMethod = newSamplingMethod;
-          newBuilder.filter(UseFilter = newFilter);
+          Builder.filter(UseFilter = newFilter);
 
-          Config.sidEmulation = &newBuilder;
+          Config.sidEmulation = &Builder;
           CheckSidplayError(Engine.config(Config));
           //config() causes playback restart
           Iterator->Reset();
@@ -276,7 +270,6 @@ namespace Sid
     const TunePtr Tune;
     sidplayfp Engine;
     ReSIDBuilder Builder;
-    ReSIDfpBuilder BuilderFp;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
     const Sound::Receiver::Ptr Target;

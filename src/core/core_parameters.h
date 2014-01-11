@@ -160,22 +160,10 @@ namespace Parameters
         //@}
 
         //@{
-        //! @name Resampling
+        //! @name Interpolation type (0/1/2)
 
         //! Parameter name
-        extern const NameType RESAMPLE;
-        //@}
-
-        //@{
-        //! @name Engine type
-
-        //! Available types and default value
-        const IntType ENGINE_RESID_FASTSAMPLING = 0;
-        const IntType ENGINE_RESID = 1;
-        const IntType ENGINE_RESIDFP = 2;
-        const IntType ENGINE_DEFAULT = ENGINE_RESID_FASTSAMPLING;
-        //! Parameter name
-        extern const NameType ENGINE;
+        extern const NameType INTERPOLATION;
 
         //! @brief ROMs section for full C64 environment emulation
         namespace ROM

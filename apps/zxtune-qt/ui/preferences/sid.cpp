@@ -34,8 +34,7 @@ namespace
       setupUi(this);
 
       using namespace Parameters;
-      IntegerValue::Bind(*engineValue, *Options, ZXTune::Core::SID::ENGINE, ZXTune::Core::SID::ENGINE_DEFAULT);
-      BooleanValue::Bind(*resampleValue, *Options, ZXTune::Core::SID::RESAMPLE, false);
+      IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION, 0);
       BooleanValue::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, false);
     }
 
