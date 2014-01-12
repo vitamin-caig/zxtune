@@ -8,12 +8,13 @@
 *
 **/
 
-//common includes
-#include <contract.h>
 //local includes
+#include "songlengths.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/plugin.h"
 #include "core/plugins/players/streaming.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
@@ -23,7 +24,6 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-#include <time/stamp.h>
 //3rdparty includes
 #include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
@@ -38,8 +38,6 @@ namespace Module
 {
 namespace Sid
 {
-  typedef Time::Milliseconds TimeType;
-
   typedef boost::shared_ptr<SidTune> TunePtr;
 
   void CheckSidplayError(bool ok)
@@ -282,12 +280,74 @@ namespace Sid
     std::size_t SamplesPerFrame;
   };
 
+  class Information : public Module::Information
+  {
+  public:
+    Information(TunePtr tune, uint_t fps, uint_t songIdx)
+      : Tune(tune)
+      , Fps(fps)
+      , SongIdx(songIdx)
+      , Frames()
+    {
+    }
+
+    virtual uint_t PositionsCount() const
+    {
+      return 1;
+    }
+
+    virtual uint_t LoopPosition() const
+    {
+      return 0;
+    }
+
+    virtual uint_t PatternsCount() const
+    {
+      return 0;
+    }
+
+    virtual uint_t FramesCount() const
+    {
+      if (!Frames)
+      {
+        Frames = GetFramesCount();
+      }
+      return Frames;
+    }
+
+    virtual uint_t LoopFrame() const
+    {
+      return 0;
+    }
+
+    virtual uint_t ChannelsCount() const
+    {
+      return 1;
+    }
+
+    virtual uint_t Tempo() const
+    {
+      return 1;
+    }
+  private:
+    uint_t GetFramesCount() const
+    {
+      const TimeType duration = GetSongLength(Tune->createMD5(), SongIdx - 1);
+      return Fps * (duration.Get() / duration.PER_SECOND);
+    }
+  private:
+    const TunePtr Tune;
+    const uint_t Fps;
+    const uint_t SongIdx;
+    mutable uint_t Frames;
+  };
+
   class Holder : public Module::Holder
   {
   public:
-    Holder(TunePtr tune, Parameters::Accessor::Ptr props, uint_t frames)
+    Holder(TunePtr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
       : Tune(tune)
-      , Info(Module::CreateStreamInfo(frames, 0))
+      , Info(info)
       , Properties(props)
     {
     }
@@ -382,32 +442,32 @@ namespace Sid
         const TunePtr tune = boost::make_shared<SidTune>(static_cast<const uint_least8_t*>(rawData.Start()),
           static_cast<uint_least32_t>(rawData.Size()));
         CheckSidplayError(tune->getStatus());
-        tune->selectSong(0);
+        const unsigned songIdx = tune->selectSong(0);
 
-        const SidTuneInfo& info = *tune->getInfo();
+        const SidTuneInfo& tuneInfo = *tune->getInfo();
 
-        switch (info.numberOfInfoStrings())
+        switch (tuneInfo.numberOfInfoStrings())
         {
         default:
         case 3:
           //copyright/publisher really
-          propBuilder.SetComment(FromStdString(info.infoString(2)));
+          propBuilder.SetComment(FromStdString(tuneInfo.infoString(2)));
         case 2:
-          propBuilder.SetAuthor(FromStdString(info.infoString(1)));
+          propBuilder.SetAuthor(FromStdString(tuneInfo.infoString(1)));
         case 1:
-          propBuilder.SetTitle(FromStdString(info.infoString(0)));
+          propBuilder.SetTitle(FromStdString(tuneInfo.infoString(0)));
         case 0:
           break;
         }
-        const uint_t fps = info.songSpeed() == SidTuneInfo::SPEED_CIA_1A || info.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
-        propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(fps).Get());
-
-        const Binary::Container::Ptr data = rawData.GetSubcontainer(0, info.dataFileLen());
+        const Binary::Container::Ptr data = rawData.GetSubcontainer(0, tuneInfo.dataFileLen());
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, data->Size());
         propBuilder.SetSource(*source);
 
-        const uint_t frames = 10000;//TODO
-        return boost::make_shared<Holder>(tune, propBuilder.GetResult(), frames);
+        const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
+        propBuilder.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(fps).Get());
+
+        const Information::Ptr info = boost::make_shared<Information>(tune, fps, songIdx);
+        return boost::make_shared<Holder>(tune, info, propBuilder.GetResult());
       }
       catch (const std::exception&)
       {
