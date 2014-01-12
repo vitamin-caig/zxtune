@@ -88,6 +88,9 @@ extern const Char PSG_DECODER_DESCRIPTION[] = {
 extern const Char SAMPLETRACKER_DECODER_DESCRIPTION[] = {
   'S','a','m','p','l','e',' ','T','r','a','c','k','e','r',' ','v','2','.','x',0
 };
+extern const Char SID_DECODER_DESCRIPTION[] = {
+  'C','o','m','m','o','d','o','r','e','6','4',' ','R','S','I','D','/','P','S','I','D',0
+};
 extern const Char SOUNDTRACKER3_DECODER_DESCRIPTION[] = {
   'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','v','3','.','x',' ','C','o','m','p','i','l','e','d',0
 };

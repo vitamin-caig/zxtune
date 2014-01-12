@@ -19,6 +19,7 @@
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
+#include <core/module_attrs.h>
 #include <devices/details/parameters_helper.h>
 #include <formats/chiptune/container.h>
 #include <sound/chunk_builder.h>
@@ -33,11 +34,27 @@
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/range/end.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+//text includes
+#include <formats/text/chiptune.h>
 
 namespace Module
 {
 namespace Sid
 {
+  //TODO: extract to Formats library
+  const std::string FORMAT =
+      "'R|'P 'S'I'D" //signature
+      "00 01|02"     //BE version
+      "00 76|7c"     //BE data offset
+      "??"           //BE load address
+      "??"           //BE init address
+      "??"           //BE play address
+      "00|01 ?"      //BE songs count 1-256
+      "??"           //BE start song
+      "????"         //BE speed flag
+  ;
+
   typedef boost::shared_ptr<SidTune> TunePtr;
 
   void CheckSidplayError(bool ok)
@@ -372,41 +389,18 @@ namespace Sid
     const Parameters::Accessor::Ptr Properties;
   };
 
-  class Format : public Binary::Format
-  {
-  public:
-    virtual bool Match(const Binary::Data& /*data*/) const
-    {
-      return true;
-    }
-
-    virtual std::size_t NextMatchOffset(const Binary::Data& data) const
-    {
-      return data.Size();
-    }
-  };
-
-  struct PluginDescription
-  {
-    const char* const Id;
-    const Char* const Description;
-    const char* const Format;
-  };
-
   class Decoder : public Formats::Chiptune::Decoder
   {
   public:
-    explicit Decoder(const PluginDescription& desc)
-      : Desc(desc)
-      , Fmt(Desc.Format ? Binary::CreateMatchOnlyFormat(Desc.Format) : boost::make_shared<Format>())
+    Decoder()
+      : Fmt(Binary::CreateMatchOnlyFormat(FORMAT))
     {
     }
 
     virtual String GetDescription() const
     {
-      return Desc.Description;
+      return Text::SID_DECODER_DESCRIPTION;
     }
-
 
     virtual Binary::Format::Ptr GetFormat() const
     {
@@ -423,18 +417,19 @@ namespace Sid
       return Formats::Chiptune::Container::Ptr();//TODO
     }
   private:
-    const PluginDescription& Desc;
     const Binary::Format::Ptr Fmt;
   };
+
+  bool HasSidContainer(Parameters::Accessor::Ptr params)
+  {
+    Parameters::StringType container;
+    Require(params->FindValue(Module::ATTR_CONTAINER, container));
+    return container == "SID" || boost::algorithm::ends_with(container, ">SID");
+  }
 
   class Factory : public Module::Factory
   {
   public:
-    explicit Factory(const PluginDescription& desc)
-      : Desc(desc)
-    {
-    }
-
     virtual Module::Holder::Ptr CreateModule(PropertiesBuilder& propBuilder, const Binary::Container& rawData) const
     {
       try
@@ -445,6 +440,10 @@ namespace Sid
         const unsigned songIdx = tune->selectSong(0);
 
         const SidTuneInfo& tuneInfo = *tune->getInfo();
+        if (tuneInfo.songs() > 1)
+        {
+          Require(HasSidContainer(propBuilder.GetResult()));
+        }
 
         switch (tuneInfo.numberOfInfoStrings())
         {
@@ -474,30 +473,6 @@ namespace Sid
         return Holder::Ptr();
       }
     }
-  private:
-    const PluginDescription& Desc;
-  };
-
-  const PluginDescription PLUGINS[] =
-  {
-    //RSID/PSID
-    {
-      "SID"
-      ,
-      "C64 SID"      //TODO
-      ,
-      "'R|'P 'S'I'D" //signature
-      "00 01|02"     //BE version
-      "00 76|7c"     //BE data offset
-      "??"           //BE load address
-      "??"           //BE init address
-      "??"           //BE play address
-      "00|01 ?"      //BE songs count 1-256
-      "??"           //BE start song
-      "????"         //BE speed flag
-    },
-    //TODO: extract PowerPacker container
-    //MUS files are not supported due to lack of structure
   };
 }
 }
@@ -506,15 +481,11 @@ namespace ZXTune
 {
   void RegisterSIDPlugins(PlayerPluginsRegistrator& registrator)
   {
+    const Char ID[] = {'S', 'I', 'D', 0};
     const uint_t CAPS = CAP_DEV_MOS6581 | CAP_STOR_MODULE | CAP_CONV_RAW;
-    for (const Module::Sid::PluginDescription* it = Module::Sid::PLUGINS; it != boost::end(Module::Sid::PLUGINS); ++it)
-    {
-      const Module::Sid::PluginDescription& desc = *it;
-
-      const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::Sid::Decoder>(desc);
-      const Module::Factory::Ptr factory = boost::make_shared<Module::Sid::Factory>(desc);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(FromStdString(desc.Id), CAPS, decoder, factory);
-      registrator.RegisterPlugin(plugin);
-    }
+    const Formats::Chiptune::Decoder::Ptr decoder = boost::make_shared<Module::Sid::Decoder>();
+    const Module::Factory::Ptr factory = boost::make_shared<Module::Sid::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
+    registrator.RegisterPlugin(plugin);
   }
 }
