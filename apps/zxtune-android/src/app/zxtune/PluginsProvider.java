@@ -30,8 +30,9 @@ public final class PluginsProvider extends ContentProvider {
     public final static int PLAYER_DAC = 1;
     public final static int PLAYER_FM_TFM = 2;
     public final static int PLAYER_SAA = 3;
+    public final static int PLAYER_SID = 4;
 
-    public final static int UNKNOWN = 4;
+    public final static int UNKNOWN = 5;
   }
   
   private final static String AUTHORITY = "app.zxtune.plugins";
@@ -87,6 +88,8 @@ public final class PluginsProvider extends ContentProvider {
       return Types.PLAYER_FM_TFM;
     } else if (0 != (devices & ZXTune.Plugins.DeviceType.SAA1099)) {
       return Types.PLAYER_SAA;
+    } else if (0 != (devices & ZXTune.Plugins.DeviceType.MOS6581)) {
+      return Types.PLAYER_SID;
     } else {
       return Types.UNKNOWN;
     }

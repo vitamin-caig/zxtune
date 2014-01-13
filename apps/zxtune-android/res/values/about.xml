@@ -17,6 +17,7 @@
     \tlhasa by <b>Simon Howard</b>\n
     \tDragSortListView by <b>Carl A.Bauer</b>\n
     \tlibxmp by <b>Claudio Matsuoka</b>\n
+    \tlibsidplayfp+resid\n
     \n
     Dedicated to <b>Lizzi</b>
   </string>
@@ -26,4 +27,5 @@
   <string name="plugin_player_dac">Samples-based</string>
   <string name="plugin_player_fm_tfm" translatable="false">YM2203/TurboFM</string>
   <string name="plugin_player_saa" translatable="false">Philips SAA1099</string>
+  <string name="plugin_player_sid" translatable="false">MOS6581/SID</string>
 </resources>

@@ -33,6 +33,7 @@ public class PreferencesActivity extends PreferenceActivity implements OnSharedP
     addPreferencesFromResource(R.xml.preferences_aym);
     addPreferencesFromResource(R.xml.preferences_dac);
     addPreferencesFromResource(R.xml.preferences_saa);
+    addPreferencesFromResource(R.xml.preferences_sid);
     addPreferencesFromResource(R.xml.preferences_mixer);
     initPreferenceSummary(getPreferenceScreen());
   }

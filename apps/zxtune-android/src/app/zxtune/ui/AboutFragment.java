@@ -104,6 +104,8 @@ public class AboutFragment extends DialogFragment {
             return R.string.plugin_player_fm_tfm;
           case PluginsProvider.Types.PLAYER_SAA:
             return R.string.plugin_player_saa;
+          case PluginsProvider.Types.PLAYER_SID:
+            return R.string.plugin_player_sid;
           default:
             return R.string.plugin_unknown;
         }
