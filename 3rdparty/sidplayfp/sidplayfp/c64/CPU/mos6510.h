@@ -67,7 +67,7 @@ public:
 protected:
     struct ProcessorCycle
     {
-        void (MOS6510::*func)();
+        void (*func)(MOS6510&);
         bool nosteal;
         ProcessorCycle () :
             func(0),
@@ -134,13 +134,13 @@ protected:
     ~MOS6510() {}
 
     /** Represents an instruction subcycle that writes */
-    EventCallback<MOS6510> m_nosteal;
+    FastEventCallback<MOS6510> m_nosteal;
 
     /** Represents an instruction subcycle that reads */
-    EventCallback<MOS6510> m_steal;
+    FastEventCallback<MOS6510> m_steal;
 
-    void eventWithoutSteals();
-    void eventWithSteals();
+    static void eventWithoutSteals(MOS6510& self);
+    static void eventWithSteals(MOS6510& self);
 
     void Initialise();
 

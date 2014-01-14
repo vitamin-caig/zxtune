@@ -46,6 +46,26 @@ public:
         m_callback(callback) {}
 };
 
+template< class This >
+class FastEventCallback: public Event
+{
+private:
+    typedef void (*Callback) (This&);
+
+private:
+    This &m_this;
+    Callback const m_callback;
+
+private:
+    void event() { m_callback(m_this); }
+
+public:
+    FastEventCallback(const char * const name, This &_this, Callback callback) :
+        Event(name),
+        m_this(_this),
+        m_callback(callback) {}
+};
+
 
 /**
 * Fast EventScheduler implementation
