@@ -27,12 +27,11 @@
 #include <cstdio>
 
 #include "sidplayfp/EventScheduler.h"
+#include "sidplayfp/sidmemory.h"
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
-
-class EventContext;
 
 /**
 * Cycle-exact 6502/6510 emulation core.
@@ -77,6 +76,9 @@ protected:
 protected:
     /** Our event context copy. */
     EventContext &eventContext;
+
+    /** Our memory manager copy */
+    sidmemory &memory;
 
     /** Current instruction and subcycle within instruction */
     int cycleCount;
@@ -130,7 +132,7 @@ protected:
     struct ProcessorCycle  instrTable[0x101 << 3];
 
 protected:
-    MOS6510(EventContext *context);
+    MOS6510(EventContext &context, sidmemory &memory);
     ~MOS6510() {}
 
     /** Represents an instruction subcycle that writes */
@@ -274,21 +276,15 @@ protected:
     inline void doJSR();
 
 public:
-    /**
-    * Get data from system environment
-    *
-    * @param address
-    * @return data byte CPU requested
-    */
-    virtual uint8_t cpuRead(uint_least16_t addr) =0;
+    inline uint8_t cpuRead(uint_least16_t addr)
+    {
+      return memory.cpuRead(addr);
+    }
 
-    /**
-    * Write data to system environment
-    *
-    * @param address
-    * @param data
-    */
-    virtual void cpuWrite(uint_least16_t addr, uint8_t data) =0;
+    inline void cpuWrite(uint_least16_t addr, uint8_t data)
+    {
+      memory.cpuWrite(addr, data);
+    }
 
 #ifdef PC64_TESTSUITE
     virtual void loadFile (const char *file) =0;

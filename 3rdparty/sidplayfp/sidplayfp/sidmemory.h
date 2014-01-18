@@ -99,6 +99,22 @@ public:
     */
     virtual void setBasicSubtune(uint8_t tune) =0;
 
+    /**
+     * Access memory as seen by CPU.
+     *
+     * @param addr the address where to read from
+     * @return value at address
+     */
+    virtual uint8_t cpuRead(uint_least16_t addr) const = 0;
+
+    /**
+     * Access memory as seen by CPU.
+     *
+     * @param addr the address where to write
+     * @param data the value to write
+     */
+    virtual void cpuWrite(uint_least16_t addr, uint8_t data) = 0;
+
 protected:
     ~sidmemory() {}
 };

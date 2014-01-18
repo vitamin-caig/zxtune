@@ -35,11 +35,8 @@ private:
 
 public:
     c64cpu (c64env *env) :
-        MOS6510(&(env->context ())),
+        MOS6510(env->context (), env->memory ()),
         m_env(*env) {}
-
-    uint8_t cpuRead(uint_least16_t addr) { return m_env.cpuRead (addr); }
-    void cpuWrite(uint_least16_t addr, uint8_t data) { m_env.cpuWrite (addr, data); }
 
 #ifdef PC64_TESTSUITE
     void loadFile(const char *file) { m_env.loadFile (file); }

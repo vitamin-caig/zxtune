@@ -23,11 +23,12 @@
 #ifndef C64ENV_H
 #define C64ENV_H
 
-#include "sidplayfp/event.h"
-
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
+
+class EventContext;
+class sidmemory;
 
 /**
 * An implementation of of this class can be created to perform the C64
@@ -36,17 +37,9 @@
 */
 class c64env
 {
-private:
-    EventContext &m_context;
-
 public:
-    c64env (EventContext *context) :
-        m_context (*context) {}
-
-    EventContext &context() const { return m_context; }
-
-    virtual uint8_t cpuRead(uint_least16_t addr) =0;
-    virtual void cpuWrite(uint_least16_t addr, uint8_t data) =0;
+    virtual EventContext &context() = 0;
+    virtual sidmemory &memory() = 0;
 
 #ifdef PC64_TESTSUITE
     virtual void loadFile(const char *file) =0;

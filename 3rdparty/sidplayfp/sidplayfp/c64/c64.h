@@ -131,22 +131,6 @@ private:
 
 private:
     /**
-    * Access memory as seen by CPU.
-    *
-    * @param addr the address where to read from
-    * @return value at address
-    */
-    uint8_t cpuRead(uint_least16_t addr) { return mmu.cpuRead(addr); }
-
-    /**
-    * Access memory as seen by CPU.
-    *
-    * @param addr the address where to write to
-    * @param data the value to write
-    */
-    void cpuWrite(uint_least16_t addr, uint8_t data) { mmu.cpuWrite(addr, data); }
-
-    /**
     * IRQ trigger signal.
     *
     * Calls permitted any time, but normally originated by chips at PHI1.
@@ -192,6 +176,9 @@ private:
 public:
     c64();
     ~c64() {}
+
+    EventContext &context() { return m_scheduler; }
+    sidmemory &memory() { return mmu; }
 
 #ifdef PC64_TESTSUITE
     void setTestEnv(testEnv *env)

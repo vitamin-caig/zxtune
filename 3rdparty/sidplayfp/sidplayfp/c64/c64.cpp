@@ -60,7 +60,6 @@ double c64::getCpuFreq(model_t model)
 }
 
 c64::c64() :
-    c64env(&m_scheduler),
     m_cpuFreq(getCpuFreq(PAL_B)),
     cpu(this),
     cia1(this),
