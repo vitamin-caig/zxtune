@@ -1,5 +1,6 @@
 library_name := sidplayfp
 path_step := ../..
+include defines.mak
 
 source_dirs = sidplayfp \
               sidplayfp/c64 \
@@ -10,5 +11,6 @@ source_dirs = sidplayfp \
 
 source_dirs += utils/MD5
 
-include defines.mak
+defines += FAST_AND_ROUGH NO_ZERORAM
+
 include $(path_step)/makefile.mak

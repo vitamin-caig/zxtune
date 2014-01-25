@@ -76,6 +76,19 @@ void MOS6510::eventWithoutSteals(MOS6510& self)
     self.eventContext.schedule(self.m_nosteal, 1);
 }
 
+void MOS6510::eventWithoutStealsFast(MOS6510& self)
+{
+    unsigned cycles = 0;
+    do
+    {
+      const ProcessorCycle &instr = self.instrTable[self.cycleCount++];
+      (instr.func) (self);
+      ++cycles;
+    }
+    while (0 != (self.cycleCount & 7));
+    self.eventContext.schedule(self.m_nosteal, cycles);
+}
+
 /** When AEC signal is low, steals permitted */
 void MOS6510::eventWithSteals(MOS6510& self)
 {
@@ -1532,7 +1545,11 @@ MOS6510::MOS6510 (EventContext &context, sidmemory &mem) :
 #ifdef DEBUG
     m_fdbg(stdout),
 #endif
+#ifdef FAST_AND_ROUGH
+    m_nosteal("CPU-nosteal", *this, &MOS6510::eventWithoutStealsFast),
+#else
     m_nosteal("CPU-nosteal", *this, &MOS6510::eventWithoutSteals),
+#endif
     m_steal("CPU-steal", *this, &MOS6510::eventWithSteals)
 {
     //----------------------------------------------------------------------

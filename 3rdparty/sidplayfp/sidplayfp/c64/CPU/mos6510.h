@@ -142,6 +142,7 @@ protected:
     FastEventCallback<MOS6510> m_steal;
 
     static void eventWithoutSteals(MOS6510& self);
+    static void eventWithoutStealsFast(MOS6510& self);
     static void eventWithSteals(MOS6510& self);
 
     void Initialise();
