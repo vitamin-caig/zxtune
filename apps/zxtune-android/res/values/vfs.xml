@@ -20,6 +20,9 @@
     <string name="vfs_modland_collections_description">Browse by collection</string>
     <string name="vfs_modland_formats_name">Formats</string>
     <string name="vfs_modland_formats_description">Browse by format</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_name" translatable="false">High Voltage SID Collection</string>
+    <string name="vfs_hvsc_root_description">Via http://www.tld-crew.de</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
 </resources>
