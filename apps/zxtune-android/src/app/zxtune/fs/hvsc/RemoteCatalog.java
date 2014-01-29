@@ -19,8 +19,6 @@ import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
-import android.view.inputmethod.CorrectionInfo;
 import app.zxtune.fs.HttpProvider;
 
 class RemoteCatalog extends Catalog {
@@ -54,7 +52,9 @@ class RemoteCatalog extends Catalog {
   @Override
   public boolean isDirContent(ByteBuffer buf) {
     final byte[] head = new byte[HTML_SIGNATURE.length];
-    return buf.get(head).position() == head.length && Arrays.equals(head, HTML_SIGNATURE);
+    buf.position(0);
+    final int readBytes = buf.get(head).position();
+    return readBytes == head.length && Arrays.equals(head, HTML_SIGNATURE);
   }
 
   @Override
@@ -62,7 +62,7 @@ class RemoteCatalog extends Catalog {
     if (!isDirContent(data)) {
       throw new UnsupportedOperationException();
     }
-    final String chars = new String(data.array(), "UTF-8");
+    final String chars = toString(data); 
     final Matcher matcher = ENTRIES.matcher(chars);
     while (matcher.find()) {
       final String dirMark = matcher.group(1);
@@ -73,6 +73,17 @@ class RemoteCatalog extends Catalog {
         final String size = matcher.group(3);
         visitor.acceptFile(name, size);
       }
+    }
+  }
+  
+  private static String toString(ByteBuffer data) throws IOException {
+    if (data.hasArray()) { 
+      return new String(data.array(), "UTF-8");
+    } else {
+      data.position(0);
+      final byte[] buff = new byte[data.remaining()];
+      data.get(buff);
+      return new String(buff, "UTF-8");
     }
   }
 }
