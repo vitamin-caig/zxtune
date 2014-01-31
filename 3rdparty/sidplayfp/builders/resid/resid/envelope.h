@@ -109,7 +109,7 @@ void EnvelopeGenerator::clock()
   // If the exponential counter period != 1, the envelope decrement is delayed
   // 1 cycle. This is only modeled for single cycle clocking.
   if (unlikely(envelope_pipeline)) {
-    --envelope_counter;
+    --envelope_counter &= 0xff;
     envelope_pipeline = 0;
     // Check for change of exponential counter period.
     set_exponential_counter();
@@ -168,7 +168,7 @@ void EnvelopeGenerator::clock()
 	envelope_pipeline = 1;
 	return;
       }
-      --envelope_counter;
+      --envelope_counter &= 0xff;
       break;
     case RELEASE:
       // The envelope counter can flip from 0x00 to 0xff by changing state to
@@ -260,7 +260,7 @@ void EnvelopeGenerator::clock(cycle_count delta_t)
 	if (likely(envelope_counter == sustain_level[sustain])) {
 	  return;
 	}
-	--envelope_counter;
+  --envelope_counter &= 0xff;
 	break;
       case RELEASE:
 	// The envelope counter can flip from 0x00 to 0xff by changing state to
