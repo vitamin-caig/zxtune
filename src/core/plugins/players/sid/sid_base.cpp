@@ -20,6 +20,7 @@
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <core/module_attrs.h>
+#include <devices/details/analysis_map.h>
 #include <devices/details/parameters_helper.h>
 #include <formats/chiptune/container.h>
 #include <sound/chunk_builder.h>
@@ -65,16 +66,36 @@ namespace Sid
   class Analyzer : public Module::Analyzer
   {
   public:
-    virtual void GetState(std::vector<ChannelState>& channels) const
+    typedef boost::shared_ptr<Analyzer> Ptr;
+
+    explicit Analyzer(const sidplayfp& engine)
+      : Engine(engine)
     {
-      channels.clear();;
     }
 
-    static Ptr Create()
+    void SetClockRate(uint_t rate)
     {
-      static Analyzer instance;
-      return MakeSingletonPointer(instance);
+      //Fout = (Fn * Fclk/16777216) Hz
+      //http://www.waitingforfriday.com/index.php/Commodore_SID_6581_Datasheet
+      Analysis.SetClockAndDivisor(rate, 16777216);
     }
+
+    virtual void GetState(std::vector<ChannelState>& channels) const
+    {
+      unsigned freqs[6], levels[6];
+      const unsigned count = Engine.getState(freqs, levels);
+      std::vector<ChannelState> result(count);
+      for (uint_t chan = 0; chan != count; ++chan)
+      {
+        ChannelState& res = result[chan];
+        res.Band = Analysis.GetBandByScaledFrequency(freqs[chan]);
+        res.Level = levels[chan] * 100 / 15;
+      }
+      channels.swap(result);
+    }
+  private:
+    const sidplayfp& Engine;
+    Devices::Details::AnalysisMap Analysis;
   };
 
   /*
@@ -140,6 +161,7 @@ namespace Sid
       , Builder("resid")
       , Iterator(iterator)
       , State(Iterator->GetStateObserver())
+      , Analysis(new Analyzer(Engine))
       , Target(target)
       , SoundParams(Sound::RenderParameters::Create(params))
       , Params(params)
@@ -161,9 +183,9 @@ namespace Sid
       return State;
     }
 
-    virtual Analyzer::Ptr GetAnalyzer() const
+    virtual Module::Analyzer::Ptr GetAnalyzer() const
     {
-      return Analyzer::Create();
+      return Analysis;
     }
 
     virtual bool RenderFrame()
@@ -238,6 +260,7 @@ namespace Sid
 
           Config.sidEmulation = &Builder;
           CheckSidplayError(Engine.config(Config));
+          Analysis->SetClockRate(Engine.getCPUFreq());
         }
         Looped = SoundParams->Looped();
         SamplesPerFrame = SoundParams->SamplesPerFrame();
@@ -280,6 +303,7 @@ namespace Sid
     ReSIDBuilder Builder;
     const StateIterator::Ptr Iterator;
     const TrackState::Ptr State;
+    const Analyzer::Ptr Analysis;
     const Sound::Receiver::Ptr Target;
     const Devices::Details::ParametersHelper<Sound::RenderParameters> SoundParams;
     const SidParameters Params;
