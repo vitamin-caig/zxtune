@@ -167,11 +167,6 @@
 <context>
     <name>SIDOptions</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="92"/>
-        <source>Warning! Settings change will cause currently playing&apos; SID module restart.</source>
-        <translation>Внимание! Изменение опций приводит к рестарту текущего воспроизводимого SID модуля.</translation>
-    </message>
-    <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="26"/>
         <source>Interpolation</source>
         <translation>Интерполяция</translation>
