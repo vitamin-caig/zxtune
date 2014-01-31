@@ -185,6 +185,9 @@ public:
             return dir;
         case 1:
         {
+#ifdef FAST_AND_ROUGH
+            return dataRead;
+#else
             /* discharge the "capacitor" */
             if (dataFalloffBit6 || dataFalloffBit7)
             {
@@ -224,6 +227,7 @@ public:
             }
 
             return retval;
+#endif
         }
         default:
             return ramBank->peek(address);
@@ -235,6 +239,7 @@ public:
         switch (address)
         {
         case 0:
+#ifndef FAST_AND_ROUGH
             /* when switching an unused bit from output (where it contained a
              * stable value) to input mode (where the input is floating), some
              * of the charge is transferred to the floating input */
@@ -254,7 +259,7 @@ public:
                 dataSetBit7 = data & 0x80;
                 dataFalloffBit7 = true;
             }
-
+#endif
             if (dir != value)
             {
                 dir = value;
@@ -263,9 +268,9 @@ public:
             value = pla->getLastReadByte();
             break;
         case 1:
-            /* when writing to an unused bit that is output, charge the "capacitor",
-             * otherwise don't touch it */
-
+#ifndef FAST_AND_ROUGH
+          /* when writing to an unused bit that is output, charge the "capacitor",
+           * otherwise don't touch it */
             if (dir & 0x40)
             {
                 dataSetBit6 = value & 0x40;
@@ -279,7 +284,7 @@ public:
                 dataSetClkBit7 = pla->getPhi2Time() + C64_CPU6510_DATA_PORT_FALL_OFF_CYCLES;
                 dataFalloffBit7 = true;
             }
-
+#endif
             if (data != value)
             {
                 data = value;

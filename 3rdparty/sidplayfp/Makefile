@@ -11,6 +11,6 @@ source_dirs = sidplayfp \
 
 source_dirs += utils/MD5
 
-defines += FAST_AND_ROUGH NO_ZERORAM
+defines += FAST_AND_ROUGH
 
 include $(path_step)/makefile.mak

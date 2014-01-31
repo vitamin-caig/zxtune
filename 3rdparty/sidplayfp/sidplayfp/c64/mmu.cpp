@@ -37,15 +37,13 @@ MMU::MMU(EventContext *context, Bank* ioBank) :
     ioBank(ioBank),
     zeroRAMBank(this, &ramBank)
 {
-    for (int i = 0; i < 16; i++)
+    cpuReadMap[0] = &zeroRAMBank;
+    cpuWriteMap[0] = &zeroRAMBank;
+    for (int i = 1; i < 16; i++)
     {
         cpuReadMap[i] = &ramBank;
         cpuWriteMap[i] = &ramBank;
     }
-#ifndef NO_ZERORAM
-    cpuReadMap[0] = &zeroRAMBank;
-    cpuWriteMap[0] = &zeroRAMBank;
-#endif
 }
 
 void MMU::setCpuPort (int state)
