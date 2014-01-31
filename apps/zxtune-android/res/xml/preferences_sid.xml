@@ -15,10 +15,5 @@
       android:title="@string/pref_zxtune_sid_filter_title"
       android:defaultValue="@integer/pref_zxtune_sid_filter_default"
       />
-    <Preference
-      android:selectable="false"
-      android:title="@string/pref_zxtune_sid_warning_title"
-      android:summary="@string/pref_zxtune_sid_warning_description"
-      />
   </PreferenceScreen>
 </PreferenceScreen>

@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="pref_zxtune_sid_warning_title">Внимание!</string>
-  <string name="pref_zxtune_sid_warning_description">Изменение опций приводит к рестарту\nтекущего воспроизводимого SID модуля.</string>
   <string  name="pref_zxtune_sid_filter_title">Эмуляция фильтра</string>
 </resources>

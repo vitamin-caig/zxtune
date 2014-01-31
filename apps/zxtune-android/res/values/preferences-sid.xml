@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="pref_zxtune_sid_title" translatable="false">MOS6581/SID</string>
-  <string name="pref_zxtune_sid_warning_title">Warning!</string>
-  <string name="pref_zxtune_sid_warning_description"> Settings change will cause currently\nplaying\&apos; SID module restart.</string>
   <!-- zxtune.core.sid.interpolation -->
   <string  name="pref_zxtune_sid_interpolation" translatable="false">zxtune.core.sid.interpolation</string>
   <integer name="pref_zxtune_sid_interpolation_default">0</integer>
