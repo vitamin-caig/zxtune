@@ -22,7 +22,7 @@
 
 #include "mixer.h"
 
-#include <algorithm> 
+#include <algorithm>
 
 #include "sidplayfp/sidemu.h"
 
@@ -32,6 +32,7 @@
 const int MIXER_EVENT_RATE = OUTPUTBUFFERSIZE;
 
 void clockChip(sidemu *s) { s->clock(); }
+void clockChipSilent(sidemu* s) { s->clockSilent(); }
 
 class bufferPos
 {
@@ -63,73 +64,100 @@ private:
 
 void Mixer::event()
 {
+    if (m_chips.size())
+    {
+        if (m_sampleBuffer)
+        {
+            renderSamples();
+        }
+        else
+        {
+            renderSilence();
+        }
+    }
+    event_context.schedule(*this, MIXER_EVENT_RATE);
+}
+
+void Mixer::renderSamples()
+{
     /* this clocks the SIDs to the present moment, if they aren't already. */
     std::for_each(m_chips.begin(), m_chips.end(), clockChip);
 
-    if (m_sampleBuffer && m_chips.size())
+    /* extract buffer info now that the SID is updated.
+     * clock() may update bufferpos.
+     * NB: if chip2 exists, its bufferpos is identical to chip1's. */
+    const int sampleCount = m_chips.front()->bufferpos();
+
+    short *buf = m_sampleBuffer + m_sampleIndex;
+
+    int i = 0;
+    while (i < sampleCount)
     {
-        short *buf = m_sampleBuffer + m_sampleIndex;
-
-        /* extract buffer info now that the SID is updated.
-         * clock() may update bufferpos.
-         * NB: if chip2 exists, its bufferpos is identical to chip1's. */
-        const int sampleCount = m_chips[0]->bufferpos();
-
-        int i = 0;
-        while (i < sampleCount)
+        /* Handle whatever output the sid has generated so far */
+        if (m_sampleIndex >= m_sampleCount)
         {
-            /* Handle whatever output the sid has generated so far */
-            if (m_sampleIndex >= m_sampleCount)
-            {
-                break;
-            }
-            /* Are there enough samples to generate the next one? */
-            if (i + m_fastForwardFactor >= sampleCount)
-            {
-                break;
-            }
-
-            const int dither = triangularDithering();
-
-            /* This is a crude boxcar low-pass filter to
-             * reduce aliasing during fast forward. */
-            for (size_t k = 0; k < m_buffers.size(); k++)
-            {
-                int_least32_t sample = 0;
-                const short *buffer = m_buffers[k] + i;
-                for (int j = 0; j < m_fastForwardFactor; j++)
-                {
-                    sample += buffer[j];
-                }
-
-                m_iSamples[k] = (sample * m_volume[k] + dither) / VOLUME_MAX;
-                m_iSamples[k] /= m_fastForwardFactor;
-            }
-
-            /* increment i to mark we ate some samples, finish the boxcar thing. */
-            i += m_fastForwardFactor;
-
-            const unsigned int channels = m_stereo ? 2 : 1;
-            for (unsigned int k = 0; k < channels; k++)
-            {
-                *buf++ = (this->*(m_mix[k]))();
-                m_sampleIndex++;
-            }
+            break;
+        }
+        /* Are there enough samples to generate the next one? */
+        if (i + m_fastForwardFactor >= sampleCount)
+        {
+            break;
         }
 
-        /* move the unhandled data to start of buffer, if any. */
-        const int samplesLeft = sampleCount - i;
-        std::for_each(m_buffers.begin(), m_buffers.end(), bufferMove(i, samplesLeft));
-        std::for_each(m_chips.begin(), m_chips.end(), bufferPos(samplesLeft - 1));
-    }
-    else
-    {
-        m_sampleIndex++; // FIXME this sucks
-        std::for_each(m_chips.begin(), m_chips.end(), bufferPos(0));
+        const int dither = triangularDithering();
+
+        /* This is a crude boxcar low-pass filter to
+         * reduce aliasing during fast forward. */
+        for (size_t k = 0; k < m_buffers.size(); k++)
+        {
+            int_least32_t sample = 0;
+            const short *buffer = m_buffers[k] + i;
+            for (int j = 0; j < m_fastForwardFactor; j++)
+            {
+                sample += buffer[j];
+            }
+
+            m_iSamples[k] = (sample * m_volume[k] + dither) / VOLUME_MAX;
+            m_iSamples[k] /= m_fastForwardFactor;
+        }
+
+        /* increment i to mark we ate some samples, finish the boxcar thing. */
+        i += m_fastForwardFactor;
+
+        const unsigned int channels = m_stereo ? 2 : 1;
+        for (unsigned int k = 0; k < channels; k++)
+        {
+            *buf++ = (this->*(m_mix[k]))();
+            m_sampleIndex++;
+        }
     }
 
-    /* Post a callback to ourselves. */
-    event_context.schedule(*this, MIXER_EVENT_RATE);
+    /* move the unhandled data to start of buffer, if any. */
+    const int samplesLeft = sampleCount - i;
+    std::for_each(m_buffers.begin(), m_buffers.end(), bufferMove(i, samplesLeft));
+    std::for_each(m_chips.begin(), m_chips.end(), bufferPos(samplesLeft));
+}
+
+void Mixer::renderSilence()
+{
+    std::for_each(m_chips.begin(), m_chips.end(), clockChipSilent);
+
+    const int sampleCount = m_chips.front()->bufferpos();
+    const unsigned int channels = m_stereo ? 2 : 1;
+
+    int i = 0;
+    while (i < sampleCount)
+    {
+      const int nextPos = i + m_fastForwardFactor;
+      if (m_sampleIndex >= m_sampleCount || nextPos >= sampleCount)
+      {
+          break;
+      }
+      i = nextPos;
+      m_sampleIndex += channels;
+    }
+    const int samplesLeft = sampleCount - i;
+    std::for_each(m_chips.begin(), m_chips.end(), bufferPos(samplesLeft));
 }
 
 void Mixer::reset()

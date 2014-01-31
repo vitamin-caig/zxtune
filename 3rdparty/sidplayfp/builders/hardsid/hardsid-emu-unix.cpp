@@ -154,6 +154,11 @@ void HardSID::clock()
         ioctl(m_handle, HSID_IOCTL_DELAY, cycles);
 }
 
+void HardSID::clockSilent()
+{
+    clock();
+}
+
 uint8_t HardSID::read(uint_least8_t addr)
 {
     if (!m_handle)

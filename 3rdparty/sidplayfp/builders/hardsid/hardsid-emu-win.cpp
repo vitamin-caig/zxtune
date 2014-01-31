@@ -86,6 +86,11 @@ void HardSID::clock()
     return;
 }
 
+void HardSID::clockSilent()
+{
+    return;
+}
+
 uint8_t HardSID::read(uint_least8_t addr)
 {
     event_clock_t cycles = m_eventContext->getTime (m_accessClk, EVENT_CLOCK_PHI1);

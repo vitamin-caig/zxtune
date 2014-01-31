@@ -264,7 +264,7 @@ public:
      *
      * @param cycles c64 clocks to clock.
      */
-    void clockSilent(int cycles);
+    int clockSilent(int cycles);
 
     /**
      * Get chip's 6581 filter.

@@ -77,6 +77,7 @@ public:
 
     // Standard SID functions
     void clock();
+    void clockSilent();
     void filter(bool enable);
     void voice(unsigned int num, bool mute);
 

@@ -110,6 +110,13 @@ void ReSIDfp::clock()
     m_bufferpos += m_sid.clock(cycles, m_buffer+m_bufferpos);
 }
 
+void ReSIDfp::clockSilent()
+{
+    const event_clock_t cycles = m_context->getTime(m_accessClk, EVENT_CLOCK_PHI1);
+    m_accessClk += cycles;
+    m_bufferpos += m_sid.clockSilent(cycles);
+}
+
 void ReSIDfp::filter(bool enable)
 {
       m_sid.getFilter6581()->enable(enable);

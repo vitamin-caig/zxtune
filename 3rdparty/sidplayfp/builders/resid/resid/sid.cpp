@@ -643,7 +643,7 @@ void SID::adjust_sampling_frequency(double sample_freq)
 // ----------------------------------------------------------------------------
 // SID clocking - delta_t cycles.
 // ----------------------------------------------------------------------------
-void SID::clock(cycle_count delta_t)
+void SID::clock(cycle_count delta_t, bool soundOutput)
 {
   int i;
 
@@ -651,7 +651,7 @@ void SID::clock(cycle_count delta_t)
   if (unlikely(write_pipeline) && likely(delta_t > 0)) {
     // Step one cycle by a recursive call to ourselves.
     write_pipeline = 0;
-    clock(1);
+    clock(1, soundOutput);
     write();
     delta_t -= 1;
   }
@@ -725,12 +725,14 @@ void SID::clock(cycle_count delta_t)
     voice[i].wave.set_waveform_output(delta_t);
   }
 
-  // Clock filter.
-  filter.clock(delta_t,
-	       voice[0].output(), voice[1].output(), voice[2].output());
+  if (likely(soundOutput)) {
+    // Clock filter.
+    filter.clock(delta_t,
+           voice[0].output(), voice[1].output(), voice[2].output());
 
-  // Clock external filter.
-  extfilt.clock(delta_t, filter.output());
+    // Clock external filter.
+    extfilt.clock(delta_t, filter.output());
+  }
 }
 
 
@@ -750,6 +752,9 @@ void SID::clock(cycle_count delta_t)
 // ----------------------------------------------------------------------------
 int SID::clock(cycle_count& delta_t, short* buf, int n, int interleave)
 {
+  if (!buf) {
+    return clock_silence(delta_t, n);
+  }
   switch (sampling) {
   default:
   case SAMPLE_FAST:
@@ -763,6 +768,29 @@ int SID::clock(cycle_count& delta_t, short* buf, int n, int interleave)
   }
 }
 
+int SID::clock_silence(cycle_count& delta_t, int n)
+{
+  int s;
+  //TODO: use fast div/mod
+  for (s = 0; s < n; ++s) {
+    cycle_count next_sample_offset = sample_offset + cycles_per_sample + (1 << (FIXP_SHIFT - 1));
+    cycle_count delta_t_sample = next_sample_offset >> FIXP_SHIFT;
+
+    if (delta_t_sample > delta_t) {
+      delta_t_sample = delta_t;
+    }
+
+    clock(delta_t_sample, false);
+
+    if ((delta_t -= delta_t_sample) == 0) {
+      sample_offset -= delta_t_sample << FIXP_SHIFT;
+      break;
+    }
+
+    sample_offset = (next_sample_offset & FIXP_MASK) - (1 << (FIXP_SHIFT - 1));
+  }
+  return s;
+}
 
 // ----------------------------------------------------------------------------
 // SID clocking with audio sampling - delta clocking picking nearest sample.
@@ -780,7 +808,7 @@ int SID::clock_fast(cycle_count& delta_t, short* buf, int n,
       delta_t_sample = delta_t;
     }
 
-    clock(delta_t_sample);
+    clock(delta_t_sample, true);
 
     if ((delta_t -= delta_t_sample) == 0) {
       sample_offset -= delta_t_sample << FIXP_SHIFT;

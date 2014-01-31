@@ -79,6 +79,9 @@ private:
         return oldRandomValue - prevValue;
     }
 
+    void renderSamples();
+    void renderSilence();
+
     short channel1MonoMix() const { return static_cast<short>((m_iSamples[0] + m_iSamples[1]) / 2); }
     short channel1StereoMix() const { return static_cast<short>(m_iSamples[0]); }
 
@@ -115,7 +118,7 @@ public:
     /**
      * Prepare for mixing cycle.
      *
-     * @param buffer output buffer
+     * @param buffer output. 0 for optimized silence rendering
      * @param count size of the buffer in samples
      */
     void begin(short *buffer, uint_least32_t count);

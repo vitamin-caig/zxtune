@@ -141,6 +141,7 @@ public:
     void write(uint_least8_t addr, uint8_t data);
 
     void clock();
+    void clockSilent();
     const char *error() const { return m_errorBuffer.c_str(); }
     bool getStatus() const { return m_status; }
 

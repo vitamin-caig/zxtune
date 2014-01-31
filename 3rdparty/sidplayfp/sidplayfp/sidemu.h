@@ -62,6 +62,7 @@ public:
     virtual void reset(uint8_t volume) = 0;
 
     virtual void clock() = 0;
+    virtual void clockSilent() = 0;
 
     virtual bool lock(EventContext *env) = 0;
     virtual void unlock() = 0;

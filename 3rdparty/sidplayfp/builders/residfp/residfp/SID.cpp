@@ -367,9 +367,10 @@ void SID::setSamplingParameters(double clockFrequency, SamplingMethod method, do
     }
 }
 
-void SID::clockSilent(int cycles)
+int SID::clockSilent(int cycles)
 {
     ageBusValue(cycles);
+    int s = 0;
 
     while (cycles != 0)
     {
@@ -384,6 +385,11 @@ void SID::clockSilent(int cycles)
 
             for (int i = 0; i < delta_t; i++)
             {
+                //TODO: use stub resampler
+                if (resampler->input(0))
+                {
+                    ++s;
+                }
                 /* clock waveform generators (can affect OSC3) */
                 voice[0]->wave()->clock();
                 voice[1]->wave()->clock();
@@ -408,6 +414,7 @@ void SID::clockSilent(int cycles)
             voiceSync(true);
         }
     }
+    return s;
 }
 
 } // namespace reSIDfp
