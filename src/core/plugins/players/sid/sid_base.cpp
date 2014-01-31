@@ -238,8 +238,6 @@ namespace Sid
 
           Config.sidEmulation = &Builder;
           CheckSidplayError(Engine.config(Config));
-          //config() causes playback restart
-          Iterator->Reset();
         }
         Looped = SoundParams->Looped();
         SamplesPerFrame = SoundParams->SamplesPerFrame();
