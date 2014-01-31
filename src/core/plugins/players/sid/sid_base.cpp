@@ -260,24 +260,19 @@ namespace Sid
 
     void AdvanceEngine(uint_t framesToPlay)
     {
-      std::vector<short> fakeBuf(SamplesPerFrame * Sound::Sample::CHANNELS);
-      uint_t restFrames = framesToPlay;
-      if (restFrames >= 32)
-      {
-        restFrames = AdvanceEngine(restFrames, 32, fakeBuf);
-      }
-      AdvanceEngine(restFrames, 1, fakeBuf);
+      const uint_t restFrames = AdvanceEngine<32>(framesToPlay);
+      AdvanceEngine<1>(restFrames);
     }
 
-    uint_t AdvanceEngine(uint_t frames, uint_t scale, std::vector<short>& buf)
+    template<uint_t Scale>
+    uint_t AdvanceEngine(uint_t frames)
     {
-      Engine.fastForward(scale * 100);
-      while (frames > scale)
+      Engine.fastForward(Scale * 100);
+      if (const uint_t scaledFrames = frames / Scale)
       {
-        Engine.play(&buf.front(), buf.size());
-        frames -= scale;
+        Engine.play(0, scaledFrames * SamplesPerFrame * Sound::Sample::CHANNELS);
       }
-      return frames;
+      return frames % Scale;
     }
   private:
     const TunePtr Tune;
