@@ -90,6 +90,8 @@ public:
   State read_state();
   void write_state(const State& state);
 
+  void read_state(unsigned freqs[3], unsigned levels[3]);
+
   // 16-bit input (EXT IN).
   void input(short sample);
 

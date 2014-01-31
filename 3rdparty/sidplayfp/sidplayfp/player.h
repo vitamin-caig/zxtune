@@ -138,6 +138,8 @@ public:
 
     void mute(unsigned int sidNum, unsigned int voice, bool enable);
 
+    unsigned int getState(unsigned int* freqs, unsigned int* levels) const;
+
     const char *error() const { return m_errorString; }
 
     void setRoms(const uint8_t* kernal, const uint8_t* basic, const uint8_t* character);

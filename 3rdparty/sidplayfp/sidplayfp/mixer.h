@@ -175,6 +175,11 @@ public:
      * Get the number of samples generated up to now.
      */
     uint_least32_t samplesGenerated() const { return m_sampleIndex; }
+
+    /**
+     * Get the current buffer
+     */
+    const short* samplesBuffer() const { return m_sampleBuffer; }
 };
 
 #endif // MIXER_H

@@ -344,6 +344,16 @@ void SID::write(int offset, unsigned char value)
     }
 }
 
+void SID::readState(unsigned freqs[3], unsigned levels[3])
+{
+    for (unsigned i = 0; i != 3; ++i)
+    {
+        Voice& v = *voice[i];
+        freqs[i] = v.wave()->readFreq();
+        levels[i] = v.envelope()->readSUS();
+    }
+}
+
 void SID::setSamplingParameters(double clockFrequency, SamplingMethod method, double samplingFrequency, double highestAccurateFrequency)
 {
     filter6581->setClockFrequency(clockFrequency);

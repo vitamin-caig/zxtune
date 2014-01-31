@@ -70,6 +70,7 @@ public:
     // Standard SID functions
     virtual void voice(unsigned int num, bool mute) = 0;
     virtual void model(SidConfig::sid_model_t model) = 0;
+    virtual void analyze(unsigned int tone[3], unsigned int level[3]) = 0;
 
     sidbuilder *builder() const { return m_builder; }
 
