@@ -51,6 +51,7 @@ bool Player::config(const SidConfig &cfg)
         return false;
     }
 
+    const bool forceReconfig = &cfg == &m_cfg;
     uint_least16_t secondSidAddress = cfg.secondSidAddress;
 
     // Only do these if we have a loaded tune
@@ -65,19 +66,40 @@ bool Player::config(const SidConfig &cfg)
         {
             // SID emulation setup (must be performed before the
             // environment setup call)
-            sidRelease();
-            const int channels = (secondSidAddress != 0) ? 2 : 1;
-            sidCreate(cfg.sidEmulation, cfg.defaultSidModel, cfg.forceSidModel, channels);
+            const bool needReinit = forceReconfig
+                || cfg.sidEmulation != m_cfg.sidEmulation
+                || cfg.defaultSidModel != m_cfg.defaultSidModel
+                || cfg.forceSidModel != m_cfg.forceSidModel;
+            if (needReinit)
+            {
+              sidRelease();
+              const int channels = (secondSidAddress != 0) ? 2 : 1;
+              sidCreate(cfg.sidEmulation, cfg.defaultSidModel, cfg.forceSidModel, channels);
+            }
 
-            // Determine clock speed
-            const c64::model_t model = c64model(cfg.defaultC64Model, cfg.forceC64Model);
+            if (forceReconfig
+                || cfg.defaultC64Model != m_cfg.defaultC64Model
+                || cfg.forceC64Model != m_cfg.forceC64Model)
+            {
+              // Determine clock speed
+              const c64::model_t model = c64model(cfg.defaultC64Model, cfg.forceC64Model);
 
-            m_c64.setModel(model);
+              m_c64.setModel(model);
+            }
 
-            sidParams(m_c64.getMainCpuSpeed(), cfg.frequency, cfg.samplingMethod, cfg.fastSampling);
+            if (forceReconfig
+                || cfg.frequency != m_cfg.frequency
+                || cfg.samplingMethod != m_cfg.samplingMethod
+                || cfg.fastSampling != m_cfg.fastSampling)
+            {
+              sidParams(m_c64.getMainCpuSpeed(), cfg.frequency, cfg.samplingMethod, cfg.fastSampling);
+            }
 
-            // Configure, setup and install C64 environment/events
-            initialise();
+            if (needReinit)
+            {
+              // Configure, setup and install C64 environment/events
+              initialise();
+            }
         }
         catch (configError const &e)
         {
@@ -91,16 +113,19 @@ bool Player::config(const SidConfig &cfg)
         }
     }
 
-    if (secondSidAddress)
+    if (forceReconfig || secondSidAddress != m_cfg.secondSidAddress)
     {
-        // Assumed to be in d420-d7ff or de00-dfff range
-        m_c64.setSecondSIDAddress(secondSidAddress);
-        m_info.m_channels = 2;
-    }
-    else
-    {
-        m_c64.setSecondSIDAddress(0);
-        m_info.m_channels = 1;
+      if (secondSidAddress)
+      {
+          // Assumed to be in d420-d7ff or de00-dfff range
+          m_c64.setSecondSIDAddress(secondSidAddress);
+          m_info.m_channels = 2;
+      }
+      else
+      {
+          m_c64.setSecondSIDAddress(0);
+          m_info.m_channels = 1;
+      }
     }
 
     m_mixer.setStereo(cfg.playback == SidConfig::STEREO);
@@ -108,6 +133,7 @@ bool Player::config(const SidConfig &cfg)
 
     // Update Configuration
     m_cfg = cfg;
+    m_cfg.secondSidAddress = secondSidAddress;
 
     return true;
 }
