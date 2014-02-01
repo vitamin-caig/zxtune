@@ -39,7 +39,7 @@ class sidemu;
 class Mixer : private Event
 {
 private:
-    typedef short (Mixer::*mixer_func_t)() const;
+    typedef short (*mixer_func_t)(const int_least32_t* s);
 
 public:
     /** Maximum allowed volume, must be a power of 2 */
@@ -60,7 +60,6 @@ private:
     std::vector<mixer_func_t> m_mix;
 
     int oldRandomValue;
-    int m_fastForwardFactor;
 
     // Mixer settings
     short         *m_sampleBuffer;
@@ -82,11 +81,11 @@ private:
     void renderSamples();
     void renderSilence();
 
-    short channel1MonoMix() const { return static_cast<short>((m_iSamples[0] + m_iSamples[1]) / 2); }
-    short channel1StereoMix() const { return static_cast<short>(m_iSamples[0]); }
+    static short channel1MonoMix(const int_least32_t* s) { return static_cast<short>((s[0] + s[1]) / 2); }
+    static short channel1StereoMix(const int_least32_t* s) { return static_cast<short>(s[0]); }
 
-    short channel2FromMonoMix() const { return static_cast<short>(m_iSamples[0]); }
-    short channel2FromStereoMix() const { return static_cast<short>(m_iSamples[1]); }
+    static short channel2FromMonoMix(const int_least32_t* s) { return static_cast<short>(s[0]); }
+    static short channel2FromStereoMix(const int_least32_t* s) { return static_cast<short>(s[1]); }
 
 public:
     /**
@@ -98,7 +97,6 @@ public:
         Event("Mixer"),
         event_context(*context),
         oldRandomValue(0),
-        m_fastForwardFactor(1),
         m_sampleCount(0),
         m_stereo(false)
     {
@@ -142,14 +140,6 @@ public:
      * @return a pointer to the requested sid emu or 0 if not found
      */
     sidemu* getSid(unsigned int i) const { return (i < m_chips.size()) ? m_chips[i] : 0; }
-
-    /**
-     * Set the fast forward ratio.
-     *
-     * @param ff the fast forward ratio, from 1 to 32
-     * @return true if parameter is valid, false otherwise
-     */
-    bool setFastForward(int ff);
 
     /**
      * Set mixing volumes, from 0 to #VOLUME_MAX.

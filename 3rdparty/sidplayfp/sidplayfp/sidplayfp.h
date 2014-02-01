@@ -83,13 +83,6 @@ public:
     const char *error() const;
 
     /**
-    * Set the fast-forward factor.
-    *
-    * @param percent
-    */
-    bool fastForward(unsigned int percent);
-
-    /**
     * Load a tune.
     * Check #error for detailed message if something goes wrong.
     *

@@ -120,8 +120,6 @@ public:
 
     bool config(const SidConfig &cfg);
 
-    bool fastForward(unsigned int percent);
-
     bool load(SidTune *tune);
 
     double cpuFreq() const { return m_c64.getMainCpuSpeed(); }

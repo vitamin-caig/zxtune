@@ -80,17 +80,6 @@ void Player::setRoms(const uint8_t* kernal, const uint8_t* basic, const uint8_t*
     m_c64.setRoms(kernal, basic, character);
 }
 
-bool Player::fastForward(unsigned int percent)
-{
-    if (!m_mixer.setFastForward(percent / 100))
-    {
-        m_errorString = "SIDPLAYER ERROR: Percentage value out of range.";
-        return false;
-    }
-
-    return true;
-}
-
 void Player::initialise()
 {
     m_isPlaying = false;

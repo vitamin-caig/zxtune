@@ -81,11 +81,6 @@ const char *sidplayfp::error() const
     return sidplayer.error();
 }
 
-bool  sidplayfp::fastForward(unsigned int percent)
-{
-    return sidplayer.fastForward(percent);
-}
-
 void sidplayfp::mute(unsigned int sidNum, unsigned int voice, bool enable)
 {
     sidplayer.mute(sidNum, voice, enable);
