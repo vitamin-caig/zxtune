@@ -86,8 +86,8 @@ private:
 private:
     PLA* pla;
 
-    /** C64 RAM area */
-    Bank* ramBank;
+    /** C64 RAM area. Use static types to avoid unneeded polymorphism */
+    SystemRAMBank* ramBank;
 
     /** cycle that should invalidate the unused bits of the data port. */
     //@{
@@ -146,7 +146,7 @@ private:    // prevent copying
     ZeroRAMBank& operator=(const ZeroRAMBank&);
 
 public:
-    ZeroRAMBank(PLA* pla, Bank* ramBank) :
+    ZeroRAMBank(PLA* pla, SystemRAMBank* ramBank) :
         pla(pla),
         ramBank(ramBank) {}
 
@@ -230,7 +230,7 @@ public:
 #endif
         }
         default:
-            return ramBank->peek(address);
+            return ramBank->peekByte(address);
         }
     }
 
@@ -296,7 +296,7 @@ public:
             break;
         }
 
-        ramBank->poke(address, value);
+        ramBank->pokeByte(address, value);
     }
 };
 
