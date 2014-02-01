@@ -109,13 +109,15 @@ inline void endian_16 (char ptr[2], uint_least16_t word)
 }
 
 // Convert high-byte and low-byte to 16-bit little endian word.
-inline uint_least16_t endian_little16 (const uint8_t ptr[2])
+template<class T>
+inline uint_least16_t endian_little16 (const T ptr[2])
 {
     return endian_16 (ptr[1], ptr[0]);
 }
 
 // Write a little-endian 16-bit word to two bytes in memory.
-inline void endian_little16 (uint8_t ptr[2], uint_least16_t word)
+template<class T>
+inline void endian_little16 (T ptr[2], uint_least16_t word)
 {
     ptr[0] = endian_16lo8 (word);
     ptr[1] = endian_16hi8 (word);

@@ -23,7 +23,7 @@
 #define SYSTEMRAMBANK_H
 
 #include <stdint.h>
-#include <cstring>
+#include <algorithm>
 
 #include "Bank.h"
 
@@ -36,7 +36,7 @@ class SystemRAMBank : public Bank
 {
 private:
     /** C64 RAM area */
-    uint8_t ram[0x10000];
+    unsigned ram[0x10000];
 
 public:
     /// Initialize RAM with powerup pattern
@@ -81,12 +81,12 @@ public:
 
     void fill(uint_least16_t start, uint8_t value, unsigned int size)
     {
-        memset(ram+start, 0, size);
+        std::fill_n(ram+start, size, value);
     }
 
     void fill(uint_least16_t start, const uint8_t* source, unsigned int size)
     {
-        memcpy(ram+start, source, size);
+        std::copy(source, source+size, ram+start);
     }
 };
 
