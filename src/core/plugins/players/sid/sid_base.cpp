@@ -283,19 +283,7 @@ namespace Sid
 
     void AdvanceEngine(uint_t framesToPlay)
     {
-      const uint_t restFrames = AdvanceEngine<32>(framesToPlay);
-      AdvanceEngine<1>(restFrames);
-    }
-
-    template<uint_t Scale>
-    uint_t AdvanceEngine(uint_t frames)
-    {
-      Engine.fastForward(Scale * 100);
-      if (const uint_t scaledFrames = frames / Scale)
-      {
-        Engine.play(0, scaledFrames * SamplesPerFrame * Sound::Sample::CHANNELS);
-      }
-      return frames % Scale;
+      Engine.play(0, framesToPlay * SamplesPerFrame * Sound::Sample::CHANNELS);
     }
   private:
     const TunePtr Tune;
