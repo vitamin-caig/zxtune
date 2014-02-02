@@ -36,7 +36,7 @@ class SystemRAMBank : public Bank
 {
 private:
     /** C64 RAM area */
-    unsigned ram[0x10000];
+    uint8_t ram[0x10000];
 
 public:
     /// Initialize RAM with powerup pattern

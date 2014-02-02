@@ -22,8 +22,6 @@
 
 #include "mmu.h"
 
-class Bank;
-
 static const uint8_t POWERON[] =
 {
 #include "poweron.bin"
@@ -37,13 +35,29 @@ MMU::MMU(EventContext *context, Bank* ioBank) :
     ioBank(ioBank),
     zeroRAMBank(this, &ramBank)
 {
-    cpuReadMap[0] = &zeroRAMBank;
-    cpuWriteMap[0] = &zeroRAMBank;
-    for (int i = 1; i < 16; i++)
-    {
-        cpuReadMap[i] = &ramBank;
-        cpuWriteMap[i] = &ramBank;
-    }
+    setReadBank(0, 65536, &ramBank);
+    setWriteBank(0, 65536, &ramBank);
+
+    // fill later for cover cases when GRANULARITY > 2
+    setReadBank(0, 2, &zeroRAMBank);
+    setWriteBank(0, 2, &zeroRAMBank);
+}
+
+void MMU::setReadBank(uint_least16_t start, int size, Bank* bank)
+{
+  //aggressive loop optimization sometimes break cycle
+  for (int idx = getReadBankIndex(start), rest = size; rest > 0; ++idx, rest -= READ_BANK_GRANULARITY)
+  {
+    cpuReadMap[idx] = bank;
+  }
+}
+
+void MMU::setWriteBank(uint_least16_t start, int size, Bank* bank)
+{
+  for (int idx = getWriteBankIndex(start), rest = size; rest > 0; ++idx, rest -= WRITE_BANK_GRANULARITY)
+  {
+    cpuWriteMap[idx] = bank;
+  }
 }
 
 void MMU::setCpuPort (int state)
@@ -56,17 +70,18 @@ void MMU::setCpuPort (int state)
 
 void MMU::updateMappingPHI2()
 {
-    cpuReadMap[0xe] = cpuReadMap[0xf] = hiram ? (Bank*)&kernalRomBank : &ramBank;
-    cpuReadMap[0xa] = cpuReadMap[0xb] = (loram && hiram) ? (Bank*)&basicRomBank : &ramBank;
+    setReadBank(0xe000, 0x2000, hiram ? (Bank*)&kernalRomBank : &ramBank);
+    setReadBank(0xa000, 0x2000, (loram && hiram) ? (Bank*)&basicRomBank : &ramBank);
 
     if (charen && (loram || hiram))
     {
-        cpuReadMap[0xd] = cpuWriteMap[0xd] = ioBank;
+        setReadBank(0xd000, 0x1000, ioBank);
+        setWriteBank(0xd000, 0x1000, ioBank);
     }
     else
     {
-        cpuReadMap[0xd] = (!charen && (loram || hiram)) ? (Bank*)&characterRomBank : &ramBank;
-        cpuWriteMap[0xd] = &ramBank;
+        setReadBank(0xd000, 0x1000, (!charen && (loram || hiram)) ? (Bank*)&characterRomBank : &ramBank);
+        setWriteBank(0xd000, 0x1000, &ramBank);
     }
 }
 

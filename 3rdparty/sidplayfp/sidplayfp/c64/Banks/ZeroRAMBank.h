@@ -89,6 +89,18 @@ private:
     /** C64 RAM area. Use static types to avoid unneeded polymorphism */
     SystemRAMBank* ramBank;
 
+    /** Value written to processor port.  */
+    //@{
+    unsigned dir;
+    unsigned data;
+    //@}
+
+    /** Value read from processor port.  */
+    unsigned dataRead;
+
+    /** State of processor port pins.  */
+    unsigned procPortPins;
+
     /** cycle that should invalidate the unused bits of the data port. */
     //@{
     event_clock_t dataSetClkBit6;
@@ -108,18 +120,6 @@ private:
     uint8_t dataSetBit6;
     uint8_t dataSetBit7;
     //@}
-
-    /** Value written to processor port.  */
-    //@{
-    uint8_t dir;
-    uint8_t data;
-    //@}
-
-    /** Value read from processor port.  */
-    uint8_t dataRead;
-
-    /** State of processor port pins.  */
-    uint8_t procPortPins;
 
 private:
     void updateCpuPort()
@@ -179,11 +179,15 @@ public:
 
     uint8_t peek(uint_least16_t address)
     {
-        switch (address)
+        if (sidmemory::READ_BANK_GRANULARITY > 2 && address > 1)
         {
-        case 0:
+            return ramBank->peekByte(address);
+        }
+        else if (0 == address)
+        {
             return dir;
-        case 1:
+        }
+        else
         {
 #ifdef FAST_AND_ROUGH
             return dataRead;
@@ -225,20 +229,19 @@ public:
                 retval &= ~0x80;
                 retval |= dataSetBit7;
             }
-
             return retval;
 #endif
-        }
-        default:
-            return ramBank->peekByte(address);
         }
     }
 
     void poke(uint_least16_t address, uint8_t value)
     {
-        switch (address)
+        if (sidmemory::WRITE_BANK_GRANULARITY > 2 && address > 1)
         {
-        case 0:
+            ramBank->pokeByte(address, value);
+        }
+        else if (0 == address)
+        {
 #ifndef FAST_AND_ROUGH
             /* when switching an unused bit from output (where it contained a
              * stable value) to input mode (where the input is floating), some
@@ -265,9 +268,10 @@ public:
                 dir = value;
                 updateCpuPort();
             }
-            value = pla->getLastReadByte();
-            break;
-        case 1:
+            ramBank->pokeByte(address, pla->getLastReadByte());
+        }
+        else
+        {
 #ifndef FAST_AND_ROUGH
           /* when writing to an unused bit that is output, charge the "capacitor",
            * otherwise don't touch it */
@@ -290,13 +294,8 @@ public:
                 data = value;
                 updateCpuPort();
             }
-            value = pla->getLastReadByte();
-            break;
-        default:
-            break;
+            ramBank->pokeByte(address, value);
         }
-
-        ramBank->pokeByte(address, value);
     }
 };
 
