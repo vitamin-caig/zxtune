@@ -168,7 +168,7 @@ namespace
   private:
     static std::vector<char> LoadMessage(const std::string& file, const std::string& encoding)
     {
-      const BoostLocaleLibrary& self = BoostLocaleLibrary::Instance();
+      const BoostLocaleLibrary& self = Instance();
       if (const Dump* data = self.Translations.Find(file))
       {
         Dbg("Loading message %1% with encoding %2%", file, encoding);

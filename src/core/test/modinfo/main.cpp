@@ -25,7 +25,6 @@ namespace
   {
     const Parameters::Container::Ptr emptyParams = Parameters::Container::Create();
     const String filename = fullPath;//TODO: split if required
-    const String subpath = String();
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
     const DataLocation::Ptr dataLocation = CreateLocation(data);
     return Module::Open(dataLocation);

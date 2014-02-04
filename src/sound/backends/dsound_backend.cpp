@@ -470,7 +470,7 @@ namespace DirectSound
       StreamBuffer::Ptr Stream;
       VolumeControl::Ptr Volume;
 
-      void operator = (const DSObjects& rh)
+      DSObjects& operator = (const DSObjects& rh)
       {
         if (Stream)
         {
@@ -482,6 +482,7 @@ namespace DirectSound
         Device = rh.Device;
         Stream = rh.Stream;
         Volume = rh.Volume;
+        return *this;
       }
     };
 

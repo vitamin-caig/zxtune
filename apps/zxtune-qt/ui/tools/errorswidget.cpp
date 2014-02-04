@@ -84,7 +84,7 @@ namespace
   private:
     void FixLast()
     {
-      if (Current == Container.end() && Container.size())
+      if (Current == Container.end() && !Container.empty())
       {
         --Current;
       }

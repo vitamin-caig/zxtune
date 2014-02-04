@@ -105,7 +105,7 @@ namespace Devices
       template<uint_t Lo, uint_t Hi>
       uint_t GetLevel() const
       {
-        return Masked || GetFlip() ? Hi : Lo;
+        return (Masked || GetFlip()) ? Hi : Lo;
       }
     private:
       void UpdateMiddle()

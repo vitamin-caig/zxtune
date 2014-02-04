@@ -1221,7 +1221,7 @@ namespace Chiptune
         format.ParsePatterns(usedPatterns, statistic);
         const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, target);
-        const Indices usedOrnaments = statistic.GetUsedOrnaments();
+        const Indices& usedOrnaments = statistic.GetUsedOrnaments();
         format.ParseOrnaments(usedOrnaments, target);
 
         Require(format.GetSize() >= MIN_MODULE_SIZE);

@@ -43,7 +43,7 @@ public:
     assert(std::distance(Begin, End) > 0);
   }
 
-  const CycledIterator<C>& operator = (const CycledIterator<C>& rh)
+  CycledIterator<C>& operator = (const CycledIterator<C>& rh)
   {
     Begin = rh.Begin;
     End = rh.End;

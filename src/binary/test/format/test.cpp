@@ -219,7 +219,7 @@ namespace
     }
   }
 
-  FormatResult CheckCompositeFormat(const std::string& header, const std::string footer, std::size_t minSize, std::size_t maxSize)
+  FormatResult CheckCompositeFormat(const std::string& header, const std::string& footer, std::size_t minSize, std::size_t maxSize)
   {
     try
     {

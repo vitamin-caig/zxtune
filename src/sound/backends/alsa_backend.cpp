@@ -223,7 +223,6 @@ namespace Alsa
   public:
     PCMDevice(Api::Ptr api, const Identifier& id)
       : AutoHandle<snd_pcm_t>(api, id.GetPCM())
-      , AlsaApi(api)
     {
       Open();
     }
@@ -275,8 +274,6 @@ namespace Alsa
         size -= res;
       }
     }
-  private:
-    const Api::Ptr AlsaApi;
   };
   
   template<class T>

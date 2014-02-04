@@ -77,7 +77,7 @@ namespace Chiptune
       uint8_t Page;
       uint8_t NumberInBank;
       uint16_t Size;
-	    char Name[8];
+      char Name[8];
     } PACK_POST;
 
     typedef boost::array<uint8_t, 0x38> ZeroesArray;

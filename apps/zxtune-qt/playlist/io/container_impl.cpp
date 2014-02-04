@@ -63,7 +63,7 @@ namespace
   class StubData : public Playlist::Item::Data
   {
   public:
-    StubData(const String& path, const Parameters::Accessor& params, const Error state)
+    StubData(const String& path, const Parameters::Accessor& params, const Error& state)
       : Path(path)
       , Params(Parameters::Container::Create())
       , State(state)
