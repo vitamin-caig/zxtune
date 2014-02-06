@@ -1,0 +1,14 @@
+project user-config
+ : requirements
+     <toolset>msvc:<define>_SCL_SECURE_NO_WARNINGS 
+     <toolset>msvc:<define>_CRT_SECURE_NO_WARNINGS 
+     <toolset>msvc:<define>WIN32_LEAN_AND_MEAN
+     <toolset>msvc:<define>VC_EXTRALEAN 
+     <toolset>msvc:<define>NOMINMAX
+     <toolset>gcc:<cxxflags>-mwin32
+     <toolset>gcc:<cxxflags>-mno-ms-bitfields
+     <toolset>gcc:<cxxflags>-mmmx
+     <toolset>gcc:<cxxflags>-msse
+     <toolset>gcc:<cxxflags>-msse2
+     <toolset>gcc:<cxxflags>-Wno-unused-local-typedefs
+;
