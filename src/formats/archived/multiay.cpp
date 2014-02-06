@@ -60,7 +60,7 @@ namespace MultiAY
       if (0 == value.compare(0, prefix.size(), prefix))
       {
         std::basic_istringstream<Char> str(value.substr(prefix.size()));
-        Valid = str >> Index;
+        Valid = !!(str >> Index);
       }
     }
 

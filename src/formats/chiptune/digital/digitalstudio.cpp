@@ -385,7 +385,7 @@ namespace Chiptune
             const std::size_t firstOffset = offsets[0] + sampleOffsetInPage;
             const std::size_t firstCopy = ZX_PAGE_SIZE - sampleOffsetInPage;
             const Binary::Data::Ptr part1 = GetSampleData(firstOffset, firstCopy);
-            Require(part1);
+            Require(part1 != 0);
             const std::size_t secondOffset = offsets[7];
             const std::size_t secondCopy = sampleOffsetInPage + sampleSize - ZX_PAGE_SIZE;
             Dbg(" Two parts in low memory: #%1$05x..#%2$05x + #%3$05x..#%4$05x", 

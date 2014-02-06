@@ -22,7 +22,6 @@
 #include <list>
 #include <map>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 
 #define FILE_TAG 03113EE3
@@ -51,8 +50,10 @@ namespace IO
       Providers.push_back(provider);
       Dbg("Registered provider '%1%'", provider->Id());
       const Strings::Set& schemes = provider->Schemes();
-      std::transform(schemes.begin(), schemes.end(), std::inserter(Schemes, Schemes.end()),
-        boost::bind(&std::make_pair<String, DataProvider::Ptr>, _1, provider));
+      for (Strings::Set::const_iterator it = schemes.begin(), lim = schemes.end(); it != lim; ++it)
+      {
+        Schemes.insert(std::make_pair(*it, provider));
+      }
     }
 
     virtual Identifier::Ptr ResolveUri(const String& uri) const
