@@ -1,9 +1,9 @@
 @ECHO OFF
 
-SET VS_PATH=%PROGRAMFILES%\Microsoft Visual Studio .NET 2003
+SET VS_PATH=%PROGRAMFILES(x86)%\Microsoft Visual Studio 12.0
 ECHO %PATH% | FIND "%VS_PATH%" > NUL && GOTO Quit
 
-call "%VS_PATH%\Common7\Tools\vsvars32.bat"
+call "%VS_PATH%\VC\vcvarsall.bat" x86
 
 SET platform=windows
 SET arch=x86

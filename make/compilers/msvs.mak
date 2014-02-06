@@ -34,7 +34,7 @@ ARFLAGS = /NOLOGO /NODEFAULTLIB
 LDFLAGS = /NOLOGO $(LD_PLATFORM_FLAGS) $(LD_MODE_FLAGS) $(ld_flags) \
 	/INCREMENTAL:NO /DEBUG\
 	/IGNORE:4217 /IGNORE:4049\
-	/OPT:REF,NOWIN98,ICF=5 /NODEFAULTLIB
+	/OPT:REF,ICF=5 /NODEFAULTLIB
 
 build_obj_cmd = $(CXX) $(CXXFLAGS) /Fo$2 $1
 build_obj_cmd_nodeps = $(build_obj_cmd)
@@ -46,6 +46,7 @@ link_cmd = $(LDD) $(LDFLAGS) /OUT:$@ $(OBJECTS) $(RESOURCES) \
 	$(if $(dynamic_libs),/LIBPATH:$(output_dir) $(addprefix /DELAYLOAD:,$(addsuffix .dll,$(dynamic_libs))) $(addsuffix .lib,$(dynamic_libs)),)\
 	$(addprefix /LIBPATH:,$($(platform)_libraries_dirs))\
 	$(addsuffix .lib,$(sort $($(platform)_libraries)))\
-	/PDB:$@.pdb /PDBPATH:none
+        /MANIFEST:EMBED\
+	/PDB:$@.pdb
 
-postlink_cmd = mt.exe -manifest $@.manifest -outputresource:$@ || ECHO No manifest
+postlink_cmd = IF EXIST $@.manifest mt.exe -manifest $@.manifest -outputresource:$@
