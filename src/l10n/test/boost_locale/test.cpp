@@ -39,12 +39,12 @@ namespace
   {
     const L10n::TranslateFunctor translate(domain);
     std::ostringstream str;
-    str << translate("Just a message") << std::endl;
-    str << translate("context", "Just a message with context") << std::endl;
+    str << translate("Just a message") << "\r\n";
+    str << translate("context", "Just a message with context") << "\r\n";
     for (uint_t idx = 0; idx != 5; ++idx)
     {
-      str << Strings::Format(translate("Single form for %1%", "Plural form for %1%", idx), idx) << std::endl;
-      str << Strings::Format(translate("another context", "Single form for %1% with context", "Plural form for %1% with context", idx), idx) << std::endl;
+      str << Strings::Format(translate("Single form for %1%", "Plural form for %1%", idx), idx) << "\r\n";
+      str << Strings::Format(translate("another context", "Single form for %1% with context", "Plural form for %1% with context", idx), idx) << "\r\n";
     }
     return str.str();
   }
@@ -52,11 +52,36 @@ namespace
   void Test(const Dump& ref)
   {
     const std::string val = Test(Domain);
-    std::cout << val;
-    if (ref.size() != val.size() || 0 != std::memcmp(&ref[0], val.data(), ref.size()))
+    const std::string refStr(ref.begin(), ref.end());
+    std::cout << val.size() << " bytes:\n" << val;
+    if (val == refStr)
     {
-      std::cout << "Failed!" << std::endl;
-      throw 1;
+      return;
+    }
+    std::cout << "Failed!\n" << refStr.size() << " bytes:\n";
+    if (val.size() <= refStr.size())
+    {
+      const std::pair<std::string::const_iterator, std::string::const_iterator> mis = std::mismatch(val.begin(), val.end(), refStr.begin());
+      if (mis.first == val.end())
+      {
+         std::cout << "missed tail " << refStr.end() - mis.second << " bytes:\n" << std::string(mis.second, refStr.end()) << std::endl;
+      }
+      else
+      {
+         std::cout << "mismatch at " << std::distance(val.begin(), mis.first) << ": res=" << unsigned(*mis.first) << " ref=" << unsigned(*mis.second) << std::endl;
+      }
+    }
+    else
+    {
+      const std::pair<std::string::const_iterator, std::string::const_iterator> mis = std::mismatch(refStr.begin(), refStr.end(), val.begin());
+      if (mis.first == refStr.end())
+      {
+         std::cout << "redundand tail " << val.end() - mis.second << " bytes:\n" << std::string(mis.second, val.end()) << std::endl;
+      }
+      else
+      {
+         std::cout << "mismatch at " << std::distance(refStr.begin(), mis.first) << ": res=" << unsigned(*mis.first) << " ref=" << unsigned(*mis.second) << std::endl;
+      }
     }
   }
 }
