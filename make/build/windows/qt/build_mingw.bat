@@ -1,14 +1,17 @@
 @echo off
 
+:: for mingw4.8.1 apply patch from https://bugreports.qt-project.org/secure/attachment/36215/mingw-w64-i686-x86_64-intrinsics.patch
+:: copy win32-g++-32 to mkspecs
+
 SET MINGW_PATH=%CD:~0,2%\Build\MinGW\bin
 ECHO %PATH% | FIND "%MINGW_PATH%" > NUL && GOTO Quit
 
 SET LIB=
 SET INCLUDE=
-SET PATH=c:\windows;c:\windows\system32;%MINGW_PATH%;C:\Perl\bin
+SET PATH=c:\windows;c:\windows\system32;%MINGW_PATH%
 
 :Quit
-SET INSTPATH=E:\Build\qt-4.8.1-mingw-x86
+SET INSTPATH=E:\Build\qt-4.8.5-mingw-x86
 mkdir %INSTPATH%
 
 SET QMAKEPATH=%CD%
