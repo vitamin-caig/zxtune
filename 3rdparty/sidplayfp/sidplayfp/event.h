@@ -117,7 +117,7 @@ public:
     * @param cycles how many cycles from now to fire
     * @param phase the phase when to fire the event
     */
-    virtual void schedule(Event &event, event_clock_t cycles,
+    virtual void schedule(Event &event, unsigned cycles,
                           event_phase_t phase) = 0;
 
     /**
@@ -126,7 +126,14 @@ public:
     * @param event the event to add
     * @param cycles how many cycles from now to fire
     */
-    virtual void schedule(Event &event, event_clock_t cycles) = 0;
+    virtual void schedule(Event &event, unsigned cycles) = 0;
+
+    /**
+    * Schedule event right before nearest one
+    *
+    * @param event the event to add
+    */
+    virtual void yield(Event& event) = 0;
 
     /**
     * Is the event pending in this scheduler?
