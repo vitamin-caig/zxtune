@@ -103,8 +103,8 @@ public:
      * 1) avoid redundand ZeroRam checks for first bank
      * 2) avoid bank mapping for every operation
      **/
-    static const size_t READ_BANK_GRANULARITY = 2;
-    static const size_t WRITE_BANK_GRANULARITY = 4096;
+    static const unsigned READ_BANK_GRANULARITY = 2;
+    static const unsigned WRITE_BANK_GRANULARITY = 4096;
 
     /**
      * Access memory as seen by CPU.

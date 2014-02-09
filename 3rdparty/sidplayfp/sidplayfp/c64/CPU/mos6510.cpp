@@ -76,17 +76,194 @@ void MOS6510::eventWithoutSteals(MOS6510& self)
     self.eventContext.schedule(self.m_nosteal, 1);
 }
 
-void MOS6510::eventWithoutStealsFast(MOS6510& self)
+void MOS6510::eventWithoutStealsFast()
 {
-    unsigned cycles = 0;
-    do
+  //inline most frequent operations
+  switch (cycleCount)
+  {
+  case JSRw << 3:
+    FetchLowAddr();
+    WasteCycle();
+    PushHighPC();
+    PushLowPC();
+    FetchHighAddr();
+    cycleCount += 5;
+    jmp_instr();
+    eventContext.schedule(m_nosteal, 6);
+    break;
+  case JMPw << 3:
+    FetchLowAddr();
+    FetchHighAddr();
+    cycleCount += 2;
+    jmp_instr();
+    eventContext.schedule(m_nosteal, 3);
+    break;
+  case JMPi << 3:
+    FetchLowPointer();
+    FetchHighPointer();
+    FetchLowEffAddr();
+    FetchHighEffAddr();
+    cycleCount += 4;
+    jmp_instr();
+    eventContext.schedule(m_nosteal, 5);
+    break;
+  case LDAix << 3:
+    FetchLowPointer();
+    FetchLowPointerX();
+    FetchLowEffAddr();
+    FetchHighEffAddr();
+    FetchEffAddrDataByte();
+    cycleCount += 5;
+    lda_instr();
+    eventContext.schedule(m_nosteal, 6);
+    break;
+  case LDAz << 3:
+    FetchLowAddr();
+    FetchEffAddrDataByte();
+    cycleCount += 2;
+    lda_instr();
+    eventContext.schedule(m_nosteal, 3);
+    break;
+  case LDAb << 3:
+    FetchDataByte();
+    cycleCount += 1;
+    lda_instr();
+    eventContext.schedule(m_nosteal, 2);
+    break;
+  case LDAa << 3:
+    FetchLowAddr();
+    FetchHighAddr();
+    FetchEffAddrDataByte();
+    cycleCount += 3;
+    lda_instr();
+    eventContext.schedule(m_nosteal, 4);
+    break;
+  case LDAiy << 3:
+    FetchLowPointer();
+    FetchLowEffAddr();
+    FetchHighEffAddrY2();
+    throwAwayRead();
+    FetchEffAddrDataByte();
+    cycleCount += 5;
+    lda_instr();
+    eventContext.schedule(m_nosteal, 6 + (Cycle_EffectiveAddress == Cycle_HighByteWrongEffectiveAddress));
+    break;
+  case LDAzx << 3:
+    FetchLowAddrX();
+    WasteCycle();
+    FetchEffAddrDataByte();
+    cycleCount += 3;
+    lda_instr();
+    eventContext.schedule(m_nosteal, 4);
+    break;
+  case LDAay << 3:
+    FetchLowAddr();
+    FetchHighAddrY2();
+    throwAwayRead();
+    FetchEffAddrDataByte();
+    cycleCount += 4;
+    lda_instr();
+    eventContext.schedule(m_nosteal, 5 + (Cycle_EffectiveAddress == Cycle_HighByteWrongEffectiveAddress));
+    break;
+  case LDAax << 3:
+    FetchLowAddr();
+    FetchHighAddrX2();
+    throwAwayRead();
+    FetchEffAddrDataByte();
+    cycleCount += 4;
+    lda_instr();
+    eventContext.schedule(m_nosteal, 5 + (Cycle_EffectiveAddress == Cycle_HighByteWrongEffectiveAddress));
+    break;
+
+  case STAix << 3:
+    FetchLowPointer();
+    FetchLowPointerX();
+    FetchLowEffAddr();
+    FetchHighEffAddr();
+    sta_instr();
+    cycleCount += 5;
+    interruptsAndNextOpcode();
+    eventContext.schedule(m_nosteal, 6);
+    break;
+  case STAz << 3:
+    FetchLowAddr();
+    sta_instr();
+    cycleCount += 2;
+    interruptsAndNextOpcode();
+    eventContext.schedule(m_nosteal, 3);
+    break;
+  case STAa << 3:
+    FetchLowAddr();
+    FetchHighAddr();
+    sta_instr();
+    cycleCount += 3;
+    interruptsAndNextOpcode();
+    eventContext.schedule(m_nosteal, 4);
+    break;
+  case STAiy << 3:
+    FetchLowPointer();
+    FetchLowEffAddr();
+    FetchHighEffAddrY();
+    throwAwayRead();
+    sta_instr();
+    cycleCount += 5;
+    interruptsAndNextOpcode();
+    eventContext.schedule(m_nosteal, 6);
+    break;
+  case STAzx << 3:
+    FetchLowAddrX();
+    WasteCycle();
+    sta_instr();
+    cycleCount += 3;
+    interruptsAndNextOpcode();
+    eventContext.schedule(m_nosteal, 4);
+    break;
+  case STAay << 3:
+    FetchLowAddr();
+    FetchHighAddrY();
+    throwAwayRead();
+    sta_instr();
+    cycleCount += 4;
+    interruptsAndNextOpcode();
+    eventContext.schedule(m_nosteal, 5);
+    break;
+  case STAax << 3:
+    FetchLowAddr();
+    FetchHighAddrX();
+    throwAwayRead();
+    sta_instr();
+    cycleCount += 4;
+    interruptsAndNextOpcode();
+    eventContext.schedule(m_nosteal, 5);
+    break;
+  //HLT
+  case 16:
+  case 144:
+  case 272:
+  case 400:
+  case 528:
+  case 656:
+  case 784:
+  case 912:
+  case 1168:
+  case 1424:
+  case 1680:
+  case 1936:
+    eventContext.yield(m_nosteal);
+    break;
+  default:
     {
-      const ProcessorCycle &instr = self.instrTable[self.cycleCount++];
-      (instr.func) (self);
-      ++cycles;
+      unsigned cycles = 0;
+      do
+      {
+        (instrTable[cycleCount++].func) (*this);
+        ++cycles;
+      }
+      while (0 != (cycleCount & 7));
+      eventContext.schedule(m_nosteal, cycles);
     }
-    while (0 != (self.cycleCount & 7));
-    self.eventContext.schedule(self.m_nosteal, cycles);
+    break;
+  }
 }
 
 /** When AEC signal is low, steals permitted */
@@ -354,7 +531,9 @@ void MOS6510::IRQHiRequest()
 */
 void MOS6510::throwAwayFetch()
 {
+#ifndef FAST_AND_ROUGH
     cpuRead (Register_ProgramCounter);
+#endif
 }
 
 /**
@@ -362,7 +541,9 @@ void MOS6510::throwAwayFetch()
 */
 void MOS6510::throwAwayRead()
 {
+#ifndef FAST_AND_ROUGH
     cpuRead (Cycle_HighByteWrongEffectiveAddress);
+#endif
 }
 
 /**
@@ -1546,7 +1727,7 @@ MOS6510::MOS6510 (EventContext &context, sidmemory &mem) :
     m_fdbg(stdout),
 #endif
 #ifdef FAST_AND_ROUGH
-    m_nosteal("CPU-nosteal", *this, &MOS6510::eventWithoutStealsFast),
+    m_nosteal("CPU-nosteal", *this, &StaticFuncWrapper<&MOS6510::eventWithoutStealsFast>),
 #else
     m_nosteal("CPU-nosteal", *this, &MOS6510::eventWithoutSteals),
 #endif

@@ -142,7 +142,7 @@ protected:
     FastEventCallback<MOS6510> m_steal;
 
     static void eventWithoutSteals(MOS6510& self);
-    static void eventWithoutStealsFast(MOS6510& self);
+    void eventWithoutStealsFast();
     static void eventWithSteals(MOS6510& self);
 
     void Initialise();
@@ -275,7 +275,6 @@ protected:
     inline void doSBC();
 
     inline void doJSR();
-
 public:
     inline uint8_t cpuRead(uint_least16_t addr)
     {
