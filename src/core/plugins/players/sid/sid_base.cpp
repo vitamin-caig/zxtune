@@ -9,6 +9,7 @@
 **/
 
 //local includes
+#include "roms.h"
 #include "songlengths.h"
 #include "core/plugins/registrator.h"
 #include "core/plugins/players/plugin.h"
@@ -227,15 +228,12 @@ namespace Sid
       params.FindValue(Parameters::ZXTune::Core::SID::ROM::KERNAL, kernal);
       params.FindValue(Parameters::ZXTune::Core::SID::ROM::BASIC, basic);
       params.FindValue(Parameters::ZXTune::Core::SID::ROM::CHARGEN, chargen);
-      if (!kernal.empty() || !basic.empty() || !chargen.empty())
-      {
-        Engine.setRoms(GetData(kernal), GetData(basic), GetData(chargen));
-      }
+      Engine.setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
     }
 
-    static const uint8_t* GetData(const Parameters::DataType& dump)
+    static const uint8_t* GetData(const Parameters::DataType& dump, const uint8_t* defVal)
     {
-      return dump.empty() ? 0 : &dump.front();
+      return dump.empty() ? defVal : &dump.front();
     }
 
     void ApplyParameters()
@@ -417,7 +415,7 @@ namespace Sid
       return Fmt->Match(rawData);
     }
 
-    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+    virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const
     {
       return Formats::Chiptune::Container::Ptr();//TODO
     }
