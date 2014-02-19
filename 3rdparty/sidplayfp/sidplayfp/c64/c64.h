@@ -178,7 +178,7 @@ public:
     ~c64() {}
 
     EventContext &context() { return m_scheduler; }
-    sidmemory &memory() { return mmu; }
+    MMU &memory() { return mmu; }
 
 #ifdef PC64_TESTSUITE
     void setTestEnv(testEnv *env)

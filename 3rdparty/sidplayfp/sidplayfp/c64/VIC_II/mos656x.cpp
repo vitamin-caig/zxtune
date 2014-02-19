@@ -31,12 +31,18 @@
 
 #include "sidplayfp/sidendian.h"
 
+template<event_clock_t(MOS656X::*Func)()>
+event_clock_t StaticFuncWrapper(MOS656X& self)
+{
+  return (self.*Func)();
+}
+
 const MOS656X::model_data_t MOS656X::modelData[] =
 {
-    {262, 64, &MOS656X::clockOldNTSC},  // Old NTSC
-    {263, 65, &MOS656X::clockNTSC},     // NTSC-M
-    {312, 63, &MOS656X::clockPAL},      // PAL-B
-    {312, 65, &MOS656X::clockNTSC},     // PAL-N
+    {262, 64, &StaticFuncWrapper<&MOS656X::clockOldNTSC>},  // Old NTSC
+    {263, 65, &StaticFuncWrapper<&MOS656X::clockNTSC>},     // NTSC-M
+    {312, 63, &StaticFuncWrapper<&MOS656X::clockPAL>},      // PAL-B
+    {312, 65, &StaticFuncWrapper<&MOS656X::clockNTSC>},     // PAL-N
 };
 
 const char *MOS656X::credit =
@@ -222,9 +228,12 @@ void MOS656X::event()
         // Update x raster
         rasterClk += cycles;
         lineCycle += cycles;
-        lineCycle %= cyclesPerLine;
+        while (lineCycle >= cyclesPerLine)
+        {
+          lineCycle -= cyclesPerLine;
+        }
 
-        delay = (this->*clock)();
+        delay = clock(*this);
     }
     else
         delay = 1;

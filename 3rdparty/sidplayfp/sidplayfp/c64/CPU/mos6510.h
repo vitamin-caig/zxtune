@@ -27,7 +27,7 @@
 #include <cstdio>
 
 #include "sidplayfp/EventScheduler.h"
-#include "sidplayfp/sidmemory.h"
+#include "sidplayfp/c64/mmu.h"
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
@@ -78,7 +78,7 @@ protected:
     EventContext &eventContext;
 
     /** Our memory manager copy */
-    sidmemory &memory;
+    MMU &memory;
 
     /** Current instruction and subcycle within instruction */
     int cycleCount;
@@ -132,7 +132,7 @@ protected:
     struct ProcessorCycle  instrTable[0x101 << 3];
 
 protected:
-    MOS6510(EventContext &context, sidmemory &memory);
+    MOS6510(EventContext &context, MMU &memory);
     ~MOS6510() {}
 
     /** Represents an instruction subcycle that writes */

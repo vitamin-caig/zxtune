@@ -1720,7 +1720,7 @@ void MOS6510::rra_instr()
 * @param context
 *            The Event Context
 */
-MOS6510::MOS6510 (EventContext &context, sidmemory &mem) :
+MOS6510::MOS6510 (EventContext &context, MMU &mem) :
     eventContext(context),
     memory(mem),
 #ifdef DEBUG

@@ -109,10 +109,12 @@ public:
     /**
      * Access memory as seen by CPU.
      *
+     * Make it non-virtual to speedup due to polymorphism disabling and possible inlining.
+     *
      * @param addr the address where to read from
      * @return value at address
      */
-    virtual uint8_t cpuRead(uint_least16_t addr) const = 0;
+    uint8_t cpuRead(uint_least16_t addr);
 
     /**
      * Access memory as seen by CPU.

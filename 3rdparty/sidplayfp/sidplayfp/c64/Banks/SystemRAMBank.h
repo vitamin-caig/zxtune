@@ -59,7 +59,7 @@ public:
         pokeByte(address, value);
     }
 
-    uint8_t peekByte(uint_least16_t address)
+    inline uint8_t peekByte(uint_least16_t address)
     {
         return ram[address];
     }

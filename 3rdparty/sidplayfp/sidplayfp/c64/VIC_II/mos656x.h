@@ -42,11 +42,12 @@ public:
     } model_t;
 
 private:
+    typedef event_clock_t (*ClockFunc)(MOS656X&);
     typedef struct
     {
         unsigned int rasterLines;
         unsigned int cyclesPerLine;
-        event_clock_t (MOS656X::*clock)();
+        ClockFunc clock;
     } model_data_t;
 
 private:
@@ -69,7 +70,7 @@ protected:
     static const unsigned int LAST_DMA_LINE = 0xf7;
 
 protected:
-    event_clock_t (MOS656X::*clock)();
+    ClockFunc clock;
 
     event_clock_t rasterClk;
 

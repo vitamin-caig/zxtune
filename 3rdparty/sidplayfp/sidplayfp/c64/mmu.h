@@ -47,8 +47,10 @@ private:
     /** CPU port signals */
     bool loram, hiram, charen;
 
+    typedef uint8_t (*ReadFunc)(MMU& self, uint_least16_t addr);
+
     /** CPU read memory mapping in READ_BANK_GRANULARITY chunks */
-    Bank* cpuReadMap[65536 / READ_BANK_GRANULARITY];
+    ReadFunc cpuReadMap[65536 / READ_BANK_GRANULARITY];
 
     /** CPU write memory mapping in WRITE_BANK_GRANULARITY chunks */
     Bank* cpuWriteMap[65536 / WRITE_BANK_GRANULARITY];
@@ -70,6 +72,36 @@ private:
 
     ZeroRAMBank zeroRAMBank;
 private:
+    static uint8_t IO_Read(MMU& self, uint_least16_t addr)
+    {
+      return self.ioBank->peek(addr);
+    }
+
+    static uint8_t KernalROM_Read(MMU& self, uint_least16_t addr)
+    {
+      return self.kernalRomBank.peek(addr);
+    }
+
+    static uint8_t BasicROM_Read(MMU& self, uint_least16_t addr)
+    {
+      return self.basicRomBank.peek(addr);
+    }
+
+    static uint8_t CharROM_Read(MMU& self, uint_least16_t addr)
+    {
+      return self.characterRomBank.peekByte(addr);
+    }
+
+    static uint8_t RAM_Read(MMU& self, uint_least16_t addr)
+    {
+      return self.ramBank.peekByte(addr);
+    }
+
+    static uint8_t ZeroRAM_Read(MMU& self, uint_least16_t addr)
+    {
+      return self.zeroRAMBank.peek(addr);
+    }
+
     inline unsigned getReadBankIndex(uint_least16_t addr) const
     {
       return addr / READ_BANK_GRANULARITY;
@@ -80,7 +112,7 @@ private:
       return addr / WRITE_BANK_GRANULARITY;
     }
 
-    void setReadBank(uint_least16_t start, int size, Bank* bank);
+    void setReadFunc(uint_least16_t start, int size, ReadFunc func);
 
     void setWriteBank(uint_least16_t start, int size, Bank* bank);
 private:
@@ -126,7 +158,7 @@ public:
 
     void setBasicSubtune(uint8_t tune) { basicRomBank.setSubtune(tune); }
 
-    uint8_t cpuRead(uint_least16_t addr) const { return cpuReadMap[getReadBankIndex(addr)]->peek(addr); }
+    uint8_t cpuRead(uint_least16_t addr) { return (cpuReadMap[getReadBankIndex(addr)])(*this, addr); }
 
     void cpuWrite(uint_least16_t addr, uint8_t data) { cpuWriteMap[getWriteBankIndex(addr)]->poke(addr, data); }
 };

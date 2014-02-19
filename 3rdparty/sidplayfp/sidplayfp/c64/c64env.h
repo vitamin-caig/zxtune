@@ -28,7 +28,7 @@
 #endif
 
 class EventContext;
-class sidmemory;
+class MMU;
 
 /**
 * An implementation of of this class can be created to perform the C64
@@ -39,7 +39,7 @@ class c64env
 {
 public:
     virtual EventContext &context() = 0;
-    virtual sidmemory &memory() = 0;
+    virtual MMU &memory() = 0;
 
 #ifdef PC64_TESTSUITE
     virtual void loadFile(const char *file) =0;
