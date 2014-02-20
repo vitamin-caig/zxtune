@@ -7,12 +7,14 @@
   <string-array name="pref_zxtune_aym_clockrate_entries">
     <item>ZX Spectrum (1.7734 MHz)</item>
     <item>Pentagon (1.75 MHz)</item>
+    <item>Taganrog (3.5 MHz)</item>
     <item>Atari ST (2 MHz)</item>
     <item>Amstrad CPC (1 MHz)</item>
   </string-array>
   <string-array name="pref_zxtune_aym_clockrate_values" translatable="false">
     <item>1773400</item>
     <item>1750000</item>
+    <item>3500000</item>
     <item>2000000</item>
     <item>1000000</item>
   </string-array>
