@@ -64,6 +64,11 @@
         </item>
         <item>
          <property name="text">
+          <string>Taganrog (3.5 MHz)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
           <string>Atari ST (2 MHz)</string>
          </property>
         </item>
