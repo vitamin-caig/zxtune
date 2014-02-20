@@ -51,8 +51,9 @@ namespace Chiptune
     const std::size_t MAX_SAMPLE_SIZE = 150;
     const std::size_t ORNAMENTS_COUNT = 32;
     const std::size_t MAX_ORNAMENT_SIZE = 30;
-    const std::size_t MIN_PATTERN_SIZE = 8;//???
-    const std::size_t MAX_PATTERN_SIZE = 64;//???
+    //according to manual
+    const std::size_t MIN_PATTERN_SIZE = 1;
+    const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t MAX_PATTERNS_COUNT = 32;//TODO
 
     /*
@@ -335,7 +336,7 @@ namespace Chiptune
       virtual void SetContinueSample() {}
       virtual void SetContinueOrnament() {}
       virtual void SetGlissade(int_t /*val*/) {}
-      virtual void SetSlide(int_t /*steps*/) {}
+      virtual void SetSlide(int_t /*steps*/, bool /*useToneSliding*/) {}
       virtual void SetVolumeSlide(uint_t /*period*/, int_t /*delta*/) {}
       virtual void SetBreakSample() {}
     };
@@ -460,9 +461,9 @@ namespace Chiptune
         return Delegate.SetGlissade(val);
       }
 
-      virtual void SetSlide(int_t steps)
+      virtual void SetSlide(int_t steps, bool useToneSliding)
       {
-        return Delegate.SetSlide(steps);
+        return Delegate.SetSlide(steps, useToneSliding);
       }
 
       virtual void SetVolumeSlide(uint_t period, int_t delta)
@@ -973,7 +974,7 @@ namespace Chiptune
             {
               builder.SetContinueSample();
             }
-            builder.SetSlide(static_cast<int8_t>(PeekByte(state.Offset++)));
+            builder.SetSlide(static_cast<int8_t>(PeekByte(state.Offset++)), cmd == 0xf7);
           }
           else if ((cmd & 0xf9) == 0xf8) //0xf8, 0xfa, 0xfc, 0xfe - envelope
           {

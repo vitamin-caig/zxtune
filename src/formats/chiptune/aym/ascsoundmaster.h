@@ -103,7 +103,7 @@ namespace Formats
         virtual void SetContinueSample() = 0;
         virtual void SetContinueOrnament() = 0;
         virtual void SetGlissade(int_t val) = 0;
-        virtual void SetSlide(int_t steps) = 0;
+        virtual void SetSlide(int_t steps, bool useToneSliding) = 0;
         virtual void SetVolumeSlide(uint_t period, int_t delta) = 0;
         virtual void SetBreakSample() = 0;
       };
