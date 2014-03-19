@@ -249,14 +249,14 @@ namespace Chiptune
       ;
     }
 
-    void ParseTransponedMatrix(const uint8_t* data, std::size_t size, std::size_t columns, Builder& target)
+    void ParseTransponedMatrix(const uint8_t* data, std::size_t size, std::size_t rows, std::size_t columns, Builder& target)
     {
-      const std::size_t lines = size / columns;
-      Require(lines != 0);
-      for (std::size_t row = 0; row != lines; ++row)
+      Require(rows != 0);
+      for (std::size_t row = 0; row != rows; ++row)
       {
         Dump registers(columns);
-        for (std::size_t col = 0, cursor = row; col != columns; ++col, cursor += lines)
+        const std::size_t availColumns = (size - row) / rows;
+        for (std::size_t col = 0, cursor = row; col != availColumns; ++col, cursor += rows)
         {
           registers[col] = data[cursor];
         }
@@ -264,15 +264,27 @@ namespace Chiptune
       }
     }
 
-    void ParseMatrix(const uint8_t* data, std::size_t size, std::size_t columns, Builder& target)
+    void ParseMatrix(const uint8_t* data, std::size_t size, std::size_t rows, std::size_t columns, Builder& target)
     {
-      const std::size_t lines = size / columns;
-      Require(lines != 0);
-      const uint8_t* cursor = data;
-      for (std::size_t row = 0; row != lines; ++row, data += columns)
+      Require(rows != 0);
+      const uint8_t* cursor = data, *limit = data + size;
+      for (std::size_t row = 0; row != rows; ++row)
       {
-        const Dump registers(cursor, cursor + columns);
-        target.AddData(registers);
+        const uint8_t* const nextCursor = cursor + columns;
+        if (nextCursor <= limit)
+        {
+          const Dump registers(cursor, nextCursor);
+          target.AddData(registers);
+        }
+        else
+        {
+          Dump registers = cursor < limit
+              ? Dump(cursor, limit)
+              : Dump();
+          registers.resize(columns);
+          target.AddData(registers);
+        }
+        cursor = nextCursor;
       }
     }
 
@@ -296,7 +308,7 @@ namespace Chiptune
           const std::size_t lines = dumpSize / columns;
           const std::size_t matrixSize = lines * columns;
           const uint8_t* const src = stream.ReadData(matrixSize);
-          ParseTransponedMatrix(src, matrixSize, columns, target);
+          ParseTransponedMatrix(src, matrixSize, lines, columns, target);
           if (Ver3b::FastCheck(data, size))
           {
             const uint_t loop = fromBE(stream.ReadField<uint32_t>());
@@ -325,19 +337,24 @@ namespace Chiptune
 
           const std::size_t dumpOffset = stream.GetPosition();
           const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
+          const std::size_t lines = fromBE(header.Frames);
+          Dbg("ymver5: dump started at %1%, size %2%, vtbls %3%", dumpOffset, dumpSize, lines);
           const std::size_t columns = sizeof(Ver5::RegistersDump);
-          const std::size_t lines = dumpSize / columns;
-          const std::size_t matrixSize = lines * columns;
+          const std::size_t matrixSize = dumpSize;
+          const std::size_t availLines = dumpSize / columns;
+          if (availLines != lines)
+          {
+            Dbg("available only %1% lines", availLines);
+          }
           const uint8_t* const src = stream.ReadData(matrixSize);
           if (header.Interleaved())
           {
-            ParseTransponedMatrix(src, matrixSize, columns, target);
+            ParseTransponedMatrix(src, matrixSize, lines, columns, target);
           }
           else
           {
-            ParseMatrix(src, matrixSize, columns, target);
+            ParseMatrix(src, matrixSize, lines, columns, target);
           }
-          /*const Ver5::Footer& footer = */stream.ReadField<Ver5::Footer>();
           const Binary::Container::Ptr subData = stream.GetReadData();
           return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }
@@ -556,8 +573,10 @@ namespace Chiptune
         if (const Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {
           const std::size_t unpackedSize = unpacked->Size();
-          Require(0 == (unpackedSize % sizeof(RegistersDump)));
-          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), unpackedSize, sizeof(RegistersDump), target);
+          const std::size_t columns = sizeof(RegistersDump);
+          Require(0 == (unpackedSize % columns));
+          const std::size_t lines = unpackedSize / columns;
+          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), unpackedSize, lines, columns, target);
           const std::size_t packedSize = unpacked->PackedSize();
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
           return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
