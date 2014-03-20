@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+  <PreferenceScreen
+    android:title="@string/pref_zxtune_sid_title"
+    >
+    <ListPreference
+      android:key="@string/pref_zxtune_sid_interpolation"
+      android:title="@string/pref_interpolation"
+      android:entries="@array/pref_interpolation_entries"
+      android:entryValues="@array/pref_interpolation_values"
+      android:defaultValue="@integer/pref_zxtune_sid_interpolation_default"
+      />
+    <CheckBoxPreference
+      android:key="@string/pref_zxtune_sid_filter"
+      android:title="@string/pref_zxtune_sid_filter_title"
+      android:defaultValue="@integer/pref_zxtune_sid_filter_default"
+      />
+  </PreferenceScreen>
+</PreferenceScreen>

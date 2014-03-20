@@ -238,6 +238,7 @@ public final class ZXTune {
       public final static int TURBOFM = 16;
       public final static int DAC = 32;
       public final static int SAA1099 = 64;
+      public final static int MOS6581 = 128;
     }
     
     public interface Visitor {

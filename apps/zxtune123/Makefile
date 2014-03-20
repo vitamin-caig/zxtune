@@ -23,7 +23,7 @@ libraries.common = analysis async binary binary_format \
                   parameters platform \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = lhasa unrar xmp z80ex zlib
+libraries.3rdparty = lhasa sidplayfp sidplayfp_builders_resid unrar xmp z80ex zlib
 
 #apps
 libraries += zxtune_app_base zxtune_app_version

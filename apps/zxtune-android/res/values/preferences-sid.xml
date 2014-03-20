@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="pref_zxtune_sid_title" translatable="false">MOS6581/SID</string>
+  <!-- zxtune.core.sid.interpolation -->
+  <string  name="pref_zxtune_sid_interpolation" translatable="false">zxtune.core.sid.interpolation</string>
+  <integer name="pref_zxtune_sid_interpolation_default">0</integer>
+  <!-- zxtune.core.sid.filter -->
+  <string  name="pref_zxtune_sid_filter" translatable="false">zxtune.core.sid.filter</string>
+  <string  name="pref_zxtune_sid_filter_title">Filter emulation</string>
+  <integer name="pref_zxtune_sid_filter_default">0</integer>
+</resources>

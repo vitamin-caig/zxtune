@@ -127,7 +127,7 @@ namespace Parameters
       //! @brief SAA-related parameters namespace
       namespace SAA
       {
-        //! @brief Parameter#ZXTune#Core#SAA namespace prefix
+        //! @brief Parameters#ZXTune#Core#SAA namespace prefix
         extern const NameType PREFIX;
 
         //@{
@@ -144,6 +144,41 @@ namespace Parameters
         //! @brief Use interpolation
         //! @details integer value
         extern const NameType INTERPOLATION;
+      }
+
+      //! @brief SID-related parameters namespace
+      namespace SID
+      {
+        //! @brief Parameters#ZXTune#Core#SID namespace prefix
+        extern const NameType PREFIX;
+
+        //@{
+        //! @name SID filter emulation
+
+        //! Parameter name
+        extern const NameType FILTER;
+        //@}
+
+        //@{
+        //! @name Interpolation type (0/1/2)
+
+        //! Parameter name
+        extern const NameType INTERPOLATION;
+
+        //! @brief ROMs section for full C64 environment emulation
+        namespace ROM
+        {
+          //! @brief Parameters#ZXTune#Core#SID#ROM namespace prefix
+          extern const NameType PREFIX;
+
+          //! @name ROMs content
+          //! 8192 bytes
+          extern const NameType KERNAL;
+          //! 8192 bytes
+          extern const NameType BASIC;
+          //! 4096 bytes
+          extern const NameType CHARGEN;
+        }
       }
     }
   }

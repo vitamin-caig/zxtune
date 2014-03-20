@@ -22,6 +22,8 @@
     <string name="vfs_modland_collections_description">Навигация по коллекции</string>
     <string name="vfs_modland_formats_name">Форматы</string>
     <string name="vfs_modland_formats_description">Навигация по формату</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_description">Через http://www.tld-crew.de</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
 </resources>

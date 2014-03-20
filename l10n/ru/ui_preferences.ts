@@ -25,36 +25,41 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="67"/>
+        <source>Taganrog (3.5 MHz)</source>
+        <translation>Taganrog (3.5 МГц)</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="72"/>
         <source>Atari ST (2 MHz)</source>
         <translation>Atari ST (2 МГц)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="72"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="77"/>
         <source>Amstrad CPC (1 MHz)</source>
         <translation>Amstrad CPC (1 МГц)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="89"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="94"/>
         <source>Duty cycle, %</source>
         <translation>Скважность, %</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="136"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="141"/>
         <source>Interpolation</source>
         <translation>Интерполяция</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="149"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="154"/>
         <source>None</source>
         <translation>Нет</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="154"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="159"/>
         <source>Performance</source>
         <translation>Скорость</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="159"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/aym.ui" line="164"/>
         <source>Quality</source>
         <translation>Качество</translation>
     </message>
@@ -162,6 +167,39 @@
         <location filename="../../apps/zxtune-qt/ui/preferences/saa.ui" line="71"/>
         <source>Quality</source>
         <translation>Качество</translation>
+    </message>
+</context>
+<context>
+    <name>SIDOptions</name>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="26"/>
+        <source>Interpolation</source>
+        <translation>Интерполяция</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="39"/>
+        <source>None</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="44"/>
+        <source>Performance</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="49"/>
+        <source>Quality</source>
+        <translation>Качество</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="60"/>
+        <source>Emulation</source>
+        <translation>Эмуляция</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sid.ui" line="66"/>
+        <source>Filter</source>
+        <translation>Фильтр</translation>
     </message>
 </context>
 <context>

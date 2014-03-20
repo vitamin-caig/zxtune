@@ -24,6 +24,7 @@ public final class Vfs {
       composite.addSubroot(new VfsRootZxtunes(appContext));
       composite.addSubroot(new VfsRootPlaylists(appContext));
       composite.addSubroot(new VfsRootModland(appContext));
+      composite.addSubroot(new VfsRootHvsc(appContext));
       rootSingleton = composite;
     }
     return rootSingleton;

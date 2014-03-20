@@ -214,6 +214,7 @@ namespace ASCSoundMaster
       {
         //set slide to note
         cmd->Type = SLIDE_NOTE;
+        cmd->Param3 = cmd->Param2;
         cmd->Param2 = note;
       }
       else
@@ -292,9 +293,9 @@ namespace ASCSoundMaster
       Patterns.GetChannel().AddCommand(GLISS, val);
     }
 
-    virtual void SetSlide(int_t steps)
+    virtual void SetSlide(int_t steps, bool useToneSliding)
     {
-      Patterns.GetChannel().AddCommand(SLIDE, steps);
+      Patterns.GetChannel().AddCommand(SLIDE, steps, useToneSliding);
     }
 
     virtual void SetVolumeSlide(uint_t period, int_t delta)
@@ -343,7 +344,7 @@ namespace ASCSoundMaster
     int_t BaseNoise;
     int_t CurrentNoise;
     uint_t Note;
-    int_t NoteAddon;
+    int8_t NoteAddon;
     uint_t SampleNum;
     uint_t CurrentSampleNum;
     uint_t PosInSample;
@@ -459,8 +460,9 @@ namespace ASCSoundMaster
         {
           dst.SlidingSteps = it->Param1;
           dst.SlidingTargetNote = it->Param2;
+          const bool useToneSliding = it->Param3 != 0;
           const int_t absoluteSliding = track.GetSlidingDifference(dst.Note, dst.SlidingTargetNote);
-          const int_t newSliding = absoluteSliding - (contSample ? dst.Sliding / 16 : 0);
+          const int_t newSliding = absoluteSliding - (useToneSliding ? dst.Sliding / 16 : 0);
           dst.Glissade = 16 * newSliding / (dst.SlidingSteps ? dst.SlidingSteps : 1);
           reloadNote = true;
           break;
@@ -556,7 +558,7 @@ namespace ASCSoundMaster
       //calculate tone
       dst.ToneDeviation += curSampleLine.ToneDeviation;
       dst.NoteAddon += curOrnamentLine.NoteAddon;
-      const int_t halfTone = int_t(dst.Note) + dst.NoteAddon;
+      const int_t halfTone = Math::Clamp<int8_t>(int8_t(dst.Note) + dst.NoteAddon, 0, 0x55);
       const int_t toneAddon = dst.ToneDeviation + dst.Sliding / 16;
       //apply tone
       channel.SetTone(halfTone, toneAddon);

@@ -195,3 +195,7 @@ __cpp> "}//namespace Text\n"
 #YM
 < YM_DECODER_DESCRIPTION
 > "YM (ST-Sound Project)"
+
+#SID
+< SID_DECODER_DESCRIPTION
+> "Commodore64 RSID/PSID"

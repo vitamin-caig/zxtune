@@ -1,0 +1,11 @@
+* add an optional VIC II cycle exact emulation
+* add SIDid support
+
+* implement support for mus data embedded in psid files
+* test hardsid support
+
+* improve documentation
+
+* remove the fastForward support (?)
+* move mixer into resid specific class (?)
+* share resampling code between resid emulations (?)
