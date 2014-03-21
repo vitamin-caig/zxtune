@@ -4,10 +4,12 @@ AR := lib.exe
 
 #set options according to mode
 ifdef release
-CXX_MODE_FLAGS = /Ox /DNDEBUG /MD
+mode.suffix=
+CXX_MODE_FLAGS = /Ox /DNDEBUG
 LD_MODE_FLAGS = /SUBSYSTEM:$(if $(have_gui),WINDOWS,CONSOLE)
 else
-CXX_MODE_FLAGS = /Od /MDd
+mode.suffix=d
+CXX_MODE_FLAGS = /Od
 LD_MODE_FLAGS = /SUBSYSTEM:CONSOLE
 endif
 
@@ -19,7 +21,15 @@ endif
 #specific
 DEFINITIONS = $(defines) $($(platform)_definitions) _SCL_SECURE_NO_WARNINGS _CRT_SECURE_NO_WARNINGS
 INCLUDES = $(include_dirs) $($(platform)_include_dirs)
-windows_libraries += kernel32 $(addsuffix $(if $(release),,d), msvcrt msvcprt)
+windows_libraries += kernel32
+
+ifdef static_runtime
+CXX_MODE_FLAGS += /MT$(mode.suffix)
+windows_libraries += $(addsuffix $(mode.suffix), libcmt libcpmt)
+else
+CXX_MODE_FLAGS += /MD$(mode.suffix)
+windows_libraries += $(addsuffix $(mode.suffix), msvcrt msvcprt)
+endif
 
 #setup flags
 CXXFLAGS = /nologo /c $(CXX_MODE_FLAGS) $(cxx_flags) \

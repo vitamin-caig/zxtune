@@ -6,7 +6,7 @@ ifndef root.version
 root.version = $(subst rr,r,r$(shell git describe --dirty=M))
 #extract revision from r${revision}-${delta}-g${hash}${dirty}
 root.version.index = $(subst M,,$(subst r,,$(firstword $(subst -, ,$(root.version)))))
-ifeq ($(root.version),)
+ifeq ($(root.version),r)
 root.version = develop
 root.version.index = 0
 endif
