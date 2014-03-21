@@ -1,10 +1,8 @@
 @echo off
 
-SET VS_PATH=%PROGRAMFILES(x86)%\Microsoft Visual Studio 12.0
-ECHO %PATH% | FIND "%VS_PATH%" > NUL && GOTO Quit
+IF NOT "%VisualStudioVersion%" == "12.0" call "%PROGRAMFILES(x86)%\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86_amd64
 
-call "%VS_PATH%\VC\vcvarsall.bat" x86_amd64
-
-:Quit
+:: Hack against setting Platform=x64 variable required for msbuild
+SET Platform=
 SET platform=windows
 SET arch=x86_64
