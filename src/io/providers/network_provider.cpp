@@ -214,12 +214,14 @@ namespace IO
   // uri-related constants
   const Char SCHEME_SIGN[] = {':', '/', '/', 0};
   const Char SCHEME_HTTP[] = {'h', 't', 't', 'p', 0};
+  const Char SCHEME_HTTPS[] = {'h', 't', 't', 'p', 's', 0};
   const Char SCHEME_FTP[] = {'f', 't', 'p', 0};
   const Char SUBPATH_DELIMITER = '#';
 
   const Char* ALL_SCHEMES[] = 
   {
     SCHEME_HTTP,
+    SCHEME_HTTPS,
     SCHEME_FTP,
   };
 
