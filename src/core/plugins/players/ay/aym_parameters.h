@@ -33,6 +33,7 @@ namespace Module
       virtual void FreqTable(FrequencyTable& table) const = 0;
 
       static Ptr Create(Parameters::Accessor::Ptr params);
+      static Ptr Create(Parameters::Accessor::Ptr params, uint_t idx);
     };
   }
 }

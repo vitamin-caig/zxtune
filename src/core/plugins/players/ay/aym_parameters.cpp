@@ -12,6 +12,7 @@
 #include "aym_parameters.h"
 #include "freq_tables_internal.h"
 //common includes
+#include <contract.h>
 #include <error_tools.h>
 //library includes
 #include <core/core_parameters.h>
@@ -204,10 +205,10 @@ namespace AYM
     const Sound::RenderParameters::Ptr SoundParams;
   };
 
-  class TrackParametersImpl : public TrackParameters
+  class AYTrackParameters : public TrackParameters
   {
   public:
-    explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
+    explicit AYTrackParameters(Parameters::Accessor::Ptr params)
       : Params(params)
     {
     }
@@ -241,7 +242,55 @@ namespace AYM
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    const Sound::RenderParameters::Ptr Delegate;
+  };
+
+  class TSTrackParameters : public TrackParameters
+  {
+  public:
+    TSTrackParameters(Parameters::Accessor::Ptr params, uint_t idx)
+      : Params(params)
+      , Index(idx)
+    {
+      Require(Index <= 1);
+    }
+
+    virtual uint_t Version() const
+    {
+      return Params->Version();
+    }
+
+    virtual void FreqTable(FrequencyTable& table) const
+    {
+      Parameters::StringType newName;
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newName))
+      {
+        const String& subName = ExtractMergedValue(newName);
+        GetFreqTable(subName, table);
+      }
+    }
+  private:
+    /*
+      ('a', 0) => 'a'
+      ('a', 1) => 'a'
+      ('a/b', 0) => 'a'
+      ('a/b', 1) => 'b'
+    */
+    String ExtractMergedValue(const String& val) const
+    {
+      const String::size_type pos = val.find_first_of('/');
+      if (pos != String::npos)
+      {
+        Require(String::npos == val.find_first_of('/', pos + 1));
+        return Index == 0 ? val.substr(0, pos) : val.substr(pos + 1);
+      }
+      else
+      {
+        return val;
+      }
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+    const uint_t Index;
   };
 
   Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
@@ -251,7 +300,12 @@ namespace AYM
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<TrackParametersImpl>(params);
+    return boost::make_shared<AYTrackParameters>(params);
+  }
+
+  TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params, uint_t idx)
+  {
+    return boost::make_shared<TSTrackParameters>(params, idx);
   }
 }
 }
