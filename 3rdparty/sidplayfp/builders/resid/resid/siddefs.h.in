@@ -27,7 +27,9 @@
 
 // Compiler specifics.
 #define HAVE_BOOL @RESID_HAVE_BOOL@
+#ifdef __GNUC__
 #define HAVE_BUILTIN_EXPECT @HAVE_BUILTIN_EXPECT@
+#endif
 
 // Define bool, true, and false for C++ compilers that lack these keywords.
 #if !HAVE_BOOL

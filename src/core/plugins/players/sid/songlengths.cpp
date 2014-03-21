@@ -15,7 +15,7 @@
 #include <contract.h>
 //std includes
 #include <cstring>
-#include <ctype.h>
+#include <cctype>
 //boost includes
 #include <boost/range/end.hpp>
 
