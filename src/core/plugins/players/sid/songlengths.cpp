@@ -10,19 +10,37 @@
 
 //local includes
 #include "songlengths.h"
-#include "songlengths_db.h"
 //common includes
 #include <contract.h>
 //std includes
 #include <cstring>
 #include <cctype>
 //boost includes
+#include <boost/array.hpp>
 #include <boost/range/end.hpp>
 
 namespace Module
 {
 namespace Sid
 {
+  typedef boost::array<uint8_t, 16> MD5Hash;
+  
+  struct SongEntry
+  {
+    const MD5Hash Hash;
+    const unsigned Seconds;
+    
+    bool operator < (const MD5Hash& hash) const
+    {
+      return Hash < hash;
+    }
+  };
+  
+  const SongEntry SONGS[] =
+  {
+#include "songlengths_db.inc"
+  };
+
   typedef Time::Stamp<uint_t, 1> Seconds;
 
   const Seconds DEFAULT_SONG_LENGTH(120);
