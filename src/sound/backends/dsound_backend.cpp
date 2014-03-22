@@ -9,11 +9,11 @@
 **/
 
 //local includes
-#include "dsound.h"
-#include "dsound_api.h"
 #include "backend_impl.h"
+#include "dsound.h"
 #include "storage.h"
 #include "volume_control.h"
+#include "gates/dsound_api.h"
 //common includes
 #include <error_tools.h>
 //library includes

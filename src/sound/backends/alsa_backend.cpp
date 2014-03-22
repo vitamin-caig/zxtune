@@ -10,10 +10,10 @@
 
 //local includes
 #include "alsa.h"
-#include "alsa_api.h"
 #include "backend_impl.h"
 #include "storage.h"
 #include "volume_control.h"
+#include "gates/alsa_api.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>

@@ -11,17 +11,17 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#: providers/enumerator.cpp:66
+#: providers/enumerator.cpp:67
 #, boost-format
 msgid "Failed to resolve uri '%1%'."
 msgstr "Ошибка анализа идентификатора '%1%'."
 
-#: providers/enumerator.cpp:81 providers/enumerator.cpp:97
-#: providers/enumerator.cpp:162 providers/enumerator.cpp:167
+#: providers/enumerator.cpp:82 providers/enumerator.cpp:98
+#: providers/enumerator.cpp:163 providers/enumerator.cpp:168
 msgid "Specified uri scheme is not supported."
 msgstr "Данная схема идентификатора не поддерживается."
 
-#: providers/enumerator.cpp:216
+#: providers/enumerator.cpp:217
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
@@ -81,15 +81,15 @@ msgstr "Сетевая ошибка: %1%"
 msgid "Http error happends: %1%."
 msgstr "Ошибка HTTP: %1%."
 
-#: providers/network_provider.cpp:294 providers/network_stub.cpp:21
+#: providers/network_provider.cpp:296 providers/network_stub.cpp:21
 msgid "Network files access via different schemes support"
 msgstr "Поддержка доступа к сетевым файлам"
 
-#: providers/network_provider.cpp:363
+#: providers/network_provider.cpp:365
 #, boost-format
 msgid "Failed to open network resource '%1%'."
 msgstr "Ошибка открытия сетевого ресурса '%1%'."
 
-#: providers/network_provider.cpp:369
+#: providers/network_provider.cpp:371
 msgid "Not supported."
 msgstr "Не поддерживается."

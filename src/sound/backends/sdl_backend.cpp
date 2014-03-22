@@ -11,9 +11,9 @@
 #define DECLSPEC
 
 //local includes
-#include "sdl_api.h"
 #include "backend_impl.h"
 #include "storage.h"
+#include "gates/sdl_api.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>

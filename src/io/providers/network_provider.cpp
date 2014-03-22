@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "curl_api.h"
 #include "enumerator.h"
+#include "gates/curl_api.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>

@@ -10,8 +10,8 @@ include $(path_step)/make/features.mak
 
 define declare_native_backend
 ifdef support_$(1)
-generated_headers += $(2)_api
-generated_sources += $(2)_api_dynamic
+generated_headers += gates/$(2)_api
+generated_sources += gates/$(2)_api_dynamic
 source_files += $(2)_backend
 else
 source_files += $(2)_stub
@@ -21,8 +21,8 @@ endef
 define declare_thirdparty_backend
 ifdef support_$(1)
 $$(platform)_include_dirs += $$(path_step)/3rdparty
-generated_headers += $(1)_api
-generated_sources += $(1)_api_dynamic
+generated_headers += gates/$(1)_api
+generated_sources += gates/$(1)_api_dynamic
 source_files += $(1)_backend
 else
 source_files += $(1)_stub
@@ -45,8 +45,8 @@ $(eval $(call declare_thirdparty_backend,mp3))
 $(eval $(call declare_thirdparty_backend,ogg))
 
 ifdef support_ogg
-generated_headers += vorbis_api vorbisenc_api
-source_files += vorbis_api_dynamic vorbisenc_api_dynamic
+generated_headers += gates/vorbis_api gates/vorbisenc_api
+source_files += gates/vorbis_api_dynamic gates/vorbisenc_api_dynamic
 endif
 
 source_files += null_backend wav_backend

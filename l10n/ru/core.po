@@ -42,28 +42,28 @@ msgstr ""
 msgid "Invalid parameters specified."
 msgstr "Неправильные параметры."
 
-#: plugins/players/ay/aym_parameters.cpp:62
+#: plugins/players/ay/aym_parameters.cpp:63
 #, boost-format
 msgid "Invalid duty cycle mask item: '%1%'."
 msgstr "Неправильное значение канала для задания скважности: '%1%'."
 
-#: plugins/players/ay/aym_parameters.cpp:105
-#: plugins/players/ay/aym_parameters.cpp:191
+#: plugins/players/ay/aym_parameters.cpp:106
+#: plugins/players/ay/aym_parameters.cpp:192
 #, boost-format
 msgid "Invalid layout value (%1%)."
 msgstr "Неправильное значение раскладки каналов (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:130
+#: plugins/players/ay/aym_parameters.cpp:131
 #, boost-format
 msgid "Invalid clock frequency (%1%)."
 msgstr "Неправильное значение тактовой частоты (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:162
+#: plugins/players/ay/aym_parameters.cpp:163
 #, boost-format
 msgid "Invalid duty cycle value (%1%)."
 msgstr "Неправильное значение скважности (%1%)."
 
-#: plugins/players/ay/aym_parameters.cpp:236
+#: plugins/players/ay/aym_parameters.cpp:237
 #, boost-format
 msgid "Invalid frequency table size (%1%)."
 msgstr "Неправильный размер частотной таблицы (%1%)."
