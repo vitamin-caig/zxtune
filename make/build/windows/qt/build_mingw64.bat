@@ -11,7 +11,7 @@ SET INCLUDE=
 SET PATH=c:\windows;c:\windows\system32;%MINGW_PATH%
 
 :Quit
-SET INSTPATH=E:\Build\qt-4.8.5-mingw-x86_64
+SET INSTPATH=%CD:~0,2%\Build\qt-4.8.5-mingw-x86_64
 mkdir %INSTPATH%
 
 SET QMAKEPATH=%CD%
