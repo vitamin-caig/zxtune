@@ -46,7 +46,7 @@ $(eval $(call declare_thirdparty_backend,ogg))
 
 ifdef support_ogg
 generated_headers += gates/vorbis_api gates/vorbisenc_api
-source_files += gates/vorbis_api_dynamic gates/vorbisenc_api_dynamic
+generated_sources += gates/vorbis_api_dynamic gates/vorbisenc_api_dynamic
 endif
 
 source_files += null_backend wav_backend

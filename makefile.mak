@@ -149,7 +149,7 @@ $(OBJECTS): | $(GENERATED_HEADERS) $(objects_dir)
 
 $(RESOURCES): | $(objects_dir)
 
-vpath %$(src_suffix) $(sort $(dir $(source_files) $(generated_source_files)))
+vpath %$(src_suffix) $(sort $(dir $(source_files) $(generated_sources)))
 vpath %$(src_suffix_cc) $(sort $(dir $(source_files_cc)))
 vpath %$(res_suffix) $(sort $(dir $($(platform)_resources)))
 
