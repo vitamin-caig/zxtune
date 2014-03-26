@@ -34,7 +34,7 @@ namespace
       setupUi(this);
 
       using namespace Parameters;
-      IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION, 0);
+      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION, 0);
       BooleanValue::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, false);
     }
 
@@ -43,12 +43,14 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
+        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
       }
       UI::SIDSettingsWidget::changeEvent(event);
     }
   private:
     const Parameters::Container::Ptr Options;
+    Parameters::Value* Interpolation;
   };
 }
 namespace UI

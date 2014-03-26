@@ -94,7 +94,7 @@ namespace
       IntegerValue::Bind(*playlistCachedFiles, *Options, ZXTuneQT::Playlist::Cache::FILES_LIMIT, ZXTuneQT::Playlist::Cache::FILES_LIMIT_DEFAULT);
       IntegerValue::Bind(*playlistCacheLimit, *Options, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB, ZXTuneQT::Playlist::Cache::MEMORY_LIMIT_MB_DEFAULT);
       BooleanValue::Bind(*playlistStoreAllProperties, *Options, ZXTuneQT::Playlist::Store::PROPERTIES, ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT);
-      IntegerValue::Bind(*updateCheckPeriod, boost::make_shared<UpdateCheckPeriodComboboxValue>(Options));
+      UpdateCheckPeriod = IntegerValue::Bind(*updateCheckPeriod, boost::make_shared<UpdateCheckPeriodComboboxValue>(Options));
     }
 
     virtual void OnLanguageChanged(int idx)
@@ -109,6 +109,7 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
+        const Parameters::ValueSnapshot blockInterpolation(*UpdateCheckPeriod);
         retranslateUi(this);
       }
       UI::InterfaceSettingsWidget::changeEvent(event);
@@ -136,6 +137,7 @@ namespace
   private:
     const Parameters::Container::Ptr Options;
     const UI::Language::Ptr Language;
+    Parameters::Value* UpdateCheckPeriod;
   };
 }
 

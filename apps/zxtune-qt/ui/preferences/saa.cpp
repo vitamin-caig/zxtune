@@ -36,7 +36,7 @@ namespace
       using namespace Parameters;
       const IntegerTraits clockRate(ZXTune::Core::SAA::CLOCKRATE, ZXTune::Core::SAA::CLOCKRATE_DEFAULT, ZXTune::Core::SAA::CLOCKRATE_MIN, ZXTune::Core::SAA::CLOCKRATE_MAX);
       BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
-      IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SAA::INTERPOLATION, 0);
+      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SAA::INTERPOLATION, 0);
     }
 
     //QWidget
@@ -44,12 +44,14 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
+        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
       }
       UI::SAASettingsWidget::changeEvent(event);
     }
   private:
     const Parameters::Container::Ptr Options;
+    Parameters::Value* Interpolation;
   };
 }
 namespace UI

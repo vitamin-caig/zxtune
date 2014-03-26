@@ -53,7 +53,7 @@ namespace
       BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
       BooleanValue::Bind(*dutyCycleGroup, *Options, ZXTune::Core::AYM::DUTY_CYCLE_MASK, false, 0x1f);
       IntegerValue::Bind(*dutyCycleValue, *Options, ZXTune::Core::AYM::DUTY_CYCLE, 50);
-      IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION, 0);
+      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION, 0);
     }
 
     virtual void OnClockRateChanged(const QString& val)
@@ -85,7 +85,8 @@ namespace
       if (event && QEvent::LanguageChange == event->type())
       {
         //do not change preset or smth
-        const AutoBlockSignal block(*clockRatePresets);
+        const AutoBlockSignal blockClockrate(*clockRatePresets);
+        const Parameters::ValueSnapshot blockInterpolation(*Interpolation);
         retranslateUi(this);
         //restore combobox value
         OnClockRateChanged(clockRateValue->text());
@@ -94,6 +95,7 @@ namespace
     }
   private:
     const Parameters::Container::Ptr Options;
+    Parameters::Value* Interpolation;
   };
 }
 namespace UI
