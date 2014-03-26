@@ -53,19 +53,6 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation();
     SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items);
 
-    //statistic
-    class StatisticTextNotification : public Playlist::TextNotification
-    {
-    public:
-      typedef boost::shared_ptr<StatisticTextNotification> Ptr;
-
-      virtual void AddInvalid() = 0;
-      virtual void AddValid(const String& type, const Time::MillisecondsDuration& duration, std::size_t size) = 0;
-    };
-
-    TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result);
-    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result);
-
     //export
     class ConversionResultNotification : public Playlist::TextNotification
     {

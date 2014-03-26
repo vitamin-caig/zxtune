@@ -20,6 +20,7 @@
 #include "multiple_items_contextmenu.ui.h"
 #include "playlist/supp/operations.h"
 #include "playlist/supp/operations_convert.h"
+#include "playlist/supp/operations_statistic.h"
 #include "playlist/supp/storage.h"
 #include "playlist/ui/contextmenu.h"
 #include "playlist/ui/table_view.h"
