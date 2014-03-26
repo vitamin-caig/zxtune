@@ -52,20 +52,5 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation();
     SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items);
-
-    //export
-    class ConversionResultNotification : public Playlist::TextNotification
-    {
-    public:
-      typedef boost::shared_ptr<ConversionResultNotification> Ptr;
-
-      virtual void AddSucceed() = 0;
-      virtual void AddFailedToOpen(const String& path) = 0;
-      virtual void AddFailedToConvert(const String& path, const Error& err) = 0;
-    };
-    TextResultOperation::Ptr CreateExportOperation(const String& nameTemplate,
-      Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
-    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSetPtr items,
-      const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
   }
 }

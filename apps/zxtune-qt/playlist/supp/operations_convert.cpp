@@ -10,6 +10,7 @@
 
 //local includes
 #include "operations_convert.h"
+#include "operations_helpers.h"
 #include "storage.h"
 #include <apps/zxtune-qt/supp/playback_supp.h>
 //common includes
@@ -17,8 +18,10 @@
 #include <error_tools.h>
 //library includes
 #include <async/src/event.h>
+#include <io/api.h>
+#include <io/template.h>
+#include <parameters/template.h>
 #include <sound/backend.h>
-#include <strings/format.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -178,6 +181,74 @@ namespace
     const Sound::Service::Ptr Service;
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
+
+  // Exporting
+  class ExportOperation : public Playlist::Item::TextResultOperation
+                        , private Playlist::Item::Visitor
+  {
+  public:
+    ExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
+      : SelectedItems()
+      , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
+      , Params(params)
+      , Result(result)
+    {
+    }
+
+    ExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
+      : SelectedItems(items)
+      , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
+      , Params(params)
+      , Result(result)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      ExecuteOperation(stor, SelectedItems, *this, cb);
+      emit ResultAcquired(Result);
+    }
+  private:
+    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
+    {
+      const String path = data->GetFullPath();
+      if (Module::Holder::Ptr holder = data->GetModule())
+      {
+        ExportItem(path, *holder);
+      }
+      else
+      {
+        Result->AddFailedToOpen(path);
+      }
+    }
+
+    void ExportItem(const String& path, const Module::Holder& item)
+    {
+      try
+      {
+        const Binary::Data::Ptr result = Module::GetRawData(item);
+        const Parameters::Accessor::Ptr props = item.GetModuleProperties();
+        const String filename = NameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
+        Save(*result, filename);
+        Result->AddSucceed();
+      }
+      catch (const Error& err)
+      {
+        Result->AddFailedToConvert(path, err);
+      }
+    }
+
+    void Save(const Binary::Data& data, const String& filename) const
+    {
+      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, *Params, Log::ProgressCallback::Stub());
+      stream->ApplyData(data);
+    }
+  private:
+    const Playlist::Model::IndexSetPtr SelectedItems;
+    const Strings::Template::Ptr NameTemplate;
+    const Parameters::Accessor::Ptr Params;
+    const Playlist::Item::ConversionResultNotification::Ptr Result;
+  };
 }
 
 namespace Playlist
@@ -188,6 +259,16 @@ namespace Playlist
       const String& type, Sound::Service::Ptr service, ConversionResultNotification::Ptr result)
     {
       return boost::make_shared<ConvertOperation>(items, type, service, result);
+    }
+
+    TextResultOperation::Ptr CreateExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
+    {
+      return boost::make_shared<ExportOperation>(nameTemplate, params, result);
+    }
+
+    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
+    {
+      return boost::make_shared<ExportOperation>(items, nameTemplate, params, result);
     }
   }
 }
