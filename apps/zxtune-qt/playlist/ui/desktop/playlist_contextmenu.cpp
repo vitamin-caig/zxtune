@@ -422,11 +422,11 @@ namespace
 
     virtual void ConvertSelected() const
     {
-      String type;
-      if (Sound::Service::Ptr service = UI::GetConversionService(View, type))
+      Playlist::Item::Conversion::Options opts;
+      if (UI::GetConversionParameters(View, opts))
       {
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, type, service, result);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, opts, result);
         ExecuteNotificationOperation(op);
       }
     }

@@ -149,10 +149,10 @@ namespace
     const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 
-  class ConvertOperation : public Playlist::Item::TextResultOperation
+  class SoundFormatConvertOperation : public Playlist::Item::TextResultOperation
   {
   public:
-    ConvertOperation(Playlist::Model::IndexSetPtr items,
+    SoundFormatConvertOperation(Playlist::Model::IndexSetPtr items,
       const String& type, Sound::Service::Ptr service, Playlist::Item::ConversionResultNotification::Ptr result)
       : SelectedItems(items)
       , Type(type)
@@ -255,10 +255,10 @@ namespace Playlist
 {
   namespace Item
   {
-    TextResultOperation::Ptr CreateConvertOperation(Playlist::Model::IndexSetPtr items,
+    TextResultOperation::Ptr CreateSoundFormatConvertOperation(Playlist::Model::IndexSetPtr items,
       const String& type, Sound::Service::Ptr service, ConversionResultNotification::Ptr result)
     {
-      return boost::make_shared<ConvertOperation>(items, type, service, result);
+      return boost::make_shared<SoundFormatConvertOperation>(items, type, service, result);
     }
 
     TextResultOperation::Ptr CreateExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
@@ -269,6 +269,24 @@ namespace Playlist
     TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
     {
       return boost::make_shared<ExportOperation>(items, nameTemplate, params, result);
+    }
+
+    TextResultOperation::Ptr CreateConvertOperation(Playlist::Model::IndexSetPtr items, const Conversion::Options& opts, ConversionResultNotification::Ptr result)
+    {
+      if (opts.Type.empty())
+      {
+        return CreateExportOperation(items, opts.FilenameTemplate, opts.Params, result);
+      }
+      else
+      {
+        const Sound::Service::Ptr service = Sound::CreateFileService(opts.Params);
+        return CreateSoundFormatConvertOperation(items, opts.Type, service, result);
+      }
+    }
+
+    TextResultOperation::Ptr CreateConvertOperation(const Conversion::Options& opts, ConversionResultNotification::Ptr result)
+    {
+      return CreateConvertOperation(Playlist::Model::IndexSetPtr(), opts, result);
     }
   }
 }

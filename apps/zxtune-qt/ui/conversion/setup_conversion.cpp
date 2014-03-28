@@ -112,18 +112,20 @@ namespace
       State->Load();
     }
 
-    virtual Sound::Service::Ptr Execute(String& type)
+    virtual bool Execute(Playlist::Item::Conversion::Options& opts)
     {
       if (exec())
       {
-        Options->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, FromQString(TargetTemplate->GetFilenameTemplate()));
-        type = TargetFormat->GetSelectedId();
+        opts.Type = TargetFormat->GetSelectedId();
+        opts.FilenameTemplate = FromQString(TargetTemplate->GetFilenameTemplate());
+        Options->SetValue(Parameters::ZXTune::Sound::Backends::File::FILENAME, opts.FilenameTemplate);
         const TemporaryProperty<Parameters::IntType> disableLoop(*Options, Parameters::ZXTune::Sound::LOOPED, 0);
-        return Sound::CreateFileService(GlobalOptions::Instance().GetSnapshot());
+        opts.Params = GlobalOptions::Instance().GetSnapshot();
+        return true;
       }
       else
       {
-        return Sound::Service::Ptr();
+        return false;
       }
     }
 
@@ -205,9 +207,9 @@ namespace UI
     return SetupConversionDialog::Ptr(new SetupConversionDialogImpl(parent));
   }
 
-  Sound::Service::Ptr GetConversionService(QWidget& parent, String& type)
+  bool GetConversionParameters(QWidget& parent, Playlist::Item::Conversion::Options& opts)
   {
     const SetupConversionDialog::Ptr dialog = SetupConversionDialog::Create(parent);
-    return dialog->Execute(type);
+    return dialog->Execute(opts);
   }
 }

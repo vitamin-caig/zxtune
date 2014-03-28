@@ -395,7 +395,7 @@
         <translation>Многопоточная конверсия</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.cpp" line="182"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/setup_conversion.cpp" line="184"/>
         <source>No options</source>
         <translation>Нет настроек</translation>
     </message>
