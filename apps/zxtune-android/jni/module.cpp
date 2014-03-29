@@ -10,6 +10,7 @@
 
 //local includes
 #include "debug.h"
+#include "global_options.h"
 #include "module.h"
 #include "player.h"
 #include "properties.h"
@@ -19,38 +20,105 @@
 //library includes
 #include <binary/container_factories.h>
 #include <core/module_open.h>
+#include <core/module_detect.h>
 
-namespace Module
+namespace
 {
-  int Create(Binary::Container::Ptr data)
+  Module::Storage::HandleType CreateModule(Binary::Container::Ptr data, const String& subpath)
   {
     try
     {
-      const Module::Holder::Ptr module = Module::Open(*data);
-      Dbg("Module::Create(data=%p)=%p", data.get(), module.get());
-      return Storage::Instance().Add(module);
+      const Module::Holder::Ptr module = subpath.empty()
+          ? Module::Open(*data)
+          : Module::Open(ZXTune::OpenLocation(Parameters::GlobalOptions(), data, subpath));
+      Dbg("Module::Create(data=%p, subpath=%s)=%p", data.get(), subpath, module.get());
+      return Module::Storage::Instance().Add(module);
     }
     catch (const Error&)
     {
       return 0;
     }
   }
+
+  class DetectCallback : public Module::DetectCallback
+  {
+  public:
+    explicit DetectCallback(JNIEnv* env, jobject delegate)
+      : Env(env)
+      , Delegate(delegate)
+    {
+    }
+
+    virtual Parameters::Accessor::Ptr GetPluginsParameters() const
+    {
+      return Parameters::GlobalOptions();
+    }
+
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/,
+      Module::Holder::Ptr holder) const
+    {
+      const jmethodID methodId = GetMethodId();
+      const Jni::StringHelper subpath(Env, location->GetPath()->AsString());
+      const int handle = Module::Storage::Instance().Add(holder);
+      Env->CallNonvirtualVoidMethod(Delegate, CallbackClass, methodId, subpath.AsJstring(), handle);
+    }
+
+    virtual Log::ProgressCallback* GetProgress() const
+    {
+      return 0;
+    }
+  private:
+    jmethodID GetMethodId() const
+    {
+      if (!OnModuleMethod)
+      {
+        CallbackClass = Env->GetObjectClass(Delegate);
+        OnModuleMethod = Env->GetMethodID(CallbackClass, "onModule", "(Ljava/lang/String;I)V");
+      }
+      return OnModuleMethod;
+    }
+
+  private:
+    JNIEnv* const Env;
+    const jobject Delegate;
+    mutable jclass CallbackClass;
+    mutable jmethodID OnModuleMethod;
+  };
+
+  void DetectModules(Binary::Container::Ptr data, Module::DetectCallback& cb)
+  {
+    const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
+    Module::Detect(location, cb);
+  }
 }
 
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
-  (JNIEnv* env, jclass /*self*/, jobject buffer)
+  (JNIEnv* env, jclass /*self*/, jobject buffer, jstring subpath)
 {
   const jlong capacity = env->GetDirectBufferCapacity(buffer);
   const void* addr = env->GetDirectBufferAddress(buffer);
   if (capacity && addr)
   {
-    //TODO: remove copying
-    const Binary::Container::Ptr data = Binary::CreateContainer(addr, capacity);
-    return Module::Create(data);
+    const Binary::Container::Ptr data = Binary::CreateNonCopyContainer(addr, capacity);
+    const Jni::StringHelper sub(env, subpath);
+    return CreateModule(data, sub.AsString());
   }
   else
   {
     return 0;
+  }
+}
+
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Detect
+  (JNIEnv* env, jclass /*self*/, jobject buffer, jobject cb)
+{
+  const jlong capacity = env->GetDirectBufferCapacity(buffer);
+  const void* addr = env->GetDirectBufferAddress(buffer);
+  if (capacity && addr)
+  {
+    const Binary::Container::Ptr data = Binary::CreateNonCopyContainer(addr, capacity);
+    DetectCallback callbackAdapter(env, cb);
+    DetectModules(data, callbackAdapter);
   }
 }
 

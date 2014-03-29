@@ -29,6 +29,11 @@ namespace
     return static_cast<const uint8_t*>(val.Start()) + offset;
   }
 
+  inline const void* GetPointer(const uint8_t& val, std::size_t offset)
+  {
+    return &val + offset;
+  }
+
   template<class Value>
   class SharedContainer : public Binary::Container
   {
@@ -77,13 +82,24 @@ namespace Binary
 {
   BOOST_STATIC_ASSERT(sizeof(Dump::value_type) == 1);
 
-  //construct container from data dump. Use memcpy since shared_array is less usable in common code
   Container::Ptr CreateContainer(const void* data, std::size_t size)
   {
     if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
     {
       const boost::shared_ptr<Dump> buffer = boost::make_shared<Dump>(byteData, byteData + size);
       return CreateContainer(buffer, 0, size);
+    }
+    else
+    {
+      return Container::Ptr();
+    }
+  }
+
+  Container::Ptr CreateNonCopyContainer(const void* data, std::size_t size)
+  {
+    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : 0)
+    {
+      return boost::make_shared<SharedContainer<const uint8_t*> >(byteData, 0, size);
     }
     else
     {

@@ -121,7 +121,7 @@ public class FileIterator implements Iterator {
     
   static ZXTune.Module loadModule(VfsFile file) throws IOException, InvalidObjectException {
     final ByteBuffer content = file.getContent();
-    return ZXTune.loadModule(content);
+    return ZXTune.loadModule(content, "");
   }
 
   private static class FileItem implements PlayableItem {

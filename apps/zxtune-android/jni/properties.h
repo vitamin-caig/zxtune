@@ -36,13 +36,18 @@ namespace Jni
     
     String AsString() const
     {
-      if (Cstr.empty())
+      if (!Cstr.capacity())
       {
         if (const std::size_t size = Env->GetStringUTFLength(Jstr))
         {
+          Cstr.reserve(size + 1);
           const char* const syms = Env->GetStringUTFChars(Jstr, 0);
           Cstr.assign(syms, syms + size);
           Env->ReleaseStringUTFChars(Jstr, syms);
+        }
+        else
+        {
+          Cstr.reserve(1);
         }
       }
       return Cstr;

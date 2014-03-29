@@ -50,10 +50,18 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Handle_1Close
 /*
  * Class:     app_zxtune_ZXTune
  * Method:    Module_Create
- * Signature: (Ljava/nio/ByteBuffer;)I
+ * Signature: (Ljava/nio/ByteBuffer;Ljava/lang/String;)I
  */
 JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
-  (JNIEnv *, jclass, jobject);
+  (JNIEnv *, jclass, jobject, jstring);
+
+/*
+ * Class:     app_zxtune_ZXTune
+ * Method:    Module_Detect
+ * Signature: (Ljava/nio/ByteBuffer;Lapp/zxtune/ZXTune/ModuleDetectCallbackNativeAdapter;)V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Module_1Detect
+  (JNIEnv *, jclass, jobject, jobject);
 
 /*
  * Class:     app_zxtune_ZXTune
@@ -297,10 +305,59 @@ extern "C" {
 }
 #endif
 #endif
+/* Header for class app_zxtune_ZXTune_Plugins_DeviceType */
+
+#ifndef _Included_app_zxtune_ZXTune_Plugins_DeviceType
+#define _Included_app_zxtune_ZXTune_Plugins_DeviceType
+#ifdef __cplusplus
+extern "C" {
+#endif
+#undef app_zxtune_ZXTune_Plugins_DeviceType_AY38910
+#define app_zxtune_ZXTune_Plugins_DeviceType_AY38910 1L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_TURBOSOUND
+#define app_zxtune_ZXTune_Plugins_DeviceType_TURBOSOUND 2L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_BEEPER
+#define app_zxtune_ZXTune_Plugins_DeviceType_BEEPER 4L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_YM2203
+#define app_zxtune_ZXTune_Plugins_DeviceType_YM2203 8L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_TURBOFM
+#define app_zxtune_ZXTune_Plugins_DeviceType_TURBOFM 16L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_DAC
+#define app_zxtune_ZXTune_Plugins_DeviceType_DAC 32L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_SAA1099
+#define app_zxtune_ZXTune_Plugins_DeviceType_SAA1099 64L
+#undef app_zxtune_ZXTune_Plugins_DeviceType_MOS6581
+#define app_zxtune_ZXTune_Plugins_DeviceType_MOS6581 128L
+#ifdef __cplusplus
+}
+#endif
+#endif
 /* Header for class app_zxtune_ZXTune_Plugins_Visitor */
 
 #ifndef _Included_app_zxtune_ZXTune_Plugins_Visitor
 #define _Included_app_zxtune_ZXTune_Plugins_Visitor
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_ModuleDetectCallback */
+
+#ifndef _Included_app_zxtune_ZXTune_ModuleDetectCallback
+#define _Included_app_zxtune_ZXTune_ModuleDetectCallback
+#ifdef __cplusplus
+extern "C" {
+#endif
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_ZXTune_ModuleDetectCallbackNativeAdapter */
+
+#ifndef _Included_app_zxtune_ZXTune_ModuleDetectCallbackNativeAdapter
+#define _Included_app_zxtune_ZXTune_ModuleDetectCallbackNativeAdapter
 #ifdef __cplusplus
 extern "C" {
 #endif

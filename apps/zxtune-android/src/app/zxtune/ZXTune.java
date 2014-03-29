@@ -255,8 +255,33 @@ public final class ZXTune {
    * @param Content raw content
    * @return New object
    */
-  public static Module loadModule(ByteBuffer content) throws InvalidObjectException {
-    return new NativeModule(Module_Create(content));
+  public static Module loadModule(ByteBuffer content, String subpath) throws InvalidObjectException {
+    return new NativeModule(Module_Create(content, subpath));
+  }
+  
+  public interface ModuleDetectCallback {
+    void onModule(String subpath, Module obj);
+  }
+  
+  static class ModuleDetectCallbackNativeAdapter {
+
+    private final ModuleDetectCallback delegate;
+    
+    public ModuleDetectCallbackNativeAdapter(ModuleDetectCallback delegate) {
+      this.delegate = delegate;
+    }
+
+    final void onModule(String subpath, int handle) {
+      try {
+        delegate.onModule(subpath, new NativeModule(handle));
+      } catch (InvalidObjectException e) {
+        //TODO
+      }
+    }
+  }
+  
+  public static void detectModules(ByteBuffer content, ModuleDetectCallback cb) {
+    Module_Detect(content, new ModuleDetectCallbackNativeAdapter(cb));
   }
 
   /**
@@ -368,7 +393,8 @@ public final class ZXTune {
   private static native void Handle_Close(int handle);
 
   // working with module
-  private static native int Module_Create(ByteBuffer data);
+  private static native int Module_Create(ByteBuffer data, String subpath);
+  private static native void Module_Detect(ByteBuffer data, ModuleDetectCallbackNativeAdapter cb);
   private static native int Module_GetDuration(int module);
   private static native long Module_GetProperty(int module, String name, long defVal);
   private static native String Module_GetProperty(int module, String name, String defVal);
