@@ -2,7 +2,7 @@
 * 
 * @file
 *
-* @brief  Archive plugins factory
+* @brief  Internal plugins logic implementation
 *
 * @author vitamin.caig@gmail.com
 *
@@ -10,7 +10,7 @@
 
 //local includes
 #include "archive_supp_common.h"
-#include "plugins_list.h"
+#include "plugins.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed/decoders.h>
@@ -31,9 +31,8 @@ namespace
   using namespace ZXTune;
   using namespace Formats::Packed;
 
-  const ArchivePluginDescription PLUGINS[] =
+  const ArchivePluginDescription DEPACKERS[] =
   {
-    //archives
     {"HOBETA",   &CreateHobetaDecoder,                   CAP_STOR_CONTAINER | CAP_STOR_PLAIN},
     {"HRUST1",   &CreateHrust1Decoder,                   CAP_STOR_CONTAINER},
     {"HRUST2",   &CreateHrust21Decoder,                  CAP_STOR_CONTAINER},
@@ -64,28 +63,42 @@ namespace
     {"Z80V20",   &CreateZ80V20Decoder,                   CAP_STOR_CONTAINER},
     {"Z80V30",   &CreateZ80V30Decoder,                   CAP_STOR_CONTAINER},
     {"MEGALZ",   &CreateMegaLZDecoder,                   CAP_STOR_CONTAINER},
-    //players
-    {"COMPILEDASC0", &CreateCompiledASC0Decoder, CAP_STOR_CONTAINER},
-    {"COMPILEDASC1", &CreateCompiledASC1Decoder, CAP_STOR_CONTAINER},
-    {"COMPILEDASC2", &CreateCompiledASC2Decoder, CAP_STOR_CONTAINER},
-    {"COMPILEDPT24", &CreateCompiledPT24Decoder, CAP_STOR_CONTAINER},
-    {"COMPILEDPTU13", &CreateCompiledPTU13Decoder, CAP_STOR_CONTAINER},
-    {"COMPILEDST3", &CreateCompiledST3Decoder, CAP_STOR_CONTAINER},
-    {"COMPILEDSTP1", &CreateCompiledSTP1Decoder, CAP_STOR_CONTAINER},
-    {"COMPILEDSTP2", &CreateCompiledSTP2Decoder, CAP_STOR_CONTAINER},
   };
-}
 
-namespace ZXTune
-{
-  void RegisterArchivePlugins(ArchivePluginsRegistrator& registrator)
+  const ArchivePluginDescription DECOMPILERS[] =
   {
-    for (const ArchivePluginDescription* it = PLUGINS; it != boost::end(PLUGINS); ++it)
+    {"COMPILEDASC0",  &CreateCompiledASC0Decoder,  CAP_STOR_CONTAINER},
+    {"COMPILEDASC1",  &CreateCompiledASC1Decoder,  CAP_STOR_CONTAINER},
+    {"COMPILEDASC2",  &CreateCompiledASC2Decoder,  CAP_STOR_CONTAINER},
+    {"COMPILEDPT24",  &CreateCompiledPT24Decoder,  CAP_STOR_CONTAINER},
+    {"COMPILEDPTU13", &CreateCompiledPTU13Decoder, CAP_STOR_CONTAINER},
+    {"COMPILEDST3",   &CreateCompiledST3Decoder,   CAP_STOR_CONTAINER},
+    {"COMPILEDSTP1",  &CreateCompiledSTP1Decoder,  CAP_STOR_CONTAINER},
+    {"COMPILEDSTP2",  &CreateCompiledSTP2Decoder,  CAP_STOR_CONTAINER},
+  };
+
+  void RegisterPlugins(const ArchivePluginDescription* from, const ArchivePluginDescription* to,
+    ArchivePluginsRegistrator& registrator)
+  {
+    for (const ArchivePluginDescription* it = from; it != to; ++it)
     {
       const ArchivePluginDescription& desc = *it;
       const Formats::Packed::Decoder::Ptr decoder = desc.Create();
       const ArchivePlugin::Ptr plugin = CreateArchivePlugin(FromStdString(desc.Id), desc.Caps, decoder);
       registrator.RegisterPlugin(plugin);
     }
+  }
+}
+
+namespace ZXTune
+{
+  void RegisterDepackPlugins(ArchivePluginsRegistrator& registrator)
+  {
+    RegisterPlugins(DEPACKERS, boost::end(DEPACKERS), registrator);
+  }
+
+  void RegisterDecompilePlugins(ArchivePluginsRegistrator& registrator)
+  {
+    RegisterPlugins(DECOMPILERS, boost::end(DECOMPILERS), registrator);
   }
 }

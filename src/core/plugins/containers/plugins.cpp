@@ -2,7 +2,7 @@
 * 
 * @file
 *
-* @brief  Container plugins factory
+* @brief  Factories of different container plugins
 *
 * @author vitamin.caig@gmail.com
 *
@@ -10,7 +10,7 @@
 
 //local includes
 #include "container_supp_common.h"
-#include "plugins_list.h"
+#include "plugins.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/archived/decoders.h>
@@ -31,7 +31,7 @@ namespace
   using namespace ZXTune;
   using namespace Formats::Archived;
 
-  const ContainerPluginDescription PLUGINS[] =
+  const ContainerPluginDescription UNARCHIVES[] =
   {
     {"TRD",     &CreateTRDDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_PLAIN},
     {"SCL",     &CreateSCLDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_PLAIN},
@@ -41,29 +41,31 @@ namespace
     {"RAR",     &CreateRarDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
     {"LHA",     &CreateLhaDecoder,     CAP_STOR_MULTITRACK | CAP_STOR_DIRS},
     {"ZXSTATE", &CreateZXStateDecoder, CAP_STOR_MULTITRACK},
-    {"AY",      &CreateAYDecoder,      CAP_STOR_MULTITRACK},
   };
+
+  const ContainerPluginDescription AY =
+    {"AY",      &CreateAYDecoder,      CAP_STOR_MULTITRACK};
+
+  void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)
+  {
+    const Formats::Archived::Decoder::Ptr decoder = desc.Create();
+    const ArchivePlugin::Ptr plugin = CreateContainerPlugin(FromStdString(desc.Id), desc.Caps, decoder);
+    registrator.RegisterPlugin(plugin);
+  }
 }
 
 namespace ZXTune
 {
-  void RegisterRawContainer(ArchivePluginsRegistrator& registrator);
-  void RegisterSidContainer(ArchivePluginsRegistrator& registrator);
-  void RegisterZdataContainer(ArchivePluginsRegistrator& registrator);
-
-  void RegisterContainerPlugins(ArchivePluginsRegistrator& registrator)
+  void RegisterAyContainer(ArchivePluginsRegistrator& registrator)
   {
-    //process raw container first
-    RegisterRawContainer(registrator);
+    RegisterPlugin(AY, registrator);
+  }
 
-    for (const ContainerPluginDescription* it = PLUGINS; it != boost::end(PLUGINS); ++it)
+  void RegisterArchiveContainers(ArchivePluginsRegistrator& registrator)
+  {
+    for (const ContainerPluginDescription* it = UNARCHIVES; it != boost::end(UNARCHIVES); ++it)
     {
-      const ContainerPluginDescription& desc = *it;
-      const Formats::Archived::Decoder::Ptr decoder = desc.Create();
-      const ArchivePlugin::Ptr plugin = CreateContainerPlugin(FromStdString(desc.Id), desc.Caps, decoder);
-      registrator.RegisterPlugin(plugin);
+      RegisterPlugin(*it, registrator);
     }
-    RegisterSidContainer(registrator);
-    RegisterZdataContainer(registrator);
   }
 }
