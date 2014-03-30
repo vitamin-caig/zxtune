@@ -146,9 +146,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void saveProperty(String name, String value) {
+  private void saveProperty(String name, long value) {
     final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    prefs.edit().putString(name, value).commit();
+    prefs.edit().putLong(name, value).apply();
   }
   
   private static class Holder implements Releaseable {
@@ -237,7 +237,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
       ZXTune.GlobalOptions.instance().setProperty(ZXTune.Properties.Sound.LOOPED, val);
-      saveProperty(ZXTune.Properties.Sound.LOOPED, mode.toString());
+      saveProperty(ZXTune.Properties.Sound.LOOPED, val);
     }
     
     @Override

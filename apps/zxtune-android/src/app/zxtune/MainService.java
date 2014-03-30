@@ -156,7 +156,7 @@ public class MainService extends Service {
     if (value instanceof String) {
       setProperty(name, (String) value, target);
     } else if (value instanceof Long) {
-      setProperty(name, (Long) value, target);
+      setProperty(name, ((Long) value).longValue(), target);
     } else if (value instanceof Integer) {
       setProperty(name, ((Integer) value).longValue(), target);
     } else if (value instanceof Boolean) {
