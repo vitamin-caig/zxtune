@@ -16,6 +16,7 @@ import java.io.InvalidObjectException;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.fs.Vfs;
@@ -104,13 +105,13 @@ class PlaylistIterator implements Iterator {
   
   private PlayableItem loadItem(DatabaseIterator iter) throws IOException, InvalidObjectException {
     final app.zxtune.playlist.Item meta = iter.getItem();
-    final Uri location = meta.getLocation();
-    final VfsFile file = (VfsFile) root.resolve(location);
+    final Identifier id = new Identifier(meta.getLocation());
+    final VfsFile file = (VfsFile) root.resolve(id.getDataLocation());
     if (file instanceof VfsFile) {
-      final PlayableItem item = FileIterator.loadItem(file);
+      final PlayableItem item = FileIterator.loadItem(file, id.getSubpath());
       return new PlaylistItem(meta, item);
     } else {
-      throw new IOException("Failed to resolve " + location.toString());
+      throw new IOException("Failed to resolve " + id.getFullLocation().toString());
     }
   }
   

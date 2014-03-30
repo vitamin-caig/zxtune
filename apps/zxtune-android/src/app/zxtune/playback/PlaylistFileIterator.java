@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import app.zxtune.Identifier;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
@@ -130,9 +131,11 @@ final class PlaylistFileIterator implements Iterator {
         return false;//windows paths are not supported
       }
       final Uri uri = Uri.parse(dir.resolve(location).toString());
-      final VfsObject obj = root.resolve(uri);
+      Log.d(TAG, location + " => " + uri);
+      final Identifier id = new Identifier(uri);
+      final VfsObject obj = root.resolve(id.getDataLocation());
       if (obj instanceof VfsFile) {
-        item = FileIterator.loadItem((VfsFile) obj);
+        item = FileIterator.loadItem((VfsFile) obj, id.getSubpath());
         return true;
       }
     } catch (InvalidObjectException e) {
