@@ -28,7 +28,7 @@ final class SoundOutputSamplesTarget implements SamplesTarget {
     public final static int ENCODING = AudioFormat.ENCODING_PCM_16BIT;
   }
   private final static int STREAM = AudioManager.STREAM_MUSIC;
-  private final static int DEFAULT_LATENCY = 60;// minimal is ~55
+  private final static int DEFAULT_LATENCY = 80;// minimal is ~55
   
   private final int bufferSize;
   private AudioTrack target;
