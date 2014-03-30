@@ -60,7 +60,9 @@ final class PlaylistFileIterator implements Iterator {
   }
   
   private static Type detectType(String filename) {
-    if (filename.endsWith(".xspf")) {
+    if (filename == null) {
+      return Type.UNKNOWN;
+    } if (filename.endsWith(".xspf")) {
       return Type.XSPF;
     } else if (filename.endsWith(".ayl")) {
       return Type.AYL;
