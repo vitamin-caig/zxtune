@@ -46,6 +46,8 @@ namespace
     explicit DetectCallback(JNIEnv* env, jobject delegate)
       : Env(env)
       , Delegate(delegate)
+      , CallbackClass()
+      , OnModuleMethod()
     {
     }
 
