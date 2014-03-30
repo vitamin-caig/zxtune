@@ -92,8 +92,11 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
       Log.d(TAG, "Load persistent state");
       loadBrowser(currentPath);
     } else {
-      loadNavigation(currentPath);
-      loadListing();
+      if (!reloadListing()) {
+        loadBrowser(currentPath);
+      } else {
+        loadNavigation(currentPath);
+      }
     }
   }
 
@@ -262,8 +265,8 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     }
   }
 
-  private void loadListing() {
-    listing.load(getLoaderManager());
+  private boolean reloadListing() {
+    return listing.loadCurrent(getLoaderManager());
   }
   
   private void loadNavigation(VfsDir dir) {
@@ -275,6 +278,6 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
 
   private void loadListing(VfsDir dir) {
-    listing.load(getLoaderManager(), dir, state.getCurrentViewPosition());
+    listing.loadNew(getLoaderManager(), dir, state.getCurrentViewPosition());
   }
 }

@@ -62,19 +62,25 @@ public class BrowserView extends ListViewCompat {
   
   //Required to call forceLoad due to bug in support library.
   //Some methods on callback does not called... 
-  final void load(LoaderManager manager, VfsDir dir, int pos) {
+  final void loadNew(LoaderManager manager, VfsDir dir, int pos) {
     manager.destroyLoader(LOADER_ID);
     final ModelLoaderCallback cb = new ModelLoaderCallback(dir, pos);
     manager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
 
   //load existing
-  final void load(LoaderManager manager) {
-    if (manager.getLoader(LOADER_ID).isStarted()) {
+  final boolean loadCurrent(LoaderManager manager) {
+    final Loader<BrowserViewModel> loader = manager.getLoader(LOADER_ID);
+    if (loader == null) {
+      Log.d(TAG, "Expired loader");
+      return false;
+    }
+    if (loader.isStarted()) {
       showProgress();
     }
     final ModelLoaderCallback cb = new ModelLoaderCallback();
     manager.initLoader(LOADER_ID, null, cb);
+    return true;
   }
   
   final void showError(Exception e) {
