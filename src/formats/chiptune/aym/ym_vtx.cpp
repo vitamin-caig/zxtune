@@ -255,8 +255,7 @@ namespace Chiptune
       for (std::size_t row = 0; row != rows; ++row)
       {
         Dump registers(columns);
-        const std::size_t availColumns = (size - row) / rows;
-        for (std::size_t col = 0, cursor = row; col != availColumns; ++col, cursor += rows)
+        for (std::size_t col = 0, cursor = row; col != columns && cursor < size; ++col, cursor += rows)
         {
           registers[col] = data[cursor];
         }
