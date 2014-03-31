@@ -16,15 +16,41 @@
 
 namespace
 {
+  struct VisitorTraits
+  {
+    VisitorTraits()
+      : ClassType()
+      , OnPlayerPluginMethod()
+      , OnDecoderPluginMethod()
+      , OnMultitrackPluginMethod()
+    {
+    }
+
+    void Init(JNIEnv* env)
+    {
+      ClassType = env->FindClass("app/zxtune/ZXTune$Plugins$Visitor");
+      OnPlayerPluginMethod = env->GetMethodID(ClassType,
+        "onPlayerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
+      OnDecoderPluginMethod = env->GetMethodID(ClassType,
+        "onDecoderPlugin", "(Ljava/lang/String;Ljava/lang/String;)V");
+      OnMultitrackPluginMethod = env->GetMethodID(ClassType,
+        "onMultitrackPlugin", "(Ljava/lang/String;Ljava/lang/String;)V");
+    }
+
+    jclass ClassType;
+    jmethodID OnPlayerPluginMethod;
+    jmethodID OnDecoderPluginMethod;
+    jmethodID OnMultitrackPluginMethod;
+  };
+
+  static VisitorTraits VISITOR;
+
   class VisitorAdapter
   {
   public:
     VisitorAdapter(JNIEnv* env, jobject delegate)
       : Env(env)
       , Delegate(delegate)
-      , OnPlayerPluginMethod(env->GetMethodID(env->GetObjectClass(Delegate),
-        "onPlayerPlugin",
-        "(ILjava/lang/String;Ljava/lang/String;)V"))
     {
     }
     
@@ -32,13 +58,32 @@ namespace
     {
       const jstring id = Env->NewStringUTF(plugId.c_str());
       const jstring descr = Env->NewStringUTF(plugDescr.c_str());
-      Env->CallVoidMethod(Delegate, OnPlayerPluginMethod, devType, id, descr);
+      Env->CallVoidMethod(Delegate, VISITOR.OnPlayerPluginMethod, devType, id, descr);
+    }
+
+    void OnDecoderPlugin(const String& plugId, const String& plugDescr) const
+    {
+      const jstring id = Env->NewStringUTF(plugId.c_str());
+      const jstring descr = Env->NewStringUTF(plugDescr.c_str());
+      Env->CallVoidMethod(Delegate, VISITOR.OnDecoderPluginMethod, id, descr);
+    }
+
+    void OnMultitrackPlugin(const String& plugId, const String& plugDescr) const
+    {
+      const jstring id = Env->NewStringUTF(plugId.c_str());
+      const jstring descr = Env->NewStringUTF(plugDescr.c_str());
+      Env->CallVoidMethod(Delegate, VISITOR.OnMultitrackPluginMethod, id, descr);
     }
   private:
     JNIEnv* const Env;
     const jobject Delegate;
-    const jmethodID OnPlayerPluginMethod;
   };
+}
+
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_00024Plugins_init
+  (JNIEnv* env, jclass /*self*/)
+{
+  VISITOR.Init(env);
 }
 
 JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Plugins_1Enumerate
@@ -54,6 +99,14 @@ JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_Plugins_1Enumerate
     if (0 != (caps & ZXTune::CAP_STOR_MODULE))
     {
       adapter.OnPlayerPlugin(caps & ZXTune::CAP_DEVICE_MASK, id, desc);
+    }
+    else if (0 != (caps & ZXTune::CAP_STOR_CONTAINER))
+    {
+      adapter.OnDecoderPlugin(id, desc);
+    }
+    else if (0 != (caps & ZXTune::CAP_STOR_MULTITRACK))
+    {
+      adapter.OnMultitrackPlugin(id, desc);
     }
   }
 }

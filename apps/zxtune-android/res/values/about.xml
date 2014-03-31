@@ -28,4 +28,8 @@
   <string name="plugin_player_fm_tfm" translatable="false">YM2203/TurboFM</string>
   <string name="plugin_player_saa" translatable="false">Philips SAA1099</string>
   <string name="plugin_player_sid" translatable="false">MOS6581/SID</string>
+  <!-- decoders -->
+  <string name="plugin_decoder_decompiler">Decompilers</string>
+  <!-- multitrack -->
+  <string name="plugin_multitrack_container">Containers</string>
 </resources>

@@ -31,8 +31,13 @@ public final class PluginsProvider extends ContentProvider {
     public final static int PLAYER_FM_TFM = 2;
     public final static int PLAYER_SAA = 3;
     public final static int PLAYER_SID = 4;
+    
+    //TODO: clarify types in low level
+    public final static int DECODER_DECOMPILER = 5;
+    
+    public final static int MULTITRACK_CONTAINER = 6;
 
-    public final static int UNKNOWN = 5;
+    public final static int UNKNOWN = 7;
   }
   
   private final static String AUTHORITY = "app.zxtune.plugins";
@@ -72,6 +77,18 @@ public final class PluginsProvider extends ContentProvider {
       @Override
       public void onPlayerPlugin(int devices, String id, String description) {
         final Object[] values = {getPlayerPluginType(devices), id, description};
+        res.addRow(values);
+      }
+
+      @Override
+      public void onDecoderPlugin(String id, String description) {
+        final Object[] values = {Types.DECODER_DECOMPILER, id, description};
+        res.addRow(values);
+      }
+
+      @Override
+      public void onMultitrackPlugin(String id, String description) {
+        final Object[] values = {Types.MULTITRACK_CONTAINER, id, description};
         res.addRow(values);
       }
     });

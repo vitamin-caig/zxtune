@@ -22,4 +22,8 @@
   </string>
   <!-- players -->
   <string name="plugin_player_dac">Цифровые форматы</string>
+  <!-- decoders -->
+  <string name="plugin_decoder_decompiler">Декомпиляторы</string>
+  <!-- multitrack -->
+  <string name="plugin_multitrack_container">Контейнеры</string>
 </resources>

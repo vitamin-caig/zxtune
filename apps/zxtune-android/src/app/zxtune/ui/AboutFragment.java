@@ -66,17 +66,17 @@ public class AboutFragment extends DialogFragment {
           final int type = cursor.getInt(PluginsProvider.Columns.Type.ordinal());
           final String id = cursor.getString(PluginsProvider.Columns.Id.ordinal());
           final String descr = cursor.getString(PluginsProvider.Columns.Description.ordinal());
-          if (type >= groups.size()) {
-            while (type >= groups.size()) {
-              groups.add(new ArrayMap<String, String>());
-              childs.add(new ArrayList<ArrayMap<String, String>>());
-            }
-            groups.get(type).put(PluginsProvider.Columns.Type.name(), ctx.getString(getTypeStringId(type)));
+          while (type >= groups.size()) {
+            groups.add(new ArrayMap<String, String>());
+            childs.add(new ArrayList<ArrayMap<String, String>>());
           }
           final ArrayMap<String, String> plugin = new ArrayMap<String, String>(1);
           final String text = String.format("\t[%s] %s", id, descr);
           plugin.put(PluginsProvider.Columns.Description.name(), text);
           childs.get(type).add(plugin);
+        }
+        for (int type = 0; type != groups.size(); ++type) {
+          groups.get(type).put(PluginsProvider.Columns.Type.name(), ctx.getString(getTypeStringId(type)));
         }
         
         final String[] groupFrom = {PluginsProvider.Columns.Type.name()};
@@ -106,6 +106,10 @@ public class AboutFragment extends DialogFragment {
             return R.string.plugin_player_saa;
           case PluginsProvider.Types.PLAYER_SID:
             return R.string.plugin_player_sid;
+          case PluginsProvider.Types.DECODER_DECOMPILER:
+            return R.string.plugin_decoder_decompiler;
+          case PluginsProvider.Types.MULTITRACK_CONTAINER:
+            return R.string.plugin_multitrack_container;
           default:
             return R.string.plugin_unknown;
         }

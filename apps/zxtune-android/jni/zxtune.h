@@ -301,6 +301,14 @@ extern "C" {
 #ifdef __cplusplus
 extern "C" {
 #endif
+/*
+ * Class:     app_zxtune_ZXTune_Plugins
+ * Method:    init
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_ZXTune_00024Plugins_init
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

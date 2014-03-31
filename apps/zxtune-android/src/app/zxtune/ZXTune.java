@@ -243,10 +243,18 @@ public final class ZXTune {
     
     public interface Visitor {
       void onPlayerPlugin(int devices, String id, String description);
+      void onDecoderPlugin(String id, String description);
+      void onMultitrackPlugin(String id, String description);
     }
     
     public static void enumerate(Visitor visitor) {
       Plugins_Enumerate(visitor);
+    }
+    
+    private static native void init();
+    
+    static {
+      init();
     }
   }
   
