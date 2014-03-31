@@ -34,6 +34,11 @@ samples_dac_zx := \
 
 samples_dac_zx_dir := DAC/ZX
 
+samples_mos6581 := \
+        sid/Love_Is_a_Shield.sid
+
+samples_mos6581_dir := MOS6581
+
 samples_saa1099 := \
 	cop/axel.cop
 
@@ -47,27 +52,28 @@ samples_ym2203 := \
 
 samples_ym2203_dir := YM2203
 
-install_samples: install_samples_ay38910 install_samples_dac_zx install_samples_saa1099 install_samples_ym2203
+define install_samples_cmd
+	$(call makedir_cmd,$(DESTDIR)/Samples/$(samples_$(1)_dir))
+	$(foreach smp,$(samples_$(1)),$(call copyfile_cmd,$(samples_path)/$(samples_$(1)_dir)/$(smp),$(DESTDIR)/Samples/$(samples_$(1)_dir)) && ) \
+	echo Installed $(1) samples
+endef
+
+install_samples: install_samples_ay38910 install_samples_dac_zx install_samples_mos6581 install_samples_saa1099 install_samples_ym2203
 
 install_samples_ay38910:
-	$(call makedir_cmd,$(DESTDIR)/Samples/$(samples_ay38910_dir))
-	$(foreach smp,$(samples_ay38910),$(call copyfile_cmd,$(samples_path)/$(samples_ay38910_dir)/$(smp),$(DESTDIR)/Samples/$(samples_ay38910_dir)) && ) \
-	echo Installed AY-3-8910 samples
+	$(call install_samples_cmd,ay38910)
 
 install_samples_dac_zx:
-	$(call makedir_cmd,$(DESTDIR)/Samples/$(samples_dac_zx_dir))
-	$(foreach smp,$(samples_dac_zx),$(call copyfile_cmd,$(samples_path)/$(samples_dac_zx_dir)/$(smp),$(DESTDIR)/Samples/$(samples_dac_zx_dir)) && ) \
-	echo Installed DAC/ZX samples
+	$(call install_samples_cmd,dac_zx)
+
+install_samples_mos6581:
+	$(call install_samples_cmd,mos6581)
 
 install_samples_saa1099:
-	$(call makedir_cmd,$(DESTDIR)/Samples/$(samples_saa1099_dir))
-	$(foreach smp,$(samples_saa1099),$(call copyfile_cmd,$(samples_path)/$(samples_saa1099_dir)/$(smp),$(DESTDIR)/Samples/$(samples_saa1099_dir)) && ) \
-	echo Installed SAA1099 samples
+	$(call install_samples_cmd,saa1099)
 
 install_samples_ym2203:
-	$(call makedir_cmd,$(DESTDIR)/Samples/$(samples_ym2203_dir))
-	$(foreach smp,$(samples_ym2203),$(call copyfile_cmd,$(samples_path)/$(samples_ym2203_dir)/$(smp),$(DESTDIR)/Samples/$(samples_ym2203_dir)) && ) \
-	echo Installed YM2203 samples
+	$(call install_samples_cmd,ym2203)
 
 install_samples_playlist: 
 	$(call copyfile_cmd,$(path_step)/samples/samples.xspf,$(DESTDIR))

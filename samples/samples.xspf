@@ -85,6 +85,10 @@
   <track>
     <location>Samples/DAC/ZX/COMETDAY.str</location>
   </track>
+  <!-- MOS6581 -->
+  <track>
+    <location>Samples/MOS6581/Love_Is_a_Shield.sid</location>
+  </track>
   <!-- SAA1099 -->
   <track>
     <location>Samples/SAA1099/axel.cop</location>
