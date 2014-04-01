@@ -71,7 +71,9 @@ public class AboutFragment extends DialogFragment {
             childs.add(new ArrayList<ArrayMap<String, String>>());
           }
           final ArrayMap<String, String> plugin = new ArrayMap<String, String>(1);
-          final String text = String.format("\t[%s] %s", id, descr);
+          final String text = type < PluginsProvider.Types.DECODER_DECOMPILER 
+              ? String.format("\t[%s] %s", id, descr)
+              : descr;
           plugin.put(PluginsProvider.Columns.Description.name(), text);
           childs.get(type).add(plugin);
         }
