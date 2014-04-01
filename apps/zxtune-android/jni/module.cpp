@@ -60,9 +60,9 @@ namespace
       Module::Holder::Ptr holder) const
     {
       const jmethodID methodId = GetMethodId();
-      const Jni::StringHelper subpath(Env, location->GetPath()->AsString());
+      const Jni::TempJString subpath(Env, location->GetPath()->AsString());
       const int handle = Module::Storage::Instance().Add(holder);
-      Env->CallNonvirtualVoidMethod(Delegate, CallbackClass, methodId, subpath.AsJstring(), handle);
+      Env->CallNonvirtualVoidMethod(Delegate, CallbackClass, methodId, subpath.Get(), handle);
     }
 
     virtual Log::ProgressCallback* GetProgress() const
@@ -102,8 +102,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_ZXTune_Module_1Create
   if (capacity && addr)
   {
     const Binary::Container::Ptr data = Binary::CreateNonCopyContainer(addr, capacity);
-    const Jni::StringHelper sub(env, subpath);
-    return CreateModule(data, sub.AsString());
+    return CreateModule(data, Jni::MakeString(env, subpath));
   }
   else
   {

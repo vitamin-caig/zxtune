@@ -10,6 +10,7 @@
 
 //local includes
 #include "zxtune.h"
+#include "properties.h"
 //library includes
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
@@ -19,8 +20,7 @@ namespace
   struct VisitorTraits
   {
     VisitorTraits()
-      : ClassType()
-      , OnPlayerPluginMethod()
+      : OnPlayerPluginMethod()
       , OnDecoderPluginMethod()
       , OnMultitrackPluginMethod()
     {
@@ -28,16 +28,15 @@ namespace
 
     void Init(JNIEnv* env)
     {
-      ClassType = env->FindClass("app/zxtune/ZXTune$Plugins$Visitor");
-      OnPlayerPluginMethod = env->GetMethodID(ClassType,
+      const jclass classType = env->FindClass("app/zxtune/ZXTune$Plugins$Visitor");
+      OnPlayerPluginMethod = env->GetMethodID(classType,
         "onPlayerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
-      OnDecoderPluginMethod = env->GetMethodID(ClassType,
+      OnDecoderPluginMethod = env->GetMethodID(classType,
         "onDecoderPlugin", "(Ljava/lang/String;Ljava/lang/String;)V");
-      OnMultitrackPluginMethod = env->GetMethodID(ClassType,
+      OnMultitrackPluginMethod = env->GetMethodID(classType,
         "onMultitrackPlugin", "(Ljava/lang/String;Ljava/lang/String;)V");
     }
 
-    jclass ClassType;
     jmethodID OnPlayerPluginMethod;
     jmethodID OnDecoderPluginMethod;
     jmethodID OnMultitrackPluginMethod;
@@ -56,23 +55,23 @@ namespace
     
     void OnPlayerPlugin(jint devType, const String& plugId, const String& plugDescr) const
     {
-      const jstring id = Env->NewStringUTF(plugId.c_str());
-      const jstring descr = Env->NewStringUTF(plugDescr.c_str());
-      Env->CallVoidMethod(Delegate, VISITOR.OnPlayerPluginMethod, devType, id, descr);
+      const Jni::TempJString id(Env, plugId);
+      const Jni::TempJString descr(Env, plugDescr);
+      Env->CallVoidMethod(Delegate, VISITOR.OnPlayerPluginMethod, devType, id.Get(), descr.Get());
     }
 
     void OnDecoderPlugin(const String& plugId, const String& plugDescr) const
     {
-      const jstring id = Env->NewStringUTF(plugId.c_str());
-      const jstring descr = Env->NewStringUTF(plugDescr.c_str());
-      Env->CallVoidMethod(Delegate, VISITOR.OnDecoderPluginMethod, id, descr);
+      const Jni::TempJString id(Env, plugId);
+      const Jni::TempJString descr(Env, plugDescr);
+      Env->CallVoidMethod(Delegate, VISITOR.OnDecoderPluginMethod, id.Get(), descr.Get());
     }
 
     void OnMultitrackPlugin(const String& plugId, const String& plugDescr) const
     {
-      const jstring id = Env->NewStringUTF(plugId.c_str());
-      const jstring descr = Env->NewStringUTF(plugDescr.c_str());
-      Env->CallVoidMethod(Delegate, VISITOR.OnMultitrackPluginMethod, id, descr);
+      const Jni::TempJString id(Env, plugId);
+      const Jni::TempJString descr(Env, plugDescr);
+      Env->CallVoidMethod(Delegate, VISITOR.OnMultitrackPluginMethod, id.Get(), descr.Get());
     }
   private:
     JNIEnv* const Env;
