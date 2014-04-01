@@ -73,7 +73,7 @@ public class AboutFragment extends DialogFragment {
           final ArrayMap<String, String> plugin = new ArrayMap<String, String>(1);
           final String text = type < PluginsProvider.Types.DECODER_DECOMPILER 
               ? String.format("\t[%s] %s", id, descr)
-              : descr;
+              : "\t" + descr;
           plugin.put(PluginsProvider.Columns.Description.name(), text);
           childs.get(type).add(plugin);
         }
