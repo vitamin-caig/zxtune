@@ -5,6 +5,22 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3000 from 03.04.2014
+
+[+] Support MOS6581/SID playback (PSID/RSID formats) using libsidplayfp library
+[+] Supported https scheme for network sources
+[*] Fixes in AS0/ASC playback of some modules
+[*] Fixed playback of incorrect YM5 files
+[*] Fixed different note tables support in TurboSound containers
+[*] Fixed playback of some AY modules
+[*] Distribute msvc CRT for windows builds (msvcp120.dll, msvcr120.dll)
+[+] zxtune-android: support High Voltage SID Collection via http://www.tld-crew.de
+[+] zxtune-android: support multitrack AY and SID files
+[+] zxtune-android,zxtune-qt: support 3.5 MHz AY/YM preset
+[*] zxtune-android: fixed sequence/loop mode saving on some devices
+[+] zxtune-android: fixed multiple crashes reported by GooglePlay channel
+[*] zxtune-qt: fixed some parameters reset after language change
+
 --- Rev2880 from 26.12.2013
 
 [*] Fixed SAA playback for some platforms
