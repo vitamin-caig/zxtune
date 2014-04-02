@@ -87,7 +87,10 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
       }
     } finally {
       callbackConnection = null;
-      callback.onStatusChanged(false);
+      //TODO: rework synchronization scheme
+      if (callback != null) {
+        callback.onStatusChanged(false);
+      }
     }
     service = null;
   }
