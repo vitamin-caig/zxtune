@@ -1,0 +1,25 @@
+<resources>
+    <!-- Local -->
+    <string name="vfs_local_root_name">Lokale Dateisystem</string>
+    <string name="vfs_local_root_description">Inhalt der internen und externen Lagerung</string>
+    <!-- zxtunes.com -->
+    <string name="vfs_zxtunes_root_name">ZXTUNES Musik-Sammlung</string>
+    <string name="vfs_zxtunes_authors_name">Autoren</string>
+    <string name="vfs_zxtunes_authors_description">ZX Spectrum Musiker Katalog</string>
+    <!-- Playlists -->
+    <string name="vfs_playlists_root_name">Wiedergabelisten</string>
+    <string name="vfs_playlists_root_description">Gespeicherte Wiedergabelisten Lagerung</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - größte Modul-Archiv</string>
+    <string name="vfs_modland_root_description">Durch http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">Autoren</string>
+    <string name="vfs_modland_authors_description">Browsen nach Autor</string>
+    <string name="vfs_modland_collections_name">Sammlungen</string>
+    <string name="vfs_modland_collections_description">Navigieren nach Sammlung</string>
+    <string name="vfs_modland_formats_name">Formate</string>
+    <string name="vfs_modland_formats_description">Navigieren nach Format</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_description">Durch http://www.tld-crew.de</string>
+    <!-- errors -->
+    <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
+</resources>

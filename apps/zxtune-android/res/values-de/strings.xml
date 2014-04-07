@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- menu-related -->
+    <string name="prefs">Einstellungen</string>
+    <string name="quit">Beenden</string>
+    <!-- action-related -->
+    <string name="play">Abspielen</string>
+    <string name="add">Hinzufügen</string>
+    <string name="delete">Löschen</string>
+    <string name="clear">Zurücksetzen</string>
+    <string name="save">Speichern</string>
+    <string name="overwrite">Überschreiben</string>
+    <!-- information-related -->
+    <string name="information_title">Titel</string>
+    <string name="information_author">Author</string>
+    <string name="information_program">Programm</string>
+    <string name="information_comment">Kommentar</string>
+    <string name="information_location">Lage</string>
+    <string name="scanning_started">Scannen begonnen</string>
+    <string name="scanning_stopped">Scannen fertig</string>
+    <string name="scanning_failed">Fehler beim Scannen: %s</string>
+    <string name="scanning_title">Scannen.</string>
+    <string name="scanning_text">Klicken Sie zum Abbrechen</string>
+    <!-- other -->
+    <string name="main">Hauptseiten</string>
+    <plurals name="items">
+      <item quantity="one">%d Element</item>
+      <item quantity="many">%d Elemente</item>
+      <!-- for pre-HC -->
+      <item quantity="other">%d Elemente</item>
+    </plurals>
+    <plurals name="tracks">
+      <item quantity="one">%d Tonspur</item>
+      <item quantity="many">%d Tonspuren</item>
+      <!-- for pre-HC -->
+      <item quantity="other">%d Tonspuren</item>
+    </plurals>
+    <string name="no_tracks_found">Tonspuren werden nicht gefunden</string>
+</resources>

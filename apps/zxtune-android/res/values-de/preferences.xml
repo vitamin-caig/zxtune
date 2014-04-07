@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="pref_interpolation">Interpolierung</string>
+  <string-array name="pref_interpolation_entries">
+    <item>Nein</item>
+    <item>Leistung</item>
+    <item>Qualität <b>(hohe CPU-last)</b></item>
+  </string-array>
+</resources>
