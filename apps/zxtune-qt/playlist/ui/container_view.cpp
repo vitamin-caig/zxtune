@@ -267,6 +267,7 @@ namespace
         index, view, ActivePlaylistView);
       if (view == ActivePlaylistView)
       {
+        emit Deactivated();
         ActivePlaylistView = 0;
         SwitchToLastPlaylist();
       }
@@ -362,6 +363,8 @@ namespace
       widgetsContainer->addTab(plView, playlist->GetName());
       Require(connect(plView, SIGNAL(Renamed(const QString&)), SLOT(RenamePlaylist(const QString&))));
       Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
+      const Playlist::Item::Iterator::Ptr iter = playlist->GetIterator();
+      Require(connect(iter, SIGNAL(Deactivated()), SIGNAL(Deactivated())));
       if (!ActivePlaylistView)
       {
         ActivePlaylistView = plView;

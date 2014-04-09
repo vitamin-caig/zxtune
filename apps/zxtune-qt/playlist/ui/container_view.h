@@ -67,6 +67,7 @@ namespace Playlist
       virtual void ActivateItem(Playlist::Item::Data::Ptr) = 0;
     signals:
       void ItemActivated(Playlist::Item::Data::Ptr);
+      void Deactivated();
     };
   }
 }

@@ -107,9 +107,7 @@ namespace
           return;
         }
       }
-      //invalidated
-      Index = NO_INDEX;
-      Dbg("Iterator: invalidated after removing.");
+      Deactivate();
     }
   private:
     bool SelectItem(unsigned idx)
@@ -157,6 +155,14 @@ namespace
         ? Randomized(newIndex, itemsCount)
         : newIndex;
       return SelectItem(mappedIndex);
+    }
+
+    void Deactivate()
+    {
+      //invalidated
+      Index = NO_INDEX;
+      Dbg("Iterator: invalidated after removing.");
+      emit Deactivated();
     }
   private:
     const Playlist::Model::Ptr Model;

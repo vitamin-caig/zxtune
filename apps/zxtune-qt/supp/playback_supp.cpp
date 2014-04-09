@@ -83,9 +83,7 @@ namespace
       }
       try
       {
-        Stop();
-        Control = StubControl::Instance();
-        Backend.reset();
+        ResetItem();
         Backend = CreateBackend(module);
         if (Backend)
         {
@@ -98,6 +96,13 @@ namespace
       {
         emit ErrorOccurred(e);
       }
+    }
+
+    virtual void ResetItem()
+    {
+      Stop();
+      Control = StubControl::Instance();
+      Backend.reset();
     }
 
     virtual void Play()

@@ -71,6 +71,7 @@ namespace Playlist
       virtual void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping) = 0;
     signals:
       void ItemActivated(unsigned idx, Playlist::Item::Data::Ptr data);
+      void Deactivated();
     };
   }
 
