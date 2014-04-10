@@ -377,21 +377,12 @@ namespace
 
     virtual void AddItem(Playlist::Item::Data::Ptr item)
     {
-      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-      const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
-      Container->AddItem(item);
+      Add(item);
     }
 
     virtual void AddItems(Playlist::Item::Collection::Ptr items)
     {
-      Playlist::Model::OldToNewIndexMap::Ptr remapping;
-      {
-        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
-        Container->AddItems(items);
-        remapping = GetIndicesChanges();
-      }
-      NotifyAboutIndexChanged(remapping);
+      Add(items);
     }
 
     virtual void CancelLongOperation()
@@ -406,22 +397,6 @@ namespace
     virtual Qt::DropActions supportedDropActions() const
     {
       return Qt::MoveAction;
-    }
-
-    virtual Qt::ItemFlags flags(const QModelIndex& index) const
-    {
-      const Qt::ItemFlags defaultFlags = Playlist::Model::flags(index);
-      const Qt::ItemFlags validFlags = Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
-      const Qt::ItemFlags invalidFlags = Qt::ItemIsDropEnabled | defaultFlags;
-      if (index.internalId() != Container->GetVersion())
-      {
-        return invalidFlags;
-      }
-      //TODO: do not access item
-      const Playlist::Item::Data::Ptr item = GetItem(index.row());
-      return item && !item->GetState()
-        ? validFlags
-        : invalidFlags;
     }
 
     virtual QStringList mimeTypes() const
@@ -636,6 +611,14 @@ namespace
     virtual void OnProgress(uint_t current, const String& /*message*/)
     {
       OnProgress(current);
+    }
+
+    template<class T>
+    void Add(const T& val)
+    {
+      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+      const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+      Container->Add(val);
     }
   private:
     const DataProvidersSet Providers;

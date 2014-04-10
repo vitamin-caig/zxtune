@@ -110,7 +110,7 @@ namespace
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString name = GetPlaylistName(*plParams);
         Controller.SetName(name);
-        storage.AddItems(container->GetItems());
+        storage.Add(container->GetItems());
       }
       else
       {

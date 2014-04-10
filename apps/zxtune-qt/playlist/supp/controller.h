@@ -56,7 +56,6 @@ namespace Playlist
       typedef Iterator* Ptr;
 
       //access
-      virtual const Data* GetData() const = 0;
       virtual unsigned GetIndex() const = 0;
       virtual State GetState() const = 0;
       //change

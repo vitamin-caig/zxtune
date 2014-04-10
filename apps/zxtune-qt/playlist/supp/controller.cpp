@@ -42,14 +42,8 @@ namespace
       : Playlist::Item::Iterator(parent)
       , Model(model)
       , Index(NO_INDEX)
-      , Item()
       , State(Playlist::Item::STOPPED)
     {
-    }
-
-    virtual const Playlist::Item::Data* GetData() const
-    {
-      return Item.get();
     }
 
     virtual unsigned GetIndex() const
@@ -115,9 +109,8 @@ namespace
       if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
         Dbg("Iterator: selected %1%", idx);
-        Item = item;
         Index = idx;
-        if (Item->GetState())
+        if (item->GetState())
         {
           State = Playlist::Item::ERROR;
         }
@@ -159,7 +152,6 @@ namespace
 
     void Deactivate()
     {
-      //invalidated
       Index = NO_INDEX;
       Dbg("Iterator: invalidated after removing.");
       emit Deactivated();
@@ -167,7 +159,6 @@ namespace
   private:
     const Playlist::Model::Ptr Model;
     unsigned Index;
-    Playlist::Item::Data::Ptr Item;
     Playlist::Item::State State;
   };
 

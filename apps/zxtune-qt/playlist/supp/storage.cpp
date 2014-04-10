@@ -272,14 +272,14 @@ namespace
       return Version;
     }
 
-    virtual void AddItem(Item::Data::Ptr item)
+    virtual void Add(Item::Data::Ptr item)
     {
       const IndexedItem idxItem(item, static_cast<Model::IndexType>(Items.size()));
       Items.push_back(idxItem);
       Modify();
     }
 
-    virtual void AddItems(Item::Collection::Ptr items)
+    virtual void Add(Item::Collection::Ptr items)
     {
       for (Model::IndexType idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
       {
