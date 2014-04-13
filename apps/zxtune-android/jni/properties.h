@@ -26,7 +26,9 @@ namespace Jni
   inline String MakeString(JNIEnv* env, jstring str)
   {
     String res;
-    if (const std::size_t size = env->GetStringUTFLength(str))
+    //Since android-4.0.1-r1 GetStringUTFLength returns 0 on null string
+    //So, emulate that behaviour for all platforms
+    if (const std::size_t size = str ? env->GetStringUTFLength(str) : 0)
     {
       const char* const syms = env->GetStringUTFChars(str, 0);
       res.assign(syms, syms + size);
