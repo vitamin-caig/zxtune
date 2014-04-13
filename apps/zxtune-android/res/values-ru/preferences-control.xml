@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- headset -->
     <string name="pref_control_headset_title">Управление с гарнитуры</string>
     <string name="pref_control_headset_summary">Доступно не для всех устройств</string>
     <!-- control.headset.mediabuttons -->
     <string name="pref_control_headset_mediabuttons_title">Управление кнопками</string>
     <!-- control.headset.unplugging -->
     <string name="pref_control_headset_unplugging_title">Пауза при отключении</string>
+
+    <!-- notification -->
+    <string name="pref_control_notification_title">Уведомления</string>
+    <!-- control.notification.buttons -->
+    <string name="pref_control_notification_buttons_title">Кнопки в области уведомлений</string>
 </resources>
