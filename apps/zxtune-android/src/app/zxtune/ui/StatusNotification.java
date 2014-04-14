@@ -117,6 +117,10 @@ public class StatusNotification implements Callback {
     }
   }
   
+  @Override
+  public void onIOStatusChanged(boolean isActive) {
+  }
+  
   private void showNotification() {
     builder.setSmallIcon(R.drawable.ic_stat_notify_play);
     service.startForeground(notificationId, makeNotification());

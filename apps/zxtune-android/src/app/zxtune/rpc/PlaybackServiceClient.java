@@ -307,5 +307,10 @@ public final class PlaybackServiceClient implements PlaybackService {
     public void onItemChanged(ParcelablePlaybackItem item) {
       delegate.onItemChanged(item);
     }
+    
+    @Override
+    public void onIOStatusChanged(boolean isActive) {
+      delegate.onIOStatusChanged(isActive);
+    }
   }
 }

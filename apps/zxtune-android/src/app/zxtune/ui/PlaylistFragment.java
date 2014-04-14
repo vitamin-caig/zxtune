@@ -207,6 +207,11 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     }
     
     @Override
+    public void onIOStatusChanged(boolean isActive) {
+      //TODO
+    }
+    
+    @Override
     public void onItemChanged(Item item) {
       final Uri id = item.getId();
       final Uri contentId = item.getDataId();

@@ -21,6 +21,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.BrowserFragment;
@@ -39,6 +40,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     setContentView(R.layout.main_activity);
 
     fillPages();

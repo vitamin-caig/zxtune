@@ -34,6 +34,11 @@ public final class UiThreadCallbackAdapter implements Callback {
     activity.runOnUiThread(new UpdateItemRunnable(item));
   }
   
+  @Override
+  public void onIOStatusChanged(boolean isActive) {
+    activity.runOnUiThread(new UpdateIOStatusRunnable(isActive));
+  }
+  
   private class UpdateStatusRunnable implements Runnable {
     
     private final boolean isPlaying;
@@ -59,6 +64,20 @@ public final class UiThreadCallbackAdapter implements Callback {
     @Override
     public void run() {
       delegate.onItemChanged(item);
+    }
+  }
+
+  private class UpdateIOStatusRunnable implements Runnable {
+    
+    private final boolean isActive;
+    
+    UpdateIOStatusRunnable(boolean isActive) {
+      this.isActive = isActive;
+    }
+    
+    @Override
+    public void run() {
+      delegate.onIOStatusChanged(isActive);
     }
   }
 }

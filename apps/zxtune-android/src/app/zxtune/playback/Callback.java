@@ -21,4 +21,9 @@ public interface Callback {
    * Called on active item change
    */
   public void onItemChanged(Item item);
+  
+  /**
+   * Called on I/O operation status change
+   */
+  public void onIOStatusChanged(boolean isActive);
 }

@@ -12,6 +12,8 @@ package app.zxtune.ui;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -96,7 +98,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   }
   
   private class PlaybackEvents implements Callback {
-
+    
     @Override
     public void onStatusChanged(boolean isPlaying) {
       visualizer.setSource(isPlaying ? service.getVisualizer() : VisualizerStub.instance());
@@ -107,6 +109,12 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     @Override
     public void onItemChanged(Item item) {
       info.update(item);
+    }
+    
+    @Override
+    public void onIOStatusChanged(boolean isActive) {
+      final ActionBarActivity activity = (ActionBarActivity)getActivity();
+      activity.setSupportProgressBarIndeterminateVisibility(isActive);
     }
   }
 }

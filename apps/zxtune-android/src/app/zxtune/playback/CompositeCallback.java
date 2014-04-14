@@ -18,6 +18,7 @@ public final class CompositeCallback implements Callback {
   private final List<Callback> delegates;
   private boolean lastStatus;
   private Item lastItem;
+  private boolean lastIOStatus;
   
   public CompositeCallback() {
     this.delegates = new LinkedList<Callback>();
@@ -43,6 +44,17 @@ public final class CompositeCallback implements Callback {
     }
   }
 
+  @Override
+  public void onIOStatusChanged(boolean isActive) {
+    synchronized (delegates) {
+      lastIOStatus = isActive;
+      for (Callback cb : delegates) {
+        cb.onIOStatusChanged(isActive);
+      }
+    }
+    
+  }
+  
   public int add(Callback callback) {
     synchronized (delegates) {
       delegates.add(callback);
@@ -50,6 +62,7 @@ public final class CompositeCallback implements Callback {
         callback.onItemChanged(lastItem);
       }
       callback.onStatusChanged(lastStatus);
+      callback.onIOStatusChanged(lastIOStatus);
       return delegates.size();
     }
   }

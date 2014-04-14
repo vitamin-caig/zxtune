@@ -63,7 +63,11 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     executeCommand(new SetNowPlayingCommand(uris));
   }
   
-  private class SetNowPlayingCommand implements Runnable {
+  private static interface Command {
+    void execute() throws IOException;
+  }
+  
+  private class SetNowPlayingCommand implements Command {
     
     private final Uri[] uris;
     
@@ -72,13 +76,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void run() {
-      try {
-        final Iterator iter = IteratorFactory.createIterator(context, uris);
-        play(iter);
-      } catch (IOException e) {
-        Log.w(TAG, "setNowPlaying()", e);
-      }
+    public void execute() throws IOException {
+      final Iterator iter = IteratorFactory.createIterator(context, uris);
+      play(iter);
     }
   }
   
@@ -128,8 +128,21 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private void executeCommand(Runnable cmd) {
-    executor.execute(cmd);
+  private void executeCommand(final Command cmd) {
+    executor.execute(new Runnable() {
+
+      @Override
+      public void run() {
+        try {
+          callbacks.onIOStatusChanged(true);
+          cmd.execute();
+        } catch (IOException e) {
+          Log.w(TAG, cmd.getClass().getName(), e);
+        } finally {
+          callbacks.onIOStatusChanged(false);
+        }
+      }
+    });
   }
   
   private void setNewHolder(Holder holder) {
@@ -251,7 +264,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
   
-  private class PlayNextCommand implements Runnable {
+  private class PlayNextCommand implements Command {
     
     private final Iterator iter;
     
@@ -260,18 +273,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void run() {
-      try {
-        if (iter.next()) {
-          play(iter);
-        }
-      } catch (IOException e) {
-        Log.d(TAG, "next()", e);
+    public void execute() throws IOException {
+      if (iter.next()) {
+        play(iter);
       }
     }
   }
 
-  private class PlayPrevCommand implements Runnable {
+  private class PlayPrevCommand implements Command {
     
     private final Iterator iter;
     
@@ -280,13 +289,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
 
     @Override
-    public void run() {
-      try {
-        if (iter.prev()) {
-          play(iter);
-        }
-      } catch (IOException e) {
-        Log.d(TAG, "prev()", e);
+    public void execute() throws IOException {
+      if (iter.prev()) {
+        play(iter);
       }
     }
   }
