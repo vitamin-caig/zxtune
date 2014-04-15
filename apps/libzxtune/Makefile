@@ -14,7 +14,7 @@ libraries.common = analysis \
                    sound strings \
                    tools
 
-libraries.3rdparty = lhasa xmp z80ex zlib
+libraries.3rdparty = lhasa xmp z80ex zlib sidplayfp sidplayfp_builders_resid
 
 libraries :=  zxtune_app_version
 depends := apps/version
