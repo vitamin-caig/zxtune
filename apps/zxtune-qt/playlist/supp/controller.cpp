@@ -44,6 +44,8 @@ namespace
       , Index(NO_INDEX)
       , State(Playlist::Item::STOPPED)
     {
+      Require(connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
+        SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
     }
 
     virtual unsigned GetIndex() const
@@ -117,7 +119,8 @@ namespace
         else
         {
           State = Playlist::Item::STOPPED;
-          emit ItemActivated(Index, item);
+          emit ItemActivated(item);
+          emit ItemActivated(Index);
         }
         return true;
       }
@@ -175,8 +178,6 @@ namespace
       //use direct connection due to possible model locking
       Require(Model->connect(Scanner, SIGNAL(ItemFound(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
       Require(Model->connect(Scanner, SIGNAL(ItemsFound(Playlist::Item::Collection::Ptr)), SLOT(AddItems(Playlist::Item::Collection::Ptr)), Qt::DirectConnection));
-      Require(Iterator->connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
-        SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
 
       Dbg("Created at %1%", this);
     }

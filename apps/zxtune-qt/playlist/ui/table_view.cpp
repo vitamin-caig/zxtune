@@ -180,20 +180,20 @@ namespace
       selectModel->select(selection, QItemSelectionModel::ClearAndSelect);
       if (!indices.empty())
       {
-        ActivateTableRow(*indices.rbegin());
+        MoveToTableRow(*indices.rbegin());
       }
+    }
+
+    virtual void MoveToTableRow(unsigned index)
+    {
+      QAbstractItemModel* const curModel = model();
+      const QModelIndex idx = curModel->index(index, 0);
+      scrollTo(idx, QAbstractItemView::EnsureVisible);
     }
 
     virtual void SelectItems(Playlist::Model::IndexSetPtr indices)
     {
       return SelectItems(*indices);
-    }
-
-    virtual void ActivateTableRow(unsigned index)
-    {
-      QAbstractItemModel* const curModel = model();
-      const QModelIndex idx = curModel->index(index, 0);
-      scrollTo(idx, QAbstractItemView::EnsureVisible);
     }
 
     virtual void ActivateItem(const QModelIndex& index)

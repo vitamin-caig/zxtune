@@ -50,7 +50,6 @@ namespace Playlist
       virtual void Save() = 0;
       virtual void Rename() = 0;
     private slots:
-      virtual void ActivateItem(unsigned idx, Playlist::Item::Data::Ptr data) = 0;
       virtual void LongOperationStart() = 0;
       virtual void LongOperationStop() = 0;
       virtual void LongOperationCancel() = 0;

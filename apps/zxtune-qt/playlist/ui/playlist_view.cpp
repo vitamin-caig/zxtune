@@ -320,9 +320,11 @@ namespace
       //setup connections
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();
       Require(iter->connect(View, SIGNAL(TableRowActivated(unsigned)), SLOT(Reset(unsigned))));
+      Require(View->connect(iter, SIGNAL(ItemActivated(unsigned)), SLOT(MoveToTableRow(unsigned))));
+
+      //redirect signals to self 
       Require(connect(Controller.get(), SIGNAL(Renamed(const QString&)), SIGNAL(Renamed(const QString&))));
-      Require(connect(iter, SIGNAL(ItemActivated(unsigned, Playlist::Item::Data::Ptr)),
-        SLOT(ActivateItem(unsigned, Playlist::Item::Data::Ptr))));
+      Require(connect(iter, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SIGNAL(ItemActivated(Playlist::Item::Data::Ptr))));
 
       const Playlist::Model::Ptr model = Controller->GetModel();
       Require(connect(model, SIGNAL(OperationStarted()), SLOT(LongOperationStart())));
@@ -458,12 +460,6 @@ namespace
         const Playlist::IO::ExportFlags flags = GetSavePlaylistFlags(saveCase);
         Playlist::Save(Controller, filename, flags);
       }
-    }
-
-    virtual void ActivateItem(unsigned idx, Playlist::Item::Data::Ptr data)
-    {
-      View->ActivateTableRow(idx);
-      emit ItemActivated(data);
     }
 
     virtual void LongOperationStart()

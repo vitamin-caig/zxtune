@@ -66,10 +66,11 @@ namespace Playlist
     public slots:
       //navigate
       virtual void Reset(unsigned idx) = 0;
-      //updates
+    private slots:
       virtual void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping) = 0;
     signals:
-      void ItemActivated(unsigned idx, Playlist::Item::Data::Ptr data);
+      void ItemActivated(Playlist::Item::Data::Ptr data);
+      void ItemActivated(unsigned idx);
       void Deactivated();
     };
   }
