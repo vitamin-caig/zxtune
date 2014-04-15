@@ -45,6 +45,11 @@ namespace Module
   class OpenModuleCallback : public DetectCallback
   {
   public:
+    OpenModuleCallback()
+      : DetectCallback()
+    {
+    }
+
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
       return Parameters::Container::Create();

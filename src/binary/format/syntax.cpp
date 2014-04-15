@@ -66,6 +66,11 @@ namespace
   class InitialStateType : public State
   {
   public:
+    InitialStateType()
+      : State()
+    {
+    }
+
     virtual const State* Transition(const Token& tok, Binary::FormatTokensVisitor& visitor) const
     {
       switch (tok.Type)
@@ -132,6 +137,11 @@ namespace
   class QuantorStateType : public State
   {
   public:
+    QuantorStateType()
+      : State()
+    {
+    }
+
     virtual const State* Transition(const Token& tok, Binary::FormatTokensVisitor& visitor) const
     {
       if (tok.Type == Binary::CONSTANT)
@@ -150,6 +160,11 @@ namespace
   class QuantorEndType : public State
   {
   public:
+    QuantorEndType()
+      : State()
+    {
+    }
+
     virtual const State* Transition(const Token& tok, Binary::FormatTokensVisitor& /*visitor*/) const
     {
       Require(tok.Type == Binary::OPERATION);
@@ -161,6 +176,11 @@ namespace
   class ErrorStateType : public State
   {
   public:
+    ErrorStateType()
+      : State()
+    {
+    }
+
     virtual const State* Transition(const Token& /*token*/, Binary::FormatTokensVisitor& /*visitor*/) const
     {
       return this;

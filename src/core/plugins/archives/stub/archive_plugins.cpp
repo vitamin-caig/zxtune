@@ -10,7 +10,7 @@
 
 namespace ZXTune
 {
-  void RegisterArchivePlugins(ArchivePluginsRegistrator& /*registrator*/)
+  void RegisterArchivePlugins(class ArchivePluginsRegistrator& /*registrator*/)
   {
   }
 }
