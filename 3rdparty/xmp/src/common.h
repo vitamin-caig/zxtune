@@ -10,7 +10,7 @@
 #include "xmp.h"
 
 #if defined(__GNUC__) || defined(__clang__)
-#if !defined(WIN32) && !defined(ANDROID) && !defined(__APPLE__) && !defined(__AMIGA__) && !defined(B_BEOS_VERSION) && !defined(__ATHEOS__)
+#if !defined(NO_VERSIONED_SYMBOLS) && !defined(WIN32) && !defined(ANDROID) && !defined(__APPLE__) && !defined(__AMIGA__) && !defined(B_BEOS_VERSION) && !defined(__ATHEOS__)
 #define USE_VERSIONED_SYMBOLS
 #endif
 #endif

@@ -49,7 +49,7 @@ source_files_cc += $(addprefix src/win32/,\
 include_dirs += src/win32
 endif
 
-defines += BUILDING_STATIC
+defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS
 windows_definitions += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS PATH_MAX=1024
 
 include $(path_step)/makefile.mak
