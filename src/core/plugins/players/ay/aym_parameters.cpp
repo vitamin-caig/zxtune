@@ -46,18 +46,16 @@ namespace AYM
   //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
   {
-    static const Char LETTERS[] = {'A', 'B', 'C', 'N', 'E'};
+    static const Char LETTERS[] = {'A', 'B', 'C'};
     static const uint_t MASKS[] =
     {
       Devices::AYM::CHANNEL_MASK_A,
       Devices::AYM::CHANNEL_MASK_B,
       Devices::AYM::CHANNEL_MASK_C,
-      Devices::AYM::CHANNEL_MASK_N,
-      Devices::AYM::CHANNEL_MASK_E
     };
     BOOST_STATIC_ASSERT(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS));
     const std::ptrdiff_t pos = std::find(LETTERS, boost::end(LETTERS), letter) - LETTERS;
-    if (pos == boost::size(LETTERS))
+    if (pos == static_cast<std::ptrdiff_t>(boost::size(LETTERS)))
     {
       throw MakeFormattedError(THIS_LINE,
         translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));
@@ -154,10 +152,10 @@ namespace AYM
 
     virtual uint_t DutyCycleValue() const
     {
-      Parameters::IntType intVal = 50;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT;
       const bool found = Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intVal);
       //duty cycle in percents should be in range 1..99 inc
-      if (found && (intVal < 1 || intVal > 99))
+      if (found && (intVal < Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MIN || intVal > Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
           translate("Invalid duty cycle value (%1%)."), intVal);
@@ -167,7 +165,7 @@ namespace AYM
 
     virtual uint_t DutyCycleMask() const
     {
-      Parameters::IntType intVal = 0;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal))
       {
         return static_cast<uint_t>(intVal);

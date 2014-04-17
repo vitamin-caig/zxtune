@@ -65,13 +65,23 @@ namespace Parameters
         //! @details String- table name or dump @see freq_tables.h
         extern const NameType TABLE;
 
-        //! @brief Duty cycle in percents
-        //! @details Integer. Valid values are 1..99. Default is 50
+        //@{
+        //! @name Duty cycle in percents
+        const IntType DUTY_CYCLE_MIN = 1;
+        const IntType DUTY_CYCLE_MAX = 99;
+        // Default is 50%
+        const IntType DUTY_CYCLE_DEFAULT = 50;
+        //! Parameter name
         extern const NameType DUTY_CYCLE;
+        //@}
 
-        //! @brief Duty cycle applied channels masks
+        //@{
+        //! @name Duty cycle applied channels masks
         //! @details @see core/devices/aym.h
+        const IntType DUTY_CYCLE_MASK_DEFAULT = 0;
+        //! Parameter name
         extern const NameType DUTY_CYCLE_MASK;
+        //@}
 
         //! @brief Channels layout parameter
         //! @details @see core/devices/aym.h
