@@ -176,9 +176,16 @@ namespace Parameters
         extern const NameType CLOCKRATE;
         //@}
 
-        //! @brief Use interpolation
-        //! @details integer value
+        //@{
+        //! @name Interpolation mode
+        const IntType INTERPOLATION_NONE = 0;
+        const IntType INTERPOLATION_LQ = 1;
+        const IntType INTERPOLATION_HQ = 2;
+        //! Default is LQ
+        const IntType INTERPOLATION_DEFAULT = INTERPOLATION_LQ;
+        //! Parameter name
         extern const NameType INTERPOLATION;
+        //@}
       }
 
       //! @brief SID-related parameters namespace

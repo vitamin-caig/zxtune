@@ -338,7 +338,7 @@ namespace
                  Parameters::ZXTune::Core::SAA::CLOCKRATE_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::SAA::INTERPOLATION,
                  Text::INFO_OPTIONS_CORE_SAA_INTERPOLATION,
-                 EMPTY),
+                 Parameters::ZXTune::Core::SAA::INTERPOLATION_DEFAULT),
       //Core plugins options
       OptionDesc(Text::INFO_OPTIONS_CORE_PLUGINS_TITLE, EMPTY,0),
       OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS,

@@ -36,7 +36,7 @@ namespace
       using namespace Parameters;
       const IntegerTraits clockRate(ZXTune::Core::SAA::CLOCKRATE, ZXTune::Core::SAA::CLOCKRATE_DEFAULT, ZXTune::Core::SAA::CLOCKRATE_MIN, ZXTune::Core::SAA::CLOCKRATE_MAX);
       BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
-      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SAA::INTERPOLATION, 0);
+      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SAA::INTERPOLATION, ZXTune::Core::SAA::INTERPOLATION_DEFAULT);
     }
 
     //QWidget

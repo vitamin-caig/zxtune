@@ -52,8 +52,8 @@ namespace
       const IntegerTraits clockRate(ZXTune::Core::AYM::CLOCKRATE, ZXTune::Core::AYM::CLOCKRATE_DEFAULT, ZXTune::Core::AYM::CLOCKRATE_MIN, ZXTune::Core::AYM::CLOCKRATE_MAX);
       BigIntegerValue::Bind(*clockRateValue, *Options, clockRate);
       BooleanValue::Bind(*dutyCycleGroup, *Options, ZXTune::Core::AYM::DUTY_CYCLE_MASK, false, 7);
-      IntegerValue::Bind(*dutyCycleValue, *Options, ZXTune::Core::AYM::DUTY_CYCLE, Parameters::ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT);
-      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION, Parameters::ZXTune::Core::AYM::INTERPOLATION_DEFAULT);
+      IntegerValue::Bind(*dutyCycleValue, *Options, ZXTune::Core::AYM::DUTY_CYCLE, ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT);
+      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::AYM::INTERPOLATION, ZXTune::Core::AYM::INTERPOLATION_DEFAULT);
     }
 
     virtual void OnClockRateChanged(const QString& val)
