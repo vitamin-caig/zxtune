@@ -187,7 +187,7 @@ namespace
         }
         if (YM)
         {
-          coreParams->SetValue(Parameters::ZXTune::Core::AYM::TYPE, 1);
+          coreParams->SetValue(Parameters::ZXTune::Core::AYM::TYPE, Parameters::ZXTune::Core::AYM::TYPE_YM);
         }
         coreParams->Process(*Params);
       }

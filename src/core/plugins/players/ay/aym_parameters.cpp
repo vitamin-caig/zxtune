@@ -140,7 +140,7 @@ namespace AYM
 
     virtual Devices::AYM::ChipType Type() const
     {
-      Parameters::IntType intVal = 0;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::TYPE_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::AYM::TYPE, intVal);
       return static_cast<Devices::AYM::ChipType>(intVal);
     }

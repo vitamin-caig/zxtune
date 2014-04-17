@@ -40,6 +40,9 @@ namespace Parameters
         extern const NameType CLOCKRATE;
         //@}
 
+        const IntType TYPE_AY = 0;
+        const IntType TYPE_YM = 1;
+        const IntType TYPE_DEFAULT = TYPE_AY;
         //! @brief Chip type
         //! @details 0 is AY, else is YM
         extern const NameType TYPE;

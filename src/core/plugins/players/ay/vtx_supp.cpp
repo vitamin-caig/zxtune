@@ -96,7 +96,7 @@ namespace YMVTX
 
     virtual void SetChipType(bool ym)
     {
-      Properties.SetValue(Parameters::ZXTune::Core::AYM::TYPE, ym ? 1 : 0);
+      Properties.SetValue(Parameters::ZXTune::Core::AYM::TYPE, ym ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY);
     }
 
     virtual void SetStereoMode(uint_t mode)

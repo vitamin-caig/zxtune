@@ -361,7 +361,7 @@ namespace
   private:
     static Parameters::IntType DecodeChipType(const String& value)
     {
-      return value == AYL::YM ? 1 : 0;
+      return value == AYL::YM ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY;
     }
 
     static Parameters::IntType DecodeChipLayout(const String& value)

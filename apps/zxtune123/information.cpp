@@ -305,7 +305,7 @@ namespace
                  Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::AYM::TYPE,
                  Text::INFO_OPTIONS_CORE_AYM_TYPE,
-                 EMPTY),
+                 Parameters::ZXTune::Core::AYM::TYPE_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::AYM::INTERPOLATION,
                  Text::INFO_OPTIONS_CORE_AYM_INTERPOLATION,
                  EMPTY),
