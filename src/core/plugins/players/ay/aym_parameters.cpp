@@ -180,7 +180,7 @@ namespace AYM
 
     virtual Devices::AYM::LayoutType Layout() const
     {
-      Parameters::IntType intVal = Devices::AYM::LAYOUT_ABC;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
       {
         if (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||

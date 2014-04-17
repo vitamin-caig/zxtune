@@ -83,9 +83,21 @@ namespace Parameters
         extern const NameType DUTY_CYCLE_MASK;
         //@}
 
-        //! @brief Channels layout parameter
-        //! @details @see core/devices/aym.h
+        //@{
+        //! @name Channels layout parameter
+        //! @details @see core/devices/aym/chip.h
+        const IntType LAYOUT_ABC = 0;
+        const IntType LAYOUT_ACB = 1;
+        const IntType LAYOUT_BAC = 2;
+        const IntType LAYOUT_BCA = 3;
+        const IntType LAYOUT_CAB = 4;
+        const IntType LAYOUT_CBA = 5;
+        const IntType LAYOUT_MONO = 6;
+        //! Default is ABC
+        const IntType LAYOUT_DEFAULT = 0;
+        //! Parameter name
         extern const NameType LAYOUT;
+        //@}
       }
 
       //! @brief DAC-related parameters namespace
