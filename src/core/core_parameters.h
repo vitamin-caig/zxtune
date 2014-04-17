@@ -202,10 +202,15 @@ namespace Parameters
         //@}
 
         //@{
-        //! @name Interpolation type (0/1/2)
-
+        //! @name Interpolation mode
+        const IntType INTERPOLATION_NONE = 0;
+        const IntType INTERPOLATION_LQ = 1;
+        const IntType INTERPOLATION_HQ = 2;
+        //! Default is LQ
+        const IntType INTERPOLATION_DEFAULT = INTERPOLATION_NONE;
         //! Parameter name
         extern const NameType INTERPOLATION;
+        //@}
 
         //! @brief ROMs section for full C64 environment emulation
         namespace ROM

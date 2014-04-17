@@ -34,7 +34,7 @@ namespace
       setupUi(this);
 
       using namespace Parameters;
-      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION, 0);
+      Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION, ZXTune::Core::SID::INTERPOLATION_DEFAULT);
       BooleanValue::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, false);
     }
 

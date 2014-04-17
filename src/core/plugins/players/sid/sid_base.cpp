@@ -106,13 +106,6 @@ namespace Sid
    * 2 - regular sampling+interpolate+resample
    */
 
-  enum InterpolationModes
-  {
-    FAST_SAMPLING_INTERPOLATE,
-    INTERPOLATE,
-    RESAMPLE_INTERPOLATE
-  };
-
   class SidParameters
   {
   public:
@@ -123,12 +116,12 @@ namespace Sid
 
     bool GetFastSampling() const
     {
-      return FAST_SAMPLING_INTERPOLATE == GetInterpolation();
+      return Parameters::ZXTune::Core::SID::INTERPOLATION_NONE == GetInterpolation();
     }
 
     SidConfig::sampling_method_t GetSamplingMethod() const
     {
-      return RESAMPLE_INTERPOLATE == GetInterpolation()
+      return Parameters::ZXTune::Core::SID::INTERPOLATION_HQ == GetInterpolation()
           ? SidConfig::RESAMPLE_INTERPOLATE : SidConfig::INTERPOLATE;
     }
 
@@ -139,7 +132,7 @@ namespace Sid
   private:
     Parameters::IntType GetInterpolation() const
     {
-      Parameters::IntType val = 0;
+      Parameters::IntType val = Parameters::ZXTune::Core::SID::INTERPOLATION_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::SID::INTERPOLATION, val);
       return val;
     }
