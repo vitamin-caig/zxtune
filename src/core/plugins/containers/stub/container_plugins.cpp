@@ -8,9 +8,12 @@
 *
 **/
 
+//local includes
+#include <core/plugins/registrator.h>
+
 namespace ZXTune
 {
-  void RegisterContainerPlugins(class ArchivePluginsRegistrator& /*registrator*/)
+  void RegisterContainerPlugins(ArchivePluginsRegistrator& /*registrator*/)
   {
   }
 }
