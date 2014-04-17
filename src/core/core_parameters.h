@@ -196,7 +196,10 @@ namespace Parameters
 
         //@{
         //! @name SID filter emulation
-
+        const IntType FILTER_DISABLED = 0;
+        const IntType FILTER_ENABLED = 1;
+        //! Default is enabled
+        const IntType FILTER_DEFAULT = FILTER_ENABLED;
         //! Parameter name
         extern const NameType FILTER;
         //@}

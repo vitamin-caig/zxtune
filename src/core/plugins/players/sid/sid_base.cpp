@@ -127,7 +127,9 @@ namespace Sid
 
     bool GetUseFilter() const
     {
-      return GetBool(Parameters::ZXTune::Core::SID::FILTER);
+      Parameters::IntType val = Parameters::ZXTune::Core::SID::FILTER_DEFAULT;
+      Params->FindValue(Parameters::ZXTune::Core::SID::FILTER, val);
+      return static_cast<bool>(val);
     }
   private:
     Parameters::IntType GetInterpolation() const
@@ -135,13 +137,6 @@ namespace Sid
       Parameters::IntType val = Parameters::ZXTune::Core::SID::INTERPOLATION_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::SID::INTERPOLATION, val);
       return val;
-    }
-
-    bool GetBool(const Parameters::NameType& name) const
-    {
-      Parameters::IntType val = 0;
-      Params->FindValue(name, val);
-      return val != 0;
     }
   private:
     const Parameters::Accessor::Ptr Params;

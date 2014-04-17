@@ -35,7 +35,7 @@ namespace
 
       using namespace Parameters;
       Interpolation = IntegerValue::Bind(*interpolationValue, *Options, ZXTune::Core::SID::INTERPOLATION, ZXTune::Core::SID::INTERPOLATION_DEFAULT);
-      BooleanValue::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, false);
+      BooleanValue::Bind(*filterValue, *Options, ZXTune::Core::SID::FILTER, ZXTune::Core::SID::FILTER_DEFAULT);
     }
 
     //QWidget
