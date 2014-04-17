@@ -66,6 +66,7 @@ namespace Playlist
       virtual void RenamePlaylist(const QString& name) = 0;
       virtual void ActivateItem(Playlist::Item::Data::Ptr) = 0;
     signals:
+      void Activated(Playlist::Item::Data::Ptr);
       void ItemActivated(Playlist::Item::Data::Ptr);
       void Deactivated();
     };

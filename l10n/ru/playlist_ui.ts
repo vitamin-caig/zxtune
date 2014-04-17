@@ -9,7 +9,7 @@
         <translation>Файлы списков (*.xspf *.ayl)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/container_view.cpp" line="356"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/container_view.cpp" line="354"/>
         <source>Default</source>
         <translation>Безымянный</translation>
     </message>

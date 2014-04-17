@@ -616,9 +616,14 @@ namespace
     template<class T>
     void Add(const T& val)
     {
-      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
-      const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
-      Container->Add(val);
+      Playlist::Model::OldToNewIndexMap::Ptr remapping;
+      {
+        boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+        const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+        Container->Add(val);
+        remapping = GetIndicesChanges();
+      }
+      NotifyAboutIndexChanged(remapping);
     }
   private:
     const DataProvidersSet Providers;

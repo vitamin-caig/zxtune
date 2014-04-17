@@ -108,6 +108,7 @@ namespace
       Require(Playlist->connect(Playback, SIGNAL(OnPauseModule()), SLOT(Pause())));
       Require(Playlist->connect(Playback, SIGNAL(OnStopModule()), SLOT(Stop())));
       Require(Playlist->connect(Playback, SIGNAL(OnFinishModule()), SLOT(Finish())));
+      Require(Playback->connect(Playlist, SIGNAL(Activated(Playlist::Item::Data::Ptr)), SLOT(SetDefaultItem(Playlist::Item::Data::Ptr))));
       Require(Playback->connect(Playlist, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(SetItem(Playlist::Item::Data::Ptr))));
       Require(Playback->connect(Playlist, SIGNAL(Deactivated()), SLOT(ResetItem())));
       Require(connect(actionAddFiles, SIGNAL(triggered()), Playlist, SLOT(AddFiles())));

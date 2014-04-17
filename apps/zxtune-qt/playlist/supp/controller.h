@@ -69,7 +69,8 @@ namespace Playlist
     private slots:
       virtual void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping) = 0;
     signals:
-      void ItemActivated(Playlist::Item::Data::Ptr data);
+      void Activated(Playlist::Item::Data::Ptr);
+      void ItemActivated(Playlist::Item::Data::Ptr);
       void ItemActivated(unsigned idx);
       void Deactivated();
     };

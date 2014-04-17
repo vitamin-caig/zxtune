@@ -315,7 +315,7 @@ namespace
       }
     }
 
-    virtual void ActivateItem(Playlist::Item::Data::Ptr item)
+    virtual void ActivateItem(Playlist::Item::Data::Ptr /*item*/)
     {
       if (QObject* sender = this->sender())
       {
@@ -323,12 +323,10 @@ namespace
         Playlist::UI::View* const newView = static_cast<Playlist::UI::View*>(sender);
         if (newView != ActivePlaylistView)
         {
-          Dbg("Switched playlist %1% -> %2%", newView, ActivePlaylistView);
-          ActivePlaylistView->Stop();
-          ActivePlaylistView = newView;
+          ActivePlaylistView->Stop();//just update state
+          SwitchTo(newView);
         }
       }
-      emit ItemActivated(item);
     }
   private:
     void SetupMenu()
@@ -363,14 +361,37 @@ namespace
       widgetsContainer->addTab(plView, playlist->GetName());
       Require(connect(plView, SIGNAL(Renamed(const QString&)), SLOT(RenamePlaylist(const QString&))));
       Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
-      const Playlist::Item::Iterator::Ptr iter = playlist->GetIterator();
-      Require(connect(iter, SIGNAL(Deactivated()), SIGNAL(Deactivated())));
+      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SIGNAL(ItemActivated(Playlist::Item::Data::Ptr))));
       if (!ActivePlaylistView)
       {
-        ActivePlaylistView = plView;
+        SwitchTo(plView);
       }
       widgetsContainer->setCurrentWidget(plView);
       return *plView;
+    }
+
+    void SwitchTo(Playlist::UI::View* plView)
+    {
+      Dbg("Switch playlist %1% -> %2%", ActivePlaylistView, plView);
+      const bool wasPrevious = ActivePlaylistView != 0;
+      if (wasPrevious)
+      {
+        const Playlist::Item::Iterator::Ptr iter = ActivePlaylistView->GetPlaylist()->GetIterator();
+        Require(iter->disconnect(this, SIGNAL(Activated(Playlist::Item::Data::Ptr))));
+        Require(iter->disconnect(this, SIGNAL(Deactivated())));
+      }
+      ActivePlaylistView = plView;
+      if (ActivePlaylistView)
+      {
+        const Playlist::Controller::Ptr ctrl = ActivePlaylistView->GetPlaylist();
+        const Playlist::Item::Iterator::Ptr iter = ctrl->GetIterator();
+        Require(connect(iter, SIGNAL(Activated(Playlist::Item::Data::Ptr)), SIGNAL(Activated(Playlist::Item::Data::Ptr))));
+        Require(connect(iter, SIGNAL(Deactivated()), SIGNAL(Deactivated())));
+        if (const Playlist::Item::Data::Ptr firstNew = ctrl->GetModel()->GetItem(0))
+        {
+          emit Activated(firstNew);
+        }
+      }
     }
 
     Playlist::UI::View& GetActivePlaylist()
@@ -408,8 +429,7 @@ namespace
     {
       if (QWidget* widget = widgetsContainer->widget(index))
       {
-        ActivePlaylistView = static_cast<Playlist::UI::View*>(widget);
-        Dbg("Switching to playlist idx=%1% val=%2%", index, ActivePlaylistView);
+        SwitchTo(static_cast<Playlist::UI::View*>(widget));
       }
     }
   private:

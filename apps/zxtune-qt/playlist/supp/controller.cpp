@@ -87,8 +87,7 @@ namespace
       Dbg("Iterator: index changed.");
       if (NO_INDEX == Index)
       {
-        Dbg("Iterator: nothing to update");
-        return;
+        return Activate();
       }
       if (const Playlist::Model::IndexType* moved = remapping->FindNewIndex(Index))
       {
@@ -151,6 +150,16 @@ namespace
         ? Randomized(newIndex, itemsCount)
         : newIndex;
       return SelectItem(mappedIndex);
+    }
+
+    void Activate()
+    {
+      if (const Playlist::Item::Data::Ptr first = Model->GetItem(0))
+      {
+        Index = 0;
+        Dbg("Iterator: activated.");
+        emit Activated(first);
+      }
     }
 
     void Deactivate()
