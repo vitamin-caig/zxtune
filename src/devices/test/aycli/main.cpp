@@ -4,7 +4,8 @@
 #include <core/core_parameters.h>
 #include <parameters/container.h>
 #include <sound/mixer_factory.h>
-#include <sound/service.h>
+#include <sound/backends/storage.h>
+#include <sound/backends/backends_list.h>
 #include <sound/sound_parameters.h>
 #include <boost/make_shared.hpp>
 #include <iostream>
@@ -141,11 +142,37 @@ namespace
     const boost::shared_ptr<Devices::AYM::DataChunk> Chunk;
   };
 
+  class BackendFactoryHandle : public Sound::BackendsStorage
+  {
+  public:
+    virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/, Sound::BackendWorkerFactory::Ptr factory)
+    {
+      Factory = factory;
+    }
+
+    virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/, const Error& /*status*/)
+    {
+    }
+
+    virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/)
+    {
+    }
+
+    Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module)
+    {
+      const Sound::BackendWorker::Ptr worker = Factory->CreateWorker(module->GetModuleProperties());
+      return Sound::CreateBackend(module->GetModuleProperties(), module, Sound::BackendCallback::Ptr(), worker);
+    }
+  private:
+    Sound::BackendWorkerFactory::Ptr Factory;
+  };
+
   Sound::Backend::Ptr CreateBackend(boost::shared_ptr<Devices::AYM::DataChunk> chunk)
   {
     const Module::Holder::Ptr module = boost::make_shared<StubHolder>(chunk);
-    const Sound::Service::Ptr svc = Sound::CreateSystemService(EmptyParams());
-    return svc->CreateBackend("dsound", module, Sound::BackendCallback::Ptr());
+    BackendFactoryHandle factory;
+    Sound::RegisterDirectSoundBackend(factory);
+    return factory.CreateBackend(module);
   }
 }
 
