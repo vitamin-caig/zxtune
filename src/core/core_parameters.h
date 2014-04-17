@@ -40,16 +40,26 @@ namespace Parameters
         extern const NameType CLOCKRATE;
         //@}
 
+        //@{
+        //! @name Chip type
         const IntType TYPE_AY = 0;
         const IntType TYPE_YM = 1;
+        //! Default is AY
         const IntType TYPE_DEFAULT = TYPE_AY;
-        //! @brief Chip type
-        //! @details 0 is AY, else is YM
+        //! Parameter name
         extern const NameType TYPE;
+        //@}
 
-        //! @brief Use interpolation
-        //! @details integer value
+        //@{
+        //! @name Interpolation mode
+        const IntType INTERPOLATION_NONE = 0;
+        const IntType INTERPOLATION_LQ = 1;
+        const IntType INTERPOLATION_HQ = 2;
+        //! Default is HQ
+        const IntType INTERPOLATION_DEFAULT = INTERPOLATION_HQ;
+        //! Parameter name
         extern const NameType INTERPOLATION;
+        //@}
 
         //! @brief Frequency table for ay-based plugins
         //! @details String- table name or dump @see freq_tables.h

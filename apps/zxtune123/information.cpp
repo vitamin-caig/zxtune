@@ -308,7 +308,7 @@ namespace
                  Parameters::ZXTune::Core::AYM::TYPE_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::AYM::INTERPOLATION,
                  Text::INFO_OPTIONS_CORE_AYM_INTERPOLATION,
-                 EMPTY),
+                 Parameters::ZXTune::Core::AYM::INTERPOLATION_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::AYM::TABLE,
                  Text::INFO_OPTIONS_CORE_AYM_TABLE,
                  EMPTY),

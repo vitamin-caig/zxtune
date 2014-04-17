@@ -147,7 +147,7 @@ namespace AYM
 
     virtual Devices::AYM::InterpolationType Interpolation() const
     {
-      Parameters::IntType intVal = 0;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::INTERPOLATION_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intVal);
       return static_cast<Devices::AYM::InterpolationType>(intVal);
     }
