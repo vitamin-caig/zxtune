@@ -7,5 +7,5 @@
   <!-- zxtune.core.sid.filter -->
   <string  name="pref_zxtune_sid_filter" translatable="false">zxtune.core.sid.filter</string>
   <string  name="pref_zxtune_sid_filter_title">Filter emulation</string>
-  <integer name="pref_zxtune_sid_filter_default">0</integer>
+  <integer name="pref_zxtune_sid_filter_default">1</integer>
 </resources>

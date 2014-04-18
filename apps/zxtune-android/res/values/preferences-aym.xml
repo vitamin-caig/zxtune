@@ -33,7 +33,7 @@
   <integer name="pref_zxtune_aym_type_default">0</integer>
   <!-- zxtune.core.aym.interpolation -->
   <string name="pref_zxtune_aym_interpolation" translatable="false">zxtune.core.aym.interpolation</string>
-  <integer name="pref_zxtune_aym_interpolation_default">0</integer>
+  <integer name="pref_zxtune_aym_interpolation_default">2</integer>
   <!-- zxtun.core.aym.layout -->
   <string name="pref_zxtune_aym_layout" translatable="false">zxtune.core.aym.layout</string>
   <string name="pref_zxtune_aym_layout_title">Channels layout</string>
