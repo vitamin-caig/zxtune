@@ -106,9 +106,15 @@ namespace Parameters
         //! @brief Parameters#ZXTune#Core#DAC namespace prefix
         extern const NameType PREFIX;
 
-        //! @brief Use interpolation
-        //! @details Integer value
+        //@{
+        //! @name Interpolation mode
+        const IntType INTERPOLATION_NO = 0;
+        const IntType INTERPOLATION_YES = 1;
+        //! Default is LQ
+        const IntType INTERPOLATION_DEFAULT = INTERPOLATION_NO;
+        //! Parameter name
         extern const NameType INTERPOLATION;
+        //@}
 
         const IntType SAMPLES_FREQUENCY_MIN = 800;
         const IntType SAMPLES_FREQUENCY_MAX = 16000;

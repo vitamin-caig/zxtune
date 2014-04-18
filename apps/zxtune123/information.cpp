@@ -323,7 +323,7 @@ namespace
                  EMPTY),
       OptionDesc(Parameters::ZXTune::Core::DAC::INTERPOLATION,
                  Text::INFO_OPTIONS_CORE_DAC_INTERPOLATION,
-                 EMPTY),
+                 Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT),
       OptionDesc(Parameters::ZXTune::Core::Z80::INT_TICKS,
                  Text::INFO_OPTIONS_CORE_Z80_INT_TICKS,
                  Parameters::ZXTune::Core::Z80::INT_TICKS_DEFAULT),

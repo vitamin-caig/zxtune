@@ -42,7 +42,7 @@ namespace
       Parameters::BooleanValue::Bind(*isYM, *Params, Parameters::ZXTune::Core::AYM::TYPE, false);
       Parameters::IntegerValue::Bind(*aymLayout, *Params, Parameters::ZXTune::Core::AYM::LAYOUT, Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT);
       //DAC
-      Parameters::BooleanValue::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, false);
+      Parameters::BooleanValue::Bind(*isDACInterpolated, *Params, Parameters::ZXTune::Core::DAC::INTERPOLATION, Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT);
 
       Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
         SLOT(InitState(Sound::Backend::Ptr, Playlist::Item::Data::Ptr))));

@@ -349,9 +349,9 @@ namespace Xmp
         Parameters::IntType val = 0;
         Params->FindValue(Parameters::ZXTune::Sound::LOOPED, val);
         Looped = val != 0;
-        val = 0;
+        val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
         Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
-        const int interpolation = val != 0 ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
+        const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
         Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
       }
     }
