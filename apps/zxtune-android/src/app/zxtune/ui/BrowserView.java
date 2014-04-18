@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
@@ -31,7 +32,7 @@ public class BrowserView extends ListViewCompat {
 
   private static final int LOADER_ID = BrowserView.class.hashCode();
 
-  private View loadingView;
+  private ProgressBar loadingView;
   private TextView emptyView;
 
   public BrowserView(Context context) {
@@ -56,7 +57,7 @@ public class BrowserView extends ListViewCompat {
   @Override
   public void setEmptyView(View stub) {
     super.setEmptyView(stub);
-    loadingView = stub.findViewById(R.id.browser_loading);
+    loadingView = (ProgressBar) stub.findViewById(R.id.browser_loading);
     emptyView = (TextView) stub.findViewById(R.id.browser_loaded);
   }
   
@@ -96,6 +97,7 @@ public class BrowserView extends ListViewCompat {
 
   //TODO: use ViewFlipper?
   private void showProgress() {
+    loadingView.setIndeterminate(true);
     loadingView.setVisibility(VISIBLE);
     emptyView.setVisibility(INVISIBLE);
   }
@@ -247,16 +249,38 @@ public class BrowserView extends ListViewCompat {
       final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
       try {
         dir.enumerate(new VfsDir.Visitor() {
+          
+          int counter;
+          
+          @Override
+          public void onItemsCount(int count) {
+            view.loadingView.setIndeterminate(false);
+            view.loadingView.setMax(count);
+          }
+
           @Override
           public void onFile(VfsFile file) {
             model.add(file);
+            updateProgress();
             signal.throwIfCanceled();
           }
           
           @Override
           public void onDir(VfsDir dir) {
             model.add(dir);
+            updateProgress();
             signal.throwIfCanceled();
+          }
+          
+          private void updateProgress() {
+            if (++counter % 10 == 0) {
+              view.post(new Runnable() {
+                @Override
+                public void run() {
+                  view.loadingView.setProgress(counter);
+                }
+              });
+            }
           }
         });
         model.sort();

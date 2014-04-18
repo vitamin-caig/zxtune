@@ -20,6 +20,11 @@ public interface VfsDir extends VfsObject {
   public interface Visitor {
     
     /**
+     * Called when items count is known (at any moment)
+     */
+    public void onItemsCount(int count);
+    
+    /**
      * Called on visited directory
      */
     public void onDir(VfsDir dir);

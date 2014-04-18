@@ -39,12 +39,15 @@
         >
       <ProgressBar
           android:id="@+id/browser_loading"
-          android:layout_width="wrap_content"
-          android:layout_height="wrap_content"
+          android:layout_width="@dimen/item_height"
+          android:layout_height="@dimen/item_height"
           android:layout_marginLeft="@dimen/spacing_full"
           android:layout_marginRight="@dimen/spacing_full" 
           android:layout_gravity="center"
-          android:indeterminate="true" />
+          style="?android:attr/progressBarStyleHorizontal"
+          android:progressDrawable="@drawable/progress_determinate"
+          android:indeterminateDrawable="@drawable/progress_indeterminate"
+        />
       <TextView
           android:id="@+id/browser_loaded"
           android:layout_width="match_parent"

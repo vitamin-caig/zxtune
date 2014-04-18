@@ -60,6 +60,10 @@ public final class VfsIterator {
       final LinkedList<VfsFile> newFiles = new LinkedList<VfsFile>();
       root.enumerate(new VfsDir.Visitor() {
         @Override
+        public void onItemsCount(int count) {
+        }
+
+        @Override
         public void onDir(VfsDir dir) {
           newDirs.add(dir);
         }
