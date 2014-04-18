@@ -19,11 +19,15 @@ public abstract class Catalog {
   
   public interface AuthorsVisitor {
     
+    void setCountHint(int size);
+    
     void accept(Author obj);
   }
   
   public interface TracksVisitor {
     
+    void setCountHint(int size);
+
     void accept(Track obj);
   }
 

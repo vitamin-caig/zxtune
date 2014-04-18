@@ -101,11 +101,30 @@ final class RemoteCatalog extends Catalog {
       connection.disconnect();
     }
   }
+  
+  private static Integer asInt(String str) {
+    if (str == null) {
+      return null;
+    } else try {
+      return Integer.parseInt(str);
+    } catch (NumberFormatException e) {
+      return null;
+    }
+  }
 
   private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
     final AuthorBuilder builder = new AuthorBuilder();
     final RootElement result = createRootElement();
     final Element list = result.getChild("authors");
+    list.setStartElementListener(new StartElementListener() {
+      @Override
+      public void start(Attributes attributes) {
+        final Integer count = asInt(attributes.getValue("count"));
+        if (count != null) {
+          visitor.setCountHint(count);
+        }
+      }
+    });
     final Element item = list.getChild("author");
     item.setStartElementListener(new StartElementListener() {
       @Override
@@ -179,6 +198,15 @@ final class RemoteCatalog extends Catalog {
     final ModuleBuilder builder = new ModuleBuilder();
     final RootElement result = createRootElement();
     final Element list = result.getChild("tracks");
+    list.setStartElementListener(new StartElementListener() {
+      @Override
+      public void start(Attributes attributes) {
+        final Integer count = asInt(attributes.getValue("count"));
+        if (count != null) {
+          visitor.setCountHint(count);
+        }
+      }
+    });
     final Element item = list.getChild("track");
     item.setStartElementListener(new StartElementListener() {
       @Override

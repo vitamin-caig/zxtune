@@ -113,8 +113,13 @@ final class Database {
     final String selection = id != null ? Tables.Authors.Fields._id + " = " + id : null;
     final Cursor cursor = db.query(Tables.Authors.NAME, null, selection, null, null, null, null);
     try {
-      while (cursor.moveToNext()) {
-        visitor.accept(createAuthor(cursor));
+      final int count = cursor.getCount();
+      if (count != 0) {
+        Log.d(TAG, count + " found");
+        visitor.setCountHint(count);
+        while (cursor.moveToNext()) {
+          visitor.accept(createAuthor(cursor));
+        }
       }
     } finally {
       cursor.close();
@@ -133,8 +138,13 @@ final class Database {
         id != null ? createSingleTrackSelection(id) : createAuthorTracksSelection(author);
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
-      while (cursor.moveToNext()) {
-        visitor.accept(createTrack(cursor));
+      final int count = cursor.getCount();
+      if (count != 0) {
+        Log.d(TAG, count + " found");
+        visitor.setCountHint(count);
+        while (cursor.moveToNext()) {
+          visitor.accept(createTrack(cursor));
+        }
       }
     } finally {
       cursor.close();
