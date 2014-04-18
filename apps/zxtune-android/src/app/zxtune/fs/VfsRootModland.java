@@ -268,6 +268,12 @@ final class VfsRootModland implements VfsRoot, IconSource {
       @Override
       public void enumerate(final Visitor visitor) throws IOException {
         group.query(letter, new Catalog.GroupsVisitor() {
+
+          @Override
+          public void setCountHint(int count) {
+            visitor.onItemsCount(count);
+          }
+
           @Override
           public void accept(Group obj) {
             visitor.onDir(new GroupDir(obj));
@@ -332,6 +338,12 @@ final class VfsRootModland implements VfsRoot, IconSource {
         @Override
         public void enumerate(final Visitor visitor) throws IOException {
           group.queryTracks(obj.id, new Catalog.TracksVisitor() {
+            
+            @Override
+            public void setCountHint(int count) {
+              visitor.onItemsCount(count);
+            }
+            
             @Override
             public void accept(Track obj) {
               visitor.onFile(new TrackFile(obj));

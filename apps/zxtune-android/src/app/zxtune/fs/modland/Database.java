@@ -174,8 +174,12 @@ final class Database {
       : Tables.Groups.Fields.name + " LIKE '" + filter + "%'";
     final Cursor cursor = db.query(category, null, selection, null, null, null, null);
     try {
-      while (cursor.moveToNext()) {
-        visitor.accept(Tables.Groups.createGroup(cursor));
+      final int count = cursor.getCount();
+      if (count != 0) {
+        visitor.setCountHint(count);
+        while (cursor.moveToNext()) {
+          visitor.accept(Tables.Groups.createGroup(cursor));
+        }
       }
     } finally {
       cursor.close();
@@ -207,8 +211,12 @@ final class Database {
     final String selection = createGroupTracksSelection(category, id);
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     try {
-      while (cursor.moveToNext()) {
-        visitor.accept(Tables.Tracks.createTrack(cursor));
+      final int count = cursor.getCount();
+      if (count != 0) {
+        visitor.setCountHint(count);
+        while (cursor.moveToNext()) {
+          visitor.accept(Tables.Tracks.createTrack(cursor));
+        }
       }
     } finally {
       cursor.close();

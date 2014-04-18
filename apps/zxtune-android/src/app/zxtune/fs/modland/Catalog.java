@@ -15,16 +15,18 @@ import java.nio.ByteBuffer;
 
 import android.content.Context;
 
-import app.zxtune.fs.zxtunes.Author;
-
 public abstract class Catalog {
 
   public interface GroupsVisitor {
 
+    void setCountHint(int size);
+    
     void accept(Group obj);
   }
 
   public interface TracksVisitor {
+
+    void setCountHint(int size);
 
     void accept(Track obj);
   }

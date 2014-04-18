@@ -193,6 +193,11 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
+    public void setCountHint(int hint) {
+      delegate.setCountHint(hint);
+    }
+    
+    @Override
     public void accept(Group obj) {
       delegate.accept(obj);
       ++count;
@@ -214,6 +219,11 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
+    public void setCountHint(int hint) {
+      delegate.setCountHint(hint);
+    }
+    
+    @Override
     public void accept(Group obj) {
       delegate.accept(obj);
       try {
@@ -234,6 +244,11 @@ final class CachingCatalog extends Catalog {
       this.count = 0;
     }
 
+    @Override
+    public void setCountHint(int hint) {
+      delegate.setCountHint(hint);
+    }
+    
     @Override
     public void accept(Track obj) {
       delegate.accept(obj);
@@ -257,6 +272,11 @@ final class CachingCatalog extends Catalog {
       this.delegate = delegate;
     }
 
+    @Override
+    public void setCountHint(int hint) {
+      delegate.setCountHint(hint);
+    }
+    
     @Override
     public void accept(Track obj) {
       delegate.accept(obj);

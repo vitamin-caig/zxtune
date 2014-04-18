@@ -16,14 +16,12 @@ import android.text.Html;
 import android.util.Log;
 
 import java.io.IOException;
-import java.lang.ref.Reference;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.zxtune.fs.HttpProvider;
-import app.zxtune.fs.zxtunes.Author;
 
 /**
  * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.
@@ -99,8 +97,15 @@ class RemoteCatalog extends Catalog {
     @Override
     public void query(String filter, final GroupsVisitor visitor) throws IOException {
       loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
+        
+        private boolean countReported;
+        
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
+          if (!countReported) {
+            visitor.setCountHint(results);
+            countReported = true;
+          }
           parseAuthors(content, visitor);
           return true;
         }
@@ -137,8 +142,15 @@ class RemoteCatalog extends Catalog {
     @Override
     public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
       loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
+
+        private boolean countReported;
+
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
+          if (!countReported) {
+            visitor.setCountHint(results);
+            countReported = true;
+          }
           parseTracks(content, visitor);
           return true;
         }
