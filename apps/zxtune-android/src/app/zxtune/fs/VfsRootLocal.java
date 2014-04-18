@@ -208,6 +208,7 @@ final class VfsRootLocal implements VfsRoot, IconSource {
       if (files == null) {
         throw new IOException("Failed to enumerate files in directory");
       }
+      visitor.onItemsCount(files.length);
       for (File file : files) {
         if (file.isDirectory()) {
           visitor.onDir(buildDir(file));
