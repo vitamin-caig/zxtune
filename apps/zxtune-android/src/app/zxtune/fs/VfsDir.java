@@ -20,7 +20,7 @@ public interface VfsDir extends VfsObject {
   public interface Visitor {
     
     /**
-     * Called when items count is known (at any moment)
+     * Called when items count is known (at any moment, maybe approximate)
      */
     public void onItemsCount(int count);
     

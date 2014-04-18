@@ -248,6 +248,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       @Override
       public void enumerate(final Visitor visitor) throws IOException {
         final ByteBuffer content = getContent();
+        visitor.onItemsCount(getApproxItemsCount(content.limit()));
         catalog.parseDir(content, new Catalog.DirVisitor() {
           @Override
           public void acceptDir(String name) {
@@ -266,6 +267,17 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
           content = catalog.getFileContent(path);
         }
         return content;
+      }
+      
+      private int getApproxItemsCount(int size) {
+        /*
+         *  MUSICIANS/Q with 1 entry is 642 bytes
+         *  MUSICIANS/M with 117 entries is 14110 bytes
+         *  ~120 bytes per entry, ~520 bytes constant part
+         */
+        final int ENTRY_SIZE = 120;
+        final int AUX_SIZE = 520;
+        return size > AUX_SIZE ? (size - AUX_SIZE) / ENTRY_SIZE : 0;
       }
 
       @Override
