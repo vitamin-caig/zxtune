@@ -10,24 +10,20 @@
 
 package app.zxtune.fs.modland;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 import android.content.Context;
 import android.util.Log;
+import app.zxtune.fs.VfsCache;
 
 final class CachingCatalog extends Catalog {
 
   private final static String TAG = CachingCatalog.class.getName();
 
   private final static String CACHE_DIR_NAME = "ftp.modland.com";
-  private final static int MIN_CACHED_FILE_SIZE = 256;
 
-  private final String cacheDir;
+  private final VfsCache cacheDir;
   private final Catalog remote;
   private final Grouping authors;
   private final Grouping collections;
@@ -35,20 +31,12 @@ final class CachingCatalog extends Catalog {
   private final Database db;
 
   public CachingCatalog(Context context, Catalog remote, Database db) {
-    this.cacheDir = context.getCacheDir().getAbsolutePath() + File.separator + CACHE_DIR_NAME + File.separator;
+    this.cacheDir = new VfsCache(context, CACHE_DIR_NAME); 
     this.remote = remote;
     this.authors = new CachedGrouping(Database.Tables.Authors.NAME, remote.getAuthors());
     this.collections = new CachedGrouping(Database.Tables.Collections.NAME, remote.getCollections());
     this.formats = new CachedGrouping(Database.Tables.Formats.NAME, remote.getFormats());
     this.db = db;
-    createCacheDir();
-  }
-
-  private void createCacheDir() {
-    final File dir = new File(cacheDir);
-    if (!dir.exists()) {
-      dir.mkdirs();
-    }
   }
 
   @Override
@@ -128,57 +116,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public ByteBuffer getTrackContent(String id) throws IOException {
-    final File cache = new File(cacheDir + id);
-    try {
-      if (cache.exists()) {
-        Log.d(TAG, "Reading content of track " + id + " from cache");
-        return readFrom(cache);
-      }
-    } catch (IOException e) {
-      Log.d(TAG, "Failed to read from cache", e);
-    }
-    final ByteBuffer content = remote.getTrackContent(id);
-    if (content.capacity() >= MIN_CACHED_FILE_SIZE) {
-      Log.d(TAG, "Write content of track " + id + " to cache");
-      writeTo(cache, content);
+    final ByteBuffer cachedContent = cacheDir.getCachedFileContent(id);
+    if (cachedContent != null) {
+      return cachedContent;
     } else {
-      Log.d(TAG, "Do not cache suspicious file");
-    }
-    return content;
-  }
-
-  //TODO: remove C&P
-  private ByteBuffer readFrom(File file) throws IOException {
-    final FileInputStream stream = new FileInputStream(file);
-    try {
-      final FileChannel channel = stream.getChannel();
-      try {
-        return channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-      } finally {
-        channel.close();
-      }
-    } finally {
-      stream.close();
-    }
-  }
-
-  private void writeTo(File file, ByteBuffer data) {
-    try {
-      file.getParentFile().mkdirs();
-      final FileOutputStream stream = new FileOutputStream(file);
-      try {
-        final FileChannel chan = stream.getChannel();
-        try {
-          chan.write(data);
-        } finally {
-          chan.close();
-        }
-      } finally {
-        stream.close();
-      }
-    } catch (IOException e) {
-      Log.d(TAG, "writeTo " + file.getAbsolutePath(), e);
-      file.delete();
+      final ByteBuffer content = remote.getTrackContent(id);
+      cacheDir.putCachedFileContent(id, content);
+      return content;
     }
   }
 

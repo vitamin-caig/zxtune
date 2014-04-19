@@ -25,14 +25,10 @@
     <string name="main">Hauptseiten</string>
     <plurals name="items">
       <item quantity="one">%d Element</item>
-      <item quantity="many">%d Elemente</item>
-      <!-- for pre-HC -->
       <item quantity="other">%d Elemente</item>
     </plurals>
     <plurals name="tracks">
       <item quantity="one">%d Tonspur</item>
-      <item quantity="many">%d Tonspuren</item>
-      <!-- for pre-HC -->
       <item quantity="other">%d Tonspuren</item>
     </plurals>
     <string name="no_tracks_found">Tonspuren werden nicht gefunden</string>
