@@ -79,16 +79,20 @@ public class FileIterator implements Iterator {
 
   @Override
   public boolean next() {
-    if (next.isEmpty()) {
-      return false;
-    } else {
+    if (hasNext()) {
       final CacheEntry entry = next.removeFirst();
       prev.addFirst(entry);
       assert null == entry.captureItem();
       cleanupHistory();
       prefetch();
-      return !next.isEmpty();
+      return true;
+    } else {
+      return false;
     }
+  }
+  
+  private boolean hasNext() {
+    return next.size() >= 2;
   }
   
   @Override
@@ -103,7 +107,7 @@ public class FileIterator implements Iterator {
   }
   
   private void prefetch() {
-    while (next.isEmpty() && iterator.isValid()) {
+    while (!hasNext() && iterator.isValid()) {
       processNextFile();
     }
   }
