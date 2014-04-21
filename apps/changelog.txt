@@ -5,6 +5,17 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3040 from 22.04.2014
+
+[+] zxtune-qt: auto-select first newly added item for playback
+[*] zxtune-qt: reset currently playing item on playlist clearing/closing
+[+] zxtune-android: next/prev buttons in notification area (only for Android 3.0+)
+[+] zxtune-android: i/o operations notification in action bar
+[+] zxtune-android: directory listing operation progress in browser
+[+] zxtune-android: sequenced playback in browser preview mode
+[*] zxtune-android: fix playback sequence processing for last element
+[*] zxtune-android: fix crashes while playlist playback for pre-4.1 versions
+
 --- Rev3005 from 07.04.2014
 
 [+] zxtune-android: initial deutsche translation
