@@ -27,17 +27,17 @@ public final class IteratorFactory {
    * @return new iterator
    * @throws IOException
    */
+  /*
   public static Iterator createIterator(Context context, Uri uri) throws IOException {
-    if (uri.getScheme().equals(ContentResolver.SCHEME_CONTENT)) {
+    if (isPlaylistUri(uri)) {
       return new PlaylistIterator(context, uri);
     } else {
-      Iterator result = PlaylistFileIterator.create(context, uri);
-      if (result == null) {
-        final Uri[] uris = {uri};
-        result = new FileIterator(context, uris);
-      }
-      return result;
     }
+  }
+  */
+  
+  private static boolean isPlaylistUri(Uri uri) {
+    return uri.getScheme().equals(ContentResolver.SCHEME_CONTENT);
   }
   
   /**
@@ -48,10 +48,15 @@ public final class IteratorFactory {
    * @throws IOException
    */
   public static Iterator createIterator(Context context, Uri[] uris) throws IOException {
-    if (uris.length == 1) {
-      return createIterator(context, uris[0]);
+    final Uri first = uris[0];
+    if (isPlaylistUri(first)) {
+      return new PlaylistIterator(context, first);
     } else {
-      return new FileIterator(context, uris);
+      Iterator result = PlaylistFileIterator.create(context, first);
+      if (result == null) {
+        result = new FileIterator(context, uris);
+      }
+      return result;
     }
   }
   

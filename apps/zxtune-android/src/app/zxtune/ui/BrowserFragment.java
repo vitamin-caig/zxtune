@@ -135,21 +135,23 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-      final VfsObject obj = (VfsObject) parent.getItemAtPosition(position);
-      if (obj instanceof VfsFile) {
-        onClick((VfsFile) obj);
-      } else if (obj instanceof VfsDir) {
-        onClick((VfsDir) obj);
+      final Object obj = parent.getItemAtPosition(position);
+      if (obj instanceof VfsDir) {
+        setCurrentDir((VfsDir) obj);
+      } else if (obj instanceof VfsFile) {
+        final Uri[] toPlay = getUrisFrom(position);
+        service.setNowPlaying(toPlay);
       }
     }
 
-    private void onClick(VfsFile file) {
-      final Uri[] toPlay = {file.getUri()};
-      service.setNowPlaying(toPlay);
-    }
-
-    private void onClick(VfsDir dir) {
-      setCurrentDir(dir);
+    private Uri[] getUrisFrom(int position) {
+      final ListAdapter adapter = listing.getAdapter();
+      final Uri[] result = new Uri[adapter.getCount() - position];
+      for (int idx = 0; idx != result.length; ++idx) {
+        final VfsObject obj = (VfsObject) adapter.getItem(position + idx);
+        result[idx] = obj.getUri();
+      }
+      return result;
     }
   }
 
