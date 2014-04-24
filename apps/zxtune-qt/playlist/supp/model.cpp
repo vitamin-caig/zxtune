@@ -377,12 +377,20 @@ namespace
 
     virtual void AddItem(Playlist::Item::Data::Ptr item)
     {
-      Add(item);
+      //Called for each item found during scan, so notify only first time
+      if (0 == CountItems())
+      {
+        AddAndNotify(item);
+      }
+      else
+      {
+        Add(item);
+      }
     }
 
     virtual void AddItems(Playlist::Item::Collection::Ptr items)
     {
-      Add(items);
+      AddAndNotify(items);
     }
 
     virtual void CancelLongOperation()
@@ -614,7 +622,7 @@ namespace
     }
 
     template<class T>
-    void Add(const T& val)
+    void AddAndNotify(const T& val)
     {
       Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
@@ -624,6 +632,14 @@ namespace
         remapping = GetIndicesChanges();
       }
       NotifyAboutIndexChanged(remapping);
+    }
+
+    template<class T>
+    void Add(const T& val)
+    {
+      boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
+      const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
+      Container->Add(val);
     }
   private:
     const DataProvidersSet Providers;
