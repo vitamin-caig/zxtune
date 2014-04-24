@@ -42,7 +42,8 @@ class CachingCatalog extends Catalog {
     }
     final String relPathHtml = relPath + CACHE_HTML_FILE;
     final ByteBuffer cacheHtml = cacheDir.getCachedFileContent(relPathHtml);
-    if (cacheHtml != null) {
+    //workaround for possible broken cache
+    if (cacheHtml != null && isDirContent(cacheHtml)) {
       return cacheHtml;
     }
     final ByteBuffer content = remote.getFileContent(path);

@@ -52,8 +52,8 @@ class RemoteCatalog extends Catalog {
   @Override
   public boolean isDirContent(ByteBuffer buf) {
     final byte[] head = new byte[HTML_SIGNATURE.length];
-    buf.position(0);
     final int readBytes = buf.get(head).position();
+    buf.position(0);
     return readBytes == head.length && Arrays.equals(head, HTML_SIGNATURE);
   }
 
@@ -80,9 +80,9 @@ class RemoteCatalog extends Catalog {
     if (data.hasArray()) { 
       return new String(data.array(), "UTF-8");
     } else {
-      data.position(0);
       final byte[] buff = new byte[data.remaining()];
       data.get(buff);
+      data.position(0);
       return new String(buff, "UTF-8");
     }
   }

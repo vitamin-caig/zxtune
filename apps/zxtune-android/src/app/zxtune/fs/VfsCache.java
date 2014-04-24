@@ -33,7 +33,6 @@ public class VfsCache {
 
   public VfsCache(Context ctx, String name) {
     this.cacheDir = getCacheDir(ctx, name);
-    createCacheDir();
   }
   
   public final File getCachedFile(String path) {
@@ -58,7 +57,7 @@ public class VfsCache {
   }
   
   public final void putAnyCachedFileContent(String path, ByteBuffer content) {
-    putCachedFileContent(path,  content, 0);
+    putCachedFileContent(path,  content, 1);
   }
   
   public final void putCachedFileContent(String path, ByteBuffer content, int minSize) {
@@ -95,6 +94,7 @@ public class VfsCache {
         try {
           chan.write(data);
         } finally {
+          data.position(0);
           chan.close();
         }
       } finally {
@@ -106,16 +106,6 @@ public class VfsCache {
     }
   }
   
-  private void createCacheDir() {
-    final File dir = new File(cacheDir);
-    if (!dir.exists()) {
-      Log.d(TAG, "Create cache dir " + cacheDir);
-      dir.mkdirs();
-    } else {
-      Log.d(TAG, "Use existing cache dir " + cacheDir);
-    }
-  }
-
   private static String getCacheDir(Context context, String name) {
     final boolean useExternalDir = getUseExternalDir(context);
     final File cacheDir = (useExternalDir ? context.getExternalCacheDir() : context.getCacheDir());
