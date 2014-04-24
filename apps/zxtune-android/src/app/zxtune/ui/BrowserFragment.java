@@ -246,8 +246,12 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   
   private void loadBrowser(Uri path) {
     try {
-      final VfsDir dir = (VfsDir) root.resolve(path);
-      loadBrowser(dir);
+      final VfsObject obj = root.resolve(path);
+      if (obj instanceof VfsDir) {
+        loadBrowser((VfsDir) obj);
+      } else {
+        throw new IOException(getString(R.string.failed_resolve, path));
+      }
     } catch (IOException e) {
       listing.showError(e);
     }
@@ -260,8 +264,12 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   
   private void loadNavigation(Uri path) {
     try {
-      final VfsDir dir = (VfsDir) root.resolve(path);
-      loadNavigation(dir);
+      final VfsObject obj = root.resolve(path);
+      if (obj instanceof VfsDir) {
+        loadNavigation((VfsDir) obj);
+      } else {
+        throw new IOException(getString(R.string.failed_resolve, path));
+      }
     } catch (IOException e) {
       listing.showError(e);
     }

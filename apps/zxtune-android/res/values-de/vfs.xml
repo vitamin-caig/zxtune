@@ -22,4 +22,5 @@
     <string name="vfs_hvsc_root_description">Durch http://www.tld-crew.de</string>
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
+    <string name="failed_resolve">Konnte zu lösen %s</string>
 </resources>
