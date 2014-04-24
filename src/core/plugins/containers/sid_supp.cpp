@@ -31,7 +31,7 @@ namespace Sid
 
   const std::string FORMAT =
       "'R|'P 'S'I'D" //signature
-      "00 01|02"     //BE version
+      "00 01-03"     //BE version
       "00 76|7c"     //BE data offset
       "??"           //BE load address
       "??"           //BE init address
