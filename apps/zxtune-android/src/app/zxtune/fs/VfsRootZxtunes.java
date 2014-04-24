@@ -298,7 +298,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       //callers doesn't know that author and date is useless now
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryTracks(visitor, id, null/*authorId*/);
+      catalog.queryTracks(visitor, id, author.id);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",

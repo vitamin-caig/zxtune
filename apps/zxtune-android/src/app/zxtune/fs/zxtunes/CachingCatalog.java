@@ -41,12 +41,14 @@ final class CachingCatalog extends Catalog {
       Log.d(TAG, "Authors cache is empty. Query from remote");
       final Database.Transaction transaction = db.startTransaction();
       try {
-        remote.queryAuthors(new CachingAuthorsVisitor(count), id);
+        //query all
+        remote.queryAuthors(new CachingAuthorsVisitor(), null);
         transaction.succeed();
         Log.d(TAG, "Cached " + count.get() + " authors");
       } finally {
         transaction.finish();
       }
+      db.queryAuthors(visitor, id);
     }
   }
   
@@ -59,12 +61,14 @@ final class CachingCatalog extends Catalog {
       Log.d(TAG, "Tracks cache is empty for id=" + id + " author=" + author);
       final Database.Transaction transaction = db.startTransaction();
       try {
-        remote.queryTracks(new CachingTracksVisitor(count, author), id, author);
+        //query all
+        remote.queryTracks(new CachingTracksVisitor(author), null, author);
         transaction.succeed();
         Log.d(TAG, "Cached " + count.get() + " tracks");
       } finally {
         transaction.finish();
       }
+      db.queryTracks(visitor, id, author);
     }
   }
   
@@ -110,20 +114,12 @@ final class CachingCatalog extends Catalog {
   
   private class CachingAuthorsVisitor implements AuthorsVisitor {
     
-    private final AuthorsVisitor delegate;
-    
-    CachingAuthorsVisitor(AuthorsVisitor delegate) {
-      this.delegate = delegate;
-    }
-
     @Override
     public void setCountHint(int hint) {
-      delegate.setCountHint(hint);
     }
     
     @Override
     public void accept(Author obj) {
-      delegate.accept(obj);
       try {
         db.addAuthor(obj);
       } catch (Exception e) {
@@ -160,22 +156,18 @@ final class CachingCatalog extends Catalog {
   
   private class CachingTracksVisitor implements TracksVisitor {
     
-    private final TracksVisitor delegate;
     private final Integer author;
     
-    CachingTracksVisitor(TracksVisitor delegate, Integer author) {
-      this.delegate = delegate;
+    CachingTracksVisitor(Integer author) {
       this.author = author;
     }
 
     @Override
     public void setCountHint(int hint) {
-      delegate.setCountHint(hint);
     }
     
     @Override
     public void accept(Track obj) {
-      delegate.accept(obj);
       try {
         db.addTrack(obj, author);
       } catch (Exception e) {

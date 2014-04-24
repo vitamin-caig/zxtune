@@ -42,7 +42,7 @@ public abstract class Catalog {
    * Query tracks objects
    * @param visitor result receiver
    * @param author author's identifier
-   * @param id filter by id. If not null, author filter is ignored
+   * @param id filter by id. If not null, author filter may be ignored (but required for cache)
    * @param author filter by author
    */
   public abstract void queryTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException;
