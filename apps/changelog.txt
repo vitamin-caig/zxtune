@@ -5,6 +5,15 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3050 from 29.04.2014
+
+[+] Support SID format version 3
+[*] Fix msvs binaries working on Windows XP
+[*] zxtune-qt: fix redundand playlist updates while scan
+[*] zxtune-android: detailed information about resolve error
+[*] zxtune-android: improved zxtunes.com cache
+[*] zxtune-android: fix cache processing for HVSC catalog
+
 --- Rev3040 from 22.04.2014
 
 [+] zxtune-qt: auto-select first newly added item for playback
