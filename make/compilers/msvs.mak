@@ -2,16 +2,26 @@ CXX := cl.exe
 LDD := link.exe
 AR := lib.exe
 
+ifneq ($(and $(have_gui),$(release)),)
+windows.ld.subsystem = WINDOWS
+else
+windows.ld.subsystem = CONSOLE
+endif
+
+#support winxp
+windows.x86.ld.subsystem.version = 5.01
+windows.x86_64.ld.subsystem.version = 5.02
+
 #set options according to mode
 ifdef release
 mode.suffix=
 CXX_MODE_FLAGS = /Ox /DNDEBUG
-LD_MODE_FLAGS = /SUBSYSTEM:$(if $(have_gui),WINDOWS,CONSOLE)
 else
 mode.suffix=d
 CXX_MODE_FLAGS = /Od
-LD_MODE_FLAGS = /SUBSYSTEM:CONSOLE
 endif
+
+LD_MODE_FLAGS = /SUBSYSTEM:$(windows.ld.subsystem),$(windows.$(arch).ld.subsystem.version)
 
 ifdef pic
 CXX_MODE_FLAGS += /LD
