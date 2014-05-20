@@ -39,7 +39,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   private Releaseable connection;
   private PlaylistState state;
   private PlaylistView listing;
-  private MenuItem addNowPlaying;
   private final NowPlayingState playingState;
 
   public static Fragment createInstance() {
@@ -70,7 +69,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
-    addNowPlaying = menu.findItem(R.id.action_add_current);
   }
   
   @Override
@@ -78,11 +76,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     switch (item.getItemId()) {
       case R.id.action_clear:
         service.getPlaylistControl().deleteAll();
-        break;
-      case R.id.action_add_current:
-        service.getPlaylistControl().add(new Uri[] {service.getNowPlaying().getDataId()});
-        //disable further addings
-        addNowPlaying.setVisible(false);
         break;
       case R.id.action_save:
         savePlaylist(null);
@@ -193,7 +186,6 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         @Override
         public void run() {
           listing.invalidateViews();
-          addNowPlaying.setVisible(isPlaying && nowPlayingPlaylist == Uri.EMPTY);
         }
       };
       isPlaying = false;

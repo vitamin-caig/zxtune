@@ -31,8 +31,16 @@ public class VfsCache {
   
   private final String cacheDir;
 
-  public VfsCache(Context ctx, String name) {
-    this.cacheDir = getCacheDir(ctx, name);
+  private VfsCache(Context ctx, String name, Boolean forceExternal) {
+    this.cacheDir = getCacheDir(ctx, name, forceExternal);
+  }
+  
+  public static VfsCache create(Context context, String name) {
+    return new VfsCache(context, name, null);
+  }
+  
+  public static VfsCache createExternal(Context context, String name) {
+    return new VfsCache(context, name, true);
   }
   
   public final File getCachedFile(String path) {
@@ -106,8 +114,10 @@ public class VfsCache {
     }
   }
   
-  private static String getCacheDir(Context context, String name) {
-    final boolean useExternalDir = getUseExternalDir(context);
+  private static String getCacheDir(Context context, String name, Boolean forceExternal) {
+    final boolean useExternalDir = forceExternal != null
+      ? forceExternal 
+      : getUseExternalDir(context);
     final File cacheDir = (useExternalDir ? context.getExternalCacheDir() : context.getCacheDir());
     return cacheDir.getAbsolutePath() + File.separator + name + File.separator;
   }

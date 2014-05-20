@@ -29,7 +29,7 @@ class CachingCatalog extends Catalog {
   private final Catalog remote;
   
   public CachingCatalog(Context context, Catalog remote) {
-    this.cacheDir = new VfsCache(context, CACHE_DIR_NAME);
+    this.cacheDir = VfsCache.create(context, CACHE_DIR_NAME);
     this.remote = remote;
   }
 

@@ -10,6 +10,8 @@
     <string name="clear">Zurücksetzen</string>
     <string name="save">Speichern</string>
     <string name="overwrite">Überschreiben</string>
+    <string name="send">Senden</string>
+    <string name="share">Teilen</string>
     <!-- information-related -->
     <string name="information_title">Titel</string>
     <string name="information_author">Author</string>
@@ -32,4 +34,5 @@
       <item quantity="other">%d Tonspuren</item>
     </plurals>
     <string name="no_tracks_found">Tonspuren werden nicht gefunden</string>
+    <string name="track">Tonspur</string>
 </resources>

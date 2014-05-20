@@ -1,0 +1,27 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:sabd="http://schemas.android.com/apk/res-auto" >
+  <item
+    android:id="@+id/action_track"
+    android:title="@string/track"
+    sabd:showAsAction="always"
+    >
+    <menu>
+      <item
+        android:id="@+id/action_add"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="@string/add"
+        sabd:showAsAction="never"
+      />
+      <item
+        android:id="@+id/action_send"
+        android:icon="@android:drawable/ic_menu_send"
+        android:title="@string/send"
+        sabd:showAsAction="never" />
+      <item
+        android:id="@+id/action_share"
+        android:icon="@android:drawable/ic_menu_share"
+        android:title="@string/share"
+        sabd:showAsAction="never" />
+    </menu>
+  </item>
+</menu>

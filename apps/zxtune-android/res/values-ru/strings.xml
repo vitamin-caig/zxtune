@@ -10,6 +10,8 @@
     <string name="clear">Очистить</string>
     <string name="save">Сохранить</string>
     <string name="overwrite">Перезаписать</string>
+    <string name="send">Отправить</string>
+    <string name="share">Поделиться</string>
     <!-- information-related -->
     <string name="information_title">Название</string>
     <string name="information_author">Автор</string>
@@ -38,4 +40,5 @@
       <item quantity="other">%d треков</item>
     </plurals>
     <string name="no_tracks_found">Треки не найдены</string>
+    <string name="track">Трек</string>
 </resources>

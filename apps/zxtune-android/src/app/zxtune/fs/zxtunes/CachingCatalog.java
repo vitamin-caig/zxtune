@@ -28,7 +28,7 @@ final class CachingCatalog extends Catalog {
   private final Database db;
   
   public CachingCatalog(Context context, Catalog remote, Database db) {
-    this.cacheDir = new VfsCache(context, CACHE_DIR_NAME);
+    this.cacheDir = VfsCache.create(context, CACHE_DIR_NAME);
     this.remote = remote;
     this.db = db;
   }

@@ -3,20 +3,17 @@
   <item
     android:id="@+id/action_playlist"
     android:title="@string/playlist"
-    sabd:showAsAction="ifRoom"
+    sabd:showAsAction="always"
     >
     <menu>
       <item
-        android:id="@+id/action_add_current"
-        android:title="@string/add_current"
-        sabd:showAsAction="never"
-      />
-      <item
         android:id="@+id/action_clear"
+        android:icon="@android:drawable/ic_menu_delete"
         android:title="@string/clear"
         sabd:showAsAction="never" />
       <item
         android:id="@+id/action_save"
+        android:icon="@android:drawable/ic_menu_save"
         android:title="@string/save"
         sabd:showAsAction="never" />
     </menu>

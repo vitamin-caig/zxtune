@@ -10,6 +10,8 @@
     <string name="clear">Clear</string>
     <string name="save">Save</string>
     <string name="overwrite">Overwrite</string>
+    <string name="send">Send</string>
+    <string name="share">Share</string>
     <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>
@@ -32,4 +34,5 @@
       <item quantity="other">%d tracks</item>
     </plurals>
     <string name="no_tracks_found">No tracks found</string>
+    <string name="track">Track</string>
 </resources>

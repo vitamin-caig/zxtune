@@ -31,7 +31,7 @@ final class CachingCatalog extends Catalog {
   private final Database db;
 
   public CachingCatalog(Context context, Catalog remote, Database db) {
-    this.cacheDir = new VfsCache(context, CACHE_DIR_NAME); 
+    this.cacheDir = VfsCache.create(context, CACHE_DIR_NAME); 
     this.remote = remote;
     this.authors = new CachedGrouping(Database.Tables.Authors.NAME, remote.getAuthors());
     this.collections = new CachedGrouping(Database.Tables.Collections.NAME, remote.getCollections());
