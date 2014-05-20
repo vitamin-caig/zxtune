@@ -119,12 +119,26 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   @Override
   public void release() {
+    shutdownExecutor();
     synchronized (this) {
       try {
+        holder.player.stopPlayback();
         holder.release();
       } finally {
         holder = new Holder();
       }
+    }
+  }
+  
+  private void shutdownExecutor() {
+    try {
+      do {
+        executor.shutdownNow();
+        Log.d(TAG, "Waiting for executor shutdown...");
+      } while (!executor.awaitTermination(10, TimeUnit.SECONDS));
+      Log.d(TAG, "Executor shut down");
+    } catch (InterruptedException e) {
+      Log.w(TAG, "Failed to shutdown executor", e);
     }
   }
   
@@ -136,7 +150,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         try {
           callbacks.onIOStatusChanged(true);
           cmd.execute();
-        } catch (IOException e) {
+        } catch (Exception e) {//IOException|InterruptedException
           Log.w(TAG, cmd.getClass().getName(), e);
         } finally {
           callbacks.onIOStatusChanged(false);

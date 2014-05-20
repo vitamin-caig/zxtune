@@ -39,8 +39,7 @@ final class SyncPlayer implements Player {
       startConsumeThread();
       produceCycle();
     } catch (InterruptedException e) {
-      Log.d(TAG, "Interrupted producing sound data: ");
-      e.printStackTrace();
+      Log.d(TAG, "Interrupted producing sound data", e);
     } catch (Error e) {
       events.onError(e);
     } finally {

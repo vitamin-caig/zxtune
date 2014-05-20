@@ -78,13 +78,15 @@ final public class AsyncPlayer implements Player {
   }
   
   private void waitForStateChange() {
-    try {
-      synchronized (stateGuard) {
-        stateGuard.wait();
+    synchronized (stateGuard) {
+      while (true) {
+        try {
+          stateGuard.wait();
+          break;
+        } catch (InterruptedException e) {
+          Log.d(TAG, "Interrupted while waiting for state change", e);
+        }
       }
-    } catch (InterruptedException e) {
-      Log.d(TAG, "Interrupted while stop: ");
-      e.printStackTrace();
     }
   }
 
@@ -141,8 +143,7 @@ final public class AsyncPlayer implements Player {
         playThread.join();
         playThread = null;
       } catch (InterruptedException e) {
-        Log.d(TAG, "Interrupted while stop: ");
-        e.printStackTrace();
+        Log.d(TAG, "Interrupted while stop", e);
       }
     }
 
