@@ -95,10 +95,8 @@
     </exec>
   </target>
   
-  <target name="-post-compile" depends="nativelibs" />
-
   <!-- Single public build target -->
-  <target name="public-build" depends="injectversion, release, debugarchive">
+  <target name="public-build" depends="injectversion, nativelibs, release, debugarchive">
     <property name="build.result" value="${build.dir}/${ant.project.name}_${version}.apk" />
     <delete file="${build.result}" />
     <copy file="${out.final.file}" toFile="${build.result}" />
