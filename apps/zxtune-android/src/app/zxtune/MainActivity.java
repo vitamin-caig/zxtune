@@ -11,6 +11,7 @@
 package app.zxtune;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -94,6 +95,15 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
       if (f instanceof PlaybackServiceConnection.Callback) {
         ((PlaybackServiceConnection.Callback) f).onServiceConnected(service);
       }
+    }
+    redirectIntentData();
+  }
+  
+  private void redirectIntentData() {
+    final Intent intent = getIntent();
+    if (intent.getAction().equals(Intent.ACTION_VIEW)) {
+      final Uri[] path = {intent.getData()};
+      service.setNowPlaying(path);
     }
   }
   
