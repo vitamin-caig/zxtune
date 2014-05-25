@@ -63,13 +63,35 @@
     </sequential>
   </target>
   
-  <target name="injectversion" depends="getversion">
+  <target name="checkmanifesttype">
+    <available file="AndroidManifest.data" property="xsltmanifest"/>
+  </target>
+  
+  <target name="xsltmanifest" depends="getversion" if="xsltmanifest">
+    <exec executable="xsltproc" failonerror="true">
+      <arg value="--stringparam"/>
+      <arg value="version.index"/>
+      <arg value="${version.index}"/>
+      <arg value="--stringparam"/>
+      <arg value="version"/>
+      <arg value="${version}"/>
+      <arg value="--output"/>
+      <arg value="AndroidManifest.xml"/>
+      <arg value="AndroidManifest.tmpl"/>
+      <arg value="AndroidManifest.data"/>
+    </exec>
+  </target>
+  
+  <target name="substmanifest" depends="getversion" unless="xsltmanifest">
     <copy file="AndroidManifest.tmpl" tofile="AndroidManifest.xml" overwrite="yes" >
       <filterset>
         <filter token="version" value="${version}" />
         <filter token="version.index" value="${version.index}" />
       </filterset>
     </copy>
+  </target>
+  
+  <target name="injectversion" depends="checkmanifesttype,xsltmanifest,substmanifest">
     <property name="build.dir" value="${builds.dir}/${version}/android" />
   </target>
   
