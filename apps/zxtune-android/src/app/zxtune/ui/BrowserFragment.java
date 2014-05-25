@@ -113,7 +113,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
     try {
       final VfsDir curDir = (VfsDir) root.resolve(state.getCurrentPath());
       if (curDir != root) {
-        final VfsDir parent = curDir.getParent();
+        final VfsDir parent = curDir != null ? curDir.getParent() : null;
         setCurrentDir(parent != null ? parent : root);
       }
     } catch (IOException e) {
