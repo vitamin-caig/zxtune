@@ -101,7 +101,7 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   
   private void redirectIntentData() {
     final Intent intent = getIntent();
-    if (intent.getAction().equals(Intent.ACTION_VIEW)) {
+    if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
       final Uri[] path = {intent.getData()};
       service.setNowPlaying(path);
     }
