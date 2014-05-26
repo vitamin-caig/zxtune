@@ -5,6 +5,17 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3065 from 27.05.2014
+
+[+] zxtune-android: sending any currently playing module and sharing playing modules from zxtunes.com
+[+] zxtune-android: 'Open with' system menu integration for some of the supported file types
+[+] zxtune-android: standard lockscreen widget (only for Android 4.0+ and enabled media buttons control)
+[*] zxtune-android: reworked media buttons conrol processing
+[*] zxtune-android: reworked main menu
+[*] zxtune-android: wait for I/O operations finish before exit
+[*] zxtune-android: fix crash on some parent directory movements in browser
+[*] zxtune-android: fix crash on startup in some cases
+
 --- Rev3050 from 29.04.2014
 
 [+] Support SID format version 3
