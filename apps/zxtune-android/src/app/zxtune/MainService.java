@@ -43,12 +43,14 @@ public class MainService extends Service {
   private IBinder binder;
   private Releaseable phoneCallHandler;
   private Releaseable mediaButtonsHandler;
+  private Releaseable remoteControlHandler;
   private Releaseable headphonesPlugHandler;
   private Releaseable notificationTypeHandler;
   private Releaseable settingsChangedHandler;
   
   public final static String ACTION_PREV = TAG + ".prev";
   public final static String ACTION_NEXT = TAG + ".next";
+  public final static String ACTION_PLAYPAUSE = TAG + ".playpause";
 
   @Override
   public void onCreate() {
@@ -63,6 +65,7 @@ public class MainService extends Service {
     PREF_NOTIFICATIONBUTTONS = resources.getString(R.string.pref_control_notification_buttons);
     PREF_NOTIFICATIONBUTTONS_DEFAULT = resources.getBoolean(R.bool.pref_control_notification_buttons_default);
     mediaButtonsHandler = ReleaseableStub.instance();
+    remoteControlHandler = ReleaseableStub.instance();
     headphonesPlugHandler = ReleaseableStub.instance();
     notificationTypeHandler = ReleaseableStub.instance();
     
@@ -94,6 +97,8 @@ public class MainService extends Service {
     notificationTypeHandler = null;
     headphonesPlugHandler.release();
     headphonesPlugHandler = null;
+    remoteControlHandler.release();
+    remoteControlHandler = null;
     mediaButtonsHandler.release();
     mediaButtonsHandler = null;
     phoneCallHandler.release();
@@ -108,10 +113,17 @@ public class MainService extends Service {
   public int onStartCommand(Intent intent, int flags, int startId) {
     Log.d(TAG, "StartCommand called");
     final String action = intent.getAction();
+    final PlaybackControl ctrl = service.getPlaybackControl();
     if (ACTION_PREV.equals(action)) {
-      service.getPlaybackControl().prev();
+      ctrl.prev();
     } else if (ACTION_NEXT.equals(action)) {
-      service.getPlaybackControl().next();
+      ctrl.next();
+    } else if (ACTION_PLAYPAUSE.equals(action)) {
+      if (ctrl.isPlaying()) {
+        ctrl.stop();
+      } else {
+        ctrl.play();
+      }
     }
     return START_NOT_STICKY;
   }
@@ -121,7 +133,7 @@ public class MainService extends Service {
     Log.d(TAG, "onBind called");
     return binder;
   }
-
+  
   private void connectMediaButtons(boolean connect) {
     Log.d(TAG, "connectMediaButtons = " + connect);
     final boolean connected = mediaButtonsHandler != ReleaseableStub.instance();
@@ -129,13 +141,27 @@ public class MainService extends Service {
       mediaButtonsHandler.release();
       mediaButtonsHandler =
           connect
-              ? MediaButtonsHandler.subscribe(this, service.getPlaybackControl())
+              ? MediaButtonsHandler.subscribe(this)
+              : ReleaseableStub.instance();
+    }
+    //Remote control is impossible without media buttons control enabling, so enable it here
+    connectRemoteControl(connect);
+  }
+  
+  private void connectRemoteControl(boolean connect) {
+    Log.d(TAG, "connectRemoteControl = " + connect);
+    final boolean connected = remoteControlHandler != ReleaseableStub.instance();
+    if (connect != connected) {
+      remoteControlHandler.release();
+      remoteControlHandler =
+          connect
+              ? RemoteControl.subscribe(this, service)
               : ReleaseableStub.instance();
     }
   }
 
   private void connectHeadphonesPlugging(boolean connect) {
-    Log.d(TAG, "connectHeadPhonesPluggins = " + connect);
+    Log.d(TAG, "connectHeadPhonesPlugging = " + connect);
     final boolean connected = headphonesPlugHandler != ReleaseableStub.instance();
     if (connect != connected) {
       headphonesPlugHandler.release();

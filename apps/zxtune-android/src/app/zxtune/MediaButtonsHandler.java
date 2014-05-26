@@ -14,42 +14,33 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.view.KeyEvent;
-import app.zxtune.playback.PlaybackControl;
 
-class MediaButtonsHandler extends BroadcastReceiver {
-  
-  private final PlaybackControl control;
+public class MediaButtonsHandler extends BroadcastReceiver {
 
-  private MediaButtonsHandler(PlaybackControl control) {
-    this.control = control;
+  static Releaseable subscribe(Context context) {
+    return new MediaButtonsConnection(context);
   }
-  
-  static Releaseable subscribe(Context context, PlaybackControl control) {
-    final MediaButtonsHandler handler = new MediaButtonsHandler(control);
-    final IntentFilter filter = new IntentFilter(Intent.ACTION_MEDIA_BUTTON);
-    filter.setPriority(Integer.MAX_VALUE);
-    return new MediaButtonsConnection(context, handler, filter);
-  }
-  
-  private static class MediaButtonsConnection extends BroadcastReceiverConnection {
 
-    private final ComponentName name;
+  static ComponentName getName(Context context) {
+    return new ComponentName(context.getApplicationContext(), MediaButtonsHandler.class);
+  }
+
+  private static class MediaButtonsConnection implements Releaseable {
     
-    MediaButtonsConnection(Context context, BroadcastReceiver handler, IntentFilter filter) {
-      super(context, handler, filter);
-      this.name = new ComponentName(context.getPackageName(), MediaButtonsHandler.class.getName());
-      getAudioManager().registerMediaButtonEventReceiver(name);
+    private final Context context;
+
+    MediaButtonsConnection(Context context) {
+      this.context = context;
+      getAudioManager().registerMediaButtonEventReceiver(MediaButtonsHandler.getName(context));
     }
-    
+
     @Override
     public void release() {
-      getAudioManager().unregisterMediaButtonEventReceiver(name);
-      super.release();
+      getAudioManager().unregisterMediaButtonEventReceiver(MediaButtonsHandler.getName(context));
     }
-    
+
     private AudioManager getAudioManager() {
       return (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
@@ -58,33 +49,29 @@ class MediaButtonsHandler extends BroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
-      processMediaButton((KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT));
+      final Intent toSend = getMediaButtonIntent((KeyEvent) intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT));
+      if (toSend != null) {
+        toSend.setClass(context, MainService.class);
+        context.startService(toSend);
+      }
     }
   }
 
-  private void processMediaButton(KeyEvent event) {
+  private Intent getMediaButtonIntent(KeyEvent event) {
     final int action = event.getAction();
     if (action != KeyEvent.ACTION_UP) {
-      return;
+      return null;
     }
     switch (event.getKeyCode()) {
       case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-        control.prev();
-        break;
+        return new Intent(MainService.ACTION_PREV);
       case KeyEvent.KEYCODE_HEADSETHOOK:
       case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-        if (control.isPlaying()) {
-          control.stop();
-        } else {
-          control.play();
-        }
-        break;
+        return new Intent(MainService.ACTION_PLAYPAUSE);
       case KeyEvent.KEYCODE_MEDIA_NEXT:
-        control.next();
-        break;
+        return new Intent(MainService.ACTION_NEXT);
       default:
-        return;
+        return null;
     }
-    abortBroadcast();
   }
 }

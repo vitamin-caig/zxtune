@@ -85,6 +85,14 @@
               android:process=":service"
               android:exported="false">
         </provider>
+        <!--
+          Static receiver should be used for remote controls
+        -->
+        <receiver android:name=".MediaButtonsHandler">
+          <intent-filter>
+            <action android:name="android.intent.action.MEDIA_BUTTON"/>
+          </intent-filter>
+        </receiver>
     </application>
 </manifest>
 </xsl:template>
