@@ -175,7 +175,10 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     @Override
     public void onIOStatusChanged(boolean isActive) {
       final ActionBarActivity activity = (ActionBarActivity)getActivity();
-      activity.setSupportProgressBarIndeterminateVisibility(isActive);
+      //Seems like may be called before activity attach
+      if (activity != null) {
+        activity.setSupportProgressBarIndeterminateVisibility(isActive);
+      }
     }
   }
   
