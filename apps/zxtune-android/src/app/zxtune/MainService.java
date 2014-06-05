@@ -50,6 +50,8 @@ public class MainService extends Service {
   
   public final static String ACTION_PREV = TAG + ".prev";
   public final static String ACTION_NEXT = TAG + ".next";
+  public final static String ACTION_PLAY = TAG + ".play";
+  public final static String ACTION_PAUSE = TAG + ".pause";
   public final static String ACTION_PLAYPAUSE = TAG + ".playpause";
 
   @Override
@@ -118,6 +120,10 @@ public class MainService extends Service {
       ctrl.prev();
     } else if (ACTION_NEXT.equals(action)) {
       ctrl.next();
+    } else if (ACTION_PLAY.equals(action)) {
+      ctrl.play();
+    } else if (ACTION_PAUSE.equals(action)) {
+      ctrl.stop();
     } else if (ACTION_PLAYPAUSE.equals(action)) {
       if (ctrl.isPlaying()) {
         ctrl.stop();
