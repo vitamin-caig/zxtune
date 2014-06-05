@@ -1,26 +1,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:sabd="http://schemas.android.com/apk/res-auto" >
   <item
-    android:icon="@android:drawable/ic_menu_more"
-    sabd:showAsAction="always"
+    android:id="@+id/action_prefs"
+    android:icon="@android:drawable/ic_menu_preferences"
+    android:title="@string/prefs"
     android:orderInCategory="100"
-    >
-    <menu>
-      <item
-        android:id="@+id/action_prefs"
-        android:icon="@android:drawable/ic_menu_preferences"
-        android:title="@string/prefs"
-        sabd:showAsAction="never" />
-      <item
-        android:id="@+id/action_about"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="@string/about"
-        sabd:showAsAction="never" />
-      <item
-        android:id="@+id/action_quit"
-        android:icon="@android:drawable/ic_menu_close_clear_cancel"
-        android:title="@string/quit"
-        sabd:showAsAction="never" />
-    </menu>
-  </item>
+    sabd:showAsAction="never" />
+  <item
+    android:id="@+id/action_about"
+    android:icon="@android:drawable/ic_menu_info_details"
+    android:title="@string/about"
+    android:orderInCategory="101"
+    sabd:showAsAction="never" />
+  <item
+    android:id="@+id/action_quit"
+    android:icon="@android:drawable/ic_menu_close_clear_cancel"
+    android:title="@string/quit"
+    android:orderInCategory="102"
+    sabd:showAsAction="never" />
 </menu>
