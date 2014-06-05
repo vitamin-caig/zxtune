@@ -8,7 +8,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
       package="app.zxtune"
       android:versionCode="{$version.index}"
-      android:versionName="{$version}">
+      android:versionName="{$version}"
+      android:installLocation="auto" >
     <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="17" />
     <!-- substitute permission -->
     <xsl:for-each select="permissions/android">
