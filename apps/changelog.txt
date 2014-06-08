@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3070 from 09.06.2014
+
+[+] zxtune-android: support installation/moving to SD card
+[*] zxtune-android: display author info at lockscreen widget
+[*] zxtune-android: improve media buttons handling
+
 --- Rev3065 from 27.05.2014
 
 [+] zxtune-android: sending any currently playing module and sharing playing modules from zxtunes.com
