@@ -11,3 +11,4 @@ sid/songlengths_db.inc: sid/Songlengths.txt sid/mksonglength.pl
 	$(tools.perl) sid/mksonglength.pl < $< > $@
 endif
 
+sid/songlengths.cpp: sid/songlengths_db.inc
