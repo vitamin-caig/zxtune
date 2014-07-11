@@ -356,6 +356,11 @@ namespace
     {
       return ModuleId->Full();
     }
+
+    String GetFilePath() const
+    {
+      return ModuleId->Path();
+    }
   private:
     const Parameters::Accessor::Ptr CoreParams;
     const DataSource::Ptr Source;
@@ -464,6 +469,11 @@ namespace
     virtual String GetFullPath() const
     {
       return Source.GetFullPath();
+    }
+
+    virtual String GetFilePath() const
+    {
+      return Source.GetFilePath();
     }
 
     virtual String GetType() const

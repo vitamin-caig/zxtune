@@ -50,7 +50,11 @@ namespace
       else
       {
         assert(!type.empty());
-        Result->AddValid(type, data->GetDuration(), data->GetSize());
+        Result->AddValid();
+        Result->AddType(type);
+        Result->AddDuration(data->GetDuration());
+        Result->AddSize(data->GetSize());
+        Result->AddPath(data->GetFilePath());
       }
     }
   private:

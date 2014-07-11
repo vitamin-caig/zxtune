@@ -86,6 +86,7 @@
    </property>
    <addaction name="SelRipOffsAction"/>
    <addaction name="SelSameTypesAction"/>
+   <addaction name="SelSameFilesAction"/>
    <addaction name="SelFoundAction"/>
   </widget>
   <action name="SelRipOffsAction">
@@ -96,6 +97,11 @@
   <action name="SelSameTypesAction">
    <property name="text">
     <string>Items with the same types</string>
+   </property>
+  </action>
+  <action name="SelSameFilesAction">
+   <property name="text">
+    <string>Items from the same files</string>
    </property>
   </action>
   <action name="SelFoundAction">

@@ -50,6 +50,7 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSetPtr items);
     //other
     SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation();
     SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items);
   }

@@ -40,6 +40,7 @@ namespace Playlist
       //playlist-related
       virtual Error GetState() const = 0;
       virtual String GetFullPath() const = 0;
+      virtual String GetFilePath() const = 0;
       virtual String GetType() const = 0;
       virtual String GetDisplayName() const = 0;
       virtual Time::MillisecondsDuration GetDuration() const = 0;

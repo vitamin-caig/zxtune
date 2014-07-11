@@ -194,6 +194,28 @@ namespace
   };
 
   template<class T>
+  class IndicesCollector : public PropertyModel<T>::Visitor
+  {
+  public:
+    IndicesCollector()
+      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+    {
+    }
+
+    virtual void OnItem(Playlist::Model::IndexType index, const T& /*val*/)
+    {
+      Result->insert(index);
+    }
+
+    boost::shared_ptr<Playlist::Model::IndexSet> GetResult() const
+    {
+      return Result;
+    }
+  private:
+    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
+  };
+
+  template<class T>
   class DuplicatesCollector : public PropertyModel<T>::Visitor
   {
   public:
@@ -407,12 +429,33 @@ namespace
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      ItemsWithDuplicatesCollector<String> types;
+      IndicesCollector<String> types;
       {
         const TypedPropertyModel<String> propertyModel(stor, &Playlist::Item::Data::GetType);
         VisitAsSelectedItems(propertyModel, *SelectedItems, cb, types);
       }
       emit ResultAcquired(types.GetResult());
+    }
+  private:
+    const Playlist::Model::IndexSetPtr SelectedItems;
+  };
+
+  class SelectFilesOfSelectedOperation : public Playlist::Item::SelectionOperation
+  {
+  public:
+    explicit SelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+      : SelectedItems(items)
+    {
+    }
+
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
+    {
+      IndicesCollector<String> files;
+      {
+        const TypedPropertyModel<String> propertyModel(stor, &Playlist::Item::Data::GetFilePath);
+        VisitAsSelectedItems(propertyModel, *SelectedItems, cb, files);
+      }
+      emit ResultAcquired(files.GetResult());
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
@@ -503,6 +546,11 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
     {
       return boost::make_shared<SelectTypesOfSelectedOperation>(items);
+    }
+
+    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    {
+      return boost::make_shared<SelectFilesOfSelectedOperation>(items);
     }
 
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation()

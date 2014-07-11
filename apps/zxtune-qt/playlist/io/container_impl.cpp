@@ -98,6 +98,11 @@ namespace
       return Path;
     }
 
+    virtual String GetFilePath() const
+    {
+      return Path;
+    }
+
     virtual String GetType() const
     {
       return String();
@@ -222,6 +227,12 @@ namespace
     virtual String GetFullPath() const
     {
       return Provider.get() ? Provider->GetPath() : Delegate->GetFullPath();
+    }
+
+    virtual String GetFilePath() const
+    {
+      AcquireDelegate();
+      return Delegate->GetFilePath();
     }
 
     virtual String GetType() const

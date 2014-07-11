@@ -34,37 +34,42 @@
         <translation>Выбрать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="93"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="94"/>
         <source>Rip-offs in this items</source>
         <translation>Похожие среди выбранных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="98"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="99"/>
         <source>Items with the same types</source>
         <translation>Тех же типов</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="103"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="104"/>
+        <source>Items from the same files</source>
+        <translation>Из тех же файлов</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="109"/>
         <source>Found in this items</source>
         <translation>Искать среди выбранных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="108"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="114"/>
         <source>Copy all paths</source>
         <translation>Скопировать все пути</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="118"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="124"/>
         <source>Show statistic</source>
         <translation>Статистика</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="128"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="134"/>
         <source>Export selected</source>
         <translation>Экспорт выбранных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="138"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/multiple_items_contextmenu.ui" line="144"/>
         <source>Convert selected</source>
         <translation>Сконвертировать выбранные</translation>
     </message>
@@ -110,7 +115,7 @@
 <context>
     <name>Playlist::UI::ItemsContextMenu</name>
     <message numerus="yes">
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="88"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="89"/>
         <source>%n item(s)</source>
         <translation>
             <numerusform>%n модуль</numerusform>
@@ -119,18 +124,18 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="168"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="170"/>
         <source>Statistic</source>
         <translation>Статистика</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="176"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="178"/>
         <source>Total duration: %1</source>
         <translation>Общее время: %1</translation>
     </message>
     <message numerus="yes">
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="178"/>
-        <source>%n diferent modules&apos; type(s)</source>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="180"/>
+        <source>%n different modules&apos; type(s)</source>
         <translation>
             <numerusform>%n тип модулей</numerusform>
             <numerusform>%n типа модулей</numerusform>
@@ -138,37 +143,46 @@
         </translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="174"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="176"/>
         <source>Total: %1</source>
         <translation>Всего: %1</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="175"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="177"/>
         <source>Invalid: %1</source>
         <translation>Недоступно: %1</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="177"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="179"/>
         <source>Total size: %1</source>
         <translation>Общий размер: %1</translation>
     </message>
+    <message numerus="yes">
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="181"/>
+        <source>%n files referenced</source>
+        <translation>
+            <numerusform>%n файл</numerusform>
+            <numerusform>%n файла</numerusform>
+            <numerusform>%n файлов</numerusform>
+        </translation>
+    </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="228"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="249"/>
         <source>Export</source>
         <translation>Экспорт</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="233"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="254"/>
         <source>Converted: %1&lt;br/&gt;Failed: %2</source>
         <translation>Сконвертировано: %1&lt;br/&gt;Неудачно: %2</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="249"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="270"/>
         <source>Failed to open &apos;%1&apos; for conversion</source>
         <translation>Ошибка доступа к &apos;%1&apos; при конверсии</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="254"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/playlist_contextmenu.cpp" line="275"/>
         <source>Failed to convert &apos;%1&apos;: %2</source>
         <translation>Ошибка конверсии &apos;%1&apos;: %2</translation>
     </message>
@@ -333,32 +347,37 @@
         <translation>Выбрать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="71"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="72"/>
         <source>Rip-offs of this item</source>
         <translation>Похожие</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="76"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="77"/>
         <source>Items with the same type</source>
         <translation>Этого же типа</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="81"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="82"/>
+        <source>Items from the same file</source>
+        <translation>Из того же файла</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="87"/>
         <source>Copy full path</source>
         <translation>Скопировать путь</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="91"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="97"/>
         <source>Export to file</source>
         <translation>Экспорт</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="101"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="107"/>
         <source>Convert</source>
         <translation>Конвертировать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="111"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/desktop/single_item_contextmenu.ui" line="117"/>
         <source>Properties</source>
         <translation>Свойства</translation>
     </message>

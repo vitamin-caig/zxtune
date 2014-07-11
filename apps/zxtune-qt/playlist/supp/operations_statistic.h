@@ -23,7 +23,11 @@ namespace Playlist
       typedef boost::shared_ptr<StatisticTextNotification> Ptr;
 
       virtual void AddInvalid() = 0;
-      virtual void AddValid(const String& type, const Time::MillisecondsDuration& duration, std::size_t size) = 0;
+      virtual void AddValid() = 0;
+      virtual void AddType(const String& type) = 0;
+      virtual void AddDuration(const Time::MillisecondsDuration& duration) = 0;
+      virtual void AddSize(std::size_t size) = 0;
+      virtual void AddPath(const String& path) = 0;
     };
 
     TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result);
