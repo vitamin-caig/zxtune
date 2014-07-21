@@ -24,16 +24,19 @@ import app.zxtune.fs.HttpProvider;
 class RemoteCatalog extends Catalog {
   
   private static final String TAG = RemoteCatalog.class.getName();
-  private static final String STORAGE_MIRROR = "http://www.tld-crew.de/c64music/";
+  //use tagged names for html content
+  protected static final String VERSION = "prg.dtu.dk";
+  private static final String STORAGE_MIRROR = "http://www.prg.dtu.dk/HVSC/C64Music/";
   private static final byte[] HTML_SIGNATURE = {'<', '!', 'D', 'O', 'C', 'T', 'Y', 'P', 'E'};
   private static final String DIR_MARKUP = "DIR";
+  private static final String FILE_MARKUP = "SND";
   // $1 - DIR or empty
   // $2 - name
   // $3 - size
   private final static Pattern ENTRIES =
-      Pattern.compile("alt=\"\\[(" + DIR_MARKUP + "|   )\\]\">\\s+" + //type
-      "<a href=\"([^/\"]+).+?</a>\\s+" + //name
-      "\\d{2}-[A-Za-z]{3}-\\d{4} \\d{2}:\\d{2}\\s+" + //date 
+      Pattern.compile("alt=\"\\[(" + DIR_MARKUP + "|" + FILE_MARKUP + ")\\]\"></td><td>" + //type
+      "<a href=\"([^/\"]+).+?</a>.+?" + //name
+      "\\d{2}-[A-Za-z]{3}-\\d{4} \\d{2}:\\d{2}.+?" + //date 
       "([\\d.]+[KM]?|-)",//size
       Pattern.DOTALL);
   

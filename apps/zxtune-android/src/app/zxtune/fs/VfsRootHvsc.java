@@ -271,12 +271,12 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       
       private int getApproxItemsCount(int size) {
         /*
-         *  MUSICIANS/Q with 1 entry is 642 bytes
-         *  MUSICIANS/M with 117 entries is 14110 bytes
-         *  ~120 bytes per entry, ~520 bytes constant part
+         *  MUSICIANS/Q with 1 entry is 1157 bytes
+         *  MUSICIANS/M with 117 entries is 24074 bytes
+         *  ~200 bytes per entry, ~520 bytes constant part
          */
-        final int ENTRY_SIZE = 120;
-        final int AUX_SIZE = 520;
+        final int ENTRY_SIZE = 200;
+        final int AUX_SIZE = 960;
         return size > AUX_SIZE ? (size - AUX_SIZE) / ENTRY_SIZE : 0;
       }
 

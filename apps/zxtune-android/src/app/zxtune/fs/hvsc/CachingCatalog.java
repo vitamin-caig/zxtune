@@ -23,7 +23,7 @@ class CachingCatalog extends Catalog {
 
   private final static String TAG = CachingCatalog.class.getName();
   private final static String CACHE_DIR_NAME = "hvsc";
-  private final static String CACHE_HTML_FILE = File.separator + ".html";
+  private final static String CACHE_HTML_FILE = File.separator + RemoteCatalog.VERSION + ".html";
 
   private final VfsCache cacheDir;
   private final Catalog remote;
