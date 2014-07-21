@@ -43,6 +43,8 @@ public class HttpProvider {
     try {
       final URL url = new URL(uri);
       final HttpURLConnection result = (HttpURLConnection) url.openConnection();
+      //disable GZIP encoding
+      result.setRequestProperty("Accept-Encoding", "identity");
       Log.d(TAG, String.format("Fetch %d bytes via %s", result.getContentLength(), uri));
       return result;
     } catch (IOException e) {
