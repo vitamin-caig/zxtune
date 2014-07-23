@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3075 from 23.07.2014
+
+[*] Reduce size of SID song lengths database
+[*] zxtune-android: change HVSC source to http://www.prg.dtu.dk
+[*] zxtune-qt: support statistic and selection based on module's file.
+
 --- Rev3070 from 09.06.2014
 
 [+] zxtune-android: support installation/moving to SD card
