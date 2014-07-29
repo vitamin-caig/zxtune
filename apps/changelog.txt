@@ -5,6 +5,10 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3077 from 30.07.2014
+
+[*] zxtune-android: fix crashes on UI activities if background service is not started yet
+
 --- Rev3075 from 23.07.2014
 
 [*] Reduce size of SID song lengths database
