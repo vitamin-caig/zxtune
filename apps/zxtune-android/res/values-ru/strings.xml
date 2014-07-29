@@ -41,4 +41,5 @@
     </plurals>
     <string name="no_tracks_found">Треки не найдены</string>
     <string name="track">Трек</string>
+    <string name="starting">Запуск...</string>
 </resources>

@@ -35,6 +35,7 @@ import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsRoot;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.PlaybackServiceStub;
 
 public class BrowserFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
@@ -48,6 +49,10 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
 
   public static BrowserFragment createInstance() {
     return new BrowserFragment();
+  }
+  
+  public BrowserFragment() {
+    this.service = PlaybackServiceStub.instance();
   }
 
   @Override
@@ -106,7 +111,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
 
     Log.d(TAG, "Saving persistent state");
     storeCurrentViewPosition();
-    service = null;
+    service = PlaybackServiceStub.instance();
   }
   
   public final void moveUp() {

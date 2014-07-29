@@ -40,6 +40,7 @@ import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.ItemStub;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.PlaybackServiceStub;
 import app.zxtune.playback.VisualizerStub;
 
 public class NowPlayingFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -56,6 +57,10 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
 
   public static Fragment createInstance() {
     return new NowPlayingFragment();
+  }
+  
+  public NowPlayingFragment() {
+    this.service = PlaybackServiceStub.instance();
   }
 
   @Override
@@ -129,7 +134,8 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
   
   // relative order of onViewCreated/onCreateOptionsMenu/onServiceConnected is not specified
   private void bindViewsToConnectedService() {
-    final boolean serviceConnected = service != null;
+    assert service != null;
+    final boolean serviceConnected = service != PlaybackServiceStub.instance();
     final boolean viewsCreated = visualizer != null;
     final boolean menuCreated = actions != null;
     if (serviceConnected && viewsCreated && menuCreated) {
@@ -154,7 +160,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
         callback.onStatusChanged(false);
       }
     }
-    service = null;
+    service = PlaybackServiceStub.instance();
   }
   
   private class PlaybackEvents implements Callback {

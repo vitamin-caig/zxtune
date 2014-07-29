@@ -35,4 +35,5 @@
     </plurals>
     <string name="no_tracks_found">No tracks found</string>
     <string name="track">Track</string>
+    <string name="starting">Starting...</string>
 </resources>

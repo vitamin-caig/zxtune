@@ -23,6 +23,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.TextView;
 import app.zxtune.PlaybackServiceConnection;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -30,6 +31,7 @@ import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.PlaybackServiceStub;
 import app.zxtune.playlist.PlaylistQuery;
 
 public class PlaylistFragment extends Fragment implements PlaybackServiceConnection.Callback {
@@ -46,6 +48,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
   
   public PlaylistFragment() {
+    this.service = PlaybackServiceStub.instance();
     this.playingState = new NowPlayingState();
     setHasOptionsMenu(true);
   }
@@ -104,7 +107,8 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     listing.setPlayitemStateSource(playingState);
     listing.setEmptyView(view.findViewById(R.id.playlist_stub));
     listing.setMultiChoiceModeListener(new MultiChoiceModeListener());
-    bindViewToConnectedService();
+    setEmptyText(R.string.starting);
+
     if (savedInstanceState == null) {
       Log.d(TAG, "Loading persistent state");
       listing.setTag(Integer.valueOf(state.getCurrentViewPosition()));
@@ -126,7 +130,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
         }
       }
     });
-    listing.load(getLoaderManager());
+    bindViewToConnectedService();
   }
   
   @Override
@@ -146,12 +150,24 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
   }
   
   private void bindViewToConnectedService() {
-    final boolean serviceConnected = service != null;
+    assert service != null;
+    final boolean serviceConnected = service != PlaybackServiceStub.instance();
     final boolean viewCreated = listing != null;
     if (serviceConnected && viewCreated) {
       Log.d(TAG, "Subscribe to service events");
       connection = new CallbackSubscription(service, playingState);
+      //do not display anything before service started to prevent empty clicks
+      loadListing();
     }
+  }
+  
+  private void loadListing() {
+    listing.load(getLoaderManager());
+    setEmptyText(R.string.playlist_empty);
+  }
+  
+  private void setEmptyText(int res) {
+    ((TextView) listing.getEmptyView()).setText(res);
   }
   
   private void unbindFromService() {
@@ -163,7 +179,7 @@ public class PlaylistFragment extends Fragment implements PlaybackServiceConnect
     } finally {
       connection = null;
     }
-    service = null;
+    service = PlaybackServiceStub.instance();
   }
   
   private class OnItemClickListener implements PlaylistView.OnItemClickListener {
