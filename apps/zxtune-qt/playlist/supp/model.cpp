@@ -401,6 +401,20 @@ namespace
     {
       return Qt::MoveAction;
     }
+    
+    //required for drag/drop enabling
+    //do not pay attention on item state
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const
+    {
+      const Qt::ItemFlags defaultFlags = Playlist::Model::flags(index);
+      const Qt::ItemFlags invalidFlags = Qt::ItemIsDropEnabled | defaultFlags;
+      if (index.internalId() != Container->GetVersion())
+      {
+        return invalidFlags;
+      }
+      const Qt::ItemFlags validFlags = Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+      return validFlags;
+    }
 
     virtual QStringList mimeTypes() const
     {
