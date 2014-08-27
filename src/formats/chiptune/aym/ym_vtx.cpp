@@ -286,7 +286,7 @@ namespace Chiptune
         cursor = nextCursor;
       }
     }
-
+    
     Formats::Chiptune::Container::Ptr ParseUnpacked(const Binary::Container& rawData, Builder& target)
     {
       const void* const data = rawData.Start();
@@ -365,7 +365,13 @@ namespace Chiptune
       return Formats::Chiptune::Container::Ptr();
     }
 
-    Formats::Chiptune::Container::Ptr ParseYM(const Binary::Container& rawData, Builder& target)
+    const std::string FORMAT(
+      "'Y'M"
+      "'2-'6"
+      "'!|'b"
+    );
+      
+    Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target)
     {
       const void* const data = rawData.Start();
       const std::size_t size = rawData.Size();
@@ -389,7 +395,7 @@ namespace Chiptune
       return Formats::Chiptune::Container::Ptr();
     }
 
-    const std::string FORMAT(
+    const std::string PACKED_FORMAT(
       "16-ff"      //header size
       "?"          //header sum
       "'-'l'h'5'-" //method
@@ -404,7 +410,8 @@ namespace Chiptune
     {
     public:
       YMDecoder()
-        : Format(Binary::CreateFormat(FORMAT))
+        //disable seeking due to slight format  
+        : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {
       }
 
@@ -430,12 +437,53 @@ namespace Chiptune
           return Formats::Chiptune::Container::Ptr();
         }
         Builder& stub = GetStubBuilder();
-        return ParseYM(rawData, stub);
+        return ParseUnpacked(rawData, stub);
       }
 
       virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
       {
-        return ParseYM(data, target);
+        return ParseUnpacked(data, target);
+      }
+    private:
+      const Binary::Format::Ptr Format;
+    };
+
+    class PackedDecoder : public Formats::Chiptune::YM::Decoder
+    {
+    public:
+      PackedDecoder()
+        : Format(Binary::CreateFormat(PACKED_FORMAT))
+      {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::YM_PACKED_DECODER_DESCRIPTION;
+      }
+
+      virtual Binary::Format::Ptr GetFormat() const
+      {
+        return Format;
+      }
+
+      virtual bool Check(const Binary::Container& rawData) const
+      {
+        return Format->Match(rawData);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      {
+        if (!Format->Match(rawData))
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
+        Builder& stub = GetStubBuilder();
+        return ParsePacked(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return ParsePacked(data, target);
       }
     private:
       const Binary::Format::Ptr Format;
@@ -643,15 +691,25 @@ namespace Chiptune
       return stub;
     }
 
-    Decoder::Ptr CreateYMDecoder()
+    Decoder::Ptr CreatePackedYMDecoder()
     {
       return boost::make_shared<YMDecoder>();
+    }
+
+    Decoder::Ptr CreateYMDecoder()
+    {
+      return boost::make_shared<PackedDecoder>();
     }
 
     Decoder::Ptr CreateVTXDecoder()
     {
       return boost::make_shared<VTX::Decoder>();
     }
+  }
+
+  Formats::Chiptune::Decoder::Ptr CreatePackedYMDecoder()
+  {
+    return YM::CreatePackedYMDecoder();
   }
 
   Formats::Chiptune::Decoder::Ptr CreateYMDecoder()

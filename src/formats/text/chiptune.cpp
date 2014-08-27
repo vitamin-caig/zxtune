@@ -143,4 +143,8 @@ extern const Char VTX_DECODER_DESCRIPTION[] = {
 extern const Char YM_DECODER_DESCRIPTION[] = {
   'Y','M',' ','(','S','T','-','S','o','u','n','d',' ','P','r','o','j','e','c','t',')',0
 };
+extern const Char YM_PACKED_DECODER_DESCRIPTION[] = {
+  'Y','M',' ','(','S','T','-','S','o','u','n','d',' ','P','r','o','j','e','c','t',')',' ','P','a','c','k','e',
+  'd',0
+};
 }//namespace Text

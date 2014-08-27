@@ -48,4 +48,5 @@ extern const Char VORTEXTRACKER2_DECODER_DESCRIPTION[];
 extern const Char VORTEX_EDITOR[];
 extern const Char VTX_DECODER_DESCRIPTION[];
 extern const Char YM_DECODER_DESCRIPTION[];
+extern const Char YM_PACKED_DECODER_DESCRIPTION[];
 }//namespace Text

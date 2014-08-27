@@ -60,6 +60,7 @@ namespace Formats
         virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
       };
 
+      Decoder::Ptr CreatePackedYMDecoder();
       Decoder::Ptr CreateYMDecoder();
       Decoder::Ptr CreateVTXDecoder();
     }

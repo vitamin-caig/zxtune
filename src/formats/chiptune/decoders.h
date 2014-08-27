@@ -31,6 +31,7 @@ namespace Formats
     Decoder::Ptr CreateGlobalTrackerDecoder();
     Decoder::Ptr CreateProTracker1Decoder();
     Decoder::Ptr CreateVTXDecoder();
+    Decoder::Ptr CreatePackedYMDecoder();
     Decoder::Ptr CreateYMDecoder();
     Decoder::Ptr CreateTFDDecoder();
     Decoder::Ptr CreateTFCDecoder();
