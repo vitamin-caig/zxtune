@@ -9,12 +9,14 @@
   <addaction name="separator"/>
   <addaction name="DelDupsAction"/>
   <addaction name="DelUnavailableAction"/>
+  <addaction name="separator"/>
   <addaction name="SelectionSubmenu"/>
+  <addaction name="separator"/>
+  <addaction name="ExportAction"/>
+  <addaction name="ConvertAction"/>
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
   <addaction name="ShowStatisticAction"/>
-  <addaction name="ExportAction"/>
-  <addaction name="ConvertAction"/>
   <action name="InfoAction">
    <property name="icon">
     <iconset>

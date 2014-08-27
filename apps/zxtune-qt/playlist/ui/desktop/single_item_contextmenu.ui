@@ -9,10 +9,10 @@
   <addaction name="DelDupsAction"/>
   <addaction name="SelectionSubmenu"/>
   <addaction name="separator"/>
-  <addaction name="CopyToClipboardAction"/>
   <addaction name="ExportAction"/>
   <addaction name="ConvertAction"/>
   <addaction name="separator"/>
+  <addaction name="CopyToClipboardAction"/>
   <addaction name="PropertiesAction"/>
   <action name="PlayAction">
    <property name="icon">

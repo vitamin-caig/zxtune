@@ -5,10 +5,13 @@
   <addaction name="DelDupsAction"/>
   <addaction name="DelUnavailableAction"/>
   <addaction name="separator"/>
+  <addaction name="ShuffleAction"/>
+  <addaction name="separator"/>
   <addaction name="SelectionSubmenu"/>
   <addaction name="separator"/>
-  <addaction name="ShowStatisticAction"/>
   <addaction name="ExportAction"/>
+  <addaction name="separator"/>
+  <addaction name="ShowStatisticAction"/>
   <action name="DelDupsAction">
    <property name="icon">
     <iconset>
@@ -27,6 +30,11 @@
    </property>
    <property name="text">
     <string>Delete all unavailable</string>
+   </property>
+  </action>
+  <action name="ShuffleAction">
+   <property name="text">
+    <string>Shuffle</string>
    </property>
   </action>
   <widget class="QMenu" name="SelectionSubmenu">

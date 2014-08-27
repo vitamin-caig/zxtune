@@ -571,7 +571,7 @@ namespace
       if (const std::size_t itemsCount = model->CountItems())
       {
         const Playlist::Model::IndexSetPtr items = View->GetSelectedItems();
-        model->RemoveItems(*items);
+        model->RemoveItems(items);
         if (1 == items->size())
         {
           View->SelectItems(items);

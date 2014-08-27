@@ -341,9 +341,9 @@ namespace
       NotifyAboutIndexChanged(remapping);
     }
 
-    virtual void RemoveItems(const Playlist::Model::IndexSet& items)
+    virtual void RemoveItems(IndexSetPtr items)
     {
-      if (items.empty())
+      if (!items || items->empty())
       {
         return;
       }
@@ -351,15 +351,10 @@ namespace
       {
         boost::upgrade_lock<boost::shared_mutex> prepare(SyncAccess);
         const boost::upgrade_to_unique_lock<boost::shared_mutex> lock(prepare);
-        Container->RemoveItems(items);
+        Container->RemoveItems(*items);
         remapping = GetIndicesChanges();
       }
       NotifyAboutIndexChanged(remapping);
-    }
-
-    virtual void RemoveItems(IndexSetPtr items)
-    {
-      return RemoveItems(*items);
     }
 
     virtual void MoveItems(const IndexSet& items, IndexType target)

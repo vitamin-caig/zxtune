@@ -48,6 +48,7 @@ namespace Playlist
       virtual void SelectFound() const = 0;
       virtual void SelectFoundInSelected() const = 0;
       virtual void ShowPropertiesOfSelected() const = 0;
+      virtual void ShuffleAll() const = 0;
     };
   }
 }

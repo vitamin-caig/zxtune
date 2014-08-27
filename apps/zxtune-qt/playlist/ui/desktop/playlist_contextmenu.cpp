@@ -53,6 +53,7 @@ namespace
 
       Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates())));
       Require(receiver.connect(DelUnavailableAction, SIGNAL(triggered()), SLOT(RemoveAllUnavailable())));
+      Require(receiver.connect(ShuffleAction, SIGNAL(triggered()), SLOT(ShuffleAll())));
       Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs())));
       Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFound())));
       Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic())));
@@ -285,6 +286,15 @@ namespace
     return boost::make_shared<ExportResult>();
   }
 
+  class ShuffleOperation : public Playlist::Item::StorageModifyOperation
+  {
+  public:
+    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& /*cb*/)
+    {
+      storage.Shuffle();
+    }
+  };
+  
   class ItemsContextMenuImpl : public Playlist::UI::ItemsContextMenu
   {
   public:
@@ -312,18 +322,18 @@ namespace
     virtual void RemoveSelected() const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      model->RemoveItems(*SelectedItems);
+      model->RemoveItems(SelectedItems);
     }
 
     virtual void CropSelected() const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      Playlist::Model::IndexSet unselected;
+      const boost::shared_ptr<Playlist::Model::IndexSet> unselected = boost::make_shared<Playlist::Model::IndexSet>();
       for (unsigned idx = 0, total = model->CountItems(); idx < total; ++idx)
       {
         if (!SelectedItems->count(idx))
         {
-          unselected.insert(idx);
+          unselected->insert(idx);
         }
       }
       model->RemoveItems(unselected);
@@ -477,6 +487,12 @@ namespace
     virtual void ShowPropertiesOfSelected() const
     {
       Playlist::UI::ExecutePropertiesDialog(View, Controller.GetModel(), SelectedItems);
+    }
+
+    virtual void ShuffleAll() const
+    {
+      const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<ShuffleOperation>();
+      Controller.GetModel()->PerformOperation(op);
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()

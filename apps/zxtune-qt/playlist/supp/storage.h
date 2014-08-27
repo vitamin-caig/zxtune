@@ -59,6 +59,7 @@ namespace Playlist
       //update
       virtual void MoveItems(const Model::IndexSet& indices, Model::IndexType destination) = 0;
       virtual void Sort(const Comparer& cmp) = 0;
+      virtual void Shuffle() = 0;
       //delete
       virtual void RemoveItems(const Model::IndexSet& indices) = 0;
 
