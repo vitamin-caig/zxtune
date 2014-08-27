@@ -5,6 +5,7 @@ project user-config
      <toolset>msvc:<define>WIN32_LEAN_AND_MEAN
      <toolset>msvc:<define>VC_EXTRALEAN 
      <toolset>msvc:<define>NOMINMAX
+     <toolset>msvc:<cxxflags>/arch:IA32
      <toolset>gcc:<cxxflags>-mwin32
      <toolset>gcc:<cxxflags>-mno-ms-bitfields
      <toolset>gcc:<cxxflags>-mmmx

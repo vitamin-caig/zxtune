@@ -42,7 +42,7 @@ windows_libraries += $(addsuffix $(mode.suffix), msvcrt msvcprt)
 endif
 
 #setup flags
-CXXFLAGS = /nologo /c $(CXX_MODE_FLAGS) $(cxx_flags) \
+CXXFLAGS = /nologo /c $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	/W3 \
 	$(addprefix /D, $(DEFINITIONS)) \
 	/J /Zc:wchar_t,forScope /Z7 /Zl /EHsc \
