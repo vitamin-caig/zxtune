@@ -159,6 +159,9 @@
    <property name="text">
     <string>Play</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Alt+X</string>
+   </property>
   </action>
   <action name="actionPause">
    <property name="icon">
@@ -168,6 +171,9 @@
    </property>
    <property name="text">
     <string>Pause</string>
+   </property>
+   <property name="shortcut">
+    <string notr="true">Alt+C</string>
    </property>
   </action>
   <action name="actionStop">
@@ -179,6 +185,9 @@
    <property name="text">
     <string>Stop</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Alt+V</string>
+   </property>
   </action>
   <action name="actionPrevious">
    <property name="icon">
@@ -189,6 +198,9 @@
    <property name="text">
     <string>Previous</string>
    </property>
+   <property name="shortcut">
+    <string notr="true">Alt+Z</string>
+   </property>
   </action>
   <action name="actionNext">
    <property name="icon">
@@ -198,6 +210,9 @@
    </property>
    <property name="text">
     <string>Next</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+B</string>
    </property>
   </action>
  </widget>
