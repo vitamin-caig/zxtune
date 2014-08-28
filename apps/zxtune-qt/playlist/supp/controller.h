@@ -63,6 +63,9 @@ namespace Playlist
       //navigate
       virtual bool Next(unsigned playorderMode) = 0;
       virtual bool Prev(unsigned playorderMode) = 0;
+
+      //select item without activation 
+      virtual void Select(unsigned idx) = 0;
     public slots:
       //navigate
       virtual void Reset(unsigned idx) = 0;

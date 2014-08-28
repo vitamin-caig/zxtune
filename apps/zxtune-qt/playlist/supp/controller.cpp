@@ -77,6 +77,11 @@ namespace
       State = state;
     }
 
+    virtual void Select(unsigned idx)
+    {
+      Activate(idx);
+    }
+    
     virtual void Reset(unsigned idx)
     {
       SelectItem(idx);
@@ -87,7 +92,7 @@ namespace
       Dbg("Iterator: index changed.");
       if (NO_INDEX == Index)
       {
-        return Activate();
+        return Activate(0);
       }
       if (const Playlist::Model::IndexType* moved = remapping->FindNewIndex(Index))
       {
@@ -152,13 +157,13 @@ namespace
       return SelectItem(mappedIndex);
     }
 
-    void Activate()
+    void Activate(unsigned idx)
     {
-      if (const Playlist::Item::Data::Ptr first = Model->GetItem(0))
+      if (const Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
-        Index = 0;
-        Dbg("Iterator: activated.");
-        emit Activated(first);
+        Index = idx;
+        Dbg("Iterator: activated at %1%.", idx);
+        emit Activated(item);
       }
     }
 

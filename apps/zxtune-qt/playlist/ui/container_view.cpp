@@ -142,7 +142,7 @@ namespace
         }
         else
         {
-          Session->Load(Container);
+          RestorePlaylistSession();
         }
       }
       else
@@ -162,8 +162,7 @@ namespace
       {
         it.Get()->Shutdown();
       }
-      Playlist::Controller::Iterator::Ptr iter(new PlaylistsIterator(*widgetsContainer));
-      Session->Save(iter);
+      StorePlaylistSession();
     }
 
     virtual QMenu* GetActionsMenu() const
@@ -387,10 +386,6 @@ namespace
         const Playlist::Item::Iterator::Ptr iter = ctrl->GetIterator();
         Require(connect(iter, SIGNAL(Activated(Playlist::Item::Data::Ptr)), SIGNAL(Activated(Playlist::Item::Data::Ptr))));
         Require(connect(iter, SIGNAL(Deactivated()), SIGNAL(Deactivated())));
-        if (const Playlist::Item::Data::Ptr firstNew = ctrl->GetModel()->GetItem(0))
-        {
-          emit Activated(firstNew);
-        }
       }
     }
 
@@ -431,6 +426,29 @@ namespace
       {
         SwitchTo(static_cast<Playlist::UI::View*>(widget));
       }
+    }
+    
+    void RestorePlaylistSession()
+    {
+      Session->Load(Container);
+      Parameters::IntType idx = 0, trk = 0;
+      Options->FindValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
+      Options->FindValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
+      Dbg("Restore current playlist %1% with track %2%", idx, trk);
+      ActivatePlaylist(idx);
+      widgetsContainer->setCurrentIndex(idx);
+      ActivePlaylistView->GetPlaylist()->GetIterator()->Select(trk);
+    }
+    
+    void StorePlaylistSession()
+    {
+      Playlist::Controller::Iterator::Ptr iter(new PlaylistsIterator(*widgetsContainer));
+      Session->Save(iter);
+      const uint_t idx = widgetsContainer->indexOf(ActivePlaylistView);
+      const uint_t trk = ActivePlaylistView->GetPlaylist()->GetIterator()->GetIndex();
+      Dbg("Store current playlist %1% (visible is %2%), track %3%", idx, widgetsContainer->currentIndex(), trk);
+      Options->SetValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
+      Options->SetValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
     }
   private:
     const Parameters::Container::Ptr Options;

@@ -4,12 +4,12 @@
 <context>
     <name>Playlist::UI::ContainerView</name>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/container_view.cpp" line="237"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/container_view.cpp" line="236"/>
         <source>Playlist files (*.xspf *.ayl)</source>
         <translation>Файлы списков (*.xspf *.ayl)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/container_view.cpp" line="354"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/container_view.cpp" line="353"/>
         <source>Default</source>
         <translation>Безымянный</translation>
     </message>
