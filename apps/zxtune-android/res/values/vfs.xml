@@ -23,6 +23,16 @@
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
     <string name="vfs_hvsc_root_name" translatable="false">High Voltage SID Collection</string>
     <string name="vfs_hvsc_root_description">Via http://www.prg.dtu.dk</string>
+    <!-- zxart.ee -->
+    <string name="vfs_zxart_root_name">ZX-Art - modern ZX Spectrum music</string>
+    <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
+    <string name="vfs_zxart_authors_name">Authors</string>
+    <string name="vfs_zxart_authors_description">Browse by author</string>
+    <string name="vfs_zxart_parties_name">Parties</string>
+    <string name="vfs_zxart_parties_description">Browse by party</string>
+    <string name="vfs_zxart_toptracks_name">Top tracks</string>
+    <string name="vfs_zxart_toptracks_description">100 most voted tracks</string>
+    <string name="vfs_zxart_unknown_year_name">Unknown year</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
