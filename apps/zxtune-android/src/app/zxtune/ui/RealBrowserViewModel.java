@@ -21,20 +21,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import app.zxtune.R;
+import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 
 //TODO: synchronize?
 class RealBrowserViewModel implements BrowserViewModel {
-  
-  private final static Comparator<VfsObject> COMPARE_BY_NAME = new Comparator<VfsObject>() {
-
-    @Override
-    public int compare(VfsObject lh, VfsObject rh) {
-      return String.CASE_INSENSITIVE_ORDER.compare(lh.getName(), rh.getName());
-    }
-  };
   
   private final LayoutInflater inflater;
   private final ArrayList<VfsDir> dirs;
@@ -55,8 +48,12 @@ class RealBrowserViewModel implements BrowserViewModel {
   }
   
   final void sort() {
-    Collections.sort(dirs, COMPARE_BY_NAME);
-    Collections.sort(files, COMPARE_BY_NAME);
+    sort(DefaultComparator.instance());
+  }
+  
+  final void sort(Comparator<VfsObject> comparator) {
+    Collections.sort(dirs, comparator);
+    Collections.sort(files, comparator);
   }
   
   @Override

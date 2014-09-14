@@ -10,6 +10,8 @@
 
 package app.zxtune.ui;
 
+import java.util.Comparator;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
@@ -25,6 +27,7 @@ import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
 
 public class BrowserView extends ListViewCompat {
   
@@ -244,6 +247,7 @@ public class BrowserView extends ListViewCompat {
       Log.d(TAG, "Reset loader");
     }
     
+    @SuppressWarnings("unchecked")
     @Override
     public BrowserViewModel loadInBackground() {
       final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
@@ -283,7 +287,11 @@ public class BrowserView extends ListViewCompat {
             }
           }
         });
-        model.sort();
+        if (dir instanceof Comparator<?>) {
+          model.sort((Comparator<VfsObject>)dir);
+        } else {
+          model.sort();
+        }
         return model;
       } catch (OperationCanceledException e) {
         return model;
