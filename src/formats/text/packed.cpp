@@ -67,6 +67,10 @@ extern const Char PCD61_DECODER_DESCRIPTION[] = {
   'P','o','w','e','r','f','u','l','l',' ','C','o','d','e',' ','D','e','c','r','e','a','s','e','r',' ','v','6',
   '.','1',0
 };
+extern const Char PCD61i_DECODER_DESCRIPTION[] = {
+  'P','o','w','e','r','f','u','l','l',' ','C','o','d','e',' ','D','e','c','r','e','a','s','e','r',' ','v','6',
+  '.','1','i',0
+};
 extern const Char PCD62_DECODER_DESCRIPTION[] = {
   'P','o','w','e','r','f','u','l','l',' ','C','o','d','e',' ','D','e','c','r','e','a','s','e','r',' ','v','6',
   '.','2',0

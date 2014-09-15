@@ -92,6 +92,9 @@ __cpp> "}//namespace Text\n"
 < PCD61_DECODER_DESCRIPTION
 > "Powerfull Code Decreaser v6.1"
 
+< PCD61i_DECODER_DESCRIPTION
+> "Powerfull Code Decreaser v6.1i"
+
 < PCD62_DECODER_DESCRIPTION
 > "Powerfull Code Decreaser v6.2"
 
