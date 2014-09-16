@@ -270,20 +270,18 @@ namespace PowerfullCodeDecreaser6
       {
         return false;
       }
-      const uint_t usedSize = GetUsedSize();
-      return usedSize <= Size;
-    }
-
-    uint_t GetUsedSize() const
-    {
-      const typename Version::RawHeader& header = GetHeader();
-      return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.LastBytes) - sizeof(header.Bitstream);
+      return true;
     }
 
     const typename Version::RawHeader& GetHeader() const
     {
       assert(Size >= sizeof(typename Version::RawHeader));
       return *safe_ptr_cast<const typename Version::RawHeader*>(Data);
+    }
+    
+    std::size_t GetSize() const
+    {
+      return Size;
     }
   private:
     const uint8_t* const Data;
@@ -326,9 +324,8 @@ namespace PowerfullCodeDecreaser6
   class BitstreamDecoder
   {
   public:
-    template<class Header>
-    explicit BitstreamDecoder(const Header& header)
-      : Stream(header.Bitstream, fromLE(header.SizeOfPacked) - sizeof(header.LastBytes))
+    BitstreamDecoder(const uint8_t* data, std::size_t size)
+      : Stream(data, size)
       , Result(new Dump())
       , Decoded(*Result)
     {
@@ -362,10 +359,15 @@ namespace PowerfullCodeDecreaser6
         }
         if (!CopyFromBack(offset, Decoded, len))
         {
-          return false;
+          break;
         }
       }
-      return true;
+      return false;
+    }
+    
+    std::size_t GetUsedSize() const
+    {
+      return Stream.GetProcessedBytes();
     }
   private:
     bool GetSingleBytes()
@@ -436,7 +438,7 @@ namespace PowerfullCodeDecreaser6
   {
   public:
     explicit DataDecoder(const Container<Version>& container)
-      : BitstreamDecoder(container.GetHeader())
+      : BitstreamDecoder(container.GetHeader().Bitstream, container.GetSize() - offsetof(typename Version::RawHeader, Bitstream))
       , IsValid(container.FastCheck())
       , Header(container.GetHeader())
     {
@@ -451,6 +453,11 @@ namespace PowerfullCodeDecreaser6
       return IsValid
         ? Result
         : std::auto_ptr<Dump>();
+    }
+    
+    std::size_t GetUsedSize() const
+    {
+      return offsetof(typename Version::RawHeader, Bitstream) + BitstreamDecoder::GetUsedSize();
     }
   private:
     bool DecodeData()
@@ -505,7 +512,7 @@ namespace Formats
           return Container::Ptr();
         }
         PowerfullCodeDecreaser6::DataDecoder<Version> decoder(container);
-        return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
+        return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Depacker;
