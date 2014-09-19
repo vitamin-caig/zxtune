@@ -36,7 +36,7 @@ namespace
     tests["-m4"] = Dump(data + 0xa10d, data + 0xc129);
     tests["-m5"] = Dump(data + 0xc129, data + 0xe148);
     tests["-mm"] = Dump(data + 0xe148, data + 0x11578);
-    Test::TestPacked(*packed, etalon, tests);
+    Test::TestPacked(*packed, etalon, tests, false);
 
     const Formats::Archived::Decoder::Ptr archived = Formats::Archived::CreateRarDecoder();
     std::vector<std::string> files;

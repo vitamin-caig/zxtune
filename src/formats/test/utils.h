@@ -92,13 +92,14 @@ namespace Test
       if (checkCorrupted)
       {
         std::auto_ptr<Dump> corruptedDump(new Dump(testdataDump));
-        corruptedDump->at(corruptedDump->size() / 4) ^= 0xff;
-        corruptedDump->at(corruptedDump->size() / 2) ^= 0xff;
-        corruptedDump->at(3 * corruptedDump->size() / 4) ^= 0xff;
+        for (std::size_t count = 0, size = corruptedDump->size(); count != size * 5 / 100; ++count)
+        {
+          corruptedDump->at(rand() % size) ^= 0xff;
+        }
         const Binary::Container::Ptr corrupted = Binary::CreateContainer(corruptedDump);
         if (const Formats::Packed::Container::Ptr nonunpacked = decoder.Decode(*corrupted))
         {
-          std::cout << "  failed corrupted" << std::endl;
+          throw std::runtime_error("Failed corrupted");
         }
         else
         {
@@ -108,7 +109,7 @@ namespace Test
     }
   }
 
-  void TestPacked(const Formats::Packed::Decoder& decoder, const std::string& etalon, const std::vector<std::string>& tests)
+  void TestPacked(const Formats::Packed::Decoder& decoder, const std::string& etalon, const std::vector<std::string>& tests, bool checkCorrupted = true)
   {
     Dump reference;
     OpenFile(etalon, reference);
@@ -117,7 +118,7 @@ namespace Test
     {
       OpenFile(*it, testData[*it]);
     }
-    TestPacked(decoder, reference, testData);  
+    TestPacked(decoder, reference, testData, checkCorrupted);
   }
 
   class ArchiveWalker : public Formats::Archived::Container::Walker
