@@ -10,6 +10,8 @@
 
 package app.zxtune.fs.zxart;
 
+import java.util.concurrent.TimeUnit;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -17,6 +19,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.util.Log;
+import app.zxtune.TimeStamp;
 
 /**
  * Version 1 
@@ -80,6 +83,7 @@ final class Database {
     }
     
     final static class Grouping {
+      
       static enum Fields {
         hash, group_id, track_id
       }
@@ -103,6 +107,19 @@ final class Database {
 
       final static String CREATE_QUERY = Grouping.makeCreateQuery(NAME);
     }
+    
+    final static class Timestamps {
+      
+      static enum Fields {
+        _id, stamp
+      }
+      
+      final static String NAME = "timestamps";
+      
+      final static String CREATE_QUERY = "CREATE TABLE " + NAME + " ("
+          + Fields._id + " TEXT PRIMARY KEY, "
+          + Fields.stamp + " DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL);";
+    }
   }
 
   private final Helper helper;
@@ -111,7 +128,7 @@ final class Database {
     this.helper = Helper.create(context);
   }
 
-  class Transaction {
+  static class Transaction {
 
     private final SQLiteDatabase db;
 
@@ -132,8 +149,8 @@ final class Database {
   final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
-
-  final int queryAuthors(Catalog.AuthorsVisitor visitor, Integer id) {
+  
+  final boolean queryAuthors(Catalog.AuthorsVisitor visitor, Integer id) {
     Log.d(TAG, "queryAuthors(" + id + ")");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = id != null ? Tables.Authors.Fields._id + " = " + id : null;
@@ -146,11 +163,12 @@ final class Database {
         while (cursor.moveToNext()) {
           visitor.accept(createAuthor(cursor));
         }
+        return true;
       }
-      return count;
     } finally {
       cursor.close();
     }
+    return false;
   }
 
   final void addAuthor(Author obj) {
@@ -159,7 +177,7 @@ final class Database {
         SQLiteDatabase.CONFLICT_REPLACE);
   }
 
-  final int queryParties(Catalog.PartiesVisitor visitor, Integer id) {
+  final boolean queryParties(Catalog.PartiesVisitor visitor, Integer id) {
     Log.d(TAG, "queryParties(" + id + ")");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = id != null ? Tables.Parties.Fields._id + " = " + id : null;
@@ -172,11 +190,12 @@ final class Database {
         while (cursor.moveToNext()) {
           visitor.accept(createParty(cursor));
         }
+        return true;
       }
-      return count;
     } finally {
       cursor.close();
     }
+    return false;
   }
 
   final void addParty(Party obj) {
@@ -184,9 +203,8 @@ final class Database {
     db.insertWithOnConflict(Tables.Parties.NAME, null/* nullColumnHack */, createValues(obj),
         SQLiteDatabase.CONFLICT_REPLACE);
   }
-
   
-  final int queryAuthorTracks(Catalog.TracksVisitor visitor, Integer id, Integer author) {
+  final boolean queryAuthorTracks(Catalog.TracksVisitor visitor, Integer id, Integer author) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection =
         id != null ? createSingleTrackSelection(id) : createAuthorTracksSelection(author);
@@ -194,7 +212,7 @@ final class Database {
     return queryTracks(cursor, visitor);
   }
 
-  final int queryPartyTracks(Catalog.TracksVisitor visitor, Integer id, Integer party) {
+  final boolean queryPartyTracks(Catalog.TracksVisitor visitor, Integer id, Integer party) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection =
         id != null ? createSingleTrackSelection(id) : createPartyTracksSelection(party);
@@ -202,7 +220,7 @@ final class Database {
     return queryTracks(cursor, visitor);
   }
   
-  final int queryTopTracks(Catalog.TracksVisitor visitor, Integer id, int limit) {
+  final boolean queryTopTracks(Catalog.TracksVisitor visitor, Integer id, int limit) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = id != null ? createSingleTrackSelection(id) : null;
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, 
@@ -210,7 +228,7 @@ final class Database {
     return queryTracks(cursor, visitor);
   }
   
-  private static int queryTracks(Cursor cursor, Catalog.TracksVisitor visitor) {
+  private static boolean queryTracks(Cursor cursor, Catalog.TracksVisitor visitor) {
     try {
       final int count = cursor.getCount();
       if (count != 0) {
@@ -219,11 +237,12 @@ final class Database {
         while (cursor.moveToNext()) {
           visitor.accept(createTrack(cursor));
         }
+        return true;
       }
-      return count;
     } finally {
       cursor.close();
     }
+    return false;
   }
   
   private static String createSingleTrackSelection(int id) {
@@ -253,13 +272,64 @@ final class Database {
     db.insertWithOnConflict(Tables.Tracks.NAME, null/* nullColumnHack */, createValues(obj),
         SQLiteDatabase.CONFLICT_REPLACE);
     if (author != null) {
-      db.insert(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, createValues(author, obj.id));
+      db.insertWithOnConflict(Tables.AuthorsTracks.NAME, null/* nullColumnHack */, createValues(author, obj.id),
+          SQLiteDatabase.CONFLICT_REPLACE);
     }
     if (party != null) {
-      db.insert(Tables.PartiesTracks.NAME, null/* nullColumnHack */, createValues(party, obj.id));
+      db.insertWithOnConflict(Tables.PartiesTracks.NAME, null/* nullColumnHack */, createValues(party, obj.id),
+          SQLiteDatabase.CONFLICT_REPLACE);
     }
   }
 
+  final void updateAuthorsTimestamp() {
+    updateTimestamp(Tables.Authors.NAME);
+  }
+  
+  final void updatePartiesTimestamp() {
+    updateTimestamp(Tables.Parties.NAME);
+  }
+  
+  final void updateTracksTimestamp() {
+    updateTimestamp(Tables.Tracks.NAME);
+  }
+  
+  private void updateTimestamp(String name) {
+    final ContentValues values = new ContentValues();
+    values.put(Tables.Timestamps.Fields._id.name(), name);
+    final SQLiteDatabase db = helper.getWritableDatabase();
+    db.insertWithOnConflict(Tables.Timestamps.NAME, null/* nullColumnHack */, values,
+        SQLiteDatabase.CONFLICT_REPLACE);
+  }
+  
+  final boolean authorsExpired(TimeStamp ttl) {
+    return checkExpired(Tables.Authors.NAME, ttl);
+  }
+
+  final boolean partiesExpired(TimeStamp ttl) {
+    return checkExpired(Tables.Parties.NAME, ttl);
+  }
+  
+  final boolean tracksExpired(TimeStamp ttl) {
+    return checkExpired(Tables.Tracks.NAME, ttl);
+  }
+  
+  private boolean checkExpired(String name, TimeStamp ttl) {
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final String selection = Tables.Timestamps.Fields._id + " = '" + name + "'";
+    final String target = "strftime('%s', 'now') - strftime('%s', " + Tables.Timestamps.Fields.stamp + ")";
+    final Cursor cursor = db.query(Tables.Timestamps.NAME, new String[] {target}, selection, 
+        null, null, null, null, null);
+    try {
+      if (cursor.moveToFirst()) {
+          final TimeStamp age = TimeStamp.createFrom(cursor.getInt(0), TimeUnit.SECONDS);
+          return age.compareTo(ttl) > 0;
+      }
+    } finally {
+      cursor.close();
+    }
+    return true;
+  }
+  
   private static Author createAuthor(Cursor cursor) {
     final int id = cursor.getInt(Tables.Authors.Fields._id.ordinal());
     final String name = cursor.getString(Tables.Authors.Fields.name.ordinal());
@@ -340,6 +410,7 @@ final class Database {
       db.execSQL(Tables.Tracks.CREATE_QUERY);
       db.execSQL(Tables.AuthorsTracks.CREATE_QUERY);
       db.execSQL(Tables.PartiesTracks.CREATE_QUERY);
+      db.execSQL(Tables.Timestamps.CREATE_QUERY);
     }
 
     @Override
@@ -347,7 +418,8 @@ final class Database {
       Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
       final String ALL_TABLES[] = {
           Tables.Authors.NAME, Tables.Parties.NAME, Tables.Tracks.NAME,
-          Tables.AuthorsTracks.NAME, Tables.PartiesTracks.NAME
+          Tables.AuthorsTracks.NAME, Tables.PartiesTracks.NAME,
+          Tables.Timestamps.NAME
       };
       for (String table : ALL_TABLES) {
         db.execSQL(Tables.DROP_QUERY, new Object[] {

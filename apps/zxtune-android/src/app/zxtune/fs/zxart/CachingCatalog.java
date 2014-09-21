@@ -12,15 +12,25 @@ package app.zxtune.fs.zxart;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.util.Log;
+import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
 
 final class CachingCatalog extends Catalog {
   
   private final static String TAG = CachingCatalog.class.getName(); 
   private final static String CACHE_DIR_NAME = "www.zxart.ee";
+  
+  private final TimeStamp AUTHORS_TTL = days(7); 
+  private final TimeStamp PARTIES_TTL = days(60);
+  private final TimeStamp TRACKS_TTL = days(1);
+  
+  private static TimeStamp days(int val) {
+    return TimeStamp.createFrom(val, TimeUnit.DAYS);
+  }
   
   private final VfsCache cacheDir;
   private final Catalog remote;
@@ -34,12 +44,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
-    final int cached = db.queryAuthors(visitor, id);
-    if (0 == cached) {
-      Log.d(TAG, "Authors cache is empty. Query from remote");
+    if (db.authorsExpired(AUTHORS_TTL)
+        || !db.queryAuthors(visitor, id)) {
+      Log.d(TAG, "Authors cache is empty/expired for id=" + id);
       final Database.Transaction transaction = db.startTransaction();
       try {
         remote.queryAuthors(new CachingAuthorsVisitor(), null);
+        db.updateAuthorsTimestamp();
         transaction.succeed();
       } finally {
         transaction.finish();
@@ -51,12 +62,13 @@ final class CachingCatalog extends Catalog {
   @Override
   public void queryAuthorTracks(TracksVisitor visitor, Integer id, Integer author)
       throws IOException {
-    final int cached = db.queryAuthorTracks(visitor, id, author);
-    if (0 == cached) {
-      Log.d(TAG, "Tracks cache is empty for id=" + id + " author=" + author);
+    if (db.authorsExpired(AUTHORS_TTL)
+        || !db.queryAuthorTracks(visitor, id, author)) {
+      Log.d(TAG, "Tracks cache is empty/expired for id=" + id + " author=" + author);
       final Database.Transaction transaction = db.startTransaction();
       try {
         remote.queryAuthorTracks(new CachingTracksVisitor(author, null), null, author);
+        db.updateAuthorsTimestamp();
         transaction.succeed();
       } finally {
         transaction.finish();
@@ -67,13 +79,14 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryParties(PartiesVisitor visitor, Integer id) throws IOException {
-    final int cached = db.queryParties(visitor, id);
-    if (0 == cached) {
-      Log.d(TAG, "Parties cache is empty. Query from remote");
+    if (db.partiesExpired(PARTIES_TTL)
+        || !db.queryParties(visitor, id)) {
+      Log.d(TAG, "Parties cache is empty/expired for id=" + id);
       final Database.Transaction transaction = db.startTransaction();
       try {
         //query all
         remote.queryParties(new CachingPartiesVisitor(), null);
+        db.updatePartiesTimestamp();
         transaction.succeed();
       } finally {
         transaction.finish();
@@ -84,12 +97,13 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryPartyTracks(TracksVisitor visitor, Integer id, Integer party) throws IOException {
-    final int cached = db.queryPartyTracks(visitor, id, party);
-    if (0 == cached) {
-      Log.d(TAG, "Tracks cache is empty for id=" + id + " party=" + party);
+    if (db.partiesExpired(PARTIES_TTL)
+        || !db.queryPartyTracks(visitor, id, party)) {
+      Log.d(TAG, "Tracks cache is empty/expired for id=" + id + " party=" + party);
       final Database.Transaction transaction = db.startTransaction();
       try {
         remote.queryPartyTracks(new CachingTracksVisitor(null, party), null, party);
+        db.updatePartiesTimestamp();
         transaction.succeed();
       } finally {
         transaction.finish();
@@ -100,17 +114,22 @@ final class CachingCatalog extends Catalog {
 
   @Override
   public void queryTopTracks(TracksVisitor visitor, Integer id, int limit) throws IOException {
-    Log.d(TAG, "Try to query top tracks from network");
-    final Database.Transaction transaction = db.startTransaction();
-    try {
-      remote.queryTopTracks(new CachingTracksVisitor(null, null), id, limit);
-      transaction.succeed();
-    } catch (IOException e) {
-      Log.d(TAG, "Failed", e);
-    } finally {
-      transaction.finish();
+    if (db.tracksExpired(TRACKS_TTL)
+        || !db.queryTopTracks(visitor, id, limit)) { 
+      Log.d(TAG, "Top tracks cache is empty/expired");
+      final Database.Transaction transaction = db.startTransaction();
+      try {
+        remote.queryTopTracks(new CachingTracksVisitor(null, null), id, limit);
+        db.updateTracksTimestamp();
+        transaction.succeed();
+      } catch (IOException e) {
+        //ignore possible network error to requery from cache
+        Log.d(TAG, "Failed", e);
+      } finally {
+        transaction.finish();
+      }
     }
-    db.queryTopTracks(visitor, id, 100);
+    db.queryTopTracks(visitor, id, limit);
   }
   
   @Override
