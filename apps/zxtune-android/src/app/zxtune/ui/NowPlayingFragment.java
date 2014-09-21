@@ -255,6 +255,11 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     private final Context context;
     private final Item item;
     
+    private static final RemoteCatalog CATALOGS[] = {
+      new ZXTunesRemoteCatalog(),
+      new ZXArtRemoteCatalog()
+    };
+    
     ShareData(Context context, Item item) {
       this.context = context;
       this.item = item;
@@ -299,12 +304,13 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
 
     public final String getRemotePage() {
       final Uri uri = item.getDataId();
-      if (!hasRemotePage(uri)) {
-        return null;
+      final String scheme = uri.getScheme();
+      for (RemoteCatalog cat : CATALOGS) {
+        if (cat.checkScheme(scheme)) {
+          return cat.getPage(uri);
+        }
       }
-      final int author = Integer.parseInt(uri.getQueryParameter("author"));
-      final int track = Integer.parseInt(uri.getQueryParameter("track"));
-      return String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author, track);
+      return null;
     }
     
     private VfsFile openFile(Uri uri) {
@@ -334,7 +340,46 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     }
     
     static boolean hasRemotePage(Uri uri) {
-      return uri.getScheme().equals("zxtunes");
+      final String scheme = uri.getScheme();
+      for (RemoteCatalog cat : CATALOGS) {
+        if (cat.checkScheme(scheme)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    //TODO: integrate to VFS
+    private interface RemoteCatalog {
+      boolean checkScheme(String scheme);
+      String getPage(Uri uri);
+    }
+    
+    private static class ZXTunesRemoteCatalog implements RemoteCatalog {
+      @Override
+      public boolean checkScheme(String scheme) {
+        return scheme.equals("zxtunes");
+      }
+      
+      @Override
+      public String getPage(Uri uri) {
+        final int author = Integer.parseInt(uri.getQueryParameter("author"));
+        final int track = Integer.parseInt(uri.getQueryParameter("track"));
+        return String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author, track);
+      }
+    }
+    
+    private static class ZXArtRemoteCatalog implements RemoteCatalog {
+      @Override
+      public boolean checkScheme(String scheme) {
+        return scheme.equals("zxart");
+      }
+      
+      @Override
+      public String getPage(Uri uri) {
+        final int track = Integer.parseInt(uri.getQueryParameter("track"));
+        return String.format(Locale.US, "http://zxart.ee/zxtune/action%%3aplay/tuneId%%3a%d", track);
+      }
     }
   }
 }
