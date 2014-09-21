@@ -2,12 +2,12 @@
     xmlns:sabd="http://schemas.android.com/apk/res-auto" >
   <item
     android:id="@+id/action_play"
-    android:icon="@android:drawable/ic_media_play"
+    android:icon="@drawable/ic_menu_play"
     android:title="@string/play"
     sabd:showAsAction="ifRoom" />
   <item
     android:id="@+id/action_add"
-    android:icon="@android:drawable/ic_menu_add"
+    android:icon="@drawable/ic_menu_add"
     android:title="@string/add"
     sabd:showAsAction="ifRoom" />
 </menu>

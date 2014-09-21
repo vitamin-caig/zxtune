@@ -8,12 +8,12 @@
     <menu>
       <item
         android:id="@+id/action_clear"
-        android:icon="@android:drawable/ic_menu_delete"
+        android:icon="@drawable/ic_menu_delete"
         android:title="@string/clear"
         sabd:showAsAction="never" />
       <item
         android:id="@+id/action_save"
-        android:icon="@android:drawable/ic_menu_save"
+        android:icon="@drawable/ic_menu_save"
         android:title="@string/save"
         sabd:showAsAction="never" />
     </menu>

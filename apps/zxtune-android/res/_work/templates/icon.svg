@@ -14,8 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.5 r10040"
-   sodipodi:docname="send.svg"
-   enable-background="new">
+   sodipodi:docname="icon.svg">
   <defs
      id="defs4">
     <inkscape:path-effect
@@ -34,15 +33,6 @@
        effect="spiro"
        id="path-effect3263-3-8-9"
        is_visible="true" />
-    <filter
-       inkscape:collect="always"
-       id="filter4751">
-      <feBlend
-         inkscape:collect="always"
-         mode="lighten"
-         in2="BackgroundImage"
-         id="feBlend4753" />
-    </filter>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -52,10 +42,10 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994951"
-     inkscape:cx="240.04651"
-     inkscape:cy="184.00888"
+     inkscape:cx="32.829598"
+     inkscape:cy="169.03987"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="svg2"
      showgrid="true"
      inkscape:window-width="1280"
      inkscape:window-height="720"
@@ -120,16 +110,4 @@
       </cc:Work>
     </rdf:RDF>
   </metadata>
-  <g
-     inkscape:groupmode="layer"
-     id="layer1"
-     inkscape:label="Object"
-     style="filter:url(#filter4751)">
-    <path
-       style="opacity:0.8;fill:#ffffff;fill-opacity:1;stroke:none"
-       d="M 336,192 96,48 96,336 z"
-       id="path4774"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccc" />
-  </g>
 </svg>

@@ -8,18 +8,18 @@
     <menu>
       <item
         android:id="@+id/action_add"
-        android:icon="@android:drawable/ic_menu_add"
+        android:icon="@drawable/ic_menu_add"
         android:title="@string/add"
         sabd:showAsAction="never"
       />
       <item
         android:id="@+id/action_send"
-        android:icon="@android:drawable/ic_menu_send"
+        android:icon="@drawable/ic_menu_send"
         android:title="@string/send"
         sabd:showAsAction="never" />
       <item
         android:id="@+id/action_share"
-        android:icon="@android:drawable/ic_menu_share"
+        android:icon="@drawable/ic_menu_share"
         android:title="@string/share"
         sabd:showAsAction="never" />
     </menu>
