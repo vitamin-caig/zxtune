@@ -2,6 +2,7 @@
 <resources>
     <!-- menu-related -->
     <string name="prefs">Настройки</string>
+    <string name="review">Оценить</string>
     <string name="quit">Выход</string>
     <!-- action-related -->
     <string name="play">Слушать</string>

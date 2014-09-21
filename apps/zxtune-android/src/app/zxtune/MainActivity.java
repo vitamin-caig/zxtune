@@ -10,6 +10,7 @@
 
 package app.zxtune;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.Toast;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.BrowserFragment;
@@ -62,6 +64,9 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
         break;
       case R.id.action_about:
         showAbout();
+        break;
+      case R.id.action_rate:
+        rateApplication();
         break;
       case R.id.action_quit:
         quit();
@@ -147,6 +152,26 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   private void showPreferences() {
     final Intent intent = new Intent(this, PreferencesActivity.class);
     startActivity(intent);
+  }
+  
+  private void rateApplication() {
+    final Intent intent = new Intent(Intent.ACTION_VIEW);
+    intent.setData(Uri.parse("market://details?id=" + getPackageName()));
+    if (!safeStartActivity(intent)) {
+      intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName()));
+      if (!safeStartActivity(intent)) {
+        Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
+      }
+    }
+  }
+  
+  private boolean safeStartActivity(Intent intent) {
+    try {
+      startActivity(intent);
+      return true;
+    } catch (ActivityNotFoundException e) {
+      return false;
+    }
   }
   
   private void showAbout() {

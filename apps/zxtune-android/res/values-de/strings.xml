@@ -2,6 +2,7 @@
 <resources>
     <!-- menu-related -->
     <string name="prefs">Einstellungen</string>
+    <string name="review">Bewerten</string>
     <string name="quit">Beenden</string>
     <!-- action-related -->
     <string name="play">Abspielen</string>
