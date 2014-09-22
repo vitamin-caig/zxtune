@@ -28,6 +28,7 @@
 #include <io/providers_parameters.h>
 #include <parameters/merged_accessor.h>
 #include <strings/array.h>
+#include <time/elapsed.h>
 //std includes
 #include <iomanip>
 #include <iostream>
@@ -65,23 +66,27 @@ namespace
   public:
     ProgressCallbackImpl()
       : Cons(Console::Self())
+      , ReportTimeout(Time::Milliseconds(1000))
     {
     }
 
     virtual void OnProgress(uint_t current)
     {
-      static const Char EMPTY[] = {0};
+      static const String EMPTY;
       OnProgress(current, EMPTY);
     }
 
     virtual void OnProgress(uint_t current, const String& message)
     {
-      CheckForExit();
-      if (const uint_t currentWidth = GetCurrentWidth())
+      if (ReportTimeout())
       {
-        String text = message;
-        text += Strings::Format(Text::PROGRESS_FORMAT, current);
-        OutputString(currentWidth, text);
+        CheckForExit();
+        if (const uint_t currentWidth = GetCurrentWidth())
+        {
+          String text = message;
+          text += Strings::Format(Text::PROGRESS_FORMAT, current);
+          OutputString(currentWidth, text);
+        }
       }
     }
   private:
@@ -101,6 +106,7 @@ namespace
     }
   private:
     const Console& Cons;
+    Time::Elapsed ReportTimeout;
   };
 
   class DetectCallback : public Module::DetectCallback
@@ -119,7 +125,7 @@ namespace
       return Params;
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
     {
       const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(CreatePathProperties(subId), Params);
@@ -181,7 +187,7 @@ namespace
         }
         if (YM)
         {
-          coreParams->SetValue(Parameters::ZXTune::Core::AYM::TYPE, 1);
+          coreParams->SetValue(Parameters::ZXTune::Core::AYM::TYPE, Parameters::ZXTune::Core::AYM::TYPE_YM);
         }
         coreParams->Process(*Params);
       }
@@ -225,8 +231,7 @@ namespace
         else
         {
           const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(Params, data, subpath);
-          const Module::Holder::Ptr module = Module::Open(location);
-          detectCallback.ProcessModule(location, module);
+          Module::Open(location, detectCallback);
         }
       }
       catch (const Error& e)

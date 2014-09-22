@@ -24,6 +24,7 @@ extern const Char MEGALZ_DECODER_DESCRIPTION[];
 extern const Char MSP_DECODER_DESCRIPTION[];
 extern const Char PACK2_DECODER_DESCRIPTION[];
 extern const Char PCD61_DECODER_DESCRIPTION[];
+extern const Char PCD61i_DECODER_DESCRIPTION[];
 extern const Char PCD62_DECODER_DESCRIPTION[];
 extern const Char PLAYER_SUFFIX[];
 extern const Char RAR_DECODER_DESCRIPTION[];

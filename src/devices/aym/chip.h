@@ -33,8 +33,6 @@ namespace Devices
       CHANNEL_MASK_A = 1,
       CHANNEL_MASK_B = 2,
       CHANNEL_MASK_C = 4,
-      CHANNEL_MASK_N = 8,
-      CHANNEL_MASK_E = 16,
     };
 
     enum LayoutType

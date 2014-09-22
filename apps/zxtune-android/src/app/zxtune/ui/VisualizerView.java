@@ -16,12 +16,14 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.VisualizerStub;
 
 public class VisualizerView extends View {
   
+  private static final String TAG = VisualizerView.class.getName();
   private Visualizer source;
   private Handler timer;
   private UpdateViewTask updateTask;
@@ -81,8 +83,9 @@ public class VisualizerView extends View {
   
   private final class SpectrumVisualizer {
     
+    private static final int MAX_BANDS = 32;
     private static final int MAX_LEVEL = 100;
-    private static final int BAR_WIDTH = 4;
+    private static final int BAR_WIDTH = 3;
     private static final int BAR_PADDING = 1;
     private static final int FALL_SPEED = 10;
 
@@ -99,8 +102,8 @@ public class VisualizerView extends View {
       this.barRect = new Rect();
       this.paint = new Paint();
       this.paint.setColor(getResources().getColor(android.R.color.primary_text_dark));
-      this.bands = new int[16];
-      this.levels = new int[this.bands.length];
+      this.bands = new int[MAX_BANDS];
+      this.levels = new int[MAX_BANDS];
       this.values = new int[1];
       this.changes = new boolean[1];
     }
@@ -174,8 +177,12 @@ public class VisualizerView extends View {
     
     @Override
     public void run() {
-      if (visualizer.update() || isEnabled()) {
-        timer.postDelayed(this, 100);
+      try {
+        if (visualizer.update() || isEnabled()) {
+          timer.postDelayed(this, 100);
+        }
+      } catch (IllegalStateException e) {
+        Log.d(TAG, "UpdateViewTask", e);
       }
     }
 

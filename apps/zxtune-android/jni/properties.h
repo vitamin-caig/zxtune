@@ -18,48 +18,46 @@
 
 namespace Jni
 {
-  class StringHelper
+  inline jstring MakeJstring(JNIEnv* env, const String& str)
+  {
+    return env->NewStringUTF(str.c_str());
+  }
+
+  inline String MakeString(JNIEnv* env, jstring str)
+  {
+    String res;
+    //Since android-4.0.1-r1 GetStringUTFLength returns 0 on null string
+    //So, emulate that behaviour for all platforms
+    if (const std::size_t size = str ? env->GetStringUTFLength(str) : 0)
+    {
+      const char* const syms = env->GetStringUTFChars(str, 0);
+      res.assign(syms, syms + size);
+      env->ReleaseStringUTFChars(str, syms);
+    }
+    return res;
+  }
+
+  class TempJString
   {
   public:
-    StringHelper(JNIEnv* env, jstring js)
+    TempJString(JNIEnv* env, const String& str)
       : Env(env)
-      , Jstr(js)
+      , Jstr(MakeJstring(env, str))
     {
     }
-    
-    StringHelper(JNIEnv* env, const String& str)
-      : Env(env)
-      , Jstr(0)
-      , Cstr(str)
+
+    ~TempJString()
     {
+      Env->DeleteLocalRef(Jstr);
     }
-    
-    String AsString() const
+
+    jstring Get() const
     {
-      if (Cstr.empty())
-      {
-        if (const std::size_t size = Env->GetStringUTFLength(Jstr))
-        {
-          const char* const syms = Env->GetStringUTFChars(Jstr, 0);
-          Cstr.assign(syms, syms + size);
-          Env->ReleaseStringUTFChars(Jstr, syms);
-        }
-      }
-      return Cstr;
-    }
-    
-    jstring AsJstring() const
-    {
-      if (!Jstr)
-      {
-        Jstr = Env->NewStringUTF(Cstr.c_str());
-      }
       return Jstr;
     }
   private:
     JNIEnv* const Env;
-    mutable jstring Jstr;
-    mutable String Cstr;
+    const jstring Jstr;
   };
 
   class PropertiesReadHelper
@@ -73,19 +71,17 @@ namespace Jni
     
     jlong Get(jstring name, jlong defVal) const
     {
-      const StringHelper strName(Env, name);
       Parameters::IntType val = defVal;
-      Params.FindValue(strName.AsString(), val);
+      Params.FindValue(MakeString(Env, name), val);
       return val;
     }
     
     jstring Get(jstring name, jstring defVal) const
     {
-      const StringHelper strName(Env, name);
       Parameters::StringType val;
-      if (Params.FindValue(strName.AsString(), val))
+      if (Params.FindValue(MakeString(Env, name), val))
       {
-        return StringHelper(Env, val).AsJstring();
+        return MakeJstring(Env, val);
       }
       return defVal;
     }
@@ -105,15 +101,12 @@ namespace Jni
 
     virtual void Set(jstring name, jlong value)
     {
-      const StringHelper strName(Env, name);
-      Params.SetValue(strName.AsString(), value);
+      Params.SetValue(MakeString(Env, name), value);
     }
 
     virtual void Set(jstring name, jstring value)
     {
-      const StringHelper strName(Env, name);
-      const StringHelper strValue(Env, value);
-      Params.SetValue(strName.AsString(), strValue.AsString());
+      Params.SetValue(MakeString(Env, name), MakeString(Env, value));
     }
   private:
     JNIEnv* const Env;

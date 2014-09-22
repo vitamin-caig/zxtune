@@ -19,20 +19,20 @@ public interface VfsDir extends VfsObject {
    */
   public interface Visitor {
     
-    public enum Status {
-      STOP,
-      CONTINUE
-    }
+    /**
+     * Called when items count is known (at any moment, maybe approximate)
+     */
+    public void onItemsCount(int count);
     
     /**
      * Called on visited directory
      */
-    public Status onDir(VfsDir dir);
+    public void onDir(VfsDir dir);
 
     /**
      * Called on visited file
      */
-    public Status onFile(VfsFile file);
+    public void onFile(VfsFile file);
   }
   
   /**

@@ -372,12 +372,11 @@ namespace ProTracker3
       return Properties;
     }
 
-    virtual TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const
+    virtual TurboSound::DataIterator::Ptr CreateDataIterator(const TurboSound::TrackParametersArray& trackParams) const
     {
       const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr first = Vortex::CreateDataRenderer(Data, 0);
-      const AYM::DataRenderer::Ptr second = Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS);
-      return TurboSound::CreateDataIterator(trackParams, iterator, first, second);
+      const TurboSound::DataRenderersArray renderers = {{Vortex::CreateDataRenderer(Data, 0), Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS)}};
+      return TurboSound::CreateDataIterator(trackParams, iterator, renderers);
     }
   private:
     const ModuleData::Ptr Data;

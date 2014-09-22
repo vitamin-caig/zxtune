@@ -147,7 +147,7 @@ namespace AYM
           noiseLevel += COMMON_LEVEL_DELTA;
         }
         //accumulate level in envelope channel      
-        if (periodicEnv && hasEnv)
+        if (hasEnv)
         {        
           envLevel += COMMON_LEVEL_DELTA;
         }
@@ -165,9 +165,10 @@ namespace AYM
       {
         state.push_back(ChannelState(GetToneN(), noiseLevel));
       }
-      if (envLevel != EMPTY_LEVEL)
+      if (periodicEnv && envLevel != EMPTY_LEVEL)
       {
-        state.push_back(ChannelState(16 * GetToneE(), envLevel));
+        //periodic envelopes has 32 steps, so multiply period to 32
+        state.push_back(ChannelState(32 * GetToneE(), envLevel));
       }  
     }
   private:

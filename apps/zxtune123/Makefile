@@ -23,7 +23,7 @@ libraries.common = analysis async binary binary_format \
                   parameters platform \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = lhasa unrar z80ex zlib
+libraries.3rdparty = lhasa sidplayfp sidplayfp_builders_resid unrar xmp z80ex zlib
 
 #apps
 libraries += zxtune_app_base zxtune_app_version
@@ -53,16 +53,13 @@ install_linux: install_linux_binary dist/$(manual_file)
 install_linux_binary:
 	install -D $(target) $(DESTDIR)/usr/bin/$(binary_name)
 
-install_windows install_mingw: dist/$(manual_file) install_samples
+install_windows: install_mingw install_runtime
+
+install_mingw: install_samples install_3rdparty
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 	$(call copyfile_cmd,dist/$(manual_file),$(DESTDIR))
 	$(call copyfile_cmd,dist/zxtune.conf,$(DESTDIR))
 	$(call copyfile_cmd,../changelog.txt,$(DESTDIR))
-	$(call copyfile_cmd,$(path_step)/3rdparty/lame/$(arch)/libmp3lame.dll,$(DESTDIR)/mp3lame.dll)
-	$(call copyfile_cmd,$(path_step)/3rdparty/FLAC/$(arch)/FLAC.dll,$(DESTDIR))
-	$(call copyfile_cmd,$(path_step)/3rdparty/ogg/$(arch)/ogg.dll,$(DESTDIR))
-	$(call copyfile_cmd,$(path_step)/3rdparty/vorbis/$(arch)/*.dll,$(DESTDIR))
-	$(call copyfile_cmd,$(path_step)/3rdparty/curl/$(arch)/*.dll,$(DESTDIR))
 
 dingux_dir = local/apps/$(binary_name)
 
@@ -108,6 +105,7 @@ $(pkg_root)/gmenu.cfg:
 	" > $@
 
 include $(path_step)/samples/samples.mak
+include $(path_step)/3rdparty/install.mak
 
 ifdef tools.textator
 dist/$(manual_file): dist/$(binary_name).txt

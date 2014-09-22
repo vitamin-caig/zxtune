@@ -1,0 +1,29 @@
+<resources>
+  <string name="about">Über</string>
+  <string name="about_credits">Kreativgruppe</string>
+  <string name="about_plugins">Plug-ins</string>
+  <!-- about-related -->
+  <string name="about_author">
+    Idee, Code: <b>Vitamin/CAIG</b>\n
+    Entwurf: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
+    Gebrauchte Quellen:\n
+    \tAYEmul von <b>S.Bulba</b>\n
+    \tAYFly von <b>Ander</b>\n
+    \tPusher von <b>Himik/ZXZ</b>\n
+    Gebraucht Bibliotheken:\n
+    \tboost\n
+    \tz80ex von <b>Boo-boo</b>\n
+    \tlhasa von <b>Simon Howard</b>\n
+    \tDragSortListView von <b>Carl A.Bauer</b>\n
+    \tlibxmp von <b>Claudio Matsuoka</b>\n
+    \tlibsidplayfp + resid\n
+    \n
+    <b>Lizzi</b> gewidmet
+  </string>
+  <!-- players -->
+  <string name="plugin_player_dac">Digitale Formate</string>
+  <!-- decoders -->
+  <string name="plugin_decoder_decompiler">Decompiler</string>
+  <!-- multitrack -->
+  <string name="plugin_multitrack_container">Container</string>
+</resources>

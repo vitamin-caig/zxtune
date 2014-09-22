@@ -193,5 +193,12 @@ __cpp> "}//namespace Text\n"
 > "VTX (Vortex Project)"
 
 #YM
+< YM_PACKED_DECODER_DESCRIPTION
+> "YM (ST-Sound Project) Packed"
+
 < YM_DECODER_DESCRIPTION
 > "YM (ST-Sound Project)"
+
+#SID
+< SID_DECODER_DESCRIPTION
+> "Commodore64 RSID/PSID"

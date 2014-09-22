@@ -16,7 +16,6 @@ res_suffix := .rc
 
 ifneq ($(or $(pic),$(dynamic_name)),)
 pic := 1
-suffix := _pic
 endif
 
 ifdef release
@@ -31,11 +30,12 @@ endif
 
 platform_pathname = $(platform)$(if $(arch),_$(arch),)
 mode_pathname = $(mode)$(if $(profile),_profile,)
+submode_pathname = $(if $(pic),_pic,)$(if $(static_runtime),_static,)
 
 #set directories
 include_dirs += $(path_step)/include $(path_step)/src $(path_step)
-objs_dir = $(path_step)/obj/$(platform_pathname)/$(mode_pathname)$(suffix)
-libs_dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(suffix)
+objs_dir = $(path_step)/obj/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
+libs_dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
 bins_dir = $(path_step)/bin/$(platform_pathname)/$(mode_pathname)
 
 #set environment
@@ -142,14 +142,14 @@ $(LIBS): deps
 deps: $(depends) $($(platform)_depends)
 
 $(depends) $($(platform)_depends):
-	$(MAKE) pic=$(pic) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
+	$(MAKE) pic=$(pic) static_runtime=$(static_runtime) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
 endif
 
 $(OBJECTS): | $(GENERATED_HEADERS) $(objects_dir)
 
 $(RESOURCES): | $(objects_dir)
 
-vpath %$(src_suffix) $(sort $(dir $(source_files) $(generated_source_files)))
+vpath %$(src_suffix) $(sort $(dir $(source_files) $(generated_sources)))
 vpath %$(src_suffix_cc) $(sort $(dir $(source_files_cc)))
 vpath %$(res_suffix) $(sort $(dir $($(platform)_resources)))
 

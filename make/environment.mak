@@ -1,8 +1,14 @@
 #apply default values
+ifdef arch
+ifndef distro
 ifndef toolchains.root
 $(error No toolchains.root defined)
 endif
-prebuilt.dir ?= $(path_step)/../Build
+ifndef prebuilt.dir
+$(error No prebuilt.dir defined)
+endif
+endif
+endif
 
 #android
 android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector -fomit-frame-pointer -finline-limit=300 -Wa,--noexecstack
@@ -83,21 +89,22 @@ mingw.ld.flags = -mthreads -static -Wl,--allow-multiple-definition
 mingw.definitions = BOOST_THREAD_USE_LIB 'BOOST_FILESYSTEM_VERSION=3'
 # x86
 mingw.x86.execprefix = $(mingw.execprefix)
-mingw.x86.boost.version = 1.49.0
-mingw.x86.qt.version = 4.8.1
+mingw.x86.boost.version = 1.55.0
+mingw.x86.qt.version = 4.8.5
 mingw.x86.cxx.flags = -m32
 mingw.x86.ld.flags = -m32
 # x86_64
 mingw.x86_64.execprefix = $(mingw.execprefix)
-mingw.x86_64.boost.version = 1.49.0
-mingw.x86_64.qt.version = 4.8.1
+mingw.x86_64.boost.version = 1.55.0
+mingw.x86_64.qt.version = 4.8.5
 mingw.x86_64.cxx.flags = -m64
 mingw.x86_64.ld.flags = -m64
 
 #windows
+windows.cxx.flags = /arch:IA32
 # x86
-windows.x86.boost.version = 1.49.0
-windows.x86.qt.version = 4.8.1
+windows.x86.boost.version = 1.55.0
+windows.x86.qt.version = 4.8.5
 # x86_64
-windows.x86_64.boost.version = 1.49.0
-windows.x86_64.qt.version = 4.8.1
+windows.x86_64.boost.version = 1.55.0
+windows.x86_64.qt.version = 4.8.5

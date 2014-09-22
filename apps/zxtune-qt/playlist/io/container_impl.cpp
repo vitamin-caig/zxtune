@@ -46,12 +46,9 @@ namespace
       Item = item;
     }
 
-    virtual void ShowProgress(unsigned /*progress*/)
+    virtual Log::ProgressCallback* GetProgress() const
     {
-    }
-
-    virtual void ShowMessage(const String& /*message*/)
-    {
+      return 0;
     }
 
     Playlist::Item::Data::Ptr GetItem() const
@@ -66,7 +63,7 @@ namespace
   class StubData : public Playlist::Item::Data
   {
   public:
-    StubData(const String& path, const Parameters::Accessor& params, const Error state)
+    StubData(const String& path, const Parameters::Accessor& params, const Error& state)
       : Path(path)
       , Params(Parameters::Container::Create())
       , State(state)
@@ -85,6 +82,11 @@ namespace
       return Params;
     }
 
+    virtual Playlist::Item::Capabilities GetCapabilities() const
+    {
+      return Playlist::Item::Capabilities(0);
+    }
+
     //playlist-related
     virtual Error GetState() const
     {
@@ -92,6 +94,11 @@ namespace
     }
 
     virtual String GetFullPath() const
+    {
+      return Path;
+    }
+
+    virtual String GetFilePath() const
     {
       return Path;
     }
@@ -204,6 +211,12 @@ namespace
       return Provider.get() ? Provider->GetParameters() : Delegate->GetAdjustedParameters();
     }
 
+    virtual Playlist::Item::Capabilities GetCapabilities() const
+    {
+      AcquireDelegate();
+      return Delegate->GetCapabilities();
+    }
+
     //playlist-related
     virtual Error GetState() const
     {
@@ -214,6 +227,12 @@ namespace
     virtual String GetFullPath() const
     {
       return Provider.get() ? Provider->GetPath() : Delegate->GetFullPath();
+    }
+
+    virtual String GetFilePath() const
+    {
+      AcquireDelegate();
+      return Delegate->GetFilePath();
     }
 
     virtual String GetType() const

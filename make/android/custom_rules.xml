@@ -37,16 +37,14 @@
     </sequential>
   </macrodef>
   
-  <target name="updatesources">
-    <exec executable="make" failonerror="true">
-      <arg value="--quiet"/>
-      <arg value="-C"/>
-      <arg value="${top.dir}/apps/version"/>
-      <arg value="update_sources"/>
-    </exec>
-  </target>
-  
-  <target name="getversion" depends="updatesources">
+  <macrodef name="makelib-debug">
+    <attribute name="arch" />
+    <sequential>
+      <copy file="${top.dir}/bin/android_@{arch}/release/lib${native.libs}.so.pdb" todir="${debug.dir}/@{arch}" />
+    </sequential>
+  </macrodef>
+
+  <target name="getversion">
     <sequential>
       <exec executable="make" outputproperty="version.index" failonerror="true">
         <arg value="--quiet"/>
@@ -65,13 +63,36 @@
     </sequential>
   </target>
   
-  <target name="injectversion" depends="getversion">
-    <copy file="${top.dir}/make/android/version.tmpl" tofile="res/values/version.xml" overwrite="yes" >
+  <target name="checkmanifesttype">
+    <available file="AndroidManifest.data" property="xsltmanifest"/>
+  </target>
+  
+  <target name="xsltmanifest" depends="getversion" if="xsltmanifest">
+    <exec executable="xsltproc" failonerror="true">
+      <arg value="--stringparam"/>
+      <arg value="version.index"/>
+      <arg value="${version.index}"/>
+      <arg value="--stringparam"/>
+      <arg value="version"/>
+      <arg value="${version}"/>
+      <arg value="--output"/>
+      <arg value="AndroidManifest.xml"/>
+      <arg value="AndroidManifest.tmpl"/>
+      <arg value="AndroidManifest.data"/>
+    </exec>
+  </target>
+  
+  <target name="substmanifest" depends="getversion" unless="xsltmanifest">
+    <copy file="AndroidManifest.tmpl" tofile="AndroidManifest.xml" overwrite="yes" >
       <filterset>
-        <filter token="version" value="r${version}" />
+        <filter token="version" value="${version}" />
         <filter token="version.index" value="${version.index}" />
       </filterset>
     </copy>
+  </target>
+  
+  <target name="injectversion" depends="checkmanifesttype,xsltmanifest,substmanifest">
+    <property name="build.dir" value="${builds.dir}/${version}/android" />
   </target>
   
   <target name="nativelibs">
@@ -80,11 +101,25 @@
     <makelib-helper arch="armeabi-v7a" />
   </target>
   
-  <target name="-post-compile" depends="nativelibs" />
+  <target name="debugsymbols">
+    <property name="debug.dir" value="${build.dir}/debug" />
+    <makelib-debug arch="x86" />
+    <makelib-debug arch="armeabi" />
+    <makelib-debug arch="armeabi-v7a" />
+  </target>
 
+  <target name="debugarchive" depends="debugsymbols">
+    <exec executable="tar" failonerror="true">
+      <arg value="-cjf" />
+      <arg value="${debug.dir}.tar.bz2" />
+      <arg value="--remove-files" />
+      <arg value="${debug.dir}" />
+    </exec>
+  </target>
+  
   <!-- Single public build target -->
-  <target name="public-build" depends="injectversion, release">
-    <property name="build.result" value="${builds.dir}/Revision${version}_android/${ant.project.name}_r${version}.apk" />
+  <target name="public-build" depends="injectversion, nativelibs, release, debugarchive">
+    <property name="build.result" value="${build.dir}/${ant.project.name}_${version}.apk" />
     <delete file="${build.result}" />
     <copy file="${out.final.file}" toFile="${build.result}" />
   </target>

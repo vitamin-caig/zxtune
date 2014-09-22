@@ -9,12 +9,14 @@
   <addaction name="separator"/>
   <addaction name="DelDupsAction"/>
   <addaction name="DelUnavailableAction"/>
+  <addaction name="separator"/>
   <addaction name="SelectionSubmenu"/>
+  <addaction name="separator"/>
+  <addaction name="ExportAction"/>
+  <addaction name="ConvertAction"/>
   <addaction name="separator"/>
   <addaction name="CopyToClipboardAction"/>
   <addaction name="ShowStatisticAction"/>
-  <addaction name="ExportAction"/>
-  <addaction name="ConvertAction"/>
   <action name="InfoAction">
    <property name="icon">
     <iconset>
@@ -86,6 +88,7 @@
    </property>
    <addaction name="SelRipOffsAction"/>
    <addaction name="SelSameTypesAction"/>
+   <addaction name="SelSameFilesAction"/>
    <addaction name="SelFoundAction"/>
   </widget>
   <action name="SelRipOffsAction">
@@ -96,6 +99,11 @@
   <action name="SelSameTypesAction">
    <property name="text">
     <string>Items with the same types</string>
+   </property>
+  </action>
+  <action name="SelSameFilesAction">
+   <property name="text">
+    <string>Items from the same files</string>
    </property>
   </action>
   <action name="SelFoundAction">

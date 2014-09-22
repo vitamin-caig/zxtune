@@ -23,13 +23,15 @@ final public class AsyncPlayer implements Player {
   private static final String TAG = AsyncPlayer.class.getName();
 
   private Player sync;
-  private PlayerEventsListener events;
+  private final PlayerEventsListener events;
+  private final Object stateGuard;
+  private Player state;
   private Thread playThread;
-  private volatile Player state;
 
   private AsyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
     this.sync = new SyncPlayer(source, target, new EventsSynchronized());
     this.events = events;
+    this.stateGuard = new Object();
     this.state = new StoppedPlayer();
   }
 
@@ -39,20 +41,26 @@ final public class AsyncPlayer implements Player {
   }
 
   @Override
-  public synchronized void startPlayback() {
+  public void startPlayback() {
     Log.d(TAG, "Play");
-    state.startPlayback();
+    synchronized (stateGuard) {
+      state.startPlayback();
+    }
   }
 
   @Override
-  public synchronized void stopPlayback() {
+  public void stopPlayback() {
     Log.d(TAG, "Stop");
-    state.stopPlayback();
+    synchronized (stateGuard) {
+      state.stopPlayback();
+    }
   }
   
   @Override
-  public synchronized boolean isStarted() {
-    return state.isStarted();
+  public boolean isStarted() {
+    synchronized (stateGuard) {
+      return state.isStarted();
+    }
   }
   
   @Override
@@ -63,21 +71,22 @@ final public class AsyncPlayer implements Player {
   }
   
   private void setState(Player newState) {
-    final Player oldState = state;
-    synchronized (oldState) {
+    synchronized (stateGuard) {
       state = newState;
-      oldState.notify();
+      stateGuard.notify();
     }
   }
   
   private void waitForStateChange() {
-    try {
-      synchronized (state) {
-        state.wait();
+    synchronized (stateGuard) {
+      while (true) {
+        try {
+          stateGuard.wait();
+          break;
+        } catch (InterruptedException e) {
+          Log.d(TAG, "Interrupted while waiting for state change", e);
+        }
       }
-    } catch (InterruptedException e) {
-      Log.d(TAG, "Interrupted while stop: ");
-      e.printStackTrace();
     }
   }
 
@@ -134,8 +143,7 @@ final public class AsyncPlayer implements Player {
         playThread.join();
         playThread = null;
       } catch (InterruptedException e) {
-        Log.d(TAG, "Interrupted while stop: ");
-        e.printStackTrace();
+        Log.d(TAG, "Interrupted while stop", e);
       }
     }
 
@@ -151,5 +159,5 @@ final public class AsyncPlayer implements Player {
       Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
       sync.startPlayback();
     }
-  };
+  }
 }

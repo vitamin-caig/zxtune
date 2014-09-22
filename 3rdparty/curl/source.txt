@@ -1,4 +1,8 @@
-http://curl.haxx.se/download.html:
+http://curl.haxx.se/download/curl-7.35.0.zip
 
-curl-7.26.0-rtmp-ssh2-ssl-sspi-zlib-winidn-static-bin-w64.7z
-curl-7.26.0-ssl-sspi-zlib-static-bin-w32.zip
+Having tuned environment (make\platform_setup_windows* is called)
+
+in winbuild folder:
+
+curl-7.35.0\winbuild>nmake /f Makefile.vc mode=dll VC=12 RTLIBCFG=static MACHINE=x86
+curl-7.35.0\winbuild>nmake /f Makefile.vc mode=dll VC=12 RTLIBCFG=static MACHINE=x64

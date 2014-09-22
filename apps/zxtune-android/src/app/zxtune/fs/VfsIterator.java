@@ -60,15 +60,17 @@ public final class VfsIterator {
       final LinkedList<VfsFile> newFiles = new LinkedList<VfsFile>();
       root.enumerate(new VfsDir.Visitor() {
         @Override
-        public Status onDir(VfsDir dir) {
+        public void onItemsCount(int count) {
+        }
+
+        @Override
+        public void onDir(VfsDir dir) {
           newDirs.add(dir);
-          return Status.CONTINUE;
         }
   
         @Override
-        public Status onFile(VfsFile file) {
+        public void onFile(VfsFile file) {
           newFiles.add(file);
-          return Status.CONTINUE;
         }
       });
       //move to depth first

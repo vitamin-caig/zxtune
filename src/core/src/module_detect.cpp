@@ -45,12 +45,17 @@ namespace Module
   class OpenModuleCallback : public DetectCallback
   {
   public:
+    OpenModuleCallback()
+      : DetectCallback()
+    {
+    }
+
     virtual Parameters::Accessor::Ptr GetPluginsParameters() const
     {
       return Parameters::Container::Create();
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const
     {
       Result = holder;
     }
@@ -62,10 +67,6 @@ namespace Module
 
     Holder::Ptr GetResult() const
     {
-      if (!Result)
-      {
-        throw Error(THIS_LINE, translate("Failed to find module at specified location."));
-      }
       return Result;
     }
   private:
@@ -156,12 +157,20 @@ namespace Module
     const Parameters::Accessor::Ptr Properties;
   };
 
-  Holder::Ptr Open(ZXTune::DataLocation::Ptr location)
+  void Open(ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
   {
     using namespace ZXTune;
-    const PlayerPluginsEnumerator::Ptr usedPlugins = PlayerPluginsEnumerator::Create();
+    const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
+    if (!DetectByPlugins<PlayerPlugin>(usedPlayerPlugins->Enumerate(), location, callback))
+    {
+      throw Error(THIS_LINE, translate("Failed to find module at specified location."));
+    }
+  }
+
+  Holder::Ptr Open(ZXTune::DataLocation::Ptr location)
+  {
     const OpenModuleCallback callback;
-    DetectByPlugins<PlayerPlugin>(usedPlugins->Enumerate(), location, callback);
+    Open(location, callback);
     return callback.GetResult();
   }
 

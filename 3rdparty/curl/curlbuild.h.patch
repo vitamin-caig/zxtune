@@ -1,4 +1,0 @@
-530c530
-< #  if defined(__i386__) || defined(__ppc__)
----
-> #  if defined(__i386__) || defined(__ppc__) || defined(__arm__)

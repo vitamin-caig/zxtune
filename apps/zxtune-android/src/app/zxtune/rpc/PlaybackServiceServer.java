@@ -137,8 +137,9 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
   
   @Override
   public int[] getSpectrum() {
-    final int[] bands = new int[16];
-    final int[] levels = new int[16];
+    final int MAX_BANDS = 32;
+    final int[] bands = new int[MAX_BANDS];
+    final int[] levels = new int[MAX_BANDS];
     final int chans = visualizer.getSpectrum(bands, levels);
     final int[] res = new int[chans];
     for (int idx = 0; idx != chans; ++idx) {
@@ -187,6 +188,15 @@ public class PlaybackServiceServer extends IRemotePlaybackService.Stub {
         delegate.onItemChanged(ParcelablePlaybackItem.create(item));
       } catch (RemoteException e) {
         Log.e(TAG, "onItemChanged()", e);
+      }
+    }
+    
+    @Override
+    public void onIOStatusChanged(boolean isActive) {
+      try {
+        delegate.onIOStatusChanged(isActive);
+      } catch (RemoteException e) {
+        Log.e(TAG, "onIOStatusChanged()", e);
       }
     }
   }

@@ -1,0 +1,4 @@
+::make and zip are located at %CURRENTDRIVE%\Build folder
+make >NUL 2>&1 || SET PATH=%CD:~0,2%\Build;%PATH%
+::standard msys installation at 64-bit OS
+git >NUL 2>&1 || SET PATH=%PROGRAMFILES(x86)%\git\bin;%PATH%

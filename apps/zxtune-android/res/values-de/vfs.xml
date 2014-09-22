@@ -1,0 +1,36 @@
+<resources>
+    <!-- Local -->
+    <string name="vfs_local_root_name">Lokale Dateisystem</string>
+    <string name="vfs_local_root_description">Inhalt der internen und externen Lagerung</string>
+    <!-- zxtunes.com -->
+    <string name="vfs_zxtunes_root_name">ZXTUNES Musik-Sammlung</string>
+    <string name="vfs_zxtunes_authors_name">Autoren</string>
+    <string name="vfs_zxtunes_authors_description">ZX Spectrum Musiker Katalog</string>
+    <!-- Playlists -->
+    <string name="vfs_playlists_root_name">Wiedergabelisten</string>
+    <string name="vfs_playlists_root_description">Gespeicherte Wiedergabelisten Lagerung</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - größte Modul-Archiv</string>
+    <string name="vfs_modland_root_description">Durch http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">Autoren</string>
+    <string name="vfs_modland_authors_description">Browsen nach Autor</string>
+    <string name="vfs_modland_collections_name">Sammlungen</string>
+    <string name="vfs_modland_collections_description">Navigieren nach Sammlung</string>
+    <string name="vfs_modland_formats_name">Formate</string>
+    <string name="vfs_modland_formats_description">Navigieren nach Format</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_description">Durch http://www.prg.dtu.dk</string>
+    <!-- zxart.ee -->
+    <string name="vfs_zxart_root_name">ZX-Art - moderne ZX Spectrum Musik</string>
+    <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
+    <string name="vfs_zxart_authors_name">Autoren</string>
+    <string name="vfs_zxart_authors_description">Browsen nach Autor</string>
+    <string name="vfs_zxart_parties_name">Parteien</string>
+    <string name="vfs_zxart_parties_description">Browsen nach Fest</string>
+    <string name="vfs_zxart_toptracks_name">Top-Tonspuren</string>
+    <string name="vfs_zxart_toptracks_description">100 Tonspuren mit den meisten Stimmen</string>
+    <string name="vfs_zxart_unknown_year_name">Unbekanntes Jahr</string>
+    <!-- errors -->
+    <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
+    <string name="failed_resolve">Konnte zu lösen %s</string>
+</resources>

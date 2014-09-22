@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- <string name="pref_vfs_cache_external">Use external dir</string>-->
+  <!-- vfs.cache.external -->
+  <string  name="pref_vfs_cache_external" translatable="false">vfs.cache.external</string>
+  <bool name="pref_vfs_cache_external_default">false</bool>
+</resources>

@@ -96,7 +96,7 @@ namespace YMVTX
 
     virtual void SetChipType(bool ym)
     {
-      Properties.SetValue(Parameters::ZXTune::Core::AYM::TYPE, ym ? 1 : 0);
+      Properties.SetValue(Parameters::ZXTune::Core::AYM::TYPE, ym ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY);
     }
 
     virtual void SetStereoMode(uint_t mode)
@@ -233,10 +233,17 @@ namespace ZXTune
   {
     //plugin attributes
     const Char ID[] = {'Y', 'M', 0};
-
-    const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
-    const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    {
+      const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreatePackedYMDecoder();
+      const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+      registrator.RegisterPlugin(plugin);
+    }
+    {
+      const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
+      const Module::AYM::Factory::Ptr factory = boost::make_shared<Module::YMVTX::Factory>(decoder);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
+      registrator.RegisterPlugin(plugin);
+    }
   }
 }

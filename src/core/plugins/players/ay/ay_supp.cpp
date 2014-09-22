@@ -49,6 +49,7 @@ namespace AY
     explicit DataChannel(Devices::AYM::Device::Ptr chip)
       : Chip(chip)
       , Register()
+      , Blocked()
     {
     }
 
@@ -62,31 +63,58 @@ namespace AY
       Chip->Reset();
       Register = 0;
       Chunks.clear();
+      State = Devices::AYM::DataChunk();
+      Blocked = false;
+    }
+
+    void SetBlocked(bool block)
+    {
+      Blocked = block;
     }
 
     bool SelectRegister(uint_t reg)
     {
       Register = reg;
-      return Register < Devices::AYM::Registers::TOTAL;
+      return IsRegisterSelected();
     }
 
     bool SetValue(const Devices::AYM::Stamp& timeStamp, uint8_t val)
     {
-      if (Register < Devices::AYM::Registers::TOTAL)
+      if (IsRegisterSelected())
       {
-        Devices::AYM::DataChunk& chunk = AllocateChunk();
-        chunk.TimeStamp = timeStamp;
-        chunk.Data[static_cast<Devices::AYM::Registers::Index>(Register)] = val;
+        const Devices::AYM::Registers::Index idx = static_cast<Devices::AYM::Registers::Index>(Register);
+        if (!Blocked)
+        {
+          Devices::AYM::DataChunk& chunk = AllocateChunk();
+          chunk.TimeStamp = timeStamp;
+          chunk.Data[idx] = val;
+        }
+        State.Data[idx] = val;
         return true;
       }
       return false;
     }
 
+    uint8_t GetValue() const
+    {
+      if (IsRegisterSelected())
+      {
+        return State.Data[static_cast<Devices::AYM::Registers::Index>(Register)];
+      }
+      else
+      {
+        return 0xff;
+      }
+    }
+
     void SetBeeper(const Devices::AYM::Stamp& timeStamp, bool val)
     {
-      Devices::AYM::DataChunk& chunk = AllocateChunk();
-      chunk.TimeStamp = timeStamp;
-      chunk.Data.SetBeeper(val);
+      if (!Blocked)
+      {
+        Devices::AYM::DataChunk& chunk = AllocateChunk();
+        chunk.TimeStamp = timeStamp;
+        chunk.Data.SetBeeper(val);
+      }
     }
 
     void RenderFrame(const Devices::AYM::Stamp& till)
@@ -102,6 +130,11 @@ namespace AY
       return AYM::CreateAnalyzer(Chip);
     }
   private:
+    bool IsRegisterSelected() const
+    {
+      return Register < Devices::AYM::Registers::TOTAL;
+    }
+
     Devices::AYM::DataChunk& AllocateChunk()
     {
       Chunks.resize(Chunks.size() + 1);          
@@ -111,6 +144,8 @@ namespace AY
     const Devices::AYM::Device::Ptr Chip;
     uint_t Register;
     std::vector<Devices::AYM::DataChunk> Chunks;
+    Devices::AYM::DataChunk State;
+    bool Blocked;
   };
 
   class SoundPort
@@ -121,6 +156,7 @@ namespace AY
     virtual ~SoundPort() {}
 
     virtual void Reset() = 0;
+    virtual uint8_t Read(uint16_t port) = 0;
     virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data) = 0;
   };
 
@@ -135,6 +171,13 @@ namespace AY
     virtual void Reset()
     {
       AyData->SelectRegister(0);
+    }
+
+    virtual uint8_t Read(uint16_t port)
+    {
+      return IsSelRegPort(port)
+        ? AyData->GetValue()
+        : 0xff;
     }
 
     virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
@@ -194,6 +237,11 @@ namespace AY
       Selector = 0;
     }
 
+    virtual uint8_t Read(uint16_t /*port*/)
+    {
+      return 0xff;
+    }
+
     virtual bool Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
       if (IsDataPort(port))
@@ -246,9 +294,10 @@ namespace AY
   {
   public:
     explicit PortsPlexer(DataChannel::Ptr ayData)
-      : ZX(boost::make_shared<ZXAYPort>(ayData))
+      : Data(ayData)
+      , ZX(boost::make_shared<ZXAYPort>(ayData))
       , CPC(boost::make_shared<CPCAYPort>(ayData))
-      , Blocked(false)
+      , Current()
     {
     }
     typedef boost::shared_ptr<PortsPlexer> Ptr;
@@ -258,28 +307,31 @@ namespace AY
       return boost::make_shared<PortsPlexer>(ayData);
     }
 
-    void SetBlocked(bool blocked)
-    {
-      Blocked = blocked;
-    }
-
     void Reset()
     {
       ZX->Reset();
       CPC->Reset();
     }
 
-    virtual uint8_t Read(uint16_t /*port*/)
+    void SetBlocked(bool blocked)
     {
-      return 0xff;
+      Data->SetBlocked(blocked);
+    }
+
+    virtual uint8_t Read(uint16_t port)
+    {
+      if (Current)
+      {
+        return Current->Read(port);
+      }
+      else
+      {
+        return ZX->Read(port);
+      }
     }
 
     virtual void Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
     {
-      if (Blocked)
-      {
-        return;
-      }
       if (Current)
       {
         Current->Write(timeStamp, port, data);
@@ -287,7 +339,7 @@ namespace AY
       //check CPC first
       else if (CPC->Write(timeStamp, port, data))
       {
-        Current = CPC;
+        Current = CPC.get();
       }
       else 
       {
@@ -296,10 +348,10 @@ namespace AY
       }
     }
   private:
+    const DataChannel::Ptr Data;
     const SoundPort::Ptr ZX;
     const SoundPort::Ptr CPC;
-    SoundPort::Ptr Current;
-    bool Blocked;
+    SoundPort* Current;
   };
 
   class CPUParameters : public Devices::Z80::ChipParameters

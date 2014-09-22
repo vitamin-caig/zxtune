@@ -10,25 +10,32 @@
 
 package app.zxtune.ui;
 
+import java.util.Comparator;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import app.zxtune.R;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
+import app.zxtune.fs.VfsObject;
 
 public class BrowserView extends ListViewCompat {
+  
+  private static final String TAG = BrowserView.class.getName();
 
   private static final int LOADER_ID = BrowserView.class.hashCode();
 
-  private View loadingView;
+  private ProgressBar loadingView;
   private TextView emptyView;
 
   public BrowserView(Context context) {
@@ -53,22 +60,31 @@ public class BrowserView extends ListViewCompat {
   @Override
   public void setEmptyView(View stub) {
     super.setEmptyView(stub);
-    loadingView = stub.findViewById(R.id.browser_loading);
+    loadingView = (ProgressBar) stub.findViewById(R.id.browser_loading);
     emptyView = (TextView) stub.findViewById(R.id.browser_loaded);
   }
   
   //Required to call forceLoad due to bug in support library.
   //Some methods on callback does not called... 
-  final void load(LoaderManager manager, VfsDir dir, int pos) {
+  final void loadNew(LoaderManager manager, VfsDir dir, int pos) {
+    manager.destroyLoader(LOADER_ID);
     final ModelLoaderCallback cb = new ModelLoaderCallback(dir, pos);
-    manager.restartLoader(LOADER_ID, null, cb).forceLoad();
+    manager.initLoader(LOADER_ID, null, cb).forceLoad();
   }
 
   //load existing
-  final void load(LoaderManager manager) {
-    assert manager.getLoader(LOADER_ID) != null;
+  final boolean loadCurrent(LoaderManager manager) {
+    final Loader<BrowserViewModel> loader = manager.getLoader(LOADER_ID);
+    if (loader == null) {
+      Log.d(TAG, "Expired loader");
+      return false;
+    }
+    if (loader.isStarted()) {
+      showProgress();
+    }
     final ModelLoaderCallback cb = new ModelLoaderCallback();
     manager.initLoader(LOADER_ID, null, cb);
+    return true;
   }
   
   final void showError(Exception e) {
@@ -84,6 +100,7 @@ public class BrowserView extends ListViewCompat {
 
   //TODO: use ViewFlipper?
   private void showProgress() {
+    loadingView.setIndeterminate(true);
     loadingView.setVisibility(VISIBLE);
     emptyView.setVisibility(INVISIBLE);
   }
@@ -186,6 +203,26 @@ public class BrowserView extends ListViewCompat {
     }
   }
   
+  //Use from android.os when api16 will be minimal
+  private static class CancellationSignal {
+    
+    private volatile boolean canceled;
+    
+    final void cancel() {
+      canceled = true;
+    }
+    
+    final void throwIfCanceled() {
+      if (canceled) {
+        throw new OperationCanceledException();
+      }
+    }
+  }
+  
+  private static class OperationCanceledException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+  }
+  
   //Typical AsyncTaskLoader workflow from
   //http://developer.android.com/intl/ru/reference/android/content/AsyncTaskLoader.html
   //Must be static!!!
@@ -193,33 +230,70 @@ public class BrowserView extends ListViewCompat {
     
     private final VfsDir dir;
     private final BrowserView view;
+    private CancellationSignal signal;
 
     ModelLoader(Context context, VfsDir dir, BrowserView view) {
       super(context);
       this.dir = dir;
       this.view = view;
+      this.signal = new CancellationSignal();
       view.emptyView.setText(R.string.browser_empty);
     }
     
     @Override
+    protected void onReset() {
+      super.onReset();
+      signal.cancel();
+      Log.d(TAG, "Reset loader");
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
     public BrowserViewModel loadInBackground() {
+      final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
       try {
-        final RealBrowserViewModel model = new RealBrowserViewModel(getContext());
         dir.enumerate(new VfsDir.Visitor() {
           
+          int counter;
+          
           @Override
-          public Status onFile(VfsFile file) {
+          public void onItemsCount(int count) {
+            view.loadingView.setIndeterminate(false);
+            view.loadingView.setMax(count);
+          }
+
+          @Override
+          public void onFile(VfsFile file) {
             model.add(file);
-            return VfsDir.Visitor.Status.CONTINUE;
+            updateProgress();
+            signal.throwIfCanceled();
           }
           
           @Override
-          public Status onDir(VfsDir dir) {
+          public void onDir(VfsDir dir) {
             model.add(dir);
-            return VfsDir.Visitor.Status.CONTINUE;
+            updateProgress();
+            signal.throwIfCanceled();
+          }
+          
+          private void updateProgress() {
+            if (++counter % 10 == 0) {
+              view.post(new Runnable() {
+                @Override
+                public void run() {
+                  view.loadingView.setProgress(counter);
+                }
+              });
+            }
           }
         });
-        model.sort();
+        if (dir instanceof Comparator<?>) {
+          model.sort((Comparator<VfsObject>)dir);
+        } else {
+          model.sort();
+        }
+        return model;
+      } catch (OperationCanceledException e) {
         return model;
       } catch (final Exception e) {
         view.post(new Runnable() {

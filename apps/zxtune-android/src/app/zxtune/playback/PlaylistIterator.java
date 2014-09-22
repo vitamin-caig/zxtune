@@ -16,6 +16,7 @@ import java.io.InvalidObjectException;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import app.zxtune.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.ZXTune;
 import app.zxtune.fs.Vfs;
@@ -46,58 +47,72 @@ class PlaylistIterator implements Iterator {
 
   @Override
   public boolean next() {
-    return updateItem(getNext());
+    for (DatabaseIterator it = getNext(delegate); it.isValid(); it = getNext(it)) {
+      if (updateItem(it)) {
+        delegate = it;
+        return true;
+      }
+    }
+    return false;
   }
   
-  private DatabaseIterator getNext() {
+  private DatabaseIterator getNext(DatabaseIterator it) {
     switch (navigation.get()) {
       case LOOPED:
-        final DatabaseIterator next = delegate.getNext();
-        return next.isValid() ? next : delegate.getFirst();
+        final DatabaseIterator next = it.getNext();
+        return next.isValid() ? next : it.getFirst();
       case SHUFFLE:
-        return delegate.getRandom();
+        return it.getRandom();
       default:
-        return delegate.getNext();
+        return it.getNext();
     }
   }
 
   @Override
   public boolean prev() {
-    return updateItem(getPrev());
+    for (DatabaseIterator it = getPrev(delegate); it.isValid(); it = getPrev(it)) {
+      if (updateItem(it)) {
+        delegate = it;
+        return true;
+      }
+    }
+    return false;
   }
 
-  private DatabaseIterator getPrev() {
+  private DatabaseIterator getPrev(DatabaseIterator it) {
     switch (navigation.get()) {
       case LOOPED:
-        final DatabaseIterator prev = delegate.getPrev();
-        return prev.isValid() ? prev : delegate.getLast();
+        final DatabaseIterator prev = it.getPrev();
+        return prev.isValid() ? prev : it.getLast();
       case SHUFFLE:
-        return delegate.getRandom();
+        return it.getRandom();
       default:
         return delegate.getPrev();
     }
   }
   
   private boolean updateItem(DatabaseIterator iter) {
-    if (iter.isValid()) {
-      try {
-        item = loadItem(iter);
-        delegate = iter;
-        return true;
-      } catch (InvalidObjectException e) {
-        Log.d(TAG, "Skip not a module", e);
-      } catch (IOException e) {
-        Log.d(TAG, "Skip I/O error", e);
-      }
+    try {
+      item = loadItem(iter);
+      return true;
+    } catch (InvalidObjectException e) {
+      Log.d(TAG, "Skip not a module", e);
+    } catch (IOException e) {
+      Log.d(TAG, "Skip I/O error", e);
     }
     return false;
   }
   
   private PlayableItem loadItem(DatabaseIterator iter) throws IOException, InvalidObjectException {
     final app.zxtune.playlist.Item meta = iter.getItem();
-    final VfsFile file = (VfsFile) root.resolve(meta.getLocation());
-    final PlayableItem item = FileIterator.loadItem(file);
-    return new PlaylistItem(meta, item);
+    final Identifier id = new Identifier(meta.getLocation());
+    final VfsFile file = (VfsFile) root.resolve(id.getDataLocation());
+    if (file instanceof VfsFile) {
+      final PlayableItem item = FileIterator.loadItem(file, id.getSubpath());
+      return new PlaylistItem(meta, item);
+    } else {
+      throw new IOException("Failed to resolve " + id.getFullLocation().toString());
+    }
   }
   
   private static class PlaylistItem implements PlayableItem {

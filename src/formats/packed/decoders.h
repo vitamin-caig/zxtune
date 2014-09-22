@@ -29,6 +29,7 @@ namespace Formats
     Decoder::Ptr CreateLZSDecoder();
     Decoder::Ptr CreateMSPackDecoder();
     Decoder::Ptr CreatePowerfullCodeDecreaser61Decoder();
+    Decoder::Ptr CreatePowerfullCodeDecreaser61iDecoder();
     Decoder::Ptr CreatePowerfullCodeDecreaser62Decoder();
     Decoder::Ptr CreateTRUSHDecoder();
     Decoder::Ptr CreateZXZipDecoder();

@@ -1,15 +1,29 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:sabd="http://schemas.android.com/apk/res-auto" >
+  <!-- icons are not visible since items are not actions and not submenus
+    ic_menu_preferences
+    ic_menu_info_details
+    btn_star
+    ic_menu_close_clear_cancel
+  -->
   <item
     android:id="@+id/action_prefs"
     android:title="@string/prefs"
+    android:orderInCategory="100"
     sabd:showAsAction="never" />
   <item
     android:id="@+id/action_about"
     android:title="@string/about"
+    android:orderInCategory="101"
+    sabd:showAsAction="never" />
+  <item
+    android:id="@+id/action_rate"
+    android:title="@string/review"
+    android:orderInCategory="102"
     sabd:showAsAction="never" />
   <item
     android:id="@+id/action_quit"
     android:title="@string/quit"
+    android:orderInCategory="103"
     sabd:showAsAction="never" />
 </menu>

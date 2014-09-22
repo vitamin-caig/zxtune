@@ -31,6 +31,8 @@ namespace ZXTune
     CAP_DEV_DAC        = 0x20,
     //! SAA1099 support
     CAP_DEV_SAA1099    = 0x40,
+    //! SID (MOS6581/MOS8580) support
+    CAP_DEV_MOS6581    = 0x80,
 
     //! Storages-related capabilities
     CAP_STORAGE_MASK    = 0xff00,

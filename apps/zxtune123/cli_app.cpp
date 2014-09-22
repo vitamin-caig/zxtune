@@ -329,7 +329,6 @@ namespace
         using namespace boost::program_options;
 
         String configFile;
-        String providersOptions, coreOptions;
         options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
         options.add_options()
           (Text::HELP_KEY, Text::HELP_DESC)

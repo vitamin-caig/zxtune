@@ -249,14 +249,13 @@ namespace Chiptune
       ;
     }
 
-    void ParseTransponedMatrix(const uint8_t* data, std::size_t size, std::size_t columns, Builder& target)
+    void ParseTransponedMatrix(const uint8_t* data, std::size_t size, std::size_t rows, std::size_t columns, Builder& target)
     {
-      const std::size_t lines = size / columns;
-      Require(lines != 0);
-      for (std::size_t row = 0; row != lines; ++row)
+      Require(rows != 0);
+      for (std::size_t row = 0; row != rows; ++row)
       {
         Dump registers(columns);
-        for (std::size_t col = 0, cursor = row; col != columns; ++col, cursor += lines)
+        for (std::size_t col = 0, cursor = row; col != columns && cursor < size; ++col, cursor += rows)
         {
           registers[col] = data[cursor];
         }
@@ -264,18 +263,30 @@ namespace Chiptune
       }
     }
 
-    void ParseMatrix(const uint8_t* data, std::size_t size, std::size_t columns, Builder& target)
+    void ParseMatrix(const uint8_t* data, std::size_t size, std::size_t rows, std::size_t columns, Builder& target)
     {
-      const std::size_t lines = size / columns;
-      Require(lines != 0);
-      const uint8_t* cursor = data;
-      for (std::size_t row = 0; row != lines; ++row, data += columns)
+      Require(rows != 0);
+      const uint8_t* cursor = data, *limit = data + size;
+      for (std::size_t row = 0; row != rows; ++row)
       {
-        const Dump registers(cursor, cursor + columns);
-        target.AddData(registers);
+        const uint8_t* const nextCursor = cursor + columns;
+        if (nextCursor <= limit)
+        {
+          const Dump registers(cursor, nextCursor);
+          target.AddData(registers);
+        }
+        else
+        {
+          Dump registers = cursor < limit
+              ? Dump(cursor, limit)
+              : Dump();
+          registers.resize(columns);
+          target.AddData(registers);
+        }
+        cursor = nextCursor;
       }
     }
-
+    
     Formats::Chiptune::Container::Ptr ParseUnpacked(const Binary::Container& rawData, Builder& target)
     {
       const void* const data = rawData.Start();
@@ -296,7 +307,7 @@ namespace Chiptune
           const std::size_t lines = dumpSize / columns;
           const std::size_t matrixSize = lines * columns;
           const uint8_t* const src = stream.ReadData(matrixSize);
-          ParseTransponedMatrix(src, matrixSize, columns, target);
+          ParseTransponedMatrix(src, matrixSize, lines, columns, target);
           if (Ver3b::FastCheck(data, size))
           {
             const uint_t loop = fromBE(stream.ReadField<uint32_t>());
@@ -325,19 +336,24 @@ namespace Chiptune
 
           const std::size_t dumpOffset = stream.GetPosition();
           const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
+          const std::size_t lines = fromBE(header.Frames);
+          Dbg("ymver5: dump started at %1%, size %2%, vtbls %3%", dumpOffset, dumpSize, lines);
           const std::size_t columns = sizeof(Ver5::RegistersDump);
-          const std::size_t lines = dumpSize / columns;
-          const std::size_t matrixSize = lines * columns;
+          const std::size_t matrixSize = dumpSize;
+          const std::size_t availLines = dumpSize / columns;
+          if (availLines != lines)
+          {
+            Dbg("available only %1% lines", availLines);
+          }
           const uint8_t* const src = stream.ReadData(matrixSize);
           if (header.Interleaved())
           {
-            ParseTransponedMatrix(src, matrixSize, columns, target);
+            ParseTransponedMatrix(src, matrixSize, lines, columns, target);
           }
           else
           {
-            ParseMatrix(src, matrixSize, columns, target);
+            ParseMatrix(src, matrixSize, lines, columns, target);
           }
-          /*const Ver5::Footer& footer = */stream.ReadField<Ver5::Footer>();
           const Binary::Container::Ptr subData = stream.GetReadData();
           return CreateCalculatingCrcContainer(subData, dumpOffset, matrixSize);
         }
@@ -349,7 +365,13 @@ namespace Chiptune
       return Formats::Chiptune::Container::Ptr();
     }
 
-    Formats::Chiptune::Container::Ptr ParseYM(const Binary::Container& rawData, Builder& target)
+    const std::string FORMAT(
+      "'Y'M"
+      "'2-'6"
+      "'!|'b"
+    );
+      
+    Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target)
     {
       const void* const data = rawData.Start();
       const std::size_t size = rawData.Size();
@@ -373,7 +395,7 @@ namespace Chiptune
       return Formats::Chiptune::Container::Ptr();
     }
 
-    const std::string FORMAT(
+    const std::string PACKED_FORMAT(
       "16-ff"      //header size
       "?"          //header sum
       "'-'l'h'5'-" //method
@@ -388,7 +410,8 @@ namespace Chiptune
     {
     public:
       YMDecoder()
-        : Format(Binary::CreateFormat(FORMAT))
+        //disable seeking due to slight format  
+        : Format(Binary::CreateMatchOnlyFormat(FORMAT))
       {
       }
 
@@ -414,12 +437,53 @@ namespace Chiptune
           return Formats::Chiptune::Container::Ptr();
         }
         Builder& stub = GetStubBuilder();
-        return ParseYM(rawData, stub);
+        return ParseUnpacked(rawData, stub);
       }
 
       virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
       {
-        return ParseYM(data, target);
+        return ParseUnpacked(data, target);
+      }
+    private:
+      const Binary::Format::Ptr Format;
+    };
+
+    class PackedDecoder : public Formats::Chiptune::YM::Decoder
+    {
+    public:
+      PackedDecoder()
+        : Format(Binary::CreateFormat(PACKED_FORMAT))
+      {
+      }
+
+      virtual String GetDescription() const
+      {
+        return Text::YM_PACKED_DECODER_DESCRIPTION;
+      }
+
+      virtual Binary::Format::Ptr GetFormat() const
+      {
+        return Format;
+      }
+
+      virtual bool Check(const Binary::Container& rawData) const
+      {
+        return Format->Match(rawData);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const
+      {
+        if (!Format->Match(rawData))
+        {
+          return Formats::Chiptune::Container::Ptr();
+        }
+        Builder& stub = GetStubBuilder();
+        return ParsePacked(rawData, stub);
+      }
+
+      virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const
+      {
+        return ParsePacked(data, target);
       }
     private:
       const Binary::Format::Ptr Format;
@@ -556,8 +620,10 @@ namespace Chiptune
         if (const Packed::Container::Ptr unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {
           const std::size_t unpackedSize = unpacked->Size();
-          Require(0 == (unpackedSize % sizeof(RegistersDump)));
-          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), unpackedSize, sizeof(RegistersDump), target);
+          const std::size_t columns = sizeof(RegistersDump);
+          Require(0 == (unpackedSize % columns));
+          const std::size_t lines = unpackedSize / columns;
+          ParseTransponedMatrix(static_cast<const uint8_t*>(unpacked->Start()), unpackedSize, lines, columns, target);
           const std::size_t packedSize = unpacked->PackedSize();
           const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, packedOffset + packedSize);
           return CreateCalculatingCrcContainer(subData, packedOffset, packedSize);
@@ -625,15 +691,25 @@ namespace Chiptune
       return stub;
     }
 
-    Decoder::Ptr CreateYMDecoder()
+    Decoder::Ptr CreatePackedYMDecoder()
     {
       return boost::make_shared<YMDecoder>();
+    }
+
+    Decoder::Ptr CreateYMDecoder()
+    {
+      return boost::make_shared<PackedDecoder>();
     }
 
     Decoder::Ptr CreateVTXDecoder()
     {
       return boost::make_shared<VTX::Decoder>();
     }
+  }
+
+  Formats::Chiptune::Decoder::Ptr CreatePackedYMDecoder()
+  {
+    return YM::CreatePackedYMDecoder();
   }
 
   Formats::Chiptune::Decoder::Ptr CreateYMDecoder()

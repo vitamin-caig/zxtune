@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="384"
+   height="384"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.5 r10040"
+   sodipodi:docname="send.svg"
+   enable-background="new">
+  <defs
+     id="defs4">
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3263"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3263-3"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3263-3-8"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect3263-3-8-9"
+       is_visible="true" />
+    <filter
+       inkscape:collect="always"
+       id="filter4751">
+      <feBlend
+         inkscape:collect="always"
+         mode="lighten"
+         in2="BackgroundImage"
+         id="feBlend4753" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#a0a0a0"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="1"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.98994951"
+     inkscape:cx="98.828994"
+     inkscape:cy="137.48379"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1280"
+     inkscape:window-height="720"
+     inkscape:window-x="-4"
+     inkscape:window-y="-3"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid-mdpi"
+       empspacing="1"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       spacingx="12px"
+       spacingy="12px" />
+    <inkscape:grid
+       type="xygrid"
+       id="grid-hdpi"
+       empspacing="1"
+       visible="false"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       spacingx="8px"
+       spacingy="8px" />
+    <inkscape:grid
+       type="xygrid"
+       id="grid-xhdpi"
+       empspacing="1"
+       visible="false"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       spacingx="6px"
+       spacingy="6px" />
+    <inkscape:grid
+       type="xygrid"
+       id="grid-xxhdpi"
+       empspacing="1"
+       visible="false"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       spacingx="4px"
+       spacingy="4px" />
+    <inkscape:grid
+       type="xygrid"
+       id="grid-xxxhdpi"
+       empspacing="1"
+       visible="false"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       spacingx="3px"
+       spacingy="3px" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="Object"
+     style="filter:url(#filter4751)">
+    <path
+       inkscape:connector-curvature="0"
+       id="path1086"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;opacity:0.8"
+       d="m 288,246.10061 c -14.22561,0 -26.95032,6.06119 -35.59925,15.59076 l -112.0311,-57.64033 c 1.14439,-3.87665 1.79581,-7.94691 1.79581,-12.17713 0,-4.23021 -0.65142,-8.29626 -1.79581,-12.1687 l 112.0311,-57.64874 c 8.64893,9.52956 21.37364,15.59497 35.59925,15.59497 25.95999,0 47.07393,-20.17453 47.07393,-44.894972 0,-24.821458 -21.11394,-45.008622 -47.07393,-45.008622 -25.98639,0 -47.09153,20.187164 -47.09153,45.008622 0,4.221796 0.65142,8.292062 1.80461,12.168702 L 130.62035,162.4813 C 121.98463,153.00649 109.27312,147 95.065123,147 69.10514,147 48,167.02721 48,191.87391 c 0,24.85092 21.10514,44.87393 47.065123,44.87393 14.207997,0 26.919507,-5.99806 35.564027,-15.48552 l 112.08393,57.56456 c -1.15319,3.87665 -1.80461,7.94691 -1.80461,12.15607 0,24.8341 21.10514,45.01705 47.09153,45.01705 25.95999,0 47.07393,-20.18295 47.07393,-45.01705 0,-24.71622 -21.11394,-44.88234 -47.07393,-44.88234" />
+  </g>
+</svg>

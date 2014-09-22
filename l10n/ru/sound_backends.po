@@ -25,29 +25,29 @@ msgstr "Ошибка в подсистеме ALSA: %1%."
 msgid "Error in ALSA backend while working with device '%1%': %2%."
 msgstr "Ошибка при работе с ALSA устройством '%1%': %2%."
 
-#: alsa_backend.cpp:332
+#: alsa_backend.cpp:329
 msgid "No suitable formats supported by ALSA."
 msgstr ""
 "Ни один подходящий формат вывода звука не поддерживается подсистемой ALSA."
 
-#: alsa_backend.cpp:577
+#: alsa_backend.cpp:574
 #, boost-format
 msgid "Failed to found mixer '%1%' for ALSA backend."
 msgstr "Микшер '%1%' не найден в подсистеме ALSA."
 
-#: alsa_backend.cpp:622 dsound_backend.cpp:345 oss_backend.cpp:220
+#: alsa_backend.cpp:619 dsound_backend.cpp:345 oss_backend.cpp:220
 #: win32_backend.cpp:368
 msgid "Failed to set volume: gain is out of range."
 msgstr "Ошибка установки громкости: превышение допустимого значения."
 
-#: alsa_backend.cpp:704
+#: alsa_backend.cpp:701
 #, boost-format
 msgid "ALSA backend error: buffers count (%1%) is out of range (%2%..%3%)."
 msgstr ""
 "Ошибка в подсистеме ALSA: число буферов (%1%) превысило допустимые значения "
 "(%2%..%3%)."
 
-#: alsa_backend.cpp:1069 dsound_backend.cpp:618 win32_backend.cpp:608
+#: alsa_backend.cpp:1066 dsound_backend.cpp:619 win32_backend.cpp:608
 msgid "No suitable output devices found"
 msgstr "Не найдено ни одного подходящего устройства."
 

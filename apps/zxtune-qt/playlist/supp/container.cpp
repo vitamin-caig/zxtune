@@ -64,27 +64,6 @@ namespace
     const Playlist::Item::Storage& Storage;
   };
 
-  class CallbackWrapper : public Playlist::IO::ExportCallback
-  {
-  public:
-    explicit CallbackWrapper(Log::ProgressCallback& cb)
-      : Delegate(cb)
-    {
-    }
-
-    virtual void Progress(unsigned current)
-    {
-      Delegate.OnProgress(current);
-    }
-
-    virtual bool IsCanceled() const
-    {
-      return false;
-    }
-  private:
-    Log::ProgressCallback& Delegate;
-  };
-
   class SavePlaylistOperation : public Playlist::Item::StorageAccessOperation
   {
   public:
@@ -98,9 +77,14 @@ namespace
     virtual void Execute(const Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
     {
       const Playlist::IO::Container::Ptr container = boost::make_shared<ContainerImpl>(Name, storage);
-      CallbackWrapper callback(cb);
-      //TODO: handle error
-      Playlist::IO::SaveXSPF(container, Filename, callback, Flags);
+      try
+      {
+        Playlist::IO::SaveXSPF(container, Filename, cb, Flags);
+      }
+      catch (const Error& e)
+      {
+        //TODO: handle error
+      }
     }
   private:
     const String Name;
@@ -119,14 +103,14 @@ namespace
     }
 
     //do not track progress since view may not be created
-    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& /*cb*/)
+    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb)
     {
-      if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, Filename))
+      if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, Filename, cb))
       {
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString name = GetPlaylistName(*plParams);
         Controller.SetName(name);
-        storage.AddItems(container->GetItems());
+        storage.Add(container->GetItems());
       }
       else
       {

@@ -13,6 +13,7 @@ package app.zxtune.rpc;
 import java.util.concurrent.TimeUnit;
 
 import android.net.Uri;
+import android.os.DeadObjectException;
 import android.os.RemoteException;
 import android.util.Log;
 import app.zxtune.TimeStamp;
@@ -280,6 +281,8 @@ public final class PlaybackServiceClient implements PlaybackService {
           levels[i] = packed[i] >> 8;
         }
         return packed.length;
+      } catch (DeadObjectException e) {
+        throw new IllegalStateException(e);
       } catch (RemoteException e) {
         Log.e(TAG, "getSpectrum()", e);
         return 0;
@@ -303,6 +306,11 @@ public final class PlaybackServiceClient implements PlaybackService {
     @Override
     public void onItemChanged(ParcelablePlaybackItem item) {
       delegate.onItemChanged(item);
+    }
+    
+    @Override
+    public void onIOStatusChanged(boolean isActive) {
+      delegate.onIOStatusChanged(isActive);
     }
   }
 }

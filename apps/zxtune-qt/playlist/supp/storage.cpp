@@ -14,7 +14,6 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/iterator/counting_iterator.hpp>
 
@@ -97,6 +96,12 @@ namespace
       Parent::splice(position, x);
       Size += x.Size;
       x.Size = 0;
+    }
+    
+    void swap(ItemsContainer& rh)
+    {
+      Parent::swap(rh);
+      std::swap(Size, rh.Size);
     }
   private:
     std::size_t Size;
@@ -260,10 +265,8 @@ namespace
     virtual Model::OldToNewIndexMap::Ptr ResetIndices()
     {
       const boost::shared_ptr<Model::OldToNewIndexMap> result = boost::make_shared<Model::OldToNewIndexMap>();
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), std::inserter(*result, result->end()),
-        boost::bind(&MakeIndexPair, _1, _2));
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), Items.begin(),
-        boost::bind(&UpdateItemIndex, _1, _2));
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), std::inserter(*result, result->end()), &MakeIndexPair);
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), Items.begin(), &UpdateItemIndex);
       return result;
     }
 
@@ -272,14 +275,14 @@ namespace
       return Version;
     }
 
-    virtual void AddItem(Item::Data::Ptr item)
+    virtual void Add(Item::Data::Ptr item)
     {
       const IndexedItem idxItem(item, static_cast<Model::IndexType>(Items.size()));
       Items.push_back(idxItem);
       Modify();
     }
 
-    virtual void AddItems(Item::Collection::Ptr items)
+    virtual void Add(Item::Collection::Ptr items)
     {
       for (Model::IndexType idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
       {
@@ -351,6 +354,25 @@ namespace
       Modify();
     }
 
+    virtual void Shuffle()
+    {
+      std::vector<ItemsContainer::const_iterator> iters;
+      iters.reserve(Items.size());
+      for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
+      {
+        iters.push_back(it);
+      }
+      std::random_shuffle(iters.begin(), iters.end());
+      ItemsContainer newOne;
+      for (std::vector<ItemsContainer::const_iterator>::const_iterator it = iters.begin(), lim = iters.end(); it != lim; ++it)
+      {
+        newOne.push_back(**it);
+      }
+      newOne.swap(Items);
+      ClearCache();
+      Modify();
+    }
+    
     virtual void RemoveItems(const Model::IndexSet& indices)
     {
       if (indices.empty())

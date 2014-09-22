@@ -142,7 +142,7 @@ namespace
         }
         else
         {
-          Session->Load(Container);
+          RestorePlaylistSession();
         }
       }
       else
@@ -158,8 +158,11 @@ namespace
 
     virtual void Teardown()
     {
-      Playlist::Controller::Iterator::Ptr iter(new PlaylistsIterator(*widgetsContainer));
-      Session->Save(iter);
+      for (PlaylistsIterator it(*widgetsContainer); it.IsValid(); it.Next())
+      {
+        it.Get()->Shutdown();
+      }
+      StorePlaylistSession();
     }
 
     virtual QMenu* GetActionsMenu() const
@@ -257,11 +260,13 @@ namespace
     {
       Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
       view->hide();//to save layout
+      view->GetPlaylist()->Shutdown();
       widgetsContainer->removeTab(index);
       Dbg("Closed playlist idx=%1% val=%2%, active=%3%",
         index, view, ActivePlaylistView);
       if (view == ActivePlaylistView)
       {
+        emit Deactivated();
         ActivePlaylistView = 0;
         SwitchToLastPlaylist();
       }
@@ -309,7 +314,7 @@ namespace
       }
     }
 
-    virtual void ActivateItem(Playlist::Item::Data::Ptr item)
+    virtual void ActivateItem(Playlist::Item::Data::Ptr /*item*/)
     {
       if (QObject* sender = this->sender())
       {
@@ -317,12 +322,10 @@ namespace
         Playlist::UI::View* const newView = static_cast<Playlist::UI::View*>(sender);
         if (newView != ActivePlaylistView)
         {
-          Dbg("Switched playlist %1% -> %2%", newView, ActivePlaylistView);
-          ActivePlaylistView->Stop();
-          ActivePlaylistView = newView;
+          ActivePlaylistView->Stop();//just update state
+          SwitchTo(newView);
         }
       }
-      emit ItemActivated(item);
     }
   private:
     void SetupMenu()
@@ -357,12 +360,33 @@ namespace
       widgetsContainer->addTab(plView, playlist->GetName());
       Require(connect(plView, SIGNAL(Renamed(const QString&)), SLOT(RenamePlaylist(const QString&))));
       Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
+      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SIGNAL(ItemActivated(Playlist::Item::Data::Ptr))));
       if (!ActivePlaylistView)
       {
-        ActivePlaylistView = plView;
+        SwitchTo(plView);
       }
       widgetsContainer->setCurrentWidget(plView);
       return *plView;
+    }
+
+    void SwitchTo(Playlist::UI::View* plView)
+    {
+      Dbg("Switch playlist %1% -> %2%", ActivePlaylistView, plView);
+      const bool wasPrevious = ActivePlaylistView != 0;
+      if (wasPrevious)
+      {
+        const Playlist::Item::Iterator::Ptr iter = ActivePlaylistView->GetPlaylist()->GetIterator();
+        Require(iter->disconnect(this, SIGNAL(Activated(Playlist::Item::Data::Ptr))));
+        Require(iter->disconnect(this, SIGNAL(Deactivated())));
+      }
+      ActivePlaylistView = plView;
+      if (ActivePlaylistView)
+      {
+        const Playlist::Controller::Ptr ctrl = ActivePlaylistView->GetPlaylist();
+        const Playlist::Item::Iterator::Ptr iter = ctrl->GetIterator();
+        Require(connect(iter, SIGNAL(Activated(Playlist::Item::Data::Ptr)), SIGNAL(Activated(Playlist::Item::Data::Ptr))));
+        Require(connect(iter, SIGNAL(Deactivated()), SIGNAL(Deactivated())));
+      }
     }
 
     Playlist::UI::View& GetActivePlaylist()
@@ -400,9 +424,31 @@ namespace
     {
       if (QWidget* widget = widgetsContainer->widget(index))
       {
-        ActivePlaylistView = static_cast<Playlist::UI::View*>(widget);
-        Dbg("Switching to playlist idx=%1% val=%2%", index, ActivePlaylistView);
+        SwitchTo(static_cast<Playlist::UI::View*>(widget));
       }
+    }
+    
+    void RestorePlaylistSession()
+    {
+      Session->Load(Container);
+      Parameters::IntType idx = 0, trk = 0;
+      Options->FindValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
+      Options->FindValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
+      Dbg("Restore current playlist %1% with track %2%", idx, trk);
+      ActivatePlaylist(idx);
+      widgetsContainer->setCurrentIndex(idx);
+      ActivePlaylistView->GetPlaylist()->GetIterator()->Select(trk);
+    }
+    
+    void StorePlaylistSession()
+    {
+      Playlist::Controller::Iterator::Ptr iter(new PlaylistsIterator(*widgetsContainer));
+      Session->Save(iter);
+      const uint_t idx = widgetsContainer->indexOf(ActivePlaylistView);
+      const uint_t trk = ActivePlaylistView->GetPlaylist()->GetIterator()->GetIndex();
+      Dbg("Store current playlist %1% (visible is %2%), track %3%", idx, widgetsContainer->currentIndex(), trk);
+      Options->SetValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
+      Options->SetValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
     }
   private:
     const Parameters::Container::Ptr Options;

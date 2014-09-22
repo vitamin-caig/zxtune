@@ -48,7 +48,7 @@ namespace SAA
 
     virtual Devices::SAA::InterpolationType Interpolation() const
     {
-      Parameters::IntType intVal = 0;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::SAA::INTERPOLATION_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::SAA::INTERPOLATION, intVal);
       return static_cast<Devices::SAA::InterpolationType>(intVal);
     }

@@ -124,18 +124,6 @@ namespace TS
       return Module::Holder::Ptr();
     }
   private:
-    static AYM::Chiptune::Ptr OpenAYMModule(Binary::Container::Ptr data)
-    {
-      if (const AYM::Holder::Ptr holder = boost::dynamic_pointer_cast<const AYM::Holder>(Open(*data)))
-      {
-        return holder->GetChiptune();
-      }
-      else
-      {
-        return AYM::Chiptune::Ptr();
-      }
-    }
-  private:
     const Formats::Chiptune::TurboSound::Decoder::Ptr Decoder;
   };
 }

@@ -74,23 +74,21 @@ namespace
       Require(connect(&Timer, SIGNAL(timeout()), SIGNAL(OnUpdateState())));
     }
 
-    virtual void SetItem(Playlist::Item::Data::Ptr item)
+    virtual void SetDefaultItem(Playlist::Item::Data::Ptr item)
     {
-      const Module::Holder::Ptr module = item->GetModule();
-      if (!module)
+      if (Backend)
       {
         return;
       }
+      LoadItem(item);
+    }
+
+    virtual void SetItem(Playlist::Item::Data::Ptr item)
+    {
       try
       {
-        Stop();
-        Control = StubControl::Instance();
-        Backend.reset();
-        Backend = CreateBackend(module);
-        if (Backend)
+        if (LoadItem(item))
         {
-          Control = Backend->GetPlaybackControl();
-          Item = item;
           Control->Play();
         }
       }
@@ -98,6 +96,13 @@ namespace
       {
         emit ErrorOccurred(e);
       }
+    }
+
+    virtual void ResetItem()
+    {
+      Stop();
+      Control = StubControl::Instance();
+      Backend.reset();
     }
 
     virtual void Play()
@@ -186,6 +191,31 @@ namespace
       emit OnFinishModule();
     }
   private:
+    bool LoadItem(Playlist::Item::Data::Ptr item)
+    {
+      const Module::Holder::Ptr module = item->GetModule();
+      if (!module)
+      {
+        return false;
+      }
+      try
+      {
+        ResetItem();
+        Backend = CreateBackend(module);
+        if (Backend)
+        {
+          Control = Backend->GetPlaybackControl();
+          Item = item;
+          return true;
+        }
+      }
+      catch (const Error& e)
+      {
+        emit ErrorOccurred(e);
+      }
+      return false;
+    }
+
     Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module)
     {
       //create backend

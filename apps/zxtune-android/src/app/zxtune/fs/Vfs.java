@@ -14,11 +14,20 @@ import android.content.Context;
 
 public final class Vfs {
 
-  public static VfsRoot createRoot(Context context) {
-    final VfsRootComposite composite = new VfsRootComposite();
-    composite.addSubroot(new VfsRootLocal(context));
-    composite.addSubroot(new VfsRootZxtunes(context));
-    composite.addSubroot(new VfsRootPlaylists(context));
-    return composite;
+  private static VfsRoot rootSingleton;
+
+  public synchronized static VfsRoot createRoot(Context context) {
+    if (rootSingleton == null) {
+      final VfsRootComposite composite = new VfsRootComposite();
+      final Context appContext = context.getApplicationContext();
+      composite.addSubroot(new VfsRootLocal(appContext));
+      composite.addSubroot(new VfsRootZxtunes(appContext));
+      composite.addSubroot(new VfsRootPlaylists(appContext));
+      composite.addSubroot(new VfsRootModland(appContext));
+      composite.addSubroot(new VfsRootHvsc(appContext));
+      composite.addSubroot(new VfsRootZxart(appContext));
+      rootSingleton = composite;
+    }
+    return rootSingleton;
   }
 }

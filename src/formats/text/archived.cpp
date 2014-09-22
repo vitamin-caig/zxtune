@@ -21,6 +21,12 @@ extern const Char LHA_DECODER_DESCRIPTION[] = {
 extern const Char SCL_DECODER_DESCRIPTION[] = {
   'S','C','L',' ','(','S','I','N','C','L','A','I','R',')',0
 };
+extern const Char SID_ARCHIVE_DECODER_DESCRIPTION[] = {
+  'M','u','l','t','i','-','S','I','D','/','P','S','I','D','/','R','S','I','D',0
+};
+extern const Char SID_FILENAME_PREFIX[] = {
+  '#',0
+};
 extern const Char TRD_DECODER_DESCRIPTION[] = {
   'T','R','D',' ','(','T','R','-','D','O','S',')',0
 };

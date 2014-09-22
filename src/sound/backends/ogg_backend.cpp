@@ -9,11 +9,11 @@
 **/
 
 //local includes
-#include "ogg_api.h"
-#include "vorbis_api.h"
-#include "vorbisenc_api.h"
-#include "storage.h"
 #include "file_backend.h"
+#include "storage.h"
+#include "gates/ogg_api.h"
+#include "gates/vorbis_api.h"
+#include "gates/vorbisenc_api.h"
 //common includes
 #include <error_tools.h>
 //library includes

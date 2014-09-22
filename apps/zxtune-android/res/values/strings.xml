@@ -2,7 +2,7 @@
 <resources>
     <!-- menu-related -->
     <string name="prefs">Preferences</string>
-    <string name="about">About</string>
+    <string name="review">Rate</string>
     <string name="quit">Quit</string>
     <!-- action-related -->
     <string name="play">Play</string>
@@ -11,6 +11,8 @@
     <string name="clear">Clear</string>
     <string name="save">Save</string>
     <string name="overwrite">Overwrite</string>
+    <string name="send">Send</string>
+    <string name="share">Share</string>
     <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>
@@ -22,22 +24,6 @@
     <string name="scanning_failed">Failed to scan: %s</string>
     <string name="scanning_title">Scanning.</string>
     <string name="scanning_text">Click to cancel</string>
-    <!-- about-related -->
-    <string name="about_author">
-      Idea, code: <b>Vitamin/CAIG</b>\n
-      Design: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
-      Used sources:\n
-      \tAYEmul by <b>S.Bulba</b>\n
-      \tAYFly by <b>Ander</b>\n
-      \tPusher by <b>Himik/ZxZ</b>\n
-      Used libraries:\n
-      \tboost\n
-      \tz80ex by <b>Boo-boo</b>\n
-      \tlhasa by <b>Simon Howard</b>\n
-      \tDragSortListView by <b>Carl A.Bauer</b>\n
-      \n
-      Dedicated to <b>Lizzi</b>
-    </string>
     <!-- other -->
     <string name="main">Main</string>
     <plurals name="items">
@@ -49,4 +35,6 @@
       <item quantity="other">%d tracks</item>
     </plurals>
     <string name="no_tracks_found">No tracks found</string>
+    <string name="track">Track</string>
+    <string name="starting">Starting...</string>
 </resources>

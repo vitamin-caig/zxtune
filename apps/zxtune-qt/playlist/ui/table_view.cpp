@@ -180,20 +180,20 @@ namespace
       selectModel->select(selection, QItemSelectionModel::ClearAndSelect);
       if (!indices.empty())
       {
-        ActivateTableRow(*indices.rbegin());
+        MoveToTableRow(*indices.rbegin());
       }
+    }
+
+    virtual void MoveToTableRow(unsigned index)
+    {
+      QAbstractItemModel* const curModel = model();
+      const QModelIndex idx = curModel->index(index, 0);
+      scrollTo(idx, QAbstractItemView::EnsureVisible);
     }
 
     virtual void SelectItems(Playlist::Model::IndexSetPtr indices)
     {
       return SelectItems(*indices);
-    }
-
-    virtual void ActivateTableRow(unsigned index)
-    {
-      QAbstractItemModel* const curModel = model();
-      const QModelIndex idx = curModel->index(index, 0);
-      scrollTo(idx, QAbstractItemView::EnsureVisible);
     }
 
     virtual void ActivateItem(const QModelIndex& index)
@@ -202,6 +202,21 @@ namespace
       {
         const unsigned number = index.row();
         emit TableRowActivated(number);
+      }
+    }
+    
+    //Qt natives
+    virtual void keyboardSearch(const QString& search)
+    {
+      QAbstractItemView::keyboardSearch(search);
+      const QItemSelectionModel* const selection = selectionModel();
+      if (selection->hasSelection())
+      {
+        //selection->currentIndex() does not work
+        //items are orderen by selection, not by position
+        QModelIndexList items = selection->selectedRows();
+        qSort(items);
+        scrollTo(items.first(), QAbstractItemView::EnsureVisible);
       }
     }
   private:

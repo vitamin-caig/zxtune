@@ -10,32 +10,40 @@
 
 package app.zxtune;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Toast;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.PlaylistFragment;
+import app.zxtune.ui.ViewPagerAdapter;
 
 public class MainActivity extends ActionBarActivity implements PlaybackServiceConnection.Callback {
   
+  private static final int NO_PAGE = -1;
   private PlaybackService service;
+  private ViewPager pager;
+  private int browserPageIndex;
+  private BrowserFragment browser;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    supportRequestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     setContentView(R.layout.main_activity);
 
     fillPages();
@@ -57,6 +65,9 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
       case R.id.action_about:
         showAbout();
         break;
+      case R.id.action_rate:
+        rateApplication();
+        break;
       case R.id.action_quit:
         quit();
         break;
@@ -67,12 +78,37 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
   }
   
   @Override
+  public void onBackPressed() {
+    if (pager != null && pager.getCurrentItem() == browserPageIndex) {
+      browser.moveUp();
+    } else {
+      super.onBackPressed();
+    }
+  }
+  
+  @Override
+  public void onDestroy() {
+    browser = null;
+    pager = null;
+    super.onDestroy();
+  }
+  
+  @Override
   public void onServiceConnected(PlaybackService service) {
     this.service = service;
     for (Fragment f : getSupportFragmentManager().getFragments()) {
       if (f instanceof PlaybackServiceConnection.Callback) {
         ((PlaybackServiceConnection.Callback) f).onServiceConnected(service);
       }
+    }
+    redirectIntentData();
+  }
+  
+  private void redirectIntentData() {
+    final Intent intent = getIntent();
+    if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
+      final Uri[] path = {intent.getData()};
+      service.setNowPlaying(path);
     }
   }
   
@@ -82,47 +118,60 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
     if (null == manager.findFragmentById(R.id.now_playing)) {
       transaction.replace(R.id.now_playing, NowPlayingFragment.createInstance());
     }
-    if (null == manager.findFragmentById(R.id.browser_view)) {
-      transaction.replace(R.id.browser_view, BrowserFragment.createInstance());
+    browser = (BrowserFragment) manager.findFragmentById(R.id.browser_view);
+    if (null == browser) {
+      browser = BrowserFragment.createInstance();
+      transaction.replace(R.id.browser_view, browser);
     }
     if (null == manager.findFragmentById(R.id.playlist_view)) {
       transaction.replace(R.id.playlist_view, PlaylistFragment.createInstance());
     }
     PlaybackServiceConnection.register(manager, transaction);
     transaction.commit();
-    final ViewPager pager = (ViewPager) findViewById(R.id.view_pager);
+    setupViewPager();
+  }
+  
+  private void setupViewPager() {
+    pager = (ViewPager) findViewById(R.id.view_pager);
     if (null != pager) {
-      setupViewPager(pager);
+      final ViewPagerAdapter adapter = new ViewPagerAdapter(pager); 
+      pager.setAdapter(adapter);
+      browserPageIndex = adapter.getCount() - 1;
+      while (browserPageIndex >= 0 && !hasBrowserView(adapter.instantiateItem(pager, browserPageIndex))) {
+        --browserPageIndex;
+      }
+    } else {
+      browserPageIndex = NO_PAGE;
     }
   }
   
-  private void setupViewPager(ViewPager pager) {
-    final int childs = pager.getChildCount() - 1;
-    pager.setOffscreenPageLimit(childs);
-    final String[] titles = new String[childs];
-    for (int i = 0; i != titles.length; ++i) {
-      titles[i] = getTitle(pager.getChildAt(1 + i));
-    }
-    pager.setAdapter(new Adapter(titles));
-  }
-  
-  private String getTitle(View pane) {
-    //only String can be stored in View's tag, so try to decode manually
-    final String ID_PREFIX = "@";
-    final String tag = (String) pane.getTag();
-    return tag.startsWith(ID_PREFIX)
-      ? getStringByName(tag.substring(ID_PREFIX.length()))
-      : tag;
-  }
-  
-  private String getStringByName(String name) {
-    final int id = getResources().getIdentifier(name, null, getPackageName());
-    return getResources().getString(id);
+  private static boolean hasBrowserView(Object view) {
+    return ((View) view).findViewById(R.id.browser_view) != null;
   }
   
   private void showPreferences() {
     final Intent intent = new Intent(this, PreferencesActivity.class);
     startActivity(intent);
+  }
+  
+  private void rateApplication() {
+    final Intent intent = new Intent(Intent.ACTION_VIEW);
+    intent.setData(Uri.parse("market://details?id=" + getPackageName()));
+    if (!safeStartActivity(intent)) {
+      intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName()));
+      if (!safeStartActivity(intent)) {
+        Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
+      }
+    }
+  }
+  
+  private boolean safeStartActivity(Intent intent) {
+    try {
+      startActivity(intent);
+      return true;
+    } catch (ActivityNotFoundException e) {
+      return false;
+    }
   }
   
   private void showAbout() {
@@ -136,38 +185,5 @@ public class MainActivity extends ActionBarActivity implements PlaybackServiceCo
       PlaybackServiceConnection.shutdown(getSupportFragmentManager());
     }
     finish();
-  }
-  
-  private static class Adapter extends PagerAdapter {
-
-    private final String[] titles;
-
-    Adapter(String[] titles) {
-      this.titles = titles;
-    }
-
-    @Override
-    public int getCount() {
-      return titles.length;
-    }
-
-    @Override
-    public boolean isViewFromObject(View view, Object object) {
-      return view == object;
-    }
-
-    @Override
-    public Object instantiateItem(ViewGroup container, int position) {
-      return container.getChildAt(1 + position);
-    }
-
-    @Override
-    public void destroyItem(ViewGroup container, int position, Object object) {
-    }
-    
-    @Override
-    public CharSequence getPageTitle(int position) {
-      return titles[position]; 
-    }
   }
 }

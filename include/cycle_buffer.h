@@ -12,9 +12,11 @@
 
 //std includes
 #include <cstring>
+//boost includes
+#include <boost/noncopyable.hpp>
 
 template<class T>
-class CycleBuffer
+class CycleBuffer : public boost::noncopyable
 {
 public:
   explicit CycleBuffer(std::size_t size)

@@ -40,29 +40,64 @@ namespace Parameters
         extern const NameType CLOCKRATE;
         //@}
 
-        //! @brief Chip type
-        //! @details 0 is AY, else is YM
+        //@{
+        //! @name Chip type
+        const IntType TYPE_AY = 0;
+        const IntType TYPE_YM = 1;
+        //! Default is AY
+        const IntType TYPE_DEFAULT = TYPE_AY;
+        //! Parameter name
         extern const NameType TYPE;
+        //@}
 
-        //! @brief Use interpolation
-        //! @details integer value
+        //@{
+        //! @name Interpolation mode
+        const IntType INTERPOLATION_NONE = 0;
+        const IntType INTERPOLATION_LQ = 1;
+        const IntType INTERPOLATION_HQ = 2;
+        //! Default is HQ
+        const IntType INTERPOLATION_DEFAULT = INTERPOLATION_HQ;
+        //! Parameter name
         extern const NameType INTERPOLATION;
+        //@}
 
         //! @brief Frequency table for ay-based plugins
         //! @details String- table name or dump @see freq_tables.h
         extern const NameType TABLE;
 
-        //! @brief Duty cycle in percents
-        //! @details Integer. Valid values are 1..99. Default is 50
+        //@{
+        //! @name Duty cycle in percents
+        const IntType DUTY_CYCLE_MIN = 1;
+        const IntType DUTY_CYCLE_MAX = 99;
+        // Default is 50%
+        const IntType DUTY_CYCLE_DEFAULT = 50;
+        //! Parameter name
         extern const NameType DUTY_CYCLE;
+        //@}
 
-        //! @brief Duty cycle applied channels masks
+        //@{
+        //! @name Duty cycle applied channels masks
         //! @details @see core/devices/aym.h
+        const IntType DUTY_CYCLE_MASK_DEFAULT = 0;
+        //! Parameter name
         extern const NameType DUTY_CYCLE_MASK;
+        //@}
 
-        //! @brief Channels layout parameter
-        //! @details @see core/devices/aym.h
+        //@{
+        //! @name Channels layout parameter
+        //! @details @see core/devices/aym/chip.h
+        const IntType LAYOUT_ABC = 0;
+        const IntType LAYOUT_ACB = 1;
+        const IntType LAYOUT_BAC = 2;
+        const IntType LAYOUT_BCA = 3;
+        const IntType LAYOUT_CAB = 4;
+        const IntType LAYOUT_CBA = 5;
+        const IntType LAYOUT_MONO = 6;
+        //! Default is ABC
+        const IntType LAYOUT_DEFAULT = 0;
+        //! Parameter name
         extern const NameType LAYOUT;
+        //@}
       }
 
       //! @brief DAC-related parameters namespace
@@ -71,9 +106,15 @@ namespace Parameters
         //! @brief Parameters#ZXTune#Core#DAC namespace prefix
         extern const NameType PREFIX;
 
-        //! @brief Use interpolation
-        //! @details Integer value
+        //@{
+        //! @name Interpolation mode
+        const IntType INTERPOLATION_NO = 0;
+        const IntType INTERPOLATION_YES = 1;
+        //! Default is LQ
+        const IntType INTERPOLATION_DEFAULT = INTERPOLATION_NO;
+        //! Parameter name
         extern const NameType INTERPOLATION;
+        //@}
 
         const IntType SAMPLES_FREQUENCY_MIN = 800;
         const IntType SAMPLES_FREQUENCY_MAX = 16000;
@@ -127,7 +168,7 @@ namespace Parameters
       //! @brief SAA-related parameters namespace
       namespace SAA
       {
-        //! @brief Parameter#ZXTune#Core#SAA namespace prefix
+        //! @brief Parameters#ZXTune#Core#SAA namespace prefix
         extern const NameType PREFIX;
 
         //@{
@@ -141,9 +182,59 @@ namespace Parameters
         extern const NameType CLOCKRATE;
         //@}
 
-        //! @brief Use interpolation
-        //! @details integer value
+        //@{
+        //! @name Interpolation mode
+        const IntType INTERPOLATION_NONE = 0;
+        const IntType INTERPOLATION_LQ = 1;
+        const IntType INTERPOLATION_HQ = 2;
+        //! Default is LQ
+        const IntType INTERPOLATION_DEFAULT = INTERPOLATION_LQ;
+        //! Parameter name
         extern const NameType INTERPOLATION;
+        //@}
+      }
+
+      //! @brief SID-related parameters namespace
+      namespace SID
+      {
+        //! @brief Parameters#ZXTune#Core#SID namespace prefix
+        extern const NameType PREFIX;
+
+        //@{
+        //! @name SID filter emulation
+        const IntType FILTER_DISABLED = 0;
+        const IntType FILTER_ENABLED = 1;
+        //! Default is enabled
+        const IntType FILTER_DEFAULT = FILTER_ENABLED;
+        //! Parameter name
+        extern const NameType FILTER;
+        //@}
+
+        //@{
+        //! @name Interpolation mode
+        const IntType INTERPOLATION_NONE = 0;
+        const IntType INTERPOLATION_LQ = 1;
+        const IntType INTERPOLATION_HQ = 2;
+        //! Default is LQ
+        const IntType INTERPOLATION_DEFAULT = INTERPOLATION_NONE;
+        //! Parameter name
+        extern const NameType INTERPOLATION;
+        //@}
+
+        //! @brief ROMs section for full C64 environment emulation
+        namespace ROM
+        {
+          //! @brief Parameters#ZXTune#Core#SID#ROM namespace prefix
+          extern const NameType PREFIX;
+
+          //! @name ROMs content
+          //! 8192 bytes
+          extern const NameType KERNAL;
+          //! 8192 bytes
+          extern const NameType BASIC;
+          //! 4096 bytes
+          extern const NameType CHARGEN;
+        }
       }
     }
   }

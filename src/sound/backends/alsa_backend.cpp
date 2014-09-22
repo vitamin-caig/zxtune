@@ -10,10 +10,10 @@
 
 //local includes
 #include "alsa.h"
-#include "alsa_api.h"
 #include "backend_impl.h"
 #include "storage.h"
 #include "volume_control.h"
+#include "gates/alsa_api.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -223,7 +223,6 @@ namespace Alsa
   public:
     PCMDevice(Api::Ptr api, const Identifier& id)
       : AutoHandle<snd_pcm_t>(api, id.GetPCM())
-      , AlsaApi(api)
     {
       Open();
     }
@@ -275,8 +274,6 @@ namespace Alsa
         size -= res;
       }
     }
-  private:
-    const Api::Ptr AlsaApi;
   };
   
   template<class T>

@@ -76,7 +76,6 @@ namespace Rar
       , Limit(data.Size())
       , Offset(0)
     {
-      assert(0 == std::memcmp(Container.GetField<Packed::Rar::BlockHeader>(Offset), &MARKER, sizeof(MARKER)));
     }
 
     bool IsEof() const

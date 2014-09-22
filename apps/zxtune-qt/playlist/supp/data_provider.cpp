@@ -356,6 +356,11 @@ namespace
     {
       return ModuleId->Full();
     }
+
+    String GetFilePath() const
+    {
+      return ModuleId->Path();
+    }
   private:
     const Parameters::Accessor::Ptr CoreParams;
     const DataSource::Ptr Source;
@@ -415,8 +420,10 @@ namespace
     DataImpl(DynamicAttributesProvider::Ptr attributes,
         const ModuleSource& source,
         Parameters::Container::Ptr adjustedParams,
-        uint_t frames, const Parameters::Accessor& moduleProps)
-      : Attributes(attributes)
+        uint_t frames, const Parameters::Accessor& moduleProps,
+        uint_t caps)
+      : Caps(caps)
+      , Attributes(attributes)
       , Source(source)
       , AdjustedParams(adjustedParams)
       , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
@@ -448,6 +455,11 @@ namespace
       return Parameters::CreatePostChangePropertyTrackedContainer(AdjustedParams, const_cast<Parameters::Modifier&>(cb));
     }
 
+    virtual Playlist::Item::Capabilities GetCapabilities() const
+    {
+      return Caps;
+    }
+
     //playlist-related properties
     virtual Error GetState() const
     {
@@ -457,6 +469,11 @@ namespace
     virtual String GetFullPath() const
     {
       return Source.GetFullPath();
+    }
+
+    virtual String GetFilePath() const
+    {
+      return Source.GetFilePath();
     }
 
     virtual String GetType() const
@@ -552,6 +569,7 @@ namespace
       Duration.SetPeriod(period);
     }
   private:
+    const Playlist::Item::Capabilities Caps;
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
@@ -566,29 +584,6 @@ namespace
     mutable Error State;
   };
 
-  class ProgressCallbackAdapter : public Log::ProgressCallback
-  {
-  public:
-    explicit ProgressCallbackAdapter(Playlist::Item::DetectParameters& delegate)
-      : Delegate(delegate)
-    {
-    }
-
-    virtual void OnProgress(uint_t current)
-    {
-      Delegate.ShowProgress(current);
-    }
-
-    virtual void OnProgress(uint_t current, const String& message)
-    {
-      Delegate.ShowProgress(current);
-      Delegate.ShowMessage(message);
-    }
-  private:
-    Playlist::Item::DetectParameters& Delegate;
-  };
- 
-
   class DetectCallback : public Module::DetectCallback
   {
   public:
@@ -596,7 +591,6 @@ namespace
                             DynamicAttributesProvider::Ptr attributes,
                             CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, IO::Identifier::Ptr dataId)
       : Delegate(delegate)
-      , ProgressCallback(Delegate)
       , Attributes(attributes)
       , CoreParams(coreParams)
       , DataId(dataId)
@@ -609,7 +603,7 @@ namespace
       return CoreParams;
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const
     {
       const String subPath = location->GetPath()->AsString();
       const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
@@ -620,17 +614,16 @@ namespace
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,
-        info->FramesCount(), *lookupModuleProps);
+        info->FramesCount(), *lookupModuleProps, decoder->Capabilities());
       Delegate.ProcessItem(playitem);
     }
 
     virtual Log::ProgressCallback* GetProgress() const
     {
-      return &ProgressCallback;
+      return Delegate.GetProgress();
     }
   private:
     Playlist::Item::DetectParameters& Delegate;
-    mutable ProgressCallbackAdapter ProgressCallback;
     const DynamicAttributesProvider::Ptr Attributes;
     const Parameters::Accessor::Ptr CoreParams;
     const IO::Identifier::Ptr DataId;
@@ -673,8 +666,7 @@ namespace
       const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
 
       const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, id->Subpath());
-      const Module::Holder::Ptr module = Module::Open(location);
-      detectCallback.ProcessModule(location, module);
+      Module::Open(location, detectCallback);
     }
   private:
     const CachedDataProvider::Ptr Provider;

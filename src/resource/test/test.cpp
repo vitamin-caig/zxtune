@@ -28,6 +28,21 @@ namespace
     }
   }
 
+  template<class T>
+  void TestEq(const char* msg, T ref, T res)
+  {
+    std::cout << msg;
+    if (ref == res)
+    {
+       std::cout << " passed" << std::endl;
+    }
+    else
+    {
+       std::cout << " failed (ref=" << ref << " res=" << res << ")" << std::endl;
+       throw 1;
+    }
+  }
+
   Dump OpenFile(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::binary);
@@ -48,7 +63,7 @@ namespace
   public:
     LoadEachFileVisitor()
     {
-      LoadFile("Makefile");
+      LoadFile("file");
       LoadFile("nested/dir/file");
     }
 
@@ -58,7 +73,8 @@ namespace
       Test("Test file exists", 1 == Etalons.count(name));
       const Binary::Container::Ptr data = Resource::Load(name);
       const Dump& ref = Etalons[name];
-      Test("Test file is expected", ref.size() == data->Size() && 0 == std::memcmp(&ref[0], data->Start(), ref.size()));
+      TestEq("Test file is expected size", ref.size(), data->Size());
+      Test("Test file is expected content", 0 == std::memcmp(&ref[0], data->Start(), ref.size()));
       Etalons.erase(name);
     }
 

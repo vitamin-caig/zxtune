@@ -56,7 +56,6 @@ namespace Playlist
       typedef Iterator* Ptr;
 
       //access
-      virtual const Data* GetData() const = 0;
       virtual unsigned GetIndex() const = 0;
       virtual State GetState() const = 0;
       //change
@@ -64,13 +63,19 @@ namespace Playlist
       //navigate
       virtual bool Next(unsigned playorderMode) = 0;
       virtual bool Prev(unsigned playorderMode) = 0;
+
+      //select item without activation 
+      virtual void Select(unsigned idx) = 0;
     public slots:
       //navigate
       virtual void Reset(unsigned idx) = 0;
-      //updates
+    private slots:
       virtual void UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr remapping) = 0;
     signals:
-      void ItemActivated(unsigned idx, Playlist::Item::Data::Ptr data);
+      void Activated(Playlist::Item::Data::Ptr);
+      void ItemActivated(Playlist::Item::Data::Ptr);
+      void ItemActivated(unsigned idx);
+      void Deactivated();
     };
   }
 
@@ -99,6 +104,7 @@ namespace Playlist
     virtual Scanner::Ptr GetScanner() const = 0;
     virtual Model::Ptr GetModel() const = 0;
     virtual Item::Iterator::Ptr GetIterator() const = 0;
+    virtual void Shutdown() = 0;
   public slots:
     virtual void ShowNotification(Playlist::TextNotification::Ptr notification) = 0;
   signals:

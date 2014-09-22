@@ -1,4 +1,4 @@
-pkg_file = $(pkg_dir)/$(pkg_name)_r$(pkg_revision)$(pkg_subversion)_rpi_armhf.zip
+pkg_file = $(pkg_dir)/$(pkg_name)_$(pkg_version)_rpi_armhf.zip
 pkg_root = $(pkg_dir)/root
 
 package_rpi:

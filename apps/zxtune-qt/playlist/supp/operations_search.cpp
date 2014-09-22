@@ -67,14 +67,14 @@ namespace
     explicit SearchOperation(Predicate::Ptr pred)
       : Pred(pred)
     {
-      Require(Pred);
+      Require(Pred != 0);
     }
 
     SearchOperation(Playlist::Model::IndexSetPtr items, Predicate::Ptr pred)
       : SelectedItems(items)
       , Pred(pred)
     {
-      Require(Pred);
+      Require(Pred != 0);
     }
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)

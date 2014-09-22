@@ -29,7 +29,6 @@ namespace Module
         , State(Delegate->GetStateObserver())
         , Render(renderer)
       {
-        FillCurrentData();
       }
 
       virtual void Reset()
@@ -37,7 +36,6 @@ namespace Module
         Params.Reset();
         Delegate->Reset();
         Render->Reset();
-        FillCurrentData();
       }
 
       virtual bool IsValid() const
@@ -48,7 +46,6 @@ namespace Module
       virtual void NextFrame(bool looped)
       {
         Delegate->NextFrame(looped);
-        FillCurrentData();
       }
 
       virtual TrackState::Ptr GetStateObserver() const
@@ -58,25 +55,20 @@ namespace Module
 
       virtual Devices::AYM::Registers GetData() const
       {
-        return CurrentData;
+        return Delegate->IsValid()
+          ? GetCurrentChunk()
+          : Devices::AYM::Registers();
       }
     private:
-      void FillCurrentData()
+      Devices::AYM::Registers GetCurrentChunk() const
       {
-        if (Delegate->IsValid())
-        {
-          SynchronizeParameters();
-          TrackBuilder builder(Table);
-          Render->SynthesizeData(*State, builder);
-          CurrentData = builder.GetResult();
-        }
-        else
-        {
-          CurrentData = Devices::AYM::Registers();
-        }
+        SynchronizeParameters();
+        TrackBuilder builder(Table);
+        Render->SynthesizeData(*State, builder);
+        return builder.GetResult();
       }
 
-      void SynchronizeParameters()
+      void SynchronizeParameters() const
       {
         if (Params.IsChanged())
         {
@@ -88,8 +80,7 @@ namespace Module
       const TrackStateIterator::Ptr Delegate;
       const TrackModelState::Ptr State;
       const AYM::DataRenderer::Ptr Render;
-      Devices::AYM::Registers CurrentData;
-      FrequencyTable Table;
+      mutable FrequencyTable Table;
     };
 
     void ChannelBuilder::SetTone(int_t halfTones, int_t offset)

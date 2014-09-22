@@ -42,14 +42,10 @@ namespace
       : Playlist::Item::Iterator(parent)
       , Model(model)
       , Index(NO_INDEX)
-      , Item()
       , State(Playlist::Item::STOPPED)
     {
-    }
-
-    virtual const Playlist::Item::Data* GetData() const
-    {
-      return Item.get();
+      Require(connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
+        SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
     }
 
     virtual unsigned GetIndex() const
@@ -81,6 +77,11 @@ namespace
       State = state;
     }
 
+    virtual void Select(unsigned idx)
+    {
+      Activate(idx);
+    }
+    
     virtual void Reset(unsigned idx)
     {
       SelectItem(idx);
@@ -91,8 +92,7 @@ namespace
       Dbg("Iterator: index changed.");
       if (NO_INDEX == Index)
       {
-        Dbg("Iterator: nothing to update");
-        return;
+        return Activate(0);
       }
       if (const Playlist::Model::IndexType* moved = remapping->FindNewIndex(Index))
       {
@@ -107,9 +107,7 @@ namespace
           return;
         }
       }
-      //invalidated
-      Index = NO_INDEX;
-      Dbg("Iterator: invalidated after removing.");
+      Deactivate();
     }
   private:
     bool SelectItem(unsigned idx)
@@ -117,16 +115,16 @@ namespace
       if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
         Dbg("Iterator: selected %1%", idx);
-        Item = item;
         Index = idx;
-        if (Item->GetState())
+        if (item->GetState())
         {
           State = Playlist::Item::ERROR;
         }
         else
         {
           State = Playlist::Item::STOPPED;
-          emit ItemActivated(Index, item);
+          emit ItemActivated(item);
+          emit ItemActivated(Index);
         }
         return true;
       }
@@ -158,10 +156,26 @@ namespace
         : newIndex;
       return SelectItem(mappedIndex);
     }
+
+    void Activate(unsigned idx)
+    {
+      if (const Playlist::Item::Data::Ptr item = Model->GetItem(idx))
+      {
+        Index = idx;
+        Dbg("Iterator: activated at %1%.", idx);
+        emit Activated(item);
+      }
+    }
+
+    void Deactivate()
+    {
+      Index = NO_INDEX;
+      Dbg("Iterator: invalidated after removing.");
+      emit Deactivated();
+    }
   private:
     const Playlist::Model::Ptr Model;
     unsigned Index;
-    Playlist::Item::Data::Ptr Item;
     Playlist::Item::State State;
   };
 
@@ -178,8 +192,6 @@ namespace
       //use direct connection due to possible model locking
       Require(Model->connect(Scanner, SIGNAL(ItemFound(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
       Require(Model->connect(Scanner, SIGNAL(ItemsFound(Playlist::Item::Collection::Ptr)), SLOT(AddItems(Playlist::Item::Collection::Ptr)), Qt::DirectConnection));
-      Require(Iterator->connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
-        SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
 
       Dbg("Created at %1%", this);
     }
@@ -218,6 +230,13 @@ namespace
     virtual Playlist::Item::Iterator::Ptr GetIterator() const
     {
       return Iterator;
+    }
+
+    virtual void Shutdown()
+    {
+      Dbg("Shutdown at %1%", this);
+      Scanner->Stop();
+      Model->CancelLongOperation();
     }
 
     virtual void ShowNotification(Playlist::TextNotification::Ptr notification)

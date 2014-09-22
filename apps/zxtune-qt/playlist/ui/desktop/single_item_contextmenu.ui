@@ -9,10 +9,10 @@
   <addaction name="DelDupsAction"/>
   <addaction name="SelectionSubmenu"/>
   <addaction name="separator"/>
-  <addaction name="CopyToClipboardAction"/>
   <addaction name="ExportAction"/>
   <addaction name="ConvertAction"/>
   <addaction name="separator"/>
+  <addaction name="CopyToClipboardAction"/>
   <addaction name="PropertiesAction"/>
   <action name="PlayAction">
    <property name="icon">
@@ -65,6 +65,7 @@
    </property>
    <addaction name="SelRipOffsAction"/>
    <addaction name="SelSameTypesAction"/>
+   <addaction name="SelSameFilesAction"/>
   </widget>
   <action name="SelRipOffsAction">
    <property name="text">
@@ -74,6 +75,11 @@
   <action name="SelSameTypesAction">
    <property name="text">
     <string>Items with the same type</string>
+   </property>
+  </action>
+  <action name="SelSameFilesAction">
+   <property name="text">
+    <string>Items from the same file</string>
    </property>
   </action>
   <action name="CopyToClipboardAction">

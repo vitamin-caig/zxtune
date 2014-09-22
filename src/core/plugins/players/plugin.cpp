@@ -48,7 +48,7 @@ namespace ZXTune
         properties.SetLocation(*inputData);
         if (const Module::Holder::Ptr holder = Factory->CreateModule(properties, *data))
         {
-          callback.ProcessModule(inputData, holder);
+          callback.ProcessModule(inputData, Description, holder);
           Parameters::IntType usedSize = 0;
           properties.GetResult()->FindValue(Module::ATTR_SIZE, usedSize);
           return Analysis::CreateMatchedResult(static_cast<std::size_t>(usedSize));

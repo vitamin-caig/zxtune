@@ -41,6 +41,14 @@ namespace Parameters
       const IntType RANDOMIZED_DEFAULT = 0;
       //@}
 
+      //@}
+      //! @name Index of last played tab 
+      const NameType INDEX = PREFIX + "Index";
+      
+      //! @name Index of last played track
+      const NameType TRACK = PREFIX + "Track";
+      //@}
+
       namespace Cache
       {
         const std::string NAMESPACE_NAME("Cache");

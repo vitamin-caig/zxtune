@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="selection">Markieren</string>
+    <string name="select_all">Alles</string>
+    <string name="select_none">Keiner</string>
+    <string name="select_invert">Invertieren</string>
+</resources>

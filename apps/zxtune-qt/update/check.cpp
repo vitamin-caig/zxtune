@@ -165,12 +165,13 @@ namespace
 
   unsigned short VersionToRevision(const QString& str)
   {
-    static const QLatin1String REV_FORMAT("(\?:r(\?:ev)\?)?(\\d{4,5})");
+    static const QLatin1String REV_FORMAT("(\?:r(\?:ev)\?)\?(\\d{4,5}).*");
     QRegExp expr(REV_FORMAT);
     if (expr.exactMatch(str))
     {
+      const QString rev = expr.cap(1);
       bool ok = false;
-      const unsigned short val = expr.cap(1).toShort(&ok);
+      const unsigned short val = rev.toShort(&ok);
       if (ok)
       {
         return val;

@@ -2,13 +2,13 @@
 * 
 * @file
 *
-* @brief  Stub implementation of container plugins support
+* @brief  Container plugins stub factory
 *
 * @author vitamin.caig@gmail.com
 *
 **/
 
-//library includes
+//local includes
 #include <core/plugins/registrator.h>
 
 namespace ZXTune

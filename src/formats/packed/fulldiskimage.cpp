@@ -168,7 +168,6 @@ namespace FullDiskImage
 
     std::size_t GetUsedSize()
     {
-      assert(IsValid && !Decoded.empty());
       return UsedSize;
     }
   private:

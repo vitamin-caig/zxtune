@@ -30,7 +30,7 @@ class BrowserState {
     this.current = new PathAndPosition();
   }
   
-  Uri getCurrentPath() {
+  final Uri getCurrentPath() {
     return current.getPath();
   }
   
@@ -93,7 +93,7 @@ class BrowserState {
   private class PathAndPosition {
     
     private final int index;
-    private Uri path;
+    private final Uri path;
     private int position;
     
     PathAndPosition() {

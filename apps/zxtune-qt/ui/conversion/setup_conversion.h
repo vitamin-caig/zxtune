@@ -10,10 +10,8 @@
 
 #pragma once
 
-//library includes
-#include <parameters/accessor.h>
-//library includes
-#include <sound/service.h>
+//local includes
+#include "playlist/supp/conversion.h"
 //qt includes
 #include <QtGui/QDialog>
 
@@ -29,10 +27,10 @@ namespace UI
 
     static Ptr Create(QWidget& parent);
 
-    virtual Sound::Service::Ptr Execute(String& type) = 0;
+    virtual bool Execute(Playlist::Item::Conversion::Options& opts) = 0;
   private slots:
     virtual void UpdateDescriptions() = 0;
   };
 
-  Sound::Service::Ptr GetConversionService(QWidget& parent, String& type);
+  bool GetConversionParameters(QWidget& parent, Playlist::Item::Conversion::Options& opts);
 }

@@ -4,7 +4,7 @@ Release:            1
 Version:            r%{pkg_revision}
 License:            GPLv3
 Group:              Applications/Multimedia
-URL:                http://zxtune.googlecode.com
+URL:                http://zxtune.bitbucket.org/
 Conflicts:          zxtune
 Vendor:             vitamin.caig@gmail.com
 

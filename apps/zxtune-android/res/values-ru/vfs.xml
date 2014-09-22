@@ -13,6 +13,28 @@
     <!-- Playlists -->
     <string name="vfs_playlists_root_name">Списки</string>
     <string name="vfs_playlists_root_description">Сохраненные списки</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - самый большой архив модулей</string>
+    <string name="vfs_modland_root_description">Через http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">Авторы</string>
+    <string name="vfs_modland_authors_description">Навигация по автору</string>
+    <string name="vfs_modland_collections_name">Коллекции</string>
+    <string name="vfs_modland_collections_description">Навигация по коллекции</string>
+    <string name="vfs_modland_formats_name">Форматы</string>
+    <string name="vfs_modland_formats_description">Навигация по формату</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_description">Через http://www.prg.dtu.dk</string>
+    <!-- zxart.ee -->
+    <string name="vfs_zxart_root_name">ZX-Art - новая музыка ZX Spectrum</string>
+    <string name="vfs_zxart_root_description">http://www.zxart.ee/rus/muzyka</string>
+    <string name="vfs_zxart_authors_name">Авторы</string>
+    <string name="vfs_zxart_authors_description">Навигация по авторуr</string>
+    <string name="vfs_zxart_parties_name">Пати</string>
+    <string name="vfs_zxart_parties_description">Навигация по событиям</string>
+    <string name="vfs_zxart_toptracks_name">Топ треков</string>
+    <string name="vfs_zxart_toptracks_description">100 треков с наивысшей оценкой</string>
+    <string name="vfs_zxart_unknown_year_name">Неизвестный год</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
+    <string name="failed_resolve">Не найден путь %s</string>
 </resources>

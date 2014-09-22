@@ -5,7 +5,129 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
---- $Rev$ from $Date$
+--- Rev3100 from 22.09.2014
+
+[+] Support unpacked YM files
+[+] Support PCD6.1i packer modification
+[*] Proper size detection of PCD blocks
+[*] Improved support of CodeCruncher3 (CC3) packed blocks
+[+] zxtune-qt: shuffle playlist functionality
+[+] zxtune-qt: hotkeys for playback controls
+[+] zxtune-qt: fast navigation on playlist via letters keys
+[+] zxtune-qt: load/save currently played item and active playlist
+[*] zxtune-qt: fix lost playlist items drag'n'drop feature
+[+] zxtune-android: www.zxart.ee music catalog support
+[*] zxtune-android: do not use fixed width for current/total time panes
+
+--- Rev3077 from 30.07.2014
+
+[*] zxtune-android: fix crashes on UI activities if background service is not started yet
+
+--- Rev3075 from 23.07.2014
+
+[*] Reduce size of SID song lengths database
+[*] zxtune-android: change HVSC source to http://www.prg.dtu.dk
+[*] zxtune-qt: support statistic and selection based on module's file.
+
+--- Rev3070 from 09.06.2014
+
+[+] zxtune-android: support installation/moving to SD card
+[*] zxtune-android: display author info at lockscreen widget
+[*] zxtune-android: improve media buttons handling
+
+--- Rev3065 from 27.05.2014
+
+[+] zxtune-android: sending any currently playing module and sharing playing modules from zxtunes.com
+[+] zxtune-android: 'Open with' system menu integration for some of the supported file types
+[+] zxtune-android: standard lockscreen widget (only for Android 4.0+ and enabled media buttons control)
+[*] zxtune-android: reworked media buttons conrol processing
+[*] zxtune-android: reworked main menu
+[*] zxtune-android: wait for I/O operations finish before exit
+[*] zxtune-android: fix crash on some parent directory movements in browser
+[*] zxtune-android: fix crash on startup in some cases
+
+--- Rev3050 from 29.04.2014
+
+[+] Support SID format version 3
+[*] Fix msvs binaries working on Windows XP
+[*] zxtune-qt: fix redundand playlist updates while scan
+[*] zxtune-android: detailed information about resolve error
+[*] zxtune-android: improved zxtunes.com cache
+[*] zxtune-android: fix cache processing for HVSC catalog
+
+--- Rev3040 from 22.04.2014
+
+[+] zxtune-qt: auto-select first newly added item for playback
+[*] zxtune-qt: reset currently playing item on playlist clearing/closing
+[+] zxtune-android: next/prev buttons in notification area (only for Android 3.0+)
+[+] zxtune-android: i/o operations notification in action bar
+[+] zxtune-android: directory listing operation progress in browser
+[+] zxtune-android: sequenced playback in browser preview mode
+[*] zxtune-android: fix playback sequence processing for last element
+[*] zxtune-android: fix crashes while playlist playback for pre-4.1 versions
+
+--- Rev3005 from 07.04.2014
+
+[+] zxtune-android: initial deutsche translation
+[*] zxtune-android: fixed crash on file playback queue end
+
+--- Rev3000 from 03.04.2014
+
+[+] Support MOS6581/SID playback (PSID/RSID formats) using libsidplayfp library
+[+] Supported https scheme for network sources
+[*] Fixes in AS0/ASC playback of some modules
+[*] Fixed playback of incorrect YM5 files
+[*] Fixed different note tables support in TurboSound containers
+[*] Fixed playback of some AY modules
+[*] Distribute msvc CRT for windows builds (msvcp120.dll, msvcr120.dll)
+[+] zxtune-android: support High Voltage SID Collection via http://www.tld-crew.de
+[+] zxtune-android: support multitrack AY and SID files
+[+] zxtune-android,zxtune-qt: support 3.5 MHz AY/YM preset
+[*] zxtune-android: fixed sequence/loop mode saving on some devices
+[+] zxtune-android: fixed multiple crashes reported by GooglePlay channel
+[*] zxtune-qt: fixed some parameters reset after language change
+
+--- Rev2880 from 26.12.2013
+
+[*] Fixed SAA playback for some platforms
+[*] Improved detection of STIM (SlamTilt) tracks
+[+] zxtune-android: support ModLand chiptunes collection via exotica.org.uk catalogue and ftp.amigascne.org mirror
+[*] zxtune-android: fixed crash on unknown size files downloading from network
+[*] zxtune-android: fixed browse progress cancelation on current directory change
+
+--- Rev2850 from 19.12.2013
+
+[*] Fixed IMS and MOD formats detection
+
+--- Rev2820 from 16.12.2013
+
+[+] Support of S3M modules without synthesized samples
+[*] zxtune-android: updated about dialog
+
+--- Rev2800 from 11.12.2013
+
+[+] Support more than 40 chiptune formats via libxmp library
+[*] zxtune-android: fix crash on invalid playlist item load
+[*] zxtune-android: skip invalid playlist items
+[*] zxtune-android: use locale-independent vfs paths
+[*] zxtune-android: rewind finished modules
+[*] zxtune-android: back button acts like move up in browser pane
+[*] zxtune-qt: disable loop flag for conversion
+[*] zxtune-qt: improve responsiveness of progress-related operations
+[*] zxtune-qt: progress for playlists loading
+[*] zxtune-qt: fix crash on playlist/program close while asynchronous operation(s) in progress
+
+--- Rev2742 from 09.12.2013
+
+[*] Fixed crashes in DMM parsing
+[*] Skip invalid files in LHA archives
+[*] zxtune-qt: human-readable data size in playlist statistic
+[*] zxtune-qt: use text instead of type icons
+[+] zxtune-android: playlist items reordering
+[*] zxtune-android: disable looped and shuffled playback of single playlist files
+[+] zxtune-android: plugins information in About dialog
+
+--- Rev2718 from 19.11.2013
 
 [+] zxtune-android: toast messages for scan service events
 [+] zxtune-android: save whole playlist and selected items

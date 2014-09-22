@@ -49,7 +49,7 @@ INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
 	$(addprefix -D,$(DEFINITIONS) $($(platform).definitions) $($(platform).$(arch).definitions)) \
 	-funsigned-char -fno-strict-aliasing \
-	-W -Wall -Wextra -pipe \
+	-W -Wall -Wextra -Wno-unused-local-typedefs -pipe \
 	$(addprefix -I,$(INCLUDES))
 
 CXXFLAGS = $(CCFLAGS) -ansi -fvisibility=hidden -fvisibility-inlines-hidden
@@ -70,8 +70,8 @@ link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
 	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
 
 #specify postlink command- generate pdb file
-postlink_cmd = $(tools.objcopy) --only-keep-debug $@ $@.pdb && \
-	$(tools.objcopy) --strip-all $@ && \
+postlink_cmd = $(tools.objcopy) --only-keep-debug $@ $@.pdb && $(sleep_cmd) && \
+	$(tools.objcopy) --strip-all $@ && $(sleep_cmd) && \
 	$(tools.objcopy) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies

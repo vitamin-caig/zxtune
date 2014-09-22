@@ -11,8 +11,8 @@ include $(path_step)/make/features.mak
 
 #curl
 ifdef support_curl
-generated_headers += providers/curl_api
-generated_sources += providers/curl_api_dynamic
+generated_headers += providers/gates/curl_api
+generated_sources += providers/gates/curl_api_dynamic
 source_files += providers/network_provider
 else
 source_files += providers/network_stub

@@ -49,8 +49,8 @@ namespace Playlist
 
       virtual Model::IndexSetPtr GetSelectedItems() const = 0;
       virtual void SelectItems(const Playlist::Model::IndexSet& indices) = 0;
-      virtual void ActivateTableRow(unsigned index) = 0;
     public slots:
+      virtual void MoveToTableRow(unsigned index) = 0;
       virtual void SelectItems(Playlist::Model::IndexSetPtr indices) = 0;
     private slots:
       virtual void ActivateItem(const QModelIndex&) = 0;

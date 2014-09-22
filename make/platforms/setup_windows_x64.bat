@@ -1,15 +1,8 @@
 @echo off
 
-SET VS_PATH=%PROGRAMFILES%\Microsoft Visual Studio 8
-ECHO %PATH% | FIND "%VS_PATH%" > NUL && GOTO SetDx
-call "%VS_PATH%\VC\vcvarsall.bat" x64
+IF NOT "%VisualStudioVersion%" == "12.0" call "%PROGRAMFILES(x86)%\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86_amd64
 
-:SetDx
-
-SET | FIND "DXSDK_DIR" > NUL || GOTO SetMode
-ECHO %INCLUDE% | FIND "%DXSDK_DIR%" > NUL && GOTO SetMode
-SET INCLUDE=%INCLUDE%;%DXSDK_DIR%\Include
-
-:SetMode
+:: Hack against setting Platform=x64 variable required for msbuild
+SET Platform=
 SET platform=windows
 SET arch=x86_64

@@ -20,6 +20,7 @@
 #include "multiple_items_contextmenu.ui.h"
 #include "playlist/supp/operations.h"
 #include "playlist/supp/operations_convert.h"
+#include "playlist/supp/operations_statistic.h"
 #include "playlist/supp/storage.h"
 #include "playlist/ui/contextmenu.h"
 #include "playlist/ui/table_view.h"
@@ -52,6 +53,7 @@ namespace
 
       Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveAllDuplicates())));
       Require(receiver.connect(DelUnavailableAction, SIGNAL(triggered()), SLOT(RemoveAllUnavailable())));
+      Require(receiver.connect(ShuffleAction, SIGNAL(triggered()), SLOT(ShuffleAll())));
       Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectAllRipOffs())));
       Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFound())));
       Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowAllStatistic())));
@@ -75,6 +77,7 @@ namespace
       Require(receiver.connect(DelDupsAction, SIGNAL(triggered()), SLOT(RemoveDuplicatesOfSelected())));
       Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsOfSelected())));
       Require(receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected())));
+      Require(receiver.connect(SelSameFilesAction, SIGNAL(triggered()), SLOT(SelectSameFilesOfSelected())));
       Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
       Require(receiver.connect(ExportAction, SIGNAL(triggered()), SLOT(ExportSelected())));
       Require(receiver.connect(ConvertAction, SIGNAL(triggered()), SLOT(ConvertSelected())));
@@ -140,6 +143,7 @@ namespace
       Require(receiver.connect(DelUnavailableAction, SIGNAL(triggered()), SLOT(RemoveUnavailableInSelected())));
       Require(receiver.connect(SelRipOffsAction, SIGNAL(triggered()), SLOT(SelectRipOffsInSelected())));
       Require(receiver.connect(SelSameTypesAction, SIGNAL(triggered()), SLOT(SelectSameTypesOfSelected())));
+      Require(receiver.connect(SelSameFilesAction, SIGNAL(triggered()), SLOT(SelectSameFilesOfSelected())));
       Require(receiver.connect(SelFoundAction, SIGNAL(triggered()), SLOT(SelectFoundInSelected())));
       Require(receiver.connect(CopyToClipboardAction, SIGNAL(triggered()), SLOT(CopyPathToClipboard())));
       Require(receiver.connect(ShowStatisticAction, SIGNAL(triggered()), SLOT(ShowStatisticOfSelected())));
@@ -174,7 +178,8 @@ namespace
       result.append(Playlist::UI::ItemsContextMenu::tr("Invalid: %1").arg(ModulesCount(Invalids)));
       result.append(Playlist::UI::ItemsContextMenu::tr("Total duration: %1").arg(ToQString(Duration.ToString())));
       result.append(Playlist::UI::ItemsContextMenu::tr("Total size: %1").arg(MemorySize(Size)));
-      result.append(Playlist::UI::ItemsContextMenu::tr("%n diferent modules' type(s)", 0, Types.size()));
+      result.append(Playlist::UI::ItemsContextMenu::tr("%n different modules' type(s)", 0, Types.size()));
+      result.append(Playlist::UI::ItemsContextMenu::tr("%n files referenced", 0, Paths.size()));
       return result.join(LINE_BREAK);
     }
 
@@ -194,12 +199,29 @@ namespace
       ++Invalids;
     }
 
-    virtual void AddValid(const String& type, const Time::MillisecondsDuration& duration, std::size_t size)
+    virtual void AddValid()
     {
       ++Processed;
-      Duration += duration;
-      Size += size;
+    }
+
+    virtual void AddType(const String& type)
+    {
       ++Types[type];
+    }
+
+    virtual void AddDuration(const Time::MillisecondsDuration& duration)
+    {
+      Duration += duration;
+    }
+
+    virtual void AddSize(std::size_t size)
+    {
+      Size += size;
+    }
+
+    virtual void AddPath(const String& path)
+    {
+      Paths.insert(path);
     }
   private:
     std::size_t Processed;
@@ -207,6 +229,7 @@ namespace
     Time::Duration<uint64_t, Time::Milliseconds> Duration;
     uint64_t Size;
     std::map<String, std::size_t> Types;
+    std::set<String> Paths;
   };
 
   Playlist::Item::StatisticTextNotification::Ptr CreateStatisticNotification()
@@ -263,6 +286,15 @@ namespace
     return boost::make_shared<ExportResult>();
   }
 
+  class ShuffleOperation : public Playlist::Item::StorageModifyOperation
+  {
+  public:
+    virtual void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& /*cb*/)
+    {
+      storage.Shuffle();
+    }
+  };
+  
   class ItemsContextMenuImpl : public Playlist::UI::ItemsContextMenu
   {
   public:
@@ -290,18 +322,18 @@ namespace
     virtual void RemoveSelected() const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      model->RemoveItems(*SelectedItems);
+      model->RemoveItems(SelectedItems);
     }
 
     virtual void CropSelected() const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
-      Playlist::Model::IndexSet unselected;
+      const boost::shared_ptr<Playlist::Model::IndexSet> unselected = boost::make_shared<Playlist::Model::IndexSet>();
       for (unsigned idx = 0, total = model->CountItems(); idx < total; ++idx)
       {
         if (!SelectedItems->count(idx))
         {
-          unselected.insert(idx);
+          unselected->insert(idx);
         }
       }
       model->RemoveItems(unselected);
@@ -374,6 +406,12 @@ namespace
       ExecuteSelectOperation(op);
     }
 
+    virtual void SelectSameFilesOfSelected() const
+    {
+      const Playlist::Item::SelectionOperation::Ptr op = Playlist::Item::CreateSelectFilesOfSelectedOperation(SelectedItems);
+      ExecuteSelectOperation(op);
+    }
+
     virtual void CopyPathToClipboard() const
     {
       const Playlist::Model::Ptr model = Controller.GetModel();
@@ -421,11 +459,11 @@ namespace
 
     virtual void ConvertSelected() const
     {
-      String type;
-      if (Sound::Service::Ptr service = UI::GetConversionService(View, type))
+      Playlist::Item::Conversion::Options opts;
+      if (UI::GetConversionParameters(View, opts))
       {
         const Playlist::Item::ConversionResultNotification::Ptr result = CreateConversionResultNotification();
-        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, type, service, result);
+        const Playlist::Item::TextResultOperation::Ptr op = Playlist::Item::CreateConvertOperation(SelectedItems, opts, result);
         ExecuteNotificationOperation(op);
       }
     }
@@ -449,6 +487,12 @@ namespace
     virtual void ShowPropertiesOfSelected() const
     {
       Playlist::UI::ExecutePropertiesDialog(View, Controller.GetModel(), SelectedItems);
+    }
+
+    virtual void ShuffleAll() const
+    {
+      const Playlist::Item::StorageModifyOperation::Ptr op = boost::make_shared<ShuffleOperation>();
+      Controller.GetModel()->PerformOperation(op);
     }
   private:
     std::auto_ptr<QMenu> CreateMenu()

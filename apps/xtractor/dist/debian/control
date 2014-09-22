@@ -3,9 +3,9 @@ Priority: optional
 Section: utils
 Maintainer: Vitamin <vitamin.caig@gmail.com>
 Build-Depends: debhelper
-Homepage: http://zxtune.googlecode.com/
-Vcs-Svn: http://zxtune.googlecode.com/svn/trunk/
-Vcs-Browser: http://code.google.com/p/zxtune/source/browse/#svn/trunk
+Homepage: http://zxtune.bitbucket.org/
+Vcs-Git: https://bitbucket.org/zxtune/zxtune.git
+Vcs-Browser: https://bitbucket.org/zxtune/zxtune/src
 
 Package: xtractor
 Architecture: any

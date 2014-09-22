@@ -38,6 +38,7 @@ namespace Playlist
       virtual void SelectRipOffsOfSelected() const = 0;
       virtual void SelectRipOffsInSelected() const = 0;
       virtual void SelectSameTypesOfSelected() const = 0;
+      virtual void SelectSameFilesOfSelected() const = 0;
       virtual void CopyPathToClipboard() const = 0;
       virtual void ShowAllStatistic() const = 0;
       virtual void ShowStatisticOfSelected() const = 0;
@@ -47,6 +48,7 @@ namespace Playlist
       virtual void SelectFound() const = 0;
       virtual void SelectFoundInSelected() const = 0;
       virtual void ShowPropertiesOfSelected() const = 0;
+      virtual void ShuffleAll() const = 0;
     };
   }
 }

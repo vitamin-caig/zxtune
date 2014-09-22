@@ -12,6 +12,7 @@
 #include "aym_parameters.h"
 #include "freq_tables_internal.h"
 //common includes
+#include <contract.h>
 #include <error_tools.h>
 //library includes
 #include <core/core_parameters.h>
@@ -45,18 +46,16 @@ namespace AYM
   //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
   {
-    static const Char LETTERS[] = {'A', 'B', 'C', 'N', 'E'};
+    static const Char LETTERS[] = {'A', 'B', 'C'};
     static const uint_t MASKS[] =
     {
       Devices::AYM::CHANNEL_MASK_A,
       Devices::AYM::CHANNEL_MASK_B,
       Devices::AYM::CHANNEL_MASK_C,
-      Devices::AYM::CHANNEL_MASK_N,
-      Devices::AYM::CHANNEL_MASK_E
     };
     BOOST_STATIC_ASSERT(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS));
     const std::ptrdiff_t pos = std::find(LETTERS, boost::end(LETTERS), letter) - LETTERS;
-    if (pos == boost::size(LETTERS))
+    if (pos == static_cast<std::ptrdiff_t>(boost::size(LETTERS)))
     {
       throw MakeFormattedError(THIS_LINE,
         translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));
@@ -139,24 +138,24 @@ namespace AYM
 
     virtual Devices::AYM::ChipType Type() const
     {
-      Parameters::IntType intVal = 0;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::TYPE_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::AYM::TYPE, intVal);
       return static_cast<Devices::AYM::ChipType>(intVal);
     }
 
     virtual Devices::AYM::InterpolationType Interpolation() const
     {
-      Parameters::IntType intVal = 0;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::INTERPOLATION_DEFAULT;
       Params->FindValue(Parameters::ZXTune::Core::AYM::INTERPOLATION, intVal);
       return static_cast<Devices::AYM::InterpolationType>(intVal);
     }
 
     virtual uint_t DutyCycleValue() const
     {
-      Parameters::IntType intVal = 50;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT;
       const bool found = Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intVal);
       //duty cycle in percents should be in range 1..99 inc
-      if (found && (intVal < 1 || intVal > 99))
+      if (found && (intVal < Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MIN || intVal > Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
           translate("Invalid duty cycle value (%1%)."), intVal);
@@ -166,7 +165,7 @@ namespace AYM
 
     virtual uint_t DutyCycleMask() const
     {
-      Parameters::IntType intVal = 0;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, intVal))
       {
         return static_cast<uint_t>(intVal);
@@ -181,7 +180,7 @@ namespace AYM
 
     virtual Devices::AYM::LayoutType Layout() const
     {
-      Parameters::IntType intVal = Devices::AYM::LAYOUT_ABC;
+      Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
       {
         if (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||
@@ -204,10 +203,10 @@ namespace AYM
     const Sound::RenderParameters::Ptr SoundParams;
   };
 
-  class TrackParametersImpl : public TrackParameters
+  class AYTrackParameters : public TrackParameters
   {
   public:
-    explicit TrackParametersImpl(Parameters::Accessor::Ptr params)
+    explicit AYTrackParameters(Parameters::Accessor::Ptr params)
       : Params(params)
     {
     }
@@ -241,7 +240,55 @@ namespace AYM
     }
   private:
     const Parameters::Accessor::Ptr Params;
-    const Sound::RenderParameters::Ptr Delegate;
+  };
+
+  class TSTrackParameters : public TrackParameters
+  {
+  public:
+    TSTrackParameters(Parameters::Accessor::Ptr params, uint_t idx)
+      : Params(params)
+      , Index(idx)
+    {
+      Require(Index <= 1);
+    }
+
+    virtual uint_t Version() const
+    {
+      return Params->Version();
+    }
+
+    virtual void FreqTable(FrequencyTable& table) const
+    {
+      Parameters::StringType newName;
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::TABLE, newName))
+      {
+        const String& subName = ExtractMergedValue(newName);
+        GetFreqTable(subName, table);
+      }
+    }
+  private:
+    /*
+      ('a', 0) => 'a'
+      ('a', 1) => 'a'
+      ('a/b', 0) => 'a'
+      ('a/b', 1) => 'b'
+    */
+    String ExtractMergedValue(const String& val) const
+    {
+      const String::size_type pos = val.find_first_of('/');
+      if (pos != String::npos)
+      {
+        Require(String::npos == val.find_first_of('/', pos + 1));
+        return Index == 0 ? val.substr(0, pos) : val.substr(pos + 1);
+      }
+      else
+      {
+        return val;
+      }
+    }
+  private:
+    const Parameters::Accessor::Ptr Params;
+    const uint_t Index;
   };
 
   Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
@@ -251,7 +298,12 @@ namespace AYM
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
   {
-    return boost::make_shared<TrackParametersImpl>(params);
+    return boost::make_shared<AYTrackParameters>(params);
+  }
+
+  TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params, uint_t idx)
+  {
+    return boost::make_shared<TSTrackParameters>(params, idx);
   }
 }
 }

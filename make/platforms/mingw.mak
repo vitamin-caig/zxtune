@@ -14,8 +14,8 @@ endif
 host=windows
 compiler=gcc
 
-ifdef have_gui
-$(platform).ld.flags += -Wl,-subsystem,windows
+ifdef release
+$(platform).ld.flags += -Wl,-subsystem,$(if $(have_gui),windows,console)
 else
 $(platform).ld.flags += -Wl,-subsystem,console
 endif

@@ -10,7 +10,6 @@
 
 //local includes
 #include "parameters_helpers.h"
-#include "ui/utils.h"
 //common includes
 #include <contract.h>
 //library includes

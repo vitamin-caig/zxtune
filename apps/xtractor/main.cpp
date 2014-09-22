@@ -199,6 +199,7 @@ namespace Formats
       scanner.AddDecoder(CreateLZSDecoder());
       scanner.AddDecoder(CreateMSPackDecoder());
       scanner.AddDecoder(CreatePowerfullCodeDecreaser61Decoder());
+      scanner.AddDecoder(CreatePowerfullCodeDecreaser61iDecoder());
       scanner.AddDecoder(CreatePowerfullCodeDecreaser62Decoder());
       scanner.AddDecoder(CreateTRUSHDecoder());
       scanner.AddDecoder(CreateGamePackerDecoder());

@@ -10,15 +10,8 @@
 
 //local includes
 #include "operations.h"
+#include "operations_helpers.h"
 #include "storage.h"
-//common includes
-#include <error_tools.h>
-//library includes
-#include <binary/data_adapter.h>
-#include <core/convert_parameters.h>
-#include <io/api.h>
-#include <io/template.h>
-#include <parameters/template.h>
 //std includes
 #include <numeric>
 //boost includes
@@ -198,6 +191,28 @@ namespace
     }
   private:
     std::set<T> Result;
+  };
+
+  template<class T>
+  class IndicesCollector : public PropertyModel<T>::Visitor
+  {
+  public:
+    IndicesCollector()
+      : Result(boost::make_shared<Playlist::Model::IndexSet>())
+    {
+    }
+
+    virtual void OnItem(Playlist::Model::IndexType index, const T& /*val*/)
+    {
+      Result->insert(index);
+    }
+
+    boost::shared_ptr<Playlist::Model::IndexSet> GetResult() const
+    {
+      return Result;
+    }
+  private:
+    const boost::shared_ptr<Playlist::Model::IndexSet> Result;
   };
 
   template<class T>
@@ -414,7 +429,7 @@ namespace
 
     virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      ItemsWithDuplicatesCollector<String> types;
+      IndicesCollector<String> types;
       {
         const TypedPropertyModel<String> propertyModel(stor, &Playlist::Item::Data::GetType);
         VisitAsSelectedItems(propertyModel, *SelectedItems, cb, types);
@@ -425,41 +440,26 @@ namespace
     const Playlist::Model::IndexSetPtr SelectedItems;
   };
 
-  class ProgressModelVisitor : public Playlist::Item::Visitor
+  class SelectFilesOfSelectedOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    ProgressModelVisitor(Playlist::Item::Visitor& delegate, Log::ProgressCallback& cb)
-      : Delegate(delegate)
-      , Callback(cb)
-      , Done(0)
+    explicit SelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+      : SelectedItems(items)
     {
     }
 
-    virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
+    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
     {
-      Delegate.OnItem(index, data);
-      Callback.OnProgress(++Done);
+      IndicesCollector<String> files;
+      {
+        const TypedPropertyModel<String> propertyModel(stor, &Playlist::Item::Data::GetFilePath);
+        VisitAsSelectedItems(propertyModel, *SelectedItems, cb, files);
+      }
+      emit ResultAcquired(files.GetResult());
     }
   private:
-    Playlist::Item::Visitor& Delegate;
-    Log::ProgressCallback& Callback;
-    uint_t Done;
+    const Playlist::Model::IndexSetPtr SelectedItems;
   };
-
-  void ExecuteOperation(const Playlist::Item::Storage& stor, Playlist::Model::IndexSetPtr selectedItems, Playlist::Item::Visitor& visitor, Log::ProgressCallback& cb)
-  {
-    const std::size_t totalItems = selectedItems ? selectedItems->size() : stor.CountItems();
-    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
-    ProgressModelVisitor progressed(visitor, *progress);
-    if (selectedItems)
-    {
-      stor.ForSpecifiedItems(*selectedItems, progressed);
-    }
-    else
-    {
-      stor.ForAllItems(progressed);
-    }
-  }
 
   class InvalidModulesCollection : public Playlist::Item::Visitor
   {
@@ -472,7 +472,6 @@ namespace
     virtual void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data)
     {
       //check for the data first to define is data valid or not
-      const String type = data->GetType();
       if (data->GetState())
       {
         Result->insert(index);
@@ -507,123 +506,6 @@ namespace
     }
   private:
     const Playlist::Model::IndexSetPtr SelectedItems;
-  };
-
-  class CollectingVisitor : public Playlist::Item::Visitor
-                          , public Playlist::TextNotification
-  {
-  public:
-    typedef boost::shared_ptr<CollectingVisitor> Ptr;
-  };
-
-  // Statistic
-  class CollectStatisticOperation : public Playlist::Item::TextResultOperation
-                                  , private Playlist::Item::Visitor
-  {
-  public:
-    explicit CollectStatisticOperation(Playlist::Item::StatisticTextNotification::Ptr result)
-      : SelectedItems()
-      , Result(result)
-    {
-    }
-
-    CollectStatisticOperation(Playlist::Model::IndexSetPtr items, Playlist::Item::StatisticTextNotification::Ptr result)
-      : SelectedItems(items)
-      , Result(result)
-    {
-    }
-
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
-    {
-      ExecuteOperation(stor, SelectedItems, *this, cb);
-      emit ResultAcquired(Result);
-    }
-  private:
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
-    {
-      //check for the data first to define is data valid or not
-      const String type = data->GetType();
-      if (data->GetState())
-      {
-        Result->AddInvalid();
-      }
-      else
-      {
-        assert(!type.empty());
-        Result->AddValid(type, data->GetDuration(), data->GetSize());
-      }
-    }
-  private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
-    const Playlist::Item::StatisticTextNotification::Ptr Result;
-  };
-
-  // Exporting
-  class ExportOperation : public Playlist::Item::TextResultOperation
-                        , private Playlist::Item::Visitor
-  {
-  public:
-    ExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
-      : SelectedItems()
-      , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
-      , Params(params)
-      , Result(result)
-    {
-    }
-
-    ExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, Playlist::Item::ConversionResultNotification::Ptr result)
-      : SelectedItems(items)
-      , NameTemplate(IO::CreateFilenameTemplate(nameTemplate))
-      , Params(params)
-      , Result(result)
-    {
-    }
-
-    virtual void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb)
-    {
-      ExecuteOperation(stor, SelectedItems, *this, cb);
-      emit ResultAcquired(Result);
-    }
-  private:
-    virtual void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data)
-    {
-      const String path = data->GetFullPath();
-      if (Module::Holder::Ptr holder = data->GetModule())
-      {
-        ExportItem(path, *holder);
-      }
-      else
-      {
-        Result->AddFailedToOpen(path);
-      }
-    }
-
-    void ExportItem(const String& path, const Module::Holder& item)
-    {
-      try
-      {
-        const Binary::Data::Ptr result = Module::GetRawData(item);
-        const Parameters::Accessor::Ptr props = item.GetModuleProperties();
-        const String filename = NameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
-        Save(*result, filename);
-        Result->AddSucceed();
-      }
-      catch (const Error& err)
-      {
-        Result->AddFailedToConvert(path, err);
-      }
-    }
-
-    void Save(const Binary::Data& data, const String& filename) const
-    {
-      const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, *Params, Log::ProgressCallback::Stub());
-      stream->ApplyData(data);
-    }
-  private:
-    const Playlist::Model::IndexSetPtr SelectedItems;
-    const Strings::Template::Ptr NameTemplate;
-    const Parameters::Accessor::Ptr Params;
-    const Playlist::Item::ConversionResultNotification::Ptr Result;
   };
 }
 
@@ -666,6 +548,11 @@ namespace Playlist
       return boost::make_shared<SelectTypesOfSelectedOperation>(items);
     }
 
+    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items)
+    {
+      return boost::make_shared<SelectFilesOfSelectedOperation>(items);
+    }
+
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation()
     {
       return boost::make_shared<SelectUnavailableOperation>();
@@ -674,26 +561,6 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items)
     {
       return boost::make_shared<SelectUnavailableOperation>(items);
-    }
-
-    TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result)
-    {
-      return boost::make_shared<CollectStatisticOperation>(result);
-    }
-
-    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result)
-    {
-      return boost::make_shared<CollectStatisticOperation>(items, result);
-    }
-
-    TextResultOperation::Ptr CreateExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
-    {
-      return boost::make_shared<ExportOperation>(nameTemplate, params, result);
-    }
-
-    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSetPtr items, const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result)
-    {
-      return boost::make_shared<ExportOperation>(items, nameTemplate, params, result);
     }
   }
 }

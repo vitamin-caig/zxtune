@@ -17,8 +17,7 @@
 //library includes
 #include <async/coroutine.h>
 #include <debug/log.h>
-//std includes
-#include <ctime>
+#include <time/elapsed.h>
 //boost includes
 #include <boost/make_shared.hpp>
 #include <boost/ref.hpp>
@@ -32,28 +31,6 @@
 namespace
 {
   const Debug::Stream Dbg("Playlist::Scanner");
-
-  class EventFilter
-  {
-  public:
-    EventFilter()
-      : LastTime(0)
-    {
-    }
-
-    bool operator()()
-    {
-      const std::time_t curTime = ::std::time(0);
-      if (curTime == LastTime)
-      {
-        return true;
-      }
-      LastTime = curTime;
-      return false;
-    }
-  private:
-    std::time_t LastTime;
-  };
 
   class FilenamesTarget
   {
@@ -299,9 +276,9 @@ namespace
   class DetectParamsAdapter : public Playlist::Item::DetectParameters
   {
   public:
-    DetectParamsAdapter(ScannerCallback& cb, Async::Scheduler& sched)
+    DetectParamsAdapter(ScannerCallback& cb, Log::ProgressCallback& progress)
       : Callback(cb)
-      , Scheduler(sched)
+      , Progress(progress)
     {
     }
 
@@ -315,20 +292,49 @@ namespace
       Callback.OnItem(item);
     }
 
-    virtual void ShowProgress(unsigned progress)
+    virtual Log::ProgressCallback* GetProgress() const
     {
-      Callback.OnProgress(progress);
-      Scheduler.Yield();
+      return &Progress;
+    }
+  private:
+    ScannerCallback& Callback;
+    Log::ProgressCallback& Progress;
+  };
+
+  const Time::Milliseconds UI_NOTIFICATION_PERIOD(500);
+
+  class ProgressCallbackAdapter : public Log::ProgressCallback
+  {
+  public:
+    ProgressCallbackAdapter(ScannerCallback& cb, Async::Scheduler& sched)
+      : Callback(cb)
+      , Scheduler(sched)
+      , ReportTimeout(UI_NOTIFICATION_PERIOD)
+    {
     }
 
-    virtual void ShowMessage(const String& message)
+    virtual void OnProgress(uint_t current)
     {
-      const QString text = ToQString(message);
-      Callback.OnMessage(text);
+      if (ReportTimeout())
+      {
+        Callback.OnProgress(current);
+        Scheduler.Yield();
+      }
+    }
+
+    virtual void OnProgress(uint_t current, const String& message)
+    {
+      if (ReportTimeout())
+      {
+        Callback.OnProgress(current);
+        Callback.OnMessage(ToQString(message));
+        Scheduler.Yield();
+      }
     }
   private:
     ScannerCallback& Callback;
     Async::Scheduler& Scheduler;
+    Time::Elapsed ReportTimeout;
   };
 
   class ScanRoutine : public FilenamesTarget
@@ -370,10 +376,11 @@ namespace
 
     virtual void Execute(Async::Scheduler& sched)
     {
+      ProgressCallbackAdapter cb(Callback, sched);
       while (!Queue->Empty())
       {
         const QString file = Queue->GetNext();
-        ScanFile(file, sched);
+        ScanFile(file, cb);
       }
     }
   private:
@@ -382,30 +389,37 @@ namespace
       Queue = boost::make_shared<FilesQueue>();
     }
 
-    void ScanFile(const QString& name, Async::Scheduler& sched)
+    void ScanFile(const QString& name, Log::ProgressCallback& cb)
     {
-      if (!ProcessAsPlaylist(name))
+      if (!ProcessAsPlaylist(name, cb))
       {
-        DetectSubitems(name, sched);
+        DetectSubitems(name, cb);
       }
     }
 
-    bool ProcessAsPlaylist(const QString& path)
-    {
-      const Playlist::IO::Container::Ptr playlist = Playlist::IO::Open(Provider, path);
-      if (!playlist.get())
-      {
-        return false;
-      }
-      Callback.OnItems(playlist->GetItems());
-      return true;
-    }
-
-    void DetectSubitems(const QString& itemPath, Async::Scheduler& sched)
+    bool ProcessAsPlaylist(const QString& path, Log::ProgressCallback& cb)
     {
       try
       {
-        DetectParamsAdapter params(Callback, sched);
+        const Playlist::IO::Container::Ptr playlist = Playlist::IO::Open(Provider, path, cb);
+        if (!playlist.get())
+        {
+          return false;
+        }
+        Callback.OnItems(playlist->GetItems());
+      }
+      catch (const Error& e)
+      {
+        Callback.OnError(e);
+      }
+      return true;
+    }
+
+    void DetectSubitems(const QString& itemPath, Log::ProgressCallback& cb)
+    {
+      try
+      {
+        DetectParamsAdapter params(Callback, cb);
         Provider->DetectModules(FromQString(itemPath), params);
       }
       catch (const Error& e)
@@ -488,18 +502,12 @@ namespace
 
     virtual void OnProgress(unsigned progress)
     {
-      if (!NotificationFilter())
-      {
-        emit ScanProgressChanged(progress);
-      }
+      emit ScanProgressChanged(progress);
     }
 
     virtual void OnMessage(const QString& message)
     {
-      if (!NotificationFilter())
-      {
-        emit ScanMessageChanged(message);
-      }
+      emit ScanMessageChanged(message);
     }
 
     virtual void OnError(const Error& err)
@@ -515,7 +523,6 @@ namespace
     const Playlist::Item::DataProvider::Ptr Provider;
     const ScanRoutine::Ptr Routine;
     const Async::Job::Ptr ScanJob;
-    EventFilter NotificationFilter;
   };
 }
 

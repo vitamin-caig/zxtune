@@ -10,10 +10,10 @@
 
 //local includes
 #include "win32.h"
-#include "win32_api.h"
 #include "backend_impl.h"
 #include "storage.h"
 #include "volume_control.h"
+#include "gates/win32_api.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>

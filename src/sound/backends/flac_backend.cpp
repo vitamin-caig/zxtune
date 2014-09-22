@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "flac_api.h"
-#include "storage.h"
 #include "file_backend.h"
+#include "storage.h"
+#include "gates/flac_api.h"
 //common includes
 #include <error_tools.h>
 //library includes

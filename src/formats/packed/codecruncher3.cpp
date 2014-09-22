@@ -210,25 +210,18 @@ namespace CodeCruncher3
       {
         return false;
       }
-      const uint_t usedSize = GetUsedSize();
-      if (usedSize > Size ||
-          !IsFinishMarker(Data[usedSize - 1]))
-      {
-        return false;
-      }
       return true;
-    }
-
-    uint_t GetUsedSize() const
-    {
-      const RawHeader& header = GetHeader();
-      return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);
     }
 
     const RawHeader& GetHeader() const
     {
       assert(Size >= sizeof(RawHeader));
       return *safe_ptr_cast<const RawHeader*>(Data);
+    }
+    
+    std::size_t GetSize() const
+    {
+      return Size;
     }
   private:
     const uint8_t* const Data;
@@ -241,7 +234,7 @@ namespace CodeCruncher3
     explicit DataDecoder(const Container& container)
       : IsValid(container.FastCheck())
       , Header(container.GetHeader())
-      , Stream(Header.Data, fromLE(Header.SizeOfPacked))
+      , Stream(Header.Data, container.GetSize() - offsetof(RawHeader, Data))
       , Result(new Dump())
       , Decoded(*Result)
     {
@@ -257,6 +250,11 @@ namespace CodeCruncher3
         ? Result
         : std::auto_ptr<Dump>();
     }
+    
+    std::size_t GetUsedSize() const
+    {
+      return offsetof(RawHeader, Data) + Stream.GetProcessedBytes();
+    }
   private:
     bool DecodeData()
     {
@@ -271,7 +269,7 @@ namespace CodeCruncher3
           //exit
           //do not check if real decoded size is equal to calculated;
           //do not check if eof is reached
-          break;
+          return true;
         }
         else if (Stream.Eof())
         {
@@ -282,15 +280,10 @@ namespace CodeCruncher3
           : ProcessCommand(data);
         if (!res)
         {
-          return false;
+          break;
         }
       }
-      //copy rest bytes to stream
-      while (!Stream.Eof())
-      {
-        Decoded.push_back(Stream.GetByte());
-      }
-      return true;
+      return false;
     }
 
     bool ProcessBackReference(uint_t data)
@@ -380,7 +373,7 @@ namespace Formats
           return Container::Ptr();
         }
         CodeCruncher3::DataDecoder decoder(container);
-        return CreatePackedContainer(decoder.GetResult(), container.GetUsedSize());
+        return CreatePackedContainer(decoder.GetResult(), decoder.GetUsedSize());
       }
     private:
       const Binary::Format::Ptr Depacker;

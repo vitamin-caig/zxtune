@@ -130,6 +130,8 @@ namespace ZXTune
       : Archives(archives)
       , Players(players)
     {
+      Check(Archives);
+      Check(Players);
     }
 
     virtual bool IsValid() const
@@ -158,6 +160,12 @@ namespace ZXTune
     void Next(T& iter)
     {
       iter->Next();
+      Check(iter);
+    }
+    
+    template<class T>
+    void Check(T& iter)
+    {
       if (!iter->IsValid())
       {
         iter = T();
@@ -187,22 +195,6 @@ namespace ZXTune
     const ArchivePlugin::Iterator::Ptr archives = ArchivePluginsEnumerator::Create()->Enumerate();
     const PlayerPlugin::Iterator::Ptr players = PlayerPluginsEnumerator::Create()->Enumerate();
     return boost::make_shared<CompositePluginsIterator>(archives, players);
-  }
-
-  Plugin::Ptr FindPlugin(const String& id)
-  {
-    if (const PlayerPlugin::Ptr player = PlayerPluginsEnumerator::Create()->Find(id))
-    {
-      return player->GetDescription();
-    }
-    else if (const ArchivePlugin::Ptr archive = ArchivePluginsEnumerator::Create()->Find(id))
-    {
-      return archive->GetDescription();
-    }
-    else
-    {
-      return Plugin::Ptr();
-    }
   }
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)

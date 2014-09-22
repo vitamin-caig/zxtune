@@ -24,7 +24,6 @@
 #include <io/api.h>
 #include <parameters/serialize.h>
 #include <sound/sound_parameters.h>
-#include <strings/array.h>
 //std includes
 #include <cctype>
 //boost includes
@@ -98,6 +97,49 @@ namespace
     return -1;
   }
 
+  class LinesSource
+  {
+  public:
+    LinesSource(QTextStream& stream, const VersionLayer& version)
+      : Stream(stream)
+      , Version(version)
+    {
+      if (IsValid())
+      {
+        Next();
+      }
+    }
+
+    bool IsValid() const
+    {
+      return !Stream.atEnd();
+    }
+
+    void Next()
+    {
+      Line = Version.DecodeString(Stream.readLine(0).trimmed());
+    }
+
+    String GetLine() const 
+    {
+      return Line;
+    }
+
+    uint_t GetSize() const
+    {
+      return Stream.device()->size();
+    }
+
+    uint_t GetPosition()
+    {
+      return Stream.pos();
+    }
+  private:
+    QTextStream& Stream;
+    const VersionLayer& Version;
+    String Line;
+  };
+
   class AYLContainer
   {
     struct AYLEntry
@@ -106,23 +148,23 @@ namespace
       Strings::Map Parameters;
     };
     typedef std::vector<AYLEntry> AYLEntries;
-    typedef RangeIterator<Strings::Array::const_iterator> LinesIterator;
   public:
-    explicit AYLContainer(const Strings::Array& lines)
+    AYLContainer(LinesSource& source, Log::ProgressCallback& cb)
       : Container(boost::make_shared<AYLEntries>())
       , Parameters()
     {
-      LinesIterator iter(lines.begin(), lines.end());
+      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(source.GetSize(), cb);
+      const uint_t REPORT_PERIOD_ITEMS = 1000;
       //parse playlist parameters
-      while (ParseParameters(iter, Parameters)) {}
-      while (iter)
+      while (ParseParameters(source, Parameters)) {}
+      for (uint_t counter = 0; source.IsValid(); ++counter)
       {
-        AYLEntry entry;
-        entry.Path = *iter;
-        ++iter;
-        while (ParseParameters(iter, entry.Parameters)) {}
-        std::replace(entry.Path.begin(), entry.Path.end(), '\\', '/');
-        Container->push_back(entry);
+        ParseEntry(source);
+        if (++counter >= REPORT_PERIOD_ITEMS)
+        {
+          progress->OnProgress(source.GetPosition());
+          counter = 0;
+        }
       }
     }
 
@@ -169,21 +211,30 @@ namespace
       return Parameters;
     }
   private:
-    static bool ParseParameters(LinesIterator& iter, Strings::Map& parameters)
+    void ParseEntry(LinesSource& source)
     {
-      if (!iter || !CheckForParametersBegin(*iter))
+      AYLEntry entry;
+      entry.Path = source.GetLine();
+      source.Next();
+      while (ParseParameters(source, entry.Parameters)) {}
+      std::replace(entry.Path.begin(), entry.Path.end(), '\\', '/');
+      Container->push_back(entry);
+    }
+
+    static bool ParseParameters(LinesSource& source, Strings::Map& parameters)
+    {
+      if (!source.IsValid() || !CheckForParametersBegin(source.GetLine()))
       {
         return false;
       }
-      while (++iter)
+      while (source.Next(), source.IsValid())
       {
-        const String line = *iter;
-        if (CheckForParametersEnd(line))
+        if (CheckForParametersEnd(source.GetLine()))
         {
-          ++iter;
+          source.Next();
           break;
         }
-        SplitParametersString(line, parameters);
+        SplitParametersString(source.GetLine(), parameters);
       }
       return true;
     }
@@ -310,7 +361,7 @@ namespace
   private:
     static Parameters::IntType DecodeChipType(const String& value)
     {
-      return value == AYL::YM ? 1 : 0;
+      return value == AYL::YM ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY;
     }
 
     static Parameters::IntType DecodeChipLayout(const String& value)
@@ -436,7 +487,7 @@ namespace Playlist
 {
   namespace IO
   {
-    Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename)
+    Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
     {
       const QFileInfo info(filename);
       if (!info.isFile() || !info.isReadable() ||
@@ -459,14 +510,9 @@ namespace Playlist
       }
       Dbg("Processing AYL version %1%", vers);
       const VersionLayer version(vers);
-      Strings::Array lines;
-      while (!stream.atEnd())
-      {
-        const QString line = stream.readLine(0).trimmed();
-        lines.push_back(version.DecodeString(line));
-      }
+      LinesSource lines(stream, version);
+      const AYLContainer aylItems(lines, cb);
       const QString basePath = info.absolutePath();
-      const AYLContainer aylItems(lines);
       const ContainerItemsPtr items = CreateItems(basePath, version, aylItems);
       const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
       properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));

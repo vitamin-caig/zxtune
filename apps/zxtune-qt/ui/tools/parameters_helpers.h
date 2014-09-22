@@ -10,6 +10,8 @@
 
 #pragma once
 
+//local includes
+#include "ui/utils.h"
 //library includes
 #include <parameters/container.h>
 //qt includes
@@ -127,5 +129,26 @@ namespace Parameters
     static Value* Bind(QLineEdit& line, Container& ctr, const NameType& name, const StringType& defValue);
   private slots:
     virtual void Set(const QString& value) = 0;
+  };
+
+  /*
+    Keeping l10n-dependent controls in proper state while language change
+  */
+  class ValueSnapshot
+  {
+  public:
+    explicit ValueSnapshot(Value& val)
+      : Val(val)
+      , Blocker(*val.parent())
+    {
+    }
+
+    ~ValueSnapshot()
+    {
+      Val.Reload();
+    }
+  private:
+    Value& Val;
+    const AutoBlockSignal Blocker;
   };
 }

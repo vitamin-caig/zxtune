@@ -227,13 +227,69 @@ public final class ZXTune {
     }
   }
 
+  public final static class Plugins {
+    
+    public final static class DeviceType {
+      //ZXTune::CAP_DEVICE_*
+      public final static int AY38910 = 1;
+      public final static int TURBOSOUND = 2;
+      public final static int BEEPER = 4;
+      public final static int YM2203 = 8;
+      public final static int TURBOFM = 16;
+      public final static int DAC = 32;
+      public final static int SAA1099 = 64;
+      public final static int MOS6581 = 128;
+    }
+    
+    public interface Visitor {
+      void onPlayerPlugin(int devices, String id, String description);
+      void onDecoderPlugin(String id, String description);
+      void onMultitrackPlugin(String id, String description);
+    }
+    
+    public static void enumerate(Visitor visitor) {
+      Plugins_Enumerate(visitor);
+    }
+    
+    private static native void init();
+    
+    static {
+      init();
+    }
+  }
+  
   /**
    * Simple data factory
    * @param Content raw content
    * @return New object
    */
-  public static Module loadModule(ByteBuffer content) throws InvalidObjectException {
-    return new NativeModule(Module_Create(content));
+  public static Module loadModule(ByteBuffer content, String subpath) throws InvalidObjectException {
+    return new NativeModule(Module_Create(content, subpath));
+  }
+  
+  public interface ModuleDetectCallback {
+    void onModule(String subpath, Module obj);
+  }
+  
+  static class ModuleDetectCallbackNativeAdapter {
+
+    private final ModuleDetectCallback delegate;
+    
+    public ModuleDetectCallbackNativeAdapter(ModuleDetectCallback delegate) {
+      this.delegate = delegate;
+    }
+
+    final void onModule(String subpath, int handle) {
+      try {
+        delegate.onModule(subpath, new NativeModule(handle));
+      } catch (InvalidObjectException e) {
+        //TODO
+      }
+    }
+  }
+  
+  public static void detectModules(ByteBuffer content, ModuleDetectCallback cb) {
+    Module_Detect(content, new ModuleDetectCallbackNativeAdapter(cb));
   }
 
   /**
@@ -345,7 +401,8 @@ public final class ZXTune {
   private static native void Handle_Close(int handle);
 
   // working with module
-  private static native int Module_Create(ByteBuffer data);
+  private static native int Module_Create(ByteBuffer data, String subpath);
+  private static native void Module_Detect(ByteBuffer data, ModuleDetectCallbackNativeAdapter cb);
   private static native int Module_GetDuration(int module);
   private static native long Module_GetProperty(int module, String name, long defVal);
   private static native String Module_GetProperty(int module, String name, String defVal);
@@ -360,4 +417,7 @@ public final class ZXTune {
   private static native String Player_GetProperty(int player, String name, String defVal);
   private static native void Player_SetProperty(int player, String name, long val);
   private static native void Player_SetProperty(int player, String name, String val);
+  
+  // working with plugins
+  private static native void Plugins_Enumerate(Plugins.Visitor visitor);
 }

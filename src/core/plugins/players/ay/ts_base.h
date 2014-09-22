@@ -30,8 +30,11 @@ namespace Module
       virtual Devices::TurboSound::Registers GetData() const = 0;
     };
 
-    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
-      AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second);
+    typedef boost::array<AYM::TrackParameters::Ptr, Devices::TurboSound::CHIPS> TrackParametersArray;
+    typedef boost::array<AYM::DataRenderer::Ptr, Devices::TurboSound::CHIPS> DataRenderersArray;
+
+    DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams, TrackStateIterator::Ptr iterator, 
+      const DataRenderersArray& renderers);
 
     class Chiptune
     {
@@ -40,7 +43,7 @@ namespace Module
 
       virtual Information::Ptr GetInformation() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams) const = 0;
     };
 
     Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device);

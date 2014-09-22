@@ -50,35 +50,8 @@ namespace Playlist
     SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSetPtr items);
     //other
     SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
+    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSetPtr items);
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation();
     SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSetPtr items);
-
-    //statistic
-    class StatisticTextNotification : public Playlist::TextNotification
-    {
-    public:
-      typedef boost::shared_ptr<StatisticTextNotification> Ptr;
-
-      virtual void AddInvalid() = 0;
-      virtual void AddValid(const String& type, const Time::MillisecondsDuration& duration, std::size_t size) = 0;
-    };
-
-    TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result);
-    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSetPtr items, StatisticTextNotification::Ptr result);
-
-    //export
-    class ConversionResultNotification : public Playlist::TextNotification
-    {
-    public:
-      typedef boost::shared_ptr<ConversionResultNotification> Ptr;
-
-      virtual void AddSucceed() = 0;
-      virtual void AddFailedToOpen(const String& path) = 0;
-      virtual void AddFailedToConvert(const String& path, const Error& err) = 0;
-    };
-    TextResultOperation::Ptr CreateExportOperation(const String& nameTemplate,
-      Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
-    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSetPtr items,
-      const String& nameTemplate, Parameters::Accessor::Ptr params, ConversionResultNotification::Ptr result);
   }
 }

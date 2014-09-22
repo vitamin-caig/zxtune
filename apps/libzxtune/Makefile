@@ -2,6 +2,8 @@ dynamic_name := zxtune
 path_step := ../..
 source_dirs := src
 
+static_runtime=1
+
 libraries.common = analysis \
                    binary binary_format \
                    core core_plugins_archives_stub core_plugins_containers_stub core_plugins_players \
@@ -12,7 +14,7 @@ libraries.common = analysis \
                    sound strings \
                    tools
 
-libraries.3rdparty = lhasa z80ex
+libraries.3rdparty = lhasa xmp z80ex zlib sidplayfp sidplayfp_builders_resid
 
 libraries :=  zxtune_app_version
 depends := apps/version

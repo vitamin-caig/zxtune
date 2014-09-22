@@ -47,8 +47,8 @@ namespace Playlist
       virtual unsigned GetVersion() const = 0;
 
       //create
-      virtual void AddItem(Data::Ptr item) = 0;
-      virtual void AddItems(Collection::Ptr items) = 0;
+      virtual void Add(Data::Ptr item) = 0;
+      virtual void Add(Collection::Ptr items) = 0;
       //read
       virtual std::size_t CountItems() const = 0;
       virtual Data::Ptr GetItem(Model::IndexType idx) const = 0;
@@ -59,6 +59,7 @@ namespace Playlist
       //update
       virtual void MoveItems(const Model::IndexSet& indices, Model::IndexType destination) = 0;
       virtual void Sort(const Comparer& cmp) = 0;
+      virtual void Shuffle() = 0;
       //delete
       virtual void RemoveItems(const Model::IndexSet& indices) = 0;
 

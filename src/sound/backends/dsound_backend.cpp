@@ -9,11 +9,11 @@
 **/
 
 //local includes
-#include "dsound.h"
-#include "dsound_api.h"
 #include "backend_impl.h"
+#include "dsound.h"
 #include "storage.h"
 #include "volume_control.h"
+#include "gates/dsound_api.h"
 //common includes
 #include <error_tools.h>
 //library includes
@@ -111,7 +111,7 @@ namespace DirectSound
   DirectSoundPtr OpenDevice(Api& api, const String& device)
   {
     Dbg("OpenDevice(%1%)", device);
-    DirectSoundPtr::pointer raw = 0;
+    IDirectSound* raw = 0;
     const std::auto_ptr<GUID> deviceUuid = String2Guid(device);
     CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
     const DirectSoundPtr result = DirectSoundPtr(raw, &ReleaseRef);
@@ -470,7 +470,7 @@ namespace DirectSound
       StreamBuffer::Ptr Stream;
       VolumeControl::Ptr Volume;
 
-      void operator = (const DSObjects& rh)
+      DSObjects& operator = (const DSObjects& rh)
       {
         if (Stream)
         {
@@ -482,6 +482,7 @@ namespace DirectSound
         Device = rh.Device;
         Stream = rh.Stream;
         Volume = rh.Volume;
+        return *this;
       }
     };
 

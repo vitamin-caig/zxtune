@@ -8,5 +8,7 @@ libraries.3rdparty = zlib
 
 include $(path_step)/makefile.mak
 
-resource.zip: Makefile nested/dir/file
+ifdef tools.root
+resource.zip: file nested/dir/file
 		$(tools.root)zip -9J $@ $^
+endif

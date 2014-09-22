@@ -3,5 +3,5 @@
   <string name="pref_zxtune_saa_title" translatable="false">Philips SAA1099</string>
   <!-- zxtune.core.saa.interpolation -->
   <string  name="pref_zxtune_saa_interpolation" translatable="false">zxtune.core.saa.interpolation</string>
-  <integer name="pref_zxtune_saa_interpolation_default">0</integer>
+  <integer name="pref_zxtune_saa_interpolation_default">1</integer>
 </resources>

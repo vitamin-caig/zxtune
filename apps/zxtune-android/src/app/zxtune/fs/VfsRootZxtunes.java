@@ -23,7 +23,6 @@ import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.Catalog;
-import app.zxtune.fs.zxtunes.Catalog.AuthorsVisitor;
 import app.zxtune.fs.zxtunes.Track;
 import app.zxtune.ui.IconSource;
 
@@ -127,7 +126,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
   }
 
   private Uri.Builder allAuthorsUri() {
-    return rootUri().appendPath(allAuthors.getName());
+    return rootUri().appendPath(AllAuthorsDir.PATH);
   }
 
   private Uri.Builder authorUri(Author author) {
@@ -159,7 +158,10 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       return this;
     } else {
       final String category = path.get(POS_CATEGORY);
-      if (category.equals(allAuthors.getName())) {
+      if (category.equals(AllAuthorsDir.PATH)) {
+        return resolveAllAuthorsPath(uri, path);
+      } else if (category.equals(allAuthors.getName())) {
+        //compatibility
         return resolveAllAuthorsPath(uri, path);
       } else {
         return null;
@@ -215,6 +217,10 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     private Author result;
 
     @Override
+    public void setCountHint(int size) {
+    }
+    
+    @Override
     public void accept(Author obj) {
       if (result == null) {
         result = obj;
@@ -269,6 +275,10 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     private Track result;
 
     @Override
+    public void setCountHint(int size) {
+    }
+    
+    @Override
     public void accept(Track obj) {
       if (result == null) {
         result = obj;
@@ -288,7 +298,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       //callers doesn't know that author and date is useless now
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryTracks(visitor, id, null/*authorId*/);
+      catalog.queryTracks(visitor, id, author.id);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",
@@ -303,6 +313,8 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
   private class AllAuthorsDir implements VfsDir {
 
+    // Static locale-independent path of all authors' dir
+    final static String PATH = "Authors";
     private final String name;
 
     AllAuthorsDir() {
@@ -331,7 +343,12 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.queryAuthors(new AuthorsVisitor() {
+      catalog.queryAuthors(new Catalog.AuthorsVisitor() {
+        @Override
+        public void setCountHint(int hint) {
+          visitor.onItemsCount(hint);
+        }
+        
         @Override
         public void accept(Author obj) {
           visitor.onDir(new AuthorDir(obj));
@@ -377,6 +394,11 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     public void enumerate(final Visitor visitor) throws IOException {
       final SparseIntArray dates = new SparseIntArray();
       catalog.queryTracks(new Catalog.TracksVisitor() {
+        @Override
+        public void setCountHint(int size) {
+          visitor.onItemsCount(size);
+        }
+
         @Override
         public void accept(Track obj) {
           if (isEmptyDate(obj.date)) {
@@ -440,6 +462,11 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryTracks(new Catalog.TracksVisitor() {
+        @Override
+        public void setCountHint(int size) {
+          visitor.onItemsCount(size);
+        }
+
         @Override
         public void accept(Track obj) {
           if (date.equals(obj.date)) {

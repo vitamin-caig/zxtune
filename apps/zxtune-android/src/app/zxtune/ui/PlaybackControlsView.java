@@ -21,23 +21,20 @@ import app.zxtune.playback.PlaybackControl.SequenceMode;
 import app.zxtune.playback.PlaybackControlStub;
 
 class PlaybackControlsView {
-  
-  private final ImageButton prev;
+
   private final ImageButton playPause;
-  private final ImageButton next;
   private final ImageView trackMode;
   private final ImageButton sequenceMode;
   private PlaybackControl control;
 
   PlaybackControlsView(View view) {
-    this.prev = (ImageButton) view.findViewById(R.id.controls_prev);
     this.playPause = (ImageButton) view.findViewById(R.id.controls_play_pause);
-    this.next = (ImageButton) view.findViewById(R.id.controls_next);
     this.trackMode = (ImageView) view.findViewById(R.id.controls_track_mode);
     this.sequenceMode = (ImageButton) view.findViewById(R.id.controls_sequence_mode);
     
     control = PlaybackControlStub.instance();
-    
+
+    final ImageButton prev = (ImageButton) view.findViewById(R.id.controls_prev);
     prev.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {
@@ -54,6 +51,7 @@ class PlaybackControlsView {
         }
       }
     });
+    final ImageButton next = (ImageButton) view.findViewById(R.id.controls_next);
     next.setOnClickListener(new OnClickListener() {
       @Override
       public void onClick(View v) {

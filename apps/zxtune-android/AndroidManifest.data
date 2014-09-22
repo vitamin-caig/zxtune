@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<application>
+  <permissions>
+    <!-- pause/resume on incoming call start/finish -->
+    <android>READ_PHONE_STATE</android>
+    <!-- remote catalogues access -->
+    <android>INTERNET</android>
+    <android>ACCESS_NETWORK_STATE</android>
+    <!-- keep state active while scanning -->
+    <android>WAKE_LOCK</android>
+    <!-- playlists storage -->
+    <android>READ_EXTERNAL_STORAGE</android>
+    <android>WRITE_EXTERNAL_STORAGE</android>
+  </permissions>
+  <filter>
+    <!-- AY/YM -->
+    <!--  ASC sound master -->
+    <file capital="1">as0,asc</file>
+    <!--  Sound Tracker -->
+    <file capital="1">st1,stc,st3,stp</file>
+    <!--  Pro Tracker -->
+    <file capital="1">pt1,pt2,pt3</file>
+    <!--  Dumps -->
+    <file capital="1">ay,psg,vtx,ym</file>
+    <!--  Other -->
+    <file capital="1">ftc,gtr,psc,psm,sqt</file>
+    <!--  Hobeta -->
+    <file capital="1">$c,$m</file>
+    <!--  Alternative -->
+    <file>M,m,S,TS</file>
+    <!-- DAC -->
+    <!--  ZX Spectrum -->
+    <file capital="1">chi,dmm,dst,pdt,sqd,str</file>
+    <!--  PC/Amiga/etc -->
+    <file>669,amf,dbm,dmf,dtm,dtt,emod,far,fnk,gdm,gtk,mod,mtn,imf,ims,it,liq,mdl,med,mtm,okt,pt36,ptm,rtm,s3m,sfx,stim,stm,stx,tcb,ult,xm</file>
+    <!-- FM -->
+    <file capital="1">tfc,tfd,tf0,tfe</file>
+    <!-- SAA -->
+    <file capital="1">cop</file>
+    <!-- MOS6510 -->
+    <file>sid,psid,rsid</file>
+  </filter>
+</application>

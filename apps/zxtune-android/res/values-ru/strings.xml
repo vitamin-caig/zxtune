@@ -2,7 +2,7 @@
 <resources>
     <!-- menu-related -->
     <string name="prefs">Настройки</string>
-    <string name="about">О программе</string>
+    <string name="review">Оценить</string>
     <string name="quit">Выход</string>
     <!-- action-related -->
     <string name="play">Слушать</string>
@@ -11,6 +11,8 @@
     <string name="clear">Очистить</string>
     <string name="save">Сохранить</string>
     <string name="overwrite">Перезаписать</string>
+    <string name="send">Отправить</string>
+    <string name="share">Поделиться</string>
     <!-- information-related -->
     <string name="information_title">Название</string>
     <string name="information_author">Автор</string>
@@ -22,22 +24,6 @@
     <string name="scanning_failed">Ошибка сканирования: %s</string>
     <string name="scanning_title">Сканирование.</string>
     <string name="scanning_text">Клик для отмены</string>
-    <!-- about-related -->
-    <string name="about_author">
-      Идея, код: <b>Vitamin/CAIG</b>\n
-      Дизайн: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
-      Использованы исходные коды:\n
-      \tAYEmul от <b>S.Bulba</b>\n
-      \tAYFly от <b>Ander</b>\n
-      \tPusher от <b>Himik/ZxZ</b>\n
-      Использованы библиотеки:\n
-      \tboost\n
-      \tz80ex от <b>Boo-boo</b>\n
-      \tlhasa от <b>Simon Howard</b>\n
-      \tDragSortListView от <b>Carl A.Bauer</b>\n
-      \n
-      Посвящается <b>Lizzi</b>
-    </string>
     <!-- other -->
     <string name="main">Главная</string>
     <plurals name="items">
@@ -55,4 +41,6 @@
       <item quantity="other">%d треков</item>
     </plurals>
     <string name="no_tracks_found">Треки не найдены</string>
+    <string name="track">Трек</string>
+    <string name="starting">Запуск...</string>
 </resources>

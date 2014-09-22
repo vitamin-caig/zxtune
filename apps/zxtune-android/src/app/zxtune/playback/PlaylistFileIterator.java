@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+import app.zxtune.Identifier;
 import app.zxtune.R;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsFile;
@@ -52,14 +53,16 @@ final class PlaylistFileIterator implements Iterator {
     final VfsFile file = (VfsFile) root.resolve(path);
     final ReferencesIterator delegate = createDelegate(type, file.getContent());
     final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate);
-    if (!result.initialize()) {
-      throw new IOException(context.getString(R.string.no_tracks_found));
+    if (result.initialize()) {
+      return result;
     }
-    return result;
+    throw new IOException(context.getString(R.string.no_tracks_found));
   }
   
   private static Type detectType(String filename) {
-    if (filename.endsWith(".xspf")) {
+    if (filename == null) {
+      return Type.UNKNOWN;
+    } if (filename.endsWith(".xspf")) {
       return Type.XSPF;
     } else if (filename.endsWith(".ayl")) {
       return Type.AYL;
@@ -79,7 +82,7 @@ final class PlaylistFileIterator implements Iterator {
     }
   }
   
-  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate) throws IOException {
+  private PlaylistFileIterator(VfsRoot root, URI dir, ReferencesIterator delegate) {
     this.root = root;
     this.dir = dir;
     this.delegate = delegate;
@@ -130,9 +133,11 @@ final class PlaylistFileIterator implements Iterator {
         return false;//windows paths are not supported
       }
       final Uri uri = Uri.parse(dir.resolve(location).toString());
-      final VfsObject obj = root.resolve(uri);
+      Log.d(TAG, location + " => " + uri);
+      final Identifier id = new Identifier(uri);
+      final VfsObject obj = root.resolve(id.getDataLocation());
       if (obj instanceof VfsFile) {
-        item = FileIterator.loadItem((VfsFile) obj);
+        item = FileIterator.loadItem((VfsFile) obj, id.getSubpath());
         return true;
       }
     } catch (InvalidObjectException e) {

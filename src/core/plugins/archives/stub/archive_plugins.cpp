@@ -2,13 +2,13 @@
 * 
 * @file
 *
-* @brief  Stub implementation for archive plugins support
+* @brief  Archive plugins stub factory
 *
 * @author vitamin.caig@gmail.com
 *
 **/
 
-//library includes
+//local includes
 #include <core/plugins/registrator.h>
 
 namespace ZXTune

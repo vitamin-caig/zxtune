@@ -1,6 +1,6 @@
 /**
  *
- * @file
+* @file
  *
  * @brief Background playback service
  *
@@ -22,6 +22,7 @@ import android.content.res.Resources;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackServiceLocal;
 import app.zxtune.rpc.PlaybackServiceServer;
@@ -35,13 +36,23 @@ public class MainService extends Service {
   private boolean PREF_MEDIABUTTONS_DEFAULT;
   private String PREF_UNPLUGGING;
   private boolean PREF_UNPLUGGING_DEFAULT;
+  private String PREF_NOTIFICATIONBUTTONS;
+  private boolean PREF_NOTIFICATIONBUTTONS_DEFAULT;
 
   private PlaybackServiceLocal service;
   private IBinder binder;
   private Releaseable phoneCallHandler;
   private Releaseable mediaButtonsHandler;
+  private Releaseable remoteControlHandler;
   private Releaseable headphonesPlugHandler;
+  private Releaseable notificationTypeHandler;
   private Releaseable settingsChangedHandler;
+  
+  public final static String ACTION_PREV = TAG + ".prev";
+  public final static String ACTION_NEXT = TAG + ".next";
+  public final static String ACTION_PLAY = TAG + ".play";
+  public final static String ACTION_PAUSE = TAG + ".pause";
+  public final static String ACTION_PLAYPAUSE = TAG + ".playpause";
 
   @Override
   public void onCreate() {
@@ -53,19 +64,21 @@ public class MainService extends Service {
         resources.getBoolean(R.bool.pref_control_headset_mediabuttons_default);
     PREF_UNPLUGGING = resources.getString(R.string.pref_control_headset_unplugging);
     PREF_UNPLUGGING_DEFAULT = resources.getBoolean(R.bool.pref_control_headset_unplugging_default);
+    PREF_NOTIFICATIONBUTTONS = resources.getString(R.string.pref_control_notification_buttons);
+    PREF_NOTIFICATIONBUTTONS_DEFAULT = resources.getBoolean(R.bool.pref_control_notification_buttons_default);
     mediaButtonsHandler = ReleaseableStub.instance();
+    remoteControlHandler = ReleaseableStub.instance();
     headphonesPlugHandler = ReleaseableStub.instance();
+    notificationTypeHandler = ReleaseableStub.instance();
     
     service = new PlaybackServiceLocal(getApplicationContext());
-    final Intent intent = new Intent(this, MainActivity.class);
-    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    service.subscribe(new StatusNotification(this, intent));
     binder = new PlaybackServiceServer(service);
     final PlaybackControl control = service.getPlaybackControl();
     phoneCallHandler = PhoneCallHandler.subscribe(this, control);
     final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
     connectMediaButtons(prefs.getBoolean(PREF_MEDIABUTTONS, PREF_MEDIABUTTONS_DEFAULT));
     connectHeadphonesPlugging(prefs.getBoolean(PREF_UNPLUGGING, PREF_UNPLUGGING_DEFAULT));
+    setupNotification(prefs.getBoolean(PREF_NOTIFICATIONBUTTONS, PREF_NOTIFICATIONBUTTONS_DEFAULT));
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
       if (key.startsWith(ZXTune.Properties.PREFIX)) {
@@ -82,8 +95,12 @@ public class MainService extends Service {
     Log.d(TAG, "Destroying");
     settingsChangedHandler.release();
     settingsChangedHandler = null;
+    notificationTypeHandler.release();
+    notificationTypeHandler = null;
     headphonesPlugHandler.release();
     headphonesPlugHandler = null;
+    remoteControlHandler.release();
+    remoteControlHandler = null;
     mediaButtonsHandler.release();
     mediaButtonsHandler = null;
     phoneCallHandler.release();
@@ -97,15 +114,32 @@ public class MainService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     Log.d(TAG, "StartCommand called");
+    final String action = intent.getAction();
+    final PlaybackControl ctrl = service.getPlaybackControl();
+    if (ACTION_PREV.equals(action)) {
+      ctrl.prev();
+    } else if (ACTION_NEXT.equals(action)) {
+      ctrl.next();
+    } else if (ACTION_PLAY.equals(action)) {
+      ctrl.play();
+    } else if (ACTION_PAUSE.equals(action)) {
+      ctrl.stop();
+    } else if (ACTION_PLAYPAUSE.equals(action)) {
+      if (ctrl.isPlaying()) {
+        ctrl.stop();
+      } else {
+        ctrl.play();
+      }
+    }
     return START_NOT_STICKY;
   }
-
+  
   @Override
   public IBinder onBind(Intent intent) {
     Log.d(TAG, "onBind called");
     return binder;
   }
-
+  
   private void connectMediaButtons(boolean connect) {
     Log.d(TAG, "connectMediaButtons = " + connect);
     final boolean connected = mediaButtonsHandler != ReleaseableStub.instance();
@@ -113,13 +147,27 @@ public class MainService extends Service {
       mediaButtonsHandler.release();
       mediaButtonsHandler =
           connect
-              ? MediaButtonsHandler.subscribe(this, service.getPlaybackControl())
+              ? MediaButtonsHandler.subscribe(this)
+              : ReleaseableStub.instance();
+    }
+    //Remote control is impossible without media buttons control enabling, so enable it here
+    connectRemoteControl(connect);
+  }
+  
+  private void connectRemoteControl(boolean connect) {
+    Log.d(TAG, "connectRemoteControl = " + connect);
+    final boolean connected = remoteControlHandler != ReleaseableStub.instance();
+    if (connect != connected) {
+      remoteControlHandler.release();
+      remoteControlHandler =
+          connect
+              ? RemoteControl.subscribe(this, service)
               : ReleaseableStub.instance();
     }
   }
 
   private void connectHeadphonesPlugging(boolean connect) {
-    Log.d(TAG, "connectHeadPhonesPluggins = " + connect);
+    Log.d(TAG, "connectHeadPhonesPlugging = " + connect);
     final boolean connected = headphonesPlugHandler != ReleaseableStub.instance();
     if (connect != connected) {
       headphonesPlugHandler.release();
@@ -128,6 +176,14 @@ public class MainService extends Service {
               ? HeadphonesPlugHandler.subscribe(this, service.getPlaybackControl())
               : ReleaseableStub.instance();
     }
+  }
+  
+  private void setupNotification(boolean buttons) {
+    Log.d(TAG, "setupNotification buttons = " + buttons);
+    final StatusNotification.Type type = buttons 
+        ? StatusNotification.Type.WITH_CONTROLS : StatusNotification.Type.DEFAULT; 
+    final StatusNotification cb = new StatusNotification(this, type);
+    notificationTypeHandler = new CallbackSubscription(service, cb);
   }
 
   private class ChangedSettingsReceiver extends BroadcastReceiver {
@@ -145,6 +201,11 @@ public class MainService extends Service {
             intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
                 PREF_UNPLUGGING_DEFAULT);
         connectHeadphonesPlugging(use);
+      } else if (key.equals(PREF_NOTIFICATIONBUTTONS)) {
+        final boolean type = 
+            intent.getBooleanExtra(PreferencesActivity.EXTRA_PREFERENCE_VALUE,
+                PREF_NOTIFICATIONBUTTONS_DEFAULT);
+        setupNotification(type);
       } else if (key.startsWith(ZXTune.Properties.PREFIX)) {
         final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
         setProperty(key, value, ZXTune.GlobalOptions.instance());
@@ -156,7 +217,7 @@ public class MainService extends Service {
     if (value instanceof String) {
       setProperty(name, (String) value, target);
     } else if (value instanceof Long) {
-      setProperty(name, (Long) value, target);
+      setProperty(name, ((Long) value).longValue(), target);
     } else if (value instanceof Integer) {
       setProperty(name, ((Integer) value).longValue(), target);
     } else if (value instanceof Boolean) {

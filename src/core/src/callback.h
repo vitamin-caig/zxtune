@@ -31,9 +31,9 @@ namespace Module
       return Delegate.GetPluginsParameters();
     }
 
-    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, Module::Holder::Ptr holder) const
+    virtual void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const
     {
-      return Delegate.ProcessModule(location, holder);
+      return Delegate.ProcessModule(location, decoder, holder);
     }
 
     virtual Log::ProgressCallback* GetProgress() const
