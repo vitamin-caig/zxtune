@@ -5,6 +5,20 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev3100 from 22.09.2014
+
+[+] Support unpacked YM files
+[+] Support PCD6.1i packer modification
+[*] Proper size detection of PCD blocks
+[*] Improved support of CodeCruncher3 (CC3) packed blocks
+[+] zxtune-qt: shuffle playlist functionality
+[+] zxtune-qt: hotkeys for playback controls
+[+] zxtune-qt: fast navigation on playlist via letters keys
+[+] zxtune-qt: load/save currently played item and active playlist
+[*] zxtune-qt: fix lost playlist items drag'n'drop feature
+[+] zxtune-android: www.zxart.ee music catalog support
+[*] zxtune-android: do not use fixed width for current/total time panes
+
 --- Rev3077 from 30.07.2014
 
 [*] zxtune-android: fix crashes on UI activities if background service is not started yet
