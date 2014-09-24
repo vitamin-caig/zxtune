@@ -14,19 +14,18 @@ libraries.common = analysis \
                    sound strings \
                    tools
 
-libraries.3rdparty = lhasa z80ex zlib unrar
+libraries.3rdparty = lhasa xmp z80ex zlib unrar sidplayfp sidplayfp_builders_resid
 
 windows_libraries := oldnames
 
 have_gui = 1
+static_runtime = 1
 
 include_dirs := $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK
 
-$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK/Release
+$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/Release
 $(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/shared
-$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/foobar2000_component_client/Release
-$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/pfc/Release
 
-$(platform)_libraries = foobar2000_SDK shared pfc foobar2000_component_client user32
+$(platform)_libraries = sdk shared pfc foobar2000_component_client user32
 
 include $(path_step)/makefile.mak
