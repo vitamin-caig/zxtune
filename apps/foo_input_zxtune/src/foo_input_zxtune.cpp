@@ -1,5 +1,5 @@
 /*
-ZXTune foobar2000 decoder component by djdron (C) 2013
+ZXTune foobar2000 decoder component by djdron (C) 2013 - 2014
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //library includes
 #include <binary/container.h>
 #include <binary/container_factories.h>
+#include <time/stamp.h>
 #include <core/core_parameters.h>
 #include <core/module_open.h>
 #include <core/module_holder.h>
@@ -158,6 +159,13 @@ public:
 		return std::string();
 	}
 
+	double FrameDuration(Parameters::Accessor::Ptr props) const
+	{
+		Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
+		props->FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
+		return double(frameDuration) / Time::Microseconds::PER_SECOND;
+	}
+
 	void get_info(t_uint32 p_subsong, file_info & p_info,abort_callback & p_abort)
 	{
 		Module::Information::Ptr mi;
@@ -186,7 +194,8 @@ public:
 			if(!mi)
 				throw exception_io_unsupported_format();
 		}
-		double len = double(mi->FramesCount())/50;
+
+		double len = mi->FramesCount() * FrameDuration(props);
 		p_info.set_length(len);
 		Parameters::IntType size;
 		if(props->FindValue(Module::ATTR_SIZE, size))
@@ -251,7 +260,8 @@ public:
 		// IMPORTANT: convert time to sample offset with proper rounding! audio_math::time_to_samples does this properly for you.
 		t_uint64 s = audio_math::time_to_samples(p_seconds, raw_sample_rate);
 		Module::Information::Ptr mi = input_module->GetModuleInformation();
-		t_uint64 max_s = audio_math::time_to_samples(double(mi->FramesCount())/50, raw_sample_rate);
+		Parameters::Accessor::Ptr props = input_module->GetModuleProperties();
+		t_uint64 max_s = audio_math::time_to_samples(mi->FramesCount() * FrameDuration(props), raw_sample_rate);
 		if(s > max_s)
 			s = max_s;
 		input_player->Seek((size_t)s);
@@ -296,8 +306,6 @@ public:
 	PlayerWrapper::Ptr		input_player;
 
 	static_api_ptr_t<metadb> meta_db;
-//	static_api_ptr_t<library_manager> libman;
-	static_api_ptr_t<playlist_manager> plm;
 };
 
 static input_factory_t<input_zxtune> g_input_zxtune_factory;
