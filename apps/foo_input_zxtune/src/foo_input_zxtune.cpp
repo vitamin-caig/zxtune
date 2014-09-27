@@ -57,23 +57,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Since foobar2000 v1.0 having at least one of these in your DLL is mandatory to let the troubleshooter tell different versions of your component apart.
 // Note that it is possible to declare multiple components within one DLL, but it's strongly recommended to keep only one declaration per DLL.
 // As for 1.1, the version numbers are used by the component update finder to find updates; for that to work, you must have ONLY ONE declaration per DLL. If there are multiple declarations, the component is assumed to be outdated and a version number of "0" is assumed, to overwrite the component with whatever is currently on the site assuming that it comes with proper version numbers.
-DECLARE_COMPONENT_VERSION("ZX Tune Player", "0.0.3", "ZX Tune Player (C) 2008-2014 by Vitamin/CAIG.\nFoobar2000 plugin by djdron.");
+DECLARE_COMPONENT_VERSION("ZX Tune Player", "0.0.3",
+"ZX Tune Player (C) 2008 - 2014 by Vitamin/CAIG.\n"
+"based on r3100M sep 22 2014\n"
+"foobar2000 plugin by djdron (C) 2013 - 2014.\n\n"
+
+"Used source codes from:\n"
+"AYEmul from S.Bulba\n"
+"AYFly from Ander\n"
+"xPlugins from elf/2\n"
+"Pusher from Himik/ZxZ\n\n"
+
+"Used 3rdparty libraries:\n"
+"boost C++ library\n"
+"zlib from Jean-loup Gailly and Mark Adler\n"
+"z80ex from Boo-boo\n"
+"lhasa from Simon Howard\n"
+"libxmp from Claudio Matsuoka\n"
+"libsidplayfp\n"
+);
 
 // This will prevent users from renaming your component around (important for proper troubleshooter behaviors) or loading multiple instances of it.
 VALIDATE_COMPONENT_FILENAME("foo_input_zxtune.dll");
 
 static const char* file_types[] =
 {
-	// chip
-	"as0", "asc", "ay", "chi", "dmm", "dst", "gtr", "pdt", "$c", "logo1", "psg", "psm", "pt1", "pt2", "pt3", "sqd", "st1", "st3", "stc", "stp", "str", "tfc", "tfd", "tf0", "tfe", "ts", "vtx", "ym", "ftc", "psc", "sqt",
-	// arch
-	"hrp", "scl", "szx", "trd", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "$m", "$b", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs",
+	// AY/YM
+	"as0", "asc", "ay", "gtr", "$c", "logo1", "psg", "pt1", "pt2", "pt3", "st1", "st3", "stc", "stp", "ts", "vtx", "ym", "ftc", "psc", "sqt",
+	// dac
+	"pdt", "chi", "str", "dst", "sqd", "dmm", "669", "amf", "dbm", "dmf", "dtm", "dtt", "emod", "far", "fnk", "gdm", "gtk", "mod", "mtn", "imf", "ims", "it", "liq", "psm", "mdl", "med", "mtm", "okt", "pt36", "ptm", "rtm", "s3m", "sfx", "stim", "stm", "stx", "tcb", "ult", "xm",
+	// fm
+	"tfc", "tfd", "tf0", "tfe",
 	// Sam Coupe
 	"cop",
 	// C64
 	"sid",
-	// module
-	"mod", "s3m", "it", "xm",
+	// arch
+	"hrp", "scl", "szx", "trd", "cc3", "dsq", "esv", "fdi", "gam", "gamplus", "$m", "$b", "hrm", "bin", "p", "lzs", "msp", "pcd", "td0", "tlz", "tlzp", "trs",
 	// end
 	NULL
 };
@@ -252,8 +272,7 @@ public:
 		t_size deltaread_done = input_player->RenderSound(reinterpret_cast<Sound::Sample*>(m_buffer.get_ptr()), deltaread);
 		if(deltaread_done == 0) return false;//EOF
 		p_chunk.set_data_fixedpoint(m_buffer.get_ptr(),deltaread_done * raw_total_sample_width,raw_sample_rate,raw_channels,raw_bits_per_sample,audio_chunk::g_guess_channel_config(raw_channels));
-		//processed successfully, no EOF
-		return true;
+		return deltaread_done == deltaread; // EOF when deltaread_done != deltaread
 	}
 	void decode_seek(double p_seconds,abort_callback & p_abort)
 	{
