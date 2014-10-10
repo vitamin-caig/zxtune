@@ -23,10 +23,16 @@ static_runtime = 1
 
 include_dirs := $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK
 
-$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK/Release
-$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/foobar2000_component_client/Release
+ifdef release
+FOOBAR_LIB_FOLDER=Release
+else
+FOOBAR_LIB_FOLDER=Debug
+endif
+
+$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/SDK/$(FOOBAR_LIB_FOLDER)
+$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/foobar2000_component_client/$(FOOBAR_LIB_FOLDER)
 $(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/foobar2000/shared
-$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/pfc/Release
+$(platform)_libraries_dirs += $(prebuilt.dir)/SDK-2011-03-11/pfc/$(FOOBAR_LIB_FOLDER)
 
 $(platform)_libraries = foobar2000_SDK foobar2000_component_client shared pfc user32
 
