@@ -315,7 +315,7 @@ public class NowPlayingFragment extends Fragment implements PlaybackServiceConne
     
     private VfsFile openFile(Uri uri) {
       try {
-        final VfsRoot root = Vfs.createRoot(context);
+        final VfsRoot root = Vfs.getRoot();
         final VfsObject obj = root.resolve(uri);
         return obj instanceof VfsFile
           ? (VfsFile) obj

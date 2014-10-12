@@ -40,8 +40,8 @@ import app.zxtune.playback.PlaybackServiceStub;
 public class BrowserFragment extends Fragment implements PlaybackServiceConnection.Callback {
 
   private static final String TAG = BrowserFragment.class.getName();
+  private final VfsRoot root;
   private PlaybackService service;
-  private VfsRoot root;
   private BrowserState state;
   private View sources;
   private BreadCrumbsView position;
@@ -52,6 +52,7 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   }
   
   public BrowserFragment() {
+    this.root = Vfs.getRoot();
     this.service = PlaybackServiceStub.instance();
   }
 
@@ -59,7 +60,6 @@ public class BrowserFragment extends Fragment implements PlaybackServiceConnecti
   public void onAttach(Activity activity) {
     super.onAttach(activity);
     
-    root = Vfs.createRoot(activity.getApplicationContext());
     state = new BrowserState(PreferenceManager.getDefaultSharedPreferences(activity));
   }
 

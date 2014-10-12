@@ -24,10 +24,11 @@ public final class VfsIterator {
   private final LinkedList<VfsFile> files;
   private final LinkedList<VfsDir> dirs;
 
-  public VfsIterator(Context context, Uri[] paths) throws IOException {
+  //TODO: use delayed items resolving
+  public VfsIterator(Uri[] paths) throws IOException {
     this.files = new LinkedList<VfsFile>();
     this.dirs = new LinkedList<VfsDir>();
-    final VfsRoot root = Vfs.createRoot(context);
+    final VfsRoot root = Vfs.getRoot();
     for (Uri path : paths) {
       final VfsObject obj = root.resolve(path);
       if (obj == null) {

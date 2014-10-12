@@ -27,7 +27,6 @@ import app.zxtune.ZXTune.Module;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsIterator;
 
-
 public class FileIterator implements Iterator {
   
   private static final String TAG = FileIterator.class.getName();
@@ -58,7 +57,7 @@ public class FileIterator implements Iterator {
   private final ArrayDeque<CacheEntry> next;//first is current
 
   public FileIterator(Context context, Uri[] paths) throws IOException {
-    this.iterator = new VfsIterator(context, paths);
+    this.iterator = new VfsIterator(paths);
     this.prev = new ArrayDeque<CacheEntry>();
     this.next = new ArrayDeque<CacheEntry>();
     prefetch();

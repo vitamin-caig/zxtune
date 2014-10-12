@@ -123,7 +123,7 @@ public class PlaybackServiceConnection extends Fragment {
   }
   
   private Context getContext() {
-    return getActivity().getApplicationContext();
+    return getActivity();
   }
   
   private class ServiceConnectionCallback implements ServiceConnection {

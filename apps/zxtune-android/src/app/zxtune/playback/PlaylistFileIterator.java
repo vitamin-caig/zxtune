@@ -49,7 +49,7 @@ final class PlaylistFileIterator implements Iterator {
     if (type == Type.UNKNOWN) {
       return null;
     }
-    final VfsRoot root = Vfs.createRoot(context);
+    final VfsRoot root = Vfs.getRoot();
     final VfsFile file = (VfsFile) root.resolve(path);
     final ReferencesIterator delegate = createDelegate(type, file.getContent());
     final PlaylistFileIterator result = new PlaylistFileIterator(root, getParentOf(path), delegate);

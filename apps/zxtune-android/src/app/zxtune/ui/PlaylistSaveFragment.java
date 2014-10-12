@@ -47,7 +47,7 @@ public class PlaylistSaveFragment extends DialogFragment {
   @Override
   public void onAttach(Activity act) {
     super.onAttach(act);
-    storage = new XspfStorage(act.getApplicationContext());
+    storage = new XspfStorage(act);
   }
   
   @Override
@@ -63,7 +63,7 @@ public class PlaylistSaveFragment extends DialogFragment {
         public void onClick(DialogInterface dialog, int which) {
           final Bundle args = getArguments();
           final long[] ids = args != null ? args.getLongArray(IDS_KEY) : null;
-          new SavePlaylistOperation(ctx.getApplicationContext(), storage, ids)
+          new SavePlaylistOperation(ctx, storage, ids)
             .execute(name.getText().toString());
         }
       })
