@@ -145,6 +145,40 @@ final class Database {
       db.endTransaction();
     }
   }
+  
+  class CacheLifetime {
+    
+    private final String objId;
+    
+    CacheLifetime(String type, Integer id) {
+      this.objId = id != null ? String.format("%s/%d", type, id) : type;
+    }
+    
+    final boolean isExpired(TimeStamp ttl) {
+      final SQLiteDatabase db = helper.getReadableDatabase();
+      final String selection = Tables.Timestamps.Fields._id + " = '" + objId + "'";
+      final String target = "strftime('%s', 'now') - strftime('%s', " + Tables.Timestamps.Fields.stamp + ")";
+      final Cursor cursor = db.query(Tables.Timestamps.NAME, new String[] {target}, selection, 
+          null, null, null, null, null);
+      try {
+        if (cursor.moveToFirst()) {
+            final TimeStamp age = TimeStamp.createFrom(cursor.getInt(0), TimeUnit.SECONDS);
+            return age.compareTo(ttl) > 0;
+        }
+      } finally {
+        cursor.close();
+      }
+      return true;
+    }
+    
+    final void update() {
+      final ContentValues values = new ContentValues();
+      values.put(Tables.Timestamps.Fields._id.name(), objId);
+      final SQLiteDatabase db = helper.getWritableDatabase();
+      db.insertWithOnConflict(Tables.Timestamps.NAME, null/* nullColumnHack */, values,
+          SQLiteDatabase.CONFLICT_REPLACE);
+    }
+  }
 
   final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
@@ -280,54 +314,17 @@ final class Database {
           SQLiteDatabase.CONFLICT_REPLACE);
     }
   }
-
-  final void updateAuthorsTimestamp() {
-    updateTimestamp(Tables.Authors.NAME);
+  
+  final CacheLifetime getAuthorsLifetime(Integer id) {
+    return new CacheLifetime(Tables.Authors.NAME, id);
   }
   
-  final void updatePartiesTimestamp() {
-    updateTimestamp(Tables.Parties.NAME);
+  final CacheLifetime getPartiesLifetime(Integer id) {
+    return new CacheLifetime(Tables.Parties.NAME, id);
   }
   
-  final void updateTracksTimestamp() {
-    updateTimestamp(Tables.Tracks.NAME);
-  }
-  
-  private void updateTimestamp(String name) {
-    final ContentValues values = new ContentValues();
-    values.put(Tables.Timestamps.Fields._id.name(), name);
-    final SQLiteDatabase db = helper.getWritableDatabase();
-    db.insertWithOnConflict(Tables.Timestamps.NAME, null/* nullColumnHack */, values,
-        SQLiteDatabase.CONFLICT_REPLACE);
-  }
-  
-  final boolean authorsExpired(TimeStamp ttl) {
-    return checkExpired(Tables.Authors.NAME, ttl);
-  }
-
-  final boolean partiesExpired(TimeStamp ttl) {
-    return checkExpired(Tables.Parties.NAME, ttl);
-  }
-  
-  final boolean tracksExpired(TimeStamp ttl) {
-    return checkExpired(Tables.Tracks.NAME, ttl);
-  }
-  
-  private boolean checkExpired(String name, TimeStamp ttl) {
-    final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = Tables.Timestamps.Fields._id + " = '" + name + "'";
-    final String target = "strftime('%s', 'now') - strftime('%s', " + Tables.Timestamps.Fields.stamp + ")";
-    final Cursor cursor = db.query(Tables.Timestamps.NAME, new String[] {target}, selection, 
-        null, null, null, null, null);
-    try {
-      if (cursor.moveToFirst()) {
-          final TimeStamp age = TimeStamp.createFrom(cursor.getInt(0), TimeUnit.SECONDS);
-          return age.compareTo(ttl) > 0;
-      }
-    } finally {
-      cursor.close();
-    }
-    return true;
+  final CacheLifetime getTopLifetime() {
+    return new CacheLifetime(Tables.Tracks.NAME, null);
   }
   
   private static Author createAuthor(Cursor cursor) {

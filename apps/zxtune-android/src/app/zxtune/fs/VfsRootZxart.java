@@ -14,20 +14,16 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.SparseIntArray;
 import app.zxtune.R;
-import app.zxtune.TimeStamp;
-import app.zxtune.fs.VfsDir.Visitor;
+import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Party;
 import app.zxtune.fs.zxart.Track;
-import app.zxtune.fs.zxart.Author;
 import app.zxtune.ui.IconSource;
 
 public class VfsRootZxart implements VfsRoot, IconSource {
