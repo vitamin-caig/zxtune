@@ -2,19 +2,19 @@ dynamic_name := foo_input_zxtune
 path_step := ../..
 include $(path_step)/make/default.mak
 
-source_dirs := src
+source_dirs := src $(path_step)/src/core/plugins/containers
 
 libraries.common = analysis \
-                   binary binary_format formats_archived formats_packed\
-                   core core_plugins_archives core_plugins_containers core_plugins_players \
+                   binary binary_format formats_archived formats_packed \
+                   core core_plugins_archives core_plugins_players \
                    debug devices_aym devices_dac devices_fm devices_saa devices_z80 \
-                   formats_chiptune formats_packed_lha \
+                   formats_chiptune \
                    l10n_stub \
                    parameters \
                    sound strings \
                    tools
 
-libraries.3rdparty = lhasa xmp z80ex zlib unrar sidplayfp sidplayfp_builders_resid
+libraries.3rdparty = xmp z80ex sidplayfp sidplayfp_builders_resid lhasa zlib unrar
 
 windows_libraries := oldnames
 
