@@ -48,15 +48,15 @@
     <sequential>
       <exec executable="make" outputproperty="version.index" failonerror="true">
         <arg value="--quiet"/>
-        <arg value="-C"/>
-        <arg value="${top.dir}/apps/version"/>
+        <arg value="-f"/>
+        <arg value="${top.dir}/make/version.mak"/>
         <arg value="version_index"/>
       </exec>
       <!-- version.name does not work... -->
       <exec executable="make" outputproperty="version" failonerror="true">
         <arg value="--quiet"/>
-        <arg value="-C"/>
-        <arg value="${top.dir}/apps/version"/>
+        <arg value="-f"/>
+        <arg value="${top.dir}/make/version.mak"/>
         <arg value="version_name"/>
       </exec>
       <echo level="info">Current version is ${version} (${version.index})</echo>

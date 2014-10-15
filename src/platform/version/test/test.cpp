@@ -8,7 +8,7 @@
 *
 **/
 
-#include <apps/version/api.h>
+#include <platform/version/api.h>
 #include <iostream>
 
 namespace Text
@@ -18,5 +18,5 @@ namespace Text
 
 int main()
 {
-  std::cout << GetProgramVersionString() << std::endl;
+  std::cout << Platform::Version::GetProgramVersionString() << std::endl;
 }

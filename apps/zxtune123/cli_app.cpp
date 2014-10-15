@@ -16,7 +16,6 @@
 #include "source.h"
 #include <apps/base/app.h>
 #include <apps/base/parsing.h>
-#include <apps/version/api.h>
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
@@ -33,6 +32,7 @@
 #include <io/template.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
+#include <platform/version/api.h>
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
 //std includes
@@ -364,7 +364,7 @@ namespace
         }
         else if (vars.count(Text::VERSION_KEY))
         {
-          StdOut << GetProgramVersionString() << std::endl;
+          StdOut << Platform::Version::GetProgramVersionString() << std::endl;
           return true;
         }
         else if (vars.count(Text::ABOUT_KEY))

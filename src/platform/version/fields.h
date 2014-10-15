@@ -14,4 +14,10 @@
 //library includes
 #include <strings/fields.h>
 
-std::auto_ptr<Strings::FieldsSource> CreateVersionFieldsSource();
+namespace Platform
+{
+  namespace Version
+  {
+    std::auto_ptr<Strings::FieldsSource> CreateVersionFieldsSource();
+  }
+}

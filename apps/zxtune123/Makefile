@@ -20,14 +20,14 @@ libraries.common = analysis async binary binary_format \
                   formats_archived formats_chiptune formats_packed \
                   io \
                   l10n_stub \
-                  parameters platform \
+                  parameters platform platform_version \
                   sound sound_backends strings \
                   tools
 libraries.3rdparty = lhasa sidplayfp sidplayfp_builders_resid unrar xmp z80ex zlib
 
 #apps
-libraries += zxtune_app_base zxtune_app_version
-depends += $(addprefix apps/,base version)
+libraries += zxtune_app_base
+depends += apps/base
 
 #platform
 windows_libraries = advapi32 ole32 oldnames user32

@@ -9,8 +9,6 @@
 **/
 
 
-//local includes
-#include <apps/version/api.h>
 //common includes
 #include <progress_callback.h>
 //library includes
@@ -28,6 +26,7 @@
 #include <io/providers_parameters.h>
 #include <io/impl/boost_filesystem_path.h>
 #include <parameters/container.h>
+#include <platform/version/api.h>
 #include <strings/array.h>
 #include <strings/fields.h>
 #include <strings/format.h>
@@ -1104,7 +1103,7 @@ int main(int argc, char* argv[])
 
       if (vars.count(Text::VERSION_KEY))
       {
-        std::cout << GetProgramVersionString() << std::endl;
+        std::cout << Platform::Version::GetProgramVersionString() << std::endl;
         return true;
       }
       else if (vars.count(Text::HELP_KEY) || paths.empty())

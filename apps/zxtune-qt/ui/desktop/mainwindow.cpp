@@ -29,12 +29,12 @@
 #include "playlist/ui/container_view.h"
 #include "supp/playback_supp.h"
 #include "update/check.h"
-#include <apps/version/api.h>
 //common includes
 #include <contract.h>
 //library includes
 #include <core/module_attrs.h>
 #include <debug/log.h>
+#include <platform/version/api.h>
 #include <strings/format.h>
 //boost includes
 #include <boost/bind.hpp>
@@ -148,7 +148,7 @@ namespace
     virtual void StartModule(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item)
     {
       setWindowTitle(ToQString(Strings::Format(Text::TITLE_FORMAT,
-        GetProgramTitle(),
+        Platform::Version::GetProgramTitle(),
         item->GetDisplayName())));
       Playing = true;
     }
@@ -156,7 +156,7 @@ namespace
     virtual void StopModule()
     {
       Playing = false;
-      setWindowTitle(ToQString(GetProgramTitle()));
+      setWindowTitle(ToQString(Platform::Version::GetProgramTitle()));
     }
     
     virtual void ShowPreferences()

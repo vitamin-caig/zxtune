@@ -66,7 +66,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/aboutdialog.cpp" line="24"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/aboutdialog.cpp" line="25"/>
         <source>&lt;a href=&quot;mailto:%1?subject=Feedback for %2&quot;&gt;Send feedback&lt;/a&gt;</source>
         <translation>&lt;a href=&quot;mailto:%1?subject=Отзыв на %2&quot;&gt;Отправить отзыв&lt;/a&gt;</translation>
     </message>
@@ -261,24 +261,29 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Старт</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="170"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="173"/>
         <source>Pause</source>
         <translation>Пауза</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="180"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="186"/>
         <source>Stop</source>
         <translation>Стоп</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="190"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="199"/>
         <source>Previous</source>
         <translation>Назад</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="200"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="212"/>
         <source>Next</source>
         <translation>Вперед</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.ui" line="215"/>
+        <source>Alt+B</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/controls/playback_controls.cpp" line="75"/>
