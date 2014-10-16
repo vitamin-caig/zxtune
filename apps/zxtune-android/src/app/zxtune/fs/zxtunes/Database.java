@@ -38,7 +38,7 @@ final class Database {
 
   final static class Tables {
 
-    final static String DROP_QUERY = "DROP TABLE ?;";
+    final static String DROP_QUERY = "DROP TABLE IF EXISTS %s;";
 
     final static class Authors {
 
@@ -236,9 +236,12 @@ final class Database {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       Log.d(TAG, String.format("Upgrading database %d -> %d", oldVersion, newVersion));
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Authors.NAME});
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.Tracks.NAME});
-      db.execSQL(Tables.DROP_QUERY, new Object[] {Tables.AuthorsTracks.NAME});
+      final String ALL_TABLES[] = {
+          Tables.Authors.NAME, Tables.Tracks.NAME, Tables.AuthorsTracks.NAME
+      };
+      for (String table : ALL_TABLES) {
+        db.execSQL(String.format(Tables.DROP_QUERY, table));
+      }
       onCreate(db);
     }
   }
