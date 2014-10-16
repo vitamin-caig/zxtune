@@ -11,7 +11,6 @@
 //local includes
 #include "scanner_view.h"
 #include "table_view.h"
-#include "apps/base/app.h"
 #include "contextmenu.h"
 #include "playlist_view.h"
 #include "search.h"

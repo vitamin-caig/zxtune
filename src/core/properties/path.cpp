@@ -2,14 +2,14 @@
 * 
 * @file
 *
-* @brief  Playitem support implementation
+* @brief  Path properties support implementation
 *
 * @author vitamin.caig@gmail.com
 *
 **/
 
 //local includes
-#include "apps/base/playitem.h"
+#include "path.h"
 //library includes
 #include <core/module_attrs.h>
 #include <io/api.h>
@@ -128,20 +128,23 @@ namespace
   };
 }
 
-Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
+namespace Module
 {
-  try
+  Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
   {
-    const IO::Identifier::Ptr id = IO::ResolveUri(fullpath);
-    return CreatePathProperties(id);
+    try
+    {
+      const IO::Identifier::Ptr id = IO::ResolveUri(fullpath);
+      return CreatePathProperties(id);
+    }
+    catch (const Error&)
+    {
+      return boost::make_shared<UnresolvedPathPropertiesAccessor>(fullpath);
+    }
   }
-  catch (const Error&)
-  {
-    return boost::make_shared<UnresolvedPathPropertiesAccessor>(fullpath);
-  }
-}
 
-Parameters::Accessor::Ptr CreatePathProperties(IO::Identifier::Ptr id)
-{
-  return boost::make_shared<PathPropertiesAccessor>(id);
+  Parameters::Accessor::Ptr CreatePathProperties(IO::Identifier::Ptr id)
+  {
+    return boost::make_shared<PathPropertiesAccessor>(id);
+  }
 }

@@ -2,7 +2,7 @@ binary_name := zxtune123
 path_step := ../..
 include $(path_step)/make/default.mak
 
-source_files := information sound source display cli_app
+source_files := information sound source display cli_app config
 ifneq ($(findstring $(platform),windows mingw),)
 source_files += console_windows
 else ifneq ($(findstring $(platform),linux macos),)
@@ -12,22 +12,18 @@ source_files += console_$(platform)
 endif
 
 text_files := text/text
-other_text_files := text/cmdline text/messages text/conversion text/cmd_keys_local
+other_text_files := text/config text/cmdline text/messages text/conversion text/cmd_keys_local
 
 libraries.common = analysis async binary binary_format \
-                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
+                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers core_properties \
                   debug devices_aym devices_dac devices_aym_dumper devices_fm devices_saa devices_z80 \
                   formats_archived formats_chiptune formats_packed \
                   io \
                   l10n_stub \
-                  parameters platform platform_version \
+                  parameters platform platform_application platform_version \
                   sound sound_backends strings \
                   tools
 libraries.3rdparty = lhasa sidplayfp sidplayfp_builders_resid unrar xmp z80ex zlib
-
-#apps
-libraries += zxtune_app_base
-depends += apps/base
 
 #platform
 windows_libraries = advapi32 ole32 oldnames user32

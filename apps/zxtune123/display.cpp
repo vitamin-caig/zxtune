@@ -11,11 +11,11 @@
 //local includes
 #include "console.h"
 #include "display.h"
-#include <apps/base/app.h>
 //common includes
 #include <error.h>
 //library includes
 #include <parameters/template.h>
+#include <platform/application.h>
 #include <strings/format.h>
 #include <strings/template.h>
 #include <time/duration.h>

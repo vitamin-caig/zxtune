@@ -11,7 +11,6 @@
 //local includes
 #include "information.h"
 #include "sound.h"
-#include <apps/base/app.h>
 //library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
@@ -22,6 +21,7 @@
 #include <io/io_parameters.h>
 #include <io/provider.h>
 #include <io/providers_parameters.h>
+#include <platform/application.h>
 #include <sound/backend.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>

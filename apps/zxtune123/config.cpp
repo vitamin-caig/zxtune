@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include <apps/base/parsing.h>
+#include "config.h"
 //common includes
 #include <error_tools.h>
 //library includes
@@ -19,7 +19,7 @@
 #include <cctype>
 #include <fstream>
 //text includes
-#include "../text/base_text.h"
+#include "text/text.h"
 
 #define FILE_TAG 0DBA1FA8
 

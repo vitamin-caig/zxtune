@@ -13,7 +13,6 @@
 #include "ui/format.h"
 #include "ui/utils.h"
 #include "playlist/parameters.h"
-#include <apps/base/playitem.h>
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
@@ -23,6 +22,7 @@
 #include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <core/properties/path.h>
 #include <debug/log.h>
 #include <io/api.h>
 #include <parameters/merged_accessor.h>
@@ -342,7 +342,7 @@ namespace
         const Binary::Container::Ptr data = Source->GetData();
         const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(CoreParams, data, ModuleId->Subpath());
         const Module::Holder::Ptr module = Module::Open(location);
-        const Parameters::Accessor::Ptr pathParams = CreatePathProperties(ModuleId);
+        const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
         const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams);
         return Module::CreateMixedPropertiesHolder(module, moduleParams);
       }
@@ -610,7 +610,7 @@ namespace
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
       const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
-      const Parameters::Accessor::Ptr pathProps = CreatePathProperties(moduleId);
+      const Parameters::Accessor::Ptr pathProps = Module::CreatePathProperties(moduleId);
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
       const Playlist::Item::Data::Ptr playitem = boost::make_shared<DataImpl>(Attributes, itemSource, adjustedParams,

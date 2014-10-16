@@ -8,14 +8,12 @@
 *
 **/
 
-//local includes
-#include <apps/base/app.h>
 //common includes
 #include <error.h>
+//library includes
+#include <platform/application.h>
 //std includes
 #include <locale>
-//text includes
-#include "../text/base_text.h"
 
 #ifdef UNICODE
 std::basic_ostream<Char>& StdOut = std::wcout;
@@ -23,17 +21,26 @@ std::basic_ostream<Char>& StdOut = std::wcout;
 std::basic_ostream<Char>& StdOut = std::cout;
 #endif
 
-int main(int argc, char* argv[])
+int main(int argc, const char* argv[])
 {
   try
   {
     std::locale::global(std::locale(""));
-    std::auto_ptr<Application> app(Application::Create());
+    std::auto_ptr<Platform::Application> app(Platform::Application::Create());
     return app->Run(argc, argv);
   }
   catch (const Error& e)
   {
-    StdOut << e.ToString();
+    StdOut << e.ToString() << std::endl;
+    return 1;
+  }
+  catch (const std::exception& e)
+  {
+    StdOut << e.what() << std::endl;
+  }
+  catch (...)
+  {
+    StdOut << "Unhandled exception" << std::endl;
     return 1;
   }
 }

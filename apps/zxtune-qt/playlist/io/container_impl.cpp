@@ -10,11 +10,11 @@
 
 //local includes
 #include "container_impl.h"
-#include <apps/base/playitem.h>
 //common includes
 #include <contract.h>
 #include <error.h>
 //library includes
+#include <core/properties/path.h>
 #include <debug/log.h>
 #include <parameters/merged_accessor.h>
 //boost includes
@@ -155,7 +155,7 @@ namespace
 
     DelayLoadItemProvider(Playlist::Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr playlistParams, const Playlist::IO::ContainerItem& item)
       : Provider(provider)
-      , Params(Parameters::CreateMergedAccessor(CreatePathProperties(item.Path), item.AdjustedParameters, playlistParams))
+      , Params(Parameters::CreateMergedAccessor(Module::CreatePathProperties(item.Path), item.AdjustedParameters, playlistParams))
       , Path(item.Path)
     {
     }

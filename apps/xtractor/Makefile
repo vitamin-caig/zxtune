@@ -4,7 +4,15 @@ source_files := main
 
 text_files := text/text
 
-libraries.common = analysis async binary binary_format debug formats_archived formats_chiptune formats_image formats_packed io l10n_stub parameters platform platform_version strings tools
+libraries.common = analysis async \
+                   binary binary_format \
+                   debug \
+                   formats_archived formats_chiptune formats_image formats_packed \
+                   io \
+                   l10n_stub \
+                   parameters platform platform_application platform_version \
+                   strings \
+                   tools
 libraries.3rdparty = lhasa unrar zlib
 
 libraries.boost = filesystem program_options thread system

@@ -22,19 +22,15 @@ text_files := text/text
 
 #base
 libraries.common = analysis async binary binary_format \
-                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers \
+                  core core_conversion core_plugins_players core_plugins_archives core_plugins_containers core_properties \
                   devices_aym devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_chiptune formats_packed \
                   io \
-                  parameters platform platform_version \
+                  parameters platform platform_application platform_version \
                   resource \
                   sound sound_backends strings \
                   tools
 libraries.3rdparty = lhasa sidplayfp sidplayfp_builders_resid unrar xmp z80ex zlib
-
-#apps
-libraries += zxtune_app_base
-depends += apps/base
 
 #ui
 libraries += playlist_ui playlist_supp playlist_io ui_common

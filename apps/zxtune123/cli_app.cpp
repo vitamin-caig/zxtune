@@ -9,13 +9,12 @@
 **/
 
 //local includes
+#include "config.h"
 #include "console.h"
 #include "display.h"
 #include "information.h"
 #include "sound.h"
 #include "source.h"
-#include <apps/base/app.h>
-#include <apps/base/parsing.h>
 //common includes
 #include <error_tools.h>
 #include <progress_callback.h>
@@ -32,6 +31,7 @@
 #include <io/template.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
+#include <platform/application.h>
 #include <platform/version/api.h>
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
@@ -271,7 +271,7 @@ namespace
     DisplayComponent& Display;
   };
 
-  class CLIApplication : public Application
+  class CLIApplication : public Platform::Application
   {
   public:
     CLIApplication()
@@ -285,7 +285,7 @@ namespace
     {
     }
 
-    virtual int Run(int argc, char* argv[])
+    virtual int Run(int argc, const char* argv[])
     {
       try
       {
@@ -322,7 +322,7 @@ namespace
       return 0;
     }
   private:
-    bool ProcessOptions(int argc, char* argv[])
+    bool ProcessOptions(int argc, const char* argv[])
     {
       try
       {
@@ -483,7 +483,10 @@ namespace
   };
 }
 
-std::auto_ptr<Application> Application::Create()
+namespace Platform
 {
-  return std::auto_ptr<Application>(new CLIApplication());
+  std::auto_ptr<Application> Application::Create()
+  {
+    return std::auto_ptr<Application>(new CLIApplication());
+  }
 }

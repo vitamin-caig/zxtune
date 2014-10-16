@@ -26,6 +26,7 @@
 #include <io/providers_parameters.h>
 #include <io/impl/boost_filesystem_path.h>
 #include <parameters/container.h>
+#include <platform/application.h>
 #include <platform/version/api.h>
 #include <strings/array.h>
 #include <strings/fields.h>
@@ -1062,15 +1063,17 @@ namespace
   };
 }
 
-int main(int argc, char* argv[])
+class MainApplication : public Platform::Application
 {
-  if (argc < 2)
+public:
+  virtual int Run(int argc, const char* argv[])
   {
-    return 0;
-  }
-  try
-  {
-    std::locale::global(std::locale(""));
+    Strings::Array paths;
+    if (!ParseCmdline(argc, argv, paths))
+    {
+      return 1;
+    }
+
     /*
 
                                            analyseThreads                 saveThreads
@@ -1080,41 +1083,8 @@ int main(int argc, char* argv[])
                                        factory      +<-converted-+                            factory directory
 
     */
-
-    const Options opts;
-    Strings::Array paths;
-    {
-      using namespace boost::program_options;
-      options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
-      options.add_options()
-        (Text::HELP_KEY, Text::HELP_DESC)
-        (Text::VERSION_KEY, Text::VERSION_DESC)
-      ;
-      options.add(opts.GetOptionsDescription());
-      options.add_options()
-        (Text::INPUT_KEY, value<Strings::Array>(&paths), Text::INPUT_DESC)
-      ;
-      positional_options_description inputPositional;
-      inputPositional.add(Text::INPUT_KEY, -1);
-
-      variables_map vars;
-      store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
-      notify(vars);
-
-      if (vars.count(Text::VERSION_KEY))
-      {
-        std::cout << Platform::Version::GetProgramVersionString() << std::endl;
-        return true;
-      }
-      else if (vars.count(Text::HELP_KEY) || paths.empty())
-      {
-        std::cout << options << std::endl;
-        return true;
-      }
-    }
-
-    const Analysis::NodeReceiver::Ptr result = CreateTarget(opts);
-    const Analysis::NodeTransceiver::Ptr analyse = CreateAnalyser(opts);
+    const Analysis::NodeReceiver::Ptr result = CreateTarget(Opts);
+    const Analysis::NodeTransceiver::Ptr analyse = CreateAnalyser(Opts);
     const OpenPoint::Ptr input = CreateSource();
 
     input->SetTarget(analyse);
@@ -1122,13 +1092,48 @@ int main(int argc, char* argv[])
 
     std::for_each(paths.begin(), paths.end(), boost::bind(&StringsReceiver::ApplyData, input.get(), _1));
     input->Flush();
+    return 0;
   }
-  catch (const std::exception& e)
+private:
+  bool ParseCmdline(int argc, const char* argv[], Strings::Array& paths) const
   {
-    std::cout << e.what() << std::endl;
+    using namespace boost::program_options;
+    options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
+    options.add_options()
+      (Text::HELP_KEY, Text::HELP_DESC)
+      (Text::VERSION_KEY, Text::VERSION_DESC)
+    ;
+    options.add(Opts.GetOptionsDescription());
+    options.add_options()
+      (Text::INPUT_KEY, value<Strings::Array>(&paths), Text::INPUT_DESC)
+    ;
+    positional_options_description inputPositional;
+    inputPositional.add(Text::INPUT_KEY, -1);
+
+    variables_map vars;
+    store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
+    notify(vars);
+
+    if (vars.count(Text::VERSION_KEY))
+    {
+      std::cout << Platform::Version::GetProgramVersionString() << std::endl;
+      return false;
+    }
+    else if (vars.count(Text::HELP_KEY) || paths.empty())
+    {
+      std::cout << options << std::endl;
+      return false;
+    }
+    return true;
   }
-  catch (const Error& e)
+private:
+  const Options Opts;
+};
+
+namespace Platform
+{
+  std::auto_ptr<Application> Application::Create()
   {
-    std::cout << e.ToString();
+    return std::auto_ptr<Application>(new MainApplication());
   }
 }
