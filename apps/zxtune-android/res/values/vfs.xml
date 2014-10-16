@@ -33,6 +33,21 @@
     <string name="vfs_zxart_toptracks_name">Top tracks</string>
     <string name="vfs_zxart_toptracks_description">100 most voted tracks</string>
     <string name="vfs_zxart_unknown_year_name">Unknown year</string>
+    <string name="vfs_zxart_compo_unknown">Unknown compo</string>
+    <string name="vfs_zxart_compo_standard">Common music compo</string>
+    <string name="vfs_zxart_compo_ay">AY music compo</string>
+    <string name="vfs_zxart_compo_beeper">Beeper music compo</string>
+    <string name="vfs_zxart_compo_copyay">Copy AY compo</string>
+    <string name="vfs_zxart_compo_nocopyay">No-copy AY compo</string>
+    <string name="vfs_zxart_compo_realtime">Realtime compo</string>
+    <string name="vfs_zxart_compo_realtimeay">Realtime AY compo</string>
+    <string name="vfs_zxart_compo_realtimebeeper">Realtime beeper compo</string>
+    <string name="vfs_zxart_compo_out">Out of compo</string>
+    <string name="vfs_zxart_compo_wild">Wild</string>
+    <string name="vfs_zxart_compo_experimental">Experimental music compo</string>
+    <string name="vfs_zxart_compo_oldschool">Oldschool music compo</string>
+    <string name="vfs_zxart_compo_mainstream">Mainstream music compo</string>
+    <string name="vfs_zxart_compo_progressive">Progressive music compo</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>

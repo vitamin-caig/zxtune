@@ -13,6 +13,8 @@ package app.zxtune.fs;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import android.content.Context;
@@ -39,7 +41,8 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   private final static int POS_AUTHOR_YEAR_TRACK = 3;
   private final static int POS_PARTY_YEAR = 1;
   private final static int POS_PARTY_NAME = 2;
-  private final static int POS_PARTY_TRACK = 3;
+  private final static int POS_PARTY_COMPO = 3;
+  private final static int POS_PARTY_TRACK = 4;
   private final static int POS_TOP_TRACK = 1;
 
   private final static String PARAM_AUTHOR_ID = "author";
@@ -145,8 +148,13 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         .appendQueryParameter(PARAM_PARTY_ID, Integer.toString(party.id));
   }
   
-  private static Uri.Builder trackUri(Party party, Track track) {
+  private static Uri.Builder partyCompoUri(Party party, String compo) {
     return partyUri(party)
+        .appendPath(compo);
+  }
+  
+  private static Uri.Builder trackUri(Party party, String compo, Track track) {
+    return partyCompoUri(party, compo)
         .appendPath(track.filename)
         .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
   }
@@ -594,7 +602,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       catalog.queryParties(new Catalog.PartiesVisitor() {
         @Override
         public void setCountHint(int hint) {
-          visitor.onItemsCount(hint);
         }
 
         @Override
@@ -632,8 +639,10 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       }
       if (lastPathElement == POS_PARTY_NAME) {
         return new PartyDir(party);
+      } else if (lastPathElement == POS_PARTY_COMPO) {
+        return resolvePartyCompoDir(uri, party, path);
       } else if (lastPathElement == POS_PARTY_TRACK) {
-        return resolvePartyTrack(uri, party, path);
+        return resolvePartyTrack(uri, party, path.get(POS_PARTY_TRACK));
       } else {
         return null;
       }
@@ -644,8 +653,18 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       return new PartyYearDir(year);
     }
     
-    private VfsObject resolvePartyTrack(Uri uri, Party party, List<String> path) {
-      final Track track = resolveTrack(uri, party, path.get(POS_PARTY_TRACK));
+    private VfsObject resolvePartyCompoDir(Uri uri, Party party, List<String> path) {
+      final String compo = path.get(POS_PARTY_COMPO);
+      //compatibility
+      if (uri.getQueryParameter(PARAM_TRACK_ID) != null) {
+        return resolvePartyTrack(uri, party, compo);
+      } else {
+        return new PartyCompoDir(party, compo);
+      }
+    }
+    
+    private VfsObject resolvePartyTrack(Uri uri, Party party, String filename) {
+      final Track track = resolveTrack(uri, party, filename);
       if (track != null) {
         return new TrackFile(uri, track);
       } else {
@@ -722,8 +741,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
   
-  //custom ordering by partyplace
-  private class PartyDir implements VfsDir, Comparator<VfsObject> {
+  private class PartyDir implements VfsDir {
     
     private final Party party;
     
@@ -753,23 +771,117 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
+      final HashSet<String> compos = new HashSet<String>();
       catalog.queryPartyTracks(new Catalog.TracksVisitor() {
         
         @Override
         public void setCountHint(int size) {
-          visitor.onItemsCount(size);
         }
         
         @Override
         public void accept(Track obj) {
-          visitor.onFile(new PartyplacedTrackFile(trackUri(party, obj).build(), obj));
+          compos.add(obj.compo);
         }
       }, null/*id*/, party.id);
+      visitor.onItemsCount(compos.size());
+      for (String compo : compos) {
+        visitor.onDir(new PartyCompoDir(party, compo)); 
+      }
     }
 
     @Override
     public void find(String mask, Visitor visitor) {
       // TODO Auto-generated method stub
+    }
+  }
+  
+  enum CompoIdentifier {
+    unknown(R.string.vfs_zxart_compo_unknown),
+    standard(R.string.vfs_zxart_compo_standard),
+    ay(R.string.vfs_zxart_compo_ay),
+    beeper(R.string.vfs_zxart_compo_beeper),
+    copyay(R.string.vfs_zxart_compo_copyay),
+    nocopyay(R.string.vfs_zxart_compo_nocopyay),
+    realtime(R.string.vfs_zxart_compo_realtime),
+    realtimeay(R.string.vfs_zxart_compo_realtimeay),
+    realtimebeeper(R.string.vfs_zxart_compo_realtimebeeper),
+    out(R.string.vfs_zxart_compo_out),
+    wild(R.string.vfs_zxart_compo_wild),
+    experimental(R.string.vfs_zxart_compo_experimental),
+    oldschool(R.string.vfs_zxart_compo_oldschool),
+    mainstream(R.string.vfs_zxart_compo_mainstream),
+    progressive(R.string.vfs_zxart_compo_progressive);
+    
+    private final int resourceId;
+    
+    private CompoIdentifier(int id) {
+      this.resourceId = id;
+    }
+    
+    final int getResource() {
+      return resourceId;
+    }
+  
+    static CompoIdentifier getId(String val) {
+      try {
+        return CompoIdentifier.valueOf(val);
+      } catch (IllegalArgumentException e) {
+        return CompoIdentifier.unknown;
+      }
+    }
+  }
+  
+  //custom ordering by partyplace
+  private class PartyCompoDir implements VfsDir, Comparator<VfsObject> {
+    
+    private final Party party;
+    private final CompoIdentifier compo;
+
+    PartyCompoDir(Party party, String compo) {
+      this.party = party;
+      this.compo = CompoIdentifier.getId(compo);
+    }
+
+    @Override
+    public Uri getUri() {
+      return partyCompoUri(party, compo.name()).build();
+    }
+
+    @Override
+    public String getName() {
+      return context.getString(compo.getResource());
+    }
+
+    @Override
+    public String getDescription() {
+      return "";
+    }
+
+    @Override
+    public VfsDir getParent() {
+      return new PartyDir(party);
+    }
+
+    @Override
+    public void enumerate(final Visitor visitor) throws IOException {
+      catalog.queryPartyTracks(new Catalog.TracksVisitor() {
+        @Override
+        public void setCountHint(int size) {
+          visitor.onItemsCount(size);
+        }
+
+        @Override
+        public void accept(Track obj) {
+          if (compo.name().equals(obj.compo)) {
+            visitor.onFile(new PartyplacedTrackFile(trackUri(party, compo.name(), obj).build(), obj));
+          }
+        }
+      }, null/* id */, party.id);
+    }
+
+    @Override
+    public void find(String mask, Visitor visitor) {
+      // TODO
     }
 
     @Override

@@ -346,6 +346,12 @@ final class RemoteCatalog extends Catalog {
         builder.setYear(body);
       }
     });
+    item.getChild("compo").setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setCompo(body);
+      }
+    });
     item.getChild("partyplace").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
@@ -363,6 +369,7 @@ final class RemoteCatalog extends Catalog {
     private String votes;
     private String duration;
     private int year;
+    private String compo;
     private int partyplace;
 
     final void setId(String val) {
@@ -396,6 +403,10 @@ final class RemoteCatalog extends Catalog {
       }
     }
     
+    final void setCompo(String val) {
+      compo = val;
+    }
+    
     final void setPartyplace(String val) {
       try {
         partyplace = Integer.valueOf(val);
@@ -405,10 +416,10 @@ final class RemoteCatalog extends Catalog {
     }
 
     final Track captureResult() {
-      final Track res = new Track(id, filename, title, votes, duration, year, partyplace);
+      final Track res = new Track(id, filename, title, votes, duration, year, compo, partyplace);
       id = null;
       year = partyplace = 0;
-      votes = duration = title = "".intern();
+      votes = duration = title = compo = "".intern();
       filename = null;
       return res;
     }

@@ -29,6 +29,10 @@ import app.zxtune.TimeStamp;
  * duration TEXT, year INTEGER, partyplace INTEGER) 
  * CREATE TABLE {authors,parties}_tracks (hash INTEGER UNIQUE, group_id INTEGER, track_id INTEGER)
  * use hash as 1000000 * author +  * track to support multiple insertings of same pair
+ * 
+ * Version 2
+ * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, filename TEXT NOT NULL, title TEXT, votes TEXT, 
+ * duration TEXT, year INTEGER, partyplace INTEGER, compo TEXT) 
  */
 
 final class Database {
@@ -36,11 +40,11 @@ final class Database {
   final static String TAG = Database.class.getName();
 
   final static String NAME = "www.zxart.ee";
-  final static int VERSION = 1;
+  final static int VERSION = 2;
 
   final static class Tables {
 
-    final static String DROP_QUERY = "DROP TABLE ?;";
+    final static String DROP_QUERY = "DROP TABLE IF EXISTS %s;";
 
     final static class Authors {
 
@@ -71,7 +75,7 @@ final class Database {
     final static class Tracks {
 
       static enum Fields {
-        _id, filename, title, votes, duration, year, partyplace
+        _id, filename, title, votes, duration, year, compo, partyplace
       }
 
       final static String NAME = "tracks";
@@ -79,7 +83,7 @@ final class Database {
       final static String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
           + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
           + " TEXT, " + Fields.votes + " TEXT, " + Fields.duration + " INTEGER, " + Fields.year
-          + " INTEGER, " + Fields.partyplace + " INTEGER);";
+          + " INTEGER, " + Fields.compo + " TEXT, " + Fields.partyplace + " INTEGER);";
     }
     
     final static class Grouping {
@@ -364,8 +368,9 @@ final class Database {
     final String votes = cursor.getString(Tables.Tracks.Fields.votes.ordinal());
     final String duration = cursor.getString(Tables.Tracks.Fields.duration.ordinal());
     final int year = cursor.getInt(Tables.Tracks.Fields.year.ordinal());
+    final String compo = cursor.getString(Tables.Tracks.Fields.compo.ordinal());
     final int partyplace = cursor.getInt(Tables.Tracks.Fields.partyplace.ordinal());
-    return new Track(id, filename, title, votes, duration, year, partyplace);
+    return new Track(id, filename, title, votes, duration, year, compo, partyplace);
   }
 
   private static ContentValues createValues(Track obj) {
@@ -376,6 +381,7 @@ final class Database {
     res.put(Tables.Tracks.Fields.votes.name(), obj.votes);
     res.put(Tables.Tracks.Fields.duration.name(), obj.duration);
     res.put(Tables.Tracks.Fields.year.name(), obj.year);
+    res.put(Tables.Tracks.Fields.compo.name(), obj.compo);
     res.put(Tables.Tracks.Fields.partyplace.name(), obj.partyplace);
     return res;
   }
@@ -419,9 +425,7 @@ final class Database {
           Tables.Timestamps.NAME
       };
       for (String table : ALL_TABLES) {
-        db.execSQL(Tables.DROP_QUERY, new Object[] {
-          table
-        });
+        db.execSQL(String.format(Tables.DROP_QUERY, table));
       }
       onCreate(db);
     }
