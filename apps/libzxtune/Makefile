@@ -10,14 +10,11 @@ libraries.common = analysis \
                    debug devices_aym devices_dac devices_fm devices_saa devices_z80 \
                    formats_chiptune formats_packed_lha \
                    l10n_stub \
-                   parameters \
+                   parameters platform_version \
                    sound strings \
                    tools
 
 libraries.3rdparty = lhasa xmp z80ex zlib sidplayfp sidplayfp_builders_resid
-
-libraries :=  zxtune_app_version
-depends := apps/version
 
 windows_libraries := oldnames
 

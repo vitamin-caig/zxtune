@@ -11,7 +11,6 @@
 //local includes
 #define ZXTUNE_API ZXTUNE_API_EXPORT
 #include "../zxtune.h"
-#include <apps/version/api.h>
 //common includes
 #include <contract.h>
 #include <cycle_buffer.h>
@@ -25,6 +24,7 @@
 #include <core/module_holder.h>
 #include <core/module_player.h>
 #include <parameters/container.h>
+#include <platform/version/api.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <map>
@@ -253,7 +253,7 @@ namespace
 
 const char* ZXTune_GetVersion()
 {
-  static const String VERSION = ::GetProgramVersionString();
+  static const String VERSION = Platform::Version::GetProgramVersionString();
   return VERSION.c_str();
 }
 
