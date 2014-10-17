@@ -109,12 +109,12 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
     }
   }
   
-  private interface GroupsDir extends VfsDir {
-    String getPath();
-    VfsObject resolve(Uri uri, List<String> path);
+  private abstract class GroupsDir extends StubObject implements VfsDir {
+    abstract String getPath();
+    abstract VfsObject resolve(Uri uri, List<String> path);
   }
   
-  private class C64MusicRootDir implements GroupsDir {
+  private class C64MusicRootDir extends GroupsDir {
     
     private final String[] SUBDIRS = {"DEMOS", "GAMES", "MUSICIANS"};
     private final int POS_SUBDIR = POS_CATEGORY + 1;
@@ -129,11 +129,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       return "C64Music";
     }
     
-    @Override
-    public String getDescription() {
-      return "";
-    }
-
     @Override
     public VfsDir getParent() {
       return VfsRootHvsc.this;
@@ -176,7 +171,7 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       return rootUri().appendPath(getPath());
     }
     
-    private class C64MusicObject implements VfsObject {
+    private class C64MusicObject extends StubObject implements VfsObject {
 
       protected final List<String> path;
       
@@ -201,11 +196,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       @Override
       public String getName() {
         return path.get(path.size() - 1);
-      }
-      
-      @Override
-      public String getDescription() {
-        return "";
       }
     }
     
@@ -316,7 +306,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
         }
         return content;
       }
-      
     }
   }
 }

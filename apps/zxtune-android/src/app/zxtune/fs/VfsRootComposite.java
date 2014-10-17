@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 import android.net.Uri;
 
-final class VfsRootComposite implements VfsRoot {
+final class VfsRootComposite extends StubObject implements VfsRoot {
   
   private final ArrayList<VfsRoot> subRoots;
   
@@ -60,11 +60,6 @@ final class VfsRootComposite implements VfsRoot {
 
   @Override
   public String getName() {
-    return "".intern();
-  }
-
-  @Override
-  public String getDescription() {
-    return getName();
+    return getDescription();
   }
 }

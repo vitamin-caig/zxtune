@@ -60,7 +60,7 @@ final class VfsRootPlaylists implements VfsRoot {
     return SCHEME.equals(uri.getScheme()) && uri.getPathSegments().isEmpty() ? this : null;
   }
 
-  private static class PlaylistFile implements VfsFile {
+  private static class PlaylistFile extends StubObject implements VfsFile {
 
     private final Uri uri;
     private final String name;
@@ -81,13 +81,8 @@ final class VfsRootPlaylists implements VfsRoot {
     }
 
     @Override
-    public String getDescription() {
-      return "".intern();
-    }
-
-    @Override
     public String getSize() {
-      return "".intern();
+      return getDescription();
     }
 
     @Override

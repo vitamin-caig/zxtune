@@ -227,9 +227,9 @@ final class VfsRootModland implements VfsRoot, IconSource {
       return rootUri().appendPath(path);
     }
 
-    private class GroupByLetterDir implements VfsDir {
+    private class GroupByLetterDir extends StubObject implements VfsDir {
 
-      private String letter;
+      private final String letter;
 
       GroupByLetterDir(String letter) {
         this.letter = letter;
@@ -243,11 +243,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
       @Override
       public String getName() {
         return letter;
-      }
-
-      @Override
-      public String getDescription() {
-        return "".intern();
       }
 
       @Override
@@ -353,7 +348,7 @@ final class VfsRootModland implements VfsRoot, IconSource {
     }
   }
 
-  private class TrackFile implements VfsFile {
+  private class TrackFile extends StubObject implements VfsFile {
 
     private final Track track;
 
@@ -369,11 +364,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
     @Override
     public String getName() {
       return track.filename;
-    }
-
-    @Override
-    public String getDescription() {
-      return "".intern();
     }
 
     @Override

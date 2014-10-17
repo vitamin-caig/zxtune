@@ -13,7 +13,6 @@ package app.zxtune.fs;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -27,6 +26,27 @@ import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Party;
 import app.zxtune.fs.zxart.Track;
 import app.zxtune.ui.IconSource;
+
+/**
+ * Paths:
+ * 
+ * zxart:
+ * 
+ * zxart://Authors
+ * zxart://Authors/${nick}?author=${author_id}
+ * zxart://Authors/${nick}/${year}?author=${author_id}
+ * zxart://Authors/${nick}/${year}/${filename}?author=${author_id}&track=${track_id}
+ * 
+ * zxart://Parties
+ * zxart://Parties/${year}
+ * zxart://Parties/${year}/${name}?party=${party_id} 
+ * zxart://Parties/${year}/${name}/${compo}?party=${party_id} 
+ * zxart://Parties/${year}/${name}/${compo}/${filename}?party=${party_id}&track=${track_id}
+ * 
+ * zxart://Top
+ * zxart://Top/${filename}?track=${track_id}
+ *
+ */
 
 public class VfsRootZxart implements VfsRoot, IconSource {
 
@@ -180,6 +200,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   }
 
   private interface GroupsDir extends VfsDir {
+
     String getPath();
 
     VfsObject resolve(Uri uri, List<String> path);
@@ -348,13 +369,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     // Static locale-independent path of all authors' dir
     final static String PATH = "Authors";
-    private final String name;
-    private final String desc;
-
-    AllAuthorsDir() {
-      this.name = context.getString(R.string.vfs_zxart_authors_name);
-      this.desc = context.getString(R.string.vfs_zxart_authors_description);
-    }
 
     @Override
     public Uri getUri() {
@@ -363,12 +377,12 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public String getName() {
-      return name;
+      return context.getString(R.string.vfs_zxart_authors_name);
     }
 
     @Override
     public String getDescription() {
-      return desc;
+      return context.getString(R.string.vfs_zxart_authors_description);
     }
 
     @Override
@@ -493,7 +507,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
 
-  private class AuthorYearDir implements VfsDir {
+  private class AuthorYearDir extends StubObject implements VfsDir {
 
     static final String UNKNOWNYEAR_PATH = "unknown";
     private final Author author;
@@ -514,11 +528,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       return year != 0
           ? Integer.toString(year)
           : context.getString(R.string.vfs_zxart_unknown_year_name);
-    }
-
-    @Override
-    public String getDescription() {
-      return "";
     }
 
     @Override
@@ -548,13 +557,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     // Static locale-independent path of all parties' dir
     final static String PATH = "Parties";
-    private final String name;
-    private final String desc;
-
-    AllPartiesDir() {
-      this.name = context.getString(R.string.vfs_zxart_parties_name);
-      this.desc = context.getString(R.string.vfs_zxart_parties_description);
-    }
 
     @Override
     public Uri getUri() {
@@ -563,12 +565,12 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public String getName() {
-      return name;
+      return context.getString(R.string.vfs_zxart_parties_name);
     }
 
     @Override
     public String getDescription() {
-      return desc;
+      return context.getString(R.string.vfs_zxart_parties_description);
     }
 
     @Override
@@ -658,7 +660,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
   
-  private class PartyYearDir implements VfsDir {
+  private class PartyYearDir extends StubObject implements VfsDir {
     
     private final int year;
     
@@ -677,18 +679,12 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public String getDescription() {
-      return "";
-    }
-
-    @Override
     public VfsDir getParent() {
       return VfsRootZxart.this.groups[1];//TODO
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      
       catalog.queryParties(new Catalog.PartiesVisitor() {
         
         @Override
@@ -705,7 +701,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
   }
   
-  private class PartyDir implements VfsDir {
+  private class PartyDir extends StubObject implements VfsDir {
     
     private final Party party;
     
@@ -721,11 +717,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     @Override
     public String getName() {
       return party.name;
-    }
-
-    @Override
-    public String getDescription() {
-      return "";
     }
 
     @Override
@@ -791,7 +782,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   }
   
   //custom ordering by partyplace
-  private class PartyCompoDir implements VfsDir, Comparator<VfsObject> {
+  private class PartyCompoDir extends StubObject implements VfsDir, Comparator<VfsObject> {
     
     private final Party party;
     private final CompoIdentifier compo;
@@ -809,11 +800,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     @Override
     public String getName() {
       return context.getString(compo.getResource());
-    }
-
-    @Override
-    public String getDescription() {
-      return "";
     }
 
     @Override
@@ -853,13 +839,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     // Static locale-independent path of top tracks' dir
     final static String PATH = "Top";
-    private final String name;
-    private final String desc;
-
-    TopTracksDir() {
-      this.name = context.getString(R.string.vfs_zxart_toptracks_name);
-      this.desc = context.getString(R.string.vfs_zxart_toptracks_description);
-    }
 
     @Override
     public Uri getUri() {
@@ -868,12 +847,12 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public String getName() {
-      return name;
+      return context.getString(R.string.vfs_zxart_toptracks_name);
     }
 
     @Override
     public String getDescription() {
-      return desc;
+      return context.getString(R.string.vfs_zxart_toptracks_description);
     }
     
     @Override

@@ -161,7 +161,7 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     return list;
   }
 
-  private class LocalDir implements VfsDir {
+  private class LocalDir extends StubObject implements VfsDir {
 
     private final File dir;
     private final String name;
@@ -181,11 +181,6 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     @Override
     public String getName() {
       return name;
-    }
-
-    @Override
-    public String getDescription() {
-      return "".intern();
     }
 
     @Override
@@ -213,7 +208,7 @@ final class VfsRootLocal implements VfsRoot, IconSource {
     }
   }
 
-  private class LocalFile implements VfsFile {
+  private class LocalFile extends StubObject implements VfsFile {
 
     private final File file;
 
@@ -232,11 +227,6 @@ final class VfsRootLocal implements VfsRoot, IconSource {
       return file.getName();
     }
     
-    @Override
-    public String getDescription() {
-      return "".intern();
-    }
-
     @Override
     public String getSize() {
       return Formatter.formatShortFileSize(context, file.length());

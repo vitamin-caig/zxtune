@@ -310,11 +310,6 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
     // Static locale-independent path of all authors' dir
     final static String PATH = "Authors";
-    private final String name;
-
-    AllAuthorsDir() {
-      this.name = context.getString(R.string.vfs_zxtunes_authors_name);
-    }
 
     @Override
     public Uri getUri() {
@@ -323,7 +318,7 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
 
     @Override
     public String getName() {
-      return name;
+      return context.getString(R.string.vfs_zxtunes_authors_name);
     }
 
     @Override
