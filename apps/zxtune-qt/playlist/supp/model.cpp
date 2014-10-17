@@ -70,6 +70,8 @@ namespace
         return ToQString(item.GetAuthor());
       case Playlist::Model::COLUMN_TITLE:
         return ToQString(item.GetTitle());
+      case Playlist::Model::COLUMN_COMMENT:
+        return ToQString(item.GetComment());
       case Playlist::Model::COLUMN_PATH:
         return ToQString(item.GetFullPath());
       case Playlist::Model::COLUMN_SIZE:
@@ -152,6 +154,8 @@ namespace
       return CreateComparer(&Playlist::Item::Data::GetAuthor, ascending);
     case Playlist::Model::COLUMN_TITLE:
       return CreateComparer(&Playlist::Item::Data::GetTitle, ascending);
+    case Playlist::Model::COLUMN_COMMENT:
+      return CreateComparer(&Playlist::Item::Data::GetComment, ascending);
     case Playlist::Model::COLUMN_PATH:
       return CreateComparer(&Playlist::Item::Data::GetFullPath, ascending);
     case Playlist::Model::COLUMN_SIZE:

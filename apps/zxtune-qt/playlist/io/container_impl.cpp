@@ -127,6 +127,11 @@ namespace
     {
       return String();
     }
+    
+    virtual String GetComment() const
+    {
+      return String();
+    }
 
     virtual uint32_t GetChecksum() const
     {
@@ -263,6 +268,12 @@ namespace
     {
       AcquireDelegate();
       return Delegate->GetTitle();
+    }
+
+    virtual String GetComment() const
+    {
+      AcquireDelegate();
+      return Delegate->GetComment();
     }
 
     virtual uint32_t GetChecksum() const

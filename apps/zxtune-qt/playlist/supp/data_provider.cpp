@@ -501,6 +501,11 @@ namespace
       return Title;
     }
 
+    virtual String GetComment() const
+    {
+      return Comment;
+    }
+    
     virtual uint32_t GetChecksum() const
     {
       return Checksum;
@@ -556,6 +561,7 @@ namespace
         DisplayName.clear();
         Author.clear();
         Title.clear();
+        Comment.clear();
         Duration.SetCount(0);
       }
     }
@@ -565,6 +571,7 @@ namespace
       DisplayName = Attributes->GetDisplayName(props);
       Author = GetStringProperty(props, Module::ATTR_AUTHOR);
       Title = GetStringProperty(props, Module::ATTR_TITLE);
+      Comment = GetStringProperty(props, Module::ATTR_COMMENT);
       const Time::Microseconds period(GetIntProperty(props, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT));
       Duration.SetPeriod(period);
     }
@@ -580,6 +587,7 @@ namespace
     String DisplayName;
     String Author;
     String Title;
+    String Comment;
     Time::MillisecondsDuration Duration;
     mutable Error State;
   };

@@ -75,27 +75,27 @@
 <context>
     <name>Playlist::UI::View</name>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="419"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="421"/>
         <source>Add files</source>
         <translation>Добавить файлы</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="420"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="422"/>
         <source>All files (*.*)</source>
         <translation>Все файлы (*.*)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="430"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="432"/>
         <source>Add folder</source>
         <translation>Добавить папку</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="440"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="442"/>
         <source>Rename playlist</source>
         <translation>Переименовать</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="456"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="458"/>
         <source>Save playlist</source>
         <translation>Сохранить</translation>
     </message>
@@ -131,36 +131,41 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="259"/>
+        <source>Comment</source>
+        <translation>Комментарий</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="261"/>
         <source>Path</source>
         <translation>Путь</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="261"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="263"/>
         <source>Size</source>
         <translation>Размер</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="263"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="265"/>
         <source>CRC</source>
         <translation>CRC</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="265"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="267"/>
         <source>FixedCRC</source>
         <translation>CRC данных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="450"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="452"/>
         <source>Playlist with relative paths (*.xspf)</source>
         <translation>Список с относительными путями (*.xspf)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="451"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="453"/>
         <source>Playlist with absolute paths (*.xspf)</source>
         <translation>Список с абсолютными путями (*.xspf)</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="452"/>
+        <location filename="../../apps/zxtune-qt/playlist/ui/playlist_view.cpp" line="454"/>
         <source>Playlist with embedded modules&apos; data (*.xspf)</source>
         <translation>Список со встроенными модулями (*.xspf)</translation>
     </message>

@@ -255,6 +255,8 @@ namespace
         return Playlist::UI::View::tr("Author");
       case Playlist::Model::COLUMN_TITLE:
         return Playlist::UI::View::tr("Title");
+      case Playlist::Model::COLUMN_COMMENT:
+        return Playlist::UI::View::tr("Comment");
       case Playlist::Model::COLUMN_PATH:
         return Playlist::UI::View::tr("Path");
       case Playlist::Model::COLUMN_SIZE:
