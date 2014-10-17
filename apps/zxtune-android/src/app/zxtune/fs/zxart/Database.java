@@ -32,7 +32,7 @@ import app.zxtune.TimeStamp;
  * 
  * Version 2
  * CREATE TABLE tracks (_id INTEGER PRIMARY KEY, filename TEXT NOT NULL, title TEXT, votes TEXT, 
- * duration TEXT, year INTEGER, partyplace INTEGER, compo TEXT) 
+ * duration TEXT, year INTEGER, compo TEXT, partyplace INTEGER) 
  */
 
 final class Database {
@@ -153,12 +153,14 @@ final class Database {
   class CacheLifetime {
     
     private final String objId;
+    private final TimeStamp TTL;
     
-    CacheLifetime(String type, Integer id) {
+    CacheLifetime(String type, Integer id, TimeStamp ttl) {
       this.objId = id != null ? String.format("%s/%d", type, id) : type;
+      this.TTL = ttl;
     }
     
-    final boolean isExpired(TimeStamp ttl) {
+    final boolean isExpired() {
       final SQLiteDatabase db = helper.getReadableDatabase();
       final String selection = Tables.Timestamps.Fields._id + " = '" + objId + "'";
       final String target = "strftime('%s', 'now') - strftime('%s', " + Tables.Timestamps.Fields.stamp + ")";
@@ -167,7 +169,7 @@ final class Database {
       try {
         if (cursor.moveToFirst()) {
             final TimeStamp age = TimeStamp.createFrom(cursor.getInt(0), TimeUnit.SECONDS);
-            return age.compareTo(ttl) > 0;
+            return age.compareTo(TTL) > 0;
         }
       } finally {
         cursor.close();
@@ -242,26 +244,30 @@ final class Database {
         SQLiteDatabase.CONFLICT_REPLACE);
   }
   
-  final boolean queryAuthorTracks(Catalog.TracksVisitor visitor, Integer id, Integer author) {
+  final boolean queryTrack(Catalog.TracksVisitor visitor, int id) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection =
-        id != null ? createSingleTrackSelection(id) : createAuthorTracksSelection(author);
-    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
-    return queryTracks(cursor, visitor);
-  }
-
-  final boolean queryPartyTracks(Catalog.TracksVisitor visitor, Integer id, Integer party) {
-    final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection =
-        id != null ? createSingleTrackSelection(id) : createPartyTracksSelection(party);
+    final String selection = createSingleTrackSelection(id);
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
     return queryTracks(cursor, visitor);
   }
   
-  final boolean queryTopTracks(Catalog.TracksVisitor visitor, Integer id, int limit) {
+  final boolean queryAuthorTracks(Catalog.TracksVisitor visitor, Author author) {
     final SQLiteDatabase db = helper.getReadableDatabase();
-    final String selection = id != null ? createSingleTrackSelection(id) : null;
-    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, 
+    final String selection = createAuthorTracksSelection(author);
+    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
+    return queryTracks(cursor, visitor);
+  }
+
+  final boolean queryPartyTracks(Catalog.TracksVisitor visitor, Party party) {
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final String selection = createPartyTracksSelection(party);
+    final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
+    return queryTracks(cursor, visitor);
+  }
+  
+  final boolean queryTopTracks(Catalog.TracksVisitor visitor, int limit) {
+    final SQLiteDatabase db = helper.getReadableDatabase();
+    final Cursor cursor = db.query(Tables.Tracks.NAME, null, null, null, null, null, 
         Tables.Tracks.Fields.votes.name() + " DESC", Integer.toString(limit));
     return queryTracks(cursor, visitor);
   }
@@ -287,12 +293,12 @@ final class Database {
     return Tables.Tracks.Fields._id + " = " + id;
   }
 
-  private static String createAuthorTracksSelection(int author) {
-    return createTracksSelection(Tables.AuthorsTracks.NAME, author);
+  private static String createAuthorTracksSelection(Author author) {
+    return createTracksSelection(Tables.AuthorsTracks.NAME, author.id);
   }
 
-  private static String createPartyTracksSelection(int author) {
-    return createTracksSelection(Tables.PartiesTracks.NAME, author);
+  private static String createPartyTracksSelection(Party party) {
+    return createTracksSelection(Tables.PartiesTracks.NAME, party.id);
   }
   
   private static String createTracksSelection(String tableName, int group) {
@@ -319,16 +325,16 @@ final class Database {
     }
   }
   
-  final CacheLifetime getAuthorsLifetime(Integer id) {
-    return new CacheLifetime(Tables.Authors.NAME, id);
+  final CacheLifetime getAuthorsLifetime(Integer id, TimeStamp ttl) {
+    return new CacheLifetime(Tables.Authors.NAME, id, ttl);
   }
   
-  final CacheLifetime getPartiesLifetime(Integer id) {
-    return new CacheLifetime(Tables.Parties.NAME, id);
+  final CacheLifetime getPartiesLifetime(Integer id, TimeStamp ttl) {
+    return new CacheLifetime(Tables.Parties.NAME, id, ttl);
   }
   
-  final CacheLifetime getTopLifetime() {
-    return new CacheLifetime(Tables.Tracks.NAME, null);
+  final CacheLifetime getTopLifetime(TimeStamp ttl) {
+    return new CacheLifetime(Tables.Tracks.NAME, null, ttl);
   }
   
   private static Author createAuthor(Cursor cursor) {

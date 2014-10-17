@@ -70,11 +70,11 @@ final class RemoteCatalog extends Catalog {
   }
 
   @Override
-  public void queryAuthorTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException {
+  public void queryAuthorTracks(TracksVisitor visitor, Author author, Integer id) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
     } else {
-      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author));
+      queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
     }
   }
 
@@ -86,11 +86,11 @@ final class RemoteCatalog extends Catalog {
     performQuery(connection, root);
   }
   
-  public void queryPartyTracks(TracksVisitor visitor, Integer id, Integer party) throws IOException {
+  public void queryPartyTracks(TracksVisitor visitor, Party party, Integer id) throws IOException {
     if (id != null) {
       queryTracks(visitor, String.format(Locale.US, TRACK_QUERY, id));
     } else {
-      queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party));
+      queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
     }
   }
   

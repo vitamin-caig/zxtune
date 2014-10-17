@@ -315,7 +315,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       // callers doesn't know that author and year is useless now
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryAuthorTracks(visitor, id, author.id);
+      catalog.queryAuthorTracks(visitor, author, id);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",
@@ -335,7 +335,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       // callers doesn't know that party is useless
       final int id = Integer.parseInt(uri.getQueryParameter(PARAM_TRACK_ID));
       final FindTrackVisitor visitor = new FindTrackVisitor();
-      catalog.queryPartyTracks(visitor, id, party.id);
+      catalog.queryPartyTracks(visitor, party, id);
       final Track result = visitor.getResult();
       if (!result.filename.equals(filename)) {
         Log.d(TAG, String.format("Real track id=%d filename (%s) differs from requested (%s)",
@@ -498,7 +498,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         public void accept(Track obj) {
           years.put(obj.year, 1 + years.get(obj.year));
         }
-      }, null/* id */, author.id);
+      }, author, null/*id*/);
       visitor.onItemsCount(years.size());
       for (int i = 0, lim = years.size(); i != lim; ++i) {
         //handle count when required
@@ -549,7 +549,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             visitor.onFile(new TrackFile(trackUri(author, year, obj).build(), obj));
           }
         }
-      }, null/* id */, author.id);
+      }, author, null/* id */);
     }
   }
 
@@ -737,7 +737,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         public void accept(Track obj) {
           compos.add(obj.compo);
         }
-      }, null/*id*/, party.id);
+      }, party, null/*id*/);
       visitor.onItemsCount(compos.size());
       for (String compo : compos) {
         visitor.onDir(new PartyCompoDir(party, compo)); 
@@ -821,7 +821,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
             visitor.onFile(new PartyplacedTrackFile(trackUri(party, compo.name(), obj).build(), obj));
           }
         }
-      }, null/* id */, party.id);
+      }, party, null/* id */);
     }
 
     @Override

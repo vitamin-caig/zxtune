@@ -18,20 +18,21 @@ import android.content.Context;
 import android.util.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.VfsCache;
+import app.zxtune.fs.zxart.Database.CacheLifetime;
 
 final class CachingCatalog extends Catalog {
-  
-  private final static String TAG = CachingCatalog.class.getName(); 
+
+  private final static String TAG = CachingCatalog.class.getName();
   private final static String CACHE_DIR_NAME = "www.zxart.ee";
-  
-  private final TimeStamp AUTHORS_TTL = days(7); 
+
+  private final TimeStamp AUTHORS_TTL = days(7);
   private final TimeStamp PARTIES_TTL = days(60);
   private final TimeStamp TOP_TTL = days(1);
-  
+
   private static TimeStamp days(int val) {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
-  
+
   private final VfsCache cacheDir;
   private final Catalog remote;
   private final Database db;
@@ -42,123 +43,147 @@ final class CachingCatalog extends Catalog {
     this.db = db;
   }
 
-  @Override
-  public void queryAuthors(AuthorsVisitor visitor, Integer id) throws IOException {
-    final Database.CacheLifetime lifetime = db.getAuthorsLifetime(null);
-    if (lifetime.isExpired(AUTHORS_TTL)
-        || !db.queryAuthors(visitor, id)) {
+  private interface QueryCommand {
+    Database.CacheLifetime getLifetime();
+
+    boolean queryFromCache();
+
+    void queryFromRemote() throws IOException;
+  }
+
+  private void executeQuery(QueryCommand cmd) throws IOException {
+    final Database.CacheLifetime lifetime = cmd.getLifetime();
+    if (lifetime.isExpired() || !cmd.queryFromCache()) {
       IOException remoteError = null;
-      Log.d(TAG, "Authors cache is empty/expired for id=" + id);
       final Database.Transaction transaction = db.startTransaction();
       try {
+        cmd.queryFromRemote();
+        lifetime.update();
+        transaction.succeed();
+      } catch (IOException e) {
+        remoteError = e;
+      } finally {
+        transaction.finish();
+      }
+      if (!cmd.queryFromCache() && remoteError != null) {
+        throw remoteError;
+      }
+    }
+  }
+
+  @Override
+  public void queryAuthors(final AuthorsVisitor visitor, final Integer id) throws IOException {
+    executeQuery(new QueryCommand() {
+      @Override
+      public Database.CacheLifetime getLifetime() {
+        return db.getAuthorsLifetime(null, AUTHORS_TTL);
+      }
+
+      @Override
+      public boolean queryFromCache() {
+        return db.queryAuthors(visitor, id);
+      }
+
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Authors cache is empty/expired for id=" + id);
         remote.queryAuthors(new CachingAuthorsVisitor(), null);
-        lifetime.update();
-        transaction.succeed();
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
       }
-      if (!db.queryAuthors(visitor, id) && remoteError != null) {
-        throw remoteError;
-      }
-    }
+    });
   }
 
   @Override
-  public void queryAuthorTracks(TracksVisitor visitor, Integer id, Integer author)
+  public void queryAuthorTracks(final TracksVisitor visitor, final Author author, final Integer id)
       throws IOException {
-    final Database.CacheLifetime lifetime = db.getAuthorsLifetime(author);
-    if (lifetime.isExpired(AUTHORS_TTL)
-        || !db.queryAuthorTracks(visitor, id, author)) {
-      IOException remoteError = null;
-      Log.d(TAG, "Tracks cache is empty/expired for id=" + id + " author=" + author);
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        remote.queryAuthorTracks(new CachingTracksVisitor(author, null), null, author);
-        lifetime.update();
-        transaction.succeed();
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
+    executeQuery(new QueryCommand() {
+      @Override
+      public CacheLifetime getLifetime() {
+        return db.getAuthorsLifetime(author.id, AUTHORS_TTL);
       }
-      if (!db.queryAuthorTracks(visitor, id, author) && remoteError != null) {
-        throw remoteError;
+
+      @Override
+      public boolean queryFromCache() {
+        return id != null
+            ? db.queryTrack(visitor, id)
+            : db.queryAuthorTracks(visitor, author);
       }
-    }
+
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Tracks cache is empty/expired for id=" + id + " author=" + author);
+        remote.queryAuthorTracks(new CachingTracksVisitor(author), author, null);
+      }
+    });
   }
 
   @Override
-  public void queryParties(PartiesVisitor visitor, Integer id) throws IOException {
-    final Database.CacheLifetime lifetime = db.getPartiesLifetime(null);
-    if (lifetime.isExpired(PARTIES_TTL)
-        || !db.queryParties(visitor, id)) {
-      IOException remoteError = null;
-      Log.d(TAG, "Parties cache is empty/expired for id=" + id);
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        //query all
+  public void queryParties(final PartiesVisitor visitor, final Integer id) throws IOException {
+    executeQuery(new QueryCommand() {
+      @Override
+      public CacheLifetime getLifetime() {
+        return db.getPartiesLifetime(null, PARTIES_TTL);
+      }
+
+      @Override
+      public boolean queryFromCache() {
+        return db.queryParties(visitor, id);
+      }
+
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Parties cache is empty/expired for id=" + id);
         remote.queryParties(new CachingPartiesVisitor(), null);
-        lifetime.update();
-        transaction.succeed();
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
       }
-      if (!db.queryParties(visitor, id) && remoteError != null) {
-        throw remoteError;
-      }
-    }
+    });
   }
 
   @Override
-  public void queryPartyTracks(TracksVisitor visitor, Integer id, Integer party) throws IOException {
-    final Database.CacheLifetime lifetime = db.getPartiesLifetime(party);
-    if (lifetime.isExpired(PARTIES_TTL)
-        || !db.queryPartyTracks(visitor, id, party)) {
-      IOException remoteError = null;
-      Log.d(TAG, "Tracks cache is empty/expired for id=" + id + " party=" + party);
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        remote.queryPartyTracks(new CachingTracksVisitor(null, party), null, party);
-        lifetime.update();
-        transaction.succeed();
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
+  public void queryPartyTracks(final TracksVisitor visitor, final Party party, final Integer id)
+      throws IOException {
+    executeQuery(new QueryCommand() {
+      @Override
+      public CacheLifetime getLifetime() {
+        return db.getPartiesLifetime(party.id, PARTIES_TTL);
       }
-      if (!db.queryPartyTracks(visitor, id, party) && remoteError != null) {
-        throw remoteError;
+
+      @Override
+      public boolean queryFromCache() {
+        return id != null
+            ? db.queryTrack(visitor, id)
+            : db.queryPartyTracks(visitor, party);
       }
-    }
+
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Tracks cache is empty/expired for id=" + id + " party=" + party);
+        remote.queryPartyTracks(new CachingTracksVisitor(party), party, null);
+      }
+    });
   }
 
   @Override
-  public void queryTopTracks(TracksVisitor visitor, Integer id, int limit) throws IOException {
-    final Database.CacheLifetime lifetime = db.getTopLifetime();
-    if (lifetime.isExpired(TOP_TTL)
-        || !db.queryTopTracks(visitor, id, limit)) {
-      IOException remoteError = null;
-      Log.d(TAG, "Top tracks cache is empty/expired");
-      final Database.Transaction transaction = db.startTransaction();
-      try {
-        remote.queryTopTracks(new CachingTracksVisitor(null, null), id, limit);
-        lifetime.update();
-        transaction.succeed();
-      } catch (IOException e) {
-        remoteError = e;
-      } finally {
-        transaction.finish();
+  public void queryTopTracks(final TracksVisitor visitor, final Integer id, final int limit) throws IOException {
+    executeQuery(new QueryCommand() {
+      @Override
+      public CacheLifetime getLifetime() {
+        return db.getTopLifetime(TOP_TTL);
       }
-      if (!db.queryTopTracks(visitor, id, limit) && remoteError != null) {
-        throw remoteError;
+      
+      @Override
+      public boolean queryFromCache() {
+        return id != null
+          ? db.queryTrack(visitor, id)
+          : db.queryTopTracks(visitor, limit);
       }
-    }
+
+      @Override
+      public void queryFromRemote() throws IOException {
+        Log.d(TAG, "Top tracks cache is empty/expired");
+        remote.queryTopTracks(new CachingTracksVisitor(), id, limit);
+      }
+    });
   }
-  
+
   @Override
   public ByteBuffer getTrackContent(int id) throws IOException {
     final String strId = Integer.toString(id);
@@ -173,7 +198,7 @@ final class CachingCatalog extends Catalog {
   }
 
   private class CachingAuthorsVisitor implements AuthorsVisitor {
-    
+
     @Override
     public void setCountHint(int hint) {
     }
@@ -189,7 +214,7 @@ final class CachingCatalog extends Catalog {
   }
 
   private class CachingPartiesVisitor implements PartiesVisitor {
-    
+
     @Override
     public void setCountHint(int hint) {
     }
@@ -203,21 +228,31 @@ final class CachingCatalog extends Catalog {
       }
     }
   }
-  
+
   private class CachingTracksVisitor implements TracksVisitor {
 
     private final Integer author;
     private final Integer party;
-    
-    private CachingTracksVisitor(Integer author, Integer party) {
-      this.author = author;
-      this.party = party;
+
+    CachingTracksVisitor(Author author) {
+      this.author = author.id;
+      this.party = null;
     }
-    
+
+    CachingTracksVisitor(Party party) {
+      this.author = null;
+      this.party = party.id;
+    }
+
+    CachingTracksVisitor() {
+      this.author = null;
+      this.party = null;
+    }
+
     @Override
     public void setCountHint(int hint) {
     }
-    
+
     @Override
     public void accept(Track obj) {
       try {

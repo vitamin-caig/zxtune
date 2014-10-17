@@ -48,10 +48,10 @@ public abstract class Catalog {
   /**
    * Query tracks objects
    * @param visitor result receiver
+   * @param author tracks owner
    * @param id filter by id. If not null, author filter may be ignored (but required for cache)
-   * @param author filter by author
    */
-  public abstract void queryAuthorTracks(TracksVisitor visitor, Integer id, Integer author) throws IOException;
+  public abstract void queryAuthorTracks(TracksVisitor visitor, Author author, Integer id) throws IOException;
 
   /**
    * Query parties object
@@ -63,10 +63,10 @@ public abstract class Catalog {
   /**
    * Query tracks objects
    * @param visitor result receiver
-   * @param id filter by id. If not null, party filter may be ignored (but required for cache)
    * @param party filter by party
+   * @param id filter by id. If not null, party filter may be ignored (but required for cache)
    */
-  public abstract void queryPartyTracks(TracksVisitor visitor, Integer id, Integer party) throws IOException;
+  public abstract void queryPartyTracks(TracksVisitor visitor, Party party, Integer id) throws IOException;
   
   /**
    * Query top tracks (not cached
