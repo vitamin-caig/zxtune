@@ -101,11 +101,6 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
   public void enumerate(Visitor visitor) {
     visitor.onDir(allAuthors);
   }
-
-  @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
   
   @Override
   public VfsObject resolve(Uri uri) {
@@ -355,11 +350,6 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
         }
       }, null);
     }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
-    }
   }
 
   private class AuthorDir implements VfsDir {
@@ -411,11 +401,6 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
       for (int i = 0, lim = dates.size(); i != lim; ++i) {
         visitor.onDir(new AuthorDateDir(author, dates.keyAt(i), dates.valueAt(i)));
       }
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
     }
 
     private boolean isEmptyDate(Integer date) {
@@ -474,11 +459,6 @@ final class VfsRootZxtunes implements VfsRoot, IconSource {
           }
         }
       }, null/*id*/, author.id);
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO
     }
   }
 

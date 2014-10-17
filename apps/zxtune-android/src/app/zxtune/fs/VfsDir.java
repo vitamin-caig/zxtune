@@ -45,11 +45,4 @@ public interface VfsDir extends VfsObject {
    * @param visitor Callback
    */
   public void enumerate(Visitor visitor) throws IOException;
-
-  /**
-   * Search for objects matching criteria
-   * @param mask Part of object name
-   * @param visitor Callback
-   */
-  public void find(String mask, Visitor visitor);
 }

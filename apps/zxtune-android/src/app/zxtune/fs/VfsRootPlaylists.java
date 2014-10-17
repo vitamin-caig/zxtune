@@ -56,9 +56,6 @@ final class VfsRootPlaylists implements VfsRoot {
   }
 
   @Override
-  public void find(String mask, Visitor visitor) {}
-
-  @Override
   public VfsObject resolve(Uri uri) throws IOException {
     return SCHEME.equals(uri.getScheme()) && uri.getPathSegments().isEmpty() ? this : null;
   }

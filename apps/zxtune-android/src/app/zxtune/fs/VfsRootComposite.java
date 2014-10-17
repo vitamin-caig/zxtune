@@ -54,13 +54,6 @@ final class VfsRootComposite implements VfsRoot {
   }
 
   @Override
-  public void find(String mask, Visitor visitor) {
-    for (VfsRoot root : subRoots) {
-      root.find(mask, visitor);
-    }
-  }
-
-  @Override
   public Uri getUri() {
     return Uri.EMPTY;
   }

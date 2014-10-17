@@ -78,11 +78,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
   }
 
   @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
-
-  @Override
   public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -149,11 +144,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
       for (String dir : SUBDIRS) {
         visitor.onDir(new C64MusicSubdir(dir));
       }
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
     }
 
     @Override
@@ -278,11 +268,6 @@ final class VfsRootHvsc implements VfsRoot, IconSource {
         final int ENTRY_SIZE = 200;
         final int AUX_SIZE = 960;
         return size > AUX_SIZE ? (size - AUX_SIZE) / ENTRY_SIZE : 0;
-      }
-
-      @Override
-      public void find(String mask, Visitor visitor) {
-        //TODO
       }
 
       private VfsDir makeNestedDir(String name) {

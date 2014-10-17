@@ -71,11 +71,6 @@ final class VfsRootLocal implements VfsRoot, IconSource {
   }
 
   @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
-  
-  @Override
   public VfsObject resolve(Uri uri) {
     if (SCHEME.equals(uri.getScheme())) {
       final String path = uri.getPath();
@@ -126,8 +121,7 @@ final class VfsRootLocal implements VfsRoot, IconSource {
   private static List<String> getExternalStorageDirectories() {
     try {
       return readMountPoints();
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
     }
     return Collections.emptyList();
   }
@@ -216,11 +210,6 @@ final class VfsRootLocal implements VfsRoot, IconSource {
           visitor.onFile(buildFile(file));
         }
       }
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
     }
   }
 

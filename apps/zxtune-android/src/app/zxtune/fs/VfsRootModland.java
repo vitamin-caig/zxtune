@@ -117,11 +117,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
   }
 
   @Override
-  public void find(String mask, Visitor visitor) {
-    //TODO
-  }
-
-  @Override
   public VfsObject resolve(Uri uri) throws IOException {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -215,11 +210,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
       }
     }
 
-    @Override
-    public void find(String mask, Visitor visitor) {
-      //TODO
-    }
-
     final VfsObject resolve(Uri uri, List<String> path) {
       if (POS_CATEGORY == path.size() - 1) {
         return this;
@@ -279,11 +269,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
             visitor.onDir(new GroupDir(obj));
           }
         });
-      }
-
-      @Override
-      public void find(String mask, Visitor visitor) {
-        //TODO
       }
 
       final VfsObject resolve(Uri uri, List<String> path) {
@@ -349,11 +334,6 @@ final class VfsRootModland implements VfsRoot, IconSource {
               visitor.onFile(new TrackFile(obj));
             }
           });
-        }
-
-        @Override
-        public void find(String mask, Visitor visitor) {
-          //TODO
         }
 
         final VfsObject resolve(Uri uri, List<String> path) {

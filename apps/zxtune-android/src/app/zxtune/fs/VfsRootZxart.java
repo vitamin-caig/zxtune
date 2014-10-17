@@ -91,11 +91,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   }
 
   @Override
-  public void find(String mask, Visitor visitor) {
-    // TODO
-  }
-
-  @Override
   public VfsObject resolve(Uri uri) {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
@@ -397,11 +392,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO
-    }
-
-    @Override
     public String getPath() {
       return PATH;
     }
@@ -501,11 +491,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         visitor.onDir(new AuthorYearDir(author, years.keyAt(i)));
       }
     }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO
-    }
   }
 
   private class AuthorYearDir implements VfsDir {
@@ -557,11 +542,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
         }
       }, null/* id */, author.id);
     }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO
-    }
   }
 
   private class AllPartiesDir implements GroupsDir {
@@ -611,13 +591,8 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       }, null/*id*/);
       visitor.onItemsCount(years.size());
       for (int i = 0, lim = years.size(); i != lim; ++i) {
-        visitor.onDir(new PartyYearDir(years.keyAt(i), years.valueAt(i))); 
+        visitor.onDir(new PartyYearDir(years.keyAt(i))); 
       }
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO
     }
 
     @Override
@@ -686,17 +661,11 @@ public class VfsRootZxart implements VfsRoot, IconSource {
   private class PartyYearDir implements VfsDir {
     
     private final int year;
-    private final int count;
-    
-    PartyYearDir(int year, int count) {
-      this.year = year;
-      this.count = count;
-    }
     
     PartyYearDir(int year) {
-      this(year, 0);
+      this.year = year;
     }
-
+    
     @Override
     public Uri getUri() {
       return partyYearUri(year).build();
@@ -714,7 +683,7 @@ public class VfsRootZxart implements VfsRoot, IconSource {
 
     @Override
     public VfsDir getParent() {
-      return VfsRootZxart.this.groups[1];
+      return VfsRootZxart.this.groups[1];//TODO
     }
 
     @Override
@@ -733,11 +702,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
           }
         }
       }, null/*id*/);
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO Auto-generated method stub
     }
   }
   
@@ -787,11 +751,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
       for (String compo : compos) {
         visitor.onDir(new PartyCompoDir(party, compo)); 
       }
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO Auto-generated method stub
     }
   }
   
@@ -880,11 +839,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
     }
 
     @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO
-    }
-
-    @Override
     public int compare(VfsObject lh, VfsObject rh) {
       final int lhPlace = ((TrackFile)lh).module.partyplace;
       final int rhPlace = ((TrackFile)rh).module.partyplace;
@@ -941,11 +895,6 @@ public class VfsRootZxart implements VfsRoot, IconSource {
           visitor.onFile(new VotedTrackFile(topTrackUri(obj).build(), obj));
         }
       }, null/*id*/, 100);
-    }
-
-    @Override
-    public void find(String mask, Visitor visitor) {
-      // TODO Auto-generated method stub
     }
 
     @Override
