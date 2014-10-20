@@ -30,6 +30,21 @@
     <string name="vfs_zxart_toptracks_name">Top-Tonspuren</string>
     <string name="vfs_zxart_toptracks_description">100 Tonspuren mit den meisten Stimmen</string>
     <string name="vfs_zxart_unknown_year_name">Unbekanntes Jahr</string>
+    <string name="vfs_zxart_compo_unknown">Unbekannt Wettbewerb</string>
+    <string name="vfs_zxart_compo_standard">Standard-Musik-Wettbewerb</string>
+    <string name="vfs_zxart_compo_ay">AY Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_beeper">Piepser Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_copyay">Kopieren AY Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_nocopyay">No-Kopie AY Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_realtime">Echtzeit-Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_realtimeay">Echtzeit-AY Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_realtimebeeper">Echtzeit-Piepser Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_out">Außer Konkurrenz</string>
+    <string name="vfs_zxart_compo_wild">Wild</string>
+    <string name="vfs_zxart_compo_experimental">Experimentelle Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_oldschool">Oldschool-Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_mainstream">Mainstream-Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_progressive">Progressive Musikwettbewerb</string>
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Konnte zu lösen %s</string>
